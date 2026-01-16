@@ -9,7 +9,6 @@ This module implements the SFMS temperature interpolation workflow:
 """
 
 import logging
-import uuid
 from datetime import datetime
 from typing import List, Optional
 import numpy as np
@@ -19,7 +18,6 @@ from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import StationTemperature
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from app.sfms.sfms_common import (
     fetch_station_observations,
     log_interpolation_stats,
@@ -137,79 +135,58 @@ def interpolate_temperature_to_raster(
         y_size = ref_ds.ds.RasterYSize
 
         with WPSDataset(dem_path) as dem_ds:
+            dem_band: gdal.Band = dem_ds.ds.GetRasterBand(1)
+            dem_data = dem_band.ReadAsArray()
+            if dem_data is None:
+                raise ValueError("Failed to read DEM data")
+
+            temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
+
+            valid_mask = dem_ds.get_valid_mask()
+
+            # Apply BC mask if provided
+            if mask_path is not None:
+                with WPSDataset(mask_path) as mask_ds:
+                    bc_mask = ref_ds.apply_mask(mask_ds)
+                    valid_mask = valid_mask & bc_mask
+
+            lats, lons, valid_yi, valid_xi = dem_ds.get_lat_lon_coords(valid_mask)
+            valid_elevations = dem_data[valid_mask]
+
+            total_pixels = x_size * y_size
+            skipped_nodata_count = total_pixels - len(valid_yi)
+
+            logger.info("Interpolating temperature for raster grid (%d x %d)", x_size, y_size)
             logger.info(
-                "Resampling DEM from (%d x %d) to match reference (%d x %d)",
-                dem_ds.ds.RasterXSize,
-                dem_ds.ds.RasterYSize,
-                x_size,
-                y_size,
+                "Processing %d valid pixels (skipping %d NoData pixels)",
+                len(valid_yi),
+                skipped_nodata_count,
             )
 
-            vsimem_path = f"/vsimem/temp_dem_resample_{uuid.uuid4().hex}.tif"
-            try:
-                resampled_dem = dem_ds.warp_to_match(
-                    ref_ds, vsimem_path, resample_method=GDALResamplingMethod.BILINEAR
+            logger.info(
+                "Running batch IDW interpolation for %d pixels and %d stations",
+                len(lats),
+                len(station_lats),
+            )
+            station_lats_array = np.array(station_lats)
+            station_lons_array = np.array(station_lons)
+            station_values_array = np.array(station_values)
+
+            sea_level_temps = idw_interpolation(
+                lats, lons, station_lats_array, station_lons_array, station_values_array
+            )
+            assert isinstance(sea_level_temps, np.ndarray)
+
+            interpolation_succeeded = ~np.isnan(sea_level_temps)
+            interpolated_count = int(np.sum(interpolation_succeeded))
+            failed_interpolation_count = len(sea_level_temps) - interpolated_count
+
+            # Apply elevation adjustment and write to output array
+            for idx in np.nonzero(interpolation_succeeded)[0]:
+                actual_temp = adjust_temperature_to_elevation(
+                    float(sea_level_temps[idx]), float(valid_elevations[idx])
                 )
-
-                dem_band: gdal.Band = resampled_dem.ds.GetRasterBand(1)
-                dem_data = dem_band.ReadAsArray()
-                if dem_data is None:
-                    raise ValueError("Failed to read resampled DEM data")
-
-                logger.info("DEM resampled successfully")
-
-                temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
-
-                valid_mask = resampled_dem.get_valid_mask()
-
-                # Apply BC mask if provided
-                if mask_path is not None:
-                    with WPSDataset(mask_path) as mask_ds:
-                        bc_mask = ref_ds.apply_mask(mask_ds)
-                        valid_mask = valid_mask & bc_mask
-
-                lats, lons, valid_yi, valid_xi = resampled_dem.get_lat_lon_coords(valid_mask)
-                valid_elevations = dem_data[valid_mask]
-
-                total_pixels = x_size * y_size
-                skipped_nodata_count = total_pixels - len(valid_yi)
-
-                logger.info("Interpolating temperature for raster grid (%d x %d)", x_size, y_size)
-                logger.info(
-                    "Processing %d valid pixels (skipping %d NoData pixels)",
-                    len(valid_yi),
-                    skipped_nodata_count,
-                )
-
-                logger.info(
-                    "Running batch IDW interpolation for %d pixels and %d stations",
-                    len(lats),
-                    len(station_lats),
-                )
-                station_lats_array = np.array(station_lats)
-                station_lons_array = np.array(station_lons)
-                station_values_array = np.array(station_values)
-
-                sea_level_temps = idw_interpolation(
-                    lats, lons, station_lats_array, station_lons_array, station_values_array
-                )
-                assert isinstance(sea_level_temps, np.ndarray)
-
-                interpolation_succeeded = ~np.isnan(sea_level_temps)
-                interpolated_count = int(np.sum(interpolation_succeeded))
-                failed_interpolation_count = len(sea_level_temps) - interpolated_count
-
-                # Apply elevation adjustment and write to output array
-                for idx in np.nonzero(interpolation_succeeded)[0]:
-                    actual_temp = adjust_temperature_to_elevation(
-                        float(sea_level_temps[idx]), float(valid_elevations[idx])
-                    )
-                    temp_array[valid_yi[idx], valid_xi[idx]] = actual_temp
-            finally:
-                try:
-                    gdal.Unlink(vsimem_path)
-                except RuntimeError:
-                    logger.debug("File doesn't exist or already cleaned up")
+                temp_array[valid_yi[idx], valid_xi[idx]] = actual_temp
 
         log_interpolation_stats(
             total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count
