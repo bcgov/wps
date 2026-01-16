@@ -24,7 +24,9 @@ def test_raster_with_context():
 def test_raster_set_no_data_value():
     original_no_data_value = 0
     driver: gdal.Driver = gdal.GetDriverByName("MEM")
-    dataset: gdal.Dataset = driver.Create("test_dataset_no_data_value.tif", 2, 2, 1, eType=gdal.GDT_Int32)
+    dataset: gdal.Dataset = driver.Create(
+        "test_dataset_no_data_value.tif", 2, 2, 1, eType=gdal.GDT_Int32
+    )
     fill_data = np.full((2, 2), 2)
     fill_data[0, 0] = original_no_data_value
     dataset.GetRasterBand(1).SetNoDataValue(original_no_data_value)
@@ -52,8 +54,12 @@ def test_raster_mul():
 
 def test_raster_mul_identity():
     extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    ds_1 = create_test_dataset("test_dataset_1.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2)
-    ds_2 = create_test_dataset("test_dataset_2.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1)
+    ds_1 = create_test_dataset(
+        "test_dataset_1.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2
+    )
+    ds_2 = create_test_dataset(
+        "test_dataset_2.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1
+    )
 
     with WPSDataset(ds_path=None, ds=ds_1) as wps1_ds, WPSDataset(ds_path=None, ds=ds_2) as wps2_ds:
         output_ds = wps1_ds * wps2_ds
@@ -68,7 +74,10 @@ def test_raster_mul_wrong_dimensions():
     wgs_84_ds2 = create_test_dataset("test_dataset_2.tif", 2, 2, extent, 4326)
 
     with pytest.raises(ValueError):
-        with WPSDataset(ds_path=None, ds=wgs_84_ds1) as wps1_ds, WPSDataset(ds_path=None, ds=wgs_84_ds2) as wps2_ds:
+        with (
+            WPSDataset(ds_path=None, ds=wgs_84_ds1) as wps1_ds,
+            WPSDataset(ds_path=None, ds=wgs_84_ds2) as wps2_ds,
+        ):
             _ = wps1_ds * wps2_ds
 
     wgs_84_ds1 = None
@@ -81,7 +90,10 @@ def test_raster_mul_wrong_projections():
     mercator_ds = create_test_dataset("test_dataset_2.tif", 1, 1, extent, 3857)
 
     with pytest.raises(ValueError):
-        with WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds, WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds:
+        with (
+            WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds,
+            WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds,
+        ):
             _ = wps1_ds * wps2_ds
 
     wgs_84_ds = None
@@ -95,7 +107,10 @@ def test_raster_mul_wrong_origins():
     wgs_84_ds2 = create_test_dataset("test_dataset_2.tif", 1, 1, extent2, 4326)
 
     with pytest.raises(ValueError):
-        with WPSDataset(ds_path=None, ds=wgs_84_ds1) as wps1_ds, WPSDataset(ds_path=None, ds=wgs_84_ds2) as wps2_ds:
+        with (
+            WPSDataset(ds_path=None, ds=wgs_84_ds1) as wps1_ds,
+            WPSDataset(ds_path=None, ds=wgs_84_ds2) as wps2_ds,
+        ):
             _ = wps1_ds * wps2_ds
 
     wgs_84_ds1 = None
@@ -111,7 +126,10 @@ def test_raster_warp():
     extent2 = (-20037508.34, 20037508.34, -20037508.34, 20037508.34)
     mercator_ds = create_test_dataset("test_dataset_2.tif", 200, 200, extent2, 3857)
 
-    with WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds, WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds:
+    with (
+        WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds,
+        WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds,
+    ):
         output_ds: WPSDataset = wps1_ds.warp_to_match(wps2_ds, "/vsimem/test.tif")
         assert output_ds.as_gdal_ds().GetProjection() == wps2_ds.as_gdal_ds().GetProjection()
         assert output_ds.as_gdal_ds().GetGeoTransform() == wps2_ds.as_gdal_ds().GetGeoTransform()
@@ -137,13 +155,20 @@ def test_raster_warp_max_value():
     extent2 = (-20037508.34, 20037508.34, -20037508.34, 20037508.34)
     mercator_ds = create_test_dataset("test_dataset_2.tif", 100, 100, extent2, 3857)
 
-    with WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds, WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds:
-        output_ds: WPSDataset = wps1_ds.warp_to_match(wps2_ds, "/vsimem/test.grib2", max_value=100)  # test that we can update an output path with any extension
+    with (
+        WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds,
+        WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds,
+    ):
+        output_ds: WPSDataset = wps1_ds.warp_to_match(
+            wps2_ds, "/vsimem/test.grib2", max_value=100
+        )  # test that we can update an output path with any extension
         out_array = output_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
         assert out_array.max() == 100
 
         # Ensure 90 stayed 90 everywhere since we're doing Nearest Neighbour interp. 100*100 array minus the 1 value we changed
-        assert np.count_nonzero(out_array == 90) == (100 * 100 - 1), "Expected at least one value to remain 99"
+        assert np.count_nonzero(out_array == 90) == (100 * 100 - 1), (
+            "Expected at least one value to remain 99"
+        )
 
     wgs_84_ds = None
     mercator_ds = None
@@ -151,7 +176,9 @@ def test_raster_warp_max_value():
 
 def test_export_to_geotiff():
     extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    ds_1 = create_test_dataset("test_dataset_1.tif", 3, 3, extent1, 4326, data_type=gdal.GDT_Byte, fill_value=1)
+    ds_1 = create_test_dataset(
+        "test_dataset_1.tif", 3, 3, extent1, 4326, data_type=gdal.GDT_Byte, fill_value=1
+    )
 
     with WPSDataset(ds_path=None, ds=ds_1) as wps_ds:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -159,8 +186,13 @@ def test_export_to_geotiff():
             wps_ds.export_to_geotiff(temp_path)
 
             with WPSDataset(ds_path=temp_path) as exported_ds:
-                assert wps_ds.as_gdal_ds().GetProjection() == exported_ds.as_gdal_ds().GetProjection()
-                assert wps_ds.as_gdal_ds().GetGeoTransform() == exported_ds.as_gdal_ds().GetGeoTransform()
+                assert (
+                    wps_ds.as_gdal_ds().GetProjection() == exported_ds.as_gdal_ds().GetProjection()
+                )
+                assert (
+                    wps_ds.as_gdal_ds().GetGeoTransform()
+                    == exported_ds.as_gdal_ds().GetGeoTransform()
+                )
                 assert wps_ds.as_gdal_ds().RasterXSize == exported_ds.as_gdal_ds().RasterXSize
                 assert wps_ds.as_gdal_ds().RasterYSize == exported_ds.as_gdal_ds().RasterYSize
 
@@ -174,7 +206,10 @@ def test_export_to_geotiff():
 def test_latitude_array():
     lats_3005_tif = os.path.join(os.path.dirname(__file__), "3005_lats.tif")
     lats_4326_tif = os.path.join(os.path.dirname(__file__), "4326_lats.tif")
-    with WPSDataset(ds_path=lats_3005_tif) as lats_3005_ds, WPSDataset(ds_path=lats_4326_tif) as lats_4326_ds:
+    with (
+        WPSDataset(ds_path=lats_3005_tif) as lats_3005_ds,
+        WPSDataset(ds_path=lats_4326_tif) as lats_4326_ds,
+    ):
         output_ds: WPSDataset = lats_3005_ds.warp_to_match(lats_4326_ds, "/vsimem/test_lats.tif")
         original_ds = gdal.Open(lats_4326_tif)
         original_lats = original_ds.GetRasterBand(1).ReadAsArray()
@@ -186,7 +221,9 @@ def test_latitude_array():
 def test_get_nodata_mask():
     set_no_data_value = 0
     driver: gdal.Driver = gdal.GetDriverByName("MEM")
-    dataset: gdal.Dataset = driver.Create("test_dataset_no_data_value.tif", 2, 2, 1, eType=gdal.GDT_Int32)
+    dataset: gdal.Dataset = driver.Create(
+        "test_dataset_no_data_value.tif", 2, 2, 1, eType=gdal.GDT_Int32
+    )
     fill_data = np.full((2, 2), 2)
     fill_data[0, 0] = set_no_data_value
     dataset.GetRasterBand(1).SetNoDataValue(set_no_data_value)
@@ -210,7 +247,9 @@ def test_get_nodata_mask_empty():
 
 def test_from_array():
     extent1 = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    original_ds = create_test_dataset("test_dataset_1.tif", 100, 100, extent1, 4326)  # float32 datatype
+    original_ds = create_test_dataset(
+        "test_dataset_1.tif", 100, 100, extent1, 4326
+    )  # float32 datatype
     original_ds.GetRasterBand(1).SetNoDataValue(-99)
     og_band = original_ds.GetRasterBand(1)
     og_array = og_band.ReadAsArray()
@@ -218,7 +257,9 @@ def test_from_array():
     og_transform = original_ds.GetGeoTransform()
     og_proj = original_ds.GetProjection()
 
-    with WPSDataset.from_array(og_array, og_transform, og_proj, nodata_value=-99, datatype=dtype) as wps:
+    with WPSDataset.from_array(
+        og_array, og_transform, og_proj, nodata_value=-99, datatype=dtype
+    ) as wps:
         wps_ds = wps.as_gdal_ds()
         assert wps_ds.ReadAsArray()[1, 2] == og_array[1, 2]
         assert wps_ds.GetGeoTransform() == og_transform
@@ -317,6 +358,7 @@ class TestGetLatLonCoords:
         # Set geotransform and projection for WGS84
         ds.SetGeoTransform((-1, 1, 0, 1, 0, -1))
         from osgeo import osr
+
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(4326)
         ds.SetProjection(srs.ExportToWkt())
@@ -363,11 +405,13 @@ class TestGetLatLonCoords:
 
         with WPSDataset(ds_path=None, ds=ds) as wps_ds:
             # Create checkerboard mask
-            valid_mask = np.array([
-                [True, False, True],
-                [False, True, False],
-                [True, False, True],
-            ])
+            valid_mask = np.array(
+                [
+                    [True, False, True],
+                    [False, True, False],
+                    [True, False, True],
+                ]
+            )
             lats, lons, yi, xi = wps_ds.get_lat_lon_coords(valid_mask)
 
             # Should have 5 valid pixels
@@ -391,3 +435,93 @@ class TestGetLatLonCoords:
             assert len(lons) == 0
             assert len(yi) == 0
             assert len(xi) == 0
+
+
+class TestApplyMask:
+    """Tests for WPSDataset.apply_mask method."""
+
+    def test_basic_mask_application_matching_grids(self):
+        """Test mask application when grids match exactly."""
+        extent = (-1, 1, -1, 1)
+
+        # Create reference dataset
+        ref_gdal_ds = create_test_dataset("ref.tif", 3, 3, extent, 4326)
+
+        # Create mask dataset with same grid - center pixel masked (0)
+        mask_gdal_ds = create_test_dataset("mask.tif", 3, 3, extent, 4326)
+        mask_data = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]], dtype=np.float32)
+        mask_gdal_ds.GetRasterBand(1).WriteArray(mask_data)
+
+        with WPSDataset(ds_path=None, ds=ref_gdal_ds) as ref_ds:
+            with WPSDataset(ds_path=None, ds=mask_gdal_ds) as mask_ds:
+                result = ref_ds.apply_mask(mask_ds)
+
+                assert result.shape == (3, 3)
+                assert result[1, 1] == False  # Center pixel masked
+                assert np.sum(result) == 8  # 8 valid pixels
+
+    def test_mask_with_nodata_matching_grids(self):
+        """Test mask application with nodata values when grids match."""
+        extent = (-1, 1, -1, 1)
+
+        ref_gdal_ds = create_test_dataset("ref.tif", 3, 3, extent, 4326)
+
+        mask_gdal_ds = create_test_dataset("mask.tif", 3, 3, extent, 4326)
+        mask_data = np.array([[1, 1, -9999], [1, 0, 1], [1, 1, 1]], dtype=np.float32)
+        mask_gdal_ds.GetRasterBand(1).WriteArray(mask_data)
+        mask_gdal_ds.GetRasterBand(1).SetNoDataValue(-9999)
+
+        with WPSDataset(ds_path=None, ds=ref_gdal_ds) as ref_ds:
+            with WPSDataset(ds_path=None, ds=mask_gdal_ds) as mask_ds:
+                result = ref_ds.apply_mask(mask_ds)
+
+                assert result[1, 1] == False  # Zero value masked
+                assert result[0, 2] == False  # Nodata value masked
+                assert np.sum(result) == 7
+
+    def test_all_valid_mask(self):
+        """Test when entire mask is valid."""
+        extent = (-1, 1, -1, 1)
+
+        ref_gdal_ds = create_test_dataset("ref.tif", 3, 3, extent, 4326)
+        mask_gdal_ds = create_test_dataset("mask.tif", 3, 3, extent, 4326, fill_value=1)
+
+        with WPSDataset(ds_path=None, ds=ref_gdal_ds) as ref_ds:
+            with WPSDataset(ds_path=None, ds=mask_gdal_ds) as mask_ds:
+                result = ref_ds.apply_mask(mask_ds)
+
+                assert np.all(result)
+                assert np.sum(result) == 9
+
+    def test_all_masked(self):
+        """Test when entire mask is masked (all zeros)."""
+        extent = (-1, 1, -1, 1)
+
+        ref_gdal_ds = create_test_dataset("ref.tif", 3, 3, extent, 4326)
+        mask_gdal_ds = create_test_dataset("mask.tif", 3, 3, extent, 4326, fill_value=0)
+
+        with WPSDataset(ds_path=None, ds=ref_gdal_ds) as ref_ds:
+            with WPSDataset(ds_path=None, ds=mask_gdal_ds) as mask_ds:
+                result = ref_ds.apply_mask(mask_ds)
+
+                assert not np.any(result)
+                assert np.sum(result) == 0
+
+    def test_mask_resampled_when_grids_differ(self):
+        """Test that mask is resampled when grids don't match."""
+        ref_extent = (-1, 1, -1, 1)
+        mask_extent = (-2, 2, -2, 2)  # Larger extent
+
+        ref_gdal_ds = create_test_dataset("ref.tif", 4, 4, ref_extent, 4326)
+
+        # Mask covers larger area but with all 1s (valid)
+        mask_gdal_ds = create_test_dataset("mask.tif", 8, 8, mask_extent, 4326, fill_value=1)
+
+        with WPSDataset(ds_path=None, ds=ref_gdal_ds) as ref_ds:
+            with WPSDataset(ds_path=None, ds=mask_gdal_ds) as mask_ds:
+                result = ref_ds.apply_mask(mask_ds)
+
+                # Result should match reference grid size
+                assert result.shape == (4, 4)
+                # All should be valid since mask was all 1s
+                assert np.all(result)
