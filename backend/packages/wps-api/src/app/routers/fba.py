@@ -9,15 +9,7 @@ from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.auto_spatial_advisory.fuel_type_layer import (
-    get_fuel_type_raster_by_year,
-)
-from app.auto_spatial_advisory.process_hfi import RunType
-from app.auto_spatial_advisory.zone_stats import (
-    get_fuel_type_area_stats,
-    get_zone_wind_stats_for_source_id,
-)
+from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds_by_id,
@@ -55,7 +47,15 @@ from wps_shared.schemas.fba import (
     SFMSRunParameter,
     TPIResponse,
 )
-from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_fire_centers
+
+from app.auto_spatial_advisory.fuel_type_layer import (
+    get_fuel_type_raster_by_year,
+)
+from app.auto_spatial_advisory.process_hfi import RunType
+from app.auto_spatial_advisory.zone_stats import (
+    get_fuel_type_area_stats,
+    get_zone_wind_stats_for_source_id,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -148,8 +148,8 @@ async def get_all_fire_centers(_=Depends(asa_authentication_required)):
     """Returns fire centers for all active stations."""
     logger.info("/fba/fire-centers/")
     async with ClientSession() as session:
-        header = await get_auth_header(session)
-        fire_centers = await get_fire_centers(session, header)
+        wfwx_api = WfwxApi(session)
+        fire_centers = await wfwx_api.get_fire_centers()
     return FireCenterListResponse(fire_centers=fire_centers)
 
 

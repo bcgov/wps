@@ -2,31 +2,29 @@
 
 import logging
 from datetime import date, datetime, timedelta
+
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
-from wps_shared.auth import authentication_required, audit
+from wps_wf1.wfwx_api import WfwxApi
+from wps_shared.auth import audit, authentication_required
+from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
+from wps_shared.schemas.fba_calc import (
+    StationListRequest,
+    StationRequest,
+    StationResponse,
+    StationsListResponse,
+)
+from wps_shared.schemas.stations import WFWXWeatherStation
+from wps_shared.utils.time import get_hour_20_from_date
+
 from app.fire_behaviour.advisory import (
     FBACalculatorWeatherStation,
     FireBehaviourAdvisory,
     calculate_fire_behaviour_advisory,
 )
 from app.fire_behaviour.fwi_adjust import calculate_adjusted_fwi_result
-from app.hourlies import get_hourly_readings_in_time_interval
-from wps_shared.schemas.fba_calc import (
-    StationListRequest,
-    StationRequest,
-    StationsListResponse,
-    StationResponse,
-)
-from wps_shared.utils.time import get_hour_20_from_date
-from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
-from wps_shared.wildfire_one.wfwx_api import (
-    get_auth_header,
-    get_dailies_generator,
-    get_wfwx_stations_from_station_codes,
-)
 from app.fire_behaviour.prediction import build_hourly_rh_dict
-
+from app.hourlies import get_hourly_readings_in_time_interval
 
 router = APIRouter(
     prefix="/fba-calc", dependencies=[Depends(authentication_required), Depends(audit)]
@@ -199,15 +197,15 @@ async def get_stations_data(request: StationListRequest, _=Depends(authenticatio
         time_of_interest = get_hour_20_from_date(request.date)
 
         async with ClientSession() as session:
-            # authenticate against wfwx api
-            header = await get_auth_header(session)
+            fire_centre_station_codes = get_fire_centre_station_codes()
             # get station information from the wfwx api
-            wfwx_stations = await get_wfwx_stations_from_station_codes(
-                session, header, unique_station_codes
+            wfwx_api = WfwxApi(session)
+            wfwx_stations = await wfwx_api.get_wfwx_stations_from_station_codes(
+                unique_station_codes, fire_centre_station_codes
             )
             # get the dailies for all the stations
-            dailies = await get_dailies_generator(
-                session, header, wfwx_stations, time_of_interest, time_of_interest
+            dailies = await wfwx_api.get_dailies_generator(
+                wfwx_stations, time_of_interest, time_of_interest
             )
             # turn it into a dictionary so we can easily get at data using a station id
             dailies_by_station_id = {
@@ -216,8 +214,8 @@ async def get_stations_data(request: StationListRequest, _=Depends(authenticatio
             # must retrieve the previous day's observed/forecasted FFMC value from WFWX
             prev_day = time_of_interest - timedelta(days=1)
             # get the "daily" data for the station for the previous day
-            yesterday_response = await get_dailies_generator(
-                session, header, wfwx_stations, prev_day, prev_day
+            yesterday_response = await wfwx_api.get_dailies_generator(
+                wfwx_stations, prev_day, prev_day
             )
             # turn it into a dictionary so we can easily get at data
             yesterday_dailies_by_station_id = {

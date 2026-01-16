@@ -1,6 +1,9 @@
 """ Utility functions used in several places within the wildfire_one module"""
 
 
+import math
+
+
 def is_station_valid(station) -> bool:
     """ Run through a set of conditions to check if the station is valid.
 
@@ -42,3 +45,15 @@ def get_zone_code_prefix(fire_centre_id: int):
         50: 'V'             # Coastal Fire Centre
     }
     return fire_centre_to_zone_code_prefix.get(fire_centre_id, None)
+
+
+def compute_dewpoint(temp, relative_humidity):
+    """ Computes dewpoint based on temperature and relative humidity.
+    """
+    if temp is None or relative_humidity is None:
+        return None
+    return (temp - (14.55 + 0.114 * temp) *
+            (1 - (0.01 * relative_humidity)) -
+            math.pow(((2.5 + 0.007 * temp) *
+                      (1 - (0.01 * relative_humidity))), 3) - (15.9 + 0.117 * temp) *
+            math.pow((1 - (0.01 * relative_humidity)), 14))

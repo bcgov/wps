@@ -10,7 +10,9 @@ from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 import sentry_sdk
 from starlette.applications import Starlette
-from wps_shared import schemas
+from wps_shared.schemas.observations import WeatherStationHourlyReadingsResponse
+from wps_shared.schemas.percentiles import CalculatedResponse, PercentileRequest
+from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.wps_logging import configure_logging
 from app.percentile import get_precalculated_percentiles
 from wps_shared.auth import authentication_required, audit
@@ -171,11 +173,9 @@ async def get_health():
         raise
 
 
-@api.post(
-    "/observations/", response_model=schemas.observations.WeatherStationHourlyReadingsResponse
-)
+@api.post("/observations/", response_model=WeatherStationHourlyReadingsResponse)
 async def get_hourlies(
-    request: schemas.shared.WeatherDataRequest,
+    request: WeatherDataRequest,
     _=Depends(authentication_required),
     __=Depends(audit),
 ):
@@ -186,14 +186,14 @@ async def get_hourlies(
 
         readings = await hourlies.get_hourly_readings(request.stations, request.time_of_interest)
 
-        return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
+        return WeatherStationHourlyReadingsResponse(hourlies=readings)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise
 
 
-@api.post("/percentiles/", response_model=schemas.percentiles.CalculatedResponse)
-async def get_percentiles(request: schemas.percentiles.PercentileRequest):
+@api.post("/percentiles/", response_model=CalculatedResponse)
+async def get_percentiles(request: PercentileRequest):
     """Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time."""
     try:
         logger.info("/percentiles/")

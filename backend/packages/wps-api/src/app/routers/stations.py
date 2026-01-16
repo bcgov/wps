@@ -1,8 +1,11 @@
 """ Routers for stations """
 import logging
 from datetime import datetime
+from aiohttp import ClientSession
 from fastapi import APIRouter, Response, Depends
+from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.auth import authentication_required, audit
+from wps_shared.db.crud.stations import get_noon_date
 from wps_shared.utils.time import get_utc_now, get_hour_20
 from wps_shared.schemas.stations import (
     WeatherStationGroupsMemberRequest,
@@ -11,8 +14,6 @@ from wps_shared.schemas.stations import (
     WeatherStationGroupsResponse,
     WeatherStationGroupMembersResponse,
 )
-from wps_shared.stations import get_stations_as_geojson, fetch_detailed_stations_as_geojson
-from wps_shared.wildfire_one import wfwx_api
 
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,10 @@ async def get_detailed_stations(response: Response, toi: datetime = None, __=Dep
             toi = get_utc_now()
         else:
             toi = get_hour_20(toi)
-        weather_stations = await fetch_detailed_stations_as_geojson(toi)
+        noon_time_of_interest = get_noon_date(toi)
+        async with ClientSession() as session:
+            wfwx_api = WfwxApi(session)
+            weather_stations = await wfwx_api.get_detailed_stations(noon_time_of_interest)
         return DetailedWeatherStationsResponse(features=weather_stations)
 
     except Exception as exception:
@@ -60,8 +64,10 @@ async def get_stations(response: Response):
     try:
         logger.info('/stations/')
 
-        weather_stations = await get_stations_as_geojson()
-        response.headers["Cache-Control"] = no_cache
+        async with ClientSession() as client_session:
+            wfwx_api = WfwxApi(client_session)
+            weather_stations = await wfwx_api.get_stations_as_geojson()
+            response.headers["Cache-Control"] = no_cache
 
         return WeatherStationsResponse(features=weather_stations)
     except Exception as exception:
@@ -75,8 +81,10 @@ async def get_station_groups(response: Response, _=Depends(authentication_requir
         Groups are retrieved from an undocumented stationGroups endpoint.
     """
     logger.info('/stations/groups')
-    groups = await wfwx_api.get_station_groups()
-    response.headers["Cache-Control"] = no_cache
+    async with ClientSession() as session:
+        wfwx_api = WfwxApi(session)
+        groups = await wfwx_api.get_station_groups()
+        response.headers["Cache-Control"] = no_cache
     return WeatherStationGroupsResponse(groups=groups)
 
 
@@ -84,6 +92,8 @@ async def get_station_groups(response: Response, _=Depends(authentication_requir
 async def get_stations_by_group_ids(groups_request: WeatherStationGroupsMemberRequest, response: Response, _=Depends(authentication_required)):
     """ Return a list of stations that are part of the specified group(s) """
     logger.info('/stations/groups/members')
-    stations = await wfwx_api.get_stations_by_group_ids([id for id in groups_request.group_ids])
-    response.headers["Cache-Control"] = no_cache
+    async with ClientSession() as session:
+        wfwx_api = WfwxApi(session)
+        stations = await wfwx_api.get_stations_by_group_ids([id for id in groups_request.group_ids])
+        response.headers["Cache-Control"] = no_cache
     return WeatherStationGroupMembersResponse(stations=stations)

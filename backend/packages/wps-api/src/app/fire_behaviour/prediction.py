@@ -1,17 +1,18 @@
 """Fire Behaviour Analysis Calculator Tool"""
 
-from datetime import datetime
-from enum import Enum
+import logging
 import math
 import os
+from datetime import datetime
+from enum import Enum
 from typing import List
-import logging
+
 import pandas as pd
-from wps_shared.fuel_types import FuelTypeEnum, is_grass_fuel_type
-from wps_shared.schemas.observations import WeatherReading
-from wps_shared.schemas.fba_calc import CriticalHoursHFI
+from app.fire_behaviour import c7b, cffdrs
 from app.utils.singleton import Singleton
-from app.fire_behaviour import cffdrs, c7b
+from wps_shared.fuel_types import FuelTypeEnum, is_grass_fuel_type
+from wps_shared.schemas.fba_calc import CriticalHoursHFI
+from wps_shared.schemas.observations import WeatherReading
 from wps_shared.utils.time import convert_utc_to_pdt, get_julian_date, get_julian_date_now
 
 logger = logging.getLogger(__name__)
@@ -42,13 +43,17 @@ class DiurnalFFMCLookupTable:
     """
 
     def __init__(self):
-        afternoon_filename = os.path.join(os.path.dirname(__file__), "../data/diurnal_ffmc_lookups/afternoon_overnight.csv")
+        afternoon_filename = os.path.join(
+            os.path.dirname(__file__), "../data/diurnal_ffmc_lookups/afternoon_overnight.csv"
+        )
         with open(afternoon_filename, "rb") as afternoon_file:
             afternoon_df = pd.read_csv(afternoon_file)
         afternoon_df.columns = afternoon_df.columns.astype(int)
         afternoon_df.set_index(17, inplace=True)
 
-        morning_filename = os.path.join(os.path.dirname(__file__), "../data/diurnal_ffmc_lookups/morning.csv")
+        morning_filename = os.path.join(
+            os.path.dirname(__file__), "../data/diurnal_ffmc_lookups/morning.csv"
+        )
         with open(morning_filename, "rb") as morning_file:
             morning_df = pd.read_csv(morning_file, header=[0, 1])
         prev_days_daily_ffmc_keys = morning_df.iloc[:, 0].values
@@ -65,7 +70,9 @@ class DiurnalFFMCLookupTable:
             rh_lookup_keys += [level_2]
 
         morning_df.set_index(prev_days_daily_ffmc_keys, inplace=True)
-        header = pd.MultiIndex.from_tuples(list(zip(hour_lookup_keys, rh_lookup_keys)), names=["hour", "RH"])
+        header = pd.MultiIndex.from_tuples(
+            list(zip(hour_lookup_keys, rh_lookup_keys)), names=["hour", "RH"]
+        )
         morning_df.columns = header
         morning_df.drop(columns=[("", "")], inplace=True)
 
@@ -75,7 +82,14 @@ class DiurnalFFMCLookupTable:
 
 def calculate_cfb(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, cbh: float):
     """Calculate the crown fraction burned  (returning 0 for fuel types without crowns to burn)"""
-    if fuel_type in [FuelTypeEnum.D1, FuelTypeEnum.O1A, FuelTypeEnum.O1B, FuelTypeEnum.S1, FuelTypeEnum.S2, FuelTypeEnum.S3]:
+    if fuel_type in [
+        FuelTypeEnum.D1,
+        FuelTypeEnum.O1A,
+        FuelTypeEnum.O1B,
+        FuelTypeEnum.S1,
+        FuelTypeEnum.S2,
+        FuelTypeEnum.S3,
+    ]:
         # These fuel types don't have a crown fraction burnt. But CFB is needed for other calculations,
         # so we go with 0.
         cfb = 0
@@ -87,7 +101,14 @@ def calculate_cfb(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, c
     return cfb
 
 
-def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, elapsed_minutes: int, cfb: float, lb_ratio: float):
+def get_fire_size(
+    fuel_type: FuelTypeEnum,
+    ros: float,
+    bros: float,
+    elapsed_minutes: int,
+    cfb: float,
+    lb_ratio: float,
+):
     """
     Fire size based on Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
     forest fire patterns.).
@@ -96,7 +117,9 @@ def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, elapsed_minu
         raise cffdrs.CFFDRSException()
     # Using acceleration:
     fire_spread_distance = cffdrs.fire_distance(fuel_type, ros + bros, elapsed_minutes, cfb)
-    length_to_breadth_at_time = cffdrs.length_to_breadth_ratio_t(fuel_type, lb_ratio, elapsed_minutes, cfb)
+    length_to_breadth_at_time = cffdrs.length_to_breadth_ratio_t(
+        fuel_type, lb_ratio, elapsed_minutes, cfb
+    )
     # Not using acceleration:
     # fros = cffdrs.flank_rate_of_spread(ros, bros, lb_ratio)
     # # Flank Fire Spread Distance a.k.a. DF in R/FBPcalc.r
@@ -106,7 +129,9 @@ def get_fire_size(fuel_type: FuelTypeEnum, ros: float, bros: float, elapsed_minu
 
     # Essentially using Eq. 8 (Alexander, M.E. 1985. Estimating the length-to-breadth ratio of elliptical
     # forest fire patterns.) - but feeding it L/B and ROS from CFFDRS.
-    return math.pi / (4.0 * length_to_breadth_at_time) * math.pow(fire_spread_distance, 2.0) / 10000.0
+    return (
+        math.pi / (4.0 * length_to_breadth_at_time) * math.pow(fire_spread_distance, 2.0) / 10000.0
+    )
 
 
 def get_fire_type(fuel_type: FuelTypeEnum, crown_fraction_burned: float) -> FireTypeEnum:
@@ -182,7 +207,12 @@ def get_morning_diurnal_ffmc(hour_of_interest: int, prev_day_daily_ffmc: float, 
     return None
 
 
-def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float, prev_day_daily_ffmc: float, last_observed_morning_rh_values: dict):
+def get_critical_hours_start(
+    critical_ffmc: float,
+    daily_ffmc: float,
+    prev_day_daily_ffmc: float,
+    last_observed_morning_rh_values: dict,
+):
     """Returns the hour of day (on 24H clock) at which the hourly FFMC crosses the
     threshold of critical_ffmc.
     Returns None if the hourly FFMC never reaches critical_ffmc.
@@ -217,7 +247,9 @@ def get_critical_hours_start(critical_ffmc: float, daily_ffmc: float, prev_day_d
     return clock_time
 
 
-def get_critical_hours_end(critical_ffmc: float, solar_noon_ffmc: float, critical_hour_start: float):
+def get_critical_hours_end(
+    critical_ffmc: float, solar_noon_ffmc: float, critical_hour_start: float
+):
     """Returns the hour of day (on 24H clock) at which the hourly FFMC drops below
     the threshold of critical_ffmc.
     Should only be called if critical_hour_start is not None.
@@ -264,25 +296,53 @@ def get_critical_hours(
     that cause HFI >= target_hfi.
     """
     critical_ffmc, resulting_hfi = cffdrs.get_ffmc_for_target_hfi(
-        fuel_type, percentage_conifer, percentage_dead_balsam_fir, bui, wind_speed, grass_cure, crown_base_height, daily_ffmc, fmc, cfb, cfl, target_hfi
+        fuel_type,
+        percentage_conifer,
+        percentage_dead_balsam_fir,
+        bui,
+        wind_speed,
+        grass_cure,
+        crown_base_height,
+        daily_ffmc,
+        fmc,
+        cfb,
+        cfl,
+        target_hfi,
     )
-    logger.debug("Critical FFMC %s, resulting HFI %s; target HFI %s", critical_ffmc, resulting_hfi, target_hfi)
+    logger.debug(
+        "Critical FFMC %s, resulting HFI %s; target HFI %s",
+        critical_ffmc,
+        resulting_hfi,
+        target_hfi,
+    )
     # Scenario 1 (resulting_hfi < target_hfi) - will happen when it's impossible to get
     # a HFI value large enough to >= target_hfi, because FFMC influences the HFI value,
     # and FFMC has an upper bound of 101. So basically, in this scenario the resulting_hfi
     # would equal the resulting HFI when FFMC is set to 101.
     if critical_ffmc >= 100.9 and resulting_hfi < target_hfi:
-        logger.debug("No critical hours for HFI %s. Critical FFMC %s has HFI %s", target_hfi, critical_ffmc, resulting_hfi)
+        logger.debug(
+            "No critical hours for HFI %s. Critical FFMC %s has HFI %s",
+            target_hfi,
+            critical_ffmc,
+            resulting_hfi,
+        )
         return None
     # Scenario 2: the HFI is always >= target_hfi, even when FFMC = 0. In this case, all hours
     # of the day will be critical hours.
     if critical_ffmc == 0.0 and resulting_hfi >= target_hfi:
-        logger.info("All hours critical for HFI %s. FFMC %s has HFI %s", target_hfi, critical_ffmc, resulting_hfi)
+        logger.info(
+            "All hours critical for HFI %s. FFMC %s has HFI %s",
+            target_hfi,
+            critical_ffmc,
+            resulting_hfi,
+        )
         return CriticalHoursHFI(start=13.0, end=7.0)
     # Scenario 3: there is a critical_ffmc between (0, 101) that corresponds to
     # resulting_hfi >= target_hfi. Now have to determine what hours of the day (if any)
     # will see hourly FFMC (adjusted according to diurnal curve) >= critical_ffmc.
-    critical_hours_start = get_critical_hours_start(critical_ffmc, daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values)
+    critical_hours_start = get_critical_hours_start(
+        critical_ffmc, daily_ffmc, prev_daily_ffmc, last_observed_morning_rh_values
+    )
     if critical_hours_start is None:
         return None
     critical_hours_end = get_critical_hours_end(critical_ffmc, daily_ffmc, critical_hours_start)
@@ -311,7 +371,9 @@ def build_hourly_rh_dict(hourly_observations: List[WeatherReading]):
 class FireBehaviourPrediction:
     """Structure for storing fire behaviour prediction data."""
 
-    def __init__(self, ros: float, hfi: float, intensity_group, sixty_minute_fire_size: float, fire_type) -> None:
+    def __init__(
+        self, ros: float, hfi: float, intensity_group, sixty_minute_fire_size: float, fire_type
+    ) -> None:
         self.ros = ros
         self.hfi = hfi
         self.intensity_group = intensity_group
@@ -362,7 +424,9 @@ def calculate_fire_behaviour_prediction_using_cffdrs(
     fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, julian_date)
     sfc = cffdrs.surface_fuel_consumption(fuel_type, bui, ffmc, pc)
 
-    ros = cffdrs.rate_of_spread(FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc, cc=cc, pdf=pdf, cbh=cbh)
+    ros = cffdrs.rate_of_spread(
+        FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc, cc=cc, pdf=pdf, cbh=cbh
+    )
     if sfc is not None:
         cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
 
@@ -443,7 +507,9 @@ def calculate_fire_behaviour_prediction_using_c7b(
     fmc = cffdrs.foliar_moisture_content(latitude, longitude, elevation, julian_date)
 
     sfc = cffdrs.surface_fuel_consumption(fuel_type=FuelTypeEnum.C7, bui=bui, ffmc=ffmc, pc=None)
-    cfb = cffdrs.crown_fraction_burned(fuel_type=FuelTypeEnum.C7, fmc=fmc, sfc=sfc, ros=ros, cbh=cbh)
+    cfb = cffdrs.crown_fraction_burned(
+        fuel_type=FuelTypeEnum.C7, fmc=fmc, sfc=sfc, ros=ros, cbh=cbh
+    )
 
     hfi = cffdrs.head_fire_intensity(
         fuel_type=FuelTypeEnum.C7,
@@ -490,7 +556,9 @@ def calculate_fire_behaviour_prediction(
     calculation_datetime: datetime = None,
 ):
     """Calculate the fire behaviour prediction."""
-    julian_date = get_julian_date(calculation_datetime) if calculation_datetime else get_julian_date_now()
+    julian_date = (
+        get_julian_date(calculation_datetime) if calculation_datetime else get_julian_date_now()
+    )
 
     if wind_speed is None:
         raise FireBehaviourPredictionInputError("Wind speed must be specified")

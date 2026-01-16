@@ -1,13 +1,13 @@
+import math
 import os
 from datetime import datetime
 from unittest.mock import MagicMock, PropertyMock
 
 import numpy as np
 import pytest
+import weather_model_jobs.ecmwf
 from aiohttp import ClientSession
 from pytest_mock import MockerFixture
-
-import weather_model_jobs.ecmwf
 from weather_model_jobs import ModelEnum
 from weather_model_jobs.ecmwf import (
     ECMWF,
@@ -93,8 +93,8 @@ def test_get_stations_dataframe():
     ]
     df = get_stations_dataframe(transformer, stations)
     assert len(df) == 2
-    assert df.iloc[0]["latitude"] == 11.0
-    assert df.iloc[0]["longitude"] == 21.0
+    assert math.isclose(df.iloc[0]["latitude"], 11.0)
+    assert math.isclose(df.iloc[0]["longitude"], 21.0)
 
 
 def test_ecmwf_process_model_run_no_url(mock_herbie_instance):
@@ -269,6 +269,7 @@ def test_main_success(mocker: MockerFixture, monkeypatch):
     """Test the main function when it runs successfully."""
 
     async def mock_process_models():
+        """No implementation required."""
         pass
 
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)

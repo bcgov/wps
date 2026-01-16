@@ -1,27 +1,34 @@
-""" Weather Model Summaries
-"""
+"""Weather Model Summaries"""
+
 import datetime
 import logging
-from typing import List, Optional, Union
-from numpy import percentile
-import wps_shared.stations
-from wps_shared.weather_models import ModelEnum
-from wps_shared.schemas.weather_models import WeatherModelPredictionSummary, WeatherModelPredictionSummaryValues, WeatherPredictionModel
-import wps_shared.db.database
-from wps_shared.db.crud.weather_models import get_station_model_predictions_order_by_prediction_timestamp
-from wps_shared.db.models.weather_models import PredictionModel, WeatherStationModelPrediction
+from typing import List, Union
 
+from numpy import percentile
+
+import wps_shared.db.database
+from wps_shared.db.crud.weather_models import (
+    get_station_model_predictions_order_by_prediction_timestamp,
+)
+from wps_shared.db.models.weather_models import PredictionModel, WeatherStationModelPrediction
+from wps_shared.schemas.stations import WeatherStation
+from wps_shared.schemas.weather_models import (
+    WeatherModelPredictionSummary,
+    WeatherModelPredictionSummaryValues,
+    WeatherPredictionModel,
+)
+from wps_shared.weather_models import ModelEnum
 
 logger = logging.getLogger(__name__)
 
 
-KEYS = ('tmp_tgl_2', 'rh_tgl_2')
+KEYS = ("tmp_tgl_2", "rh_tgl_2")
 
 
 def _build_query_to_get_predictions(
-        station_codes: List[int],
-        model: ModelEnum, time_of_interest: datetime) -> List[Union[WeatherStationModelPrediction, PredictionModel]]:
-    """ Build a query to get the predictions for a given list of weather stations for a specified
+    station_codes: List[int], model: ModelEnum, time_of_interest: datetime
+) -> List[Union[WeatherStationModelPrediction, PredictionModel]]:
+    """Build a query to get the predictions for a given list of weather stations for a specified
     model.
     """
     # Build the query:
@@ -29,67 +36,68 @@ def _build_query_to_get_predictions(
         # We are only interested in the last 5 days.
         back_5_days = time_of_interest - datetime.timedelta(days=5)
         response = get_station_model_predictions_order_by_prediction_timestamp(
-            session, station_codes, model, back_5_days, time_of_interest)
+            session, station_codes, model, back_5_days, time_of_interest
+        )
     return response
 
 
-class ModelPredictionSummaryBuilder():
-    """ Class for generating ModelPredictionSummaries """
+class ModelPredictionSummaryBuilder:
+    """Class for generating ModelPredictionSummaries"""
 
-    def __init__(self):
-        """ Prepare class. """
+    def __init__(self, stations):
+        """Prepare class."""
         self.prev_time = None
         self.prev_station = None
         self.values = None
         self.prediction_summaries = []
         self.prediction_summary = None
-        self.stations: Optional[dict] = None
+        self.stations = stations
 
     def init_values(self):
-        """ Initialize values. """
+        """Initialize values."""
         self.values = {}
         for key in KEYS:
             self.values[key] = []
 
-    def calculate_and_append_percentiles(self,
-                                         timestamp: datetime.datetime,
-                                         values: dict) -> None:
-        """ Calculate percentiles and append.  """
-        data = {'datetime': timestamp}
+    def calculate_and_append_percentiles(self, timestamp: datetime.datetime, values: dict) -> None:
+        """Calculate percentiles and append."""
+        data = {"datetime": timestamp}
         for key in KEYS:
-            data['{}_5th'.format(key)] = percentile(values[key], 5)
-            data['{}_median'.format(key)] = percentile(values[key], 50)
-            data['{}_90th'.format(key)] = percentile(values[key], 90)
+            data["{}_5th".format(key)] = percentile(values[key], 5)
+            data["{}_median".format(key)] = percentile(values[key], 50)
+            data["{}_90th".format(key)] = percentile(values[key], 90)
         summary_value = WeatherModelPredictionSummaryValues(**data)
         self.prediction_summary.values.append(summary_value)
 
     def calculate_summaries(self, prev_time):
-        """ Calculate and append percentiles if present """
+        """Calculate and append percentiles if present"""
         if self.values:
             self.calculate_and_append_percentiles(self.prev_time, self.values)
         self.prev_time = prev_time
         self.values = None
 
-    def handle_new_station(self,
-                           prediction: WeatherStationModelPrediction,
-                           prediction_model: PredictionModel):
-        """ When a new station is detected, we need to:
+    def handle_new_station(
+        self, prediction: WeatherStationModelPrediction, prediction_model: PredictionModel
+    ):
+        """When a new station is detected, we need to:
         -) calculate percentiles for accumulated values.
         -) prepare a summary for the new station.
         """
         self.prev_station = prediction.station_code
         self.prediction_summary = WeatherModelPredictionSummary(
             station=self.stations[prediction.station_code],
-            model=WeatherPredictionModel(name=prediction_model.name,
-                                         abbrev=prediction_model.abbreviation),
-            values=[])
+            model=WeatherPredictionModel(
+                name=prediction_model.name, abbrev=prediction_model.abbreviation
+            ),
+            values=[],
+        )
         self.prediction_summaries.append(self.prediction_summary)
         # Set prev_time (so that we don't trigger calculate_summaries)
         self.prev_time = prediction.prediction_timestamp
 
     def accumulate_values(self, prediction: WeatherStationModelPrediction):
-        """ As we iterate through predictions, we accumulate the values so that we can calculate
-        the percentiles. """
+        """As we iterate through predictions, we accumulate the values so that we can calculate
+        the percentiles."""
         for key in KEYS:
             # Get the values.
             key_value = getattr(prediction, key)
@@ -98,14 +106,12 @@ class ModelPredictionSummaryBuilder():
                     self.init_values()
                 self.values[key].append(key_value)
 
-    async def get_summaries(
-            self,
-            model: ModelEnum,
-            station_codes: List[int],
-            time_of_interest: datetime) -> List[WeatherModelPredictionSummary]:
-        """ Given a model and station codes, return list of weather summaries. """
+    def get_summaries(
+        self, model: ModelEnum, station_codes: List[int], time_of_interest: datetime
+    ) -> List[WeatherModelPredictionSummary]:
+        """Given a model and station codes, return list of weather summaries."""
         # Get list of stations.
-        self.stations = {station.code: station for station in await wps_shared.stations.get_stations_by_codes(station_codes)}
+        self.stations = {station.code: station for station in self.stations}
 
         # Build database query
         new_query = _build_query_to_get_predictions(station_codes, model, time_of_interest)
@@ -131,11 +137,13 @@ class ModelPredictionSummaryBuilder():
         return self.prediction_summaries
 
 
-async def fetch_model_prediction_summaries(
-        model: ModelEnum,
-        station_codes: List[int],
-        time_of_interest: datetime) -> List[WeatherModelPredictionSummary]:
-    """ Given a model type (e.g. GDPS) and a  list of station codes, return a corresponding list of model
-    prediction summaries containing various percentiles. """
-    builder = ModelPredictionSummaryBuilder()
-    return await builder.get_summaries(model, station_codes, time_of_interest)
+def fetch_model_prediction_summaries(
+    model: ModelEnum,
+    station_codes: List[int],
+    time_of_interest: datetime,
+    stations: List[WeatherStation],
+) -> List[WeatherModelPredictionSummary]:
+    """Given a model type (e.g. GDPS) and a  list of station codes, return a corresponding list of model
+    prediction summaries containing various percentiles."""
+    builder = ModelPredictionSummaryBuilder(stations)
+    return builder.get_summaries(model, station_codes, time_of_interest)
