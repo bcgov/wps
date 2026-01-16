@@ -9,7 +9,7 @@ This module implements the SFMS temperature interpolation workflow:
 """
 
 import logging
-from typing import List, Optional
+from typing import Optional
 import numpy as np
 from osgeo import gdal
 from app.sfms.interpolation_source import StationTemperatureSource
@@ -25,35 +25,6 @@ logger = logging.getLogger(__name__)
 # Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
 # This matches the CWFIS implementation
 LAPSE_RATE = 0.0065
-
-
-def compute_actual_temperatures(
-    sea: np.ndarray, elev: np.ndarray, lapse_rate: float, out_dtype=np.float32
-) -> np.ndarray:
-    """
-    Compute actual temperatures from sea-level temps and elevations:
-      T(z) = T0 - z * lapse_rate
-
-    Parameters
-    ----------
-    sea : array-like
-        Sea-level temperatures (C). Broadcastable against `elev`.
-    elev : array-like
-        Elevations (m). Broadcastable against `sea`.
-    lapse_rate : float
-        Environmental lapse rate in C per meter (positive = cooling with elevation).
-    out_dtype : np.dtype
-        Output dtype, default float32 to match raster array.
-
-    Returns
-    -------
-    np.ndarray
-        Actual temperatures with dtype `out_dtype`.
-    """
-    sea = np.asarray(sea, dtype=out_dtype)
-    elev = np.asarray(elev, dtype=out_dtype)
-    # Use fused/matched dtype ops to avoid accidental upcasting
-    return sea - elev * np.asarray(lapse_rate, dtype=out_dtype)
 
 
 def interpolate_temperature_to_raster(

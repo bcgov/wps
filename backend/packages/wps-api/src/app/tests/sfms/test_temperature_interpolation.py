@@ -136,57 +136,6 @@ class TestStationTemperature:
         assert station.sea_level_temp is None
 
 
-class TestElevationAdjustment:
-    """Tests for temperature elevation adjustment functions."""
-
-    def test_scalar_inputs(self):
-        sea = 20.0
-        elev = 1000.0
-        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
-        expected = 20.0 - 1000.0 * LAPSE_RATE
-        assert_allclose(out, expected, rtol=0, atol=1e-6)
-        assert out.dtype == np.float32
-
-    def test_vector_inputs(self):
-        sea = np.array([20.0, 10.0, 0.0], dtype=np.float32)
-        elev = np.array([0.0, 500.0, 2000.0], dtype=np.float32)
-        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
-        expected = sea - elev * np.float32(LAPSE_RATE)
-        assert_allclose(out, expected, rtol=0, atol=1e-6)
-        assert out.dtype == np.float32
-        assert out.shape == (3,)
-
-    def test_zero_elevation_no_change(self):
-        sea = np.array([-5.0, 0.0, 12.3], dtype=np.float32)
-        elev = np.zeros_like(sea)
-        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
-        assert_allclose(out, sea, rtol=0, atol=0)
-
-    def test_negative_elevation_increases_temp(self):
-        sea = np.array([10.0], dtype=np.float32)
-        elev = np.array([-100.0], dtype=np.float32)  # below sea level
-        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
-        expected = 10.0 - (-100.0) * np.float32(LAPSE_RATE)  # temperature increases
-        assert_allclose(out, expected, atol=1e-6)
-
-    def test_large_values_no_overflow(self):
-        sea = np.array([50.0], dtype=np.float32)
-        elev = np.array([9000.0], dtype=np.float32)  # 9 km
-        out = compute_actual_temperatures(sea, elev, LAPSE_RATE)
-        expected = 50.0 - 9000.0 * np.float32(LAPSE_RATE)
-        assert_allclose(out, expected, atol=1e-5)
-
-    def test_lapse_rate_sign_contract(self):
-        sea = np.array([20.0], dtype=np.float32)
-        elev = np.array([1000.0], dtype=np.float32)
-        # Positive lapse rate → cooling with altitude
-        out_pos = compute_actual_temperatures(sea, elev, lapse_rate=0.0065)
-        # Negative lapse rate would imply warming with altitude (physically wrong here)
-        out_neg = compute_actual_temperatures(sea, elev, lapse_rate=-0.0065)
-        assert out_pos < sea[0]
-        assert out_neg > sea[0]
-
-
 class TestHaversineDistance:
     """Tests for haversine distance calculation."""
 
