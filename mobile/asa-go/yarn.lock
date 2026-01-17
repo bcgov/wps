@@ -2389,10 +2389,10 @@ caniuse-lite@^1.0.30001718:
   resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001724.tgz"
   integrity sha512-WqJo7p0TbHDOythNTqYujmaJTvtYRZrjpP8TCvH6Vb9CYJerJNKamKzIWOM4BkQatWj9H2lYulpdAQNBe7QhNA==
 
-capacitor-email-composer@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/capacitor-email-composer/-/capacitor-email-composer-7.0.0.tgz"
-  integrity sha512-U4R6zqgVmEv7AV+pAi7XixNvJEsuzYAKlUKAx+++sf4/4Z3osAMz3N+8xXAyBQzhG/spZQBlFcTtXoNmv4TpWA==
+capacitor-email-composer@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/capacitor-email-composer/-/capacitor-email-composer-8.0.0.tgz#7e01cf77d33c8cdb5cfe4fa4e03b8ba37b51c2d7"
+  integrity sha512-v/uJMXWRi7OQ2R3G4kNN/nIajmFLuKllKMYcJNCrQPgeC+tkYDm87EEwviT7XRnSIb2WmFp4ocLTeoZ3FrS1xA==
 
 chai@^6.2.0:
   version "6.2.0"
