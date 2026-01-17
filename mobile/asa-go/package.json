@@ -38,7 +38,7 @@
     "@mui/x-license-pro": "^6.10.2",
     "@reduxjs/toolkit": "^2.5.1",
     "axios": "^1.7.9",
-    "capacitor-email-composer": "^7.0.0",
+    "capacitor-email-composer": "^8.0.0",
     "keycloak": "../keycloak",
     "lodash": "^4.17.21",
     "luxon": "^3.5.0",
