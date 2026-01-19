@@ -17,8 +17,7 @@ USER 0
 COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /uvx /bin/
 
 # Create a directory for the app to run in, and grant worker access
-RUN mkdir /app
-RUN chown "$USERNAME" /app
+RUN mkdir /app && chown "$USERNAME" /app
 WORKDIR /app
 
 # Switch back to our non-root user
@@ -42,20 +41,16 @@ USER 0
 RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-api/pyproject.toml \
     /app/packages/wps-shared/pyproject.toml \
-    /app/packages/wps-sfms/pyproject.toml
-RUN chmod -R a-w /app/packages/wps-shared/src /app/packages/wps-sfms/src
+    /app/packages/wps-sfms/pyproject.toml && \
+    chmod -R a-w /app/packages/wps-shared/src /app/packages/wps-sfms/src
 
 # Switch back to non-root user
 USER $USERNAME
 
-# Install dependencies using uv
-RUN uv sync --frozen --no-dev --package wps-api
-
-# Install setuptools required for GDAL build
-RUN uv pip install setuptools
-
-# Get a python binding for gdal that matches the version of gdal we have installed.
-RUN uv pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
+# Install dependencies using uv, including setuptools for GDAL build and GDAL itself
+RUN uv sync --frozen --no-dev --package wps-api && \
+    uv pip install setuptools && \
+    uv pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
 
 # Stage 2: Prepare the final image, including copying Python packages from Stage 1.
 FROM ${DOCKER_IMAGE}
@@ -72,8 +67,7 @@ USER 0
 COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /uvx /bin/
 
 # Create a directory for the app to run in, and grant worker access
-RUN mkdir /app
-RUN chown "$USERNAME" /app
+RUN mkdir /app && chown "$USERNAME" /app
 WORKDIR /app
 
 # Copy workspace and package configuration
@@ -88,10 +82,9 @@ USER $USERNAME
 # Copy the app from new src layout:
 COPY ./backend/packages/wps-api/src/app /app/app
 # TODO: we need to do this better.
-RUN mkdir /app/advisory
+# Create directories for advisory and java libs
+RUN mkdir /app/advisory /app/libs
 COPY ./backend/packages/wps-api/advisory /app/advisory
-# Copy java libs:
-RUN mkdir /app/libs
 COPY ./backend/packages/wps-api/libs /app/libs
 # Copy alembic:
 COPY ./backend/packages/wps-api/alembic /app/alembic
@@ -119,12 +112,10 @@ ENV VIRTUAL_ENV="/app/.venv"
 
 # root user please
 USER 0
-# Remove write permissions from copied configuration and source files for security
-RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-api/pyproject.toml /app/advisory /app/libs /app/alembic /app/alembic.ini /app/prestart.sh /app/start.sh /app/packages/wps-shared/src /app/packages/wps-sfms/src
-# We don't know what user uv is going to run as, so we give everyone write access directories
-# in the app folder. We need write access for .pyc files to be created. .pyc files are good,
-# they speed up python.
-RUN chmod a+w $(find /app/app -type d)
+# Remove write permissions from copied configuration and source files for security,
+# but allow write access to app directories for .pyc file creation
+RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-api/pyproject.toml /app/advisory /app/libs /app/alembic /app/alembic.ini /app/prestart.sh /app/start.sh /app/packages/wps-shared/src /app/packages/wps-sfms/src && \
+    chmod a+w $(find /app/app -type d)
 
 # Openshift runs with a random non-root user, so switching our user to 1001 allows us
 # to test locally with similar conditions to what we may find in openshift.
