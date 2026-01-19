@@ -84,7 +84,7 @@ class TestTemperatureInterpolationJob:
 
         await job.run(target_date)
 
-        assert captured_datetime is not None
+        assert captured_datetime is not None, "Processor was not called"
         assert captured_datetime.hour == 20
         assert captured_datetime.minute == 0
         assert captured_datetime.second == 0

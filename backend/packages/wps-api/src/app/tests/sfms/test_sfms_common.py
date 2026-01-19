@@ -70,9 +70,9 @@ class TestFetchStationActuals:
         assert len(result) == 2
         assert all(isinstance(r, SFMSDailyActual) for r in result)
         assert result[0].code == 100
-        assert result[0].temperature == 15.0
+        assert result[0].temperature == pytest.approx(15.0)
         assert result[1].code == 101
-        assert result[1].temperature == 18.0
+        assert result[1].temperature == pytest.approx(18.0)
 
     @pytest.mark.anyio
     async def test_filters_non_actual_records(self):
@@ -238,10 +238,10 @@ class TestFetchStationActuals:
             result = await fetch_station_actuals(session, headers, time_of_interest, stations)
 
         assert len(result) == 1
-        assert result[0].lat == 49.5
-        assert result[0].lon == -123.5
+        assert result[0].lat == pytest.approx(49.5)
+        assert result[0].lon == pytest.approx(-123.5)
         assert result[0].elevation == 750
-        assert result[0].temperature == 22.5
-        assert result[0].relative_humidity == 50.0
-        assert result[0].precipitation == 0.0
-        assert result[0].wind_speed == 10.0
+        assert result[0].temperature == pytest.approx(22.5)
+        assert result[0].relative_humidity == pytest.approx(50.0)
+        assert result[0].precipitation == pytest.approx(0.0)
+        assert result[0].wind_speed == pytest.approx(10.0)
