@@ -33,13 +33,13 @@ def main():
 
     # Left: full difference map for context
     ax1 = axes[0]
-    im1 = ax1.imshow(diff, cmap="RdBu", vmin=-diff_abs_max, vmax=diff_abs_max)
+    im1 = ax1.imshow(diff, cmap="RdBu_r", vmin=-diff_abs_max, vmax=diff_abs_max)
     ax1.set_title("All Differences (Gen - Ref)")
     plt.colorbar(im1, ax=ax1)
 
     # Right: only outliers
     ax2 = axes[1]
-    im2 = ax2.imshow(outliers, cmap="RdBu", vmin=-diff_abs_max, vmax=diff_abs_max)
+    im2 = ax2.imshow(outliers, cmap="RdBu_r", vmin=-diff_abs_max, vmax=diff_abs_max)
     ax2.set_title(f"Outliers Only (|diff| > {args.threshold})")
     plt.colorbar(im2, ax=ax2)
 
