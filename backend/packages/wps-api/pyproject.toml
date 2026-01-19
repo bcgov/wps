@@ -62,7 +62,7 @@ dev = [
 
 [tool.uv.sources]
 wps-shared = { workspace = true }
-cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
+cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "327f3913696490bfcd5e824672e3675f63cdf25e" }
 
 [tool.hatch.metadata]
 allow-direct-references = true
