@@ -56,6 +56,63 @@ def create_mock_sfms_actuals():
     ]
 
 
+def create_interpolation_job_mocks(mocker, mock_s3_client, module_path: str, processor_class) -> MockDependencies:
+    """
+    Create common mock dependencies for interpolation job tests.
+
+    :param mocker: pytest-mock fixture
+    :param mock_s3_client: mock S3 client fixture
+    :param module_path: module path prefix (e.g., "app.jobs.temperature_interpolation_job")
+    :param processor_class: the processor class to mock (for spec)
+    :return: MockDependencies named tuple
+    """
+    from aiohttp import ClientSession
+    from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+
+    mocker.patch(f"{module_path}.S3Client", return_value=mock_s3_client)
+
+    mock_session = AsyncMock(spec=ClientSession)
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=None)
+    mocker.patch(f"{module_path}.ClientSession", return_value=mock_session)
+
+    mocker.patch(
+        f"{module_path}.get_auth_header",
+        return_value=AsyncMock(return_value={"Authorization": "Bearer test"})(),
+    )
+    mocker.patch(
+        f"{module_path}.get_stations_from_source",
+        return_value=AsyncMock(return_value=[])(),
+    )
+    mocker.patch(
+        f"{module_path}.fetch_station_actuals",
+        return_value=AsyncMock(return_value=create_mock_sfms_actuals())(),
+    )
+    mocker.patch(
+        f"{module_path}.find_latest_version",
+        return_value=AsyncMock(return_value=1)(),
+    )
+
+    mock_addresser = MagicMock(spec=RasterKeyAddresser)
+    mock_addresser.get_fuel_raster_key.return_value = "sfms/fuel/2024/fuel.tif"
+    mock_addresser.s3_prefix = "/vsis3/test-bucket"
+    mock_addresser.get_mask_key.return_value = "/vsis3/test-bucket/sfms/static/bc_mask.tif"
+    mock_addresser.get_dem_key.return_value = "/vsis3/test-bucket/sfms/static/bc_elevation.tif"
+    mocker.patch(f"{module_path}.RasterKeyAddresser", return_value=mock_addresser)
+
+    mock_processor = MagicMock(spec=processor_class)
+    mock_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/output.tif")
+    mocker.patch(f"{module_path}.{processor_class.__name__}", return_value=mock_processor)
+
+    mocker.patch(f"{module_path}.send_rocketchat_notification", return_value=None)
+
+    return MockDependencies(
+        session=mock_session,
+        processor=mock_processor,
+        addresser=mock_addresser,
+    )
+
+
 def pytest_configure(config):
     """Set environment variables and configure ORIGINS before any imports happen."""
     os.environ.setdefault("ORIGINS", "testorigin")

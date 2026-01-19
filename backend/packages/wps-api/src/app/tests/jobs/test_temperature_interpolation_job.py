@@ -7,90 +7,24 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from pytest_mock import MockerFixture
-
 from aiohttp import ClientSession
+
 from app.jobs.temperature_interpolation_job import (
     TemperatureInterpolationJob,
     main,
 )
-from app.tests.conftest import MockDependencies, create_mock_sfms_actuals
+from app.tests.conftest import create_interpolation_job_mocks, create_mock_sfms_actuals
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_sfms.processors import TemperatureInterpolationProcessor
+
+MODULE_PATH = "app.jobs.temperature_interpolation_job"
 
 
 @pytest.fixture
 def mock_dependencies(mocker: MockerFixture, mock_s3_client):
     """Mock all external dependencies for the temperature interpolation job."""
-    # Use shared mock_s3_client fixture
-    mocker.patch(
-        "app.jobs.temperature_interpolation_job.S3Client",
-        return_value=mock_s3_client,
-    )
-
-    # Mock ClientSession
-    mock_session = AsyncMock(spec=ClientSession)
-    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-    mock_session.__aexit__ = AsyncMock(return_value=None)
-    mocker.patch(
-        "app.jobs.temperature_interpolation_job.ClientSession",
-        return_value=mock_session,
-    )
-
-    # Mock auth header
-    mocker.patch(
-        "app.jobs.temperature_interpolation_job.get_auth_header",
-        return_value=AsyncMock(return_value={"Authorization": "Bearer test"})(),
-    )
-
-    # Mock stations
-    mocker.patch(
-        "app.jobs.temperature_interpolation_job.get_stations_from_source",
-        return_value=AsyncMock(return_value=[])(),
-    )
-
-    # Mock fetch_station_actuals
-    mocker.patch(
-        "app.jobs.temperature_interpolation_job.fetch_station_actuals",
-        return_value=AsyncMock(return_value=create_mock_sfms_actuals())(),
-    )
-
-    # Mock find_latest_version
-    mocker.patch(
-        "app.jobs.temperature_interpolation_job.find_latest_version",
-        return_value=AsyncMock(return_value=1)(),
-    )
-
-    # Mock RasterKeyAddresser
-    mock_addresser = MagicMock(spec=RasterKeyAddresser)
-    mock_addresser.get_fuel_raster_key.return_value = "sfms/fuel/2024/fuel.tif"
-    mock_addresser.s3_prefix = "/vsis3/test-bucket"
-    mock_addresser.get_mask_key.return_value = "/vsis3/test-bucket/sfms/static/bc_mask.tif"
-    mock_addresser.get_dem_key.return_value = "/vsis3/test-bucket/sfms/static/bc_elevation.tif"
-    mocker.patch(
-        "app.jobs.temperature_interpolation_job.RasterKeyAddresser",
-        return_value=mock_addresser,
-    )
-
-    # Mock processor
-    mock_processor = MagicMock(spec=TemperatureInterpolationProcessor)
-    mock_processor.process = AsyncMock(
-        return_value="sfms/interpolated/temp/2024/07/04/temp_20240704.tif"
-    )
-    mocker.patch(
-        "app.jobs.temperature_interpolation_job.TemperatureInterpolationProcessor",
-        return_value=mock_processor,
-    )
-
-    # Mock rocketchat
-    mocker.patch(
-        "app.jobs.temperature_interpolation_job.send_rocketchat_notification",
-        return_value=None,
-    )
-
-    return MockDependencies(
-        session=mock_session,
-        processor=mock_processor,
-        addresser=mock_addresser,
+    return create_interpolation_job_mocks(
+        mocker, mock_s3_client, MODULE_PATH, TemperatureInterpolationProcessor
     )
 
 
