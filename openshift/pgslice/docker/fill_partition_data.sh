@@ -49,7 +49,7 @@ then
     exit 1
 fi
 
-ENCODED_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${PG_PASSWORD}'))")
+ENCODED_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${PG_PASSWORD}', safe=''))")
 PGSLICE_URL=postgresql://${PG_USER}:${ENCODED_PASS}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}
 # Fill the partitions with data from the original table
 pgslice fill $TABLE --url $PGSLICE_URL
