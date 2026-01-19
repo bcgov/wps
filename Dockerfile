@@ -114,7 +114,17 @@ ENV VIRTUAL_ENV="/app/.venv"
 USER 0
 # Remove write permissions from copied configuration and source files for security,
 # but allow write access to app directories for .pyc file creation
-RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-api/pyproject.toml /app/advisory /app/libs /app/alembic /app/alembic.ini /app/prestart.sh /app/start.sh /app/packages/wps-shared/src /app/packages/wps-sfms/src && \
+RUN chmod -R a-w \
+    /app/pyproject.toml \
+    /app/packages/wps-api/pyproject.toml \
+    /app/packages/wps-shared/src \
+    /app/packages/wps-sfms/src \
+    /app/advisory \
+    /app/libs \
+    /app/alembic \
+    /app/alembic.ini \
+    /app/prestart.sh \
+    /app/start.sh && \
     chmod a+w $(find /app/app -type d)
 
 # Openshift runs with a random non-root user, so switching our user to 1001 allows us
