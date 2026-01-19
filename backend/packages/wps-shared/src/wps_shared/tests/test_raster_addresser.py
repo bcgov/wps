@@ -189,3 +189,15 @@ def test_get_interpolated_key_different_dates(
     """Test interpolated key generation for different dates."""
     result = raster_key_addresser.get_interpolated_key(dt, SFMSInterpolatedWeatherParameter.TEMP)
     assert result == expected_key
+
+
+def test_get_dem_key(raster_key_addresser: RasterKeyAddresser):
+    """Test DEM key returns correct GDAL virtual file system path."""
+    result = raster_key_addresser.get_dem_key()
+    assert result == f"{raster_key_addresser.s3_prefix}/sfms/static/bc_elevation.tif"
+
+
+def test_get_mask_key(raster_key_addresser: RasterKeyAddresser):
+    """Test mask key returns correct GDAL virtual file system path."""
+    result = raster_key_addresser.get_mask_key()
+    assert result == f"{raster_key_addresser.s3_prefix}/sfms/static/bc_mask.tif"
