@@ -56,12 +56,12 @@ def create_mock_sfms_actuals():
     ]
 
 
-def create_interpolation_job_mocks(mocker, mock_s3_client, module_path: str, processor_class) -> MockDependencies:
+def create_interpolation_job_mocks(mocker, s3_client_mock, module_path: str, processor_class) -> MockDependencies:
     """
     Create common mock dependencies for interpolation job tests.
 
     :param mocker: pytest-mock fixture
-    :param mock_s3_client: mock S3 client fixture
+    :param s3_client_mock: mock S3 client fixture
     :param module_path: module path prefix (e.g., "app.jobs.temperature_interpolation_job")
     :param processor_class: the processor class to mock (for spec)
     :return: MockDependencies named tuple
@@ -69,12 +69,12 @@ def create_interpolation_job_mocks(mocker, mock_s3_client, module_path: str, pro
     from aiohttp import ClientSession
     from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 
-    mocker.patch(f"{module_path}.S3Client", return_value=mock_s3_client)
+    mocker.patch(f"{module_path}.S3Client", return_value=s3_client_mock)
 
-    mock_session = AsyncMock(spec=ClientSession)
-    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-    mock_session.__aexit__ = AsyncMock(return_value=None)
-    mocker.patch(f"{module_path}.ClientSession", return_value=mock_session)
+    session_mock = AsyncMock(spec=ClientSession)
+    session_mock.__aenter__ = AsyncMock(return_value=session_mock)
+    session_mock.__aexit__ = AsyncMock(return_value=None)
+    mocker.patch(f"{module_path}.ClientSession", return_value=session_mock)
 
     mocker.patch(
         f"{module_path}.get_auth_header",
@@ -107,7 +107,7 @@ def create_interpolation_job_mocks(mocker, mock_s3_client, module_path: str, pro
     mocker.patch(f"{module_path}.send_rocketchat_notification", return_value=None)
 
     return MockDependencies(
-        session=mock_session,
+        session=session_mock,
         processor=mock_processor,
         addresser=mock_addresser,
     )
