@@ -1,5 +1,8 @@
 import os
+from typing import NamedTuple
+from unittest.mock import AsyncMock, MagicMock
 
+from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.tests.conftest import (
     anyio_backend,
     mock_env,
@@ -17,6 +20,40 @@ from wps_shared.tests.conftest import (
     spy_access_logging,
     mock_s3_client,
 )
+
+
+class MockDependencies(NamedTuple):
+    """Typed container for mock dependencies."""
+
+    session: AsyncMock
+    processor: MagicMock
+    addresser: MagicMock
+
+
+def create_mock_sfms_actuals():
+    """Create mock SFMS daily actuals for testing."""
+    return [
+        SFMSDailyActual(
+            code=100,
+            lat=49.0,
+            lon=-123.0,
+            elevation=100.0,
+            temperature=15.0,
+            relative_humidity=50.0,
+            precipitation=2.5,
+            wind_speed=10.0,
+        ),
+        SFMSDailyActual(
+            code=101,
+            lat=49.5,
+            lon=-123.5,
+            elevation=200.0,
+            temperature=12.0,
+            relative_humidity=60.0,
+            precipitation=5.0,
+            wind_speed=8.0,
+        ),
+    ]
 
 
 def pytest_configure(config):

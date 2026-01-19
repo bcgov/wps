@@ -3,7 +3,6 @@
 import os
 import sys
 from datetime import datetime, timezone
-from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -14,43 +13,9 @@ from app.jobs.temperature_interpolation_job import (
     TemperatureInterpolationJob,
     main,
 )
-from wps_shared.schemas.sfms import SFMSDailyActual
+from app.tests.conftest import MockDependencies, create_mock_sfms_actuals
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_sfms.processors import TemperatureInterpolationProcessor
-
-
-class MockDependencies(NamedTuple):
-    """Typed container for mock dependencies."""
-
-    session: AsyncMock
-    processor: MagicMock
-    addresser: MagicMock
-
-
-def create_mock_sfms_actuals():
-    """Create mock SFMS daily actuals for testing."""
-    return [
-        SFMSDailyActual(
-            code=100,
-            lat=49.0,
-            lon=-123.0,
-            elevation=100.0,
-            temperature=15.0,
-            relative_humidity=50.0,
-            precipitation=2.5,
-            wind_speed=10.0,
-        ),
-        SFMSDailyActual(
-            code=101,
-            lat=49.5,
-            lon=-123.5,
-            elevation=200.0,
-            temperature=12.0,
-            relative_humidity=60.0,
-            precipitation=5.0,
-            wind_speed=8.0,
-        ),
-    ]
 
 
 @pytest.fixture
