@@ -37,7 +37,7 @@ def main():
 
     # Difference
     ax3 = axes[2]
-    im3 = ax3.imshow(diff, cmap="RdBu", vmin=-diff_abs_max, vmax=diff_abs_max)
+    im3 = ax3.imshow(diff, cmap="RdBu_r", vmin=-diff_abs_max, vmax=diff_abs_max)
     ax3.set_title("Difference (Gen - Ref)")
     plt.colorbar(im3, ax=ax3)
 
