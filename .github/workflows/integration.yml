@@ -154,9 +154,9 @@ jobs:
         if: steps.cache-venv.outputs.cache-hit != 'true'
         working-directory: ./backend
         run: |
-          # Install JDK
+          # Install JDK and ecCodes library
           apt-get update --fix-missing
-          apt-get -y install default-jdk
+          apt-get -y install default-jdk libeccodes-dev
           uv sync --all-extras
           uv pip install setuptools
           uv pip install --no-build-isolation gdal==$(gdal-config --version)
