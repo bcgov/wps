@@ -32,6 +32,8 @@ COPY ./backend/uv.lock /app/
 COPY ./backend/packages/wps-api/pyproject.toml /app/packages/wps-api/
 COPY ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
+COPY ./backend/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
+COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
 
 # Switch to root to set file permissions
 USER 0
@@ -39,8 +41,9 @@ USER 0
 # Set configuration files to read-only for security
 RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-api/pyproject.toml \
-    /app/packages/wps-shared/pyproject.toml
-RUN chmod -R a-w /app/packages/wps-shared/src
+    /app/packages/wps-shared/pyproject.toml \
+    /app/packages/wps-sfms/pyproject.toml
+RUN chmod -R a-w /app/packages/wps-shared/src /app/packages/wps-sfms/src
 
 # Switch back to non-root user
 USER $USERNAME
@@ -77,6 +80,7 @@ WORKDIR /app
 COPY --from=builder /app/pyproject.toml /app/
 COPY --from=builder /app/packages/wps-api/pyproject.toml /app/packages/wps-api/
 COPY --from=builder /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
+COPY --from=builder /app/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
 
 # Switch back to our non-root user
 USER $USERNAME
@@ -96,8 +100,9 @@ COPY ./backend/packages/wps-api/alembic.ini /app
 COPY ./backend/packages/wps-api/prestart.sh /app
 COPY ./backend/packages/wps-api/start.sh /app
 
-# Make uv happy by copying wps_shared
+# Make uv happy by copying wps_shared and wps_sfms
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
+COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
 
 # Copy installed Python packages
 COPY --from=builder /app/.venv /app/.venv
@@ -115,7 +120,7 @@ ENV VIRTUAL_ENV="/app/.venv"
 # root user please
 USER 0
 # Remove write permissions from copied configuration and source files for security
-RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-api/pyproject.toml /app/advisory /app/libs /app/alembic /app/alembic.ini /app/prestart.sh /app/start.sh /app/packages/wps-shared/src
+RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-api/pyproject.toml /app/advisory /app/libs /app/alembic /app/alembic.ini /app/prestart.sh /app/start.sh /app/packages/wps-shared/src /app/packages/wps-sfms/src
 # We don't know what user uv is going to run as, so we give everyone write access directories
 # in the app folder. We need write access for .pyc files to be created. .pyc files are good,
 # they speed up python.
