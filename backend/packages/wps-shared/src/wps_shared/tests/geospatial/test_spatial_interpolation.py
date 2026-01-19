@@ -170,6 +170,132 @@ class TestIDWInterpolation:
         assert 2.0 < result < 3.0
 
 
+class TestBatchInterpolation:
+    """Tests for batch interpolation with numpy array targets."""
+
+    def test_batch_interpolation_basic(self):
+        """Test batch interpolation with multiple target points."""
+        lats = [49.0, 50.0, 51.0]
+        lons = [-123.0, -123.0, -123.0]
+        values = [10.0, 20.0, 30.0]
+
+        # Query multiple points at once
+        target_lats = np.array([49.0, 50.0, 49.5])
+        target_lons = np.array([-123.0, -123.0, -123.0])
+
+        result = idw_interpolation(target_lats, target_lons, lats, lons, values)
+
+        assert isinstance(result, np.ndarray)
+        assert len(result) == 3
+        # First point is at exact station location
+        assert result[0] == pytest.approx(10.0, rel=1e-6)
+        # Second point is at exact station location
+        assert result[1] == pytest.approx(20.0, rel=1e-6)
+        # Third point is interpolated
+        assert 10.0 < result[2] < 20.0
+
+    def test_batch_interpolation_with_nan_results(self):
+        """Test batch interpolation where some points are outside search radius."""
+        lats = [49.0]
+        lons = [-123.0]
+        values = [15.0]
+
+        # One nearby, one far away
+        target_lats = np.array([49.1, 60.0])
+        target_lons = np.array([-123.0, -150.0])
+
+        result = idw_interpolation(target_lats, target_lons, lats, lons, values, search_radius=50000)
+
+        assert isinstance(result, np.ndarray)
+        assert len(result) == 2
+        assert result[0] == pytest.approx(15.0, abs=0.1)
+        assert np.isnan(result[1])
+
+    def test_batch_mismatched_lengths_returns_nan_array(self):
+        """Test batch interpolation with mismatched input lengths returns NaN array."""
+        target_lats = np.array([49.0, 50.0])
+        target_lons = np.array([-123.0, -124.0])
+
+        result = idw_interpolation(target_lats, target_lons, [49.0], [-123.0, -124.0], [15.0])
+
+        assert isinstance(result, np.ndarray)
+        assert len(result) == 2
+        assert np.all(np.isnan(result))
+
+    def test_batch_empty_input_returns_nan_array(self):
+        """Test batch interpolation with empty input returns NaN array."""
+        target_lats = np.array([49.0, 50.0])
+        target_lons = np.array([-123.0, -124.0])
+
+        result = idw_interpolation(target_lats, target_lons, [], [], [])
+
+        assert isinstance(result, np.ndarray)
+        assert len(result) == 2
+        assert np.all(np.isnan(result))
+
+    def test_batch_all_none_values_returns_nan_array(self):
+        """Test batch interpolation with all None values returns NaN array."""
+        target_lats = np.array([49.0, 50.0])
+        target_lons = np.array([-123.0, -124.0])
+
+        result = idw_interpolation(target_lats, target_lons, [49.0, 50.0], [-123.0, -124.0], [None, None])
+
+        assert isinstance(result, np.ndarray)
+        assert len(result) == 2
+        assert np.all(np.isnan(result))
+
+
+class TestNumpyArrayInputs:
+    """Tests for numpy array inputs with NaN filtering."""
+
+    def test_numpy_array_values_with_nan(self):
+        """Test that NaN values in numpy arrays are filtered out."""
+        lats = np.array([49.0, 50.0, 51.0])
+        lons = np.array([-123.0, -124.0, -125.0])
+        values = np.array([15.0, np.nan, 20.0])  # Middle value is NaN
+
+        result = idw_interpolation(49.5, -123.5, lats, lons, values)
+
+        # Should still work with only two valid values
+        assert result is not None
+
+    def test_numpy_array_all_nan_values(self):
+        """Test that all NaN numpy array returns None."""
+        lats = np.array([49.0, 50.0])
+        lons = np.array([-123.0, -124.0])
+        values = np.array([np.nan, np.nan])
+
+        result = idw_interpolation(49.5, -123.5, lats, lons, values)
+
+        assert result is None
+
+    def test_numpy_array_all_nan_batch_mode(self):
+        """Test that all NaN numpy array in batch mode returns NaN array."""
+        lats = np.array([49.0, 50.0])
+        lons = np.array([-123.0, -124.0])
+        values = np.array([np.nan, np.nan])
+
+        target_lats = np.array([49.5, 50.5])
+        target_lons = np.array([-123.5, -124.5])
+
+        result = idw_interpolation(target_lats, target_lons, lats, lons, values)
+
+        assert isinstance(result, np.ndarray)
+        assert np.all(np.isnan(result))
+
+    def test_numpy_array_mixed_valid_and_nan(self):
+        """Test numpy array with mix of valid and NaN values."""
+        lats = np.array([49.0, 49.5, 50.0, 50.5])
+        lons = np.array([-123.0, -123.0, -123.0, -123.0])
+        values = np.array([10.0, np.nan, np.nan, 20.0])
+
+        result = idw_interpolation(49.75, -123.0, lats, lons, values)
+
+        assert result is not None
+        # Should be between 10 and 20
+        assert 10.0 < result < 20.0
+
+
 class TestIDWEdgeCases:
     """Tests for edge cases and boundary conditions."""
 
