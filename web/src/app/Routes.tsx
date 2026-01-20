@@ -29,7 +29,7 @@ const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { SFMSInsightsPage } from '@/features/sfmsInsights/pages/SFMSInsightsPage'
 import FireWatchPage from '@/features/fireWatch/pages/FireWatchPage'
-// const SMURFIPage = lazy(() => import('features/smurfi/pages/SMURFIPage'))
+const SMURFIPage = lazy(() => import('features/smurfi/pages/SMURFIPage'))
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -111,7 +111,7 @@ const WPSRoutes: React.FunctionComponent = () => {
               </AuthWrapper>
             }
           />
-          <Route path={SMURFI_ROUTE} element={<NoMatchPage />} />
+          <Route path={SMURFI_ROUTE} element={<SMURFIPage />} />
           <Route path="*" element={<NoMatchPage />} />
         </Routes>
       </Suspense>
