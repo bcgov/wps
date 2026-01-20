@@ -13,21 +13,19 @@ import json
 import logging
 from typing import Annotated
 
-from aiobotocore.session import get_session
 from deltalake import DeltaTable
-from fastapi import APIRouter, Depends, HTTPException, Path, Response
+from fastapi import APIRouter, HTTPException, Path, Response
 from pydantic import BaseModel, Field
 from wps_shared import config
-from wps_shared.auth import authentication_required
+from wps_shared.utils.s3_client import S3Client
 
-# Pre-signed URL expiration in seconds (1 hour)
-PRESIGNED_URL_EXPIRATION = 3600
+# File URL expiration in seconds (1 hour)
+FILE_URL_EXPIRATION = 3600
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/delta-sharing",
-    dependencies=[Depends(authentication_required)],
 )
 
 # Configuration: single share with default schema
@@ -58,13 +56,24 @@ def get_table_uri(table_key: str) -> str:
     return f"s3://{bucket}/{table_key}"
 
 
-def ndjson_response(lines: list[dict]) -> Response:
+def ndjson_response(lines: list[dict], headers: dict[str, str] | None = None) -> Response:
     """Create a newline-delimited JSON response."""
     content = "\n".join(json.dumps(line) for line in lines)
     return Response(
         content=content,
         media_type="application/x-ndjson",
+        headers=headers,
     )
+
+
+def normalize_schema_string(schema_json: str) -> str:
+    """Normalize schema types for delta-sharing client compatibility.
+
+    The delta-sharing client doesn't recognize some newer Delta Lake types like
+    'timestamp_ntz'. This function maps them to compatible types.
+    """
+    # Replace timestamp_ntz with timestamp (both are stored the same in parquet)
+    return schema_json.replace('"timestamp_ntz"', '"timestamp"')
 
 
 # --- List Shares ---
@@ -81,15 +90,11 @@ class ListSharesResponse(BaseModel):
 @router.get("/shares", response_model=ListSharesResponse)
 async def list_shares():
     """List all available shares."""
-    return ListSharesResponse(
-        items=[Share(name=SHARE_NAME, id=SHARE_NAME)]
-    )
+    return ListSharesResponse(items=[Share(name=SHARE_NAME, id=SHARE_NAME)])
 
 
 @router.get("/shares/{share}")
-async def get_share(
-    share: Annotated[str, Path(description="Share name")]
-):
+async def get_share(share: Annotated[str, Path(description="Share name")]):
     """Get a share by name."""
     if share != SHARE_NAME:
         raise HTTPException(status_code=404, detail=f"Share '{share}' not found")
@@ -108,20 +113,16 @@ class ListSchemasResponse(BaseModel):
 
 
 @router.get("/shares/{share}/schemas", response_model=ListSchemasResponse)
-async def list_schemas(
-    share: Annotated[str, Path(description="Share name")]
-):
+async def list_schemas(share: Annotated[str, Path(description="Share name")]):
     """List all schemas in a share."""
     if share != SHARE_NAME:
         raise HTTPException(status_code=404, detail=f"Share '{share}' not found")
-    return ListSchemasResponse(
-        items=[Schema(name=SCHEMA_NAME, share=SHARE_NAME)]
-    )
+    return ListSchemasResponse(items=[Schema(name=SCHEMA_NAME, share=SHARE_NAME)])
 
 
 # --- List Tables ---
 class Table(BaseModel):
-    model_config = {"populate_by_name": True, "by_alias": True}
+    model_config = {"populate_by_name": True}
 
     name: str
     schema_: str = Field(serialization_alias="schema")
@@ -129,10 +130,12 @@ class Table(BaseModel):
     shareId: str
     id: str
 
+    def model_dump(self, **kwargs):
+        kwargs.setdefault("by_alias", True)
+        return super().model_dump(**kwargs)
+
 
 class ListTablesResponse(BaseModel):
-    model_config = {"by_alias": True}
-
     items: list[Table]
     nextPageToken: str | None = None
 
@@ -203,9 +206,7 @@ async def get_table_version(
 
     try:
         dt = DeltaTable(table_uri, storage_options=storage_options)
-        return Response(
-            headers={"Delta-Table-Version": str(dt.version())}
-        )
+        return Response(headers={"Delta-Table-Version": str(dt.version())})
     except Exception as e:
         logger.error(f"Error reading table version: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -233,6 +234,7 @@ async def get_table_metadata(
         dt = DeltaTable(table_uri, storage_options=storage_options)
         dt_schema = dt.schema()
         metadata = dt.metadata()
+        version = dt.version()
 
         lines = [
             {"protocol": {"minReaderVersion": 1}},
@@ -240,14 +242,14 @@ async def get_table_metadata(
                 "metaData": {
                     "id": metadata.id,
                     "format": {"provider": "parquet"},
-                    "schemaString": dt_schema.to_json(),
+                    "schemaString": normalize_schema_string(dt_schema.to_json()),
                     "partitionColumns": metadata.partition_columns,
                     "configuration": metadata.configuration,
                 }
             },
         ]
 
-        return ndjson_response(lines)
+        return ndjson_response(lines, headers={"Delta-Table-Version": str(version)})
 
     except Exception as e:
         logger.error(f"Error reading table metadata: {e}")
@@ -293,12 +295,12 @@ async def query_table(
     table_key = TABLES[table]
     storage_options = get_storage_options()
     table_uri = get_table_uri(table_key)
-    bucket = config.get("OBJECT_STORE_BUCKET")
 
     try:
         dt = DeltaTable(table_uri, storage_options=storage_options)
         dt_schema = dt.schema()
         metadata = dt.metadata()
+        version = dt.version()
 
         # Start response with protocol and metadata
         lines: list[dict] = [
@@ -307,7 +309,7 @@ async def query_table(
                 "metaData": {
                     "id": metadata.id,
                     "format": {"provider": "parquet"},
-                    "schemaString": dt_schema.to_json(),
+                    "schemaString": normalize_schema_string(dt_schema.to_json()),
                     "partitionColumns": metadata.partition_columns,
                     "configuration": metadata.configuration,
                 }
@@ -323,57 +325,36 @@ async def query_table(
         if request and request.limitHint:
             limit = min(request.limitHint, num_files)
 
-        # Collect files
-        files_to_sign = []
-        for i in range(limit):
-            file_path = add_actions["path"][i]
-            size = add_actions.get("size_bytes", [0] * num_files)[i]
-            stats = add_actions.get("stats", [None] * num_files)[i]
+        # Generate presigned URLs for direct S3 access
+        async with S3Client() as s3_client:
+            for i in range(limit):
+                file_path = add_actions["path"][i]
+                size = add_actions.get("size_bytes", [0] * num_files)[i]
+                stats = add_actions.get("stats", [None] * num_files)[i]
 
-            # Parse partition values
-            partition_values = {}
-            for part in file_path.split("/"):
-                if "=" in part:
-                    key, value = part.split("=", 1)
-                    partition_values[key] = value
+                # Parse partition values
+                partition_values = {}
+                for part in file_path.split("/"):
+                    if "=" in part:
+                        key, value = part.split("=", 1)
+                        partition_values[key] = value
 
-            s3_key = f"{table_key}/{file_path}"
-            files_to_sign.append({
-                "s3_key": s3_key,
-                "size": size,
-                "partition_values": partition_values,
-                "stats": stats,
-                "id": file_path,
-            })
+                s3_key = f"{table_key}/{file_path}"
+                url = await s3_client.generate_presigned_url(s3_key, FILE_URL_EXPIRATION)
 
-        # Generate pre-signed URLs
-        session = get_session()
-        async with session.create_client(
-            "s3",
-            endpoint_url=f"https://{config.get('OBJECT_STORE_SERVER')}",
-            aws_access_key_id=config.get("OBJECT_STORE_USER_ID"),
-            aws_secret_access_key=config.get("OBJECT_STORE_SECRET"),
-            region_name="us-east-1",
-        ) as client:
-            for file_info in files_to_sign:
-                url = await client.generate_presigned_url(
-                    "get_object",
-                    Params={"Bucket": bucket, "Key": file_info["s3_key"]},
-                    ExpiresIn=PRESIGNED_URL_EXPIRATION,
-                )
                 file_entry = {
                     "file": {
                         "url": url,
-                        "id": file_info["id"],
-                        "partitionValues": file_info["partition_values"],
-                        "size": file_info["size"],
+                        "id": file_path,
+                        "partitionValues": partition_values,
+                        "size": size,
                     }
                 }
-                if file_info["stats"]:
-                    file_entry["file"]["stats"] = file_info["stats"]
+                if stats:
+                    file_entry["file"]["stats"] = stats
                 lines.append(file_entry)
 
-        return ndjson_response(lines)
+        return ndjson_response(lines, headers={"Delta-Table-Version": str(version)})
 
     except Exception as e:
         logger.error(f"Error querying table: {e}", exc_info=True)
