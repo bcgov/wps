@@ -19,7 +19,8 @@ import {
   MORE_CAST_2_ROUTE,
   SFMS_INSIGHTS_ROUTE,
   FIRE_WATCH_ROUTE,
-  WEATHER_TOOLKIT_ROUTE
+  WEATHER_TOOLKIT_ROUTE,
+  SMURFI_ROUTE
 } from '@wps/utils/constants'
 import { NoMatchPage } from 'features/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
@@ -30,6 +31,7 @@ import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { SFMSInsightsPage } from '@/features/sfmsInsights/pages/SFMSInsightsPage'
 import FireWatchPage from '@/features/fireWatch/pages/FireWatchPage'
 import WeatherToolkitPage from '@/features/weatherToolkit/pages/WeatherToolkitPage'
+// const SMURFIPage = lazy(() => import('@/features/smurfi/pages/SMURFIPage'))
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -112,6 +114,7 @@ const WPSRoutes: React.FunctionComponent = () => {
             }
           />
           <Route path={WEATHER_TOOLKIT_ROUTE} element={<WeatherToolkitPage />} />
+          <Route path={SMURFI_ROUTE} element={<NoMatchPage />} />
           <Route path="*" element={<NoMatchPage />} />
         </Routes>
       </Suspense>
