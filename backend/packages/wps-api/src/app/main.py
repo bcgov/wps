@@ -19,6 +19,7 @@ from app import health
 from app import hourlies
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from app.routers import (
+    delta_sharing,
     fba,
     forecasts,
     object_store_proxy,
@@ -137,6 +138,7 @@ api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
+api.include_router(delta_sharing.router, tags=["Delta Sharing"])
 
 
 @api.get("/ready")

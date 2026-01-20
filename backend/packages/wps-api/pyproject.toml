@@ -47,6 +47,8 @@ dependencies = [
     "geopandas>=1.0.1,<2",
     "shapely>=2.0.5,<3",
     "gdal==3.9.2",
+    "deltalake>=0.18.0,<1",
+    "pyarrow>=15.0.0,<20",
 ]
 
 [project.optional-dependencies]

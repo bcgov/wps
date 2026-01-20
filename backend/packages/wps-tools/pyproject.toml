@@ -10,7 +10,14 @@ dependencies = [
     "types-aiobotocore[s3]>=2.4.1,<3",
     "pandas>=1.5.2,<3",
     "requests>=2.31.0,<3",
+    "pyarrow>=18.0.0,<19",
+    "duckdb>=1.1.0,<2",
+    "deltalake>=0.22.0,<1",
+    "wps-shared",
 ]
+
+[tool.uv.sources]
+wps-shared = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

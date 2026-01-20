@@ -1,0 +1,456 @@
+"""
+BCWS Data Mart Crawler
+
+Crawls the BC Wildfire Service Data Mart, downloads CSV files,
+and appends to Delta Lake tables on object storage.
+
+Source: https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART/
+
+Usage:
+    python -m wps_tools.bcws_data_mart_crawler --help
+    python -m wps_tools.bcws_data_mart_crawler --years 2023 2024
+    python -m wps_tools.bcws_data_mart_crawler --all --dry-run
+"""
+
+import argparse
+import io
+import logging
+import re
+from dataclasses import dataclass
+from html.parser import HTMLParser
+
+import pandas as pd
+import requests
+from deltalake import DeltaTable, write_deltalake
+from wps_shared import config
+
+logger = logging.getLogger(__name__)
+
+BASE_URL = "https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART"
+OBSERVATIONS_TABLE = "historical/observations"
+STATIONS_TABLE = "historical/stations"
+
+
+def get_storage_options() -> dict[str, str]:
+    """Get S3 storage options for delta-rs."""
+    return {
+        "AWS_ENDPOINT_URL": f"https://{config.get('OBJECT_STORE_SERVER')}",
+        "AWS_ACCESS_KEY_ID": config.get("OBJECT_STORE_USER_ID"),
+        "AWS_SECRET_ACCESS_KEY": config.get("OBJECT_STORE_SECRET"),
+        "AWS_REGION": "us-east-1",  # Required but ignored for non-AWS S3
+        "AWS_S3_ALLOW_UNSAFE_RENAME": "true",  # Required for S3-compatible storage
+    }
+
+
+def get_table_key(table_name: str) -> str:
+    """Get the S3 URI for a Delta table."""
+    bucket = config.get("OBJECT_STORE_BUCKET")
+    return f"s3://{bucket}/{table_name}"
+
+
+class DirectoryParser(HTMLParser):
+    """Parse FTP directory listing HTML to extract links."""
+
+    def __init__(self):
+        super().__init__()
+        self.links: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]):
+        if tag == "a":
+            for name, value in attrs:
+                if name == "href" and value:
+                    self.links.append(value)
+
+
+def parse_directory_listing(html: str) -> list[str]:
+    """Extract links from an FTP directory listing page."""
+    parser = DirectoryParser()
+    parser.feed(html)
+    return parser.links
+
+
+def get_year_directories(session: requests.Session) -> list[int]:
+    """Get list of year directories from the data mart."""
+    response = session.get(f"{BASE_URL}/")
+    response.raise_for_status()
+
+    links = parse_directory_listing(response.text)
+    years = []
+
+    for link in links:
+        match = re.search(r"(\d{4})/?$", link)
+        if match:
+            year = int(match.group(1))
+            if 1900 < year < 2100:
+                years.append(year)
+
+    return sorted(set(years))
+
+
+def get_csv_files_for_year(session: requests.Session, year: int) -> list[str]:
+    """Get list of CSV files for a specific year."""
+    response = session.get(f"{BASE_URL}/{year}/")
+    response.raise_for_status()
+
+    links = parse_directory_listing(response.text)
+    csv_files = []
+
+    for link in links:
+        if link.endswith(".csv"):
+            filename = link.split("/")[-1]
+            csv_files.append(filename)
+
+    return sorted(csv_files)
+
+
+@dataclass
+class CrawlResult:
+    """Result of crawling a single CSV file."""
+
+    year: int
+    filename: str
+    success: bool
+    rows: int = 0
+    error: str | None = None
+
+
+def download_csv(session: requests.Session, year: int, filename: str) -> pd.DataFrame:
+    """Download a CSV file and return as DataFrame."""
+    url = f"{BASE_URL}/{year}/{filename}"
+    response = session.get(url)
+    response.raise_for_status()
+    return pd.read_csv(io.StringIO(response.text))
+
+
+def get_existing_dates(table_uri: str, storage_options: dict[str, str]) -> set[str]:
+    """Get set of dates already in the Delta table."""
+    try:
+        dt = DeltaTable(table_uri, storage_options=storage_options)
+        df = dt.to_pandas(columns=["date"])
+        return set(df["date"].astype(str).unique())
+    except Exception as e:
+        logger.debug(f"Could not read existing dates: {e}")
+        return set()
+
+
+def process_stations_file(
+    session: requests.Session,
+    year: int,
+    filename: str,
+    storage_options: dict[str, str],
+    dry_run: bool = False,
+) -> CrawlResult:
+    """Process station metadata file - append to stations Delta table."""
+    try:
+        df = download_csv(session, year, filename)
+        df["source_year"] = year
+
+        # Ensure consistent types for columns that vary across years
+        # ASPECT contains compass directions (N, S, E, W, etc.) but is empty in older files
+        # WINDSPEED_HEIGHT contains ranges like "9.0_11.9"
+        string_columns = ["ASPECT", "WINDSPEED_HEIGHT"]
+        for col in string_columns:
+            if col in df.columns:
+                df[col] = df[col].astype("string")
+
+        table_uri = get_table_key(STATIONS_TABLE)
+
+        if dry_run:
+            logger.info(f"[DRY RUN] Would append {filename} ({len(df)} rows) to {table_uri}")
+        else:
+            write_deltalake(
+                table_uri,
+                df,
+                mode="append",
+                schema_mode="merge",
+                storage_options=storage_options,
+            )
+            logger.info(f"Appended {filename} ({len(df)} rows) to {table_uri}")
+
+        return CrawlResult(year, filename, True, rows=len(df))
+
+    except Exception as e:
+        logger.error(f"Error processing {year}/{filename}: {e}")
+        return CrawlResult(year, filename, False, error=str(e))
+
+
+def process_observations_file(
+    session: requests.Session,
+    year: int,
+    filename: str,
+    existing_dates: set[str],
+    storage_options: dict[str, str],
+    dry_run: bool = False,
+) -> CrawlResult:
+    """Process observation file - append to observations Delta table."""
+    try:
+        df = download_csv(session, year, filename)
+
+        if "DATE_TIME" not in df.columns:
+            logger.warning(f"No DATE_TIME column in {filename}, skipping")
+            return CrawlResult(year, filename, False, error="No DATE_TIME column")
+
+        # Parse DATE_TIME and extract partition columns
+        df["DATE_TIME"] = pd.to_datetime(df["DATE_TIME"], format="%Y%m%d%H", errors="coerce")
+        df["date"] = df["DATE_TIME"].dt.date.astype(str)
+        df["year"] = df["DATE_TIME"].dt.year
+        df["month"] = df["DATE_TIME"].dt.month
+
+        # Filter out dates that already exist
+        initial_rows = len(df)
+        df = df[~df["date"].isin(existing_dates)]
+
+        if df.empty:
+            logger.info(f"All dates in {filename} already exist, skipping")
+            return CrawlResult(year, filename, True, rows=0)
+
+        skipped = initial_rows - len(df)
+        if skipped > 0:
+            logger.info(f"Skipping {skipped} rows with existing dates in {filename}")
+
+        table_uri = get_table_key(OBSERVATIONS_TABLE)
+
+        if dry_run:
+            unique_dates = df["date"].nunique()
+            logger.info(
+                f"[DRY RUN] Would append {filename}: {unique_dates} days, {len(df)} rows to {table_uri}"
+            )
+        else:
+            write_deltalake(
+                table_uri,
+                df,
+                mode="append",
+                schema_mode="merge",
+                partition_by=["year", "month"],
+                storage_options=storage_options,
+            )
+            unique_dates = df["date"].nunique()
+            logger.info(f"Appended {filename}: {unique_dates} days, {len(df)} rows to {table_uri}")
+
+        return CrawlResult(year, filename, True, rows=len(df))
+
+    except Exception as e:
+        logger.error(f"Error processing {year}/{filename}: {e}")
+        return CrawlResult(year, filename, False, error=str(e))
+
+
+def process_csv_file(
+    session: requests.Session,
+    year: int,
+    filename: str,
+    existing_dates: set[str],
+    storage_options: dict[str, str],
+    dry_run: bool = False,
+) -> CrawlResult:
+    """Route CSV file to appropriate processor based on type."""
+    filename_lower = filename.lower()
+
+    if "station" in filename_lower:
+        return process_stations_file(session, year, filename, storage_options, dry_run)
+    else:
+        return process_observations_file(
+            session, year, filename, existing_dates, storage_options, dry_run
+        )
+
+
+def crawl_year(
+    session: requests.Session,
+    year: int,
+    existing_dates: set[str],
+    storage_options: dict[str, str],
+    dry_run: bool = False,
+) -> list[CrawlResult]:
+    """Crawl and process all CSV files for a year."""
+    logger.info(f"Processing year {year}")
+
+    csv_files = get_csv_files_for_year(session, year)
+    logger.info(f"Found {len(csv_files)} CSV files for {year}")
+
+    if not csv_files:
+        return []
+
+    results = []
+    for filename in csv_files:
+        result = process_csv_file(session, year, filename, existing_dates, storage_options, dry_run)
+        results.append(result)
+
+    return results
+
+
+def crawl_all(
+    years: list[int] | None = None,
+    dry_run: bool = False,
+    skip_existing: bool = True,
+) -> dict[int, list[CrawlResult]]:
+    """
+    Crawl the BCWS Data Mart and append to Delta Lake tables.
+
+    Args:
+        years: List of years to process, or None for all available years
+        dry_run: If True, don't actually write data
+        skip_existing: If True, skip dates that already exist in the table
+
+    Returns:
+        Dictionary mapping years to their crawl results
+    """
+    session = requests.Session()
+    session.headers.update({"User-Agent": "BCWS-DataMart-Crawler/1.0"})
+
+    storage_options = get_storage_options()
+
+    # Get existing dates if skip_existing is enabled
+    existing_dates: set[str] = set()
+    if skip_existing and not dry_run:
+        logger.info("Checking for existing dates in Delta table...")
+        existing_dates = get_existing_dates(get_table_key(OBSERVATIONS_TABLE), storage_options)
+        logger.info(f"Found {len(existing_dates)} existing dates")
+
+    # Get available years
+    available_years = get_year_directories(session)
+    logger.info(f"Available years: {available_years}")
+
+    if years:
+        years_to_process = [y for y in years if y in available_years]
+        missing = set(years) - set(available_years)
+        if missing:
+            logger.warning(f"Requested years not found: {missing}")
+    else:
+        years_to_process = available_years
+
+    logger.info(f"Will process years: {years_to_process}")
+
+    all_results = {}
+    for year in years_to_process:
+        results = crawl_year(session, year, existing_dates, storage_options, dry_run)
+        all_results[year] = results
+
+        successful = sum(1 for r in results if r.success)
+        failed = sum(1 for r in results if not r.success)
+        total_rows = sum(r.rows for r in results if r.success)
+
+        if results:
+            logger.info(
+                f"Year {year}: {successful} successful, {failed} failed, {total_rows} total rows"
+            )
+
+    return all_results
+
+
+def optimize_table(table_name: str = OBSERVATIONS_TABLE):
+    """Compact small files in the Delta table."""
+    storage_options = get_storage_options()
+    table_uri = get_table_key(table_name)
+
+    logger.info(f"Optimizing {table_uri}...")
+    dt = DeltaTable(table_uri, storage_options=storage_options)
+    dt.optimize.compact()
+    logger.info("Optimization complete")
+
+
+def vacuum_table(table_name: str = OBSERVATIONS_TABLE, retention_hours: int = 168):
+    """Remove old files from the Delta table."""
+    storage_options = get_storage_options()
+    table_uri = get_table_key(table_name)
+
+    logger.info(f"Vacuuming {table_uri} (retention: {retention_hours} hours)...")
+    dt = DeltaTable(table_uri, storage_options=storage_options)
+    dt.vacuum(retention_hours=retention_hours, enforce_retention_duration=False)
+    logger.info("Vacuum complete")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Crawl BCWS Data Mart and append to Delta Lake tables"
+    )
+    parser.add_argument(
+        "--years",
+        type=int,
+        nargs="+",
+        help="Specific years to process (default: all available)",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Process all available years",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Don't actually write data, just show what would be done",
+    )
+    parser.add_argument(
+        "--no-skip-existing",
+        action="store_true",
+        help="Re-process dates that already exist in the table",
+    )
+    parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Compact small files after crawling",
+    )
+    parser.add_argument(
+        "--vacuum",
+        action="store_true",
+        help="Remove old files after crawling",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Enable verbose logging",
+    )
+
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+    if not args.years and not args.all and not args.optimize and not args.vacuum:
+        parser.error("Either --years, --all, --optimize, or --vacuum must be specified")
+
+    if args.years or args.all:
+        years = None if args.all else args.years
+
+        results = crawl_all(
+            years=years,
+            dry_run=args.dry_run,
+            skip_existing=not args.no_skip_existing,
+        )
+
+        # Print summary
+        total_success = sum(
+            sum(1 for r in yr_results if r.success) for yr_results in results.values()
+        )
+        total_failed = sum(
+            sum(1 for r in yr_results if not r.success) for yr_results in results.values()
+        )
+        total_rows = sum(
+            sum(r.rows for r in yr_results if r.success) for yr_results in results.values()
+        )
+
+        print(f"\n{'=' * 50}")
+        print("Crawl Complete")
+        print(f"{'=' * 50}")
+        print(f"Years processed: {len(results)}")
+        print(f"Files successful: {total_success}")
+        print(f"Files failed: {total_failed}")
+        print(f"Total rows: {total_rows:,}")
+
+        if total_failed > 0:
+            print("\nFailed files:")
+            for year, yr_results in results.items():
+                for r in yr_results:
+                    if not r.success:
+                        print(f"  {year}/{r.filename}: {r.error}")
+
+    if args.optimize and not args.dry_run:
+        optimize_table()
+
+    if args.vacuum and not args.dry_run:
+        vacuum_table()
+
+
+if __name__ == "__main__":
+    main()
