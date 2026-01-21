@@ -13,7 +13,7 @@ import {
   AggregationPeriod,
   ClimatologyDataPoint,
   MultiYearClimatologyResult,
-  CurrentYearDataPoint,
+  ComparisonYearDataPoint,
   WEATHER_VARIABLE_LABELS,
   WEATHER_VARIABLE_UNITS,
   YearData
@@ -148,7 +148,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
     // Create maps for each year's data lookup
     const yearMaps = data.years_data.map((yearData: YearData) => {
       const map = new Map<number, number | null>()
-      yearData.data.forEach((point: CurrentYearDataPoint) => {
+      yearData.data.forEach((point: ComparisonYearDataPoint) => {
         map.set(point.period, point.value)
       })
       return { year: yearData.year, map }
@@ -200,7 +200,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
     // Create maps for each year's data lookup
     const yearMaps = data.years_data.map((yearData: YearData) => {
       const map = new Map<number, number | null>()
-      yearData.data.forEach((point: CurrentYearDataPoint) => {
+      yearData.data.forEach((point: ComparisonYearDataPoint) => {
         map.set(point.period, point.value)
       })
       return { year: yearData.year, map }

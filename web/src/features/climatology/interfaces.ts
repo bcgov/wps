@@ -7,9 +7,9 @@ export enum WeatherVariable {
   HOURLY_RELATIVE_HUMIDITY = 'HOURLY_RELATIVE_HUMIDITY',
   HOURLY_WIND_SPEED = 'HOURLY_WIND_SPEED',
   HOURLY_PRECIPITATION = 'HOURLY_PRECIPITATION',
-  HOURLY_FFMC = 'HOURLY_FFMC',
-  HOURLY_ISI = 'HOURLY_ISI',
-  HOURLY_FWI = 'HOURLY_FWI'
+  HOURLY_FINE_FUEL_MOISTURE_CODE = 'HOURLY_FINE_FUEL_MOISTURE_CODE',
+  HOURLY_INITIAL_SPREAD_INDEX = 'HOURLY_INITIAL_SPREAD_INDEX',
+  HOURLY_FIRE_WEATHER_INDEX = 'HOURLY_FIRE_WEATHER_INDEX'
 }
 
 export enum AggregationPeriod {
@@ -41,7 +41,7 @@ export interface ClimatologyDataPoint {
   p90: number | null
 }
 
-export interface CurrentYearDataPoint {
+export interface ComparisonYearDataPoint {
   period: number // Day of year (1-366) or month (1-12)
   value: number | null
   date: string // YYYY-MM-DD
@@ -55,7 +55,7 @@ export interface StationInfo {
 
 export interface ClimatologyResponse {
   climatology: ClimatologyDataPoint[]
-  current_year: CurrentYearDataPoint[]
+  comparison_year_data: ComparisonYearDataPoint[]
   station: StationInfo
   variable: WeatherVariable
   aggregation: AggregationPeriod
@@ -66,7 +66,7 @@ export interface ClimatologyResponse {
 // Extended response for multiple comparison years (client-side merged)
 export interface YearData {
   year: number
-  data: CurrentYearDataPoint[]
+  data: ComparisonYearDataPoint[]
 }
 
 export interface MultiYearClimatologyResult {
@@ -85,9 +85,9 @@ export const WEATHER_VARIABLE_LABELS: Record<WeatherVariable, string> = {
   [WeatherVariable.HOURLY_RELATIVE_HUMIDITY]: 'Relative Humidity',
   [WeatherVariable.HOURLY_WIND_SPEED]: 'Wind Speed',
   [WeatherVariable.HOURLY_PRECIPITATION]: 'Precipitation',
-  [WeatherVariable.HOURLY_FFMC]: 'Fine Fuel Moisture Code (FFMC)',
-  [WeatherVariable.HOURLY_ISI]: 'Initial Spread Index (ISI)',
-  [WeatherVariable.HOURLY_FWI]: 'Fire Weather Index (FWI)'
+  [WeatherVariable.HOURLY_FINE_FUEL_MOISTURE_CODE]: 'Fine Fuel Moisture Code (FFMC)',
+  [WeatherVariable.HOURLY_INITIAL_SPREAD_INDEX]: 'Initial Spread Index (ISI)',
+  [WeatherVariable.HOURLY_FIRE_WEATHER_INDEX]: 'Fire Weather Index (FWI)'
 }
 
 // Units for weather variables
@@ -96,9 +96,9 @@ export const WEATHER_VARIABLE_UNITS: Record<WeatherVariable, string> = {
   [WeatherVariable.HOURLY_RELATIVE_HUMIDITY]: '%',
   [WeatherVariable.HOURLY_WIND_SPEED]: 'km/h',
   [WeatherVariable.HOURLY_PRECIPITATION]: 'mm',
-  [WeatherVariable.HOURLY_FFMC]: '',
-  [WeatherVariable.HOURLY_ISI]: '',
-  [WeatherVariable.HOURLY_FWI]: ''
+  [WeatherVariable.HOURLY_FINE_FUEL_MOISTURE_CODE]: '',
+  [WeatherVariable.HOURLY_INITIAL_SPREAD_INDEX]: '',
+  [WeatherVariable.HOURLY_FIRE_WEATHER_INDEX]: ''
 }
 
 // Standard climate normal reference periods

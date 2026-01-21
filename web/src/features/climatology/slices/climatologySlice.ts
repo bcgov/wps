@@ -116,7 +116,7 @@ export const fetchMultiYearClimatology =
         climatology: baseResult.climatology,
         years_data: results.map((r, idx) => ({
           year: comparisonYears[idx],
-          data: r.current_year
+          data: r.comparison_year_data
         })),
         station: baseResult.station,
         variable: baseResult.variable,

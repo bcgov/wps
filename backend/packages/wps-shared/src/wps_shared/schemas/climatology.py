@@ -62,8 +62,8 @@ class ClimatologyDataPoint(BaseModel):
     p90: Optional[float] = Field(None, description="90th percentile")
 
 
-class CurrentYearDataPoint(BaseModel):
-    """A data point for the current/comparison year."""
+class ComparisonYearDataPoint(BaseModel):
+    """A data point for the comparison year."""
 
     period: int = Field(..., description="Day of year (1-366) or month (1-12)")
     value: Optional[float] = Field(None, description="Observed value")
@@ -82,7 +82,7 @@ class ClimatologyResponse(BaseModel):
     """Response containing climatology data and comparison year data."""
 
     climatology: list[ClimatologyDataPoint] = Field(default_factory=list)
-    current_year: list[CurrentYearDataPoint] = Field(default_factory=list)
+    comparison_year_data: list[ComparisonYearDataPoint] = Field(default_factory=list)
     station: StationInfo
     variable: WeatherVariable
     aggregation: AggregationPeriod
