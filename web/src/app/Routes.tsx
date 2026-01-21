@@ -18,7 +18,8 @@ import {
   LANDING_PAGE_ROUTE,
   MORE_CAST_2_ROUTE,
   SFMS_INSIGHTS_ROUTE,
-  FIRE_WATCH_ROUTE
+  FIRE_WATCH_ROUTE,
+  CLIMATOLOGY_ROUTE
 } from 'utils/constants'
 import { NoMatchPage } from 'features/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
@@ -28,6 +29,7 @@ const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { SFMSInsightsPage } from '@/features/sfmsInsights/pages/SFMSInsightsPage'
 import FireWatchPage from '@/features/fireWatch/pages/FireWatchPage'
+const ClimatologyPage = lazy(() => import('features/climatology/pages/ClimatologyPage'))
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -106,6 +108,14 @@ const WPSRoutes: React.FunctionComponent = () => {
             element={
               <AuthWrapper>
                 <FireWatchPage />
+              </AuthWrapper>
+            }
+          />
+          <Route
+            path={CLIMATOLOGY_ROUTE}
+            element={
+              <AuthWrapper>
+                <ClimatologyPage />
               </AuthWrapper>
             }
           />

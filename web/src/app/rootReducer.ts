@@ -2,6 +2,7 @@ import { combineReducers, createSelector } from '@reduxjs/toolkit'
 
 import stationReducer from 'features/stations/slices/stationsSlice'
 import percentilesReducer from 'features/percentileCalculator/slices/percentilesSlice'
+import climatologyReducer from 'features/climatology/slices/climatologySlice'
 import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlice'
 import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'
 import authReducer from 'features/auth/slices/authenticationSlice'
@@ -30,6 +31,7 @@ const rootReducer = combineReducers({
   percentileStations: stationReducer,
   fireWeatherStations: stationReducer,
   percentiles: percentilesReducer,
+  climatology: climatologyReducer,
   cHainesModelRuns: cHainesModelRunReducer,
   cHainesPredictions: cHainesPredictionReducer,
   authentication: authReducer,
@@ -60,6 +62,7 @@ export type RootState = ReturnType<typeof rootReducer>
 export default rootReducer
 
 export const selectPercentileStations = (state: RootState) => state.percentileStations
+export const selectClimatology = (state: RootState) => state.climatology
 export const selectHFIDailies = (state: RootState) => state.hfiCalculatorDailies
 export const selectFireWeatherStations = (state: RootState) => state.fireWeatherStations
 export const selectPercentiles = (state: RootState) => state.percentiles
