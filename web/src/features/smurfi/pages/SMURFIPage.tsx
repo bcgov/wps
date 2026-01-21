@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Tabs, Tab } from '@mui/material'
 import { GeneralHeader } from 'components'
+import SpotForecastForm from '@/features/smurfi/components/SpotForecast'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -50,7 +51,9 @@ const SMURFIPage = () => {
         <Box>content</Box>
       </TabPanel>
       <TabPanel value={value} index={3}>
-        <Box>content</Box>
+        <Box>
+          <SpotForecastForm />
+        </Box>
       </TabPanel>
     </Box>
   )
