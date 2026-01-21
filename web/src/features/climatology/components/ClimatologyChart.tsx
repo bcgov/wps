@@ -136,8 +136,15 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
     handleSaveMenuClose()
     if (!data) return
 
-    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    const isMonthly = data.aggregation === AggregationPeriod.MONTHLY
+    const csvMonthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const isMonthlyExport = data.aggregation === AggregationPeriod.MONTHLY
+
+    // Convert day of year to date string for CSV (use leap year for consistency)
+    const dayToDateStr = (dayOfYear: number): string => {
+      const date = new Date(2024, 0, 1)
+      date.setDate(dayOfYear)
+      return `${csvMonthLabels[date.getMonth()]} ${date.getDate()}`
+    }
 
     // Create CSV header with all comparison years
     const headers = ['Period', 'P10', 'P25', 'P50', 'P75', 'P90']
@@ -156,7 +163,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
 
     // Create CSV rows
     const rows = data.climatology.map((point: ClimatologyDataPoint) => {
-      const periodLabel = isMonthly ? monthLabels[point.period - 1] : `Day ${point.period}`
+      const periodLabel = isMonthlyExport ? csvMonthLabels[point.period - 1] : dayToDateStr(point.period)
       const row: (string | number | null)[] = [periodLabel, point.p10, point.p25, point.p50, point.p75, point.p90]
       yearMaps.forEach(({ map }) => {
         row.push(map.get(point.period) ?? '')
@@ -305,9 +312,17 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
   const xAxisLabel = data.aggregation === AggregationPeriod.DAILY ? 'Day of Year' : 'Month'
   const yAxisLabel = variableUnit ? `${variableLabel} (${variableUnit})` : variableLabel
 
-  // Generate x-axis tick values for monthly view
+  // Generate x-axis tick values and formatters
   const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   const isMonthly = data.aggregation === AggregationPeriod.MONTHLY
+
+  // Convert day of year to date string (e.g., "Jan 15")
+  // Always use leap year since climatology spans multiple years and day 366 may exist
+  const dayOfYearToDate = (dayOfYear: number): string => {
+    const date = new Date(2024, 0, 1)
+    date.setDate(dayOfYear)
+    return `${monthLabels[date.getMonth()]} ${date.getDate()}`
+  }
 
   // Generate series for each comparison year
   const yearSeries = chartData.yearsData.map((yearData, idx) => ({
@@ -374,7 +389,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
               tickMinStep: isMonthly ? 1 : 30,
               valueFormatter: isMonthly
                 ? (value: number) => monthLabels[Math.round(value) - 1] || ''
-                : undefined,
+                : (value: number) => dayOfYearToDate(Math.round(value)),
               zoom: true
             }
           ]}
