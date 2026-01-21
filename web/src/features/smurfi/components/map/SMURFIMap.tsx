@@ -49,7 +49,6 @@ const SMURFIMap = () => {
     })
     const featureLayer = new VectorLayer({
       source: featureSourceWithMarker,
-      // style: { 'circle-radius': 5, 'circle-fill-color': 'red' },
       style: new Style({
         image: new Icon({
           anchor: [0.5, 1], //center horizontally, bottom vertically
