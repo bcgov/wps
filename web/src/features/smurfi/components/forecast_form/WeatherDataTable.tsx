@@ -45,7 +45,9 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                   dateTime: DateTime.now().toFormat('yyyy-MM-dd HH:mm'),
                   temp: '',
                   rh: '',
-                  wind: '',
+                  windSpeed: '',
+                  windGust: '',
+                  windDirection: '',
                   rain: '-',
                   chanceRain: '-'
                 })
@@ -62,9 +64,11 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                   <TableCell sx={{ minWidth: 175 }}>Date/Time (PDT)</TableCell>
                   <TableCell>Temp (C)</TableCell>
                   <TableCell>RH (%)</TableCell>
-                  <TableCell>Wind (km/h)</TableCell>
+                  <TableCell>Wind Speed (km/h)</TableCell>
+                  <TableCell>Wind Gust (km/h)</TableCell>
+                  <TableCell>Wind Direction (°)</TableCell>
                   <TableCell>Rain (mm)</TableCell>
-                  <TableCell>Chance Rain</TableCell>
+                  <TableCell>Chance Rain (%)</TableCell>
                   <TableCell width={60} />
                 </TableRow>
               </TableHead>
@@ -120,9 +124,31 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                     </TableCell>
                     <TableCell>
                       <Controller
-                        name={`weatherData.${index}.wind`}
+                        name={`weatherData.${index}.windSpeed`}
                         control={control}
                         render={({ field }) => <TextField {...field} size="small" fullWidth />}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Controller
+                        name={`weatherData.${index}.windGust`}
+                        control={control}
+                        render={({ field }) => <TextField {...field} size="small" fullWidth />}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Controller
+                        name={`weatherData.${index}.windDirection`}
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            size="small"
+                            fullWidth
+                            error={!!errors.weatherData?.[index]?.windDirection}
+                            helperText={errors.weatherData?.[index]?.windDirection?.message}
+                          />
+                        )}
                       />
                     </TableCell>
                     <TableCell>

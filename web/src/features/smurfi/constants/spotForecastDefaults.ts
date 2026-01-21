@@ -17,9 +17,11 @@ export const defaultWeatherRows: FormData['weatherData'] = defaultDateTimes.map(
   dateTime: dt.toFormat('yyyy-MM-dd HH:mm'),
   temp: '',
   rh: '',
-  wind: '',
-  rain: '-',
-  chanceRain: '-'
+  windSpeed: '',
+  windGust: '',
+  windDirection: '',
+  rain: '',
+  chanceRain: ''
 }))
 
 export const getDefaultValues = (user: { name: string; email: string; phone: string }): Partial<FormData> => ({

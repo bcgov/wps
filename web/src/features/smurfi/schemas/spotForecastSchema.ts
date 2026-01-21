@@ -16,7 +16,16 @@ export const createSchema = (isMini: boolean) => {
         const num = Number(val)
         return !Number.isNaN(num) && num >= 0 && num <= 100
       }, 'RH must be a number between 0 and 100'),
-    wind: z.string().optional(),
+    windSpeed: z.string().optional(),
+    windGust: z.string().optional(),
+    windDirection: z
+      .string()
+      .optional()
+      .refine(val => {
+        if (!val) return true
+        const num = Number(val)
+        return !isNaN(num) && num >= 0 && num <= 359
+      }, 'Wind direction must be a number between 0 and 359'),
     rain: z.string().optional(),
     chanceRain: z.string().optional()
   })
