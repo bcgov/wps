@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { styled } from '@mui/material/styles'
 import { Typography, Paper, Box, IconButton, Tooltip, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material'
 import { LineChartPro } from '@mui/x-charts-pro/LineChartPro'
@@ -97,10 +97,6 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
   const apiRef = useChartProApiRef<'line'>()
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const [saveMenuAnchor, setSaveMenuAnchor] = React.useState<null | HTMLElement>(null)
-
-  const handleResetZoom = () => {
-    apiRef.current?.setZoomData([{ axisId: 'x-axis', start: 0, end: 100 }])
-  }
 
   const handleSaveMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setSaveMenuAnchor(event.currentTarget)
@@ -216,7 +212,11 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
       data: []
     }))
 
-    data.climatology.forEach((point: ClimatologyDataPoint) => {
+    // Track extent of comparison year data
+    let minDataIndex: number | null = null
+    let maxDataIndex: number | null = null
+
+    data.climatology.forEach((point: ClimatologyDataPoint, idx: number) => {
       xAxisData.push(point.period)
       p10Data.push(point.p10)
       p25Data.push(point.p25)
@@ -224,11 +224,34 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
       p75Data.push(point.p75)
       p90Data.push(point.p90)
 
-      // Add data for each comparison year
-      yearMaps.forEach((yearMap, idx) => {
-        yearsData[idx].data.push(yearMap.map.get(point.period) ?? null)
+      // Add data for each comparison year and track extent
+      let hasAnyYearData = false
+      yearMaps.forEach((yearMap, yearIdx) => {
+        const value = yearMap.map.get(point.period) ?? null
+        yearsData[yearIdx].data.push(value)
+        if (value !== null) {
+          hasAnyYearData = true
+        }
       })
+
+      if (hasAnyYearData) {
+        if (minDataIndex === null) minDataIndex = idx
+        maxDataIndex = idx
+      }
     })
+
+    // Calculate zoom percentages based on comparison year data extent
+    const totalPoints = xAxisData.length
+    let zoomStart = 0
+    let zoomEnd = 100
+    if (minDataIndex !== null && maxDataIndex !== null && totalPoints > 0 && data.comparison_years.length > 0) {
+      // Add a small padding (5% of range or 5 points, whichever is smaller)
+      const padding = Math.min(Math.floor(totalPoints * 0.02), 5)
+      const paddedMin = Math.max(0, minDataIndex - padding)
+      const paddedMax = Math.min(totalPoints - 1, maxDataIndex + padding)
+      zoomStart = (paddedMin / (totalPoints - 1)) * 100
+      zoomEnd = (paddedMax / (totalPoints - 1)) * 100
+    }
 
     return {
       xAxisData,
@@ -237,9 +260,29 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
       p50Data,
       p75Data,
       p90Data,
-      yearsData
+      yearsData,
+      initialZoom: { start: zoomStart, end: zoomEnd }
     }
   }, [data])
+
+  // Set initial zoom to comparison year data extent
+  useEffect(() => {
+    if (chartData?.initialZoom && apiRef.current) {
+      apiRef.current.setZoomData([
+        { axisId: 'x-axis', start: chartData.initialZoom.start, end: chartData.initialZoom.end }
+      ])
+    }
+  }, [chartData, apiRef])
+
+  const handleResetZoom = () => {
+    if (chartData?.initialZoom) {
+      apiRef.current?.setZoomData([
+        { axisId: 'x-axis', start: chartData.initialZoom.start, end: chartData.initialZoom.end }
+      ])
+    } else {
+      apiRef.current?.setZoomData([{ axisId: 'x-axis', start: 0, end: 100 }])
+    }
+  }
 
   if (loading) {
     return (
@@ -288,7 +331,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
           </Typography>
         </Typography>
         <Box sx={{ position: 'absolute', top: 0, right: 0, display: 'flex', gap: 0.5 }}>
-          <Tooltip title="Reset zoom">
+          <Tooltip title="Zoom to comparison data">
             <IconButton size="small" onClick={handleResetZoom}>
               <ZoomOutMapIcon />
             </IconButton>
