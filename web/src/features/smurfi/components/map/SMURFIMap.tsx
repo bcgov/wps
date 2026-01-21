@@ -12,14 +12,18 @@ import VectorLayer from 'ol/layer/Vector'
 import { Icon, Style } from 'ol/style'
 import { Geometry, Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
+import activeSpot from './styles/activeSpot.svg'
+import completeSpot from './styles/completeSpot.svg'
+import pendingSpot from './styles/newSpotRequest.svg'
+import pausedSpot from './styles/onHoldSpot.svg'
 
 type SpotRequestStatus = 'ACTIVE' | 'COMPLETE' | 'PENDING' | 'PAUSED'
 
 const statusToPath: Record<SpotRequestStatus, string> = {
-  ACTIVE: 'styles/activeSpot.svg',
-  COMPLETE: 'styles/completeSpot.svg',
-  PENDING: 'styles/newSpotRequest.svg',
-  PAUSED: 'styles/onHoldSpot.svg'
+  ACTIVE: activeSpot,
+  COMPLETE: completeSpot,
+  PENDING: pendingSpot,
+  PAUSED: pausedSpot
 }
 
 export const MapContext = React.createContext<Map | null>(null)
@@ -32,7 +36,6 @@ const fetchSVG = (status: SpotRequestStatus): string => {
 const SMURFIMap = () => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
-  const [featureSource, setFeatureSource] = useState<VectorSource>(new VectorSource({}))
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -41,9 +44,11 @@ const SMURFIMap = () => {
     const marker = new Feature<Geometry>({
       geometry: new Point(fromLonLat([-123.20205688476564, 49.69664476418803]))
     })
-    setFeatureSource(new VectorSource({ features: [marker] }))
+    const featureSourceWithMarker = new VectorSource({
+      features: [marker]
+    })
     const featureLayer = new VectorLayer({
-      source: featureSource,
+      source: featureSourceWithMarker,
       // style: { 'circle-radius': 5, 'circle-fill-color': 'red' },
       style: new Style({
         image: new Icon({

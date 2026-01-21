@@ -136,6 +136,7 @@ api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
+api.include_router(smurfi.router, tags=["SMURFI"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
 
 
