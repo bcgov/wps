@@ -336,6 +336,17 @@ def crawl_all(
     return all_results
 
 
+def create_checkpoint(table_name: str = OBSERVATIONS_TABLE):
+    """Create a checkpoint for the Delta table to speed up log reads."""
+    storage_options = get_storage_options()
+    table_uri = get_table_key(table_name)
+
+    logger.info(f"Creating checkpoint for {table_uri}...")
+    dt = DeltaTable(table_uri, storage_options=storage_options)
+    dt.create_checkpoint()
+    logger.info("Checkpoint created")
+
+
 def optimize_table(table_name: str = OBSERVATIONS_TABLE):
     """Compact small files in the Delta table."""
     storage_options = get_storage_options()
@@ -356,6 +367,20 @@ def vacuum_table(table_name: str = OBSERVATIONS_TABLE, retention_hours: int = 16
     dt = DeltaTable(table_uri, storage_options=storage_options)
     dt.vacuum(retention_hours=retention_hours, enforce_retention_duration=False)
     logger.info("Vacuum complete")
+
+
+def maintain_all_tables():
+    """Run maintenance (checkpoint, optimize, vacuum) on all Delta tables."""
+    tables = [OBSERVATIONS_TABLE, STATIONS_TABLE, "historical/climatology_stats"]
+
+    for table in tables:
+        try:
+            logger.info(f"\n{'='*50}\nMaintaining {table}\n{'='*50}")
+            create_checkpoint(table)
+            optimize_table(table)
+            vacuum_table(table)
+        except Exception as e:
+            logger.error(f"Error maintaining {table}: {e}")
 
 
 def main():
@@ -384,6 +409,11 @@ def main():
         help="Re-process dates that already exist in the table",
     )
     parser.add_argument(
+        "--checkpoint",
+        action="store_true",
+        help="Create checkpoint to speed up Delta log reads",
+    )
+    parser.add_argument(
         "--optimize",
         action="store_true",
         help="Compact small files after crawling",
@@ -392,6 +422,11 @@ def main():
         "--vacuum",
         action="store_true",
         help="Remove old files after crawling",
+    )
+    parser.add_argument(
+        "--maintain",
+        action="store_true",
+        help="Run all maintenance (checkpoint, optimize, vacuum) on all tables",
     )
     parser.add_argument(
         "--verbose",
@@ -407,8 +442,8 @@ def main():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    if not args.years and not args.all and not args.optimize and not args.vacuum:
-        parser.error("Either --years, --all, --optimize, or --vacuum must be specified")
+    if not args.years and not args.all and not args.checkpoint and not args.optimize and not args.vacuum and not args.maintain:
+        parser.error("Either --years, --all, --checkpoint, --optimize, --vacuum, or --maintain must be specified")
 
     if args.years or args.all:
         years = None if args.all else args.years
@@ -445,11 +480,17 @@ def main():
                     if not r.success:
                         print(f"  {year}/{r.filename}: {r.error}")
 
-    if args.optimize and not args.dry_run:
-        optimize_table()
+    if args.maintain and not args.dry_run:
+        maintain_all_tables()
+    else:
+        if args.checkpoint and not args.dry_run:
+            create_checkpoint()
 
-    if args.vacuum and not args.dry_run:
-        vacuum_table()
+        if args.optimize and not args.dry_run:
+            optimize_table()
+
+        if args.vacuum and not args.dry_run:
+            vacuum_table()
 
 
 if __name__ == "__main__":
