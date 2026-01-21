@@ -1,7 +1,8 @@
 // src/components/SpotForecastForm.tsx
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { z } from 'zod'
 import {
@@ -27,7 +28,10 @@ import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
 import { DateTime } from 'luxon'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { PST_UTC_OFFSET } from '@/utils/constants'
+import StationSelector from './StationSelector'
+import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
+import { getStations, StationSource } from '@/api/stationAPI'
+import { AppDispatch } from '@/app/store'
 
 interface UserContextType {
   name: string
@@ -76,7 +80,7 @@ const schema = z.object({
   email: z.string().email('Invalid email'),
   phone: z.string().refine(val => val.length > 0, 'Required'),
   city: z.string().refine(val => val.length > 0, 'Required'),
-  stns: z.string().optional(),
+  stns: z.array(z.number()).optional(),
   coordinates: z.string().optional(),
   slopeAspect: z.string().optional(),
   valley: z.string().optional(),
@@ -121,6 +125,7 @@ const defaultWeatherRows: FormData['weatherData'] = defaultDateTimes.map(dt => (
 
 const SpotForecastForm: React.FC = () => {
   const user = useContext(UserContext)
+  const dispatch: AppDispatch = useDispatch()
 
   const {
     control,
@@ -137,12 +142,12 @@ const SpotForecastForm: React.FC = () => {
       email: user.email,
       phone: user.phone,
       city: 'Kamloops',
-      stns: 'Afton (1123m)',
+      stns: [],
       coordinates: '50 39.612, -120 20.088',
       slopeAspect: 'South',
       valley: 'W to E',
       elevation: '545',
-      size: '5 to 20 ha',
+      size: '5 to 20',
       synopsis: '',
       afternoonForecast: 'Mainly sunny in the morning then increasing afternoon cloud. MAX TEMP 11C, MIN RH 40%',
       tonightForecast: 'Mainly clear. MIN TEMP -2C. MAX RH 90%.',
@@ -180,6 +185,10 @@ const SpotForecastForm: React.FC = () => {
     // 3. Show success toast, etc.
     alert('Forecast submitted! Check console for formatted data.')
   }
+
+  useEffect(() => {
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+  }, [])
 
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
@@ -313,7 +322,7 @@ const SpotForecastForm: React.FC = () => {
                       <Controller
                         name="stns"
                         control={control}
-                        render={({ field }) => <TextField {...field} label="Representative Stns" fullWidth />}
+                        render={({ field }) => <StationSelector value={field.value || []} onChange={field.onChange} />}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
