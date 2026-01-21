@@ -25,25 +25,25 @@ Data is stored in [Delta Lake](https://delta.io/) format, which provides:
 - **Time travel** - Query data as of any past point
 - **Efficient queries** - Parquet columnar storage with partition pruning
 
-### bcws_data_mart_crawler
+### BCWS Data Mart Crawler
 
 Crawls the [BC Wildfire Service Data Mart](https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART/) and appends to Delta Lake tables.
 
 ```bash
 # Dry run - see what would be written
-python -m wps_tools.bcws_data_mart_crawler --years 2024 --dry-run
+python -m wps_tools.deltalake.crawler --years 2024 --dry-run
 
 # Process specific years
-python -m wps_tools.bcws_data_mart_crawler --years 2023 2024
+python -m wps_tools.deltalake.crawler --years 2023 2024
 
 # Process all available years (1987-2026)
-python -m wps_tools.bcws_data_mart_crawler --all
+python -m wps_tools.deltalake.crawler --all
 
 # Optimize (compact small files) after crawling
-python -m wps_tools.bcws_data_mart_crawler --years 2024 --optimize
+python -m wps_tools.deltalake.crawler --years 2024 --optimize
 
 # Vacuum (remove old files) after crawling
-python -m wps_tools.bcws_data_mart_crawler --vacuum
+python -m wps_tools.deltalake.crawler --vacuum
 ```
 
 **Options:**
@@ -51,9 +51,18 @@ python -m wps_tools.bcws_data_mart_crawler --vacuum
 - `--all`: Process all available years
 - `--dry-run`: Don't write, just show what would happen
 - `--no-skip-existing`: Re-process dates already in the table
+- `--enrich-stations CSV_PATH`: Merge station attributes from CSV into stations table
 - `--optimize`: Compact small files after crawling
 - `--vacuum`: Remove old files after crawling
 - `--verbose`: Enable debug logging
+
+**Enrich stations with additional attributes:**
+```bash
+python -m wps_tools.deltalake.crawler \
+  --enrich-stations /path/to/station_attributes.csv
+```
+
+This merges columns like `FIRE_CENTRE_CODE`, `FIRE_ZONE_CODE`, `ECODIVISION_CODE`, `prep_stn`, `wind_only`, `FLAG` into the existing stations Delta table.
 
 **Delta Tables Created:**
 
@@ -117,14 +126,14 @@ df = dt.load_as_version(5).to_pandas()
 
 **Optimize (compact small files):**
 ```bash
-python -m wps_tools.bcws_data_mart_crawler --optimize
+python -m wps_tools.deltalake.crawler --optimize
 ```
 
 Run periodically (e.g., weekly) to merge small files created by daily appends into larger files for better query performance.
 
 **Vacuum (remove old files):**
 ```bash
-python -m wps_tools.bcws_data_mart_crawler --vacuum
+python -m wps_tools.deltalake.crawler --vacuum
 ```
 
 Removes files no longer referenced by the current table version. Default retention is 7 days.
@@ -135,17 +144,17 @@ Generic tool for converting any CSV file with a date column to partitioned Parqu
 
 ```bash
 # Convert locally
-python -m wps_tools.csv_to_parquet data.csv \
+python -m wps_tools.deltalake.csv_to_parquet data.csv \
   --date-column timestamp \
   --output-dir ./output
 
 # Convert and upload to S3
-python -m wps_tools.csv_to_parquet data.csv \
+python -m wps_tools.deltalake.csv_to_parquet data.csv \
   --date-column timestamp \
   --upload-to-s3 historical/my_dataset
 
 # Partition by month instead of day
-python -m wps_tools.csv_to_parquet data.csv \
+python -m wps_tools.deltalake.csv_to_parquet data.csv \
   --date-column timestamp \
   --upload-to-s3 historical/my_dataset \
   --partition-by month
