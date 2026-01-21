@@ -144,7 +144,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
     const isMonthly = data.aggregation === AggregationPeriod.MONTHLY
 
     // Create CSV header with all comparison years
-    const headers = ['Period', 'Mean', 'P10', 'P25', 'P75', 'P90']
+    const headers = ['Period', 'P10', 'P25', 'P50', 'P75', 'P90']
     data.comparison_years.forEach(year => {
       headers.push(String(year))
     })
@@ -161,7 +161,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
     // Create CSV rows
     const rows = data.climatology.map((point: ClimatologyDataPoint) => {
       const periodLabel = isMonthly ? monthLabels[point.period - 1] : `Day ${point.period}`
-      const row: (string | number | null)[] = [periodLabel, point.mean, point.p10, point.p25, point.p75, point.p90]
+      const row: (string | number | null)[] = [periodLabel, point.p10, point.p25, point.p50, point.p75, point.p90]
       yearMaps.forEach(({ map }) => {
         row.push(map.get(point.period) ?? '')
       })
@@ -177,13 +177,15 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
     link.click()
   }
 
-  // Chart colors
+  // Chart colors - gradient from light to dark for percentiles
   const colors = useMemo(
     () => ({
-      band10_90: 'rgba(33, 150, 243, 0.15)', // Light blue band (10th-90th)
-      band25_75: 'rgba(33, 150, 243, 0.3)', // Medium blue band (25th-75th)
-      mean: theme.palette.primary.main, // Blue mean line
-      currentYear: theme.palette.error.main // Red current year line
+      p10: 'rgba(33, 150, 243, 0.3)', // Lightest
+      p25: 'rgba(33, 150, 243, 0.5)',
+      p50: 'rgba(33, 150, 243, 0.7)',
+      p75: 'rgba(33, 150, 243, 0.85)',
+      p90: theme.palette.primary.main, // Darkest
+      currentYear: theme.palette.error.main
     }),
     [theme]
   )
@@ -193,9 +195,9 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
     if (!data || data.climatology.length === 0) return null
 
     const xAxisData: number[] = []
-    const meanData: (number | null)[] = []
     const p10Data: (number | null)[] = []
     const p25Data: (number | null)[] = []
+    const p50Data: (number | null)[] = []
     const p75Data: (number | null)[] = []
     const p90Data: (number | null)[] = []
 
@@ -216,9 +218,9 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
 
     data.climatology.forEach((point: ClimatologyDataPoint) => {
       xAxisData.push(point.period)
-      meanData.push(point.mean)
       p10Data.push(point.p10)
       p25Data.push(point.p25)
+      p50Data.push(point.p50)
       p75Data.push(point.p75)
       p90Data.push(point.p90)
 
@@ -230,9 +232,9 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
 
     return {
       xAxisData,
-      meanData,
       p10Data,
       p25Data,
+      p50Data,
       p75Data,
       p90Data,
       yearsData
@@ -339,43 +341,34 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
             }
           ]}
           series={[
-            // 10th percentile (bottom of outer band)
             {
               data: chartData.p10Data,
-              label: '10th Percentile',
-              color: colors.band10_90,
-              showMark: false,
-              area: false
+              label: '10th',
+              color: colors.p10,
+              showMark: false
             },
-            // 90th percentile (top of outer band)
-            {
-              data: chartData.p90Data,
-              label: '90th Percentile',
-              color: colors.band10_90,
-              showMark: false,
-              area: false
-            },
-            // 25th percentile (bottom of inner band)
             {
               data: chartData.p25Data,
-              label: '25th Percentile',
-              color: colors.band25_75,
-              showMark: false,
-              area: false
+              label: '25th',
+              color: colors.p25,
+              showMark: false
             },
-            // 75th percentile (top of inner band)
+            {
+              data: chartData.p50Data,
+              label: '50th (Median)',
+              color: colors.p50,
+              showMark: false
+            },
             {
               data: chartData.p75Data,
-              label: '75th Percentile',
-              color: colors.band25_75,
-              showMark: false,
-              area: false
+              label: '75th',
+              color: colors.p75,
+              showMark: false
             },
-            // Mean line
             {
-              data: chartData.meanData,
-              label: 'Mean',
-              color: colors.mean,
+              data: chartData.p90Data,
+              label: '90th',
+              color: colors.p90,
               showMark: false
             },
             // Comparison year overlays
@@ -389,16 +382,24 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
 
       <Box className={classes.legend}>
         <div className={classes.legendItem}>
-          <div className={classes.legendColor} style={{ backgroundColor: colors.band10_90 }} />
-          <Typography variant="body2">10th-90th Percentile</Typography>
+          <div className={classes.legendColor} style={{ backgroundColor: colors.p10 }} />
+          <Typography variant="body2">10th</Typography>
         </div>
         <div className={classes.legendItem}>
-          <div className={classes.legendColor} style={{ backgroundColor: colors.band25_75 }} />
-          <Typography variant="body2">25th-75th Percentile</Typography>
+          <div className={classes.legendColor} style={{ backgroundColor: colors.p25 }} />
+          <Typography variant="body2">25th</Typography>
         </div>
         <div className={classes.legendItem}>
-          <div className={classes.legendColor} style={{ backgroundColor: colors.mean }} />
-          <Typography variant="body2">Mean</Typography>
+          <div className={classes.legendColor} style={{ backgroundColor: colors.p50 }} />
+          <Typography variant="body2">50th (Median)</Typography>
+        </div>
+        <div className={classes.legendItem}>
+          <div className={classes.legendColor} style={{ backgroundColor: colors.p75 }} />
+          <Typography variant="body2">75th</Typography>
+        </div>
+        <div className={classes.legendItem}>
+          <div className={classes.legendColor} style={{ backgroundColor: colors.p90 }} />
+          <Typography variant="body2">90th</Typography>
         </div>
         {chartData.yearsData.map((yearData, idx) => (
           <div key={yearData.year} className={classes.legendItem}>
@@ -406,7 +407,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
               className={classes.legendColor}
               style={{ backgroundColor: YEAR_COLORS[idx % YEAR_COLORS.length] }}
             />
-            <Typography variant="body2">{yearData.year} Observed</Typography>
+            <Typography variant="body2">{yearData.year}</Typography>
           </div>
         ))}
       </Box>
