@@ -13,6 +13,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 import pyarrow.compute as pc
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -213,41 +214,39 @@ async def load_precomputed_climatology(
     station_code: int,
     start_year: int,
     end_year: int,
-) -> pd.DataFrame | None:
+) -> pa.Table | None:
     """Load pre-computed climatology stats from Delta Lake."""
     try:
-        table = get_climatology_stats_table()
+        wrapper = get_climatology_stats_table()
         filter_expr = (
             (pc.field("station_code") == station_code)
             & (pc.field("ref_start_year") == start_year)
             & (pc.field("ref_end_year") == end_year)
         )
-        return await table.query_async(filter=filter_expr)
+        return await wrapper.query_arrow_async(filter=filter_expr)
     except Exception as e:
         logger.warning(f"Pre-computed climatology not available: {e}")
         return None
 
 
-async def load_observations_df(
+async def load_observations(
     station_code: int,
     start_year: int,
     end_year: int,
     column: str,
-) -> pd.DataFrame:
+) -> pa.Table:
     """Load observations from Delta Lake for the specified station and year range."""
     try:
-        table = get_observations_table()
+        wrapper = get_observations_table()
         filter_expr = (
             (pc.field(STATION_CODE_COLUMN) == station_code)
             & (pc.field("year") >= start_year)
             & (pc.field("year") <= end_year)
         )
-        df = await table.query_async(
+        return await wrapper.query_arrow_async(
             columns=[DATE_COLUMN, column],
             filter=filter_expr,
         )
-        df = df.rename(columns={DATE_COLUMN: "weather_date"})
-        return df
     except Exception as e:
         logger.error(f"Error loading observations from Delta Lake: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error loading observations: {str(e)}")
@@ -264,25 +263,26 @@ async def get_station_info(station_code: int) -> StationInfo:
         return _station_cache[station_code]
 
     try:
-        table = get_stations_table()
+        wrapper = get_stations_table()
         filter_expr = pc.field("STATION_CODE") == station_code
-        df = await table.query_async(
+        table = await wrapper.query_arrow_async(
             columns=["STATION_CODE", "STATION_NAME", "ELEVATION_M"],
             filter=filter_expr,
         )
 
-        if len(df) == 0:
+        if table.num_rows == 0:
             return StationInfo(
                 code=station_code,
                 name=f"Station {station_code}",
                 elevation=None,
             )
 
-        row = df.iloc[0]
-        name = row.get("STATION_NAME", f"Station {station_code}")
-        if pd.isna(name):
-            name = f"Station {station_code}"
-        elevation = int(row["ELEVATION_M"]) if pd.notna(row.get("ELEVATION_M")) else None
+        # Extract first row values using PyArrow
+        name_val = table.column("STATION_NAME")[0].as_py()
+        elev_val = table.column("ELEVATION_M")[0].as_py()
+
+        name = name_val if name_val is not None else f"Station {station_code}"
+        elevation = int(elev_val) if elev_val is not None else None
 
         result = StationInfo(
             code=station_code,
@@ -302,129 +302,117 @@ async def get_station_info(station_code: int) -> StationInfo:
 
 
 def compute_climatology(
-    df: pd.DataFrame,
+    table: pa.Table,
     column: str,
     aggregation: AggregationPeriod,
 ) -> list[ClimatologyDataPoint]:
-    """Compute climatology statistics from observations DataFrame."""
-    if len(df) == 0:
+    """Compute climatology statistics from observations using PyArrow."""
+    if table.num_rows == 0:
         return []
 
-    df = df.copy()
-    df["weather_date"] = pd.to_datetime(df["weather_date"])
-
-    # Add period column based on aggregation type
+    # Extract period (day of year or month) from timestamp
+    timestamps = table.column(DATE_COLUMN)
     if aggregation == AggregationPeriod.DAILY:
-        df["period"] = df["weather_date"].dt.dayofyear
-        period_range = range(1, 367)  # Days 1-366
+        period_arr = pc.day_of_year(timestamps)
+        period_range = range(1, 367)
     else:
-        df["period"] = df["weather_date"].dt.month
-        period_range = range(1, 13)  # Months 1-12
+        period_arr = pc.month(timestamps)
+        period_range = range(1, 13)
 
-    # Group by period and compute all statistics at once
-    def compute_stats(group: pd.Series) -> pd.Series:
-        valid = group.dropna()
-        if len(valid) == 0:
-            return pd.Series(
-                {"mean": None, "p10": None, "p25": None, "p50": None, "p75": None, "p90": None}
-            )
-        values = valid.to_numpy()
-        return pd.Series(
-            {
-                "mean": float(np.mean(values)),
-                "p10": float(np.percentile(values, 10)),
-                "p25": float(np.percentile(values, 25)),
-                "p50": float(np.percentile(values, 50)),
-                "p75": float(np.percentile(values, 75)),
-                "p90": float(np.percentile(values, 90)),
-            }
-        )
+    # Add period column to table
+    table = table.append_column("period", period_arr)
+    values_col = table.column(column)
 
-    stats_df = df.groupby("period")[column].apply(compute_stats).unstack()
+    # Group by period and compute stats
+    # Using PyArrow's group_by for aggregation
+    stats_by_period: dict[int, dict[str, float | None]] = {}
 
-    # Build result list, filling in missing periods with nulls
-    climatology_data = []
     for period in period_range:
-        if period in stats_df.index:
-            row = stats_df.loc[period]
-            climatology_data.append(
-                ClimatologyDataPoint(
-                    period=period,
-                    mean=row["mean"],
-                    p10=row["p10"],
-                    p25=row["p25"],
-                    p50=row["p50"],
-                    p75=row["p75"],
-                    p90=row["p90"],
-                )
-            )
-        else:
-            climatology_data.append(
-                ClimatologyDataPoint(
-                    period=period,
-                    mean=None,
-                    p10=None,
-                    p25=None,
-                    p50=None,
-                    p75=None,
-                    p90=None,
-                )
-            )
+        # Filter to this period
+        mask = pc.equal(table.column("period"), period)
+        period_values = pc.filter(values_col, mask)
 
-    return climatology_data
+        # Drop nulls and compute stats
+        valid_values = pc.drop_null(period_values)
+
+        if len(valid_values) == 0:
+            stats_by_period[period] = {
+                "mean": None,
+                "p10": None,
+                "p25": None,
+                "p50": None,
+                "p75": None,
+                "p90": None,
+            }
+        else:
+            stats_by_period[period] = {
+                "mean": pc.mean(valid_values).as_py(),
+                "p10": pc.quantile(valid_values, q=0.10)[0].as_py(),
+                "p25": pc.quantile(valid_values, q=0.25)[0].as_py(),
+                "p50": pc.quantile(valid_values, q=0.50)[0].as_py(),
+                "p75": pc.quantile(valid_values, q=0.75)[0].as_py(),
+                "p90": pc.quantile(valid_values, q=0.90)[0].as_py(),
+            }
+
+    return [
+        ClimatologyDataPoint(period=p, **stats_by_period.get(p, {}))
+        for p in period_range
+        if p in stats_by_period
+    ]
 
 
 def extract_current_year_data(
-    df: pd.DataFrame,
+    table: pa.Table,
     column: str,
-    year: int,
     aggregation: AggregationPeriod,
 ) -> list[CurrentYearDataPoint]:
-    """Extract current year data from observations DataFrame."""
-    if len(df) == 0:
+    """Extract current year data from observations using PyArrow."""
+    if table.num_rows == 0:
         return []
 
-    df = df.copy()
-    df["weather_date"] = pd.to_datetime(df["weather_date"])
-    df["year"] = df["weather_date"].dt.year
+    timestamps = table.column(DATE_COLUMN)
+    values_col = table.column(column)
 
-    # Filter to the comparison year
-    year_df = df[df["year"] == year].copy()
-
-    if len(year_df) == 0:
-        return []
-
-    # Add period column
+    # Extract period (day of year or month)
     if aggregation == AggregationPeriod.DAILY:
-        year_df["period"] = year_df["weather_date"].dt.dayofyear
+        period_arr = pc.day_of_year(timestamps)
     else:
-        year_df["period"] = year_df["weather_date"].dt.month
+        period_arr = pc.month(timestamps)
 
-    # Aggregate by period (average of hourly values)
-    aggregated = (
-        year_df.groupby("period")
-        .agg(
-            {
-                column: "mean",
-                "weather_date": "first",
-            }
-        )
-        .reset_index()
-    )
+    # Get unique periods and compute mean for each
+    table = table.append_column("period", period_arr)
+    unique_periods = pc.unique(period_arr).to_pylist()
+    unique_periods.sort()
 
-    # Vectorized conversion - avoid iterrows()
-    aggregated["date_str"] = aggregated["weather_date"].dt.strftime("%Y-%m-%d")
+    results = []
+    for period in unique_periods:
+        if period is None:
+            continue
 
-    return [
-        CurrentYearDataPoint(
-            period=int(period),
-            value=float(value) if pd.notna(value) else None,
-            date=date_str,
+        mask = pc.equal(table.column("period"), period)
+        period_values = pc.filter(values_col, mask)
+        period_timestamps = pc.filter(timestamps, mask)
+
+        # Compute mean of values (dropping nulls)
+        valid_values = pc.drop_null(period_values)
+        if len(valid_values) > 0:
+            mean_val = pc.mean(valid_values).as_py()
+        else:
+            mean_val = None
+
+        # Get first date for this period
+        first_ts = period_timestamps[0].as_py()
+        date_str = first_ts.strftime("%Y-%m-%d") if first_ts else ""
+
+        results.append(
+            CurrentYearDataPoint(
+                period=int(period),
+                value=float(mean_val) if mean_val is not None else None,
+                date=date_str,
+            )
         )
-        for period, value, date_str in zip(
-            aggregated["period"], aggregated[column], aggregated["date_str"]
-        )
-    ]
+
+    return results
 
 
 # --- Endpoints ---
@@ -568,7 +556,7 @@ async def get_climatology(request: ClimatologyRequest):
     # If we have a comparison year, load that data in parallel too
     comparison_task = None
     if comparison_year:
-        comparison_task = load_observations_df(
+        comparison_task = load_observations(
             station_code=request.station_code,
             start_year=comparison_year,
             end_year=comparison_year,
@@ -577,15 +565,15 @@ async def get_climatology(request: ClimatologyRequest):
 
     # Wait for all parallel tasks
     if comparison_task:
-        precomputed, station_info, comparison_df = await asyncio.gather(
+        precomputed, station_info, comparison_table = await asyncio.gather(
             precomputed_task, station_task, comparison_task
         )
     else:
         precomputed, station_info = await asyncio.gather(precomputed_task, station_task)
-        comparison_df = None
+        comparison_table = None
 
     # Process precomputed stats or fall back to computing on-the-fly
-    if precomputed is not None and len(precomputed) > 0:
+    if precomputed is not None and precomputed.num_rows > 0:
         logger.info("Using pre-computed climatology stats")
         # Map variable to pre-computed column prefix
         var_prefix_map = {
@@ -599,68 +587,47 @@ async def get_climatology(request: ClimatologyRequest):
         }
         prefix = var_prefix_map[request.variable]
 
-        # Vectorized conversion - avoid iterrows()
-        def safe_float(val: object) -> float | None:
-            if val is None or (isinstance(val, float) and np.isnan(val)):
-                return None
-            return float(val)  # type: ignore[arg-type]
-
-        def get_column(df: pd.DataFrame, col: str) -> list:
-            return df[col].tolist() if col in df.columns else [None] * len(df)
+        def get_column_values(tbl: pa.Table, col: str) -> list:
+            if col in tbl.column_names:
+                return tbl.column(col).to_pylist()
+            return [None] * tbl.num_rows
 
         climatology = [
             ClimatologyDataPoint(
                 period=int(day),
-                mean=safe_float(mean),
-                p10=safe_float(p10),
-                p25=safe_float(p25),
-                p50=safe_float(p50),
-                p75=safe_float(p75),
-                p90=safe_float(p90),
+                mean=mean,
+                p10=p10,
+                p25=p25,
+                p50=p50,
+                p75=p75,
+                p90=p90,
             )
             for day, mean, p10, p25, p50, p75, p90 in zip(
-                precomputed["day_of_year"].tolist(),
-                get_column(precomputed, f"{prefix}_mean"),
-                get_column(precomputed, f"{prefix}_p10"),
-                get_column(precomputed, f"{prefix}_p25"),
-                get_column(precomputed, f"{prefix}_p50"),
-                get_column(precomputed, f"{prefix}_p75"),
-                get_column(precomputed, f"{prefix}_p90"),
+                precomputed.column("day_of_year").to_pylist(),
+                get_column_values(precomputed, f"{prefix}_mean"),
+                get_column_values(precomputed, f"{prefix}_p10"),
+                get_column_values(precomputed, f"{prefix}_p25"),
+                get_column_values(precomputed, f"{prefix}_p50"),
+                get_column_values(precomputed, f"{prefix}_p75"),
+                get_column_values(precomputed, f"{prefix}_p90"),
             )
         ]
     else:
         logger.info("Pre-computed stats not available, computing on-the-fly (slow)")
         # Fall back to computing on-the-fly
-        start_year = request.reference_period.start_year
-        end_year = request.reference_period.end_year
-
-        if comparison_year:
-            start_year = min(start_year, comparison_year)
-            end_year = max(end_year, comparison_year)
-
-        df = await load_observations_df(
+        obs_table = await load_observations(
             station_code=request.station_code,
-            start_year=start_year,
-            end_year=end_year,
+            start_year=request.reference_period.start_year,
+            end_year=request.reference_period.end_year,
             column=column,
         )
-
-        df_with_year = df.copy()
-        df_with_year["weather_date"] = pd.to_datetime(df_with_year["weather_date"])
-        df_with_year["year"] = df_with_year["weather_date"].dt.year
-
-        year_mask = (df_with_year["year"] >= request.reference_period.start_year) & (
-            df_with_year["year"] <= request.reference_period.end_year
-        )
-        ref_df: pd.DataFrame = df_with_year.loc[year_mask, ["weather_date", column]].copy()
-
-        climatology = compute_climatology(ref_df, column, request.aggregation)
+        climatology = compute_climatology(obs_table, column, request.aggregation)
 
     # Extract comparison year data if loaded
     current_year_data: list[CurrentYearDataPoint] = []
-    if comparison_year and comparison_df is not None:
+    if comparison_year and comparison_table is not None:
         current_year_data = extract_current_year_data(
-            comparison_df, column, comparison_year, request.aggregation
+            comparison_table, column, request.aggregation
         )
 
     return ClimatologyResponse(
