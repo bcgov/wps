@@ -73,7 +73,7 @@ const ClimatologyPage: React.FC = () => {
   return (
     <main data-testid="climatology-page">
       <GeneralHeader isBeta={true} spacing={1} title={CLIMATOLOGY_NAME} />
-      <Container sx={{ paddingTop: '0.5em' }}>
+      <Container maxWidth={false} sx={{ paddingTop: '0.5em' }}>
         <ClimatologyControls
           stations={stationOptions}
           stationsLoading={stationsLoading}

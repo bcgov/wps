@@ -43,7 +43,7 @@ const Root = styled('div')(({ theme }) => ({
   },
   [`& .${classes.container}`]: {
     padding: theme.spacing(2),
-    display: 'inline-flex',
+    display: 'flex',
     flexWrap: 'wrap',
     gap: theme.spacing(2),
     alignItems: 'center'
