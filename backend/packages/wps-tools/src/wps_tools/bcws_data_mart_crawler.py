@@ -32,6 +32,7 @@ BASE_URL = "https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART"
 OBSERVATIONS_TABLE = "historical/observations"
 STATIONS_TABLE = "historical/stations"
 CLIMATOLOGY_STATS_TABLE = "historical/climatology_stats"
+OBSERVATIONS_BY_STATION_TABLE = "historical/observations_by_station"
 
 DATE_COLUMN = "DATE_TIME"
 STATION_CODE_COLUMN = "STATION_CODE"
@@ -465,9 +466,91 @@ def compute_climatology_stats(start_year: int = 1991, end_year: int = 2020):
     logger.info(f"Saved climatology stats to {stats_uri}")
 
 
+def build_observations_by_station():
+    """
+    Build a Delta table partitioned by station code.
+
+    Creates one parquet file per station containing all years of observations.
+    This enables efficient station-based queries without scanning year/month partitions.
+    """
+    storage_options = get_storage_options()
+    source_uri = get_table_key(OBSERVATIONS_TABLE)
+    target_uri = get_table_key(OBSERVATIONS_BY_STATION_TABLE)
+
+    logger.info(f"Building observations by station from {source_uri}")
+
+    # Load all observations
+    logger.info("Loading observations from source table...")
+    dt = DeltaTable(source_uri, storage_options=storage_options)
+
+    # Get list of unique station codes
+    station_df = dt.to_pandas(columns=[STATION_CODE_COLUMN])
+    station_codes = sorted(station_df[STATION_CODE_COLUMN].dropna().unique())
+    logger.info(f"Found {len(station_codes)} unique stations")
+
+    # Process stations in batches to manage memory
+    batch_size = 50
+    total_rows = 0
+
+    for i in range(0, len(station_codes), batch_size):
+        batch_stations = station_codes[i : i + batch_size]
+        logger.info(
+            f"Processing stations {i + 1}-{min(i + batch_size, len(station_codes))} of {len(station_codes)}"
+        )
+
+        # Load data for this batch of stations
+        batch_df = dt.to_pandas(
+            filters=[(STATION_CODE_COLUMN, "in", list(batch_stations))]
+        )
+
+        if batch_df.empty:
+            continue
+
+        # Ensure station_code is the partition column (as integer)
+        batch_df["station_code"] = batch_df[STATION_CODE_COLUMN].astype("int64")
+
+        # Drop the redundant year/month columns if present (we're repartitioning)
+        # Keep them as regular columns for reference but don't partition by them
+        columns_to_keep = [c for c in batch_df.columns if c not in ["year", "month"]]
+        batch_df = batch_df[columns_to_keep]
+
+        # Re-add year/month as regular columns (not partition columns)
+        batch_df["year"] = pd.to_datetime(batch_df[DATE_COLUMN]).dt.year
+        batch_df["month"] = pd.to_datetime(batch_df[DATE_COLUMN]).dt.month
+
+        # Write to Delta table partitioned by station_code
+        mode = "append" if i > 0 else "overwrite"
+        write_deltalake(
+            target_uri,
+            batch_df,
+            mode=mode,
+            schema_mode="merge",
+            partition_by=["station_code"],
+            storage_options=storage_options,
+        )
+
+        total_rows += len(batch_df)
+        logger.info(f"Wrote {len(batch_df)} rows for {len(batch_stations)} stations")
+
+    logger.info(f"Completed: {total_rows:,} total rows for {len(station_codes)} stations")
+    logger.info(f"Output table: {target_uri}")
+
+    # Run maintenance on the new table
+    logger.info("Running maintenance on new table...")
+    create_checkpoint(OBSERVATIONS_BY_STATION_TABLE)
+    optimize_table(OBSERVATIONS_BY_STATION_TABLE)
+
+    return total_rows
+
+
 def maintain_all_tables():
     """Run maintenance (checkpoint, optimize, vacuum) on all Delta tables."""
-    tables = [OBSERVATIONS_TABLE, STATIONS_TABLE, "historical/climatology_stats"]
+    tables = [
+        OBSERVATIONS_TABLE,
+        STATIONS_TABLE,
+        CLIMATOLOGY_STATS_TABLE,
+        OBSERVATIONS_BY_STATION_TABLE,
+    ]
 
     for table in tables:
         try:
@@ -542,6 +625,11 @@ def main():
         help="End year for climatology reference period (default: 2020)",
     )
     parser.add_argument(
+        "--by-station",
+        action="store_true",
+        help="Build observations_by_station table (partitioned by station code)",
+    )
+    parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
@@ -555,7 +643,7 @@ def main():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    if not args.years and not args.all and not args.checkpoint and not args.optimize and not args.vacuum and not args.maintain and not args.climatology:
+    if not args.years and not args.all and not args.checkpoint and not args.optimize and not args.vacuum and not args.maintain and not args.climatology and not args.by_station:
         parser.error("Either --years, --all, --checkpoint, --optimize, --vacuum, --maintain, or --climatology must be specified")
 
     if args.years or args.all:
@@ -610,6 +698,9 @@ def main():
             start_year=args.climatology_start_year,
             end_year=args.climatology_end_year,
         )
+
+    if args.by_station and not args.dry_run:
+        build_observations_by_station()
 
 
 if __name__ == "__main__":

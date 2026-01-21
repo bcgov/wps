@@ -36,6 +36,7 @@ SCHEMA_NAME = "default"
 TABLES = {
     "observations": "historical/observations",
     "stations": "historical/stations",
+    "observations_by_station": "historical/observations_by_station",
 }
 
 
