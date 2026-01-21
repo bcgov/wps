@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react'
 import { styled } from '@mui/material/styles'
-import { Typography, Paper, Box } from '@mui/material'
+import { Typography, Paper, Box, IconButton, Tooltip } from '@mui/material'
 import { LineChartPro } from '@mui/x-charts-pro/LineChartPro'
+import { useChartProApiRef } from '@mui/x-charts-pro/hooks'
 import { useTheme } from '@mui/material/styles'
+import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap'
 
 import {
   AggregationPeriod,
@@ -17,6 +19,7 @@ const PREFIX = 'ClimatologyChart'
 
 const classes = {
   root: `${PREFIX}-root`,
+  header: `${PREFIX}-header`,
   chartContainer: `${PREFIX}-chartContainer`,
   legend: `${PREFIX}-legend`,
   legendItem: `${PREFIX}-legendItem`,
@@ -29,6 +32,12 @@ const Root = styled(Paper)(({ theme }) => ({
   [`&.${classes.root}`]: {
     padding: theme.spacing(2),
     marginTop: theme.spacing(2)
+  },
+  [`& .${classes.header}`]: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing(2)
   },
   [`& .${classes.chartContainer}`]: {
     width: '100%',
@@ -71,6 +80,11 @@ interface Props {
 
 const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
   const theme = useTheme()
+  const apiRef = useChartProApiRef<'line'>()
+
+  const handleResetZoom = () => {
+    apiRef.current?.setZoomData([{ axisId: 'x-axis', start: 0, end: 100 }])
+  }
 
   // Chart colors
   const colors = useMemo(
@@ -149,21 +163,30 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
 
   return (
     <Root className={classes.root}>
-      <Typography variant="h6" className={classes.title}>
-        {variableLabel} - {data.station.name} ({data.station.code})
-        <Typography variant="body2" color="textSecondary">
-          Reference Period: {data.reference_period.start_year} - {data.reference_period.end_year}
-          {data.comparison_year && ` | Comparison Year: ${data.comparison_year}`}
+      <Box className={classes.header}>
+        <Typography variant="h6" className={classes.title}>
+          {variableLabel} - {data.station.name} ({data.station.code})
+          <Typography variant="body2" color="textSecondary">
+            Reference Period: {data.reference_period.start_year} - {data.reference_period.end_year}
+            {data.comparison_year && ` | Comparison Year: ${data.comparison_year}`}
+          </Typography>
+          <Typography variant="caption" color="textSecondary">
+            Scroll to zoom, drag to pan
+          </Typography>
         </Typography>
-        <Typography variant="caption" color="textSecondary">
-          Scroll to zoom, drag to pan, double-click to reset
-        </Typography>
-      </Typography>
+        <Tooltip title="Reset zoom">
+          <IconButton size="small" onClick={handleResetZoom}>
+            <ZoomOutMapIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       <div className={classes.chartContainer}>
         <LineChartPro
+          apiRef={apiRef}
           xAxis={[
             {
+              id: 'x-axis',
               data: chartData.xAxisData,
               label: xAxisLabel,
               scaleType: 'linear',
