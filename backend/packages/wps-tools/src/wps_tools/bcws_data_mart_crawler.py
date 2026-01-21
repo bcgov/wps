@@ -181,6 +181,91 @@ def process_stations_file(
         return CrawlResult(year, filename, False, error=str(e))
 
 
+def enrich_stations(
+    csv_path: str,
+    dry_run: bool = False,
+) -> int:
+    """
+    Enrich the stations Delta table with additional attributes from a CSV file.
+
+    Merges columns like FIRE_CENTRE_CODE, FIRE_ZONE_CODE, ECODIVISION_CODE,
+    prep_stn, wind_only, FLAG, etc. into the existing stations table.
+
+    Args:
+        csv_path: Path to CSV file with station attributes (must have STATION_CODE column)
+        dry_run: If True, don't actually write data
+
+    Returns:
+        Number of stations updated
+    """
+    storage_options = get_storage_options()
+    table_uri = get_table_key(STATIONS_TABLE)
+
+    logger.info(f"Enriching stations table from {csv_path}")
+
+    # Load existing stations table
+    logger.info("Loading existing stations table...")
+    dt = DeltaTable(table_uri, storage_options=storage_options)
+    existing_df = dt.to_pandas()
+    logger.info(f"Loaded {len(existing_df)} existing station records")
+
+    # Deduplicate by keeping most recent source_year for each station
+    if "source_year" in existing_df.columns:
+        existing_df = (
+            existing_df.sort_values("source_year", ascending=False)
+            .drop_duplicates(subset=[STATION_CODE_COLUMN], keep="first")
+            .reset_index(drop=True)
+        )
+        logger.info(f"After deduplication: {len(existing_df)} unique stations")
+
+    # Load CSV with new attributes (try different encodings)
+    logger.info(f"Loading attributes from {csv_path}...")
+    for encoding in ["utf-8", "latin-1", "cp1252"]:
+        try:
+            new_attrs = pd.read_csv(csv_path, encoding=encoding)
+            logger.info(f"Loaded {len(new_attrs)} stations from CSV (encoding: {encoding})")
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        raise ValueError(f"Could not read {csv_path} with any supported encoding")
+
+    # Identify columns to add (excluding those already in existing table)
+    existing_cols = set(existing_df.columns)
+    new_cols = [c for c in new_attrs.columns if c not in existing_cols and c != STATION_CODE_COLUMN]
+    merge_cols = [STATION_CODE_COLUMN] + new_cols
+    logger.info(f"New columns to add: {new_cols}")
+
+    # Merge on STATION_CODE
+    merged_df = existing_df.merge(
+        new_attrs[merge_cols],
+        on=STATION_CODE_COLUMN,
+        how="left",
+    )
+
+    # Count how many stations got enriched
+    enriched_count = merged_df[new_cols[0]].notna().sum() if new_cols else 0
+    logger.info(f"Enriched {enriched_count} of {len(merged_df)} stations")
+
+    if dry_run:
+        logger.info(f"[DRY RUN] Would overwrite stations table with {len(merged_df)} rows")
+        logger.info(f"[DRY RUN] New schema columns: {new_cols}")
+        return enriched_count
+
+    # Overwrite the Delta table
+    logger.info(f"Writing enriched stations table to {table_uri}...")
+    write_deltalake(
+        table_uri,
+        merged_df,
+        mode="overwrite",
+        schema_mode="overwrite",
+        storage_options=storage_options,
+    )
+    logger.info(f"Successfully enriched stations table with {len(new_cols)} new columns")
+
+    return enriched_count
+
+
 def process_observations_file(
     session: requests.Session,
     year: int,
@@ -630,6 +715,12 @@ def main():
         help="Build observations_by_station table (partitioned by station code)",
     )
     parser.add_argument(
+        "--enrich-stations",
+        type=str,
+        metavar="CSV_PATH",
+        help="Enrich stations table with attributes from CSV (e.g., FIRE_CENTRE_CODE, FIRE_ZONE_CODE)",
+    )
+    parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
@@ -643,8 +734,8 @@ def main():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    if not args.years and not args.all and not args.checkpoint and not args.optimize and not args.vacuum and not args.maintain and not args.climatology and not args.by_station:
-        parser.error("Either --years, --all, --checkpoint, --optimize, --vacuum, --maintain, or --climatology must be specified")
+    if not args.years and not args.all and not args.checkpoint and not args.optimize and not args.vacuum and not args.maintain and not args.climatology and not args.by_station and not args.enrich_stations:
+        parser.error("Either --years, --all, --checkpoint, --optimize, --vacuum, --maintain, --climatology, --by-station, or --enrich-stations must be specified")
 
     if args.years or args.all:
         years = None if args.all else args.years
@@ -701,6 +792,10 @@ def main():
 
     if args.by_station and not args.dry_run:
         build_observations_by_station()
+
+    if args.enrich_stations:
+        enriched = enrich_stations(args.enrich_stations, dry_run=args.dry_run)
+        print(f"\nEnriched {enriched} stations with additional attributes")
 
 
 if __name__ == "__main__":
