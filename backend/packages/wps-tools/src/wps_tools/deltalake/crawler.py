@@ -7,9 +7,9 @@ and appends to Delta Lake tables on object storage.
 Source: https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART/
 
 Usage:
-    python -m wps_tools.bcws_data_mart_crawler --help
-    python -m wps_tools.bcws_data_mart_crawler --years 2023 2024
-    python -m wps_tools.bcws_data_mart_crawler --all --dry-run
+    python -m wps_tools.deltalake.crawler --help
+    python -m wps_tools.deltalake.crawler --years 2023 2024
+    python -m wps_tools.deltalake.crawler --all --dry-run
 """
 
 import argparse
@@ -24,35 +24,33 @@ import pandas as pd
 import pyarrow as pa
 import requests
 from deltalake import DeltaTable, write_deltalake
-from wps_shared import config
+
+from wps_tools.deltalake.config import (
+    OBSERVATIONS_TABLE,
+    STATIONS_TABLE,
+    CLIMATOLOGY_STATS_TABLE,
+    OBSERVATIONS_BY_STATION_TABLE,
+    DATE_COLUMN,
+    STATION_CODE_COLUMN,
+    get_storage_options,
+    get_table_uri,
+)
+from wps_tools.deltalake.maintenance import (
+    create_checkpoint,
+    optimize_table,
+    vacuum_table,
+    maintain_all_tables,
+)
 
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART"
-OBSERVATIONS_TABLE = "historical/observations"
-STATIONS_TABLE = "historical/stations"
-CLIMATOLOGY_STATS_TABLE = "historical/climatology_stats"
-OBSERVATIONS_BY_STATION_TABLE = "historical/observations_by_station"
-
-DATE_COLUMN = "DATE_TIME"
-STATION_CODE_COLUMN = "STATION_CODE"
 
 
-def get_storage_options() -> dict[str, str]:
-    """Get S3 storage options for delta-rs."""
-    return {
-        "AWS_ENDPOINT_URL": f"https://{config.get('OBJECT_STORE_SERVER')}",
-        "AWS_ACCESS_KEY_ID": config.get("OBJECT_STORE_USER_ID"),
-        "AWS_SECRET_ACCESS_KEY": config.get("OBJECT_STORE_SECRET"),
-        "AWS_REGION": "us-east-1",  # Required but ignored for non-AWS S3
-        "AWS_S3_ALLOW_UNSAFE_RENAME": "true",  # Required for S3-compatible storage
-    }
-
-
+# Alias for backwards compatibility
 def get_table_key(table_name: str) -> str:
-    """Get the S3 URI for a Delta table."""
-    bucket = config.get("OBJECT_STORE_BUCKET")
-    return f"s3://{bucket}/{table_name}"
+    """Get the S3 URI for a Delta table. Alias for get_table_uri."""
+    return get_table_uri(table_name)
 
 
 class DirectoryParser(HTMLParser):
@@ -428,39 +426,6 @@ def crawl_all(
     return all_results
 
 
-def create_checkpoint(table_name: str = OBSERVATIONS_TABLE):
-    """Create a checkpoint for the Delta table to speed up log reads."""
-    storage_options = get_storage_options()
-    table_uri = get_table_key(table_name)
-
-    logger.info(f"Creating checkpoint for {table_uri}...")
-    dt = DeltaTable(table_uri, storage_options=storage_options)
-    dt.create_checkpoint()
-    logger.info("Checkpoint created")
-
-
-def optimize_table(table_name: str = OBSERVATIONS_TABLE):
-    """Compact small files in the Delta table."""
-    storage_options = get_storage_options()
-    table_uri = get_table_key(table_name)
-
-    logger.info(f"Optimizing {table_uri}...")
-    dt = DeltaTable(table_uri, storage_options=storage_options)
-    dt.optimize.compact()
-    logger.info("Optimization complete")
-
-
-def vacuum_table(table_name: str = OBSERVATIONS_TABLE, retention_hours: int = 168):
-    """Remove old files from the Delta table."""
-    storage_options = get_storage_options()
-    table_uri = get_table_key(table_name)
-
-    logger.info(f"Vacuuming {table_uri} (retention: {retention_hours} hours)...")
-    dt = DeltaTable(table_uri, storage_options=storage_options)
-    dt.vacuum(retention_hours=retention_hours, enforce_retention_duration=False)
-    logger.info("Vacuum complete")
-
-
 def compute_climatology_stats(start_year: int = 1991, end_year: int = 2020):
     """
     Pre-compute climatology statistics for all stations and save to a Delta table.
@@ -626,25 +591,6 @@ def build_observations_by_station():
     optimize_table(OBSERVATIONS_BY_STATION_TABLE)
 
     return total_rows
-
-
-def maintain_all_tables():
-    """Run maintenance (checkpoint, optimize, vacuum) on all Delta tables."""
-    tables = [
-        OBSERVATIONS_TABLE,
-        STATIONS_TABLE,
-        CLIMATOLOGY_STATS_TABLE,
-        OBSERVATIONS_BY_STATION_TABLE,
-    ]
-
-    for table in tables:
-        try:
-            logger.info(f"\n{'='*50}\nMaintaining {table}\n{'='*50}")
-            create_checkpoint(table)
-            optimize_table(table)
-            vacuum_table(table)
-        except Exception as e:
-            logger.error(f"Error maintaining {table}: {e}")
 
 
 def main():
