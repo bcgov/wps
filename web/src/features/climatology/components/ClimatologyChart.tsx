@@ -34,9 +34,7 @@ const Root = styled(Paper)(({ theme }) => ({
     marginTop: theme.spacing(2)
   },
   [`& .${classes.header}`]: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    position: 'relative',
     marginBottom: theme.spacing(2)
   },
   [`& .${classes.chartContainer}`]: {
@@ -175,7 +173,11 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
           </Typography>
         </Typography>
         <Tooltip title="Reset zoom">
-          <IconButton size="small" onClick={handleResetZoom}>
+          <IconButton
+            size="small"
+            onClick={handleResetZoom}
+            sx={{ position: 'absolute', top: 0, right: 0 }}
+          >
             <ZoomOutMapIcon />
           </IconButton>
         </Tooltip>
