@@ -24,7 +24,7 @@ export const createSchema = (isMini: boolean) => {
       .refine(val => {
         if (!val) return true
         const num = Number(val)
-        return !isNaN(num) && num >= 0 && num <= 359
+        return !Number.isNaN(num) && num >= 0 && num <= 359
       }, 'Wind direction must be a number between 0 and 359'),
     rain: z.string().optional(),
     chanceRain: z.string().optional()
