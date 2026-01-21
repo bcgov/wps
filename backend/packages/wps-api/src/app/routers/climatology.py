@@ -152,6 +152,32 @@ def compute_percentiles(values: np.ndarray) -> dict[str, Optional[float]]:
     }
 
 
+async def load_precomputed_climatology(
+    station_code: int,
+    start_year: int,
+    end_year: int,
+) -> pd.DataFrame | None:
+    """Load pre-computed climatology stats from Delta Lake."""
+    stats_uri = get_table_uri("historical/climatology_stats")
+    storage_options = get_storage_options()
+
+    try:
+        dt = DeltaTable(stats_uri, storage_options=storage_options)
+        df = dt.to_pandas()
+
+        # Filter by station and reference period
+        mask = (
+            (df["station_code"] == station_code) &
+            (df["ref_start_year"] == start_year) &
+            (df["ref_end_year"] == end_year)
+        )
+        return df[mask].copy()
+
+    except Exception as e:
+        logger.warning(f"Pre-computed climatology not available: {e}")
+        return None
+
+
 async def load_observations_df(
     station_code: int,
     start_year: int,
@@ -159,35 +185,29 @@ async def load_observations_df(
     column: str,
 ) -> pd.DataFrame:
     """Load observations from Delta Lake for the specified station and year range."""
-    table_uri = get_table_uri("historical/observations")
+    import pyarrow.compute as pc
+
+    obs_uri = get_table_uri("historical/observations")
     storage_options = get_storage_options()
 
     try:
-        dt = DeltaTable(table_uri, storage_options=storage_options)
-
-        # Use PyArrow dataset with predicate pushdown for efficient filtering
-        # The table is partitioned by year, so this should be fast
-        import pyarrow.compute as pc
-        import pyarrow.dataset as ds
-
+        dt = DeltaTable(obs_uri, storage_options=storage_options)
         dataset = dt.to_pyarrow_dataset()
 
-        # Build filter expression - use partition pruning on year
+        # Build filter with partition pruning on year + station filter
         filter_expr = (
             (pc.field(STATION_CODE_COLUMN) == station_code) &
             (pc.field("year") >= start_year) &
             (pc.field("year") <= end_year)
         )
 
-        # Only select the columns we need
+        # Query with predicate pushdown
         table = dataset.to_table(
             columns=[DATE_COLUMN, column],
-            filter=filter_expr
+            filter=filter_expr,
         )
 
         df = table.to_pandas()
-
-        # Rename columns for consistency in downstream processing
         df = df.rename(columns={DATE_COLUMN: "weather_date"})
         return df
 
@@ -345,6 +365,111 @@ def extract_current_year_data(
 
 
 # --- Endpoints ---
+@router.post("/precompute", response_model=dict)
+async def precompute_climatology_stats(
+    start_year: int = 1991,
+    end_year: int = 2020,
+):
+    """
+    Pre-compute climatology statistics for all stations and save to a Delta table.
+
+    This creates a small, fast-to-query table with pre-aggregated percentiles.
+    Run this once after data updates to refresh the climatology cache.
+    """
+    logger.info(f"/climatology/precompute - Computing stats for {start_year}-{end_year}")
+
+    import pyarrow as pa
+    import pyarrow.compute as pc
+    from deltalake import write_deltalake
+
+    obs_uri = get_table_uri("historical/observations")
+    stats_uri = get_table_uri("historical/climatology_stats")
+    storage_options = get_storage_options()
+
+    try:
+        dt = DeltaTable(obs_uri, storage_options=storage_options)
+        dataset = dt.to_pyarrow_dataset()
+
+        # Filter to reference period
+        filter_expr = (
+            (pc.field("year") >= start_year) &
+            (pc.field("year") <= end_year)
+        )
+
+        # Load filtered data
+        columns = [
+            STATION_CODE_COLUMN, DATE_COLUMN,
+            "HOURLY_TEMPERATURE", "HOURLY_RELATIVE_HUMIDITY", "HOURLY_WIND_SPEED",
+            "HOURLY_PRECIPITATION", "HOURLY_FINE_FUEL_MOISTURE_CODE",
+            "HOURLY_INITIAL_SPREAD_INDEX", "HOURLY_FIRE_WEATHER_INDEX",
+        ]
+
+        logger.info("Loading observations for reference period...")
+        table = dataset.to_table(columns=columns, filter=filter_expr)
+        df = table.to_pandas()
+        logger.info(f"Loaded {len(df)} observations")
+
+        # Add day_of_year column
+        df["day_of_year"] = pd.to_datetime(df[DATE_COLUMN]).dt.dayofyear
+
+        # Define aggregation function
+        def compute_stats(group):
+            result = {}
+            for var, prefix in [
+                ("HOURLY_TEMPERATURE", "temp"),
+                ("HOURLY_RELATIVE_HUMIDITY", "rh"),
+                ("HOURLY_WIND_SPEED", "ws"),
+                ("HOURLY_PRECIPITATION", "precip"),
+                ("HOURLY_FINE_FUEL_MOISTURE_CODE", "ffmc"),
+                ("HOURLY_INITIAL_SPREAD_INDEX", "isi"),
+                ("HOURLY_FIRE_WEATHER_INDEX", "fwi"),
+            ]:
+                values = group[var].dropna()
+                if len(values) > 0:
+                    result[f"{prefix}_mean"] = values.mean()
+                    result[f"{prefix}_p10"] = np.percentile(values, 10)
+                    result[f"{prefix}_p25"] = np.percentile(values, 25)
+                    result[f"{prefix}_p50"] = np.percentile(values, 50)
+                    result[f"{prefix}_p75"] = np.percentile(values, 75)
+                    result[f"{prefix}_p90"] = np.percentile(values, 90)
+                else:
+                    for suffix in ["mean", "p10", "p25", "p50", "p75", "p90"]:
+                        result[f"{prefix}_{suffix}"] = None
+            return pd.Series(result)
+
+        logger.info("Computing climatology statistics...")
+        stats_df = df.groupby([STATION_CODE_COLUMN, "day_of_year"]).apply(
+            compute_stats, include_groups=False
+        ).reset_index()
+        stats_df = stats_df.rename(columns={STATION_CODE_COLUMN: "station_code"})
+        stats_df["ref_start_year"] = start_year
+        stats_df["ref_end_year"] = end_year
+
+        logger.info(f"Computed {len(stats_df)} climatology records")
+
+        # Save to Delta table
+        result_table = pa.Table.from_pandas(stats_df)
+        write_deltalake(
+            stats_uri,
+            result_table,
+            mode="overwrite",
+            storage_options=storage_options,
+        )
+
+        logger.info(f"Saved climatology stats to {stats_uri}")
+
+        return {
+            "status": "success",
+            "records": len(stats_df),
+            "reference_period": f"{start_year}-{end_year}",
+            "table": stats_uri,
+        }
+
+    except Exception as e:
+        logger.error(f"Error pre-computing climatology: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Pre-computation failed: {str(e)}")
+
+
 @router.post("/optimize", response_model=dict)
 async def optimize_observations_table():
     """
@@ -425,6 +550,8 @@ async def get_climatology(request: ClimatologyRequest):
 
     Returns percentile bands (p10, p25, p50, p75, p90) and mean values computed
     from the reference period, along with the current/comparison year data overlay.
+
+    Uses pre-computed stats if available (much faster), otherwise computes on-the-fly.
     """
     logger.info(f"/climatology/ - station: {request.station_code}, variable: {request.variable.value}")
 
@@ -436,41 +563,77 @@ async def get_climatology(request: ClimatologyRequest):
         )
 
     column = VARIABLE_COLUMN_MAP[request.variable]
-
-    # Determine year range for data loading
-    start_year = request.reference_period.start_year
-    end_year = request.reference_period.end_year
     comparison_year = request.comparison_year
 
-    # If comparison year is specified and outside reference period, extend the range
-    if comparison_year:
-        start_year = min(start_year, comparison_year)
-        end_year = max(end_year, comparison_year)
-
-    # Load observations
-    df = await load_observations_df(
+    # Try to use pre-computed climatology stats (fast path)
+    precomputed = await load_precomputed_climatology(
         station_code=request.station_code,
-        start_year=start_year,
-        end_year=end_year,
-        column=column,
+        start_year=request.reference_period.start_year,
+        end_year=request.reference_period.end_year,
     )
 
-    # Filter to reference period for climatology calculation
-    df_with_year = df.copy()
-    df_with_year["weather_date"] = pd.to_datetime(df_with_year["weather_date"])
-    df_with_year["year"] = df_with_year["weather_date"].dt.year
+    if precomputed is not None and len(precomputed) > 0:
+        logger.info("Using pre-computed climatology stats")
+        # Map variable to pre-computed column prefix
+        var_prefix_map = {
+            WeatherVariable.HOURLY_TEMPERATURE: "temp",
+            WeatherVariable.HOURLY_RELATIVE_HUMIDITY: "rh",
+            WeatherVariable.HOURLY_WIND_SPEED: "ws",
+            WeatherVariable.HOURLY_PRECIPITATION: "precip",
+            WeatherVariable.HOURLY_FFMC: "ffmc",
+            WeatherVariable.HOURLY_ISI: "isi",
+            WeatherVariable.HOURLY_FWI: "fwi",
+        }
+        prefix = var_prefix_map[request.variable]
 
-    ref_df = df_with_year[
-        (df_with_year["year"] >= request.reference_period.start_year) &
-        (df_with_year["year"] <= request.reference_period.end_year)
-    ][["weather_date", column]].copy()
+        climatology = []
+        for _, row in precomputed.iterrows():
+            climatology.append(ClimatologyDataPoint(
+                period=int(row["day_of_year"]),
+                mean=float(row[f"{prefix}_mean"]) if pd.notna(row.get(f"{prefix}_mean")) else None,
+                p10=float(row[f"{prefix}_p10"]) if pd.notna(row.get(f"{prefix}_p10")) else None,
+                p25=float(row[f"{prefix}_p25"]) if pd.notna(row.get(f"{prefix}_p25")) else None,
+                p50=float(row[f"{prefix}_p50"]) if pd.notna(row.get(f"{prefix}_p50")) else None,
+                p75=float(row[f"{prefix}_p75"]) if pd.notna(row.get(f"{prefix}_p75")) else None,
+                p90=float(row[f"{prefix}_p90"]) if pd.notna(row.get(f"{prefix}_p90")) else None,
+            ))
+    else:
+        logger.info("Pre-computed stats not available, computing on-the-fly (slow)")
+        # Fall back to computing on-the-fly
+        start_year = request.reference_period.start_year
+        end_year = request.reference_period.end_year
 
-    # Compute climatology from reference period
-    climatology = compute_climatology(ref_df, column, request.aggregation)
+        if comparison_year:
+            start_year = min(start_year, comparison_year)
+            end_year = max(end_year, comparison_year)
 
-    # Extract comparison year data if specified
+        df = await load_observations_df(
+            station_code=request.station_code,
+            start_year=start_year,
+            end_year=end_year,
+            column=column,
+        )
+
+        df_with_year = df.copy()
+        df_with_year["weather_date"] = pd.to_datetime(df_with_year["weather_date"])
+        df_with_year["year"] = df_with_year["weather_date"].dt.year
+
+        ref_df = df_with_year[
+            (df_with_year["year"] >= request.reference_period.start_year) &
+            (df_with_year["year"] <= request.reference_period.end_year)
+        ][["weather_date", column]].copy()
+
+        climatology = compute_climatology(ref_df, column, request.aggregation)
+
+    # Extract comparison year data if specified (always needs raw data)
     current_year_data = []
     if comparison_year:
+        df = await load_observations_df(
+            station_code=request.station_code,
+            start_year=comparison_year,
+            end_year=comparison_year,
+            column=column,
+        )
         current_year_data = extract_current_year_data(df, column, comparison_year, request.aggregation)
 
     # Get station info
