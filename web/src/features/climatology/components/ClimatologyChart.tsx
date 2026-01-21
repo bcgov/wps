@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { styled } from '@mui/material/styles'
 import { Typography, Paper, Box } from '@mui/material'
-import { LineChart } from '@mui/x-charts/LineChart'
+import { LineChartPro } from '@mui/x-charts-pro/LineChartPro'
 import { useTheme } from '@mui/material/styles'
 
 import {
@@ -145,6 +145,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
 
   // Generate x-axis tick values for monthly view
   const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const isMonthly = data.aggregation === AggregationPeriod.MONTHLY
 
   return (
     <Root className={classes.root}>
@@ -154,20 +155,23 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
           Reference Period: {data.reference_period.start_year} - {data.reference_period.end_year}
           {data.comparison_year && ` | Comparison Year: ${data.comparison_year}`}
         </Typography>
+        <Typography variant="caption" color="textSecondary">
+          Scroll to zoom, drag to pan, double-click to reset
+        </Typography>
       </Typography>
 
       <div className={classes.chartContainer}>
-        <LineChart
+        <LineChartPro
           xAxis={[
             {
               data: chartData.xAxisData,
               label: xAxisLabel,
               scaleType: 'linear',
-              tickMinStep: data.aggregation === AggregationPeriod.MONTHLY ? 1 : 30,
-              valueFormatter:
-                data.aggregation === AggregationPeriod.MONTHLY
-                  ? value => monthLabels[Math.round(value) - 1] || ''
-                  : undefined
+              tickMinStep: isMonthly ? 1 : 30,
+              valueFormatter: isMonthly
+                ? (value: number) => monthLabels[Math.round(value) - 1] || ''
+                : undefined,
+              zoom: true
             }
           ]}
           yAxis={[
