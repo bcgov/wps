@@ -8,20 +8,17 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
 from enum import Enum
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 import numpy as np
 import pandas as pd
-from deltalake import DeltaTable
+import pyarrow.compute as pc
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-if TYPE_CHECKING:
-    import pyarrow.dataset
-
 from wps_shared import config
+from wps_shared.utils.delta import DeltaTableWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -148,40 +145,43 @@ def get_table_uri(table_key: str) -> str:
     return f"s3://{bucket}/{table_key}"
 
 
-# Cache for Delta datasets - avoids re-reading Delta log on every request
-_dataset_cache: dict[str, pyarrow.dataset.Dataset] = {}
-_dataset_cache_time: dict[str, float] = {}
-_CACHE_TTL_SECONDS = 300  # 5 minutes
+# Lazy-initialized Delta table wrappers
+_observations_table: DeltaTableWrapper | None = None
+_stations_table: DeltaTableWrapper | None = None
+_climatology_stats_table: DeltaTableWrapper | None = None
 
 
-def get_cached_dataset(table_key: str) -> pyarrow.dataset.Dataset:
-    """Get a cached PyArrow dataset for a Delta table."""
-    now = time.time()
+def get_observations_table() -> DeltaTableWrapper:
+    """Get the observations Delta table wrapper."""
+    global _observations_table
+    if _observations_table is None:
+        _observations_table = DeltaTableWrapper(
+            table_uri=get_table_uri("historical/observations"),
+            storage_options=get_storage_options(),
+        )
+    return _observations_table
 
-    # Check if cached and not expired
-    if table_key in _dataset_cache:
-        cache_age = now - _dataset_cache_time.get(table_key, 0)
-        if cache_age < _CACHE_TTL_SECONDS:
-            logger.debug(f"Using cached dataset for {table_key}")
-            return _dataset_cache[table_key]
 
-    # Load fresh dataset
-    logger.info(f"Loading Delta table: {table_key}")
-    start = time.time()
+def get_stations_table() -> DeltaTableWrapper:
+    """Get the stations Delta table wrapper."""
+    global _stations_table
+    if _stations_table is None:
+        _stations_table = DeltaTableWrapper(
+            table_uri=get_table_uri("historical/stations"),
+            storage_options=get_storage_options(),
+        )
+    return _stations_table
 
-    table_uri = get_table_uri(table_key)
-    storage_options = get_storage_options()
-    dt = DeltaTable(table_uri, storage_options=storage_options)
-    dataset = dt.to_pyarrow_dataset()
 
-    elapsed = time.time() - start
-    logger.info(f"Loaded {table_key} in {elapsed:.2f}s")
-
-    # Cache it
-    _dataset_cache[table_key] = dataset
-    _dataset_cache_time[table_key] = now
-
-    return dataset
+def get_climatology_stats_table() -> DeltaTableWrapper:
+    """Get the climatology stats Delta table wrapper."""
+    global _climatology_stats_table
+    if _climatology_stats_table is None:
+        _climatology_stats_table = DeltaTableWrapper(
+            table_uri=get_table_uri("historical/climatology_stats"),
+            storage_options=get_storage_options(),
+        )
+    return _climatology_stats_table
 
 
 def compute_percentiles(values: np.ndarray) -> dict[str, Optional[float]]:
@@ -209,67 +209,23 @@ def compute_percentiles(values: np.ndarray) -> dict[str, Optional[float]]:
     }
 
 
-def _load_precomputed_climatology_sync(
-    station_code: int,
-    start_year: int,
-    end_year: int,
-) -> pd.DataFrame | None:
-    """Sync helper for loading pre-computed climatology stats."""
-    import pyarrow.compute as pc
-
-    try:
-        dataset = get_cached_dataset("historical/climatology_stats")
-
-        filter_expr = (
-            (pc.field("station_code") == station_code)
-            & (pc.field("ref_start_year") == start_year)
-            & (pc.field("ref_end_year") == end_year)
-        )
-
-        table = dataset.to_table(filter=filter_expr)
-        return table.to_pandas()
-
-    except Exception as e:
-        logger.warning(f"Pre-computed climatology not available: {e}")
-        return None
-
-
 async def load_precomputed_climatology(
     station_code: int,
     start_year: int,
     end_year: int,
 ) -> pd.DataFrame | None:
     """Load pre-computed climatology stats from Delta Lake."""
-    return await asyncio.to_thread(
-        _load_precomputed_climatology_sync, station_code, start_year, end_year
-    )
-
-
-def _load_observations_df_sync(
-    station_code: int,
-    start_year: int,
-    end_year: int,
-    column: str,
-) -> pd.DataFrame:
-    """Sync helper for loading observations."""
-    import pyarrow.compute as pc
-
-    dataset = get_cached_dataset("historical/observations")
-
-    filter_expr = (
-        (pc.field(STATION_CODE_COLUMN) == station_code)
-        & (pc.field("year") >= start_year)
-        & (pc.field("year") <= end_year)
-    )
-
-    table = dataset.to_table(
-        columns=[DATE_COLUMN, column],
-        filter=filter_expr,
-    )
-
-    df = table.to_pandas()
-    df = df.rename(columns={DATE_COLUMN: "weather_date"})
-    return df
+    try:
+        table = get_climatology_stats_table()
+        filter_expr = (
+            (pc.field("station_code") == station_code)
+            & (pc.field("ref_start_year") == start_year)
+            & (pc.field("ref_end_year") == end_year)
+        )
+        return await table.query_async(filter=filter_expr)
+    except Exception as e:
+        logger.warning(f"Pre-computed climatology not available: {e}")
+        return None
 
 
 async def load_observations_df(
@@ -280,9 +236,18 @@ async def load_observations_df(
 ) -> pd.DataFrame:
     """Load observations from Delta Lake for the specified station and year range."""
     try:
-        return await asyncio.to_thread(
-            _load_observations_df_sync, station_code, start_year, end_year, column
+        table = get_observations_table()
+        filter_expr = (
+            (pc.field(STATION_CODE_COLUMN) == station_code)
+            & (pc.field("year") >= start_year)
+            & (pc.field("year") <= end_year)
         )
+        df = await table.query_async(
+            columns=[DATE_COLUMN, column],
+            filter=filter_expr,
+        )
+        df = df.rename(columns={DATE_COLUMN: "weather_date"})
+        return df
     except Exception as e:
         logger.error(f"Error loading observations from Delta Lake: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error loading observations: {str(e)}")
@@ -292,39 +257,6 @@ async def load_observations_df(
 _station_cache: dict[int, StationInfo] = {}
 
 
-def _get_station_info_sync(station_code: int) -> StationInfo:
-    """Sync helper for loading station info."""
-    import pyarrow.compute as pc
-
-    dataset = get_cached_dataset("historical/stations")
-
-    filter_expr = pc.field("STATION_CODE") == station_code
-    table = dataset.to_table(
-        columns=["STATION_CODE", "STATION_NAME", "ELEVATION_M"],
-        filter=filter_expr,
-    )
-    df = table.to_pandas()
-
-    if len(df) == 0:
-        return StationInfo(
-            code=station_code,
-            name=f"Station {station_code}",
-            elevation=None,
-        )
-
-    row = df.iloc[0]
-    name = row.get("STATION_NAME", f"Station {station_code}")
-    if pd.isna(name):
-        name = f"Station {station_code}"
-    elevation = int(row["ELEVATION_M"]) if pd.notna(row.get("ELEVATION_M")) else None
-
-    return StationInfo(
-        code=station_code,
-        name=name,
-        elevation=elevation,
-    )
-
-
 async def get_station_info(station_code: int) -> StationInfo:
     """Get station information from Delta Lake with caching."""
     # Check cache first
@@ -332,7 +264,31 @@ async def get_station_info(station_code: int) -> StationInfo:
         return _station_cache[station_code]
 
     try:
-        result = await asyncio.to_thread(_get_station_info_sync, station_code)
+        table = get_stations_table()
+        filter_expr = pc.field("STATION_CODE") == station_code
+        df = await table.query_async(
+            columns=["STATION_CODE", "STATION_NAME", "ELEVATION_M"],
+            filter=filter_expr,
+        )
+
+        if len(df) == 0:
+            return StationInfo(
+                code=station_code,
+                name=f"Station {station_code}",
+                elevation=None,
+            )
+
+        row = df.iloc[0]
+        name = row.get("STATION_NAME", f"Station {station_code}")
+        if pd.isna(name):
+            name = f"Station {station_code}"
+        elevation = int(row["ELEVATION_M"]) if pd.notna(row.get("ELEVATION_M")) else None
+
+        result = StationInfo(
+            code=station_code,
+            name=name,
+            elevation=elevation,
+        )
         _station_cache[station_code] = result
         return result
 
@@ -486,16 +442,13 @@ async def precompute_climatology_stats(
     logger.info(f"/climatology/precompute - Computing stats for {start_year}-{end_year}")
 
     import pyarrow as pa
-    import pyarrow.compute as pc
     from deltalake import write_deltalake
 
-    obs_uri = get_table_uri("historical/observations")
     stats_uri = get_table_uri("historical/climatology_stats")
     storage_options = get_storage_options()
 
     try:
-        dt = DeltaTable(obs_uri, storage_options=storage_options)
-        dataset = dt.to_pyarrow_dataset()
+        obs_table = get_observations_table()
 
         # Filter to reference period
         filter_expr = (pc.field("year") >= start_year) & (pc.field("year") <= end_year)
@@ -514,8 +467,7 @@ async def precompute_climatology_stats(
         ]
 
         logger.info("Loading observations for reference period...")
-        table = dataset.to_table(columns=columns, filter=filter_expr)
-        df = table.to_pandas()
+        df = obs_table.query(columns=columns, filter=filter_expr)
         logger.info(f"Loaded {len(df)} observations")
 
         # Add day_of_year column
