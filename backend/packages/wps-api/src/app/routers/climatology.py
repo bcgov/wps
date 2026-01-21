@@ -8,17 +8,24 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from enum import Enum
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
 
 from wps_shared import config
+from wps_shared.schemas.climatology import (
+    AggregationPeriod,
+    ClimatologyDataPoint,
+    ClimatologyRequest,
+    ClimatologyResponse,
+    CurrentYearDataPoint,
+    ReferencePeriod,
+    StationInfo,
+    WeatherVariable,
+)
 from wps_shared.utils.delta import DeltaTableWrapper
 
 logger = logging.getLogger(__name__)
@@ -26,26 +33,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     prefix="/climatology",
 )
-
-
-# --- Enums ---
-class WeatherVariable(str, Enum):
-    """Supported weather variables for climatology analysis."""
-
-    HOURLY_TEMPERATURE = "HOURLY_TEMPERATURE"
-    HOURLY_RELATIVE_HUMIDITY = "HOURLY_RELATIVE_HUMIDITY"
-    HOURLY_WIND_SPEED = "HOURLY_WIND_SPEED"
-    HOURLY_PRECIPITATION = "HOURLY_PRECIPITATION"
-    HOURLY_FFMC = "HOURLY_FFMC"
-    HOURLY_ISI = "HOURLY_ISI"
-    HOURLY_FWI = "HOURLY_FWI"
-
-
-class AggregationPeriod(str, Enum):
-    """Time period for aggregating climatology data."""
-
-    DAILY = "daily"
-    MONTHLY = "monthly"
 
 
 # Map weather variables to Delta Lake column names
@@ -62,70 +49,6 @@ VARIABLE_COLUMN_MAP = {
 # Delta Lake column names
 DATE_COLUMN = "DATE_TIME"
 STATION_CODE_COLUMN = "STATION_CODE"
-
-
-# --- Request/Response Models ---
-class ReferencePeriod(BaseModel):
-    """Reference period for computing climate normals."""
-
-    start_year: int = Field(..., ge=1950, le=2100, description="Start year of reference period")
-    end_year: int = Field(..., ge=1950, le=2100, description="End year of reference period")
-
-
-class ClimatologyRequest(BaseModel):
-    """Request for climatology data."""
-
-    station_code: int = Field(..., description="Weather station code")
-    variable: WeatherVariable = Field(..., description="Weather variable to analyze")
-    aggregation: AggregationPeriod = Field(
-        default=AggregationPeriod.DAILY, description="Aggregation period"
-    )
-    reference_period: ReferencePeriod = Field(
-        ..., description="Reference period for climate normals"
-    )
-    comparison_year: Optional[int] = Field(
-        default=None, description="Year to compare against normals"
-    )
-
-
-class ClimatologyDataPoint(BaseModel):
-    """A single data point in the climatology time series."""
-
-    period: int = Field(..., description="Day of year (1-366) or month (1-12)")
-    mean: Optional[float] = Field(None, description="Mean value")
-    p10: Optional[float] = Field(None, description="10th percentile")
-    p25: Optional[float] = Field(None, description="25th percentile")
-    p50: Optional[float] = Field(None, description="50th percentile (median)")
-    p75: Optional[float] = Field(None, description="75th percentile")
-    p90: Optional[float] = Field(None, description="90th percentile")
-
-
-class CurrentYearDataPoint(BaseModel):
-    """A data point for the current/comparison year."""
-
-    period: int = Field(..., description="Day of year (1-366) or month (1-12)")
-    value: Optional[float] = Field(None, description="Observed value")
-    date: str = Field(..., description="Date of observation (YYYY-MM-DD)")
-
-
-class StationInfo(BaseModel):
-    """Basic station information."""
-
-    code: int
-    name: str
-    elevation: Optional[int] = None
-
-
-class ClimatologyResponse(BaseModel):
-    """Response containing climatology data and comparison year data."""
-
-    climatology: list[ClimatologyDataPoint] = Field(default_factory=list)
-    current_year: list[CurrentYearDataPoint] = Field(default_factory=list)
-    station: StationInfo
-    variable: WeatherVariable
-    aggregation: AggregationPeriod
-    reference_period: ReferencePeriod
-    comparison_year: Optional[int] = None
 
 
 # --- Helper Functions ---
@@ -183,31 +106,6 @@ def get_climatology_stats_table() -> DeltaTableWrapper:
             storage_options=get_storage_options(),
         )
     return _climatology_stats_table
-
-
-def compute_percentiles(values: np.ndarray) -> dict[str, Optional[float]]:
-    """Compute percentile statistics for a set of values."""
-    # Filter out NaN values
-    valid_values = values[~np.isnan(values)]
-
-    if len(valid_values) == 0:
-        return {
-            "mean": None,
-            "p10": None,
-            "p25": None,
-            "p50": None,
-            "p75": None,
-            "p90": None,
-        }
-
-    return {
-        "mean": float(np.mean(valid_values)),
-        "p10": float(np.percentile(valid_values, 10)),
-        "p25": float(np.percentile(valid_values, 25)),
-        "p50": float(np.percentile(valid_values, 50)),
-        "p75": float(np.percentile(valid_values, 75)),
-        "p90": float(np.percentile(valid_values, 90)),
-    }
 
 
 async def load_precomputed_climatology(
@@ -626,9 +524,7 @@ async def get_climatology(request: ClimatologyRequest):
     # Extract comparison year data if loaded
     current_year_data: list[CurrentYearDataPoint] = []
     if comparison_year and comparison_table is not None:
-        current_year_data = extract_current_year_data(
-            comparison_table, column, request.aggregation
-        )
+        current_year_data = extract_current_year_data(comparison_table, column, request.aggregation)
 
     return ClimatologyResponse(
         climatology=climatology,
