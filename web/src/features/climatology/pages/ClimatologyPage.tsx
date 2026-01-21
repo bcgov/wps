@@ -17,13 +17,13 @@ import {
   STANDARD_REFERENCE_PERIODS,
   WeatherVariable
 } from '../interfaces'
-import { fetchClimatology, resetClimatologyResult } from '../slices/climatologySlice'
+import { fetchMultiYearClimatology, resetClimatologyResult } from '../slices/climatologySlice'
 
 const currentYear = new Date().getFullYear()
 
 const ClimatologyPage: React.FC = () => {
   const dispatch: AppDispatch = useDispatch()
-  const { loading, error, result } = useSelector(selectClimatology)
+  const { loading, error, multiYearResult } = useSelector(selectClimatology)
   const { loading: stationsLoading, stations, error: stationsError } = useSelector(selectPercentileStations)
 
   // Form state
@@ -31,7 +31,7 @@ const ClimatologyPage: React.FC = () => {
   const [variable, setVariable] = useState<WeatherVariable>(WeatherVariable.HOURLY_TEMPERATURE)
   const [aggregation, setAggregation] = useState<AggregationPeriod>(AggregationPeriod.DAILY)
   const [referencePeriod, setReferencePeriod] = useState<ReferencePeriod>(STANDARD_REFERENCE_PERIODS[0])
-  const [comparisonYear, setComparisonYear] = useState<number>(currentYear)
+  const [comparisonYears, setComparisonYears] = useState<number[]>([currentYear])
 
   // Transform stations for the dropdown
   const stationOptions = useMemo(
@@ -54,10 +54,10 @@ const ClimatologyPage: React.FC = () => {
   }, [])
 
   const handleFetch = () => {
-    if (selectedStationCode === null) return
+    if (selectedStationCode === null || comparisonYears.length === 0) return
 
     dispatch(
-      fetchClimatology(selectedStationCode, variable, aggregation, referencePeriod, comparisonYear)
+      fetchMultiYearClimatology(selectedStationCode, variable, aggregation, referencePeriod, comparisonYears)
     )
   }
 
@@ -66,7 +66,7 @@ const ClimatologyPage: React.FC = () => {
     setVariable(WeatherVariable.HOURLY_TEMPERATURE)
     setAggregation(AggregationPeriod.DAILY)
     setReferencePeriod(STANDARD_REFERENCE_PERIODS[0])
-    setComparisonYear(currentYear)
+    setComparisonYears([currentYear])
     dispatch(resetClimatologyResult())
   }
 
@@ -82,11 +82,11 @@ const ClimatologyPage: React.FC = () => {
           variable={variable}
           aggregation={aggregation}
           referencePeriod={referencePeriod}
-          comparisonYear={comparisonYear}
+          comparisonYears={comparisonYears}
           onVariableChange={setVariable}
           onAggregationChange={setAggregation}
           onReferencePeriodChange={setReferencePeriod}
-          onComparisonYearChange={setComparisonYear}
+          onComparisonYearsChange={setComparisonYears}
           onFetch={handleFetch}
           onReset={handleReset}
           loading={loading}
@@ -96,7 +96,7 @@ const ClimatologyPage: React.FC = () => {
         {error && <ErrorMessage error={error} context="while fetching climatology data" />}
 
         <ErrorBoundary>
-          <ClimatologyChart data={result} loading={loading} />
+          <ClimatologyChart data={multiYearResult} loading={loading} />
         </ErrorBoundary>
       </Container>
     </main>

@@ -1,18 +1,22 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useRef } from 'react'
 import { styled } from '@mui/material/styles'
-import { Typography, Paper, Box, IconButton, Tooltip } from '@mui/material'
+import { Typography, Paper, Box, IconButton, Tooltip, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material'
 import { LineChartPro } from '@mui/x-charts-pro/LineChartPro'
 import { useChartProApiRef } from '@mui/x-charts-pro/hooks'
 import { useTheme } from '@mui/material/styles'
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap'
+import SaveAltIcon from '@mui/icons-material/SaveAlt'
+import ImageIcon from '@mui/icons-material/Image'
+import TableChartIcon from '@mui/icons-material/TableChart'
 
 import {
   AggregationPeriod,
   ClimatologyDataPoint,
-  ClimatologyResponse,
+  MultiYearClimatologyResult,
   CurrentYearDataPoint,
   WEATHER_VARIABLE_LABELS,
-  WEATHER_VARIABLE_UNITS
+  WEATHER_VARIABLE_UNITS,
+  YearData
 } from '../interfaces'
 
 const PREFIX = 'ClimatologyChart'
@@ -72,16 +76,105 @@ const Root = styled(Paper)(({ theme }) => ({
 }))
 
 interface Props {
-  data: ClimatologyResponse | null
+  data: MultiYearClimatologyResult | null
   loading: boolean
 }
+
+// Color palette for multiple years
+const YEAR_COLORS = [
+  '#e53935', // Red
+  '#8e24aa', // Purple
+  '#43a047', // Green
+  '#fb8c00', // Orange
+  '#00acc1', // Cyan
+  '#5e35b1', // Deep Purple
+  '#d81b60', // Pink
+  '#7cb342' // Light Green
+]
 
 const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
   const theme = useTheme()
   const apiRef = useChartProApiRef<'line'>()
+  const chartContainerRef = useRef<HTMLDivElement>(null)
+  const [saveMenuAnchor, setSaveMenuAnchor] = React.useState<null | HTMLElement>(null)
 
   const handleResetZoom = () => {
     apiRef.current?.setZoomData([{ axisId: 'x-axis', start: 0, end: 100 }])
+  }
+
+  const handleSaveMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setSaveMenuAnchor(event.currentTarget)
+  }
+
+  const handleSaveMenuClose = () => {
+    setSaveMenuAnchor(null)
+  }
+
+  const handleExportImage = async () => {
+    handleSaveMenuClose()
+    if (!chartContainerRef.current || !data) return
+
+    const svg = chartContainerRef.current.querySelector('svg')
+    if (!svg) return
+
+    const svgData = new XMLSerializer().serializeToString(svg)
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx?.drawImage(img, 0, 0)
+      const pngUrl = canvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.download = `climatology_${data.station.code}_${data.variable}.png`
+      link.href = pngUrl
+      link.click()
+    }
+
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)))
+  }
+
+  const handleExportCSV = () => {
+    handleSaveMenuClose()
+    if (!data) return
+
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const isMonthly = data.aggregation === AggregationPeriod.MONTHLY
+
+    // Create CSV header with all comparison years
+    const headers = ['Period', 'Mean', 'P10', 'P25', 'P75', 'P90']
+    data.comparison_years.forEach(year => {
+      headers.push(String(year))
+    })
+
+    // Create maps for each year's data lookup
+    const yearMaps = data.years_data.map((yearData: YearData) => {
+      const map = new Map<number, number | null>()
+      yearData.data.forEach((point: CurrentYearDataPoint) => {
+        map.set(point.period, point.value)
+      })
+      return { year: yearData.year, map }
+    })
+
+    // Create CSV rows
+    const rows = data.climatology.map((point: ClimatologyDataPoint) => {
+      const periodLabel = isMonthly ? monthLabels[point.period - 1] : `Day ${point.period}`
+      const row: (string | number | null)[] = [periodLabel, point.mean, point.p10, point.p25, point.p75, point.p90]
+      yearMaps.forEach(({ map }) => {
+        row.push(map.get(point.period) ?? '')
+      })
+      return row.join(',')
+    })
+
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    const yearsStr = data.comparison_years.join('-')
+    link.download = `climatology_${data.station.code}_${data.variable}_${yearsStr}.csv`
+    link.click()
   }
 
   // Chart colors
@@ -105,13 +198,21 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
     const p25Data: (number | null)[] = []
     const p75Data: (number | null)[] = []
     const p90Data: (number | null)[] = []
-    const currentYearData: (number | null)[] = []
 
-    // Create a map for current year data lookup
-    const currentYearMap = new Map<number, number | null>()
-    data.current_year.forEach((point: CurrentYearDataPoint) => {
-      currentYearMap.set(point.period, point.value)
+    // Create maps for each year's data lookup
+    const yearMaps = data.years_data.map((yearData: YearData) => {
+      const map = new Map<number, number | null>()
+      yearData.data.forEach((point: CurrentYearDataPoint) => {
+        map.set(point.period, point.value)
+      })
+      return { year: yearData.year, map }
     })
+
+    // Initialize arrays for each year
+    const yearsData: { year: number; data: (number | null)[] }[] = data.comparison_years.map(year => ({
+      year,
+      data: []
+    }))
 
     data.climatology.forEach((point: ClimatologyDataPoint) => {
       xAxisData.push(point.period)
@@ -120,7 +221,11 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
       p25Data.push(point.p25)
       p75Data.push(point.p75)
       p90Data.push(point.p90)
-      currentYearData.push(currentYearMap.get(point.period) ?? null)
+
+      // Add data for each comparison year
+      yearMaps.forEach((yearMap, idx) => {
+        yearsData[idx].data.push(yearMap.map.get(point.period) ?? null)
+      })
     })
 
     return {
@@ -130,7 +235,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
       p25Data,
       p75Data,
       p90Data,
-      currentYearData
+      yearsData
     }
   }, [data])
 
@@ -159,6 +264,14 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
   const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   const isMonthly = data.aggregation === AggregationPeriod.MONTHLY
 
+  // Generate series for each comparison year
+  const yearSeries = chartData.yearsData.map((yearData, idx) => ({
+    data: yearData.data,
+    label: `${yearData.year}`,
+    color: YEAR_COLORS[idx % YEAR_COLORS.length],
+    showMark: true
+  }))
+
   return (
     <Root className={classes.root}>
       <Box className={classes.header}>
@@ -166,24 +279,45 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
           {variableLabel} - {data.station.name} ({data.station.code})
           <Typography variant="body2" color="textSecondary">
             Reference Period: {data.reference_period.start_year} - {data.reference_period.end_year}
-            {data.comparison_year && ` | Comparison Year: ${data.comparison_year}`}
+            {data.comparison_years.length > 0 && ` | Comparing: ${data.comparison_years.join(', ')}`}
           </Typography>
           <Typography variant="caption" color="textSecondary">
             Scroll to zoom, drag to pan
           </Typography>
         </Typography>
-        <Tooltip title="Reset zoom">
-          <IconButton
-            size="small"
-            onClick={handleResetZoom}
-            sx={{ position: 'absolute', top: 0, right: 0 }}
-          >
-            <ZoomOutMapIcon />
-          </IconButton>
-        </Tooltip>
+        <Box sx={{ position: 'absolute', top: 0, right: 0, display: 'flex', gap: 0.5 }}>
+          <Tooltip title="Reset zoom">
+            <IconButton size="small" onClick={handleResetZoom}>
+              <ZoomOutMapIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Save chart">
+            <IconButton size="small" onClick={handleSaveMenuOpen}>
+              <SaveAltIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+        <Menu
+          anchorEl={saveMenuAnchor}
+          open={Boolean(saveMenuAnchor)}
+          onClose={handleSaveMenuClose}
+        >
+          <MenuItem onClick={handleExportImage}>
+            <ListItemIcon>
+              <ImageIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Save as PNG</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleExportCSV}>
+            <ListItemIcon>
+              <TableChartIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Export data as CSV</ListItemText>
+          </MenuItem>
+        </Menu>
       </Box>
 
-      <div className={classes.chartContainer}>
+      <div className={classes.chartContainer} ref={chartContainerRef}>
         <LineChartPro
           apiRef={apiRef}
           xAxis={[
@@ -244,17 +378,8 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
               color: colors.mean,
               showMark: false
             },
-            // Current year overlay
-            ...(data.comparison_year
-              ? [
-                  {
-                    data: chartData.currentYearData,
-                    label: `${data.comparison_year}`,
-                    color: colors.currentYear,
-                    showMark: true
-                  }
-                ]
-              : [])
+            // Comparison year overlays
+            ...yearSeries
           ]}
           height={400}
           margin={{ left: 70, right: 20, top: 20, bottom: 50 }}
@@ -275,12 +400,15 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
           <div className={classes.legendColor} style={{ backgroundColor: colors.mean }} />
           <Typography variant="body2">Mean</Typography>
         </div>
-        {data.comparison_year && (
-          <div className={classes.legendItem}>
-            <div className={classes.legendColor} style={{ backgroundColor: colors.currentYear }} />
-            <Typography variant="body2">{data.comparison_year} Observed</Typography>
+        {chartData.yearsData.map((yearData, idx) => (
+          <div key={yearData.year} className={classes.legendItem}>
+            <div
+              className={classes.legendColor}
+              style={{ backgroundColor: YEAR_COLORS[idx % YEAR_COLORS.length] }}
+            />
+            <Typography variant="body2">{yearData.year} Observed</Typography>
           </div>
-        )}
+        ))}
       </Box>
     </Root>
   )

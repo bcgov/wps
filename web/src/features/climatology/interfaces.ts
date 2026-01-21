@@ -28,6 +28,7 @@ export interface ClimatologyRequest {
   aggregation: AggregationPeriod
   reference_period: ReferencePeriod
   comparison_year?: number
+  comparison_years?: number[] // For multi-year comparison
 }
 
 export interface ClimatologyDataPoint {
@@ -60,6 +61,22 @@ export interface ClimatologyResponse {
   aggregation: AggregationPeriod
   reference_period: ReferencePeriod
   comparison_year: number | null
+}
+
+// Extended response for multiple comparison years (client-side merged)
+export interface YearData {
+  year: number
+  data: CurrentYearDataPoint[]
+}
+
+export interface MultiYearClimatologyResult {
+  climatology: ClimatologyDataPoint[]
+  years_data: YearData[]
+  station: StationInfo
+  variable: WeatherVariable
+  aggregation: AggregationPeriod
+  reference_period: ReferencePeriod
+  comparison_years: number[]
 }
 
 // Display labels for weather variables

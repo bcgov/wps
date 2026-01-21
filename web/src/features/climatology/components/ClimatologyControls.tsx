@@ -13,7 +13,9 @@ import {
   Box,
   Paper,
   Typography,
-  Tooltip
+  Tooltip,
+  Chip,
+  Autocomplete
 } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 
@@ -88,11 +90,11 @@ interface Props {
   variable: WeatherVariable
   aggregation: AggregationPeriod
   referencePeriod: ReferencePeriod
-  comparisonYear: number
+  comparisonYears: number[]
   onVariableChange: (variable: WeatherVariable) => void
   onAggregationChange: (aggregation: AggregationPeriod) => void
   onReferencePeriodChange: (period: ReferencePeriod) => void
-  onComparisonYearChange: (year: number) => void
+  onComparisonYearsChange: (years: number[]) => void
   onFetch: () => void
   onReset: () => void
   loading: boolean
@@ -106,16 +108,17 @@ const ClimatologyControls: React.FC<Props> = ({
   variable,
   aggregation,
   referencePeriod,
-  comparisonYear,
+  comparisonYears,
   onVariableChange,
   onAggregationChange,
   onReferencePeriodChange,
-  onComparisonYearChange,
+  onComparisonYearsChange,
   onFetch,
   onReset,
   loading
 }) => {
   const [useCustomPeriod, setUseCustomPeriod] = useState(false)
+  const [yearInputValue, setYearInputValue] = useState('')
 
   const handleVariableChange = (event: SelectChangeEvent) => {
     onVariableChange(event.target.value as WeatherVariable)
@@ -152,10 +155,24 @@ const ClimatologyControls: React.FC<Props> = ({
     }
   }
 
-  const handleComparisonYearChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const year = parseInt(event.target.value, 10)
-    if (!isNaN(year)) {
-      onComparisonYearChange(year)
+  const handleComparisonYearsChange = (_: React.SyntheticEvent, newValue: (string | number)[]) => {
+    // Filter and convert to numbers, ensuring valid years
+    const years = newValue
+      .map(v => (typeof v === 'string' ? parseInt(v, 10) : v))
+      .filter(y => !isNaN(y) && y >= 1950 && y <= 2100)
+      .filter((v, i, a) => a.indexOf(v) === i) // Remove duplicates
+      .sort((a, b) => a - b)
+    onComparisonYearsChange(years)
+  }
+
+  const handleYearInputKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' && yearInputValue) {
+      event.preventDefault()
+      const year = parseInt(yearInputValue, 10)
+      if (!isNaN(year) && year >= 1950 && year <= 2100 && !comparisonYears.includes(year)) {
+        onComparisonYearsChange([...comparisonYears, year].sort((a, b) => a - b))
+      }
+      setYearInputValue('')
     }
   }
 
@@ -289,20 +306,36 @@ const ClimatologyControls: React.FC<Props> = ({
           </Box>
         )}
 
-        {/* Comparison Year */}
-        <TextField
-          sx={{ width: 120 }}
-          label={
-            <>
-              Compare
-              <InfoIcon tooltip="Year to overlay on the chart for comparison against historical normals" />
-            </>
-          }
-          type="number"
+        {/* Comparison Years */}
+        <Autocomplete
+          multiple
+          freeSolo
           size="small"
-          value={comparisonYear}
-          onChange={handleComparisonYearChange}
-          inputProps={{ min: 1950, max: 2100 }}
+          sx={{ minWidth: 200, maxWidth: 350 }}
+          options={[]}
+          value={comparisonYears}
+          onChange={handleComparisonYearsChange}
+          inputValue={yearInputValue}
+          onInputChange={(_, value) => setYearInputValue(value)}
+          renderTags={(value, getTagProps) =>
+            value.map((year, index) => {
+              const { key, ...tagProps } = getTagProps({ index })
+              return <Chip key={key} label={year} size="small" {...tagProps} />
+            })
+          }
+          renderInput={params => (
+            <TextField
+              {...params}
+              label={
+                <>
+                  Compare Years
+                  <InfoIcon tooltip="Years to overlay on the chart. Type a year and press Enter to add." />
+                </>
+              }
+              placeholder={comparisonYears.length === 0 ? 'Type year, press Enter' : ''}
+              onKeyDown={handleYearInputKeyDown}
+            />
+          )}
         />
 
         <div className={classes.divider} />
@@ -312,7 +345,7 @@ const ClimatologyControls: React.FC<Props> = ({
           variant="contained"
           color="primary"
           onClick={onFetch}
-          disabled={selectedStationCode === null || loading}
+          disabled={selectedStationCode === null || comparisonYears.length === 0 || loading}
           data-testid="fetch-climatology-btn"
         >
           {loading ? 'Loading...' : 'Generate'}
