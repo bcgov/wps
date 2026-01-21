@@ -291,16 +291,18 @@ const ClimatologyControls: React.FC<Props> = ({
 
         {/* Comparison Year */}
         <TextField
-          className={classes.yearField}
-          label="Compare"
+          sx={{ width: 120 }}
+          label={
+            <>
+              Compare
+              <InfoIcon tooltip="Year to overlay on the chart for comparison against historical normals" />
+            </>
+          }
           type="number"
           size="small"
           value={comparisonYear}
           onChange={handleComparisonYearChange}
           inputProps={{ min: 1950, max: 2100 }}
-          InputProps={{
-            endAdornment: <InfoIcon tooltip="Year to overlay on the chart for comparison against historical normals" />
-          }}
         />
 
         <div className={classes.divider} />
@@ -313,7 +315,7 @@ const ClimatologyControls: React.FC<Props> = ({
           disabled={selectedStationCode === null || loading}
           data-testid="fetch-climatology-btn"
         >
-          {loading ? 'Loading...' : 'Fetch'}
+          {loading ? 'Loading...' : 'Generate'}
         </Button>
         <Button variant="outlined" onClick={onReset} data-testid="reset-climatology-btn" size="small">
           Reset
