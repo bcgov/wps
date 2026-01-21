@@ -192,6 +192,10 @@ class DeltaTableWrapper:
         """
         Load observations for a station and year range.
 
+        Uses the observations_by_station table (partitioned by station_code) for
+        efficient single-station queries. Falls back to observations table if
+        the by-station table is unavailable.
+
         Args:
             station_code: Weather station code.
             start_year: Start year (inclusive).
@@ -201,15 +205,28 @@ class DeltaTableWrapper:
         Returns:
             PyArrow Table with observations.
         """
-        filter_expr = (
-            (pc.field("STATION_CODE") == station_code)
-            & (pc.field("year") >= start_year)
-            & (pc.field("year") <= end_year)
-        )
-        return await get_table("historical/observations").query_arrow_async(
-            columns=columns,
-            filter=filter_expr,
-        )
+        # Try the station-partitioned table first (much faster for single-station queries)
+        try:
+            filter_expr = (
+                (pc.field("station_code") == station_code)
+                & (pc.field("year") >= start_year)
+                & (pc.field("year") <= end_year)
+            )
+            return await get_table("historical/observations_by_station").query_arrow_async(
+                columns=columns,
+                filter=filter_expr,
+            )
+        except Exception:
+            # Fall back to year/month partitioned table
+            filter_expr = (
+                (pc.field("STATION_CODE") == station_code)
+                & (pc.field("year") >= start_year)
+                & (pc.field("year") <= end_year)
+            )
+            return await get_table("historical/observations").query_arrow_async(
+                columns=columns,
+                filter=filter_expr,
+            )
 
     @staticmethod
     async def load_climatology_stats(
