@@ -1,5 +1,5 @@
 // src/components/SpotForecastForm.tsx
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch } from 'react-redux'
@@ -21,7 +21,9 @@ import {
   Paper,
   IconButton,
   Box,
-  InputAdornment
+  InputAdornment,
+  Switch,
+  FormControlLabel
 } from '@mui/material'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
@@ -45,76 +47,80 @@ const UserContext = React.createContext<UserContextType>({
 })
 
 // ────────────────────────────────────────────────
-// Zod Schema
+// Zod Schema (defined inside component for dynamic validation)
 // ────────────────────────────────────────────────
 
-const weatherRowSchema = z.object({
-  dateTime: z.string().min(1, 'Date/Time required'),
-  temp: z
-    .string()
-    .optional()
-    .refine(val => !val || !isNaN(Number(val)), 'Must be a number'),
-  rh: z
-    .string()
-    .optional()
-    .refine(val => {
-      if (!val) return true
-      const num = Number(val)
-      return !isNaN(num) && num >= 0 && num <= 100
-    }, 'RH must be a number between 0 and 100'),
-  wind: z.string().optional(),
-  rain: z.string().optional(),
-  chanceRain: z.string().optional()
-})
+const createSchema = (isMini: boolean) => {
+  const weatherRowSchema = z.object({
+    dateTime: z.string().min(1, 'Date/Time required'),
+    temp: z
+      .string()
+      .optional()
+      .refine(val => !val || !isNaN(Number(val)), 'Must be a number'),
+    rh: z
+      .string()
+      .optional()
+      .refine(val => {
+        if (!val) return true
+        const num = Number(val)
+        return !isNaN(num) && num >= 0 && num <= 100
+      }, 'RH must be a number between 0 and 100'),
+    wind: z.string().optional(),
+    rain: z.string().optional(),
+    chanceRain: z.string().optional()
+  })
 
-const schema = z.object({
-  issuedDate: z.custom<DateTime>((val): val is DateTime => DateTime.isDateTime(val) && val.isValid, {
-    message: 'Invalid date/time'
-  }),
-  expiryDate: z.custom<DateTime>((val): val is DateTime => DateTime.isDateTime(val) && val.isValid, {
-    message: 'Invalid date/time'
-  }),
-  fireProj: z.string().min(1, 'Required'),
-  requestBy: z.string().refine(val => val.length > 0, 'Required'),
-  forecastBy: z.string().refine(val => val.length > 0, 'Required'),
-  email: z.string().email('Invalid email'),
-  phone: z.string().refine(val => val.length > 0, 'Required'),
-  city: z.string().refine(val => val.length > 0, 'Required'),
-  stns: z.array(z.number()).optional(),
-  coordinates: z.string().optional(),
-  slopeAspect: z.string().optional(),
-  valley: z.string().optional(),
-  elevation: z.string().optional(),
-  size: z.string().optional(),
-  synopsis: z.string().refine(val => val.length > 0, 'Required'),
-  afternoonForecast: z
-    .object({
-      description: z.string().optional(),
-      maxTemp: z.number().optional(),
-      minRh: z.number().min(0).max(100).optional()
-    })
-    .optional(),
-  tonightForecast: z
-    .object({
-      description: z.string().optional(),
-      minTemp: z.number().optional(),
-      maxRh: z.number().min(0).max(100).optional()
-    })
-    .optional(),
-  tomorrowForecast: z
-    .object({
-      description: z.string().optional(),
-      temp: z.number().optional(),
-      minRh: z.number().min(0).max(100).optional()
-    })
-    .optional(),
-  weatherData: z.array(weatherRowSchema).min(1, 'At least one weather entry required'),
-  inversionVenting: z.string().optional(),
-  outlook: z.string().optional(),
-  confidenceDiscussion: z.string().optional()
-})
+  return z.object({
+    issuedDate: z.custom<DateTime>((val): val is DateTime => DateTime.isDateTime(val) && val.isValid, {
+      message: 'Invalid date/time'
+    }),
+    expiryDate: z.custom<DateTime>((val): val is DateTime => DateTime.isDateTime(val) && val.isValid, {
+      message: 'Invalid date/time'
+    }),
+    fireProj: z.string().min(1, 'Required'),
+    requestBy: z.string().refine(val => val.length > 0, 'Required'),
+    forecastBy: z.string().refine(val => val.length > 0, 'Required'),
+    email: z.string().email('Invalid email'),
+    phone: z.string().refine(val => val.length > 0, 'Required'),
+    city: z.string().refine(val => val.length > 0, 'Required'),
+    stns: z.array(z.number()).optional(),
+    coordinates: z.string().optional(),
+    slopeAspect: z.string().optional(),
+    valley: z.string().optional(),
+    elevation: z.string().optional(),
+    size: z.string().optional(),
+    synopsis: z.string().refine(val => !isMini && val.length > 0, !isMini ? 'Required' : undefined),
+    afternoonForecast: z
+      .object({
+        description: z.string().optional(),
+        maxTemp: z.number().optional(),
+        minRh: z.number().min(0).max(100).optional()
+      })
+      .optional(),
+    tonightForecast: z
+      .object({
+        description: z.string().optional(),
+        minTemp: z.number().optional(),
+        maxRh: z.number().min(0).max(100).optional()
+      })
+      .optional(),
+    tomorrowForecast: z
+      .object({
+        description: z.string().optional(),
+        maxTemp: z.number().optional(),
+        minRh: z.number().min(0).max(100).optional()
+      })
+      .optional(),
+    weatherData: z
+      .array(weatherRowSchema)
+      .min(isMini ? 0 : 1, isMini ? undefined : 'At least one weather entry required'),
+    inversionVenting: z.string().optional(),
+    outlook: z.string().optional(),
+    confidenceDiscussion: z.string().optional()
+  })
+}
 
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<ReturnType<typeof createSchema>>
 
 // ────────────────────────────────────────────────
 // Default values (pre-filled like your example)
@@ -144,18 +150,19 @@ const defaultWeatherRows: FormData['weatherData'] = defaultDateTimes.map(dt => (
 const SpotForecastForm: React.FC = () => {
   const user = useContext(UserContext)
   const dispatch: AppDispatch = useDispatch()
+  const [isMini, setIsMini] = useState(false)
 
   const {
     control,
     handleSubmit,
     formState: { errors }
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(createSchema(isMini)),
     defaultValues: {
       issuedDate: DateTime.now().setZone('America/Vancouver'),
       expiryDate: DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).endOf('day'),
-      fireProj: 'Peterson Creek burn',
-      requestBy: 'Conlan Sprickerhoff',
+      fireProj: 'G00000',
+      requestBy: 'Marsha Mellow',
       forecastBy: user.name,
       email: user.email,
       phone: user.phone,
@@ -179,7 +186,7 @@ const SpotForecastForm: React.FC = () => {
       },
       tomorrowForecast: {
         description: 'Cloudy.',
-        temp: 12,
+        maxTemp: 12,
         minRh: 40
       },
       weatherData: defaultWeatherRows,
@@ -222,6 +229,13 @@ const SpotForecastForm: React.FC = () => {
           Spot Forecast Form
         </Typography>
 
+        <Box sx={{ mb: 2 }}>
+          <FormControlLabel
+            control={<Switch checked={isMini} onChange={e => setIsMini(e.target.checked)} />}
+            label="Mini Spot"
+          />
+        </Box>
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={3}>
             {/* ─── Header ──────────────────────────────────────── */}
@@ -256,7 +270,7 @@ const SpotForecastForm: React.FC = () => {
                         control={control}
                         render={({ field }) => (
                           <DateTimePicker
-                            label="Default Expiry"
+                            label="Expiry"
                             value={field.value}
                             onChange={field.onChange}
                             timezone="America/Vancouver"
@@ -298,6 +312,7 @@ const SpotForecastForm: React.FC = () => {
                             fullWidth
                             error={!!errors.requestBy}
                             helperText={errors.requestBy?.message}
+                            disabled
                           />
                         )}
                       />
@@ -313,14 +328,14 @@ const SpotForecastForm: React.FC = () => {
                       <Controller
                         name="email"
                         control={control}
-                        render={({ field }) => <TextField {...field} label="Email" fullWidth disabled />}
+                        render={({ field }) => <TextField {...field} label="Email" fullWidth />}
                       />
                     </Grid>
                     <Grid item xs={12} sm={4}>
                       <Controller
                         name="phone"
                         control={control}
-                        render={({ field }) => <TextField {...field} label="Phone" fullWidth disabled />}
+                        render={({ field }) => <TextField {...field} label="Phone" fullWidth />}
                       />
                     </Grid>
 
@@ -431,170 +446,184 @@ const SpotForecastForm: React.FC = () => {
             </Grid>
 
             {/* ─── Forecast Summaries ──────────────────────────── */}
-            <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Forecast Summaries
-                  </Typography>
-                  <Grid container spacing={2}>
-                    {/* Afternoon */}
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle1" paddingBottom={1}>
-                        Afternoon
-                      </Typography>
-                      <Grid container spacing={1}>
-                        <Grid item xs={12} paddingBottom={1}>
-                          <Controller
-                            name="afternoonForecast.description"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField {...field} label="Description" fullWidth multiline rows={2} />
-                            )}
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Grid container spacing={1}>
-                            <Grid item xs={6} sm={3}>
-                              <Controller
-                                name="afternoonForecast.maxTemp"
-                                control={control}
-                                render={({ field }) => (
-                                  <TextField
-                                    {...field}
-                                    label="Max Temp (°C)"
-                                    type="number"
-                                    fullWidth
-                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                  />
-                                )}
-                              />
+            {!isMini && (
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Forecast Summaries
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {/* Afternoon */}
+                      <Grid item xs={12}>
+                        <Typography variant="subtitle1" paddingBottom={1}>
+                          Afternoon
+                        </Typography>
+                        <Grid container spacing={1}>
+                          <Grid item xs={12} paddingBottom={1}>
+                            <Controller
+                              name="afternoonForecast.description"
+                              control={control}
+                              render={({ field }) => (
+                                <TextField {...field} label="Description" fullWidth multiline rows={2} />
+                              )}
+                            />
+                          </Grid>
+                          <Grid item xs={12}>
+                            <Grid container spacing={1}>
+                              <Grid item xs={6} sm={3}>
+                                <Controller
+                                  name="afternoonForecast.maxTemp"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <TextField
+                                      {...field}
+                                      label="Max Temp (°C)"
+                                      type="number"
+                                      fullWidth
+                                      onChange={e =>
+                                        field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                                      }
+                                    />
+                                  )}
+                                />
+                              </Grid>
+                              <Grid item xs={6} sm={3}>
+                                <Controller
+                                  name="afternoonForecast.minRh"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <TextField
+                                      {...field}
+                                      label="Min RH (%)"
+                                      type="number"
+                                      fullWidth
+                                      onChange={e =>
+                                        field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                                      }
+                                    />
+                                  )}
+                                />
+                              </Grid>
                             </Grid>
-                            <Grid item xs={6} sm={3}>
-                              <Controller
-                                name="afternoonForecast.minRh"
-                                control={control}
-                                render={({ field }) => (
-                                  <TextField
-                                    {...field}
-                                    label="Min RH (%)"
-                                    type="number"
-                                    fullWidth
-                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                  />
-                                )}
-                              />
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                      {/* Tonight */}
+                      <Grid item xs={12}>
+                        <Typography variant="subtitle1" paddingBottom={1}>
+                          Tonight
+                        </Typography>
+                        <Grid container spacing={1}>
+                          <Grid item xs={12} paddingBottom={1}>
+                            <Controller
+                              name="tonightForecast.description"
+                              control={control}
+                              render={({ field }) => (
+                                <TextField {...field} label="Description" fullWidth multiline rows={2} />
+                              )}
+                            />
+                          </Grid>
+                          <Grid item xs={12}>
+                            <Grid container spacing={1}>
+                              <Grid item xs={6} sm={3}>
+                                <Controller
+                                  name="tonightForecast.minTemp"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <TextField
+                                      {...field}
+                                      label="Min Temp (°C)"
+                                      type="number"
+                                      fullWidth
+                                      onChange={e =>
+                                        field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                                      }
+                                    />
+                                  )}
+                                />
+                              </Grid>
+                              <Grid item xs={6} sm={3}>
+                                <Controller
+                                  name="tonightForecast.maxRh"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <TextField
+                                      {...field}
+                                      label="Max RH (%)"
+                                      type="number"
+                                      fullWidth
+                                      onChange={e =>
+                                        field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                                      }
+                                    />
+                                  )}
+                                />
+                              </Grid>
+                            </Grid>
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                      {/* Tomorrow */}
+                      <Grid item xs={12}>
+                        <Typography variant="subtitle1" paddingBottom={1}>
+                          Tomorrow
+                        </Typography>
+                        <Grid container spacing={1}>
+                          <Grid item xs={12} paddingBottom={1}>
+                            <Controller
+                              name="tomorrowForecast.description"
+                              control={control}
+                              render={({ field }) => (
+                                <TextField {...field} label="Description" fullWidth multiline rows={2} />
+                              )}
+                            />
+                          </Grid>
+                          <Grid item xs={12}>
+                            <Grid container spacing={1}>
+                              <Grid item xs={6} sm={3}>
+                                <Controller
+                                  name="tomorrowForecast.maxTemp"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <TextField
+                                      {...field}
+                                      label="Max Temp (°C)"
+                                      type="number"
+                                      fullWidth
+                                      onChange={e =>
+                                        field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                                      }
+                                    />
+                                  )}
+                                />
+                              </Grid>
+                              <Grid item xs={6} sm={3}>
+                                <Controller
+                                  name="tomorrowForecast.minRh"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <TextField
+                                      {...field}
+                                      label="Min RH (%)"
+                                      type="number"
+                                      fullWidth
+                                      onChange={e =>
+                                        field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                                      }
+                                    />
+                                  )}
+                                />
+                              </Grid>
                             </Grid>
                           </Grid>
                         </Grid>
                       </Grid>
                     </Grid>
-                    {/* Tonight */}
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle1" paddingBottom={1}>
-                        Tonight
-                      </Typography>
-                      <Grid container spacing={1}>
-                        <Grid item xs={12} paddingBottom={1}>
-                          <Controller
-                            name="tonightForecast.description"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField {...field} label="Description" fullWidth multiline rows={2} />
-                            )}
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Grid container spacing={1}>
-                            <Grid item xs={6} sm={3}>
-                              <Controller
-                                name="tonightForecast.minTemp"
-                                control={control}
-                                render={({ field }) => (
-                                  <TextField
-                                    {...field}
-                                    label="Min Temp (°C)"
-                                    type="number"
-                                    fullWidth
-                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                  />
-                                )}
-                              />
-                            </Grid>
-                            <Grid item xs={6} sm={3}>
-                              <Controller
-                                name="tonightForecast.maxRh"
-                                control={control}
-                                render={({ field }) => (
-                                  <TextField
-                                    {...field}
-                                    label="Max RH (%)"
-                                    type="number"
-                                    fullWidth
-                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                  />
-                                )}
-                              />
-                            </Grid>
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                    {/* Tomorrow */}
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle1" paddingBottom={1}>
-                        Tomorrow
-                      </Typography>
-                      <Grid container spacing={1}>
-                        <Grid item xs={12} paddingBottom={1}>
-                          <Controller
-                            name="tomorrowForecast.description"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField {...field} label="Description" fullWidth multiline rows={2} />
-                            )}
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Grid container spacing={1}>
-                            <Grid item xs={6} sm={3}>
-                              <Controller
-                                name="tomorrowForecast.temp"
-                                control={control}
-                                render={({ field }) => (
-                                  <TextField
-                                    {...field}
-                                    label="Temp (°C)"
-                                    type="number"
-                                    fullWidth
-                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                  />
-                                )}
-                              />
-                            </Grid>
-                            <Grid item xs={6} sm={3}>
-                              <Controller
-                                name="tomorrowForecast.minRh"
-                                control={control}
-                                render={({ field }) => (
-                                  <TextField
-                                    {...field}
-                                    label="Min RH (%)"
-                                    type="number"
-                                    fullWidth
-                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                  />
-                                )}
-                              />
-                            </Grid>
-                          </Grid>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
 
             {/* ─── Weather Table (with dynamic rows) ───────────── */}
             <Grid item xs={12}>
@@ -741,20 +770,22 @@ const SpotForecastForm: React.FC = () => {
             </Grid>
 
             {/* ─── Outlook ─────────────────────────────────────── */}
-            <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Outlook (3-5 Day)
-                  </Typography>
-                  <Controller
-                    name="outlook"
-                    control={control}
-                    render={({ field }) => <TextField {...field} multiline rows={4} fullWidth />}
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
+            {!isMini && (
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Outlook (3-5 Day)
+                    </Typography>
+                    <Controller
+                      name="outlook"
+                      control={control}
+                      render={({ field }) => <TextField {...field} multiline rows={4} fullWidth />}
+                    />
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
 
             {/* ─── Confidence/Discussion ───────────────────────── */}
             <Grid item xs={12}>
