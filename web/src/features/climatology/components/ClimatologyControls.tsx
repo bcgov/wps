@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { styled } from '@mui/material/styles'
 import {
   FormControl,
@@ -10,8 +10,12 @@ import {
   ToggleButtonGroup,
   TextField,
   Button,
-  Box
+  Box,
+  Paper,
+  Typography,
+  Tooltip
 } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 
 import {
   AggregationPeriod,
@@ -25,22 +29,24 @@ const PREFIX = 'ClimatologyControls'
 
 const classes = {
   root: `${PREFIX}-root`,
-  formControl: `${PREFIX}-formControl`,
+  container: `${PREFIX}-container`,
   row: `${PREFIX}-row`,
+  divider: `${PREFIX}-divider`,
   yearInputs: `${PREFIX}-yearInputs`,
   yearField: `${PREFIX}-yearField`,
-  buttons: `${PREFIX}-buttons`
+  infoIcon: `${PREFIX}-infoIcon`
 }
 
 const Root = styled('div')(({ theme }) => ({
   [`&.${classes.root}`]: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.spacing(2),
     marginTop: theme.spacing(2)
   },
-  [`& .${classes.formControl}`]: {
-    minWidth: 200
+  [`& .${classes.container}`]: {
+    padding: theme.spacing(2),
+    display: 'inline-flex',
+    flexWrap: 'wrap',
+    gap: theme.spacing(2),
+    alignItems: 'center'
   },
   [`& .${classes.row}`]: {
     display: 'flex',
@@ -48,22 +54,37 @@ const Root = styled('div')(({ theme }) => ({
     gap: theme.spacing(2),
     alignItems: 'center'
   },
+  [`& .${classes.divider}`]: {
+    width: 1,
+    height: 32,
+    backgroundColor: theme.palette.divider
+  },
   [`& .${classes.yearInputs}`]: {
     display: 'flex',
     gap: theme.spacing(1),
     alignItems: 'center'
   },
   [`& .${classes.yearField}`]: {
-    width: 100
+    width: 90
   },
-  [`& .${classes.buttons}`]: {
-    display: 'flex',
-    gap: theme.spacing(2),
-    marginTop: theme.spacing(1)
+  [`& .${classes.infoIcon}`]: {
+    fontSize: 16,
+    color: theme.palette.text.secondary,
+    marginLeft: theme.spacing(0.5),
+    verticalAlign: 'middle'
   }
 }))
 
+interface StationOption {
+  name: string
+  code: number
+}
+
 interface Props {
+  stations: StationOption[]
+  stationsLoading: boolean
+  selectedStationCode: number | null
+  onStationChange: (code: number | null) => void
   variable: WeatherVariable
   aggregation: AggregationPeriod
   referencePeriod: ReferencePeriod
@@ -74,11 +95,14 @@ interface Props {
   onComparisonYearChange: (year: number) => void
   onFetch: () => void
   onReset: () => void
-  fetchDisabled: boolean
   loading: boolean
 }
 
 const ClimatologyControls: React.FC<Props> = ({
+  stations,
+  stationsLoading,
+  selectedStationCode,
+  onStationChange,
   variable,
   aggregation,
   referencePeriod,
@@ -89,9 +113,10 @@ const ClimatologyControls: React.FC<Props> = ({
   onComparisonYearChange,
   onFetch,
   onReset,
-  fetchDisabled,
   loading
 }) => {
+  const [useCustomPeriod, setUseCustomPeriod] = useState(false)
+
   const handleVariableChange = (event: SelectChangeEvent) => {
     onVariableChange(event.target.value as WeatherVariable)
   }
@@ -103,8 +128,14 @@ const ClimatologyControls: React.FC<Props> = ({
   }
 
   const handleReferencePeriodPresetChange = (event: SelectChangeEvent) => {
-    const [start, end] = event.target.value.split('-').map(Number)
-    onReferencePeriodChange({ start_year: start, end_year: end })
+    const value = event.target.value
+    if (value === 'custom') {
+      setUseCustomPeriod(true)
+    } else {
+      setUseCustomPeriod(false)
+      const [start, end] = value.split('-').map(Number)
+      onReferencePeriodChange({ start_year: start, end_year: end })
+    }
   }
 
   const handleStartYearChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,15 +159,52 @@ const ClimatologyControls: React.FC<Props> = ({
     }
   }
 
+  const handleStationChange = (event: SelectChangeEvent<number | ''>) => {
+    const value = event.target.value
+    onStationChange(value === '' ? null : (value as number))
+  }
+
   const currentPresetValue = `${referencePeriod.start_year}-${referencePeriod.end_year}`
   const isStandardPeriod = STANDARD_REFERENCE_PERIODS.some(
     p => p.start_year === referencePeriod.start_year && p.end_year === referencePeriod.end_year
   )
 
+  const InfoIcon: React.FC<{ tooltip: string }> = ({ tooltip }) => (
+    <Tooltip title={tooltip} arrow>
+      <InfoOutlinedIcon className={classes.infoIcon} />
+    </Tooltip>
+  )
+
   return (
     <Root className={classes.root}>
-      <div className={classes.row}>
-        <FormControl className={classes.formControl} size="small">
+      <Paper className={classes.container} variant="outlined">
+        {/* Station */}
+        <FormControl size="small" sx={{ minWidth: 220 }}>
+          <InputLabel id="station-select-label">
+            Station
+            <InfoIcon tooltip="Select a weather station to view climatology data" />
+          </InputLabel>
+          <Select
+            labelId="station-select-label"
+            id="station-select"
+            data-testid="climatology-station-select"
+            value={selectedStationCode ?? ''}
+            label="Station"
+            onChange={handleStationChange}
+            disabled={stationsLoading}
+          >
+            {stations.map(s => (
+              <MenuItem key={s.code} value={s.code}>
+                {s.name} ({s.code})
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <div className={classes.divider} />
+
+        {/* Variable */}
+        <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="variable-select-label">Variable</InputLabel>
           <Select
             labelId="variable-select-label"
@@ -154,6 +222,7 @@ const ClimatologyControls: React.FC<Props> = ({
           </Select>
         </FormControl>
 
+        {/* Aggregation */}
         <ToggleButtonGroup
           value={aggregation}
           exclusive
@@ -168,82 +237,88 @@ const ClimatologyControls: React.FC<Props> = ({
             Monthly
           </ToggleButton>
         </ToggleButtonGroup>
-      </div>
 
-      <div className={classes.row}>
-        <FormControl className={classes.formControl} size="small">
-          <InputLabel id="reference-period-label">Reference Period</InputLabel>
+        <div className={classes.divider} />
+
+        {/* Reference Period */}
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel id="reference-period-label">
+            Reference
+            <InfoIcon tooltip="Historical baseline period for calculating climate normals" />
+          </InputLabel>
           <Select
             labelId="reference-period-label"
             id="reference-period-select"
             data-testid="reference-period-select"
-            value={isStandardPeriod ? currentPresetValue : 'custom'}
-            label="Reference Period"
+            value={useCustomPeriod ? 'custom' : (isStandardPeriod ? currentPresetValue : 'custom')}
+            label="Reference"
             onChange={handleReferencePeriodPresetChange}
           >
             {STANDARD_REFERENCE_PERIODS.map(p => (
               <MenuItem key={`${p.start_year}-${p.end_year}`} value={`${p.start_year}-${p.end_year}`}>
-                {p.start_year} - {p.end_year}
+                {p.start_year}-{p.end_year}
               </MenuItem>
             ))}
-            {!isStandardPeriod && (
-              <MenuItem value="custom">
-                Custom ({referencePeriod.start_year} - {referencePeriod.end_year})
-              </MenuItem>
-            )}
+            <MenuItem value="custom">Custom</MenuItem>
           </Select>
         </FormControl>
 
-        <Box className={classes.yearInputs}>
-          <TextField
-            className={classes.yearField}
-            label="Start Year"
-            type="number"
-            size="small"
-            value={referencePeriod.start_year}
-            onChange={handleStartYearChange}
-            inputProps={{ min: 1950, max: 2100 }}
-          />
-          <span>to</span>
-          <TextField
-            className={classes.yearField}
-            label="End Year"
-            type="number"
-            size="small"
-            value={referencePeriod.end_year}
-            onChange={handleEndYearChange}
-            inputProps={{ min: 1950, max: 2100 }}
-          />
-        </Box>
-      </div>
+        {(useCustomPeriod || !isStandardPeriod) && (
+          <Box className={classes.yearInputs}>
+            <TextField
+              className={classes.yearField}
+              label="Start"
+              type="number"
+              size="small"
+              value={referencePeriod.start_year}
+              onChange={handleStartYearChange}
+              inputProps={{ min: 1950, max: 2100 }}
+            />
+            <Typography variant="body2" color="textSecondary">
+              –
+            </Typography>
+            <TextField
+              className={classes.yearField}
+              label="End"
+              type="number"
+              size="small"
+              value={referencePeriod.end_year}
+              onChange={handleEndYearChange}
+              inputProps={{ min: 1950, max: 2100 }}
+            />
+          </Box>
+        )}
 
-      <div className={classes.row}>
+        {/* Comparison Year */}
         <TextField
           className={classes.yearField}
-          label="Compare Year"
+          label="Compare"
           type="number"
           size="small"
           value={comparisonYear}
           onChange={handleComparisonYearChange}
           inputProps={{ min: 1950, max: 2100 }}
-          helperText="Year to compare against normals"
+          InputProps={{
+            endAdornment: <InfoIcon tooltip="Year to overlay on the chart for comparison against historical normals" />
+          }}
         />
-      </div>
 
-      <div className={classes.buttons}>
+        <div className={classes.divider} />
+
+        {/* Actions */}
         <Button
           variant="contained"
           color="primary"
           onClick={onFetch}
-          disabled={fetchDisabled || loading}
+          disabled={selectedStationCode === null || loading}
           data-testid="fetch-climatology-btn"
         >
-          {loading ? 'Loading...' : 'Fetch Data'}
+          {loading ? 'Loading...' : 'Fetch'}
         </Button>
-        <Button variant="outlined" onClick={onReset} data-testid="reset-climatology-btn">
+        <Button variant="outlined" onClick={onReset} data-testid="reset-climatology-btn" size="small">
           Reset
         </Button>
-      </div>
+      </Paper>
     </Root>
   )
 }
