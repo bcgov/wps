@@ -385,10 +385,10 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
               id: 'x-axis',
               data: chartData.xAxisData,
               label: xAxisLabel,
-              scaleType: 'linear',
-              tickMinStep: isMonthly ? 1 : 30,
+              scaleType: isMonthly ? 'point' : 'linear',
+              ...(isMonthly ? {} : { tickMinStep: 30 }),
               valueFormatter: isMonthly
-                ? (value: number) => monthLabels[Math.round(value) - 1] || ''
+                ? (value: number) => monthLabels[value - 1] || ''
                 : (value: number) => dayOfYearToDate(Math.round(value)),
               zoom: true
             }
