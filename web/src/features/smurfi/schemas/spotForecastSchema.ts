@@ -44,8 +44,21 @@ export const createSchema = (isMini: boolean) => {
     phone: z.string().refine(val => val.length > 0, 'Required'),
     city: z.string().refine(val => val.length > 0, 'Required'),
     stns: z.array(z.number()).optional(),
-    coordinates: z.string().optional(),
-    slopeAspect: z.string().optional(),
+    latitude: z
+      .string()
+      .min(1, 'Required')
+      .refine(val => {
+        const num = Number(val)
+        return !isNaN(num) && num >= -90 && num <= 90
+      }, 'Latitude must be a number between -90 and 90'),
+    longitude: z
+      .string()
+      .min(1, 'Required')
+      .refine(val => {
+        const num = Number(val)
+        return !isNaN(num) && num >= -180 && num <= 0
+      }, 'Longitude must be a negative number between -180 and 0'),
+    slopeAspect: z.string().min(1, 'Required'),
     valley: z.string().optional(),
     elevation: z.string().optional(),
     size: z.string().optional(),

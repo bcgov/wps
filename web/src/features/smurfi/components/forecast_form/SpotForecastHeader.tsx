@@ -137,21 +137,52 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                   render={({ field }) => <StationSelector value={field.value || []} onChange={field.onChange} />}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={6} sm={3}>
                 <Controller
-                  name="coordinates"
+                  name="latitude"
                   control={control}
-                  render={({ field }) => <TextField {...field} label="Coordinates (approx)" fullWidth />}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Latitude"
+                      fullWidth
+                      error={!!errors.latitude}
+                      helperText={errors.latitude?.message}
+                    />
+                  )}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={6} sm={3}>
+                <Controller
+                  name="longitude"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Longitude"
+                      fullWidth
+                      error={!!errors.longitude}
+                      helperText={errors.longitude?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6} sm={3}>
                 <Controller
                   name="slopeAspect"
                   control={control}
-                  render={({ field }) => <TextField {...field} label="Slope/Aspect" fullWidth />}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Slope/Aspect"
+                      fullWidth
+                      error={!!errors.slopeAspect}
+                      helperText={errors.slopeAspect?.message}
+                    />
+                  )}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={6} sm={3}>
                 <Controller
                   name="valley"
                   control={control}

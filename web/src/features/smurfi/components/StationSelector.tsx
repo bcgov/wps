@@ -16,7 +16,7 @@ const StationSelector: React.FC<StationSelectorProps> = ({ value, onChange }) =>
 
   useEffect(() => {
     const allStationOptions: StationOption[] = (stations as GeoJsonStation[]).map(station => ({
-      name: `${station.properties.name} (${station.properties.code})`,
+      name: `${station.properties.name} (${station.properties.elevation}m)`,
       code: station.properties.code
     }))
     setStationOptions(allStationOptions)
