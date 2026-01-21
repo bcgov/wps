@@ -229,11 +229,7 @@ const ClimatologyChart: React.FC<Props> = ({ data, loading }) => {
           ]}
           height={400}
           margin={{ left: 70, right: 20, top: 20, bottom: 50 }}
-          slotProps={{
-            legend: {
-              hidden: true
-            }
-          }}
+          hideLegend
         />
       </div>
 
