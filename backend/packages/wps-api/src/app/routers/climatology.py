@@ -22,7 +22,7 @@ from wps_shared.schemas.climatology import (
     StationInfo,
     WeatherVariable,
 )
-from wps_shared.utils.delta import get_table
+from wps_shared.utils.delta import DeltaTableWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +35,6 @@ router = APIRouter(
 DATE_COLUMN = "DATE_TIME"
 STATION_CODE_COLUMN = "STATION_CODE"
 
-# Table keys
-OBSERVATIONS_TABLE = "historical/observations"
-STATIONS_TABLE = "historical/stations"
-CLIMATOLOGY_STATS_TABLE = "historical/climatology_stats"
 
 
 async def load_precomputed_climatology(
@@ -47,15 +43,11 @@ async def load_precomputed_climatology(
     end_year: int,
 ) -> pa.Table | None:
     """Load pre-computed climatology stats from Delta Lake."""
-    try:
-        return await get_table(CLIMATOLOGY_STATS_TABLE).filter_by_async(
-            station_code=station_code,
-            ref_start_year=start_year,
-            ref_end_year=end_year,
-        )
-    except Exception as e:
-        logger.warning(f"Pre-computed climatology not available: {e}")
-        return None
+    return await DeltaTableWrapper.load_climatology_stats(
+        station_code=station_code,
+        start_year=start_year,
+        end_year=end_year,
+    )
 
 
 async def load_observations(
@@ -66,15 +58,11 @@ async def load_observations(
 ) -> pa.Table:
     """Load observations from Delta Lake for the specified station and year range."""
     try:
-        wrapper = get_table(OBSERVATIONS_TABLE)
-        filter_expr = (
-            (pc.field(STATION_CODE_COLUMN) == station_code)
-            & (pc.field("year") >= start_year)
-            & (pc.field("year") <= end_year)
-        )
-        return await wrapper.query_arrow_async(
+        return await DeltaTableWrapper.load_observations(
+            station_code=station_code,
+            start_year=start_year,
+            end_year=end_year,
             columns=[DATE_COLUMN, column],
-            filter=filter_expr,
         )
     except Exception as e:
         logger.error(f"Error loading observations from Delta Lake: {e}", exc_info=True)
@@ -92,11 +80,9 @@ async def get_station_info(station_code: int) -> StationInfo:
         return _station_cache[station_code]
 
     try:
-        wrapper = get_table(STATIONS_TABLE)
-        filter_expr = pc.field("STATION_CODE") == station_code
-        table = await wrapper.query_arrow_async(
+        table = await DeltaTableWrapper.load_station(
+            station_code=station_code,
             columns=["STATION_CODE", "STATION_NAME", "ELEVATION_M"],
-            filter=filter_expr,
         )
 
         if table.num_rows == 0:

@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
 
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
+import pyarrow.dataset
 from deltalake import DeltaTable
 
 from wps_shared import config
-
-if TYPE_CHECKING:
-    import pyarrow.compute as pc
-    import pyarrow.dataset
 
 
 def get_storage_options() -> dict[str, str]:
@@ -185,33 +182,81 @@ class DeltaTableWrapper:
         """Get first n rows."""
         return self._dataset.head(n, columns=columns).to_pandas()
 
-    def filter_by(
-        self,
-        columns: list[str] | None = None,
-        **kwargs,
+    @staticmethod
+    async def load_observations(
+        station_code: int,
+        start_year: int,
+        end_year: int,
+        columns: list[str],
     ) -> pa.Table:
         """
-        Query with equality filters on fields.
+        Load observations for a station and year range.
 
         Args:
-            columns: Columns to select (None for all).
-            **kwargs: Field equality filters (e.g., station_code=123, year=2020).
+            station_code: Weather station code.
+            start_year: Start year (inclusive).
+            end_year: End year (inclusive).
+            columns: Columns to select.
 
         Returns:
-            PyArrow Table with results.
+            PyArrow Table with observations.
         """
-        import pyarrow.compute as pc
+        filter_expr = (
+            (pc.field("STATION_CODE") == station_code)
+            & (pc.field("year") >= start_year)
+            & (pc.field("year") <= end_year)
+        )
+        return await get_table("historical/observations").query_arrow_async(
+            columns=columns,
+            filter=filter_expr,
+        )
 
-        filter_expr = None
-        for field_name, value in kwargs.items():
-            expr = pc.field(field_name) == value
-            filter_expr = expr if filter_expr is None else filter_expr & expr
-        return self.query_arrow(columns=columns, filter=filter_expr)
+    @staticmethod
+    async def load_climatology_stats(
+        station_code: int,
+        start_year: int,
+        end_year: int,
+    ) -> pa.Table | None:
+        """
+        Load pre-computed climatology stats for a station and reference period.
 
-    async def filter_by_async(
-        self,
+        Args:
+            station_code: Weather station code.
+            start_year: Reference period start year.
+            end_year: Reference period end year.
+
+        Returns:
+            PyArrow Table with climatology stats, or None if not available.
+        """
+        try:
+            filter_expr = (
+                (pc.field("station_code") == station_code)
+                & (pc.field("ref_start_year") == start_year)
+                & (pc.field("ref_end_year") == end_year)
+            )
+            return await get_table("historical/climatology_stats").query_arrow_async(
+                filter=filter_expr,
+            )
+        except Exception:
+            return None
+
+    @staticmethod
+    async def load_station(
+        station_code: int,
         columns: list[str] | None = None,
-        **kwargs,
     ) -> pa.Table:
-        """Async version of filter_by()."""
-        return await asyncio.to_thread(self.filter_by, columns, **kwargs)
+        """
+        Load station metadata.
+
+        Args:
+            station_code: Weather station code.
+            columns: Columns to select (None for all).
+
+        Returns:
+            PyArrow Table with station info.
+        """
+        filter_expr = pc.field("STATION_CODE") == station_code
+        return await get_table("historical/stations").query_arrow_async(
+            columns=columns,
+            filter=filter_expr,
+        )
