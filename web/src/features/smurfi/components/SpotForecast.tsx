@@ -89,7 +89,7 @@ const createSchema = (isMini: boolean) => {
     valley: z.string().optional(),
     elevation: z.string().optional(),
     size: z.string().optional(),
-    synopsis: z.string().refine(val => !isMini && val.length > 0, !isMini ? 'Required' : undefined),
+    synopsis: z.string().min(1, 'Required'),
     afternoonForecast: z
       .object({
         description: z.string().optional(),
@@ -123,7 +123,7 @@ const createSchema = (isMini: boolean) => {
 type FormData = z.infer<ReturnType<typeof createSchema>>
 
 // ────────────────────────────────────────────────
-// Default values (pre-filled like your example)
+// Default values
 // ────────────────────────────────────────────────
 
 const defaultDateTimes = [
@@ -155,13 +155,13 @@ const SpotForecastForm: React.FC = () => {
   const {
     control,
     handleSubmit,
-    formState: { errors }
+    formState: { errors, isValid }
   } = useForm<FormData>({
     resolver: zodResolver(createSchema(isMini)),
     defaultValues: {
       issuedDate: DateTime.now().setZone('America/Vancouver'),
       expiryDate: DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).endOf('day'),
-      fireProj: 'G00000',
+      fireProj: 'K00000',
       requestBy: 'Marsha Mellow',
       forecastBy: user.name,
       email: user.email,
@@ -805,7 +805,7 @@ const SpotForecastForm: React.FC = () => {
 
             {/* Submit */}
             <Grid item xs={12}>
-              <Button type="submit" variant="contained" size="large" fullWidth>
+              <Button type="submit" variant="contained" size="large" fullWidth disabled={!isValid}>
                 Submit Spot Forecast
               </Button>
             </Grid>
