@@ -369,16 +369,20 @@ def compute_climatology(
     def compute_stats(group: pd.Series) -> pd.Series:
         valid = group.dropna()
         if len(valid) == 0:
-            return pd.Series({"mean": None, "p10": None, "p25": None, "p50": None, "p75": None, "p90": None})
+            return pd.Series(
+                {"mean": None, "p10": None, "p25": None, "p50": None, "p75": None, "p90": None}
+            )
         values = valid.to_numpy()
-        return pd.Series({
-            "mean": float(np.mean(values)),
-            "p10": float(np.percentile(values, 10)),
-            "p25": float(np.percentile(values, 25)),
-            "p50": float(np.percentile(values, 50)),
-            "p75": float(np.percentile(values, 75)),
-            "p90": float(np.percentile(values, 90)),
-        })
+        return pd.Series(
+            {
+                "mean": float(np.mean(values)),
+                "p10": float(np.percentile(values, 10)),
+                "p25": float(np.percentile(values, 25)),
+                "p50": float(np.percentile(values, 50)),
+                "p75": float(np.percentile(values, 75)),
+                "p90": float(np.percentile(values, 90)),
+            }
+        )
 
     stats_df = df.groupby("period")[column].apply(compute_stats).unstack()
 
@@ -575,79 +579,6 @@ async def precompute_climatology_stats(
     except Exception as e:
         logger.error(f"Error pre-computing climatology: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Pre-computation failed: {str(e)}")
-
-
-@router.post("/optimize", response_model=dict)
-async def optimize_observations_table():
-    """
-    Trigger Z-order optimization on the observations Delta Lake table.
-
-    This colocates data by STATION_CODE for faster station-based queries.
-    Should be run after bulk data updates.
-
-    Note: This operation can take a while for large tables.
-    """
-    logger.info("/climatology/optimize - Starting Z-order optimization")
-
-    table_uri = get_table_uri("historical/observations")
-    storage_options = get_storage_options()
-
-    try:
-        dt = DeltaTable(table_uri, storage_options=storage_options)
-
-        # Run Z-order optimization on STATION_CODE
-        # This colocates data for the same station together
-        metrics = dt.optimize.z_order(columns=[STATION_CODE_COLUMN])
-
-        logger.info(f"/climatology/optimize - Z-order complete: {metrics}")
-
-        return {
-            "status": "success",
-            "message": f"Z-order optimization complete on {STATION_CODE_COLUMN}",
-            "metrics": {
-                "files_added": metrics.get("numFilesAdded", 0),
-                "files_removed": metrics.get("numFilesRemoved", 0),
-                "partitions_optimized": metrics.get("numPartitionsOptimized", 0),
-            },
-        }
-    except Exception as e:
-        logger.error(f"Error during Z-order optimization: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Optimization failed: {str(e)}")
-
-
-@router.post("/compact", response_model=dict)
-async def compact_observations_table():
-    """
-    Compact small files in the observations Delta Lake table.
-
-    This merges small files into larger ones for better read performance.
-    Should be run periodically or after many small writes.
-    """
-    logger.info("/climatology/compact - Starting compaction")
-
-    table_uri = get_table_uri("historical/observations")
-    storage_options = get_storage_options()
-
-    try:
-        dt = DeltaTable(table_uri, storage_options=storage_options)
-
-        # Run compaction
-        metrics = dt.optimize.compact()
-
-        logger.info(f"/climatology/compact - Compaction complete: {metrics}")
-
-        return {
-            "status": "success",
-            "message": "Compaction complete",
-            "metrics": {
-                "files_added": metrics.get("numFilesAdded", 0),
-                "files_removed": metrics.get("numFilesRemoved", 0),
-                "partitions_optimized": metrics.get("numPartitionsOptimized", 0),
-            },
-        }
-    except Exception as e:
-        logger.error(f"Error during compaction: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Compaction failed: {str(e)}")
 
 
 @router.post("/", response_model=ClimatologyResponse)
