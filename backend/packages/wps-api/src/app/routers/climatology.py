@@ -22,7 +22,6 @@ from wps_shared.schemas.climatology import (
     ClimatologyRequest,
     ClimatologyResponse,
     CurrentYearDataPoint,
-    ReferencePeriod,
     StationInfo,
     WeatherVariable,
 )
@@ -34,17 +33,6 @@ router = APIRouter(
     prefix="/climatology",
 )
 
-
-# Map weather variables to Delta Lake column names
-VARIABLE_COLUMN_MAP = {
-    WeatherVariable.HOURLY_TEMPERATURE: "HOURLY_TEMPERATURE",
-    WeatherVariable.HOURLY_RELATIVE_HUMIDITY: "HOURLY_RELATIVE_HUMIDITY",
-    WeatherVariable.HOURLY_WIND_SPEED: "HOURLY_WIND_SPEED",
-    WeatherVariable.HOURLY_PRECIPITATION: "HOURLY_PRECIPITATION",
-    WeatherVariable.HOURLY_FFMC: "HOURLY_FINE_FUEL_MOISTURE_CODE",
-    WeatherVariable.HOURLY_ISI: "HOURLY_INITIAL_SPREAD_INDEX",
-    WeatherVariable.HOURLY_FWI: "HOURLY_FIRE_WEATHER_INDEX",
-}
 
 # Delta Lake column names
 DATE_COLUMN = "DATE_TIME"
@@ -440,7 +428,7 @@ async def get_climatology(request: ClimatologyRequest):
             detail="Reference period start_year must be less than or equal to end_year",
         )
 
-    column = VARIABLE_COLUMN_MAP[request.variable]
+    column = request.variable.value
     comparison_year = request.comparison_year
 
     # Load precomputed stats, comparison year data, and station info in parallel
@@ -479,9 +467,9 @@ async def get_climatology(request: ClimatologyRequest):
             WeatherVariable.HOURLY_RELATIVE_HUMIDITY: "rh",
             WeatherVariable.HOURLY_WIND_SPEED: "ws",
             WeatherVariable.HOURLY_PRECIPITATION: "precip",
-            WeatherVariable.HOURLY_FFMC: "ffmc",
-            WeatherVariable.HOURLY_ISI: "isi",
-            WeatherVariable.HOURLY_FWI: "fwi",
+            WeatherVariable.HOURLY_FINE_FUEL_MOISTURE_CODE: "ffmc",
+            WeatherVariable.HOURLY_INITIAL_SPREAD_INDEX: "isi",
+            WeatherVariable.HOURLY_FIRE_WEATHER_INDEX: "fwi",
         }
         prefix = var_prefix_map[request.variable]
 
