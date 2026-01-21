@@ -7,14 +7,14 @@ export const createSchema = (isMini: boolean) => {
     temp: z
       .string()
       .optional()
-      .refine(val => !val || !isNaN(Number(val)), 'Must be a number'),
+      .refine(val => !val || !Number.isNaN(val), 'Must be a number'),
     rh: z
       .string()
       .optional()
       .refine(val => {
         if (!val) return true
         const num = Number(val)
-        return !isNaN(num) && num >= 0 && num <= 100
+        return !Number.isNaN(num) && num >= 0 && num <= 100
       }, 'RH must be a number between 0 and 100'),
     wind: z.string().optional(),
     rain: z.string().optional(),

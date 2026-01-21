@@ -1,6 +1,6 @@
 import React from 'react'
 import { Controller, Control, FieldErrors } from 'react-hook-form'
-import { Grid, Card, CardContent, Typography, TextField, InputAdornment } from '@mui/material'
+import { Grid, Card, CardContent, TextField, InputAdornment } from '@mui/material'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
 import type { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
