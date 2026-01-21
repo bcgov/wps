@@ -1,0 +1,2561 @@
+<!DOCTYPE html><html lang="en-CA"><head><title>Delta Lake &amp; Open Data Sharing</title><meta property="og:title" content="Delta Lake &amp; Open Data Sharing"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0"><meta name="apple-mobile-web-app-capable" content="yes"><meta http-equiv="X-UA-Compatible" content="ie=edge"><meta property="og:type" content="website"><meta name="twitter:card" content="summary"><style>@media screen{body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button{appearance:none;background-color:initial;border:0;color:inherit;cursor:pointer;font-size:inherit;opacity:.8;outline:none;padding:0;transition:opacity .2s linear;-webkit-tap-highlight-color:transparent}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:disabled,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:disabled,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:disabled,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:disabled{cursor:not-allowed;opacity:.15!important}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover{opacity:1}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:active,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:active,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover:active,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover:active{opacity:.6}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:not(:disabled),body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:not(:disabled),body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover:not(:disabled),body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover:not(:disabled){transition:none}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button.bespoke-marp-presenter-info-page-prev{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNNjggOTAgMjggNTBsNDAtNDAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button.bespoke-marp-presenter-info-page-next{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJtMzIgOTAgNDAtNDAtNDAtNDAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen]{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48c3R5bGU+LmF7ZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6NXB4fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI2MCIgeD0iMTAiIHk9IjIwIiBjbGFzcz0iYSIgcng9IjUuNjciLz48cGF0aCBkPSJNNDAgNzBIMjBWNTBtMjAgMEwyMCA3MG00MC00MGgyMHYyMG0tMjAgMCAyMC0yMCIgY2xhc3M9ImEiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button.exit[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button.exit[data-bespoke-marp-osc=fullscreen]{background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48c3R5bGU+LmF7ZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6NXB4fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI2MCIgeD0iMTAiIHk9IjIwIiBjbGFzcz0iYSIgcng9IjUuNjciLz48cGF0aCBkPSJNMjAgNTBoMjB2MjBtLTIwIDAgMjAtMjBtNDAgMEg2MFYzMG0yMCAwTDYwIDUwIiBjbGFzcz0iYSIvPjwvc3ZnPg==")}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter]{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNODcuOCA0Ny41Qzg5IDUwIDg3LjcgNTIgODUgNTJIMzVhOC43IDguNyAwIDAgMS03LjItNC41bC0xNS42LTMxQzExIDE0IDEyLjIgMTIgMTUgMTJoNTBhOC44IDguOCAwIDAgMSA3LjIgNC41ek02MCA1MnYzNm0tMTAgMGgyME00NSA0MmgyMCIvPjwvc3ZnPg==") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button.bespoke-marp-presenter-note-bigger{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNMTIgNTBoODBNNTIgOTBWMTAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button.bespoke-marp-presenter-note-smaller{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNMTIgNTBoODAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}}@keyframes __bespoke_marp_transition_reduced_outgoing__{0%{opacity:1}to{opacity:0}}@keyframes __bespoke_marp_transition_reduced_incoming__{0%{mix-blend-mode:plus-lighter;opacity:0}to{mix-blend-mode:plus-lighter;opacity:1}}.bespoke-marp-note,.bespoke-marp-osc,.bespoke-progress-parent{display:none;transition:none}@media screen{::view-transition-group(*){animation-duration:var(--marp-bespoke-transition-animation-duration,.5s);animation-timing-function:ease}::view-transition-new(*),::view-transition-old(*){animation-delay:0s;animation-direction:var(--marp-bespoke-transition-animation-direction,normal);animation-duration:var(--marp-bespoke-transition-animation-duration,.5s);animation-fill-mode:both;animation-name:var(--marp-bespoke-transition-animation-name,var(--marp-bespoke-transition-animation-name-fallback,__bespoke_marp_transition_no_animation__));mix-blend-mode:normal}::view-transition-old(*){--marp-bespoke-transition-animation-name-fallback:__bespoke_marp_transition_reduced_outgoing__;animation-timing-function:ease}::view-transition-new(*){--marp-bespoke-transition-animation-name-fallback:__bespoke_marp_transition_reduced_incoming__;animation-timing-function:ease}::view-transition-new(root),::view-transition-old(root){animation-timing-function:linear}::view-transition-new(__bespoke_marp_transition_osc__),::view-transition-old(__bespoke_marp_transition_osc__){animation-duration:0s!important;animation-name:__bespoke_marp_transition_osc__!important}::view-transition-new(__bespoke_marp_transition_osc__){opacity:0!important}.bespoke-marp-transition-warming-up::view-transition-group(*),.bespoke-marp-transition-warming-up::view-transition-new(*),.bespoke-marp-transition-warming-up::view-transition-old(*){animation-play-state:paused!important}body,html{height:100%;margin:0}body{background:#000;overflow:hidden}svg.bespoke-marp-slide{content-visibility:hidden;opacity:0;pointer-events:none;z-index:-1}svg.bespoke-marp-slide:not(.bespoke-marp-active) *{view-transition-name:none!important}svg.bespoke-marp-slide.bespoke-marp-active{content-visibility:visible;opacity:1;pointer-events:auto;z-index:0}svg.bespoke-marp-slide.bespoke-marp-active.bespoke-marp-active-ready *{animation-name:__bespoke_marp__!important}@supports not (content-visibility:hidden){svg.bespoke-marp-slide[data-bespoke-marp-load=hideable]{display:none}svg.bespoke-marp-slide[data-bespoke-marp-load=hideable].bespoke-marp-active{display:block}}}@media screen and (prefers-reduced-motion:reduce){svg.bespoke-marp-slide *{view-transition-name:none!important}}@media screen{[data-bespoke-marp-fragment=inactive]{visibility:hidden}body[data-bespoke-view=""] .bespoke-marp-parent,body[data-bespoke-view=next] .bespoke-marp-parent{inset:0;position:absolute}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc{background:#000000a6;border-radius:7px;bottom:50px;color:#fff;contain:paint;display:block;font-family:Helvetica,Arial,sans-serif;font-size:16px;left:50%;line-height:0;opacity:1;padding:12px;position:absolute;touch-action:manipulation;transform:translateX(-50%);transition:opacity .2s linear;-webkit-user-select:none;user-select:none;white-space:nowrap;will-change:transform;z-index:1;view-transition-name:__bespoke_marp_transition_osc__}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>*,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>*{margin-left:6px}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>:first-child,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>:first-child{margin-left:0}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>span,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>span{opacity:.8}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>span[data-bespoke-marp-osc=page],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>span[data-bespoke-marp-osc=page]{display:inline-block;min-width:140px;text-align:center}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev]{height:32px;line-height:32px;width:32px}body[data-bespoke-view=""] .bespoke-marp-parent.bespoke-marp-inactive,body[data-bespoke-view=next] .bespoke-marp-parent.bespoke-marp-inactive{cursor:none}body[data-bespoke-view=""] .bespoke-marp-parent.bespoke-marp-inactive>.bespoke-marp-osc,body[data-bespoke-view=next] .bespoke-marp-parent.bespoke-marp-inactive>.bespoke-marp-osc{opacity:0;pointer-events:none}body[data-bespoke-view=""] svg.bespoke-marp-slide,body[data-bespoke-view=next] svg.bespoke-marp-slide{height:100%;left:0;position:absolute;top:0;width:100%}body[data-bespoke-view=""] .bespoke-progress-parent{background:#222;display:flex;height:5px;width:100%}body[data-bespoke-view=""] .bespoke-progress-parent+.bespoke-marp-parent{top:5px}body[data-bespoke-view=""] .bespoke-progress-parent .bespoke-progress-bar{background:#0288d1;flex:0 0 0;transition:flex-basis .2s cubic-bezier(0,1,1,1)}body[data-bespoke-view=next]{background:#0000}body[data-bespoke-view=presenter]{background:#161616}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container{display:grid;font-family:Helvetica,Arial,sans-serif;grid-template:"current dragbar next" minmax(140px,1fr) "current dragbar note" 2fr "info    dragbar note" 3em;grid-template-columns:minmax(3px,var(--bespoke-marp-presenter-split-ratio,66%)) 0 minmax(3px,1fr);height:100%;left:0;position:absolute;top:0;width:100%}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-parent{grid-area:current;overflow:hidden;position:relative}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-parent svg.bespoke-marp-slide{height:calc(100% - 40px);left:20px;pointer-events:none;position:absolute;top:20px;-webkit-user-select:none;user-select:none;width:calc(100% - 40px)}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-parent svg.bespoke-marp-slide.bespoke-marp-active{filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container{background:#0288d1;cursor:col-resize;grid-area:dragbar;margin-left:-3px;opacity:0;position:relative;transition:opacity .4s linear .1s;width:6px;z-index:10}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container:hover{opacity:1}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container.active{opacity:1;transition-delay:0s}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container{background:#222;cursor:pointer;display:none;grid-area:next;overflow:hidden;position:relative}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container.active{display:block}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container iframe.bespoke-marp-presenter-next{background:#0000;border:0;display:block;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5));height:calc(100% - 40px);left:20px;pointer-events:none;position:absolute;top:20px;-webkit-user-select:none;user-select:none;width:calc(100% - 40px)}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container{background:#222;color:#eee;grid-area:note;position:relative;z-index:1}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button{height:1.5em;line-height:1.5em;width:1.5em}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-wrapper{display:block;inset:0;position:absolute}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-buttons{background:#000000a6;border-radius:4px;bottom:0;display:flex;gap:4px;margin:12px;opacity:0;padding:6px;pointer-events:none;position:absolute;right:0;transition:opacity .2s linear}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-buttons:focus-within,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-wrapper:focus-within+.bespoke-marp-presenter-note-buttons,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container:hover .bespoke-marp-presenter-note-buttons{opacity:1;pointer-events:auto}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note{box-sizing:border-box;font-size:calc(1.1em*var(--bespoke-marp-note-font-scale, 1));height:calc(100% - 40px);margin:20px;overflow:auto;padding-right:3px;white-space:pre-wrap;width:calc(100% - 40px);word-wrap:break-word;scrollbar-color:#eeeeee80 #0000;scrollbar-width:thin}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar{width:6px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar-track{background:#0000}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar-thumb{background:#eeeeee80;border-radius:6px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note:empty{pointer-events:none}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note.active{display:block}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note p:first-child{margin-top:0}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note p:last-child{margin-bottom:0}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container{align-items:center;box-sizing:border-box;color:#eee;display:flex;flex-wrap:nowrap;grid-area:info;justify-content:center;overflow:hidden;padding:0 10px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-time,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer{box-sizing:border-box;display:block;padding:0 10px;white-space:nowrap;width:100%}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button{height:1.5em;line-height:1.5em;width:1.5em}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page{order:2;text-align:center}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page .bespoke-marp-presenter-info-page-text{display:inline-block;min-width:120px;text-align:center}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-time{color:#999;order:1;text-align:left}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer{color:#999;order:3;text-align:right}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer:hover{cursor:pointer}}@media print{.bespoke-marp-presenter-info-container,.bespoke-marp-presenter-next-container,.bespoke-marp-presenter-note-container{display:none}}</style><style>div#\:\$p > svg > foreignObject > section{width:1280px;height:720px;box-sizing:border-box;overflow:hidden;position:relative;scroll-snap-align:center center;-webkit-text-size-adjust:100%;text-size-adjust:100%}div#\:\$p > svg > foreignObject > section::after{bottom:0;content:attr(data-marpit-pagination);padding:inherit;pointer-events:none;position:absolute;right:0}div#\:\$p > svg > foreignObject > section:not([data-marpit-pagination])::after{display:none}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1){font-size:2em;margin-block:0.67em}div#\:\$p > svg > foreignObject > section video::-webkit-media-controls{will-change:transform}@page {size:1280px 720px;margin:0}@media print{html, body{background-color:#fff;margin:0;page-break-inside:avoid;break-inside:avoid-page}div#\:\$p > svg > foreignObject > section{page-break-before:always;break-before:page}div#\:\$p > svg > foreignObject > section, div#\:\$p > svg > foreignObject > section *{-webkit-print-color-adjust:exact!important;animation-delay:0s!important;animation-duration:0s!important;color-adjust:exact!important;print-color-adjust:exact!important;transition:none!important}div#\:\$p > svg[data-marpit-svg]{display:block;height:100vh;width:100vw}}div#\:\$p > svg > foreignObject > :where(section){container-type:size}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"]{direction:ltr}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"] > svg{overflow:visible;min-height:1px;min-width:1px}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"] > svg a{fill:blue;stroke:blue}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"][display="true"]{display:block;text-align:center;margin:1em 0}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"][display="true"][width="full"]{display:flex}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"][justify="left"]{text-align:left}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"][justify="right"]{text-align:right}div#\:\$p > svg > foreignObject > section g[data-mml-node="merror"] > g{fill:red;stroke:red}div#\:\$p > svg > foreignObject > section g[data-mml-node="merror"] > rect[data-background]{fill:yellow;stroke:none}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > line[data-line], div#\:\$p > svg > foreignObject > section svg[data-table] > g > line[data-line]{stroke-width:70px;fill:none}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > rect[data-frame], div#\:\$p > svg > foreignObject > section svg[data-table] > g > rect[data-frame]{stroke-width:70px;fill:none}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > .mjx-dashed, div#\:\$p > svg > foreignObject > section svg[data-table] > g > .mjx-dashed{stroke-dasharray:140}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > .mjx-dotted, div#\:\$p > svg > foreignObject > section svg[data-table] > g > .mjx-dotted{stroke-linecap:round;stroke-dasharray:0,140}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > g > svg{overflow:visible}div#\:\$p > svg > foreignObject > section [jax="SVG"] mjx-tool{display:inline-block;position:relative;width:0;height:0}div#\:\$p > svg > foreignObject > section [jax="SVG"] mjx-tool > mjx-tip{position:absolute;top:0;left:0}div#\:\$p > svg > foreignObject > section mjx-tool > mjx-tip{display:inline-block;padding:.2em;border:1px solid #888;font-size:70%;background-color:#F8F8F8;color:black;box-shadow:2px 2px 5px #AAAAAA}div#\:\$p > svg > foreignObject > section g[data-mml-node="maction"][data-toggle]{cursor:pointer}div#\:\$p > svg > foreignObject > section mjx-status{display:block;position:fixed;left:1em;bottom:1em;min-width:25%;padding:.2em .4em;border:1px solid #888;font-size:90%;background-color:#F8F8F8;color:black}div#\:\$p > svg > foreignObject > section foreignObject[data-mjx-xml]{font-family:initial;line-height:normal;overflow:visible}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"] path[data-c], div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"] use[data-c]{stroke-width:3}@media print{div#\:\$p > svg > foreignObject > section mjx-container[jax=SVG] path[data-c],div#\:\$p > svg > foreignObject > section mjx-container[jax=SVG] use[data-c]{stroke-width:0}}div#\:\$p > svg > foreignObject > section img[data-marp-twemoji]{background:transparent;height:1em;margin:0 .05em 0 .1em;vertical-align:-.1em;width:1em}/*!
+ * Marp / Marpit Uncover theme
+ *
+ * @theme uncover
+ * @author Yuki Hattori
+ *
+ * @auto-scaling true
+ * @size 16:9 1280px 720px
+ * @size 4:3 960px 720px
+ */div#\:\$p > svg > foreignObject > section{--color-background:#fdfcff;--color-background-code:#f2f1f4;--color-background-paginate:rgba(32,34,40,.05);--color-foreground:#202228;--color-highlight:#009dd5;--color-highlight-hover:#087eaa;--color-highlight-heading:#33b1dd;--color-header:rgba(32,34,40,.4);--color-header-shadow:rgba(253,252,255,.8);background:var(--color-background);color:var(--color-foreground);display:block;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Open Sans,Helvetica Neue,sans-serif;font-size:40px;height:720px;letter-spacing:3px;line-height:1.4;padding:30px 70px;place-content:safe center center;position:relative;text-align:center;width:1280px;word-wrap:break-word;align-items:stretch;flex-flow:column nowrap;z-index:0}div#\:\$p > svg > foreignObject > section{--marpit-root-font-size:40px;}div#\:\$p > svg > foreignObject > section:after{align-items:flex-end;background:linear-gradient(-45deg, var(--color-background-paginate) 50%, transparent 50%);background-size:cover;color:var(--color-foreground);display:flex;font-size:.6em;height:80px;justify-content:flex-end;padding:30px;text-align:right;text-shadow:0 0 5px var(--color-background);width:80px}div#\:\$p > svg > foreignObject > section:after{--marpit-root-font-size:.6em;}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) :is(pre, marp-pre) code.hljs{display:block;overflow-x:auto;padding:1em}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) code.hljs{padding:3px 5px}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs{background:#fff;color:#000}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-addition,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-meta,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-string,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-symbol,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-template-tag,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-template-variable{color:#756bb1}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-comment,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-quote{color:#636363}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-bullet,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-link,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-literal,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-number,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-regexp{color:#31a354}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-deletion,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-variable{color:#88f}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-built_in,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-doctag,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-keyword,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-name,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-section,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-selector-class,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-selector-id,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-selector-tag,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-strong,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-tag,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-title,div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-type{color:#3182bd}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-emphasis{font-style:italic}div#\:\$p > svg > foreignObject > section:where(:not(.invert)) .hljs-attribute{color:#e6550d}div#\:\$p > svg > foreignObject > section:where(.invert){--color-background:#202228;--color-background-code:#2b2d33;--color-background-paginate:hsla(0,0%,100%,.05);--color-foreground:#fff;--color-highlight:#60d0f0;--color-highlight-hover:#88dcf4;--color-highlight-heading:#80d9f3;--color-header:hsla(0,0%,100%,.4);--color-header-shadow:rgba(32,34,40,.8);}div#\:\$p > svg > foreignObject > section:where(.invert) :is(pre, marp-pre) code.hljs{display:block;overflow-x:auto;padding:1em}div#\:\$p > svg > foreignObject > section:where(.invert) code.hljs{padding:3px 5px}div#\:\$p > svg > foreignObject > section:where(.invert) .hljs{background:#222;color:#fff}div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-comment,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-quote{color:#777}div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-built_in,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-bullet,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-deletion,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-link,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-literal,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-meta,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-number,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-params,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-regexp,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-symbol,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-tag,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-template-variable,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-variable{color:#ab875d}div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-attribute,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-name,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-section,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-selector-class,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-selector-id,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-title,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-type{color:#9b869b}div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-addition,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-keyword,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-selector-tag,div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-string{color:#8f9c6c}div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-emphasis{font-style:italic}div#\:\$p > svg > foreignObject > section:where(.invert) .hljs-strong{font-weight:700}div#\:\$p > svg > foreignObject > section>:first-child,div#\:\$p > svg > foreignObject > section[data-header]>:nth-child(2){margin-top:0}div#\:\$p > svg > foreignObject > section>:last-child,div#\:\$p > svg > foreignObject > section[data-footer]>:nth-last-child(2){margin-bottom:0}div#\:\$p > svg > foreignObject > section blockquote,div#\:\$p > svg > foreignObject > section p{margin:0 0 15px}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1),div#\:\$p > svg > foreignObject > section :is(h2, marp-h2),div#\:\$p > svg > foreignObject > section :is(h3, marp-h3),div#\:\$p > svg > foreignObject > section :is(h4, marp-h4),div#\:\$p > svg > foreignObject > section :is(h5, marp-h5),div#\:\$p > svg > foreignObject > section :is(h6, marp-h6){margin:15px 0 30px}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1) strong,div#\:\$p > svg > foreignObject > section :is(h2, marp-h2) strong,div#\:\$p > svg > foreignObject > section :is(h3, marp-h3) strong,div#\:\$p > svg > foreignObject > section :is(h4, marp-h4) strong,div#\:\$p > svg > foreignObject > section :is(h5, marp-h5) strong,div#\:\$p > svg > foreignObject > section :is(h6, marp-h6) strong{color:var(--color-highlight-heading);font-weight:inherit}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h2, marp-h2)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h3, marp-h3)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h4, marp-h4)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h5, marp-h5)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h6, marp-h6)::part(auto-scaling){max-height:660px}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1){font-size:2em}div#\:\$p > svg > foreignObject > section :is(h2, marp-h2){font-size:1.7em}div#\:\$p > svg > foreignObject > section :is(h3, marp-h3){font-size:1.4em;letter-spacing:2px}div#\:\$p > svg > foreignObject > section :is(h4, marp-h4){font-size:1.2em;letter-spacing:2px}div#\:\$p > svg > foreignObject > section :is(h5, marp-h5){font-size:1em;letter-spacing:1px}div#\:\$p > svg > foreignObject > section :is(h6, marp-h6){font-size:.8em;letter-spacing:1px}div#\:\$p > svg > foreignObject > section footer,div#\:\$p > svg > foreignObject > section header{color:var(--color-header);font-size:.45em;left:70px;letter-spacing:1px;position:absolute;right:70px;text-shadow:0 1px 0 var(--color-header-shadow);z-index:1}div#\:\$p > svg > foreignObject > section header{top:30px}div#\:\$p > svg > foreignObject > section footer{bottom:30px}div#\:\$p > svg > foreignObject > section a{color:var(--color-highlight);text-decoration:none}div#\:\$p > svg > foreignObject > section a:hover{color:var(--color-highlight-hover);text-decoration:underline}div#\:\$p > svg > foreignObject > section ol,div#\:\$p > svg > foreignObject > section ul{margin:0 auto;text-align:left}div#\:\$p > svg > foreignObject > section>ol,div#\:\$p > svg > foreignObject > section>ul{margin-bottom:15px}div#\:\$p > svg > foreignObject > section code{font-family:SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;letter-spacing:0}div#\:\$p > svg > foreignObject > section :not(:is(pre, marp-pre))>code,div#\:\$p > svg > foreignObject > section>code{background:var(--color-background-code);color:var(--color-foreground);margin:-.2em .2em .2em;padding:.2em}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre){--preserve-aspect-ratio:xMidYMid meet;filter:drop-shadow(0 4px 4px rgba(0, 0, 0, .2));font-size:70%;line-height:1.15;margin:15px 0 30px;text-align:left}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre)::part(auto-scaling){max-height:570px}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre)>code{background:var(--color-background-code);box-sizing:content-box;color:var(--color-foreground);display:block;margin:0 auto;min-width:456px;padding:.4em .6em}div#\:\$p > svg > foreignObject > section[data-size="4:3"] :is(pre, marp-pre)>code{min-width:328px}div#\:\$p > svg > foreignObject > section table{border-collapse:collapse;margin:0 auto 15px}div#\:\$p > svg > foreignObject > section table>tbody>tr>td,div#\:\$p > svg > foreignObject > section table>tbody>tr>th,div#\:\$p > svg > foreignObject > section table>thead>tr>td,div#\:\$p > svg > foreignObject > section table>thead>tr>th{padding:.15em .5em}div#\:\$p > svg > foreignObject > section table>thead>tr>td,div#\:\$p > svg > foreignObject > section table>thead>tr>th{border-bottom:3px solid}div#\:\$p > svg > foreignObject > section table>tbody>tr:not(:last-child)>td,div#\:\$p > svg > foreignObject > section table>tbody>tr:not(:last-child)>th{border-bottom:1px solid}div#\:\$p > svg > foreignObject > section blockquote{font-size:90%;line-height:1.3;padding:0 2em;position:relative;z-index:0}div#\:\$p > svg > foreignObject > section blockquote:after,div#\:\$p > svg > foreignObject > section blockquote:before{content:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNNDQgMTkuMyAzOC45NCAwQzguMTQgOS41OSAwIDQwLjA1IDAgNTQuODNWMTAwaDQxLjQ3VjU0LjgzaC0yM2MtLjA0LS4yOC4yNS0yNy42NiAyNS41My0zNS41M201NiAwTDk0Ljk0IDBDNjQuMTQgOS41OSA1NiA0MC4wNSA1NiA1NC44M1YxMDBoNDEuNDdWNTQuODNoLTIzYy0uMDQtLjI4LjI1LTI3LjY2IDI1LjUzLTM1LjUzIiBzdHlsZT0iZmlsbDojODg4O29wYWNpdHk6LjMzIi8+PC9zdmc+");height:auto;pointer-events:none;position:absolute;width:1em;z-index:-1}div#\:\$p > svg > foreignObject > section blockquote:before{left:0;top:0}div#\:\$p > svg > foreignObject > section blockquote:after{bottom:0;right:0;transform:rotate(180deg)}div#\:\$p > svg > foreignObject > section blockquote>:last-child{margin-bottom:0}div#\:\$p > svg > foreignObject > section mark{background:transparent;color:var(--color-highlight)}div#\:\$p > svg > foreignObject > section{width:1280px;height:720px}div#\:\$p > svg > foreignObject > section{font-size:28px;font-family:'Comic Sans MS', cursive, sans-serif;background-color:#FAE87A;background-image:url('images/ppt-background.png');background-size:200px 200px;background-repeat:repeat}div#\:\$p > svg > foreignObject > section{--marpit-root-font-size: 28px;}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1), div#\:\$p > svg > foreignObject > section :is(h2, marp-h2), div#\:\$p > svg > foreignObject > section :is(h3, marp-h3){font-family:'Comic Sans MS', cursive, sans-serif}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1){font-size:1.8em;font-weight:700;color:#333}div#\:\$p > svg > foreignObject > section :is(h2, marp-h2){font-size:1.4em;font-weight:600;color:#333}div#\:\$p > svg > foreignObject > section :is(h3, marp-h3){font-size:1.1em;font-weight:600;color:#333}div#\:\$p > svg > foreignObject > section table{font-size:0.85em;background-color:rgba(255,255,255,0.85)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre), div#\:\$p > svg > foreignObject > section :is(pre, marp-pre)[is="marp-pre"]{font-size:0.75em;background-color:#222!important;min-width:95%!important;max-width:95%!important;width:95%!important;border-radius:8px;padding:1em!important}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) code{background-color:transparent!important;color:#f8f8f2!important}div#\:\$p > svg > foreignObject > section blockquote{font-size:0.95em}div#\:\$p > svg > foreignObject > section .columns{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--marpit-root-font-size, 1rem) * 1)}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"]{columns:initial!important;display:block!important;padding:0!important}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"]::before, div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"]::after, div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="content"]::before, div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="content"]::after{display:none!important}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"] > div[data-marpit-advanced-background-container]{all:initial;display:flex;flex-direction:row;height:100%;overflow:hidden;width:100%}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"] > div[data-marpit-advanced-background-container][data-marpit-advanced-background-direction="vertical"]{flex-direction:column}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"][data-marpit-advanced-background-split] > div[data-marpit-advanced-background-container]{width:var(--marpit-advanced-background-split, 50%)}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"][data-marpit-advanced-background-split="right"] > div[data-marpit-advanced-background-container]{margin-left:calc(100% - var(--marpit-advanced-background-split, 50%))}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"] > div[data-marpit-advanced-background-container] > figure{all:initial;background-position:center;background-repeat:no-repeat;background-size:cover;flex:auto;margin:0}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"] > div[data-marpit-advanced-background-container] > figure > figcaption{position:absolute;border:0;clip:rect(0, 0, 0, 0);height:1px;margin:-1px;overflow:hidden;padding:0;white-space:nowrap;width:1px}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="content"], div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="pseudo"]{background:transparent!important}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="pseudo"], div#\:\$p > svg[data-marpit-svg] > foreignObject[data-marpit-advanced-background="pseudo"]{pointer-events:none!important}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background-split]{width:100%;height:100%}
+</style></head><body><div class="bespoke-marp-osc"><button data-bespoke-marp-osc="prev" tabindex="-1" title="Previous slide">Previous slide</button><span data-bespoke-marp-osc="page"></span><button data-bespoke-marp-osc="next" tabindex="-1" title="Next slide">Next slide</button><button data-bespoke-marp-osc="fullscreen" tabindex="-1" title="Toggle fullscreen (f)">Toggle fullscreen</button><button data-bespoke-marp-osc="presenter" tabindex="-1" title="Open presenter view (p)">Open presenter view</button></div><div id=":$p"><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="1" data-paginate="true" data-class="lead" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" class="lead" data-marpit-pagination="1" style="--paginate:true;--class:lead;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="delta-lake--open-data-sharing">Delta Lake &amp; Open Data Sharing</h1>
+<h2 id="modernizing-bc-wildfire-service-weather-data-infrastructure">Modernizing BC Wildfire Service Weather Data Infrastructure</h2>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="2" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="2" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="how-this-started-a-climatology-request">How This Started: A Climatology Request</h1>
+<h3 id="the-ask">The Ask</h3>
+<p>Eric Kopetski requested <strong>climatology visualizations</strong> — compare current fire weather conditions against historical norms.</p>
+<h3 id="what-we-discovered">What We Discovered</h3>
+<ul>
+<li>Jake Lee presented an <strong>R Shiny dashboard</strong> with similar visualizations</li>
+<li>Sam Siddall had been doing <strong>overlapping analyses</strong> independently</li>
+<li>Everyone was spending time <strong>sourcing data</strong> instead of building tools</li>
+</ul>
+<p><strong>Pattern emerged: smart people, duplicated effort, data bottleneck.</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="3" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="the-data-landscape-today">The Data Landscape Today</h1>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>What It Has</th>
+<th>Problem</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BC Data Catalogue</td>
+<td>Metadata, some CSVs</td>
+<td>Stale, hard to find</td>
+</tr>
+<tr>
+<td>WF1 API</td>
+<td>Operational data</td>
+<td>Not designed for historical analysis</td>
+</tr>
+<tr>
+<td>FTP Site</td>
+<td>Historical CSVs</td>
+<td><strong>Retiring soon</strong></td>
+</tr>
+<tr>
+<td>Jaspersoft Server</td>
+<td>Reports, exports</td>
+<td>Another copy, limited access</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-real-issue">The Real Issue</h3>
+<ul>
+<li><strong>4+ copies</strong> of weather data across systems</li>
+<li>Everyone builds their own pipeline</li>
+<li>No single source of truth</li>
+</ul>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="4" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9" data-marpit-advanced-background="background"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/current-state.svg&quot;);background-size:contain;"></figure></div></section></foreignObject><foreignObject width="1280" height="720"><section id="4" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="4" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9" data-marpit-advanced-background="content"></section>
+</foreignObject><foreignObject width="1280" height="720" data-marpit-advanced-background="pseudo"><section data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="4" style="" data-marpit-pagination-total="18" data-size="16:9" data-marpit-advanced-background="pseudo"></section></foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="5" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9" data-marpit-advanced-background="background"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/future-state.svg&quot;);background-size:contain;"></figure></div></section></foreignObject><foreignObject width="1280" height="720"><section id="5" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="5" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9" data-marpit-advanced-background="content"></section>
+</foreignObject><foreignObject width="1280" height="720" data-marpit-advanced-background="pseudo"><section data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="5" style="" data-marpit-pagination-total="18" data-size="16:9" data-marpit-advanced-background="pseudo"></section></foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="6" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="6" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="bc-government-mandate-manage-data-effectively">BC Government Mandate: Manage Data Effectively</h1>
+<blockquote>
+<p>&quot;Ethical, accurate, accessible data forms the foundation of digital government&quot;<br />
+— <strong>BC Digital Code of Practice</strong></p>
+</blockquote>
+<h3 id="dcop-requirements-were-addressing">DCOP Requirements We're Addressing</h3>
+<ul>
+<li><strong>Reduce duplication</strong> — Single source of truth, not scattered CSV copies</li>
+<li><strong>Interoperability</strong> — Standard metadata and interfaces for easy exchange</li>
+<li><strong>Findability &amp; Reusability</strong> — Catalogued tables, documented schemas</li>
+<li><strong>Data lifecycle management</strong> — From collection to final disposition</li>
+<li><strong>Quality assurance</strong> — Validated, consistent data formats</li>
+</ul>
+<p><strong>Source:</strong> <a href="https://digital.gov.bc.ca/policies-standards/dcop/data/">digital.gov.bc.ca/policies-standards/dcop/data/</a></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="7" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="7" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="the-old-way-expensive--complex">The Old Way: Expensive &amp; Complex</h1>
+<ul>
+<li><strong>Dedicated databases</strong> — Licensing, maintenance, DBAs</li>
+<li><strong>ETL pipelines</strong> — Custom code for every consumer</li>
+<li><strong>Data warehouses</strong> — Costly infrastructure to scale</li>
+<li><strong>Multiple copies</strong> — Storage costs multiply</li>
+</ul>
+<h3 id="the-hidden-costs-add-up">The Hidden Costs Add Up</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>What You Pay For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Storage</td>
+<td>Database servers, SAN storage</td>
+</tr>
+<tr>
+<td>Compute</td>
+<td>Always-on clusters, reserved capacity</td>
+</tr>
+<tr>
+<td>Scaling</td>
+<td>Buy bigger hardware, migrations</td>
+</tr>
+<tr>
+<td>Licensing</td>
+<td>Per-core, per-user fees</td>
+</tr>
+</tbody>
+</table>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="8" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="the-new-way-simple--scalable">The New Way: Simple &amp; Scalable</h1>
+<h3 id="delta-lake-on-object-storage">Delta Lake on Object Storage</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Delta Lake Approach</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Storage</td>
+<td><strong>S3</strong> — pennies per GB</td>
+</tr>
+<tr>
+<td>Compute</td>
+<td><strong>Serverless</strong> — pay per query</td>
+</tr>
+<tr>
+<td>Scaling</td>
+<td><strong>Automatic</strong> — cloud-native</td>
+</tr>
+<tr>
+<td>Licensing</td>
+<td><strong>Open source</strong> — free</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cost-impact">Cost Impact</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Cost/TB/month</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enterprise database</td>
+<td>$500 - $2,000</td>
+</tr>
+<tr>
+<td>S3 object storage</td>
+<td><strong>$23</strong> (96% savings)</td>
+</tr>
+</tbody>
+</table>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="9" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="9" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="why-delta-lake">Why Delta Lake?</h1>
+<h3 id="open-source-lakehouse-format">Open Source Lakehouse Format</h3>
+<ul>
+<li><strong>Columnar format</strong> — Optimal for 40 years of historical wildfire data</li>
+<li><strong>ACID Transactions</strong> — Safe concurrent writes, no corruption</li>
+<li><strong>Time Travel</strong> — Query data at any historical point</li>
+<li><strong>Schema Evolution</strong> — Add columns without breaking queries</li>
+</ul>
+<h3 id="performance-comparison">Performance Comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>CSV (Current)</th>
+<th>Delta Lake</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Load 1 year</td>
+<td>Minutes</td>
+<td><strong>Seconds</strong></td>
+</tr>
+<tr>
+<td>Query single station</td>
+<td>Scan all files</td>
+<td><strong>Partition pruning</strong></td>
+</tr>
+<tr>
+<td>Daily updates</td>
+<td>Rewrite everything</td>
+<td><strong>Appendable</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>No intermediate copies. No stale data.</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="10" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="why-delta-lake-cont">Why Delta Lake? (cont.)</h1>
+<h3 id="open-standards--no-vendor-lock-in">Open Standards — No Vendor Lock-in</h3>
+<blockquote>
+<p>Backed by <strong>Linux Foundation</strong></p>
+</blockquote>
+<ul>
+<li><strong>Host API anywhere</strong> — On-prem, AWS, Azure, GCP</li>
+<li><strong>Native Libraries:</strong> Python, R, Rust, Java, Scala</li>
+<li><strong>Power BI &amp; Excel:</strong> <a href="https://learn.microsoft.com/en-us/power-query/connectors/delta-sharing">Native connectors</a> for non-programmers</li>
+<li><strong>Protocol Spec:</strong> <a href="https://github.com/delta-io/delta-sharing/blob/main/PROTOCOL.md">github.com/delta-io/delta-sharing</a></li>
+</ul>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="11" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="what-we-built-automated-pipeline">What We Built: Automated Pipeline</h1>
+<h3 id="data-crawler">Data Crawler</h3>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-bash">python -m wps_deltalake.crawler --all
+</code></pre>
+<p><strong>Capabilities:</strong></p>
+<ul>
+<li>Crawls Legacy FTP site automatically</li>
+<li>Incremental updates (only new data)</li>
+<li>Partitioned by year/month for fast queries</li>
+<li>Enriches station metadata</li>
+</ul>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="12" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="what-we-built-four-optimized-tables">What We Built: Four Optimized Tables</h1>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Purpose</th>
+<th>Partitioning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>observations</code></td>
+<td>All hourly weather data</td>
+<td>year, month</td>
+</tr>
+<tr>
+<td><code>stations</code></td>
+<td>Station metadata</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>observations_by_station</code></td>
+<td>Per-station analysis</td>
+<td>station_code</td>
+</tr>
+<tr>
+<td><code>climatology_stats</code></td>
+<td>Pre-computed percentiles</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="maintenance-built-in">Maintenance Built-in</h3>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-bash">python -m wps_deltalake.maintenance --all
+</code></pre>
+<p>Checkpoint • Optimize • Vacuum</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="13" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="13" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="delta-sharing-open-data-protocol">Delta Sharing: Open Data Protocol</h1>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Traditional Sharing</th>
+<th>Delta Sharing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Process</strong></td>
+<td>Extract → Copy → Share → Repeat</td>
+<td>Query live data</td>
+</tr>
+<tr>
+<td><strong>Data copies</strong></td>
+<td>Many (one per consumer)</td>
+<td><strong>None</strong> (presigned URLs)</td>
+</tr>
+<tr>
+<td><strong>Freshness</strong></td>
+<td>Stale (point-in-time exports)</td>
+<td><strong>Always live</strong></td>
+</tr>
+<tr>
+<td><strong>Governance</strong></td>
+<td>Who has what version?</td>
+<td><strong>Single source of truth</strong></td>
+</tr>
+<tr>
+<td><strong>Languages</strong></td>
+<td>Whatever you export to</td>
+<td><strong>Python, R, Spark, etc.</strong></td>
+</tr>
+<tr>
+<td><strong>Security</strong></td>
+<td>File permissions</td>
+<td><strong>Token-based auth</strong></td>
+</tr>
+</tbody>
+</table>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="14" data-paginate="true" data-class="invert" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" class="invert" data-marpit-pagination="14" style="--paginate:true;--class:invert;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="how-partners-access-data-python">How Partners Access Data: Python</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">import</span> delta_sharing
+
+profile = {<span class="hljs-string">&quot;shareCredentialsVersion&quot;</span>: <span class="hljs-number">1</span>, <span class="hljs-string">&quot;endpoint&quot;</span>: endpoint, <span class="hljs-string">&quot;bearerToken&quot;</span>: token}
+client = delta_sharing.SharingClient(profile)
+
+tables = client.list_all_tables()
+<span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> tables:
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;   - <span class="hljs-subst">{t.share}</span>.<span class="hljs-subst">{t.schema}</span>.<span class="hljs-subst">{t.name}</span>&quot;</span>)
+
+df = delta_sharing.load_as_pandas(<span class="hljs-string">f&quot;<span class="hljs-subst">{profile_path}</span>#historical.default.stations&quot;</span>)
+</code></pre>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="15" data-paginate="true" data-class="invert" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" class="invert" data-marpit-pagination="15" style="--paginate:true;--class:invert;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="how-partners-access-data-r">How Partners Access Data: R</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-r">library<span class="hljs-punctuation">(</span>httr<span class="hljs-punctuation">)</span>
+library<span class="hljs-punctuation">(</span>arrow<span class="hljs-punctuation">)</span>
+
+response <span class="hljs-operator">&lt;-</span> POST<span class="hljs-punctuation">(</span>
+  paste0<span class="hljs-punctuation">(</span>endpoint<span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;/shares/historical/schemas/default/tables/stations/query&quot;</span><span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span>
+  add_headers<span class="hljs-punctuation">(</span>.headers <span class="hljs-operator">=</span> headers<span class="hljs-punctuation">)</span><span class="hljs-punctuation">,</span> body <span class="hljs-operator">=</span> <span class="hljs-string">&quot;{}&quot;</span><span class="hljs-punctuation">,</span> encode <span class="hljs-operator">=</span> <span class="hljs-string">&quot;raw&quot;</span><span class="hljs-punctuation">)</span>
+
+file_urls <span class="hljs-operator">&lt;-</span> lapply<span class="hljs-punctuation">(</span>parsed<span class="hljs-punctuation">,</span> <span class="hljs-keyword">function</span><span class="hljs-punctuation">(</span>item<span class="hljs-punctuation">)</span> item<span class="hljs-operator">$</span>file<span class="hljs-operator">$</span>url<span class="hljs-punctuation">)</span>
+df <span class="hljs-operator">&lt;-</span> read_parquet<span class="hljs-punctuation">(</span>file_urls<span class="hljs-punctuation">[[</span><span class="hljs-number">1</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">)</span>
+</code></pre>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="16" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="16" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="dcop-alignment-summary">DCOP Alignment Summary</h1>
+<table>
+<thead>
+<tr>
+<th>DCOP Mandate</th>
+<th>How We Deliver</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reduce duplication</td>
+<td>Single Delta Lake source, no CSV copies</td>
+</tr>
+<tr>
+<td>Interoperability</td>
+<td>Open standards (Parquet, Delta Sharing)</td>
+</tr>
+<tr>
+<td>Easy exchange &amp; reuse</td>
+<td>Python/R/Spark clients, presigned URLs</td>
+</tr>
+<tr>
+<td>Metadata standards</td>
+<td>Schema versioning, partition metadata</td>
+</tr>
+<tr>
+<td>Lifecycle management</td>
+<td>Automated ETL, maintenance, vacuum</td>
+</tr>
+<tr>
+<td>Quality assurance</td>
+<td>ACID transactions, schema enforcement</td>
+</tr>
+</tbody>
+</table>
+<p><strong>This project directly advances BC's digital transformation goals.</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="17" data-paginate="true" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" data-marpit-pagination="17" style="--paginate:true;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="key-takeaways">Key Takeaways</h1>
+<div>
+<div>
+<strong>1. Policy Aligned</strong><br />
+Delivers on DCOP mandate<br />
+Reduces duplication
+</div>
+<div>
+<strong>2. Fiscally Responsible</strong><br />
+90%+ cost savings<br />
+Open source, no licensing<br />
+Scales without investment
+</div>
+</div>
+<br />
+<div>
+<strong>3. Open Standards</strong><br />
+Linux Foundation backed<br />
+No vendor lock-in<br />
+10-100x faster queries
+</div>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="18" data-paginate="true" data-class="lead" data-theme="uncover" data-style="section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+" lang="en-CA" class="lead" data-marpit-pagination="18" style="--paginate:true;--class:lead;--theme:uncover;--style:section {
+  font-size: 28px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background-color: #FAE87A;
+  background-image: url('images/ppt-background.png');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+h1, h2, h3 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+}
+h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: #333;
+}
+h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+table {
+  font-size: 0.85em;
+  background-color: rgba(255,255,255,0.85);
+}
+pre, pre[is=&quot;marp-pre&quot;] {
+  font-size: 0.75em;
+  background-color: #222 !important;
+  min-width: 95% !important;
+  max-width: 95% !important;
+  width: 95% !important;
+  border-radius: 8px;
+  padding: 1em !important;
+}
+pre code {
+  background-color: transparent !important;
+  color: #f8f8f2 !important;
+}
+blockquote {
+  font-size: 0.95em;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+;" data-marpit-pagination-total="18" data-size="16:9">
+<h1 id="questions">Questions?</h1>
+<p><strong>Resources</strong></p>
+<ul>
+<li>Delta Lake: <a href="https://delta.io">delta.io</a></li>
+<li>Delta Sharing: <a href="https://github.com/delta-io/delta-sharing">github.com/delta-io/delta-sharing</a></li>
+</ul>
+<p><strong>Demo</strong></p>
+<ul>
+<li>Climatology: <code>/climatology</code></li>
+<li>Delta Sharing: <code>/api/delta-sharing</code></li>
+</ul>
+</section>
+<script>!function(){"use strict";const t={h1:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"1"},style:"display: block; font-size: 2em; margin-block-start: 0.67em; margin-block-end: 0.67em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h2:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"2"},style:"display: block; font-size: 1.5em; margin-block-start: 0.83em; margin-block-end: 0.83em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h3:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"3"},style:"display: block; font-size: 1.17em; margin-block-start: 1em; margin-block-end: 1em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h4:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"4"},style:"display: block; margin-block-start: 1.33em; margin-block-end: 1.33em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h5:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"5"},style:"display: block; font-size: 0.83em; margin-block-start: 1.67em; margin-block-end: 1.67em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h6:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"6"},style:"display: block; font-size: 0.67em; margin-block-start: 2.33em; margin-block-end: 2.33em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},span:{proto:()=>HTMLSpanElement},pre:{proto:()=>HTMLElement,style:"display: block; font-family: monospace; white-space: pre; margin: 1em 0; --marp-auto-scaling-white-space: pre;"}},e="data-marp-auto-scaling-wrapper",i="data-marp-auto-scaling-svg",n="data-marp-auto-scaling-container";class s extends HTMLElement{container;containerSize;containerObserver;svg;svgComputedStyle;svgPreserveAspectRatio="xMinYMid meet";wrapper;wrapperSize;wrapperObserver;constructor(){super();const t=t=>([e])=>{const{width:i,height:n}=e.contentRect;this[t]={width:i,height:n},this.updateSVGRect()};this.attachShadow({mode:"open"}),this.containerObserver=new ResizeObserver(t("containerSize")),this.wrapperObserver=new ResizeObserver(((...e)=>{t("wrapperSize")(...e),this.flushSvgDisplay()}))}static get observedAttributes(){return["data-downscale-only"]}connectedCallback(){this.shadowRoot.innerHTML=`\n<style>\n  svg[${i}] { display: block; width: 100%; height: auto; vertical-align: top; }\n  span[${n}] { display: table; white-space: var(--marp-auto-scaling-white-space, nowrap); width: max-content; }\n</style>\n<div ${e}>\n  <svg part="svg" ${i}>\n    <foreignObject><span ${n}><slot></slot></span></foreignObject>\n  </svg>\n</div>\n    `.split(/\n\s*/).join(""),this.wrapper=this.shadowRoot.querySelector(`div[${e}]`)??void 0;const t=this.svg;this.svg=this.wrapper?.querySelector(`svg[${i}]`)??void 0,this.svg!==t&&(this.svgComputedStyle=this.svg?window.getComputedStyle(this.svg):void 0),this.container=this.svg?.querySelector(`span[${n}]`)??void 0,this.observe()}disconnectedCallback(){this.svg=void 0,this.svgComputedStyle=void 0,this.wrapper=void 0,this.container=void 0,this.observe()}attributeChangedCallback(){this.observe()}flushSvgDisplay(){const{svg:t}=this;t&&(t.style.display="inline",requestAnimationFrame((()=>{t.style.display=""})))}observe(){this.containerObserver.disconnect(),this.wrapperObserver.disconnect(),this.wrapper&&this.wrapperObserver.observe(this.wrapper),this.container&&this.containerObserver.observe(this.container),this.svgComputedStyle&&this.observeSVGStyle(this.svgComputedStyle)}observeSVGStyle(t){const e=()=>{const i=(()=>{const e=t.getPropertyValue("--preserve-aspect-ratio");if(e)return e.trim();return`x${(({textAlign:t,direction:e})=>{if(t.endsWith("left"))return"Min";if(t.endsWith("right"))return"Max";if("start"===t||"end"===t){let i="rtl"===e;return"end"===t&&(i=!i),i?"Max":"Min"}return"Mid"})(t)}YMid meet`})();i!==this.svgPreserveAspectRatio&&(this.svgPreserveAspectRatio=i,this.updateSVGRect()),t===this.svgComputedStyle&&requestAnimationFrame(e)};e()}updateSVGRect(){let t=Math.ceil(this.containerSize?.width??0);const e=Math.ceil(this.containerSize?.height??0);void 0!==this.dataset.downscaleOnly&&(t=Math.max(t,this.wrapperSize?.width??0));const i=this.svg?.querySelector(":scope > foreignObject");if(i?.setAttribute("width",`${t}`),i?.setAttribute("height",`${e}`),this.svg&&(this.svg.setAttribute("viewBox",`0 0 ${t} ${e}`),this.svg.setAttribute("preserveAspectRatio",this.svgPreserveAspectRatio),this.svg.style.height=t<=0||e<=0?"0":""),this.container){const t=this.svgPreserveAspectRatio.toLowerCase();this.container.style.marginLeft=t.startsWith("xmid")||t.startsWith("xmax")?"auto":"0",this.container.style.marginRight=t.startsWith("xmi")?"auto":"0"}}}const r=(t,{attrs:e={},style:i})=>class extends t{constructor(...t){super(...t);for(const[t,i]of Object.entries(e))this.hasAttribute(t)||this.setAttribute(t,i);this._shadow()}static get observedAttributes(){return["data-auto-scaling"]}connectedCallback(){this._update()}attributeChangedCallback(){this._update()}_shadow(){if(!this.shadowRoot)try{this.attachShadow({mode:"open"})}catch(t){if(!(t instanceof Error&&"NotSupportedError"===t.name))throw t}return this.shadowRoot}_update(){const t=this._shadow();if(t){const e=i?`<style>:host { ${i} }</style>`:"";let n="<slot></slot>";const{autoScaling:s}=this.dataset;if(void 0!==s){n=`<marp-auto-scaling exportparts="svg:auto-scaling" ${"downscale-only"===s?"data-downscale-only":""}>${n}</marp-auto-scaling>`}t.innerHTML=e+n}}};let o;const a=Symbol();let l;const c="marpitSVGPolyfill:setZoomFactor,",d=Symbol(),h=Symbol();const g=()=>{const t="Apple Computer, Inc."===navigator.vendor,e=t?[u]:[],i={then:e=>(t?(async()=>{if(void 0===l){const t=document.createElement("canvas");t.width=10,t.height=10;const e=t.getContext("2d"),i=new Image(10,10),n=new Promise((t=>{i.addEventListener("load",(()=>t()))}));i.crossOrigin="anonymous",i.src="data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%20viewBox%3D%220%200%201%201%22%3E%3CforeignObject%20width%3D%221%22%20height%3D%221%22%20requiredExtensions%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxhtml%22%3E%3Cdiv%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxhtml%22%20style%3D%22width%3A%201px%3B%20height%3A%201px%3B%20background%3A%20red%3B%20position%3A%20relative%22%3E%3C%2Fdiv%3E%3C%2FforeignObject%3E%3C%2Fsvg%3E",await n,e.drawImage(i,0,0),l=e.getImageData(5,5,1,1).data[3]<128}return l})().then((t=>{null==e||e(t?[u]:[])})):null==e||e([]),i)};return Object.assign(e,i)};let p,m;function u(t){const e="object"==typeof t&&t.target||document,i="object"==typeof t?t.zoom:t;window[h]||(Object.defineProperty(window,h,{configurable:!0,value:!0}),document.body.style.zoom=1.0001,document.body.offsetHeight,document.body.style.zoom=1,window.addEventListener("message",(({data:t,origin:e})=>{if(e===window.origin)try{if(t&&"string"==typeof t&&t.startsWith(c)){const[,e]=t.split(","),i=Number.parseFloat(e);Number.isNaN(i)||(m=i)}}catch(t){console.error(t)}})));let n=!1;Array.from(e.querySelectorAll("svg[data-marpit-svg]"),(t=>{var e,s,r,o;t.style.transform||(t.style.transform="translateZ(0)");const a=i||m||t.currentScale||1;p!==a&&(p=a,n=a);const l=t.getBoundingClientRect(),{length:c}=t.children;for(let i=0;i<c;i+=1){const n=t.children[i];if(n.getScreenCTM){const t=n.getScreenCTM();if(t){const i=null!==(s=null===(e=n.x)||void 0===e?void 0:e.baseVal.value)&&void 0!==s?s:0,c=null!==(o=null===(r=n.y)||void 0===r?void 0:r.baseVal.value)&&void 0!==o?o:0,d=n.children.length;for(let e=0;e<d;e+=1){const s=n.children[e];if("SECTION"===s.tagName){const{style:e}=s;e.transformOrigin||(e.transformOrigin=`${-i}px ${-c}px`),e.transform=`scale(${a}) matrix(${t.a}, ${t.b}, ${t.c}, ${t.d}, ${t.e-l.left}, ${t.f-l.top}) translateZ(0.0001px)`;break}}}}}})),!1!==n&&Array.from(e.querySelectorAll("iframe"),(({contentWindow:t})=>{null==t||t.postMessage(`${c}${n}`,"null"===window.origin?"*":window.origin)}))}function v({once:t=!1,target:e=document}={}){const i=function(t=document){if(t[d])return t[d];let e=!0;const i=()=>{e=!1,delete t[d]};Object.defineProperty(t,d,{configurable:!0,value:i});let n=[],s=!1;(async()=>{try{n=await g()}finally{s=!0}})();const r=()=>{for(const e of n)e({target:t});s&&0===n.length||e&&window.requestAnimationFrame(r)};return r(),i}(e);return t?(i(),()=>{}):i}p=1,m=void 0;const w=Symbol(),b=(e=document)=>{if("undefined"==typeof window)throw new Error("Marp Core's browser script is valid only in browser context.");if(((e=document)=>{const i=window[a];i||customElements.define("marp-auto-scaling",s);for(const n of Object.keys(t)){const s=`marp-${n}`,a=t[n].proto();(o??(o=!!document.createElement("div",{is:"marp-auto-scaling"}).outerHTML.startsWith("<div is"),o))&&a!==HTMLElement?i||customElements.define(s,r(a,{style:t[n].style}),{extends:n}):(i||customElements.define(s,r(HTMLElement,t[n])),e.querySelectorAll(`${n}[is="${s}"]`).forEach((t=>{t.outerHTML=t.outerHTML.replace(new RegExp(`^<${n}`,"i"),`<${s}`).replace(new RegExp(`</${n}>$`,"i"),`</${s}>`)})))}window[a]=!0})(e),e[w])return e[w];const i=v({target:e}),n=()=>{i(),delete e[w]},l=Object.assign(n,{cleanup:n,update:()=>b(e)});return Object.defineProperty(e,w,{configurable:!0,value:l}),l},y=document.currentScript;b(y?y.getRootNode():document)}();
+</script></foreignObject></svg></div><script>/*!! License: https://unpkg.com/@marp-team/marp-cli@4.2.3/lib/bespoke.js.LICENSE.txt */
+!function(){"use strict";function e(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var t,n,r=(n||(n=1,t={from:function(e,t){var n,r=1===(e.parent||e).nodeType?e.parent||e:document.querySelector(e.parent||e),o=[].filter.call("string"==typeof e.slides?r.querySelectorAll(e.slides):e.slides||r.children,function(e){return"SCRIPT"!==e.nodeName}),a={},i=function(e,t){return(t=t||{}).index=o.indexOf(e),t.slide=e,t},s=function(e,t){a[e]=(a[e]||[]).filter(function(e){return e!==t})},c=function(e,t){return(a[e]||[]).reduce(function(e,n){return e&&!1!==n(t)},!0)},l=function(e,t){o[e]&&(n&&c("deactivate",i(n,t)),n=o[e],c("activate",i(n,t)))},d=function(e,t){var r=o.indexOf(n)+e;c(e>0?"next":"prev",i(n,t))&&l(r,t)},u={off:s,on:function(e,t){return(a[e]||(a[e]=[])).push(t),s.bind(null,e,t)},fire:c,slide:function(e,t){if(!arguments.length)return o.indexOf(n);c("slide",i(o[e],t))&&l(e,t)},next:d.bind(null,1),prev:d.bind(null,-1),parent:r,slides:o,destroy:function(e){c("destroy",i(n,e)),a={}}};return(t||[]).forEach(function(e){e(u)}),n||l(0),u}}),t),o=e(r);const a=document.body,i=(...e)=>history.replaceState(...e),s="",c="presenter",l="next",d=["",c,l],u="bespoke-marp-",f=`data-${u}`,m=(e,{protocol:t,host:n,pathname:r,hash:o}=location)=>{const a=e.toString();return`${t}//${n}${r}${a?"?":""}${a}${o}`},g=()=>a.dataset.bespokeView,p=e=>new URLSearchParams(location.search).get(e),v=(e,t={})=>{const n={location,setter:i,...t},r=new URLSearchParams(n.location.search);for(const t of Object.keys(e)){const n=e[t];"string"==typeof n?r.set(t,n):r.delete(t)}try{n.setter({...window.history.state??{}},"",m(r,n.location))}catch(e){console.error(e)}},h=(()=>{const e="bespoke-marp";try{return localStorage.setItem(e,e),localStorage.removeItem(e),!0}catch{return!1}})(),y=e=>{try{return localStorage.getItem(e)}catch{return null}},b=(e,t)=>{try{return localStorage.setItem(e,t),!0}catch{return!1}},w=e=>{try{return localStorage.removeItem(e),!0}catch{return!1}},x=(e,t)=>{const n="aria-hidden";t?e.setAttribute(n,"true"):e.removeAttribute(n)},k=e=>{e.parent.classList.add(`${u}parent`),e.slides.forEach(e=>e.classList.add(`${u}slide`)),e.on("activate",t=>{const n=`${u}active`,r=t.slide,o=r.classList,a=!o.contains(n);if(e.slides.forEach(e=>{e.classList.remove(n),x(e,!0)}),o.add(n),x(r,!1),a){const e=`${n}-ready`;o.add(e),document.body.clientHeight,o.remove(e)}})},$=e=>{let t=0,n=0;Object.defineProperty(e,"fragments",{enumerable:!0,value:e.slides.map(e=>[null,...e.querySelectorAll("[data-marpit-fragment]")])});const r=r=>void 0!==e.fragments[t][n+r],o=(r,o)=>{t=r,n=o,e.fragments.forEach((e,t)=>{e.forEach((e,n)=>{if(null==e)return;const a=t<r||t===r&&n<=o;e.setAttribute(`${f}fragment`,(a?"":"in")+"active");const i=`${f}current-fragment`;t===r&&n===o?e.setAttribute(i,"current"):e.removeAttribute(i)})}),e.fragmentIndex=o;const a={slide:e.slides[r],index:r,fragments:e.fragments[r],fragmentIndex:o};e.fire("fragment",a)};e.on("next",({fragment:a=!0})=>{if(a){if(r(1))return o(t,n+1),!1;const a=t+1;e.fragments[a]&&o(a,0)}else{const r=e.fragments[t].length;if(n+1<r)return o(t,r-1),!1;const a=e.fragments[t+1];a&&o(t+1,a.length-1)}}),e.on("prev",({fragment:a=!0})=>{if(r(-1)&&a)return o(t,n-1),!1;const i=t-1;e.fragments[i]&&o(i,e.fragments[i].length-1)}),e.on("slide",({index:t,fragment:n})=>{let r=0;if(void 0!==n){const o=e.fragments[t];if(o){const{length:e}=o;r=-1===n?e-1:Math.min(Math.max(n,0),e-1)}}o(t,r)}),o(0,0)},E=document,L=()=>!(!E.fullscreenEnabled&&!E.webkitFullscreenEnabled),S=()=>!(!E.fullscreenElement&&!E.webkitFullscreenElement),P=e=>{e.fullscreen=()=>{L()&&(async()=>{S()?(E.exitFullscreen||E.webkitExitFullscreen)?.call(E):((e=E.body)=>{(e.requestFullscreen||e.webkitRequestFullscreen)?.call(e)})()})()},document.addEventListener("keydown",t=>{"f"!==t.key&&"F11"!==t.key||t.altKey||t.ctrlKey||t.metaKey||!L()||(e.fullscreen(),t.preventDefault())})},_=`${u}inactive`,T=(e=2e3)=>({parent:t,fire:n})=>{const r=t.classList,o=e=>n(`marp-${e?"":"in"}active`);let a;const i=()=>{a&&clearTimeout(a),a=setTimeout(()=>{r.add(_),o()},e),r.contains(_)&&(r.remove(_),o(!0))};for(const e of["mousedown","mousemove","touchend"])document.addEventListener(e,i);setTimeout(i,0)},I=["AUDIO","BUTTON","INPUT","SELECT","TEXTAREA","VIDEO"],M=e=>{e.parent.addEventListener("keydown",e=>{if(!e.target)return;const t=e.target;(I.includes(t.nodeName)||"true"===t.contentEditable)&&e.stopPropagation()})},O=e=>{window.addEventListener("load",()=>{for(const t of e.slides){const e=t.querySelector("marp-auto-scaling, [data-auto-scaling], [data-marp-fitting]");t.setAttribute(`${f}load`,e?"":"hideable")}})},A=({interval:e=250}={})=>t=>{document.addEventListener("keydown",e=>{if(" "===e.key&&e.shiftKey)t.prev();else if("ArrowLeft"===e.key||"ArrowUp"===e.key||"PageUp"===e.key)t.prev({fragment:!e.shiftKey});else if(" "!==e.key||e.shiftKey)if("ArrowRight"===e.key||"ArrowDown"===e.key||"PageDown"===e.key)t.next({fragment:!e.shiftKey});else if("End"===e.key)t.slide(t.slides.length-1,{fragment:-1});else{if("Home"!==e.key)return;t.slide(0)}else t.next();e.preventDefault()});let n,r,o=0;t.parent.addEventListener("wheel",a=>{let i=!1;const s=(e,t)=>{e&&(i=i||((e,t)=>((e,t)=>{const n="X"===t?"Width":"Height";return e[`client${n}`]<e[`scroll${n}`]})(e,t)&&((e,t)=>{const{overflow:n}=e,r=e[`overflow${t}`];return"auto"===n||"scroll"===n||"auto"===r||"scroll"===r})(getComputedStyle(e),t))(e,t)),e?.parentElement&&s(e.parentElement,t)};if(0!==a.deltaX&&s(a.target,"X"),0!==a.deltaY&&s(a.target,"Y"),i)return;a.preventDefault();const c=Math.sqrt(a.deltaX**2+a.deltaY**2);if(void 0!==a.wheelDelta){if(void 0===a.webkitForce&&Math.abs(a.wheelDelta)<40)return;if(a.deltaMode===a.DOM_DELTA_PIXEL&&c<4)return}else if(a.deltaMode===a.DOM_DELTA_PIXEL&&c<12)return;r&&clearTimeout(r),r=setTimeout(()=>{n=0},e);const l=Date.now()-o<e,d=c<=n;if(n=c,l||d)return;let u;(a.deltaX>0||a.deltaY>0)&&(u="next"),(a.deltaX<0||a.deltaY<0)&&(u="prev"),u&&(t[u](),o=Date.now())})},C=(e=`.${u}osc`)=>{const t=document.querySelector(e);if(!t)return()=>{};const n=(e,n)=>{t.querySelectorAll(`[${f}osc=${JSON.stringify(e)}]`).forEach(n)};return L()||n("fullscreen",e=>e.style.display="none"),h||n("presenter",e=>{e.disabled=!0,e.title="Presenter view is disabled due to restricted localStorage."}),e=>{t.addEventListener("click",t=>{if(t.target instanceof HTMLElement){const{bespokeMarpOsc:n}=t.target.dataset;n&&t.target.blur();const r={fragment:!t.shiftKey};"next"===n?e.next(r):"prev"===n?e.prev(r):"fullscreen"===n?e?.fullscreen():"presenter"===n&&e.openPresenterView()}}),e.parent.appendChild(t),e.on("activate",({index:t})=>{n("page",n=>n.textContent=`Page ${t+1} of ${e.slides.length}`)}),e.on("fragment",({index:t,fragments:r,fragmentIndex:o})=>{n("prev",e=>e.disabled=0===t&&0===o),n("next",n=>n.disabled=t===e.slides.length-1&&o===r.length-1)}),e.on("marp-active",()=>x(t,!1)),e.on("marp-inactive",()=>x(t,!0)),L()&&(e=>{for(const t of["","webkit"])E.addEventListener(t+"fullscreenchange",e)})(()=>n("fullscreen",e=>e.classList.toggle("exit",L()&&S())))}},D=e=>{window.addEventListener("message",t=>{if(t.origin!==window.origin)return;const[n,r]=t.data.split(":");if("navigate"===n){const[t,n]=r.split(",");let o=Number.parseInt(t,10),a=Number.parseInt(n,10)+1;a>=e.fragments[o].length&&(o+=1,a=0),e.slide(o,{fragment:a})}})};var N,B,q,K,F,j,V,U={exports:{}},X=(N||(N=1,U.exports=(B=["area","base","br","col","command","embed","hr","img","input","keygen","link","meta","param","source","track","wbr"],q=function(e){return String(e).replace(/[&<>"']/g,function(e){return"&"+K[e]+";"})},K={"&":"amp","<":"lt",">":"gt",'"':"quot","'":"apos"},F="dangerouslySetInnerHTML",j={className:"class",htmlFor:"for"},V={},function(e,t){var n=[],r="";t=t||{};for(var o=arguments.length;o-- >2;)n.push(arguments[o]);if("function"==typeof e)return t.children=n.reverse(),e(t);if(e){if(r+="<"+e,t)for(var a in t)!1!==t[a]&&null!=t[a]&&a!==F&&(r+=" "+(j[a]?j[a]:q(a))+'="'+q(t[a])+'"');r+=">"}if(-1===B.indexOf(e)){if(t[F])r+=t[F].__html;else for(;n.length;){var i=n.pop();if(i)if(i.pop)for(var s=i.length;s--;)n.push(i[s]);else r+=!0===V[i]?i:q(i)}r+=e?"</"+e+">":""}return V[r]=!0,r})),U.exports),H=e(X);const R=({children:e})=>H(null,null,...e),W=`${u}presenter-`,J={container:`${W}container`,dragbar:`${W}dragbar-container`,next:`${W}next`,nextContainer:`${W}next-container`,noteContainer:`${W}note-container`,noteWrapper:`${W}note-wrapper`,noteButtons:`${W}note-buttons`,infoContainer:`${W}info-container`,infoPage:`${W}info-page`,infoPageText:`${W}info-page-text`,infoPagePrev:`${W}info-page-prev`,infoPageNext:`${W}info-page-next`,noteButtonsBigger:`${W}note-bigger`,noteButtonsSmaller:`${W}note-smaller`,infoTime:`${W}info-time`,infoTimer:`${W}info-timer`},Y=e=>{const{title:t}=document;document.title="[Presenter view]"+(t?` - ${t}`:"");const n={},r=e=>(n[e]=n[e]||document.querySelector(`.${e}`),n[e]);document.body.appendChild((e=>{const t=document.createElement("div");return t.className=J.container,t.appendChild(e),t.insertAdjacentHTML("beforeend",H(R,null,H("div",{class:J.nextContainer},H("iframe",{class:J.next,src:"?view=next"})),H("div",{class:J.dragbar}),H("div",{class:J.noteContainer},H("div",{class:J.noteWrapper}),H("div",{class:J.noteButtons},H("button",{class:J.noteButtonsSmaller,tabindex:"-1",title:"Smaller notes font size"},"Smaller notes font size"),H("button",{class:J.noteButtonsBigger,tabindex:"-1",title:"Bigger notes font size"},"Bigger notes font size"))),H("div",{class:J.infoContainer},H("div",{class:J.infoPage},H("button",{class:J.infoPagePrev,tabindex:"-1",title:"Previous"},"Previous"),H("span",{class:J.infoPageText}),H("button",{class:J.infoPageNext,tabindex:"-1",title:"Next"},"Next")),H("time",{class:J.infoTime,title:"Current time"}),H("time",{class:J.infoTimer,title:"Timer"})))),t})(e.parent)),(e=>{let t=!1;r(J.dragbar).addEventListener("mousedown",()=>{t=!0,r(J.dragbar).classList.add("active")}),window.addEventListener("mouseup",()=>{t=!1,r(J.dragbar).classList.remove("active")}),window.addEventListener("mousemove",e=>{if(!t)return;const n=e.clientX/document.documentElement.clientWidth*100;r(J.container).style.setProperty("--bespoke-marp-presenter-split-ratio",`${Math.max(0,Math.min(100,n))}%`)}),r(J.nextContainer).addEventListener("click",()=>e.next());const n=r(J.next),o=(a=n,(e,t)=>a.contentWindow?.postMessage(`navigate:${e},${t}`,"null"===window.origin?"*":window.origin));var a;n.addEventListener("load",()=>{r(J.nextContainer).classList.add("active"),o(e.slide(),e.fragmentIndex),e.on("fragment",({index:e,fragmentIndex:t})=>o(e,t))});const i=document.querySelectorAll(".bespoke-marp-note");i.forEach(e=>{e.addEventListener("keydown",e=>e.stopPropagation()),r(J.noteWrapper).appendChild(e)}),e.on("activate",()=>i.forEach(t=>t.classList.toggle("active",t.dataset.index==e.slide())));let s=0;const c=e=>{s=Math.max(-5,s+e),r(J.noteContainer).style.setProperty("--bespoke-marp-note-font-scale",(1.2**s).toFixed(4))},l=()=>c(1),d=()=>c(-1),u=r(J.noteButtonsBigger),f=r(J.noteButtonsSmaller);u.addEventListener("click",()=>{u.blur(),l()}),f.addEventListener("click",()=>{f.blur(),d()}),document.addEventListener("keydown",e=>{"+"===e.key&&l(),"-"===e.key&&d()},!0),e.on("activate",({index:t})=>{r(J.infoPageText).textContent=`${t+1} / ${e.slides.length}`});const m=r(J.infoPagePrev),g=r(J.infoPageNext);m.addEventListener("click",t=>{m.blur(),e.prev({fragment:!t.shiftKey})}),g.addEventListener("click",t=>{g.blur(),e.next({fragment:!t.shiftKey})}),e.on("fragment",({index:t,fragments:n,fragmentIndex:r})=>{m.disabled=0===t&&0===r,g.disabled=t===e.slides.length-1&&r===n.length-1});let p=new Date;const v=()=>{const e=new Date,t=e=>`${Math.floor(e)}`.padStart(2,"0"),n=e.getTime()-p.getTime(),o=t(n/1e3%60),a=t(n/1e3/60%60),i=t(n/36e5%24);r(J.infoTime).textContent=e.toLocaleTimeString(),r(J.infoTimer).textContent=`${i}:${a}:${o}`};v(),setInterval(v,250),r(J.infoTimer).addEventListener("click",()=>{p=new Date})})(e)},z=e=>{if(!(e=>e.syncKey&&"string"==typeof e.syncKey)(e))throw new Error("The current instance of Bespoke.js is invalid for Marp bespoke presenter plugin.");Object.defineProperties(e,{openPresenterView:{enumerable:!0,value:G},presenterUrl:{enumerable:!0,get:Q}}),h&&document.addEventListener("keydown",t=>{"p"!==t.key||t.altKey||t.ctrlKey||t.metaKey||(t.preventDefault(),e.openPresenterView())})};function G(){const{max:e,floor:t}=Math,n=e(t(.85*window.innerWidth),640),r=e(t(.85*window.innerHeight),360);return window.open(this.presenterUrl,W+this.syncKey,`width=${n},height=${r},menubar=no,toolbar=no`)}function Q(){const e=new URLSearchParams(location.search);return e.set("view","presenter"),e.set("sync",this.syncKey),m(e)}const Z=e=>{const t=g();return t===l&&e.appendChild(document.createElement("span")),{[s]:z,[c]:Y,[l]:D}[t]},ee=e=>{e.on("activate",t=>{document.querySelectorAll(".bespoke-progress-parent > .bespoke-progress-bar").forEach(n=>{n.style.flexBasis=100*t.index/(e.slides.length-1)+"%"})})},te=e=>{const t=Number.parseInt(e,10);return Number.isNaN(t)?null:t},ne=(e={})=>{const t={history:!0,...e};return e=>{let n=!0;const r=e=>{const t=n;try{return n=!0,e()}finally{n=t}},o=(t={fragment:!0})=>{let n=t.fragment?te(p("f")||""):null;((t,n)=>{const{min:r,max:o}=Math,{fragments:a,slides:i}=e,s=o(0,r(t,i.length-1)),c=o(0,r(n||0,a[s].length-1));s===e.slide()&&c===e.fragmentIndex||e.slide(s,{fragment:c})})((()=>{if(location.hash){const[t]=location.hash.slice(1).split(":~:");if(/^\d+$/.test(t))return(te(t)??1)-1;const r=document.getElementById(t)||document.querySelector(`a[name="${CSS.escape(t)}"]`);if(r){const{length:t}=e.slides;for(let o=0;o<t;o+=1)if(e.slides[o].contains(r)){const t=e.fragments?.[o],a=r.closest("[data-marpit-fragment]");if(t&&a){const e=t.indexOf(a);e>=0&&(n=e)}return o}}}return 0})(),n)};e.on("fragment",({index:e,fragmentIndex:r})=>{n||v({f:0===r||r.toString()},{location:{...location,hash:`#${e+1}`},setter:(...e)=>t.history?history.pushState(...e):history.replaceState(...e)})}),setTimeout(()=>{o(),window.addEventListener("hashchange",()=>r(()=>{o({fragment:!1}),v({f:void 0})})),window.addEventListener("popstate",()=>{n||r(()=>o())}),n=!1},0)}},re=(e={})=>{const t=e.key||window.history.state?.marpBespokeSyncKey||Math.random().toString(36).slice(2),n=`bespoke-marp-sync-${t}`;var r;r={marpBespokeSyncKey:t},v({},{setter:(e,...t)=>i({...e,...r},...t)});const o=()=>{const e=y(n);return e?JSON.parse(e):Object.create(null)},a=e=>{const t=o(),r={...t,...e(t)};return b(n,JSON.stringify(r)),r},s=()=>{window.removeEventListener("pageshow",s),a(e=>({reference:(e.reference||0)+1}))};return e=>{s(),Object.defineProperty(e,"syncKey",{value:t,enumerable:!0});let r=!0;setTimeout(()=>{e.on("fragment",e=>{r&&a(()=>({index:e.index,fragmentIndex:e.fragmentIndex}))})},0),window.addEventListener("storage",t=>{if(t.key===n&&t.oldValue&&t.newValue){const n=JSON.parse(t.oldValue),o=JSON.parse(t.newValue);if(n.index!==o.index||n.fragmentIndex!==o.fragmentIndex)try{r=!1,e.slide(o.index,{fragment:o.fragmentIndex,forSync:!0})}finally{r=!0}}});const i=()=>{const{reference:e}=o();void 0===e||e<=1?w(n):a(()=>({reference:e-1}))};window.addEventListener("pagehide",e=>{e.persisted&&window.addEventListener("pageshow",s),i()}),e.on("destroy",i)}},{PI:oe,abs:ae,sqrt:ie,atan2:se}=Math,ce={passive:!0},le=({slope:e=-.7,swipeThreshold:t=30}={})=>n=>{let r;const o=n.parent,a=e=>{const t=o.getBoundingClientRect();return{x:e.pageX-(t.left+t.right)/2,y:e.pageY-(t.top+t.bottom)/2}};o.addEventListener("touchstart",({touches:e})=>{r=1===e.length?a(e[0]):void 0},ce),o.addEventListener("touchmove",e=>{if(r)if(1===e.touches.length){e.preventDefault();const t=a(e.touches[0]),n=t.x-r.x,o=t.y-r.y;r.delta=ie(ae(n)**2+ae(o)**2),r.radian=se(n,o)}else r=void 0}),o.addEventListener("touchend",o=>{if(r){if(r.delta&&r.delta>=t&&r.radian){const t=(r.radian-e+oe)%(2*oe)-oe;n[t<0?"next":"prev"](),o.stopPropagation()}r=void 0}},ce)},de=new Map;de.clear(),de.set("none",{backward:{both:void 0,incoming:void 0,outgoing:void 0},forward:{both:void 0,incoming:void 0,outgoing:void 0}});const ue={both:"",outgoing:"outgoing-",incoming:"incoming-"},fe={forward:"",backward:"-backward"},me=e=>`--marp-bespoke-transition-animation-${e}`,ge=e=>`--marp-transition-${e}`,pe=me("name"),ve=me("duration"),he=e=>new Promise(t=>{const n={},r=document.createElement("div"),o=e=>{r.remove(),t(e)};r.addEventListener("animationstart",()=>o(n)),Object.assign(r.style,{animationName:e,animationDuration:"1s",animationFillMode:"both",animationPlayState:"paused",position:"absolute",pointerEvents:"none"}),document.body.appendChild(r);const a=getComputedStyle(r).getPropertyValue(ge("duration"));a&&Number.parseFloat(a)>=0&&(n.defaultDuration=a),((e,t)=>{requestAnimationFrame(()=>{e.style.animationPlayState="running",requestAnimationFrame(()=>t(void 0))})})(r,o)}),ye=async e=>de.has(e)?de.get(e):(e=>{const t={},n=[];for(const[r,o]of Object.entries(ue))for(const[a,i]of Object.entries(fe)){const s=`marp-${o}transition${i}-${e}`;n.push(he(s).then(e=>{t[a]=t[a]||{},t[a][r]=e?{...e,name:s}:void 0}))}return Promise.all(n).then(()=>t)})(e).then(t=>(de.set(e,t),t)),be=e=>Object.values(e).flatMap(Object.values).every(e=>!e),we=(e,{type:t,backward:n})=>{const r=e[n?"backward":"forward"],o=(()=>{const e=r[t],n=e=>({[pe]:e.name});if(e)return n(e);if(r.both){const e=n(r.both);return"incoming"===t&&(e[me("direction")]="reverse"),e}})();return!o&&n?we(e,{type:t,backward:!1}):o||{[pe]:"__bespoke_marp_transition_no_animation__"}},xe=e=>{if(e)try{const t=JSON.parse(e);if((e=>{if("object"!=typeof e)return!1;const t=e;return"string"==typeof t.name&&(void 0===t.duration||"string"==typeof t.duration)})(t))return t}catch{}},ke="_tSId",$e="_tA",Ee="bespoke-marp-transition-warming-up",Le=window.matchMedia("(prefers-reduced-motion: reduce)"),Se="__bespoke_marp_transition_reduced_outgoing__",Pe="__bespoke_marp_transition_reduced_incoming__",_e={forward:{both:void 0,incoming:{name:Pe},outgoing:{name:Se}},backward:{both:void 0,incoming:{name:Pe},outgoing:{name:Se}}},Te=e=>{if(!document.startViewTransition)return;const t=t=>(void 0!==t&&(e._tD=t),e._tD);let n;t(!1),((...e)=>{CSS.registerProperty({name:ge("duration"),syntax:"<time>",inherits:!0,initialValue:"-1s"});const t=[...new Set(e).values()];return Promise.all(t.map(e=>ye(e))).then()})(...Array.from(document.querySelectorAll("section[data-transition], section[data-transition-back]")).flatMap(e=>[e.dataset.transition,e.dataset.transitionBack].flatMap(e=>{const t=xe(e);return[t?.name,t?.builtinFallback?`__builtin__${t.name}`:void 0]}).filter(e=>!!e))).then(()=>{document.querySelectorAll("style").forEach(e=>{e.innerHTML=e.innerHTML.replace(/--marp-transition-duration:[^;}]*[;}]/g,e=>e.slice(0,-1)+"!important"+e.slice(-1))})});const r=(n,{back:r,cond:o})=>a=>{const i=t();if(i)return!!a[$e]||!("object"!=typeof i||(i.skipTransition(),!a.forSync));if(!o(a))return!0;const s=e.slides[e.slide()],c=()=>a.back??r,l="data-transition"+(c()?"-back":""),d=s.querySelector(`section[${l}]`);if(!d)return!0;const u=xe(d.getAttribute(l)??void 0);return!u||((async(e,{builtinFallback:t=!0}={})=>{let n=await ye(e);if(be(n)){if(!t)return;return n=await ye(`__builtin__${e}`),be(n)?void 0:n}return n})(u.name,{builtinFallback:u.builtinFallback}).then(e=>{if(!e){t(!0);try{n(a)}finally{t(!1)}return}let r=e;Le.matches&&(console.warn("Use a constant animation to transition because preferring reduced motion by viewer has detected."),r=_e);const o=document.getElementById(ke);o&&o.remove();const i=document.createElement("style");i.id=ke,document.head.appendChild(i),((e,t)=>{const n=[`:root{${ge("direction")}:${t.backward?-1:1};}`,":root:has(.bespoke-marp-inactive){cursor:none;}"],r=t=>{const n=e[t].both?.defaultDuration||e[t].outgoing?.defaultDuration||e[t].incoming?.defaultDuration;return"forward"===t?n:n||r("forward")},o=t.duration||r(t.backward?"backward":"forward");void 0!==o&&n.push(`::view-transition-group(*){${ve}:${o};}`);const a=e=>Object.entries(e).map(([e,t])=>`${e}:${t};`).join("");return n.push(`::view-transition-old(root){${a(we(e,{...t,type:"outgoing"}))}}`,`::view-transition-new(root){${a(we(e,{...t,type:"incoming"}))}}`),n})(r,{backward:c(),duration:u.duration}).forEach(e=>i.sheet?.insertRule(e));const s=document.documentElement.classList;s.add(Ee);let l=!1;const d=()=>{l||(n(a),l=!0,s.remove(Ee))},f=()=>{t(!1),i.remove(),s.remove(Ee)};try{t(!0);const e=document.startViewTransition(d);t(e),e.finished.finally(f)}catch(e){console.error(e),d(),f()}}),!1)};e.on("prev",r(t=>e.prev({...t,[$e]:!0}),{back:!0,cond:e=>e.index>0&&!((e.fragment??1)&&n.fragmentIndex>0)})),e.on("next",r(t=>e.next({...t,[$e]:!0}),{cond:t=>t.index+1<e.slides.length&&!(n.fragmentIndex+1<n.fragments.length)})),setTimeout(()=>{e.on("slide",r(t=>e.slide(t.index,{...t,[$e]:!0}),{cond:t=>{const n=e.slide();return t.index!==n&&(t.back=t.index<n,!0)}}))},0),e.on("fragment",e=>{n=e})};let Ie;const Me=()=>(void 0===Ie&&(Ie="wakeLock"in navigator&&navigator.wakeLock),Ie),Oe=async()=>{const e=Me();if(e)try{return await e.request("screen")}catch(e){console.warn(e)}return null},Ae=async()=>{if(!Me())return;let e;const t=()=>{e&&"visible"===document.visibilityState&&Oe()};for(const e of["visibilitychange","fullscreenchange"])document.addEventListener(e,t);return e=await Oe(),e};((e=document.getElementById(":$p"))=>{(()=>{const e=p("view");a.dataset.bespokeView=e===l||e===c?e:""})();const t=(e=>{const t=p(e);return v({[e]:void 0}),t})("sync")||void 0;o.from(e,((...e)=>{const t=d.findIndex(e=>g()===e);return e.map(([e,n])=>e[t]&&n).filter(e=>e)})([[1,1,0],re({key:t})],[[1,1,1],Z(e)],[[1,1,0],M],[[1,1,1],k],[[1,0,0],T()],[[1,1,1],O],[[1,1,1],ne({history:!1})],[[1,1,0],A()],[[1,1,0],P],[[1,0,0],ee],[[1,1,0],le()],[[1,0,0],C()],[[1,0,0],Te],[[1,1,1],$],[[1,1,0],Ae]))})()}();</script></body></html>
