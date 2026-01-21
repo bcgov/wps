@@ -337,6 +337,12 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
 
+      - name: Delta Lake FTP sync cronjob
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_deltalake_ftp_sync_cronjob.sh ${SUFFIX} apply
+
   # TODO: Delete once pmtiles has run for some time
   # deploy-tileserv:
   #   name: Deploy tileserv to Dev

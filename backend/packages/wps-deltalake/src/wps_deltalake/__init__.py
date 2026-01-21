@@ -57,6 +57,10 @@ from wps_deltalake.csv_to_parquet import (
     convert_and_upload,
 )
 
+from wps_deltalake.ftp_sync import (
+    sync_hourly,
+)
+
 __all__ = [
     # Config
     "OBSERVATIONS_TABLE",
@@ -83,4 +87,6 @@ __all__ = [
     "csv_to_parquet",
     "upload_parquet_to_s3",
     "convert_and_upload",
+    # FTP Sync
+    "sync_hourly",
 ]

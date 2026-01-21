@@ -1,0 +1,86 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Hourly job to sync BCWS weather observations from FTP to Delta Lake"
+    tags: "cronjob,deltalake,ftp-sync"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${APP_LABEL}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: IMAGE_REGISTRY
+    value: image-registry.openshift-image-registry.svc:5000
+  - name: JOB_NAME
+    value: deltalake-ftp-sync
+  - name: SCHEDULE
+    required: true
+  - name: APP_LABEL
+    required: true
+    value: wps-${SUFFIX}
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1
+    metadata:
+      name: ${JOB_NAME}
+    spec:
+      schedule: ${SCHEDULE}
+      concurrencyPolicy: "Forbid"
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+            app: ${APP_LABEL}
+        spec:
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-${SUFFIX}:${SUFFIX}
+                  imagePullPolicy: "Always"
+                  command:
+                    [
+                      "uv",
+                      "run",
+                      "--package",
+                      "wps-deltalake",
+                      "--no-sync",
+                      "python",
+                      "-m",
+                      "wps_deltalake.ftp_sync",
+                    ]
+                  env:
+                    - name: UV_NO_CACHE
+                      value: "1"
+                    - name: OBJECT_STORE_SERVER
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-server
+                    - name: OBJECT_STORE_USER_ID
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-user-id
+                    - name: OBJECT_STORE_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-secret
+                    - name: OBJECT_STORE_BUCKET
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-bucket
+              restartPolicy: OnFailure
