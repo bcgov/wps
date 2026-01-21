@@ -51,6 +51,20 @@ def _load_config():
 
 chefs_config = _load_config()
 
+def write_request_if_missing(files_dir: str, submission_id: str, payload: dict):
+    filename = f"spot_request_{submission_id}.json"
+    file_path = os.path.join(files_dir, filename)
+
+    if os.path.exists(file_path):
+        logging.info(f"File already exists, skipping: {filename}")
+        return
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+
+    logging.info(f"Created file: {filename}")
+
+
 def get_chefs_submissions_json(form_id, api_token, version):
     """
     Returns the JSON response from the CHEFS API for the specified form ID, API token, and version.
@@ -107,8 +121,15 @@ def get_chefs_submissions_json(form_id, api_token, version):
         data = response.json()
 
         for chefs_request in data:
+            form_meta = chefs_request.get("form", {})
+            submission_id = form_meta.get("submissionId")
+
+            if not submission_id:
+                logging.warning("Skipping submission with no submissionId")
+                continue
+
             spot_wx_request = {
-                'metadata': chefs_request['form'],
+                'metadata': form_meta,
                 'fire_number': chefs_request['fireNumber'],
                 'forecast_end_date': chefs_request['forecastEndDate'],
                 'forecast_start_date': chefs_request['forecastStartDate'],
@@ -117,7 +138,7 @@ def get_chefs_submissions_json(form_id, api_token, version):
                 'additional_info': chefs_request['additionalInformation'] or None,
                 'coordinates': chefs_request['LatLong']
             }
-            print(spot_wx_request)
+            write_request_if_missing(files_dir, submission_id, spot_wx_request)
     except Exception as e:
         logging.error(f"Failed to parse JSON response: {e}")
         return response
