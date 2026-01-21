@@ -6,4 +6,5 @@ set -e
 # set some defaults
 GUNICORN_WORKERS="${GUNICORN_WORKERS:-4}"
 # start the server
-GUNICORN_CMD_ARGS="--max-requests 50 --max-requests-jitter 50" gunicorn app.main:app --timeout 200 --workers $GUNICORN_WORKERS --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8080
+GUNICORN_TIMEOUT="${GUNICORN_TIMEOUT:-200}"
+GUNICORN_CMD_ARGS="--max-requests 50 --max-requests-jitter 50" gunicorn app.main:app --timeout $GUNICORN_TIMEOUT --workers $GUNICORN_WORKERS --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8080

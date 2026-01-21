@@ -169,7 +169,7 @@ objects:
                   value: ${ENVIRONMENT}
                 - name: GUNICORN_WORKERS # The number of workers to spawn
                   value: ${GUNICORN_WORKERS}
-                - name: "TIMEOUT" # https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout
+                - name: "GUNICORN_TIMEOUT" # https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout
                   valueFrom:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
