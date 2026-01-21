@@ -19,7 +19,9 @@ import re
 from dataclasses import dataclass
 from html.parser import HTMLParser
 
+import numpy as np
 import pandas as pd
+import pyarrow as pa
 import requests
 from deltalake import DeltaTable, write_deltalake
 from wps_shared import config
@@ -29,6 +31,10 @@ logger = logging.getLogger(__name__)
 BASE_URL = "https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART"
 OBSERVATIONS_TABLE = "historical/observations"
 STATIONS_TABLE = "historical/stations"
+CLIMATOLOGY_STATS_TABLE = "historical/climatology_stats"
+
+DATE_COLUMN = "DATE_TIME"
+STATION_CODE_COLUMN = "STATION_CODE"
 
 
 def get_storage_options() -> dict[str, str]:
@@ -369,6 +375,96 @@ def vacuum_table(table_name: str = OBSERVATIONS_TABLE, retention_hours: int = 16
     logger.info("Vacuum complete")
 
 
+def compute_climatology_stats(start_year: int = 1991, end_year: int = 2020):
+    """
+    Pre-compute climatology statistics for all stations and save to a Delta table.
+
+    This creates a small, fast-to-query table with pre-aggregated percentiles
+    for each station and day of year.
+
+    Args:
+        start_year: Start year of reference period (default: 1991)
+        end_year: End year of reference period (default: 2020)
+    """
+    storage_options = get_storage_options()
+    obs_uri = get_table_key(OBSERVATIONS_TABLE)
+    stats_uri = get_table_key(CLIMATOLOGY_STATS_TABLE)
+
+    logger.info(f"Computing climatology stats for {start_year}-{end_year}")
+
+    # Load observations for reference period
+    logger.info("Loading observations...")
+    dt = DeltaTable(obs_uri, storage_options=storage_options)
+    df = dt.to_pandas(
+        columns=[
+            STATION_CODE_COLUMN,
+            DATE_COLUMN,
+            "HOURLY_TEMPERATURE",
+            "HOURLY_RELATIVE_HUMIDITY",
+            "HOURLY_WIND_SPEED",
+            "HOURLY_PRECIPITATION",
+            "HOURLY_FINE_FUEL_MOISTURE_CODE",
+            "HOURLY_INITIAL_SPREAD_INDEX",
+            "HOURLY_FIRE_WEATHER_INDEX",
+        ],
+        filters=[
+            ("year", ">=", start_year),
+            ("year", "<=", end_year),
+        ],
+    )
+    logger.info(f"Loaded {len(df):,} observations")
+
+    # Add day_of_year column
+    df["day_of_year"] = pd.to_datetime(df[DATE_COLUMN]).dt.dayofyear
+
+    # Define aggregation function
+    def compute_stats(group):
+        result = {}
+        for var, prefix in [
+            ("HOURLY_TEMPERATURE", "temp"),
+            ("HOURLY_RELATIVE_HUMIDITY", "rh"),
+            ("HOURLY_WIND_SPEED", "ws"),
+            ("HOURLY_PRECIPITATION", "precip"),
+            ("HOURLY_FINE_FUEL_MOISTURE_CODE", "ffmc"),
+            ("HOURLY_INITIAL_SPREAD_INDEX", "isi"),
+            ("HOURLY_FIRE_WEATHER_INDEX", "fwi"),
+        ]:
+            values = group[var].dropna()
+            if len(values) > 0:
+                result[f"{prefix}_mean"] = values.mean()
+                result[f"{prefix}_p10"] = np.percentile(values, 10)
+                result[f"{prefix}_p25"] = np.percentile(values, 25)
+                result[f"{prefix}_p50"] = np.percentile(values, 50)
+                result[f"{prefix}_p75"] = np.percentile(values, 75)
+                result[f"{prefix}_p90"] = np.percentile(values, 90)
+            else:
+                for suffix in ["mean", "p10", "p25", "p50", "p75", "p90"]:
+                    result[f"{prefix}_{suffix}"] = None
+        return pd.Series(result)
+
+    logger.info("Computing statistics by station and day of year...")
+    stats_df = (
+        df.groupby([STATION_CODE_COLUMN, "day_of_year"])
+        .apply(compute_stats, include_groups=False)
+        .reset_index()
+    )
+    stats_df = stats_df.rename(columns={STATION_CODE_COLUMN: "station_code"})
+    stats_df["ref_start_year"] = start_year
+    stats_df["ref_end_year"] = end_year
+
+    logger.info(f"Computed {len(stats_df):,} climatology records")
+
+    # Save to Delta table
+    result_table = pa.Table.from_pandas(stats_df)
+    write_deltalake(
+        stats_uri,
+        result_table,
+        mode="overwrite",
+        storage_options=storage_options,
+    )
+    logger.info(f"Saved climatology stats to {stats_uri}")
+
+
 def maintain_all_tables():
     """Run maintenance (checkpoint, optimize, vacuum) on all Delta tables."""
     tables = [OBSERVATIONS_TABLE, STATIONS_TABLE, "historical/climatology_stats"]
@@ -429,6 +525,23 @@ def main():
         help="Run all maintenance (checkpoint, optimize, vacuum) on all tables",
     )
     parser.add_argument(
+        "--climatology",
+        action="store_true",
+        help="Compute climatology statistics for all stations",
+    )
+    parser.add_argument(
+        "--climatology-start-year",
+        type=int,
+        default=1991,
+        help="Start year for climatology reference period (default: 1991)",
+    )
+    parser.add_argument(
+        "--climatology-end-year",
+        type=int,
+        default=2020,
+        help="End year for climatology reference period (default: 2020)",
+    )
+    parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
@@ -442,8 +555,8 @@ def main():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    if not args.years and not args.all and not args.checkpoint and not args.optimize and not args.vacuum and not args.maintain:
-        parser.error("Either --years, --all, --checkpoint, --optimize, --vacuum, or --maintain must be specified")
+    if not args.years and not args.all and not args.checkpoint and not args.optimize and not args.vacuum and not args.maintain and not args.climatology:
+        parser.error("Either --years, --all, --checkpoint, --optimize, --vacuum, --maintain, or --climatology must be specified")
 
     if args.years or args.all:
         years = None if args.all else args.years
@@ -491,6 +604,12 @@ def main():
 
         if args.vacuum and not args.dry_run:
             vacuum_table()
+
+    if args.climatology and not args.dry_run:
+        compute_climatology_stats(
+            start_year=args.climatology_start_year,
+            end_year=args.climatology_end_year,
+        )
 
 
 if __name__ == "__main__":

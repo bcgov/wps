@@ -9,13 +9,10 @@ from __future__ import annotations
 import asyncio
 import logging
 
-import numpy as np
-import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from fastapi import APIRouter, HTTPException
 
-from wps_shared import config
 from wps_shared.schemas.climatology import (
     AggregationPeriod,
     ClimatologyDataPoint,
@@ -25,7 +22,7 @@ from wps_shared.schemas.climatology import (
     StationInfo,
     WeatherVariable,
 )
-from wps_shared.utils.delta import DeltaTableWrapper
+from wps_shared.utils.delta import get_table
 
 logger = logging.getLogger(__name__)
 
@@ -38,62 +35,10 @@ router = APIRouter(
 DATE_COLUMN = "DATE_TIME"
 STATION_CODE_COLUMN = "STATION_CODE"
 
-
-# --- Helper Functions ---
-def get_storage_options() -> dict[str, str]:
-    """Get S3 storage options for delta-rs."""
-    return {
-        "AWS_ENDPOINT_URL": f"https://{config.get('OBJECT_STORE_SERVER')}",
-        "AWS_ACCESS_KEY_ID": config.get("OBJECT_STORE_USER_ID"),
-        "AWS_SECRET_ACCESS_KEY": config.get("OBJECT_STORE_SECRET"),
-        "AWS_REGION": "us-east-1",
-        "AWS_S3_ALLOW_UNSAFE_RENAME": "true",
-    }
-
-
-def get_table_uri(table_key: str) -> str:
-    """Get the S3 URI for a Delta table."""
-    bucket = config.get("OBJECT_STORE_BUCKET")
-    return f"s3://{bucket}/{table_key}"
-
-
-# Lazy-initialized Delta table wrappers
-_observations_table: DeltaTableWrapper | None = None
-_stations_table: DeltaTableWrapper | None = None
-_climatology_stats_table: DeltaTableWrapper | None = None
-
-
-def get_observations_table() -> DeltaTableWrapper:
-    """Get the observations Delta table wrapper."""
-    global _observations_table
-    if _observations_table is None:
-        _observations_table = DeltaTableWrapper(
-            table_uri=get_table_uri("historical/observations"),
-            storage_options=get_storage_options(),
-        )
-    return _observations_table
-
-
-def get_stations_table() -> DeltaTableWrapper:
-    """Get the stations Delta table wrapper."""
-    global _stations_table
-    if _stations_table is None:
-        _stations_table = DeltaTableWrapper(
-            table_uri=get_table_uri("historical/stations"),
-            storage_options=get_storage_options(),
-        )
-    return _stations_table
-
-
-def get_climatology_stats_table() -> DeltaTableWrapper:
-    """Get the climatology stats Delta table wrapper."""
-    global _climatology_stats_table
-    if _climatology_stats_table is None:
-        _climatology_stats_table = DeltaTableWrapper(
-            table_uri=get_table_uri("historical/climatology_stats"),
-            storage_options=get_storage_options(),
-        )
-    return _climatology_stats_table
+# Table keys
+OBSERVATIONS_TABLE = "historical/observations"
+STATIONS_TABLE = "historical/stations"
+CLIMATOLOGY_STATS_TABLE = "historical/climatology_stats"
 
 
 async def load_precomputed_climatology(
@@ -103,13 +48,11 @@ async def load_precomputed_climatology(
 ) -> pa.Table | None:
     """Load pre-computed climatology stats from Delta Lake."""
     try:
-        wrapper = get_climatology_stats_table()
-        filter_expr = (
-            (pc.field("station_code") == station_code)
-            & (pc.field("ref_start_year") == start_year)
-            & (pc.field("ref_end_year") == end_year)
+        return await get_table(CLIMATOLOGY_STATS_TABLE).filter_by_async(
+            station_code=station_code,
+            ref_start_year=start_year,
+            ref_end_year=end_year,
         )
-        return await wrapper.query_arrow_async(filter=filter_expr)
     except Exception as e:
         logger.warning(f"Pre-computed climatology not available: {e}")
         return None
@@ -123,7 +66,7 @@ async def load_observations(
 ) -> pa.Table:
     """Load observations from Delta Lake for the specified station and year range."""
     try:
-        wrapper = get_observations_table()
+        wrapper = get_table(OBSERVATIONS_TABLE)
         filter_expr = (
             (pc.field(STATION_CODE_COLUMN) == station_code)
             & (pc.field("year") >= start_year)
@@ -149,7 +92,7 @@ async def get_station_info(station_code: int) -> StationInfo:
         return _station_cache[station_code]
 
     try:
-        wrapper = get_stations_table()
+        wrapper = get_table(STATIONS_TABLE)
         filter_expr = pc.field("STATION_CODE") == station_code
         table = await wrapper.query_arrow_async(
             columns=["STATION_CODE", "STATION_NAME", "ELEVATION_M"],
@@ -299,112 +242,6 @@ def extract_current_year_data(
         )
 
     return results
-
-
-# --- Endpoints ---
-@router.post("/precompute", response_model=dict)
-async def precompute_climatology_stats(
-    start_year: int = 1991,
-    end_year: int = 2020,
-):
-    """
-    Pre-compute climatology statistics for all stations and save to a Delta table.
-
-    This creates a small, fast-to-query table with pre-aggregated percentiles.
-    Run this once after data updates to refresh the climatology cache.
-    """
-    logger.info(f"/climatology/precompute - Computing stats for {start_year}-{end_year}")
-
-    import pyarrow as pa
-    from deltalake import write_deltalake
-
-    stats_uri = get_table_uri("historical/climatology_stats")
-    storage_options = get_storage_options()
-
-    try:
-        obs_table = get_observations_table()
-
-        # Filter to reference period
-        filter_expr = (pc.field("year") >= start_year) & (pc.field("year") <= end_year)
-
-        # Load filtered data
-        columns = [
-            STATION_CODE_COLUMN,
-            DATE_COLUMN,
-            "HOURLY_TEMPERATURE",
-            "HOURLY_RELATIVE_HUMIDITY",
-            "HOURLY_WIND_SPEED",
-            "HOURLY_PRECIPITATION",
-            "HOURLY_FINE_FUEL_MOISTURE_CODE",
-            "HOURLY_INITIAL_SPREAD_INDEX",
-            "HOURLY_FIRE_WEATHER_INDEX",
-        ]
-
-        logger.info("Loading observations for reference period...")
-        df = obs_table.query(columns=columns, filter=filter_expr)
-        logger.info(f"Loaded {len(df)} observations")
-
-        # Add day_of_year column
-        df["day_of_year"] = pd.to_datetime(df[DATE_COLUMN]).dt.dayofyear
-
-        # Define aggregation function
-        def compute_stats(group):
-            result = {}
-            for var, prefix in [
-                ("HOURLY_TEMPERATURE", "temp"),
-                ("HOURLY_RELATIVE_HUMIDITY", "rh"),
-                ("HOURLY_WIND_SPEED", "ws"),
-                ("HOURLY_PRECIPITATION", "precip"),
-                ("HOURLY_FINE_FUEL_MOISTURE_CODE", "ffmc"),
-                ("HOURLY_INITIAL_SPREAD_INDEX", "isi"),
-                ("HOURLY_FIRE_WEATHER_INDEX", "fwi"),
-            ]:
-                values = group[var].dropna()
-                if len(values) > 0:
-                    result[f"{prefix}_mean"] = values.mean()
-                    result[f"{prefix}_p10"] = np.percentile(values, 10)
-                    result[f"{prefix}_p25"] = np.percentile(values, 25)
-                    result[f"{prefix}_p50"] = np.percentile(values, 50)
-                    result[f"{prefix}_p75"] = np.percentile(values, 75)
-                    result[f"{prefix}_p90"] = np.percentile(values, 90)
-                else:
-                    for suffix in ["mean", "p10", "p25", "p50", "p75", "p90"]:
-                        result[f"{prefix}_{suffix}"] = None
-            return pd.Series(result)
-
-        logger.info("Computing climatology statistics...")
-        stats_df = (
-            df.groupby([STATION_CODE_COLUMN, "day_of_year"])
-            .apply(compute_stats, include_groups=False)
-            .reset_index()
-        )
-        stats_df = stats_df.rename(columns={STATION_CODE_COLUMN: "station_code"})
-        stats_df["ref_start_year"] = start_year
-        stats_df["ref_end_year"] = end_year
-
-        logger.info(f"Computed {len(stats_df)} climatology records")
-
-        # Save to Delta table
-        result_table = pa.Table.from_pandas(stats_df)
-        write_deltalake(
-            stats_uri,
-            result_table,
-            mode="overwrite",
-            storage_options=storage_options,
-        )
-
-        logger.info(f"Saved climatology stats to {stats_uri}")
-
-        return {
-            "status": "success",
-            "records": len(stats_df),
-            "reference_period": f"{start_year}-{end_year}",
-            "table": stats_uri,
-        }
-
-    except Exception as e:
-        logger.error(f"Error pre-computing climatology: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Pre-computation failed: {str(e)}")
 
 
 @router.post("/", response_model=ClimatologyResponse)
