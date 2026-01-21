@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Tabs, Tab } from '@mui/material'
 import { GeneralHeader } from 'components'
-import SpotForecastForm from '@/features/smurfi/components/SpotForecast'
+import SpotForecastForm from '@/features/smurfi/components/forecast_form/SpotForecast'
 
 interface TabPanelProps {
   children?: React.ReactNode
