@@ -2,7 +2,7 @@
 import React, { useContext, useEffect } from 'react'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 
 import { z } from 'zod'
 import {
@@ -471,7 +471,7 @@ const SpotForecastForm: React.FC = () => {
                     <Table size="small">
                       <TableHead>
                         <TableRow>
-                          <TableCell>Date/Time (PDT)</TableCell>
+                          <TableCell sx={{ minWidth: 175 }}>Date/Time (PDT)</TableCell>
                           <TableCell>Temp (C)</TableCell>
                           <TableCell>RH (%)</TableCell>
                           <TableCell>Wind (km/h)</TableCell>
@@ -581,15 +581,7 @@ const SpotForecastForm: React.FC = () => {
                   <Controller
                     name="inversionVenting"
                     control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        multiline
-                        rows={4}
-                        fullWidth
-                        placeholder="The morning inversion will lift by 10 AM once temperatures rise..."
-                      />
-                    )}
+                    render={({ field }) => <TextField {...field} multiline rows={4} fullWidth />}
                   />
                 </CardContent>
               </Card>
