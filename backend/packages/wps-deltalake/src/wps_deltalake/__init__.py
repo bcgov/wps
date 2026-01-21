@@ -8,23 +8,23 @@ This module provides utilities for:
 
 Usage:
     # Crawler
-    python -m wps_tools.deltalake.crawler --help
-    python -m wps_tools.deltalake.crawler --years 2023 2024
-    python -m wps_tools.deltalake.crawler --enrich-stations /path/to/stations.csv
+    python -m wps_deltalake.crawler --help
+    python -m wps_deltalake.crawler --years 2023 2024
+    python -m wps_deltalake.crawler --enrich-stations /path/to/stations.csv
 
     # Maintenance
-    python -m wps_tools.deltalake.maintenance --help
-    python -m wps_tools.deltalake.maintenance --all
-    python -m wps_tools.deltalake.maintenance --optimize --table observations
+    python -m wps_deltalake.maintenance --help
+    python -m wps_deltalake.maintenance --all
+    python -m wps_deltalake.maintenance --optimize --table observations
 
     # CSV to Parquet
-    python -m wps_tools.deltalake.csv_to_parquet input.csv --date-column timestamp --output-dir ./data
+    python -m wps_deltalake.csv_to_parquet input.csv --date-column timestamp --output-dir ./data
 
     # Test client
-    python -m wps_tools.deltalake.test_client --endpoint http://localhost:8080/api/delta-sharing
+    python -m wps_deltalake.test_client --endpoint http://localhost:8080/api/delta-sharing
 """
 
-from wps_tools.deltalake.config import (
+from wps_deltalake.config import (
     OBSERVATIONS_TABLE,
     STATIONS_TABLE,
     CLIMATOLOGY_STATS_TABLE,
@@ -35,7 +35,7 @@ from wps_tools.deltalake.config import (
     get_table_uri,
 )
 
-from wps_tools.deltalake.crawler import (
+from wps_deltalake.crawler import (
     crawl_all,
     crawl_year,
     enrich_stations,
@@ -43,7 +43,7 @@ from wps_tools.deltalake.crawler import (
     build_observations_by_station,
 )
 
-from wps_tools.deltalake.maintenance import (
+from wps_deltalake.maintenance import (
     create_checkpoint,
     optimize_table,
     vacuum_table,
@@ -51,7 +51,7 @@ from wps_tools.deltalake.maintenance import (
     maintain_all_tables,
 )
 
-from wps_tools.deltalake.csv_to_parquet import (
+from wps_deltalake.csv_to_parquet import (
     csv_to_parquet,
     upload_parquet_to_s3,
     convert_and_upload,

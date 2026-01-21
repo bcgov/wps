@@ -7,9 +7,9 @@ and appends to Delta Lake tables on object storage.
 Source: https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART/
 
 Usage:
-    python -m wps_tools.deltalake.crawler --help
-    python -m wps_tools.deltalake.crawler --years 2023 2024
-    python -m wps_tools.deltalake.crawler --all --dry-run
+    python -m wps_deltalake.crawler --help
+    python -m wps_deltalake.crawler --years 2023 2024
+    python -m wps_deltalake.crawler --all --dry-run
 """
 
 import argparse
@@ -25,7 +25,7 @@ import pyarrow as pa
 import requests
 from deltalake import DeltaTable, write_deltalake
 
-from wps_tools.deltalake.config import (
+from wps_deltalake.config import (
     OBSERVATIONS_TABLE,
     STATIONS_TABLE,
     CLIMATOLOGY_STATS_TABLE,
@@ -35,7 +35,7 @@ from wps_tools.deltalake.config import (
     get_storage_options,
     get_table_uri,
 )
-from wps_tools.deltalake.maintenance import (
+from wps_deltalake.maintenance import (
     create_checkpoint,
     optimize_table,
     vacuum_table,

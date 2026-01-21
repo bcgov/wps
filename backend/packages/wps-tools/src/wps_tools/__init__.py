@@ -1,5 +1,3 @@
 """
-Tools for interacting with the tileserver and Delta Lake.
+Tools for interacting with the tileserver.
 """
-
-from wps_tools import deltalake

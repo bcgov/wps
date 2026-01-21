@@ -6,11 +6,11 @@ Provides functions for maintaining Delta Lake tables:
 - Vacuum (remove old files)
 
 Usage:
-    python -m wps_tools.deltalake.maintenance --help
-    python -m wps_tools.deltalake.maintenance --checkpoint
-    python -m wps_tools.deltalake.maintenance --optimize
-    python -m wps_tools.deltalake.maintenance --vacuum
-    python -m wps_tools.deltalake.maintenance --all
+    python -m wps_deltalake.maintenance --help
+    python -m wps_deltalake.maintenance --checkpoint
+    python -m wps_deltalake.maintenance --optimize
+    python -m wps_deltalake.maintenance --vacuum
+    python -m wps_deltalake.maintenance --all
 """
 
 import argparse
@@ -18,7 +18,7 @@ import logging
 
 from deltalake import DeltaTable
 
-from wps_tools.deltalake.config import (
+from wps_deltalake.config import (
     OBSERVATIONS_TABLE,
     STATIONS_TABLE,
     CLIMATOLOGY_STATS_TABLE,

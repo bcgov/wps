@@ -1,15 +1,16 @@
 [project]
-name = "wps-tools"
+name = "wps-deltalake"
 version = "0.1.0"
-description = "Wildfire Predictive Services Unit Tools"
+description = "Delta Lake tools for BC Wildfire Service weather data"
 authors = [{ name = "Conor Brady", email = "conor.brady@gov.bc.ca" }]
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
-    "python-decouple>=3.6,<4",
-    "aiobotocore>=2.4.1,<3",
-    "types-aiobotocore[s3]>=2.4.1,<3",
+    "pandas>=1.5.2,<3",
+    "numpy>=1.24.0,<3",
+    "requests>=2.31.0,<3",
     "pyarrow>=18.0.0,<19",
-    "httpx>=0.27.0,<1",
+    "deltalake>=0.22.0,<1",
+    "delta-sharing>=1.0.0,<2",
     "wps-shared",
 ]
 
@@ -21,4 +22,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/wps_tools"]
+packages = ["src/wps_deltalake"]
