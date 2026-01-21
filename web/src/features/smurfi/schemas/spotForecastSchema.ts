@@ -65,9 +65,9 @@ export const createSchema = (isMini: boolean) => {
     weatherData: z
       .array(weatherRowSchema)
       .min(isMini ? 0 : 1, isMini ? undefined : 'At least one weather entry required'),
-    inversionVenting: z.string().optional(),
-    outlook: z.string().optional(),
-    confidenceDiscussion: z.string().optional()
+    inversionVenting: z.string().min(1, 'Required'),
+    outlook: z.string().refine(val => isMini || val.length > 0, isMini ? undefined : 'Required'),
+    confidenceDiscussion: z.string().min(1, 'Required')
   })
 }
 

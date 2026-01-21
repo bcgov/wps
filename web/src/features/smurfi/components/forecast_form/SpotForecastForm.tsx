@@ -37,11 +37,19 @@ const SpotForecastForm: React.FC = () => {
   })
 
   const onSubmit = (data: FormData) => {
+    // For mini forecasts, exclude forecast summary data
+    const dataToSubmit = { ...data }
+    if (isMini) {
+      delete dataToSubmit.afternoonForecast
+      delete dataToSubmit.tonightForecast
+      delete dataToSubmit.tomorrowForecast
+    }
+
     console.log('Submitted Forecast:', {
-      ...data,
-      issuedDate: data.issuedDate.toISO(),
-      expiryDate: data.expiryDate.toISO(),
-      weatherData: data.weatherData.map(row => ({
+      ...dataToSubmit,
+      issuedDate: dataToSubmit.issuedDate.toISO(),
+      expiryDate: dataToSubmit.expiryDate.toISO(),
+      weatherData: dataToSubmit.weatherData.map(row => ({
         ...row,
         temp: row.temp ? Number(row.temp) : '-',
         rh: row.rh ? Number(row.rh) : '-'
@@ -74,11 +82,11 @@ const SpotForecastForm: React.FC = () => {
           <SpotForecastSynopsis control={control} errors={errors} />
           {!isMini && <SpotForecastSummaries control={control} />}
           <WeatherDataTable control={control} errors={errors} fields={fields} append={append} remove={remove} />
-          <SpotForecastSections control={control} isMini={isMini} />
+          <SpotForecastSections control={control} errors={errors} isMini={isMini} />
 
           {/* Submit */}
           <Grid item xs={12}>
-            <Button type="submit" variant="contained" size="large" fullWidth>
+            <Button type="submit" variant="contained" size="large" fullWidth disabled={!isValid}>
               Submit Spot Forecast
             </Button>
           </Grid>
