@@ -237,17 +237,28 @@ async def get_table_metadata(
         metadata = dt.metadata()
         version = dt.version()
 
+        # Get last modified timestamp from history
+        last_modified = None
+        try:
+            history = dt.history(limit=1)
+            if history:
+                last_modified = history[0].get("timestamp")
+        except Exception as hist_err:
+            logger.warning(f"Could not get table history: {hist_err}")
+
+        meta_dict = {
+            "id": metadata.id,
+            "format": {"provider": "parquet"},
+            "schemaString": normalize_schema_string(dt_schema.to_json()),
+            "partitionColumns": metadata.partition_columns,
+            "configuration": metadata.configuration,
+        }
+        if last_modified:
+            meta_dict["lastModified"] = last_modified
+
         lines = [
             {"protocol": {"minReaderVersion": 1}},
-            {
-                "metaData": {
-                    "id": metadata.id,
-                    "format": {"provider": "parquet"},
-                    "schemaString": normalize_schema_string(dt_schema.to_json()),
-                    "partitionColumns": metadata.partition_columns,
-                    "configuration": metadata.configuration,
-                }
-            },
+            {"metaData": meta_dict},
         ]
 
         return ndjson_response(lines, headers={"Delta-Table-Version": str(version)})
