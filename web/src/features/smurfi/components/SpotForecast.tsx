@@ -39,9 +39,9 @@ interface UserContextType {
   phone: string
 }
 const UserContext = React.createContext<UserContextType>({
-  name: 'Elizabeth Chapman',
+  name: 'Matt MacDonald',
   email: 'BCWS.KFCFireWeather@gov.bc.ca',
-  phone: '250-851-6784'
+  phone: '911'
 })
 
 // ────────────────────────────────────────────────
@@ -187,7 +187,7 @@ const SpotForecastForm: React.FC = () => {
       outlook: '',
       confidenceDiscussion: ''
     },
-    mode: 'onSubmit',
+    mode: 'onBlur',
     reValidateMode: 'onChange'
   })
 
@@ -440,9 +440,11 @@ const SpotForecastForm: React.FC = () => {
                   <Grid container spacing={2}>
                     {/* Afternoon */}
                     <Grid item xs={12}>
-                      <Typography variant="subtitle1">Afternoon</Typography>
+                      <Typography variant="subtitle1" paddingBottom={1}>
+                        Afternoon
+                      </Typography>
                       <Grid container spacing={1}>
-                        <Grid item xs={12}>
+                        <Grid item xs={12} paddingBottom={1}>
                           <Controller
                             name="afternoonForecast.description"
                             control={control}
@@ -489,9 +491,11 @@ const SpotForecastForm: React.FC = () => {
                     </Grid>
                     {/* Tonight */}
                     <Grid item xs={12}>
-                      <Typography variant="subtitle1">Tonight</Typography>
+                      <Typography variant="subtitle1" paddingBottom={1}>
+                        Tonight
+                      </Typography>
                       <Grid container spacing={1}>
-                        <Grid item xs={12}>
+                        <Grid item xs={12} paddingBottom={1}>
                           <Controller
                             name="tonightForecast.description"
                             control={control}
@@ -538,9 +542,11 @@ const SpotForecastForm: React.FC = () => {
                     </Grid>
                     {/* Tomorrow */}
                     <Grid item xs={12}>
-                      <Typography variant="subtitle1">Tomorrow</Typography>
+                      <Typography variant="subtitle1" paddingBottom={1}>
+                        Tomorrow
+                      </Typography>
                       <Grid container spacing={1}>
-                        <Grid item xs={12}>
+                        <Grid item xs={12} paddingBottom={1}>
                           <Controller
                             name="tomorrowForecast.description"
                             control={control}
