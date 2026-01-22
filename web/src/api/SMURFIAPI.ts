@@ -69,63 +69,64 @@ const mock_data = {
   ]
 }
 
-export async function getForecastPageData(spotRequestId: number): Promise<any> {
-  const url = `/smurfi/forecast_page_data/${spotRequestId}`
-  const { data } = await axios.get(url)
-  function mapBackendToFormData(data: any): any {
-    const general = data.general_forecasts || []
-    return {
-      issuedDate: DateTime.now(), // or DateTime.fromISO(data.issuedDate) if available
-      expiryDate: DateTime.now().plus({ days: 1 }), // or DateTime.fromISO(data.expiryDate)
-      fireProj: data.fire_number || '',
-      requestBy: data.requested_by || '',
-      forecastBy: data.forecaster || '',
-      email: data.forecaster_email || '',
-      phone: data.forecaster_phone || '',
-      city: data.geographic_area_name || '',
-      stns: (data.representative_weather_stations || []).map(Number).filter(n => !isNaN(n)),
-      latitude: data.latitude?.toString() || '',
-      longitude: data.longitude?.toString() || '',
-      slopeAspect: data.aspect || '',
-      valley: data.valley || '',
-      elevation: data.elevation?.toString() || '',
-      size: data.fire_size?.toString() || '',
-      synopsis: data.synopsis || '',
-      afternoonForecast: general[0]
-        ? {
-            description: general[0].conditions || '',
-            maxTemp: general[0].temperature ?? undefined,
-            minRh: general[0].relative_humidity ?? undefined
-          }
-        : undefined,
-      tonightForecast: general[1]
-        ? {
-            description: general[1].conditions || '',
-            minTemp: general[1].temperature ?? undefined,
-            maxRh: general[1].relative_humidity ?? undefined
-          }
-        : undefined,
-      tomorrowForecast: general[2]
-        ? {
-            description: general[2].conditions || '',
-            maxTemp: general[2].temperature ?? undefined,
-            minRh: general[2].relative_humidity ?? undefined
-          }
-        : undefined,
-      weatherData: (data.forecasts || []).map((f: any) => ({
-        dateTime: f.forecast_time || '',
-        temp: f.temperature?.toString() || '',
-        rh: f.relative_humidity?.toString() || '',
-        windSpeed: f.wind || '',
-        windGust: '', // Not present in backend, leave blank or map if available
-        windDirection: '', // Not present in backend, leave blank or map if available
-        rain: f.precipitation_amount?.toString() || '',
-        chanceRain: f.probability_of_precipitation?.toString() || ''
-      })),
-      inversionVenting: data.inversion_and_venting || '',
-      outlook: data.outlook || '',
-      confidenceDiscussion: data.confidence || ''
-    }
+function mapBackendToFormData(data: any): any {
+  const general = data.general_forecasts || []
+  return {
+    issuedDate: DateTime.now(), // or DateTime.fromISO(data.issuedDate) if available
+    expiryDate: DateTime.now().plus({ days: 1 }), // or DateTime.fromISO(data.expiryDate)
+    fireProj: data.fire_number || '',
+    requestBy: data.requested_by || '',
+    forecastBy: data.forecaster || '',
+    email: data.forecaster_email || '',
+    phone: data.forecaster_phone || '',
+    city: data.geographic_area_name || '',
+    stns: (data.representative_weather_stations || []).map(Number).filter(n => !isNaN(n)),
+    latitude: data.latitude?.toString() || '',
+    longitude: data.longitude?.toString() || '',
+    slopeAspect: data.aspect || '',
+    valley: data.valley || '',
+    elevation: data.elevation?.toString() || '',
+    size: data.fire_size?.toString() || '',
+    synopsis: data.synopsis || '',
+    afternoonForecast: general[0]
+      ? {
+          description: general[0].conditions || '',
+          maxTemp: general[0].temperature ?? undefined,
+          minRh: general[0].relative_humidity ?? undefined
+        }
+      : undefined,
+    tonightForecast: general[1]
+      ? {
+          description: general[1].conditions || '',
+          minTemp: general[1].temperature ?? undefined,
+          maxRh: general[1].relative_humidity ?? undefined
+        }
+      : undefined,
+    tomorrowForecast: general[2]
+      ? {
+          description: general[2].conditions || '',
+          maxTemp: general[2].temperature ?? undefined,
+          minRh: general[2].relative_humidity ?? undefined
+        }
+      : undefined,
+    weatherData: (data.forecasts || []).map((f: any) => ({
+      dateTime: f.forecast_time || '',
+      temp: f.temperature?.toString() || '',
+      rh: f.relative_humidity?.toString() || '',
+      windSpeed: f.wind || '',
+      windGust: '', // Not present in backend, leave blank or map if available
+      windDirection: '', // Not present in backend, leave blank or map if available
+      rain: f.precipitation_amount?.toString() || '',
+      chanceRain: f.probability_of_precipitation?.toString() || ''
+    })),
+    inversionVenting: data.inversion_and_venting || '',
+    outlook: data.outlook || '',
+    confidenceDiscussion: data.confidence || ''
   }
+}
+
+export async function getForecastPageData(spotRequestId: number): Promise<any> {
+  // const url = `/smurfi/forecast_page_data/${spotRequestId}`
+  // const { data } = await axios.get(url)
   return mapBackendToFormData(mock_data)
 }

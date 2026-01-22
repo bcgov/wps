@@ -51,8 +51,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotId }) => {
   useEffect(() => {
     if (spotId) {
       getForecastPageData(spotId).then(data => {
-        // You may need to transform data to match FormData structure
-        ///reset({ ...getDefaultValues(user), ...mock_data })
+        // Transform data to match FormData structure and reset the form
         reset(data)
       })
     }
