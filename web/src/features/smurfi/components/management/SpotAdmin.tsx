@@ -3,11 +3,11 @@ import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro'
 import { DateTime } from 'luxon'
 
 enum SpotForecastStatus {
-  NEW = "new",
-  ACTIVE = "active",
-  INACTIVE = "inactive",
-  PAUSED = "paused",
-  ARCHIVED = "archived"
+  NEW = 'new',
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  PAUSED = 'paused',
+  ARCHIVED = 'archived'
 }
 
 interface SpotAdminRow {
@@ -42,14 +42,14 @@ const SpotAdmin = () => {
       headerName: 'Forecaster',
       width: 145
     },
-        {
+    {
       field: 'fireCentre',
       headerName: 'Fire Centre',
       width: 120
     },
     {
-      field: "lastUpdated",
-      headerName: "Last Updated",
+      field: 'lastUpdated',
+      headerName: 'Last Updated',
       width: 120
     },
     {
@@ -63,20 +63,17 @@ const SpotAdmin = () => {
     {
       id: 1,
       spotId: 123,
-      fireId: "V0800168",
-      forecaster: "Matt MacDonald",
-      fireCentre: "Coastal",
+      fireId: 'V0800168',
+      forecaster: 'Matt MacDonald',
+      fireCentre: 'Coastal',
       status: SpotForecastStatus.NEW,
-      lastUpdated: null,
+      lastUpdated: null
     }
   ]
 
   return (
-    <Box sx={{display: "flex", flexGrow: 1, pr: 3}}>
-      <DataGridPro
-        columns={columns}
-        rows={rows}
-        sx={{display: "flex", flexGrow: 1}}/>
+    <Box sx={{ display: 'flex', flexGrow: 1, pr: 3 }}>
+      <DataGridPro columns={columns} rows={rows} sx={{ display: 'flex', flexGrow: 1 }} />
     </Box>
   )
 }

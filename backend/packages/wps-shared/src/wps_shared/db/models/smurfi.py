@@ -1,5 +1,4 @@
 
-
 from sqlalchemy import (
 	Column, Integer, String, Float, Boolean, ForeignKey, Text, Enum, ARRAY
 )
@@ -43,6 +42,7 @@ class Spot(Base):
 	__tablename__ = 'spot'
 	__table_args__ = {'comment': 'Requests for SMURFI spot forecasts'}
 	id = Column(Integer, primary_key=True)
+	request_id = Column(String, unique=True, nullable=False)
 	fire_number = Column(String, nullable=False)
 	request_time = Column(TZTimeStamp, nullable=False)
 	end_time = Column(TZTimeStamp, nullable=False)
@@ -51,8 +51,12 @@ class Spot(Base):
 	requested_type = Column(Enum(RequestTypeEnum), nullable=False, default=RequestTypeEnum.Full)
 	additional_info = Column(Text, nullable=True)
 	requested_by = Column(String, nullable=False)
-	geographic_area_name = Column(String, nullable=False)
-	fire_centre = Column(String, nullable=False)
+	geographic_area_name = Column(String, nullable=True)
+	email_distribution_list = Column(ARRAY(String), nullable=True)
+	fire_centre = Column(String, nullable=True)
+	latitude = Column(Float, nullable=True)
+	longitude = Column(Float, nullable=True)
+	fire_size = Column(Float, nullable=True)
 	created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now())
 	updated_at = Column(TZTimeStamp, nullable=True, onupdate=time_utils.get_utc_now())
 	# Relationships
@@ -71,6 +75,7 @@ class SpotVersion(Base):
 	latitude = Column(Float, nullable=False)
 	longitude = Column(Float, nullable=False)
 	elevation = Column(Float, nullable=True)
+	fire_size = Column(Float, nullable=True)
 	slope = Column(Float, nullable=True)
 	aspect = Column(String, nullable=True)
 	valley = Column(String, nullable=True)
