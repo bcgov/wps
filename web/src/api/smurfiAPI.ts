@@ -1,5 +1,4 @@
 import axios from 'api/axios'
-import { DateTime } from 'luxon'
 import { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
 
 // Input interface for submitting spot forecast
@@ -37,13 +36,13 @@ export interface SpotForecastInput {
   }
   weather_data: {
     date_time: string
-    temp?: number
-    rh?: number
-    wind_speed?: number
-    wind_gust?: number
-    wind_direction?: number
-    rain?: string
-    chance_rain?: string
+    temp: number | null
+    rh: number | null
+    wind_speed: number | null
+    wind_gust: number | null
+    wind_direction: number | null
+    rain: number | null
+    chance_rain: number | null
   }[]
   inversion_venting: string
   outlook?: string
@@ -113,13 +112,13 @@ const marshalFormDataToSpotForecastInput = (formData: FormData): SpotForecastInp
       : undefined,
     weather_data: formData.weatherData.map(row => ({
       date_time: row.dateTime,
-      temp: row.temp ? Number(row.temp) : undefined,
-      rh: row.rh ? Number(row.rh) : undefined,
-      wind_speed: row.windSpeed ? Number(row.windSpeed) : undefined,
-      wind_gust: row.windGust ? Number(row.windGust) : undefined,
-      wind_direction: row.windDirection ? Number(row.windDirection) : undefined,
-      rain: row.rain,
-      chance_rain: row.chanceRain
+      temp: row.temp ? Number(row.temp) : null,
+      rh: row.rh ? Number(row.rh) : null,
+      wind_speed: row.windSpeed ? Number(row.windSpeed) : null,
+      wind_gust: row.windGust ? Number(row.windGust) : null,
+      wind_direction: row.windDirection ? Number(row.windDirection) : null,
+      rain: row.rain ? Number(row.rain) : null,
+      chance_rain: row.chanceRain ? Number(row.chanceRain) : null
     })),
     inversion_venting: formData.inversionVenting,
     outlook: formData.outlook,

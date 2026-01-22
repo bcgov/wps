@@ -28,6 +28,7 @@ from app.routers import (
     hfi_calc,
     fba_calc,
     sfms,
+    smurfi,
     morecast_v2,
     snow,
     fire_watch,
@@ -133,6 +134,7 @@ api.include_router(hfi_calc.router, tags=["HFI"])
 api.include_router(fba_calc.router, tags=["FBA Calc"])
 api.include_router(fba.router, tags=["Auto Spatial Advisory"])
 api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
+api.include_router(smurfi.router, tags=["Smurfi"])
 api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
