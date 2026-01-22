@@ -1,7 +1,7 @@
 import { Box } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react'
 import { Feature, Map, View, Overlay } from 'ol'
-import { fromLonLat } from 'ol/proj'
+import { fromLonLat, toLonLat } from 'ol/proj'
 import 'ol/ol.css'
 import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@/utils/env'
@@ -10,7 +10,8 @@ import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { boundingExtent } from 'ol/extent'
 import VectorLayer from 'ol/layer/Vector'
 import { Icon, Style } from 'ol/style'
-import { Geometry, Point } from 'ol/geom'
+import { Point } from 'ol/geom'
+import './styles/styles.css'
 import VectorSource from 'ol/source/Vector'
 import activeSpot from './styles/activeSpot.svg'
 import completeSpot from './styles/completeSpot.svg'
@@ -18,6 +19,15 @@ import pendingSpot from './styles/newSpotRequest.svg'
 import pausedSpot from './styles/onHoldSpot.svg'
 
 type SpotRequestStatus = 'ACTIVE' | 'COMPLETE' | 'PENDING' | 'PAUSED'
+
+type SpotFeature = {
+  lon: number
+  lat: number
+  status: SpotRequestStatus
+  id: string
+  fireNumber: string
+  fireCentre?: string
+}
 
 const statusToPath: Record<SpotRequestStatus, string> = {
   ACTIVE: activeSpot,
@@ -29,10 +39,6 @@ const statusToPath: Record<SpotRequestStatus, string> = {
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
-const fetchSVG = (status: SpotRequestStatus): string => {
-  return statusToPath[status]
-}
-
 const SMURFIMap = () => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -42,14 +48,17 @@ const SMURFIMap = () => {
   useEffect(() => {
     if (!mapRef.current) return
 
-    const svgMarkup = fetchSVG('ACTIVE')
-    const marker = new Feature<Geometry>({
-      geometry: new Point(fromLonLat([-123.20205688476564, 49.69664476418803]))
-    })
     const featureSource = new VectorSource({})
 
-    const createMarker = (lon: number, lat: number, status: SpotRequestStatus, id: string) =>
-      new Feature({ geometry: new Point(fromLonLat([lon, lat])), status, id })
+    const createMarker = (spotFeature: SpotFeature) => {
+      return new Feature({
+        geometry: new Point(fromLonLat([spotFeature.lon, spotFeature.lat])),
+        id: spotFeature.id,
+        status: spotFeature.status,
+        fireNumber: spotFeature.fireNumber,
+        fireCentre: spotFeature.fireCentre
+      })
+    }
 
     const markerStyle = (feature: Feature) => {
       const status = feature.get('status') as SpotRequestStatus
@@ -62,6 +71,8 @@ const SMURFIMap = () => {
       })
     }
 
+    if (!popupRef.current) return // safety in case the ref hasn't mounted yet when map creates
+
     const popupOverlay = new Overlay({
       element: popupRef.current!,
       positioning: 'bottom-center',
@@ -69,12 +80,89 @@ const SMURFIMap = () => {
       offset: [0, -20]
     })
 
-    const mockMarkers = [
-      createMarker(-123.202, 49.696, 'ACTIVE', 'spot-1'),
-      createMarker(-123.0, 49.3, 'PENDING', 'spot-2'),
-      createMarker(-122.7, 49.1, 'COMPLETE', 'spot-3'),
-      createMarker(-122.36, 53.243, 'PAUSED', 'spot-4')
+    const generatePopupContent = (feature: Feature): string => {
+      const fireNumber = feature.get('fireNumber') ?? '-'
+      const status = feature.get('status') ?? 'Status Unknown'
+      const fireCentre = feature.get('fireCentre') ?? '-'
+
+      const geometry = feature.getGeometry() as Point
+      const [x, y] = geometry.getCoordinates()
+      const [lon, lat] = toLonLat([x, y])
+
+      return `
+        <div class="spot-popup">
+          <div class="spot-popup__header">
+            <div class="spot-popup__id">${fireNumber}</div>
+
+            <div class="spot-popup__actions">
+              <button class="spot-popup__subscribe">
+                <span class="icon">👤</span> Subscribe
+              </button>
+
+              <span class="spot-popup__status spot-popup__status--${status.toLowerCase()}">
+                ${status}
+              </span>
+            </div>
+          </div>
+
+          <div class="spot-popup__meta">
+            <div class="spot-popup__centre">${fireCentre}</div>
+            <a
+              class="spot-popup__coords"
+              href="https://www.google.com/maps?q=${lat},${lon}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ${lat.toFixed(6)}, ${lon.toFixed(6)}
+            </a>
+          </div>
+
+          <button class="spot-popup__forecast">
+            📄 New Spot Forecast (dd/mm/yyyy - 00:00)
+          </button>
+
+          <div class="spot-popup__footer">
+            <a href="#" class="spot-popup__view-more">VIEW MORE</a>
+          </div>
+        </div>
+      `
+    }
+
+    const mockFeatures = [
+      {
+        lon: -123.202,
+        lat: 49.696,
+        status: 'ACTIVE' as SpotRequestStatus,
+        id: 'spot-1',
+        fireNumber: 'V34869',
+        fireCentre: 'Coastal Fire Centre'
+      },
+      {
+        lon: -122.36,
+        lat: 53.243,
+        status: 'PAUSED' as SpotRequestStatus,
+        id: 'spot-2',
+        fireNumber: 'G81356',
+        fireCentre: 'Prince George Fire Centre'
+      },
+      {
+        lon: -119.843,
+        lat: 49.998,
+        status: 'PENDING' as SpotRequestStatus,
+        id: 'spot-3',
+        fireNumber: 'V34869',
+        fireCentre: 'Kamloops Fire Centre'
+      },
+      {
+        lon: -128.202,
+        lat: 51.735,
+        status: 'COMPLETE' as SpotRequestStatus,
+        id: 'spot-4',
+        fireNumber: 'V34869',
+        fireCentre: 'Coastal Fire Centre'
+      }
     ]
+    const mockMarkers = mockFeatures.map(feat => createMarker(feat))
 
     featureSource.addFeatures(mockMarkers)
 
@@ -104,9 +192,7 @@ const SMURFIMap = () => {
       const geometry = feature.getGeometry() as Point
       const coordinates = geometry.getCoordinates()
 
-      popupContentRef.current!.innerHTML = `
-        <strong>Status:</strong> ${feature.get('status')}
-      `
+      popupContentRef.current!.innerHTML = generatePopupContent(feature)
 
       popupOverlay.setPosition(coordinates)
     })

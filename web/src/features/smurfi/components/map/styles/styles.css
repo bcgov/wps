@@ -1,0 +1,56 @@
+.spot-popup {
+  width: min(420px, 90vw);
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  font-family: system-ui, sans-serif;
+}
+
+.spot-popup__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spot-popup__id {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.spot-popup__status {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.spot-popup__status--active {
+  color: #1e7f3f;
+  border: 1px solid #1e7f3f;
+}
+
+.spot-popup__meta {
+  margin-top: 8px;
+}
+
+.spot-popup__coords {
+  color: #1a5fd0;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.spot-popup__forecast {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #003366;
+  background: white;
+  font-weight: 600;
+}
+
+.spot-popup__footer {
+  margin-top: 12px;
+  text-align: center;
+}
