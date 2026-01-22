@@ -25,8 +25,10 @@ const SpotManagement = () => {
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
-      <Button onClick={handleFetchNew}>Fetch new requests</Button>
-      <Box sx={{ height: '100%', display: 'flex', flex: 1, flexDirection: 'row', minHeight: 0 }}>
+      <Button onClick={handleFetchNew} sx={{ width: 200 }} variant="contained">
+        Fetch new requests
+      </Button>
+      <Box sx={{ height: '100%', display: 'flex', flex: 1, flexDirection: 'row', minHeight: 0, pt: 2 }}>
         <Box sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', flexGrow: 1 }}>
             <SpotAdmin

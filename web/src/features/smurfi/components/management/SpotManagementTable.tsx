@@ -1,6 +1,6 @@
 import { SpotAdminRow, SpotForecastStatus, SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 import EditIcon from '@mui/icons-material/Edit'
-import { Box, Snackbar } from '@mui/material'
+import { Box, Snackbar, Typography } from '@mui/material'
 import { DataGridPro, GridActionsCellItem, GridColDef, GridRowId } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
@@ -55,21 +55,29 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
     {
       field: 'status',
       headerName: 'Status',
-      width: 100,
+      width: 120,
       renderCell: params => (
         <Box
           sx={{
-            backgroundColor: SpotForecastStatusColorMap[params.value as SpotForecastStatus],
+            backgroundColor: SpotForecastStatusColorMap[params.value as SpotForecastStatus].bgColor,
             borderRadius: '4px',
             alignItems: 'center',
             justifyContent: 'center',
             display: 'flex',
             flexGrow: 1,
-            height: '100%',
-            width: '100%'
+            height: '70%',
+            width: '100%',
+            borderWidth: 1,
+            borderStyle: 'solid',
+            borderColor: SpotForecastStatusColorMap[params.value as SpotForecastStatus].borderColor
           }}
         >
-          {params.value}
+          <Typography
+            variant="body2"
+            sx={{ color: SpotForecastStatusColorMap[params.value as SpotForecastStatus].color }}
+          >
+            {params.value}
+          </Typography>
         </Box>
       )
     },
