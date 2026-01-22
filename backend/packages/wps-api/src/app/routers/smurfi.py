@@ -6,9 +6,7 @@ from wps_shared.schemas.smurfi import PullFromChefsResponse
 
 from app.smurfi.download_chefs_data import get_chefs_submissions_json
 from app.smurfi.spot import SpotService
-from wps_shared.schemas.smurfi import PullFromChefsResponse, SmurfiSpotVersionData
-
-from app.smurfi.spot import SpotService
+from wps_shared.schemas.smurfi import SmurfiSpotVersionData
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +29,6 @@ async def pull_from_chefs():
     logger.info(f"Created {len(created_spots)} spots from CHEFS data")
     return PullFromChefsResponse(success=True)
 
-    
 
 @router.get("/smurfi_forecast/{spot_id}", response_model=SmurfiSpotVersionData)
 async def smurfi_forecast(spot_id: int):
@@ -39,11 +36,13 @@ async def smurfi_forecast(spot_id: int):
     forecast_data = await spot_service.get_forecast_data(spot_id)
     return forecast_data
 
+
 @router.post("/create_spot_version/{spot_id}", response_model=int)
 async def create_spot_version(spot_id: int, data: SmurfiSpotVersionData):
     spot_service = SpotService()
     spot_version_id = await spot_service.create_spot_version(spot_id, data)
     return spot_version_id
+
 
 @router.post("/change_spot_status/{spot_id}/{new_status}", response_model=None)
 async def change_spot_status(spot_id: int, new_status: SpotRequestStatusEnum):
