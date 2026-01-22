@@ -54,6 +54,9 @@ class Spot(Base):
 	geographic_area_name = Column(String, nullable=True)
 	email_distribution_list = Column(ARRAY(String), nullable=True)
 	fire_centre = Column(String, nullable=True)
+	latitude = Column(Float, nullable=True)
+	longitude = Column(Float, nullable=True)
+	fire_size = Column(Float, nullable=True)
 	created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now())
 	updated_at = Column(TZTimeStamp, nullable=True, onupdate=time_utils.get_utc_now())
 	# Relationships
