@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Box, Tabs, Tab } from '@mui/material'
 import { ErrorBoundary, GeneralHeader } from 'components'
-import SpotForecastForm from '@/features/smurfi/components/forecast_form/SpotForecastForm'
 import SpotManagement from '@/features/smurfi/components/management/SpotManagement'
 import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
 import SpotRequest from '@/features/smurfi/components/SpotRequest'
@@ -42,7 +41,7 @@ const SMURFIPage = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
       <Tabs value={value} onChange={handleChange}>
-        <Tab label="Spot Request" />
+        <Tab label="Dashboard" />
         <Tab label="Map" />
         <Tab label="Spot Management" />
       </Tabs>
