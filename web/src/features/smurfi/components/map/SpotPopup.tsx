@@ -8,7 +8,7 @@ import pausedSpot from './styles/onHoldSpot.svg'
 
 type SpotRequestStatus = 'ACTIVE' | 'COMPLETE' | 'PENDING' | 'PAUSED'
 
-const statusToPath: Record<SpotRequestStatus, string> = {
+export const statusToPath: Record<SpotRequestStatus, string> = {
   ACTIVE: activeSpot,
   COMPLETE: completeSpot,
   PENDING: pendingSpot,

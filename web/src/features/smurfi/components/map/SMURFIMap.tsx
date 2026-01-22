@@ -14,9 +14,13 @@ import { Icon, Style } from 'ol/style'
 import { Geometry, Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
 import activeSpot from './styles/activeSpot.svg'
-import SpotPopup from './SpotPopup'
+import SpotPopup, { statusToPath } from './SpotPopup'
 
 type SpotRequestStatus = 'ACTIVE' | 'COMPLETE' | 'PENDING' | 'PAUSED'
+
+const fetchSVG = (status: SpotRequestStatus): string => {
+  return statusToPath[status]
+}
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -36,7 +40,7 @@ const SMURFIMap = () => {
   useEffect(() => {
     if (!mapRef.current) return
 
-    const svgMarkup = activeSpot
+    const svgMarkup = fetchSVG('ACTIVE')
     const marker = new Feature<Geometry>({
       geometry: new Point(fromLonLat([-123.20205688476564, 49.69664476418803]))
     })
