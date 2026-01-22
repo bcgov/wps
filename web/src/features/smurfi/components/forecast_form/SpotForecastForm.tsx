@@ -15,7 +15,14 @@ import WeatherDataTable from '@/features/smurfi/components/forecast_form/Weather
 import SpotForecastSummaries from '@/features/smurfi/components/forecast_form/SpotForecastSummaries'
 import SpotForecastSections from '@/features/smurfi/components/forecast_form/SpotForecastSections'
 
-const SpotForecastForm: React.FC = () => {
+import { getForecastPageData } from '@/api/SMURFIAPI'
+import { DateTime } from 'luxon'
+
+interface SpotForecastFormProps {
+  spotId: number
+}
+
+const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotId }) => {
   const user = useContext(UserContext)
   const dispatch: AppDispatch = useDispatch()
   const [isMini, setIsMini] = useState(false)
@@ -23,7 +30,8 @@ const SpotForecastForm: React.FC = () => {
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid }
+    formState: { errors, isValid },
+    reset
   } = useForm<FormData>({
     resolver: zodResolver(createSchema(isMini)),
     defaultValues: getDefaultValues(user),
@@ -35,6 +43,20 @@ const SpotForecastForm: React.FC = () => {
     control,
     name: 'weatherData'
   })
+
+  useEffect(() => {
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+  }, [])
+
+  useEffect(() => {
+    if (spotId) {
+      getForecastPageData(spotId).then(data => {
+        // You may need to transform data to match FormData structure
+        ///reset({ ...getDefaultValues(user), ...mock_data })
+        reset(data)
+      })
+    }
+  }, [spotId, reset, user])
 
   const onSubmit = (data: FormData) => {
     // For mini forecasts, exclude forecast summary data
@@ -58,10 +80,6 @@ const SpotForecastForm: React.FC = () => {
 
     alert('Forecast submitted! Check console for formatted data.')
   }
-
-  useEffect(() => {
-    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, [])
 
   return (
     <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>

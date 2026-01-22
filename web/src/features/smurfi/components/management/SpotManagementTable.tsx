@@ -148,7 +148,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          <SpotForecastForm />
+          <SpotForecastForm spotId={selectedSpot?.spot_id} />
         </DialogContent>
       </Dialog>
     </Box>

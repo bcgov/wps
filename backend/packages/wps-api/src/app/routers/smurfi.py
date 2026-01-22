@@ -33,7 +33,7 @@ async def pull_from_chefs():
 
     
 
-@router.get("/smurfi_forecast/{spot_id}", response_model=SmurfiSpotVersionData)
+@router.get("/forecast_page_data/{spot_id}", response_model=SmurfiSpotVersionData)
 async def smurfi_forecast(spot_id: int):
     spot_service = SpotService()
     forecast_data = await spot_service.get_forecast_data(spot_id)
