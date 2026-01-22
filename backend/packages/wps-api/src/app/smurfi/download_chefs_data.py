@@ -24,32 +24,39 @@ import json
 import os
 from wps_shared import config
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(asctime)s | %(message)s", datefmt='%Y-%m-%d %H:%M:%S %z')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s | %(asctime)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S %z",
+)
+
 
 # Load configuration from config.json or environment variables
 def _load_config():
     """Load configuration from config.json with env var overrides"""
-    chefs_config_file = os.path.join(os.path.dirname(__file__), 'config.json')
+    chefs_config_file = os.path.join(os.path.dirname(__file__), "config.json")
     chefs_config = {}
 
     if os.path.exists(chefs_config_file):
         try:
-            with open(chefs_config_file, 'r') as f:
+            with open(chefs_config_file, "r") as f:
                 chefs_config = json.load(f)
         except Exception as e:
             logging.warning(f"Could not read config.json: {e}")
 
     # Environment variables override config file
-    chefs_config['form_id'] = config.get("CHEFS_FORM_ID") or chefs_config.get("form_id")
-    chefs_config['api_token'] = config.get("CHEFS_API_TOKEN") or chefs_config.get("api_token")
-    chefs_config['version'] = chefs_config.get("version", "0")
-    chefs_config['base_url'] = chefs_config.get("base_url", "https://submit.digital.gov.bc.ca/")
-    chefs_config['file_component'] = chefs_config.get("file_component", ["simplefile"])
-    chefs_config['api_params'] = chefs_config.get("api_params", {})
+    chefs_config["form_id"] = config.get("CHEFS_FORM_ID") or chefs_config.get("form_id")
+    chefs_config["api_token"] = config.get("CHEFS_API_TOKEN") or chefs_config.get("api_token")
+    chefs_config["version"] = chefs_config.get("version", "0")
+    chefs_config["base_url"] = chefs_config.get("base_url", "https://submit.digital.gov.bc.ca/")
+    chefs_config["file_component"] = chefs_config.get("file_component", ["simplefile"])
+    chefs_config["api_params"] = chefs_config.get("api_params", {})
 
     return chefs_config
 
+
 chefs_config = _load_config()
+
 
 def write_request_if_missing(files_dir: str, submission_id: str, payload: dict):
     filename = f"spot_request_{submission_id}.json"
@@ -65,48 +72,44 @@ def write_request_if_missing(files_dir: str, submission_id: str, payload: dict):
     logging.info(f"Created file: {filename}")
 
 
-def get_chefs_submissions_json(form_id, api_token, version):
+def get_chefs_submissions_json():
     """
-    Returns the JSON response from the CHEFS API for the specified form ID, API token, and version.
-
-    Args:
-        form_id (str): The form ID. View read me for more information.
-        api_token (str): The API token. View read me for more information.
-        version (str): The version of the form.
+    Returns the processed spot weather requests from the CHEFS API.
 
     Returns:
-        dict: The JSON response from the CHEFS API.
+        list: List of processed spot weather request dictionaries.
 
     Raises:
         ValueError: If required credentials are missing.
     """
+    chefs_config = _load_config()
+    form_id = chefs_config.get("form_id")
+    api_token = chefs_config.get("api_token")
+    version = chefs_config.get("version", "0")
+
     # Validate required credentials
     if not form_id or not api_token:
-        raise ValueError("Missing required credentials: CHEFS_FORM_ID and CHEFS_API_TOKEN must be set")
+        raise ValueError(
+            "Missing required credentials: CHEFS_FORM_ID and CHEFS_API_TOKEN must be set"
+        )
 
     # Ensure a local directory exists for downloaded files
-    files_dir = os.path.join(os.path.dirname(__file__), 'files')
+    files_dir = os.path.join(os.path.dirname(__file__), "files")
     os.makedirs(files_dir, exist_ok=True)
 
-    username_password = f'{form_id}:{api_token}'
+    username_password = f"{form_id}:{api_token}"
     base64_encoded_credentials = base64.b64encode(username_password.encode("utf-8")).decode("utf-8")
 
-    headers = {
-        "Authorization": f"Basic {base64_encoded_credentials}"
-    }
-    base_url = chefs_config.get('base_url', 'https://submit.digital.gov.bc.ca')
+    headers = {"Authorization": f"Basic {base64_encoded_credentials}"}
+    base_url = chefs_config.get("base_url", "https://submit.digital.gov.bc.ca")
     # Remove trailing slash if present
-    base_url = base_url.rstrip('/')
+    base_url = base_url.rstrip("/")
 
     url = f"{base_url}/app/api/v1/forms/{form_id}/export"
-    params = {
-        "format": "json",
-        "type": "submissions",
-        "version": version
-    }
+    params = {"format": "json", "type": "submissions", "version": version}
 
     # Merge with optional API parameters
-    api_params = chefs_config.get('api_params', {})
+    api_params = chefs_config.get("api_params", {})
     if isinstance(api_params, dict):
         params.update(api_params)
 
@@ -115,8 +118,9 @@ def get_chefs_submissions_json(form_id, api_token, version):
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logging.error(f"Export request failed: {response.status_code} {response.text}")
-        return response
-    # this is the actuall submission response.
+        return []
+
+    processed_requests = []
     try:
         data = response.json()
 
@@ -136,24 +140,32 @@ def get_chefs_submissions_json(form_id, api_token, version):
                 "spot_forecast_type": chefs_request["spotForecastType"],
                 "email_distribution_list": chefs_request["emailDistributionListForSpotForecast"],
                 "additional_info": chefs_request["additionalInformation"] or None,
-                "coordinates": chefs_request["LatLong"],
+                "latitude": chefs_request["LatLong"]["features"][0]["coordinates"]["lat"],
+                "longitude": chefs_request["LatLong"]["features"][0]["coordinates"]["lng"],
             }
-            write_request_if_missing(files_dir, submission_id, spot_wx_request)
+            # write_request_if_missing(files_dir, submission_id, spot_wx_request)
+            processed_requests.append(spot_wx_request)
     except Exception as e:
         logging.error(f"Failed to parse JSON response: {e}")
-        return response
+        return []
 
     if not isinstance(data, list):
-        logging.warning(f"Unexpected response shape (not a list). Keys: {list(data.keys()) if isinstance(data, dict) else type(data)}")
-        return response
+        logging.warning(
+            f"Unexpected response shape (not a list). Keys: {list(data.keys()) if isinstance(data, dict) else type(data)}"
+        )
+        return []
 
     logging.info(f"Submissions returned: {len(data)}")
+    logging.info(f"Processed requests: {len(processed_requests)}")
 
-    return response
+    return processed_requests
+
 
 if __name__ == "__main__":
     try:
-        response = get_chefs_submissions_json(chefs_config['form_id'], chefs_config['api_token'], chefs_config['version'])
+        response = get_chefs_submissions_json(
+            chefs_config["form_id"], chefs_config["api_token"], chefs_config["version"]
+        )
     except ValueError as e:
         logging.error(f"Configuration error: {e}")
         exit(1)

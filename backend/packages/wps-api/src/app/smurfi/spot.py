@@ -1,44 +1,50 @@
-
-from typing import Any
+from datetime import datetime
 import sqlalchemy as sa
 from wps_shared.db.database import get_async_write_session_scope
-from wps_shared.db.models.smurfi import Spot, SpotRequestStatusEnum, SpotVersion
-from wps_shared.schemas.smurfi import SmurfiForecastData, SmurfiGeneralForecastData, SmurfiSpotVersionData
+from wps_shared.db.models.smurfi import RequestTypeEnum, Spot, SpotRequestStatusEnum, SpotVersion
+from wps_shared.schemas.smurfi import (
+    SmurfiForecastData,
+    SmurfiGeneralForecastData,
+    SmurfiSpotVersionData,
+)
 
 
 class SpotService:
-
     async def create_spot(self, data) -> Spot:
+        type_mapping = {
+            "fullSpot": RequestTypeEnum.Full,
+            "miniSpot": RequestTypeEnum.Mini,
+            "Ventilation": RequestTypeEnum.Ventilation,
+        }
 
         spot = Spot(
-            fire_number=data['fire_number'],
-            request_id=data['metadata']['submissionId'],
-            request_time=data['forecast_start_date'],
-            end_time=data['forecast_end_date'],
-            additional_info=data.get('additional_info', None),
-            requested_type=data['spot_forecast_type'],
-            requested_by=data['email'],
+            fire_number=data["fire_number"],
+            request_id=data["metadata"]["submissionId"],
+            request_time=datetime.fromisoformat(data["forecast_start_date"]),
+            end_time=datetime.fromisoformat(data["forecast_end_date"]),
+            additional_info=data.get("additional_info"),
+            requested_type=type_mapping.get(data["spot_forecast_type"], RequestTypeEnum.Full),
+            requested_by=data["metadata"].get("submitter", "Unknown"),
+            email_distribution_list=data.get("email_distribution_list", []),
             status=SpotRequestStatusEnum.Requested,
-            #geographic_area_name= get from fire API call
-            #fire_centre= get from fire API call
-            created_at=data.get('created_at'),
-            updated_at=data.get('updated_at'),
+            latitude=data.get("coordinates", {}).get("latitude"),
+            longitude=data.get("coordinates", {}).get("longitude"),
+            geographic_area_name=None,
+            fire_centre=None,
         )
 
         async with get_async_write_session_scope() as session:
             session.add(spot)
-            await session.flush()  # Ensures spot.id is populated
+            await session.flush()
         return spot
-    
+
     async def change_spot_status(self, spot_id: int, new_status: SpotRequestStatusEnum) -> None:
         async with get_async_write_session_scope() as session:
             await session.execute(
-                sa.update(Spot)
-                .where(Spot.id == spot_id)
-                .values(status=new_status)
+                sa.update(Spot).where(Spot.id == spot_id).values(status=new_status)
             )
         return
-    
+
     async def create_spot_version(self, spot_id: int, data: SmurfiSpotVersionData) -> int:
         async with get_async_write_session_scope() as session:
             # Set is_latest=False for any existing SpotVersion with this spot_id
@@ -71,12 +77,10 @@ class SpotService:
             session.add(spot_version)
             await session.flush()
         return spot_version.id
-    
+
     async def get_forecast_data(self, spot_id: int) -> SmurfiSpotVersionData:
         async with get_async_write_session_scope() as session:
-            spot_result = await session.execute(
-                sa.select(Spot).where(Spot.id == spot_id)
-            )
+            spot_result = await session.execute(sa.select(Spot).where(Spot.id == spot_id))
             spot = spot_result.scalars().first()
             result = SmurfiSpotVersionData(
                 spot_id=spot.id,
@@ -90,13 +94,17 @@ class SpotService:
             )
 
             spot_version_result = await session.execute(
-                sa.select(SpotVersion).where(SpotVersion.spot_id == spot_id and SpotVersion.is_latest == True)
+                sa.select(SpotVersion).where(
+                    SpotVersion.spot_id == spot_id and SpotVersion.is_latest == True
+                )
             )
             spot_version = spot_version_result.scalars().first()
             if spot_version:
                 result.forecaster = spot_version.forecaster
                 result.elevation = spot_version.elevation
-                result.representative_weather_stations = spot_version.representative_weather_stations
+                result.representative_weather_stations = (
+                    spot_version.representative_weather_stations
+                )
                 result.forecaster_email = spot_version.forecaster_email
                 result.forecaster_phone = spot_version.forecaster_phone
                 result.additional_fire_numbers = spot_version.additional_fire_numbers

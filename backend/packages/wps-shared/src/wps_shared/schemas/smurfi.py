@@ -1,23 +1,25 @@
 from pydantic import BaseModel
 
 
-
 class PullFromChefsResponse(BaseModel):
     success: bool
 
-class GeneralForecastData(BaseModel):
+
+class SmurfiGeneralForecastData(BaseModel):
     period: str
     temperature: float | None = None
     relative_humidity: float | None = None
     conditions: str | None = None
 
-class ForecastData(BaseModel):
+
+class SmurfiForecastData(BaseModel):
     forecast_time: str
     temperature: float | None = None
     relative_humidity: float | None = None
     wind: str | None = None
     probability_of_precipitation: float | None = None
     precipitation_amount: float | None = None
+
 
 class SmurfiSpotVersionData(BaseModel):
     spot_id: int
@@ -42,5 +44,5 @@ class SmurfiSpotVersionData(BaseModel):
     inversion_and_venting: str | None = None
     outlook: str | None = None
     confidence: str | None = None
-    general_forecasts: list[GeneralForecastData] | None = None
-    forecasts: list[ForecastData] | None = None
+    general_forecasts: list[SmurfiGeneralForecastData] | None = None
+    forecasts: list[SmurfiForecastData] | None = None
