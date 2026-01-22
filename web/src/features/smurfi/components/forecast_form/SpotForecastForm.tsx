@@ -1,14 +1,16 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { Grid, Typography, Button, Box, Switch, FormControlLabel } from '@mui/material'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { getStations, StationSource } from '@/api/stationAPI'
 import { AppDispatch } from '@/app/store'
+import { RootState } from '@/app/rootReducer'
 import { UserContext } from '@/features/smurfi/contexts/UserContext'
 import { createSchema, FormData } from '@/features/smurfi/schemas/spotForecastSchema'
 import { getDefaultValues } from '@/features/smurfi/constants/spotForecastDefaults'
+import { submitSpotForecast, clearSpotForecastSubmitState } from '@/features/smurfi/slices/smurfiSlice'
 import SpotForecastHeader from '@/features/smurfi/components/forecast_form/SpotForecastHeader'
 import SpotForecastSynopsis from '@/features/smurfi/components/forecast_form/SpotForecastSynopsis'
 import WeatherDataTable from '@/features/smurfi/components/forecast_form/WeatherDataTable'
@@ -19,6 +21,8 @@ const SpotForecastForm: React.FC = () => {
   const user = useContext(UserContext)
   const dispatch: AppDispatch = useDispatch()
   const [isMini, setIsMini] = useState(false)
+
+  const { spotForecastSubmitting, spotForecastSubmitError } = useSelector((state: RootState) => state.smurfi)
 
   const {
     control,
@@ -37,26 +41,7 @@ const SpotForecastForm: React.FC = () => {
   })
 
   const onSubmit = (data: FormData) => {
-    // For mini forecasts, exclude forecast summary data
-    const dataToSubmit = { ...data }
-    if (isMini) {
-      delete dataToSubmit.afternoonForecast
-      delete dataToSubmit.tonightForecast
-      delete dataToSubmit.tomorrowForecast
-    }
-
-    console.log('Submitted Forecast:', {
-      ...dataToSubmit,
-      issuedDate: dataToSubmit.issuedDate.toISO(),
-      expiryDate: dataToSubmit.expiryDate.toISO(),
-      weatherData: dataToSubmit.weatherData.map(row => ({
-        ...row,
-        temp: row.temp ? Number(row.temp) : '-',
-        rh: row.rh ? Number(row.rh) : '-'
-      }))
-    })
-
-    alert('Forecast submitted! Check console for formatted data.')
+    dispatch(submitSpotForecast({ formData: data, isMini }))
   }
 
   useEffect(() => {
@@ -86,9 +71,20 @@ const SpotForecastForm: React.FC = () => {
 
           {/* Submit */}
           <Grid item xs={12}>
-            <Button type="submit" variant="contained" size="large" fullWidth disabled={!isValid}>
-              Submit Spot Forecast
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              disabled={!isValid || spotForecastSubmitting}
+            >
+              {spotForecastSubmitting ? 'Submitting...' : 'Submit Spot Forecast'}
             </Button>
+            {spotForecastSubmitError && (
+              <Typography color="error" sx={{ mt: 1 }}>
+                Error submitting forecast: {spotForecastSubmitError}
+              </Typography>
+            )}
           </Grid>
         </Grid>
       </form>
