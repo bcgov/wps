@@ -6,22 +6,43 @@ import completeSpot from './styles/completeSpot.svg'
 import pendingSpot from './styles/newSpotRequest.svg'
 import pausedSpot from './styles/onHoldSpot.svg'
 
-type SpotRequestStatus = 'ACTIVE' | 'COMPLETE' | 'PENDING' | 'PAUSED'
+type SpotRequestStatus = 'ACTIVE' | 'COMPLETE' | 'PENDING' | 'PAUSED' | 'INACTIVE' | 'ARCHIVED'
 
 export const statusToPath: Record<SpotRequestStatus, string> = {
   ACTIVE: activeSpot,
   COMPLETE: completeSpot,
   PENDING: pendingSpot,
-  PAUSED: pausedSpot
+  PAUSED: pausedSpot,
+  INACTIVE: completeSpot,
+  ARCHIVED: completeSpot
+}
+
+const getStatusBackgroundColor = (status: SpotRequestStatus): { backgroundColor: string; color: string } => {
+  switch (status) {
+    case 'ACTIVE':
+      return { backgroundColor: '#e8f5e9', color: '#2e7d32' } // green
+    case 'PAUSED':
+      return { backgroundColor: '#fff8e1', color: '#f57f17' } // yellow
+    case 'INACTIVE':
+    case 'ARCHIVED':
+      return { backgroundColor: '#ffebee', color: '#c62828' } // red
+    case 'COMPLETE':
+    case 'PENDING':
+    default:
+      return { backgroundColor: '#e3f2fd', color: '#1565c0' } // blue (default)
+  }
 }
 
 interface SpotPopupProps {
   lat: number
   lng: number
   status: SpotRequestStatus
+  fireNumber: string
 }
 
-const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status }) => {
+const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber }) => {
+  const statusColors = getStatusBackgroundColor(status)
+
   return (
     <Box
       sx={{
@@ -35,7 +56,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status }) => {
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="body2">V00000</Typography>
+        <Typography variant="body2">{fireNumber}</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button startIcon={<NotificationsIcon />} size="small" variant="contained" color="primary">
             Subscribe
@@ -53,9 +74,13 @@ const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status }) => {
             }
             size="small"
             disabled
-            sx={{ backgroundColor: '#e8f5e8', color: '#2e7d32', '&.Mui-disabled': { color: '#2e7d32' } }}
+            sx={{
+              backgroundColor: statusColors.backgroundColor,
+              color: statusColors.color,
+              '&.Mui-disabled': { color: statusColors.color }
+            }}
           >
-            Active
+            {status}
           </Button>
         </Box>
       </Box>
