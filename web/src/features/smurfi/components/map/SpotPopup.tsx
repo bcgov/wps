@@ -39,10 +39,17 @@ interface SpotPopupProps {
   lng: number
   status: SpotRequestStatus
   fireNumber: string
+  onOpenForecast: (fireNumber: string, lat?: number, lng?: number) => void
 }
 
-const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber }) => {
+const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber, onOpenForecast }) => {
   const statusColors = getStatusBackgroundColor(status)
+
+  const handleSpotForecastClick = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    event.preventDefault()
+    onOpenForecast(fireNumber, lat, lng)
+  }
 
   return (
     <Box
@@ -88,7 +95,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber }) =
       <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
         Lat: {lat.toFixed(6)}, Lng: {lng.toFixed(6)}
       </Typography>
-      <Button variant="contained" color="primary" size="small" fullWidth>
+      <Button variant="contained" color="primary" size="small" fullWidth onClick={handleSpotForecastClick}>
         Spot Forecast
       </Button>
     </Box>

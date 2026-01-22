@@ -9,9 +9,10 @@ import StationSelector from '@/features/smurfi/components/StationSelector'
 interface SpotForecastHeaderProps {
   control: Control<FormData>
   errors: FieldErrors<FormData>
+  readOnly?: boolean
 }
 
-const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors }) => {
+const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors, readOnly = false }) => {
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <Grid item xs={12}>
@@ -28,6 +29,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                       value={field.value}
                       onChange={field.onChange}
                       timezone="America/Vancouver"
+                      disabled={readOnly}
                       slotProps={{
                         textField: {
                           fullWidth: true,
@@ -49,6 +51,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                       value={field.value}
                       onChange={field.onChange}
                       timezone="America/Vancouver"
+                      disabled={readOnly}
                       slotProps={{
                         textField: {
                           fullWidth: true,
@@ -72,6 +75,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                       fullWidth
                       error={!!errors.fireProj}
                       helperText={errors.fireProj?.message}
+                      InputProps={{ readOnly }}
                     />
                   )}
                 />
@@ -103,14 +107,14 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 <Controller
                   name="email"
                   control={control}
-                  render={({ field }) => <TextField {...field} label="Email" fullWidth />}
+                  render={({ field }) => <TextField {...field} label="Email" fullWidth InputProps={{ readOnly }} />}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Controller
                   name="phone"
                   control={control}
-                  render={({ field }) => <TextField {...field} label="Phone" fullWidth />}
+                  render={({ field }) => <TextField {...field} label="Phone" fullWidth InputProps={{ readOnly }} />}
                 />
               </Grid>
 
@@ -126,6 +130,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                       fullWidth
                       error={!!errors.city}
                       helperText={errors.city?.message}
+                      InputProps={{ readOnly }}
                     />
                   )}
                 />
@@ -134,7 +139,9 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 <Controller
                   name="stns"
                   control={control}
-                  render={({ field }) => <StationSelector value={field.value || []} onChange={field.onChange} />}
+                  render={({ field }) => (
+                    <StationSelector value={field.value || []} onChange={readOnly ? () => {} : field.onChange} />
+                  )}
                 />
               </Grid>
               <Grid item xs={6} sm={3}>
@@ -148,6 +155,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                       fullWidth
                       error={!!errors.latitude}
                       helperText={errors.latitude?.message}
+                      InputProps={{ readOnly }}
                     />
                   )}
                 />
@@ -163,6 +171,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                       fullWidth
                       error={!!errors.longitude}
                       helperText={errors.longitude?.message}
+                      InputProps={{ readOnly }}
                     />
                   )}
                 />
@@ -178,6 +187,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                       fullWidth
                       error={!!errors.slopeAspect}
                       helperText={errors.slopeAspect?.message}
+                      InputProps={{ readOnly }}
                     />
                   )}
                 />
@@ -186,7 +196,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 <Controller
                   name="valley"
                   control={control}
-                  render={({ field }) => <TextField {...field} label="Valley" fullWidth />}
+                  render={({ field }) => <TextField {...field} label="Valley" fullWidth InputProps={{ readOnly }} />}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -199,6 +209,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                       label="Elevation"
                       fullWidth
                       InputProps={{
+                        readOnly,
                         endAdornment: <InputAdornment position="end">m</InputAdornment>
                       }}
                     />
@@ -215,6 +226,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                       label="Size (ha)"
                       fullWidth
                       InputProps={{
+                        readOnly,
                         endAdornment: <InputAdornment position="end">ha</InputAdornment>
                       }}
                     />
