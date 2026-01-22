@@ -4,6 +4,7 @@ import { ErrorBoundary, GeneralHeader } from 'components'
 import SpotForecastForm from '@/features/smurfi/components/forecast_form/SpotForecastForm'
 import SpotManagement from '@/features/smurfi/components/management/SpotManagement'
 import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
+import SpotRequest from '@/features/smurfi/components/SpotRequest'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -48,7 +49,7 @@ const SMURFIPage = () => {
       </Tabs>
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <TabPanel value={value} index={0}>
-          <Box>content</Box>
+          <SpotRequest />
         </TabPanel>
         <TabPanel value={value} index={1}>
           <ErrorBoundary>
