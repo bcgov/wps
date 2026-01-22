@@ -28,33 +28,43 @@ interface WeatherDataTableProps {
   fields: UseFieldArrayReturn<FormData, 'weatherData'>['fields']
   append: UseFieldArrayReturn<FormData, 'weatherData'>['append']
   remove: UseFieldArrayReturn<FormData, 'weatherData'>['remove']
+  readOnly?: boolean
 }
 
-const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fields, append, remove }) => {
+const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
+  control,
+  errors,
+  fields,
+  append,
+  remove,
+  readOnly = false
+}) => {
   return (
     <Grid item xs={12}>
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="h6">Weather Data</Typography>
-            <Button
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={() =>
-                append({
-                  dateTime: DateTime.now().toFormat('yyyy-MM-dd HH:mm'),
-                  temp: '',
-                  rh: '',
-                  windSpeed: '',
-                  windGust: '',
-                  windDirection: '',
-                  rain: '-',
-                  chanceRain: '-'
-                })
-              }
-            >
-              Add Row
-            </Button>
+            {!readOnly && (
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() =>
+                  append({
+                    dateTime: DateTime.now().toFormat('yyyy-MM-dd HH:mm'),
+                    temp: '',
+                    rh: '',
+                    windSpeed: '',
+                    windGust: '',
+                    windDirection: '',
+                    rain: '-',
+                    chanceRain: '-'
+                  })
+                }
+              >
+                Add Row
+              </Button>
+            )}
           </Box>
 
           <TableContainer component={Paper}>
@@ -69,7 +79,7 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                   <TableCell>Wind Direction (°)</TableCell>
                   <TableCell>Rain (mm)</TableCell>
                   <TableCell>Chance Rain (%)</TableCell>
-                  <TableCell width={60} />
+                  {!readOnly && <TableCell width={60} />}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -84,6 +94,7 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                             {...field}
                             size="small"
                             fullWidth
+                            InputProps={{ readOnly }}
                             error={!!errors.weatherData?.[index]?.dateTime}
                             helperText={errors.weatherData?.[index]?.dateTime?.message}
                           />
@@ -100,6 +111,7 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                             type="number"
                             size="small"
                             fullWidth
+                            InputProps={{ readOnly }}
                             error={!!errors.weatherData?.[index]?.temp}
                             helperText={errors.weatherData?.[index]?.temp?.message}
                           />
@@ -116,6 +128,7 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                             type="number"
                             size="small"
                             fullWidth
+                            InputProps={{ readOnly }}
                             error={!!errors.weatherData?.[index]?.rh}
                             helperText={errors.weatherData?.[index]?.rh?.message}
                           />
@@ -126,14 +139,18 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                       <Controller
                         name={`weatherData.${index}.windSpeed`}
                         control={control}
-                        render={({ field }) => <TextField {...field} size="small" fullWidth />}
+                        render={({ field }) => (
+                          <TextField {...field} size="small" fullWidth InputProps={{ readOnly }} />
+                        )}
                       />
                     </TableCell>
                     <TableCell>
                       <Controller
                         name={`weatherData.${index}.windGust`}
                         control={control}
-                        render={({ field }) => <TextField {...field} size="small" fullWidth />}
+                        render={({ field }) => (
+                          <TextField {...field} size="small" fullWidth InputProps={{ readOnly }} />
+                        )}
                       />
                     </TableCell>
                     <TableCell>
@@ -145,6 +162,7 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                             {...field}
                             size="small"
                             fullWidth
+                            InputProps={{ readOnly }}
                             error={!!errors.weatherData?.[index]?.windDirection}
                             helperText={errors.weatherData?.[index]?.windDirection?.message}
                           />
@@ -155,21 +173,27 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                       <Controller
                         name={`weatherData.${index}.rain`}
                         control={control}
-                        render={({ field }) => <TextField {...field} size="small" fullWidth />}
+                        render={({ field }) => (
+                          <TextField {...field} size="small" fullWidth InputProps={{ readOnly }} />
+                        )}
                       />
                     </TableCell>
                     <TableCell>
                       <Controller
                         name={`weatherData.${index}.chanceRain`}
                         control={control}
-                        render={({ field }) => <TextField {...field} size="small" fullWidth />}
+                        render={({ field }) => (
+                          <TextField {...field} size="small" fullWidth InputProps={{ readOnly }} />
+                        )}
                       />
                     </TableCell>
-                    <TableCell>
-                      <IconButton size="small" color="error" onClick={() => remove(index)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
+                    {!readOnly && (
+                      <TableCell>
+                        <IconButton size="small" color="error" onClick={() => remove(index)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

@@ -6,9 +6,10 @@ import type { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
 interface SpotForecastSynopsisProps {
   control: Control<FormData>
   errors: FieldErrors<FormData>
+  readOnly?: boolean
 }
 
-const SpotForecastSynopsis: React.FC<SpotForecastSynopsisProps> = ({ control, errors }) => {
+const SpotForecastSynopsis: React.FC<SpotForecastSynopsisProps> = ({ control, errors, readOnly = false }) => {
   return (
     <Grid item xs={12}>
       <Card>
@@ -27,6 +28,7 @@ const SpotForecastSynopsis: React.FC<SpotForecastSynopsisProps> = ({ control, er
                 fullWidth
                 error={!!errors.synopsis}
                 helperText={errors.synopsis?.message}
+                InputProps={{ readOnly }}
               />
             )}
           />
