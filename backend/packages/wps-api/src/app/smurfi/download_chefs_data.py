@@ -129,14 +129,14 @@ def get_chefs_submissions_json(form_id, api_token, version):
                 continue
 
             spot_wx_request = {
-                'metadata': form_meta,
-                'fire_number': chefs_request['fireNumber'],
-                'forecast_end_date': chefs_request['forecastEndDate'],
-                'forecast_start_date': chefs_request['forecastStartDate'],
-                'spot_forecast_type': chefs_request['spotForecastType'],
-                'email_distribution_list': chefs_request['emailDistributionListForSpotForecast'],
-                'additional_info': chefs_request['additionalInformation'] or None,
-                'coordinates': chefs_request['LatLong']
+                "metadata": form_meta,
+                "fire_number": chefs_request["fireNumber"],
+                "forecast_end_date": chefs_request["forecastEndDate"],
+                "forecast_start_date": chefs_request["forecastStartDate"],
+                "spot_forecast_type": chefs_request["spotForecastType"],
+                "email_distribution_list": chefs_request["emailDistributionListForSpotForecast"],
+                "additional_info": chefs_request["additionalInformation"] or None,
+                "coordinates": chefs_request["LatLong"],
             }
             write_request_if_missing(files_dir, submission_id, spot_wx_request)
     except Exception as e:

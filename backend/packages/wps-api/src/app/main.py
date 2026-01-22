@@ -10,7 +10,7 @@ import sentry_sdk
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
-from wps_shared import config
+from wps_shared import config, schemas
 from wps_shared.auth import audit, authentication_required
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.schemas.observations import WeatherStationHourlyReadingsResponse
@@ -19,6 +19,7 @@ from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.wps_logging import configure_logging
 
 from app import health, hourlies
+from app.fire_behaviour.cffdrs import CFFDRS
 from app.percentile import get_precalculated_percentiles
 from app.routers import (
     c_haines,
@@ -32,6 +33,7 @@ from app.routers import (
     object_store_proxy,
     psu,
     sfms,
+    smurfi,
     snow,
     stations,
     weather_models,
@@ -138,6 +140,7 @@ api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
 api.include_router(psu.router, tags=["PSU"])
+api.include_router(smurfi.router, tags=["SMURFI"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
 api.include_router(object_store_proxy.wx_router, tags=["Object Store Proxy"])
 api.include_router(fcm.router, tags=["Firebase Cloud Messaging"])
