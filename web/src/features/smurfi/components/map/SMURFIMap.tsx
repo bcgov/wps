@@ -1,7 +1,8 @@
 import { Box } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react'
 import { Feature, Map, View } from 'ol'
-import { fromLonLat } from 'ol/proj'
+import { fromLonLat, toLonLat } from 'ol/proj'
+import Overlay from 'ol/Overlay'
 import 'ol/ol.css'
 import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@/utils/env'
@@ -13,34 +14,29 @@ import { Icon, Style } from 'ol/style'
 import { Geometry, Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
 import activeSpot from './styles/activeSpot.svg'
-import completeSpot from './styles/completeSpot.svg'
-import pendingSpot from './styles/newSpotRequest.svg'
-import pausedSpot from './styles/onHoldSpot.svg'
+import SpotPopup from './SpotPopup'
 
 type SpotRequestStatus = 'ACTIVE' | 'COMPLETE' | 'PENDING' | 'PAUSED'
-
-const statusToPath: Record<SpotRequestStatus, string> = {
-  ACTIVE: activeSpot,
-  COMPLETE: completeSpot,
-  PENDING: pendingSpot,
-  PAUSED: pausedSpot
-}
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
-const fetchSVG = (status: SpotRequestStatus): string => {
-  return statusToPath[status]
-}
-
 const SMURFIMap = () => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+  const popupRef = useRef<HTMLDivElement | null>(null)
+  const [popupData, setPopupData] = useState<{
+    open: boolean
+    position: number[]
+    lat: number
+    lng: number
+    status: SpotRequestStatus
+  } | null>(null)
 
   useEffect(() => {
     if (!mapRef.current) return
 
-    const svgMarkup = fetchSVG('ACTIVE')
+    const svgMarkup = activeSpot
     const marker = new Feature<Geometry>({
       geometry: new Point(fromLonLat([-123.20205688476564, 49.69664476418803]))
     })
@@ -69,6 +65,31 @@ const SMURFIMap = () => {
     })
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
+    // Add popup overlay
+    const overlay = new Overlay({
+      element: popupRef.current!,
+      positioning: 'bottom-center',
+      stopEvent: false,
+      offset: [0, -10]
+    })
+    mapObject.addOverlay(overlay)
+
+    // Add click handler
+    mapObject.on('click', event => {
+      const feature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
+        layer === featureLayer ? f : undefined
+      )
+      if (feature) {
+        const coord = event.coordinate
+        const [lng, lat] = toLonLat(coord)
+        overlay.setPosition(coord)
+        setPopupData({ open: true, position: coord, lat, lng, status: 'ACTIVE' })
+      } else {
+        overlay.setPosition(undefined)
+        setPopupData(null)
+      }
+    })
+
     setMap(mapObject)
 
     const loadBaseMap = async () => {
@@ -87,6 +108,13 @@ const SMURFIMap = () => {
     <MapContext.Provider value={map}>
       <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 0, flex: 1 }}>
         <Box ref={mapRef} data-testid={'smurfi-map'} sx={{ width: '100%', height: '100%' }} />
+        <div
+          ref={popupRef}
+          className="ol-popup"
+          style={{ display: popupData?.open ? 'block' : 'none', pointerEvents: 'auto' }}
+        >
+          {popupData && <SpotPopup lat={popupData.lat} lng={popupData.lng} status={popupData.status} />}
+        </div>
       </Box>
     </MapContext.Provider>
   )
