@@ -1,4 +1,4 @@
-import { Box } from '@mui/material'
+import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react'
 import { Feature, Map, View } from 'ol'
 import { fromLonLat, toLonLat } from 'ol/proj'
@@ -15,6 +15,8 @@ import { Geometry, Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
 import SpotPopup, { statusToPath } from './SpotPopup'
 import { FeatureLike } from 'ol/Feature'
+import CloseIcon from '@mui/icons-material/Close'
+import SpotForecastForm from '@/features/smurfi/components/forecast_form/SpotForecastForm'
 
 export interface SelectedCoordinates {
   latitude: number
@@ -98,6 +100,23 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
     status: SpotRequestStatus
     fireNumber: string
   } | null>(null)
+  const [forecastModalOpen, setForecastModalOpen] = useState(false)
+  const [selectedFireNumber, setSelectedFireNumber] = useState<string>('')
+  const [selectedSpotCoords, setSelectedSpotCoords] = useState<{ lat: number; lng: number } | null>(null)
+
+  const handleOpenForecastModal = (fireNumber: string, lat?: number, lng?: number) => {
+    setSelectedFireNumber(fireNumber)
+    if (lat !== undefined && lng !== undefined) {
+      setSelectedSpotCoords({ lat, lng })
+    }
+    setForecastModalOpen(true)
+  }
+
+  const handleCloseForecastModal = () => {
+    setForecastModalOpen(false)
+    setSelectedFireNumber('')
+    setSelectedSpotCoords(null)
+  }
 
   // Create highlight style for selected marker
   const createHighlightStyle = () => {
@@ -179,7 +198,7 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
     const overlay = new Overlay({
       element: popupRef.current!,
       positioning: 'bottom-center',
-      stopEvent: false,
+      stopEvent: true,
       offset: [0, -10]
     })
     mapObject.addOverlay(overlay)
@@ -252,10 +271,39 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
               lng={popupData.lng}
               status={popupData.status}
               fireNumber={popupData.fireNumber}
+              onOpenForecast={handleOpenForecastModal}
             />
           )}
         </div>
       </Box>
+
+      {/* Forecast Modal - rendered outside the overlay */}
+      <Dialog
+        open={forecastModalOpen}
+        onClose={handleCloseForecastModal}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">Spot Forecast - {selectedFireNumber}</Typography>
+          <IconButton aria-label="close" onClick={handleCloseForecastModal} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <SpotForecastForm
+            readOnly={true}
+            fireId={selectedFireNumber}
+            latitude={selectedSpotCoords?.lat}
+            longitude={selectedSpotCoords?.lng}
+          />
+        </DialogContent>
+      </Dialog>
     </MapContext.Provider>
   )
 }

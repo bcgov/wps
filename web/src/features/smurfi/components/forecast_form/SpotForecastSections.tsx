@@ -7,9 +7,10 @@ interface SpotForecastSectionsProps {
   control: Control<FormData>
   errors: FieldErrors<FormData>
   isMini: boolean
+  readOnly?: boolean
 }
 
-const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, errors, isMini }) => {
+const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, errors, isMini, readOnly = false }) => {
   return (
     <>
       {/* ─── Inversion & Venting ─────────────────────────── */}
@@ -28,6 +29,7 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
                   multiline
                   rows={4}
                   fullWidth
+                  InputProps={{ readOnly }}
                   error={!!errors.inversionVenting}
                   helperText={errors.inversionVenting?.message}
                 />
@@ -54,6 +56,7 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
                     multiline
                     rows={4}
                     fullWidth
+                    InputProps={{ readOnly }}
                     error={!!errors.outlook}
                     helperText={errors.outlook?.message}
                   />
@@ -80,6 +83,7 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
                   multiline
                   rows={4}
                   fullWidth
+                  InputProps={{ readOnly }}
                   error={!!errors.confidenceDiscussion}
                   helperText={errors.confidenceDiscussion?.message}
                 />

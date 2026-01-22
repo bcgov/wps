@@ -5,9 +5,10 @@ import type { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
 
 interface SpotForecastSummariesProps {
   control: Control<FormData>
+  readOnly?: boolean
 }
 
-const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }) => {
+const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, readOnly = false }) => {
   return (
     <Grid item xs={12}>
       <Card>
@@ -26,7 +27,16 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }
                   <Controller
                     name="afternoonForecast.description"
                     control={control}
-                    render={({ field }) => <TextField {...field} label="Description" fullWidth multiline rows={2} />}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Description"
+                        fullWidth
+                        multiline
+                        rows={2}
+                        InputProps={{ readOnly }}
+                      />
+                    )}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -41,6 +51,7 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }
                             label="Max Temp (°C)"
                             type="number"
                             fullWidth
+                            InputProps={{ readOnly }}
                             onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                           />
                         )}
@@ -56,6 +67,7 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }
                             label="Min RH (%)"
                             type="number"
                             fullWidth
+                            InputProps={{ readOnly }}
                             onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                           />
                         )}
@@ -75,7 +87,16 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }
                   <Controller
                     name="tonightForecast.description"
                     control={control}
-                    render={({ field }) => <TextField {...field} label="Description" fullWidth multiline rows={2} />}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Description"
+                        fullWidth
+                        multiline
+                        rows={2}
+                        InputProps={{ readOnly }}
+                      />
+                    )}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -90,6 +111,7 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }
                             label="Min Temp (°C)"
                             type="number"
                             fullWidth
+                            InputProps={{ readOnly }}
                             onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                           />
                         )}
@@ -105,6 +127,7 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }
                             label="Max RH (%)"
                             type="number"
                             fullWidth
+                            InputProps={{ readOnly }}
                             onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                           />
                         )}
@@ -124,7 +147,16 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }
                   <Controller
                     name="tomorrowForecast.description"
                     control={control}
-                    render={({ field }) => <TextField {...field} label="Description" fullWidth multiline rows={2} />}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Description"
+                        fullWidth
+                        multiline
+                        rows={2}
+                        InputProps={{ readOnly }}
+                      />
+                    )}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -139,6 +171,7 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }
                             label="Temp (°C)"
                             type="number"
                             fullWidth
+                            InputProps={{ readOnly }}
                             onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                           />
                         )}
@@ -154,6 +187,7 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control }
                             label="Min RH (%)"
                             type="number"
                             fullWidth
+                            InputProps={{ readOnly }}
                             onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                           />
                         )}
