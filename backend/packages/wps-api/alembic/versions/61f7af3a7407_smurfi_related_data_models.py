@@ -49,6 +49,7 @@ def upgrade():
     sa.Column('latitude', sa.Float(), nullable=False),
     sa.Column('longitude', sa.Float(), nullable=False),
     sa.Column('elevation', sa.Float(), nullable=True),
+    sa.Column('fire_size', sa.Float(), nullable=True),
     sa.Column('slope', sa.Float(), nullable=True),
     sa.Column('aspect', sa.String(), nullable=True),
     sa.Column('valley', sa.String(), nullable=True),
