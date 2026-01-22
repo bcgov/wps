@@ -25,8 +25,9 @@ const getStatusBackgroundColor = (status: SpotRequestStatus): { backgroundColor:
       return { backgroundColor: '#fff8e1', color: '#f57f17' } // yellow
     case 'INACTIVE':
     case 'ARCHIVED':
-      return { backgroundColor: '#ffebee', color: '#c62828' } // red
+      return { backgroundColor: '#ffebee', color: '#000000' } // black
     case 'COMPLETE':
+      return { backgroundColor: '#ffebee', color: '#c62828' } // red
     case 'PENDING':
     default:
       return { backgroundColor: '#e3f2fd', color: '#1565c0' } // blue (default)
