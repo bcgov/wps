@@ -72,6 +72,7 @@ class SpotVersion(Base):
 	latitude = Column(Float, nullable=False)
 	longitude = Column(Float, nullable=False)
 	elevation = Column(Float, nullable=True)
+	fire_size = Column(Float, nullable=True)
 	slope = Column(Float, nullable=True)
 	aspect = Column(String, nullable=True)
 	valley = Column(String, nullable=True)
