@@ -1,8 +1,10 @@
 import logging
+from io import BytesIO
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 from wps_shared.db.models.smurfi import SpotRequestStatusEnum
 from wps_shared.schemas.smurfi import PullFromChefsResponse
+from wps_shared.utils.s3_client import S3Client
 
 from app.smurfi.download_chefs_data import get_chefs_submissions_json
 from app.smurfi.spot import SpotService
@@ -48,3 +50,28 @@ async def create_spot_version(spot_id: int, data: SmurfiSpotVersionData):
 async def change_spot_status(spot_id: int, new_status: SpotRequestStatusEnum):
     spot_service = SpotService()
     await spot_service.change_spot_status(spot_id, new_status)
+
+
+@router.get("/pdf/{spot_id}")
+async def get_spot_pdf(spot_id: int):
+    """Get the PDF for a spot from S3"""
+    # Generate the expected S3 key for the PDF
+    pdf_key = f"smurfi/{spot_id}.pdf"
+
+    try:
+        # Get the PDF from S3 using stream_object
+        generator, response = await S3Client.stream_object(pdf_key)
+
+        # Read all chunks into bytes
+        pdf_bytes = b""
+        async for chunk in generator:
+            pdf_bytes += chunk
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"inline; filename=spot_forecast_{spot_id}.pdf"},
+        )
+    except Exception as e:
+        logger.error(f"Failed to get PDF for spot {spot_id}: {e}")
+        return Response(status_code=404, content="PDF not found")
