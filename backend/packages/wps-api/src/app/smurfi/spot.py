@@ -34,8 +34,20 @@ class SpotService:
         )
 
         async with get_async_write_session_scope() as session:
+            # Check if spot already exists
+            existing_result = await session.execute(
+                sa.select(Spot).where(Spot.request_id == spot.request_id)
+            )
+            existing_spot = existing_result.scalars().first()
+
+            if existing_spot:
+                # Spot already exists, return it without inserting
+                return existing_spot
+
+            # Spot doesn't exist, insert it
             session.add(spot)
             await session.flush()
+
         return spot
 
     async def change_spot_status(self, spot_id: int, new_status: SpotRequestStatusEnum) -> None:
