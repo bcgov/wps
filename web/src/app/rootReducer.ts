@@ -25,6 +25,8 @@ import fireWatchSlice from 'features/fireWatch/slices/fireWatchSlice'
 import fireWatchFireCentresSlice from '@/features/fireWatch/slices/fireWatchFireCentresSlice'
 import burnForecastsSlice from '@/features/fireWatch/slices/burnForecastSlice'
 import { filterHFIFuelStatsByArea } from '@/features/fba/hfiStatsUtils'
+import spotAdminSlice from '@/features/smurfi/slices/spotAdminSlice'
+import smurfiSlice from '@/features/smurfi/slices/smurfiSlice'
 
 const rootReducer = combineReducers({
   percentileStations: stationReducer,
@@ -51,7 +53,9 @@ const rootReducer = combineReducers({
   morecastInputValid: morecastInputValidSlice,
   fireWatch: fireWatchSlice,
   fireWatchFireCentres: fireWatchFireCentresSlice,
-  burnForecasts: burnForecastsSlice
+  burnForecasts: burnForecastsSlice,
+  spotAdmin: spotAdminSlice,
+  smurfi: smurfiSlice
 })
 
 // Infer whatever gets returned from rootReducer and use it as the type of the root state

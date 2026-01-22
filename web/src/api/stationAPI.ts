@@ -37,6 +37,7 @@ export interface StationProperties {
   code: number
   name: string
   ecodivision_name: string | null
+  elevation: number
   core_season: FireSeason
 }
 
