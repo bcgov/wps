@@ -1,6 +1,6 @@
 import { Box } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react'
-import { Feature, Map, View } from 'ol'
+import { Feature, Map, View, Overlay } from 'ol'
 import { fromLonLat } from 'ol/proj'
 import 'ol/ol.css'
 import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
@@ -36,6 +36,8 @@ const fetchSVG = (status: SpotRequestStatus): string => {
 const SMURFIMap = () => {
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
+  const popupRef = useRef<HTMLDivElement | null>(null)
+  const popupContentRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -44,18 +46,41 @@ const SMURFIMap = () => {
     const marker = new Feature<Geometry>({
       geometry: new Point(fromLonLat([-123.20205688476564, 49.69664476418803]))
     })
-    const featureSourceWithMarker = new VectorSource({
-      features: [marker]
-    })
-    const featureLayer = new VectorLayer({
-      source: featureSourceWithMarker,
-      style: new Style({
+    const featureSource = new VectorSource({})
+
+    const createMarker = (lon: number, lat: number, status: SpotRequestStatus, id: string) =>
+      new Feature({ geometry: new Point(fromLonLat([lon, lat])), status, id })
+
+    const markerStyle = (feature: Feature) => {
+      const status = feature.get('status') as SpotRequestStatus
+
+      return new Style({
         image: new Icon({
-          anchor: [0.5, 1], //center horizontally, bottom vertically
-          crossOrigin: 'anonymous',
-          src: svgMarkup
+          anchor: [0.5, 1],
+          src: statusToPath[status]
         })
-      }),
+      })
+    }
+
+    const popupOverlay = new Overlay({
+      element: popupRef.current!,
+      positioning: 'bottom-center',
+      stopEvent: false,
+      offset: [0, -20]
+    })
+
+    const mockMarkers = [
+      createMarker(-123.202, 49.696, 'ACTIVE', 'spot-1'),
+      createMarker(-123.0, 49.3, 'PENDING', 'spot-2'),
+      createMarker(-122.7, 49.1, 'COMPLETE', 'spot-3'),
+      createMarker(-122.36, 53.243, 'PAUSED', 'spot-4')
+    ]
+
+    featureSource.addFeatures(mockMarkers)
+
+    const featureLayer = new VectorLayer({
+      source: featureSource,
+      style: markerStyle,
       zIndex: 50
     })
 
@@ -68,6 +93,23 @@ const SMURFIMap = () => {
       })
     })
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
+    mapObject.addOverlay(popupOverlay)
+
+    mapObject.on('singleclick', event => {
+      const feature = mapObject.forEachFeatureAtPixel(event.pixel, f => f)
+      if (!feature) {
+        popupOverlay.setPosition(undefined)
+        return
+      }
+      const geometry = feature.getGeometry() as Point
+      const coordinates = geometry.getCoordinates()
+
+      popupContentRef.current!.innerHTML = `
+        <strong>Status:</strong> ${feature.get('status')}
+      `
+
+      popupOverlay.setPosition(coordinates)
+    })
 
     setMap(mapObject)
 
@@ -86,6 +128,20 @@ const SMURFIMap = () => {
   return (
     <MapContext.Provider value={map}>
       <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 0, flex: 1 }}>
+        <Box
+          ref={popupRef}
+          sx={{
+            background: 'white',
+            padding: 1,
+            borderRadius: 1,
+            boxShadow: 3,
+            position: 'absolute',
+            transform: 'translate(-50%, -100%)',
+            pointerEvents: 'auto'
+          }}
+        >
+          <div ref={popupContentRef} />
+        </Box>
         <Box ref={mapRef} data-testid={'smurfi-map'} sx={{ width: '100%', height: '100%' }} />
       </Box>
     </MapContext.Provider>
