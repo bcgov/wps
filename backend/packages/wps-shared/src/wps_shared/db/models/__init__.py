@@ -39,3 +39,4 @@ from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
 from wps_shared.db.models.grass_curing import PercentGrassCuring
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather, PrescriptionStatus
+from wps_shared.db.models.smurfi import Spot, SpotVersion, SpotForecast, SpotGeneralForecast

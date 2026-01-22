@@ -51,7 +51,7 @@ def _load_config():
 
 chefs_config = _load_config()
 
-def get_chefs_submissions_json():
+def get_chefs_submissions_json(form_id, api_token, version):
     """
     Returns the JSON response from the CHEFS API for the specified form ID, API token, and version.
 
@@ -66,10 +66,6 @@ def get_chefs_submissions_json():
     Raises:
         ValueError: If required credentials are missing.
     """
-    form_id = chefs_config["form_id"]
-    api_token = chefs_config["api_token"]
-    version = chefs_config["version"]
-
     # Validate required credentials
     if not form_id or not api_token:
         raise ValueError("Missing required credentials: CHEFS_FORM_ID and CHEFS_API_TOKEN must be set")
@@ -106,7 +102,7 @@ def get_chefs_submissions_json():
     if response.status_code != 200:
         logging.error(f"Export request failed: {response.status_code} {response.text}")
         return response
-    # this is the actual submission response.
+    # this is the actuall submission response.
     try:
         data = response.json()
 
@@ -136,7 +132,7 @@ def get_chefs_submissions_json():
 
 if __name__ == "__main__":
     try:
-        response = get_chefs_submissions_json()
+        response = get_chefs_submissions_json(chefs_config['form_id'], chefs_config['api_token'], chefs_config['version'])
     except ValueError as e:
         logging.error(f"Configuration error: {e}")
         exit(1)

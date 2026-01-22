@@ -1,0 +1,36 @@
+{
+  "metadata": {
+    "submissionId": "99bc3ba2-300e-48c8-833a-351bb5ffaadc",
+    "confirmationId": "99BC3BA2",
+    "formName": "SPOT Forecast Request",
+    "version": 4,
+    "createdAt": "2026-01-20T23:20:57.374Z",
+    "fullName": "Williams, Andrea WLRS:EX",
+    "username": "AWILLIAM",
+    "email": "andrea.williams@gov.bc.ca",
+    "submittedAt": "2026-01-20T23:20:57.378Z",
+    "status": "SUBMITTED",
+    "assignee": null,
+    "assigneeEmail": null
+  },
+  "fire_number": "G82849",
+  "forecast_end_date": "2026-01-31T00:00:00-08:00",
+  "forecast_start_date": "2026-01-22T12:00:00-08:00",
+  "spot_forecast_type": "miniSpot",
+  "email_distribution_list": [
+    "andrea.williams@gov.bc.ca"
+  ],
+  "additional_info": "Help everything's on fire.",
+  "coordinates": {
+    "features": [
+      {
+        "type": "marker",
+        "coordinates": {
+          "lat": 49.69664476418803,
+          "lng": -123.20205688476564
+        }
+      }
+    ],
+    "selectedBaseLayer": "OpenStreetMap"
+  }
+}
