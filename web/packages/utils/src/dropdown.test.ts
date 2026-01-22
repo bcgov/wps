@@ -14,7 +14,8 @@ describe.skip('Dropdown utils', () => {
       code: testStationCode,
       name: testStationName,
       ecodivision_name: 'test',
-      core_season: { start_month: 1, start_day: 1, end_month: 1, end_day: 1 }
+      core_season: { start_month: 1, start_day: 1, end_month: 1, end_day: 1 },
+      elevation: 0
     }
   }
   it('should return the unknown value when there is no station in the map', () => {
