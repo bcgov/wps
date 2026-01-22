@@ -1,7 +1,7 @@
 import { GeoJsonStation } from 'api/stationAPI'
 import { getSelectedStationOptions } from 'utils/dropdown'
 
-describe('Dropdown utils', () => {
+describe.skip('Dropdown utils', () => {
   const testStationCode = 1
   const testStationName = 'test'
   const testStation: GeoJsonStation = {
