@@ -24,7 +24,7 @@ export const initialState: SpotAdminState = {
       status: SpotForecastStatus.NEW,
       last_updated: null,
       latitude: 49.6188,
-      longitude: 125.0313,
+      longitude: -125.0313,
       spot_start: DateTime.now().plus({ days: -1 }).toMillis(),
       spot_end: DateTime.now().plus({ days: 9 }).toMillis()
     },
@@ -37,7 +37,7 @@ export const initialState: SpotAdminState = {
       status: SpotForecastStatus.ACTIVE,
       last_updated: DateTime.now().toMillis(),
       latitude: 53.9171,
-      longitude: 122.7497,
+      longitude: -122.7497,
       spot_start: DateTime.now().toMillis(),
       spot_end: DateTime.now().plus({ days: 10 }).toMillis()
     },
@@ -49,8 +49,8 @@ export const initialState: SpotAdminState = {
       fire_centre: 'Kamloops',
       status: SpotForecastStatus.PAUSED,
       last_updated: DateTime.now().toMillis(),
-      latitude: 53.9171,
-      longitude: 122.7497,
+      latitude: 50.9171,
+      longitude: -122.7497,
       spot_start: DateTime.now().plus({ days: -5 }).toMillis(),
       spot_end: DateTime.now().plus({ days: 5 }).toMillis()
     },
@@ -62,21 +62,21 @@ export const initialState: SpotAdminState = {
       fire_centre: 'Cariboo',
       status: SpotForecastStatus.INACTIVE,
       last_updated: DateTime.now().toMillis(),
-      latitude: 53.9171,
-      longitude: 122.7497,
+      latitude: 54.9171,
+      longitude: -125.7497,
       spot_start: DateTime.now().plus({ days: -10 }).toMillis(),
       spot_end: DateTime.now().plus({ days: -1 }).toMillis()
     },
     {
       id: 5,
       spot_id: 127,
-      fire_id: 'C092346',
+      fire_id: 'C092347',
       forecaster: 'Matt',
       fire_centre: 'Southeast',
       status: SpotForecastStatus.ARCHIVED,
       last_updated: DateTime.now().toMillis(),
-      latitude: 53.9171,
-      longitude: 122.7497,
+      latitude: 50.9171,
+      longitude: -125.7497,
       spot_start: DateTime.now().plus({ days: -15 }).toMillis(),
       spot_end: DateTime.now().plus({ days: -55 }).toMillis()
     }

@@ -1,10 +1,12 @@
 import { SpotAdminRow, SpotForecastStatus, SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 import EditIcon from '@mui/icons-material/Edit'
-import { Box, Snackbar, Typography } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
+import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
 import { DataGridPro, GridActionsCellItem, GridColDef, GridRowId } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useState } from 'react'
+import SpotForecastForm from '@/features/smurfi/components/forecast_form/SpotForecastForm'
 
 interface SpotManagementTableProps {
   spotAdminRows: SpotAdminRow[]
@@ -18,8 +20,8 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
   const selectRow = (id: number) => {
     setSelectionModel([id])
   }
-  const [editMessage, setEditMessage] = useState<string>('')
-  const [open, setOpen] = useState<boolean>(false)
+  const [modalOpen, setModalOpen] = useState<boolean>(false)
+  const [selectedSpot, setSelectedSpot] = useState<SpotAdminRow | null>(null)
   const columns: GridColDef<SpotAdminRow>[] = [
     {
       field: 'spot_id',
@@ -99,14 +101,8 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
   ]
 
   const handleEditButtonClick = (row: SpotAdminRow) => {
-    console.log(row)
-    if (row && row.status === SpotForecastStatus.NEW) {
-      setEditMessage('Open a new Spot Forecast form.')
-    } else {
-      setEditMessage('Open an existing Spot Forecast form.')
-    }
-
-    setOpen(true)
+    setSelectedSpot(row)
+    setModalOpen(true)
   }
 
   const handleRowSelection = (row: SpotAdminRow) => {
@@ -115,8 +111,9 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
     setSelectionModel([row.id])
   }
 
-  const handleClose = () => {
-    setOpen(false)
+  const handleModalClose = () => {
+    setModalOpen(false)
+    setSelectedSpot(null)
   }
 
   return (
@@ -130,7 +127,30 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
         onRowClick={params => handleRowSelection(params.row)}
         sx={{ display: 'flex', flexGrow: 1 }}
       />
-      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} message={editMessage} />
+      <Dialog
+        open={modalOpen}
+        onClose={handleModalClose}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">
+            {selectedSpot?.status === SpotForecastStatus.NEW ? 'New Spot Forecast' : 'Edit Spot Forecast'}
+            {selectedSpot && ` - Spot ID: ${selectedSpot.spot_id}`}
+          </Typography>
+          <IconButton aria-label="close" onClick={handleModalClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <SpotForecastForm />
+        </DialogContent>
+      </Dialog>
     </Box>
   )
 }
