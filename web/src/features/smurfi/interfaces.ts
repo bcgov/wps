@@ -31,3 +31,7 @@ export interface SpotAdminRow {
 export interface SpotAdminRowResponse {
   rows: SpotAdminRow[]
 }
+
+export interface FetchChefsFormResponse {
+    success: boolean
+}
