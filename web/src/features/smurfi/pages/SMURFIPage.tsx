@@ -55,12 +55,13 @@ const SMURFIPage = () => {
             <SMURFIMap />
           </ErrorBoundary>
         </TabPanel>
-      <TabPanel value={value} index={2}>
-        <SpotManagement />
-      </TabPanel>
-      <TabPanel value={value} index={3}>
-        <SpotForecastForm />
-      </TabPanel>
+        <TabPanel value={value} index={2}>
+          <SpotManagement />
+        </TabPanel>
+        <TabPanel value={value} index={3}>
+          <SpotForecastForm />
+        </TabPanel>
+      </Box>
     </Box>
   )
 }
