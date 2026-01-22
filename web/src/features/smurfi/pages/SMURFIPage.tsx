@@ -45,7 +45,6 @@ const SMURFIPage = () => {
         <Tab label="Spot Request" />
         <Tab label="Map" />
         <Tab label="Spot Management" />
-        <Tab label="Spot Forecast" />
       </Tabs>
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <TabPanel value={value} index={0}>
@@ -58,9 +57,6 @@ const SMURFIPage = () => {
         </TabPanel>
         <TabPanel value={value} index={2}>
           <SpotManagement />
-        </TabPanel>
-        <TabPanel value={value} index={3}>
-          <SpotForecastForm />
         </TabPanel>
       </Box>
     </Box>
