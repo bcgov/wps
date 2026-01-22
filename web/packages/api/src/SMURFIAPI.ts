@@ -135,3 +135,9 @@ export async function runFetchChefsForms(): Promise<FetchChefsFormResponse> {
   const { data } = await axios.get(url)
   return data
 }
+
+export async function getSpotPDF(spotId: number): Promise<Blob> {
+  const url = `/smurfi/pdf/${spotId}`
+  const response = await axios.get(url, { responseType: 'blob' })
+  return response.data
+}

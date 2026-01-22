@@ -1,13 +1,27 @@
+import { useState } from 'react'
 import { SpotAdminRow, SpotForecastStatusColorMap, SpotForecastStatus } from '@/features/smurfi/interfaces'
 import { Card, CardContent, Typography, Button, Grid, Box, Link } from '@mui/material'
 import DescriptionIcon from '@mui/icons-material/Description'
 import { DateTime } from 'luxon'
+import { getSpotPDF } from '@/api/SMURFIAPI'
 
 interface SpotRequestCardProps {
   spot: SpotAdminRow
 }
 
 const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
+  const handleViewPDF = async () => {
+    try {
+      const pdfBlob = await getSpotPDF(spot.id)
+      const url = URL.createObjectURL(pdfBlob)
+      // Open PDF in new tab instead of modal for better compatibility
+      window.open(url, '_blank')
+    } catch (error) {
+      console.error('Failed to load PDF:', error)
+      // You might want to show an error message to the user here
+    }
+  }
+
   return (
     <Card sx={{ width: '400px', border: '1px solid lightgrey' }}>
       <CardContent>
@@ -67,7 +81,7 @@ const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
           </Grid>
         </Grid>
         <Box display="flex" justifyContent="center" mt={3}>
-          <Button variant="outlined" startIcon={<DescriptionIcon />} sx={{ width: '100%' }}>
+          <Button variant="outlined" startIcon={<DescriptionIcon />} sx={{ width: '100%' }} onClick={handleViewPDF}>
             {spot.status === SpotForecastStatus.NEW
               ? 'New Spot Forecast'
               : spot.last_updated
