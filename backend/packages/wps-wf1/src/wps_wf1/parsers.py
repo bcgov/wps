@@ -15,6 +15,7 @@ from wps_wf1.util import (
 )
 from wps_wf1.validation import get_valid_flags
 
+from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.fba import FireCenterStation, FireCentre
 from wps_shared.schemas.forecasts import NoonForecast
 from wps_shared.schemas.morecast_v2 import (
@@ -22,15 +23,16 @@ from wps_shared.schemas.morecast_v2 import (
     WeatherDeterminate,
     WeatherIndeterminate,
 )
-from wps_shared.schemas.observations import HourlyActual, WeatherReading
+from wps_shared.schemas.observations import WeatherReading
 from wps_shared.schemas.stations import (
     FireZone,
     StationFireCentre,
-    WFWXWeatherStation,
     WeatherStation,
     WeatherStationGroup,
     WeatherStationGroupMember,
+    WFWXWeatherStation,
 )
+
 
 logger = logging.getLogger(__name__)
 
