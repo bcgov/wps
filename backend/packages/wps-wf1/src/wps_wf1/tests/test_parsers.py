@@ -1,5 +1,3 @@
-
-
 from datetime import datetime, timezone
 import math
 import pytest
@@ -17,15 +15,26 @@ async def _async_iter(items):
 
 def _make_station(code, lat=49.0, lon=-123.0, elevation=100):
     return WFWXWeatherStation(
-        wfwx_id=f"wfwx-{code}", code=code, name=f"S{code}",
-        latitude=lat, longitude=lon, elevation=elevation, zone_code=None,
+        wfwx_id=f"wfwx-{code}",
+        code=code,
+        name=f"S{code}",
+        latitude=lat,
+        longitude=lon,
+        elevation=elevation,
+        zone_code=None,
     )
 
 
-def _make_raw_daily(station_code, record_type="ACTUAL", status="ACTIVE",
-                    lat=49.0, lon=-123.0, **weather_fields):
-    defaults = dict(temperature=None, relativeHumidity=None,
-                    precipitation=None, windSpeed=None, windDirection=None)
+def _make_raw_daily(
+    station_code, record_type="ACTUAL", status="ACTIVE", lat=49.0, lon=-123.0, **weather_fields
+):
+    defaults = {
+        "temperature": None,
+        "relativeHumidity": None,
+        "precipitation": None,
+        "windSpeed": None,
+        "windDirection": None,
+    }
     defaults.update(weather_fields)
     return {
         "stationData": {
@@ -41,7 +50,7 @@ def _make_raw_daily(station_code, record_type="ACTUAL", status="ACTIVE",
 
 class TestParseHourlyActual:
     def test_parse_hourly_actual(self):
-        """ Valid fields are set when values exist """
+        """Valid fields are set when values exist"""
         raw_actual = {
             "weatherTimestamp": datetime.now(tz=timezone.utc).timestamp(),
             "temperature": 0.0,
@@ -51,7 +60,7 @@ class TestParseHourlyActual:
             "precipitation": 0.0,
             "fineFuelMoistureCode": 0.0,
             "initialSpreadIndex": 0.0,
-            "fireWeatherIndex": 0.0
+            "fireWeatherIndex": 0.0,
         }
 
         hourly_actual = parse_hourly_actual(1, raw_actual)
@@ -62,9 +71,8 @@ class TestParseHourlyActual:
         assert hourly_actual.precip_valid is True
         assert hourly_actual.wspeed_valid is True
 
-
     def test_invalid_metrics(self):
-        """ Metric valid flags should be false """
+        """Metric valid flags should be false"""
 
         raw_actual = {
             "weatherTimestamp": datetime.now(tz=timezone.utc).timestamp(),
@@ -75,7 +83,7 @@ class TestParseHourlyActual:
             "precipitation": -1,
             "fineFuelMoistureCode": 0.0,
             "initialSpreadIndex": 0.0,
-            "fireWeatherIndex": 0.0
+            "fireWeatherIndex": 0.0,
         }
 
         hourly_actual = parse_hourly_actual(1, raw_actual)
@@ -86,9 +94,8 @@ class TestParseHourlyActual:
         assert hourly_actual.wspeed_valid is False
         assert hourly_actual.wdir_valid is False
 
-
     def test_invalid_metrics_from_wfwx(self):
-        """ Metric valid flags should be false """
+        """Metric valid flags should be false"""
 
         raw_actual = {
             "weatherTimestamp": datetime.now(tz=timezone.utc).timestamp(),
@@ -100,7 +107,7 @@ class TestParseHourlyActual:
             "initialSpreadIndex": 0.0,
             "fireWeatherIndex": 0.0,
             "observationValid": False,
-            "observationValidComment": "Precipitation can not be null."
+            "observationValidComment": "Precipitation can not be null.",
         }
 
         hourly_actual = parse_hourly_actual(1, raw_actual)
@@ -117,17 +124,29 @@ class TestSfmsDailyActualsMapper:
     @pytest.mark.anyio
     async def test_maps_actual_with_all_weather_fields(self):
         station = _make_station(100, lat=49.0, lon=-123.0, elevation=150)
-        raw = _make_raw_daily(100, temperature=15.0, relativeHumidity=50.0,
-                              precipitation=2.5, windSpeed=10.0, windDirection=180.0)
+        raw = _make_raw_daily(
+            100,
+            temperature=15.0,
+            relativeHumidity=50.0,
+            precipitation=2.5,
+            windSpeed=10.0,
+            windDirection=180.0,
+        )
 
         result = await sfms_daily_actuals_mapper(_async_iter([raw]), [station])
 
         assert len(result) == 1
         actual = result[0]
         assert actual == SFMSDailyActual(
-            code=100, lat=49.0, lon=-123.0, elevation=150,
-            temperature=15.0, relative_humidity=50.0, precipitation=2.5,
-            wind_speed=10.0, wind_direction=180.0,
+            code=100,
+            lat=49.0,
+            lon=-123.0,
+            elevation=150,
+            temperature=15.0,
+            relative_humidity=50.0,
+            precipitation=2.5,
+            wind_speed=10.0,
+            wind_direction=180.0,
         )
 
     @pytest.mark.anyio
@@ -182,8 +201,10 @@ class TestSfmsDailyActualsMapper:
 
     @pytest.mark.anyio
     async def test_multiple_stations_mixed_records(self):
-        stations = [_make_station(100, lat=49.0, lon=-123.0, elevation=100),
-                    _make_station(200, lat=50.0, lon=-124.0, elevation=300)]
+        stations = [
+            _make_station(100, lat=49.0, lon=-123.0, elevation=100),
+            _make_station(200, lat=50.0, lon=-124.0, elevation=300),
+        ]
         raw_dailies = [
             _make_raw_daily(100, temperature=10.0),
             _make_raw_daily(200, record_type="FORECAST", temperature=20.0),
@@ -195,9 +216,9 @@ class TestSfmsDailyActualsMapper:
 
         assert len(result) == 2
         assert result[0].code == 100
-        assert result[0].temperature == 10.0
+        assert result[0].temperature == pytest.approx(10.0)
         assert result[1].code == 200
-        assert result[1].temperature == 25.0
+        assert result[1].temperature == pytest.approx(25.0)
 
     @pytest.mark.anyio
     async def test_uses_station_coordinates_not_daily(self):
@@ -207,6 +228,6 @@ class TestSfmsDailyActualsMapper:
 
         result = await sfms_daily_actuals_mapper(_async_iter([raw]), [station])
 
-        assert result[0].lat == 51.0
-        assert result[0].lon == -125.0
+        assert result[0].lat == pytest.approx(51.0)
+        assert result[0].lon == pytest.approx(-125.0)
         assert result[0].elevation == 999
