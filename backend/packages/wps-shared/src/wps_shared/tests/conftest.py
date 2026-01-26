@@ -216,3 +216,13 @@ def mock_s3_client():
     client.persist_raster_data = AsyncMock(return_value="test_key.tif")
     client.list_objects_v2 = AsyncMock(return_value={"Contents": []})
     return client
+
+
+def mock_wfwx_api(mocker: MockerFixture):
+    """A mocked WfwxApi with async methods."""
+    mock = mocker.AsyncMock(name="WfwxApiMock")
+    # Async method
+    mock._get_auth_header = mocker.AsyncMock(return_value={})
+    mock._get_no_cache_auth_header = mocker.AsyncMock(return_value={"Cache-Control": "no-cache"})
+    mock.get_stations_by_group_id = mocker.AsyncMock(return_value=[])
+    return mock

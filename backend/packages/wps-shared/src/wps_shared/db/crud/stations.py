@@ -7,7 +7,7 @@ from wps_shared.utils.time import get_hour_20
 from sqlalchemy import text
 
 
-def _get_noon_date(date_of_interest: datetime) -> datetime:
+def get_noon_date(date_of_interest: datetime) -> datetime:
     """
     If before noon today, give noon from day before.
     If after noon today, give noon from date of interest.
@@ -25,7 +25,7 @@ def _get_noon_date(date_of_interest: datetime) -> datetime:
 def get_noon_forecast_observation_union(session: Session, date_of_interest: datetime) -> CursorResult:
     """ Return union of forecasts and observations. One could argue this method doesn't belong
     in the stations crud - but it's only used to create the detailed stations response. """
-    noon_date = _get_noon_date(date_of_interest)
+    noon_date = get_noon_date(date_of_interest)
     # It must be possible to do this using sqlalchemy - but things got a bit complicated, and I opted
     # for a good old fashioned sql query.
     query = """

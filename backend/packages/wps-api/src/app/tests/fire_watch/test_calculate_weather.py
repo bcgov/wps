@@ -24,8 +24,8 @@ from app.fire_watch.calculate_weather import (
     validate_prediction_dates,
 )
 from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
+from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.schemas.weather_models import ModelPredictionDetails
-from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 from app.fire_watch.calculate_weather import MissingWeatherDataError
 
 
@@ -201,22 +201,22 @@ async def test_map_model_prediction_to_weather_indeterminate_missing_bias_value(
 
 
 @pytest.mark.anyio
-@patch("app.fire_watch.calculate_weather.get_auth_header", new_callable=AsyncMock)
-@patch(
-    "app.fire_watch.calculate_weather.get_wfwx_stations_from_station_codes", new_callable=AsyncMock
-)
-async def test_fetch_station_metadata(mock_get_stations, mock_get_auth_header):
-    mock_get_stations.return_value = [
-        WFWXWeatherStation(
-            code=1,
-            name="Station 1",
-            lat=50.0,
-            long=-120.0,
-            elevation=1,
-            wfwx_id="1",
-            zone_code=None,
-        )
-    ]
+async def test_fetch_station_metadata(mocker, mock_wfwx_api):
+    mock_wfwx_api.get_wfwx_stations_from_station_codes = AsyncMock(
+        return_value=[
+            WFWXWeatherStation(
+                code=1,
+                name="Station 1",
+                lat=50.0,
+                long=-120.0,
+                elevation=1,
+                wfwx_id="1",
+                zone_code=None,
+            )
+        ]
+    )
+    mocker.patch("app.fire_watch.calculate_weather.WfwxApi", return_value=mock_wfwx_api)
+
     result = await get_station_metadata([1])
     assert result[1].name == "Station 1"
 

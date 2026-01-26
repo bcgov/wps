@@ -29,11 +29,14 @@ def test_post_forecast_unauthorized_date_range(client: TestClient, monkeypatch: 
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_post_forecast_authorized_date_range(client: TestClient, monkeypatch: pytest.MonkeyPatch):
+@pytest.mark.anyio
+async def test_post_forecast_authorized_date_range(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, mocker, mock_wfwx_api
+):
     """ requests model date by user and date range authorized """
-
-    mock_predictions = AsyncMock()
-    mock_predictions.return_value = []
+    mock_wfwx_api.get_stations_by_codes = AsyncMock(return_value=[])
+    mocker.patch("app.routers.weather_models.WfwxApi", return_value=mock_wfwx_api)
+    mock_predictions = mocker.Mock(return_value=[])
 
     monkeypatch.setattr(app.routers.weather_models,
                         'fetch_latest_daily_model_run_predictions_by_station_code_and_date_range', mock_predictions)

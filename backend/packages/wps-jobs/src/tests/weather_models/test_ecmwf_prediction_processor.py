@@ -1,19 +1,19 @@
-import pytest
-from unittest.mock import MagicMock
 from datetime import datetime, timedelta, timezone
-from unittest.mock import call
+import math
+from unittest.mock import MagicMock, call
 
-from pytest_mock import MockerFixture
+import pytest
 import weather_model_jobs.ecmwf_prediction_processor
+from pytest_mock import MockerFixture
 from weather_model_jobs import ModelEnum
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
-from wps_shared.schemas.stations import WeatherStation
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.models.weather_models import (
     ModelRunPrediction,
     PredictionModelRunTimestamp,
     WeatherStationModelPrediction,
 )
+from wps_shared.schemas.stations import WeatherStation
 
 
 @pytest.fixture
@@ -352,7 +352,7 @@ def test_calculate_past_24_hour_precip_with_previous_prediction(
         prediction.prediction_model_run_timestamp_id,
         prediction.prediction_timestamp - timedelta(days=1),
     )
-    assert result == 5.0
+    assert math.isclose(result, 5.0)
 
 
 def test_calculate_past_24_hour_precip_without_previous_prediction(
@@ -385,7 +385,7 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(
         prediction.prediction_timestamp - timedelta(days=1),
         model_run.prediction_run_timestamp,
     )
-    assert result == 3.0
+    assert math.isclose(result, 3.0)
 
 
 @pytest.mark.parametrize(
@@ -524,13 +524,13 @@ def test_initialize_station_prediction(setup_processor, mock_model_run_data):
     )
     processor._calculate_delta_precip.assert_called_once_with(None, station_prediction)
 
-    assert result.tmp_tgl_2 == 25.0
-    assert result.rh_tgl_2 == 60.0
-    assert result.apcp_sfc_0 == 10.0
-    assert result.precip_24h == 15.0
-    assert result.delta_precip == 5.0
-    assert result.wind_tgl_10 == 5.5
-    assert result.wdir_tgl_10 == 180.0
+    assert math.isclose(result.tmp_tgl_2, 25.0)
+    assert math.isclose(result.rh_tgl_2, 60.0)
+    assert math.isclose(result.apcp_sfc_0, 10.0)
+    assert math.isclose(result.precip_24h, 15.0)
+    assert math.isclose(result.delta_precip, 5.0)
+    assert math.isclose(result.wind_tgl_10, 5.5)
+    assert math.isclose(result.wdir_tgl_10, 180.0)
 
 
 def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
@@ -577,11 +577,11 @@ def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
         station_prediction.precip_24h, station_prediction.prediction_timestamp
     )
 
-    assert result.bias_adjusted_temperature == 22.5
-    assert result.bias_adjusted_rh == 55.0
-    assert result.bias_adjusted_wind_speed == 6.5
-    assert result.bias_adjusted_wdir == 190.0
-    assert result.bias_adjusted_precip_24h == 12.0
+    assert math.isclose(result.bias_adjusted_temperature, 22.5)
+    assert math.isclose(result.bias_adjusted_rh, 55.0)
+    assert math.isclose(result.bias_adjusted_wind_speed, 6.5)
+    assert math.isclose(result.bias_adjusted_wdir, 190.0)
+    assert math.isclose(result.bias_adjusted_precip_24h, 12.0)
 
 
 def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_data):

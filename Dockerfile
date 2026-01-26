@@ -33,6 +33,8 @@ COPY ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
 COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
+COPY ./backend/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
+COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
 
 # Switch to root to set file permissions
 USER 0
@@ -41,8 +43,9 @@ USER 0
 RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-api/pyproject.toml \
     /app/packages/wps-shared/pyproject.toml \
+    /app/packages/wps-wf1/pyproject.toml \
     /app/packages/wps-sfms/pyproject.toml && \
-    chmod -R a-w /app/packages/wps-shared/src /app/packages/wps-sfms/src
+    chmod -R a-w /app/packages/wps-shared/src /app/packages/wps-sfms/src /app/packages/wps-wf1/src
 
 # Switch back to non-root user
 USER $USERNAME
@@ -75,6 +78,7 @@ COPY --from=builder /app/pyproject.toml /app/
 COPY --from=builder /app/packages/wps-api/pyproject.toml /app/packages/wps-api/
 COPY --from=builder /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY --from=builder /app/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
+COPY --from=builder /app/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
 
 # Switch back to our non-root user
 USER $USERNAME
@@ -96,6 +100,7 @@ COPY ./backend/packages/wps-api/start.sh /app
 # Make uv happy by copying wps_shared and wps_sfms
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
+COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
 
 # Copy installed Python packages
 COPY --from=builder /app/.venv /app/.venv
@@ -119,6 +124,7 @@ RUN chmod -R a-w \
     /app/packages/wps-api/pyproject.toml \
     /app/packages/wps-shared/src \
     /app/packages/wps-sfms/src \
+    /app/packages/wps-wf1/src \
     /app/advisory \
     /app/libs \
     /app/alembic \
@@ -126,6 +132,7 @@ RUN chmod -R a-w \
     /app/prestart.sh \
     /app/start.sh && \
     chmod a+w $(find /app/app -type d)
+
 
 # Openshift runs with a random non-root user, so switching our user to 1001 allows us
 # to test locally with similar conditions to what we may find in openshift.

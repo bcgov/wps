@@ -19,6 +19,7 @@ from wps_shared.tests.conftest import (
     mock_client_session,
     spy_access_logging,
     mock_s3_client,
+    mock_wfwx_api,
 )
 
 
@@ -56,7 +57,9 @@ def create_mock_sfms_actuals():
     ]
 
 
-def create_interpolation_job_mocks(mocker, s3_client_mock, module_path: str, processor_class) -> MockDependencies:
+def create_interpolation_job_mocks(
+    mocker, s3_client_mock, module_path: str, processor_class
+) -> MockDependencies:
     """
     Create common mock dependencies for interpolation job tests.
 
