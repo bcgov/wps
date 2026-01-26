@@ -893,3 +893,89 @@ async def test_post_forecasts(monkeypatch, wfwx_api):
     assert wfwx_api.wfwx_client.session.last_post["url"].endswith("/v1/dailies/daily-bulk")
     assert wfwx_api.wfwx_client.session.last_post["json"] == [{"x": 1}, {"y": 2}]
     assert "Authorization" in wfwx_api.wfwx_client.session.last_post["headers"]
+
+
+# ---------------------------
+# Helpers for get_sfms_daily_actuals_all_stations tests
+# ---------------------------
+def _setup_sfms_daily_actuals(monkeypatch, wfwx_api, stations=None, raw_dailies=None, mapper_result=None):
+    """Common setup for get_sfms_daily_actuals_all_stations tests.
+
+    Returns a dict for capturing arguments passed to mocked dependencies.
+    """
+    import wps_wf1.wfwx_api as api_mod
+
+    if stations is None:
+        stations = []
+    if raw_dailies is None:
+        raw_dailies = []
+    if mapper_result is None:
+        mapper_result = []
+
+    captured = {}
+
+    async def fake_wfwx_station_list_mapper(raw_gen):
+        _ = [item async for item in raw_gen]
+        return stations
+
+    monkeypatch.setattr(api_mod, "wfwx_station_list_mapper", fake_wfwx_station_list_mapper)
+
+    async def fake_fetch_raw_dailies(headers, time_of_interest):
+        captured["headers"] = headers
+        captured["time_of_interest"] = time_of_interest
+        return raw_dailies
+
+    wfwx_api.wfwx_client.fetch_raw_dailies_for_all_stations = fake_fetch_raw_dailies
+
+    async def fake_sfms_mapper(raw, stn):
+        captured["mapper_raw_dailies"] = raw
+        captured["mapper_stations"] = stn
+        return mapper_result
+
+    monkeypatch.setattr(api_mod, "sfms_daily_actuals_mapper", fake_sfms_mapper)
+
+    return captured
+
+
+@pytest.mark.anyio
+async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
+    """Verify auth header, time_of_interest, stations, and raw dailies are forwarded correctly and the mapper result is returned."""
+    from wps_shared.schemas.sfms import SFMSDailyActual
+
+    fake_stations = [
+        types.SimpleNamespace(wfwx_id="wfwx-1", code=100, name="S100", lat=49.0, long=-123.0, elevation=100, zone_code=None),
+        types.SimpleNamespace(wfwx_id="wfwx-2", code=200, name="S200", lat=50.0, long=-124.0, elevation=300, zone_code="K1"),
+    ]
+    fake_raw_dailies = [
+        {"stationData": {"stationCode": 100}, "temperature": 15.0},
+        {"stationData": {"stationCode": 200}, "temperature": 20.0},
+    ]
+    expected = [
+        SFMSDailyActual(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0),
+        SFMSDailyActual(code=200, lat=50.0, lon=-124.0, elevation=300, temperature=20.0),
+    ]
+
+    toi = datetime(2025, 7, 15, 12, 0, 0)
+    captured = _setup_sfms_daily_actuals(
+        monkeypatch, wfwx_api, stations=fake_stations, raw_dailies=fake_raw_dailies, mapper_result=expected
+    )
+
+    result = await wfwx_api.get_sfms_daily_actuals_all_stations(toi)
+
+    assert result == expected
+    assert captured["headers"] == {"Authorization": "Bearer token123"}
+    assert captured["time_of_interest"] == toi
+    assert captured["mapper_raw_dailies"] is fake_raw_dailies
+    assert captured["mapper_stations"] is fake_stations
+
+
+@pytest.mark.anyio
+async def test_get_sfms_daily_actuals_all_stations_empty_dailies(monkeypatch, wfwx_api):
+    """When no raw dailies exist, an empty list is returned."""
+    fake_stations = [
+        types.SimpleNamespace(wfwx_id="wfwx-1", code=100, name="S100", lat=49.0, long=-123.0, elevation=100, zone_code=None),
+    ]
+    _setup_sfms_daily_actuals(monkeypatch, wfwx_api, stations=fake_stations, raw_dailies=[], mapper_result=[])
+
+    result = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime(2025, 7, 1))
+    assert result == []
