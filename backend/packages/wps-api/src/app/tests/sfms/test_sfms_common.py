@@ -5,12 +5,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.sfms.sfms_common import fetch_station_actuals
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.schemas.sfms import SFMSDailyActual
 
 
-def create_test_station(code: int, lat: float, lon: float, elevation: int | None = 100) -> WeatherStation:
+def create_test_station(
+    code: int, lat: float, lon: float, elevation: int | None = 100
+) -> WeatherStation:
     """Create a test weather station."""
     return WeatherStation(
         code=code,
@@ -62,7 +63,9 @@ class TestFetchStationActuals:
             create_raw_daily(101, temperature=18.0),
         ]
 
-        with patch("app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock) as mock_fetch:
+        with patch(
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
 
             result = await fetch_station_actuals(session, headers, time_of_interest, stations)
@@ -87,7 +90,9 @@ class TestFetchStationActuals:
             create_raw_daily(100, record_type="ACTUAL"),
         ]
 
-        with patch("app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock) as mock_fetch:
+        with patch(
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
 
             result = await fetch_station_actuals(session, headers, time_of_interest, stations)
@@ -107,7 +112,9 @@ class TestFetchStationActuals:
             create_raw_daily(999),  # Not in stations list
         ]
 
-        with patch("app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock) as mock_fetch:
+        with patch(
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
 
             result = await fetch_station_actuals(session, headers, time_of_interest, stations)
@@ -131,7 +138,9 @@ class TestFetchStationActuals:
             create_raw_daily(101, station_status="INACTIVE"),  # Invalid status
         ]
 
-        with patch("app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock) as mock_fetch:
+        with patch(
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
 
             result = await fetch_station_actuals(session, headers, time_of_interest, stations)
@@ -155,10 +164,14 @@ class TestFetchStationActuals:
             create_raw_daily(101),
         ]
 
-        with patch("app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock) as mock_fetch:
+        with patch(
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
 
-            result = await fetch_station_actuals(session, headers, time_of_interest, stations, require_elevation=True)
+            result = await fetch_station_actuals(
+                session, headers, time_of_interest, stations, require_elevation=True
+            )
 
         assert len(result) == 1
         assert result[0].code == 100
@@ -175,10 +188,14 @@ class TestFetchStationActuals:
 
         raw_dailies = [create_raw_daily(100)]
 
-        with patch("app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock) as mock_fetch:
+        with patch(
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
 
-            result = await fetch_station_actuals(session, headers, time_of_interest, stations, require_elevation=False)
+            result = await fetch_station_actuals(
+                session, headers, time_of_interest, stations, require_elevation=False
+            )
 
         assert len(result) == 1
 
@@ -190,7 +207,9 @@ class TestFetchStationActuals:
         time_of_interest = datetime(2024, 7, 15, 12, 0, 0, tzinfo=timezone.utc)
         stations = [create_test_station(100, 49.0, -123.0)]
 
-        with patch("app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock) as mock_fetch:
+        with patch(
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = []
 
             result = await fetch_station_actuals(session, headers, time_of_interest, stations)
@@ -213,7 +232,9 @@ class TestFetchStationActuals:
             create_raw_daily(101),
         ]
 
-        with patch("app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock) as mock_fetch:
+        with patch(
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
 
             result = await fetch_station_actuals(session, headers, time_of_interest, stations)
@@ -232,7 +253,9 @@ class TestFetchStationActuals:
 
         raw_dailies = [create_raw_daily(100, temperature=22.5)]
 
-        with patch("app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock) as mock_fetch:
+        with patch(
+            "app.sfms.sfms_common.fetch_raw_dailies_for_all_stations", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = raw_dailies
 
             result = await fetch_station_actuals(session, headers, time_of_interest, stations)

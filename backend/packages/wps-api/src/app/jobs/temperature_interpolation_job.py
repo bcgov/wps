@@ -16,17 +16,16 @@ import sys
 from datetime import datetime, timezone
 
 from aiohttp import ClientSession
-from app.sfms.sfms_common import fetch_station_actuals
 from wps_sfms.interpolation import StationTemperatureSource
+from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.fuel_raster import find_latest_version
-from wps_shared.stations import get_stations_from_source
-from wps_shared.wildfire_one.wfwx_api import get_auth_header
 from wps_shared.wps_logging import configure_logging
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.time import get_utc_now
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
-from wps_sfms.processors import TemperatureInterpolationProcessor
+from wps_wf1.wfwx_api import WfwxApi
+
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +65,9 @@ class TemperatureInterpolationJob:
 
                 # Fetch temperature observations from WF1
                 async with ClientSession() as session:
-                    auth_headers = await get_auth_header(session)
-                    stations = await get_stations_from_source()
-                    sfms_actuals = await fetch_station_actuals(
-                        session, auth_headers, datetime_to_process, stations
+                    wfwx_api = WfwxApi(session)
+                    sfms_actuals = await wfwx_api.get_sfms_daily_actuals_all_stations(
+                        datetime_to_process
                     )
 
                 if not sfms_actuals:

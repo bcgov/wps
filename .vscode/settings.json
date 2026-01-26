@@ -13,7 +13,9 @@
     "python.analysis.extraPaths": [
         "${workspaceFolder}/backend/packages/wps-api/src",
         "${workspaceFolder}/backend/packages/wps-jobs/src",
-        "${workspaceFolder}/backend/packages/wps-shared/src"
+        "${workspaceFolder}/backend/packages/wps-shared/src",
+        "${workspaceFolder}/backend/packages/wps-sfms/src",
+        "${workspaceFolder}/backend/packages/wps-wf1/src",
     ],
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff"

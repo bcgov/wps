@@ -11,6 +11,7 @@ from wps_shared.schemas.fba import FireCentre
 from wps_shared.schemas.forecasts import NoonForecast
 from wps_shared.schemas.morecast_v2 import StationDailyFromWF1, WF1PostForecast
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
+from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.schemas.stations import (
     DetailedWeatherStationProperties,
     GeoJsonDetailedWeatherStation,
@@ -32,6 +33,7 @@ from wps_wf1.parsers import (
     parse_hourly_actual,
     parse_noon_forecast,
     parse_station,
+    sfms_daily_actuals_mapper,
     station_list_mapper,
     unique_weather_stations_mapper,
     weather_indeterminate_list_mapper,
@@ -310,6 +312,20 @@ class WfwxApi:
 
         return noon_forecasts
 
+    async def get_sfms_daily_actuals_all_stations(
+        self, time_of_interest: datetime
+    ) -> List[SFMSDailyActual]:
+        header = await self._get_auth_header()
+        stations: List[WFWXWeatherStation] = await self.get_station_data(
+            mapper=wfwx_station_list_mapper
+        )
+        logger.info(f"Computing SFMS actuals with {len(stations)} stations")
+        raw_dailies = await self.wfwx_client.fetch_raw_dailies_for_all_stations(
+            header, time_of_interest
+        )
+        station_dailies = await sfms_daily_actuals_mapper(raw_dailies, stations)
+        return station_dailies
+
     async def get_hourly_actuals_all_stations(
         self, start_timestamp: datetime, end_timestamp: datetime
     ) -> List[HourlyActual]:
@@ -557,7 +573,6 @@ class WfwxApi:
         forecasts_json = [forecast.model_dump() for forecast in forecasts]
         headers = await self._get_auth_header()
         await self.wfwx_client.post_forecasts(headers, forecasts_json)
-            
 
 
 async def get_stations_asynchronously():
