@@ -341,13 +341,13 @@ async def dailies_list_mapper(
     return wf1_dailies
 
 
-async def sfms_daily_actuals_mapper(
-    raw_dailies: Generator[dict, None, None], stations: List[WFWXWeatherStation]
+def sfms_daily_actuals_mapper(
+    raw_dailies: List[dict], stations: List[WFWXWeatherStation]
 ) -> List[SFMSDailyActual]:
     """Maps raw dailies to list of SFMSDailyActual objects"""
     station_lookup = {station.code: station for station in stations}
     sfms_daily_actuals: List[SFMSDailyActual] = []
-    async for raw_daily in raw_dailies:
+    for raw_daily in raw_dailies:
         station_data = raw_daily.get("stationData")
         if (
             is_station_valid(station_data)

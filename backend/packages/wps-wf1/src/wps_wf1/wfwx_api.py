@@ -323,7 +323,7 @@ class WfwxApi:
         raw_dailies = await self.wfwx_client.fetch_raw_dailies_for_all_stations(
             header, time_of_interest
         )
-        station_dailies = await sfms_daily_actuals_mapper(raw_dailies, stations)
+        station_dailies = sfms_daily_actuals_mapper(raw_dailies, stations)
         return station_dailies
 
     async def get_hourly_actuals_all_stations(

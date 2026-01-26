@@ -927,7 +927,7 @@ def _setup_sfms_daily_actuals(monkeypatch, wfwx_api, stations=None, raw_dailies=
 
     wfwx_api.wfwx_client.fetch_raw_dailies_for_all_stations = fake_fetch_raw_dailies
 
-    async def fake_sfms_mapper(raw, stn):
+    def fake_sfms_mapper(raw, stn):
         captured["mapper_raw_dailies"] = raw
         captured["mapper_stations"] = stn
         return mapper_result
