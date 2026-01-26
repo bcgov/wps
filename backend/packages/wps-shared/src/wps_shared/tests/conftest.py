@@ -218,6 +218,7 @@ def mock_s3_client():
     return client
 
 
+@pytest.fixture
 def mock_wfwx_api(mocker: MockerFixture):
     """A mocked WfwxApi with async methods."""
     mock = mocker.AsyncMock(name="WfwxApiMock")
