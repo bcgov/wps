@@ -21,10 +21,10 @@ MODULE_PATH = "app.jobs.temperature_interpolation_job"
 
 
 @pytest.fixture
-def mock_dependencies(mocker: MockerFixture, mock_s3_client):
+def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api):
     """Mock all external dependencies for the temperature interpolation job."""
     return create_interpolation_job_mocks(
-        mocker, mock_s3_client, MODULE_PATH, TemperatureInterpolationProcessor
+        mocker, mock_s3_client, MODULE_PATH, TemperatureInterpolationProcessor, mock_wfwx_api
     )
 
 
@@ -131,21 +131,12 @@ class TestTemperatureInterpolationJob:
             return_value=mock_session,
         )
 
-        mocker.patch(
-            "app.jobs.temperature_interpolation_job.get_auth_header",
-            new_callable=AsyncMock,
-            return_value={},
-        )
-        mocker.patch(
-            "app.jobs.temperature_interpolation_job.get_stations_from_source",
-            new_callable=AsyncMock,
-            return_value=[],
-        )
         # Return empty list for actuals
+        mock_wfwx_api = AsyncMock()
+        mock_wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(return_value=[])
         mocker.patch(
-            "app.jobs.temperature_interpolation_job.fetch_station_actuals",
-            new_callable=AsyncMock,
-            return_value=[],
+            "app.jobs.temperature_interpolation_job.WfwxApi",
+            return_value=mock_wfwx_api,
         )
         mocker.patch(
             "app.jobs.temperature_interpolation_job.find_latest_version",
@@ -278,20 +269,11 @@ class TestTemperatureInterpolationJobIntegration:
             return_value=mock_session,
         )
 
+        mock_wfwx_api = AsyncMock()
+        mock_wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(return_value=create_mock_sfms_actuals())
         mocker.patch(
-            "app.jobs.temperature_interpolation_job.get_auth_header",
-            new_callable=AsyncMock,
-            return_value={},
-        )
-        mocker.patch(
-            "app.jobs.temperature_interpolation_job.get_stations_from_source",
-            new_callable=AsyncMock,
-            return_value=[],
-        )
-        mocker.patch(
-            "app.jobs.temperature_interpolation_job.fetch_station_actuals",
-            new_callable=AsyncMock,
-            return_value=create_mock_sfms_actuals(),
+            "app.jobs.temperature_interpolation_job.WfwxApi",
+            return_value=mock_wfwx_api,
         )
         mocker.patch(
             "app.jobs.temperature_interpolation_job.find_latest_version",

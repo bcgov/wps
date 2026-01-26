@@ -58,7 +58,7 @@ def create_mock_sfms_actuals():
 
 
 def create_interpolation_job_mocks(
-    mocker, s3_client_mock, module_path: str, processor_class
+    mocker, s3_client_mock, module_path: str, processor_class, wfwx_api_mock
 ) -> MockDependencies:
     """
     Create common mock dependencies for interpolation job tests.
@@ -67,6 +67,7 @@ def create_interpolation_job_mocks(
     :param s3_client_mock: mock S3 client fixture
     :param module_path: module path prefix (e.g., "app.jobs.temperature_interpolation_job")
     :param processor_class: the processor class to mock (for spec)
+    :param wfwx_api_mock: mock WfwxApi fixture
     :return: MockDependencies named tuple
     """
     from aiohttp import ClientSession
@@ -79,18 +80,11 @@ def create_interpolation_job_mocks(
     session_mock.__aexit__ = AsyncMock(return_value=None)
     mocker.patch(f"{module_path}.ClientSession", return_value=session_mock)
 
-    mocker.patch(
-        f"{module_path}.get_auth_header",
-        return_value=AsyncMock(return_value={"Authorization": "Bearer test"})(),
+    wfwx_api_mock.get_sfms_daily_actuals_all_stations = AsyncMock(
+        return_value=create_mock_sfms_actuals()
     )
-    mocker.patch(
-        f"{module_path}.get_stations_from_source",
-        return_value=AsyncMock(return_value=[])(),
-    )
-    mocker.patch(
-        f"{module_path}.fetch_station_actuals",
-        return_value=AsyncMock(return_value=create_mock_sfms_actuals())(),
-    )
+    mocker.patch(f"{module_path}.WfwxApi", return_value=wfwx_api_mock)
+
     mocker.patch(
         f"{module_path}.find_latest_version",
         return_value=AsyncMock(return_value=1)(),
