@@ -1,22 +1,29 @@
-""" This module is used to fetch noon forecasts summaries with minimum and maximum values for each day """
+"""This module is used to fetch noon forecasts summaries with minimum and maximum values for each day"""
 
 import json
 import logging
 from collections import defaultdict
 from datetime import datetime
-import wps_shared.stations
+
+from aiohttp import ClientSession
+from wps_wf1.wfwx_api import WfwxApi
+
 import wps_shared.db.database
+from wps_shared.schemas.stations import StationCodeList, WeatherStation
 from wps_shared.db.crud.forecasts import query_noon_forecast_records
-from wps_shared.schemas.forecasts import NoonForecastSummariesResponse, NoonForecastSummary, NoonForecastSummaryValues
-from wps_shared.schemas.stations import WeatherStation, StationCodeList
+from wps_shared.schemas.forecasts import (
+    NoonForecastSummariesResponse,
+    NoonForecastSummary,
+    NoonForecastSummaryValues,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def create_noon_forecast_summary(station: WeatherStation,
-                                 records_by_station: dict
-                                 ) -> NoonForecastSummary:
-    """ Returns NoonForecastSummary with min and max for each day """
+def create_noon_forecast_summary(
+    station: WeatherStation, records_by_station: dict
+) -> NoonForecastSummary:
+    """Returns NoonForecastSummary with min and max for each day"""
     summary = NoonForecastSummary(station=station)
 
     records_for_one_station = records_by_station[station.code]
@@ -27,33 +34,31 @@ def create_noon_forecast_summary(station: WeatherStation,
 
     for record in records_for_one_station:
         date = record.weather_date.isoformat()
-        nested_dict[date]['temp'].append(record.temperature)
-        nested_dict[date]['rh'].append(record.relative_humidity)
+        nested_dict[date]["temp"].append(record.temperature)
+        nested_dict[date]["rh"].append(record.relative_humidity)
 
     logger.debug(json.dumps(nested_dict, sort_keys=True, indent=4))
 
     for date in nested_dict:
         min_max_values = NoonForecastSummaryValues(
             datetime=date,
-            tmp_min=min(nested_dict[date]['temp']),
-            tmp_max=max(nested_dict[date]['temp']),
-            rh_min=min(nested_dict[date]['rh']),
-            rh_max=max(nested_dict[date]['rh']),
+            tmp_min=min(nested_dict[date]["temp"]),
+            tmp_max=max(nested_dict[date]["temp"]),
+            rh_min=min(nested_dict[date]["rh"]),
+            rh_max=max(nested_dict[date]["rh"]),
         )
         summary.values.append(min_max_values)
 
     return summary
 
 
-async def fetch_noon_forecasts_summaries(station_codes: StationCodeList,
-                                         start_date: datetime,
-                                         end_date: datetime
-                                         ) -> NoonForecastSummariesResponse:
-    """ Fetch noon forecasts from the database and parse them,
-    then calculate min&max and put them in NoonForecastSummariesResponse """
+async def fetch_noon_forecasts_summaries(
+    station_codes: StationCodeList, start_date: datetime, end_date: datetime
+) -> NoonForecastSummariesResponse:
+    """Fetch noon forecasts from the database and parse them,
+    then calculate min&max and put them in NoonForecastSummariesResponse"""
     with wps_shared.db.database.get_read_session_scope() as session:
-        records = query_noon_forecast_records(
-            session, station_codes, start_date, end_date)
+        records = query_noon_forecast_records(session, station_codes, start_date, end_date)
 
         records_by_station = defaultdict(list)
         for record in records:
@@ -61,7 +66,9 @@ async def fetch_noon_forecasts_summaries(station_codes: StationCodeList,
             records_by_station[code].append(record)
 
     response = NoonForecastSummariesResponse()
-    stations = await wps_shared.stations.get_stations_by_codes(station_codes)
+    async with ClientSession() as session:
+        wfwx_api = WfwxApi(session)
+        stations = await wfwx_api.get_stations_by_codes(station_codes)
     for station in stations:
         summary = create_noon_forecast_summary(station, records_by_station)
         response.summaries.append(summary)

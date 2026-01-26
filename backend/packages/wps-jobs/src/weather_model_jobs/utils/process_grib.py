@@ -9,8 +9,8 @@ from osgeo import gdal
 from pyproj import CRS, Transformer
 from affine import Affine
 import numpy as np
+from wps_wf1.wfwx_api import get_stations_synchronously
 from wps_shared.geospatial.geospatial import NAD83_CRS, get_dataset_transform, get_transformer
-from wps_shared.stations import get_stations_synchronously
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
 from wps_shared.db.crud.weather_models import get_prediction_model, get_or_create_prediction_run
 from wps_shared.weather_models import ModelEnum, ProjectionEnum

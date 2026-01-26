@@ -1,5 +1,6 @@
 from affine import Affine
 from datetime import date
+from aiohttp import ClientSession
 from osgeo import gdal
 import asyncio
 import logging
@@ -10,13 +11,14 @@ import requests
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+
+from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.wps_logging import configure_logging
 from wps_shared.db.crud.grass_curing import get_last_percent_grass_curing_for_date, save_percent_grass_curing
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.geospatial.geospatial import WGS84
 from wps_shared.db.models.grass_curing import PercentGrassCuring
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from wps_shared.stations import get_stations_asynchronously
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +113,9 @@ class GrassCuringJob():
 
                 # Open the reprojected grass curing data
                 raster = gdal.Open(f"{temp_dir}/{GRASS_CURING_FILE_NAME_4326}")
-                stations = await get_stations_asynchronously()
+                async with ClientSession() as session:
+                    wfwx_api = WfwxApi(session)
+                    stations = await wfwx_api.get_station_data()
                 for station, value in self._yield_value_for_stations(raster, stations):
                     percent_grass_curing = PercentGrassCuring(for_date=today,
                                                                 percent_grass_curing=value,

@@ -1,14 +1,14 @@
+from datetime import datetime, timedelta
+
+import app.main
 import pytest
-from datetime import timedelta, datetime
+from wps_shared.schemas.stations import StationCodeList
+import wps_shared.utils.time as time_utils
+from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
-from aiohttp import ClientSession
-from wps_shared.schemas.stations import StationCodeList
-import app.main
-from wps_shared.tests.common import default_mock_client_get
 from wps_shared.db.models.forecasts import NoonForecast
-import wps_shared.utils.time as time_utils
-
+from wps_shared.tests.common import default_mock_client_get
 
 noon = time_utils.get_utc_now().replace(hour=20, minute=0, second=0, microsecond=0)
 weather_date = noon - timedelta(days=2)
@@ -18,7 +18,9 @@ mock_tmps = [20, 21, 22]
 mock_rhs = [50, 51, 52]
 
 
-def mock_query_noon_forecast_records(session: Session, station_codes: StationCodeList, start_date: datetime, end_date: datetime):
+def mock_query_noon_forecast_records(
+    session: Session, station_codes: StationCodeList, start_date: datetime, end_date: datetime
+):
     """Mock some noon forecasts"""
     forecasts = []
     weather_values = []
@@ -27,18 +29,36 @@ def mock_query_noon_forecast_records(session: Session, station_codes: StationCod
 
     for code in [209, 322]:
         for value in weather_values:
-            forecasts.append(NoonForecast(station_code=code, weather_date=weather_date, created_at=time_utils.get_utc_now(), temperature=value["tmp"], relative_humidity=value["rh"]))
+            forecasts.append(
+                NoonForecast(
+                    station_code=code,
+                    weather_date=weather_date,
+                    created_at=time_utils.get_utc_now(),
+                    temperature=value["tmp"],
+                    relative_humidity=value["rh"],
+                )
+            )
     return forecasts
 
 
-@pytest.mark.parametrize("codes,status,num_summaries", [([999], 200, 0), ([322], 200, 1), ([322, 838], 200, 2)])
+@pytest.mark.parametrize(
+    "codes,status,num_summaries", [([999], 200, 0), ([322], 200, 1), ([322, 838], 200, 2)]
+)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_noon_forecast_summaries(codes, status, num_summaries, monkeypatch):
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
-    monkeypatch.setattr(app.forecasts.noon_forecasts_summaries, "query_noon_forecast_records", mock_query_noon_forecast_records)
+    monkeypatch.setattr(
+        app.forecasts.noon_forecasts_summaries,
+        "query_noon_forecast_records",
+        mock_query_noon_forecast_records,
+    )
     client = TestClient(app.main.app)
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
-    response = client.post("/api/forecasts/noon/summaries/", headers={"Authorization": "Bearer token"}, json={"stations": codes})
+    response = client.post(
+        "/api/forecasts/noon/summaries/",
+        headers={"Authorization": "Bearer token"},
+        json={"stations": codes},
+    )
     assert response.status_code == status
     assert len(response.json()["summaries"]) == num_summaries
 
@@ -55,4 +75,12 @@ def test_noon_forecast_summaries(codes, status, num_summaries, monkeypatch):
     if len(result["summaries"]) == 1:
         summary = result["summaries"][0]
         assert summary["station"]["code"] == codes[0]
-        assert summary["values"] == [{"datetime": weather_date.isoformat().replace("+00:00", "Z"), "tmp_min": tmp_min, "tmp_max": tmp_max, "rh_min": rh_min, "rh_max": rh_max}]
+        assert summary["values"] == [
+            {
+                "datetime": weather_date.isoformat().replace("+00:00", "Z"),
+                "tmp_min": tmp_min,
+                "tmp_max": tmp_max,
+                "rh_min": rh_min,
+                "rh_max": rh_max,
+            }
+        ]

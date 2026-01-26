@@ -1,30 +1,33 @@
 """Code for fetching data for API."""
 
-from itertools import groupby
-import logging
-from typing import List
 import datetime
-from datetime import time
-from time import perf_counter
+import logging
 from collections import defaultdict
+from datetime import time
+from itertools import groupby
+from time import perf_counter
+from typing import List
+
+from aiohttp import ClientSession, TCPConnector
 from sqlalchemy.orm import Session
+
 import wps_shared.db.database
-from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
-from wps_shared.schemas.weather_models import (
-    WeatherStationModelPredictionValues,
-    WeatherModelPredictionValues,
-    WeatherModelRun,
-    ModelRunPredictions,
-    WeatherStationModelRunsPredictions,
-)
-from wps_shared.db.models.weather_models import WeatherStationModelPrediction
 from wps_shared.db.crud.weather_models import (
     get_latest_station_model_prediction_per_day,
-    get_station_model_predictions,
-    get_station_model_prediction_from_previous_model_run,
     get_latest_station_prediction,
+    get_station_model_prediction_from_previous_model_run,
+    get_station_model_predictions,
 )
-import wps_shared.stations
+from wps_shared.db.models.weather_models import WeatherStationModelPrediction
+from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
+from wps_shared.schemas.stations import WeatherStation
+from wps_shared.schemas.weather_models import (
+    ModelRunPredictions,
+    WeatherModelPredictionValues,
+    WeatherModelRun,
+    WeatherStationModelPredictionValues,
+    WeatherStationModelRunsPredictions,
+)
 from wps_shared.utils.time import get_days_from_range, vancouver_tz
 from wps_shared.weather_models import ModelEnum
 
@@ -62,8 +65,11 @@ def _fetch_delta_precip_for_prev_model_run(
     return None
 
 
-async def fetch_model_run_predictions_by_station_code(
-    model: ModelEnum, station_codes: List[int], time_of_interest: datetime
+def fetch_model_run_predictions_by_station_code(
+    model: ModelEnum,
+    station_codes: List[int],
+    time_of_interest: datetime,
+    all_stations: List[WeatherStation],
 ) -> List[WeatherStationModelRunsPredictions]:
     """Fetch model predictions from database based on list of station codes, for a specified datetime.
     Predictions are grouped by station and model run.
@@ -71,16 +77,17 @@ async def fetch_model_run_predictions_by_station_code(
     # We're interested in the 5 days prior to and 10 days following the time_of_interest.
     start_date = time_of_interest - datetime.timedelta(days=5)
     end_date = time_of_interest + datetime.timedelta(days=10)
-    return await fetch_model_run_predictions_by_station_code_and_date_range(
-        model, station_codes, start_date, end_date
+    return fetch_model_run_predictions_by_station_code_and_date_range(
+        model, station_codes, start_date, end_date, all_stations
     )
 
 
-async def fetch_model_run_predictions_by_station_code_and_date_range(
+def fetch_model_run_predictions_by_station_code_and_date_range(
     model: ModelEnum,
     station_codes: List[int],
     start_time: datetime.datetime,
     end_time: datetime.datetime,
+    all_stations: List[WeatherStation],
 ) -> List[WeatherStationModelRunsPredictions]:
     """Fetch model predictions from database based on list of station codes and date range.
     Predictions are grouped by station and model run.
@@ -91,21 +98,19 @@ async def fetch_model_run_predictions_by_station_code_and_date_range(
             session, station_codes, model, start_time, end_time
         )
 
-        return await marshall_predictions(session, model, station_codes, historic_predictions)
+        return marshall_predictions(session, model, historic_predictions, all_stations)
 
 
-async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
+def fetch_latest_daily_model_run_predictions_by_station_code_and_date_range(
     model: ModelEnum,
     station_codes: List[int],
     start_time: datetime.datetime,
     end_time: datetime.datetime,
+    all_stations: List[WeatherStation],
 ) -> List[WeatherStationModelRunsPredictions]:
     results = []
     days = get_days_from_range(start_time, end_time)
-    stations = {
-        station.code: station
-        for station in await wps_shared.stations.get_stations_by_codes(station_codes)
-    }
+    stations = {station.code: station for station in all_stations}
 
     with wps_shared.db.database.get_read_session_scope() as session:
         for day in days:
@@ -159,19 +164,16 @@ async def fetch_latest_daily_model_run_predictions_by_station_code_and_date_rang
         return results
 
 
-async def fetch_latest_model_run_predictions_by_station_code_and_date_range(
+def fetch_latest_model_run_predictions_by_station_code_and_date_range(
     session: Session,
-    station_codes: List[int],
+    all_stations: List[WeatherStation],
     start_time: datetime.datetime,
     end_time: datetime.datetime,
 ) -> List[WeatherIndeterminate]:
     cffdrs_start = perf_counter()
     results: List[WeatherIndeterminate] = []
     days = get_days_from_range(start_time, end_time)
-    stations = {
-        station.code: station
-        for station in await wps_shared.stations.get_stations_by_codes(station_codes)
-    }
+    stations = {station.code: station for station in all_stations}
     active_station_codes = stations.keys()
     for day in days:
         day_start = datetime.datetime.combine(day, time.min, tzinfo=vancouver_tz)
@@ -251,7 +253,7 @@ def post_process_fetched_predictions(weather_indeterminates: List[WeatherIndeter
     return results
 
 
-async def marshall_predictions(session: Session, model: ModelEnum, station_codes: List[int], query):
+def marshall_predictions(session: Session, model: ModelEnum, query, all_stations):
     station_predictions = defaultdict(dict)
 
     for prediction, prediction_model_run_timestamp, prediction_model in query:
@@ -296,10 +298,7 @@ async def marshall_predictions(session: Session, model: ModelEnum, station_codes
 
     # Re-structure the data, grouping data by station and model run.
     # NOTE: It means looping through twice, but the code reads easier this way.
-    stations = {
-        station.code: station
-        for station in await wps_shared.stations.get_stations_by_codes(station_codes)
-    }
+    stations = {station.code: station for station in all_stations}
     response = []
     for station_code, predictions in station_predictions.items():
         model_run_dict = {}
