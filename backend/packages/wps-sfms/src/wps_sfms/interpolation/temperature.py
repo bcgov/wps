@@ -17,7 +17,6 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_sfms.interpolation.common import (
     log_interpolation_stats,
-    save_raster_to_geotiff,
 )
 
 logger = logging.getLogger(__name__)
@@ -120,7 +119,13 @@ def interpolate_temperature_to_raster(
             total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count
         )
 
-        save_raster_to_geotiff(temp_array, geo_transform, projection, output_path)
+        WPSDataset.from_array(
+            array=temp_array,
+            geotransform=geo_transform,
+            projection=projection,
+            nodata_value=-9999.0,
+            datatype=gdal.GDT_Float32,
+        ).export_to_geotiff(output_path)
 
         logger.info("Temperature interpolation complete: %s", output_path)
         return output_path

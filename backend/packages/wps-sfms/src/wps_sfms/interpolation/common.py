@@ -4,9 +4,6 @@ Common utilities for SFMS interpolation modules.
 
 import logging
 
-import numpy as np
-from osgeo import gdal
-from wps_shared.geospatial.wps_dataset import WPSDataset
 
 logger = logging.getLogger(__name__)
 
@@ -47,31 +44,3 @@ def log_interpolation_stats(
         logger.warning(
             "WARNING: No pixels were successfully interpolated! Check station locations and coordinate system."
         )
-
-
-def save_raster_to_geotiff(
-    array: np.ndarray,
-    geo_transform: tuple,
-    projection: str,
-    output_path: str,
-    nodata_value: float = -9999.0,
-) -> None:
-    """
-    Save a numpy array as a GeoTIFF file.
-
-    :param array: 2D numpy array of values
-    :param geo_transform: GDAL geotransform tuple
-    :param projection: WKT projection string
-    :param output_path: Path to write output GeoTIFF
-    :param nodata_value: NoData value for the raster
-    """
-    output_ds = WPSDataset.from_array(
-        array=array,
-        geotransform=geo_transform,
-        projection=projection,
-        nodata_value=nodata_value,
-        datatype=gdal.GDT_Float32,
-    )
-
-    with output_ds:
-        output_ds.export_to_geotiff(output_path)

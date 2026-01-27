@@ -10,7 +10,7 @@ from wps_sfms.interpolation.source import (
 )
 from wps_sfms.interpolation.temperature import interpolate_temperature_to_raster
 from wps_sfms.interpolation.precipitation import interpolate_to_raster
-from wps_sfms.interpolation.common import log_interpolation_stats, save_raster_to_geotiff
+from wps_sfms.interpolation.common import log_interpolation_stats
 
 __all__ = [
     "LAPSE_RATE",
@@ -20,5 +20,4 @@ __all__ = [
     "interpolate_temperature_to_raster",
     "interpolate_to_raster",
     "log_interpolation_stats",
-    "save_raster_to_geotiff",
 ]
