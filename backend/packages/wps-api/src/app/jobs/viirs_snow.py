@@ -222,12 +222,15 @@ class ViirsSnowJob:
                 max_zoom=SNOW_COVERAGE_PMTILES_MAX_ZOOM,
             )
 
-            key = get_pmtiles_filepath(for_date, pmtiles_filename)
-            logger.info(f"Uploading snow coverage file {pmtiles_filename} to {key}")
-
-            async with S3Client() as s3_client, aiofiles.open(temp_pmtiles_filepath, "rb") as f:
+            async with (
+                get_client() as (client, bucket),
+                aiofiles.open(temp_pmtiles_filepath, "rb") as f,
+            ):
+                key = get_pmtiles_filepath(for_date, pmtiles_filename)
+                logger.info(f"Uploading snow coverage file {pmtiles_filename} to {key}")
                 contents = await f.read()
-                await s3_client.put_object(
+                await client.put_object(
+                    Bucket=bucket,
                     Key=key,
                     ACL=SNOW_COVERAGE_PMTILES_PERMISSIONS,  # We need these to be accessible to everyone
                     Body=contents,
