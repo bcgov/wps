@@ -101,8 +101,6 @@ def create_interpolation_job_mocks(
     mock_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/output.tif")
     mocker.patch(f"{module_path}.{processor_class.__name__}", return_value=mock_processor)
 
-    mocker.patch(f"{module_path}.send_rocketchat_notification", return_value=None)
-
     return MockDependencies(
         session=session_mock,
         processor=mock_processor,

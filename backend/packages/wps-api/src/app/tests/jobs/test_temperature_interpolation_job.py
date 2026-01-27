@@ -17,7 +17,7 @@ from app.tests.conftest import create_interpolation_job_mocks, create_mock_sfms_
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_sfms.processors import TemperatureInterpolationProcessor
 
-MODULE_PATH = "app.jobs.temperature_interpolation_job"
+MODULE_PATH = TemperatureInterpolationJob.__module__
 
 
 @pytest.fixture
@@ -90,17 +90,15 @@ class TestTemperatureInterpolationJob:
         assert captured_datetime.second == 0
 
     @pytest.mark.anyio
-    async def test_run_failure_sends_rocketchat(self, mocker: MockerFixture):
-        """Test that failure sends rocketchat notification."""
+    async def test_run_failure_logs_error(self, mocker: MockerFixture):
+        """Test that failure logs an error message."""
         # Mock to raise an exception
         mocker.patch(
-            "app.jobs.temperature_interpolation_job.S3Client",
+            f"{MODULE_PATH}.S3Client",
             side_effect=Exception("S3 connection failed"),
         )
 
-        rocketchat_spy = mocker.patch(
-            "app.jobs.temperature_interpolation_job.send_rocketchat_notification"
-        )
+        mock_logger = mocker.patch(f"{MODULE_PATH}.logger")
 
         job = TemperatureInterpolationJob()
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
@@ -108,10 +106,8 @@ class TestTemperatureInterpolationJob:
         with pytest.raises(Exception, match="S3 connection failed"):
             await job.run(target_date)
 
-        rocketchat_spy.assert_called_once()
-        call_args = rocketchat_spy.call_args
-        assert ":scream:" in call_args[0][0]
-        assert "Temperature interpolation job failed" in call_args[0][0]
+        mock_logger.error.assert_called_once()
+        assert "Temperature interpolation job failed" in mock_logger.error.call_args[0][0]
 
     @pytest.mark.anyio
     async def test_run_raises_on_empty_actuals(self, mocker: MockerFixture, mock_s3_client):
@@ -150,10 +146,6 @@ class TestTemperatureInterpolationJob:
         mocker.patch(
             "app.jobs.temperature_interpolation_job.RasterKeyAddresser",
             return_value=mock_addresser,
-        )
-
-        mocker.patch(
-            "app.jobs.temperature_interpolation_job.send_rocketchat_notification"
         )
 
         job = TemperatureInterpolationJob()
@@ -292,10 +284,6 @@ class TestTemperatureInterpolationJobIntegration:
         mocker.patch(
             "app.jobs.temperature_interpolation_job.TemperatureInterpolationProcessor",
             return_value=mock_processor,
-        )
-
-        mocker.patch(
-            "app.jobs.temperature_interpolation_job.send_rocketchat_notification"
         )
 
         job = TemperatureInterpolationJob()

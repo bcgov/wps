@@ -20,7 +20,6 @@ from wps_sfms.interpolation import StationTemperatureSource
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.wps_logging import configure_logging
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.time import get_utc_now
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
@@ -95,8 +94,6 @@ class TemperatureInterpolationJob:
 
         except Exception as e:
             logger.error("Temperature interpolation job failed", exc_info=e)
-            rc_message = ":scream: Temperature interpolation job failed"
-            send_rocketchat_notification(rc_message, e)
             raise
 
 
