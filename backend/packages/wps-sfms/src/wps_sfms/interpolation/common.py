@@ -7,6 +7,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+SFMS_NO_DATA = -3.4028235e+38
+
 
 def log_interpolation_stats(
     total_pixels: int,

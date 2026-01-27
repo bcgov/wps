@@ -13,6 +13,7 @@ from osgeo import gdal
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_sfms.interpolation.common import (
+    SFMS_NO_DATA,
     log_interpolation_stats,
 )
 
@@ -80,7 +81,7 @@ def interpolate_to_raster(
         )
         assert isinstance(interpolated_values, np.ndarray)
 
-        precip_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
+        precip_array = np.full((y_size, x_size), SFMS_NO_DATA, dtype=np.float32)
 
         interpolation_succeeded = ~np.isnan(interpolated_values)
         interpolated_count = int(np.sum(interpolation_succeeded))
@@ -97,7 +98,7 @@ def interpolate_to_raster(
             array=precip_array,
             geotransform=geo_transform,
             projection=projection,
-            nodata_value=-9999.0,
+            nodata_value=SFMS_NO_DATA,
             datatype=gdal.GDT_Float32,
         ).export_to_geotiff(output_path)
 

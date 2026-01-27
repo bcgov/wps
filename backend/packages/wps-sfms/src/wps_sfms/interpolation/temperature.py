@@ -15,6 +15,7 @@ from wps_sfms.interpolation.source import StationTemperatureSource
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_sfms.interpolation.common import (
+    SFMS_NO_DATA,
     log_interpolation_stats,
 )
 
@@ -59,7 +60,7 @@ def interpolate_temperature_to_raster(
             if dem_data is None:
                 raise ValueError("Failed to read DEM data")
 
-            temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
+            temp_array = np.full((y_size, x_size), SFMS_NO_DATA, dtype=np.float32)
 
             # Use BC mask to determine valid pixels
             with WPSDataset(mask_path) as mask_ds:
@@ -118,7 +119,7 @@ def interpolate_temperature_to_raster(
             array=temp_array,
             geotransform=geo_transform,
             projection=projection,
-            nodata_value=-9999.0,
+            nodata_value=SFMS_NO_DATA,
             datatype=gdal.GDT_Float32,
         ).export_to_geotiff(output_path)
 
