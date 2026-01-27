@@ -138,10 +138,10 @@ class StationPrecipitationSource(StationInterpolationSource):
         self, sfms_actuals: List[SFMSDailyActual]
     ) -> Tuple[List[float], List[float], List[float]]:
         """
-        Extract lat, lon, and precipitation for stations with valid data.
+        Extract lat, lon, and precipitation for daily actuals with valid data.
 
-        :param stations: List of StationPrecipitation objects
-        :return: Tuple of (lats, lons, values) for stations with valid precipitation
+        :param sfms_actuals: List of SFMSDailyActual objects
+        :return: Tuple of (lats, lons, values) for daily actuals with valid precipitation
         """
         valid = [s for s in sfms_actuals if s.precipitation is not None]
         return (
