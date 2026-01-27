@@ -9,7 +9,6 @@ This module implements the SFMS temperature interpolation workflow:
 """
 
 import logging
-from typing import Optional
 import numpy as np
 from osgeo import gdal
 from wps_sfms.interpolation.source import StationTemperatureSource
@@ -31,7 +30,7 @@ def interpolate_temperature_to_raster(
     reference_raster_path: str,
     dem_path: str,
     output_path: str,
-    mask_path: Optional[str] = None,
+    mask_path: str,
 ) -> str:
     """
     Interpolate station temperatures to a raster using IDW and elevation adjustment.
@@ -40,7 +39,7 @@ def interpolate_temperature_to_raster(
     :param reference_raster_path: Path to reference raster (defines grid)
     :param dem_path: Path to DEM raster for elevation adjustment
     :param output_path: Path to write output temperature raster
-    :param mask_path: Optional path to mask raster (0 = masked, non-zero = valid)
+    :param mask_path: Path to BC mask raster (0 = masked, non-zero = valid)
     :return: Path to output raster
     """
 
@@ -62,13 +61,9 @@ def interpolate_temperature_to_raster(
 
             temp_array = np.full((y_size, x_size), -9999.0, dtype=np.float32)
 
-            valid_mask = dem_ds.get_valid_mask()
-
-            # Apply BC mask if provided
-            if mask_path is not None:
-                with WPSDataset(mask_path) as mask_ds:
-                    bc_mask = ref_ds.apply_mask(mask_ds)
-                    valid_mask = valid_mask & bc_mask
+            # Use BC mask to determine valid pixels
+            with WPSDataset(mask_path) as mask_ds:
+                valid_mask = ref_ds.apply_mask(mask_ds)
 
             lats, lons, valid_yi, valid_xi = dem_ds.get_lat_lon_coords(valid_mask)
             valid_elevations = dem_data[valid_mask]

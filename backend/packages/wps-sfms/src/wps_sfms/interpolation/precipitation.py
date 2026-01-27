@@ -7,7 +7,7 @@ This module implements the SFMS weather interpolation workflow:
 """
 
 import logging
-from typing import List, Optional
+from typing import List
 import numpy as np
 from osgeo import gdal
 from wps_shared.geospatial.wps_dataset import WPSDataset
@@ -25,7 +25,7 @@ def interpolate_to_raster(
     station_values: List[float],
     reference_raster_path: str,
     output_path: str,
-    mask_path: Optional[str] = None,
+    mask_path: str,
 ) -> str:
     """
     Interpolate station weather data to a raster using IDW.
@@ -35,7 +35,7 @@ def interpolate_to_raster(
     :param station_values: List of weather values
     :param reference_raster_path: Path to reference raster (defines grid)
     :param output_path: Path to write output weather raster
-    :param mask_path: Optional path to mask raster (0 = masked, non-zero = valid)
+    :param mask_path: Path to BC mask raster (0 = masked, non-zero = valid)
     :return: Path to output raster
     """
     logger.info("Starting interpolation for %d stations", len(station_lats))
@@ -50,14 +50,9 @@ def interpolate_to_raster(
         x_size = ref_ds.ds.RasterXSize
         y_size = ref_ds.ds.RasterYSize
 
-        # Build valid mask from reference raster's nodata
-        valid_mask = ref_ds.get_valid_mask()
-
-        # Apply BC mask if provided
-        if mask_path is not None:
-            with WPSDataset(mask_path) as mask_ds:
-                bc_mask = ref_ds.apply_mask(mask_ds)
-                valid_mask = valid_mask & bc_mask
+        # Use BC mask to determine valid pixels
+        with WPSDataset(mask_path) as mask_ds:
+            valid_mask = ref_ds.apply_mask(mask_ds)
 
         lats, lons, valid_yi, valid_xi = ref_ds.get_lat_lon_coords(valid_mask)
 

@@ -84,14 +84,15 @@ class TestInterpolateTemperatureToRaster:
         test_id = uuid.uuid4().hex
         ref_path = f"/vsimem/reference_{test_id}.tif"
         dem_path = f"/vsimem/dem_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
         output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             extent = (-123.1, -123.0, 49.0, 49.1)
-            # Create reference and DEM rasters
+            # Create reference, DEM, and mask rasters
             create_test_raster(ref_path, 10, 10, extent, fill_value=1.0)
-            # DEM with uniform 100m elevation
             create_test_raster(dem_path, 10, 10, extent, fill_value=100.0)
+            create_test_raster(mask_path, 10, 10, extent, fill_value=1.0)
 
             # Create stations within extent
             actuals = create_test_actuals(
@@ -107,6 +108,7 @@ class TestInterpolateTemperatureToRaster:
                 ref_path,
                 dem_path,
                 output_path,
+                mask_path=mask_path,
             )
 
             assert result == output_path
@@ -125,23 +127,26 @@ class TestInterpolateTemperatureToRaster:
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
+            gdal.Unlink(mask_path)
             gdal.Unlink(output_path)
 
-    def test_interpolate_skips_nodata_cells(self):
-        """Test that cells with NoData elevation are skipped."""
+    def test_interpolate_skips_masked_cells(self):
+        """Test that cells masked out by BC mask are skipped."""
         test_id = uuid.uuid4().hex
         ref_path = f"/vsimem/reference_{test_id}.tif"
         dem_path = f"/vsimem/dem_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
         output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             extent = (-123.1, -123.0, 49.0, 49.1)
             create_test_raster(ref_path, 5, 5, extent, fill_value=1.0)
+            create_test_raster(dem_path, 5, 5, extent, fill_value=100.0)
 
-            # DEM with one NoData cell
-            dem_data = np.full((5, 5), 100.0)
-            dem_data[2, 2] = -9999.0  # NoData cell
-            create_test_raster(dem_path, 5, 5, extent, data=dem_data)
+            # Mask with one masked-out cell
+            mask_data = np.full((5, 5), 1.0)
+            mask_data[2, 2] = 0.0  # Masked cell
+            create_test_raster(mask_path, 5, 5, extent, data=mask_data)
 
             actuals = create_test_actuals(
                 lats=[49.05],
@@ -156,11 +161,12 @@ class TestInterpolateTemperatureToRaster:
                 ref_path,
                 dem_path,
                 output_path,
+                mask_path=mask_path,
             )
 
             assert result == output_path
 
-            # Verify the NoData cell in DEM results in NoData in output
+            # Verify the masked cell results in NoData in output
             ds = gdal.Open(output_path)
             data = ds.GetRasterBand(1).ReadAsArray()
             nodata = ds.GetRasterBand(1).GetNoDataValue()
@@ -169,12 +175,13 @@ class TestInterpolateTemperatureToRaster:
             assert data[2, 2] == nodata
             # Other cells should have values
             valid_count = np.sum(data != nodata)
-            assert valid_count == 24, "Expected 24 valid cells (25 - 1 nodata)"
+            assert valid_count == 24, "Expected 24 valid cells (25 - 1 masked)"
 
             ds = None
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
+            gdal.Unlink(mask_path)
             gdal.Unlink(output_path)
 
     def test_interpolate_with_elevation_adjustment(self):
@@ -182,11 +189,13 @@ class TestInterpolateTemperatureToRaster:
         test_id = uuid.uuid4().hex
         ref_path = f"/vsimem/reference_{test_id}.tif"
         dem_path = f"/vsimem/dem_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
         output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             extent = (-123.1, -123.0, 49.0, 49.1)
             create_test_raster(ref_path, 5, 5, extent, fill_value=1.0)
+            create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
 
             # DEM with varying elevation
             dem_data = np.full((5, 5), 100.0)
@@ -209,6 +218,7 @@ class TestInterpolateTemperatureToRaster:
                 ref_path,
                 dem_path,
                 output_path,
+                mask_path=mask_path,
             )
 
             assert result == output_path
@@ -233,6 +243,7 @@ class TestInterpolateTemperatureToRaster:
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
+            gdal.Unlink(mask_path)
             gdal.Unlink(output_path)
 
     def test_output_preserves_reference_properties(self):
@@ -240,12 +251,14 @@ class TestInterpolateTemperatureToRaster:
         test_id = uuid.uuid4().hex
         ref_path = f"/vsimem/reference_{test_id}.tif"
         dem_path = f"/vsimem/dem_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
         output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             extent = (-123.1, -123.0, 49.0, 49.1)
             create_test_raster(ref_path, 8, 6, extent, fill_value=1.0)
             create_test_raster(dem_path, 8, 6, extent, fill_value=100.0)
+            create_test_raster(mask_path, 8, 6, extent, fill_value=1.0)
 
             actuals = create_test_actuals(
                 lats=[49.05],
@@ -260,6 +273,7 @@ class TestInterpolateTemperatureToRaster:
                 ref_path,
                 dem_path,
                 output_path,
+                mask_path=mask_path,
             )
 
             ref_ds = gdal.Open(ref_path)
@@ -280,4 +294,5 @@ class TestInterpolateTemperatureToRaster:
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
+            gdal.Unlink(mask_path)
             gdal.Unlink(output_path)

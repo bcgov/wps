@@ -48,12 +48,15 @@ class TestInterpolateToRaster:
         """Test that interpolation creates an output raster with interpolated values."""
         test_id = uuid.uuid4().hex
         ref_path = f"/vsimem/reference_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
         output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             # Create a small reference raster centered near Vancouver
             # Extent covers roughly 49.0-49.1 lat, -123.1 to -123.0 lon
-            create_test_raster(ref_path, 10, 10, (-123.1, -123.0, 49.0, 49.1), epsg=4326)
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            create_test_raster(ref_path, 10, 10, extent, epsg=4326)
+            create_test_raster(mask_path, 10, 10, extent, epsg=4326)
 
             # Station data within the raster extent
             station_lats = [49.05, 49.08]
@@ -66,6 +69,7 @@ class TestInterpolateToRaster:
                 station_values,
                 ref_path,
                 output_path,
+                mask_path=mask_path,
             )
 
             assert result == output_path
@@ -92,16 +96,20 @@ class TestInterpolateToRaster:
             ds = None
         finally:
             gdal.Unlink(ref_path)
+            gdal.Unlink(mask_path)
             gdal.Unlink(output_path)
 
     def test_zero_values_interpolated_correctly(self):
         """Test that zero precipitation values are interpolated as 0.0, not nodata."""
         test_id = uuid.uuid4().hex
         ref_path = f"/vsimem/reference_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
         output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
-            create_test_raster(ref_path, 5, 5, (-123.1, -123.0, 49.0, 49.1), epsg=4326)
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            create_test_raster(ref_path, 5, 5, extent, epsg=4326)
+            create_test_raster(mask_path, 5, 5, extent, epsg=4326)
 
             # All stations have zero precipitation
             station_lats = [49.05, 49.08]
@@ -114,6 +122,7 @@ class TestInterpolateToRaster:
                 station_values,
                 ref_path,
                 output_path,
+                mask_path=mask_path,
             )
 
             assert result == output_path
@@ -130,16 +139,20 @@ class TestInterpolateToRaster:
             ds = None
         finally:
             gdal.Unlink(ref_path)
+            gdal.Unlink(mask_path)
             gdal.Unlink(output_path)
 
     def test_single_station_interpolation(self):
         """Test interpolation with a single station."""
         test_id = uuid.uuid4().hex
         ref_path = f"/vsimem/reference_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
         output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
-            create_test_raster(ref_path, 5, 5, (-123.1, -123.0, 49.0, 49.1), epsg=4326)
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            create_test_raster(ref_path, 5, 5, extent, epsg=4326)
+            create_test_raster(mask_path, 5, 5, extent, epsg=4326)
 
             # Single station
             station_lats = [49.05]
@@ -152,6 +165,7 @@ class TestInterpolateToRaster:
                 station_values,
                 ref_path,
                 output_path,
+                mask_path=mask_path,
             )
 
             assert result == output_path
@@ -168,17 +182,20 @@ class TestInterpolateToRaster:
             ds = None
         finally:
             gdal.Unlink(ref_path)
+            gdal.Unlink(mask_path)
             gdal.Unlink(output_path)
 
     def test_output_preserves_reference_properties(self):
         """Test that output raster preserves reference raster properties."""
         test_id = uuid.uuid4().hex
         ref_path = f"/vsimem/reference_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
         output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             extent = (-123.1, -123.0, 49.0, 49.1)
             create_test_raster(ref_path, 8, 6, extent, epsg=4326)
+            create_test_raster(mask_path, 8, 6, extent, epsg=4326)
 
             station_lats = [49.05]
             station_lons = [-123.05]
@@ -190,6 +207,7 @@ class TestInterpolateToRaster:
                 station_values,
                 ref_path,
                 output_path,
+                mask_path=mask_path,
             )
 
             ref_ds = gdal.Open(ref_path)
@@ -209,4 +227,5 @@ class TestInterpolateToRaster:
             out_ds = None
         finally:
             gdal.Unlink(ref_path)
+            gdal.Unlink(mask_path)
             gdal.Unlink(output_path)
