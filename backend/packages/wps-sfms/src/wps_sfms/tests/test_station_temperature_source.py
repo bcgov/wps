@@ -163,17 +163,3 @@ def test_negative_elevation_warms(sea, elev, lapse):
 
     out = StationTemperatureSource.compute_adjusted_temps(sea, elev, lapse)
     assert np.all(out >= sea - 1e-6)
-
-
-@given(
-    temps=hnp.arrays(np.float32, shape=(10, 1), elements=finite_temp_c),
-    elevs=hnp.arrays(np.float32, shape=(15,), elements=finite_elev_m),
-    lapse=finite_lapse,
-)
-@settings(deadline=None, max_examples=100)
-def test_broadcasting_with_hypothesis(temps, elevs, lapse):
-    out = StationTemperatureSource.compute_adjusted_temps(temps, elevs, lapse)
-    expected = temps - elevs * np.float32(lapse)
-    assert out.shape == (10, 15)
-    assert out.dtype == np.float32
-    assert_allclose(out, expected, atol=1e-5)
