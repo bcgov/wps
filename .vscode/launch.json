@@ -51,6 +51,14 @@
             "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
+            "name": "VIIRS Snow Job",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.viirs_snow",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
+        },
+        {
             "name": "backup unit tests",
             "type": "debugpy",
             "request": "launch",

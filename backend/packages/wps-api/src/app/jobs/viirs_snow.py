@@ -45,6 +45,17 @@ BBOX = (-139.06, 48.3, -114.03, 60.0)
 COMPRESS = "LZW"
 
 
+class NoGranulesException(Exception):
+    """
+    Raise No Granules Exception when no snow data available for a date
+
+    """
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
 def get_pmtiles_filepath(for_date: date, filename: str) -> str:
     """
     Returns the S3 storage key for storing the snow coverage pmtiles for the given date and file name.
@@ -103,9 +114,7 @@ class ViirsSnowJob:
             count=500,
         )
         if not granules:
-            raise SystemExit(
-                "No granules found for the given time/bbox. Try a different date range."
-            )
+            raise NoGranulesException(f"No granules found for {for_date}. Exiting snow processing.")
 
         # ---------- download ----------
         downloaded = ea.download(granules, path)
@@ -334,7 +343,6 @@ class ViirsSnowJob:
         :type path: str
         """
         with tempfile.TemporaryDirectory() as sub_dir:
-            sub_dir = "./temp"
             h5_dir = os.path.join(sub_dir, "h5")
             h5_paths = self._download_viirs_granules_by_date(for_date, h5_dir)
             self._convert_h5_to_tif(sub_dir, h5_paths)
@@ -386,9 +394,6 @@ class ViirsSnowJob:
         Args:
             next_date (date): The first date at which to start processing snow.
             end_date (date): The last date to process snow for.
-
-        Raises:
-            http_error: Missing snow data results in a 501 error which is logged and swallowed. All other HTTP errors are surfaced.
         """
         if next_date is None:
             logger.warning(" The start_date is required to process viirs snow.")
@@ -410,31 +415,18 @@ class ViirsSnowJob:
                 tz_aware_datetime = datetime.combine(
                     next_date, datetime.min.time(), tzinfo=vancouver_tz
                 )
-                try:
-                    await self._process_viirs_snow(next_date, temp_dir)
-                    async with get_async_write_session_scope() as session:
-                        processed_snow = ProcessedSnow(
-                            for_date=tz_aware_datetime,
-                            processed_date=today_datetime,
-                            snow_source=SnowSourceEnum.viirs,
-                        )
-                        await save_processed_snow(session, processed_snow)
-                    logger.info(
-                        f"Successfully processed VIIRS snow coverage data for date: {date_string}"
+
+                await self._process_viirs_snow(next_date, temp_dir)
+                async with get_async_write_session_scope() as session:
+                    processed_snow = ProcessedSnow(
+                        for_date=tz_aware_datetime,
+                        processed_date=today_datetime,
+                        snow_source=SnowSourceEnum.viirs,
                     )
-                except requests.exceptions.HTTPError as http_error:
-                    # An HTTPError with status code of 501 means the VIIRS imagery for the date in question is not yet
-                    # available. Stop processing at the current date and exit the job. We'll try again later. This is
-                    # expected to occur and there is no need to send a notification to RocketChat.
-                    if http_error.response.status_code == 501:
-                        logger.info(
-                            f"VIIRS snow data is unavailable for date: {date_string}. Exiting job."
-                        )
-                        next_date = next_date + timedelta(days=1)
-                        continue
-                    else:
-                        # If a different HTTPError occurred re-raise and let the next exception handler send a notification to RocketChat.
-                        raise http_error
+                    await save_processed_snow(session, processed_snow)
+                logger.info(
+                    f"Successfully processed VIIRS snow coverage data for date: {date_string}"
+                )
                 next_date = next_date + timedelta(days=1)
 
     async def _run_viirs_snow(self, args: argparse.Namespace):
@@ -468,6 +460,10 @@ def main():
         loop.run_until_complete(bot._run_viirs_snow(args))
 
         # Exit with 0 - success.
+        sys.exit(os.EX_OK)
+    except NoGranulesException as no_granules_exception:
+        # This is an expected condition as availability of snow data sometimes lags by several days.
+        logger.warning(no_granules_exception.message)
         sys.exit(os.EX_OK)
     except Exception as exception:
         # Exit non 0 - failure.
