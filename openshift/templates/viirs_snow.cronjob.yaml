@@ -58,7 +58,16 @@ objects:
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
-                    ["uv", "run", "--package", "wps-api", "--no-sync", "python", "-m", "app.jobs.viirs_snow"]
+                    [
+                      "uv",
+                      "run",
+                      "--package",
+                      "wps-api",
+                      "--no-sync",
+                      "python",
+                      "-m",
+                      "app.jobs.viirs_snow",
+                    ]
                   env:
                     - name: UV_NO_CACHE
                       value: "1"
@@ -114,16 +123,16 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: rocket.chat-auth-token-secret
-                    - name: NASA_EARTHDATA_USER
+                    - name: EARTHDATA_USERNAME
                       valueFrom:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
-                          key: env.nasa-earthdata-user
-                    - name: NASA_EARTHDATA_PWD
+                          key: env.earthdata-username
+                    - name: EARTHDATA_PASSWORD
                       valueFrom:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
-                          key: nasa-earthdata-pwd
+                          key: earthdata-password
                     - name: OBJECT_STORE_SERVER
                       valueFrom:
                         secretKeyRef:
