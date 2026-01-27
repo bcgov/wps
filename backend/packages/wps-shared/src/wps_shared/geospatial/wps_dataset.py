@@ -1,3 +1,4 @@
+import uuid
 from contextlib import ExitStack, contextmanager
 from typing import Iterator, List, Optional, Tuple, Union
 from osgeo import gdal, osr
@@ -170,7 +171,7 @@ class WPSDataset:
     def warp_to_match(
         self,
         other: "WPSDataset",
-        output_path: str,
+        output_path: str | None = None,
         resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR,
         max_value: float | None = None,
     ):
@@ -182,6 +183,9 @@ class WPSDataset:
         :param resample_method: gdal resampling algorithm
         :return: warped raster dataset
         """
+        if output_path is None:
+            output_path = f"/vsimem/warp_{uuid.uuid4().hex}.tif"
+
         dest_geotransform = other.ds.GetGeoTransform()
         x_res = dest_geotransform[1]
         y_res = -dest_geotransform[5]
@@ -373,40 +377,37 @@ class WPSDataset:
         """
         Apply a mask from another dataset to get a valid mask array.
 
-        If the mask dataset's grid matches this dataset, it is used directly.
-        Otherwise, it is resampled using nearest neighbor interpolation.
+        The mask dataset's grid must match this dataset (size, geotransform, projection).
+        The caller is responsible for reprojecting the mask to match (see warp_to_match)
+        before calling this method.
         Pixels are valid where the mask value is non-zero and not nodata.
 
         :param mask_ds: WPSDataset containing mask (0 = masked, non-zero = valid)
         :return: Boolean array where True = valid, False = masked
+        :raises ValueError: If the mask grid does not match this dataset's grid
         """
-        grids_match = (
-            self.ds.RasterXSize == mask_ds.ds.RasterXSize
-            and self.ds.RasterYSize == mask_ds.ds.RasterYSize
-            and self.ds.GetGeoTransform() == mask_ds.ds.GetGeoTransform()
-            and self.ds.GetProjection() == mask_ds.ds.GetProjection()
-        )
+        mismatches = []
+        if self.ds.RasterXSize != mask_ds.ds.RasterXSize or self.ds.RasterYSize != mask_ds.ds.RasterYSize:
+            mismatches.append(
+                f"size: reference=({self.ds.RasterXSize}x{self.ds.RasterYSize}), "
+                f"mask=({mask_ds.ds.RasterXSize}x{mask_ds.ds.RasterYSize})"
+            )
+        if self.ds.GetGeoTransform() != mask_ds.ds.GetGeoTransform():
+            mismatches.append(
+                f"geotransform: reference={self.ds.GetGeoTransform()}, "
+                f"mask={mask_ds.ds.GetGeoTransform()}"
+            )
+        if self.ds.GetProjection() != mask_ds.ds.GetProjection():
+            mismatches.append("projection differs")
 
-        if grids_match:
-            mask_band: gdal.Band = mask_ds.ds.GetRasterBand(1)
-            mask_data = mask_band.ReadAsArray()
-            mask_nodata = mask_band.GetNoDataValue()
-        else:
-            import uuid
+        if mismatches:
+            raise ValueError(
+                "Mask grid does not match reference grid: " + "; ".join(mismatches)
+            )
 
-            vsimem_path = f"/vsimem/temp_mask_resample_{uuid.uuid4().hex}.tif"
-            try:
-                resampled_mask = mask_ds.warp_to_match(
-                    self, vsimem_path, resample_method=GDALResamplingMethod.NEAREST_NEIGHBOUR
-                )
-                mask_band: gdal.Band = resampled_mask.ds.GetRasterBand(1)
-                mask_data = mask_band.ReadAsArray()
-                mask_nodata = mask_band.GetNoDataValue()
-            finally:
-                try:
-                    gdal.Unlink(vsimem_path)
-                except RuntimeError:
-                    pass  # File doesn't exist or already cleaned up
+        mask_band: gdal.Band = mask_ds.ds.GetRasterBand(1)
+        mask_data = mask_band.ReadAsArray()
+        mask_nodata = mask_band.GetNoDataValue()
 
         # Mask is valid where value is non-zero and not nodata
         valid_mask = mask_data != 0

@@ -507,21 +507,15 @@ class TestApplyMask:
                 assert not np.any(result)
                 assert np.sum(result) == 0
 
-    def test_mask_resampled_when_grids_differ(self):
-        """Test that mask is resampled when grids don't match."""
+    def test_raises_when_grids_differ(self):
+        """Test that apply_mask raises ValueError when grids don't match."""
         ref_extent = (-1, 1, -1, 1)
-        mask_extent = (-2, 2, -2, 2)  # Larger extent
+        mask_extent = (-2, 2, -2, 2)
 
         ref_gdal_ds = create_test_dataset("ref.tif", 4, 4, ref_extent, 4326)
-
-        # Mask covers larger area but with all 1s (valid)
         mask_gdal_ds = create_test_dataset("mask.tif", 8, 8, mask_extent, 4326, fill_value=1)
 
         with WPSDataset(ds_path=None, ds=ref_gdal_ds) as ref_ds:
             with WPSDataset(ds_path=None, ds=mask_gdal_ds) as mask_ds:
-                result = ref_ds.apply_mask(mask_ds)
-
-                # Result should match reference grid size
-                assert result.shape == (4, 4)
-                # All should be valid since mask was all 1s
-                assert np.all(result)
+                with pytest.raises(ValueError, match="Mask grid does not match reference grid"):
+                    ref_ds.apply_mask(mask_ds)

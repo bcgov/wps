@@ -53,7 +53,7 @@ def interpolate_to_raster(
 
         # Use BC mask to determine valid pixels
         with WPSDataset(mask_path) as mask_ds:
-            valid_mask = ref_ds.apply_mask(mask_ds)
+            valid_mask = ref_ds.apply_mask(mask_ds.warp_to_match(ref_ds))
 
         lats, lons, valid_yi, valid_xi = ref_ds.get_lat_lon_coords(valid_mask)
 
