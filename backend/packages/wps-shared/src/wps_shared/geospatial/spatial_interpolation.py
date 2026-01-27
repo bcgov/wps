@@ -91,6 +91,12 @@ def idw_interpolation(
 
     # Validate input lengths
     if len(point_lats) != len(point_lons) or len(point_lats) != len(point_values):
+        logger.error(
+            "Input length mismatch: point_lats(%d), point_lons(%d), point_values(%d)",
+            len(point_lats),
+            len(point_lons),
+            len(point_values),
+        )
         return np.full(len(target_lat), np.nan) if is_batch else None
 
     # Filter out None/NaN values
