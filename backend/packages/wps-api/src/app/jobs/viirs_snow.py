@@ -10,6 +10,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import List
 
+import aiofiles
 import earthaccess as ea
 import numpy as np
 import rasterio
@@ -24,6 +25,7 @@ from wps_shared.geospatial.geospatial import SpatialReferenceSystem
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.polygonize import polygonize_in_memory
 from wps_shared.utils.s3 import get_client
+from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import vancouver_tz
 from wps_shared.wps_logging import configure_logging
 
@@ -220,17 +222,17 @@ class ViirsSnowJob:
                 max_zoom=SNOW_COVERAGE_PMTILES_MAX_ZOOM,
             )
 
-            async with get_client() as (client, bucket):
-                key = get_pmtiles_filepath(for_date, pmtiles_filename)
-                logger.info(f"Uploading snow coverage file {pmtiles_filename} to {key}")
+            key = get_pmtiles_filepath(for_date, pmtiles_filename)
+            logger.info(f"Uploading snow coverage file {pmtiles_filename} to {key}")
 
-                await client.put_object(
-                    Bucket=bucket,
+            async with S3Client() as s3_client, aiofiles.open(temp_pmtiles_filepath, "rb") as f:
+                contents = await f.read()
+                await s3_client.put_object(
                     Key=key,
                     ACL=SNOW_COVERAGE_PMTILES_PERMISSIONS,  # We need these to be accessible to everyone
-                    Body=open(temp_pmtiles_filepath, "rb"),
+                    Body=contents,
                 )
-                logger.info("Done uploading snow coverage file")
+            logger.info("Done uploading snow coverage file")
 
     def _convert_h5_to_tif(self, output_path: str, h5_paths: List[Path]):
         # ---------- helpers ----------
@@ -251,7 +253,7 @@ class ViirsSnowJob:
             """
             Open a HDF-EOS5 Data Field as a rasterio dataset via GDAL subdataset path.
             """
-            subds = f'HDF5:"./{path_h5}"://HDFEOS/GRIDS/VIIRS_Grid_IMG_2D/Data_Fields/{var_name}'
+            subds = f'HDF5:"{path_h5}"://HDFEOS/GRIDS/VIIRS_Grid_IMG_2D/Data_Fields/{var_name}'
             try:
                 ds = rasterio.open(subds)
             except Exception as e:
