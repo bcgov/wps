@@ -85,7 +85,7 @@ class StationTemperatureSource(StationInterpolationSource):
         return temps + elevs * np.float32(lapse_rate)
 
     @staticmethod
-    def compute_actual_temps(
+    def compute_adjusted_temps(
         sea: NDArray[np.float32], elev: NDArray[np.float32], lapse_rate: float
     ) -> NDArray[np.float32]:
         """
