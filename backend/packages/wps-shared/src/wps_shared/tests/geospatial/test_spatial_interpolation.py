@@ -63,7 +63,7 @@ class TestIDWInterpolation:
         assert result is None
 
     def test_mismatched_lengths(self):
-        """Test that IDW returns None with mismatched input lengths."""
+        """Test that mismatched input lengths returns None."""
         result = idw_interpolation(49.0, -123.0, [49.0], [-123.0, -124.0], [15.0])
         assert result is None
 

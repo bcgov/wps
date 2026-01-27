@@ -89,40 +89,26 @@ def idw_interpolation(
     """
     is_batch = isinstance(target_lat, np.ndarray)
 
-    # Validate input lengths
-    if len(point_lats) != len(point_lons) or len(point_lats) != len(point_values):
-        logger.error(
-            "Input length mismatch: point_lats(%d), point_lons(%d), point_values(%d)",
-            len(point_lats),
-            len(point_lons),
-            len(point_values),
-        )
-        return np.full(len(target_lat), np.nan) if is_batch else None
-
-    # Filter out None/NaN values
-    if isinstance(point_values, list):
-        valid_data = [
-            (lat, lon, val)
-            for lat, lon, val in zip(point_lats, point_lons, point_values)
-            if val is not None
-        ]
-        if not valid_data:
-            return np.full(len(target_lat), np.nan) if is_batch else None
-        point_lats_arr = np.array([d[0] for d in valid_data], dtype=np.float64)
-        point_lons_arr = np.array([d[1] for d in valid_data], dtype=np.float64)
-        point_values_arr = np.array([d[2] for d in valid_data], dtype=np.float64)
-    else:
-        point_lats_arr = np.asarray(point_lats, dtype=np.float64)
-        point_lons_arr = np.asarray(point_lons, dtype=np.float64)
-        point_values_arr = np.asarray(point_values, dtype=np.float64)
-        valid_mask = ~np.isnan(point_values_arr)
-        if not np.any(valid_mask):
-            return np.full(len(target_lat), np.nan) if is_batch else None
+    # Convert to arrays and filter out None/NaN values
+    point_lats_arr = np.asarray(point_lats, dtype=np.float64)
+    point_lons_arr = np.asarray(point_lons, dtype=np.float64)
+    point_values_arr = np.asarray(point_values, dtype=np.float64)
+    valid_mask = ~np.isnan(point_values_arr)
+    try:
         point_lats_arr = point_lats_arr[valid_mask]
         point_lons_arr = point_lons_arr[valid_mask]
         point_values_arr = point_values_arr[valid_mask]
+    except IndexError:
+        logger.error(
+            "Input length mismatch: point_lats(%d), point_lons(%d), point_values(%d)",
+            len(point_lats_arr),
+            len(point_lons_arr),
+            len(point_values_arr),
+        )
+        return np.full(len(target_lat), np.nan) if is_batch else None
 
-    if len(point_lats_arr) == 0:
+    if len(point_values_arr) == 0:
+        logger.error("All station values are None or NaN, cannot interpolate")
         return np.full(len(target_lat), np.nan) if is_batch else None
 
     # Prepare coordinates (radians for haversine)
