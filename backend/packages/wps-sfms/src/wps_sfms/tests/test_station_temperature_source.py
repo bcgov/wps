@@ -89,7 +89,7 @@ finite_lapse = st.floats(
     allow_nan=False,
     allow_infinity=False,
     min_value=1e-6,
-    max_value=0.02,  # 0.0065 is typical; keep positive
+    max_value=LAPSE_RATE,
 )
 
 
