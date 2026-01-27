@@ -273,12 +273,11 @@ class TestTemperatureInterpolationJobIntegration:
             return_value=2,
         )
 
-        mock_addresser = MagicMock()
-        mock_addresser.get_fuel_raster_key.return_value = "sfms/fuel/2024/07/04/fuel_v2.tif"
-        mock_addresser.s3_prefix = "/vsis3/test-bucket"
+        addresser = RasterKeyAddresser()
+        addresser.s3_prefix = "/vsis3/test-bucket"
         mocker.patch(
             "app.jobs.temperature_interpolation_job.RasterKeyAddresser",
-            return_value=mock_addresser,
+            return_value=addresser,
         )
 
         mocker.patch(
@@ -291,5 +290,5 @@ class TestTemperatureInterpolationJobIntegration:
 
         await job.run(target_date)
 
-        assert captured_fuel_path == "/vsis3/test-bucket/sfms/fuel/2024/07/04/fuel_v2.tif"
-        mock_addresser.get_fuel_raster_key.assert_called_with(target_date, version=2)
+        expected_key = addresser.get_fuel_raster_key(target_date, version=2)
+        assert captured_fuel_path == f"/vsis3/test-bucket/{expected_key}"
