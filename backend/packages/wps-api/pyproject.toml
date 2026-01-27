@@ -47,7 +47,9 @@ dependencies = [
     "geopandas>=1.0.1,<2",
     "shapely>=2.0.5,<3",
     "gdal==3.9.2",
-    "wps-wf1"
+    "wps-wf1",
+    "earthaccess>=0.15.1",
+    "rasterio>=1.5.0",
 ]
 
 [project.optional-dependencies]
