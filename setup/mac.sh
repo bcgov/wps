@@ -15,7 +15,10 @@ sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVir
 brew install gh
 
 ### gdal
-brew install gdal
+brew tap-new $(whoami)/local-gdal
+# Grabs 3.9.2 formula, needed until https://github.com/OSGeo/gdal/issues/13777 is fixed and we update the base image
+curl -s https://raw.githubusercontent.com/Homebrew/homebrew-core/c230b76333dac4781414835c87811bdd09382ff4/Formula/g/gdal.rb > $(brew --repository)/Library/Taps/$(whoami)/homebrew-local-gdal/Formula/gdal.rb
+brew install $(whoami)/local-gdal/gdal # if you have gdal/postgis already installed you'll have to uninstall them both, see MANUAL.md for more details
 
 ### For generated HFI Calculator PDFs
 brew install --cask wkhtmltopdf
