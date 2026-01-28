@@ -14,10 +14,10 @@ RUN apt-get update --fix-missing && apt-get -y install build-essential curl git 
     libgeos-dev libpq-dev libproj-dev libsqlite3-dev libtirpc-dev libudunits2-dev \
     && apt-get clean
 
-# When our app is running, we want to allow poetry full access to the workers home directory.
+# When our app is running, we want to allow uv full access to the workers home directory.
 # Add the worker user with UID 1000
-# +x : to execute the poetry binary
-# +r : to read poetry cache
+# +x : to execute the uv binary
+# +r : to read uv cache
 RUN useradd --uid "$USER_UID" -m "$USERNAME" && chmod a+rx /home/"$USERNAME"
 
 USER $USERNAME
