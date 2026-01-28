@@ -1224,9 +1224,9 @@ wheels = [
 
 [[package]]
 name = "gdal"
-version = "3.9.2"
+version = "3.12.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bd/10/85c41cc7c520be9cf755f5862e8c6c8b0c91c8987cb1c706f7092f9893ee/gdal-3.9.2.tar.gz", hash = "sha256:cf9c1add09ce152975c94d48a1a89dd300c292e0761fd3d22a8071a98852e129", size = 840643, upload-time = "2024-08-16T11:03:01.315Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/99/e3/5be26f3450e9d49c42a306f3f668e14661ff93149df246c325c9be8279d3/gdal-3.12.1.tar.gz", hash = "sha256:c91644f7789d73c89f8baafa4fe61cedf5182081314862c05763223ecc39070b", size = 899230, upload-time = "2025-12-18T14:30:55.206Z" }
 
 [[package]]
 name = "geoalchemy2"
@@ -4320,7 +4320,7 @@ requires-dist = [
     { name = "cffdrs", git = "https://github.com/cffdrs/cffdrs_py.git?rev=c760307" },
     { name = "cryptography", specifier = ">=46.0.0,<47" },
     { name = "fastapi", specifier = ">=0,<1" },
-    { name = "gdal", specifier = "==3.9.2" },
+    { name = "gdal", specifier = "==3.12.1" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "greenlet", specifier = ">=3.0.0,<4" },
@@ -4392,7 +4392,7 @@ dev = [
 requires-dist = [
     { name = "affine", specifier = ">=2.4.0,<3" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
-    { name = "gdal", specifier = "==3.9.2" },
+    { name = "gdal", specifier = "==3.12.1" },
     { name = "herbie-data", specifier = ">=2025.11.1,<2026" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
     { name = "numpy", specifier = "==2.3.*" },
@@ -4466,7 +4466,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3,<4" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "fastapi", specifier = ">=0.115.11,<1" },
-    { name = "gdal", specifier = "==3.9.2" },
+    { name = "gdal", specifier = "==3.12.1" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "psycopg2-binary", specifier = ">=2.9.10,<3" },

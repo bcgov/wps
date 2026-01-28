@@ -21,14 +21,12 @@ dependencies = [
     "psycopg2-binary>=2.9.10,<3",
     "asyncpg>=0.30.0,<1",
     "redis>=7.0.0,<8",
-    "gdal==3.9.2",
+    "gdal==3.12.1",
     "wps-wf1",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "testcontainers[postgres]>=4.10.0,<5",
-]
+dev = ["testcontainers[postgres]>=4.10.0,<5"]
 
 [build-system]
 requires = ["hatchling"]

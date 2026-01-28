@@ -1,4 +1,4 @@
-FROM ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
+FROM ghcr.io/osgeo/gdal:ubuntu-small-3.12.1
 # in order to make the image public on GHCR, we need to add this label
 LABEL org.opencontainers.image.source="https://github.com/bcgov/wps"
 
