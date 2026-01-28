@@ -1,3 +1,4 @@
+import uuid
 from contextlib import ExitStack, contextmanager
 from typing import Iterator, List, Optional, Tuple, Union
 from osgeo import gdal, osr
@@ -170,7 +171,7 @@ class WPSDataset:
     def warp_to_match(
         self,
         other: "WPSDataset",
-        output_path: str,
+        output_path: str | None = None,
         resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR,
         max_value: float | None = None,
     ):
@@ -182,6 +183,9 @@ class WPSDataset:
         :param resample_method: gdal resampling algorithm
         :return: warped raster dataset
         """
+        if output_path is None:
+            output_path = f"/vsimem/warp_{uuid.uuid4().hex}.tif"
+
         dest_geotransform = other.ds.GetGeoTransform()
         x_res = dest_geotransform[1]
         y_res = -dest_geotransform[5]
@@ -236,7 +240,10 @@ class WPSDataset:
 
     def generate_latitude_array(self):
         """
-        Transforms this dataset to 4326 to compute the latitude coordinates
+        Transforms this dataset to 4326 to compute the latitude coordinates.
+
+        Note: This method is slow for large rasters. Consider using
+        get_lat_lon_coords() for vectorized coordinate transformation.
 
         :return: array of latitude coordinates
         """
@@ -267,6 +274,69 @@ class WPSDataset:
                 latitudes[y, x] = lat
 
         return latitudes
+
+    def get_lat_lon_coords(
+        self, valid_mask: Optional[np.ndarray] = None
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Get WGS84 lat/lon coordinates for pixels, with optional masking.
+
+        Uses vectorized transformation for fast coordinate conversion.
+
+        :param valid_mask: Optional boolean mask (y_size, x_size) of valid pixels.
+                          If None, uses nodata mask from the raster band.
+        :return: Tuple of (lats, lons, yi_indices, xi_indices) for valid pixels.
+                 - lats: 1D array of latitudes
+                 - lons: 1D array of longitudes
+                 - yi_indices: 1D array of y (row) indices
+                 - xi_indices: 1D array of x (column) indices
+        """
+        geotransform = self.ds.GetGeoTransform()
+        projection = self.ds.GetProjection()
+        x_size = self.ds.RasterXSize
+        y_size = self.ds.RasterYSize
+
+        # Setup coordinate transformation
+        src_srs = osr.SpatialReference()
+        src_srs.ImportFromWkt(projection)
+        # Use traditional GIS order (lon, lat) for consistent axis ordering
+        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        tgt_srs = osr.SpatialReference()
+        tgt_srs.ImportFromEPSG(4326)
+        tgt_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        transform = osr.CoordinateTransformation(src_srs, tgt_srs)
+
+        # Create coordinate grids for all pixels
+        xi_grid, yi_grid = np.meshgrid(np.arange(x_size), np.arange(y_size))
+
+        # Calculate pixel center coordinates in raster projection
+        x_coords = geotransform[0] + (xi_grid + 0.5) * geotransform[1]
+        y_coords = geotransform[3] + (yi_grid + 0.5) * geotransform[5]
+
+        # Build valid mask if not provided
+        if valid_mask is None:
+            band: gdal.Band = self.ds.GetRasterBand(self.band)
+            nodata = band.GetNoDataValue()
+            if nodata is not None:
+                data = band.ReadAsArray()
+                valid_mask = data != nodata
+            else:
+                valid_mask = np.ones((y_size, x_size), dtype=bool)
+
+        # Get indices and coordinates for valid pixels only
+        valid_yi, valid_xi = np.nonzero(valid_mask)
+        valid_x_coords = x_coords[valid_mask]
+        valid_y_coords = y_coords[valid_mask]
+
+        # Transform all coordinates at once
+        coords_to_transform = list(zip(valid_x_coords.astype(float), valid_y_coords.astype(float)))
+        transformed = transform.TransformPoints(coords_to_transform)
+
+        # Extract lat/lon (TransformPoints returns (x, y, z) in target SRS)
+        lats = np.array([t[1] for t in transformed])
+        lons = np.array([t[0] for t in transformed])
+
+        return lats, lons, valid_yi, valid_xi
 
     def export_to_geotiff(self, output_path: str):
         """
@@ -302,6 +372,66 @@ class WPSDataset:
         del output_dataset
         output_band = None
         del output_band
+
+    def apply_mask(self, mask_ds: "WPSDataset") -> np.ndarray:
+        """
+        Apply a mask from another dataset to get a valid mask array.
+
+        The mask dataset's grid must match this dataset (size, geotransform, projection).
+        The caller is responsible for reprojecting the mask to match (see warp_to_match)
+        before calling this method.
+        Pixels are valid where the mask value is non-zero and not nodata.
+
+        :param mask_ds: WPSDataset containing mask (0 = masked, non-zero = valid)
+        :return: Boolean array where True = valid, False = masked
+        :raises ValueError: If the mask grid does not match this dataset's grid
+        """
+        mismatches = []
+        if self.ds.RasterXSize != mask_ds.ds.RasterXSize or self.ds.RasterYSize != mask_ds.ds.RasterYSize:
+            mismatches.append(
+                f"size: reference=({self.ds.RasterXSize}x{self.ds.RasterYSize}), "
+                f"mask=({mask_ds.ds.RasterXSize}x{mask_ds.ds.RasterYSize})"
+            )
+        if self.ds.GetGeoTransform() != mask_ds.ds.GetGeoTransform():
+            mismatches.append(
+                f"geotransform: reference={self.ds.GetGeoTransform()}, "
+                f"mask={mask_ds.ds.GetGeoTransform()}"
+            )
+        if self.ds.GetProjection() != mask_ds.ds.GetProjection():
+            mismatches.append("projection differs")
+
+        if mismatches:
+            raise ValueError(
+                "Mask grid does not match reference grid: " + "; ".join(mismatches)
+            )
+
+        mask_band: gdal.Band = mask_ds.ds.GetRasterBand(1)
+        mask_data = mask_band.ReadAsArray()
+        mask_nodata = mask_band.GetNoDataValue()
+
+        # Mask is valid where value is non-zero and not nodata
+        valid_mask = mask_data != 0
+        if mask_nodata is not None:
+            valid_mask = valid_mask & (mask_data != mask_nodata)
+
+        return valid_mask
+
+    def get_valid_mask(self) -> np.ndarray:
+        """
+        Get a boolean mask indicating valid (non-nodata) pixels.
+
+        :return: Boolean array where True = valid, False = nodata
+        """
+        band: gdal.Band = self.ds.GetRasterBand(self.band)
+        nodata = band.GetNoDataValue()
+        y_size = self.ds.RasterYSize
+        x_size = self.ds.RasterXSize
+
+        if nodata is not None:
+            data = band.ReadAsArray()
+            return data != nodata
+        else:
+            return np.ones((y_size, x_size), dtype=bool)
 
     def get_nodata_mask(self) -> Tuple[Optional[np.ndarray], Optional[Union[float, int]]]:
         band = self.ds.GetRasterBand(self.band)

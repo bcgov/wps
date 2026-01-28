@@ -23,6 +23,8 @@ async def find_latest_version(
         current_version += 1
         key = raster_addresser.get_fuel_raster_key(now, current_version)
         exists = await s3_client.all_objects_exist(key)
+        if not exists:
+            current_version -= 1
 
     return current_version
 

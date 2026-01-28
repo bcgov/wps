@@ -6,6 +6,7 @@ authors = [{ name = "Sybrand Strauss", email = "sybrand.strauss@gov.bc.ca" }]
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
     "wps-shared",
+    "wps-sfms",
     "fastapi>=0,<1",
     "requests>=2,<3",
     "aiodns>=4,<5",
@@ -47,7 +48,7 @@ dependencies = [
     "geopandas>=1.0.1,<2",
     "shapely>=2.0.5,<3",
     "gdal==3.9.2",
-    "wps-wf1"
+    "wps-wf1",
 ]
 
 [project.optional-dependencies]
@@ -63,6 +64,7 @@ dev = [
 
 [tool.uv.sources]
 wps-shared = { workspace = true }
+wps-sfms = { workspace = true }
 wps-wf1 = { workspace = true }
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 

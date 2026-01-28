@@ -12,6 +12,13 @@ from wps_shared.sfms.rdps_filename_marshaller import (
 )
 
 
+class SFMSInterpolatedWeatherParameter(enum.Enum):
+    TEMP = "temp"
+    RH = "rh"
+    WIND_SPEED = "wind_speed"
+    PRECIP = "precip"
+
+
 class WeatherParameter(enum.Enum):
     TEMP = "temp"
     RH = "rh"
@@ -229,3 +236,46 @@ class RasterKeyAddresser:
         assert key.endswith(".tif"), f"Expected .tif file path, got {key}"
         cog_key = self.s3_prefix + "/" + key.removesuffix(".tif") + "_cog.tif"
         return cog_key
+
+    def get_interpolated_key(
+        self, datetime_utc: datetime, weather_param: SFMSInterpolatedWeatherParameter
+    ):
+        """
+        Generate S3 key for interpolated weather parameter raster with hierarchical date structure.
+
+        Format: sfms/interpolated/{param}/YYYY/MM/DD/{param}_YYYYMMDD.tif
+
+        Examples:
+            - Temperature: sfms/interpolated/temp/2024/01/15/temp_20240115.tif
+            - Relative Humidity: sfms/interpolated/rh/2024/01/15/rh_20240115.tif
+            - Wind Speed: sfms/interpolated/wind_speed/2024/01/15/wind_speed_20240115.tif
+
+        :param datetime_utc: UTC datetime for the raster
+        :param weather_param: Weather parameter (TEMP, RH, WIND_SPEED. PRECIP)
+        :return: S3 key path
+        """
+        assert_all_utc(datetime_utc)
+        date = datetime_utc.date()
+        year = date.year
+        month = date.month
+        day = date.day
+        date_str = date.isoformat().replace("-", "")
+        param_value = weather_param.value
+
+        return f"sfms/interpolated/{param_value}/{year:04d}/{month:02d}/{day:02d}/{param_value}_{date_str}.tif"
+
+    def get_dem_key(self) -> str:
+        """
+        Get the GDAL virtual file system path to the DEM raster.
+
+        :return: GDAL virtual file system path to DEM
+        """
+        return f"{self.s3_prefix}/sfms/static/bc_elevation.tif"
+
+    def get_mask_key(self) -> str:
+        """
+        Get the GDAL virtual file system path to the BC mask raster.
+
+        :return: GDAL virtual file system path to BC mask
+        """
+        return f"{self.s3_prefix}/sfms/static/bc_mask.tif"

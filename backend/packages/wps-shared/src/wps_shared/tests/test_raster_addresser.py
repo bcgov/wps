@@ -1,7 +1,12 @@
 from datetime import datetime, timezone
 import pytest
 from zoneinfo import ZoneInfo
-from wps_shared.sfms.raster_addresser import FWIParameter, RasterKeyAddresser, WeatherParameter
+from wps_shared.sfms.raster_addresser import (
+    FWIParameter,
+    RasterKeyAddresser,
+    SFMSInterpolatedWeatherParameter,
+    WeatherParameter,
+)
 
 sfms_timezone = ZoneInfo("America/Vancouver")
 
@@ -130,3 +135,69 @@ def test_get_cog_key_failed(raster_key_addresser: RasterKeyAddresser):
     tif_object = "test.gif"
     with pytest.raises(Exception):
         raster_key_addresser.get_cog_key(tif_object)
+
+
+@pytest.mark.parametrize(
+    "weather_param,expected_key",
+    [
+        (
+            SFMSInterpolatedWeatherParameter.TEMP,
+            "sfms/interpolated/temp/2024/01/15/temp_20240115.tif",
+        ),
+        (SFMSInterpolatedWeatherParameter.RH, "sfms/interpolated/rh/2024/01/15/rh_20240115.tif"),
+        (
+            SFMSInterpolatedWeatherParameter.WIND_SPEED,
+            "sfms/interpolated/wind_speed/2024/01/15/wind_speed_20240115.tif",
+        ),
+        (
+            SFMSInterpolatedWeatherParameter.PRECIP,
+            "sfms/interpolated/precip/2024/01/15/precip_20240115.tif",
+        ),
+    ],
+)
+def test_get_interpolated_key_weather_params(
+    raster_key_addresser: RasterKeyAddresser,
+    weather_param: SFMSInterpolatedWeatherParameter,
+    expected_key: str,
+):
+    """Test interpolated key generation for different weather parameters."""
+    dt = datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
+    result = raster_key_addresser.get_interpolated_key(dt, weather_param)
+    assert result == expected_key
+
+
+@pytest.mark.parametrize(
+    "dt,expected_key",
+    [
+        (
+            datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc),
+            "sfms/interpolated/temp/2024/01/15/temp_20240115.tif",
+        ),
+        (
+            datetime(2024, 12, 31, 20, 0, 0, tzinfo=timezone.utc),
+            "sfms/interpolated/temp/2024/12/31/temp_20241231.tif",
+        ),
+        (
+            datetime(2024, 3, 5, 20, 0, 0, tzinfo=timezone.utc),
+            "sfms/interpolated/temp/2024/03/05/temp_20240305.tif",
+        ),
+    ],
+)
+def test_get_interpolated_key_different_dates(
+    raster_key_addresser: RasterKeyAddresser, dt: datetime, expected_key: str
+):
+    """Test interpolated key generation for different dates."""
+    result = raster_key_addresser.get_interpolated_key(dt, SFMSInterpolatedWeatherParameter.TEMP)
+    assert result == expected_key
+
+
+def test_get_dem_key(raster_key_addresser: RasterKeyAddresser):
+    """Test DEM key returns correct GDAL virtual file system path."""
+    result = raster_key_addresser.get_dem_key()
+    assert result == f"{raster_key_addresser.s3_prefix}/sfms/static/bc_elevation.tif"
+
+
+def test_get_mask_key(raster_key_addresser: RasterKeyAddresser):
+    """Test mask key returns correct GDAL virtual file system path."""
+    result = raster_key_addresser.get_mask_key()
+    assert result == f"{raster_key_addresser.s3_prefix}/sfms/static/bc_mask.tif"
