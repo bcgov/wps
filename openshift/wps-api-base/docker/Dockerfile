@@ -35,6 +35,8 @@ RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 # Install tippecanoe for pmtiles
 RUN git clone https://github.com/felt/tippecanoe.git --branch 2.62.5 && cd tippecanoe && make -j && make install && cd ..
 
+# Install R spatial dependency (sf) separately to reduce peak memory usage
+RUN R -e "install.packages('sf')"
 # Install cffdrs
 RUN R -e "install.packages('cffdrs')"
 
