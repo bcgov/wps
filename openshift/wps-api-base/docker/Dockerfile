@@ -35,10 +35,16 @@ RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
 # Install tippecanoe for pmtiles
 RUN git clone https://github.com/felt/tippecanoe.git --branch 2.62.5 && cd tippecanoe && make -j && make install && cd ..
 
-# Install R spatial dependency (sf) separately to reduce peak memory usage
-RUN R -e "install.packages('sf')"
-# Install cffdrs
-RUN R -e "install.packages('cffdrs')"
+# Install R packages with fail-fast (R's install.packages exits 0 even on failure)
+# Install sf dependencies individually to reduce peak memory, then sf, then cffdrs
+RUN R -e "install.packages('s2')" && \
+    R -e "if (!requireNamespace('s2', quietly = TRUE)) quit(status = 1)"
+RUN R -e "install.packages('units')" && \
+    R -e "if (!requireNamespace('units', quietly = TRUE)) quit(status = 1)"
+RUN R -e "install.packages('sf')" && \
+    R -e "if (!requireNamespace('sf', quietly = TRUE)) quit(status = 1)"
+RUN R -e "install.packages('cffdrs')" && \
+    R -e "if (!requireNamespace('cffdrs', quietly = TRUE)) quit(status = 1)"
 
 # Add the worker user with UID 1010 and assign them to the existing group with GID 1000
 RUN useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
