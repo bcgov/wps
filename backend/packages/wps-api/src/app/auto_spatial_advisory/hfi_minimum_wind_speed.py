@@ -150,7 +150,7 @@ async def process_min_wind_speed_by_zone(
 
             all_hfi_min_wind_speeds_to_save.extend(records_to_save)
 
-    await save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
+    save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
 
 
 def get_minimum_wind_speed_for_hfi(
@@ -203,7 +203,7 @@ def create_hfi_wind_speed_record(
     ]
 
 
-async def save_all_hfi_wind_speeds(
+def save_all_hfi_wind_speeds(
     session: AsyncSession, hfi_wind_speeds: list[AdvisoryHFIWindSpeed]
 ):
     logger.info("Writing HFI Advisory Minimum Wind Speeds")

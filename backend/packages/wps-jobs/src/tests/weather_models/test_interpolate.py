@@ -15,7 +15,7 @@ prediction_b_timestamp = datetime(2024, 5, 1, 21, 0, 0)
 
 
 def generate_model_run_prediction(
-    prediction_datetime: datetime, weather_values: float
+    prediction_datetime: datetime, weather_values: float | None
 ) -> ModelRunPrediction:
     model_prediction = ModelRunPrediction(
         prediction_timestamp=prediction_datetime,
