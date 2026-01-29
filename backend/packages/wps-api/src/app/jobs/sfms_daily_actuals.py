@@ -15,45 +15,35 @@ from datetime import datetime, timezone
 
 from app.jobs.temperature_interpolation_job import TemperatureInterpolationJob
 from app.jobs.precipitation_interpolation_job import PrecipitationInterpolationJob
-from wps_shared.db.crud.sfms_run_log import save_sfms_run_log, update_sfms_run_log
-from wps_shared.db.database import get_async_write_session_scope
-from wps_shared.db.models.sfms_run_log import SFMSRunLog
+from wps_shared.db.crud.sfms_run_log import track_sfms_run
 from wps_shared.wps_logging import configure_logging
 from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
 
-JOB_NAME = "sfms_daily_actuals"
+
+@track_sfms_run("temperature_interpolation")
+async def run_temperature_interpolation(target_date: datetime) -> None:
+    """Run temperature interpolation for the given date."""
+    temperature_job = TemperatureInterpolationJob()
+    await temperature_job.run(target_date)
+
+
+@track_sfms_run("precipitation_interpolation")
+async def run_precipitation_interpolation(target_date: datetime) -> None:
+    """Run precipitation interpolation for the given date."""
+    precipitation_job = PrecipitationInterpolationJob()
+    await precipitation_job.run(target_date)
 
 
 async def run_sfms_daily_actuals(target_date: datetime) -> None:
     """Run temperature then precipitation interpolation for the given date."""
     logger.info("Starting SFMS daily actuals for %s", target_date.date())
 
-    async with get_async_write_session_scope() as session:
-        log_record = SFMSRunLog(
-            job_name=JOB_NAME,
-            target_date=target_date.date(),
-            started_at=get_utc_now(),
-            status="running",
-        )
-        log_id = await save_sfms_run_log(session, log_record)
+    await run_temperature_interpolation(target_date)
+    await run_precipitation_interpolation(target_date)
 
-    try:
-        temperature_job = TemperatureInterpolationJob()
-        await temperature_job.run(target_date)
-
-        precipitation_job = PrecipitationInterpolationJob()
-        await precipitation_job.run(target_date)
-
-        async with get_async_write_session_scope() as session:
-            await update_sfms_run_log(session, log_id, status="success", completed_at=get_utc_now())
-
-        logger.info("SFMS daily actuals completed successfully for %s", target_date.date())
-    except Exception:
-        async with get_async_write_session_scope() as session:
-            await update_sfms_run_log(session, log_id, status="failed", completed_at=get_utc_now())
-        raise
+    logger.info("SFMS daily actuals completed successfully for %s", target_date.date())
 
 
 def main():
