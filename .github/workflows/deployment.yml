@@ -234,19 +234,12 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_advisory_fuel_areas_job.sh ${SUFFIX} apply
 
-      - name: Backfill zone status job
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_backfill_zone_status_job.sh ${SUFFIX} apply
-
       - name: Fuel raster job
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_fuel_raster_processor_job.sh ${SUFFIX} apply
 
-      ## TODO: re-enable once crunchy is deployed: https://app.zenhub.com/workspaces/bcws---agile-psu-5e321393e038fba5bbe203b8/issues/gh/bcgov/wps/2340
       - name: Hourly actuals cronjob
         shell: bash
         run: |
@@ -336,29 +329,6 @@ jobs:
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           PROJ_DEV="e1e498-dev" SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
-
-  # TODO: Delete once pmtiles has run for some time
-  # deploy-tileserv:
-  #   name: Deploy tileserv to Dev
-  #   if: github.triggering_actor != 'renovate'
-  #   runs-on: ubuntu-22.04
-  #   # We need
-  #   # - the image to be built before we can deploy.
-  #   needs: [build-tileserv-image]
-  #   steps:
-  #     - name: Set Variables
-  #       shell: bash
-  #       run: |
-  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-
-  #     - name: Tileserv
-  #       shell: bash
-  #       run: |
-  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-  #         PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
 
   deploy-dev-queue:
     name: Deploy Message Queue to Dev
