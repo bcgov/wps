@@ -142,7 +142,6 @@ jobs:
         shell: bash
         run: |
           bash openshift/scripts/oc_provision_advisory_fuel_areas_job.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_backfill_zone_status_job.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_fuel_raster_processor_job.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
