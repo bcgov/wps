@@ -1,0 +1,36 @@
+apiVersion: loki.grafana.com/v1
+kind: AlertingRule
+metadata:
+  labels:
+    openshift.io/loki: "true" # This is required for Loki to pick up the config
+    app: "sfms-logging"
+  name: sfms-alerts
+  namespace: e1e498-prod
+spec:
+  groups:
+    - interval: 1m
+      name: SFMSAlerts
+      repeat_interval: 30m
+      rules:
+        - alert: SFMSDailyActualsErrors
+          annotations:
+            description: Alerts fire when any error/critical logs occur in the SFMS daily actuals job.
+            summary: SFMS daily actuals job is generating errors
+          # Get the rate of error logs per second over the last minute, alert if any errors occurred.
+          expr: |
+            sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"sfms-daily-actuals.*" } | json | level=~"critical|emerg|fatal|alert|crit|error|err|eror" [1m])) > 0
+          for: 0s
+          labels:
+            namespace: e1e498-prod
+            severity: critical
+        - alert: SFMSForecastErrors
+          annotations:
+            description: Alerts fire when any error/critical logs occur in the SFMS forecast job.
+            summary: SFMS forecast job is generating errors
+          expr: |
+            sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"sfms-forecast.*" } | json | level=~"critical|emerg|fatal|alert|crit|error|err|eror" [1m])) > 0
+          for: 0s
+          labels:
+            namespace: e1e498-prod
+            severity: critical
+  tenantID: application

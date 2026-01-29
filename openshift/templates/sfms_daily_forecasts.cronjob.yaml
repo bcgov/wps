@@ -1,0 +1,51 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Placeholder scheduled task for SFMS forecast (not yet implemented)."
+    tags: "sfms,forecast"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: JOB_NAME
+    value: sfms-forecast
+  - name: SCHEDULE
+    required: true
+  - name: APP_LABEL
+    required: true
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1
+    metadata:
+      name: ${JOB_NAME}
+    spec:
+      schedule: ${SCHEDULE}
+      concurrencyPolicy: "Replace"
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+            app: ${APP_LABEL}
+        spec:
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  image: "registry.access.redhat.com/ubi9-minimal:latest"
+                  command:
+                    ["sh", "-c", "echo 'SFMS forecast job not yet implemented'; exit 0"]
+                  resources:
+                    limits:
+                      memory: 64Mi
+                    requests:
+                      cpu: 10m
+                      memory: 32Mi
+              restartPolicy: OnFailure
