@@ -5,7 +5,6 @@ from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.sfms_run_log import SFMSRunLog
 from wps_shared.utils.time import get_utc_now
 
@@ -35,14 +34,15 @@ async def update_sfms_run_log(session: AsyncSession, log_id: int, status: str, c
     record.completed_at = completed_at
 
 
-def track_sfms_run(job_name: str):
+def track_sfms_run(job_name: str, session: AsyncSession):
     """Decorator that logs an sfms_run_log entry around an async function.
 
-    The decorated function's first positional argument must be target_date (datetime).
+    :param job_name: Name to record in the run log.
+    :param session: An async database session for run-log operations.
 
     Usage::
 
-        @track_sfms_run("temperature_interpolation")
+        @track_sfms_run("temperature_interpolation", session)
         async def run_temperature(target_date: datetime) -> None:
             ...
     """
@@ -50,23 +50,20 @@ def track_sfms_run(job_name: str):
     def decorator(fn):
         @functools.wraps(fn)
         async def wrapper(target_date: datetime, *args, **kwargs):
-            async with get_async_write_session_scope() as session:
-                log_record = SFMSRunLog(
-                    job_name=job_name,
-                    target_date=target_date.date(),
-                    started_at=get_utc_now(),
-                    status="running",
-                )
-                log_id = await save_sfms_run_log(session, log_record)
+            log_record = SFMSRunLog(
+                job_name=job_name,
+                target_date=target_date.date(),
+                started_at=get_utc_now(),
+                status="running",
+            )
+            log_id = await save_sfms_run_log(session, log_record)
 
             try:
                 result = await fn(target_date, *args, **kwargs)
-                async with get_async_write_session_scope() as session:
-                    await update_sfms_run_log(session, log_id, status="success", completed_at=get_utc_now())
+                await update_sfms_run_log(session, log_id, status="success", completed_at=get_utc_now())
                 return result
             except Exception:
-                async with get_async_write_session_scope() as session:
-                    await update_sfms_run_log(session, log_id, status="failed", completed_at=get_utc_now())
+                await update_sfms_run_log(session, log_id, status="failed", completed_at=get_utc_now())
                 raise
 
         return wrapper

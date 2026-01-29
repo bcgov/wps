@@ -1,11 +1,11 @@
 from datetime import date, datetime, timezone
 
 import pytest
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
 
-from wps_shared.db.crud.sfms_run_log import save_sfms_run_log, update_sfms_run_log
+from wps_shared.db.crud.sfms_run_log import save_sfms_run_log, track_sfms_run, update_sfms_run_log
 from wps_shared.db.models.sfms_run_log import SFMSRunLog
 
 
@@ -47,7 +47,7 @@ async def async_session(session_factory):
 
 
 @pytest.mark.anyio
-async def test_save_sfms_run_log(async_session):
+async def test_save_sfms_run_log(async_session: AsyncSession):
     """Test inserting a new run log record and getting back its id."""
     record = SFMSRunLog(
         job_name="temperature_interpolation",
@@ -71,7 +71,7 @@ async def test_save_sfms_run_log(async_session):
 
 
 @pytest.mark.anyio
-async def test_update_sfms_run_log_success(async_session):
+async def test_update_sfms_run_log_success(async_session: AsyncSession):
     """Test updating a run log to success status with completed_at."""
     record = SFMSRunLog(
         job_name="precipitation_interpolation",
@@ -82,7 +82,9 @@ async def test_update_sfms_run_log_success(async_session):
     log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
-    await update_sfms_run_log(async_session, log_id, status="success", completed_at=test_completed_at)
+    await update_sfms_run_log(
+        async_session, log_id, status="success", completed_at=test_completed_at
+    )
     await async_session.commit()
 
     result = await async_session.execute(select(SFMSRunLog).where(SFMSRunLog.id == log_id))
@@ -92,7 +94,7 @@ async def test_update_sfms_run_log_success(async_session):
 
 
 @pytest.mark.anyio
-async def test_update_sfms_run_log_failed(async_session):
+async def test_update_sfms_run_log_failed(async_session: AsyncSession):
     """Test updating a run log to failed status."""
     record = SFMSRunLog(
         job_name="temperature_interpolation",
@@ -103,7 +105,9 @@ async def test_update_sfms_run_log_failed(async_session):
     log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
-    await update_sfms_run_log(async_session, log_id, status="failed", completed_at=test_completed_at)
+    await update_sfms_run_log(
+        async_session, log_id, status="failed", completed_at=test_completed_at
+    )
     await async_session.commit()
 
     result = await async_session.execute(select(SFMSRunLog).where(SFMSRunLog.id == log_id))
@@ -113,7 +117,7 @@ async def test_update_sfms_run_log_failed(async_session):
 
 
 @pytest.mark.anyio
-async def test_multiple_run_logs(async_session):
+async def test_multiple_run_logs(async_session: AsyncSession):
     """Test inserting multiple run log records for different jobs returns unique ids."""
     record1 = SFMSRunLog(
         job_name="temperature_interpolation",
@@ -139,3 +143,71 @@ async def test_multiple_run_logs(async_session):
     assert len(rows) == 2
     job_names = {r.job_name for r in rows}
     assert job_names == {"temperature_interpolation", "precipitation_interpolation"}
+
+
+@pytest.mark.anyio
+async def test_track_sfms_run_success(async_session: AsyncSession):
+    """Test decorator records success when the wrapped function succeeds."""
+    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
+    called = False
+
+    @track_sfms_run("test_job", async_session)
+    async def my_job(_: datetime) -> None:
+        nonlocal called
+        called = True
+
+    await my_job(target)
+
+    assert called
+
+    result = await async_session.execute(select(SFMSRunLog))
+    row = result.scalar_one()
+    assert row.job_name == "test_job"
+    assert row.target_date == target.date()
+    assert row.status == "success"
+    assert row.started_at is not None
+    assert row.completed_at is not None
+    assert row.completed_at >= row.started_at
+
+
+@pytest.mark.anyio
+async def test_track_sfms_run_failure(async_session: AsyncSession):
+    """Test decorator records failure and re-raises when the wrapped function raises."""
+    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
+
+    @track_sfms_run("failing_job", async_session)
+    async def my_failing_job(_: datetime) -> None:
+        raise RuntimeError("something went wrong")
+
+    with pytest.raises(RuntimeError, match="something went wrong"):
+        await my_failing_job(target)
+
+    result = await async_session.execute(select(SFMSRunLog))
+    row = result.scalar_one()
+    assert row.job_name == "failing_job"
+    assert row.status == "failed"
+    assert row.completed_at is not None
+
+
+@pytest.mark.anyio
+async def test_track_sfms_run_preserves_return_value(async_session: AsyncSession):
+    """Test decorator passes through the return value of the wrapped function."""
+
+    @track_sfms_run("returning_job", async_session)
+    async def my_job(_: datetime) -> str:
+        return "result"
+
+    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
+    result = await my_job(target)
+    assert result == "result"
+
+
+@pytest.mark.anyio
+async def test_track_sfms_run_preserves_function_name(async_session: AsyncSession):
+    """Test decorator preserves the wrapped function's name via functools.wraps."""
+
+    @track_sfms_run("some_job", async_session)
+    async def original_name(_: datetime) -> None:
+        pass
+
+    assert original_name.__name__ == "original_name"
