@@ -68,6 +68,10 @@ echo RDPS for SFMS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_rdps_sfms_cronjob.sh prod ${RUN_TYPE}
 echo SFMS Raster Calculations
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_calculations_cronjob.sh prod ${RUN_TYPE}
+echo SFMS Daily Actuals
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_daily_actuals_cronjob.sh prod ${RUN_TYPE}
+echo SFMS Forecast
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_forecast_cronjob.sh prod ${RUN_TYPE}
 echo Fire Watch Weather Calculations
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_fire_watch_weather_cronjob.sh prod ${RUN_TYPE}
 echo BC FireWeather cronjobs
