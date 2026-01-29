@@ -13,63 +13,72 @@ jobs:
   cleanup-non-db:
     name: Delete non-DB resources associated with pr
     runs-on: ubuntu-24.04
-    env:
-      OPENSHIFT_CLUSTER: ${{ secrets.OPENSHIFT_CLUSTER }}
-      OC4_DEV_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-      OC4_TOOL_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
-      OC4_TEST_TOKEN: ${{ secrets.OC4_TEST_TOKEN }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
         with:
           pr-number: ${{ github.event.number }}
 
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+          oc-namespace: e1e498-dev
       - name: Clean up - dev (OCP4)
         shell: bash
-        run: |
-          oc login "${OPENSHIFT_CLUSTER}" --token="${OC4_DEV_TOKEN}"
-          PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
+        run: PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_TOOL_TOKEN }}
+          oc-namespace: e1e498-tools
       - name: Clean up - tools (OCP4)
         shell: bash
-        run: |
-          oc login "${OPENSHIFT_CLUSTER}" --token="${OC4_TOOL_TOKEN}"
-          bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
+        run: bash openshift/scripts/oc_cleanup_tools.sh ${SUFFIX} apply
 
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_TEST_TOKEN }}
+          oc-namespace: e1e498-test
       - name: Clean up - test (OCP4)
         shell: bash
-        run: |
-          oc login "${OPENSHIFT_CLUSTER}" --token="${OC4_TEST_TOKEN}"
-          PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
+        run: PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup.sh ${SUFFIX} apply
 
   cleanup-db:
     name: Delete DB resources associated with PR
     needs: cleanup-non-db
     runs-on: ubuntu-24.04
-    env:
-      OPENSHIFT_CLUSTER: ${{ secrets.OPENSHIFT_CLUSTER }}
-      OC4_DEV_TOKEN: ${{ secrets.OC4_DEV_TOKEN }}
-      OC4_TEST_TOKEN: ${{ secrets.OC4_TEST_TOKEN }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
         with:
           pr-number: ${{ github.event.number }}
 
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+          oc-namespace: e1e498-dev
       - name: Clean up dev database
         shell: bash
-        run: |
-          oc login "${OPENSHIFT_CLUSTER}" --token="${OC4_DEV_TOKEN}"
-          PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
+        run: PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
 
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_TEST_TOKEN }}
+          oc-namespace: e1e498-test
       - name: Clean up test database
         shell: bash
-        run: |
-          oc login "${OPENSHIFT_CLUSTER}" --token="${OC4_TEST_TOKEN}"
-          PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
+        run: PROJ_TARGET=e1e498-test bash openshift/scripts/oc_cleanup_db.sh ${SUFFIX} apply
 
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+          oc-namespace: e1e498-dev
       - name: Clean up s3 backups in object store
         shell: bash
-        run: |
-          oc login "${OPENSHIFT_CLUSTER}" --token="${OC4_DEV_TOKEN}"
-          PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_provision_backup_s3_cleanup.sh ${SUFFIX}
+        run: PROJ_TARGET=e1e498-dev bash openshift/scripts/oc_provision_backup_s3_cleanup.sh ${SUFFIX}
