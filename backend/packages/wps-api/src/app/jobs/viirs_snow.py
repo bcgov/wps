@@ -362,7 +362,7 @@ class ViirsSnowJob:
             h5_paths = self._download_viirs_granules_by_date(for_date, sub_dir)
             # The downloaded snow data is in a HDF5 format (.h5 file extension). Convert to WGS84 geotiffs.
             for h5_path in h5_paths:
-                subdataset_path = f'HDF5:"./{h5_path}"{SUBDATASET}'
+                subdataset_path = f'HDF5:"{h5_path}"{SUBDATASET}'
                 self._convert_h5_to_geotiff(sub_dir, subdataset_path)
             # Create a mosaic from the snow coverage imagery, clip it to the boundary of BC and save to S3
             self._create_snow_coverage_mosaic(sub_dir)
