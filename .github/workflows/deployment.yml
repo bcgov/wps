@@ -38,7 +38,6 @@ jobs:
     env:
       OPENSHIFT_CLUSTER: ${{ secrets.OPENSHIFT_CLUSTER }}
       OC_TOKEN: ${{ secrets.OC4_TOOL_TOKEN }}
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
     strategy:
       matrix:
         include:
@@ -61,13 +60,14 @@ jobs:
 
       - name: Build wps-${{ matrix.module }} Image
         shell: bash
+        env:
+          SENTRY_AUTH_TOKEN: ${{ matrix.sentry && secrets.SENTRY_AUTH_TOKEN || '' }}
         run: |
           oc login "${OPENSHIFT_CLUSTER}" --token="${OC_TOKEN}"
           GIT_BRANCH=${GITHUB_HEAD_REF} \
             MODULE_NAME=${{ matrix.module }} \
             ${{ matrix.docker_file && format('DOCKER_FILE={0}', matrix.docker_file) || '' }} \
             ${{ matrix.path_bc && format('PATH_BC={0}', matrix.path_bc) || '' }} \
-            ${{ matrix.sentry && 'SENTRY_AUTH_TOKEN="${SENTRY_AUTH_TOKEN}"' || '' }} \
             bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   configure-nats-server-name:
