@@ -10,176 +10,67 @@ on:
     paths-ignore:
       - "mobile/**"
 
+env:
+  PROJ_DEV: e1e498-dev
+
 jobs:
   prepare-dev-database:
     name: Prepare Dev Database
     runs-on: ubuntu-24.04
     steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Log public IP address
-        run: |
-          echo -e "Public IPv4:"
-          curl -s https://api.ipify.org
-          echo -e "\nPublic IPv4(v6):"
-          curl -s https://api64.ipify.org
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/oc-setup
         with:
-          oc: "4.14"
-          skip_cache: true
+          pr-number: ${{ github.event.number }}
 
-      - name: Deploy PostGIS instance
+      - name: Deploy CrunchyDB cluster
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           EPHEMERAL_STORAGE=True BUCKET=gpdqha DATA_SIZE=5Gi WAL_SIZE=5Gi bash openshift/scripts/oc_provision_crunchy.sh ${SUFFIX} apply
 
-  build-web-image:
-    # Declared ahead of build-api-image ; it runs slightly slower than the api build, and putting
-    # it here increases the odds that it get's started 1st, so api and web are slightly more likely
-    # to finish building at the same time.
-    name: Build Web Image
+  build-image:
+    name: Build ${{ matrix.name }} Image
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - name: Web
+            module: web
+            docker_file: Dockerfile.web
+            path_bc: openshift/templates/build.web.bc.yaml
+            sentry: true
+          - name: API
+            module: api
+          - name: WPS Jobs
+            module: jobs
+            docker_file: Dockerfile.jobs
+            path_bc: openshift/templates/wps_jobs/wps_jobs_build.yaml
     steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Log public IP address
-        run: |
-          echo -e "Public IPv4:"
-          curl -s https://api.ipify.org
-          echo -e "\nPublic IPv4(v6):"
-          curl -s https://api64.ipify.org
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/oc-setup
         with:
-          oc: "4.14"
-          skip_cache: true
+          pr-number: ${{ github.event.number }}
 
-      - name: Build wps-web Image
+      - name: Build wps-${{ matrix.module }} Image
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=web DOCKER_FILE=Dockerfile.web PATH_BC=openshift/templates/build.web.bc.yaml SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" bash openshift/scripts/oc_build.sh ${SUFFIX} apply
-
-  build-api-image:
-    name: Build API Image
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Log public IP address
-        run: |
-          echo -e "Public IPv4:"
-          curl -s https://api.ipify.org
-          echo -e "\nPublic IPv4(v6):"
-          curl -s https://api64.ipify.org
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
-        with:
-          oc: "4.14"
-          skip_cache: true
-
-      - name: Build wps-api Image
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=api bash openshift/scripts/oc_build.sh ${SUFFIX} apply
-  # TODO: Delete once pmtiles has run for some time
-  # build-tileserv-image:
-  #   name: Build tileserv Image
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - name: Set Variables
-  #       shell: bash
-  #       run: |
-  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-
-  #     - name: Build wps-tileserv Image
-  #       shell: bash
-  #       run: |
-  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-  #           GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=tileserv DOCKER_FILE=Dockerfile.tileserv PATH_BC=openshift/templates/tileserv/tileserv_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
-
-  build-wps-jobs-image:
-    name: Build WPS Jobs Image
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Log public IP address
-        run: |
-          echo -e "Public IPv4:"
-          curl -s https://api.ipify.org
-          echo -e "\nPublic IPv4(v6):"
-          curl -s https://api64.ipify.org
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
-        with:
-          oc: "4.14"
-          skip_cache: true
-
-      - name: Build wps-jobs Image
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_TOOL_TOKEN }}"
-          GIT_BRANCH=${GITHUB_HEAD_REF} MODULE_NAME=jobs DOCKER_FILE=Dockerfile.jobs PATH_BC=openshift/templates/wps_jobs/wps_jobs_build.yaml bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          GIT_BRANCH=${GITHUB_HEAD_REF} \
+            MODULE_NAME=${{ matrix.module }} \
+            ${{ matrix.docker_file && format('DOCKER_FILE={0}', matrix.docker_file) || '' }} \
+            ${{ matrix.path_bc && format('PATH_BC={0}', matrix.path_bc) || '' }} \
+            ${{ matrix.sentry && format('SENTRY_AUTH_TOKEN="{0}"', secrets.SENTRY_AUTH_TOKEN) || '' }} \
+            bash openshift/scripts/oc_build.sh ${SUFFIX} apply
 
   configure-nats-server-name:
     name: Configure nats server name
     runs-on: ubuntu-24.04
     steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Log public IP address
-        run: |
-          echo -e "Public IPv4:"
-          curl -s https://api.ipify.org
-          echo -e "\nPublic IPv4(v6):"
-          curl -s https://api64.ipify.org
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/oc-setup
         with:
-          oc: "4.14"
-          skip_cache: true
+          pr-number: ${{ github.event.number }}
 
       - name: Configure
         shell: bash
@@ -187,40 +78,39 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           bash openshift/scripts/oc_provision_nats_server_config.sh ${SUFFIX} apply
 
+  deploy-dev-queue:
+    name: Deploy Message Queue to Dev
+    if: github.triggering_actor != 'renovate'
+    runs-on: ubuntu-24.04
+    needs: [build-image, configure-nats-server-name]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/oc-setup
+        with:
+          pr-number: ${{ github.event.number }}
+
+      - name: NATS Message Queue
+        shell: bash
+        run: |
+          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          MEMORY_REQUEST=250Mi MEMORY_LIMIT=500Mi CPU_REQUEST="250m" bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
+
   deploy-dev:
     name: Deploy to Dev
     if: github.triggering_actor != 'renovate'
     needs:
       [
-        build-api-image,
-        build-web-image,
-        build-wps-jobs-image,
+        build-image,
         prepare-dev-database,
         deploy-dev-queue,
         configure-nats-server-name,
       ]
     runs-on: ubuntu-24.04
     steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Log public IP address
-        run: |
-          echo -e "Public IPv4:"
-          curl -s https://api.ipify.org
-          echo -e "\nPublic IPv4(v6):"
-          curl -s https://api64.ipify.org
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/oc-setup
         with:
-          oc: "4.14"
-          skip_cache: true
+          pr-number: ${{ github.event.number }}
 
       - name: Deploy API to Dev
         shell: bash
@@ -228,239 +118,53 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
           MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
-      - name: Advisory fuel areas job
+      - name: Provision dev cronjobs and jobs
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_advisory_fuel_areas_job.sh ${SUFFIX} apply
 
-      - name: Backfill zone status job
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_backfill_zone_status_job.sh ${SUFFIX} apply
-
-      - name: Fuel raster job
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_fuel_raster_processor_job.sh ${SUFFIX} apply
-
-      ## TODO: re-enable once crunchy is deployed: https://app.zenhub.com/workspaces/bcws---agile-psu-5e321393e038fba5bbe203b8/issues/gh/bcgov/wps/2340
-      - name: Hourly actuals cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
+          bash openshift/scripts/oc_provision_advisory_fuel_areas_job.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_backfill_zone_status_job.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_fuel_raster_processor_job.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
-
-      # - name: Noon forecasts cronjob
-      #   shell: bash
-      #   run: |
-      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-      #     bash openshift/scripts/oc_provision_wfwx_noon_forecasts_cronjob.sh ${SUFFIX} apply
-
-      - name: Environment Canada GDPS cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
-
-      - name: Environment Canada HRDPS cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
-
-      # - name: Environment Canada RDPS cronjob
-      #   shell: bash
-      #   run: |
-      #     oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-      #     PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
-
-      - name: NOAA GFS cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} apply
-
-      - name: NOAA NAM cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
-
-      - name: ECMWF cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_ecmwf_cronjob.sh ${SUFFIX} apply
-
-      - name: VIIRS SNOW cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} apply
-
-      - name: GRASS CURING cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_grass_curing_cronjob.sh ${SUFFIX} apply
-
-      - name: RDPS SFMS cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_rdps_sfms_cronjob.sh ${SUFFIX} apply
-
-      - name: SFMS Raster Calculations cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_sfms_calculations_cronjob.sh ${SUFFIX} apply
-
-      - name: Fire Watch Weather cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_fire_watch_weather_cronjob.sh ${SUFFIX} apply
-
-      - name: Hourly pruner nightly cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
-
-      - name: Partitioner cronjob
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
-
-  # TODO: Delete once pmtiles has run for some time
-  # deploy-tileserv:
-  #   name: Deploy tileserv to Dev
-  #   if: github.triggering_actor != 'renovate'
-  #   runs-on: ubuntu-22.04
-  #   # We need
-  #   # - the image to be built before we can deploy.
-  #   needs: [build-tileserv-image]
-  #   steps:
-  #     - name: Set Variables
-  #       shell: bash
-  #       run: |
-  #         echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-
-  #     - name: Tileserv
-  #       shell: bash
-  #       run: |
-  #         oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-  #         PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_tileserv.sh ${SUFFIX} apply
-
-  deploy-dev-queue:
-    name: Deploy Message Queue to Dev
-    if: github.triggering_actor != 'renovate'
-    runs-on: ubuntu-24.04
-    # We need
-    # - the image to be built before we can deploy.
-    # - we need the tileserv database up so we can write to it
-    needs: [build-api-image, configure-nats-server-name]
-    steps:
-      - name: Set Variables
-        shell: bash
-        run: |
-          echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Log public IP address
-        run: |
-          echo -e "Public IPv4:"
-          curl -s https://api.ipify.org
-          echo -e "\nPublic IPv4(v6):"
-          curl -s https://api64.ipify.org
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
-        with:
-          oc: "4.14"
-          skip_cache: true
-
-      - name: NATS Message Queue
-        shell: bash
-        run: |
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_DEV="e1e498-dev" MEMORY_REQUEST=250Mi MEMORY_LIMIT=500Mi CPU_REQUEST="250m" bash openshift/scripts/oc_provision_nats.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_ecmwf_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_grass_curing_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_rdps_sfms_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_sfms_calculations_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_fire_watch_weather_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
+          SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
     needs: [deploy-dev]
     runs-on: ubuntu-24.04
-
     steps:
-      # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.15.0
         with:
           target: "https://wps-pr-${{ github.event.number }}-e1e498-dev.apps.silver.devops.gov.bc.ca"
           rules_file_name: ".zap/rules.tsv"
-          # Do not return failure on warnings - TODO: this has to be resolved!
           cmd_options: "-I"
-
-  run-schemathesis:
-    name: Schemathesis Fuzzing
-    if: github.triggering_actor != 'renovate'
-    runs-on: ubuntu-24.04
-    needs: [deploy-dev]
-
-    steps:
-      - name: Run Schemathesis
-        continue-on-error: true
-        uses: schemathesis/action@v2
-        with:
-          # Your API schema location
-          schema: "https://wps-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca/api/openapi.json"
-          args: "--experimental=openapi-3.1"
-          # Set your token from secrets
-          token: ${{ secrets.SCHEMATHESIS_TOKEN }}
 
   deploy-c-haines:
     name: Deploy c-haines cronjob
     if: github.triggering_actor != 'renovate'
     runs-on: ubuntu-24.04
-    # We need
-    # - the image to be built before we can deploy.
-    # - the database to be there (so we can write to it).
-    # - wait for the api deployment, as it's responsible for upgrading the database.
-    needs: [build-api-image, prepare-dev-database, deploy-dev]
-
+    needs: [build-image, prepare-dev-database, deploy-dev]
     steps:
-      - name: Set Variables
-        shell: bash
-        run: echo "SUFFIX=pr-${{ github.event.number }}" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Log public IP address
-        run: |
-          echo -e "Public IPv4:"
-          curl -s https://api.ipify.org
-          echo -e "\nPublic IPv4(v6):"
-          curl -s https://api64.ipify.org
-
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@v1
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/oc-setup
         with:
-          oc: "4.14"
-          skip_cache: true
+          pr-number: ${{ github.event.number }}
 
       - name: C-Haines Cronjob
         shell: bash
         run: |
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_DEV_TOKEN }}"
-          PROJ_TARGET="e1e498-dev" PROJ_TOOLS="e1e498-tools" PROJ_DEV="e1e498-dev" bash openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply

@@ -1,0 +1,28 @@
+name: OC Setup
+description: Common setup steps for OpenShift deployment jobs
+
+inputs:
+  pr-number:
+    description: Pull request number
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set Variables
+      shell: bash
+      run: echo "SUFFIX=pr-${{ inputs.pr-number }}" >> $GITHUB_ENV
+
+    - name: Log public IP address
+      shell: bash
+      run: |
+        echo -e "Public IPv4:"
+        curl -s https://api.ipify.org
+        echo -e "\nPublic IPv4(v6):"
+        curl -s https://api64.ipify.org
+
+    - name: Install OpenShift CLI tools
+      uses: redhat-actions/openshift-tools-installer@v1
+      with:
+        oc: "4.14"
+        skip_cache: true
