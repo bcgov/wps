@@ -7,17 +7,11 @@ import re
 import sys
 import tempfile
 from datetime import date, datetime, timedelta
-from pathlib import Path
-from typing import List
 
 import aiofiles
 import earthaccess as ea
 import numpy as np
-import rasterio
-import requests
-from osgeo import gdal
-from rasterio.warp import Resampling, calculate_default_transform, reproject, transform_bounds
-from wps_shared import config
+from osgeo import gdal, osr
 from wps_shared.db.crud.snow import get_last_processed_snow_by_processed_date, save_processed_snow
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
@@ -25,7 +19,6 @@ from wps_shared.geospatial.geospatial import SpatialReferenceSystem
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.polygonize import polygonize_in_memory
 from wps_shared.utils.s3 import get_client
-from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import vancouver_tz
 from wps_shared.wps_logging import configure_logging
 
@@ -45,7 +38,13 @@ VARIABLE = "CGF_NDSI_Snow_Cover"
 DST_NODATA = 255
 BBOX = (-139.06, 48.3, -114.03, 60.0)
 COMPRESS = "LZW"
-
+R_SPHERE = 6371007.181  # meters
+TILE_SIZE_M = 1111950.519  # meters (tile width/height)
+GLOBAL_ULX = -20015109.354
+GLOBAL_ULY = 10007554.677
+MODIS_SINUSOIDAL_PROJ4 = "+proj=sinu +R=6371007.181 +nadgrids=@null +wktext +units=m +no_defs"
+RESAMPLING = "near"
+SUBDATASET = "://HDFEOS/GRIDS/VIIRS_Grid_IMG_2D/Data_Fields/CGF_NDSI_Snow_Cover"
 
 class NoGranulesException(Exception):
     """
@@ -104,9 +103,7 @@ class ViirsSnowJob:
         :type: file_name: str
         """
         auth = ea.login(strategy="environment")
-        assert auth.authenticated, (
-            "Earthdata Login failed; set EARTHDATA_USERNAME/PASSWORD or use netrc."
-        )
+        assert auth.authenticated, "Earthdata Login failed; set EARTHDATA_USERNAME/PASSWORD."
 
         granules = ea.search_data(
             short_name=SHORT_NAME,
@@ -237,107 +234,121 @@ class ViirsSnowJob:
                 )
             logger.info("Done uploading snow coverage file")
 
-    def _convert_h5_to_tif(self, output_path: str, h5_paths: List[Path]):
-        # ---------- helpers ----------
-        # MODIS/VIIRS sinusoidal sphere CRS (the .h5 files lack spatial reference info but use
-        # MODIS sinusoidal projection)
-        SINUSOIDAL_PROJ4 = "+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +R=6371007.181 +units=m +no_defs"
+    def _build_modis_sinu_wkt(self) -> str:
+        srs = osr.SpatialReference()
+        srs.ImportFromProj4(MODIS_SINUSOIDAL_PROJ4)
+        return srs.ExportToWkt()
 
-        tile_re = re.compile(r"\.h(?P<h>\d{2})v(?P<v>\d{2})\.", re.IGNORECASE)
+    def _compute_bounds_for_tile(self, h: int, v: int, width: int, height: int):
+        """
+        Compute ULX/ULY/LRX/LRY in meters for a MODIS Sinusoidal tile and raster size.
+        Pixel size is derived from tile size / pixels (more accurate than nominal resolution).
+        """
+        px = TILE_SIZE_M / float(width)
+        py = TILE_SIZE_M / float(height)
+        # Compute upper-left tile corner in meters
+        ulx = GLOBAL_ULX + h * TILE_SIZE_M
+        uly = GLOBAL_ULY - v * TILE_SIZE_M
+        # Lower-right
+        lrx = ulx + width * px
+        lry = uly - height * py
+        return ulx, uly, lrx, lry, px, py
 
-        # Raw file names contain a string like 'h{xx}v{yy}' where the values for h and v represent a
-        # MODIS sinusoidal projection tile
-        def derive_tile_id(fname: str) -> str:
-            m = tile_re.search(fname)
-            return f"h{m.group('h')}v{m.group('v')}" if m else "h??v??"
+    def _read_tile_indices(self, meta: dict, src_name: str):
+        """
+        Try to infer (h, v) from metadata or filename pattern h##v##.
+        """
+        h = None
+        v = None
+        # From metadata (HDF-EOS5 commonly provides these)
+        for key in ["HorizontalTileNumber", "HORIZONTALTILENUMBER"]:
+            if key in meta:
+                try:
+                    h = int(meta[key])
+                    break
+                except Exception:
+                    pass
+        for key in ["VerticalTileNumber", "VERTICALTILENUMBER"]:
+            if key in meta:
+                try:
+                    v = int(meta[key])
+                    break
+                except Exception:
+                    pass
 
-        # Use rasterio to open the dataset
-        def open_subdataset(path_h5: Path, var_name: str):
-            """
-            Open a HDF-EOS5 Data Field as a rasterio dataset via GDAL subdataset path.
-            """
-            subds = f'HDF5:"{path_h5}"://HDFEOS/GRIDS/VIIRS_Grid_IMG_2D/Data_Fields/{var_name}'
-            try:
-                ds = rasterio.open(subds)
-            except Exception as e:
-                raise RuntimeError(f"Failed to open subdataset {subds}\n{e}")
-            return ds
+        # From filename (hXXvYY)
+        if h is None or v is None:
+            m = re.search(r"h(\d{2})v(\d{2})", src_name)
+            if m:
+                h = int(m.group(1))
+                v = int(m.group(2))
 
-        # ---------- process each granule (ie.h5 file) ----------
-        for h5_path in h5_paths:
-            h5_path = Path(h5_path)
-            tile_id = derive_tile_id(h5_path.name)
+        if h is None or v is None:
+            raise RuntimeError("Could not determine tile indices (h,v) from metadata or filename.")
+        return h, v
 
-            # Each .h5 file contains five subdatasets. We need to open the one containing the cloud free
-            # snow cover data
-            with open_subdataset(h5_path, VARIABLE) as src:
-                # Ensure dtype and nodata
-                src_nodata = src.nodata if src.nodata is not None else DST_NODATA
-                src_crs = src.crs
-                if src_crs is None:
-                    # Fallback if CRS not embedded on the data field
-                    src_crs = rasterio.crs.CRS.from_string(SINUSOIDAL_PROJ4)
+    def _translate_assign_sinu(
+        self,
+        src_name: str,
+        dst_tif: str,
+        ulx: float,
+        uly: float,
+        lrx: float,
+        lry: float,
+        sinu_wkt: str,
+    ):
+        opts = gdal.TranslateOptions(
+            format="GTiff", outputSRS=sinu_wkt, outputBounds=[ulx, uly, lrx, lry]
+        )
+        out = gdal.Translate(dst_tif, src_name, options=opts)
+        if out is None:
+            raise RuntimeError("gdal.Translate failed when assigning sinusoidal georeference.")
+        out.FlushCache()
+        out = None
 
-                # Compute intersection of this tile (in dst CRS) with the requested BBOX, to clip output
-                src_bounds_wgs84 = transform_bounds(
-                    src_crs, SpatialReferenceSystem.WGS84.srs, *src.bounds, densify_pts=21
-                )
-                # Intersection in WGS84
-                inter_minx = max(BBOX[0], src_bounds_wgs84[0])
-                inter_miny = max(BBOX[1], src_bounds_wgs84[1])
-                inter_maxx = min(BBOX[2], src_bounds_wgs84[2])
-                inter_maxy = min(BBOX[3], src_bounds_wgs84[3])
+    def _warp_to_wgs84(self, src_name_or_ds, dst_tif: str, resampling: str, dstnodata: float):
+        warp_options = gdal.WarpOptions(
+            dstSRS=SpatialReferenceSystem.WGS84.epsg,
+            resampleAlg=resampling,
+            format="GTiff",
+            dstNodata=dstnodata,
+        )
+        out = gdal.Warp(dst_tif, src_name_or_ds, options=warp_options)
+        if out is None:
+            raise RuntimeError("gdal.Warp failed.")
+        out.FlushCache()
+        out = None
 
-                # Skip tiles that do not intersect the bbox
-                if inter_minx >= inter_maxx or inter_miny >= inter_maxy:
-                    print(f"Skip {h5_path.name} ({tile_id}): no overlap with bbox.")
-                    continue
+    def _convert_h5_to_geotiff(self, temp_dir: str, h5_path: str):
+        ds = gdal.Open(h5_path)
+        if ds is None:
+            raise RuntimeError(f"Cannot open subdataset: {h5_path}")
+        # Attempt to derive NoData from band 1 if not specified
+        dstnodata = DST_NODATA
+        b1 = ds.GetRasterBand(1)
+        if b1 is not None:
+            nd = b1.GetNoDataValue()
+            if nd is not None:
+                dstnodata = nd
+        meta = ds.GetMetadata()
+        h, v = self._read_tile_indices(meta, h5_path)
+        width, height = ds.RasterXSize, ds.RasterYSize
+        ulx, uly, lrx, lry, px, py = self._compute_bounds_for_tile(h, v, width, height)
 
-                # Compute target transform/shape limited to intersection bbox
-                dst_transform, dst_width, dst_height = calculate_default_transform(
-                    src_crs,
-                    SpatialReferenceSystem.WGS84.srs,
-                    src.width,
-                    src.height,
-                    *src.bounds,
-                    dst_bounds=(inter_minx, inter_miny, inter_maxx, inter_maxy),
-                    resolution=None,  # let GDAL choose; you can force e.g. (0.003, 0.003) deg if desired
-                )
+        print("Assigning MODIS Sinusoidal georeference with:")
+        print(f"  h={h}, v={v}, size={width}x{height}, px={px:.6f} m, py={py:.6f} m")
+        print(f"  ULX={ulx:.3f}, ULY={uly:.3f}, LRX={lrx:.3f}, LRY={lry:.3f}")
 
-                meta = src.meta.copy()
-                meta.update(
-                    {
-                        "driver": "GTiff",
-                        "height": dst_height,
-                        "width": dst_width,
-                        "count": 1,
-                        "crs": SpatialReferenceSystem.WGS84.srs,
-                        "transform": dst_transform,
-                        "dtype": "uint8",
-                        "nodata": DST_NODATA,
-                        "tiled": True,
-                        "compress": COMPRESS,
-                        "predictor": 2,
-                    }
-                )
+        sinu_name = f"sinu_{h}_{v}.tif"
+        sinu_path = os.path.join(temp_dir, sinu_name)
+        sinu_wkt = self._build_modis_sinu_wkt()
+        self._translate_assign_sinu(ds, sinu_path, ulx, uly, lrx, lry, sinu_wkt)
 
-                out_name = os.path.join(
-                    output_path, f"{h5_path.stem}_{VARIABLE}_{tile_id}_WGS84.tif"
-                )
-                with rasterio.open(out_name, "w", **meta) as dst:
-                    reproject(
-                        source=rasterio.band(src, 1),
-                        destination=rasterio.band(dst, 1),
-                        src_transform=src.transform,
-                        src_crs=src_crs,
-                        src_nodata=src_nodata,
-                        dst_transform=dst_transform,
-                        dst_crs=SpatialReferenceSystem.WGS84.srs,
-                        dst_nodata=DST_NODATA,
-                        resampling=Resampling.nearest,  # categorical data
-                    )
-
-                print(f"Wrote {out_name}")
+        wgs84_name = f"wgs_84_{h}_{v}.tif"
+        wgs84_path = os.path.join(temp_dir, wgs84_name)
+        self._warp_to_wgs84(sinu_path, wgs84_path, RESAMPLING, dstnodata)
+        os.remove(sinu_path)  # Remove the intermediate tif with the sinusoidal projection
+        ds = None
 
     async def _process_viirs_snow(self, for_date: date, path: str):
         """Process VIIRS snow data.
@@ -348,9 +359,11 @@ class ViirsSnowJob:
         :type path: str
         """
         with tempfile.TemporaryDirectory() as sub_dir:
-            h5_dir = os.path.join(sub_dir, "h5")
-            h5_paths = self._download_viirs_granules_by_date(for_date, h5_dir)
-            self._convert_h5_to_tif(sub_dir, h5_paths)
+            h5_paths = self._download_viirs_granules_by_date(for_date, sub_dir)
+            # The downloaded snow data is in a HDF5 format (.h5 file extension). Convert to WGS84 geotiffs.
+            for h5_path in h5_paths:
+                subdataset_path = f'HDF5:"./{h5_path}"{SUBDATASET}'
+                self._convert_h5_to_geotiff(sub_dir, subdataset_path)
             # Create a mosaic from the snow coverage imagery, clip it to the boundary of BC and save to S3
             self._create_snow_coverage_mosaic(sub_dir)
             await self._clip_snow_coverage_mosaic(sub_dir, path)
