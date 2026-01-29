@@ -158,7 +158,7 @@ jobs:
           bash openshift/scripts/oc_provision_fire_watch_weather_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_sfms_daily_actuals_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_sfms_forecast_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} apply
           SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
 
   scan-dev:
