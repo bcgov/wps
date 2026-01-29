@@ -63,6 +63,8 @@ ARG USERNAME=worker
 ARG USER_UID=1010
 ARG USER_GID=1000
 
+RUN apt-get install libgdal-hdf5
+
 # Switch to root
 USER 0
 
