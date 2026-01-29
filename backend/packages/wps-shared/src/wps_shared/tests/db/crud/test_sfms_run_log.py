@@ -16,7 +16,7 @@ test_completed_at = datetime(2025, 7, 15, 20, 45, 0, tzinfo=timezone.utc)
 
 @pytest.fixture(scope="function")
 def postgres_container():
-    with PostgresContainer("postgis/postgis:15-3.3") as postgres:
+    with PostgresContainer("postgres:15") as postgres:
         yield postgres
 
 
