@@ -196,15 +196,6 @@
             "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
-            "name": "backfill_zone_statuses",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "app.jobs.backfill_zone_statuses",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/backend/packages/wps-api/src",
-            "python": "${workspaceFolder}/backend/.venv/bin/python"
-        },
-        {
             "name": "env_canada GDPS",
             "type": "debugpy",
             "justMyCode": false,
@@ -293,6 +284,32 @@
                 "sfms/calculated/forecast",
                 "--batch-s3-output-prefix",
                 "sfms/calculated/forecast"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "SFMS Temperature Interpolation",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.temperature_interpolation_job",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "2024-07-04"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "SFMS Precipitation Interpolation",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.precipitation_interpolation_job",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "2024-07-04"
             ],
             "console": "integratedTerminal"
         },

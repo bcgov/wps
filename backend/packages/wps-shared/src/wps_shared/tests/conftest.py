@@ -199,6 +199,26 @@ def spy_access_logging(mocker: MockerFixture):
 
 
 @pytest.fixture
+def mock_s3_client():
+    """Mock S3Client for testing."""
+    from unittest.mock import AsyncMock
+
+    from wps_shared.utils.s3_client import S3Client
+
+    client = AsyncMock(spec=S3Client)
+    client.__aenter__ = AsyncMock(return_value=client)
+    client.__aexit__ = AsyncMock(return_value=None)
+    client.put_object = AsyncMock()
+    client.get_object = AsyncMock()
+    client.copy_object = AsyncMock()
+    client.delete_object = AsyncMock()
+    client.all_objects_exist = AsyncMock(return_value=True)
+    client.persist_raster_data = AsyncMock(return_value="test_key.tif")
+    client.list_objects_v2 = AsyncMock(return_value={"Contents": []})
+    return client
+
+
+@pytest.fixture
 def mock_wfwx_api(mocker: MockerFixture):
     """A mocked WfwxApi with async methods."""
     mock = mocker.AsyncMock(name="WfwxApiMock")

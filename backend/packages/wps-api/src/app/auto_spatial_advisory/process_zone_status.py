@@ -65,19 +65,19 @@ async def process_zone_statuses(run_type: RunType, run_datetime: datetime, for_d
             fuel_type_raster.id,
         )
 
-        zone_statuses = await calculate_zone_statuses(
+        zone_statuses = calculate_zone_statuses(
             thresholds_lut,
             hfi_rows,
             run_param_id,
             fuel_type_raster.id,
         )
 
-        await store_all_advisory_zone_status(session, zone_statuses)
+        store_all_advisory_zone_status(session, zone_statuses)
         delta = perf_counter() - perf_start
         logger.info(f"delta count before and after calculating zone advisory statuses: {delta}")
 
 
-async def calculate_zone_statuses(
+def calculate_zone_statuses(
     thresholds_lut: dict[str, int],
     hfi_rows: list[HfiArea],
     run_parameters_id: int,
@@ -113,7 +113,7 @@ async def calculate_zone_statuses(
     return zone_statuses
 
 
-async def store_all_advisory_zone_status(
+def store_all_advisory_zone_status(
     session: AsyncSession, zone_statuses: list[AdvisoryZoneStatus]
 ):
     logger.info("Writing advisory zone statuses.")

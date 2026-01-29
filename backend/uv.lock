@@ -10,6 +10,7 @@ resolution-markers = [
 members = [
     "wps-api",
     "wps-jobs",
+    "wps-sfms",
     "wps-shared",
     "wps-tools",
     "wps-weather",
@@ -1461,6 +1462,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc", size = 141406, upload-time = "2024-12-06T15:37:23.222Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad", size = 73517, upload-time = "2024-12-06T15:37:21.509Z" },
+]
+
+[[package]]
+name = "hypothesis"
+version = "6.150.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sortedcontainers" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d2/19/a4eee0c98e2ec678854272f79646f34943f8fbbc42689cc355b530c5bc96/hypothesis-6.150.2.tar.gz", hash = "sha256:deb043c41c53eaf0955f4a08739c2a34c3d8040ee3d9a2da0aa5470122979f75", size = 475250, upload-time = "2026-01-13T17:09:22.146Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b3/5e/21caad4acf45db7caf730cca1bc61422283e4c4e841efbc862d17ab81a21/hypothesis-6.150.2-py3-none-any.whl", hash = "sha256:648d6a2be435889e713ba3d335b0fb5e7a250f569b56e6867887c1e7a0d1f02f", size = 542712, upload-time = "2026-01-13T17:09:19.945Z" },
 ]
 
 [[package]]
@@ -3973,6 +3986,15 @@ wheels = [
 ]
 
 [[package]]
+name = "sortedcontainers"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f23394729afe52f3bf7adec04bf9ed2c820b39e19299111/sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88", size = 30594, upload-time = "2021-05-16T22:03:42.897Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575, upload-time = "2021-05-16T22:03:41.177Z" },
+]
+
+[[package]]
 name = "soupsieve"
 version = "2.8"
 source = { registry = "https://pypi.org/simple" }
@@ -4399,6 +4421,7 @@ dependencies = [
     { name = "shapely" },
     { name = "sqlalchemy" },
     { name = "uvicorn" },
+    { name = "wps-sfms" },
     { name = "wps-shared" },
     { name = "wps-wf1" },
 ]
@@ -4465,6 +4488,7 @@ requires-dist = [
     { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "sqlalchemy", specifier = ">=2,<3" },
     { name = "uvicorn", specifier = ">=0,<1" },
+    { name = "wps-sfms", editable = "packages/wps-sfms" },
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "wps-wf1", editable = "packages/wps-wf1" },
 ]
@@ -4511,6 +4535,28 @@ requires-dist = [
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "wps-wf1", editable = "packages/wps-wf1" },
     { name = "xarray", specifier = ">=2025.3.1,<2026" },
+]
+provides-extras = ["dev"]
+
+[[package]]
+name = "wps-sfms"
+version = "0.1.0"
+source = { editable = "packages/wps-sfms" }
+dependencies = [
+    { name = "numpy" },
+    { name = "wps-shared" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "hypothesis" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.150.2" },
+    { name = "numpy", specifier = ">=1,<3" },
+    { name = "wps-shared", editable = "packages/wps-shared" },
 ]
 provides-extras = ["dev"]
 

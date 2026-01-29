@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from wps_shared.wps_logging import configure_logging
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from app.jobs.rdps_sfms import MAX_MODEL_RUN_HOUR
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from app.sfms.daily_fwi_processor import DailyFWIProcessor
 from app.sfms.hourly_ffmc_processor import HourlyFFMCProcessor
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
@@ -107,8 +106,6 @@ def main():
         loop.run_until_complete(job.calculate_fwi_rasters(start_time))
     except Exception as e:
         logger.error("An exception occurred while processing SFMS raster calculations", exc_info=e)
-        rc_message = ":scream: Encountered an error while processing SFMS raster data."
-        send_rocketchat_notification(rc_message, e)
         sys.exit(os.EX_SOFTWARE)
 
 

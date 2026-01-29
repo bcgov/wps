@@ -4,6 +4,17 @@ import math
 from datetime import datetime, timezone
 from typing import Generator, List
 
+from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_wf1.ecodivisions.ecodivision_seasons import EcodivisionSeasons
+
+from wps_wf1.util import (
+    compute_dewpoint,
+    get_zone_code_prefix,
+    is_station_fire_zone_valid,
+    is_station_valid,
+)
+from wps_wf1.validation import get_valid_flags
+
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.fba import FireCenterStation, FireCentre
 from wps_shared.schemas.forecasts import NoonForecast
@@ -22,14 +33,6 @@ from wps_shared.schemas.stations import (
     WFWXWeatherStation,
 )
 
-from wps_wf1.ecodivisions.ecodivision_seasons import EcodivisionSeasons
-from wps_wf1.util import (
-    compute_dewpoint,
-    get_zone_code_prefix,
-    is_station_fire_zone_valid,
-    is_station_valid,
-)
-from wps_wf1.validation import get_valid_flags
 
 logger = logging.getLogger(__name__)
 
@@ -336,6 +339,36 @@ async def dailies_list_mapper(
                 )
             )
     return wf1_dailies
+
+
+def sfms_daily_actuals_mapper(
+    raw_dailies: List[dict], stations: List[WFWXWeatherStation]
+) -> List[SFMSDailyActual]:
+    """Maps raw dailies to list of SFMSDailyActual objects"""
+    station_lookup = {station.code: station for station in stations}
+    sfms_daily_actuals: List[SFMSDailyActual] = []
+    for raw_daily in raw_dailies:
+        station_data = raw_daily.get("stationData")
+        if (
+            is_station_valid(station_data)
+            and raw_daily.get("recordType").get("id") == WF1RecordTypeEnum.ACTUAL.value
+        ):
+            station_code = station_data.get("stationCode")
+            station = station_lookup[station_code]
+            sfms_daily_actuals.append(
+                SFMSDailyActual(
+                    code=station_code,
+                    lat=station.lat,
+                    lon=station.long,
+                    elevation=station.elevation,
+                    temperature=raw_daily.get("temperature"),
+                    relative_humidity=raw_daily.get("relativeHumidity"),
+                    precipitation=raw_daily.get("precipitation"),
+                    wind_speed=raw_daily.get("windSpeed"),
+                    wind_direction=raw_daily.get("windDirection"),
+                )
+            )
+    return sfms_daily_actuals
 
 
 async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, None]):
