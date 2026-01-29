@@ -27,6 +27,10 @@ parameters:
     value: image-registry.openshift-image-registry.svc:5000
   - name: SCHEDULE
     required: true
+  - name: POSTGRES_DATABASE
+    required: true
+  - name: CRUNCHYDB_USER
+    required: true
   - name: APP_LABEL
     required: true
 objects:
@@ -137,6 +141,38 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: object-store-bucket
+                    - name: POSTGRES_READ_USER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
+                    - name: POSTGRES_WRITE_USER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
+                    - name: POSTGRES_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: password
+                    - name: POSTGRES_WRITE_HOST
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
+                    - name: POSTGRES_READ_HOST
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
+                    - name: POSTGRES_PORT
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-port
+                    - name: POSTGRES_DATABASE
+                      value: ${POSTGRES_DATABASE}
                   resources:
                     limits:
                       memory: 1024Mi
