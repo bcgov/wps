@@ -46,6 +46,8 @@ jobs:
             sentry: true
           - name: API
             module: api
+            docker_file: Dockerfile
+            path_bc: openshift/templates/build.bc.yaml
           - name: WPS Jobs
             module: jobs
             docker_file: Dockerfile.jobs
