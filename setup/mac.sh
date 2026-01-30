@@ -56,7 +56,7 @@ echo "finished installing r packages"
 # ALTER USER wps WITH SUPERUSER;
 # grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;
 # "
-# echo "finished installing and configuration postgres, run migrations in poetry shell"
+# echo "finished installing and configuration postgres, run migrations"
 
 ### redis
 brew install redis

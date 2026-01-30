@@ -1,21 +1,11 @@
-[tool.poetry]
+[project]
 name = "s3-backup"
 version = "0.1.0"
 description = "Prune backup images"
-authors = ["Sybrand Strauss <sybrand.strauss@gov.bc.ca>"]
-license = "Apache License, Version 2.0, January 2004"
+authors = [{ name = "Sybrand Strauss", email = "sybrand.strauss@gov.bc.ca" }]
+license = { text = "Apache License, Version 2.0, January 2004" }
+requires-python = ">=3.11.2"
+dependencies = ["aiobotocore>=2.0.0,<3.0.0", "python-decouple>=3.5,<4.0.0"]
 
-[tool.poetry.dependencies]
-python = ">=3.11.2"
-aiobotocore = "^2.0.0"
-python-decouple = "^3.5"
-
-[tool.poetry.dev-dependencies]
-pytest = "^9.0.0"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.6.8"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = ["pytest>=9.0.0,<10.0.0", "ruff>=0.6.8,<0.7.0"]
