@@ -34,10 +34,8 @@ BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME = "binary_snow_coverage.tif"
 SNOW_COVERAGE_PMTILES_MIN_ZOOM = 4
 SNOW_COVERAGE_PMTILES_MAX_ZOOM = 11
 SNOW_COVERAGE_PMTILES_PERMISSIONS = "public-read"
-VARIABLE = "CGF_NDSI_Snow_Cover"
 DST_NODATA = 255
 BBOX = (-139.06, 48.3, -114.03, 60.0)
-COMPRESS = "LZW"
 R_SPHERE = 6371007.181  # meters
 TILE_SIZE_M = 1111950.519  # meters (tile width/height)
 GLOBAL_ULX = -20015109.354
@@ -75,6 +73,79 @@ def get_pmtiles_filepath(for_date: date, filename: str) -> str:
 
     return pmtiles_filepath
 
+def build_modis_sinu_wkt() -> str:
+    srs = osr.SpatialReference()
+    srs.ImportFromProj4(MODIS_SINUSOIDAL_PROJ4)
+    return srs.ExportToWkt()
+
+
+def compute_bounds_for_tile(h: int, v: int, width: int, height: int):
+    """
+    Compute ULX/ULY/LRX/LRY in meters for a MODIS Sinusoidal tile and raster size.
+    Pixel size is derived from tile size / pixels (more accurate than nominal resolution).
+    """
+    px = TILE_SIZE_M / float(width)
+    py = TILE_SIZE_M / float(height)
+    # Compute upper-left tile corner in meters
+    ulx = GLOBAL_ULX + h * TILE_SIZE_M
+    uly = GLOBAL_ULY - v * TILE_SIZE_M
+    # Lower-right
+    lrx = ulx + width * px
+    lry = uly - height * py
+    return ulx, uly, lrx, lry, px, py
+
+
+def read_tile_indices(meta: dict, src_name: str):
+    """
+    Try to infer (h, v) from metadata or filename pattern h##v##.
+    """
+    h = None
+    v = None
+    # From metadata (HDF-EOS5 commonly provides these)
+    for key in ["HorizontalTileNumber", "HORIZONTALTILENUMBER"]:
+        if key in meta:
+            try:
+                h = int(meta[key])
+                break
+            except Exception:
+                pass
+    for key in ["VerticalTileNumber", "VERTICALTILENUMBER"]:
+        if key in meta:
+            try:
+                v = int(meta[key])
+                break
+            except Exception:
+                pass
+
+    # From filename (hXXvYY)
+    if h is None or v is None:
+        m = re.search(r"h(\d{2})v(\d{2})", src_name)
+        if m:
+            h = int(m.group(1))
+            v = int(m.group(2))
+
+    if h is None or v is None:
+        raise RuntimeError("Could not determine tile indices (h,v) from metadata or filename.")
+    return h, v
+
+
+def translate_assign_sinu(
+    src_name: str,
+    dst_tif: str,
+    ulx: float,
+    uly: float,
+    lrx: float,
+    lry: float,
+    sinu_wkt: str,
+):
+    opts = gdal.TranslateOptions(
+        format="GTiff", outputSRS=sinu_wkt, outputBounds=[ulx, uly, lrx, lry]
+    )
+    out = gdal.Translate(dst_tif, src_name, options=opts)
+    if out is None:
+        raise RuntimeError("gdal.Translate failed when assigning sinusoidal georeference.")
+    out.FlushCache()
+    out = None
 
 class ViirsSnowJob:
     """Job that downloads and processed VIIRS snow coverage data from the NSIDC (https://nsidc.org)."""
@@ -234,78 +305,6 @@ class ViirsSnowJob:
                 )
             logger.info("Done uploading snow coverage file")
 
-    def _build_modis_sinu_wkt(self) -> str:
-        srs = osr.SpatialReference()
-        srs.ImportFromProj4(MODIS_SINUSOIDAL_PROJ4)
-        return srs.ExportToWkt()
-
-    def _compute_bounds_for_tile(self, h: int, v: int, width: int, height: int):
-        """
-        Compute ULX/ULY/LRX/LRY in meters for a MODIS Sinusoidal tile and raster size.
-        Pixel size is derived from tile size / pixels (more accurate than nominal resolution).
-        """
-        px = TILE_SIZE_M / float(width)
-        py = TILE_SIZE_M / float(height)
-        # Compute upper-left tile corner in meters
-        ulx = GLOBAL_ULX + h * TILE_SIZE_M
-        uly = GLOBAL_ULY - v * TILE_SIZE_M
-        # Lower-right
-        lrx = ulx + width * px
-        lry = uly - height * py
-        return ulx, uly, lrx, lry, px, py
-
-    def _read_tile_indices(self, meta: dict, src_name: str):
-        """
-        Try to infer (h, v) from metadata or filename pattern h##v##.
-        """
-        h = None
-        v = None
-        # From metadata (HDF-EOS5 commonly provides these)
-        for key in ["HorizontalTileNumber", "HORIZONTALTILENUMBER"]:
-            if key in meta:
-                try:
-                    h = int(meta[key])
-                    break
-                except Exception:
-                    pass
-        for key in ["VerticalTileNumber", "VERTICALTILENUMBER"]:
-            if key in meta:
-                try:
-                    v = int(meta[key])
-                    break
-                except Exception:
-                    pass
-
-        # From filename (hXXvYY)
-        if h is None or v is None:
-            m = re.search(r"h(\d{2})v(\d{2})", src_name)
-            if m:
-                h = int(m.group(1))
-                v = int(m.group(2))
-
-        if h is None or v is None:
-            raise RuntimeError("Could not determine tile indices (h,v) from metadata or filename.")
-        return h, v
-
-    def _translate_assign_sinu(
-        self,
-        src_name: str,
-        dst_tif: str,
-        ulx: float,
-        uly: float,
-        lrx: float,
-        lry: float,
-        sinu_wkt: str,
-    ):
-        opts = gdal.TranslateOptions(
-            format="GTiff", outputSRS=sinu_wkt, outputBounds=[ulx, uly, lrx, lry]
-        )
-        out = gdal.Translate(dst_tif, src_name, options=opts)
-        if out is None:
-            raise RuntimeError("gdal.Translate failed when assigning sinusoidal georeference.")
-        out.FlushCache()
-        out = None
-
     def _warp_to_wgs84(self, src_name_or_ds, dst_tif: str, resampling: str, dstnodata: float):
         warp_options = gdal.WarpOptions(
             dstSRS=SpatialReferenceSystem.WGS84.epsg,
@@ -331,9 +330,9 @@ class ViirsSnowJob:
             if nd is not None:
                 dstnodata = nd
         meta = ds.GetMetadata()
-        h, v = self._read_tile_indices(meta, h5_path)
+        h, v = read_tile_indices(meta, h5_path)
         width, height = ds.RasterXSize, ds.RasterYSize
-        ulx, uly, lrx, lry, px, py = self._compute_bounds_for_tile(h, v, width, height)
+        ulx, uly, lrx, lry, px, py = compute_bounds_for_tile(h, v, width, height)
 
         logger.info("Assigning MODIS Sinusoidal georeference with:")
         logger.info(f"  h={h}, v={v}, size={width}x{height}, px={px:.6f} m, py={py:.6f} m")
@@ -341,8 +340,8 @@ class ViirsSnowJob:
 
         sinu_name = f"sinu_{h}_{v}.tif"
         sinu_path = os.path.join(temp_dir, sinu_name)
-        sinu_wkt = self._build_modis_sinu_wkt()
-        self._translate_assign_sinu(ds, sinu_path, ulx, uly, lrx, lry, sinu_wkt)
+        sinu_wkt = build_modis_sinu_wkt()
+        translate_assign_sinu(ds, sinu_path, ulx, uly, lrx, lry, sinu_wkt)
 
         wgs84_name = f"wgs_84_{h}_{v}.tif"
         wgs84_path = os.path.join(temp_dir, wgs84_name)
