@@ -361,10 +361,6 @@ class ViirsSnowJob:
             h5_paths = self._download_viirs_granules_by_date(for_date, sub_dir)
             # The downloaded snow data is in a HDF5 format (.h5 file extension). Convert to WGS84 geotiffs.
             for h5_path in h5_paths:
-                pattern = os.path.join(sub_dir, "*.h5")
-                h5_files = glob.glob(pattern, recursive=False)
-                for file in h5_files:
-                    logger.info(file)
                 logger.info(f"Processing {h5_path}")
                 subdataset_path = f'HDF5:"{h5_path}"{SUBDATASET}'
                 self._convert_h5_to_geotiff(sub_dir, subdataset_path)
