@@ -8,30 +8,26 @@ ENV LANGUAGE en_US.UTF-8
 # Omit checksum if not required
 ENV AWS_REQUEST_CHECKSUM_CALCULATION when_required
 
-RUN apt-get update && apt-get -y install unzip
+# Install system dependencies and clean up cache
+RUN apt-get update && apt-get -y install unzip python3 python3-setuptools python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Download the Amazon CLI installer.
+# Download and install AWS CLI, then clean up
 ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
+RUN unzip /tmp/awscliv2.zip -d /tmp/ \
+    && /tmp/aws/install \
+    && rm -rf /tmp/aws /tmp/awscliv2.zip
 
-# Switch to root user for package installs.
-USER root
-RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
-    /tmp/aws/install
+# Install uv and clean cache
+RUN pip3 install uv==0.9.26 --break-system-packages --no-cache-dir
 
-RUN apt-get -y install python3 python3-setuptools python3-pip
-
-# We don't care that we break system packages, this is only used for backup related tasks
-RUN pip3 install uv==0.9.26 --break-system-packages
-
-# Install dependencies using uv from pyproject.toml
+# Install Python dependencies
 COPY pyproject.toml uv.lock /tmp/
-RUN cd /tmp && uv sync
+RUN cd /tmp \
+    && uv sync --no-cache
 
-# Copy scripts.
-COPY backup_to_s3.sh .
-COPY cleanup_bucket.sh .
-COPY prune.py .
-COPY prune_test.py .
+# Copy scripts
+COPY backup_to_s3.sh cleanup_bucket.sh prune.py prune_test.py ./
 
-# Configure the default command to run.
-CMD sh backup_to_s3.sh
+# Configure the default command to run
+CMD ["sh", "backup_to_s3.sh"]
