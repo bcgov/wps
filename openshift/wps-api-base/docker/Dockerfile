@@ -40,9 +40,9 @@ RUN R -e "install.packages('cffdrs')"
 # Add the worker user with UID 1010 and assign them to the existing group with GID 1000
 RUN useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
-# When our app is running, we want to allow poetry full access to the workers home directory.
-# +x : to execute the poetry binary
-# +r : to read poetry cache
+# When our app is running, we want to allow uv full access to the workers home directory.
+# +x : to execute the uv binary
+# +r : to read uv cache
 RUN chmod a+rx /home/$USERNAME
 
 USER $USERNAME

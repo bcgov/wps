@@ -16,7 +16,7 @@ uv run pytest
 
 ### Troubleshooting
 
-**Poetry can't install rpy2**
+**uv can't install rpy2**
 Error: `ld: library not found for -lpcre2-8`
 
 pcre2 should be installed after running [mac.sh](../../../setup/mac.sh). This can be verified by running
