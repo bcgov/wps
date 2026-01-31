@@ -4403,7 +4403,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.0.38,<3" },
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "wps-wf1", editable = "packages/wps-wf1" },
-    { name = "xarray", specifier = ">=2025.3.1,<2026" },
+    { name = "xarray", specifier = ">=2026.1,<2027" },
 ]
 provides-extras = ["dev"]
 
@@ -4536,7 +4536,7 @@ requires-dist = [
     { name = "pyproj", specifier = ">=3.5.0,<4" },
     { name = "scipy", specifier = ">=1.15.2,<2" },
     { name = "shapely", specifier = ">=2.0.5,<3" },
-    { name = "xarray", specifier = ">=2025.3.1,<2026" },
+    { name = "xarray", specifier = ">=2026.1,<2027" },
 ]
 
 [[package]]
@@ -4601,16 +4601,16 @@ wheels = [
 
 [[package]]
 name = "xarray"
-version = "2025.12.0"
+version = "2026.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "packaging" },
     { name = "pandas" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d3/af/7b945f331ba8911fdfff2fdfa092763156119f124be1ba4144615c540222/xarray-2025.12.0.tar.gz", hash = "sha256:73f6a6fadccc69c4d45bdd70821a47c72de078a8a0313ff8b1e97cd54ac59fed", size = 3082244, upload-time = "2025-12-05T21:51:22.432Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/85/113ff1e2cde9e8a5b13c2f0ef4e9f5cd6ca3a036b6452f4dd523419289b5/xarray-2026.1.0.tar.gz", hash = "sha256:0c9814761f9d9a9545df37292d3fda89f83201f3e02ae0f09f03313d9cfdd5e2", size = 3107024, upload-time = "2026-01-28T17:49:03.822Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d5/e4/62a677feefde05b12a70a4fc9bdc8558010182a801fbcab68cb56c2b0986/xarray-2025.12.0-py3-none-any.whl", hash = "sha256:9e77e820474dbbe4c6c2954d0da6342aa484e33adaa96ab916b15a786181e970", size = 1381742, upload-time = "2025-12-05T21:51:20.841Z" },
+    { url = "https://files.pythonhosted.org/packages/7d/8e/952a351c10df395d9bab850f611f4368834ae9104d6449049f5a49e00925/xarray-2026.1.0-py3-none-any.whl", hash = "sha256:5fcc03d3ed8dfb662aa254efe6cd65efc70014182bbc2126e4b90d291d970d41", size = 1403009, upload-time = "2026-01-28T17:49:01.538Z" },
 ]
 
 [[package]]
