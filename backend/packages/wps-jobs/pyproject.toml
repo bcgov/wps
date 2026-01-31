@@ -14,7 +14,7 @@ dependencies = [
     "asyncpg>=0.30.0,<1",
     "affine>=2.4.0,<3",
     "numpy==2.3.*",
-    "xarray>=2025.3.1,<2026",
+    "xarray>=2026.1,<2027",
     "herbie-data>=2025.11.1,<2026",
     "gdal==3.9.2",
     "wps-wf1"
