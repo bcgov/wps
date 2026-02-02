@@ -13,12 +13,19 @@ import os
 import sys
 from datetime import datetime, timezone
 
-from app.jobs.temperature_interpolation_job import TemperatureInterpolationJob
-from app.jobs.precipitation_interpolation_job import PrecipitationInterpolationJob
+from aiohttp import ClientSession
+
+from wps_sfms.interpolation.source import StationPrecipitationSource, StationTemperatureSource
+from wps_sfms.processors.precipitation import PrecipitationInterpolationProcessor
+from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.db.crud.sfms_run_log import track_sfms_run
 from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.fuel_raster import find_latest_version
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
 from wps_shared.utils.time import get_utc_now
+from wps_wf1.wfwx_api import WfwxApi
 
 logger = logging.getLogger(__name__)
 
@@ -27,20 +34,57 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     """Run temperature then precipitation interpolation for the given date."""
     logger.info("Starting SFMS daily actuals for %s", target_date.date())
 
+    raster_addresser = RasterKeyAddresser()
+
+    # Create processor for target date (noon UTC hour 20)
+    datetime_to_process = target_date.replace(hour=20, minute=0, second=0, microsecond=0)
+
+    async with S3Client() as s3_client:
+        # Use a reference raster for grid properties
+        # We'll use the fuel raster which defines the SFMS grid
+
+        latest_version = await find_latest_version(
+            s3_client, raster_addresser, datetime_to_process, 1
+        )
+        fuel_raster_key = raster_addresser.get_fuel_raster_key(target_date, version=latest_version)
+        fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_raster_key
+        logger.info("Using reference raster: %s", fuel_raster_path)
+
+        # Fetch temperature observations from WF1
+        async with ClientSession() as session:
+            wfwx_api = WfwxApi(session)
+            sfms_actuals = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime_to_process)
+
+        if not sfms_actuals:
+            raise RuntimeError(f"No station temperatures found for {datetime_to_process}")
+
     async with get_async_write_session_scope() as session:
 
-        @track_sfms_run("temperature_interpolation", session)
-        async def run_temperature_interpolation(target_date: datetime) -> None:
-            temperature_job = TemperatureInterpolationJob()
-            await temperature_job.run(target_date)
+        @track_sfms_run("temperature_interpolation", datetime_to_process, session)
+        async def run_temperature_interpolation() -> None:
+            temperature_processor = TemperatureInterpolationProcessor(
+                datetime_to_process, raster_addresser
+            )
+            temp_s3_key = await temperature_processor.process(
+                s3_client,
+                fuel_raster_path,
+                StationTemperatureSource(sfms_actuals),
+            )
+            logger.info("Temperature interpolation raster: %s", temp_s3_key)
 
-        @track_sfms_run("precipitation_interpolation", session)
-        async def run_precipitation_interpolation(target_date: datetime) -> None:
-            precipitation_job = PrecipitationInterpolationJob()
-            await precipitation_job.run(target_date)
+        @track_sfms_run("precipitation_interpolation", datetime_to_process, session)
+        async def run_precipitation_interpolation() -> None:
+            processor = PrecipitationInterpolationProcessor(datetime_to_process, raster_addresser)
+            precip_s3_key = await processor.process(
+                s3_client,
+                fuel_raster_path,
+                sfms_actuals,
+                StationPrecipitationSource(),
+            )
+            logger.info("Precip interpolation raster: %s", precip_s3_key)
 
-        await run_temperature_interpolation(target_date)
-        await run_precipitation_interpolation(target_date)
+        await run_temperature_interpolation()
+        await run_precipitation_interpolation()
 
     logger.info("SFMS daily actuals completed successfully for %s", target_date.date())
 

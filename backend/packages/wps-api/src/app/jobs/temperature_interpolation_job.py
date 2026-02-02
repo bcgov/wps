@@ -14,11 +14,13 @@ import logging
 import os
 import sys
 from datetime import datetime, timezone
+from typing import List
 
 from aiohttp import ClientSession
 from wps_sfms.interpolation import StationTemperatureSource
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.fuel_raster import find_latest_version
+from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.wps_logging import configure_logging
 from wps_shared.utils.time import get_utc_now
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
@@ -32,7 +34,13 @@ logger = logging.getLogger(__name__)
 class TemperatureInterpolationJob:
     """Job for processing temperature interpolation."""
 
-    async def run(self, target_date: datetime) -> None:
+    async def run(
+        self,
+        target_date: datetime,
+        sfms_actuals: List[SFMSDailyActual],
+        s3_client: S3Client,
+        fuel_raster_path: str,
+    ) -> None:
         """
         Run temperature interpolation for the specified date.
 
@@ -49,34 +57,11 @@ class TemperatureInterpolationJob:
             # Process temperature interpolation
             processor = TemperatureInterpolationProcessor(datetime_to_process, raster_addresser)
 
-            async with S3Client() as s3_client:
-                # Use a reference raster for grid properties
-                # We'll use the fuel raster which defines the SFMS grid
-
-                latest_version = await find_latest_version(
-                    s3_client, raster_addresser, datetime_to_process, 1
-                )
-                fuel_raster_key = raster_addresser.get_fuel_raster_key(
-                    target_date, version=latest_version
-                )
-                fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_raster_key
-                logger.info("Using reference raster: %s", fuel_raster_path)
-
-                # Fetch temperature observations from WF1
-                async with ClientSession() as session:
-                    wfwx_api = WfwxApi(session)
-                    sfms_actuals = await wfwx_api.get_sfms_daily_actuals_all_stations(
-                        datetime_to_process
-                    )
-
-                if not sfms_actuals:
-                    raise RuntimeError(f"No station temperatures found for {datetime_to_process}")
-
-                s3_key = await processor.process(
-                    s3_client,
-                    fuel_raster_path,
-                    StationTemperatureSource(sfms_actuals),
-                )
+            s3_key = await processor.process(
+                s3_client,
+                fuel_raster_path,
+                StationTemperatureSource(sfms_actuals),
+            )
 
             # Calculate execution time
             execution_time = get_utc_now() - start_exec
