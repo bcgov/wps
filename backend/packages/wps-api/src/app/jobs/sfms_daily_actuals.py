@@ -57,7 +57,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
             sfms_actuals = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime_to_process)
 
         if not sfms_actuals:
-            raise RuntimeError(f"No station temperatures found for {datetime_to_process}")
+            raise RuntimeError(f"No station observations found for {datetime_to_process}")
 
         async with get_async_write_session_scope() as session:
 
