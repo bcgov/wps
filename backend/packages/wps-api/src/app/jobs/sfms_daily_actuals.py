@@ -51,7 +51,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
         fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_raster_key
         logger.info("Using reference raster: %s", fuel_raster_path)
 
-        # Fetch temperature observations from WF1
+        # Fetch station observations from WF1
         async with ClientSession() as session:
             wfwx_api = WfwxApi(session)
             sfms_actuals = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime_to_process)
