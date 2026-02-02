@@ -16,7 +16,7 @@ test_completed_at = datetime(2025, 7, 15, 20, 45, 0, tzinfo=timezone.utc)
 
 @pytest.fixture(scope="function")
 def postgres_container():
-    with PostgresContainer("postgres:15") as postgres:
+    with PostgresContainer("postgres:16") as postgres:
         yield postgres
 
 
@@ -142,7 +142,10 @@ async def test_multiple_run_logs(async_session: AsyncSession):
     rows = result.scalars().all()
     assert len(rows) == 2
     job_names = {r.job_name for r in rows}
-    assert job_names == {SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, SFMSRunLogJobName.PRECIPITATION_INTERPOLATION}
+    assert job_names == {
+        SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+        SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+    }
 
 
 @pytest.mark.anyio
