@@ -6,7 +6,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from wps_shared.db.models.sfms_run_log import SFMSRunLog
+from wps_shared.db.models.sfms_run_log import SFMSRunLog, SFMSRunLogJobName, SFMSRunLogStatus
 from wps_shared.utils.time import get_utc_now
 
 
@@ -26,7 +26,7 @@ async def save_sfms_run_log(session: AsyncSession, record: SFMSRunLog) -> int:
 
 
 async def update_sfms_run_log(
-    session: AsyncSession, log_id: int, status: str, completed_at: datetime
+    session: AsyncSession, log_id: int, status: SFMSRunLogStatus, completed_at: datetime
 ):
     """Update status and completed_at for an existing SFMSRunLog row.
 
@@ -40,16 +40,17 @@ async def update_sfms_run_log(
     record.completed_at = completed_at
 
 
-def track_sfms_run(job_name: str, datetime_to_process: datetime, session: AsyncSession):
+def track_sfms_run(job_name: SFMSRunLogJobName, datetime_to_process: datetime, session: AsyncSession):
     """Decorator that logs an sfms_run_log entry around an async function.
 
     :param job_name: Name to record in the run log.
+    :param datetime_to_process: The datetime being processed.
     :param session: An async database session for run-log operations.
 
     Usage::
 
-        @track_sfms_run("temperature_interpolation", session)
-        async def run_temperature(target_date: datetime) -> None:
+        @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, datetime_to_process, session)
+        async def run_temperature() -> None:
             ...
     """
 
@@ -60,7 +61,7 @@ def track_sfms_run(job_name: str, datetime_to_process: datetime, session: AsyncS
                 job_name=job_name,
                 target_date=datetime_to_process.date(),
                 started_at=get_utc_now(),
-                status="running",
+                status=SFMSRunLogStatus.RUNNING,
             )
             log_id = await save_sfms_run_log(session, log_record)
 
@@ -72,19 +73,19 @@ def track_sfms_run(job_name: str, datetime_to_process: datetime, session: AsyncS
                 hours, remainder = divmod(execution_time.seconds, 3600)
                 minutes, seconds = divmod(remainder, 60)
                 logger.info(
-                    f"{job_name} interpolation completed successfully -- "
+                    f"{job_name.value} interpolation completed successfully -- "
                     "time elapsed %d hours, %d minutes, %.2f seconds",
                     hours,
                     minutes,
                     seconds,
                 )
                 await update_sfms_run_log(
-                    session, log_id, status="success", completed_at=get_utc_now()
+                    session, log_id, status=SFMSRunLogStatus.SUCCESS, completed_at=get_utc_now()
                 )
                 return result
             except Exception:
                 await update_sfms_run_log(
-                    session, log_id, status="failed", completed_at=get_utc_now()
+                    session, log_id, status=SFMSRunLogStatus.FAILED, completed_at=get_utc_now()
                 )
                 raise
 

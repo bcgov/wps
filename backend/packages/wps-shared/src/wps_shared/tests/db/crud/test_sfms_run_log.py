@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
 
 from wps_shared.db.crud.sfms_run_log import save_sfms_run_log, track_sfms_run, update_sfms_run_log
-from wps_shared.db.models.sfms_run_log import SFMSRunLog
+from wps_shared.db.models.sfms_run_log import SFMSRunLog, SFMSRunLogJobName, SFMSRunLogStatus
 
 
 test_target_date = date(2025, 7, 15)
@@ -50,10 +50,10 @@ async def async_session(session_factory):
 async def test_save_sfms_run_log(async_session: AsyncSession):
     """Test inserting a new run log record and getting back its id."""
     record = SFMSRunLog(
-        job_name="temperature_interpolation",
+        job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
         target_date=test_target_date,
         started_at=test_started_at,
-        status="running",
+        status=SFMSRunLogStatus.RUNNING,
     )
     log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
@@ -63,10 +63,10 @@ async def test_save_sfms_run_log(async_session: AsyncSession):
 
     result = await async_session.execute(select(SFMSRunLog).where(SFMSRunLog.id == log_id))
     saved = result.scalar_one()
-    assert saved.job_name == "temperature_interpolation"
+    assert saved.job_name == SFMSRunLogJobName.TEMPERATURE_INTERPOLATION
     assert saved.target_date == test_target_date
     assert saved.started_at == test_started_at
-    assert saved.status == "running"
+    assert saved.status == SFMSRunLogStatus.RUNNING
     assert saved.completed_at is None
 
 
@@ -74,22 +74,22 @@ async def test_save_sfms_run_log(async_session: AsyncSession):
 async def test_update_sfms_run_log_success(async_session: AsyncSession):
     """Test updating a run log to success status with completed_at."""
     record = SFMSRunLog(
-        job_name="precipitation_interpolation",
+        job_name=SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
         target_date=test_target_date,
         started_at=test_started_at,
-        status="running",
+        status=SFMSRunLogStatus.RUNNING,
     )
     log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
     await update_sfms_run_log(
-        async_session, log_id, status="success", completed_at=test_completed_at
+        async_session, log_id, status=SFMSRunLogStatus.SUCCESS, completed_at=test_completed_at
     )
     await async_session.commit()
 
     result = await async_session.execute(select(SFMSRunLog).where(SFMSRunLog.id == log_id))
     updated = result.scalar_one()
-    assert updated.status == "success"
+    assert updated.status == SFMSRunLogStatus.SUCCESS
     assert updated.completed_at == test_completed_at
 
 
@@ -97,22 +97,22 @@ async def test_update_sfms_run_log_success(async_session: AsyncSession):
 async def test_update_sfms_run_log_failed(async_session: AsyncSession):
     """Test updating a run log to failed status."""
     record = SFMSRunLog(
-        job_name="temperature_interpolation",
+        job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
         target_date=test_target_date,
         started_at=test_started_at,
-        status="running",
+        status=SFMSRunLogStatus.RUNNING,
     )
     log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
     await update_sfms_run_log(
-        async_session, log_id, status="failed", completed_at=test_completed_at
+        async_session, log_id, status=SFMSRunLogStatus.FAILED, completed_at=test_completed_at
     )
     await async_session.commit()
 
     result = await async_session.execute(select(SFMSRunLog).where(SFMSRunLog.id == log_id))
     updated = result.scalar_one()
-    assert updated.status == "failed"
+    assert updated.status == SFMSRunLogStatus.FAILED
     assert updated.completed_at == test_completed_at
 
 
@@ -120,16 +120,16 @@ async def test_update_sfms_run_log_failed(async_session: AsyncSession):
 async def test_multiple_run_logs(async_session: AsyncSession):
     """Test inserting multiple run log records for different jobs returns unique ids."""
     record1 = SFMSRunLog(
-        job_name="temperature_interpolation",
+        job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
         target_date=test_target_date,
         started_at=test_started_at,
-        status="running",
+        status=SFMSRunLogStatus.RUNNING,
     )
     record2 = SFMSRunLog(
-        job_name="precipitation_interpolation",
+        job_name=SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
         target_date=test_target_date,
         started_at=datetime(2025, 7, 15, 20, 35, 0, tzinfo=timezone.utc),
-        status="running",
+        status=SFMSRunLogStatus.RUNNING,
     )
 
     id1 = await save_sfms_run_log(async_session, record1)
@@ -142,7 +142,7 @@ async def test_multiple_run_logs(async_session: AsyncSession):
     rows = result.scalars().all()
     assert len(rows) == 2
     job_names = {r.job_name for r in rows}
-    assert job_names == {"temperature_interpolation", "precipitation_interpolation"}
+    assert job_names == {SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, SFMSRunLogJobName.PRECIPITATION_INTERPOLATION}
 
 
 @pytest.mark.anyio
@@ -151,20 +151,20 @@ async def test_track_sfms_run_success(async_session: AsyncSession):
     target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
     called = False
 
-    @track_sfms_run("test_job", async_session)
-    async def my_job(_: datetime) -> None:
+    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, target, async_session)
+    async def my_job() -> None:
         nonlocal called
         called = True
 
-    await my_job(target)
+    await my_job()
 
     assert called
 
     result = await async_session.execute(select(SFMSRunLog))
     row = result.scalar_one()
-    assert row.job_name == "test_job"
+    assert row.job_name == SFMSRunLogJobName.TEMPERATURE_INTERPOLATION
     assert row.target_date == target.date()
-    assert row.status == "success"
+    assert row.status == SFMSRunLogStatus.SUCCESS
     assert row.started_at is not None
     assert row.completed_at is not None
     assert row.completed_at >= row.started_at
@@ -175,39 +175,40 @@ async def test_track_sfms_run_failure(async_session: AsyncSession):
     """Test decorator records failure and re-raises when the wrapped function raises."""
     target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
 
-    @track_sfms_run("failing_job", async_session)
-    async def my_failing_job(_: datetime) -> None:
+    @track_sfms_run(SFMSRunLogJobName.PRECIPITATION_INTERPOLATION, target, async_session)
+    async def my_failing_job() -> None:
         raise RuntimeError("something went wrong")
 
     with pytest.raises(RuntimeError, match="something went wrong"):
-        await my_failing_job(target)
+        await my_failing_job()
 
     result = await async_session.execute(select(SFMSRunLog))
     row = result.scalar_one()
-    assert row.job_name == "failing_job"
-    assert row.status == "failed"
+    assert row.job_name == SFMSRunLogJobName.PRECIPITATION_INTERPOLATION
+    assert row.status == SFMSRunLogStatus.FAILED
     assert row.completed_at is not None
 
 
 @pytest.mark.anyio
 async def test_track_sfms_run_preserves_return_value(async_session: AsyncSession):
     """Test decorator passes through the return value of the wrapped function."""
+    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
 
-    @track_sfms_run("returning_job", async_session)
-    async def my_job(_: datetime) -> str:
+    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, target, async_session)
+    async def my_job() -> str:
         return "result"
 
-    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
-    result = await my_job(target)
+    result = await my_job()
     assert result == "result"
 
 
 @pytest.mark.anyio
 async def test_track_sfms_run_preserves_function_name(async_session: AsyncSession):
     """Test decorator preserves the wrapped function's name via functools.wraps."""
+    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
 
-    @track_sfms_run("some_job", async_session)
-    async def original_name(_: datetime) -> None:
+    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, target, async_session)
+    async def original_name() -> None:
         pass
 
     assert original_name.__name__ == "original_name"

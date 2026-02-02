@@ -19,6 +19,7 @@ from wps_sfms.interpolation.source import StationPrecipitationSource, StationTem
 from wps_sfms.processors.precipitation import PrecipitationInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.db.crud.sfms_run_log import track_sfms_run
+from wps_shared.db.models.sfms_run_log import SFMSRunLogJobName
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
@@ -60,7 +61,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
 
         async with get_async_write_session_scope() as session:
 
-            @track_sfms_run("temperature_interpolation", datetime_to_process, session)
+            @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, datetime_to_process, session)
             async def run_temperature_interpolation() -> None:
                 temperature_processor = TemperatureInterpolationProcessor(
                     datetime_to_process, raster_addresser
@@ -72,7 +73,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                 )
                 logger.info("Temperature interpolation raster: %s", temp_s3_key)
 
-            @track_sfms_run("precipitation_interpolation", datetime_to_process, session)
+            @track_sfms_run(SFMSRunLogJobName.PRECIPITATION_INTERPOLATION, datetime_to_process, session)
             async def run_precipitation_interpolation() -> None:
                 processor = PrecipitationInterpolationProcessor(datetime_to_process, raster_addresser)
                 precip_s3_key = await processor.process(

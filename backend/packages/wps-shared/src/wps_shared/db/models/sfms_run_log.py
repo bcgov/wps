@@ -1,9 +1,26 @@
 """Model for tracking SFMS job runs."""
 
-from sqlalchemy import Column, Date, Integer, String
+import enum
+
+from sqlalchemy import Column, Date, Enum, Integer
 
 from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
+
+
+class SFMSRunLogJobName(str, enum.Enum):
+    """Valid SFMS job names."""
+
+    TEMPERATURE_INTERPOLATION = "temperature_interpolation"
+    PRECIPITATION_INTERPOLATION = "precipitation_interpolation"
+
+
+class SFMSRunLogStatus(str, enum.Enum):
+    """Valid SFMS run log statuses."""
+
+    RUNNING = "running"
+    SUCCESS = "success"
+    FAILED = "failed"
 
 
 class SFMSRunLog(Base):
@@ -13,8 +30,8 @@ class SFMSRunLog(Base):
     __table_args__ = {"comment": "Tracks SFMS job runs with execution timestamps and status."}
 
     id = Column(Integer, primary_key=True, index=True)
-    job_name = Column(String, nullable=False, index=True)
+    job_name = Column(Enum(SFMSRunLogJobName), nullable=False, index=True)
     target_date = Column(Date, nullable=False, index=True)
     started_at = Column(TZTimeStamp, nullable=False)
     completed_at = Column(TZTimeStamp, nullable=True)
-    status = Column(String, nullable=False)
+    status = Column(Enum(SFMSRunLogStatus), nullable=False)

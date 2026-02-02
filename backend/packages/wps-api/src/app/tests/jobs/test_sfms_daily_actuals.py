@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.jobs.sfms_daily_actuals import run_sfms_daily_actuals, main
 from app.tests.conftest import create_mock_sfms_actuals
+from wps_shared.db.models.sfms_run_log import SFMSRunLogStatus
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
 
@@ -188,7 +189,7 @@ class TestRunSfmsDailyActuals:
 
         assert mock_dependencies.db_session.get.call_count == 2
         for record in records:
-            assert record.status == "success"
+            assert record.status == SFMSRunLogStatus.SUCCESS
             assert record.completed_at is not None
 
     @pytest.mark.anyio
