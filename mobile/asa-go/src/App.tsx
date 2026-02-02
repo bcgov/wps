@@ -8,7 +8,6 @@ import TabPanel from "@/components/TabPanel";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import { fetchAndCacheData } from "@/slices/dataSlice";
-import { today } from "@/utils/dataSliceUtils";
 import { fetchFireCenters } from "@/slices/fireCentersSlice";
 import {
   startWatchingLocation,
@@ -24,10 +23,13 @@ import {
 } from "@/store";
 import { theme } from "@/theme";
 import { NavPanel } from "@/utils/constants";
+import { today } from "@/utils/dataSliceUtils";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { clearStaleHFIPMTiles } from "@/utils/storage";
 import { Filesystem } from "@capacitor/filesystem";
 import { ConnectionStatus, Network } from "@capacitor/network";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { StatusBar } from "@capacitor/status-bar";
 import { Box } from "@mui/material";
 import { LicenseInfo } from "@mui/x-license-pro";
 import { isNil, isNull } from "lodash";
@@ -39,11 +41,12 @@ const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
   const isActive = useAppIsActive();
   const dispatch: AppDispatch = useDispatch();
+  const [showHeader, setShowHeader] = useState<boolean>(true);
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
   const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
-    undefined
+    undefined,
   );
   const [selectedFireShape, setSelectedFireShape] = useState<
     FireShape | undefined
@@ -59,6 +62,35 @@ const App = () => {
   const runParameter = useRunParameterForDate(dateOfInterest);
 
   useEffect(() => {
+    // Effect to manage status bar visibility
+    const handleOrientationChange = async () => {
+      const info = await ScreenOrientation.orientation();
+      if (info.type.includes("landscape")) {
+        // Device is in landscape mode
+        await StatusBar.hide();
+        setShowHeader(false);
+      } else {
+        // Device is in portrait mode
+        await StatusBar.show();
+        setShowHeader(true);
+      }
+    };
+
+    // Add the listener
+    ScreenOrientation.addListener(
+      "screenOrientationChange",
+      handleOrientationChange,
+    );
+
+    // Call it initially in case the app starts in landscape
+    handleOrientationChange();
+
+    return () => {
+      ScreenOrientation.removeAllListeners();
+    };
+  }, []);
+
+  useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status
     // when the app first starts and then attach a listener to keep network status in the redux
     // store current.
@@ -69,7 +101,7 @@ const App = () => {
     getInitialNetworkStatus();
     Network.addListener("networkStatusChange", (status: ConnectionStatus) => {
       console.log(
-        `Network status changed: ${status.connected}, ${status.connectionType}`
+        `Network status changed: ${status.connected}, ${status.connectionType}`,
       );
       dispatch(updateNetworkStatus(status));
     });
@@ -102,7 +134,7 @@ const App = () => {
   useEffect(() => {
     if (selectedFireShape?.mof_fire_centre_name) {
       const matchingFireCenter = fireCenters.find(
-        (center) => center.name === selectedFireShape.mof_fire_centre_name
+        (center) => center.name === selectedFireShape.mof_fire_centre_name,
       );
 
       if (matchingFireCenter) {
@@ -120,15 +152,15 @@ const App = () => {
           DateTime.fromISO(value.for_date),
           value.run_type,
           DateTime.fromISO(value.run_datetime),
-          "hfi.pmtiles"
+          "hfi.pmtiles",
         );
         hfiFilesToKeep.push(
           pmtilesCache.getHFIFileName(
             value.for_date,
             value.run_type,
             value.run_datetime,
-            "hfi.pmtiles"
-          )
+            "hfi.pmtiles",
+          ),
         );
       }
       clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep);
@@ -164,7 +196,7 @@ const App = () => {
         backgroundColor: theme.palette.primary.main,
       }}
     >
-      <AppHeader />
+      {showHeader && <AppHeader />}
       <Box
         sx={{
           flexGrow: 1,
