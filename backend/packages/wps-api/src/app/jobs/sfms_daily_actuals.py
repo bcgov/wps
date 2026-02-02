@@ -58,33 +58,33 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
         if not sfms_actuals:
             raise RuntimeError(f"No station temperatures found for {datetime_to_process}")
 
-    async with get_async_write_session_scope() as session:
+        async with get_async_write_session_scope() as session:
 
-        @track_sfms_run("temperature_interpolation", datetime_to_process, session)
-        async def run_temperature_interpolation() -> None:
-            temperature_processor = TemperatureInterpolationProcessor(
-                datetime_to_process, raster_addresser
-            )
-            temp_s3_key = await temperature_processor.process(
-                s3_client,
-                fuel_raster_path,
-                StationTemperatureSource(sfms_actuals),
-            )
-            logger.info("Temperature interpolation raster: %s", temp_s3_key)
+            @track_sfms_run("temperature_interpolation", datetime_to_process, session)
+            async def run_temperature_interpolation() -> None:
+                temperature_processor = TemperatureInterpolationProcessor(
+                    datetime_to_process, raster_addresser
+                )
+                temp_s3_key = await temperature_processor.process(
+                    s3_client,
+                    fuel_raster_path,
+                    StationTemperatureSource(sfms_actuals),
+                )
+                logger.info("Temperature interpolation raster: %s", temp_s3_key)
 
-        @track_sfms_run("precipitation_interpolation", datetime_to_process, session)
-        async def run_precipitation_interpolation() -> None:
-            processor = PrecipitationInterpolationProcessor(datetime_to_process, raster_addresser)
-            precip_s3_key = await processor.process(
-                s3_client,
-                fuel_raster_path,
-                sfms_actuals,
-                StationPrecipitationSource(),
-            )
-            logger.info("Precip interpolation raster: %s", precip_s3_key)
+            @track_sfms_run("precipitation_interpolation", datetime_to_process, session)
+            async def run_precipitation_interpolation() -> None:
+                processor = PrecipitationInterpolationProcessor(datetime_to_process, raster_addresser)
+                precip_s3_key = await processor.process(
+                    s3_client,
+                    fuel_raster_path,
+                    sfms_actuals,
+                    StationPrecipitationSource(),
+                )
+                logger.info("Precip interpolation raster: %s", precip_s3_key)
 
-        await run_temperature_interpolation()
-        await run_precipitation_interpolation()
+            await run_temperature_interpolation()
+            await run_precipitation_interpolation()
 
     logger.info("SFMS daily actuals completed successfully for %s", target_date.date())
 
