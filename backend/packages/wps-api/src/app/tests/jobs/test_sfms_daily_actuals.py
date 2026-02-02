@@ -12,8 +12,7 @@ from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.jobs.sfms_daily_actuals import run_sfms_daily_actuals, main
-from app.jobs.temperature_interpolation_job import TemperatureInterpolationJob
-from app.jobs.precipitation_interpolation_job import PrecipitationInterpolationJob
+from app.tests.conftest import create_mock_sfms_actuals
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
 
@@ -21,80 +20,173 @@ MODULE_PATH = "app.jobs.sfms_daily_actuals"
 class MockDailyActualsDeps(NamedTuple):
     """Typed container for sfms_daily_actuals mock dependencies."""
 
-    session: AsyncMock
-    temp_job: MagicMock
-    precip_job: MagicMock
+    db_session: AsyncMock
+    s3_client: AsyncMock
+    temp_processor: MagicMock
+    precip_processor: MagicMock
+    wfwx_api: AsyncMock
 
 
 @pytest.fixture
-def mock_dependencies(mocker: MockerFixture) -> MockDailyActualsDeps:
+def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> MockDailyActualsDeps:
     """Mock all external dependencies for run_sfms_daily_actuals."""
-    session = AsyncMock(spec=AsyncSession)
-    session.get = AsyncMock(return_value=MagicMock())
+    # Mock S3Client
+    mocker.patch(f"{MODULE_PATH}.S3Client", return_value=mock_s3_client)
+
+    # Mock ClientSession
+    mock_session = AsyncMock()
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=None)
+    mocker.patch(f"{MODULE_PATH}.ClientSession", return_value=mock_session)
+
+    # Mock WfwxApi
+    mock_wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(
+        return_value=create_mock_sfms_actuals()
+    )
+    mocker.patch(f"{MODULE_PATH}.WfwxApi", return_value=mock_wfwx_api)
+
+    # Mock find_latest_version
+    mocker.patch(
+        f"{MODULE_PATH}.find_latest_version",
+        new_callable=AsyncMock,
+        return_value=1,
+    )
+
+    # Mock RasterKeyAddresser
+    mock_addresser = MagicMock()
+    mock_addresser.get_fuel_raster_key.return_value = "sfms/fuel/2024/fuel.tif"
+    mock_addresser.s3_prefix = "/vsis3/test-bucket"
+    mocker.patch(f"{MODULE_PATH}.RasterKeyAddresser", return_value=mock_addresser)
+
+    # Mock processors
+    mock_temp_processor = MagicMock()
+    mock_temp_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/temp.tif")
+    mocker.patch(
+        f"{MODULE_PATH}.TemperatureInterpolationProcessor",
+        return_value=mock_temp_processor,
+    )
+
+    mock_precip_processor = MagicMock()
+    mock_precip_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/precip.tif")
+    mocker.patch(
+        f"{MODULE_PATH}.PrecipitationInterpolationProcessor",
+        return_value=mock_precip_processor,
+    )
+
+    # Mock DB session
+    db_session = AsyncMock(spec=AsyncSession)
+    db_session.get = AsyncMock(return_value=MagicMock())
 
     @asynccontextmanager
     async def _scope():
-        yield session
+        yield db_session
 
     mocker.patch(f"{MODULE_PATH}.get_async_write_session_scope", _scope)
 
-    temp_job = MagicMock(spec=TemperatureInterpolationJob)
-    temp_job.run = AsyncMock()
-    mocker.patch(f"{MODULE_PATH}.TemperatureInterpolationJob", return_value=temp_job)
-
-    precip_job = MagicMock(spec=PrecipitationInterpolationJob)
-    precip_job.run = AsyncMock()
-    mocker.patch(f"{MODULE_PATH}.PrecipitationInterpolationJob", return_value=precip_job)
-
-    return MockDailyActualsDeps(session=session, temp_job=temp_job, precip_job=precip_job)
+    return MockDailyActualsDeps(
+        db_session=db_session,
+        s3_client=mock_s3_client,
+        temp_processor=mock_temp_processor,
+        precip_processor=mock_precip_processor,
+        wfwx_api=mock_wfwx_api,
+    )
 
 
 class TestRunSfmsDailyActuals:
     """Tests for run_sfms_daily_actuals."""
 
     @pytest.mark.anyio
-    async def test_runs_both_interpolation_jobs(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that both temperature and precipitation jobs are run."""
-        target_date = datetime(2025, 7, 15, tzinfo=timezone.utc)
+    async def test_runs_both_processors(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that both temperature and precipitation processors are called."""
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
-        mock_dependencies.temp_job.run.assert_called_once_with(target_date)
-        mock_dependencies.precip_job.run.assert_called_once_with(target_date)
+        mock_dependencies.temp_processor.process.assert_called_once()
+        mock_dependencies.precip_processor.process.assert_called_once()
 
     @pytest.mark.anyio
     async def test_runs_temperature_before_precipitation(self, mock_dependencies: MockDailyActualsDeps):
         """Test that temperature interpolation runs before precipitation."""
         call_order = []
-        mock_dependencies.temp_job.run = AsyncMock(side_effect=lambda _: call_order.append("temp"))
-        mock_dependencies.precip_job.run = AsyncMock(side_effect=lambda _: call_order.append("precip"))
+        mock_dependencies.temp_processor.process = AsyncMock(
+            side_effect=lambda *a, **kw: call_order.append("temp") or "temp.tif"
+        )
+        mock_dependencies.precip_processor.process = AsyncMock(
+            side_effect=lambda *a, **kw: call_order.append("precip") or "precip.tif"
+        )
 
-        target_date = datetime(2025, 7, 15, tzinfo=timezone.utc)
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
         assert call_order == ["temp", "precip"]
 
     @pytest.mark.anyio
-    async def test_writes_run_log_entries(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that run log records are added to the session."""
-        target_date = datetime(2025, 7, 15, tzinfo=timezone.utc)
+    async def test_passes_s3_client_to_processors(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that the S3 client is passed to both processors."""
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
-        # Two jobs means two session.add calls (one per tracked job)
-        assert mock_dependencies.session.add.call_count == 2
+        temp_call_args = mock_dependencies.temp_processor.process.call_args
+        assert temp_call_args[0][0] is mock_dependencies.s3_client
+
+        precip_call_args = mock_dependencies.precip_processor.process.call_args
+        assert precip_call_args[0][0] is mock_dependencies.s3_client
+
+    @pytest.mark.anyio
+    async def test_sets_correct_hour(self, mock_dependencies: MockDailyActualsDeps, mocker: MockerFixture):
+        """Test that processors are initialized with hour 20 (noon PDT)."""
+        captured_datetime = None
+
+        def capture_temp_init(datetime_to_process, _raster_addresser):
+            nonlocal captured_datetime
+            captured_datetime = datetime_to_process
+            return mock_dependencies.temp_processor
+
+        mocker.patch(
+            f"{MODULE_PATH}.TemperatureInterpolationProcessor",
+            side_effect=capture_temp_init,
+        )
+
+        target_date = datetime(2024, 7, 4, hour=10, minute=30, tzinfo=timezone.utc)
+        await run_sfms_daily_actuals(target_date)
+
+        assert captured_datetime is not None
+        assert captured_datetime.hour == 20
+        assert captured_datetime.minute == 0
+        assert captured_datetime.second == 0
+
+    @pytest.mark.anyio
+    async def test_raises_on_empty_actuals(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that run raises RuntimeError when no station data is found."""
+        mock_dependencies.wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(return_value=[])
+
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+
+        with pytest.raises(RuntimeError, match="No station temperatures found"):
+            await run_sfms_daily_actuals(target_date)
+
+    @pytest.mark.anyio
+    async def test_writes_run_log_entries(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that run log records are added to the session."""
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+
+        await run_sfms_daily_actuals(target_date)
+
+        # Two tracked runs means two session.add calls
+        assert mock_dependencies.db_session.add.call_count == 2
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):
         """Test that successful jobs are updated to success status."""
         records = [MagicMock(), MagicMock()]
-        mock_dependencies.session.get = AsyncMock(side_effect=records)
+        mock_dependencies.db_session.get = AsyncMock(side_effect=records)
 
-        target_date = datetime(2025, 7, 15, tzinfo=timezone.utc)
-
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert mock_dependencies.session.get.call_count == 2
+        assert mock_dependencies.db_session.get.call_count == 2
         for record in records:
             assert record.status == "success"
             assert record.completed_at is not None
@@ -102,26 +194,30 @@ class TestRunSfmsDailyActuals:
     @pytest.mark.anyio
     async def test_temperature_failure_logs_failed_and_raises(self, mock_dependencies: MockDailyActualsDeps):
         """Test that when temperature fails, it's logged as failed and the error propagates."""
-        mock_dependencies.temp_job.run = AsyncMock(side_effect=RuntimeError("temp failed"))
+        mock_dependencies.temp_processor.process = AsyncMock(
+            side_effect=RuntimeError("temp failed")
+        )
 
-        target_date = datetime(2025, 7, 15, tzinfo=timezone.utc)
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
 
         with pytest.raises(RuntimeError, match="temp failed"):
             await run_sfms_daily_actuals(target_date)
 
-        mock_dependencies.precip_job.run.assert_not_called()
+        mock_dependencies.precip_processor.process.assert_not_called()
 
     @pytest.mark.anyio
     async def test_precipitation_failure_logs_failed_and_raises(self, mock_dependencies: MockDailyActualsDeps):
         """Test that when precipitation fails, it's logged as failed and the error propagates."""
-        mock_dependencies.precip_job.run = AsyncMock(side_effect=RuntimeError("precip failed"))
+        mock_dependencies.precip_processor.process = AsyncMock(
+            side_effect=RuntimeError("precip failed")
+        )
 
-        target_date = datetime(2025, 7, 15, tzinfo=timezone.utc)
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
 
         with pytest.raises(RuntimeError, match="precip failed"):
             await run_sfms_daily_actuals(target_date)
 
-        mock_dependencies.temp_job.run.assert_called_once()
+        mock_dependencies.temp_processor.process.assert_called_once()
 
 
 class TestMain:

@@ -1,6 +1,4 @@
 import os
-from typing import NamedTuple
-from unittest.mock import AsyncMock, MagicMock
 
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.tests.conftest import (
@@ -21,14 +19,6 @@ from wps_shared.tests.conftest import (
     mock_s3_client,
     mock_wfwx_api,
 )
-
-
-class MockDependencies(NamedTuple):
-    """Typed container for mock dependencies."""
-
-    session: AsyncMock
-    processor: MagicMock
-    addresser: MagicMock
 
 
 def create_mock_sfms_actuals():
@@ -56,56 +46,6 @@ def create_mock_sfms_actuals():
         ),
     ]
 
-
-def create_interpolation_job_mocks(
-    mocker, s3_client_mock, module_path: str, processor_class, wfwx_api_mock
-) -> MockDependencies:
-    """
-    Create common mock dependencies for interpolation job tests.
-
-    :param mocker: pytest-mock fixture
-    :param s3_client_mock: mock S3 client fixture
-    :param module_path: module path prefix (e.g., "app.jobs.temperature_interpolation_job")
-    :param processor_class: the processor class to mock (for spec)
-    :param wfwx_api_mock: mock WfwxApi fixture
-    :return: MockDependencies named tuple
-    """
-    from aiohttp import ClientSession
-    from wps_shared.sfms.raster_addresser import RasterKeyAddresser
-
-    mocker.patch(f"{module_path}.S3Client", return_value=s3_client_mock)
-
-    session_mock = AsyncMock(spec=ClientSession)
-    session_mock.__aenter__ = AsyncMock(return_value=session_mock)
-    session_mock.__aexit__ = AsyncMock(return_value=None)
-    mocker.patch(f"{module_path}.ClientSession", return_value=session_mock)
-
-    wfwx_api_mock.get_sfms_daily_actuals_all_stations = AsyncMock(
-        return_value=create_mock_sfms_actuals()
-    )
-    mocker.patch(f"{module_path}.WfwxApi", return_value=wfwx_api_mock)
-
-    mocker.patch(
-        f"{module_path}.find_latest_version",
-        return_value=AsyncMock(return_value=1)(),
-    )
-
-    mock_addresser = MagicMock(spec=RasterKeyAddresser)
-    mock_addresser.get_fuel_raster_key.return_value = "sfms/fuel/2024/fuel.tif"
-    mock_addresser.s3_prefix = "/vsis3/test-bucket"
-    mock_addresser.get_mask_key.return_value = "/vsis3/test-bucket/sfms/static/bc_mask.tif"
-    mock_addresser.get_dem_key.return_value = "/vsis3/test-bucket/sfms/static/bc_elevation.tif"
-    mocker.patch(f"{module_path}.RasterKeyAddresser", return_value=mock_addresser)
-
-    mock_processor = MagicMock(spec=processor_class)
-    mock_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/output.tif")
-    mocker.patch(f"{module_path}.{processor_class.__name__}", return_value=mock_processor)
-
-    return MockDependencies(
-        session=session_mock,
-        processor=mock_processor,
-        addresser=mock_addresser,
-    )
 
 
 def pytest_configure(config):
