@@ -68,7 +68,9 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     )
 
     mock_precip_processor = MagicMock()
-    mock_precip_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/precip.tif")
+    mock_precip_processor.process = AsyncMock(
+        return_value="sfms/interpolated/2024/07/04/precip.tif"
+    )
     mocker.patch(
         f"{MODULE_PATH}.PrecipitationInterpolationProcessor",
         return_value=mock_precip_processor,
@@ -107,7 +109,9 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.precip_processor.process.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_runs_temperature_before_precipitation(self, mock_dependencies: MockDailyActualsDeps):
+    async def test_runs_temperature_before_precipitation(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
         """Test that temperature interpolation runs before precipitation."""
         call_order = []
         mock_dependencies.temp_processor.process = AsyncMock(
@@ -136,7 +140,9 @@ class TestRunSfmsDailyActuals:
         assert precip_call_args[0][0] is mock_dependencies.s3_client
 
     @pytest.mark.anyio
-    async def test_sets_correct_hour(self, mock_dependencies: MockDailyActualsDeps, mocker: MockerFixture):
+    async def test_sets_correct_hour(
+        self, mock_dependencies: MockDailyActualsDeps, mocker: MockerFixture
+    ):
         """Test that processors are initialized with hour 20 (noon PDT)."""
         captured_datetime = None
 
@@ -165,7 +171,7 @@ class TestRunSfmsDailyActuals:
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
 
-        with pytest.raises(RuntimeError, match="No station temperatures found"):
+        with pytest.raises(RuntimeError, match="No station observations found"):
             await run_sfms_daily_actuals(target_date)
 
     @pytest.mark.anyio
@@ -193,7 +199,9 @@ class TestRunSfmsDailyActuals:
             assert record.completed_at is not None
 
     @pytest.mark.anyio
-    async def test_temperature_failure_logs_failed_and_raises(self, mock_dependencies: MockDailyActualsDeps):
+    async def test_temperature_failure_logs_failed_and_raises(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
         """Test that when temperature fails, it's logged as failed and the error propagates."""
         mock_dependencies.temp_processor.process = AsyncMock(
             side_effect=RuntimeError("temp failed")
@@ -207,7 +215,9 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.precip_processor.process.assert_not_called()
 
     @pytest.mark.anyio
-    async def test_precipitation_failure_logs_failed_and_raises(self, mock_dependencies: MockDailyActualsDeps):
+    async def test_precipitation_failure_logs_failed_and_raises(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
         """Test that when precipitation fails, it's logged as failed and the error propagates."""
         mock_dependencies.precip_processor.process = AsyncMock(
             side_effect=RuntimeError("precip failed")
