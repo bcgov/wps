@@ -68,6 +68,12 @@ echo RDPS for SFMS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_rdps_sfms_cronjob.sh prod ${RUN_TYPE}
 echo SFMS Raster Calculations
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_calculations_cronjob.sh prod ${RUN_TYPE}
+echo SFMS Daily Actuals
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_daily_actuals_cronjob.sh prod ${RUN_TYPE}
+echo SFMS Forecast 15:00 UTC- 8:00 AM PDT
+PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 15 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod-8am ${RUN_TYPE}
+echo SFMS Forecast 00:45 UTC - 5:45 PM PDT
+PROJ_TARGET=${PROJ_TARGET} SCHEDULE="45 0 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod-545pm ${RUN_TYPE}
 echo Fire Watch Weather Calculations
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_fire_watch_weather_cronjob.sh prod ${RUN_TYPE}
 echo BC FireWeather cronjobs
@@ -82,3 +88,4 @@ echo Configure hourly pruner
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 2 * * *" bash $(dirname ${0})/oc_provision_hourly_prune_cronjob.sh prod ${RUN_TYPE}
 echo Logging alerts
 oc apply -f $(dirname ${0})/../logging-alerts/nats_alerts.yaml
+oc apply -f $(dirname ${0})/../logging-alerts/sfms_alerts.yaml

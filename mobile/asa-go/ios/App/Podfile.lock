@@ -25,6 +25,8 @@ PODS:
     - Capacitor
   - CapacitorPreferences (7.0.2):
     - Capacitor
+  - CapacitorScreenOrientation (8.0.0):
+    - Capacitor
   - CapacitorSplashScreen (7.0.2):
     - Capacitor
   - CapacitorStatusBar (7.0.0):
@@ -45,6 +47,7 @@ DEPENDENCIES:
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
+  - "CapacitorScreenOrientation (from `../../node_modules/@capacitor/screen-orientation`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - Keycloak (from `../../node_modules/keycloak`)
@@ -75,6 +78,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/network"
   CapacitorPreferences:
     :path: "../../node_modules/@capacitor/preferences"
+  CapacitorScreenOrientation:
+    :path: "../../node_modules/@capacitor/screen-orientation"
   CapacitorSplashScreen:
     :path: "../../node_modules/@capacitor/splash-screen"
   CapacitorStatusBar:
@@ -94,11 +99,12 @@ SPEC CHECKSUMS:
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
   CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
   CapacitorPreferences: b583b5deb74e564c35968189d25d32c0fd41200d
+  CapacitorScreenOrientation: 82b7c0bcc6189e97269ec66c613d0cd4f1c1c004
   CapacitorSplashScreen: 8d6c8cb0542a8e81585c593815db8785ed8ce454
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
   IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
   Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
 
-PODFILE CHECKSUM: f33b94fcf5bf77f5b969eaa34c51de97b22099ee
+PODFILE CHECKSUM: 856f039e24292b4ec10a418a5c901e1fe1428a40
 
 COCOAPODS: 1.16.2
