@@ -353,7 +353,7 @@ describe('SFMSInsightsPage', () => {
     await waitForPageLoad()
 
     const maxDate = screen.getByTestId('historical-max-date')
-    expect(maxDate.textContent).toBe(dateTimeNowPlusTen)
+    expect(maxDate.textContent).toBe(dateTimeNowPlusTen.toISODate())
   })
 
   it('should set minDate from earliestSFMSBounds.minimum', async () => {
