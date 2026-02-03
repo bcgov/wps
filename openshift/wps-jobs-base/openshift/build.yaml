@@ -60,6 +60,6 @@ objects:
         git:
           uri: ${GIT_URL}
           ref: origin/${GIT_BRANCH}
-        contextDir: openshift/wps_jobs_base/docker
+        contextDir: openshift/wps-jobs-base/docker
       strategy:
         type: Docker
