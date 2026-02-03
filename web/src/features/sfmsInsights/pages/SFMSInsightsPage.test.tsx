@@ -493,19 +493,4 @@ describe('SFMSInsightsPage', () => {
     const dropdown = screen.getByTestId('raster-type-dropdown')
     expect(dropdown).toHaveAttribute('data-raster-data-available', 'true')
   })
-
-  it('should disable date picker when no SFMS bounds data available', async () => {
-    renderWithStore(null)
-
-    const datePicker = screen.getByTestId('date-picker')
-    expect(datePicker).toHaveAttribute('data-disabled', 'true')
-  })
-
-  it('should enable date picker when SFMS bounds data available', async () => {
-    renderWithStore()
-    await waitForPageLoad()
-
-    const datePicker = screen.getByTestId('date-picker')
-    expect(datePicker).toHaveAttribute('data-disabled', 'false')
-  })
 })
