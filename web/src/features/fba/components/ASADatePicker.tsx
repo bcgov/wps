@@ -139,7 +139,8 @@ const ASADatePicker = ({
             date,
             updateDate,
             minimumDate: currentYearMinDate,
-            maximumDate: currentYearMaxDate
+            maximumDate: currentYearMaxDate,
+            disabled: disabled ?? false
           } as any
         }}
         value={date}

@@ -105,7 +105,6 @@ export const SFMSInsightsPage = () => {
                   historicalMaxDate={maxDate}
                   currentYearMinDate={minDate}
                   currentYearMaxDate={maxDate}
-                  disabled={!latestBounds?.maximum}
                 />
               </StyledFormControl>
             </Grid>
