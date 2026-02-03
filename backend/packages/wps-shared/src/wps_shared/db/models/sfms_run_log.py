@@ -2,7 +2,7 @@
 
 import enum
 
-from sqlalchemy import Column, Date, Integer, String
+from sqlalchemy import ARRAY, Column, Date, ForeignKey, Integer, String
 
 from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
@@ -23,11 +23,18 @@ class SFMSRunLogStatus(str, enum.Enum):
     FAILED = "failed"
 
 
+class SFMSRunType(str, enum.Enum):
+    ACTUAL = "actual"
+    FORECAST = "forecast"
+
+
 class SFMSRunLog(Base):
     """Log of SFMS job executions with target date and run timing."""
 
     __tablename__ = "sfms_run_log"
-    __table_args__ = {"comment": "Tracks SFMS job runs with execution timestamps and status."}
+    __table_args__ = {
+        "comment": "Tracks SFMS interpolation runs with execution timestamps and status."
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     job_name = Column(String, nullable=False, index=True)
@@ -35,3 +42,20 @@ class SFMSRunLog(Base):
     started_at = Column(TZTimeStamp, nullable=False)
     completed_at = Column(TZTimeStamp, nullable=True)
     status = Column(String, nullable=False)
+    sfms_stations_id = Column(Integer, ForeignKey("sfms_stations.id"), nullable=False)
+
+
+class SFMSStations(Base):
+    """A class representing actual and forecast runs of SFMS and the stations used."""
+
+    __tablename__ = "sfms_stations"
+    __table_args__ = {"comment": "Tracks SFMS job runs and the stations used."}
+
+    id = Column(Integer, primary_key=True, index=True)
+    run_type = Column(
+        String, nullable=False, index=True
+    )  # SFMSRunType.ACTUAL or SFMSRunType.FORECAST
+    target_date = Column(Date, nullable=False, index=True)
+    run_date = Column(TZTimeStamp, nullable=False, index=True)
+    stations = Column(ARRAY(Integer), nullable=False)
+    station_count = Column(Integer, nullable=False)

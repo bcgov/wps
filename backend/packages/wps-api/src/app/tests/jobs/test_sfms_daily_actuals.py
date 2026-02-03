@@ -53,6 +53,9 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         return_value=1,
     )
 
+    # Mock save sfms_stations
+    mocker.patch(f"{MODULE_PATH}.save_sfms_stations", new_callable=AsyncMock, return_value=1)
+
     # Mock RasterKeyAddresser
     mock_addresser = MagicMock()
     mock_addresser.get_fuel_raster_key.return_value = "sfms/fuel/2024/fuel.tif"

@@ -1,14 +1,18 @@
 """CRUD operations for SFMS run log."""
 
 import functools
-from datetime import datetime
 import logging
+from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from wps_shared.db.models.sfms_run_log import SFMSRunLog, SFMSRunLogJobName, SFMSRunLogStatus
+from wps_shared.db.models.sfms_run_log import (
+    SFMSRunLog,
+    SFMSRunLogJobName,
+    SFMSRunLogStatus,
+    SFMSStations,
+)
 from wps_shared.utils.time import get_utc_now
-
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +44,12 @@ async def update_sfms_run_log(
     record.completed_at = completed_at
 
 
-def track_sfms_run(job_name: SFMSRunLogJobName, datetime_to_process: datetime, session: AsyncSession):
+def track_sfms_run(
+    job_name: SFMSRunLogJobName,
+    datetime_to_process: datetime,
+    sfms_stations_id: int,
+    session: AsyncSession,
+):
     """Decorator that logs an sfms_run_log entry around an async function.
 
     :param job_name: Name to record in the run log.
@@ -62,6 +71,7 @@ def track_sfms_run(job_name: SFMSRunLogJobName, datetime_to_process: datetime, s
                 target_date=datetime_to_process.date(),
                 started_at=get_utc_now(),
                 status=SFMSRunLogStatus.RUNNING,
+                sfms_stations_id=sfms_stations_id,
             )
             log_id = await save_sfms_run_log(session, log_record)
 
@@ -92,3 +102,15 @@ def track_sfms_run(job_name: SFMSRunLogJobName, datetime_to_process: datetime, s
         return wrapper
 
     return decorator
+
+
+async def save_sfms_stations(session: AsyncSession, record: SFMSStations) -> int:
+    """Insert an SFMSStations row and return its id.
+
+    :param session: An async database session.
+    :param record: The SFMSStations record to insert.
+    :return: The id of the newly inserted row.
+    """
+    session.add(record)
+    await session.flush()
+    return record.id
