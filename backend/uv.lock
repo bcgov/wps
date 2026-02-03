@@ -929,20 +929,19 @@ sdist = { url = "https://files.pythonhosted.org/packages/a2/55/8f8cab2afd404cf57
 
 [[package]]
 name = "eccodes"
-version = "2.44.0"
+version = "2.45.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "cffi" },
-    { name = "eccodeslib", marker = "sys_platform != 'win32'" },
     { name = "findlibs" },
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1a/2a/9242d0a83de707ed401906a34bfe1d9a3af616abf498580ef73a6e8cebd5/eccodes-2.44.0.tar.gz", hash = "sha256:8aba9316749349e64db7d075100bff8e24a892814e3529132ec97b6d787eb8f4", size = 2310714, upload-time = "2025-10-03T14:02:37.462Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/c3/41378ba5547fbbb08db9efc7c520bfd0ccf2684bf7fbba0e09eab53b9eff/eccodes-2.45.0.tar.gz", hash = "sha256:08fe1544e6fa597a416bde9a630af4b6e34a021bc3c209f0ece4f7ed5990f992", size = 2466789, upload-time = "2026-01-15T16:27:08.418Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/a8/4d3b00f09440b269da208831b450a77e150ecfd1ac3981ca83d984ede4bd/eccodes-2.44.0-cp312-cp312-win_amd64.whl", hash = "sha256:20864247343bf88df88eafbf811fa90c290c45ed32d24f046238bd0f1684e16e", size = 7247248, upload-time = "2025-10-03T14:02:05.837Z" },
-    { url = "https://files.pythonhosted.org/packages/56/b4/67b7a225fa31a7ba2ceedfb808cbf0fedf009ffdee329c093191aab39d52/eccodes-2.44.0-cp313-cp313-win_amd64.whl", hash = "sha256:e799236200ca2a191cc3d062165f5349c2df9b3808fa69a30fcef40e45c4b4d9", size = 7247249, upload-time = "2025-10-03T14:02:08.333Z" },
-    { url = "https://files.pythonhosted.org/packages/dd/b8/9d15cea1f63fb2e1e14fda4160c355e6187e69b71b848c05faaae08b2e6c/eccodes-2.44.0-py3-none-any.whl", hash = "sha256:c3f11041bde7c3f53767c5bbed608c43695f257c09c58bb4de24bcd9cdae4e3a", size = 83465, upload-time = "2025-10-03T14:02:36.181Z" },
+    { url = "https://files.pythonhosted.org/packages/76/2a/721b05d551f90ed198aa05c2455fd056f4f1742967cee154347eaada2745/eccodes-2.45.0-cp312-cp312-win_amd64.whl", hash = "sha256:b661ce2d0e73ce0724f137606bf6b579fb2eba4db0f5b466b4345170cb4bf5f2", size = 7406814, upload-time = "2026-01-15T16:26:42.454Z" },
+    { url = "https://files.pythonhosted.org/packages/6b/33/3dceb280fbbacb10f8f1e2e1a249a7fd80ce7cc532b69d56c981df21a348/eccodes-2.45.0-cp313-cp313-win_amd64.whl", hash = "sha256:2f07d8892cca722cf67528d3f82d25c851f298cb9b9c6de4c79cb8698857a8ef", size = 7406811, upload-time = "2026-01-15T16:26:39.689Z" },
+    { url = "https://files.pythonhosted.org/packages/7f/40/0a42c7441d76c373a7bef7ec1f535f26910a8c82a37e745ffcd3ea0cdf79/eccodes-2.45.0-py3-none-any.whl", hash = "sha256:0ba61dbd2844843f1fd466c8ca24107932cc40088338f6176428cf38c533c08c", size = 91433, upload-time = "2026-01-15T16:27:06.601Z" },
 ]
 
 [[package]]
@@ -1320,21 +1319,21 @@ wheels = [
 
 [[package]]
 name = "herbie-data"
-version = "2025.12.0"
+version = "2026.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cfgrib" },
     { name = "eccodes" },
+    { name = "eccodeslib", marker = "sys_platform != 'win32'" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "pyproj" },
     { name = "requests" },
-    { name = "toml" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/3f/a8e888869b444ae506f93bb9ea8cf69b88fa968320583543e804197a56f0/herbie_data-2025.12.0.tar.gz", hash = "sha256:e95d9803c439f1dda916b3705d20bf7ef1e71141dbeeb59c43506522ecb3616f", size = 9422366, upload-time = "2025-12-05T23:15:16.336Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2a/f6/b5b6c2696dbdb4d5310538e48bf1331976477ded3951bf235073574f692d/herbie_data-2026.1.0.tar.gz", hash = "sha256:96ab0e2325dc43234f7425777fe8af960ac54d8bec4acc8ffbb7fafd13691181", size = 10808960, upload-time = "2026-01-27T20:45:50.707Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/17/6d/7be4bdd99ce48d20ce84a2e09318433345537454cd92bf32dd663abb5ae5/herbie_data-2025.12.0-py3-none-any.whl", hash = "sha256:2aea1d5738cbcd03265eef87f67dba13775a1be6cdbe48ff772e893c7cb8d7e4", size = 117717, upload-time = "2025-12-05T23:15:14.968Z" },
+    { url = "https://files.pythonhosted.org/packages/9e/86/ca82a61c7c92e546b985f5536e7d79cbef05c594cbf7bb13ffc72f227ce2/herbie_data-2026.1.0-py3-none-any.whl", hash = "sha256:4e1f2f3b9a888a7ce8a01c81ffef74df5cebf1556863ecfba2846cb8bdaf3c5d", size = 118212, upload-time = "2026-01-27T20:45:48.647Z" },
 ]
 
 [[package]]
@@ -4032,15 +4031,6 @@ wheels = [
 ]
 
 [[package]]
-name = "toml"
-version = "0.10.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/be/ba/1f744cdc819428fc6b5084ec34d9b30660f6f9daaf70eead706e3203ec3c/toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f", size = 22253, upload-time = "2020-11-01T01:40:22.204Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/6f/7120676b6d73228c96e17f1f794d8ab046fc910d781c8d151120c3f1569e/toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b", size = 16588, upload-time = "2020-11-01T01:40:20.672Z" },
-]
-
-[[package]]
 name = "tornado"
 version = "6.5.4"
 source = { registry = "https://pypi.org/simple" }
@@ -4393,7 +4383,7 @@ requires-dist = [
     { name = "affine", specifier = ">=2.4.0,<3" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "gdal", specifier = "==3.9.2" },
-    { name = "herbie-data", specifier = ">=2025.11.1,<2026" },
+    { name = "herbie-data", specifier = ">=2026.1,<2027" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
     { name = "numpy", specifier = "==2.3.*" },
     { name = "psycopg2-binary", specifier = ">=2.9.10,<3" },
