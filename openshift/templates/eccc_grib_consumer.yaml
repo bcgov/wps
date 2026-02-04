@@ -32,18 +32,19 @@ objects:
       labels:
         app: ${APP_NAME}-${SUFFIX}
             annotations:
-      # These annotations trigger a new rollout if either the web or api images change
-      image.openshift.io/triggers: |-
-        [
-          {
-            "from": {
-              "kind": "ImageStreamTag",
-              "name": "wps-api-${SUFFIX}:${SUFFIX}",
-              "namespace": "${PROJ_TOOLS}"
-            },
-            "fieldPath": "spec.template.spec.containers[0].image"
-          }
-        ]
+      annotations:
+        # These annotations trigger a new rollout if either the web or api images change
+        image.openshift.io/triggers: |-
+          [
+            {
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "wps-api-${SUFFIX}:${SUFFIX}",
+                "namespace": "${PROJ_TOOLS}"
+              },
+              "fieldPath": "spec.template.spec.containers[0].image"
+            }
+          ]
     spec:
       replicas: 1
       strategy:
