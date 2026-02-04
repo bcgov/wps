@@ -222,7 +222,7 @@ class ECCCGribConsumer:
         """
         while self.running:
             try:
-                self.health_file.write_text(datetime.now(timezone.utc).isoformat())
+                self.health_file.touch()
             except Exception as e:
                 logger.error(f"Failed to update health file: {e}")
             await asyncio.sleep(30)
