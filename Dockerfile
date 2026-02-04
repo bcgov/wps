@@ -14,7 +14,7 @@ ARG USER_GID=1000
 USER 0
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /uvx /bin/
 
 # Create a directory for the app to run in, and grant worker access
 RUN mkdir /app && chown "$USERNAME" /app
@@ -54,9 +54,9 @@ RUN chmod 444 /app/pyproject.toml /app/uv.lock \
 USER $USERNAME
 
 # # Install dependencies using uv, including setuptools for GDAL build and GDAL itself
-# RUN uv sync --frozen --no-dev --package wps-api && \
-#     uv pip install setuptools && \
-#     uv pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
+RUN uv sync --frozen --no-dev --package wps-api && \
+    uv pip install setuptools && \
+    uv pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
 
 # Stage 2: Prepare the final image, including copying Python packages from Stage 1.
 FROM ${DOCKER_IMAGE}
@@ -70,7 +70,7 @@ ARG USER_GID=1000
 USER 0
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /uvx /bin/
 
 # Create a directory for the app to run in, and grant worker access
 RUN mkdir /app && chown "$USERNAME" /app
