@@ -44,7 +44,7 @@ export const SFMSInsightsPage = () => {
     if (earliestBounds?.minimum) {
       setMinDate(DateTime.fromISO(earliestBounds.minimum))
     }
-  }, [latestBounds, earliestBounds])
+  }, [earliestBounds])
 
   useEffect(() => {
     // Only fetch snow data once rasterDate is set
