@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import signal
 import argparse
 
 from wps_weather.eccc_grib_consumer import ECCCGribConsumer
@@ -79,12 +78,12 @@ async def main():
             )
 
             # Setup signal handlers
+            loop = asyncio.get_running_loop()
+
             def signal_handler(sig, _):
                 logger.info(f"Received signal {sig}")
-                asyncio.create_task(consumer.shutdown())
-
-            signal.signal(signal.SIGTERM, signal_handler)
-            signal.signal(signal.SIGINT, signal_handler)
+                # Schedule coroutine safely on the running loop
+                loop.call_soon_threadsafe(asyncio.create_task, consumer.shutdown())
 
             # Start and run
             await consumer.start()
