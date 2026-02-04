@@ -67,7 +67,10 @@ objects:
                 - --no-sync
                 - python
                 - "-m"
-                - wps_weather.eccc_consumer_job
+                - wps_weather.eccc_consumer_runner
+                - --models
+                - GDPS
+                - RDPS
 
               env:
                 - name: UV_NO_CACHE
