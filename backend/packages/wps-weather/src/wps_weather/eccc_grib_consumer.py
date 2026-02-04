@@ -71,8 +71,8 @@ def parse_message(body: bytes) -> Optional[Tuple[str, str, str]]:
 
     Format: <timestamp> <base_url> <rel_path>
 
-    Returns:
-        (timestamp, base_url, rel_path) or None if parse fails
+    :param body: AMQP message body
+    :return: (timestamp, base_url, rel_path) or None if parse fails
     """
     try:
         message_str = body.decode("utf-8").strip()
@@ -89,14 +89,11 @@ def should_download_file(
     """
     Check if file should be downloaded based on filters
 
-    Args:
-        rel_path: Relative path from message
-        filename: Filename from path
-        variables: List of variable names to accept
-        run_hours: Set of run hours to accept (e.g., {'00', '12'}), None for all
-
-    Returns:
-        True if file matches filters
+    :param rel_path: Relative path from message
+    :param filename: Filename from path
+    :param variables: List of variable names to accept
+    :param run_hours: Set of run hours to accept (e.g., {'00', '12'}), None for all
+    :return: True if file matches filters
     """
     # Check variable filter
     if not any(var.upper() in rel_path.upper() for var in variables):
@@ -118,12 +115,9 @@ def build_s3_key(s3_prefix: str, url: str) -> str:
     """
     Build S3 key from components
 
-    Args:
-        s3_prefix: Base S3 prefix
-        url: Full URL from message
-
-    Returns:
-        Full S3 key path
+    :param s3_prefix: Base S3 prefix
+    :param url: URL from message
+    :return: S3 key path
     """
     try:
         key = s3_key_from_eccc_path(s3_prefix, url)
@@ -137,12 +131,9 @@ async def download_file(url: str, timeout: int = 300) -> Optional[bytes]:
     """
     Download file from URL
 
-    Args:
-        url: URL to download from
-        timeout: Timeout in seconds
-
-    Returns:
-        File data or None if failed
+    :param url: URL to download from
+    :param timeout: Timeout in seconds
+    :return: File data or None if failed
     """
     try:
         async with aiohttp.ClientSession() as session:

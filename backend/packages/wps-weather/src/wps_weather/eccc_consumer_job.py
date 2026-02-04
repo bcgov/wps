@@ -79,7 +79,7 @@ async def main():
             )
 
             # Setup signal handlers
-            def signal_handler(sig):
+            def signal_handler(sig, _):
                 logger.info(f"Received signal {sig}")
                 asyncio.create_task(consumer.shutdown())
 
