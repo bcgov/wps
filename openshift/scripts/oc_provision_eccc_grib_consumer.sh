@@ -27,7 +27,6 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/eccc_grib_consumer.yaml \
--p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p SUFFIX=${SUFFIX}"
 
 # Apply template (apply or use --dry-run)
