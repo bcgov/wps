@@ -5,6 +5,7 @@ description = "Wildfire Predictive Services Unit Weather Maps"
 authors = []
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
+    "wps_shared",
     "numpy==2.3.*",
     "xarray>=2025.3.1,<2026",
     "matplotlib>=3.7.0,<4",
@@ -17,7 +18,11 @@ dependencies = [
     "jupyter>=1.0.0,<2",
     "notebook>=7.0.0,<8",
     "jupyterlab>=4.0.0,<5",
+    "aio-pika>=9.5.8",
 ]
+
+[tool.uv.sources]
+wps-shared = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
