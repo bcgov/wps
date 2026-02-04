@@ -45,21 +45,3 @@ def parse_date_and_run(filename: str) -> tuple[str, str]:
         return first_token[:8], first_token[9:11]
 
     raise ValueError(f"Unexpected filename format: {filename}")
-
-
-def parse_eccc_forecast_hour(filename: str) -> int:
-    """
-    Extract forecast hour (as an integer) from MSC grib2 filenames.
-
-    Example:
-        PT039H -> 39
-    """
-    name = filename.rsplit(".", 1)[0]
-    parts = name.split("_")
-
-    for part in parts:
-        # Expected format: PT###H
-        if part.startswith("PT") and part.endswith("H") and len(part) == 6 and part[2:5].isdigit():
-            return int(part[2:5])
-
-    raise ValueError(f"Could not extract forecast hour from filename: {filename}")

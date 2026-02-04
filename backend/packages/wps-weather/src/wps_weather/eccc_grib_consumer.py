@@ -1,6 +1,7 @@
 import asyncio
 import os
 from pathlib import Path
+from string import Template
 from urllib.parse import urljoin
 import aiohttp
 import logging
@@ -16,6 +17,10 @@ from wps_shared.utils.s3_client import S3Client
 
 
 logger = logging.getLogger(__name__)
+
+# The queue name must be formatted as q_anonymous.subscribe.{config_name}.{company_name}
+# https://eccc-msc.github.io/open-data/msc-datamart/amqp_en/
+QUEUE_NAME = Template("q_anonymous.subscribe.${model_name}.bcgov")
 
 
 MODEL_CONFIGS = {
@@ -322,7 +327,7 @@ class ECCCGribConsumer:
 
             config = MODEL_CONFIGS[model_name]
 
-            queue_name = f"q_anonymous.subscribe.{model_name}.bcgov"
+            queue_name = QUEUE_NAME.substitute(model_name=model_name)
             queue = await self.channel.declare_queue(queue_name, exclusive=False)
 
             await queue.bind(exchange, routing_key=config["routing_key"])
