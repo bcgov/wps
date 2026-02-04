@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import suppress
 import logging
 import argparse
 import signal
@@ -78,20 +79,23 @@ async def main():
                 max_retries=args.max_retries,
             )
 
-            # Setup signal handlers
             loop = asyncio.get_running_loop()
 
-            def signal_handler(sig, _):
-                logger.info(f"Received signal {sig}")
-                # Schedule coroutine safely on the running loop
-                loop.call_soon_threadsafe(asyncio.create_task, consumer.shutdown())
+            def request_shutdown(sig):
+                signame = signal.Signals(sig).name
+                logger.info(f"Received {signame} → shutting down")
+                asyncio.create_task(consumer.shutdown())
 
-            signal.signal(signal.SIGTERM, signal_handler)
-            signal.signal(signal.SIGINT, signal_handler)
+            for sig in (signal.SIGINT, signal.SIGTERM):
+                loop.add_signal_handler(sig, request_shutdown, sig)
 
-            # Start and run
-            await consumer.start()
-            await consumer.run()
+            try:
+                await consumer.start()
+                await consumer.run()
+            finally:
+                for sig in (signal.SIGINT, signal.SIGTERM):
+                    with suppress(Exception):
+                        loop.remove_signal_handler(sig)
 
         except Exception as e:
             logger.error(f"Fatal error: {e}", exc_info=True)
