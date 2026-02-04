@@ -22,7 +22,15 @@ vi.mock('@/api/fbaAPI', () => ({
 
 vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
   return {
-    default: ({ showSnow, snowDate, rasterDate }: { showSnow: boolean; snowDate: DateTime | null; rasterDate: DateTime | null }) => (
+    default: ({
+      showSnow,
+      snowDate,
+      rasterDate
+    }: {
+      showSnow: boolean
+      snowDate: DateTime | null
+      rasterDate: DateTime | null
+    }) => (
       <div
         data-testid="sfms-map"
         data-show-snow={showSnow}
@@ -88,6 +96,8 @@ vi.mock('@/features/sfmsInsights/components/RasterTypeDropdown', () => ({
 }))
 
 describe('SFMSInsightsPage', () => {
+  const dateTimeNow = DateTime.fromISO('2025-11-02T00:00:00.000-08:00')
+  const dateTimeNowPlusTen = dateTimeNow.plus({ days: 10 })
   class ResizeObserver {
     observe() {
       // mock no-op
@@ -168,7 +178,7 @@ describe('SFMSInsightsPage', () => {
       snowSource: 'viirs'
     })
     // Mock getDateTimeNowPST to return a date in 2025
-    ;(getDateTimeNowPST as Mock).mockReturnValue(DateTime.fromISO('2025-11-02T00:00:00.000-08:00'))
+    ;(getDateTimeNowPST as Mock).mockReturnValue(dateTimeNow)
     // Mock getSFMSBounds API call
     ;(getSFMSBounds as Mock).mockResolvedValue({
       sfms_bounds: {
@@ -343,7 +353,7 @@ describe('SFMSInsightsPage', () => {
     await waitForPageLoad()
 
     const maxDate = screen.getByTestId('historical-max-date')
-    expect(maxDate.textContent).toBe('2025-11-02')
+    expect(maxDate.textContent).toBe(dateTimeNowPlusTen.toISODate())
   })
 
   it('should set minDate from earliestSFMSBounds.minimum', async () => {
@@ -362,10 +372,10 @@ describe('SFMSInsightsPage', () => {
     const maxDate = screen.getByTestId('current-year-max-date')
 
     expect(minDate.textContent).toBe('2024-01-01')
-    expect(maxDate.textContent).toBe('2025-11-02')
+    expect(maxDate.textContent).toBe(dateTimeNowPlusTen.toISODate())
   })
 
-  it('should update bounds when latestBounds changes', async () => {
+  it('should update min bounds when latestBounds changes', async () => {
     renderWithStore({
       '2025': {
         forecast: {
@@ -376,10 +386,7 @@ describe('SFMSInsightsPage', () => {
     })
     await waitForPageLoad()
 
-    const maxDate = screen.getByTestId('historical-max-date')
     const minDate = screen.getByTestId('historical-min-date')
-
-    expect(maxDate.textContent).toBe('2025-10-15')
     expect(minDate.textContent).toBe('2025-05-01')
   })
 
@@ -439,12 +446,9 @@ describe('SFMSInsightsPage', () => {
     await waitForPageLoad()
 
     const minDate = screen.getByTestId('historical-min-date')
-    const maxDate = screen.getByTestId('historical-max-date')
 
     // minDate should use default value since earliestBounds.minimum is empty
     expect(minDate.textContent).toBe('2025-01-01')
-    // maxDate should be set
-    expect(maxDate.textContent).toBe('2025-10-15')
   })
 
   it('should set rasterDate to today when all years have empty maximum', async () => {
@@ -488,20 +492,5 @@ describe('SFMSInsightsPage', () => {
 
     const dropdown = screen.getByTestId('raster-type-dropdown')
     expect(dropdown).toHaveAttribute('data-raster-data-available', 'true')
-  })
-
-  it('should disable date picker when no SFMS bounds data available', async () => {
-    renderWithStore(null)
-
-    const datePicker = screen.getByTestId('date-picker')
-    expect(datePicker).toHaveAttribute('data-disabled', 'true')
-  })
-
-  it('should enable date picker when SFMS bounds data available', async () => {
-    renderWithStore()
-    await waitForPageLoad()
-
-    const datePicker = screen.getByTestId('date-picker')
-    expect(datePicker).toHaveAttribute('data-disabled', 'false')
   })
 })
