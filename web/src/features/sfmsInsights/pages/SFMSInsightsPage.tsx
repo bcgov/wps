@@ -23,13 +23,13 @@ export const SFMSInsightsPage = () => {
   const sfmsBounds = useSelector((state: any) => state.runDates.sfmsBounds)
   const sfmsBoundsLoading = useSelector((state: any) => state.runDates.sfmsBoundsLoading)
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
-  const [rasterDate, setRasterDate] = useState<DateTime | null>(null)
+  const [rasterDate, setRasterDate] = useState<DateTime | null>(getDateTimeNowPST())
   const [maxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
   const [minDate, setMinDate] = useState<DateTime>(
     DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPST().year })
   )
 
-  const [rasterType, setRasterType] = useState<RasterType>('fwi')
+  const [rasterType, setRasterType] = useState<RasterType>('fuel')
   const [showSnow, setShowSnow] = useState<boolean>(true)
 
   useEffect(() => {
@@ -41,15 +41,6 @@ export const SFMSInsightsPage = () => {
   }, [])
 
   useEffect(() => {
-    // Set rasterDate once SFMS bounds are loaded
-    if (latestBounds?.maximum) {
-      const latestBoundsDateTime = DateTime.fromISO(latestBounds.maximum)
-      setRasterDate(latestBoundsDateTime)
-    } else {
-      // No raster data available, ensure fuel is selected and use today's date
-      setRasterType('fuel')
-      setRasterDate(getDateTimeNowPST())
-    }
     if (earliestBounds?.minimum) {
       setMinDate(DateTime.fromISO(earliestBounds.minimum))
     }
