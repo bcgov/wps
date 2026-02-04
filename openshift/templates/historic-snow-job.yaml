@@ -113,16 +113,16 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: object-store-bucket
-                - name: NASA_EARTHDATA_USER
+                - name: EARTHDATA_USERNAME
                   valueFrom:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
-                      key: env.nasa-earthdata-user
-                - name: NASA_EARTHDATA_PWD
+                      key: env.earthdata-username
+                - name: EARTHDATA_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
-                      key: nasa-earthdata-pwd
+                      key: earthdata-password
               resources:
                 limits:
                   cpu: "1"
