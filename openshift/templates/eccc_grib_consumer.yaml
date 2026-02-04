@@ -31,7 +31,6 @@ objects:
       name: ${APP_NAME}-${SUFFIX}-eccc-consumer
       labels:
         app: ${APP_NAME}-${SUFFIX}
-            annotations:
       annotations:
         # These annotations trigger a new rollout if either the web or api images change
         image.openshift.io/triggers: |-
