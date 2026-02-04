@@ -1,8 +1,6 @@
 import asyncio
-from contextlib import suppress
 import logging
 import argparse
-import signal
 
 from wps_weather.eccc_grib_consumer import ECCCGribConsumer
 
@@ -79,28 +77,12 @@ async def main():
                 max_retries=args.max_retries,
             )
 
-            loop = asyncio.get_running_loop()
-
-            def request_shutdown(sig):
-                signame = signal.Signals(sig).name
-                logger.info(f"Received {signame} → shutting down")
-                asyncio.create_task(consumer.shutdown())
-
-            for sig in (signal.SIGINT, signal.SIGTERM):
-                loop.add_signal_handler(sig, request_shutdown, sig)
-
-            try:
-                await consumer.start()
-                await consumer.run()
-            finally:
-                for sig in (signal.SIGINT, signal.SIGTERM):
-                    with suppress(Exception):
-                        loop.remove_signal_handler(sig)
+            await consumer.start()
+            await consumer.run()
 
         except Exception as e:
             logger.error(f"Fatal error: {e}", exc_info=True)
             await consumer.shutdown()
-            raise
 
 
 if __name__ == "__main__":
