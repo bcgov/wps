@@ -1,5 +1,6 @@
 import asyncio
 import os
+from pathlib import Path
 from urllib.parse import urljoin
 import aiohttp
 import logging
@@ -220,6 +221,21 @@ class ECCCGribConsumer:
             "start_time": None,
         }
 
+        # for openshift to monitor liveness of the pod
+        self.health_file = Path("/tmp/health_check")
+        self.health_task = None
+
+    async def _update_health(self):
+        """
+        Update health file with current timestamp
+        """
+        while self.running:
+            try:
+                self.health_file.write_text(datetime.now(timezone.utc).isoformat())
+            except Exception as e:
+                logger.error(f"Failed to update health file: {e}")
+            await asyncio.sleep(30)
+
     async def _monitor_connection(self):
         """Monitor connection and reconnect if needed"""
         while self.running:
@@ -408,6 +424,9 @@ class ECCCGribConsumer:
             raise ConnectionError("Failed to connect to AMQP")
 
         # start a task to monitor the connection
+        self.health_task = asyncio.create_task(self._update_health())
+
+        # start a task to monitor the connection
         self.monitor_task = asyncio.create_task(self._monitor_connection())
 
         # Start workers
@@ -444,7 +463,7 @@ class ECCCGribConsumer:
             await self.download_queue.join()
 
         # Cancel tasks
-        all_tasks = self.workers + [self.retry_task, self.monitor_task]
+        all_tasks = self.workers + [self.retry_task, self.monitor_task, self.health_task]
         for task in all_tasks:
             if task:
                 task.cancel()

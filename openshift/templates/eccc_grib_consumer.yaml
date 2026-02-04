@@ -28,7 +28,7 @@ objects:
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
-      name: ${APP_NAME}-eccc-consumer-${SUFFIX}
+      name: ${APP_NAME}-${SUFFIX}-eccc-consumer
       labels:
         app: ${APP_NAME}-${SUFFIX}
     spec:
@@ -81,18 +81,28 @@ objects:
                       key: object-store-bucket
               resources:
                 limits:
-                  memory: 512Mi
+                  memory: 400Mi
                 requests:
-                  cpu: 200m
-                  memory: 256Mi
+                  cpu: 100m
+                  memory: 200Mi
 
               # Liveness probe - restart if process hangs
               livenessProbe:
                 exec:
                   command:
-                    - pgrep
-                    - -f
-                    - "wps_weather.eccc_consumer_job"
+                    - /bin/sh
+                    - -c
+                    - |
+                      # Check if health file exists and was updated in last 2 minutes
+                      if [ -f /tmp/health_check ]; then
+                        last_update=$(stat -c %Y /tmp/health_check)
+                        current_time=$(date +%s)
+                        age=$((current_time - last_update))
+                        if [ $age -lt 120 ]; then
+                          exit 0
+                        fi
+                      fi
+                      exit 1
                 initialDelaySeconds: 30
                 periodSeconds: 60
                 failureThreshold: 3
