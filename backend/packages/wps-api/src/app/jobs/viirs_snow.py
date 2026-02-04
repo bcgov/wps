@@ -38,8 +38,8 @@ DST_NODATA = 255
 BBOX = (-139.06, 48.3, -114.03, 60.0)
 R_SPHERE = 6371007.181  # meters
 TILE_SIZE_M = 1111950.519  # meters (tile width/height)
-GLOBAL_ULX = -20015109.354
-GLOBAL_ULY = 10007554.677
+GLOBAL_ULX = -20015109
+GLOBAL_ULY = 10007555
 MODIS_SINUSOIDAL_PROJ4 = "+proj=sinu +R=6371007.181 +nadgrids=@null +wktext +units=m +no_defs"
 RESAMPLING = "near"
 SUBDATASET = "://HDFEOS/GRIDS/VIIRS_Grid_IMG_2D/Data_Fields/CGF_NDSI_Snow_Cover"
