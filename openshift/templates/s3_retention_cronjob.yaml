@@ -22,6 +22,7 @@ parameters:
     value: e1e498-tools
   - name: JOB_NAME
     required: true
+    value: s3-retention
   - name: IMAGE_REGISTRY
     required: true
     value: image-registry.openshift-image-registry.svc:5000
