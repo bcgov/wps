@@ -35,9 +35,9 @@ async def engine(postgres_container):
 
     async with engine.begin() as conn:
         await conn.run_sync(SFMSRun.__table__.create)
-        # Insert a mock sfms_stations record
+        # Insert a mock sfms_run record
         await conn.execute(
-            text("""INSERT INTO sfms_stations (run_type, target_date, run_date, stations)
+            text("""INSERT INTO sfms_run (run_type, target_date, run_date, stations)
                  VALUES ('actual', '2026-02-01', '2026-02-02 16:32:15.294322-08', ARRAY[1, 2, 3]);""")
         )
         await conn.run_sync(SFMSRunLog.__table__.create)
@@ -80,7 +80,7 @@ async def test_save_sfms_run_log(async_session: AsyncSession):
     assert saved.started_at == test_started_at
     assert saved.status == SFMSRunLogStatus.RUNNING
     assert saved.completed_at is None
-    assert saved.sfms_stations_id == 1
+    assert saved.sfms_run_id == 1
 
 
 @pytest.mark.anyio
