@@ -2,7 +2,7 @@ import json
 import math
 from collections import namedtuple
 from datetime import date, datetime, timezone
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import app.main
 import pytest
@@ -12,11 +12,11 @@ from fastapi.testclient import TestClient
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryHFIWindSpeed,
     RunParameters,
-    RunTypeEnum,
     SFMSFuelType,
     TPIClassEnum,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
+from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
 from wps_shared.schemas.fba import (
     FireZoneHFIStats,
     HFIStatsResponse,
@@ -248,10 +248,10 @@ async def mock_get_most_recent_run_datetime_for_date_range(*_, **__):
     for_date_2 = date(2025, 8, 26)
     run_datetime = datetime(2025, 8, 25)
     run_parameter_1 = SFMSRunParameter(
-        for_date=for_date_1, run_datetime=run_datetime, run_type=RunTypeEnum.forecast
+        for_date=for_date_1, run_datetime=run_datetime, run_type=SFMSRunType.FORECAST
     )
     run_parameter_2 = SFMSRunParameter(
-        for_date=for_date_2, run_datetime=run_datetime, run_type=RunTypeEnum.forecast
+        for_date=for_date_2, run_datetime=run_datetime, run_type=SFMSRunType.FORECAST
     )
     return [run_parameter_1, run_parameter_2]
 
