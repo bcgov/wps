@@ -2,9 +2,10 @@
 
 import enum
 
-from sqlalchemy import ARRAY, Column, Date, ForeignKey, Integer, String
+from sqlalchemy import ARRAY, Column, Date, Enum, ForeignKey, Integer, String
 
 from wps_shared.db.models import Base
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.common import TZTimeStamp
 
 
@@ -21,12 +22,6 @@ class SFMSRunLogStatus(str, enum.Enum):
     RUNNING = "running"
     SUCCESS = "success"
     FAILED = "failed"
-
-
-class SFMSRunType(str, enum.Enum):
-    ACTUAL = "actual"
-    FORECAST = "forecast"
-
 
 class SFMSRunLog(Base):
     """Log of SFMS job executions with target date and run timing."""
@@ -52,9 +47,7 @@ class SFMSStations(Base):
     __table_args__ = {"comment": "Tracks SFMS job runs and the stations used."}
 
     id = Column(Integer, primary_key=True, index=True)
-    run_type = Column(
-        String, nullable=False, index=True
-    )  # SFMSRunType.ACTUAL or SFMSRunType.FORECAST
+    run_type = Column(Enum(RunTypeEnum), nullable=False, index=True)
     target_date = Column(Date, nullable=False, index=True)
     run_date = Column(TZTimeStamp, nullable=False, index=True)
     stations = Column(ARRAY(Integer), nullable=False)

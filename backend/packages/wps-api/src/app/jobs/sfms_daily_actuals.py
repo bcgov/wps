@@ -19,7 +19,8 @@ from wps_sfms.processors.precipitation import PrecipitationInterpolationProcesso
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.db.crud.sfms_run_log import save_sfms_stations, track_sfms_run
 from wps_shared.db.database import get_async_write_session_scope
-from wps_shared.db.models.sfms_run_log import SFMSRunLogJobName, SFMSRunType, SFMSStations
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+from wps_shared.db.models.sfms_run_log import SFMSRunLogJobName, SFMSStations
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
@@ -61,7 +62,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
         async with get_async_write_session_scope() as session:
             station_codes = [actual.code for actual in sfms_actuals]
             sfms_run = SFMSStations(
-                run_type=SFMSRunType.ACTUAL,
+                run_type=RunTypeEnum.actual,
                 target_date=datetime_to_process.date(),
                 run_date=get_utc_now(),
                 stations=station_codes,
