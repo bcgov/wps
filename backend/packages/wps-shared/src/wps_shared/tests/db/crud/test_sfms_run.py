@@ -8,10 +8,10 @@ from testcontainers.postgres import PostgresContainer
 
 from wps_shared.db.crud.sfms_run import save_sfms_run_log, track_sfms_run, update_sfms_run_log
 from wps_shared.db.models.sfms_run import (
+    SFMSRun,
     SFMSRunLog,
     SFMSRunLogJobName,
     SFMSRunLogStatus,
-    SFMSStations,
 )
 
 
@@ -34,7 +34,7 @@ async def engine(postgres_container):
     engine = create_async_engine(db_url, echo=False)
 
     async with engine.begin() as conn:
-        await conn.run_sync(SFMSStations.__table__.create)
+        await conn.run_sync(SFMSRun.__table__.create)
         # Insert a mock sfms_stations record
         await conn.execute(
             text("""INSERT INTO sfms_stations (run_type, target_date, run_date, stations)
