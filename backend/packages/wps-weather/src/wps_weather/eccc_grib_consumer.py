@@ -89,19 +89,18 @@ def parse_message(body: bytes) -> Optional[Tuple[str, str, str]]:
 
 
 def should_download_file(
-    rel_path: str, filename: str, variables: List[str], run_hours: Optional[Set[str]] = None
+    filename: str, variables: List[str], run_hours: Optional[Set[str]] = None
 ) -> bool:
     """
     Check if file should be downloaded based on filters
 
-    :param rel_path: Relative path from message
-    :param filename: Filename from path
+    :param filename: Grib filename
     :param variables: List of variable names to accept
     :param run_hours: Set of run hours to accept (e.g., {'00', '12'}), None for all
     :return: True if file matches filters
     """
     # Check variable filter
-    if not any(var.upper() in rel_path.upper() for var in variables):
+    if not any(var.upper() in filename.upper() for var in variables):
         return False
 
     # Check run hour filter
@@ -293,9 +292,7 @@ class ECCCGribConsumer:
                 filename = rel_path.split("/")[-1]
 
                 # determine if it's a grib file that we want
-                if not should_download_file(
-                    rel_path, filename, config["variables"], self.run_hours
-                ):
+                if not should_download_file(filename, config["variables"], self.run_hours):
                     self.stats["messages_filtered"] += 1
                     logger.debug(f"Filtered [{model_name}]: {filename}")
                     return
