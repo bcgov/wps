@@ -31,7 +31,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/s3_retention.cronjo
 -p JOB_NAME=s3-retention-${APP_NAME}-${SUFFIX} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p SUFFIX=${SUFFIX} \
--p SCHEDULE=${SCHEDULE}"
+-p SCHEDULE=\"${SCHEDULE}\""
 
 # Apply template (apply or use --dry-run)
 #
