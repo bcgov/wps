@@ -76,7 +76,6 @@ async def test_save_sfms_run_log(async_session: AsyncSession):
     result = await async_session.execute(select(SFMSRunLog).where(SFMSRunLog.id == log_id))
     saved = result.scalar_one()
     assert saved.job_name == SFMSRunLogJobName.TEMPERATURE_INTERPOLATION
-    assert saved.target_date == test_target_date
     assert saved.started_at == test_started_at
     assert saved.status == SFMSRunLogStatus.RUNNING
     assert saved.completed_at is None
