@@ -1,0 +1,99 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Scheduled task to delete grib data stored in s3."
+    tags: "s3, retention"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: JOB_NAME
+    required: true
+  - name: IMAGE_REGISTRY
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000
+  - name: SCHEDULE
+    required: true
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1
+    metadata:
+      name: ${JOB_NAME}
+    spec:
+      schedule: ${SCHEDULE}
+      # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
+      # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
+      # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
+      # noticed. We don't want that.
+      concurrencyPolicy: "Replace"
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+            app: ${APP_LABEL}
+        spec:
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
+                  imagePullPolicy: "Always"
+                  command:
+                    [
+                      "uv",
+                      "run",
+                      "--package",
+                      "wps-api",
+                      "--no-sync",
+                      "python",
+                      "-m",
+                      "wps_weather.s3_data_retention",
+                    ]
+                  env:
+                    - name: UV_NO_CACHE
+                      value: "1"
+                    - name: OBJECT_STORE_SERVER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-server
+                    - name: OBJECT_STORE_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-user-id
+                    - name: OBJECT_STORE_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-secret
+                    - name: OBJECT_STORE_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-bucket
+                    - name: GRIB_RETENTION_THRESHOLD
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: grib-retention-threshold
+                  resources:
+                    limits:
+                      memory: 200Mi
+                    requests:
+                      cpu: 150m
+                      memory: 100Mi
+              restartPolicy: OnFailure
