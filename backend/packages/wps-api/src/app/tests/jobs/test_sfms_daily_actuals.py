@@ -242,7 +242,7 @@ class TestMondayFWIInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        # temp processor called once, precip processor called 4 times (1 precip + 3 FWI)
+        # temp processor called once, IDW processor called 4 times (1 precip + 3 FWI)
         mock_dependencies.temp_processor.process.assert_called_once()
         assert mock_dependencies.idw_processor.process.call_count == 4
 
