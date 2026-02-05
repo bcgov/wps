@@ -125,7 +125,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: wps-weather-coverage-report
-          path: ./backend/packages/wps-jobs/coverage-reports/wps-weather-coverage-report.xml
+          path: ./backend/packages/wps-weather/coverage-reports/wps-weather-coverage-report.xml
 
   lint-and-test-web:
     name: Web - Lint, Test with coverage
