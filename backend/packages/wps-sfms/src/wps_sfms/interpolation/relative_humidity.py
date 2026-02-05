@@ -11,7 +11,7 @@ This module implements the SFMS relative humidity interpolation workflow:
 import logging
 import numpy as np
 from osgeo import gdal
-from wps_sfms.interpolation.source import LapseRateAdjustedSource, StationDewPointSource
+from wps_sfms.interpolation.source import StationDewPointSource
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_sfms.interpolation.common import (
@@ -142,7 +142,7 @@ def interpolate_rh_to_raster(
                 np.float32, copy=False
             )
             elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
-            actual_dewpoints = LapseRateAdjustedSource.compute_adjusted_values(sea, elev, LAPSE_RATE)
+            actual_dewpoints = dewpoint_source.compute_adjusted_values(sea, elev, LAPSE_RATE)
 
             # Get corresponding temperature values from the interpolated temp raster
             temp_values = temp_data[rows, cols].astype(np.float32)
