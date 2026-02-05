@@ -117,11 +117,11 @@ jobs:
       - uses: ./.github/actions/python-setup
         with:
           install-jdk: "true"
-      - name: Unit Test with coverage (wps_jobs)
+      - name: Unit Test with coverage (wps_weather)
         working-directory: ./backend
         run: |
           uv run pytest --cov=packages/wps-weather/src/wps_weather --cov-branch --cov-report=xml:packages/wps-weather/coverage-reports/wps-weather-coverage-report.xml packages/wps-weather/src/wps_weather/tests -x -o log_cli=true --disable-warnings -vvv
-      - name: Archive coverage report (wps_jobs)
+      - name: Archive coverage report (wps_weather)
         uses: actions/upload-artifact@v6
         with:
           name: wps-weather-coverage-report
