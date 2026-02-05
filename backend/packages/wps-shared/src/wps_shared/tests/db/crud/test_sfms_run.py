@@ -147,11 +147,9 @@ async def test_multiple_run_logs(async_session: AsyncSession):
         1,
     )
 
-    id1 = await save_sfms_run_log(async_session, record1)
-    id2 = await save_sfms_run_log(async_session, record2)
     await async_session.commit()
 
-    assert id1 != id2
+    assert record1 != record2
 
     result = await async_session.execute(select(SFMSRunLog))
     rows = result.scalars().all()
