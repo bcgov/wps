@@ -2,15 +2,18 @@
 
 import functools
 import logging
-from datetime import datetime
+from datetime import date, datetime
+from typing import List
 
+from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run_log import (
+    SFMSRun,
     SFMSRunLog,
     SFMSRunLogJobName,
     SFMSRunLogStatus,
-    SFMSStations,
 )
 from wps_shared.utils.time import get_utc_now
 
@@ -46,8 +49,7 @@ async def update_sfms_run_log(
 
 def track_sfms_run(
     job_name: SFMSRunLogJobName,
-    datetime_to_process: datetime,
-    sfms_stations_id: int,
+    sfms_run_id: int,
     session: AsyncSession,
 ):
     """Decorator that logs an sfms_run_log entry around an async function.
@@ -68,10 +70,9 @@ def track_sfms_run(
         async def wrapper(*args, **kwargs):
             log_record = SFMSRunLog(
                 job_name=job_name,
-                target_date=datetime_to_process.date(),
                 started_at=get_utc_now(),
                 status=SFMSRunLogStatus.RUNNING,
-                sfms_stations_id=sfms_stations_id,
+                sfms_run_id=sfms_run_id,
             )
             log_id = await save_sfms_run_log(session, log_record)
 
@@ -104,13 +105,31 @@ def track_sfms_run(
     return decorator
 
 
-async def save_sfms_stations(session: AsyncSession, record: SFMSStations) -> int:
-    """Insert an SFMSStations row and return its id.
+async def save_sfms_run(
+    session: AsyncSession,
+    run_type: RunTypeEnum,
+    target_date: date,
+    run_datetime: datetime,
+    stations: List[int],
+) -> int:
+    """Insert an SFMSRun row and return its id.
 
     :param session: An async database session.
-    :param record: The SFMSStations record to insert.
+    :param run_type: The run type, forecast or actual.
+    :param target_date: The target date of the sfms run.
+    :param run_date: The actual run date and time of the sfms run.
+    :param stations: The list of stations used for the sfms run.
     :return: The id of the newly inserted row.
     """
-    session.add(record)
-    await session.flush()
-    return record.id
+    stmt = (
+        insert(SFMSRun)
+        .values(
+            run_type=run_type,
+            target_date=target_date,
+            run_datetime=run_datetime,
+            stations=stations,
+        )
+        .returning(SFMSRun.id)
+    )
+    result = await session.execute(stmt)
+    return result.scalar()

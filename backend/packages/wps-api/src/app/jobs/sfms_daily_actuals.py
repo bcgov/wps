@@ -17,10 +17,10 @@ from aiohttp import ClientSession
 from wps_sfms.interpolation.source import StationPrecipitationSource, StationTemperatureSource
 from wps_sfms.processors.precipitation import PrecipitationInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
-from wps_shared.db.crud.sfms_run_log import save_sfms_stations, track_sfms_run
+from wps_shared.db.crud.sfms_run_log import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
-from wps_shared.db.models.sfms_run_log import SFMSRunLogJobName, SFMSStations
+from wps_shared.db.models.sfms_run_log import SFMSRunLogJobName
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
@@ -61,19 +61,17 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
 
         async with get_async_write_session_scope() as session:
             station_codes = [actual.code for actual in sfms_actuals]
-            sfms_run = SFMSStations(
-                run_type=RunTypeEnum.actual,
-                target_date=datetime_to_process.date(),
-                run_date=get_utc_now(),
-                stations=station_codes,
-                station_count=len(station_codes),
+            sfms_run_id = await save_sfms_run(
+                session,
+                RunTypeEnum.actual,
+                datetime_to_process.date(),
+                get_utc_now(),
+                station_codes,
             )
-            sfms_stations_id = await save_sfms_stations(session, sfms_run)
 
             @track_sfms_run(
                 SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-                datetime_to_process,
-                sfms_stations_id,
+                sfms_run_id,
                 session,
             )
             async def run_temperature_interpolation() -> None:
@@ -89,8 +87,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
 
             @track_sfms_run(
                 SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
-                datetime_to_process,
-                sfms_stations_id,
+                sfms_run_id,
                 session,
             )
             async def run_precipitation_interpolation() -> None:
