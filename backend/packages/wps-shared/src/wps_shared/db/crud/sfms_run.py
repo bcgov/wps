@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 async def save_sfms_run_log(
     session: AsyncSession,
     job_name: str,
-    started_at: datetime,
     status: SFMSRunLogStatus,
     sfms_run_id: int,
 ) -> int:
@@ -35,7 +34,7 @@ async def save_sfms_run_log(
     """
     stmt = (
         insert(SFMSRunLog)
-        .values(job_name=job_name, started_at=started_at, status=status, sfms_run_id=sfms_run_id)
+        .values(job_name=job_name, status=status, sfms_run_id=sfms_run_id)
         .returning(SFMSRunLog.id)
     )
     result = await session.execute(stmt)
@@ -79,7 +78,7 @@ def track_sfms_run(
         @functools.wraps(fn)
         async def wrapper(*args, **kwargs):
             log_id = await save_sfms_run_log(
-                session, job_name, get_utc_now(), SFMSRunLogStatus.RUNNING, sfms_run_id
+                session, job_name, SFMSRunLogStatus.RUNNING, sfms_run_id
             )
 
             try:

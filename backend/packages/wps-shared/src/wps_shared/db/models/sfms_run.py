@@ -33,10 +33,9 @@ class SFMSRunLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     job_name = Column(String, nullable=False, index=True)
-    started_at = Column(TZTimeStamp, nullable=False)
     completed_at = Column(TZTimeStamp, nullable=True)
     status = Column(String, nullable=False)
-    sfms_run_id = Column(Integer, ForeignKey("sfms_run.id"), nullable=True)
+    sfms_run_id = Column(Integer, ForeignKey("sfms_run.id"), nullable=False)
 
 
 class SFMSRun(Base):

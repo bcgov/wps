@@ -32,16 +32,19 @@ def upgrade():
     op.create_index(op.f('ix_sfms_run_run_datetime'), 'sfms_run', ['run_datetime'], unique=False)
     op.create_index(op.f('ix_sfms_run_run_type'), 'sfms_run', ['run_type'], unique=False)
     op.create_index(op.f('ix_sfms_run_target_date'), 'sfms_run', ['target_date'], unique=False)
-    op.create_table('sfms_run_log',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('job_name', sa.String(), nullable=False),
-    sa.Column('started_at', TZTimeStamp(), nullable=False),
-    sa.Column('completed_at', TZTimeStamp(), nullable=True),
-    sa.Column('status', sa.String(), nullable=False),
-    sa.Column('sfms_run_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['sfms_run_id'], ['sfms_run.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    comment='Tracks SFMS interpolation runs with execution timestamps and status.'
+    op.create_table(
+        "sfms_run_log",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("job_name", sa.String(), nullable=False),
+        sa.Column("completed_at", TZTimeStamp(), nullable=True),
+        sa.Column("status", sa.String(), nullable=False),
+        sa.Column("sfms_run_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["sfms_run_id"],
+            ["sfms_run.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+        comment="Tracks SFMS interpolation runs with execution timestamps and status.",
     )
     op.create_index(op.f('ix_sfms_run_log_id'), 'sfms_run_log', ['id'], unique=False)
     op.create_index(op.f('ix_sfms_run_log_job_name'), 'sfms_run_log', ['job_name'], unique=False)

@@ -16,7 +16,6 @@ from wps_shared.db.models.sfms_run import (
 
 
 test_target_date = date(2025, 7, 15)
-test_started_at = datetime(2025, 7, 15, 20, 30, 0, tzinfo=timezone.utc)
 test_completed_at = datetime(2025, 7, 15, 20, 45, 0, tzinfo=timezone.utc)
 
 
@@ -64,7 +63,6 @@ async def test_save_sfms_run_log(async_session: AsyncSession):
     log_id = await save_sfms_run_log(
         async_session,
         SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        test_started_at,
         SFMSRunLogStatus.RUNNING,
         1,
     )
@@ -76,7 +74,6 @@ async def test_save_sfms_run_log(async_session: AsyncSession):
     result = await async_session.execute(select(SFMSRunLog).where(SFMSRunLog.id == log_id))
     saved = result.scalar_one()
     assert saved.job_name == SFMSRunLogJobName.TEMPERATURE_INTERPOLATION
-    assert saved.started_at == test_started_at
     assert saved.status == SFMSRunLogStatus.RUNNING
     assert saved.completed_at is None
     assert saved.sfms_run_id == 1
@@ -88,7 +85,6 @@ async def test_update_sfms_run_log_success(async_session: AsyncSession):
     log_id = await save_sfms_run_log(
         async_session,
         SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        test_started_at,
         SFMSRunLogStatus.RUNNING,
         1,
     )
@@ -111,7 +107,6 @@ async def test_update_sfms_run_log_failed(async_session: AsyncSession):
     log_id = await save_sfms_run_log(
         async_session,
         SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        test_started_at,
         SFMSRunLogStatus.RUNNING,
         1,
     )
@@ -134,14 +129,12 @@ async def test_multiple_run_logs(async_session: AsyncSession):
     record1 = await save_sfms_run_log(
         async_session,
         SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        test_started_at,
         SFMSRunLogStatus.RUNNING,
         1,
     )
     record2 = await save_sfms_run_log(
         async_session,
         SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
-        datetime(2025, 7, 15, 20, 35, 0, tzinfo=timezone.utc),
         SFMSRunLogStatus.RUNNING,
         1,
     )
@@ -178,9 +171,7 @@ async def test_track_sfms_run_success(async_session: AsyncSession):
     row = result.scalar_one()
     assert row.job_name == SFMSRunLogJobName.TEMPERATURE_INTERPOLATION
     assert row.status == SFMSRunLogStatus.SUCCESS
-    assert row.started_at is not None
     assert row.completed_at is not None
-    assert row.completed_at >= row.started_at
 
 
 @pytest.mark.anyio
