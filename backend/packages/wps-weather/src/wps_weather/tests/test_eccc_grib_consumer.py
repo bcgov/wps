@@ -116,7 +116,7 @@ class TestDownloadTask:
 
     def test_next_retry_delay_exponential_backoff(self):
         """Should calculate exponential backoff correctly"""
-        task = DownloadTask(url="http://test", s3_key="test/key")
+        task = DownloadTask(url="https://test", s3_key="test/key")
 
         # First retry
         task.attempt = 0
@@ -132,28 +132,28 @@ class TestDownloadTask:
 
     def test_next_retry_delay_caps_at_480(self):
         """Should cap retry delay at 480 seconds"""
-        task = DownloadTask(url="http://test", s3_key="test/key")
+        task = DownloadTask(url="https://test", s3_key="test/key")
 
         task.attempt = 10
         assert task.next_retry_delay == 480
 
     def test_should_retry_when_under_max_attempts(self):
         """Should retry when under max attempts"""
-        task = DownloadTask(url="http://test", s3_key="test/key", max_attempts=5)
+        task = DownloadTask(url="https://test", s3_key="test/key", max_attempts=5)
 
         task.attempt = 3
         assert task.should_retry is True
 
     def test_should_not_retry_when_at_max_attempts(self):
         """Should not retry when at max attempts"""
-        task = DownloadTask(url="http://test", s3_key="test/key", max_attempts=5)
+        task = DownloadTask(url="https://test", s3_key="test/key", max_attempts=5)
 
         task.attempt = 5
         assert task.should_retry is False
 
     def test_is_expired_when_old(self):
         """Should be expired when older than 4 hours"""
-        task = DownloadTask(url="http://test", s3_key="test/key")
+        task = DownloadTask(url="https://test", s3_key="test/key")
 
         # Simulate old task
         task.first_attempt_time = datetime.now(timezone.utc) - timedelta(hours=5)
@@ -162,7 +162,7 @@ class TestDownloadTask:
 
     def test_is_not_expired_when_recent(self):
         """Should not be expired when recent"""
-        task = DownloadTask(url="http://test", s3_key="test/key")
+        task = DownloadTask(url="https://test", s3_key="test/key")
 
         # Recent task
         task.first_attempt_time = datetime.now(timezone.utc) - timedelta(hours=1)
@@ -209,7 +209,7 @@ class TestECCCGribConsumer:
         mock_s3_client.object_exists.return_value = True
 
         # Create and queue task
-        task = DownloadTask(url="http://test.com/file.grib2", s3_key="test/file.grib2")
+        task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
         await consumer.download_queue.put(task)
 
         # Process task with worker
@@ -230,7 +230,7 @@ class TestECCCGribConsumer:
             "wps_weather.eccc_grib_consumer.download_file", AsyncMock(return_value=b"test data")
         ):
             # Add task to queue
-            task = DownloadTask(url="http://test.com/file.grib2", s3_key="test/file.grib2")
+            task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
             await consumer.download_queue.put(task)
 
             # Start worker (it runs in background)
@@ -254,7 +254,7 @@ class TestECCCGribConsumer:
         """Should add failed download to retry queue"""
         # Mock failed download
         with patch("wps_weather.eccc_grib_consumer.download_file", AsyncMock(return_value=None)):
-            task = DownloadTask(url="http://test.com/file.grib2", s3_key="test/file.grib2")
+            task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
             await consumer.download_queue.put(task)
 
             # Process
@@ -273,7 +273,7 @@ class TestECCCGribConsumer:
     async def test_retry_worker_retries_expired_tasks(self, consumer):
         """Should retry tasks after delay expires"""
         # Create task that's ready for retry
-        task = DownloadTask(url="http://test.com/file.grib2", s3_key="test/file.grib2")
+        task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
         task.attempt = 1
         task.last_attempt_time = datetime.now(timezone.utc) - timedelta(seconds=100)
 
@@ -401,7 +401,7 @@ class TestConsumerWorkflow:
             "wps_weather.eccc_grib_consumer.download_file", AsyncMock(side_effect=download_results)
         ):
             # First attempt - should fail
-            task = DownloadTask(url="http://test.com/file.grib2", s3_key="test/file.grib2")
+            task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
             await consumer.download_queue.put(task)
 
             worker = asyncio.create_task(consumer._download_worker(0))
