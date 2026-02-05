@@ -149,3 +149,57 @@ class StationPrecipitationSource(StationInterpolationSource):
             [s.lon for s in valid],
             [s.precipitation for s in valid],
         )
+
+
+class StationFFMCSource(StationInterpolationSource):
+    """Represents a weather station with FFMC data for interpolation."""
+
+    def __init__(self):
+        super().__init__()
+        self.weather_param = SFMSInterpolatedWeatherParameter.FFMC
+
+    def get_interpolation_data(
+        self, sfms_actuals: List[SFMSDailyActual]
+    ) -> Tuple[List[float], List[float], List[float]]:
+        valid = [s for s in sfms_actuals if s.ffmc is not None]
+        return (
+            [s.lat for s in valid],
+            [s.lon for s in valid],
+            [s.ffmc for s in valid],
+        )
+
+
+class StationDMCSource(StationInterpolationSource):
+    """Represents a weather station with DMC data for interpolation."""
+
+    def __init__(self):
+        super().__init__()
+        self.weather_param = SFMSInterpolatedWeatherParameter.DMC
+
+    def get_interpolation_data(
+        self, sfms_actuals: List[SFMSDailyActual]
+    ) -> Tuple[List[float], List[float], List[float]]:
+        valid = [s for s in sfms_actuals if s.dmc is not None]
+        return (
+            [s.lat for s in valid],
+            [s.lon for s in valid],
+            [s.dmc for s in valid],
+        )
+
+
+class StationDCSource(StationInterpolationSource):
+    """Represents a weather station with DC data for interpolation."""
+
+    def __init__(self):
+        super().__init__()
+        self.weather_param = SFMSInterpolatedWeatherParameter.DC
+
+    def get_interpolation_data(
+        self, sfms_actuals: List[SFMSDailyActual]
+    ) -> Tuple[List[float], List[float], List[float]]:
+        valid = [s for s in sfms_actuals if s.dc is not None]
+        return (
+            [s.lat for s in valid],
+            [s.lon for s in valid],
+            [s.dc for s in valid],
+        )
