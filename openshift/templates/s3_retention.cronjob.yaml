@@ -28,6 +28,8 @@ parameters:
     value: image-registry.openshift-image-registry.svc:5000
   - name: SCHEDULE
     required: true
+  - name: APP_LABEL
+    required: true
 objects:
   - kind: CronJob
     apiVersion: batch/v1
