@@ -170,11 +170,6 @@ class TestDownloadTask:
         assert task.is_expired is False
 
 
-# =============================================================================
-# Consumer Tests (With Mocking)
-# =============================================================================
-
-
 class TestECCCGribConsumer:
     """Tests for ECCCGribConsumer class"""
 
