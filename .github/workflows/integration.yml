@@ -17,7 +17,7 @@ jobs:
     name: Python - Lint
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
       options: --user 0
     steps:
       - uses: actions/checkout@v6
@@ -30,7 +30,7 @@ jobs:
     name: Python - API Test with coverage
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
       options: --user 0
     steps:
       - uses: actions/checkout@v6
@@ -57,7 +57,7 @@ jobs:
     name: Python - WPS Shared Test with coverage
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
       options: --user 0
     steps:
       - uses: actions/checkout@v6
@@ -82,7 +82,7 @@ jobs:
     name: Python - WPS Jobs Test with coverage
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
+      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
       options: --user 0
     steps:
       - uses: actions/checkout@v6
@@ -103,6 +103,29 @@ jobs:
         with:
           name: wps-jobs-coverage-report
           path: ./backend/packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml
+
+  test-wps-weather:
+    name: Python - WPS Weather Test with coverage
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
+      options: --user 0
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/python-setup
+        with:
+          install-jdk: "true"
+      - name: Unit Test with coverage (wps_jobs)
+        working-directory: ./backend
+        run: |
+          uv run pytest --cov=packages/wps-weather/src --cov-branch --cov-report=xml:packages/wps-weather/coverage-reports/wps-weather-coverage-report.xml packages/wps-weather/src/tests -x -o log_cli=true --disable-warnings -vvv
+      - name: Archive coverage report (wps_jobs)
+        uses: actions/upload-artifact@v6
+        with:
+          name: wps-weather-coverage-report
+          path: ./backend/packages/wps-jobs/coverage-reports/wps-weather-coverage-report.xml
 
   lint-and-test-web:
     name: Web - Lint, Test with coverage
@@ -155,7 +178,14 @@ jobs:
   upload-code-coverage:
     name: Coverage with CodeCov
     runs-on: ubuntu-24.04
-    needs: [lint-and-test-web, test-api, test-wps-shared, test-wps-jobs]
+    needs:
+      [
+        lint-and-test-web,
+        test-api,
+        test-wps-shared,
+        test-wps-jobs,
+        test-wps-weather,
+      ]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
