@@ -58,8 +58,6 @@ objects:
                     [
                       "uv",
                       "run",
-                      "--package",
-                      "wps-api",
                       "--no-sync",
                       "python",
                       "-m",
