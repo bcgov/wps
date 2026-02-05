@@ -90,7 +90,7 @@ objects:
                       valueFrom:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
-                          key: grib-retention-threshold
+                          key: env.grib_retention_threshold
                   resources:
                     limits:
                       memory: 200Mi
