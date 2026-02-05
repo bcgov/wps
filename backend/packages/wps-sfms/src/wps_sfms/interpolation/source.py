@@ -155,6 +155,26 @@ class StationDewPointSource(LapseRateAdjustedSource):
         td = compute_dewpoint(actual.temperature, actual.relative_humidity)
         return np.nan if td is None else float(td)
 
+    @staticmethod
+    def compute_rh(temp: np.ndarray, dewpoint: np.ndarray) -> np.ndarray:
+        """
+        Compute relative humidity from temperature and dew point using the Magnus formula.
+
+        RH = 100 * exp((17.625 * Td) / (Td + 243.04)) /
+                    exp((17.625 * T) / (T + 243.04))
+
+        :param temp: Temperature array in Celsius
+        :param dewpoint: Dew point temperature array in Celsius
+        :return: Relative humidity as percentage (0-100), clamped
+        """
+        alpha = 17.625
+        beta = 243.04
+        rh = 100.0 * (
+            np.exp((alpha * dewpoint) / (dewpoint + beta))
+            / np.exp((alpha * temp) / (temp + beta))
+        )
+        return np.clip(rh, 0.0, 100.0).astype(np.float32)
+
 
 class StationPrecipitationSource(StationInterpolationSource):
     """Represents a weather station with precipitation and location data for interpolation."""

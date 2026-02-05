@@ -8,10 +8,7 @@ from typing import Optional
 from osgeo import gdal, osr
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_sfms.interpolation.source import StationDewPointSource
-from wps_sfms.interpolation.relative_humidity import (
-    compute_rh_from_temp_and_dewpoint,
-    interpolate_rh_to_raster,
-)
+from wps_sfms.interpolation.relative_humidity import interpolate_rh_to_raster
 
 
 def create_test_raster(
@@ -76,21 +73,21 @@ class TestComputeRHFromTempAndDewpoint:
         """When dew point equals temperature, RH should be 100%."""
         temp = np.array([20.0, 10.0, 0.0], dtype=np.float32)
         dewpoint = np.array([20.0, 10.0, 0.0], dtype=np.float32)
-        rh = compute_rh_from_temp_and_dewpoint(temp, dewpoint)
+        rh = StationDewPointSource.compute_rh(temp, dewpoint)
         np.testing.assert_allclose(rh, 100.0, atol=0.01)
 
     def test_lower_dewpoint_gives_lower_rh(self):
         """Lower dew point relative to temperature should give lower RH."""
         temp = np.array([20.0, 20.0, 20.0], dtype=np.float32)
         dewpoint = np.array([20.0, 15.0, 10.0], dtype=np.float32)
-        rh = compute_rh_from_temp_and_dewpoint(temp, dewpoint)
+        rh = StationDewPointSource.compute_rh(temp, dewpoint)
         assert rh[0] > rh[1] > rh[2]
 
     def test_rh_clamped_to_0_100(self):
         """RH should be clamped between 0 and 100."""
         temp = np.array([20.0], dtype=np.float32)
         dewpoint = np.array([-50.0], dtype=np.float32)
-        rh = compute_rh_from_temp_and_dewpoint(temp, dewpoint)
+        rh = StationDewPointSource.compute_rh(temp, dewpoint)
         assert np.all(rh >= 0.0)
         assert np.all(rh <= 100.0)
 
@@ -99,14 +96,14 @@ class TestComputeRHFromTempAndDewpoint:
         # At 20°C with dewpoint of 10°C, RH should be approximately 52%
         temp = np.array([20.0], dtype=np.float32)
         dewpoint = np.array([10.0], dtype=np.float32)
-        rh = compute_rh_from_temp_and_dewpoint(temp, dewpoint)
+        rh = StationDewPointSource.compute_rh(temp, dewpoint)
         assert 50.0 < rh[0] < 55.0
 
     def test_output_dtype_is_float32(self):
         """Output should be float32."""
         temp = np.array([20.0], dtype=np.float32)
         dewpoint = np.array([15.0], dtype=np.float32)
-        rh = compute_rh_from_temp_and_dewpoint(temp, dewpoint)
+        rh = StationDewPointSource.compute_rh(temp, dewpoint)
         assert rh.dtype == np.float32
 
 

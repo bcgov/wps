@@ -25,31 +25,6 @@ logger = logging.getLogger(__name__)
 # Applied to both temperature and dew point
 LAPSE_RATE = 0.0065
 
-# Magnus formula constants for RH calculation
-MAGNUS_ALPHA = 17.625
-MAGNUS_BETA = 243.04
-
-
-def compute_rh_from_temp_and_dewpoint(
-    temp: np.ndarray, dewpoint: np.ndarray
-) -> np.ndarray:
-    """
-    Compute relative humidity from temperature and dew point using the Magnus formula.
-
-    RH = 100 * exp((MAGNUS_ALPHA * Td) / (Td + MAGNUS_BETA)) /
-                exp((MAGNUS_ALPHA * T) / (T + MAGNUS_BETA))
-
-    :param temp: Temperature array in Celsius
-    :param dewpoint: Dew point temperature array in Celsius
-    :return: Relative humidity as percentage (0-100), clamped
-    """
-    rh = 100.0 * (
-        np.exp((MAGNUS_ALPHA * dewpoint) / (dewpoint + MAGNUS_BETA))
-        / np.exp((MAGNUS_ALPHA * temp) / (temp + MAGNUS_BETA))
-    )
-    return np.clip(rh, 0.0, 100.0).astype(np.float32)
-
-
 def interpolate_rh_to_raster(
     dewpoint_source: StationDewPointSource,
     temperature_raster_path: str,
@@ -152,7 +127,7 @@ def interpolate_rh_to_raster(
             both_valid = temp_valid
 
             if np.any(both_valid):
-                rh_values = compute_rh_from_temp_and_dewpoint(
+                rh_values = dewpoint_source.compute_rh(
                     temp_values[both_valid], actual_dewpoints[both_valid]
                 )
                 rh_array[rows[both_valid], cols[both_valid]] = rh_values
