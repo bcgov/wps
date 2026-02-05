@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.jobs.sfms_daily_actuals import run_sfms_daily_actuals, main
 from app.tests.conftest import create_mock_sfms_actuals
-from wps_shared.db.models.sfms_run_log import SFMSRunLogStatus
+from wps_shared.db.models.sfms_run import SFMSRunLogStatus
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
 

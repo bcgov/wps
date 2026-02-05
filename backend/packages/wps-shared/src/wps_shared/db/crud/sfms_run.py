@@ -9,7 +9,7 @@ from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
-from wps_shared.db.models.sfms_run_log import (
+from wps_shared.db.models.sfms_run import (
     SFMSRun,
     SFMSRunLog,
     SFMSRunLogJobName,

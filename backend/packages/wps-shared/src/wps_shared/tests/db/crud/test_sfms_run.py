@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
 
-from wps_shared.db.crud.sfms_run_log import save_sfms_run_log, track_sfms_run, update_sfms_run_log
-from wps_shared.db.models.sfms_run_log import (
+from wps_shared.db.crud.sfms_run import save_sfms_run_log, track_sfms_run, update_sfms_run_log
+from wps_shared.db.models.sfms_run import (
     SFMSRunLog,
     SFMSRunLogJobName,
     SFMSRunLogStatus,

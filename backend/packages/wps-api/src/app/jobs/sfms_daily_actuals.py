@@ -17,10 +17,10 @@ from aiohttp import ClientSession
 from wps_sfms.interpolation.source import StationPrecipitationSource, StationTemperatureSource
 from wps_sfms.processors.precipitation import PrecipitationInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
-from wps_shared.db.crud.sfms_run_log import save_sfms_run, track_sfms_run
+from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
-from wps_shared.db.models.sfms_run_log import SFMSRunLogJobName
+from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
