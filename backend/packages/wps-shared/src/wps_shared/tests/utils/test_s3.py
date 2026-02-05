@@ -103,7 +103,7 @@ async def test_retention_policy_ignores_invalid_date_prefix(test_vars):
         ("data/2023-01-15/somefile", "data/", date(2023, 1, 15)),
         ("prefix/2022-12-31/", "prefix/", date(2022, 12, 31)),
         ("prefix/2022-12-31/extra/", "prefix/", date(2022, 12, 31)),
-        ("foo/bar/2020-02-29/", "foo/bar/", date(2020, 2, 29)),
+        ("foo/bar/20200229/", "foo/bar/", date(2020, 2, 29)),
     ],
 )
 def test_extract_date_from_prefix_valid(folder_prefix, base_prefix, expected):
@@ -118,7 +118,6 @@ def test_extract_date_from_prefix_valid(folder_prefix, base_prefix, expected):
         ("data/2024-06-32/", "data/"),  # invalid day
         ("data/", "data/"),
         ("data//", "data/"),
-        ("data/20240601/", "data/"),  # wrong format
         ("data/2024-06-01/", "wrongprefix/"),  # base_prefix not matching
     ],
 )
