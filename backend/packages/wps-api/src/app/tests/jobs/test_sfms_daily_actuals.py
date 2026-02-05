@@ -185,7 +185,7 @@ class TestRunSfmsDailyActuals:
         await run_sfms_daily_actuals(target_date)
 
         # Two tracked runs means two session.add calls
-        assert mock_dependencies.db_session.add.call_count == 2
+        assert mock_dependencies.db_session.execute.call_count == 2
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):

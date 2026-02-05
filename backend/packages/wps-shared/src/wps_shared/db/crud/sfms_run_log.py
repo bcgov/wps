@@ -20,16 +20,26 @@ from wps_shared.utils.time import get_utc_now
 logger = logging.getLogger(__name__)
 
 
-async def save_sfms_run_log(session: AsyncSession, record: SFMSRunLog) -> int:
+async def save_sfms_run_log(
+    session: AsyncSession,
+    job_name: str,
+    started_at: datetime,
+    status: SFMSRunLogStatus,
+    sfms_run_id: int,
+) -> int:
     """Insert an SFMSRunLog row and return its id.
 
     :param session: An async database session.
     :param record: The SFMSRunLog record to insert.
     :return: The id of the newly inserted row.
     """
-    session.add(record)
-    await session.flush()
-    return record.id
+    stmt = (
+        insert(SFMSRunLog)
+        .values(job_name=job_name, started_at=started_at, status=status, sfms_run_id=sfms_run_id)
+        .returning(SFMSRunLog.id)
+    )
+    result = await session.execute(stmt)
+    return result.scalar()
 
 
 async def update_sfms_run_log(
@@ -68,13 +78,9 @@ def track_sfms_run(
     def decorator(fn):
         @functools.wraps(fn)
         async def wrapper(*args, **kwargs):
-            log_record = SFMSRunLog(
-                job_name=job_name,
-                started_at=get_utc_now(),
-                status=SFMSRunLogStatus.RUNNING,
-                sfms_run_id=sfms_run_id,
+            log_id = await save_sfms_run_log(
+                session, job_name, get_utc_now(), SFMSRunLogStatus.RUNNING, sfms_run_id
             )
-            log_id = await save_sfms_run_log(session, log_record)
 
             try:
                 # Calculate execution time

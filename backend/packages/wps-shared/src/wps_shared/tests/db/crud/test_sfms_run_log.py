@@ -61,14 +61,13 @@ async def async_session(session_factory):
 @pytest.mark.anyio
 async def test_save_sfms_run_log(async_session: AsyncSession):
     """Test inserting a new run log record and getting back its id."""
-    record = SFMSRunLog(
-        job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=test_started_at,
-        status=SFMSRunLogStatus.RUNNING,
-        sfms_stations_id=1,
+    log_id = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+        test_started_at,
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
-    log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
     assert log_id is not None
@@ -87,14 +86,13 @@ async def test_save_sfms_run_log(async_session: AsyncSession):
 @pytest.mark.anyio
 async def test_update_sfms_run_log_success(async_session: AsyncSession):
     """Test updating a run log to success status with completed_at."""
-    record = SFMSRunLog(
-        job_name=SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=test_started_at,
-        status=SFMSRunLogStatus.RUNNING,
-        sfms_stations_id=1,
+    log_id = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+        test_started_at,
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
-    log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
     await update_sfms_run_log(
@@ -111,14 +109,13 @@ async def test_update_sfms_run_log_success(async_session: AsyncSession):
 @pytest.mark.anyio
 async def test_update_sfms_run_log_failed(async_session: AsyncSession):
     """Test updating a run log to failed status."""
-    record = SFMSRunLog(
-        job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=test_started_at,
-        status=SFMSRunLogStatus.RUNNING,
-        sfms_stations_id=1,
+    log_id = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+        test_started_at,
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
-    log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
     await update_sfms_run_log(
@@ -135,19 +132,19 @@ async def test_update_sfms_run_log_failed(async_session: AsyncSession):
 @pytest.mark.anyio
 async def test_multiple_run_logs(async_session: AsyncSession):
     """Test inserting multiple run log records for different jobs returns unique ids."""
-    record1 = SFMSRunLog(
-        job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=test_started_at,
-        status=SFMSRunLogStatus.RUNNING,
-        sfms_stations_id=1,
+    record1 = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+        test_started_at,
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
-    record2 = SFMSRunLog(
-        job_name=SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=datetime(2025, 7, 15, 20, 35, 0, tzinfo=timezone.utc),
-        status=SFMSRunLogStatus.RUNNING,
-        sfms_stations_id=1,
+    record2 = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+        datetime(2025, 7, 15, 20, 35, 0, tzinfo=timezone.utc),
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
 
     id1 = await save_sfms_run_log(async_session, record1)
