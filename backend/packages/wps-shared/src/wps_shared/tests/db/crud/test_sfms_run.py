@@ -37,7 +37,7 @@ async def engine(postgres_container):
         await conn.run_sync(SFMSRun.__table__.create)
         # Insert a mock sfms_run record
         await conn.execute(
-            text("""INSERT INTO sfms_run (run_type, target_date, run_date, stations)
+            text("""INSERT INTO sfms_run (run_type, target_date, run_datetime, stations)
                  VALUES ('actual', '2026-02-01', '2026-02-02 16:32:15.294322-08', ARRAY[1, 2, 3]);""")
         )
         await conn.run_sync(SFMSRunLog.__table__.create)
