@@ -15,8 +15,9 @@ from datetime import datetime, timezone
 
 from aiohttp import ClientSession
 
-from wps_sfms.interpolation.source import StationDCSource, StationDMCSource, StationFFMCSource, StationPrecipitationSource, StationTemperatureSource
+from wps_sfms.interpolation.source import StationDCSource, StationDMCSource, StationDewPointSource, StationFFMCSource, StationPrecipitationSource, StationTemperatureSource
 from wps_sfms.processors.idw import IDWInterpolationProcessor
+from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.db.crud.sfms_run_log import track_sfms_run
 from wps_shared.db.models.sfms_run_log import SFMSRunLogJobName
@@ -84,7 +85,18 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                 )
                 logger.info("Precip interpolation raster: %s", precip_s3_key)
 
+            @track_sfms_run(SFMSRunLogJobName.RH_INTERPOLATION, datetime_to_process, session)
+            async def run_rh_interpolation() -> None:
+                rh_processor = RHInterpolationProcessor(datetime_to_process, raster_addresser)
+                rh_s3_key = await rh_processor.process(
+                    s3_client,
+                    fuel_raster_path,
+                    StationDewPointSource(sfms_actuals),
+                )
+                logger.info("RH interpolation raster: %s", rh_s3_key)
+
             await run_temperature_interpolation()
+            await run_rh_interpolation()
             await run_precipitation_interpolation()
 
             # On Mondays, also interpolate FWI indices (FFMC, DMC, DC)
