@@ -2,11 +2,10 @@
 Unit tests for StationDewPointSource.
 """
 
-import numpy as np
 from numpy.testing import assert_allclose
 
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_sfms.interpolation.source import LAPSE_RATE, StationDewPointSource, StationTemperatureSource
+from wps_sfms.interpolation.source import LAPSE_RATE, LapseRateAdjustedSource, StationDewPointSource
 from wps_shared.utils.dewpoint import compute_dewpoint
 
 
@@ -45,7 +44,7 @@ def test_missing_rh_excluded():
         _make_actual(2, 49.1, -123.1, 200.0, 15.0, None),  # Missing RH
     ]
     source = StationDewPointSource(actuals)
-    lats, lons, elevs, dewpoints = source.get_station_arrays(only_valid=True)
+    lats, _, _, dewpoints = source.get_station_arrays(only_valid=True)
     assert len(lats) == 1
     assert len(dewpoints) == 1
 
@@ -57,7 +56,7 @@ def test_missing_temp_excluded():
         _make_actual(2, 49.1, -123.1, 200.0, 15.0, 80.0),
     ]
     source = StationDewPointSource(actuals)
-    lats, lons, elevs, dewpoints = source.get_station_arrays(only_valid=True)
+    lats, _, _, _ = source.get_station_arrays(only_valid=True)
     assert len(lats) == 1
 
 
@@ -68,7 +67,7 @@ def test_missing_elevation_excluded():
         _make_actual(2, 49.1, -123.1, 200.0, 15.0, 80.0),
     ]
     source = StationDewPointSource(actuals)
-    lats, lons, elevs, dewpoints = source.get_station_arrays(only_valid=True)
+    lats, _, _, _ = source.get_station_arrays(only_valid=True)
     assert len(lats) == 1
 
 
@@ -78,13 +77,15 @@ def test_get_interpolation_data_returns_sea_level_dewpoints():
         _make_actual(1, 49.0, -123.0, 500.0, 20.0, 60.0),
     ]
     source = StationDewPointSource(actuals)
-    lats, lons, sea_level_td = source.get_interpolation_data()
+    _, _, sea_level_td = source.get_interpolation_data()
 
     _, _, _, raw_dewpoints = source.get_station_arrays(only_valid=True)
     _, _, elevs, _ = source.get_station_arrays(only_valid=True)
 
     # Sea level dew point should be warmer than actual (positive elevation)
-    expected_sea = StationTemperatureSource.compute_sea_level_temps(raw_dewpoints, elevs, LAPSE_RATE)
+    expected_sea = LapseRateAdjustedSource.compute_sea_level_values(
+        raw_dewpoints, elevs, LAPSE_RATE
+    )
     assert_allclose(sea_level_td, expected_sea, atol=1e-5)
     assert sea_level_td[0] > raw_dewpoints[0]
 
@@ -105,7 +106,7 @@ def test_all_invalid_returns_empty():
         _make_actual(2, 49.1, -123.1, None, 15.0, None),
     ]
     source = StationDewPointSource(actuals)
-    lats, lons, sea_td = source.get_interpolation_data()
+    lats, _, _ = source.get_interpolation_data()
     assert len(lats) == 0
 
 
@@ -129,5 +130,5 @@ def test_round_trip_lapse_rate():
     _, _, elevs, original_td = source.get_station_arrays(only_valid=True)
     _, _, sea_td = source.get_interpolation_data()
 
-    back = StationTemperatureSource.compute_adjusted_temps(sea_td, elevs, LAPSE_RATE)
+    back = LapseRateAdjustedSource.compute_adjusted_values(sea_td, elevs, LAPSE_RATE)
     assert_allclose(back, original_td, atol=1e-4)

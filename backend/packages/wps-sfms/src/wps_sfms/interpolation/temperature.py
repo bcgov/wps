@@ -106,7 +106,7 @@ def interpolate_temperature_to_raster(
             )
             elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
 
-            actual_temps = temperature_source.compute_adjusted_temps(sea, elev, LAPSE_RATE)
+            actual_temps = temperature_source.compute_adjusted_values(sea, elev, LAPSE_RATE)
 
             # Write the results directly into the output raster
             temp_array[rows, cols] = actual_temps
