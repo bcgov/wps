@@ -30,3 +30,10 @@ def test_parse_date_and_run():
     )
     assert date == "20260205"
     assert run == "00"
+
+
+def test_parse_date_and_run_raises():
+    with pytest.raises(ValueError):
+        parse_date_and_run(
+            "2026020500_MSC_RDPS_AbsoluteVorticity_IsbL-0500_RLatLon0.09_PT002H.grib2"
+        )
