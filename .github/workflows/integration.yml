@@ -127,6 +127,29 @@ jobs:
           name: wps-weather-coverage-report
           path: ./backend/packages/wps-weather/coverage-reports/wps-weather-coverage-report.xml
 
+  test-wps-wf1:
+    name: Python - WF1 Test with coverage
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
+      options: --user 0
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/python-setup
+        with:
+          install-jdk: "true"
+      - name: Unit Test with coverage (wps_wf1)
+        working-directory: ./backend
+        run: |
+          uv run pytest --cov=packages/wps-wf1/src/wps_wf1 --cov-branch --cov-report=xml:packages/wps-wf1/coverage-reports/wps-wf1-coverage-report.xml packages/wps-wf1/src/wps_wf1/tests -x -o log_cli=true --disable-warnings -vvv
+      - name: Archive coverage report (wps_wf1)
+        uses: actions/upload-artifact@v6
+        with:
+          name: wps-wf1-coverage-report
+          path: ./backend/packages/wps-wf1/coverage-reports/wps-wf1-coverage-report.xml
+
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-24.04
