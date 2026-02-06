@@ -105,7 +105,7 @@ jobs:
           path: ./backend/packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml
 
   test-wps-weather:
-    name: Python - WPS Weather Test with coverage
+    name: Python - WPS Weather Test
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
@@ -117,15 +117,10 @@ jobs:
       - uses: ./.github/actions/python-setup
         with:
           install-jdk: "true"
-      - name: Unit Test with coverage (wps_weather)
+      - name: Unit Test (wps_weather)
         working-directory: ./backend
         run: |
-          uv run pytest --cov=packages/wps-weather/src/wps_weather --cov-branch --cov-report=xml:packages/wps-weather/coverage-reports/wps-weather-coverage-report.xml packages/wps-weather/src/wps_weather/tests -x -o log_cli=true --disable-warnings -vvv
-      - name: Archive coverage report (wps_weather)
-        uses: actions/upload-artifact@v6
-        with:
-          name: wps-weather-coverage-report
-          path: ./backend/packages/wps-weather/coverage-reports/wps-weather-coverage-report.xml
+          uv run pytest packages/wps-weather/src/wps_weather/tests -x -o log_cli=true --disable-warnings -vvv
 
   test-wps-wf1:
     name: Python - WF1 Test with coverage

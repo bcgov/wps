@@ -37,7 +37,7 @@ coverage:
           - web/src
           - wps_jobs
           - wps_shared
-          - wps_weather
+          - wps_wf1
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
       api:
         paths:
@@ -58,7 +58,7 @@ coverage:
         threshold: 3%
       wps_weather:
         paths:
-          - wps_weather
+          - wps_wf1
         threshold: 3%
       asa_go:
         paths:
