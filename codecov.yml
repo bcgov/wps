@@ -56,7 +56,7 @@ coverage:
         paths:
           - wps_shared
         threshold: 3%
-      wps_weather:
+      wps_wf1:
         paths:
           - wps_wf1
         threshold: 3%
