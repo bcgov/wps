@@ -71,21 +71,21 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: object-store-server
-                    - name: OBJECT_STORE_USER_ID
+                    - name: WX_OBJECT_STORE_USER_ID
                       valueFrom:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
-                          key: object-store-user-id
-                    - name: OBJECT_STORE_SECRET
+                          key: wx-object-store-user-id
+                    - name: WX-OBJECT_STORE_SECRET
                       valueFrom:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
-                          key: object-store-secret
-                    - name: OBJECT_STORE_BUCKET
+                          key: wx-object-store-secret
+                    - name: WX_OBJECT_STORE_BUCKET
                       valueFrom:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
-                          key: object-store-bucket
+                          key: wx-object-store-bucket
                     - name: GRIB_RETENTION_THRESHOLD
                       valueFrom:
                         configMapKeyRef:
