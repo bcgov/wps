@@ -310,7 +310,10 @@
             "args": [
                 "--models",
                 "GDPS",
-                "RDPS"
+                "RDPS",
+                "--run-hours",
+                "00",
+                "12"
             ],
             "console": "integratedTerminal"
         },
