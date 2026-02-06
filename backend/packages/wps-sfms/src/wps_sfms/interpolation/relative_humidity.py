@@ -11,7 +11,7 @@ This module implements the SFMS relative humidity interpolation workflow:
 import logging
 import numpy as np
 from osgeo import gdal
-from wps_sfms.interpolation.source import StationDewPointSource
+from wps_sfms.interpolation.source import LAPSE_RATE, StationDewPointSource
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_sfms.interpolation.common import (
@@ -20,10 +20,6 @@ from wps_sfms.interpolation.common import (
 )
 
 logger = logging.getLogger(__name__)
-
-# Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
-# Applied to both temperature and dew point
-LAPSE_RATE = 0.0065
 
 def interpolate_rh_to_raster(
     dewpoint_source: StationDewPointSource,
@@ -68,9 +64,9 @@ def interpolate_rh_to_raster(
             with WPSDataset(temperature_raster_path) as temp_ds:
                 temp_band: gdal.Band = temp_ds.ds.GetRasterBand(1)
                 temp_data = temp_band.ReadAsArray()
-                temp_nodata = temp_band.GetNoDataValue()
                 if temp_data is None:
                     raise ValueError("Failed to read temperature raster data")
+                temp_valid_mask = temp_data != SFMS_NO_DATA
 
             rh_array = np.full((y_size, x_size), SFMS_NO_DATA, dtype=np.float32)
 
@@ -119,18 +115,15 @@ def interpolate_rh_to_raster(
             elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
             actual_dewpoints = dewpoint_source.compute_adjusted_values(sea, elev, LAPSE_RATE)
 
-            # Get corresponding temperature values from the interpolated temp raster
-            temp_values = temp_data[rows, cols].astype(np.float32)
+            # Only compute RH where the temp raster also has valid data
+            temp_valid = temp_valid_mask[rows, cols]
 
-            # Only compute RH where both temp and dew point are valid
-            temp_valid = temp_values != temp_nodata if temp_nodata is not None else np.ones_like(temp_values, dtype=bool)
-            both_valid = temp_valid
-
-            if np.any(both_valid):
+            if np.any(temp_valid):
                 rh_values = dewpoint_source.compute_rh(
-                    temp_values[both_valid], actual_dewpoints[both_valid]
+                    temp_data[rows[temp_valid], cols[temp_valid]].astype(np.float32),
+                    actual_dewpoints[temp_valid],
                 )
-                rh_array[rows[both_valid], cols[both_valid]] = rh_values
+                rh_array[rows[temp_valid], cols[temp_valid]] = rh_values
 
         log_interpolation_stats(
             total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count

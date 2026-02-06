@@ -5,7 +5,6 @@ import numpy as np
 from numpy.typing import NDArray
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.sfms.raster_addresser import SFMSInterpolatedWeatherParameter
-from wps_shared.utils.dewpoint import compute_dewpoint
 
 # Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
 # This matches the CWFIS implementation
@@ -28,7 +27,8 @@ class LapseRateAdjustedSource(ABC):
     adjustment (e.g. temperature, dew point).
 
     Subclasses only need to set ``weather_param`` and implement
-    ``_extract_value`` to pull the relevant per-station value.
+    ``_extract_values`` to pull the relevant per-station values from the
+    pre-built numpy arrays.
     """
 
     weather_param: SFMSInterpolatedWeatherParameter
@@ -42,8 +42,8 @@ class LapseRateAdjustedSource(ABC):
         self._valid_mask: Optional[NDArray[np.float32]] = None
 
     @abstractmethod
-    def _extract_value(self, actual: SFMSDailyActual) -> float:
-        """Return the value for *actual*, or ``np.nan`` if unavailable."""
+    def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
+        """Return a float32 array of values (one per station), ``np.nan`` where unavailable."""
         ...
 
     @staticmethod
@@ -104,28 +104,21 @@ class LapseRateAdjustedSource(ABC):
         if self._lats is None:
             self._materialize_arrays()
 
+    @staticmethod
+    def _optional_to_array(actuals: List[SFMSDailyActual], attr: str) -> NDArray[np.float32]:
+        """Extract an optional float attribute from each actual into a float32 array (None → nan)."""
+        return np.array(
+            [getattr(a, attr) if getattr(a, attr) is not None else np.nan for a in actuals],
+            dtype=np.float32,
+        )
+
     def _materialize_arrays(self) -> None:
         """Pulls values from sfms_actuals into float32 NumPy arrays and computes valid mask."""
-
-        def get_or_nan(obj, attr):
-            val = getattr(obj, attr, None)
-            try:
-                return np.nan if val is None else float(val)
-            except Exception:
-                return np.nan
-
-        n = len(self._sfms_actuals)
-        self._lats = np.empty(n, dtype=np.float32)
-        self._lons = np.empty(n, dtype=np.float32)
-        self._elevs = np.empty(n, dtype=np.float32)
-        self._values = np.empty(n, dtype=np.float32)
-
-        for i, s in enumerate(self._sfms_actuals):
-            self._lats[i] = get_or_nan(s, "lat")
-            self._lons[i] = get_or_nan(s, "lon")
-            self._elevs[i] = get_or_nan(s, "elevation")
-            self._values[i] = self._extract_value(s)
-
+        actuals = self._sfms_actuals
+        self._lats = np.array([a.lat for a in actuals], dtype=np.float32)
+        self._lons = np.array([a.lon for a in actuals], dtype=np.float32)
+        self._elevs = self._optional_to_array(actuals, "elevation")
+        self._values = self._extract_values(actuals)
         self._valid_mask = np.isfinite(self._elevs) & np.isfinite(self._values)
 
 
@@ -136,9 +129,8 @@ class StationTemperatureSource(LapseRateAdjustedSource):
         super().__init__(sfms_actuals)
         self.weather_param = SFMSInterpolatedWeatherParameter.TEMP
 
-    def _extract_value(self, actual: SFMSDailyActual) -> float:
-        t = actual.temperature
-        return np.nan if t is None else float(t)
+    def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
+        return self._optional_to_array(actuals, "temperature")
 
 
 class StationDewPointSource(LapseRateAdjustedSource):
@@ -151,9 +143,26 @@ class StationDewPointSource(LapseRateAdjustedSource):
         super().__init__(sfms_actuals)
         self.weather_param = SFMSInterpolatedWeatherParameter.RH
 
-    def _extract_value(self, actual: SFMSDailyActual) -> float:
-        td = compute_dewpoint(actual.temperature, actual.relative_humidity)
-        return np.nan if td is None else float(td)
+    def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
+        temps = self._optional_to_array(actuals, "temperature")
+        rhs = self._optional_to_array(actuals, "relative_humidity")
+        return self._compute_dewpoint(temps, rhs)
+
+    @staticmethod
+    def _compute_dewpoint(
+        temp: NDArray[np.float32], rh: NDArray[np.float32]
+    ) -> NDArray[np.float32]:
+        """Vectorized dewpoint from temperature (°C) and relative humidity (%).
+
+        Mirrors the legacy scalar formula in ``wps_shared.utils.dewpoint.compute_dewpoint``.
+        """
+        x = 1.0 - 0.01 * rh
+        return (
+            temp
+            - (14.55 + 0.114 * temp) * x
+            - ((2.5 + 0.007 * temp) * x) ** 3
+            - (15.9 + 0.117 * temp) * x**14
+        ).astype(np.float32)
 
     @staticmethod
     def compute_rh(temp: np.ndarray, dewpoint: np.ndarray) -> np.ndarray:
