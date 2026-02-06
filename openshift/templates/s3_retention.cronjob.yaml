@@ -76,7 +76,7 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: wx-object-store-user-id
-                    - name: WX-OBJECT_STORE_SECRET
+                    - name: WX_OBJECT_STORE_SECRET
                       valueFrom:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}

@@ -222,7 +222,8 @@ class ECCCGribConsumer:
 
     async def _update_health(self):
         """
-        Update health file with current timestamp
+        Update health file. We're going to keep creating a file every 30 seconds. In openshift,
+        we can use this to monitor the liveness of the pod.
         """
         while self.running:
             try:
