@@ -28,3 +28,6 @@ class SFMSDailyActual(BaseModel):
     precipitation: Optional[float] = None
     wind_speed: Optional[float] = None
     wind_direction: Optional[float] = None
+    ffmc: Optional[float] = None
+    dmc: Optional[float] = None
+    dc: Optional[float] = None

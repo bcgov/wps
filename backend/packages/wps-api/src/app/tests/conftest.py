@@ -33,6 +33,9 @@ def create_mock_sfms_actuals():
             relative_humidity=50.0,
             precipitation=2.5,
             wind_speed=10.0,
+            ffmc=85.0,
+            dmc=30.0,
+            dc=200.0,
         ),
         SFMSDailyActual(
             code=101,
@@ -43,6 +46,9 @@ def create_mock_sfms_actuals():
             relative_humidity=60.0,
             precipitation=5.0,
             wind_speed=8.0,
+            ffmc=80.0,
+            dmc=25.0,
+            dc=180.0,
         ),
     ]
 

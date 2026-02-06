@@ -125,6 +125,9 @@ class TestSfmsDailyActualsMapper:
             precipitation=2.5,
             windSpeed=10.0,
             windDirection=180.0,
+            fineFuelMoistureCode=85.0,
+            duffMoistureCode=30.0,
+            droughtCode=200.0,
         )
 
         result = sfms_daily_actuals_mapper([raw], [station])
@@ -140,6 +143,9 @@ class TestSfmsDailyActualsMapper:
             precipitation=2.5,
             wind_speed=10.0,
             wind_direction=180.0,
+            ffmc=85.0,
+            dmc=30.0,
+            dc=200.0,
         )
 
     def test_maps_none_weather_fields(self):
@@ -155,6 +161,9 @@ class TestSfmsDailyActualsMapper:
         assert actual.precipitation is None
         assert actual.wind_speed is None
         assert actual.wind_direction is None
+        assert actual.ffmc is None
+        assert actual.dmc is None
+        assert actual.dc is None
 
     def test_filters_forecast_record_type(self):
         station = _make_station(100)

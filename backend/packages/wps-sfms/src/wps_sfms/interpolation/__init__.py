@@ -4,6 +4,7 @@ Interpolation modules for SFMS weather data.
 
 from wps_sfms.interpolation.source import (
     LAPSE_RATE,
+    StationActualSource,
     StationInterpolationSource,
     StationTemperatureSource,
     StationPrecipitationSource,
@@ -14,6 +15,7 @@ from wps_sfms.interpolation.common import log_interpolation_stats
 
 __all__ = [
     "LAPSE_RATE",
+    "StationActualSource",
     "StationInterpolationSource",
     "StationTemperatureSource",
     "StationPrecipitationSource",

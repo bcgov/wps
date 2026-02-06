@@ -17,6 +17,9 @@ class SFMSInterpolatedWeatherParameter(enum.Enum):
     RH = "rh"
     WIND_SPEED = "wind_speed"
     PRECIP = "precip"
+    FFMC = "ffmc"
+    DMC = "dmc"
+    DC = "dc"
 
 
 class WeatherParameter(enum.Enum):
