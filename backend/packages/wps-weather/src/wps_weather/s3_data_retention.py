@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 
 GRIB_RETENTION_THRESHOLD = int(config.get("GRIB_RETENTION_THRESHOLD"))
 
-S3_PREFIX = "weather_models/prod"
-S3_BUCKET = config.get("OBJECT_STORE_BUCKET")
-S3_USER_ID = config.get("OBJECT_STORE_USER_ID")
-S3_SECRET = config.get("OBJECT_STORE_SECRET")
+S3_PREFIX = "weather_models/"
+S3_BUCKET = config.get("WX_OBJECT_STORE_BUCKET")
+S3_USER_ID = config.get("WX_OBJECT_STORE_USER_ID")
+S3_SECRET = config.get("WX_OBJECT_STORE_SECRET")
 
 
 def parse_args():

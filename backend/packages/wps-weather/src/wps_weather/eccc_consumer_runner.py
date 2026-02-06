@@ -6,6 +6,12 @@ from wps_weather.eccc_grib_consumer import ECCCGribConsumer
 
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
+from wps_shared import config
+
+
+S3_BUCKET = config.get("WX_OBJECT_STORE_BUCKET")
+S3_USER_ID = config.get("WX_OBJECT_STORE_USER_ID")
+S3_SECRET = config.get("WX_OBJECT_STORE_SECRET")
 
 
 def parse_args():
@@ -31,7 +37,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--s3-prefix", default="weather_models/prod", help="S3 prefix for storing files"
+        "--s3-prefix", default="weather_models/", help="S3 prefix for storing files"
     )
 
     parser.add_argument(
@@ -64,7 +70,7 @@ async def main():
 
     logger.info("Initializing S3 client...")
 
-    async with S3Client() as s3_client:
+    async with S3Client(user_id=S3_USER_ID, secret_key=S3_SECRET, bucket=S3_BUCKET) as s3_client:
         try:
             run_hours = set(args.run_hours) if args.run_hours else None
 

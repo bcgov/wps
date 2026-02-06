@@ -71,6 +71,9 @@ objects:
                 - --models
                 - GDPS
                 - RDPS
+                - --run-hours
+                - "00"
+                - "12"
 
               env:
                 - name: UV_NO_CACHE
