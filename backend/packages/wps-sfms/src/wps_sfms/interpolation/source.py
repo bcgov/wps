@@ -155,6 +155,10 @@ class StationDewPointSource(LapseRateAdjustedSource):
         """Vectorized dewpoint from temperature (°C) and relative humidity (%).
 
         Mirrors the legacy scalar formula in ``wps_shared.utils.dewpoint.compute_dewpoint``.
+
+        Lawrence, Mark G.
+        "The Relationship between Relative Humidity and the Dewpoint Temperature in Moist Air: A Simple Conversion and Applications".
+        Bulletin of the American Meteorological Society 86.2 (2005): 225-234. https://doi.org/10.1175/BAMS-86-2-225 Web.
         """
         x = 1.0 - 0.01 * rh
         return (
@@ -179,8 +183,7 @@ class StationDewPointSource(LapseRateAdjustedSource):
         alpha = 17.625
         beta = 243.04
         rh = 100.0 * (
-            np.exp((alpha * dewpoint) / (dewpoint + beta))
-            / np.exp((alpha * temp) / (temp + beta))
+            np.exp((alpha * dewpoint) / (dewpoint + beta)) / np.exp((alpha * temp) / (temp + beta))
         )
         return np.clip(rh, 0.0, 100.0).astype(np.float32)
 
