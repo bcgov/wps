@@ -163,8 +163,10 @@ class ECCCGribConsumer:
     - Worker pool processes queue
     """
 
+    AMQP_HOST = "dd.weather.gc.ca"
+    AMQP_USER_PASS = "anonymous"
     # connect as anonymous as described here: https://eccc-msc.github.io/open-data/msc-datamart/amqp_en/
-    AMQP_URL = "amqps://anonymous:anonymous@dd.weather.gc.ca:5671/"
+    AMQP_URL = f"amqps://{AMQP_USER_PASS}:{AMQP_USER_PASS}@{AMQP_HOST}:5671/"
     EXCHANGE = "xpublic"
 
     def __init__(
