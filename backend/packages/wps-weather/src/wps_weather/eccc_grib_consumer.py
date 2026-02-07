@@ -163,6 +163,7 @@ class ECCCGribConsumer:
     - Worker pool processes queue
     """
 
+    # connect as anonymous as described here: https://eccc-msc.github.io/open-data/msc-datamart/amqp_en/
     AMQP_URL = "amqps://anonymous:anonymous@dd.weather.gc.ca:5671/"
     EXCHANGE = "xpublic"
 
@@ -353,6 +354,9 @@ class ECCCGribConsumer:
         # setup queue for each model
         for model in self.models:
             config = self.model_configs[model]
+
+            # must match pattern specified by: https://eccc-msc.github.io/open-data/msc-datamart/amqp_en/
+            # q_anonymous.subscribe.{config_name}.{company_name}
             queue_name = f"q_anonymous.subscribe.{model}.bcgov"
             queue = await channel.declare_queue(queue_name, exclusive=False)
 

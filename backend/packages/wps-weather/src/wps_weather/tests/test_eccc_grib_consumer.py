@@ -143,7 +143,7 @@ class TestMessageFilter:
         filter_obj = MessageFilter(variables=["TMP"], run_hours={"00", "12"})
 
         # Mock the parse_date_and_run function
-        with patch("wps_weather.eccc_consumer.parse_date_and_run") as mock_parse:
+        with patch("wps_weather.eccc_grib_consumer.parse_date_and_run") as mock_parse:
             mock_parse.return_value = ("2024", "00")
             assert filter_obj.should_download("CMC_glb_TMP_2024010100_P000.grib2")
 
@@ -155,7 +155,7 @@ class TestMessageFilter:
         filter_obj = MessageFilter(variables=["TMP"], run_hours=None)
 
         # Mock the parse_date_and_run function
-        with patch("wps_weather.eccc_consumer.parse_date_and_run") as mock_parse:
+        with patch("wps_weather.eccc_grib_consumer.parse_date_and_run") as mock_parse:
             mock_parse.return_value = ("2024", "06")
             assert filter_obj.should_download("CMC_glb_TMP_2024010106_P000.grib2")
 
@@ -164,7 +164,7 @@ class TestMessageFilter:
         filter_obj = MessageFilter(variables=["TMP"], run_hours={"00"})
 
         # Mock parse function to raise exception
-        with patch("wps_weather.eccc_consumer.parse_date_and_run") as mock_parse:
+        with patch("wps_weather.eccc_grib_consumer.parse_date_and_run") as mock_parse:
             mock_parse.side_effect = Exception("Parse error")
             assert not filter_obj.should_download("invalid_filename.grib2")
 
@@ -286,7 +286,7 @@ class TestECCCGribConsumer:
 
         message = b"20240101120000 https://dd.weather.gc.ca model_rdps/10km/2024/01/01/12/CMC_rdps_TMP_ISBL_500_ps10km_2024010112_P000.grib2"
 
-        with patch("wps_weather.eccc_consumer.s3_key_from_eccc_path") as mock_s3_key:
+        with patch("wps_weather.eccc_grib_consumer.s3_key_from_eccc_path") as mock_s3_key:
             mock_s3_key.return_value = "test-prefix/model_rdps/TMP_500.grib2"
 
             file = consumer._parse_message(message, "RDPS")
@@ -356,7 +356,7 @@ class TestECCCGribConsumer:
 
         handler = consumer._create_message_handler("RDPS")
 
-        with patch("wps_weather.eccc_consumer.s3_key_from_eccc_path") as mock_s3_key:
+        with patch("wps_weather.eccc_grib_consumer.s3_key_from_eccc_path") as mock_s3_key:
             mock_s3_key.return_value = "test-prefix/model_rdps/TMP_500.grib2"
             await handler(mock_message)
 
@@ -474,7 +474,7 @@ class TestIntegration:
         ) as mock_download:
             mock_download.return_value = True
 
-            with patch("wps_weather.eccc_consumer.s3_key_from_eccc_path") as mock_s3_key:
+            with patch("wps_weather.eccc_grib_consumer.s3_key_from_eccc_path") as mock_s3_key:
                 mock_s3_key.return_value = "test-prefix/model_rdps/TMP_500.grib2"
 
                 # Process message
