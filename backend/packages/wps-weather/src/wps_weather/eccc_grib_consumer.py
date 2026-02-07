@@ -46,8 +46,6 @@ MODEL_CONFIGS: dict[ModelName, ModelConfig] = {
 
 @dataclass
 class FileToDownload:
-    """Simple representation of a file to download"""
-
     url: str
     s3_key: str
 
@@ -176,7 +174,7 @@ class ECCCGribConsumer:
         models: List[str],
         model_configs: dict[ModelName, ModelConfig] = MODEL_CONFIGS,
         run_hours: Optional[Set[str]] = None,
-        num_workers: int = 5,
+        num_workers: int = 10,
         health_file_path: str = "/tmp/health_check",
     ):
         """

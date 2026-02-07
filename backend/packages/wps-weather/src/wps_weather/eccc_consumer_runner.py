@@ -44,10 +44,6 @@ def parse_args():
         "--max-concurrent-downloads", type=int, default=10, help="Maximum concurrent downloads"
     )
 
-    parser.add_argument(
-        "--max-retries", type=int, default=5, help="Maximum retry attempts per file"
-    )
-
     return parser.parse_args()
 
 
@@ -79,7 +75,7 @@ async def main():
                 s3_prefix=args.s3_prefix,
                 models=args.models,
                 run_hours=run_hours,
-                num_workers=10,
+                num_workers=args.max_concurrent_downloads,
             )
 
             async with consumer:
