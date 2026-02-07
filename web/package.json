@@ -43,7 +43,7 @@
     "eslint-plugin-react": "^7.34.4",
     "esri-leaflet": "3.0.12",
     "filefy": "^0.1.11",
-    "jsdom": "^26.0.0",
+    "jsdom": "^28.0.0",
     "jwt-decode": "^4.0.0",
     "keycloak-js": "^25.0.0",
     "leaflet": "^1.7.1",
