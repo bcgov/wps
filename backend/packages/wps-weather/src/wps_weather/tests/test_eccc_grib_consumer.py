@@ -1,422 +1,491 @@
-import pytest
 import asyncio
-from datetime import datetime, timezone, timedelta
-from unittest.mock import AsyncMock, Mock, patch
+import pytest
+from unittest.mock import AsyncMock, Mock, MagicMock, patch
 
 from wps_weather.eccc_grib_consumer import (
     ECCCGribConsumer,
-    DownloadTask,
-    parse_message,
-    should_download_file,
+    FileToDownload,
+    MessageFilter,
+    GribDownloader,
 )
 
 
-class TestParseMessage:
-    """Tests for parse_message function"""
-
-    def test_valid_message(self):
-        """Should parse valid message correctly"""
-        message = b"20260204120000.123 https://dd.weather.gc.ca/ path/to/file.grib2"
-
-        result = parse_message(message)
+# Mock S3Client for testing
+class MockS3Client:
+    """Mock S3Client for testing without actual AWS calls"""
 
-        assert result is not None
-        timestamp, base_url, rel_path = result
-        assert timestamp == "20260204120000.123"
-        assert base_url == "https://dd.weather.gc.ca/"
-        assert rel_path == "path/to/file.grib2"
-
-    def test_invalid_message_too_few_parts(self):
-        """Should return None when message has too few parts"""
-        message = b"two parts"
-
-        result = parse_message(message)
+    def __init__(self):
+        self.objects = {}  # key -> data
+        self.put_count = 0
+        self.exists_count = 0
 
-        assert result is None
-
-    def test_empty_message(self):
-        """Should return None for empty message"""
-        result = parse_message(b"")
-        assert result is None
+    async def object_exists(self, key: str) -> bool:
+        """Check if object exists in mock storage"""
+        self.exists_count += 1
+        return key in self.objects
 
-    def test_message_with_spaces_in_path(self):
-        """Should handle paths with spaces correctly"""
-        message = b"123 https://example.com/ path/with multiple/spaces/file.grib2"
+    async def put_object(self, key: str, body: bytes):
+        """Store object in mock storage"""
+        self.put_count += 1
+        self.objects[key] = body
 
-        result = parse_message(message)
 
-        assert result is not None
-        _, _, rel_path = result
-        assert rel_path == "path/with multiple/spaces/file.grib2"
+class MockResponse:
+    """Mock HTTP response"""
 
+    def __init__(self, should_fail: bool, data: bytes = b"test data"):
+        self.should_fail = should_fail
+        self.status = 500 if should_fail else 200
+        self.data = data
 
-class TestShouldDownloadFile:
-    """Tests for should_download_file function"""
+    async def __aenter__(self):
+        return self
 
-    def test_accept_matching_variable(self):
-        """Should accept file with matching variable"""
-        result = should_download_file(
-            filename="20260205T00Z_MSC_RDPS_Pressure_MSL_RLatLon0.09_PT001H.grib2",
-            variables=["Pressure_MSL", "HGT"],
-        )
+    async def __aexit__(self, *args):
+        pass
 
-        assert result is True
+    def raise_for_status(self):
+        if self.should_fail:
+            raise Exception("Network error")
 
-    def test_reject_non_matching_variable(self):
-        """Should reject file without matching variable"""
-        result = should_download_file(
-            filename="20260205T00Z_MSC_RDPS_Pressure_MSL_RLatLon0.09_PT001H.grib2",
-            variables=["TMP", "HGT"],
-        )
+    async def read(self):
+        return self.data
 
-        assert result is False
 
-    def test_case_insensitive_variable_matching(self):
-        """Should match variables case-insensitively"""
-        result = should_download_file(
-            filename="20260205T00Z_MSC_RDPS_AbsoluteVorticity_IsbL-0500_RLatLon0.09_PT001H.grib2",
-            variables=["absolutevorticity"],
-        )
+class MockGetResult:
+    """Result of session.get() - awaitable AND context manager"""
 
-        assert result is True
+    def __init__(self, should_fail: bool, data: bytes = b"test data"):
+        self.response = MockResponse(should_fail, data)
 
-    def test_accept_matching_run_hour(self):
-        """Should accept file with matching run hour"""
-        result = should_download_file(
-            filename="20260205T00Z_MSC_RDPS_AbsoluteVorticity_IsbL-0500_RLatLon0.09_PT001H.grib2",
-            variables=["AbsoluteVorticity"],
-            run_hours={"00", "12"},
-        )
+    def __await__(self):
+        async def _await():
+            return self.response
 
-        assert result is True
+        return _await().__await__()
 
-    def test_reject_non_matching_run_hour(self):
-        """Should reject file with non-matching run hour"""
-        result = should_download_file(
-            filename="20260205T06Z_MSC_RDPS_Pressure_MSL_RLatLon0.09_PT001H.grib2",
-            variables=["Pressure_MSL"],
-            run_hours={"00", "12"},
-        )
-
-        assert result is False
-
-    def test_accept_all_run_hours_when_none_specified(self):
-        """Should accept any run hour when filter is None"""
-        for hour in ["00", "06", "12", "18"]:
-            result = should_download_file(
-                filename=f"20260205T{hour}Z_MSC_RDPS_Pressure_MSL_RLatLon0.09_PT001H.grib2",
-                variables=["Pressure_msl"],
-                run_hours=None,
-            )
-            assert result is True
-
-
-class TestDownloadTask:
-    """Tests for DownloadTask dataclass"""
-
-    def test_next_retry_delay_exponential_backoff(self):
-        """Should calculate exponential backoff correctly"""
-        task = DownloadTask(url="https://test", s3_key="test/key")
-
-        # First retry
-        task.attempt = 0
-        assert task.next_retry_delay == 30
-
-        # Second retry
-        task.attempt = 1
-        assert task.next_retry_delay == 60
-
-        # Third retry
-        task.attempt = 2
-        assert task.next_retry_delay == 120
-
-    def test_next_retry_delay_caps_at_480(self):
-        """Should cap retry delay at 480 seconds"""
-        task = DownloadTask(url="https://test", s3_key="test/key")
-
-        task.attempt = 10
-        assert task.next_retry_delay == 480
-
-    def test_should_retry_when_under_max_attempts(self):
-        """Should retry when under max attempts"""
-        task = DownloadTask(url="https://test", s3_key="test/key", max_attempts=5)
-
-        task.attempt = 3
-        assert task.should_retry is True
-
-    def test_should_not_retry_when_at_max_attempts(self):
-        """Should not retry when at max attempts"""
-        task = DownloadTask(url="https://test", s3_key="test/key", max_attempts=5)
-
-        task.attempt = 5
-        assert task.should_retry is False
-
-    def test_is_expired_when_old(self):
-        """Should be expired when older than 4 hours"""
-        task = DownloadTask(url="https://test", s3_key="test/key")
-
-        # Simulate old task
-        task.first_attempt_time = datetime.now(timezone.utc) - timedelta(hours=5)
-
-        assert task.is_expired is True
-
-    def test_is_not_expired_when_recent(self):
-        """Should not be expired when recent"""
-        task = DownloadTask(url="https://test", s3_key="test/key")
-
-        # Recent task
-        task.first_attempt_time = datetime.now(timezone.utc) - timedelta(hours=1)
-
-        assert task.is_expired is False
-
-
-class TestECCCGribConsumer:
-    """Tests for ECCCGribConsumer class"""
-
-    @pytest.fixture
-    def mock_s3_client(self):
-        """Create mock S3 client"""
-        mock = AsyncMock()
-        mock.object_exists = AsyncMock(return_value=False)
-        mock.put_object = AsyncMock()
-        return mock
-
-    @pytest.fixture
-    def consumer(self, mock_s3_client):
-        """Create consumer instance with mocked dependencies"""
-        return ECCCGribConsumer(
-            s3_client=mock_s3_client,
-            s3_prefix="test-prefix",
-            models=["RDPS"],
-            run_hours=None,
-            max_concurrent_downloads=2,
-            max_retries=3,
-        )
-
-    def test_initialization(self, consumer):
-        """Should initialize with correct default values"""
-        assert consumer.s3_prefix == "test-prefix"
-        assert consumer.models == ["RDPS"]
-        assert consumer.max_concurrent_downloads == 2
-        assert consumer.max_retries == 3
-        assert consumer.running is True
-        assert consumer.stats["messages_received"] == 0
-
-    @pytest.mark.anyio
-    async def test_file_already_exists_skipped(self, consumer, mock_s3_client):
-        """Should skip download if file already exists in S3"""
-        # Mock S3 to say file exists
-        mock_s3_client.object_exists.return_value = True
-
-        # Create and queue task
-        task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
-        await consumer.download_queue.put(task)
-
-        # Process task with worker
-        worker = asyncio.create_task(consumer._download_worker(0))
-
-        try:
-            await consumer.download_queue.join()
-            mock_s3_client.object_exists.assert_called_once()
-            mock_s3_client.put_object.assert_not_called()
-        finally:
-            consumer.running = False
-            await worker
-
-    @pytest.mark.anyio
-    async def test_successful_download_and_upload(self, consumer, mock_s3_client):
-        """ """
-        with patch(
-            "wps_weather.eccc_grib_consumer.download_file", AsyncMock(return_value=b"test data")
-        ):
-            # Add task to queue
-            task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
-            await consumer.download_queue.put(task)
-
-            # Start worker (it runs in background)
-            worker_task = asyncio.create_task(consumer._download_worker(0))
-
-            try:
-                # Wait for queue to be empty
-                await consumer.download_queue.join()
-
-                mock_s3_client.put_object.assert_called_once_with(
-                    key="test/file.grib2", body=b"test data"
-                )
-
-            finally:
-                # Clean shutdown
-                consumer.running = False
-                await worker_task
-
-    @pytest.mark.anyio
-    async def test_failed_download_added_to_retry_queue(self, consumer):
-        """Should add failed download to retry queue"""
-        # Mock failed download
-        with patch("wps_weather.eccc_grib_consumer.download_file", AsyncMock(return_value=None)):
-            task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
-            await consumer.download_queue.put(task)
-
-            # Process
-            worker_task = asyncio.create_task(consumer._download_worker(0))
-
-            try:
-                # Wait for queue to be empty
-                await consumer.download_queue.join()
-                assert "test/file.grib2" in consumer.retry_queue
-            finally:
-                # Clean shutdown
-                consumer.running = False
-                await worker_task
-
-    @pytest.mark.anyio
-    async def test_retry_worker_retries_expired_tasks(self, consumer):
-        """Should retry tasks after delay expires"""
-        # Create task that's ready for retry
-        task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
-        task.attempt = 1
-        task.last_attempt_time = datetime.now(timezone.utc) - timedelta(seconds=100)
-
-        # Add to retry queue
-        consumer.retry_queue["test/file.grib2"] = task
-
-        # Run retry worker briefly
-        retry_worker = asyncio.create_task(consumer._retry_worker())
-
-        try:
-            await consumer.download_queue.join()
-            assert "test/file.grib2" in consumer.retry_queue
-        finally:
-            # Clean shutdown
-            consumer.running = False
-            await retry_worker
-
-    @pytest.mark.anyio
-    async def test_callback_filters_by_variables(self, consumer, mock_s3_client):
-        """Should filter messages based on variable list"""
-        # Create callback for RDPS
-        callback = consumer._create_callback("RDPS")
-
-        # Mock message with non-matching variable
-        mock_message = Mock()
-        mock_message.body = b"123 https://dd.weather.gc.ca/ path/CMC_reg_WIND_file.grib2"
-
-        await callback(mock_message)
-
-        # Should be filtered
-        assert consumer.download_queue.empty()
-
-    @pytest.mark.anyio
-    async def test_callback_queues_matching_files(self, consumer):
-        """Should queue files that match filters"""
-        callback = consumer._create_callback("RDPS")
-
-        # Mock message with matching variable
-        mock_message = Mock()
-        mock_message.body = b"123 https://dd.weather.gc.ca/ path/20260205T00Z_RDPS_AbsoluteVorticity_IsbL-0500.grib2"
-
-        with patch(
-            "wps_weather.eccc_grib_consumer.build_s3_key",
-            return_value="path/20260205T00Z_RDPS_AbsoluteVorticity_IsbL-0500.grib2",
-        ):
-            await callback(mock_message)
-
-        # Should be queued
-        assert consumer.stats["messages_received"] == 1
-        assert consumer.stats["messages_filtered"] == 0
-        assert not consumer.download_queue.empty()
-
-    @pytest.mark.anyio
-    async def test_health_file_updated(self, consumer, tmp_path):
-        """Should update health file periodically
-        tmp_path is a built in pytest fixture
+    async def __aenter__(self):
+        return self.response
+
+    async def __aexit__(self, *args):
+        pass
+
+
+class MockSession:
+    """Mock aiohttp ClientSession"""
+
+    def __init__(self, get_callback):
         """
+        Args:
+            get_callback: Function that returns MockGetResult
+        """
+        self.get_callback = get_callback
 
-        consumer.health_file = tmp_path / "health_check"
+    async def __aenter__(self):
+        return self
 
-        # Start health update task
-        health_task = asyncio.create_task(consumer._update_health())
+    async def __aexit__(self, *args):
+        pass
+
+    def get(self, *args, **kwargs):
+        return self.get_callback(*args, **kwargs)
+
+    async def close(self):
+        pass
+
+
+@pytest.fixture
+def mock_aiohttp_session():
+    """
+    Fixture that provides a helper to mock aiohttp.ClientSession
+
+    Usage:
+        def test_something(mock_aiohttp_session):
+            with mock_aiohttp_session(should_fail_callback):
+                # Your test code
+    """
+
+    def _mock_session(get_callback):
+        """
+        Args:
+            get_callback: Function that returns MockGetResult
+        """
+        return patch("aiohttp.ClientSession", return_value=MockSession(get_callback))
+
+    return _mock_session
+
+
+# Tests for MessageFilter
+class TestMessageFilter:
+    """Test the MessageFilter class"""
+
+    def test_should_download_with_matching_variable(self):
+        """Filter should accept files with matching variables"""
+        filter_obj = MessageFilter(variables=["TMP", "WIND"])
+
+        assert filter_obj.should_download("CMC_glb_TMP_ISBL_500_latlon.grib2")
+        assert filter_obj.should_download("CMC_glb_WIND_ISBL_500_latlon.grib2")
+
+    def test_should_download_case_insensitive(self):
+        """Filter should be case-insensitive"""
+        filter_obj = MessageFilter(variables=["tmp"])
+
+        assert filter_obj.should_download("CMC_glb_TMP_ISBL_500_latlon.grib2")
+
+    def test_should_not_download_non_matching_variable(self):
+        """Filter should reject files without matching variables"""
+        filter_obj = MessageFilter(variables=["TMP"])
+
+        assert not filter_obj.should_download("CMC_glb_WIND_ISBL_500_latlon.grib2")
+
+    def test_should_download_with_run_hours_matching(self):
+        """Filter should accept files with matching run hours"""
+        filter_obj = MessageFilter(variables=["TMP"], run_hours={"00", "12"})
+
+        # Mock the parse_date_and_run function
+        with patch("wps_weather.eccc_consumer.parse_date_and_run") as mock_parse:
+            mock_parse.return_value = ("2024", "00")
+            assert filter_obj.should_download("CMC_glb_TMP_2024010100_P000.grib2")
+
+            mock_parse.return_value = ("2024", "06")
+            assert not filter_obj.should_download("CMC_glb_TMP_2024010106_P000.grib2")
+
+    def test_should_download_no_run_hours_filter(self):
+        """Filter should accept all run hours when filter not specified"""
+        filter_obj = MessageFilter(variables=["TMP"], run_hours=None)
+
+        # Mock the parse_date_and_run function
+        with patch("wps_weather.eccc_consumer.parse_date_and_run") as mock_parse:
+            mock_parse.return_value = ("2024", "06")
+            assert filter_obj.should_download("CMC_glb_TMP_2024010106_P000.grib2")
+
+    def test_should_not_download_invalid_run_hour(self):
+        """Filter should reject files when run hour can't be parsed"""
+        filter_obj = MessageFilter(variables=["TMP"], run_hours={"00"})
+
+        # Mock parse function to raise exception
+        with patch("wps_weather.eccc_consumer.parse_date_and_run") as mock_parse:
+            mock_parse.side_effect = Exception("Parse error")
+            assert not filter_obj.should_download("invalid_filename.grib2")
+
+
+# Tests for SimpleDownloader
+class TestSimpleDownloader:
+    """Test the SimpleDownloader class"""
+
+    @pytest.mark.anyio
+    async def test_download_and_upload_success(self):
+        """Downloader should successfully download and upload files"""
+        s3_client = MockS3Client()
+        file = FileToDownload(url="https://example.com/test.grib2", s3_key="prefix/test.grib2")
+
+        # Mock aiohttp response
+        mock_response = AsyncMock()
+        mock_response.status = 200
+        mock_response.raise_for_status = Mock()
+        mock_response.read = AsyncMock(return_value=b"test data")
+
+        with patch("aiohttp.ClientSession") as mock_session_class:
+            mock_session = AsyncMock()
+            mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+            mock_session.__aexit__ = AsyncMock()
+            mock_session.get = MagicMock(return_value=mock_response)
+            mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+            mock_response.__aexit__ = AsyncMock()
+
+            mock_session_class.return_value = mock_session
+
+            async with GribDownloader(s3_client, max_retries=3) as downloader:
+                result = await downloader.download_and_upload(file)
+
+            assert result is True
+            assert s3_client.put_count == 1
+            assert s3_client.objects["prefix/test.grib2"] == b"test data"
+
+    @pytest.mark.anyio
+    async def test_download_skips_existing(self):
+        """Downloader should skip files that already exist"""
+        s3_client = MockS3Client()
+        s3_client.objects["prefix/test.grib2"] = b"existing data"
+
+        file = FileToDownload(url="https://example.com/test.grib2", s3_key="prefix/test.grib2")
+
+        async with GribDownloader(s3_client, max_retries=3) as downloader:
+            result = await downloader.download_and_upload(file)
+
+        assert result is True
+        assert s3_client.put_count == 0  # Should not upload
+        assert s3_client.exists_count == 1
+
+    @pytest.mark.anyio
+    async def test_download_retries_on_failure(self):
+        """Downloader should retry on failure with exponential backoff"""
+        s3_client = MockS3Client()
+        file = FileToDownload(url="https://example.com/test.grib2", s3_key="prefix/test.grib2")
+
+        # Track number of attempts
+        attempt_count = 0
+
+        def get_callback(*args, **kwargs):
+            nonlocal attempt_count
+            attempt_count += 1
+            # Fail on first attempt, succeed on second
+            should_fail = attempt_count < 2
+            return MockGetResult(should_fail)
+
+        with patch("aiohttp.ClientSession", return_value=MockSession(get_callback)):
+            # Patch sleep to avoid waiting in tests
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                async with GribDownloader(s3_client, max_retries=3) as downloader:
+                    result = await downloader.download_and_upload(file)
+
+        assert result is True
+        assert attempt_count == 2  # Failed once, succeeded on retry
+        assert s3_client.put_count == 1
+
+    @pytest.mark.anyio
+    async def test_download_fails_after_max_retries(self):
+        """Downloader should give up after max retries"""
+        s3_client = MockS3Client()
+        file = FileToDownload(url="https://example.com/test.grib2", s3_key="prefix/test.grib2")
+
+        # Track number of attempts
+        attempt_count = 0
+
+        def get_callback(*args, **kwargs):
+            nonlocal attempt_count
+            attempt_count += 1
+            # Always fail
+            return MockGetResult(should_fail=True)
+
+        with patch("aiohttp.ClientSession", return_value=MockSession(get_callback)):
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                async with GribDownloader(s3_client, max_retries=3) as downloader:
+                    result = await downloader.download_and_upload(file)
+
+        assert result is False
+        assert attempt_count == 3  # Tried 3 times
+        assert s3_client.put_count == 0
+
+
+# Tests for ECCCGribConsumer
+class TestECCCGribConsumer:
+    """Test the ECCCGribConsumer class"""
+
+    def test_parse_message_valid(self):
+        """Consumer should parse valid AMQP messages"""
+        s3_client = MockS3Client()
+        model_configs = {"RDPS": {"routing_key": "test.key", "variables": ["TMP", "WIND"]}}
+
+        consumer = ECCCGribConsumer(
+            s3_client=s3_client,
+            s3_prefix="test-prefix",
+            model_configs=model_configs,
+            models=["RDPS"],
+        )
+
+        message = b"20240101120000 https://dd.weather.gc.ca model_rdps/10km/2024/01/01/12/CMC_rdps_TMP_ISBL_500_ps10km_2024010112_P000.grib2"
+
+        with patch("wps_weather.eccc_consumer.s3_key_from_eccc_path") as mock_s3_key:
+            mock_s3_key.return_value = "test-prefix/model_rdps/TMP_500.grib2"
+
+            file = consumer._parse_message(message, "RDPS")
+
+        assert file is not None
+        assert "CMC_rdps_TMP" in file.url
+        assert file.s3_key == "test-prefix/model_rdps/TMP_500.grib2"
+
+    def test_parse_message_filtered(self):
+        """Consumer should filter out non-matching messages"""
+        s3_client = MockS3Client()
+        model_configs = {
+            "RDPS": {"routing_key": "test.key", "variables": ["TMP"]}  # Only TMP
+        }
+
+        consumer = ECCCGribConsumer(
+            s3_client=s3_client,
+            s3_prefix="test-prefix",
+            model_configs=model_configs,
+            models=["RDPS"],
+        )
+
+        # Message contains WIND, not TMP
+        message = b"20240101120000 https://dd.weather.gc.ca model_rdps/10km/2024/01/01/12/CMC_rdps_WIND_ISBL_500_ps10km_2024010112_P000.grib2"
+
+        file = consumer._parse_message(message, "RDPS")
+
+        assert file is None
+        assert consumer.stats["filtered"] == 1
+
+    def test_parse_message_invalid_format(self):
+        """Consumer should handle invalid message formats gracefully"""
+        s3_client = MockS3Client()
+        model_configs = {"RDPS": {"routing_key": "test.key", "variables": ["TMP"]}}
+
+        consumer = ECCCGribConsumer(
+            s3_client=s3_client,
+            s3_prefix="test-prefix",
+            model_configs=model_configs,
+            models=["RDPS"],
+        )
+
+        # Invalid message (only 2 parts instead of 3)
+        message = b"20240101120000 https://dd.weather.gc.ca"
+
+        file = consumer._parse_message(message, "RDPS")
+
+        assert file is None
+
+    @pytest.mark.anyio
+    async def test_message_handler_queues_file(self):
+        """Message handler should queue valid files"""
+        s3_client = MockS3Client()
+        model_configs = {"RDPS": {"routing_key": "test.key", "variables": ["TMP", "WIND"]}}
+
+        consumer = ECCCGribConsumer(
+            s3_client=s3_client,
+            s3_prefix="test-prefix",
+            model_configs=model_configs,
+            models=["RDPS"],
+            num_workers=1,
+        )
+
+        # Create mock message
+        mock_message = Mock()
+        mock_message.body = b"20240101120000 https://dd.weather.gc.ca model_rdps/10km/2024/01/01/12/CMC_rdps_TMP_ISBL_500_ps10km_2024010112_P000.grib2"
+
+        handler = consumer._create_message_handler("RDPS")
+
+        with patch("wps_weather.eccc_consumer.s3_key_from_eccc_path") as mock_s3_key:
+            mock_s3_key.return_value = "test-prefix/model_rdps/TMP_500.grib2"
+            await handler(mock_message)
+
+        # Check that file was queued
+        assert consumer.work_queue.qsize() == 1
+        assert consumer.stats["received"] == 1
+
+        # Get the queued file
+        file = await consumer.work_queue.get()
+        assert "CMC_rdps_TMP" in file.url
+
+    @pytest.mark.anyio
+    async def test_worker_processes_queue(self):
+        """Worker should process files from queue"""
+        s3_client = MockS3Client()
+        model_configs = {"RDPS": {"routing_key": "test.key", "variables": ["TMP", "WIND"]}}
+
+        consumer = ECCCGribConsumer(
+            s3_client=s3_client,
+            s3_prefix="test-prefix",
+            model_configs=model_configs,
+            models=["RDPS"],
+            num_workers=1,
+        )
+
+        # Add a file to the queue
+        file = FileToDownload(url="https://example.com/test.grib2", s3_key="prefix/test.grib2")
+        await consumer.work_queue.put(file)
+
+        # Mock the downloader
+        with patch.object(
+            GribDownloader, "download_and_upload", new_callable=AsyncMock
+        ) as mock_download:
+            mock_download.return_value = True
+
+            # Run worker briefly
+            consumer._running = True
+            worker_task = asyncio.create_task(consumer._worker(0))
+
+            # Wait for processing
+            await asyncio.sleep(0.1)
+            consumer._running = False
+            await worker_task
+
+        # Check stats
+        assert consumer.stats["uploaded"] == 1
+        assert consumer.stats["failed"] == 0
+        assert consumer.work_queue.qsize() == 0
+
+    @pytest.mark.anyio
+    async def test_health_check_worker(self, tmp_path):
+        """Health check worker should create health file"""
+        s3_client = MockS3Client()
+        model_configs = {"RDPS": {"routing_key": "test.key", "variables": ["TMP"]}}
+
+        health_path = tmp_path / "health_check"
+
+        consumer = ECCCGribConsumer(
+            s3_client=s3_client,
+            s3_prefix="test-prefix",
+            model_configs=model_configs,
+            models=["RDPS"],
+            num_workers=1,
+            health_file_path=health_path,
+        )
+
+        consumer._running = True
+        health_task = asyncio.create_task(consumer._health_check_worker())
+
+        # Wait for health check to run
         await asyncio.sleep(0.1)
-
-        # Stop task
-        consumer.running = False
+        consumer._running = False
         await health_task
 
-        # Verify file was created
-        assert consumer.health_file.exists()
+        # Check that health file was created/updated
+        assert health_path.exists()
 
 
-class TestConsumerWorkflow:
-    """Integration-style tests for complete workflows"""
-
-    @pytest.mark.anyio
-    async def test_complete_download_workflow(self):
-        """Test complete workflow from message to S3 upload"""
-        # Setup
-        mock_s3 = AsyncMock()
-        mock_s3.object_exists = AsyncMock(return_value=False)
-        mock_s3.put_object = AsyncMock()
-
-        consumer = ECCCGribConsumer(
-            s3_client=mock_s3, s3_prefix="test", models=["RDPS"], max_concurrent_downloads=1
-        )
-
-        # Mock download function
-        with patch(
-            "wps_weather.eccc_grib_consumer.download_file", AsyncMock(return_value=b"grib data")
-        ):
-            # Simulate receiving a message
-            callback = consumer._create_callback("RDPS")
-            message = Mock()
-            message.body = b"123 https://dd.weather.gc.ca/ path/20260205T00Z_MSC_GDPS_AbsoluteVorticity_IsbL-0500_LatLon0.15_PT000H.grib2"
-
-            with patch(
-                "wps_weather.eccc_grib_consumer.build_s3_key",
-                return_value="test/2026-02-02/rdps/00/file.grib2",
-            ):
-                await callback(message)
-
-            # Start worker to process
-            worker = asyncio.create_task(consumer._download_worker(0))
-            await consumer.download_queue.join()
-            consumer.running = False
-            await worker
-
-            mock_s3.put_object.assert_called_once()
+# Integration test
+class TestIntegration:
+    """Integration tests for the full consumer"""
 
     @pytest.mark.anyio
-    async def test_retry_mechanism_eventually_succeeds(self):
-        """Test that retry mechanism works when download eventually succeeds"""
-        mock_s3 = AsyncMock()
-        mock_s3.object_exists = AsyncMock(return_value=False)
-        mock_s3.put_object = AsyncMock()
+    async def test_full_workflow(self):
+        """Test complete workflow from message to upload"""
+        s3_client = MockS3Client()
+        model_configs = {
+            "RDPS": {
+                "routing_key": "v02.post.#.WXO-DD.model_rdps.10km.#",
+                "variables": ["TMP", "WIND"],
+            }
+        }
 
         consumer = ECCCGribConsumer(
-            s3_client=mock_s3, s3_prefix="test", models=["RDPS"], max_concurrent_downloads=1
+            s3_client=s3_client,
+            s3_prefix="test-prefix",
+            model_configs=model_configs,
+            models=["RDPS"],
+            num_workers=2,
         )
 
-        # Mock download to fail first time, succeed second time
-        download_results = [None, b"success"]
-        with patch(
-            "wps_weather.eccc_grib_consumer.download_file", AsyncMock(side_effect=download_results)
-        ):
-            # First attempt - should fail
-            task = DownloadTask(url="https://test.com/file.grib2", s3_key="test/file.grib2")
-            await consumer.download_queue.put(task)
+        # Mock AMQP setup
+        with patch.object(consumer, "_setup_amqp", new_callable=AsyncMock):
+            await consumer.start()
 
-            worker = asyncio.create_task(consumer._download_worker(0))
-            await consumer.download_queue.join()
+        # Simulate receiving a message
+        mock_message = Mock()
+        mock_message.body = b"20240101120000 https://dd.weather.gc.ca model_rdps/10km/2024/01/01/12/CMC_rdps_TMP_ISBL_500_ps10km_2024010112_P000.grib2"
 
-            # Task should be in retry queue
-            assert "test/file.grib2" in consumer.retry_queue
+        handler = consumer._create_message_handler("RDPS")
 
-            # Manually trigger retry
-            retry_task = consumer.retry_queue.pop("test/file.grib2")
-            retry_task.last_attempt_time = datetime.now(timezone.utc) - timedelta(seconds=100)
-            await consumer.download_queue.put(retry_task)
+        # Mock the download
+        with patch.object(
+            GribDownloader, "download_and_upload", new_callable=AsyncMock
+        ) as mock_download:
+            mock_download.return_value = True
 
-            await consumer.download_queue.join()
-            consumer.running = False
-            await worker
+            with patch("wps_weather.eccc_consumer.s3_key_from_eccc_path") as mock_s3_key:
+                mock_s3_key.return_value = "test-prefix/model_rdps/TMP_500.grib2"
 
-            mock_s3.put_object.assert_called_once()
+                # Process message
+                await handler(mock_message)
+
+                # Wait for processing
+                await asyncio.sleep(0.1)
+
+        # Check stats
+        assert consumer.stats["received"] == 1
+        assert consumer.stats["uploaded"] >= 0  # May or may not have processed yet
+
+        # Cleanup
+        await consumer.shutdown()

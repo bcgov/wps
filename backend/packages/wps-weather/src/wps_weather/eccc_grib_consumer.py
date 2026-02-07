@@ -1,29 +1,31 @@
 import asyncio
-import os
-from pathlib import Path
-from string import Template
-from urllib.parse import urljoin
-import aiohttp
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List, Dict, Set, Tuple
-from dataclasses import dataclass, field
-from aio_pika import connect_robust, IncomingMessage
-from aio_pika.abc import AbstractRobustConnection, AbstractRobustChannel
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Dict, List, Literal, Optional, Set, TypedDict
+from urllib.parse import urljoin
 
-from wps_weather.model_variables import RDPS_VARIABLES, GDPS_VARIABLES, HRDPS_VARIABLES
-from wps_weather.utils import parse_date_and_run, s3_key_from_eccc_path
+import aiohttp
+from aio_pika import IncomingMessage, connect_robust
+from aio_pika.abc import AbstractRobustConnection
 from wps_shared.utils.s3_client import S3Client
 
+from wps_weather.model_variables import GDPS_VARIABLES, HRDPS_VARIABLES, RDPS_VARIABLES
+from wps_weather.utils import parse_date_and_run, s3_key_from_eccc_path
 
 logger = logging.getLogger(__name__)
 
-# The queue name must be formatted as q_anonymous.subscribe.{config_name}.{company_name}
-# https://eccc-msc.github.io/open-data/msc-datamart/amqp_en/
-QUEUE_NAME = Template("q_anonymous.subscribe.${model_name}.bcgov")
+ModelName = Literal["RDPS", "GDPS", "HRDPS"]
 
 
-MODEL_CONFIGS = {
+class ModelConfig(TypedDict):
+    routing_key: str
+    description: str
+    variables: list[str]
+
+
+MODEL_CONFIGS: dict[ModelName, ModelConfig] = {
     "RDPS": {
         "routing_key": "v02.post.#.WXO-DD.model_rdps.10km.#",
         "description": "Regional Deterministic Prediction System (10km)",
@@ -43,456 +45,407 @@ MODEL_CONFIGS = {
 
 
 @dataclass
-class DownloadTask:
-    """Represents a file download task with retry logic"""
+class FileToDownload:
+    """Simple representation of a file to download"""
 
     url: str
     s3_key: str
-    attempt: int = 0
-    max_attempts: int = 5
-    first_attempt_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_attempt_time: Optional[datetime] = None
-    last_error: Optional[str] = None
-
-    @property
-    def next_retry_delay(self) -> int:
-        """Calculate exponential backoff delay in seconds"""
-        return min(30 * (2**self.attempt), 480)
-
-    @property
-    def is_expired(self) -> bool:
-        """Check if task has been retrying for too long"""
-        return datetime.now(timezone.utc) - self.first_attempt_time > timedelta(hours=4)
-
-    @property
-    def should_retry(self) -> bool:
-        """Check if task should be retried"""
-        return self.attempt < self.max_attempts and not self.is_expired
 
 
-def parse_message(body: bytes) -> Optional[Tuple[str, str, str]]:
+class GribDownloader:
     """
-    Parse Environment Canada AMQP message
+    Downloads and retries failed downloads using aiohttp
 
-    Format: <timestamp> <base_url> <rel_path>
-
-    :param body: AMQP message body
-    :return: (timestamp, base_url, rel_path) or None if parse fails
     """
-    try:
-        message_str = body.decode("utf-8").strip()
-        parts = message_str.split(" ", 2)
-        return tuple(parts) if len(parts) == 3 else None
-    except Exception as e:
-        logger.debug(f"Failed to parse message: {e}")
-        return None
+
+    def __init__(self, s3_client: S3Client, max_retries: int = 5):
+        """
+        Initialize downloader
+
+        :param s3_client: S3Client instance
+        :param max_retries: Maximum number of retry attempts per file, defaults to 5
+        """
+        self.s3_client = s3_client
+        self.max_retries = max_retries
+        self.session: Optional[aiohttp.ClientSession] = None
+
+    async def __aenter__(self):
+        # reuse session
+        self.session = aiohttp.ClientSession()
+        return self
+
+    async def __aexit__(self, *args):
+        if self.session:
+            await self.session.close()
+
+    async def download_and_upload(self, file: FileToDownload) -> bool:
+        """
+        Download file and upload to S3, and handle retry
+
+        :param file: FileToDownload with URL and S3 key
+        :return: True if success, False otherwise
+        """
+        # skip if already exists
+        if await self.s3_client.object_exists(file.s3_key):
+            logger.debug(f"Skipping existing file: {file.s3_key}")
+            return True
+
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                logger.info(f"Downloading {file.url} (attempt {attempt}/{self.max_retries})")
+
+                async with self.session.get(
+                    file.url, timeout=aiohttp.ClientTimeout(total=300)
+                ) as response:
+                    response.raise_for_status()
+                    data = await response.read()
+
+                await self.s3_client.put_object(key=file.s3_key, body=data)
+                logger.info(f"✅ Uploaded {file.s3_key}")
+                return True
+
+            except Exception as e:
+                logger.warning(f"Download attempt {attempt} failed for {file.url}: {e}")
+
+                if attempt < self.max_retries:
+                    await asyncio.sleep(10)  # try every 10 seconds
+                else:
+                    logger.error(
+                        f"Failed permanently after {self.max_retries} attempts: {file.url}"
+                    )
+                    return False
 
 
-def should_download_file(
-    filename: str, variables: List[str], run_hours: Optional[Set[str]] = None
-) -> bool:
+class MessageFilter:
     """
-    Check if file should be downloaded based on filters
-
-    :param filename: Grib filename
-    :param variables: List of variable names to accept
-    :param run_hours: Set of run hours to accept (e.g., {'00', '12'}), None for all
-    :return: True if file matches filters
+    Filters AMQP messages to only download files we want
     """
-    # Check variable filter
-    if not any(var.upper() in filename.upper() for var in variables):
-        return False
 
-    # Check run hour filter
-    if run_hours:
-        try:
-            _, run_hour = parse_date_and_run(filename)
-            if run_hour not in run_hours:
-                return False
-        except Exception:
+    def __init__(self, variables: List[str], run_hours: Optional[Set[str]] = None):
+        """
+        Initialize filter
+
+        :param variables: Grib variable names to match (case-insensitive)
+        :param run_hours: set of run hours to accept, None will accept all run hours
+        """
+        self.variables = [v.upper() for v in variables]
+        self.run_hours = run_hours
+
+    def should_download(self, filename: str) -> bool:
+        """
+        Check if file matches our filters
+
+        :param filename: GRIB filename to check
+        :return: True if file should be downloaded
+        """
+        # check grib variables
+        if not any(var in filename.upper() for var in self.variables):
             return False
 
-    return True
+        # check run hours
+        if self.run_hours:
+            try:
+                _, run_hour = parse_date_and_run(filename)
+                if run_hour not in self.run_hours:
+                    return False
+            except Exception:
+                # false if we can't parse run hours
+                return False
 
-
-def build_s3_key(s3_prefix: str, url: str) -> str:
-    """
-    Build S3 key from components
-
-    :param s3_prefix: Base S3 prefix
-    :param url: URL from message
-    :return: S3 key path
-    """
-    try:
-        key = s3_key_from_eccc_path(s3_prefix, url)
-        return key
-    except Exception as e:
-        logger.warning(f"Could not parse key from {url}: {e}")
-        return os.path.join(s3_prefix, url)
-
-
-async def download_file(url: str, timeout: int = 300) -> Optional[bytes]:
-    """
-    Download file from URL
-
-    :param url: URL to download from
-    :param timeout: Timeout in seconds
-    :return: File data or None if failed
-    """
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
-                if response.status != 200:
-                    logger.error(f"Download failed: HTTP {response.status}")
-                    return None
-                return await response.read()
-    except Exception as e:
-        logger.error(f"Download error: {e}")
-        return None
+        return True
 
 
 class ECCCGribConsumer:
     """
-    Downloads Environment Canada GRIB files via AMQP and stores to S3
+    Listens to ECCC AMQP feed and downloads GRIB files to S3
+
+    - AMQP messages go to asyncio.Queue
+    - Worker pool processes queue
     """
 
-    AMQP_HOST = "dd.weather.gc.ca"
-    AMQP_USER = "anonymous"
-    AMQP_PASSWORD = "anonymous"
-    AMQP_EXCHANGE = "xpublic"
+    AMQP_URL = "amqps://anonymous:anonymous@dd.weather.gc.ca:5671/"
+    EXCHANGE = "xpublic"
 
     def __init__(
         self,
         s3_client: S3Client,
         s3_prefix: str,
         models: List[str],
+        model_configs: dict[ModelName, ModelConfig] = MODEL_CONFIGS,
         run_hours: Optional[Set[str]] = None,
-        max_concurrent_downloads: int = 10,
-        max_retries: int = 5,
+        num_workers: int = 5,
+        health_file_path: str = "/tmp/health_check",
     ):
         """
         Initialize consumer
 
-        Args:
-            s3_client: S3Client instance (dependency injection for testing)
-            s3_prefix: Base S3 prefix for storing files
-            models: List of model names to download
-            run_hours: Set of run hours to download (e.g., {'00', '12'}), None for all
-            max_concurrent_downloads: Max concurrent download workers
-            max_retries: Max retry attempts per file
+        :param s3_client: S3Client instance for uploading files
+        :param s3_prefix: Base S3 prefix for storing files
+        :param models: List of model names to consume ex, ['RDPS', 'GDPS']
+        :param model_configs: Model config which contains routing key, description, and grib variables
+        :param run_hours: set of run hours to accept, None will accept all run hours
+        :param num_workers: Number of concurrent download workers, defaults to 5
+        :param health_file_path: Path to health check file for openshift, defaults to "/tmp/health_check"
         """
         self.s3_client = s3_client
         self.s3_prefix = s3_prefix.rstrip("/")
         self.models = models
+        self.model_configs = model_configs
         self.run_hours = run_hours
-        self.max_concurrent_downloads = max_concurrent_downloads
-        self.max_retries = max_retries
+        self.num_workers = num_workers
+        self.health_file = Path(health_file_path)
 
-        self.running = True
-        self.connection: Optional[AbstractRobustConnection] = None
-        self.channel: Optional[AbstractRobustChannel] = None
+        # messages go here, workers consume
+        self.work_queue: asyncio.Queue[FileToDownload] = asyncio.Queue()
 
-        # Work queues
-        self.download_queue = asyncio.Queue()
-        self.retry_queue: Dict[str, DownloadTask] = {}
-        self.failed_tasks: List[DownloadTask] = []
-
-        # Background tasks
-        self.workers = []
-        self.retry_task = None
-        self.monitor_task = None
-
-        # Statistics
         self.stats = {
-            "messages_received": 0,
-            "messages_filtered": 0,
-            "files_uploaded": 0,
-            "files_skipped": 0,
-            "upload_errors": 0,
-            "retry_attempts": 0,
-            "permanent_failures": 0,
-            "reconnections": 0,
-            "last_message_time": None,
+            "received": 0,
+            "filtered": 0,
+            "uploaded": 0,
+            "failed": 0,
             "start_time": None,
         }
 
-        # for openshift to monitor liveness of the pod
-        self.health_file = Path("/tmp/health_check")
-        self.health_task = None
+        self._connection: Optional[AbstractRobustConnection] = None
+        self._running = False
+        self._tasks: List[asyncio.Task] = []
 
-    async def _update_health(self):
+        # filters per model
+        self._filters: Dict[str, MessageFilter] = {}
+        for model in models:
+            config = model_configs.get(model)
+            self._filters[model] = MessageFilter(config["variables"], run_hours)
+
+    def _parse_message(self, body: bytes, model_name: str) -> Optional[FileToDownload]:
         """
-        Update health file. We're going to keep creating a file every 30 seconds. In openshift,
-        we can use this to monitor the liveness of the pod.
+        Parse AMQP message and return FileToDownload if we want it
+
+        :param body: AMQP message body
+        :param model_name: Name of the model this message is from
+        :return: FileToDownload if we want this file, None if filtered out
         """
-        while self.running:
-            try:
-                self.health_file.touch()
-            except Exception as e:
-                logger.error(f"Failed to update health file: {e}")
-            await asyncio.sleep(30)
-
-    async def _monitor_connection(self):
-        """Monitor connection and reconnect if needed"""
-        while self.running:
-            await asyncio.sleep(30)
-
-            if self.connection and self.connection.is_closed:
-                logger.warning("Connection closed, reconnecting...")
-                await self._reconnect()
-
-    async def _reconnect(self):
-        """Reconnect to AMQP and re-setup consumers"""
         try:
-            logger.info("Reconnecting...")
-            self.stats["reconnections"] += 1
+            # parse message: "{timestamp} {base_url} {rel_path}"
+            parts = body.decode("utf-8").strip().split(" ", 2)
+            if len(parts) != 3:
+                return None
 
-            if self.connection and not self.connection.is_closed:
-                await self.connection.close()
+            _, base_url, rel_path = parts
+            filename = rel_path.split("/")[-1]
 
-            await asyncio.sleep(5)
+            # filter based on model config
+            filter_obj = self._filters.get(model_name)
+            if not filter_obj or not filter_obj.should_download(filename):
+                self.stats["filtered"] += 1
+                logger.debug(f"Filtered [{model_name}]: {filename}")
+                return None
 
-            if await self._connect_amqp():
-                await self._setup_consumers()
-                logger.info("✅ Reconnected successfully")
-        except Exception as e:
-            logger.error(f"Reconnection failed: {e}")
+            url = urljoin(base_url.rstrip("/") + "/", rel_path)
 
-    async def _connect_amqp(self) -> bool:
-        """Connect to AMQP server"""
-        try:
-            url = f"amqps://{self.AMQP_USER}:{self.AMQP_PASSWORD}@{self.AMQP_HOST}:5671/"
-
-            self.connection = await asyncio.wait_for(
-                connect_robust(url=url, timeout=30), timeout=35
-            )
-
-            self.channel = await self.connection.channel()
-            await self.channel.set_qos(prefetch_count=100)
-
-            logger.info("✅ AMQP connected")
-            return True
-        except Exception as e:
-            logger.error(f"AMQP connection failed: {e}")
-            return False
-
-    def _create_callback(self, model_name: str):
-        """Create message callback for a model"""
-        config = MODEL_CONFIGS[model_name]
-
-        async def callback(message: IncomingMessage):
+            # build S3 key
             try:
-                self.stats["messages_received"] += 1
-                self.stats["last_message_time"] = datetime.now(timezone.utc)
-
-                parsed = parse_message(message.body)
-                if not parsed:
-                    return
-
-                _, base_url, rel_path = parsed
-                filename = rel_path.split("/")[-1]
-
-                # determine if it's a grib file that we want
-                if not should_download_file(filename, config["variables"], self.run_hours):
-                    self.stats["messages_filtered"] += 1
-                    logger.debug(f"Filtered [{model_name}]: {filename}")
-                    return
-
-                url = urljoin(base_url.rstrip("/") + "/", rel_path)
-                s3_key = build_s3_key(self.s3_prefix, url)
-
-                if s3_key in self.retry_queue:
-                    return
-
-                # create a download task and add to queue
-                task = DownloadTask(url=url, s3_key=s3_key, max_attempts=self.max_retries)
-                await self.download_queue.put(task)
-                logger.debug(f"Queued [{model_name}]: {filename}")
-
+                s3_key = s3_key_from_eccc_path(self.s3_prefix, url)
             except Exception as e:
-                logger.error(f"Callback error: {e}", exc_info=True)
+                logger.warning(f"Could not parse S3 key from {url}: {e}")
+                # simple fallback
+                s3_key = f"{self.s3_prefix}/{rel_path}"
 
-        return callback
+            return FileToDownload(url=url, s3_key=s3_key)
 
-    async def _setup_consumers(self):
-        """Setup AMQP consumers for all models"""
-        exchange = await self.channel.get_exchange(self.AMQP_EXCHANGE)
+        except Exception as e:
+            logger.debug(f"Failed to parse message: {e}")
+            return None
 
-        for model_name in self.models:
-            if model_name not in MODEL_CONFIGS:
-                logger.warning(f"Unknown model: {model_name}")
-                continue
+    def _create_message_handler(self, model_name: ModelName):
+        """
+        Create message handler for a specific model
 
-            config = MODEL_CONFIGS[model_name]
+        :param model_name: Name of the model
+        """
 
-            queue_name = QUEUE_NAME.substitute(model_name=model_name)
-            queue = await self.channel.declare_queue(queue_name, exclusive=False)
+        async def handler(message: IncomingMessage):
+            """
+            Handle incoming AMQP message, parse and add to work queue
 
-            await queue.bind(exchange, routing_key=config["routing_key"])
-            await queue.consume(self._create_callback(model_name), no_ack=True)
+            """
+            self.stats["received"] += 1
 
-            logger.info(f"✅ Subscribed to {model_name}")
-            logger.debug(f"   Routing key: {config['routing_key']}")
-            logger.debug(f"   Queue: {queue.name}")
+            file = self._parse_message(message.body, model_name)
+            if not file:
+                return
 
-    async def _download_worker(self, worker_id: int):
-        """Worker that processes downloads"""
+            await self.work_queue.put(file)
+            logger.debug(f"Queued [{model_name}]: {file.s3_key}")
+
+        return handler
+
+    async def _worker(self, worker_id: int):
+        """
+        Worker that processes downloads from queue
+        """
         logger.debug(f"Worker {worker_id} started")
 
-        while self.running:
-            try:
-                task: DownloadTask = await asyncio.wait_for(self.download_queue.get(), timeout=1.0)
+        async with GribDownloader(self.s3_client) as downloader:
+            while self._running:
+                try:
+                    # Get work with timeout so we can check _running flag
+                    file = await asyncio.wait_for(self.work_queue.get(), timeout=1.0)
 
-                task.attempt += 1
-                task.last_attempt_time = datetime.now(timezone.utc)
+                    success = await downloader.download_and_upload(file)
 
-                # Check if exists
-                if await self.s3_client.object_exists(task.s3_key):
-                    self.stats["files_skipped"] += 1
-                    logger.debug(f"Already exists: {task.s3_key}")
-                    self.download_queue.task_done()
-                    continue
-
-                # Download
-                logger.info(f"Downloading (attempt {task.attempt}): {task.url}")
-                data = await download_file(task.url)
-
-                if data:
-                    # Upload to S3
-                    await self.s3_client.put_object(key=task.s3_key, body=data)
-                    self.stats["files_uploaded"] += 1
-                    logger.info(f"✅ Uploaded: {task.s3_key} ({len(data) / 1024 / 1024:.2f} MB)")
-                else:
-                    # Failed - retry or give up
-                    if task.should_retry:
-                        self.retry_queue[task.s3_key] = task
-                        self.stats["upload_errors"] += 1
+                    if success:
+                        self.stats["uploaded"] += 1
                     else:
-                        self.failed_tasks.append(task)
-                        self.stats["permanent_failures"] += 1
+                        self.stats["failed"] += 1
 
-                self.download_queue.task_done()
+                    self.work_queue.task_done()
 
-            except asyncio.TimeoutError:
-                continue
-            except Exception as e:
-                logger.error(f"Worker {worker_id} error: {e}")
+                except asyncio.TimeoutError:
+                    continue
+                except Exception as e:
+                    logger.error(f"Worker {worker_id} error: {e}", exc_info=True)
 
-        logger.debug(f"Worker {worker_id} stopped")
+        logger.info(f"Worker {worker_id} stopped")
 
-    async def _retry_worker(self):
-        """Worker that processes retry queue"""
-        logger.debug("Retry worker started")
+    async def _health_check_worker(self):
+        """
+        Update health file periodically for openshift liveness probe which will check
+        if the file has been modified in the last 2 minutes
 
-        while self.running:
+        Creates/touches the health file every 30 seconds to indicate process is alive
+        """
+        logger.debug("Health check worker started")
+
+        while self._running:
             try:
-                current_time = datetime.now(timezone.utc)
-
-                for s3_key, task in list(self.retry_queue.items()):
-                    if task.is_expired:
-                        self.failed_tasks.append(task)
-                        self.stats["permanent_failures"] += 1
-                        del self.retry_queue[s3_key]
-                        continue
-
-                    if task.last_attempt_time:
-                        elapsed = (current_time - task.last_attempt_time).total_seconds()
-                        if elapsed >= task.next_retry_delay:
-                            task_to_retry = self.retry_queue.pop(s3_key)
-                            await self.download_queue.put(task_to_retry)
-                            self.stats["retry_attempts"] += 1
-
-                await asyncio.sleep(10)
-
+                self.health_file.touch()
+                logger.debug("Health check file updated")
             except Exception as e:
-                logger.error(f"Retry worker error: {e}")
-                await asyncio.sleep(10)
+                logger.error(f"Failed to update health file: {e}")
 
-        logger.debug("Retry worker stopped")
+            await asyncio.sleep(30)
+
+        logger.info("Health check worker stopped")
+
+    async def _stats_logger(self):
+        """
+        Log statistics periodically
+
+        """
+        while self._running:
+            await asyncio.sleep(300)  # 5 minutes
+            self._log_stats()
+
+    async def _setup_amqp(self):
+        """
+        Connect to AMQP and setup subscriptions
+
+        Uses auto-reconnect from aio_pika for resilience
+        """
+        # connect to amqp  (auto-reconnect built in)
+        self._connection = await connect_robust(self.AMQP_URL, timeout=30)
+
+        channel = await self._connection.channel()
+        await channel.set_qos(prefetch_count=50)
+
+        exchange = await channel.get_exchange(self.EXCHANGE)
+
+        # setup queue for each model
+        for model in self.models:
+            config = self.model_configs[model]
+            queue_name = f"q_anonymous.subscribe.{model}.bcgov"
+            queue = await channel.declare_queue(queue_name, exclusive=False)
+
+            await queue.bind(exchange, routing_key=config["routing_key"])
+            await queue.consume(self._create_message_handler(model), no_ack=True)
+
+            logger.info(f"✅ Subscribed to {model}: {config['routing_key']}")
 
     async def start(self):
         """Start the consumer"""
         logger.info("Starting consumer...")
-
-        if not await self._connect_amqp():
-            raise ConnectionError("Failed to connect to AMQP")
-
-        # start a task to monitor the connection
-        self.health_task = asyncio.create_task(self._update_health())
-
-        # start a task to monitor the connection
-        self.monitor_task = asyncio.create_task(self._monitor_connection())
-
-        # Start workers
-        for i in range(self.max_concurrent_downloads):
-            worker = asyncio.create_task(self._download_worker(i))
-            self.workers.append(worker)
-
-        self.retry_task = asyncio.create_task(self._retry_worker())
-
-        # Setup consumers
-        await self._setup_consumers()
-
+        self._running = True
         self.stats["start_time"] = datetime.now(timezone.utc)
+
+        # Connect to AMQP
+        await self._setup_amqp()
+
+        # Start worker pool
+        for i in range(self.num_workers):
+            task = asyncio.create_task(self._worker(i))
+            self._tasks.append(task)
+
+        # Start health check worker
+        health_task = asyncio.create_task(self._health_check_worker())
+        self._tasks.append(health_task)
+
+        # Start stats logger
+        stats_task = asyncio.create_task(self._stats_logger())
+        self._tasks.append(stats_task)
+
         logger.info("✅ Consumer started")
-        self.log_stats()
+        self._log_stats()
 
     async def run(self):
-        """Run until stopped"""
+        """Run until interrupted"""
         try:
-            while self.running:
-                await asyncio.sleep(300)
-                self.log_stats()
+            while self._running:
+                await asyncio.sleep(1)
         except KeyboardInterrupt:
+            logger.info("Interrupted")
+        finally:
             await self.shutdown()
 
     async def shutdown(self):
         """Gracefully shutdown"""
         logger.info("Shutting down...")
-        self.running = False
+        self._running = False
 
-        # Wait for downloads
-        if not self.download_queue.empty():
-            logger.info(f"Waiting for {self.download_queue.qsize()} downloads...")
-            await self.download_queue.join()
+        # Wait for queue to drain (with timeout)
+        if not self.work_queue.empty():
+            logger.info(f"Waiting for {self.work_queue.qsize()} files to download...")
+            try:
+                await asyncio.wait_for(self.work_queue.join(), timeout=60)
+            except asyncio.TimeoutError:
+                logger.warning("Timeout waiting for queue to drain")
 
-        # Cancel tasks
-        all_tasks = self.workers + [self.retry_task, self.monitor_task, self.health_task]
-        for task in all_tasks:
-            if task:
-                task.cancel()
+        # Cancel all tasks
+        for task in self._tasks:
+            task.cancel()
+        await asyncio.gather(*self._tasks, return_exceptions=True)
 
-        await asyncio.gather(*[t for t in all_tasks if t], return_exceptions=True)
+        # Close connection
+        if self._connection and not self._connection.is_closed:
+            try:
+                await asyncio.wait_for(self._connection.close(), timeout=5)
+            except asyncio.TimeoutError:
+                logger.warning("Timeout closing AMQP connection")
 
-        if self.connection and not self.connection.is_closed:
-            await self.connection.close()
-
+        self._log_stats()
         logger.info("Shutdown complete")
-        self.log_stats()
 
-    def log_stats(self):
-        """Log statistics"""
-        logger.info("=" * 60)
+    def _log_stats(self):
+        """Simple stats logging"""
+        uptime = ""
+        if self.stats["start_time"]:
+            uptime_delta = datetime.now(timezone.utc) - self.stats["start_time"]
+            uptime = f"Uptime: {uptime_delta}"
+
+        logger.info("")
         logger.info("STATISTICS")
         logger.info("=" * 60)
-        logger.info(f"  Messages received: {self.stats['messages_received']}")
-        logger.info(f"  Messages filtered: {self.stats['messages_filtered']}")
-        logger.info(f"  Files uploaded: {self.stats['files_uploaded']}")
-        logger.info(f"  Files skipped: {self.stats['files_skipped']}")
-        logger.info(f"  Upload errors: {self.stats['upload_errors']}")
-        logger.info(f"  Retry attempts: {self.stats['retry_attempts']}")
-        logger.info(f"  Permanent failures: {self.stats['permanent_failures']}")
-        logger.info(f"  In retry queue: {len(self.retry_queue)}")
-        logger.info(f"  Reconnections: {self.stats['reconnections']}")
-
-        if self.stats["last_message_time"]:
-            mins = (
-                datetime.now(timezone.utc) - self.stats["last_message_time"]
-            ).total_seconds() / 60
-            logger.info(f"  Last message: {mins:.1f} min ago")
-
-        if self.stats["start_time"]:
-            uptime = datetime.now(timezone.utc) - self.stats["start_time"]
-            logger.info(f"  Uptime: {uptime}")
-
+        logger.info(f"Received: {self.stats['received']}")
+        logger.info(f"Filtered: {self.stats['filtered']}")
+        logger.info(f"Uploaded: {self.stats['uploaded']}")
+        logger.info(f"Failed: {self.stats['failed']}")
+        logger.info(f"Queue Size: {self.work_queue.qsize()}")
+        logger.info(f"{uptime}")
         logger.info("=" * 60)
+        logger.info("")
+
+    async def __aenter__(self):
+        await self.start()
+        return self
+
+    async def __aexit__(self, *args):
+        await self.shutdown()

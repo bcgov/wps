@@ -1,13 +1,13 @@
+import argparse
 import asyncio
 import logging
-import argparse
+import sys
 
-from wps_weather.eccc_grib_consumer import ECCCGribConsumer
-
+from wps_shared import config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
-from wps_shared import config
 
+from wps_weather.eccc_grib_consumer import ECCCGribConsumer
 
 S3_BUCKET = config.get("WX_OBJECT_STORE_BUCKET")
 S3_USER_ID = config.get("WX_OBJECT_STORE_USER_ID")
@@ -79,16 +79,15 @@ async def main():
                 s3_prefix=args.s3_prefix,
                 models=args.models,
                 run_hours=run_hours,
-                max_concurrent_downloads=args.max_concurrent_downloads,
-                max_retries=args.max_retries,
+                num_workers=10,
             )
 
-            await consumer.start()
-            await consumer.run()
+            async with consumer:
+                await consumer.run()
 
         except Exception as e:
             logger.error(f"Fatal error: {e}", exc_info=True)
-            await consumer.shutdown()
+            sys.exit(1)
 
 
 if __name__ == "__main__":
