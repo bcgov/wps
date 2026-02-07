@@ -67,7 +67,7 @@
     "@types/sinon": "^21.0.0",
     "@vitejs/plugin-react-swc": "^4.0.0",
     "@vitest/coverage-v8": "^4.0.8",
-    "eslint": "^9.17.0",
+    "eslint": "^10.0.0",
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^17.0.0",
