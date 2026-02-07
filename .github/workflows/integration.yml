@@ -202,7 +202,7 @@ jobs:
         test-api,
         test-wps-shared,
         test-wps-jobs,
-        test-wps-weather,
+        test-wps-wf1,
       ]
     steps:
       - name: Checkout repo
