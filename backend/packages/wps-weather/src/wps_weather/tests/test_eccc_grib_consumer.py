@@ -353,6 +353,7 @@ class TestECCCGribConsumer:
         # Create mock message
         mock_message = Mock()
         mock_message.body = b"20240101120000 https://dd.weather.gc.ca model_rdps/10km/2024/01/01/12/CMC_rdps_TMP_ISBL_500_ps10km_2024010112_P000.grib2"
+        mock_message.ack = AsyncMock()
 
         handler = consumer._create_message_handler("RDPS")
 
@@ -363,6 +364,9 @@ class TestECCCGribConsumer:
         # Check that file was queued
         assert consumer.work_queue.qsize() == 1
         assert consumer.stats["received"] == 1
+
+        # Message shouldn't be ACKed yet (waiting for worker)
+        mock_message.ack.assert_not_called()
 
         # Get the queued file
         file, _ = await consumer.work_queue.get()
@@ -409,6 +413,8 @@ class TestECCCGribConsumer:
         assert consumer.stats["failed"] == 0
         assert consumer.work_queue.qsize() == 0
 
+        mock_message.ack.assert_called_once()
+
     @pytest.mark.anyio
     async def test_health_check_worker(self, tmp_path):
         """Health check worker should create health file"""
@@ -436,6 +442,33 @@ class TestECCCGribConsumer:
 
         # Check that health file was created/updated
         assert health_path.exists()
+
+    @pytest.mark.anyio
+    async def test_message_handler_acks_filtered_messages(self):
+        """Message handler should ACK filtered messages immediately"""
+        s3_client = MockS3Client()
+        model_configs = {"RDPS": {"routing_key": "test.key", "variables": ["TMP"]}}
+
+        consumer = ECCCGribConsumer(
+            s3_client=s3_client,
+            s3_prefix="test-prefix",
+            model_configs=model_configs,
+            models=["RDPS"],
+            num_workers=1,
+        )
+
+        # Create mock message with non-matching variable
+        mock_message = Mock()
+        mock_message.body = b"20240101120000 https://dd.weather.gc.ca model_rdps/10km/2024/01/01/12/CMC_rdps_WIND_ISBL_500_ps10km_2024010112_P000.grib2"
+        mock_message.ack = AsyncMock()
+
+        handler = consumer._create_message_handler("RDPS")
+        await handler(mock_message)
+
+        # Filtered message should be ACKed immediately
+        mock_message.ack.assert_called_once()
+        assert consumer.work_queue.qsize() == 0  # Not queued
+        assert consumer.stats["filtered"] == 1
 
 
 # Integration test
