@@ -16,22 +16,37 @@
   "loggers": {
     "app": {
       "level": "INFO",
-      "handlers": ["console"],
+      "handlers": [
+        "console"
+      ],
       "propagate": false
     },
     "wps_shared": {
       "level": "INFO",
-      "handlers": ["console"],
+      "handlers": [
+        "console"
+      ],
       "propagate": false
     },
     "wps_jobs": {
       "level": "INFO",
-      "handlers": ["console"],
+      "handlers": [
+        "console"
+      ],
+      "propagate": false
+    },
+    "wps_weather": {
+      "level": "INFO",
+      "handlers": [
+        "console"
+      ],
       "propagate": false
     },
     "__main__": {
       "level": "INFO",
-      "handlers": ["console"],
+      "handlers": [
+        "console"
+      ],
       "propagate": false
     }
   },

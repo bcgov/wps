@@ -89,12 +89,16 @@ def set_s3_gdal_config():
 
 
 def extract_date_from_prefix(folder_prefix: str, base_prefix: str) -> Optional[date]:
-    try:
-        folder_name = folder_prefix.removeprefix(base_prefix).strip("/").split("/")[0]
-        return datetime.strptime(folder_name, "%Y-%m-%d").date()
-    except ValueError:
-        logger.warning(f"Failed to parse date from '{folder_name}' in prefix '{folder_prefix}'.")
-        return None
+    folder_name = folder_prefix.removeprefix(base_prefix).strip("/").split("/")[0]
+
+    for fmt in ("%Y-%m-%d", "%Y%m%d"):
+        try:
+            return datetime.strptime(folder_name, fmt).date()
+        except ValueError:
+            pass
+
+    logger.warning(f"Failed to parse date from '{folder_name}' in prefix '{folder_prefix}'.")
+    return None
 
 
 async def apply_retention_policy_on_date_folders(

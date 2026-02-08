@@ -301,6 +301,34 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Weather - ECCC Grib Consumer",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_weather.eccc_consumer_runner",
+            "args": [
+                "--models",
+                "GDPS",
+                "RDPS",
+                "--run-hours",
+                "00",
+                "12"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Weather - Grib Retention",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_weather.s3_data_retention",
+            "args": [
+                "--dry-run"
+            ]
+        },
+        {
             "name": "Chrome",
             "type": "chrome",
             "request": "launch",

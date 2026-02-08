@@ -35,6 +35,8 @@ COPY ./backend/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
 COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
 COPY ./backend/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
 COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
+COPY ./backend/packages/wps-weather/pyproject.toml /app/packages/wps-weather/
+COPY ./backend/packages/wps-weather/src /app/packages/wps-weather/src
 
 # Switch to root to set file permissions
 USER 0
@@ -44,13 +46,14 @@ RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-api/pyproject.toml \
     /app/packages/wps-shared/pyproject.toml \
     /app/packages/wps-wf1/pyproject.toml \
+    /app/packages/wps-weather/pyproject.toml \
     /app/packages/wps-sfms/pyproject.toml && \
     chmod -R a-w /app/packages/wps-shared/src /app/packages/wps-sfms/src /app/packages/wps-wf1/src
 
 # Switch back to non-root user
 USER $USERNAME
 
-# Install dependencies using uv, including setuptools for GDAL build and GDAL itself
+# # Install dependencies using uv, including setuptools for GDAL build and GDAL itself
 RUN uv sync --frozen --no-dev --package wps-api && \
     uv pip install setuptools && \
     uv pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
@@ -79,6 +82,7 @@ COPY --from=builder /app/packages/wps-api/pyproject.toml /app/packages/wps-api/
 COPY --from=builder /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY --from=builder /app/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
 COPY --from=builder /app/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
+COPY --from=builder /app/packages/wps-weather/pyproject.toml /app/packages/wps-weather/
 
 # Switch back to our non-root user
 USER $USERNAME
@@ -101,6 +105,7 @@ COPY ./backend/packages/wps-api/start.sh /app
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
 COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
+COPY ./backend/packages/wps-weather/src /app/packages/wps-weather/src
 
 # Copy installed Python packages
 COPY --from=builder /app/.venv /app/.venv
@@ -125,6 +130,7 @@ RUN chmod -R a-w \
     /app/packages/wps-shared/src \
     /app/packages/wps-sfms/src \
     /app/packages/wps-wf1/src \
+    /app/packages/wps-weather/src \
     /app/advisory \
     /app/libs \
     /app/alembic \

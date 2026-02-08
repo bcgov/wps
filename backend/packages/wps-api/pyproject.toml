@@ -50,6 +50,7 @@ dependencies = [
     "gdal==3.9.2",
     "wps-wf1",
     "earthaccess>=0.15.1",
+    "wps-weather",
 ]
 
 [project.optional-dependencies]
@@ -67,6 +68,7 @@ dev = [
 wps-shared = { workspace = true }
 wps-sfms = { workspace = true }
 wps-wf1 = { workspace = true }
+wps-weather = { workspace = true }
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
 
 [tool.hatch.metadata]

@@ -62,8 +62,9 @@ class FakeWfwxClient:
         return {"_embedded": {"hourlies": []}}
 
     async def post_forecasts(self, headers, forecasts_json):
-        # simply record or no-op; tests will check session.post call
-        return
+        url = f"{self.settings.base_url}/v1/dailies/daily-bulk"
+        async with self.session.post(url, json=forecasts_json, headers=headers) as response:
+            response.raise_for_status()
 
     async def fetch_stations_by_group_id(self, headers, group_id):
         return []
@@ -201,7 +202,6 @@ def fake_wfwx_client(monkeypatch):
 
 @pytest.fixture
 def wfwx_api(fake_config, fake_redis, fake_ecodivision, fake_wfwx_client):
-    from aiohttp import ClientSession
     from wps_wf1.wfwx_api import WfwxApi
 
     session = FakeSession()
@@ -867,28 +867,19 @@ async def test_get_stations_by_group_ids(monkeypatch, wfwx_api):
 
 
 @pytest.mark.anyio
-async def test_post_forecasts(monkeypatch, wfwx_api):
+async def test_post_forecasts(wfwx_api):
     # Prepare forecasts with model_dump method
     class FakeForecast:
         def __init__(self, payload):
             self.payload = payload
+
         def model_dump(self):
             return self.payload
-
-    posted = []
-
-    async def fake_post_forecasts(headers, forecasts_json):
-        posted.append(("client", forecasts_json))
-
-    wfwx_api.wfwx_client.post_forecasts = fake_post_forecasts
 
     forecasts = [FakeForecast({"x": 1}), FakeForecast({"y": 2})]
     await wfwx_api.post_forecasts(forecasts)
 
-    # Check client.post_forecasts was called
-    assert posted == [("client", [{"x": 1}, {"y": 2}])]
-
-    # Verify session.post was used and raise_for_status invoked
+    # Verify session.post was used
     assert wfwx_api.wfwx_client.session.last_post is not None
     assert wfwx_api.wfwx_client.session.last_post["url"].endswith("/v1/dailies/daily-bulk")
     assert wfwx_api.wfwx_client.session.last_post["json"] == [{"x": 1}, {"y": 2}]
@@ -898,7 +889,9 @@ async def test_post_forecasts(monkeypatch, wfwx_api):
 # ---------------------------
 # Helpers for get_sfms_daily_actuals_all_stations tests
 # ---------------------------
-def _setup_sfms_daily_actuals(monkeypatch, wfwx_api, stations=None, raw_dailies=None, mapper_result=None):
+def _setup_sfms_daily_actuals(
+    monkeypatch, wfwx_api, stations=None, raw_dailies=None, mapper_result=None
+):
     """Common setup for get_sfms_daily_actuals_all_stations tests.
 
     Returns a dict for capturing arguments passed to mocked dependencies.
@@ -943,8 +936,24 @@ async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
     from wps_shared.schemas.sfms import SFMSDailyActual
 
     fake_stations = [
-        types.SimpleNamespace(wfwx_id="wfwx-1", code=100, name="S100", lat=49.0, long=-123.0, elevation=100, zone_code=None),
-        types.SimpleNamespace(wfwx_id="wfwx-2", code=200, name="S200", lat=50.0, long=-124.0, elevation=300, zone_code="K1"),
+        types.SimpleNamespace(
+            wfwx_id="wfwx-1",
+            code=100,
+            name="S100",
+            lat=49.0,
+            long=-123.0,
+            elevation=100,
+            zone_code=None,
+        ),
+        types.SimpleNamespace(
+            wfwx_id="wfwx-2",
+            code=200,
+            name="S200",
+            lat=50.0,
+            long=-124.0,
+            elevation=300,
+            zone_code="K1",
+        ),
     ]
     fake_raw_dailies = [
         {"stationData": {"stationCode": 100}, "temperature": 15.0},
@@ -957,7 +966,11 @@ async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
 
     toi = datetime(2025, 7, 15, 12, 0, 0)
     captured = _setup_sfms_daily_actuals(
-        monkeypatch, wfwx_api, stations=fake_stations, raw_dailies=fake_raw_dailies, mapper_result=expected
+        monkeypatch,
+        wfwx_api,
+        stations=fake_stations,
+        raw_dailies=fake_raw_dailies,
+        mapper_result=expected,
     )
 
     result = await wfwx_api.get_sfms_daily_actuals_all_stations(toi)
@@ -973,9 +986,19 @@ async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
 async def test_get_sfms_daily_actuals_all_stations_empty_dailies(monkeypatch, wfwx_api):
     """When no raw dailies exist, an empty list is returned."""
     fake_stations = [
-        types.SimpleNamespace(wfwx_id="wfwx-1", code=100, name="S100", lat=49.0, long=-123.0, elevation=100, zone_code=None),
+        types.SimpleNamespace(
+            wfwx_id="wfwx-1",
+            code=100,
+            name="S100",
+            lat=49.0,
+            long=-123.0,
+            elevation=100,
+            zone_code=None,
+        ),
     ]
-    _setup_sfms_daily_actuals(monkeypatch, wfwx_api, stations=fake_stations, raw_dailies=[], mapper_result=[])
+    _setup_sfms_daily_actuals(
+        monkeypatch, wfwx_api, stations=fake_stations, raw_dailies=[], mapper_result=[]
+    )
 
     result = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime(2025, 7, 1))
     assert result == []
