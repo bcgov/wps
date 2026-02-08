@@ -371,9 +371,6 @@ class TestECCCGribConsumer:
     @pytest.mark.anyio
     async def test_worker_processes_queue(self):
         """Worker should process files from queue"""
-        mock_message = Mock()
-        mock_message.ack = AsyncMock()
-
         s3_client = MockS3Client()
         model_configs = {"RDPS": {"routing_key": "test.key", "variables": ["TMP", "WIND"]}}
 
@@ -387,7 +384,7 @@ class TestECCCGribConsumer:
 
         # Add a file to the queue
         file = FileToDownload(url="https://example.com/test.grib2", s3_key="prefix/test.grib2")
-        await consumer.work_queue.put((file, mock_message))
+        await consumer.work_queue.put(file)
 
         # Mock the downloader
         with patch.object(
