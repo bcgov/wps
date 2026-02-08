@@ -365,7 +365,7 @@ class TestECCCGribConsumer:
         assert consumer.stats["received"] == 1
 
         # Get the queued file
-        file, _ = await consumer.work_queue.get()
+        file = await consumer.work_queue.get()
         assert "CMC_rdps_TMP" in file.url
 
     @pytest.mark.anyio
