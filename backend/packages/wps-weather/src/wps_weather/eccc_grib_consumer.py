@@ -274,6 +274,8 @@ class ECCCGribConsumer:
 
                 file = self._parse_message(message.body, model_name)
                 if not file:
+                    # need to acknowledge the message even if we don't want it
+                    await message.ack()
                     return
 
                 await self.work_queue.put((file, message))
@@ -360,7 +362,7 @@ class ECCCGribConsumer:
         self._connection = await connect_robust(self.AMQP_URL, timeout=30)
 
         channel = await self._connection.channel()
-        await channel.set_qos(prefetch_count=50)
+        await channel.set_qos(prefetch_count=200)
 
         exchange = await channel.get_exchange(self.EXCHANGE)
 
