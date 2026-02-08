@@ -197,7 +197,7 @@ class ECCCGribConsumer:
         self.health_file = Path(health_file_path)
 
         # messages go here, workers consume
-        self.work_queue: asyncio.Queue[FileToDownload] = asyncio.Queue()
+        self.work_queue: asyncio.Queue[tuple[FileToDownload, IncomingMessage]] = asyncio.Queue()
 
         self.stats = {
             "received": 0,
@@ -269,14 +269,20 @@ class ECCCGribConsumer:
             Handle incoming AMQP message, parse and add to work queue
 
             """
-            self.stats["received"] += 1
+            try:
+                self.stats["received"] += 1
 
-            file = self._parse_message(message.body, model_name)
-            if not file:
-                return
+                file = self._parse_message(message.body, model_name)
+                if not file:
+                    return
 
-            await self.work_queue.put(file)
-            logger.debug(f"Queued [{model_name}]: {file.s3_key}")
+                await self.work_queue.put((file, message))
+                logger.debug(f"Queued [{model_name}]: {file.s3_key}")
+
+            except Exception as e:
+                logger.error(f"Handler error for {model_name}: {e}", exc_info=True)
+                # reject and requeue on unexpected errors
+                await message.reject(requeue=True)
 
         return handler
 
@@ -290,14 +296,21 @@ class ECCCGribConsumer:
             while self._running:
                 try:
                     # Get work with timeout so we can check _running flag
-                    file = await asyncio.wait_for(self.work_queue.get(), timeout=1.0)
+                    file, message = await asyncio.wait_for(self.work_queue.get(), timeout=1.0)
 
                     success = await downloader.download_and_upload(file)
 
                     if success:
+                        # uplod successful - acknowledge message
+                        await message.ack()
                         self.stats["uploaded"] += 1
+                        logger.debug(f"ACKed: {file.s3_key}")
                     else:
+                        # upload failed after retries - reject but don't requeue
+                        # (requeuing would cause infinite retries)
+                        await message.reject(requeue=False)
                         self.stats["failed"] += 1
+                        logger.warning(f"Rejected message: {file.s3_key}")
 
                     self.work_queue.task_done()
 
@@ -358,10 +371,15 @@ class ECCCGribConsumer:
             # must match pattern specified by: https://eccc-msc.github.io/open-data/msc-datamart/amqp_en/
             # q_anonymous.subscribe.{config_name}.{company_name}
             queue_name = f"q_anonymous.subscribe.{model}.bcgov"
-            queue = await channel.declare_queue(queue_name, exclusive=False)
+
+            # don't set exclusive queue, so we can have multiple consumers if needed
+            # auto_delete=False so queue persists if consumer disconnects
+            queue = await channel.declare_queue(queue_name, exclusive=False, auto_delete=False)
 
             await queue.bind(exchange, routing_key=config["routing_key"])
-            await queue.consume(self._create_message_handler(model), no_ack=True)
+            # no_ack=False so we can manually ack (acknowledge) messages after processing
+            # we want this so that if something happens to the pod before download/upload, the message will be requeued
+            await queue.consume(self._create_message_handler(model), no_ack=False)
 
             logger.info(f"✅ Subscribed to {model}: {config['routing_key']}")
 
