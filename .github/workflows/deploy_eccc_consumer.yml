@@ -44,7 +44,7 @@ jobs:
   deploy-dev:
     name: Deploy ECCC Consumer to Dev
     needs: detect-changes
-    if: needs.detect-changes.outputs.should_run == 'true' && github.triggering_actor != 'renovate'
+    if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
