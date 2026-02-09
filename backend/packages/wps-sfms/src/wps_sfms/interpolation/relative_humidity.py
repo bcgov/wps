@@ -3,7 +3,7 @@ Relative humidity interpolation using Inverse Distance Weighting (IDW) with elev
 
 This module implements the SFMS relative humidity interpolation workflow:
 1. Interpolate dew point temperatures to a raster using IDW with elevation adjustment
-   (same lapse rate approach as temperature)
+   (using the dew point lapse rate of 2.0°C/km, not the dry-bulb 6.5°C/km)
 2. Read the already-interpolated temperature raster
 3. Compute RH from temperature and dew point using the Magnus formula
 """
@@ -11,7 +11,7 @@ This module implements the SFMS relative humidity interpolation workflow:
 import logging
 import numpy as np
 from osgeo import gdal
-from wps_sfms.interpolation.source import LAPSE_RATE, StationDewPointSource
+from wps_sfms.interpolation.source import DEW_POINT_LAPSE_RATE, StationDewPointSource
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_sfms.interpolation.common import (
@@ -31,7 +31,7 @@ def interpolate_rh_to_raster(
 ) -> str:
     """
     Interpolate relative humidity to a raster by:
-    1. Interpolating dew point with elevation adjustment (same as temperature)
+    1. Interpolating dew point with dew point lapse rate elevation adjustment
     2. Reading the already-interpolated temperature raster
     3. Computing RH from the two using the Magnus formula
 
@@ -88,7 +88,7 @@ def interpolate_rh_to_raster(
             )
 
             station_lats, station_lons, sea_level_dewpoints = (
-                dewpoint_source.get_interpolation_data()
+                dewpoint_source.get_interpolation_data(lapse_rate=DEW_POINT_LAPSE_RATE)
             )
             logger.info(
                 "Running batch dew point IDW interpolation for %d pixels and %d stations",
@@ -113,7 +113,7 @@ def interpolate_rh_to_raster(
                 np.float32, copy=False
             )
             elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
-            actual_dewpoints = dewpoint_source.compute_adjusted_values(sea, elev, LAPSE_RATE)
+            actual_dewpoints = dewpoint_source.compute_adjusted_values(sea, elev, DEW_POINT_LAPSE_RATE)
 
             # Only compute RH where the temp raster also has valid data
             temp_valid = temp_valid_mask[rows, cols]

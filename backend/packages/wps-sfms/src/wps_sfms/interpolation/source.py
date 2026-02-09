@@ -10,6 +10,10 @@ from wps_shared.sfms.raster_addresser import SFMSInterpolatedWeatherParameter
 # This matches the CWFIS implementation
 LAPSE_RATE = 0.0065
 
+# Dew point lapse rate: 2.0°C per 1000m for unsaturated air
+# https://www.atmos.illinois.edu/~snodgrss/Airflow_over_mtn.html
+DEW_POINT_LAPSE_RATE = 0.002
+
 
 class StationInterpolationSource(Protocol):
     weather_param: SFMSInterpolatedWeatherParameter
@@ -86,7 +90,7 @@ class LapseRateAdjustedSource(ABC):
         return self._lats, self._lons, self._elevs, self._values
 
     def get_interpolation_data(
-        self, lapse_rate: float = LAPSE_RATE
+        self, lapse_rate: float = DEW_POINT_LAPSE_RATE
     ) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
         """Returns arrays for IDW: (lats, lons, sea_level_values), vectorized."""
         lats, lons, elevs, values = self.get_station_arrays(only_valid=True)
