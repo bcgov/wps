@@ -175,6 +175,7 @@ jobs:
             echo "CHANGES=true" >> $GITHUB_ENV
           else
             echo "CHANGES=false" >> $GITHUB_ENV
+          fi
 
       - name: Deploy wps-weather
         if: env.CHANGES == 'true'
