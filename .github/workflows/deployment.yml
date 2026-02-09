@@ -183,7 +183,7 @@ jobs:
         if: env.CHANGES == 'true'
         shell: bash
         run: |
-          bash openshift/scripts/oc_provision_wps_weather.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_eccc_grib_consumer.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
