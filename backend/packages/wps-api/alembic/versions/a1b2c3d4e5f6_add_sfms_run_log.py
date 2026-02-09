@@ -30,3 +30,4 @@ def upgrade():
 
 def downgrade():
     op.drop_table("sfms_run_log")
+
