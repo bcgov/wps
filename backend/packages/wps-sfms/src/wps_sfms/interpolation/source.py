@@ -10,9 +10,8 @@ from wps_shared.sfms.raster_addresser import SFMSInterpolatedWeatherParameter
 # This matches the CWFIS implementation
 LAPSE_RATE = 0.0065
 
-# Dew point lapse rate: 2.0°C per 1000m for unsaturated air
-# https://www.atmos.illinois.edu/~snodgrss/Airflow_over_mtn.html
-DEW_POINT_LAPSE_RATE = 0.002
+# Dew point lapse rate: 4.0°C per 1000m based on discussion with JE
+DEW_POINT_LAPSE_RATE = 0.004
 
 
 class StationInterpolationSource(Protocol):
