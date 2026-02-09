@@ -87,7 +87,7 @@ def do_run_migrations(connection):
     # Check if we should auto-stamp (production only)
     is_production = os.getenv("ENVIRONMENT", "").lower() in ("production", "prod")
 
-    if is_production:
+    if not is_production:
         # Get current database version
         migration_context = MigrationContext.configure(connection)
         current_rev = migration_context.get_current_revision()
