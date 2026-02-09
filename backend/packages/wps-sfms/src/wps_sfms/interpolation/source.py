@@ -130,10 +130,15 @@ class StationTemperatureSource(StationInterpolationSource):
 class StationActualSource(StationInterpolationSource):
     """Generic source for interpolating a named attribute from SFMSDailyActual."""
 
-    def __init__(self, weather_param: SFMSInterpolatedWeatherParameter, attribute: str):
+    # Map enum values to SFMSDailyActual attribute names where they differ
+    _ATTRIBUTE_OVERRIDES = {
+        SFMSInterpolatedWeatherParameter.PRECIP: "precipitation",
+    }
+
+    def __init__(self, weather_param: SFMSInterpolatedWeatherParameter):
         super().__init__()
         self.weather_param = weather_param
-        self._attribute = attribute
+        self._attribute = self._ATTRIBUTE_OVERRIDES.get(weather_param, weather_param.value)
 
     def get_interpolation_data(
         self, sfms_actuals: List[SFMSDailyActual]
@@ -147,16 +152,16 @@ class StationActualSource(StationInterpolationSource):
 
 
 def StationPrecipitationSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.PRECIP, "precipitation")
+    return StationActualSource(SFMSInterpolatedWeatherParameter.PRECIP)
 
 
 def StationFFMCSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.FFMC, "ffmc")
+    return StationActualSource(SFMSInterpolatedWeatherParameter.FFMC)
 
 
 def StationDMCSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.DMC, "dmc")
+    return StationActualSource(SFMSInterpolatedWeatherParameter.DMC)
 
 
 def StationDCSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.DC, "dc")
+    return StationActualSource(SFMSInterpolatedWeatherParameter.DC)
