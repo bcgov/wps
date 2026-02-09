@@ -306,7 +306,7 @@ class TestMondayFWIInterpolation:
         await run_sfms_daily_actuals(target_date)
 
         # 5 tracked runs: temp, precip, ffmc, dmc, dc
-        assert mock_dependencies.db_session.add.call_count == 5
+        assert mock_dependencies.db_session.execute.call_count == 5
 
 
 class TestMain:
