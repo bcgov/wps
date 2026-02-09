@@ -54,7 +54,7 @@ const SideNavigationListItem = ({
   setTab,
 }: SideNavigationListItemProps) => {
   return (
-    <ListItem sx={{ px: 0 }}>
+    <ListItem key={navItem} sx={{ px: 0 }}>
       <StyledListItemButton
         selected={tab === navItem}
         onClick={() => setTab(navItem)}

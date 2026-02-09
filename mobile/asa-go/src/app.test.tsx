@@ -73,6 +73,12 @@ vi.mock("@/components/TabPanel", () => ({
     ) : null,
 }));
 
+vi.mock("@/components/SideNavigation", () => ({
+  default: ({ tab }: { tab: NavPanel; setTab: (tab: NavPanel) => void }) => (
+    <div data-testid="side-navigation">Side Navigation: {tab}</div>
+  ),
+}));
+
 // Mock hooks
 vi.mock("@/hooks/useAppIsActive", () => ({
   useAppIsActive: () => true,
@@ -188,5 +194,130 @@ describe("App", () => {
 
     // Check if StatusBar.show() is called
     expect(StatusBar.show).toHaveBeenCalled();
+  });
+
+  it("displays SideNavigation and hides BottomNavigation in landscape on small screens", async () => {
+    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
+
+    // Mock landscape orientation and small screen
+    ScreenOrientation.orientation = vi
+      .fn()
+      .mockResolvedValue({ type: "landscape-primary" });
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
+    // Wait for async orientation check to complete
+    await waitFor(() => {
+      expect(ScreenOrientation.orientation).toHaveBeenCalled();
+    });
+
+    // Check if SideNavigation is displayed and BottomNavigation is hidden on small screens
+    expect(screen.getByTestId("side-navigation")).toBeInTheDocument();
+    expect(screen.queryByTestId("bottom-nav")).not.toBeInTheDocument();
+  });
+
+  it("displays AppHeader and BottomNavigation in portrait on small screens", async () => {
+    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
+
+    // Mock portrait orientation and small screen
+    ScreenOrientation.orientation = vi
+      .fn()
+      .mockResolvedValue({ type: "portrait-primary" });
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
+    // Wait for async orientation check to complete
+    await waitFor(() => {
+      expect(ScreenOrientation.orientation).toHaveBeenCalled();
+    });
+
+    // Check if AppHeader and BottomNavigation are displayed
+    expect(screen.getByTestId("app-header")).toBeInTheDocument();
+    expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
+  });
+
+  it("displays AppHeader and BottomNavigation in landscape on medium or larger screens", async () => {
+    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
+
+    // Mock landscape orientation and medium/large screen
+    ScreenOrientation.orientation = vi
+      .fn()
+      .mockResolvedValue({ type: "landscape-primary" });
+
+    // Increase window width to be larger than md breakpoint (900px)
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: 1024,
+    });
+
+    // Force reflow of media query listeners
+    window.dispatchEvent(new Event("resize"));
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
+    // Wait for async orientation check to complete
+    await waitFor(() => {
+      expect(ScreenOrientation.orientation).toHaveBeenCalled();
+    });
+
+    // Check if AppHeader and BottomNavigation are displayed
+    expect(screen.getByTestId("app-header")).toBeInTheDocument();
+    expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
+    expect(screen.queryByTestId("side-navigation")).not.toBeInTheDocument();
+  });
+
+  it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {
+    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
+
+    // Mock portrait orientation and medium/large screen
+    ScreenOrientation.orientation = vi
+      .fn()
+      .mockResolvedValue({ type: "portrait-primary" });
+
+    // Increase window width to be larger than md breakpoint (900px)
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: 1024,
+    });
+
+    // Force reflow of media query listeners
+    window.dispatchEvent(new Event("resize"));
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
+    // Wait for async orientation check to complete
+    await waitFor(() => {
+      expect(ScreenOrientation.orientation).toHaveBeenCalled();
+    });
+
+    // Check if AppHeader and BottomNavigation are displayed
+    expect(screen.getByTestId("app-header")).toBeInTheDocument();
+    expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
   });
 });
