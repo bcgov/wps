@@ -235,10 +235,10 @@ class TestMondayFWIInterpolation:
     """Tests for Monday FWI index interpolation."""
 
     @pytest.mark.anyio
-    async def test_first_monday_march_runs_fwi_interpolation(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that FWI interpolation runs on the first Monday of March."""
-        # 2024-03-04 is the first Monday of March 2024
-        target_date = datetime(2024, 3, 4, tzinfo=timezone.utc)
+    async def test_first_monday_may_runs_fwi_interpolation(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that FWI interpolation runs on the first Monday of May."""
+        # 2024-05-06 is the first Monday of May 2024
+        target_date = datetime(2024, 5, 6, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
@@ -271,8 +271,8 @@ class TestMondayFWIInterpolation:
         mock_dependencies.idw_processor.process.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_monday_outside_march_april_skips_fwi_interpolation(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that FWI interpolation does NOT run on Mondays outside March/April."""
+    async def test_monday_outside_april_may_skips_fwi_interpolation(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that FWI interpolation does NOT run on Mondays outside April/May."""
         # 2024-07-01 is a Monday in July
         target_date = datetime(2024, 7, 1, tzinfo=timezone.utc)
 
@@ -283,10 +283,10 @@ class TestMondayFWIInterpolation:
         mock_dependencies.idw_processor.process.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_second_monday_march_skips_fwi_interpolation(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that FWI interpolation does NOT run on the second Monday of March."""
-        # 2024-03-11 is the second Monday of March 2024
-        target_date = datetime(2024, 3, 11, tzinfo=timezone.utc)
+    async def test_second_monday_april_skips_fwi_interpolation(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that FWI interpolation does NOT run on the second Monday of April."""
+        # 2024-04-08 is the second Monday of April 2024
+        target_date = datetime(2024, 4, 8, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
@@ -295,10 +295,10 @@ class TestMondayFWIInterpolation:
         mock_dependencies.idw_processor.process.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_first_monday_march_writes_five_run_log_entries(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that first Monday of March produces 5 run log entries (temp + precip + 3 FWI)."""
-        # 2024-03-04 is the first Monday of March 2024
-        target_date = datetime(2024, 3, 4, tzinfo=timezone.utc)
+    async def test_first_monday_april_writes_five_run_log_entries(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that first Monday of April produces 5 run log entries (temp + precip + 3 FWI)."""
+        # 2024-04-01 is the first Monday of April 2024
+        target_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
