@@ -42,6 +42,7 @@ class MockResponse:
         return self
 
     async def __aexit__(self, *args):
+        ""
         pass
 
     def raise_for_status(self):
