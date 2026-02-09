@@ -68,6 +68,7 @@ class MockGetResult:
         return self.response
 
     async def __aexit__(self, *args):
+        ""
         pass
 
 
@@ -85,12 +86,14 @@ class MockSession:
         return self
 
     async def __aexit__(self, *args):
+        ""
         pass
 
     def get(self, *args, **kwargs):
         return self.get_callback(*args, **kwargs)
 
     async def close(self):
+        ""
         pass
 
 
