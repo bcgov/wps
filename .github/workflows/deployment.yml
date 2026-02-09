@@ -165,6 +165,23 @@ jobs:
           SCHEDULE="45 0 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX}-545pm apply
           SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
 
+      - name: Detect changes to wps-weather
+        shell: bash
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          TARGET_PATHS="^backend/packages/wps-weather/"
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E "$TARGET_PATHS"; then
+            echo "CHANGES=true" >> $GITHUB_ENV
+          else
+            echo "CHANGES=false" >> $GITHUB_ENV
+
+      - name: Deploy wps-weather
+        if: env.CHANGES == 'true'
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_wps_weather.sh ${SUFFIX} apply
+
   scan-dev:
     name: ZAP Baseline Scan Dev
     needs: [deploy-dev]
