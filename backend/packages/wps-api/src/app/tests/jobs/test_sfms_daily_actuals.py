@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.jobs.sfms_daily_actuals import run_sfms_daily_actuals, main
 from app.tests.conftest import create_mock_sfms_actuals
-from wps_shared.db.models.sfms_run_log import SFMSRunLogStatus
+from wps_shared.db.models.sfms_run import SFMSRunLogStatus
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
 
@@ -52,6 +52,9 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         new_callable=AsyncMock,
         return_value=1,
     )
+
+    # Mock save_sfms_run
+    mocker.patch(f"{MODULE_PATH}.save_sfms_run", new_callable=AsyncMock, return_value=1)
 
     # Mock RasterKeyAddresser
     mock_addresser = MagicMock()
@@ -182,7 +185,7 @@ class TestRunSfmsDailyActuals:
         await run_sfms_daily_actuals(target_date)
 
         # Two tracked runs means two session.add calls
-        assert mock_dependencies.db_session.add.call_count == 2
+        assert mock_dependencies.db_session.execute.call_count == 2
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):
