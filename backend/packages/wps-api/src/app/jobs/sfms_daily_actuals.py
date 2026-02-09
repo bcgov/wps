@@ -87,10 +87,12 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
             await run_temperature_interpolation()
             await run_precipitation_interpolation()
 
-            # On Mondays, also interpolate FWI indices (FFMC, DMC, DC)
+            # Interpolate FWI indices (FFMC, DMC, DC) on the first Monday of March and April
             is_monday = datetime_to_process.weekday() == 0
-            if is_monday:
-                logger.info("Monday detected — running FWI index interpolation")
+            is_first_week = datetime_to_process.day <= 7
+            is_march_or_april = datetime_to_process.month in (3, 4)
+            if is_monday and is_first_week and is_march_or_april:
+                logger.info("First Monday of %s — running FWI index interpolation", datetime_to_process.strftime("%B"))
 
                 fwi_sources = [
                     (SFMSRunLogJobName.FFMC_INTERPOLATION, StationFFMCSource()),
