@@ -1,0 +1,66 @@
+name: Deploy ECCC Consumer
+
+permissions:
+  contents: read
+
+on:
+  workflow_run:
+    workflows: ["Deployment"]
+    types: [completed]
+
+env:
+  PROJ_DEV: e1e498-dev
+  PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+
+jobs:
+  detect-changes:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.diff.outputs.changed }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect relevant file changes
+        id: diff
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          BASE_SHA: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
+          TARGET_PATHS: "^backend/packages/wps-weather/src/wps_weather/"
+        run: |
+          echo "Base SHA: $BASE_SHA"
+          echo "Head SHA: $HEAD_SHA"
+          echo "Checking paths: $TARGET_PATHS"
+
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E "$TARGET_PATHS"; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-dev:
+    name: Deploy ECCC Consumer to Dev
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should_run == 'true' && github.triggering_actor != 'renovate'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/oc-setup
+        id: oc-setup
+        with:
+          pr-number: $PR_NUMBER
+
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+          oc-namespace: e1e498-dev
+
+      - name: Provision ECCC Consumer
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_eccc_grib_consumer.sh ${SUFFIX} apply
