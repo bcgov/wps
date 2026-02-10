@@ -1,16 +1,21 @@
 from datetime import date, datetime, timezone
 
 import pytest
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
 
-from wps_shared.db.crud.sfms_run_log import save_sfms_run_log, track_sfms_run, update_sfms_run_log
-from wps_shared.db.models.sfms_run_log import SFMSRunLog, SFMSRunLogJobName, SFMSRunLogStatus
+from wps_shared.db.crud.sfms_run import save_sfms_run_log, track_sfms_run, update_sfms_run_log
+from wps_shared.db.models.sfms_run import (
+    SFMSRun,
+    SFMSRunLog,
+    SFMSRunLogJobName,
+    SFMSRunLogStatus,
+)
 
 
 test_target_date = date(2025, 7, 15)
-test_started_at = datetime(2025, 7, 15, 20, 30, 0, tzinfo=timezone.utc)
 test_completed_at = datetime(2025, 7, 15, 20, 45, 0, tzinfo=timezone.utc)
 
 
@@ -28,6 +33,12 @@ async def engine(postgres_container):
     engine = create_async_engine(db_url, echo=False)
 
     async with engine.begin() as conn:
+        await conn.run_sync(SFMSRun.__table__.create)
+        # Insert a mock sfms_run record
+        await conn.execute(
+            text("""INSERT INTO sfms_run (run_type, target_date, run_datetime, stations)
+                 VALUES ('actual', '2026-02-01', '2026-02-02 16:32:15.294322-08', ARRAY[1, 2, 3]);""")
+        )
         await conn.run_sync(SFMSRunLog.__table__.create)
 
     yield engine
@@ -49,13 +60,12 @@ async def async_session(session_factory):
 @pytest.mark.anyio
 async def test_save_sfms_run_log(async_session: AsyncSession):
     """Test inserting a new run log record and getting back its id."""
-    record = SFMSRunLog(
-        job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=test_started_at,
-        status=SFMSRunLogStatus.RUNNING,
+    log_id = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
-    log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
     assert log_id is not None
@@ -64,22 +74,20 @@ async def test_save_sfms_run_log(async_session: AsyncSession):
     result = await async_session.execute(select(SFMSRunLog).where(SFMSRunLog.id == log_id))
     saved = result.scalar_one()
     assert saved.job_name == SFMSRunLogJobName.TEMPERATURE_INTERPOLATION
-    assert saved.target_date == test_target_date
-    assert saved.started_at == test_started_at
     assert saved.status == SFMSRunLogStatus.RUNNING
     assert saved.completed_at is None
+    assert saved.sfms_run_id == 1
 
 
 @pytest.mark.anyio
 async def test_update_sfms_run_log_success(async_session: AsyncSession):
     """Test updating a run log to success status with completed_at."""
-    record = SFMSRunLog(
-        job_name=SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=test_started_at,
-        status=SFMSRunLogStatus.RUNNING,
+    log_id = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
-    log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
     await update_sfms_run_log(
@@ -96,13 +104,12 @@ async def test_update_sfms_run_log_success(async_session: AsyncSession):
 @pytest.mark.anyio
 async def test_update_sfms_run_log_failed(async_session: AsyncSession):
     """Test updating a run log to failed status."""
-    record = SFMSRunLog(
-        job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=test_started_at,
-        status=SFMSRunLogStatus.RUNNING,
+    log_id = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
-    log_id = await save_sfms_run_log(async_session, record)
     await async_session.commit()
 
     await update_sfms_run_log(
@@ -119,24 +126,22 @@ async def test_update_sfms_run_log_failed(async_session: AsyncSession):
 @pytest.mark.anyio
 async def test_multiple_run_logs(async_session: AsyncSession):
     """Test inserting multiple run log records for different jobs returns unique ids."""
-    record1 = SFMSRunLog(
-        job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=test_started_at,
-        status=SFMSRunLogStatus.RUNNING,
+    record1 = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
-    record2 = SFMSRunLog(
-        job_name=SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
-        target_date=test_target_date,
-        started_at=datetime(2025, 7, 15, 20, 35, 0, tzinfo=timezone.utc),
-        status=SFMSRunLogStatus.RUNNING,
+    record2 = await save_sfms_run_log(
+        async_session,
+        SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+        SFMSRunLogStatus.RUNNING,
+        1,
     )
 
-    id1 = await save_sfms_run_log(async_session, record1)
-    id2 = await save_sfms_run_log(async_session, record2)
     await async_session.commit()
 
-    assert id1 != id2
+    assert record1 != record2
 
     result = await async_session.execute(select(SFMSRunLog))
     rows = result.scalars().all()
@@ -151,10 +156,9 @@ async def test_multiple_run_logs(async_session: AsyncSession):
 @pytest.mark.anyio
 async def test_track_sfms_run_success(async_session: AsyncSession):
     """Test decorator records success when the wrapped function succeeds."""
-    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
     called = False
 
-    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, target, async_session)
+    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, 1, async_session)
     async def my_job() -> None:
         nonlocal called
         called = True
@@ -166,19 +170,15 @@ async def test_track_sfms_run_success(async_session: AsyncSession):
     result = await async_session.execute(select(SFMSRunLog))
     row = result.scalar_one()
     assert row.job_name == SFMSRunLogJobName.TEMPERATURE_INTERPOLATION
-    assert row.target_date == target.date()
     assert row.status == SFMSRunLogStatus.SUCCESS
-    assert row.started_at is not None
     assert row.completed_at is not None
-    assert row.completed_at >= row.started_at
 
 
 @pytest.mark.anyio
 async def test_track_sfms_run_failure(async_session: AsyncSession):
     """Test decorator records failure and re-raises when the wrapped function raises."""
-    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
 
-    @track_sfms_run(SFMSRunLogJobName.PRECIPITATION_INTERPOLATION, target, async_session)
+    @track_sfms_run(SFMSRunLogJobName.PRECIPITATION_INTERPOLATION, 1, async_session)
     async def my_failing_job() -> None:
         raise RuntimeError("something went wrong")
 
@@ -195,9 +195,8 @@ async def test_track_sfms_run_failure(async_session: AsyncSession):
 @pytest.mark.anyio
 async def test_track_sfms_run_preserves_return_value(async_session: AsyncSession):
     """Test decorator passes through the return value of the wrapped function."""
-    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
 
-    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, target, async_session)
+    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, 1, async_session)
     async def my_job() -> str:
         return "result"
 
@@ -208,9 +207,8 @@ async def test_track_sfms_run_preserves_return_value(async_session: AsyncSession
 @pytest.mark.anyio
 async def test_track_sfms_run_preserves_function_name(async_session: AsyncSession):
     """Test decorator preserves the wrapped function's name via functools.wraps."""
-    target = datetime(2025, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
 
-    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, target, async_session)
+    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, 1, async_session)
     async def original_name() -> None:
         pass
 

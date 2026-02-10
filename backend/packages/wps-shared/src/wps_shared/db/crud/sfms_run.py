@@ -1,28 +1,44 @@
 """CRUD operations for SFMS run log."""
 
 import functools
-from datetime import datetime
 import logging
+from datetime import date, datetime
+from typing import List
 
+from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from wps_shared.db.models.sfms_run_log import SFMSRunLog, SFMSRunLogJobName, SFMSRunLogStatus
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+from wps_shared.db.models.sfms_run import (
+    SFMSRun,
+    SFMSRunLog,
+    SFMSRunLogJobName,
+    SFMSRunLogStatus,
+)
 from wps_shared.utils.time import get_utc_now
-
 
 logger = logging.getLogger(__name__)
 
 
-async def save_sfms_run_log(session: AsyncSession, record: SFMSRunLog) -> int:
+async def save_sfms_run_log(
+    session: AsyncSession,
+    job_name: str,
+    status: SFMSRunLogStatus,
+    sfms_run_id: int,
+) -> int:
     """Insert an SFMSRunLog row and return its id.
 
     :param session: An async database session.
     :param record: The SFMSRunLog record to insert.
     :return: The id of the newly inserted row.
     """
-    session.add(record)
-    await session.flush()
-    return record.id
+    stmt = (
+        insert(SFMSRunLog)
+        .values(job_name=job_name, status=status, sfms_run_id=sfms_run_id)
+        .returning(SFMSRunLog.id)
+    )
+    result = await session.execute(stmt)
+    return result.scalar()
 
 
 async def update_sfms_run_log(
@@ -40,7 +56,11 @@ async def update_sfms_run_log(
     record.completed_at = completed_at
 
 
-def track_sfms_run(job_name: SFMSRunLogJobName, datetime_to_process: datetime, session: AsyncSession):
+def track_sfms_run(
+    job_name: SFMSRunLogJobName,
+    sfms_run_id: int,
+    session: AsyncSession,
+):
     """Decorator that logs an sfms_run_log entry around an async function.
 
     :param job_name: Name to record in the run log.
@@ -57,13 +77,9 @@ def track_sfms_run(job_name: SFMSRunLogJobName, datetime_to_process: datetime, s
     def decorator(fn):
         @functools.wraps(fn)
         async def wrapper(*args, **kwargs):
-            log_record = SFMSRunLog(
-                job_name=job_name,
-                target_date=datetime_to_process.date(),
-                started_at=get_utc_now(),
-                status=SFMSRunLogStatus.RUNNING,
+            log_id = await save_sfms_run_log(
+                session, job_name, SFMSRunLogStatus.RUNNING, sfms_run_id
             )
-            log_id = await save_sfms_run_log(session, log_record)
 
             try:
                 # Calculate execution time
@@ -92,3 +108,33 @@ def track_sfms_run(job_name: SFMSRunLogJobName, datetime_to_process: datetime, s
         return wrapper
 
     return decorator
+
+
+async def save_sfms_run(
+    session: AsyncSession,
+    run_type: RunTypeEnum,
+    target_date: date,
+    run_datetime: datetime,
+    stations: List[int],
+) -> int:
+    """Insert an SFMSRun row and return its id.
+
+    :param session: An async database session.
+    :param run_type: The run type, forecast or actual.
+    :param target_date: The target date of the sfms run.
+    :param run_date: The actual run date and time of the sfms run.
+    :param stations: The list of stations used for the sfms run.
+    :return: The id of the newly inserted row.
+    """
+    stmt = (
+        insert(SFMSRun)
+        .values(
+            run_type=run_type,
+            target_date=target_date,
+            run_datetime=run_datetime,
+            stations=stations,
+        )
+        .returning(SFMSRun.id)
+    )
+    result = await session.execute(stmt)
+    return result.scalar()
