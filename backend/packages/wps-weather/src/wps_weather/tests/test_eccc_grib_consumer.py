@@ -407,7 +407,7 @@ class TestECCCGribConsumer:
             consumer._running = True
 
             # wait until the queue item is fully processed
-            asyncio.create_task(consumer._worker(0))
+            _ = asyncio.create_task(consumer._worker(0))
 
             # Wait for processing
             await consumer.work_queue.join()
