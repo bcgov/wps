@@ -17,7 +17,7 @@ from wps_wf1.validation import get_valid_flags
 
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.fba import FireCenterStation, FireCentre
-from wps_shared.schemas.forecasts import NoonForecast
+from wps_shared.db.models.forecasts import NoonForecast
 from wps_shared.schemas.morecast_v2 import (
     StationDailyFromWF1,
     WeatherDeterminate,
