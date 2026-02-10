@@ -157,8 +157,12 @@ class ECCCGribConsumer:
     """
     Listens to ECCC AMQP feed and downloads GRIB files to S3
 
-    - AMQP messages go to asyncio.Queue
-    - Worker pool processes queue
+    The overall flow is:
+
+    1. AMQP message arrives -> handler puts (FileToDownload, IncomingMessage) into work_queue
+    2. Worker gets the tuple from work_queue
+    3. After download/upload, worker acks (acknowledges) the AMQP message
+    4. If it's a message that we don't want, it will be acknowledged or rejected (ack'd/nack'd)
     """
 
     AMQP_HOST = "dd.weather.gc.ca"
@@ -284,8 +288,8 @@ class ECCCGribConsumer:
 
             except Exception as e:
                 logger.error(f"Handler error for {model_name}: {e}", exc_info=True)
-                # reject and requeue on unexpected errors
-                await message.reject(requeue=True)
+                # reject on unexpected errors
+                await message.reject(requeue=False)
 
         return handler
 
