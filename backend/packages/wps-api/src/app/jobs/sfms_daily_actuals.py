@@ -109,7 +109,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                 )
                 logger.info("Precip interpolation raster: %s", precip_s3_key)
 
-            @track_sfms_run(SFMSRunLogJobName.RH_INTERPOLATION, datetime_to_process, session)
+            @track_sfms_run(SFMSRunLogJobName.RH_INTERPOLATION, sfms_run_id, session)
             async def run_rh_interpolation() -> None:
                 rh_processor = RHInterpolationProcessor(datetime_to_process, raster_addresser)
                 rh_s3_key = await rh_processor.process(
