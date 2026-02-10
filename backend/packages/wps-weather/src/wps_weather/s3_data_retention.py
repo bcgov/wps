@@ -1,10 +1,10 @@
 import asyncio
 import argparse
 import logging
-from datetime import datetime, timezone
 
 from wps_shared.utils.s3 import apply_retention_policy_on_date_folders
 from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
 from wps_shared import config
 
@@ -39,7 +39,7 @@ async def main():
     logger.info("Starting GRIB S3 Retention Policy Job")
     logger.info(f"Days to retain: {GRIB_RETENTION_THRESHOLD}")
     logger.info(f"Dry run: {args.dry_run}")
-    logger.info(f"Start time: {datetime.now(timezone.utc).isoformat()}")
+    logger.info(f"Start time: {get_utc_now().isoformat()}")
     logger.info("=" * 60)
 
     try:
@@ -59,7 +59,7 @@ async def main():
             )
 
             logger.info("✅ Retention policy completed successfully")
-            logger.info(f"End time: {datetime.now(timezone.utc).isoformat()}")
+            logger.info(f"End time: {get_utc_now().isoformat()}")
 
     except Exception as e:
         logger.error(f"Retention policy failed: {e}")
