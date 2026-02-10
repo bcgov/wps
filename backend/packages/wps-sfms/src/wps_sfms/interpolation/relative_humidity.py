@@ -5,7 +5,7 @@ This module implements the SFMS relative humidity interpolation workflow:
 1. Interpolate dew point temperatures to a raster using IDW with elevation adjustment
    (using the dew point lapse rate of 4.0°C/km, not the dry-bulb 6.5°C/km)
 2. Read the already-interpolated temperature raster
-3. Compute RH from temperature and dew point using the Magnus formula
+3. Compute RH from temperature and dew point using the Magnus formula: https://bmcnoldy.earth.miami.edu/Humidity.html
 """
 
 import logging
@@ -67,7 +67,6 @@ def interpolate_rh_to_raster(
                 temp_data = temp_band.ReadAsArray()
                 if temp_data is None:
                     raise ValueError("Failed to read temperature raster data")
-                temp_valid_mask = temp_data != SFMS_NO_DATA
 
             rh_array = np.full((y_size, x_size), SFMS_NO_DATA, dtype=np.float32)
 
@@ -118,15 +117,11 @@ def interpolate_rh_to_raster(
                 sea, elev, DEW_POINT_LAPSE_RATE
             )
 
-            # Only compute RH where the temp raster also has valid data
-            temp_valid = temp_valid_mask[rows, cols]
-
-            if np.any(temp_valid):
-                rh_values = dewpoint_source.compute_rh(
-                    temp_data[rows[temp_valid], cols[temp_valid]].astype(np.float32),
-                    actual_dewpoints[temp_valid],
-                )
-                rh_array[rows[temp_valid], cols[temp_valid]] = rh_values
+            rh_values = dewpoint_source.compute_rh(
+                temp_data[rows, cols].astype(np.float32),
+                actual_dewpoints,
+            )
+            rh_array[rows, cols] = rh_values
 
         log_interpolation_stats(
             total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count
