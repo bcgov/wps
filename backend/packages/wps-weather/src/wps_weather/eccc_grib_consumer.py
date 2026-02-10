@@ -303,7 +303,7 @@ class ECCCGribConsumer:
                     success = await downloader.download_and_upload(file)
 
                     if success:
-                        # uplod successful - acknowledge message
+                        # upload successful - acknowledge message
                         await message.ack()
                         self.stats["uploaded"] += 1
                         logger.debug(f"ACKed: {file.s3_key}")
