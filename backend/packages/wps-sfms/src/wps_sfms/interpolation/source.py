@@ -127,25 +127,41 @@ class StationTemperatureSource(StationInterpolationSource):
         self._valid_mask = np.isfinite(self._elevs) & np.isfinite(self._temps)
 
 
-class StationPrecipitationSource(StationInterpolationSource):
-    """Represents a weather station with precipitation and location data for interpolation."""
+class StationActualSource(StationInterpolationSource):
+    """Generic source for interpolating a named attribute from SFMSDailyActual."""
 
-    def __init__(self):
+    # Map enum values to SFMSDailyActual attribute names where they differ
+    _ATTRIBUTE_OVERRIDES = {
+        SFMSInterpolatedWeatherParameter.PRECIP: "precipitation",
+    }
+
+    def __init__(self, weather_param: SFMSInterpolatedWeatherParameter):
         super().__init__()
-        self.weather_param = SFMSInterpolatedWeatherParameter.PRECIP
+        self.weather_param = weather_param
+        self._attribute = self._ATTRIBUTE_OVERRIDES.get(weather_param, weather_param.value)
 
     def get_interpolation_data(
         self, sfms_actuals: List[SFMSDailyActual]
     ) -> Tuple[List[float], List[float], List[float]]:
-        """
-        Extract lat, lon, and precipitation for daily actuals with valid data.
-
-        :param sfms_actuals: List of SFMSDailyActual objects
-        :return: Tuple of (lats, lons, values) for daily actuals with valid precipitation
-        """
-        valid = [s for s in sfms_actuals if s.precipitation is not None]
+        valid = [s for s in sfms_actuals if getattr(s, self._attribute) is not None]
         return (
             [s.lat for s in valid],
             [s.lon for s in valid],
-            [s.precipitation for s in valid],
+            [getattr(s, self._attribute) for s in valid],
         )
+
+
+def StationPrecipitationSource() -> StationActualSource:
+    return StationActualSource(SFMSInterpolatedWeatherParameter.PRECIP)
+
+
+def StationFFMCSource() -> StationActualSource:
+    return StationActualSource(SFMSInterpolatedWeatherParameter.FFMC)
+
+
+def StationDMCSource() -> StationActualSource:
+    return StationActualSource(SFMSInterpolatedWeatherParameter.DMC)
+
+
+def StationDCSource() -> StationActualSource:
+    return StationActualSource(SFMSInterpolatedWeatherParameter.DC)
