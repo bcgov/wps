@@ -366,6 +366,9 @@ def sfms_daily_actuals_mapper(
                     precipitation=raw_daily.get("precipitation"),
                     wind_speed=raw_daily.get("windSpeed"),
                     wind_direction=raw_daily.get("windDirection"),
+                    ffmc=raw_daily.get("fineFuelMoistureCode"),
+                    dmc=raw_daily.get("duffMoistureCode"),
+                    dc=raw_daily.get("droughtCode"),
                 )
             )
     return sfms_daily_actuals

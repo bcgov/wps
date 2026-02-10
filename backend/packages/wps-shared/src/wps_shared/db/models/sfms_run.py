@@ -14,6 +14,9 @@ class SFMSRunLogJobName(str, enum.Enum):
 
     TEMPERATURE_INTERPOLATION = "temperature_interpolation"
     PRECIPITATION_INTERPOLATION = "precipitation_interpolation"
+    FFMC_INTERPOLATION = "ffmc_interpolation"
+    DMC_INTERPOLATION = "dmc_interpolation"
+    DC_INTERPOLATION = "dc_interpolation"
 
 
 class SFMSRunLogStatus(str, enum.Enum):
@@ -22,6 +25,7 @@ class SFMSRunLogStatus(str, enum.Enum):
     RUNNING = "running"
     SUCCESS = "success"
     FAILED = "failed"
+
 
 class SFMSRunLog(Base):
     """Log of SFMS job interpolations with run status and timing."""
