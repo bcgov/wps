@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Set, TypedDict
 from urllib.parse import urljoin
@@ -10,6 +9,7 @@ import aiohttp
 from aio_pika import IncomingMessage, connect_robust
 from aio_pika.abc import AbstractRobustConnection
 from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
 
 from wps_weather.model_variables import GDPS_VARIABLES, HRDPS_VARIABLES, RDPS_VARIABLES
 from wps_weather.utils import parse_date_and_run, s3_key_from_eccc_path
@@ -278,6 +278,7 @@ class ECCCGribConsumer:
                     await message.ack()
                     return
 
+                # add the file and message to the work queue so we can ack the message after download/upload
                 await self.work_queue.put((file, message))
                 logger.debug(f"Queued [{model_name}]: {file.s3_key}")
 
@@ -298,12 +299,13 @@ class ECCCGribConsumer:
             while self._running:
                 try:
                     # Get work with timeout so we can check _running flag
+                    # Get the amqp message from the queue so we can ack after download/upload
                     file, message = await asyncio.wait_for(self.work_queue.get(), timeout=1.0)
 
                     success = await downloader.download_and_upload(file)
 
                     if success:
-                        # upload successful - acknowledge message
+                        # upload successful - acknowledge amqp message
                         await message.ack()
                         self.stats["uploaded"] += 1
                         logger.debug(f"ACKed: {file.s3_key}")
@@ -389,7 +391,7 @@ class ECCCGribConsumer:
         """Start the consumer"""
         logger.info("Starting consumer...")
         self._running = True
-        self.stats["start_time"] = datetime.now(timezone.utc)
+        self.stats["start_time"] = get_utc_now()
 
         # Connect to AMQP
         await self._setup_amqp()
@@ -452,7 +454,7 @@ class ECCCGribConsumer:
         """Simple stats logging"""
         uptime = ""
         if self.stats["start_time"]:
-            uptime_delta = datetime.now(timezone.utc) - self.stats["start_time"]
+            uptime_delta = get_utc_now() - self.stats["start_time"]
             uptime = f"Uptime: {uptime_delta}"
 
         logger.info("")
