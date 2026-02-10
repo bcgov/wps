@@ -4,6 +4,16 @@ import App from "./App";
 import { Provider } from "react-redux";
 import { createTestStore } from "./testUtils";
 import { NavPanel } from "@/utils/constants";
+import { useMediaQuery } from "@mui/material";
+
+// Mock MUI useMediaQuery to control screen size detection
+vi.mock("@mui/material", async () => {
+  const actual = await vi.importActual("@mui/material");
+  return {
+    ...actual,
+    useMediaQuery: vi.fn(),
+  };
+});
 
 // Mock Capacitor plugins
 vi.mock("@capacitor/screen-orientation", () => ({
@@ -199,10 +209,13 @@ describe("App", () => {
   it("displays SideNavigation and hides BottomNavigation in landscape on small screens", async () => {
     const { ScreenOrientation } = await import("@capacitor/screen-orientation");
 
-    // Mock landscape orientation and small screen
+    // Mock landscape orientation
     ScreenOrientation.orientation = vi
       .fn()
       .mockResolvedValue({ type: "landscape-primary" });
+
+    // Mock small screen
+    vi.mocked(useMediaQuery).mockReturnValue(true);
 
     const store = createTestStore();
 
@@ -218,17 +231,22 @@ describe("App", () => {
     });
 
     // Check if SideNavigation is displayed and BottomNavigation is hidden on small screens
-    expect(screen.getByTestId("side-navigation")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId("side-navigation")).toBeInTheDocument(),
+    );
     expect(screen.queryByTestId("bottom-nav")).not.toBeInTheDocument();
   });
 
   it("displays AppHeader and BottomNavigation in portrait on small screens", async () => {
     const { ScreenOrientation } = await import("@capacitor/screen-orientation");
 
-    // Mock portrait orientation and small screen
+    // Mock portrait orientation
     ScreenOrientation.orientation = vi
       .fn()
       .mockResolvedValue({ type: "portrait-primary" });
+
+    // Mock small screen
+    vi.mocked(useMediaQuery).mockReturnValue(true);
 
     const store = createTestStore();
 
@@ -251,20 +269,13 @@ describe("App", () => {
   it("displays AppHeader and BottomNavigation in landscape on medium or larger screens", async () => {
     const { ScreenOrientation } = await import("@capacitor/screen-orientation");
 
-    // Mock landscape orientation and medium/large screen
+    // Mock landscape orientation
     ScreenOrientation.orientation = vi
       .fn()
       .mockResolvedValue({ type: "landscape-primary" });
 
-    // Increase window width to be larger than md breakpoint (900px)
-    Object.defineProperty(window, "innerWidth", {
-      writable: true,
-      configurable: true,
-      value: 1024,
-    });
-
-    // Force reflow of media query listeners
-    window.dispatchEvent(new Event("resize"));
+    // Mock medium/large screen
+    vi.mocked(useMediaQuery).mockReturnValue(false);
 
     const store = createTestStore();
 
@@ -288,20 +299,13 @@ describe("App", () => {
   it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {
     const { ScreenOrientation } = await import("@capacitor/screen-orientation");
 
-    // Mock portrait orientation and medium/large screen
+    // Mock portrait orientation
     ScreenOrientation.orientation = vi
       .fn()
       .mockResolvedValue({ type: "portrait-primary" });
 
-    // Increase window width to be larger than md breakpoint (900px)
-    Object.defineProperty(window, "innerWidth", {
-      writable: true,
-      configurable: true,
-      value: 1024,
-    });
-
-    // Force reflow of media query listeners
-    window.dispatchEvent(new Event("resize"));
+    // Mock medium/large screen
+    vi.mocked(useMediaQuery).mockReturnValue(false);
 
     const store = createTestStore();
 
