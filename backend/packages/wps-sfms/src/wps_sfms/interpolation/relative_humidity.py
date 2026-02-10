@@ -3,7 +3,7 @@ Relative humidity interpolation using Inverse Distance Weighting (IDW) with elev
 
 This module implements the SFMS relative humidity interpolation workflow:
 1. Interpolate dew point temperatures to a raster using IDW with elevation adjustment
-   (using the dew point lapse rate of 2.0°C/km, not the dry-bulb 6.5°C/km)
+   (using the dew point lapse rate of 4.0°C/km, not the dry-bulb 6.5°C/km)
 2. Read the already-interpolated temperature raster
 3. Compute RH from temperature and dew point using the Magnus formula
 """
@@ -20,6 +20,7 @@ from wps_sfms.interpolation.common import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 def interpolate_rh_to_raster(
     dewpoint_source: StationDewPointSource,
@@ -113,7 +114,9 @@ def interpolate_rh_to_raster(
                 np.float32, copy=False
             )
             elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
-            actual_dewpoints = dewpoint_source.compute_adjusted_values(sea, elev, DEW_POINT_LAPSE_RATE)
+            actual_dewpoints = dewpoint_source.compute_adjusted_values(
+                sea, elev, DEW_POINT_LAPSE_RATE
+            )
 
             # Only compute RH where the temp raster also has valid data
             temp_valid = temp_valid_mask[rows, cols]
