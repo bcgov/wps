@@ -30,7 +30,6 @@ def test_dewpoint_computed_from_temp_and_rh():
     source = StationDewPointSource(actuals)
     _, _, _, dewpoints = source.get_station_arrays(only_valid=True)
 
-    # Td = T - (100 - RH) / 5
     expected_td_0 = 20.0 - (100.0 - 60.0) / 5.0  # = 12.0
     expected_td_1 = 15.0 - (100.0 - 80.0) / 5.0  # = 11.0
     assert_allclose(dewpoints[0], expected_td_0, atol=1e-4)
