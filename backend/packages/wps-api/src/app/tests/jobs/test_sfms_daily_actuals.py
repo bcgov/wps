@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.jobs.sfms_daily_actuals import run_sfms_daily_actuals, main
 from app.tests.conftest import create_mock_sfms_actuals
-from wps_shared.db.models.sfms_run_log import SFMSRunLogStatus
+from wps_shared.db.models.sfms_run import SFMSRunLogStatus
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
 
@@ -53,6 +53,9 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         return_value=1,
     )
 
+    # Mock save_sfms_run
+    mocker.patch(f"{MODULE_PATH}.save_sfms_run", new_callable=AsyncMock, return_value=1)
+
     # Mock RasterKeyAddresser
     mock_addresser = MagicMock()
     mock_addresser.get_fuel_raster_key.return_value = "sfms/fuel/2024/fuel.tif"
@@ -68,9 +71,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     )
 
     mock_idw_processor = MagicMock()
-    mock_idw_processor.process = AsyncMock(
-        return_value="sfms/interpolated/2024/07/04/precip.tif"
-    )
+    mock_idw_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/precip.tif")
     mocker.patch(
         f"{MODULE_PATH}.IDWInterpolationProcessor",
         return_value=mock_idw_processor,
@@ -182,7 +183,7 @@ class TestRunSfmsDailyActuals:
         await run_sfms_daily_actuals(target_date)
 
         # Two tracked runs means two session.add calls
-        assert mock_dependencies.db_session.add.call_count == 2
+        assert mock_dependencies.db_session.execute.call_count == 2
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):
@@ -235,19 +236,37 @@ class TestMondayFWIInterpolation:
     """Tests for Monday FWI index interpolation."""
 
     @pytest.mark.anyio
-    async def test_monday_runs_fwi_interpolation(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that FWI interpolation runs on Mondays (3 additional processor calls)."""
-        # 2024-07-01 is a Monday
-        target_date = datetime(2024, 7, 1, tzinfo=timezone.utc)
+    async def test_first_monday_may_runs_fwi_interpolation(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        """Test that FWI interpolation runs on the first Monday of May."""
+        # 2024-05-06 is the first Monday of May 2024
+        target_date = datetime(2024, 5, 6, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
-        # temp processor called once, precip processor called 4 times (1 precip + 3 FWI)
+        # temp processor called once, IDW processor called 4 times (1 precip + 3 FWI)
         mock_dependencies.temp_processor.process.assert_called_once()
         assert mock_dependencies.idw_processor.process.call_count == 4
 
     @pytest.mark.anyio
-    async def test_non_monday_skips_fwi_interpolation(self, mock_dependencies: MockDailyActualsDeps):
+    async def test_first_monday_april_runs_fwi_interpolation(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        """Test that FWI interpolation runs on the first Monday of April."""
+        # 2024-04-01 is the first Monday of April 2024
+        target_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
+
+        await run_sfms_daily_actuals(target_date)
+
+        # temp processor called once, IDW processor called 4 times (1 precip + 3 FWI)
+        mock_dependencies.temp_processor.process.assert_called_once()
+        assert mock_dependencies.idw_processor.process.call_count == 4
+
+    @pytest.mark.anyio
+    async def test_non_monday_skips_fwi_interpolation(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
         """Test that FWI interpolation does NOT run on non-Mondays."""
         # 2024-07-04 is a Thursday
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
@@ -259,15 +278,45 @@ class TestMondayFWIInterpolation:
         mock_dependencies.idw_processor.process.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_monday_writes_five_run_log_entries(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that Monday produces 5 run log entries (temp + precip + 3 FWI)."""
-        # 2024-07-01 is a Monday
+    async def test_monday_outside_april_may_skips_fwi_interpolation(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        """Test that FWI interpolation does NOT run on Mondays outside April/May."""
+        # 2024-07-01 is a Monday in July
         target_date = datetime(2024, 7, 1, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
+        # Only temp + precip, no FWI
+        mock_dependencies.temp_processor.process.assert_called_once()
+        mock_dependencies.idw_processor.process.assert_called_once()
+
+    @pytest.mark.anyio
+    async def test_second_monday_april_skips_fwi_interpolation(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        """Test that FWI interpolation does NOT run on the second Monday of April."""
+        # 2024-04-08 is the second Monday of April 2024
+        target_date = datetime(2024, 4, 8, tzinfo=timezone.utc)
+
+        await run_sfms_daily_actuals(target_date)
+
+        # Only temp + precip, no FWI
+        mock_dependencies.temp_processor.process.assert_called_once()
+        mock_dependencies.idw_processor.process.assert_called_once()
+
+    @pytest.mark.anyio
+    async def test_first_monday_april_writes_five_run_log_entries(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        """Test that first Monday of April produces 5 run log entries (temp + precip + 3 FWI)."""
+        # 2024-04-01 is the first Monday of April 2024
+        target_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
+
+        await run_sfms_daily_actuals(target_date)
+
         # 5 tracked runs: temp, precip, ffmc, dmc, dc
-        assert mock_dependencies.db_session.add.call_count == 5
+        assert mock_dependencies.db_session.execute.call_count == 5
 
 
 class TestMain:

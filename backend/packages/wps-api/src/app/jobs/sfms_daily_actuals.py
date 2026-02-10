@@ -15,18 +15,26 @@ from datetime import datetime, timezone
 
 from aiohttp import ClientSession
 
-from wps_sfms.interpolation.source import StationDCSource, StationDMCSource, StationDewPointSource, StationFFMCSource, StationPrecipitationSource, StationTemperatureSource
+from wps_sfms.interpolation.source import (
+    StationDCSource,
+    StationDMCSource,
+    StationDewPointSource,
+    StationFFMCSource,
+    StationPrecipitationSource,
+    StationTemperatureSource,
+)
 from wps_sfms.processors.idw import IDWInterpolationProcessor
-from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
-from wps_shared.db.crud.sfms_run_log import track_sfms_run
-from wps_shared.db.models.sfms_run_log import SFMSRunLogJobName
+from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
+from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.fuel_raster import find_latest_version
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.wps_logging import configure_logging
 from wps_shared.utils.time import get_utc_now
+from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
 logger = logging.getLogger(__name__)
@@ -61,8 +69,20 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
             raise RuntimeError(f"No station observations found for {datetime_to_process}")
 
         async with get_async_write_session_scope() as session:
+            station_codes = [actual.code for actual in sfms_actuals]
+            sfms_run_id = await save_sfms_run(
+                session,
+                RunTypeEnum.actual,
+                datetime_to_process.date(),
+                get_utc_now(),
+                station_codes,
+            )
 
-            @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, datetime_to_process, session)
+            @track_sfms_run(
+                SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+                sfms_run_id,
+                session,
+            )
             async def run_temperature_interpolation() -> None:
                 temperature_processor = TemperatureInterpolationProcessor(
                     datetime_to_process, raster_addresser
@@ -74,7 +94,11 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                 )
                 logger.info("Temperature interpolation raster: %s", temp_s3_key)
 
-            @track_sfms_run(SFMSRunLogJobName.PRECIPITATION_INTERPOLATION, datetime_to_process, session)
+            @track_sfms_run(
+                SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+                sfms_run_id,
+                session,
+            )
             async def run_precipitation_interpolation() -> None:
                 processor = IDWInterpolationProcessor(datetime_to_process, raster_addresser)
                 precip_s3_key = await processor.process(
@@ -99,10 +123,15 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
             await run_rh_interpolation()
             await run_precipitation_interpolation()
 
-            # On Mondays, also interpolate FWI indices (FFMC, DMC, DC)
+            # Interpolate FWI indices (FFMC, DMC, DC) on the first Monday of April and May
             is_monday = datetime_to_process.weekday() == 0
-            if is_monday:
-                logger.info("Monday detected — running FWI index interpolation")
+            is_first_week = datetime_to_process.day <= 7
+            is_april_or_may = datetime_to_process.month in (4, 5)
+            if is_monday and is_first_week and is_april_or_may:
+                logger.info(
+                    "First Monday of %s — running FWI index interpolation",
+                    datetime_to_process.strftime("%B"),
+                )
 
                 fwi_sources = [
                     (SFMSRunLogJobName.FFMC_INTERPOLATION, StationFFMCSource()),
@@ -112,7 +141,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
 
                 for job_name, source in fwi_sources:
 
-                    @track_sfms_run(job_name, datetime_to_process, session)
+                    @track_sfms_run(job_name, sfms_run_id, session)
                     async def run_fwi_interpolation() -> None:
                         processor = IDWInterpolationProcessor(datetime_to_process, raster_addresser)
                         s3_key = await processor.process(
