@@ -4,6 +4,15 @@ from unittest.mock import AsyncMock
 import pytest
 
 from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, extract_date_from_prefix
+from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
+
+
+@pytest.fixture
+def s3_client_mock():
+    mock = AsyncMock(spec=S3Client)
+    mock.bucket = "my-bucket"
+    yield mock
 
 
 @pytest.fixture
@@ -16,84 +25,69 @@ def test_vars():
 
 
 @pytest.fixture
-def old_folder_prefix(test_vars):
-    _, prefix, today, _ = test_vars
+def old_folder_prefix():
+    today = get_utc_now().date()
     folder_date = today - timedelta(days=10)
-    return f"{prefix}{folder_date.strftime('%Y-%m-%d')}/"
+    return f"data/{folder_date.strftime('%Y-%m-%d')}/"
 
 
 @pytest.mark.anyio
-async def test_retention_policy_dry_run_does_not_delete(test_vars, old_folder_prefix):
-    bucket, prefix, _, mock_client = test_vars
+async def test_retention_policy_dry_run_does_not_delete(s3_client_mock, old_folder_prefix):
+    # Mock iter_common_prefixes to yield the folder
+    s3_client_mock.iter_common_prefixes.return_value.__aiter__.return_value = [old_folder_prefix]
 
-    mock_client.list_objects_v2.side_effect = [
-        {"CommonPrefixes": [{"Prefix": old_folder_prefix}]},
-        {
-            "Contents": [
-                {"Key": f"{old_folder_prefix}file1.tif"},
-                {"Key": f"{old_folder_prefix}file2.tif"},
-            ]
-        },
+    # Mock iter_keys to yield some object keys
+    s3_client_mock.iter_keys.return_value.__aiter__.return_value = [
+        f"{old_folder_prefix}file1.tif",
+        f"{old_folder_prefix}file2.tif",
     ]
 
     await apply_retention_policy_on_date_folders(
-        client=mock_client,
-        bucket=bucket,
-        prefix=prefix,
+        client=s3_client_mock,
+        prefix="data/",
         days_to_retain=7,
         dry_run=True,
     )
 
-    assert mock_client.list_objects_v2.call_count == 2
-    mock_client.delete_object.assert_not_called()
+    s3_client_mock.delete_prefix.assert_called_once_with(old_folder_prefix, dry_run=True)
 
 
 @pytest.mark.anyio
-async def test_retention_policy_deletes_old_data(test_vars, old_folder_prefix):
-    bucket, prefix, _, mock_client = test_vars
-
-    mock_client.list_objects_v2.side_effect = [
-        {"CommonPrefixes": [{"Prefix": old_folder_prefix}]},
-        {
-            "Contents": [
-                {"Key": f"{old_folder_prefix}file1.tif"},
-                {"Key": f"{old_folder_prefix}file2.tif"},
-            ]
-        },
+async def test_retention_policy_deletes_old_data(s3_client_mock, old_folder_prefix):
+    s3_client_mock.iter_common_prefixes.return_value.__aiter__.return_value = [old_folder_prefix]
+    s3_client_mock.iter_keys.return_value.__aiter__.return_value = [
+        f"{old_folder_prefix}file1.tif",
+        f"{old_folder_prefix}file2.tif",
     ]
 
+    # Patch delete_prefix to just return number of objects deleted
+    s3_client_mock.delete_prefix.return_value = 2
+
     await apply_retention_policy_on_date_folders(
-        client=mock_client,
-        bucket=bucket,
-        prefix=prefix,
+        client=s3_client_mock,
+        prefix="data/",
         days_to_retain=7,
         dry_run=False,
     )
 
-    assert mock_client.list_objects_v2.call_count == 2
-    assert mock_client.delete_object.await_count == 2
-    mock_client.delete_object.assert_any_call(Bucket=bucket, Key=f"{old_folder_prefix}file1.tif")
-    mock_client.delete_object.assert_any_call(Bucket=bucket, Key=f"{old_folder_prefix}file2.tif")
+    s3_client_mock.delete_prefix.assert_called_once_with(old_folder_prefix, dry_run=False)
 
 
 @pytest.mark.anyio
-async def test_retention_policy_ignores_invalid_date_prefix(test_vars):
-    bucket, prefix, _, mock_client = test_vars
-
-    mock_client.list_objects_v2.return_value = {
-        "CommonPrefixes": [{"Prefix": f"{prefix}not-a-date/"}]
-    }
+async def test_retention_policy_ignores_invalid_date_prefix(s3_client_mock):
+    # Mock an invalid prefix that doesn't parse as a date
+    invalid_prefix = "data/not-a-date/"
+    s3_client_mock.iter_common_prefixes.return_value.__aiter__.return_value = [invalid_prefix]
 
     await apply_retention_policy_on_date_folders(
-        client=mock_client,
-        bucket=bucket,
-        prefix=prefix,
+        client=s3_client_mock,
+        prefix="data/",
         days_to_retain=7,
         dry_run=False,
     )
 
-    mock_client.list_objects_v2.assert_called_once()
-    mock_client.delete_object.assert_not_called()
+    # delete_prefix should never be called
+    s3_client_mock.delete_prefix.assert_not_called()
 
 
 @pytest.mark.parametrize(

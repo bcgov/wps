@@ -9,6 +9,8 @@ from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
 from osgeo import gdal
 from wps_shared import config
+from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -102,61 +104,36 @@ def extract_date_from_prefix(folder_prefix: str, base_prefix: str) -> Optional[d
 
 
 async def apply_retention_policy_on_date_folders(
-    client: AioBaseClient,
-    bucket: str,
+    client: S3Client,
     prefix: str,
     days_to_retain: int,
     dry_run: bool = False,
 ):
-    """
-    Applies a retention policy to an S3 bucket by deleting folders named with ISO dates (YYYY-MM-DD)
-    located directly under a specified prefix.
-
-    Each folder is expected to be named as a date (e.g., '2024-04-01/') and located immediately under
-    the given prefix (e.g., 'critical_hours/2024-04-01/').
-
-    Folders older than a specified number of days from today will be deleted.
-
-    :param client: Asynchronous S3 client
-    :param bucket: The name of the S3 bucket
-    :param prefix: The prefix path within the bucket where date-named folders are located.
-    :param days_to_retain: The number of most recent days to retain. Folders older than this will be deleted.
-    :param dry_run: If True, no deletions will occur. Instead, actions will be logged to indicate what *would* be deleted.
-                    Defaults to False.
-    """
     if not prefix.endswith("/"):
         prefix += "/"
 
-    today = datetime.now(timezone.utc).date()
+    today = get_utc_now().date()
     retention_date = today - timedelta(days=days_to_retain)
+
     logger.info(
-        f"Applying retention policy to '{prefix}'. Deleting data older than {days_to_retain} days (before {retention_date})."
+        "Applying retention policy to '%s'. Deleting data before %s.",
+        prefix,
+        retention_date,
     )
 
-    res = await client.list_objects_v2(Bucket=bucket, Prefix=prefix, Delimiter="/")
+    async for folder_prefix in client.iter_common_prefixes(prefix):
+        folder_date = extract_date_from_prefix(folder_prefix, prefix)
+        if not folder_date or folder_date >= retention_date:
+            continue
 
-    if "CommonPrefixes" in res:
-        for folder in res["CommonPrefixes"]:
-            folder_prefix = folder["Prefix"]
+        count = await client.delete_prefix(folder_prefix, dry_run=dry_run)
 
-            folder_date = extract_date_from_prefix(folder_prefix, prefix)
-            if not folder_date:
-                continue
-
-            if folder_date < retention_date:
-                res_objects = await client.list_objects_v2(Bucket=bucket, Prefix=folder_prefix)
-                objects = res_objects.get("Contents", [])
-
-                if not objects:
-                    logger.info(f"No objects to delete in '{folder_prefix}'")
-                    continue
-
-                if dry_run:
-                    logger.info(
-                        f"[Dry Run] Would delete {len(objects)} objects from '{folder_prefix}'"
-                    )
-
-                else:
-                    for obj in objects:
-                        await client.delete_object(Bucket=bucket, Key=obj["Key"])
-                    logger.info(f"Deleted {len(objects)} objects from '{folder_prefix}'")
+        if count == 0:
+            logger.info("No objects to delete in '%s'", folder_prefix)
+        else:
+            logger.info(
+                "%s %d objects from '%s'",
+                "Would delete" if dry_run else "Deleted",
+                count,
+                folder_prefix,
+            )

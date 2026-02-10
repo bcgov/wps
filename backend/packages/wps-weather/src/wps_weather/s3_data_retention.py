@@ -46,13 +46,10 @@ async def main():
         async with S3Client(
             user_id=S3_USER_ID, secret_key=S3_SECRET, bucket=S3_BUCKET
         ) as s3_client:
-            client = s3_client.client
-
             logger.info("Starting retention policy application...")
 
             await apply_retention_policy_on_date_folders(
-                client=client,
-                bucket=S3_BUCKET,
+                client=s3_client,
                 prefix=S3_PREFIX,
                 days_to_retain=GRIB_RETENTION_THRESHOLD,
                 dry_run=args.dry_run,
