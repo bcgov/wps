@@ -6,7 +6,6 @@ from numpy.testing import assert_allclose
 
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_sfms.interpolation.source import LAPSE_RATE, LapseRateAdjustedSource, StationDewPointSource
-from wps_shared.utils.dewpoint import compute_dewpoint
 
 
 def _make_actual(code, lat, lon, elevation, temperature, relative_humidity):
@@ -23,7 +22,7 @@ def _make_actual(code, lat, lon, elevation, temperature, relative_humidity):
 
 
 def test_dewpoint_computed_from_temp_and_rh():
-    """Dew point values should match compute_dewpoint(temp, rh)."""
+    """Dew point values should match the simple approximation: Td = T - (100 - RH) / 5."""
     actuals = [
         _make_actual(1, 49.0, -123.0, 100.0, 20.0, 60.0),
         _make_actual(2, 49.1, -123.1, 200.0, 15.0, 80.0),
@@ -31,8 +30,9 @@ def test_dewpoint_computed_from_temp_and_rh():
     source = StationDewPointSource(actuals)
     _, _, _, dewpoints = source.get_station_arrays(only_valid=True)
 
-    expected_td_0 = compute_dewpoint(20.0, 60.0)
-    expected_td_1 = compute_dewpoint(15.0, 80.0)
+    # Td = T - (100 - RH) / 5
+    expected_td_0 = 20.0 - (100.0 - 60.0) / 5.0  # = 12.0
+    expected_td_1 = 15.0 - (100.0 - 80.0) / 5.0  # = 11.0
     assert_allclose(dewpoints[0], expected_td_0, atol=1e-4)
     assert_allclose(dewpoints[1], expected_td_1, atol=1e-4)
 

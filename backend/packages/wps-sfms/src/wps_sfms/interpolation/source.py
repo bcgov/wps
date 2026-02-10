@@ -157,37 +157,22 @@ class StationDewPointSource(LapseRateAdjustedSource):
     ) -> NDArray[np.float32]:
         """Vectorized dewpoint from temperature (°C) and relative humidity (%).
 
-        Mirrors the legacy scalar formula in ``wps_shared.utils.dewpoint.compute_dewpoint``.
-
-        Lawrence, Mark G.
-        "The Relationship between Relative Humidity and the Dewpoint Temperature in Moist Air: A Simple Conversion and Applications".
-        Bulletin of the American Meteorological Society 86.2 (2005): 225-234. https://doi.org/10.1175/BAMS-86-2-225 Web.
+        Uses the simple approximation: Td = T - (100 - RH) / 5
         """
-        x = 1.0 - 0.01 * rh
-        return (
-            temp
-            - (14.55 + 0.114 * temp) * x
-            - ((2.5 + 0.007 * temp) * x) ** 3
-            - (15.9 + 0.117 * temp) * x**14
-        ).astype(np.float32)
+        return (temp - (100.0 - rh) / 5.0).astype(np.float32)
 
     @staticmethod
     def compute_rh(temp: np.ndarray, dewpoint: np.ndarray) -> np.ndarray:
         """
-        Compute relative humidity from temperature and dew point using the Magnus formula.
+        Compute relative humidity from temperature and dew point.
 
-        RH = 100 * exp((17.625 * Td) / (Td + 243.04)) /
-                    exp((17.625 * T) / (T + 243.04))
+        Uses the simple approximation: RH = 100 - 5 * (T - Td)
 
         :param temp: Temperature array in Celsius
         :param dewpoint: Dew point temperature array in Celsius
         :return: Relative humidity as percentage (0-100), clamped
         """
-        alpha = 17.625
-        beta = 243.04
-        rh = 100.0 * (
-            np.exp((alpha * dewpoint) / (dewpoint + beta)) / np.exp((alpha * temp) / (temp + beta))
-        )
+        rh = 100.0 - 5.0 * (temp - dewpoint)
         return np.clip(rh, 0.0, 100.0).astype(np.float32)
 
 

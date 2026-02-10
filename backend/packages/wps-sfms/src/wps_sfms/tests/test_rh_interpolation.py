@@ -67,7 +67,7 @@ def create_test_actuals(lats, lons, temps, rhs, elevations):
 
 
 class TestComputeRHFromTempAndDewpoint:
-    """Tests for the Magnus formula RH computation."""
+    """Tests for the simple approximation RH computation."""
 
     def test_dewpoint_equals_temp_gives_100_percent(self):
         """When dew point equals temperature, RH should be 100%."""
@@ -92,12 +92,12 @@ class TestComputeRHFromTempAndDewpoint:
         assert np.all(rh <= 100.0)
 
     def test_known_values(self):
-        """Test against known meteorological values."""
-        # At 20°C with dewpoint of 10°C, RH should be approximately 52%
+        """Test against known values using simple approximation."""
+        # At 20°C with dewpoint of 10°C, RH = 100 - 5*(20-10) = 50%
         temp = np.array([20.0], dtype=np.float32)
         dewpoint = np.array([10.0], dtype=np.float32)
         rh = StationDewPointSource.compute_rh(temp, dewpoint)
-        assert 50.0 < rh[0] < 55.0
+        np.testing.assert_allclose(rh, 50.0, atol=0.01)
 
     def test_output_dtype_is_float32(self):
         """Output should be float32."""

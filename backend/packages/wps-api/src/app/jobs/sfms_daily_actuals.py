@@ -17,15 +17,15 @@ from aiohttp import ClientSession
 
 from wps_sfms.interpolation.source import (
     StationDCSource,
-    StationDMCSource,
     StationDewPointSource,
+    StationDMCSource,
     StationFFMCSource,
     StationPrecipitationSource,
     StationTemperatureSource,
 )
 from wps_sfms.processors.idw import IDWInterpolationProcessor
-from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
+from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum

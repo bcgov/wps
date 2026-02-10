@@ -287,7 +287,7 @@ class TestMondayFWIInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        # Only temp + precip, no FWI
+        # Only temp + RH + precip, no FWI
         mock_dependencies.temp_processor.process.assert_called_once()
         mock_dependencies.idw_processor.process.assert_called_once()
 
@@ -301,7 +301,7 @@ class TestMondayFWIInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        # Only temp + precip, no FWI
+        # Only temp + RH + precip, no FWI
         mock_dependencies.temp_processor.process.assert_called_once()
         mock_dependencies.idw_processor.process.assert_called_once()
 
@@ -315,7 +315,7 @@ class TestMondayFWIInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        # Only temp + precip, no FWI
+        # Only temp + RH + precip, no FWI
         mock_dependencies.temp_processor.process.assert_called_once()
         mock_dependencies.idw_processor.process.assert_called_once()
 
