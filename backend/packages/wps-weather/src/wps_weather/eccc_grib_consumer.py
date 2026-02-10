@@ -329,7 +329,7 @@ class ECCCGribConsumer:
 
         logger.info(f"Worker {worker_id} stopped")
 
-    async def _health_check_worker(self):
+    async def _health_check_worker(self, interval: int = 30):
         """
         Update health file periodically for openshift liveness probe which will check
         if the file has been modified in the last 2 minutes
@@ -345,7 +345,7 @@ class ECCCGribConsumer:
             except Exception as e:
                 logger.error(f"Failed to update health file: {e}")
 
-            await asyncio.sleep(30)
+            await asyncio.sleep(interval)
 
         logger.info("Health check worker stopped")
 

@@ -405,12 +405,13 @@ class TestECCCGribConsumer:
 
             # Run worker briefly
             consumer._running = True
-            worker_task = asyncio.create_task(consumer._worker(0))
+
+            # wait until the queue item is fully processed
+            asyncio.create_task(consumer._worker(0))
 
             # Wait for processing
-            await asyncio.sleep(0.1)
+            await consumer.work_queue.join()
             consumer._running = False
-            await worker_task
 
         # Check stats
         assert consumer.stats["uploaded"] == 1
@@ -437,12 +438,12 @@ class TestECCCGribConsumer:
         )
 
         consumer._running = True
-        health_task = asyncio.create_task(consumer._health_check_worker())
+        task = asyncio.create_task(consumer._health_check_worker(0))
 
         # Wait for health check to run
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0)
         consumer._running = False
-        await health_task
+        await task
 
         # Check that health file was created/updated
         assert health_path.exists()
@@ -504,7 +505,8 @@ class TestIntegration:
 
         # Simulate receiving a message
         mock_message = Mock()
-        mock_message.body = b"20240101120000 https://dd.weather.gc.ca model_rdps/10km/2024/01/01/12/CMC_rdps_TMP_ISBL_500_ps10km_2024010112_P000.grib2"
+        mock_message.ack = AsyncMock()
+        mock_message.body = b"20240101120000 https://dd.weather.gc.ca model_rdps/10km/2024/01/01/12/CMC_rdps_AirTemp_AGL-2m_ps10km_2024010112_P000.grib2"
 
         handler = consumer._create_message_handler("RDPS")
 
@@ -521,7 +523,7 @@ class TestIntegration:
                 await handler(mock_message)
 
                 # Wait for processing
-                await asyncio.sleep(0.1)
+                await consumer.work_queue.join()
 
         # Check stats
         assert consumer.stats["received"] == 1
