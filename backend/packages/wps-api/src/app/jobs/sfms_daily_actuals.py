@@ -128,7 +128,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
 
                 for job_name, source in fwi_sources:
 
-                    @track_sfms_run(job_name, datetime_to_process, session)
+                    @track_sfms_run(job_name, sfms_run_id, session)
                     async def run_fwi_interpolation() -> None:
                         processor = IDWInterpolationProcessor(datetime_to_process, raster_addresser)
                         s3_key = await processor.process(
