@@ -1,7 +1,6 @@
 ARG DOCKER_IMAGE=ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
 
-# ────────────────────────────────────────────────────────────────
-# Builder stage: create venv (uv only here for build)
+# Builder stage
 # ────────────────────────────────────────────────────────────────
 FROM ${DOCKER_IMAGE} AS builder
 
@@ -58,8 +57,8 @@ USER $USERNAME
 # Install locked deps + workspace packages
 RUN uv sync --frozen --no-dev --package wps-weather
 
-# ────────────────────────────────────────────────────────────────
-# Final runtime stage: includes uv binary + venv
+
+# Runtime stage
 # ────────────────────────────────────────────────────────────────
 FROM ${DOCKER_IMAGE}
 
