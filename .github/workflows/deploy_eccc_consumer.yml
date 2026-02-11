@@ -50,8 +50,8 @@ jobs:
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
-          oc-token: ${{ secrets.OC4_TOOL_TOKEN }}
-          oc-namespace: e1e498-tools
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+          oc-namespace: e1e498-dev
 
       - name: Provision S3 Retention Cronjob
         shell: bash
