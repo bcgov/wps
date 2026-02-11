@@ -38,7 +38,7 @@ objects:
             {
               "from": {
                 "kind": "ImageStreamTag",
-                "name": "wps-api-${SUFFIX}:${SUFFIX}",
+                "name": "wps-weather-${SUFFIX}:${SUFFIX}",
                 "namespace": "${PROJ_TOOLS}"
               },
               "fieldPath": "spec.template.spec.containers[0].image"
