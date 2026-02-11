@@ -4,6 +4,16 @@ import App from "./App";
 import { Provider } from "react-redux";
 import { createTestStore } from "./testUtils";
 import { NavPanel } from "@/utils/constants";
+import { useMediaQuery } from "@mui/material";
+
+// Mock MUI useMediaQuery to control screen size detection
+vi.mock("@mui/material", async () => {
+  const actual = await vi.importActual("@mui/material");
+  return {
+    ...actual,
+    useMediaQuery: vi.fn(),
+  };
+});
 
 // Mock Capacitor plugins
 vi.mock("@capacitor/screen-orientation", () => ({
@@ -71,6 +81,12 @@ vi.mock("@/components/TabPanel", () => ({
     value === panel ? (
       <div data-testid={`tab-panel-${panel}`}>{children}</div>
     ) : null,
+}));
+
+vi.mock("@/components/SideNavigation", () => ({
+  default: ({ tab }: { tab: NavPanel; setTab: (tab: NavPanel) => void }) => (
+    <div data-testid="side-navigation">Side Navigation: {tab}</div>
+  ),
 }));
 
 // Mock hooks
@@ -188,5 +204,124 @@ describe("App", () => {
 
     // Check if StatusBar.show() is called
     expect(StatusBar.show).toHaveBeenCalled();
+  });
+
+  it("displays SideNavigation and hides BottomNavigation in landscape on small screens", async () => {
+    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
+
+    // Mock landscape orientation
+    ScreenOrientation.orientation = vi
+      .fn()
+      .mockResolvedValue({ type: "landscape-primary" });
+
+    // Mock small screen
+    vi.mocked(useMediaQuery).mockReturnValue(true);
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
+    // Wait for async orientation check to complete
+    await waitFor(() => {
+      expect(ScreenOrientation.orientation).toHaveBeenCalled();
+    });
+
+    // Check if SideNavigation is displayed and BottomNavigation is hidden on small screens
+    await waitFor(() =>
+      expect(screen.getByTestId("side-navigation")).toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("bottom-nav")).not.toBeInTheDocument();
+  });
+
+  it("displays AppHeader and BottomNavigation in portrait on small screens", async () => {
+    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
+
+    // Mock portrait orientation
+    ScreenOrientation.orientation = vi
+      .fn()
+      .mockResolvedValue({ type: "portrait-primary" });
+
+    // Mock small screen
+    vi.mocked(useMediaQuery).mockReturnValue(true);
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
+    // Wait for async orientation check to complete
+    await waitFor(() => {
+      expect(ScreenOrientation.orientation).toHaveBeenCalled();
+    });
+
+    // Check if AppHeader and BottomNavigation are displayed
+    expect(screen.getByTestId("app-header")).toBeInTheDocument();
+    expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
+  });
+
+  it("displays AppHeader and BottomNavigation in landscape on medium or larger screens", async () => {
+    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
+
+    // Mock landscape orientation
+    ScreenOrientation.orientation = vi
+      .fn()
+      .mockResolvedValue({ type: "landscape-primary" });
+
+    // Mock medium/large screen
+    vi.mocked(useMediaQuery).mockReturnValue(false);
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
+    // Wait for async orientation check to complete
+    await waitFor(() => {
+      expect(ScreenOrientation.orientation).toHaveBeenCalled();
+    });
+
+    // Check if AppHeader and BottomNavigation are displayed
+    expect(screen.getByTestId("app-header")).toBeInTheDocument();
+    expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
+    expect(screen.queryByTestId("side-navigation")).not.toBeInTheDocument();
+  });
+
+  it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {
+    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
+
+    // Mock portrait orientation
+    ScreenOrientation.orientation = vi
+      .fn()
+      .mockResolvedValue({ type: "portrait-primary" });
+
+    // Mock medium/large screen
+    vi.mocked(useMediaQuery).mockReturnValue(false);
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
+    // Wait for async orientation check to complete
+    await waitFor(() => {
+      expect(ScreenOrientation.orientation).toHaveBeenCalled();
+    });
+
+    // Check if AppHeader and BottomNavigation are displayed
+    expect(screen.getByTestId("app-header")).toBeInTheDocument();
+    expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
   });
 });
