@@ -1,6 +1,7 @@
 import { FireCenter, FireShape } from "@/api/fbaAPI";
 import { AppHeader } from "@/components/AppHeader";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
+import SideNavigation from "@/components/SideNavigation";
 import ASAGoMap from "@/components/map/ASAGoMap";
 import Profile from "@/components/profile/Profile";
 import Advisory from "@/components/report/Advisory";
@@ -30,7 +31,7 @@ import { Filesystem } from "@capacitor/filesystem";
 import { ConnectionStatus, Network } from "@capacitor/network";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { StatusBar } from "@capacitor/status-bar";
-import { Box } from "@mui/material";
+import { Box, useMediaQuery } from "@mui/material";
 import { LicenseInfo } from "@mui/x-license-pro";
 import { isNil, isNull } from "lodash";
 import { DateTime } from "luxon";
@@ -41,7 +42,8 @@ const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
   const isActive = useAppIsActive();
   const dispatch: AppDispatch = useDispatch();
-  const [showHeader, setShowHeader] = useState<boolean>(true);
+  const [isPortrait, setIsPortrait] = useState<boolean>(true);
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -68,11 +70,11 @@ const App = () => {
       if (info.type.includes("landscape")) {
         // Device is in landscape mode
         await StatusBar.hide();
-        setShowHeader(false);
+        setIsPortrait(false);
       } else {
         // Device is in portrait mode
         await StatusBar.show();
-        setShowHeader(true);
+        setIsPortrait(true);
       }
     };
 
@@ -190,13 +192,22 @@ const App = () => {
         padding: 0,
         margin: 0,
         display: "flex",
-        flexDirection: "column",
+        flexDirection: isPortrait || !isSmallScreen ? "column" : "row",
         overflow: "hidden",
-        paddingBottom: "env(safe-area-inset-bottom)",
-        backgroundColor: theme.palette.primary.main,
+        paddingBottom:
+          isPortrait || !isSmallScreen ? "env(safe-area-inset-bottom)" : 0,
+        backgroundColor:
+          isPortrait || !isSmallScreen ? theme.palette.primary.main : "inherit",
       }}
     >
-      {showHeader && <AppHeader />}
+      {/* Show SideNavigation only in landscape and small screen */}
+      {!isPortrait && isSmallScreen && (
+        <SideNavigation tab={tab} setTab={setTab} />
+      )}
+
+      {/* Show AppHeader in portrait OR landscape with medium or larger screen */}
+      {(isPortrait || !isSmallScreen) && <AppHeader />}
+
       <Box
         sx={{
           flexGrow: 1,
@@ -237,7 +248,11 @@ const App = () => {
           />
         </TabPanel>
       </Box>
-      <BottomNavigationBar tab={tab} setTab={setTab} />
+
+      {/* Show BottomNavigation in portrait OR landscape with medium or larger screen */}
+      {(isPortrait || !isSmallScreen) && (
+        <BottomNavigationBar tab={tab} setTab={setTab} />
+      )}
     </Box>
   );
 };
