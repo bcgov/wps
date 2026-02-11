@@ -12,7 +12,6 @@ import logging
 import tempfile
 import aiofiles
 from sqlalchemy.orm import Session
-from types_aiobotocore_s3 import S3Client
 from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.crud.weather_models import (
     create_model_run_for_sfms,
@@ -21,6 +20,7 @@ from wps_shared.db.crud.weather_models import (
     get_rdps_sfms_urls_for_deletion,
     delete_rdps_sfms_urls,
 )
+from wps_shared.utils.s3_client import S3Client
 from wps_shared.weather_models import CompletedWithSomeExceptions, download
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
