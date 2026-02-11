@@ -20,7 +20,7 @@ source "$(dirname ${0})/common/common"
 #%   Apply when satisfied.
 #%   ${THIS_FILE} pr-0 apply
 #%
-SCHEDULE="${SCHEDULE:-$((14 + $RANDOM % 41)) 18 * * *}"
+SCHEDULE="${SCHEDULE:-$((14 + $RANDOM % 41)) 22 * * *}"
 
 # Target project override for Dev or Prod deployments
 #
