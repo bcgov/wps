@@ -4681,10 +4681,7 @@ dependencies = [
     { name = "cartopy" },
     { name = "fiona" },
     { name = "geopandas" },
-    { name = "jupyter" },
-    { name = "jupyterlab" },
     { name = "matplotlib" },
-    { name = "notebook" },
     { name = "numpy" },
     { name = "pyproj" },
     { name = "scipy" },
@@ -4693,22 +4690,33 @@ dependencies = [
     { name = "xarray" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "jupyter" },
+    { name = "jupyterlab" },
+    { name = "notebook" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aio-pika", specifier = ">=9.5.8" },
     { name = "cartopy", specifier = ">=0.22.0,<1" },
     { name = "fiona", specifier = ">=1.9.0,<2" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
-    { name = "jupyter", specifier = ">=1.0.0,<2" },
-    { name = "jupyterlab", specifier = ">=4.0.0,<5" },
     { name = "matplotlib", specifier = ">=3.7.0,<4" },
-    { name = "notebook", specifier = ">=7.0.0,<8" },
     { name = "numpy", specifier = "==2.3.*" },
     { name = "pyproj", specifier = ">=3.5.0,<4" },
     { name = "scipy", specifier = ">=1.15.2,<2" },
     { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "xarray", specifier = ">=2025.3.1,<2026" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "jupyter", specifier = ">=1.0.0,<2" },
+    { name = "jupyterlab", specifier = ">=4.0.0,<5" },
+    { name = "notebook", specifier = ">=7.0.0,<8" },
 ]
 
 [[package]]

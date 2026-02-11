@@ -15,9 +15,6 @@ dependencies = [
     "shapely>=2.0.5,<3",
     "pyproj>=3.5.0,<4",
     "fiona>=1.9.0,<2",
-    "jupyter>=1.0.0,<2",
-    "notebook>=7.0.0,<8",
-    "jupyterlab>=4.0.0,<5",
     "aio-pika>=9.5.8",
 ]
 
@@ -27,6 +24,9 @@ wps-shared = { workspace = true }
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["jupyter>=1.0.0,<2", "notebook>=7.0.0,<8", "jupyterlab>=4.0.0,<5"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/wps_weather"]
