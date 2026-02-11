@@ -8,7 +8,7 @@ from aiohttp import ClientSession
 from wps_shared import config
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.fba import FireCentre
-from wps_shared.schemas.forecasts import NoonForecast
+from wps_shared.db.models.forecasts import NoonForecast
 from wps_shared.schemas.morecast_v2 import StationDailyFromWF1, WF1PostForecast
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.schemas.sfms import SFMSDailyActual

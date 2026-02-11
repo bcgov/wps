@@ -16,7 +16,7 @@ from wps_wf1.util import (
 from wps_wf1.validation import get_valid_flags
 
 from wps_shared.schemas.fba import FireCenterStation, FireCentre
-from wps_shared.schemas.forecasts import NoonForecast
+from wps_shared.db.models.forecasts import NoonForecast
 from wps_shared.schemas.morecast_v2 import (
     StationDailyFromWF1,
     WeatherDeterminate,
@@ -365,6 +365,9 @@ def sfms_daily_actuals_mapper(
                     precipitation=raw_daily.get("precipitation"),
                     wind_speed=raw_daily.get("windSpeed"),
                     wind_direction=raw_daily.get("windDirection"),
+                    ffmc=raw_daily.get("fineFuelMoistureCode"),
+                    dmc=raw_daily.get("duffMoistureCode"),
+                    dc=raw_daily.get("droughtCode"),
                 )
             )
     return sfms_daily_actuals
