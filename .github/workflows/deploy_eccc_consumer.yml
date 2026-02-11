@@ -1,4 +1,4 @@
-name: Deploy ECCC Consumer
+name: Deploy WPS Weather
 
 on:
   pull_request:
