@@ -126,8 +126,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+
       - uses: ./.github/actions/oc-setup
         with:
           pr-number: ${{ github.event.number }}
@@ -160,30 +159,11 @@ jobs:
           bash openshift/scripts/oc_provision_fire_watch_weather_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_sfms_daily_actuals_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_s3_data_retention.sh ${SUFFIX} apply
           # 15:00 UTC (8:00 AM PDT)
           SCHEDULE="0 15 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX}-8am apply
           # 00:45 UTC (5:45 PM PDT)
           SCHEDULE="45 0 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX}-545pm apply
           SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
-
-      - name: Detect changes to wps-weather
-        shell: bash
-        run: |
-          BASE_SHA="${{ github.event.pull_request.base.sha }}"
-          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          TARGET_PATHS="^backend/packages/wps-weather/"
-          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E "$TARGET_PATHS"; then
-            echo "CHANGES=true" >> $GITHUB_ENV
-          else
-            echo "CHANGES=false" >> $GITHUB_ENV
-          fi
-
-      - name: Deploy wps-weather
-        if: env.CHANGES == 'true'
-        shell: bash
-        run: |
-          bash openshift/scripts/oc_provision_eccc_grib_consumer.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev

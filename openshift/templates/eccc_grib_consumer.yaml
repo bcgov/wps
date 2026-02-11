@@ -60,7 +60,7 @@ objects:
         spec:
           containers:
             - name: ${APP_NAME}-eccc-consumer-${SUFFIX}
-              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-api-${SUFFIX}:${SUFFIX}
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-weather-${SUFFIX}:${SUFFIX}
               command:
                 - uv
                 - run
