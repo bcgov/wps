@@ -16,15 +16,6 @@ def s3_client_mock():
 
 
 @pytest.fixture
-def test_vars():
-    bucket = "my-bucket"
-    prefix = "data/"
-    today = datetime.now(timezone.utc).date()
-    mock_client = AsyncMock()
-    return bucket, prefix, today, mock_client
-
-
-@pytest.fixture
 def old_folder_prefix():
     today = get_utc_now().date()
     folder_date = today - timedelta(days=10)
