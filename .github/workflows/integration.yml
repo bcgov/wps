@@ -209,6 +209,9 @@ jobs:
         uses: actions/checkout@v6
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v7
+      - name: List coverage files
+        run: |
+          find . -name "*.xml"
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
