@@ -11,6 +11,8 @@ jobs:
   build-image:
     name: Build ECCC Consumer Image
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
