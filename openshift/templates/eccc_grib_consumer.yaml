@@ -32,7 +32,7 @@ objects:
       labels:
         app: ${APP_NAME}-${SUFFIX}
       annotations:
-        # These annotations trigger a new rollout if either the web or api images change
+        # These annotations trigger a new rollout if the weather image changes
         image.openshift.io/triggers: |-
           [
             {
