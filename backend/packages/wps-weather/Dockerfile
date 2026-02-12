@@ -38,6 +38,11 @@ COPY ./backend/packages/wps-shared/pyproject.toml ./packages/wps-shared/
 COPY ./backend/packages/wps-wf1/pyproject.toml   ./packages/wps-wf1/
 COPY ./backend/packages/wps-weather/pyproject.toml ./packages/wps-weather/
 
+# Copy source code
+COPY ./backend/packages/wps-shared/src ./packages/wps-shared/src
+COPY ./backend/packages/wps-wf1/src ./packages/wps-wf1/src
+COPY ./backend/packages/wps-weather/src ./packages/wps-weather/src
+
 # Switch to root to set file permissions
 USER 0
 
@@ -53,10 +58,7 @@ USER $USERNAME
 # Install locked deps + workspace packages
 RUN uv sync --frozen --no-dev --package wps-weather
 
-# Copy source code
-COPY ./backend/packages/wps-shared/src ./packages/wps-shared/src
-COPY ./backend/packages/wps-wf1/src ./packages/wps-wf1/src
-COPY ./backend/packages/wps-weather/src ./packages/wps-weather/src
+
 
 
 
