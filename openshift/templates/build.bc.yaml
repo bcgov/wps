@@ -29,10 +29,6 @@ parameters:
   - name: GIT_BRANCH
     description: PR branch
     required: true
-  - name: DOCKER_IMAGE
-    description: Location of docker image
-    required: true
-    value: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-base:ubuntu.24.04-latest
   - name: DOCKER_FILE
     description: Dockerfile to use
     required: true

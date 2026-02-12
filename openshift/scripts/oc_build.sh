@@ -30,7 +30,6 @@ OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} \
  -p SUFFIX=${SUFFIX} \
  -p GIT_BRANCH=${GIT_BRANCH} \
  ${SENTRY_AUTH_TOKEN:+ "-p SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}"} \
- ${DOCKER_IMAGE:+ "-p DOCKER_IMAGE=${DOCKER_IMAGE}"} \
  ${DOCKER_FILE:+ "-p DOCKER_FILE=${DOCKER_FILE}"}"
 
 # Apply a template (apply or use --dry-run)

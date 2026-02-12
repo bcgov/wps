@@ -39,7 +39,7 @@
     },
     // JavaScript/TypeScript
     "eslint.format.enable": true,
-    "eslint.run": "onSave",
+    "eslint.run": "onType",
     "eslint.validate": [
         "javascript",
         "javascriptreact",
@@ -52,6 +52,9 @@
         "editor.formatOnSave": false
     },
     // YAML
+    "files.associations": {
+        "*.yml": "yaml"
+    },
     "[yaml]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.insertSpaces": true,

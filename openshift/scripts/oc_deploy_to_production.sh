@@ -32,19 +32,21 @@ echo Promote
 MODULE_NAME=api bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 MODULE_NAME=web bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 MODULE_NAME=jobs bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
-# Using pmtiles now, TODO: remove once pmtiles is satisfactory in prod over sometime
-# MODULE_NAME=tileserv bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
+MODULE_NAME=weather bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
+
 echo Provision database
 PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=2 MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=15Gi bash $(dirname ${0})/oc_provision_crunchy.sh prod ${RUN_TYPE}
-# TODO: remove once crunchydb satisfactory in prod for sometime
-# CPU_REQUEST=75m MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi PVC_SIZE=45Gi PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_db.sh prod ${RUN_TYPE}
-# Using pmtiles now, TODO: remove once pmtiles is satisfactory in prod over sometime
-# echo Provision tileserv
-# PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_tileserv.sh prod ${RUN_TYPE}
+
 echo Provision NATS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats.sh prod ${RUN_TYPE}
 echo Deploy API
 MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m MEMORY_REQUEST=6Gi MEMORY_LIMIT=8Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
+
+echo ECCC Consumer
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.sh prod ${RUN_TYPE}
+echo S3 Data Retention
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_s3_data_retention.sh prod ${RUN_TYPE}
+
 echo Advisory Fuel Area
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_advisory_fuel_areas_job.sh prod ${RUN_TYPE}
 echo Fuel Raster

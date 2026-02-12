@@ -10,6 +10,29 @@ from pytest_mock import MockerFixture
 from unittest.mock import AsyncMock, MagicMock
 
 
+@pytest.fixture
+async def s3_client_mock(mocker):
+    """
+    Shared fixture that returns a mock S3Client with async methods mocked.
+    """
+    # Patch get_session so S3Client can be used as async context manager
+    mock_s3_client = AsyncMock()
+    mock_client_context = MagicMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    async with S3Client() as s3:
+        # Patch async methods we want to spy on
+        s3.delete_all_objects = AsyncMock()
+        s3.iter_keys = AsyncMock()
+        s3.iter_common_prefixes = AsyncMock()
+        yield s3
+
+
 @pytest.mark.anyio
 async def test_put_object_called(mocker: MockerFixture):
     async with S3Client() as s3_client:
@@ -20,13 +43,24 @@ async def test_put_object_called(mocker: MockerFixture):
         no_data_value = mock_band.GetNoDataValue()
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            with WPSDataset.from_array(values, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), no_data_value) as expected_ds:
+            with WPSDataset.from_array(
+                values, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), no_data_value
+            ) as expected_ds:
                 expected_key = "expected_key"
                 expected_filename = os.path.join(temp_dir, os.path.basename("expected_key"))
                 expected_ds.export_to_geotiff(expected_filename)
-                await s3_client.persist_raster_data(temp_dir, expected_key, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), values, no_data_value)
+                await s3_client.persist_raster_data(
+                    temp_dir,
+                    expected_key,
+                    mock_ds.GetGeoTransform(),
+                    mock_ds.GetProjection(),
+                    values,
+                    no_data_value,
+                )
 
-                assert persist_raster_spy.call_args_list == [mocker.call(key=expected_key, body=mocker.ANY)]
+                assert persist_raster_spy.call_args_list == [
+                    mocker.call(key=expected_key, body=mocker.ANY)
+                ]
                 assert isinstance(persist_raster_spy.call_args.kwargs["body"], BufferedReader)
 
 
@@ -242,3 +276,112 @@ async def test_stream_object_error_handling(mocker: MockerFixture):
 
     # Verify client context manager was properly exited even on error
     mock_client_context.__aexit__.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_delete_prefix(mocker: MockerFixture):
+    keys = ["fuel/2025/a.tif", "fuel/2025/b.tif", "fuel/2025/sub/c.tif"]
+
+    mock_iter_keys = AsyncMock()
+    mock_iter_keys.__aiter__.return_value = iter(keys)
+
+    mock_client = AsyncMock()
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+        mocker.patch.object(s3, "iter_keys", return_value=mock_iter_keys)
+
+        count = await s3.delete_prefix("fuel/2025/", dry_run=False)
+        assert count == 3
+
+        assert mock_client.delete_objects.call_count == 1
+        deleted_keys = [
+            o["Key"] for o in mock_client.delete_objects.call_args[1]["Delete"]["Objects"]
+        ]
+        assert sorted(deleted_keys) == sorted(keys)
+
+
+@pytest.mark.anyio
+async def test_delete_prefix_dry_run_does_not_delete(mocker: MockerFixture):
+    keys = ["x.tif", "y.tif"]
+
+    mock_iter_keys = AsyncMock()
+    mock_iter_keys.__aiter__.return_value = iter(keys)
+
+    mock_client = AsyncMock()
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+        mocker.patch.object(s3, "iter_keys", return_value=mock_iter_keys)
+
+        count = await s3.delete_prefix("fuel/", dry_run=True)
+        assert count == 2
+        mock_client.delete_objects.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_delete_all_objects_empty_list_does_nothing(mocker: MockerFixture):
+    mock_client = AsyncMock()
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+        await s3.delete_all_objects([])
+        mock_client.delete_objects.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_delete_all_objects_single_batch(mocker: MockerFixture):
+    keys = [f"file_{i}.tif" for i in range(300)]
+
+    mock_client = AsyncMock()
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+        await s3.delete_all_objects(keys)
+
+        assert mock_client.delete_objects.call_count == 1
+        call = mock_client.delete_objects.call_args[1]
+        assert len(call["Delete"]["Objects"]) == 300
+        assert call["Delete"]["Quiet"] is True
+
+
+@pytest.mark.anyio
+async def test_iter_keys_pagination_with_mock():
+    # Prepare paginated responses
+    page1 = {
+        "Contents": [{"Key": "a.tif"}, {"Key": "b.tif"}],
+        "IsTruncated": True,
+        "NextContinuationToken": "tok1",
+    }
+    page2 = {"Contents": [{"Key": "c.tif"}], "IsTruncated": False}
+
+    async with S3Client() as s3:
+        s3.client = AsyncMock()
+        s3.client.list_objects_v2.side_effect = [page1, page2]
+
+        keys = [k async for k in s3.iter_keys("fuel/")]
+
+        assert keys == ["a.tif", "b.tif", "c.tif"]
+        assert s3.client.list_objects_v2.call_count == 2
+
+        first_call_kwargs = s3.client.list_objects_v2.call_args_list[0][1]
+        second_call_kwargs = s3.client.list_objects_v2.call_args_list[1][1]
+        assert "ContinuationToken" not in first_call_kwargs
+        assert second_call_kwargs["ContinuationToken"] == "tok1"
+
+
+@pytest.mark.anyio
+async def test_iter_common_prefixes(mocker: MockerFixture):
+    page1 = {
+        "CommonPrefixes": [{"Prefix": "fuel/2024/"}, {"Prefix": "fuel/2025/"}],
+        "IsTruncated": False,
+    }
+
+    mock_client = AsyncMock()
+    mock_client.list_objects_v2.return_value = page1
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+
+        prefixes = [p async for p in s3.iter_common_prefixes("fuel/")]
+        assert prefixes == ["fuel/2024/", "fuel/2025/"]

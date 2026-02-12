@@ -1,0 +1,64 @@
+name: Deploy WPS Weather
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "backend/packages/wps-weather/**"
+
+jobs:
+  build-image:
+    name: Build Image
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - uses: ./.github/actions/oc-setup
+        with:
+          pr-number: ${{ github.event.number }}
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_TOOL_TOKEN }}
+          oc-namespace: e1e498-tools
+      - name: Build WPS Weather Image
+        shell: bash
+        run: |
+          GIT_BRANCH=${GITHUB_HEAD_REF} \
+            MODULE_NAME=weather \
+            DOCKER_FILE=backend/packages/wps-weather/Dockerfile \
+            PATH_BC=openshift/templates/build.bc.yaml \
+            bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+  deployments:
+    name: Deployments
+    needs: [build-image]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: ./.github/actions/oc-setup
+        with:
+          pr-number: ${{ github.event.number }}
+
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+          oc-namespace: e1e498-dev
+
+      - name: Provision S3 Retention Cronjob
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_s3_data_retention.sh ${SUFFIX} apply
+
+      - name: Deploy ECCC Consumer
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_eccc_grib_consumer.sh ${SUFFIX} apply
