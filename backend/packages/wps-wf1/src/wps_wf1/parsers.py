@@ -362,6 +362,7 @@ def sfms_daily_actuals_mapper(
                     lon=station.long,
                     elevation=station.elevation,
                     temperature=raw_daily.get("temperature"),
+                    dewpoint=raw_daily.get("dewPoint"),
                     relative_humidity=raw_daily.get("relativeHumidity"),
                     precipitation=raw_daily.get("precipitation"),
                     wind_speed=raw_daily.get("windSpeed"),

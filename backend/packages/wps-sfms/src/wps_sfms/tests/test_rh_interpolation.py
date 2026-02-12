@@ -48,19 +48,16 @@ def create_test_raster(
     ds = None
 
 
-def create_test_actuals(lats, lons, temps, rhs, elevations):
-    """Create test SFMSDailyActual objects with temperature and relative humidity."""
+def create_test_actuals(lats, lons, dewpoints, elevations):
+    """Create test SFMSDailyActual objects with dewpoint values."""
     actuals = []
-    for i, (lat, lon, temp, rh, elev) in enumerate(zip(lats, lons, temps, rhs, elevations)):
+    for i, (lat, lon, td, elev) in enumerate(zip(lats, lons, dewpoints, elevations)):
         actual = SFMSDailyActual(
             code=100 + i,
             lat=lat,
             lon=lon,
             elevation=elev,
-            temperature=temp,
-            relative_humidity=rh,
-            precipitation=None,
-            wind_speed=None,
+            dewpoint=td,
         )
         actuals.append(actual)
     return actuals
@@ -127,12 +124,12 @@ class TestInterpolateRHToRaster:
             # Create a temperature raster with uniform 15°C
             create_test_raster(temp_raster_path, 10, 10, extent, fill_value=15.0)
 
-            # Create stations within extent with temp=20°C and RH=60%
+            # Create stations within extent with dewpoint values
+            # td = T - (100 - RH) / 5: 20-(100-60)/5=12, 18-(100-65)/5=11
             actuals = create_test_actuals(
                 lats=[49.05, 49.08],
                 lons=[-123.05, -123.02],
-                temps=[20.0, 18.0],
-                rhs=[60.0, 65.0],
+                dewpoints=[12.0, 11.0],
                 elevations=[100.0, 200.0],
             )
             dewpoint_source = StationDewPointSource(actuals)
@@ -189,11 +186,11 @@ class TestInterpolateRHToRaster:
             mask_data[2, 2] = 0.0  # Masked cell
             create_test_raster(mask_path, 5, 5, extent, data=mask_data)
 
+            # td = 20 - (100-60)/5 = 12
             actuals = create_test_actuals(
                 lats=[49.05],
                 lons=[-123.05],
-                temps=[20.0],
-                rhs=[60.0],
+                dewpoints=[12.0],
                 elevations=[100.0],
             )
             dewpoint_source = StationDewPointSource(actuals)
@@ -242,11 +239,11 @@ class TestInterpolateRHToRaster:
             create_test_raster(temp_raster_path, 8, 6, extent, fill_value=15.0)
             create_test_raster(mask_path, 8, 6, extent, fill_value=1.0)
 
+            # td = 20 - (100-60)/5 = 12
             actuals = create_test_actuals(
                 lats=[49.05],
                 lons=[-123.05],
-                temps=[20.0],
-                rhs=[60.0],
+                dewpoints=[12.0],
                 elevations=[100.0],
             )
             dewpoint_source = StationDewPointSource(actuals)
@@ -300,11 +297,11 @@ class TestInterpolateRHToRaster:
             # Temperature raster with uniform value
             create_test_raster(temp_raster_path, 5, 5, extent, fill_value=15.0)
 
+            # td = 20 - (100-60)/5 = 12
             actuals = create_test_actuals(
                 lats=[49.05],
                 lons=[-123.05],
-                temps=[20.0],
-                rhs=[60.0],
+                dewpoints=[12.0],
                 elevations=[100.0],
             )
             dewpoint_source = StationDewPointSource(actuals)

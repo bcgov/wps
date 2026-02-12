@@ -147,19 +147,8 @@ class StationDewPointSource(LapseRateAdjustedSource):
         self.weather_param = SFMSInterpolatedWeatherParameter.RH
 
     def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
-        temps = self._optional_to_array(actuals, "temperature")
-        rhs = self._optional_to_array(actuals, "relative_humidity")
-        return self._compute_dewpoint(temps, rhs)
-
-    @staticmethod
-    def _compute_dewpoint(
-        temp: NDArray[np.float32], rh: NDArray[np.float32]
-    ) -> NDArray[np.float32]:
-        """Vectorized dewpoint from temperature (°C) and relative humidity (%).
-
-        Uses the simple approximation: Td = T - (100 - RH) / 5
-        """
-        return (temp - (100.0 - rh) / 5.0).astype(np.float32)
+        dewpoints = self._optional_to_array(actuals, "dewpoint")
+        return dewpoints
 
     @staticmethod
     def compute_rh(temp: np.ndarray, dewpoint: np.ndarray) -> np.ndarray:
