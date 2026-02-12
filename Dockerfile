@@ -50,7 +50,7 @@ RUN chmod 444 /app/pyproject.toml /app/uv.lock \
 # Switch back to non-root user
 USER $USERNAME
 
-# # Install dependencies using uv, including setuptools for GDAL build and GDAL itself
+# Install dependencies using uv, including setuptools for GDAL build and GDAL itself
 RUN uv sync --frozen --no-dev --package wps-api && \
     uv pip install setuptools && \
     uv pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
