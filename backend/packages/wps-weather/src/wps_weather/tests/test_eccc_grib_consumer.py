@@ -501,7 +501,7 @@ class TestIntegration:
 
         # Mock AMQP setup
         with patch.object(consumer, "_setup_amqp", new_callable=AsyncMock):
-            await consumer.startup()
+            await consumer._startup()
 
         # Simulate receiving a message
         mock_message = Mock()
