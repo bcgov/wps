@@ -23,7 +23,7 @@ def old_folder_prefix():
 
 
 @pytest.mark.anyio
-async def test_retention_policy_dry_run_does_not_delete(s3_client_mock, old_folder_prefix):
+async def test_retention_policy_calls_dry_run_true(s3_client_mock, old_folder_prefix):
     # Mock iter_common_prefixes to yield the folder
     s3_client_mock.iter_common_prefixes.return_value.__aiter__.return_value = [old_folder_prefix]
 
@@ -44,7 +44,7 @@ async def test_retention_policy_dry_run_does_not_delete(s3_client_mock, old_fold
 
 
 @pytest.mark.anyio
-async def test_retention_policy_deletes_old_data(s3_client_mock, old_folder_prefix):
+async def test_retention_policy_calls_dry_run_false(s3_client_mock, old_folder_prefix):
     s3_client_mock.iter_common_prefixes.return_value.__aiter__.return_value = [old_folder_prefix]
     s3_client_mock.iter_keys.return_value.__aiter__.return_value = [
         f"{old_folder_prefix}file1.tif",
