@@ -35,11 +35,8 @@ USER ${USERNAME}
 # Copy workspace files (cache layer)
 COPY ./backend/pyproject.toml ./backend/uv.lock ./
 COPY ./backend/packages/wps-shared/pyproject.toml ./packages/wps-shared/
-COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-wf1/pyproject.toml   ./packages/wps-wf1/
-COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
 COPY ./backend/packages/wps-weather/pyproject.toml ./packages/wps-weather/
-COPY ./backend/packages/wps-weather/src /app/packages/wps-weather/src
 
 # Switch to root to set file permissions
 USER 0
@@ -48,14 +45,19 @@ USER 0
 RUN chmod 444 ./pyproject.toml ./uv.lock \
     ./packages/wps-shared/pyproject.toml \
     ./packages/wps-wf1/pyproject.toml \
-    ./packages/wps-weather/pyproject.toml && \
-    chmod -R a-w ./packages/wps-shared/src ./packages/wps-weather/src ./packages/wps-wf1/src
+    ./packages/wps-weather/pyproject.toml
 
 # Switch back to non-root user
 USER $USERNAME
 
 # Install locked deps + workspace packages
 RUN uv sync --frozen --no-dev --package wps-weather
+
+# Copy source code
+COPY ./backend/packages/wps-shared/src ./packages/wps-shared/src
+COPY ./backend/packages/wps-wf1/src ./packages/wps-wf1/src
+COPY ./backend/packages/wps-weather/src ./packages/wps-weather/src
+
 
 
 # Runtime stage
@@ -98,9 +100,9 @@ COPY ./backend/packages/wps-weather/src ./packages/wps-weather/src
 # Optional metadata
 COPY ./backend/pyproject.toml ./backend/uv.lock ./
 
-# Hardening: make configs and source read-only
-RUN chmod -R a-w pyproject.toml uv.lock packages 2>/dev/null || true \
-    && find packages -type d -exec chmod a+rX {} + 2>/dev/null || true
+# Hardening: make configs read-only but keep src directories group-writable
+RUN chmod -R a-w pyproject.toml uv.lock packages/*/pyproject.toml \
+    && chmod -R g+rwX packages/*/src
 
 # OpenShift simulation: random non-root UID
 USER 1001
