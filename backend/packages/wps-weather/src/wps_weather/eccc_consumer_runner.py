@@ -78,8 +78,7 @@ async def main():
                 num_workers=args.max_concurrent_downloads,
             )
 
-            async with consumer:
-                await consumer.run()
+            await consumer.run()
 
         except Exception as e:
             logger.error(f"Fatal error: {e}", exc_info=True)

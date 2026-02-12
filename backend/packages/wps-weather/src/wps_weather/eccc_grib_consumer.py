@@ -391,7 +391,7 @@ class ECCCGribConsumer:
 
             logger.info(f"✅ Subscribed to {model}: {config['routing_key']}")
 
-    async def start(self):
+    async def startup(self):
         """Start the consumer"""
         logger.info("Starting consumer...")
         self._running = True
@@ -416,18 +416,31 @@ class ECCCGribConsumer:
         logger.info("✅ Consumer started")
         self._log_stats()
 
-    async def run(self):
+    async def serve(self):
         """Run until interrupted"""
         try:
-            while self._running:
-                await asyncio.sleep(1)
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            raise
+
+    async def run(self):
+        """setup, run until interrupt, cleanup"""
+        try:
+            await self.startup()
+            await self.serve()
         except KeyboardInterrupt:
             logger.info("Interrupted")
+        except Exception as e:
+            logger.exception(e)
+            raise
         finally:
             await self.shutdown()
 
     async def shutdown(self):
         """Gracefully shutdown"""
+        if not self._running:
+            return
+
         logger.info("Shutting down...")
         self._running = False
 
@@ -472,10 +485,3 @@ class ECCCGribConsumer:
         logger.info(f"{uptime}")
         logger.info("=" * 60)
         logger.info("")
-
-    async def __aenter__(self):
-        await self.start()
-        return self
-
-    async def __aexit__(self, *args):
-        await self.shutdown()
