@@ -9,15 +9,14 @@ ignore:
   - "web/src/api/fbaAPI.ts" # Unstable while we work on ASA prototype
   - "web/src/utils/env.ts" # Just configuration
   - "api/app/auto_spatial_advisory" # Unstable while we work on ASA prototype
-  - "wps_shared/wps_shared/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
-  - "wps_shared/wps_shared/db/database.py" # We don't write tests for the database layer, it's mocked out in tests.
-  - "wps_shared/wps_shared/db/models" # We don't care about testing table schema.
-  - "wps_shared/wps_shared/schemas" # We don't care about explicitly testing pydantic response schema.
-  - "api/app/tests" # We don't care about coverage of the tests themselves.
-  - "wps_shared/wps_shared/tests" # We don't care about coverage of the tests themselves.
-  - "wps_jobs/tests" # We don't care about coverage of the tests themselves.
+  - "backend/packages/wps-shared/src/wps_shared/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
+  - "backend/packages/wps-shared/src/wps_shared/db/database.py" # We don't write tests for the database layer, it's mocked out in tests.
+  - "backend/packages/wps-shared/src/wps_shared/db/models" # We don't care about testing table schema.
+  - "backend/packages/wps-shared/src/wps_shared/schemas" # We don't care about explicitly testing pydantic response schema.
   - "web/src/utils/fwi" # We're temporarily hardcoding cffdrs ts modules here. Will switch to npm package eventually.
   - "mobile/keycloak/ios/" # CAPPlugin, OIDAuthState are seemingly not mockable
+  - "**/tests/**"
+  - "**/local/**"
 
 coverage:
   # https://docs.codecov.com/docs/commit-status
@@ -37,6 +36,7 @@ coverage:
           - web/src
           - wps_jobs
           - wps_shared
+          - wps_wf1
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
       api:
         paths:
@@ -54,6 +54,10 @@ coverage:
       wps_shared:
         paths:
           - wps_shared
+        threshold: 3%
+      wps_wf1:
+        paths:
+          - wps_wf1
         threshold: 3%
       asa_go:
         paths:

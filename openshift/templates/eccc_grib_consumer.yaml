@@ -1,0 +1,127 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: ${APP_NAME}-eccc-consumer
+  annotations:
+    description: "AMQP consumer for ECCC GRIB files."
+    tags: "env-canada,rdps,gdps,hrdps,grib"
+labels:
+  app.kubernetes.io/part-of: "${APP_NAME}"
+  app: ${APP_NAME}-${SUFFIX}
+parameters:
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: IMAGE_REGISTRY
+    description: Location where images are to be pulled
+    value: image-registry.openshift-image-registry.svc:5000
+    required: true
+objects:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}-eccc-consumer
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+      annotations:
+        # These annotations trigger a new rollout if the weather image changes
+        image.openshift.io/triggers: |-
+          [
+            {
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "wps-weather-${SUFFIX}:${SUFFIX}",
+                "namespace": "${PROJ_TOOLS}"
+              },
+              "fieldPath": "spec.template.spec.containers[0].image"
+            }
+          ]
+    spec:
+      replicas: 1
+      strategy:
+        type: Recreate
+
+      selector:
+        matchLabels:
+          app: ${APP_NAME}-${SUFFIX}
+      template:
+        metadata:
+          labels:
+            app: ${APP_NAME}-${SUFFIX}
+
+        spec:
+          containers:
+            - name: ${APP_NAME}-eccc-consumer-${SUFFIX}
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-weather-${SUFFIX}:${SUFFIX}
+              command:
+                - uv
+                - run
+                - --no-sync
+                - python
+                - "-m"
+                - wps_weather.eccc_consumer_runner
+                - --models
+                - GDPS
+                - RDPS
+                - --run-hours
+                - "00"
+                - "12"
+
+              env:
+                - name: UV_NO_CACHE
+                  value: "1"
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: WX_OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wx-object-store-user-id
+                - name: WX_OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wx-object-store-secret
+                - name: WX_OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wx-object-store-bucket
+              resources:
+                limits:
+                  memory: 400Mi
+                requests:
+                  cpu: 100m
+                  memory: 200Mi
+
+              # Liveness probe - restart if process hangs
+              livenessProbe:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -c
+                    - |
+                      # Check if health file exists and was updated in last 2 minutes
+                      if [ -f /tmp/health_check ]; then
+                        last_update=$(stat -c %Y /tmp/health_check)
+                        current_time=$(date +%s)
+                        age=$((current_time - last_update))
+                        if [ $age -lt 120 ]; then
+                          exit 0
+                        fi
+                      fi
+                      exit 1
+                initialDelaySeconds: 30
+                periodSeconds: 60
+                failureThreshold: 3

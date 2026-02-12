@@ -8,6 +8,7 @@
 .gitignore
 .ipynb_checkpoints
 node_modules
+mobile/**
 web/build
 web/coverage-cypress
 web/coverage
