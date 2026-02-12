@@ -74,8 +74,13 @@ USER 0
 # Copy uv binary into runtime (enables uv at runtime)
 COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
 
-# Create application directory and make it OpenShift-compatible
-RUN mkdir /app && chown "$USERNAME" /app
+# Prepare /app for OpenShift:
+# Ensure the root group (GID 0) has read/write/execute permissions
+# so containers running as a random non-root UID (in group 0) can write here
+RUN mkdir /app \
+    && chgrp -R 0 /app \
+    && chmod -R g+rwX /app
+
 
 WORKDIR /app
 
