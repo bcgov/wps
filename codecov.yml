@@ -8,7 +8,6 @@ ignore:
   - "web/src/features/fireWatch"
   - "web/src/api/fbaAPI.ts" # Unstable while we work on ASA prototype
   - "web/src/utils/env.ts" # Just configuration
-  - "api/app/auto_spatial_advisory" # Unstable while we work on ASA prototype
   - "backend/packages/wps-shared/src/wps_shared/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
   - "backend/packages/wps-shared/src/wps_shared/db/database.py" # We don't write tests for the database layer, it's mocked out in tests.
   - "backend/packages/wps-shared/src/wps_shared/db/models" # We don't care about testing table schema.
@@ -32,15 +31,15 @@ coverage:
         # threshold: Allow the coverage to drop by X%, and posting a success status.
         threshold: 3%
         paths:
-          - api/app
+          - backend/packages/wps-api/src/app
           - web/src
-          - wps_jobs
-          - wps_shared
-          - wps_wf1
+          - backend/packages/wps-jobs/src/wps_jobs
+          - backend/packages/wps-shared/src/wps_shared
+          - backend/packages/wps-wf1/src/wps_wf1
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
       api:
         paths:
-          - api/app
+          - backend/packages/wps-api/src/app
         threshold: 3%
       web:
         paths:
@@ -49,15 +48,15 @@ coverage:
         target: 71%
       wps_jobs:
         paths:
-          - wps_jobs
+          - backend/packages/wps-jobs/src/wps_jobs
         threshold: 3%
       wps_shared:
         paths:
-          - wps_shared
+          - backend/packages/wps-shared/src/wps_shared
         threshold: 3%
       wps_wf1:
         paths:
-          - wps_wf1
+          - backend/packages/wps-wf1/src/wps_wf1
         threshold: 3%
       asa_go:
         paths:
