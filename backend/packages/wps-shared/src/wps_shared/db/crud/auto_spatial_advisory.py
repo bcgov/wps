@@ -849,7 +849,7 @@ async def get_provincial_rollup(
     logger.info("gathering provincial rollup")
     run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
-    # subquerys to find the fuel_type_raster_id for the most recent year
+    # subquery to find the fuel_type_raster_id for the most recent year
     # for AdvisoryZoneStatus records matching the run_parameters
     most_recent_raster_subquery = (
         select(FuelTypeRaster.id)
