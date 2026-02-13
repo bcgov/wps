@@ -27,6 +27,27 @@ test_run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 test_for_date = test_run_datetime.date()
 
 
+@pytest.fixture
+async def base_setup(async_session):
+    run_datetime = test_run_datetime
+    for_date = test_for_date
+
+    run_param = RunParameters(
+        run_type=RunType.FORECAST.value,
+        run_datetime=run_datetime,
+        for_date=for_date,
+        complete=True,
+    )
+
+    fire_centre = FireCentre(name="Test Centre")
+    shape_type = ShapeType(name=ShapeTypeEnum.fire_zone_unit)
+
+    async_session.add_all([run_param, fire_centre, shape_type])
+    await async_session.commit()
+
+    return run_param, fire_centre, shape_type
+
+
 @pytest.fixture(scope="function")
 def postgres_container():
     with PostgresContainer("postgis/postgis:15-3.3") as postgres:
@@ -191,29 +212,8 @@ async def test_get_provincial_rollup(async_session):
 
 
 @pytest.mark.anyio
-async def test_get_provincial_rollup_with_multiple_fuel_rasters(async_session):
-    run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-    for_date = run_datetime.date()
-
-    # Create RunParameters
-    run_param = RunParameters(
-        run_type=RunType.FORECAST.value,
-        run_datetime=run_datetime,
-        for_date=for_date,
-        complete=True,
-    )
-    async_session.add(run_param)
-    await async_session.commit()
-
-    # Create FireCentre
-    fire_centre = FireCentre(name="Test Centre")
-    async_session.add(fire_centre)
-    await async_session.commit()
-
-    # Create ShapeType
-    shape_type = ShapeType(name=ShapeTypeEnum.fire_zone_unit)
-    async_session.add(shape_type)
-    await async_session.commit()
+async def test_get_provincial_rollup_with_multiple_fuel_rasters(async_session, base_setup):
+    run_param, fire_centre, shape_type = base_setup
 
     # Create FuelTypeRasters: 2024 and 2025
     fuel_raster_2024 = FuelTypeRaster(
@@ -268,36 +268,17 @@ async def test_get_provincial_rollup_with_multiple_fuel_rasters(async_session):
     async_session.add_all([status1, status2])
     await async_session.commit()
 
-    result = await get_provincial_rollup(async_session, RunType.FORECAST, run_datetime, for_date)
+    result = await get_provincial_rollup(
+        async_session, RunType.FORECAST, test_run_datetime, test_for_date
+    )
 
     assert len(result) == 1
     assert result[0].status == "warning"
 
 
 @pytest.mark.anyio
-async def test_get_provincial_rollup_includes_zones_with_no_status(async_session):
-    run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-    for_date = run_datetime.date()
-
-    # RunParameters
-    run_param = RunParameters(
-        run_type=RunType.FORECAST.value,
-        run_datetime=run_datetime,
-        for_date=for_date,
-        complete=True,
-    )
-    async_session.add(run_param)
-    await async_session.commit()
-
-    # FireCentre
-    fire_centre = FireCentre(name="Test Centre")
-    async_session.add(fire_centre)
-    await async_session.commit()
-
-    # ShapeType
-    shape_type = ShapeType(name=ShapeTypeEnum.fire_zone_unit)
-    async_session.add(shape_type)
-    await async_session.commit()
+async def test_get_provincial_rollup_includes_zones_with_no_status(async_session, base_setup):
+    run_param, fire_centre, shape_type = base_setup
 
     # FuelTypeRaster
     fuel_raster = FuelTypeRaster(
@@ -343,7 +324,9 @@ async def test_get_provincial_rollup_includes_zones_with_no_status(async_session
     async_session.add(status)
     await async_session.commit()
 
-    result = await get_provincial_rollup(async_session, RunType.FORECAST, run_datetime, for_date)
+    result = await get_provincial_rollup(
+        async_session, RunType.FORECAST, test_run_datetime, test_for_date
+    )
 
     assert len(result) == 2
 
