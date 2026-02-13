@@ -849,20 +849,17 @@ async def get_provincial_rollup(
     logger.info("gathering provincial rollup")
     run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
-    # subquery to find the fuel_type_raster_id for the most recent year
+    # subquerys to find the fuel_type_raster_id for the most recent year
     # for AdvisoryZoneStatus records matching the run_parameters
     most_recent_raster_subquery = (
         select(FuelTypeRaster.id)
-        .where(
-            FuelTypeRaster.year
-            == select(func.max(FuelTypeRaster.year)).where(
-                FuelTypeRaster.id.in_(
-                    select(AdvisoryZoneStatus.fuel_type_raster_id).where(
-                        AdvisoryZoneStatus.run_parameters == run_parameter_id
-                    )
-                )
-            )
+        .join(
+            AdvisoryZoneStatus,
+            AdvisoryZoneStatus.fuel_type_raster_id == FuelTypeRaster.id,
         )
+        .where(AdvisoryZoneStatus.run_parameters == run_parameter_id)
+        .order_by(FuelTypeRaster.year.desc())
+        .limit(1)
         .scalar_subquery()
     )
 
@@ -879,10 +876,10 @@ async def get_provincial_rollup(
             and_(
                 AdvisoryZoneStatus.advisory_shape_id == Shape.id,
                 AdvisoryZoneStatus.run_parameters == run_parameter_id,
+                AdvisoryZoneStatus.fuel_type_raster_id == most_recent_raster_subquery,
             ),
             isouter=True,
         )
-        .where(AdvisoryZoneStatus.fuel_type_raster_id == most_recent_raster_subquery)
     )
     result = await session.execute(stmt)
     return [FireShapeStatusDetail.model_validate(row) for row in result.mappings().all()]
