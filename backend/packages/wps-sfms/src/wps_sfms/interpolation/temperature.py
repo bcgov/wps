@@ -11,7 +11,7 @@ This module implements the SFMS temperature interpolation workflow:
 import logging
 import numpy as np
 from osgeo import gdal
-from wps_sfms.interpolation.source import StationTemperatureSource
+from wps_sfms.interpolation.source import LAPSE_RATE, StationTemperatureSource
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_sfms.interpolation.common import (
@@ -20,10 +20,6 @@ from wps_sfms.interpolation.common import (
 )
 
 logger = logging.getLogger(__name__)
-
-# Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
-# This matches the CWFIS implementation
-LAPSE_RATE = 0.0065
 
 
 def interpolate_temperature_to_raster(
@@ -106,7 +102,7 @@ def interpolate_temperature_to_raster(
             )
             elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
 
-            actual_temps = temperature_source.compute_adjusted_temps(sea, elev, LAPSE_RATE)
+            actual_temps = temperature_source.compute_adjusted_values(sea, elev, LAPSE_RATE)
 
             # Write the results directly into the output raster
             temp_array[rows, cols] = actual_temps
