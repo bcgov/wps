@@ -10,8 +10,8 @@ from wps_shared.sfms.raster_addresser import SFMSInterpolatedWeatherParameter
 # This matches the CWFIS implementation
 LAPSE_RATE = 0.0065
 
-# Dew point lapse rate: 4.0°C per 1000m based on discussion with JE
-DEW_POINT_LAPSE_RATE = 0.004
+# Dew point lapse rate: 2.0°C per 1000m: https://www.atmos.illinois.edu/~snodgrss/Airflow_over_mtn.html
+DEW_POINT_LAPSE_RATE = 0.002
 
 
 class StationInterpolationSource(Protocol):
@@ -153,15 +153,18 @@ class StationDewPointSource(LapseRateAdjustedSource):
     @staticmethod
     def compute_rh(temp: np.ndarray, dewpoint: np.ndarray) -> np.ndarray:
         """
-        Compute relative humidity from temperature and dew point.
+        Compute relative humidity from temperature and dew point using the Arden Buck equation.
 
-        Uses the simple approximation: RH = 100 - 5 * (T - Td)
+        Buck (1981): e_s(T) = 6.1121 * exp((18.678 - T/234.5) * (T / (257.14 + T)))
+        RH = 100 * e_s(Td) / e_s(T)
 
         :param temp: Temperature array in Celsius
         :param dewpoint: Dew point temperature array in Celsius
         :return: Relative humidity as percentage (0-100), clamped
         """
-        rh = 100.0 - 5.0 * (temp - dewpoint)
+        e_td = 6.1121 * np.exp((18.678 - dewpoint / 234.5) * (dewpoint / (257.14 + dewpoint)))
+        e_t = 6.1121 * np.exp((18.678 - temp / 234.5) * (temp / (257.14 + temp)))
+        rh = 100.0 * e_td / e_t
         return np.clip(rh, 0.0, 100.0).astype(np.float32)
 
 

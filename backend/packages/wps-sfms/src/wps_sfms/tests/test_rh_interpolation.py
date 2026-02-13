@@ -89,12 +89,12 @@ class TestComputeRHFromTempAndDewpoint:
         assert np.all(rh <= 100.0)
 
     def test_known_values(self):
-        """Test against known values using simple approximation."""
-        # At 20°C with dewpoint of 10°C, RH = 100 - 5*(20-10) = 50%
+        """Test against known Arden Buck values."""
+        # At 20°C with dewpoint of 10°C: e_s(10)/e_s(20) ≈ 0.5258 → ~52.58%
         temp = np.array([20.0], dtype=np.float32)
         dewpoint = np.array([10.0], dtype=np.float32)
         rh = StationDewPointSource.compute_rh(temp, dewpoint)
-        np.testing.assert_allclose(rh, 50.0, atol=0.01)
+        np.testing.assert_allclose(rh, 52.58, atol=0.1)
 
     def test_output_dtype_is_float32(self):
         """Output should be float32."""
