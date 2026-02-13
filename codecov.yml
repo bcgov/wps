@@ -33,7 +33,7 @@ coverage:
         paths:
           - backend/packages/wps-api/src/app
           - web/src
-          - backend/packages/wps-jobs/src/wps_jobs
+          - backend/packages/wps-jobs/src
           - backend/packages/wps-shared/src/wps_shared
           - backend/packages/wps-wf1/src/wps_wf1
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
@@ -48,7 +48,7 @@ coverage:
         target: 71%
       wps_jobs:
         paths:
-          - backend/packages/wps-jobs/src/wps_jobs
+          - backend/packages/wps-jobs/src
         threshold: 3%
       wps_shared:
         paths:
