@@ -186,7 +186,6 @@ class TestInterpolateRHToRaster:
             mask_data[2, 2] = 0.0  # Masked cell
             create_test_raster(mask_path, 5, 5, extent, data=mask_data)
 
-            # td = 20 - (100-60)/5 = 12
             actuals = create_test_actuals(
                 lats=[49.05],
                 lons=[-123.05],
@@ -239,7 +238,6 @@ class TestInterpolateRHToRaster:
             create_test_raster(temp_raster_path, 8, 6, extent, fill_value=15.0)
             create_test_raster(mask_path, 8, 6, extent, fill_value=1.0)
 
-            # td = 20 - (100-60)/5 = 12
             actuals = create_test_actuals(
                 lats=[49.05],
                 lons=[-123.05],
@@ -297,7 +295,6 @@ class TestInterpolateRHToRaster:
             # Temperature raster with uniform value
             create_test_raster(temp_raster_path, 5, 5, extent, fill_value=15.0)
 
-            # td = 20 - (100-60)/5 = 12
             actuals = create_test_actuals(
                 lats=[49.05],
                 lons=[-123.05],
