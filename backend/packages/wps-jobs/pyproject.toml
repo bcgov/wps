@@ -16,7 +16,7 @@ dependencies = [
     "numpy==2.3.*",
     "xarray>=2025.3.1,<2026",
     "herbie-data>=2025.11.1,<2026",
-    "gdal==3.9.2",
+    "gdal==3.12.2",
     "wps-wf1"
 ]
 
