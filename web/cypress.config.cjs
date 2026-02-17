@@ -1,6 +1,7 @@
 const { defineConfig } = require('cypress');
 
 module.exports = defineConfig({
+  allowCypressEnv: false,
   screenshotOnRunFailure: false,
   retries: 1,
   video: false,
