@@ -64,7 +64,7 @@ if [ "${APPLY}" ]; then
     # Tag prod stream to prod latest
     tag_if_exists_or_fail "${PROD_IMAGE}" "${PROD_TAG_IMAGE}"
 
-	if ! [ -z ${OC_IMG_PRUNE+x} ]; then
+	if [ "${#OC_IMG_PRUNE[@]}" -gt 0 ]; then
 		for PRUNE in "${OC_IMG_PRUNE[@]}"; do
 			eval "${PRUNE}"
 		done
