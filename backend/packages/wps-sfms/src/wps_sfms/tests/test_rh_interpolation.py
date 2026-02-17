@@ -125,7 +125,6 @@ class TestInterpolateRHToRaster:
             create_test_raster(temp_raster_path, 10, 10, extent, fill_value=15.0)
 
             # Create stations within extent with dewpoint values
-            # td = T - (100 - RH) / 5: 20-(100-60)/5=12, 18-(100-65)/5=11
             actuals = create_test_actuals(
                 lats=[49.05, 49.08],
                 lons=[-123.05, -123.02],
