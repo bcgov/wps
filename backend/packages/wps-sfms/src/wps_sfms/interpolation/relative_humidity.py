@@ -119,7 +119,7 @@ def interpolate_rh_to_raster(
 
             rh_values = StationDewPointSource.compute_rh(
                 temp_data[rows, cols].astype(np.float32),
-                aadjusted_dewpoints,
+                adjusted_dewpoints,
             )
             rh_array[rows, cols] = rh_values
 
