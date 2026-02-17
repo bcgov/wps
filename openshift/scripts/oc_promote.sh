@@ -2,7 +2,6 @@
 #
 source "$(dirname ${0})/common/common"
 
-
 #%
 #% OpenShift ImageStreamTag Promotion Helper
 #%
@@ -43,6 +42,9 @@ tag_if_exists_or_fail() {
 }
 
 IMG_DEST="${APP_NAME}-${MODULE_NAME}-${TAG_PROD}"
+PR_IMAGE="${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}"
+PROD_IMAGE="${IMG_DEST}:${SUFFIX}"
+PROD_TAG_IMAGE="${IMG_DEST}:${TAG_PROD}"
 
 # Get list of images to prune.
 #
@@ -52,9 +54,6 @@ for TAG in ${TAGS}; do
 	OC_IMG_PRUNE+=("oc -n ${PROJ_TOOLS} tag -d ${IMG_DEST}:${TAG}")
 done
 
-PR_IMAGE="${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}"
-PROD_IMAGE="${IMG_DEST}:${SUFFIX}"
-PROD_TAG_IMAGE="${IMG_DEST}:${TAG_PROD}"
 
 # Promote images
 if [ "${APPLY}" ]; then
