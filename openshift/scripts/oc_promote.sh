@@ -2,6 +2,7 @@
 #
 source "$(dirname ${0})/common/common"
 
+
 #%
 #% OpenShift ImageStreamTag Promotion Helper
 #%
@@ -23,12 +24,26 @@ source "$(dirname ${0})/common/common"
 
 # Source and destination
 #
-IMG_DEST="${APP_NAME}-${MODULE_NAME}-${TAG_PROD}"
 
-# Tag PR image on prod imagestream, leaving the original tag in, then retag prod imagestream
-#
-OC_IMG_PROD_STREAM_TAG="oc -n ${PROJ_TOOLS} tag ${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX} ${IMG_DEST}:${SUFFIX}"
-OC_IMG_PROD_LATEST_TAG="oc -n ${PROJ_TOOLS} tag ${IMG_DEST}:${SUFFIX} ${IMG_DEST}:${TAG_PROD}"
+tag_if_exists_or_fail() {
+    SOURCE="$1"
+    DEST="$2"
+
+    if oc -n "${PROJ_TOOLS}" get istag "${SOURCE}" >/dev/null 2>&1; then
+        # oc -n "${PROJ_TOOLS}" tag "${SOURCE}" "${DEST}"
+		echo "Would tag ${SOURCE} to ${DEST} (apply mode: ${APPLY})"
+    else
+		# We don't always build the weather image if nothing has changed, so allow it to be missing.
+        if [ "${MODULE_NAME}" = "weather" ]; then
+            echo "Image ${SOURCE} not found (allowed for weather module) — skipping."
+        else
+            echo "ERROR: Image ${SOURCE} not found."
+            exit 1
+        fi
+    fi
+}
+
+IMG_DEST="${APP_NAME}-${MODULE_NAME}-${TAG_PROD}"
 
 # Get list of images to prune.
 #
@@ -38,11 +53,18 @@ for TAG in ${TAGS}; do
 	OC_IMG_PRUNE+=("oc -n ${PROJ_TOOLS} tag -d ${IMG_DEST}:${TAG}")
 done
 
-# Execute commands
-#
+PR_IMAGE="${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}"
+PROD_IMAGE="${IMG_DEST}:${SUFFIX}"
+PROD_TAG_IMAGE="${IMG_DEST}:${TAG_PROD}"
+
+# Promote images
 if [ "${APPLY}" ]; then
-	eval "${OC_IMG_PROD_STREAM_TAG}"
-	eval "${OC_IMG_PROD_LATEST_TAG}"
+    # Tag PR image to prod stream
+    tag_if_exists_or_fail "${PR_IMAGE}" "${PROD_IMAGE}"
+
+    # Tag prod stream to prod latest
+    tag_if_exists_or_fail "${PROD_IMAGE}" "${PROD_TAG_IMAGE}"
+
 	if ! [ -z ${OC_IMG_PRUNE+x} ]; then
 		for PRUNE in "${OC_IMG_PRUNE[@]}"; do
 			eval "${PRUNE}"
@@ -52,8 +74,11 @@ fi
 
 # Provide oc command instruction
 #
-if ! [ -z ${OC_IMG_PRUNE+x} ]; then
-	display_helper "${OC_IMG_PROD_STREAM_TAG}" "${OC_IMG_PROD_LATEST_TAG}" "${OC_IMG_PRUNE[@]}"
+DISPLAY_STREAM="oc -n ${PROJ_TOOLS} tag ${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX} ${IMG_DEST}:${SUFFIX}"
+DISPLAY_LATEST="oc -n ${PROJ_TOOLS} tag ${IMG_DEST}:${SUFFIX} ${IMG_DEST}:${TAG_PROD}"
+
+if [ "${#OC_IMG_PRUNE[@]}" -gt 0 ]; then
+    display_helper "${DISPLAY_STREAM}" "${DISPLAY_LATEST}" "${OC_IMG_PRUNE[@]}"
 else
-	display_helper "${OC_IMG_PROD_STREAM_TAG}" "${OC_IMG_PROD_LATEST_TAG}"
+    display_helper "${DISPLAY_STREAM}" "${DISPLAY_LATEST}"
 fi
