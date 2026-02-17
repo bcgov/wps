@@ -3,9 +3,9 @@ Relative humidity interpolation using Inverse Distance Weighting (IDW) with elev
 
 This module implements the SFMS relative humidity interpolation workflow:
 1. Interpolate dew point temperatures to a raster using IDW with elevation adjustment
-   (using the dew point lapse rate of 4.0°C/km, not the dry-bulb 6.5°C/km)
+   (using the dew point lapse rate of 2.0°C/km, based on https://www.atmos.illinois.edu/~snodgrss/Airflow_over_mtn.html)
 2. Read the already-interpolated temperature raster
-3. Compute RH from temperature and dew point using the Magnus formula: https://bmcnoldy.earth.miami.edu/Humidity.html
+3. Compute RH from dew point using Arden Buck (https://ui.adsabs.harvard.edu/abs/1981JApMe..20.1527B)
 """
 
 import logging
