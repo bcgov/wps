@@ -30,8 +30,7 @@ tag_if_exists_or_fail() {
     DEST="$2"
 
     if oc -n "${PROJ_TOOLS}" get istag "${SOURCE}" >/dev/null 2>&1; then
-        # oc -n "${PROJ_TOOLS}" tag "${SOURCE}" "${DEST}"
-		echo "Would tag ${SOURCE} to ${DEST} (apply mode: ${APPLY})"
+        oc -n "${PROJ_TOOLS}" tag "${SOURCE}" "${DEST}"
     else
 		# We don't always build the weather image if nothing has changed, so allow it to be missing.
         if [ "${MODULE_NAME}" = "weather" ]; then
@@ -74,8 +73,8 @@ fi
 
 # Provide oc command instruction
 #
-DISPLAY_STREAM="oc -n ${PROJ_TOOLS} tag ${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX} ${IMG_DEST}:${SUFFIX}"
-DISPLAY_LATEST="oc -n ${PROJ_TOOLS} tag ${IMG_DEST}:${SUFFIX} ${IMG_DEST}:${TAG_PROD}"
+DISPLAY_STREAM="oc -n ${PROJ_TOOLS} tag ${PR_IMAGE} ${PROD_IMAGE}"
+DISPLAY_LATEST="oc -n ${PROJ_TOOLS} tag ${PROD_IMAGE} ${PROD_TAG_IMAGE}"
 
 if [ "${#OC_IMG_PRUNE[@]}" -gt 0 ]; then
     display_helper "${DISPLAY_STREAM}" "${DISPLAY_LATEST}" "${OC_IMG_PRUNE[@]}"
