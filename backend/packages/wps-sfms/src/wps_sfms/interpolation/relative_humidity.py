@@ -113,13 +113,13 @@ def interpolate_rh_to_raster(
                 np.float32, copy=False
             )
             elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
-            actual_dewpoints = dewpoint_source.compute_adjusted_values(
+            aadjusted_dewpoints = dewpoint_source.compute_adjusted_values(
                 sea, elev, DEW_POINT_LAPSE_RATE
             )
 
             rh_values = dewpoint_source.compute_rh(
                 temp_data[rows, cols].astype(np.float32),
-                actual_dewpoints,
+                aadjusted_dewpoints,
             )
             rh_array[rows, cols] = rh_values
 
