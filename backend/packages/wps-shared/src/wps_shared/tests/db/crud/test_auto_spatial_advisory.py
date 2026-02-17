@@ -27,6 +27,27 @@ test_run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 test_for_date = test_run_datetime.date()
 
 
+@pytest.fixture
+async def base_setup(async_session):
+    run_datetime = test_run_datetime
+    for_date = test_for_date
+
+    run_param = RunParameters(
+        run_type=RunType.FORECAST.value,
+        run_datetime=run_datetime,
+        for_date=for_date,
+        complete=True,
+    )
+
+    fire_centre = FireCentre(name="Test Centre")
+    shape_type = ShapeType(name=ShapeTypeEnum.fire_zone_unit)
+
+    async_session.add_all([run_param, fire_centre, shape_type])
+    await async_session.commit()
+
+    return run_param, fire_centre, shape_type
+
+
 @pytest.fixture(scope="function")
 def postgres_container():
     with PostgresContainer("postgis/postgis:15-3.3") as postgres:
@@ -191,29 +212,8 @@ async def test_get_provincial_rollup(async_session):
 
 
 @pytest.mark.anyio
-async def test_get_provincial_rollup_with_multiple_fuel_rasters(async_session):
-    run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-    for_date = run_datetime.date()
-
-    # Create RunParameters
-    run_param = RunParameters(
-        run_type=RunType.FORECAST.value,
-        run_datetime=run_datetime,
-        for_date=for_date,
-        complete=True,
-    )
-    async_session.add(run_param)
-    await async_session.commit()
-
-    # Create FireCentre
-    fire_centre = FireCentre(name="Test Centre")
-    async_session.add(fire_centre)
-    await async_session.commit()
-
-    # Create ShapeType
-    shape_type = ShapeType(name=ShapeTypeEnum.fire_zone_unit)
-    async_session.add(shape_type)
-    await async_session.commit()
+async def test_get_provincial_rollup_with_multiple_fuel_rasters(async_session, base_setup):
+    run_param, fire_centre, shape_type = base_setup
 
     # Create FuelTypeRasters: 2024 and 2025
     fuel_raster_2024 = FuelTypeRaster(
@@ -268,7 +268,69 @@ async def test_get_provincial_rollup_with_multiple_fuel_rasters(async_session):
     async_session.add_all([status1, status2])
     await async_session.commit()
 
-    result = await get_provincial_rollup(async_session, RunType.FORECAST, run_datetime, for_date)
+    result = await get_provincial_rollup(
+        async_session, RunType.FORECAST, test_run_datetime, test_for_date
+    )
 
     assert len(result) == 1
     assert result[0].status == "warning"
+
+
+@pytest.mark.anyio
+async def test_get_provincial_rollup_includes_zones_with_no_status(async_session, base_setup):
+    run_param, fire_centre, shape_type = base_setup
+
+    # FuelTypeRaster
+    fuel_raster = FuelTypeRaster(
+        year=2025,
+        version=1,
+        xsize=100,
+        ysize=100,
+        object_store_path="dummy",
+        content_hash="dummy",
+        create_timestamp=datetime.now(timezone.utc),
+    )
+    async_session.add(fuel_raster)
+    await async_session.commit()
+
+    # Create TWO Shapes
+    shape_with_status = Shape(
+        source_identifier="1",
+        placename_label="Zone 1",
+        fire_centre=fire_centre.id,
+        shape_type=shape_type.id,
+        geom=WKTElement("MULTIPOLYGON(((0 0, 1 0, 1 1, 0 1, 0 0)))", srid=3005),
+    )
+
+    shape_without_status = Shape(
+        source_identifier="2",
+        placename_label="Zone 2",
+        fire_centre=fire_centre.id,
+        shape_type=shape_type.id,
+        geom=WKTElement("MULTIPOLYGON(((0 0, 1 0, 1 1, 0 1, 0 0)))", srid=3005),
+    )
+
+    async_session.add_all([shape_with_status, shape_without_status])
+    await async_session.commit()
+
+    # Add status ONLY for first shape
+    status = AdvisoryZoneStatus(
+        advisory_shape_id=shape_with_status.id,
+        run_parameters=run_param.id,
+        fuel_type_raster_id=fuel_raster.id,
+        advisory_percentage=10,
+        warning_percentage=25,
+    )
+    async_session.add(status)
+    await async_session.commit()
+
+    result = await get_provincial_rollup(
+        async_session, RunType.FORECAST, test_run_datetime, test_for_date
+    )
+
+    assert len(result) == 2
+
+    result_dict = {r.fire_shape_id: r for r in result}
+
+    assert result_dict[1].status == "warning"
+    assert result_dict[2].status is None  # or "none" if you coalesce
