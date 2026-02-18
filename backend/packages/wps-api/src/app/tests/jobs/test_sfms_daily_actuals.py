@@ -47,19 +47,29 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     )
     mocker.patch(f"{MODULE_PATH}.WfwxApi", return_value=mock_wfwx_api)
 
-    # Mock find_latest_version
+    # Mock get_fuel_type_raster_by_year
+    mock_fuel_type_raster = MagicMock()
+    mock_fuel_type_raster.object_store_path = "sfms/fuel/2024/fuel.tif"
     mocker.patch(
-        f"{MODULE_PATH}.find_latest_version",
+        f"{MODULE_PATH}.get_fuel_type_raster_by_year",
         new_callable=AsyncMock,
-        return_value=1,
+        return_value=mock_fuel_type_raster,
     )
+
+    # Mock get_async_read_session_scope
+    mock_read_session = AsyncMock(spec=AsyncSession)
+
+    @asynccontextmanager
+    async def _read_scope():
+        yield mock_read_session
+
+    mocker.patch(f"{MODULE_PATH}.get_async_read_session_scope", _read_scope)
 
     # Mock save_sfms_run
     mocker.patch(f"{MODULE_PATH}.save_sfms_run", new_callable=AsyncMock, return_value=1)
 
     # Mock RasterKeyAddresser
     mock_addresser = MagicMock()
-    mock_addresser.get_fuel_raster_key.return_value = "sfms/fuel/2024/fuel.tif"
     mock_addresser.s3_prefix = "/vsis3/test-bucket"
     mocker.patch(f"{MODULE_PATH}.RasterKeyAddresser", return_value=mock_addresser)
 
