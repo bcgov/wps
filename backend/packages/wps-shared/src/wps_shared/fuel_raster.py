@@ -29,6 +29,37 @@ async def find_latest_version(
     return current_version
 
 
+MAX_FALLBACK_YEARS = 5
+
+
+async def find_latest_fuel_raster_key(
+    s3_client: S3Client, raster_addresser: RasterKeyAddresser, now: datetime
+) -> str:
+    """Find the latest fuel raster key, falling back to previous years if the current year has none.
+
+    :param s3_client: S3Client instance
+    :param raster_addresser: RasterKeyAddresser instance
+    :param now: current UTC datetime
+    :return: S3 key to the latest fuel raster
+    :raises RuntimeError: if no fuel raster is found within MAX_FALLBACK_YEARS
+    """
+    for year_offset in range(MAX_FALLBACK_YEARS):
+        current_date = now.replace(year=now.year - year_offset)
+        version = await find_latest_version(s3_client, raster_addresser, current_date, 1)
+        key = raster_addresser.get_fuel_raster_key(current_date, version)
+        if await s3_client.all_objects_exist(key):
+            if year_offset > 0:
+                logger.warning(
+                    "No fuel raster for %d, falling back to %d v%d",
+                    now.year,
+                    current_date.year,
+                    version,
+                )
+            return key
+
+    raise RuntimeError(f"No fuel raster found within the last {MAX_FALLBACK_YEARS} years")
+
+
 async def process_fuel_type_raster(
     raster_addresser: RasterKeyAddresser, start_datetime: datetime, unprocessed_object_name: str
 ):

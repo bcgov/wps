@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
-from wps_shared.fuel_raster import find_latest_version, process_fuel_type_raster
+from wps_shared.fuel_raster import find_latest_fuel_raster_key, find_latest_version, process_fuel_type_raster
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 
@@ -165,3 +165,59 @@ async def test_process_fuel_type_raster_failure(monkeypatch):
             unprocessed_object_name="fuel.tif",
         )
     assert mock_s3.deleted == "fuel-key-v3"
+
+
+@pytest.mark.anyio
+async def test_find_latest_fuel_raster_key_current_year(monkeypatch):
+    """Returns current year's fuel raster when it exists."""
+    existing_keys = {"sfms/static/fuel/2026/fbp2026_v1.tif"}
+
+    s3_client = S3Client()
+    raster_addresser = RasterKeyAddresser()
+
+    async def mock_all_objects_exist(*keys):
+        return all(k in existing_keys for k in keys)
+
+    monkeypatch.setattr(s3_client, "all_objects_exist", mock_all_objects_exist)
+
+    now = datetime(2026, 1, 15, 20, 0, tzinfo=timezone.utc)
+    key = await find_latest_fuel_raster_key(s3_client, raster_addresser, now)
+    assert "2026" in key
+    assert key in existing_keys
+
+
+@pytest.mark.anyio
+async def test_find_latest_fuel_raster_key_falls_back_to_previous_year(monkeypatch):
+    """Falls back to previous year when current year has no fuel raster."""
+    existing_keys = {
+        "sfms/static/fuel/2025/fbp2025_v1.tif",
+        "sfms/static/fuel/2025/fbp2025_v2.tif",
+    }
+
+    s3_client = S3Client()
+    raster_addresser = RasterKeyAddresser()
+
+    async def mock_all_objects_exist(*keys):
+        return all(k in existing_keys for k in keys)
+
+    monkeypatch.setattr(s3_client, "all_objects_exist", mock_all_objects_exist)
+
+    now = datetime(2026, 1, 15, 20, 0, tzinfo=timezone.utc)
+    key = await find_latest_fuel_raster_key(s3_client, raster_addresser, now)
+    assert key == "sfms/static/fuel/2025/fbp2025_v2.tif"
+
+
+@pytest.mark.anyio
+async def test_find_latest_fuel_raster_key_raises_when_none_found(monkeypatch):
+    """Raises RuntimeError when no fuel raster exists in any year."""
+    s3_client = S3Client()
+    raster_addresser = RasterKeyAddresser()
+
+    async def mock_all_objects_exist(*keys):
+        return False
+
+    monkeypatch.setattr(s3_client, "all_objects_exist", mock_all_objects_exist)
+
+    now = datetime(2026, 1, 15, 20, 0, tzinfo=timezone.utc)
+    with pytest.raises(RuntimeError, match="No fuel raster found"):
+        await find_latest_fuel_raster_key(s3_client, raster_addresser, now)

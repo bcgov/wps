@@ -28,7 +28,7 @@ from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
-from wps_shared.fuel_raster import find_latest_version
+from wps_shared.fuel_raster import find_latest_fuel_raster_key
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
@@ -48,13 +48,10 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     datetime_to_process = target_date.replace(hour=20, minute=0, second=0, microsecond=0)
 
     async with S3Client() as s3_client:
-        # Use a reference raster for grid properties
-        # We'll use the fuel raster which defines the SFMS grid
-
-        latest_version = await find_latest_version(
-            s3_client, raster_addresser, datetime_to_process, 1
+        # Use the fuel raster as a reference for grid properties
+        fuel_raster_key = await find_latest_fuel_raster_key(
+            s3_client, raster_addresser, datetime_to_process
         )
-        fuel_raster_key = raster_addresser.get_fuel_raster_key(target_date, version=latest_version)
         fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_raster_key
         logger.info("Using reference raster: %s", fuel_raster_path)
 
