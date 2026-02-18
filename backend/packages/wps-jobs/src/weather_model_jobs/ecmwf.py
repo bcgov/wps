@@ -1,5 +1,4 @@
 import asyncio
-import faulthandler
 import logging
 import os
 import sys
@@ -271,5 +270,4 @@ def main():
 
 
 if __name__ == "__main__":
-    faulthandler.enable()
     main()
