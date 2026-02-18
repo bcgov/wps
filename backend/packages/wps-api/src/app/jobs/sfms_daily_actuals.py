@@ -24,11 +24,11 @@ from wps_sfms.interpolation.source import (
 )
 from wps_sfms.processors.idw import IDWInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
-from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
-from wps_shared.fuel_raster import find_latest_fuel_raster_key
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
@@ -47,13 +47,14 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     # Create processor for target date (noon UTC hour 20)
     datetime_to_process = target_date.replace(hour=20, minute=0, second=0, microsecond=0)
 
+    async with get_async_read_session_scope() as db_session:
+        fuel_type_raster = await get_fuel_type_raster_by_year(db_session, datetime_to_process.year)
+    if fuel_type_raster is None:
+        raise RuntimeError(f"No fuel type raster found for {datetime_to_process.year}")
+    fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_type_raster.object_store_path
+    logger.info("Using reference raster: %s", fuel_raster_path)
+
     async with S3Client() as s3_client:
-        # Use the fuel raster as a reference for grid properties
-        fuel_raster_key = await find_latest_fuel_raster_key(
-            s3_client, raster_addresser, datetime_to_process
-        )
-        fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_raster_key
-        logger.info("Using reference raster: %s", fuel_raster_path)
 
         # Fetch station observations from WF1
         async with ClientSession() as session:
