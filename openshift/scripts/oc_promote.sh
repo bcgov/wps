@@ -35,10 +35,12 @@ tag_if_exists_or_fail() {
         if [ "${MODULE_NAME}" = "weather" ]; then
             echo "Image ${SOURCE} not found (allowed for weather module) — skipping."
         else
-            echo "ERROR: Image ${SOURCE} not found."
+            echo "ERROR: Image ${SOURCE} not found." >&2
             exit 1
         fi
     fi
+
+	return 0
 }
 
 IMG_DEST="${APP_NAME}-${MODULE_NAME}-${TAG_PROD}"
