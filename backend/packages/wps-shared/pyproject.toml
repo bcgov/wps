@@ -23,6 +23,8 @@ dependencies = [
     "redis>=7.0.0,<8",
     "gdal==3.9.2",
     "wps-wf1",
+    "cffdrs>=0,<1",
+    "numba>=0,<1",
 ]
 
 [project.optional-dependencies]

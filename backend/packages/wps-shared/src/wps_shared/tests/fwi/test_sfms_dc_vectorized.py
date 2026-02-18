@@ -1,7 +1,10 @@
 import pytest
 import numpy as np
-from app.auto_spatial_advisory.sfms import vectorized_dc
-from app.tests.utils.numpy_utils import create_numpy_array
+from wps_shared.fwi import vectorized_dc
+
+
+def create_numpy_array(value) -> np.ndarray:
+    return np.array([[value, value, value], [value, value, value], [value, value, value]])
 
 
 @pytest.mark.parametrize(

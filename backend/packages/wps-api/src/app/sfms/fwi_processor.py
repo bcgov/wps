@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from app.auto_spatial_advisory.sfms import vectorized_bui, vectorized_dc, vectorized_dmc, vectorized_ffmc, vectorized_fwi, vectorized_isi
+from wps_shared.fwi import vectorized_bui, vectorized_dc, vectorized_dmc, vectorized_ffmc, vectorized_fwi, vectorized_isi
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 logger = logging.getLogger(__name__)

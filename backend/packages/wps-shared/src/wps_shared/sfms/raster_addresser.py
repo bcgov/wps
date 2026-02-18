@@ -83,17 +83,17 @@ class RasterKeyAddresser:
         iso_date = sfms_datetime.date().isoformat()
         return f"{self.sfms_daily_upload_prefix}/{iso_date}/{fwi_param.value}{iso_date.replace('-', '')}.tif"
 
-    def get_calculated_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter):
+    def get_calculated_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter, run_type: str = "forecast"):
         """
         Generates the calculated fire weather index key that points to the associated raster artifact in the object store.
-        A calculated index is always generated for a future date, so always considered to be a forecast.
 
         :param datetime_utc: UTC datetime the calculated raster is for
-        :param index: the fire weather index caller is interested in
+        :param fwi_param: the fire weather index caller is interested in
+        :param run_type: "forecast" for RDPS-based forecasts, "actual" for station-interpolated actuals
         :return: the key to the raster artifact in object storage
         """
         assert_all_utc(datetime_utc)
-        return f"{self.sfms_calculated_prefix}/forecast/{datetime_utc.date().isoformat()}/{fwi_param.value}{datetime_utc.date().isoformat().replace('-', '')}.tif"
+        return f"{self.sfms_calculated_prefix}/{run_type}/{datetime_utc.date().isoformat()}/{fwi_param.value}{datetime_utc.date().isoformat().replace('-', '')}.tif"
 
     def get_model_data_key(
         self, start_time_utc: datetime, prediction_hour: int, weather_param: WeatherParameter

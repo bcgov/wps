@@ -17,6 +17,9 @@ class SFMSRunLogJobName(str, enum.Enum):
     FFMC_INTERPOLATION = "ffmc_interpolation"
     DMC_INTERPOLATION = "dmc_interpolation"
     DC_INTERPOLATION = "dc_interpolation"
+    FFMC_CALCULATION = "ffmc_calculation"
+    DMC_CALCULATION = "dmc_calculation"
+    DC_CALCULATION = "dc_calculation"
 
 
 class SFMSRunLogStatus(str, enum.Enum):

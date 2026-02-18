@@ -22,6 +22,7 @@ from wps_sfms.interpolation.source import (
     StationPrecipitationSource,
     StationTemperatureSource,
 )
+from wps_sfms.processors.fwi import ActualFWIProcessor
 from wps_sfms.processors.idw import IDWInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
@@ -29,6 +30,7 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.fuel_raster import find_latest_version
+from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
@@ -140,6 +142,23 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                         logger.info("%s interpolation raster: %s", job_name.value, s3_key)
 
                     await run_fwi_interpolation()
+
+            # Calculate FWI indices (FFMC, DMC, DC) from interpolated weather + yesterday's actuals
+            fwi_processor = ActualFWIProcessor(datetime_to_process, raster_addresser)
+
+            fwi_calculations = [
+                (SFMSRunLogJobName.FFMC_CALCULATION, fwi_processor.calculate_ffmc),
+                (SFMSRunLogJobName.DMC_CALCULATION, fwi_processor.calculate_dmc),
+                (SFMSRunLogJobName.DC_CALCULATION, fwi_processor.calculate_dc),
+            ]
+
+            for job_name, calculate in fwi_calculations:
+
+                @track_sfms_run(job_name, sfms_run_id, session)
+                async def run_fwi_calculation() -> None:
+                    await calculate(s3_client, multi_wps_dataset_context)
+
+                await run_fwi_calculation()
 
     logger.info("SFMS daily actuals completed successfully for %s", target_date.date())
 
