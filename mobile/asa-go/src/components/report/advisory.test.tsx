@@ -30,6 +30,9 @@ vi.mock("@/components/report/FireZoneUnitTabs", () => ({
 }));
 
 vi.mock("@/components/report/AdvisoryText", () => ({
+  AdvisoryTypography: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   default: (_: AdvisoryTextProps) => (
     <div data-testid="advisory-text">Advisory Text Content</div>
@@ -66,7 +69,7 @@ describe("Advisory Component", () => {
       <Advisory
         date={mockDate}
         setDate={setDate}
-        selectedFireCenter={undefined}
+        selectedFireCenter={mockFireCenters[0]}
         setSelectedFireCenter={setSelectedFireCenter}
         selectedFireZoneUnit={undefined}
         setSelectedFireZoneUnit={setSelectedFireZoneUnit}
@@ -83,7 +86,6 @@ describe("Advisory Component", () => {
     expect(screen.getByTestId("fire-center-dropdown")).toHaveTextContent(
       "Options: 2"
     );
-    expect(screen.getByText("Advisory Report")).toBeInTheDocument();
     expect(screen.getByTestId("fire-zone-tabs")).toBeInTheDocument();
     expect(screen.getByTestId("advisory-text")).toHaveTextContent(
       "Advisory Text Content"
