@@ -1,11 +1,6 @@
-import faulthandler
-
-faulthandler.enable()
-
 import asyncio
 import logging
 import os
-import sys
 import tempfile
 from datetime import datetime, timedelta
 from typing import List
@@ -264,16 +259,14 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(process_models())
-        # Exit with 0 - success.
-        gdal.DontUseExceptions()
-        sys.exit(os.EX_OK)
+        # Use os._exit to skip Python interpreter cleanup which causes a segfault
+        # due to C extension teardown order (GDAL, PROJ, eccodes, etc.)
+        os._exit(os.EX_OK)
     except Exception as exception:
-        # Exit non 0 - failure.
         logger.error("An error occurred while processing ECMWF model.", exc_info=exception)
         rc_message = ":poop: Encountered error retrieving model data from ECMWF"
         send_rocketchat_notification(rc_message, exception)
-        gdal.DontUseExceptions()
-        sys.exit(os.EX_SOFTWARE)
+        os._exit(os.EX_SOFTWARE)
 
 
 if __name__ == "__main__":
