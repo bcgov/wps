@@ -76,32 +76,55 @@ class FWIProcessor:
         """
         set_s3_gdal_config()
 
-        weather_keys_exist = await s3_client.all_objects_exist(fwi_inputs.temp_key, fwi_inputs.rh_key, fwi_inputs.precip_key)
+        weather_keys_exist = await s3_client.all_objects_exist(
+            fwi_inputs.temp_key, fwi_inputs.rh_key, fwi_inputs.precip_key
+        )
         if not weather_keys_exist:
             logger.warning("Missing weather keys for %s", self.datetime_to_process.date())
             return
 
         fwi_key_exists = await s3_client.all_objects_exist(fwi_inputs.prev_fwi_key)
         if not fwi_key_exists:
-            logger.warning("Missing previous %s key for %s", fwi_param.value, self.datetime_to_process.date())
+            logger.warning(
+                "Missing previous %s key for %s", fwi_param.value, self.datetime_to_process.date()
+            )
             return
 
-        logger.info("Calculating %s %s for %s", fwi_param.value, fwi_inputs.run_type.value, self.datetime_to_process.date())
+        logger.info(
+            "Calculating %s %s for %s",
+            fwi_param.value,
+            fwi_inputs.run_type.value,
+            self.datetime_to_process.date(),
+        )
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            with input_dataset_context([fwi_inputs.temp_key, fwi_inputs.rh_key, fwi_inputs.precip_key, fwi_inputs.prev_fwi_key]) as input_datasets:
+            with input_dataset_context(
+                [
+                    fwi_inputs.temp_key,
+                    fwi_inputs.rh_key,
+                    fwi_inputs.precip_key,
+                    fwi_inputs.prev_fwi_key,
+                ]
+            ) as input_datasets:
                 input_datasets = cast(List[WPSDataset], input_datasets)
                 temp_ds, rh_ds, precip_ds, prev_fwi_ds = input_datasets
 
                 # Warp weather datasets to match FWI grid
                 warped_temp_ds = temp_ds.warp_to_match(
-                    prev_fwi_ds, f"{temp_dir}/{os.path.basename(fwi_inputs.temp_key)}.tif", GDALResamplingMethod.BILINEAR
+                    prev_fwi_ds,
+                    f"{temp_dir}/{os.path.basename(fwi_inputs.temp_key)}.tif",
+                    GDALResamplingMethod.BILINEAR,
                 )
                 warped_rh_ds = rh_ds.warp_to_match(
-                    prev_fwi_ds, f"{temp_dir}/{os.path.basename(fwi_inputs.rh_key)}.tif", GDALResamplingMethod.BILINEAR, max_value=100
+                    prev_fwi_ds,
+                    f"{temp_dir}/{os.path.basename(fwi_inputs.rh_key)}.tif",
+                    GDALResamplingMethod.BILINEAR,
+                    max_value=100,
                 )
                 warped_precip_ds = precip_ds.warp_to_match(
-                    prev_fwi_ds, f"{temp_dir}/{os.path.basename(fwi_inputs.precip_key)}.tif", GDALResamplingMethod.BILINEAR
+                    prev_fwi_ds,
+                    f"{temp_dir}/{os.path.basename(fwi_inputs.precip_key)}.tif",
+                    GDALResamplingMethod.BILINEAR,
                 )
 
                 # Close raw weather datasets to free memory
@@ -111,9 +134,23 @@ class FWIProcessor:
 
                 # Compute the index
                 compute_fns = {
-                    FWIParameter.FFMC: lambda: compute_ffmc(prev_fwi_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds),
-                    FWIParameter.DMC: lambda: compute_dmc(prev_fwi_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, self.datetime_to_process.month),
-                    FWIParameter.DC: lambda: compute_dc(prev_fwi_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds, self.datetime_to_process.month),
+                    FWIParameter.FFMC: lambda: compute_ffmc(
+                        prev_fwi_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds
+                    ),
+                    FWIParameter.DMC: lambda: compute_dmc(
+                        prev_fwi_ds,
+                        warped_temp_ds,
+                        warped_rh_ds,
+                        warped_precip_ds,
+                        self.datetime_to_process.month,
+                    ),
+                    FWIParameter.DC: lambda: compute_dc(
+                        prev_fwi_ds,
+                        warped_temp_ds,
+                        warped_rh_ds,
+                        warped_precip_ds,
+                        self.datetime_to_process.month,
+                    ),
                 }
                 values, nodata_value = compute_fns[fwi_param]()
 
@@ -126,8 +163,15 @@ class FWIProcessor:
                     nodata_value,
                 )
 
-                generate_and_store_cog(src_ds=prev_fwi_ds.as_gdal_ds(), output_path=fwi_inputs.cog_key)
-                logger.info("Stored %s %s: %s", fwi_param.value, fwi_inputs.run_type.value, fwi_inputs.output_key)
+                generate_and_store_cog(
+                    src_ds=prev_fwi_ds.as_gdal_ds(), output_path=fwi_inputs.cog_key
+                )
+                logger.info(
+                    "Stored %s %s: %s",
+                    fwi_param.value,
+                    fwi_inputs.run_type.value,
+                    fwi_inputs.output_key,
+                )
 
-        gdal.VSICurlClearCache()
-
+                # Clear gdal virtual file system cache of S3 metadata in order to allow newly uploaded hffmc rasters to be opened immediately.
+                gdal.VSICurlClearCache()
