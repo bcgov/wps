@@ -13,7 +13,6 @@ from typing import Callable, Iterator, List, cast
 
 from osgeo import gdal
 
-from wps_shared import config
 from wps_shared.geospatial.cog import generate_and_store_cog
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
@@ -89,25 +88,20 @@ class FWIProcessor:
 
         logger.info("Calculating %s %s for %s", fwi_param.value, fwi_inputs.run_type.value, self.datetime_to_process.date())
 
-        s3_prefix = f"/vsis3/{config.get('OBJECT_STORE_BUCKET')}"
-        temp_key, rh_key, precip_key, prev_fwi_key = (
-            f"{s3_prefix}/{k}" for k in (fwi_inputs.temp_key, fwi_inputs.rh_key, fwi_inputs.precip_key, fwi_inputs.prev_fwi_key)
-        )
-
         with tempfile.TemporaryDirectory() as temp_dir:
-            with input_dataset_context([temp_key, rh_key, precip_key, prev_fwi_key]) as input_datasets:
+            with input_dataset_context([fwi_inputs.temp_key, fwi_inputs.rh_key, fwi_inputs.precip_key, fwi_inputs.prev_fwi_key]) as input_datasets:
                 input_datasets = cast(List[WPSDataset], input_datasets)
                 temp_ds, rh_ds, precip_ds, prev_fwi_ds = input_datasets
 
                 # Warp weather datasets to match FWI grid
                 warped_temp_ds = temp_ds.warp_to_match(
-                    prev_fwi_ds, f"{temp_dir}/{os.path.basename(temp_key)}.tif", GDALResamplingMethod.BILINEAR
+                    prev_fwi_ds, f"{temp_dir}/{os.path.basename(fwi_inputs.temp_key)}.tif", GDALResamplingMethod.BILINEAR
                 )
                 warped_rh_ds = rh_ds.warp_to_match(
-                    prev_fwi_ds, f"{temp_dir}/{os.path.basename(rh_key)}.tif", GDALResamplingMethod.BILINEAR, max_value=100
+                    prev_fwi_ds, f"{temp_dir}/{os.path.basename(fwi_inputs.rh_key)}.tif", GDALResamplingMethod.BILINEAR, max_value=100
                 )
                 warped_precip_ds = precip_ds.warp_to_match(
-                    prev_fwi_ds, f"{temp_dir}/{os.path.basename(precip_key)}.tif", GDALResamplingMethod.BILINEAR
+                    prev_fwi_ds, f"{temp_dir}/{os.path.basename(fwi_inputs.precip_key)}.tif", GDALResamplingMethod.BILINEAR
                 )
 
                 # Close raw weather datasets to free memory

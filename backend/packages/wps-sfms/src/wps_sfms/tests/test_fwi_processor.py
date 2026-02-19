@@ -23,14 +23,15 @@ def make_fwi_inputs(fwi_param: FWIParameter, run_type: RunType = RunType.ACTUAL)
     date_iso = "2024-10-10"
     prev_date_str = "20241009"
     prev_date_iso = "2024-10-09"
+    s3_prefix = "/vsis3/test-bucket"
     output_key = f"sfms/calculated/{run_type.value}/{date_iso}/{param}{date_str}.tif"
     return FWIInputs(
-        temp_key=f"sfms/interpolated/temp/2024/10/10/temp_{date_str}.tif",
-        rh_key=f"sfms/interpolated/rh/2024/10/10/rh_{date_str}.tif",
-        precip_key=f"sfms/interpolated/precip/2024/10/10/precip_{date_str}.tif",
-        prev_fwi_key=f"sfms/uploads/actual/{prev_date_iso}/{param}{prev_date_str}.tif",
+        temp_key=f"{s3_prefix}/sfms/interpolated/temp/2024/10/10/temp_{date_str}.tif",
+        rh_key=f"{s3_prefix}/sfms/interpolated/rh/2024/10/10/rh_{date_str}.tif",
+        precip_key=f"{s3_prefix}/sfms/interpolated/precip/2024/10/10/precip_{date_str}.tif",
+        prev_fwi_key=f"{s3_prefix}/sfms/uploads/actual/{prev_date_iso}/{param}{prev_date_str}.tif",
         output_key=output_key,
-        cog_key=f"/vsis3/test-bucket/{output_key.removesuffix('.tif')}_cog.tif",
+        cog_key=f"{s3_prefix}/{output_key.removesuffix('.tif')}_cog.tif",
         run_type=run_type,
     )
 

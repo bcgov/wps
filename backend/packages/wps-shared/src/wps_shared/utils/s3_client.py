@@ -50,7 +50,8 @@ class S3Client:
 
     async def all_objects_exist(self, *s3_keys: str):
         for key in s3_keys:
-            key_exists = await self.object_exists(key)
+            raw_key = key.removeprefix(f"/vsis3/{self.bucket}/")
+            key_exists = await self.object_exists(raw_key)
             if not key_exists:
                 return False
         return True
