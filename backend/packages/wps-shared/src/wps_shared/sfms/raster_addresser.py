@@ -1,9 +1,11 @@
 import os
 import enum
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from wps_shared import config
 from wps_shared.utils.time import convert_to_sfms_timezone, convert_utc_to_pdt
 from wps_shared.utils.time import assert_all_utc
+from wps_shared.run_type import RunType
 from wps_shared.weather_models import ModelEnum
 from wps_shared.sfms.rdps_filename_marshaller import (
     compose_computed_precip_rdps_key,
@@ -35,6 +37,19 @@ class FWIParameter(enum.Enum):
     FFMC = "ffmc"
     ISI = "isi"
     FWI = "fwi"
+
+
+@dataclass
+class FWIInputs:
+    """All S3 keys and metadata needed for a single FWI index calculation."""
+
+    temp_key: str
+    rh_key: str
+    precip_key: str
+    prev_fwi_key: str
+    output_key: str
+    cog_key: str  # GDAL-prefixed path for COG output
+    run_type: RunType
 
 
 class RasterKeyAddresser:
@@ -77,6 +92,30 @@ class RasterKeyAddresser:
         :return: the unprocessed fuel raster key at sfms/static
         """
         return f"sfms/static/{object_name}"
+
+    def get_actual_fwi_inputs(self, datetime_to_process: datetime, fwi_param: FWIParameter) -> FWIInputs:
+        """
+        Build a FWIInputs for a station-interpolated actuals run.
+
+        Uses yesterday's uploaded FWI value as the seed and today's interpolated
+        weather rasters (temp, rh, precip) as inputs.
+
+        :param datetime_to_process: UTC datetime being processed
+        :param fwi_param: Which FWI parameter to calculate (FFMC, DMC, or DC)
+        :return: FWIInputs ready for FWIProcessor
+        """
+        assert_all_utc(datetime_to_process)
+        yesterday = datetime_to_process - timedelta(days=1)
+        output_key = self.get_calculated_index_key(datetime_to_process, fwi_param, run_type=RunType.ACTUAL.value)
+        return FWIInputs(
+            temp_key=self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP),
+            rh_key=self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.RH),
+            precip_key=self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.PRECIP),
+            prev_fwi_key=self.get_uploaded_index_key(yesterday, fwi_param),
+            output_key=output_key,
+            cog_key=self.get_cog_key(output_key),
+            run_type=RunType.ACTUAL,
+        )
 
     def get_uploaded_index_key(self, datetime: datetime, fwi_param: FWIParameter):
         sfms_datetime = convert_to_sfms_timezone(datetime)
