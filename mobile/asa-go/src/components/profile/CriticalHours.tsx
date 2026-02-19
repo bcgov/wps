@@ -14,7 +14,7 @@ const CriticalHours = ({ start, end }: CriticalHoursProps) => {
   if (!isNil(start) && !isNil(end)) {
     const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(
       start,
-      end
+      end,
     );
     formattedCriticalHours = `${formattedStartTime} - ${formattedEndTime}`;
   }
@@ -25,6 +25,7 @@ const CriticalHours = ({ start, end }: CriticalHoursProps) => {
         display: "flex",
         height: "100%",
         alignItems: "center",
+        fontWeight: "bold",
       }}
       data-testid="critical-hours"
     >

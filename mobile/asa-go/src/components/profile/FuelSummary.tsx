@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { FireShape, FireZoneFuelStats } from "api/fbaAPI";
-import { Box, Tooltip, Typography } from "@mui/material";
-import { groupBy, isUndefined } from "lodash";
+import { Box, Typography } from "@mui/material";
+import { groupBy } from "lodash";
 import {
   DataGridPro,
   GridColDef,
@@ -28,13 +28,14 @@ interface FuelSummaryProps {
   selectedFireZoneUnit: FireShape | undefined;
 }
 
-const StyledHeader = styled("div")({
+const StyledHeader = styled("div")(({ theme }) => ({
   whiteSpace: "normal",
   wordWrap: "break-word",
-  textAlign: "center",
-  fontSize: "0.75rem",
+  textAlign: "left",
+  fontSize: "14px",
   fontWeight: "700",
-});
+  color: theme.palette.primary.main,
+}));
 
 // Column definitions for fire zone unit fuel summary table
 const columns: GridColDef[] = [
@@ -48,11 +49,17 @@ const columns: GridColDef[] = [
       <StyledHeader>{params.colDef.headerName}</StyledHeader>
     ),
     renderCell: (params: GridRenderCellParams) => (
-      <Tooltip followCursor placement="right" title={params.row["description"]}>
-        <Typography sx={{ fontSize: "0.75rem", display: "flex", flexGrow: 1 }}>
-          {params.row[params.field]}
-        </Typography>
-      </Tooltip>
+      <Typography
+        sx={{
+          fontSize: "0.75rem",
+          display: "flex",
+          fontWeight: "bold",
+          whiteSpace: "normal",
+          wordBreak: "break-word",
+        }}
+      >
+        {params.row[params.field]}
+      </Typography>
     ),
   },
   {
@@ -77,7 +84,7 @@ const columns: GridColDef[] = [
     field: "criticalHours",
     headerClassName: "fuel-summary-header",
     headerName: "Critical Hours",
-    minWidth: 120,
+    minWidth: 110,
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => (
       <StyledHeader>{params.colDef.headerName}</StyledHeader>
@@ -97,39 +104,33 @@ const FuelSummary = ({
   fireZoneFuelStats,
   selectedFireZoneUnit,
 }: FuelSummaryProps) => {
-  // const theme = useTheme()
-  const [fuelTypeInfoRollup, setFuelTypeInfoRollup] = useState<
-    FuelTypeInfoSummary[]
-  >([]);
-
-  useEffect(() => {
-    if (isUndefined(fireZoneFuelStats) || isUndefined(selectedFireZoneUnit)) {
-      setFuelTypeInfoRollup([]);
-      return;
+  const fuelTypeInfoRollup = useMemo<FuelTypeInfoSummary[]>(() => {
+    if (!fireZoneFuelStats || !selectedFireZoneUnit) {
+      return [];
     }
+
     const shapeId = selectedFireZoneUnit.fire_shape_id;
     const fuelDetails = fireZoneFuelStats[shapeId];
-    if (isUndefined(fuelDetails)) {
-      setFuelTypeInfoRollup([]);
-      return;
-    }
+
+    if (!fuelDetails) return [];
 
     const rollUp: FuelTypeInfoSummary[] = [];
-    // We receive HFI area per fuel type per HFI threshold (4-10K and >10K), so group by fuel type.
-    // Iterate through the groups adding the area for both HFI thresholds we're interested in all
-    // HFI > 4,000.
+
     const groupedFuelDetails = groupBy(fuelDetails, "fuel_type.fuel_type_id");
+
     for (const key in groupedFuelDetails) {
       const groupedFuelDetail = groupedFuelDetails[key];
       if (groupedFuelDetail.length) {
         const area = groupedFuelDetail.reduce((acc, { area }) => acc + area, 0);
+
         const fuelType = groupedFuelDetail[0].fuel_type;
         const startTime =
           groupedFuelDetail[0].critical_hours.start_time ?? undefined;
         const endTime =
           groupedFuelDetail[0].critical_hours.end_time ?? undefined;
         const fuel_area = groupedFuelDetail[0].fuel_area;
-        const fuelInfo: FuelTypeInfoSummary = {
+
+        rollUp.push({
           area,
           code: fuelType.fuel_type_code,
           description: fuelType.description,
@@ -138,12 +139,12 @@ const FuelSummary = ({
           id: fuelType.fuel_type_id,
           percent: fuel_area ? (area / fuel_area) * 100 : 0,
           selected: false,
-        };
-        rollUp.push(fuelInfo);
+        });
       }
     }
-    setFuelTypeInfoRollup(rollUp);
-  }, [fireZoneFuelStats]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    return rollUp;
+  }, [fireZoneFuelStats, selectedFireZoneUnit]);
 
   return (
     <Box>
@@ -155,6 +156,7 @@ const FuelSummary = ({
           density="compact"
           disableColumnMenu
           disableChildrenSorting
+          disableColumnResize
           disableRowSelectionOnClick
           hideFooter={true}
           initialState={{
@@ -168,14 +170,12 @@ const FuelSummary = ({
           sx={{
             backgroundColor: "white",
             overflow: "hidden",
-            "& .MuiDataGrid-columnHeaderTitle": {
-              fontWeight: "bold",
-            },
-            "& .fuel-summary-header": {
-              background: "#F1F1F1",
-            },
             "& .MuiDataGrid-sortIcon": {
               display: "none",
+            },
+            "& .MuiDataGrid-cell": {
+              display: "flex",
+              alignItems: "center",
             },
           }}
         ></DataGridPro>

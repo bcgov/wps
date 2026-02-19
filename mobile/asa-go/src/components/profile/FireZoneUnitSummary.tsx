@@ -43,7 +43,7 @@ const FireZoneUnitSummary = ({
       return tpiStatsArray
         ? tpiStatsArray.find(
             (stats) =>
-              stats.fire_zone_id === selectedFireZoneUnit?.fire_shape_id
+              stats.fire_zone_id === selectedFireZoneUnit?.fire_shape_id,
           )
         : undefined;
     }
@@ -81,16 +81,20 @@ const FireZoneUnitSummary = ({
       sx={{
         backgroundColor: "white",
         width: "100%",
-        padding: theme.spacing(2),
+        // border: "1px solid #ccc",
+        // borderRadius: 1,
+        paddingTop: theme.spacing(2),
         overflowY: "auto",
       }}
     >
       <Typography
         data-testid="fire-zone-title-tabs"
         sx={{
-          color: "#003366",
+          color: theme.palette.primary.main,
           fontWeight: "bold",
+          fontSize: "1.25rem",
           pb: theme.spacing(2),
+          pl: theme.spacing(1),
         }}
       >
         {selectedFireZoneUnit.mof_fire_zone_name}

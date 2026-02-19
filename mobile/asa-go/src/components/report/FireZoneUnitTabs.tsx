@@ -26,14 +26,14 @@ const FireZoneUnitTabs = ({
 }: FireZoneUnitTabsProps) => {
   const sortedGroupedFireZoneUnits = useFireCentreDetails(
     selectedFireCenter,
-    date
+    date,
   );
 
   const tabNumber = useMemo(() => {
     if (!selectedFireZoneUnit) return 0;
 
     const idx = sortedGroupedFireZoneUnits.findIndex(
-      (zone) => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id
+      (zone) => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id,
     );
 
     return Math.max(idx, 0);
@@ -53,7 +53,7 @@ const FireZoneUnitTabs = ({
         return fireShape;
       }
     },
-    [sortedGroupedFireZoneUnits]
+    [sortedGroupedFireZoneUnits],
   );
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -86,7 +86,7 @@ const FireZoneUnitTabs = ({
               minWidth: 0,
             },
             ".MuiTabs-indicator": {
-              height: "4px",
+              height: "10px",
             },
           }}
         >
@@ -101,7 +101,9 @@ const FireZoneUnitTabs = ({
                   backgroundColor: calculateStatusColour(zone, "#FFFFFF"),
                   fontWeight: "bold",
                   color: isActive ? "black" : "grey",
-                  minHeight: "30px",
+                  border: "1px solid #BBBBBB",
+                  minHeight: "48px",
+                  maxWidth: "54px",
                 }}
                 label={zone.fire_shape_name.split("-")[0]}
                 aria-label={`zone-${key}-tab`}

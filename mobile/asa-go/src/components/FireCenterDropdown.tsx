@@ -1,4 +1,10 @@
-import { MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import React from "react";
 
@@ -26,31 +32,31 @@ const FireCenterDropdown = ({
     setSelectedFireCenter(selected ?? undefined);
   };
 
-  const getSelectedDisplay = (selected: FireCenter | undefined) => {
-    if (!selected) {
-      return (
-        <Typography sx={{ color: "text.disabled" }}>
-          Select Fire Centre
-        </Typography>
-      );
-    }
-    return selected.name;
-  };
-
   return (
-    <Select
-      data-testid="fire-center-dropdown"
-      value={selectedFireCenter?.name ?? ""}
-      onChange={handleChange}
-      displayEmpty
-      renderValue={() => getSelectedDisplay(selectedFireCenter)}
-    >
-      {fireCenterOptions.map((option) => (
-        <MenuItem key={option.name} value={option.name}>
-          {option.name}
-        </MenuItem>
-      ))}
-    </Select>
+    <FormControl variant="outlined" size="small" sx={{ minWidth: 175 }}>
+      <InputLabel id="fire-center-label" shrink={!!selectedFireCenter}>
+        Centre
+      </InputLabel>
+
+      <Select
+        data-testid="fire-center-dropdown"
+        labelId="fire-center-label"
+        id="fire-center-select"
+        value={selectedFireCenter?.name ?? ""}
+        onChange={handleChange}
+        label="Centre"
+      >
+        {fireCenterOptions.map((option) => {
+          const displayName = option.name.replace("Fire Centre", "");
+
+          return (
+            <MenuItem key={option.name} value={option.name}>
+              {displayName}
+            </MenuItem>
+          );
+        })}
+      </Select>
+    </FormControl>
   );
 };
 
