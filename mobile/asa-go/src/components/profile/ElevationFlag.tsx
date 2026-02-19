@@ -16,7 +16,17 @@ const ElevationFlag = ({ percent, testId }: ElevationFlagProps) => {
       sx={{ alignItems: "center", display: "flex", justifyContent: "flex-end" }}
     >
       <Typography
-        sx={{ fontSize: "1.2rem", fontWeight: "bold", marginRight: 1 }}
+        sx={{
+          fontSize: "1.2rem",
+          fontWeight: "bold",
+          marginRight: 1,
+          textShadow: `
+            -1px -1px 0 #F3F3F3,
+            1px -1px 0 #F3F3F3,
+            -1px  1px 0 #F3F3F3,
+            1px  1px 0 #F3F3F3
+          `,
+        }}
         data-testid={testId}
       >
         {percent}%
