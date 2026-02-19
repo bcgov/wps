@@ -45,7 +45,7 @@ const EXPECTED_FOR_DATE = DateTime.fromISO(TEST_FOR_DATE).toLocaleString({
   day: "numeric",
 });
 const EXPECTED_RUN_DATETIME = DateTime.fromISO(
-  TEST_RUN_DATETIME
+  TEST_RUN_DATETIME,
 ).toLocaleString(DateTime.DATETIME_FULL);
 
 const testRunParameter: RunParameter = {
@@ -237,7 +237,7 @@ const runParametersTestStateNoForDateState = {
 
 const buildTestStore = (
   dataInitialState: DataState,
-  runParametersInitialState: RunParametersState
+  runParametersInitialState: RunParametersState,
 ) => {
   const rootReducer = combineReducers({
     data: dataSlice,
@@ -264,7 +264,7 @@ describe("AdvisoryText", () => {
         },
       },
     },
-    runParametersInitialState
+    runParametersInitialState,
   );
 
   const getInitialStore = () =>
@@ -278,30 +278,30 @@ describe("AdvisoryText", () => {
           },
         },
       },
-      runParametersTestState
+      runParametersTestState,
     );
 
   const assertInitialState = () => {
     expect(
-      screen.queryByTestId("advisory-message-advisory")
+      screen.queryByTestId("advisory-message-advisory"),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByTestId("advisory-message-min-wind-speeds")
+      screen.queryByTestId("advisory-message-min-wind-speeds"),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByTestId("advisory-message-proportion")
+      screen.queryByTestId("advisory-message-proportion"),
     ).toBeInTheDocument();
     expect(
-      screen.queryByTestId("advisory-message-warning")
+      screen.queryByTestId("advisory-message-warning"),
     ).toBeInTheDocument();
     expect(
-      screen.queryByTestId("advisory-message-wind-speed")
+      screen.queryByTestId("advisory-message-wind-speed"),
     ).toBeInTheDocument();
     expect(
-      screen.queryByTestId("advisory-message-slash")
+      screen.queryByTestId("advisory-message-slash"),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByTestId("overnight-burning-text")
+      screen.queryByTestId("overnight-burning-text"),
     ).not.toBeInTheDocument();
   };
 
@@ -313,13 +313,13 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const advisoryText = getByTestId("advisory-text");
     expect(advisoryText).toBeInTheDocument();
   });
 
-  it("should render default message when no fire center is selected", () => {
+  it("should render no data message when no fire center is selected", () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
@@ -327,9 +327,9 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
-    const message = getByTestId("default-message");
+    const message = getByTestId("no-data-message");
     expect(message).toBeInTheDocument();
     const bulletinIssueDate = queryByTestId("bulletin-issue-date");
     expect(bulletinIssueDate).not.toBeInTheDocument();
@@ -343,7 +343,7 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const message = getByTestId("no-data-message");
     expect(message).toBeInTheDocument();
@@ -362,7 +362,7 @@ describe("AdvisoryText", () => {
           },
         },
       },
-      runParametersTestStateNoRunDateTimeState
+      runParametersTestStateNoRunDateTimeState,
     );
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
@@ -371,7 +371,7 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const message = getByTestId("no-data-message");
     expect(message).toBeInTheDocument();
@@ -390,7 +390,7 @@ describe("AdvisoryText", () => {
           },
         },
       },
-      runParametersTestStateNoForDateState
+      runParametersTestStateNoForDateState,
     );
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
@@ -399,7 +399,7 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const message = getByTestId("no-data-message");
     expect(message).toBeInTheDocument();
@@ -410,7 +410,7 @@ describe("AdvisoryText", () => {
   it("should include fuel stats when their fuel area is above the 100 * 2000m * 2000m threshold", async () => {
     (useRunParameterForDate as Mock).mockReturnValue(testRunParameter);
     (useFilteredHFIStatsForDate as Mock).mockReturnValue(
-      mockFireZoneHFIStatsDictionary
+      mockFireZoneHFIStatsDictionary,
     );
     const store = getInitialStore();
     render(
@@ -420,23 +420,23 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     screen.debug();
     assertInitialState();
     await waitFor(() =>
       expect(
-        screen.queryByTestId("advisory-message-warning")
-      ).toBeInTheDocument()
+        screen.queryByTestId("advisory-message-warning"),
+      ).toBeInTheDocument(),
     );
 
     await waitFor(() =>
       expect(
-        screen.queryByTestId("advisory-message-warning")
+        screen.queryByTestId("advisory-message-warning"),
       ).toHaveTextContent(
         mockFireZoneHFIStatsDictionary[20].fuel_area_stats[0].fuel_type
-          .fuel_type_code
-      )
+          .fuel_type_code,
+      ),
     );
   });
 
@@ -451,21 +451,21 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
 
     await waitFor(() =>
       expect(
-        screen.queryByTestId("advisory-message-warning")
-      ).toBeInTheDocument()
+        screen.queryByTestId("advisory-message-warning"),
+      ).toBeInTheDocument(),
     );
     await waitFor(() =>
       expect(
-        screen.queryByTestId("advisory-message-warning")
+        screen.queryByTestId("advisory-message-warning"),
       ).not.toHaveTextContent(
         mockFireZoneHFIStatsDictionary[20].fuel_area_stats[0].fuel_type
-          .fuel_type_code
-      )
+          .fuel_type_code,
+      ),
     );
   });
 
@@ -477,12 +477,12 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const bulletinIssueDate = queryByTestId("bulletin-issue-date");
     expect(bulletinIssueDate).toBeInTheDocument();
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${EXPECTED_RUN_DATETIME} for ${EXPECTED_FOR_DATE}.`
+      `Issued on ${EXPECTED_RUN_DATETIME} for ${EXPECTED_FOR_DATE}.`,
     );
   });
 
@@ -503,7 +503,7 @@ describe("AdvisoryText", () => {
           },
         },
       },
-      runParametersTestStateNoForDateState
+      runParametersTestStateNoForDateState,
     );
     const { queryByTestId } = render(
       <Provider store={store}>
@@ -512,12 +512,12 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const bulletinIssueDate = queryByTestId("bulletin-issue-date");
     expect(bulletinIssueDate).toBeInTheDocument();
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${EXPECTED_RUN_DATETIME} for today.`
+      `Issued on ${EXPECTED_RUN_DATETIME} for today.`,
     );
   });
 
@@ -534,7 +534,7 @@ describe("AdvisoryText", () => {
           },
         },
       },
-      runParametersTestState
+      runParametersTestState,
     );
     const { queryByTestId } = render(
       <Provider store={noAdvisoryStore}>
@@ -543,7 +543,7 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const warningMessage = queryByTestId("advisory-message-warning");
     const advisoryMessage = queryByTestId("advisory-message-advisory");
@@ -557,11 +557,11 @@ describe("AdvisoryText", () => {
     expect(noAdvisoryMessage).toBeInTheDocument();
     expect(zoneBulletinMessage).toBeInTheDocument();
     expect(zoneBulletinMessage).toHaveTextContent(
-      `${mockFireZoneUnit.mof_fire_zone_name}:`
+      `${mockFireZoneUnit.mof_fire_zone_name}:`,
     );
     expect(bulletinIssueDate).toBeInTheDocument();
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${EXPECTED_RUN_DATETIME} for ${EXPECTED_FOR_DATE}.`
+      `Issued on ${EXPECTED_RUN_DATETIME} for ${EXPECTED_FOR_DATE}.`,
     );
   });
 
@@ -574,7 +574,7 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const advisoryMessage = queryByTestId("advisory-message-advisory");
     const warningMessage = queryByTestId("advisory-message-warning");
@@ -586,14 +586,14 @@ describe("AdvisoryText", () => {
     expect(warningMessage).toBeInTheDocument();
     expect(zoneBulletinMessage).toBeInTheDocument();
     expect(zoneBulletinMessage).toHaveTextContent(
-      `${mockFireZoneUnit.mof_fire_zone_name}:`
+      `${mockFireZoneUnit.mof_fire_zone_name}:`,
     );
     expect(bulletinIssueDate).toBeInTheDocument();
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${EXPECTED_RUN_DATETIME} for ${EXPECTED_FOR_DATE}.`
+      `Issued on ${EXPECTED_RUN_DATETIME} for ${EXPECTED_FOR_DATE}.`,
     );
     expect(
-      screen.queryByTestId("advisory-message-wind-speed")
+      screen.queryByTestId("advisory-message-wind-speed"),
     ).not.toBeInTheDocument();
   });
 
@@ -605,7 +605,7 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const advisoryMessage = queryByTestId("advisory-message-advisory");
     const warningMessage = queryByTestId("advisory-message-warning");
@@ -617,21 +617,21 @@ describe("AdvisoryText", () => {
     expect(warningMessage).not.toBeInTheDocument();
     expect(zoneBulletinMessage).toBeInTheDocument();
     expect(zoneBulletinMessage).toHaveTextContent(
-      `${mockAdvisoryFireZoneUnit.mof_fire_zone_name}:`
+      `${mockAdvisoryFireZoneUnit.mof_fire_zone_name}:`,
     );
     expect(bulletinIssueDate).toBeInTheDocument();
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${EXPECTED_RUN_DATETIME} for ${EXPECTED_FOR_DATE}.`
+      `Issued on ${EXPECTED_RUN_DATETIME} for ${EXPECTED_FOR_DATE}.`,
     );
     expect(
-      screen.queryByTestId("advisory-message-wind-speed")
+      screen.queryByTestId("advisory-message-wind-speed"),
     ).not.toBeInTheDocument();
   });
 
   it("should render wind speed text and early fire behaviour text when fire zone unit is selected, based on wind speed & critical hours data", async () => {
     (useRunParameterForDate as Mock).mockReturnValue(testRunParameter);
     (useFilteredHFIStatsForDate as Mock).mockReturnValue(
-      mockFireZoneHFIStatsDictionary
+      mockFireZoneHFIStatsDictionary,
     );
     const store = getInitialStore();
     render(
@@ -641,17 +641,17 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     await waitFor(() =>
       expect(
-        screen.queryByTestId("advisory-message-wind-speed")
-      ).toBeInTheDocument()
+        screen.queryByTestId("advisory-message-wind-speed"),
+      ).toBeInTheDocument(),
     );
     await waitFor(() =>
       expect(
-        screen.queryByTestId("overnight-burning-text")
-      ).not.toBeInTheDocument()
+        screen.queryByTestId("overnight-burning-text"),
+      ).not.toBeInTheDocument(),
     );
   });
 
@@ -668,18 +668,20 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     await waitFor(() =>
-      expect(screen.queryByTestId("early-advisory-text")).toBeInTheDocument()
+      expect(screen.queryByTestId("early-advisory-text")).toBeInTheDocument(),
     );
     await waitFor(() =>
-      expect(screen.queryByTestId("overnight-burning-text")).toBeInTheDocument()
+      expect(
+        screen.queryByTestId("overnight-burning-text"),
+      ).toBeInTheDocument(),
     );
     await waitFor(() =>
       expect(screen.queryByTestId("overnight-burning-text")).toHaveTextContent(
-        "and remain elevated into the overnight hours."
-      )
+        "and remain elevated into the overnight hours.",
+      ),
     );
   });
 
@@ -697,20 +699,22 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     await waitFor(async () =>
       expect(
-        screen.queryByTestId("early-advisory-text")
-      ).not.toBeInTheDocument()
+        screen.queryByTestId("early-advisory-text"),
+      ).not.toBeInTheDocument(),
     );
     await waitFor(async () =>
-      expect(screen.queryByTestId("overnight-burning-text")).toBeInTheDocument()
+      expect(
+        screen.queryByTestId("overnight-burning-text"),
+      ).toBeInTheDocument(),
     );
     await waitFor(() =>
       expect(screen.queryByTestId("overnight-burning-text")).toHaveTextContent(
-        "Be prepared for fire behaviour to remain elevated into the overnight hours."
-      )
+        "Be prepared for fire behaviour to remain elevated into the overnight hours.",
+      ),
     );
   });
 
@@ -731,7 +735,7 @@ describe("AdvisoryText", () => {
           },
         },
       },
-      runParametersTestState
+      runParametersTestState,
     );
     const { queryByTestId } = render(
       <Provider store={store}>
@@ -740,11 +744,11 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const advisoryMessage = queryByTestId("advisory-message-advisory");
     const criticalHoursMessage = queryByTestId(
-      "advisory-message-no-critical-hours"
+      "advisory-message-no-critical-hours",
     );
     expect(advisoryMessage).toBeInTheDocument();
     expect(criticalHoursMessage).toBeInTheDocument();
@@ -767,7 +771,7 @@ describe("AdvisoryText", () => {
           },
         },
       },
-      runParametersTestState
+      runParametersTestState,
     );
     const { queryByTestId } = render(
       <Provider store={store}>
@@ -776,11 +780,11 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     const advisoryMessage = queryByTestId("advisory-message-advisory");
     const criticalHoursMessage = queryByTestId(
-      "advisory-message-no-critical-hours"
+      "advisory-message-no-critical-hours",
     );
     expect(advisoryMessage).toBeInTheDocument();
     expect(criticalHoursMessage).toBeInTheDocument();
@@ -789,7 +793,7 @@ describe("AdvisoryText", () => {
   it("should not render slash warning when critical hours duration is less than 12 hours", async () => {
     (useRunParameterForDate as Mock).mockReturnValue(testRunParameter);
     (useFilteredHFIStatsForDate as Mock).mockReturnValue(
-      mockFireZoneHFIStatsDictionary
+      mockFireZoneHFIStatsDictionary,
     );
     const store = getInitialStore();
     render(
@@ -799,23 +803,23 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     await waitFor(() =>
       expect(
-        screen.queryByTestId("advisory-message-slash")
-      ).not.toBeInTheDocument()
+        screen.queryByTestId("advisory-message-slash"),
+      ).not.toBeInTheDocument(),
     );
   });
 
   it("should render slash warning when critical hours duration is greater than 12 hours", async () => {
     (useRunParameterForDate as Mock).mockReturnValue(testRunParameter);
     const filteredCriticalHoursStats = cloneDeep(
-      mockFireZoneHFIStatsDictionary
+      mockFireZoneHFIStatsDictionary,
     );
     filteredCriticalHoursStats[20].fuel_area_stats[0].critical_hours.end_time = 22;
     (useFilteredHFIStatsForDate as Mock).mockReturnValue(
-      filteredCriticalHoursStats
+      filteredCriticalHoursStats,
     );
     const store = getInitialStore();
     render(
@@ -825,10 +829,12 @@ describe("AdvisoryText", () => {
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
-      </Provider>
+      </Provider>,
     );
     await waitFor(() =>
-      expect(screen.queryByTestId("advisory-message-slash")).toBeInTheDocument()
+      expect(
+        screen.queryByTestId("advisory-message-slash"),
+      ).toBeInTheDocument(),
     );
   });
 });

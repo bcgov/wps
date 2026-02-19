@@ -29,15 +29,19 @@ vi.mock("@/components/report/FireZoneUnitTabs", () => ({
   ),
 }));
 
-vi.mock("@/components/report/AdvisoryText", () => ({
-  AdvisoryTypography: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  default: (_: AdvisoryTextProps) => (
-    <div data-testid="advisory-text">Advisory Text Content</div>
-  ),
-}));
+vi.mock("@/components/report/AdvisoryText", async (importOriginal) => {
+  const actual = await importOriginal<
+    typeof import("@/components/report/AdvisoryText")
+  >();
+
+  return {
+    ...actual,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    default: (_: AdvisoryTextProps) => (
+      <div data-testid="advisory-text">Advisory Text Content</div>
+    ),
+  };
+});
 
 // Mock Redux selector
 vi.mock("react-redux", async (importOriginal) => {
@@ -73,22 +77,39 @@ describe("Advisory Component", () => {
         setSelectedFireCenter={setSelectedFireCenter}
         selectedFireZoneUnit={undefined}
         setSelectedFireZoneUnit={setSelectedFireZoneUnit}
-      />
+      />,
     );
 
     expect(screen.getByTestId("asa-go-advisory")).toBeInTheDocument();
     expect(
-      screen.getByTestId("advisory-control-container")
+      screen.getByTestId("advisory-control-container"),
     ).toBeInTheDocument();
     expect(screen.getByTestId("today-tomorrow-switch")).toHaveTextContent(
-      "2025-07-15"
+      "2025-07-15",
     );
     expect(screen.getByTestId("fire-center-dropdown")).toHaveTextContent(
-      "Options: 2"
+      "Options: 2",
     );
     expect(screen.getByTestId("fire-zone-tabs")).toBeInTheDocument();
     expect(screen.getByTestId("advisory-text")).toHaveTextContent(
-      "Advisory Text Content"
+      "Advisory Text Content",
     );
+  });
+
+  it("renders DefaultText when no fire center is selected", () => {
+    render(
+      <Advisory
+        date={mockDate}
+        setDate={setDate}
+        selectedFireCenter={undefined}
+        setSelectedFireCenter={setSelectedFireCenter}
+        selectedFireZoneUnit={undefined}
+        setSelectedFireZoneUnit={setSelectedFireZoneUnit}
+      />,
+    );
+
+    expect(screen.queryByTestId("default-message")).toBeInTheDocument();
+    expect(screen.queryByTestId("fire-zone-tabs")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("advisory-text")).not.toBeInTheDocument();
   });
 });
