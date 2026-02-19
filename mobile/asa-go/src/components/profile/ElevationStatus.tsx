@@ -48,6 +48,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               fontWeight: "bold",
               textAlign: "left",
               maxWidth: "75%",
+              fontSize: "1.2rem",
             }}
           >
             Topographic Position:
@@ -60,6 +61,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               fontWeight: "bold",
               textAlign: "right",
               maxWidth: "75%",
+              fontSize: "1.2rem",
             }}
           >
             Proportion of Advisory Area:
