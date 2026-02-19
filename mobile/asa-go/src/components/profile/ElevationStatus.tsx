@@ -37,8 +37,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
       <Grid container sx={{ minHeight: theme.spacing(10) }} size={12}>
         <Grid
           sx={{
-            paddingLeft: theme.spacing(0.5),
-            paddingRight: theme.spacing(0.5),
+            px: theme.spacing(1),
           }}
           size={6}
         >
@@ -49,12 +48,20 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               textAlign: "left",
               maxWidth: "85%",
               fontSize: "1.2rem",
+              pr: theme.spacing(1),
             }}
           >
             Topographic Position:
           </Typography>
         </Grid>
-        <Grid sx={{ display: "flex", justifyContent: "flex-end" }} size={6}>
+        <Grid
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            px: theme.spacing(1),
+          }}
+          size={6}
+        >
           <Typography
             sx={{
               color: "#003366",
@@ -80,8 +87,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
         >
           <Grid
             sx={{
-              paddingLeft: theme.spacing(0.5),
-              paddingRight: theme.spacing(0.5),
+              px: theme.spacing(1),
             }}
             container
             size={12}
