@@ -8,13 +8,13 @@ export const theme = createTheme({
       light: "#3E5C93",
       main: "#003366",
       dark: "#000C3A",
-      contrastText: "#fff"
+      contrastText: "#fff",
     },
     secondary: {
       light: "#FFF263",
       main: "#FBC02D",
       dark: "#C49000",
-      contrastText: "#000"
+      contrastText: "#000",
     },
     success: { main: "#2E8540" },
     error: { main: "#FF3E34" },
@@ -26,6 +26,18 @@ export const theme = createTheme({
     button: {
       textTransform: "none",
     },
+    fontFamily: [
+      "-apple-system",
+      "BlinkMacSystemFont",
+      '"Segoe UI"',
+      "Roboto",
+      '"Helvetica Neue"',
+      "Arial",
+      "sans-serif",
+      '"Apple Color Emoji"',
+      '"Segoe UI Emoji"',
+      '"Segoe UI Symbol"',
+    ].join(","),
   },
   breakpoints: {
     values: {
