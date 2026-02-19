@@ -19,13 +19,13 @@ def main():
     ax.axvline(x=0, color="red", linestyle="--", label="Zero difference")
 
     # Add stats
-    mean_diff = np.mean(diff)
-    std_diff = np.std(diff)
+    mean_diff = np.nanmean(diff)
+    std_diff = np.nanstd(diff)
     ax.axvline(x=mean_diff, color="green", linestyle="-", label=f"Mean: {mean_diff:.2f}")
     ax.legend()
 
     # Add text box with stats
-    stats_text = f"Mean: {mean_diff:.2f}\nStd: {std_diff:.2f}\nMin: {np.min(diff):.2f}\nMax: {np.max(diff):.2f}"
+    stats_text = f"Mean: {mean_diff:.2f}\nStd: {std_diff:.2f}\nMin: {np.nanmin(diff):.2f}\nMax: {np.nanmax(diff):.2f}"
     ax.text(
         0.95,
         0.95,
