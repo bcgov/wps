@@ -1,6 +1,7 @@
 import { FireCenter, FireShape } from "@/api/fbaAPI";
 import FireCenterDropdown from "@/components/FireCenterDropdown";
 import AdvisoryText from "@/components/report/AdvisoryText";
+import DefaultText from "@/components/report/DefaultText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import { selectFireCenters } from "@/store";
@@ -74,18 +75,22 @@ const Advisory = ({
           overflowY: "hidden",
         }}
       >
-        <FireZoneUnitTabs
-          selectedFireCenter={selectedFireCenter}
-          selectedFireZoneUnit={selectedFireZoneUnit}
-          setSelectedFireZoneUnit={setSelectedFireZoneUnit}
-          date={date}
-        >
-          <AdvisoryText
+        {!selectedFireCenter ? (
+          <DefaultText />
+        ) : (
+          <FireZoneUnitTabs
             selectedFireCenter={selectedFireCenter}
             selectedFireZoneUnit={selectedFireZoneUnit}
+            setSelectedFireZoneUnit={setSelectedFireZoneUnit}
             date={date}
-          />
-        </FireZoneUnitTabs>
+          >
+            <AdvisoryText
+              selectedFireCenter={selectedFireCenter}
+              selectedFireZoneUnit={selectedFireZoneUnit}
+              date={date}
+            />
+          </FireZoneUnitTabs>
+        )}
       </Box>
     </Box>
   );

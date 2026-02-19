@@ -4,7 +4,6 @@ import {
   FireZoneFuelStats,
   FireZoneHFIStats,
 } from "@/api/fbaAPI";
-import DefaultText from "@/components/report/DefaultText";
 import {
   useFilteredHFIStatsForDate,
   useProvincialSummaryForDate,
@@ -215,13 +214,9 @@ const AdvisoryText = ({
   const renderDefaultMessage = () => {
     return (
       <>
-        {isNil(selectedFireCenter) ? (
-          <DefaultText />
-        ) : (
-          <AdvisoryTypography data-testid="no-data-message">
-            No advisory data available for the selected date.
-          </AdvisoryTypography>
-        )}
+        <AdvisoryTypography data-testid="no-data-message">
+          No advisory data available for the selected date.
+        </AdvisoryTypography>
       </>
     );
   };
