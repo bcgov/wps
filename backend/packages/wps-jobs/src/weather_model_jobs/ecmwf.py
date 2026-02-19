@@ -181,6 +181,7 @@ class ECMWF:
                 except Exception as exception:
                     self.exception_count += 1
                     logger.error("unexpected exception processing %s", url, exc_info=exception)
+                    self.model_run_repository.session.rollback()
 
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
             if len(prediction_hours) == self.files_processed:
