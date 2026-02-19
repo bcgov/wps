@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { CssBaseline, GlobalStyles } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import { ThemeProvider, StyledEngineProvider } from "@mui/material/styles";
 import { Provider } from "react-redux";
 import { store } from "@/store";
@@ -21,29 +21,6 @@ const render = () => {
       <Provider store={store}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <GlobalStyles
-            styles={{
-              html: {
-                height: "100%",
-              },
-              body: {
-                height: "100%",
-                margin: 0,
-                overflow: "hidden", // prevent body scroll
-              },
-              "#root": {
-                height: "100%",
-                overflow: "hidden", // prevent root scroll
-              },
-              "*": {
-                msOverflowStyle: "none",
-                scrollbarWidth: "none",
-              },
-              "*::-webkit-scrollbar": {
-                display: "none",
-              },
-            }}
-          />
           <StyledEngineProvider injectFirst>
             <AuthWrapper>
               <App />
