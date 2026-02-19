@@ -1,9 +1,9 @@
-import { SerifTypography } from "@/components/report/AdvisoryText";
+import { AdvisoryTypography } from "@/components/report/AdvisoryText";
 
 export const DefaultText = () => (
-  <SerifTypography data-testid="default-message">
+  <AdvisoryTypography data-testid="default-message">
     Please select a fire centre.
-  </SerifTypography>
+  </AdvisoryTypography>
 );
 
 export default DefaultText;
