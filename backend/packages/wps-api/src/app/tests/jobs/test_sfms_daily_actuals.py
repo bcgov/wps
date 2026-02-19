@@ -25,6 +25,7 @@ class MockDailyActualsDeps(NamedTuple):
     s3_client: AsyncMock
     temp_processor: MagicMock
     idw_processor: MagicMock
+    fwi_processor: MagicMock
     wfwx_api: AsyncMock
 
 
@@ -79,6 +80,12 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         return_value=mock_idw_processor,
     )
 
+    mock_fwi_processor = MagicMock()
+    mock_fwi_processor.calculate_ffmc = AsyncMock(return_value=None)
+    mock_fwi_processor.calculate_dmc = AsyncMock(return_value=None)
+    mock_fwi_processor.calculate_dc = AsyncMock(return_value=None)
+    mocker.patch(f"{MODULE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
+
     # Mock DB session
     db_session = AsyncMock(spec=AsyncSession)
     db_session.get = AsyncMock(return_value=MagicMock())
@@ -94,6 +101,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         s3_client=mock_s3_client,
         temp_processor=mock_temp_processor,
         idw_processor=mock_idw_processor,
+        fwi_processor=mock_fwi_processor,
         wfwx_api=mock_wfwx_api,
     )
 
@@ -307,6 +315,36 @@ class TestMondayFWIInterpolation:
 
         # 5 tracked runs: temp, precip, ffmc, dmc, dc
         assert mock_dependencies.db_session.execute.call_count == 5
+
+
+class TestFWICalculationVsInterpolation:
+    """Regression tests: FWI interpolation and FWI calculation are mutually exclusive."""
+
+    @pytest.mark.anyio
+    async def test_monday_interpolation_skips_fwi_calculation(self, mock_dependencies: MockDailyActualsDeps):
+        """On a re-interpolation Monday, FWI calculation must not run."""
+        # 2024-05-06 is the first Monday of May 2024
+        target_date = datetime(2024, 5, 6, tzinfo=timezone.utc)
+
+        await run_sfms_daily_actuals(target_date)
+
+        mock_dependencies.fwi_processor.calculate_ffmc.assert_not_called()
+        mock_dependencies.fwi_processor.calculate_dmc.assert_not_called()
+        mock_dependencies.fwi_processor.calculate_dc.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_regular_day_runs_fwi_calculation_not_interpolation(self, mock_dependencies: MockDailyActualsDeps):
+        """On a regular day, FWI calculation runs and FWI interpolation does not."""
+        # 2024-07-04 is a Thursday
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+
+        await run_sfms_daily_actuals(target_date)
+
+        mock_dependencies.fwi_processor.calculate_ffmc.assert_called_once()
+        mock_dependencies.fwi_processor.calculate_dmc.assert_called_once()
+        mock_dependencies.fwi_processor.calculate_dc.assert_called_once()
+        # IDW called once only for precip, not for FWI indices
+        mock_dependencies.idw_processor.process.assert_called_once()
 
 
 class TestMain:
