@@ -69,7 +69,7 @@ const TodayTomorrowSwitch = ({
         <StyledTextContainer
           sx={{
             backgroundColor: isToday ? MAP_BUTTON_GREY : "white",
-            color: isToday ? "white" : "black",
+            color: isToday ? "white" : MAP_BUTTON_GREY,
           }}
         >
           NOW
@@ -79,7 +79,7 @@ const TodayTomorrowSwitch = ({
         <StyledTextContainer
           sx={{
             backgroundColor: !isToday ? MAP_BUTTON_GREY : "white",
-            color: !isToday ? "white" : "black",
+            color: !isToday ? "white" : MAP_BUTTON_GREY,
           }}
         >
           TMR

@@ -1,3 +1,4 @@
+import { MAP_BUTTON_GREY } from "@/theme";
 import {
   FormControl,
   InputLabel,
@@ -45,12 +46,17 @@ const FireCenterDropdown = ({
         value={selectedFireCenter?.name ?? ""}
         onChange={handleChange}
         label="Centre"
+        sx={{ fontWeight: "bold", color: MAP_BUTTON_GREY }}
       >
         {fireCenterOptions.map((option) => {
           const displayName = option.name.replace("Fire Centre", "");
 
           return (
-            <MenuItem key={option.name} value={option.name}>
+            <MenuItem
+              key={option.name}
+              value={option.name}
+              sx={{ fontWeight: "bold", color: MAP_BUTTON_GREY }}
+            >
               {displayName}
             </MenuItem>
           );
