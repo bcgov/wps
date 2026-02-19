@@ -73,7 +73,6 @@ const Profile = ({
           display: "flex",
           flexGrow: 1,
           paddingTop: theme.spacing(1),
-          px: theme.spacing(1),
           overflowY: "hidden",
         }}
       >

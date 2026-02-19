@@ -81,8 +81,8 @@ const FireZoneUnitSummary = ({
       sx={{
         backgroundColor: "white",
         width: "100%",
-        // border: "1px solid #ccc",
-        // borderRadius: 1,
+        border: "1px solid #ccc",
+        borderRadius: 1,
         paddingTop: theme.spacing(2),
         overflowY: "auto",
       }}
@@ -111,7 +111,7 @@ const FireZoneUnitSummary = ({
             fireZoneFuelStats={fireZoneFuelStats}
           />
         </Grid>
-        <Grid sx={{ width: "100%" }}>
+        <Grid sx={{ px: theme.spacing(1) }}>
           {fireZoneTPIStats && hasRequiredFields(fireZoneTPIStats) ? (
             <ElevationStatus tpiStats={fireZoneTPIStats}></ElevationStatus>
           ) : (

@@ -81,6 +81,8 @@ const FireZoneUnitTabs = ({
           value={tabNumber}
           onChange={handleTabChange}
           sx={{
+            borderBottom: 1,
+            borderColor: "divider",
             "& .MuiTab-root": {
               flex: 1,
               minWidth: 0,
