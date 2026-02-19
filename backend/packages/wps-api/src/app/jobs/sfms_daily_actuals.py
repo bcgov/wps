@@ -142,24 +142,24 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                         logger.info("%s interpolation raster: %s", job_name.value, s3_key)
 
                     await run_fwi_interpolation()
+            else:
+                # Calculate FWI indices (FFMC, DMC, DC) from interpolated weather + yesterday's actuals
+                fwi_processor = FWIProcessor(datetime_to_process)
 
-            # Calculate FWI indices (FFMC, DMC, DC) from interpolated weather + yesterday's actuals
-            fwi_processor = FWIProcessor(datetime_to_process)
+                fwi_calculations = [
+                    (SFMSRunLogJobName.FFMC_CALCULATION, fwi_processor.calculate_ffmc, FWIParameter.FFMC),
+                    (SFMSRunLogJobName.DMC_CALCULATION, fwi_processor.calculate_dmc, FWIParameter.DMC),
+                    (SFMSRunLogJobName.DC_CALCULATION, fwi_processor.calculate_dc, FWIParameter.DC),
+                ]
 
-            fwi_calculations = [
-                (SFMSRunLogJobName.FFMC_CALCULATION, fwi_processor.calculate_ffmc, FWIParameter.FFMC),
-                (SFMSRunLogJobName.DMC_CALCULATION, fwi_processor.calculate_dmc, FWIParameter.DMC),
-                (SFMSRunLogJobName.DC_CALCULATION, fwi_processor.calculate_dc, FWIParameter.DC),
-            ]
+                for job_name, calculate, fwi_param in fwi_calculations:
+                    fwi_inputs = raster_addresser.get_actual_fwi_inputs(datetime_to_process, fwi_param)
 
-            for job_name, calculate, fwi_param in fwi_calculations:
-                fwi_inputs = raster_addresser.get_actual_fwi_inputs(datetime_to_process, fwi_param)
+                    @track_sfms_run(job_name, sfms_run_id, session)
+                    async def run_fwi_calculation() -> None:
+                        await calculate(s3_client, multi_wps_dataset_context, fwi_inputs)
 
-                @track_sfms_run(job_name, sfms_run_id, session)
-                async def run_fwi_calculation() -> None:
-                    await calculate(s3_client, multi_wps_dataset_context, fwi_inputs)
-
-                await run_fwi_calculation()
+                    await run_fwi_calculation()
 
     logger.info("SFMS daily actuals completed successfully for %s", target_date.date())
 
