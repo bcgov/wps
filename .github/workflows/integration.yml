@@ -90,7 +90,8 @@ jobs:
           fetch-depth: 0
       - name: Install ecCodes library
         run: |
-          apt-get update --fix-missing apt-get -y install libeccodes-tools
+          apt-get update --fix-missing
+          apt-get -y install libeccodes-tools
       - uses: ./.github/actions/python-setup
         with:
           install-jdk: "true"
