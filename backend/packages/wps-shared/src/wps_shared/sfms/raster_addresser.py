@@ -106,12 +106,16 @@ class RasterKeyAddresser:
         """
         assert_all_utc(datetime_to_process)
         yesterday = datetime_to_process - timedelta(days=1)
+        temp_key = self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP)
+        rh_key = self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.RH)
+        precip_key = self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.PRECIP)
+        prev_fwi_key = self.get_uploaded_index_key(yesterday, fwi_param)
         output_key = self.get_calculated_index_key(datetime_to_process, fwi_param, run_type=RunType.ACTUAL.value)
         return FWIInputs(
-            temp_key=self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP),
-            rh_key=self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.RH),
-            precip_key=self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.PRECIP),
-            prev_fwi_key=self.get_uploaded_index_key(yesterday, fwi_param),
+            temp_key=temp_key,
+            rh_key=rh_key,
+            precip_key=precip_key,
+            prev_fwi_key=prev_fwi_key,
             output_key=output_key,
             cog_key=self.get_cog_key(output_key),
             run_type=RunType.ACTUAL,
