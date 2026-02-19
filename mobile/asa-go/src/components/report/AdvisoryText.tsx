@@ -32,7 +32,7 @@ export const AdvisoryTypography = styled(Typography)({
 }) as typeof Typography;
 
 export interface AdvisoryTextProps {
-  selectedFireCenter: FireCenter | undefined;
+  selectedFireCenter: FireCenter;
   selectedFireZoneUnit: FireShape | undefined;
   date: DateTime;
 }
@@ -92,13 +92,11 @@ const AdvisoryText = ({
   }, [selectedFireZoneUnitTopFuels]);
 
   const zoneStatus = useMemo(() => {
-    if (selectedFireCenter) {
-      const fireCenterSummary = provincialSummary?.[selectedFireCenter.name];
-      const fireZoneUnitInfo = fireCenterSummary?.find(
-        (fc) => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id,
-      );
-      return fireZoneUnitInfo?.status;
-    }
+    const fireCenterSummary = provincialSummary?.[selectedFireCenter.name];
+    const fireZoneUnitInfo = fireCenterSummary?.find(
+      (fc) => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id,
+    );
+    return fireZoneUnitInfo?.status;
   }, [selectedFireCenter, selectedFireZoneUnit, provincialSummary]);
 
   const getCommaSeparatedString = (array: string[]): string => {
@@ -211,7 +209,7 @@ const AdvisoryText = ({
     );
   };
 
-  const renderDefaultMessage = () => {
+  const renderNoDataMessage = () => {
     return (
       <>
         <AdvisoryTypography data-testid="no-data-message">
@@ -357,10 +355,8 @@ const AdvisoryText = ({
         backgroundColor: "white",
       }}
     >
-      {!selectedFireCenter ||
-      isNil(runParameter?.run_datetime) ||
-      !selectedFireZoneUnit
-        ? renderDefaultMessage()
+      {isNil(runParameter?.run_datetime) || !selectedFireZoneUnit
+        ? renderNoDataMessage()
         : renderAdvisoryText()}
     </Box>
   );
