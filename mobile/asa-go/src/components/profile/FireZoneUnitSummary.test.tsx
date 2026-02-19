@@ -6,6 +6,8 @@ import { useSelector } from "react-redux";
 import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
 import { FireCenter, FireShape, FireZoneTPIStats } from "@/api/fbaAPI";
 import { DateTime } from "luxon";
+import { ThemeProvider } from "@mui/material/styles";
+import { theme } from "@/theme";
 
 // Mock child components
 vi.mock("@/components/profile/FuelSummary", () => ({
@@ -34,13 +36,6 @@ vi.mock("@/components/profile/ElevationStatus", () => ({
 vi.mock("@/hooks/datahooks", () => ({
   useFilteredHFIStatsForDate: vi.fn(),
   useTPIStatsForDate: vi.fn(),
-}));
-
-// Mock theme
-vi.mock("@mui/material/styles", () => ({
-  useTheme: () => ({
-    spacing: (value: number) => `${value * 8}px`,
-  }),
 }));
 
 // Mock react-redux
@@ -78,9 +73,13 @@ describe("FireZoneUnitSummary", () => {
 
   const renderWithProvider = (
     component: React.ReactElement,
-    store = createMockStore()
+    store = createMockStore(),
   ) => {
-    return render(<Provider store={store}>{component}</Provider>);
+    return render(
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>{component}</ThemeProvider>
+      </Provider>,
+    );
   };
 
   beforeEach(() => {
@@ -106,7 +105,7 @@ describe("FireZoneUnitSummary", () => {
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={undefined}
         date={testDate}
-      />
+      />,
     );
 
     const emptyDiv = screen.getByTestId("fire-zone-unit-summary-empty");
@@ -119,7 +118,7 @@ describe("FireZoneUnitSummary", () => {
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />
+      />,
     );
 
     const summary = screen.getByTestId("fire-zone-unit-summary");
@@ -132,7 +131,7 @@ describe("FireZoneUnitSummary", () => {
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />
+      />,
     );
 
     const title = screen.getByTestId("fire-zone-title-tabs");
@@ -146,7 +145,7 @@ describe("FireZoneUnitSummary", () => {
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />
+      />,
     );
 
     const fuelSummary = screen.getByTestId("fuel-summary");
@@ -160,11 +159,11 @@ describe("FireZoneUnitSummary", () => {
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />
+      />,
     );
 
     expect(
-      screen.getByText("No elevation information available.")
+      screen.getByText("No elevation information available."),
     ).toBeInTheDocument();
   });
 
@@ -174,7 +173,7 @@ describe("FireZoneUnitSummary", () => {
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />
+      />,
     );
 
     const summary = screen.getByTestId("fire-zone-unit-summary");
@@ -192,7 +191,7 @@ describe("FireZoneUnitSummary", () => {
         selectedFireCenter={mockFireCenter}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />
+      />,
     );
 
     const gridContainer = container.querySelector(".MuiGrid2-root");
@@ -205,7 +204,7 @@ describe("FireZoneUnitSummary", () => {
         selectedFireCenter={undefined}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />
+      />,
     );
 
     const summary = screen.getByTestId("fire-zone-unit-summary");
