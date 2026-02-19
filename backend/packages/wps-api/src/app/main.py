@@ -4,6 +4,7 @@ See README.md for details on how to run.
 """
 
 import logging
+from contextlib import asynccontextmanager
 from time import perf_counter
 from urllib.request import Request
 from fastapi import FastAPI, Depends, Response
@@ -89,8 +90,24 @@ if config.get("ENVIRONMENT") == "production":
         profiles_sample_rate=0.5,
     )
 
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Initialize expensive singletons at startup so they run in the main asyncio context.
+
+    rpy2 uses contextvars.ContextVar for conversion rules. Initializing CFFDRS inside a
+    request handler means it runs in a request-scoped context, which can cause subsequent
+    calls from other contexts to lose the conversion rules. Running it here ensures the
+    singleton is created in the root context before any requests arrive.
+    """
+    cffdrs_start = perf_counter()
+    CFFDRS.instance()
+    cffdrs_end = perf_counter()
+    logger.info("CFFDRS initialized in %f seconds", cffdrs_end - cffdrs_start)
+    yield
+
+
 # This is the api app.
-api = FastAPI(title="Predictive Services API", description=API_INFO, version="0.0.0")
+api = FastAPI(title="Predictive Services API", description=API_INFO, version="0.0.0", lifespan=lifespan)
 
 # This is our base starlette app - it doesn't do much except glue together
 # the api and the front end.
@@ -157,15 +174,6 @@ async def get_health():
         logger.debug(
             "/health - healthy: %s. %s", health_check.get("healthy"), health_check.get("message")
         )
-
-        # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
-        cffdrs_start = perf_counter()
-        CFFDRS.instance()
-        cffdrs_end = perf_counter()
-        delta = cffdrs_end - cffdrs_start
-        # Any delta below 100 milliseconds is just noise in the logs.
-        if delta > 0.1:
-            logger.info("%f seconds added by CFFDRS startup", delta)
 
         return health_check
     except Exception as exception:
