@@ -31,6 +31,4 @@ per-file-ignores = { "api/alembic/versions/00df3c7b5cba_rethink_classification.p
     "F401",
     "E402",
     "F811",
-], "backend/packages/wps-jobs/src/weather_model_jobs/ecmwf.py" = [
-    "E402",
 ] }
