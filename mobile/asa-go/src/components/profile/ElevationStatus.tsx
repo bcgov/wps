@@ -47,7 +47,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               color: "#003366",
               fontWeight: "bold",
               textAlign: "left",
-              maxWidth: "75%",
+              maxWidth: "85%",
               fontSize: "1.2rem",
             }}
           >
@@ -60,7 +60,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               color: "#003366",
               fontWeight: "bold",
               textAlign: "right",
-              maxWidth: "75%",
+              maxWidth: "85%",
               fontSize: "1.2rem",
             }}
           >
