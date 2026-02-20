@@ -12,6 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install pre-requisites
 RUN apt-get update --fix-missing && apt-get -y install build-essential curl git python3 python3-dev python-is-python3 python3-pip \
     libgeos-dev libpq-dev libproj-dev libsqlite3-dev libtirpc-dev libudunits2-dev \
+    libeccodes-tools \
     && apt-get clean
 
 # When our app is running, we want to allow uv full access to the workers home directory.

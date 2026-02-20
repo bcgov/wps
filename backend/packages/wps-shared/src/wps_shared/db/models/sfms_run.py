@@ -14,6 +14,7 @@ class SFMSRunLogJobName(str, enum.Enum):
 
     TEMPERATURE_INTERPOLATION = "temperature_interpolation"
     PRECIPITATION_INTERPOLATION = "precipitation_interpolation"
+    RH_INTERPOLATION = "rh_interpolation"
     FFMC_INTERPOLATION = "ffmc_interpolation"
     DMC_INTERPOLATION = "dmc_interpolation"
     DC_INTERPOLATION = "dc_interpolation"

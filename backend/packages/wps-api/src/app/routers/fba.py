@@ -48,9 +48,7 @@ from wps_shared.schemas.fba import (
     TPIResponse,
 )
 
-from app.auto_spatial_advisory.fuel_type_layer import (
-    get_fuel_type_raster_by_year,
-)
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,

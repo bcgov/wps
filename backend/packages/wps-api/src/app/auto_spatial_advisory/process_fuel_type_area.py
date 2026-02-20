@@ -12,9 +12,7 @@ from sqlalchemy.future import select
 from sqlalchemy.sql import text
 
 from app.auto_spatial_advisory.common import get_hfi_s3_key
-from app.auto_spatial_advisory.fuel_type_layer import (
-    get_fuel_type_raster_by_year,
-)
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds,
