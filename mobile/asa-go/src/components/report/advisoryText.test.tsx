@@ -319,7 +319,7 @@ describe("AdvisoryText", () => {
     expect(advisoryText).toBeInTheDocument();
   });
 
-  it("should render no data message when no fire center is selected", () => {
+  it("should render default message when no fire center is selected", () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
@@ -329,7 +329,7 @@ describe("AdvisoryText", () => {
         />
       </Provider>,
     );
-    const message = getByTestId("no-data-message");
+    const message = getByTestId("default-message");
     expect(message).toBeInTheDocument();
     const bulletinIssueDate = queryByTestId("bulletin-issue-date");
     expect(bulletinIssueDate).not.toBeInTheDocument();

@@ -4,6 +4,7 @@ import {
   FireZoneFuelStats,
   FireZoneHFIStats,
 } from "@/api/fbaAPI";
+import DefaultText from "@/components/report/DefaultText";
 import {
   useFilteredHFIStatsForDate,
   useProvincialSummaryForDate,
@@ -32,7 +33,7 @@ export const AdvisoryTypography = styled(Typography)({
 }) as typeof Typography;
 
 export interface AdvisoryTextProps {
-  selectedFireCenter: FireCenter;
+  selectedFireCenter: FireCenter | undefined;
   selectedFireZoneUnit: FireShape | undefined;
   date: DateTime;
 }
@@ -92,11 +93,13 @@ const AdvisoryText = ({
   }, [selectedFireZoneUnitTopFuels]);
 
   const zoneStatus = useMemo(() => {
-    const fireCenterSummary = provincialSummary?.[selectedFireCenter.name];
-    const fireZoneUnitInfo = fireCenterSummary?.find(
-      (fc) => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id,
-    );
-    return fireZoneUnitInfo?.status;
+    if (selectedFireCenter) {
+      const fireCenterSummary = provincialSummary?.[selectedFireCenter.name];
+      const fireZoneUnitInfo = fireCenterSummary?.find(
+        (fc) => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id,
+      );
+      return fireZoneUnitInfo?.status;
+    }
   }, [selectedFireCenter, selectedFireZoneUnit, provincialSummary]);
 
   const getCommaSeparatedString = (array: string[]): string => {
@@ -209,12 +212,16 @@ const AdvisoryText = ({
     );
   };
 
-  const renderNoDataMessage = () => {
+  const renderDefaultMessage = () => {
     return (
       <>
-        <AdvisoryTypography data-testid="no-data-message">
-          No advisory data available for the selected date.
-        </AdvisoryTypography>
+        {isNil(selectedFireCenter) ? (
+          <DefaultText />
+        ) : (
+          <AdvisoryTypography data-testid="no-data-message">
+            No advisory data available for the selected date.
+          </AdvisoryTypography>
+        )}
       </>
     );
   };
@@ -355,8 +362,10 @@ const AdvisoryText = ({
         backgroundColor: "white",
       }}
     >
-      {isNil(runParameter?.run_datetime) || !selectedFireZoneUnit
-        ? renderNoDataMessage()
+      {!selectedFireCenter ||
+      isNil(runParameter?.run_datetime) ||
+      !selectedFireZoneUnit
+        ? renderDefaultMessage()
         : renderAdvisoryText()}
     </Box>
   );
