@@ -40,6 +40,7 @@ const Profile = ({
         flex: 1,
         flexDirection: "column",
         height: "100%",
+        overflowY: "hidden",
       }}
     >
       <Box
