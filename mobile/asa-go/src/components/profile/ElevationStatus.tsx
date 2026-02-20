@@ -30,15 +30,14 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
     tpiStats.valley_bottom_tpi === 0
       ? 0
       : Math.round(
-          (tpiStats.valley_bottom_hfi / tpiStats.valley_bottom_tpi) * 100
+          (tpiStats.valley_bottom_hfi / tpiStats.valley_bottom_tpi) * 100,
         );
   return (
     <Grid container size={12} data-testid="elevation-status">
-      <Grid container sx={{ height: theme.spacing(6) }} size={12}>
+      <Grid container sx={{ minHeight: theme.spacing(10) }} size={12}>
         <Grid
           sx={{
-            paddingLeft: theme.spacing(0.5),
-            paddingRight: theme.spacing(0.5),
+            px: theme.spacing(1),
           }}
           size={6}
         >
@@ -47,20 +46,32 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               color: "#003366",
               fontWeight: "bold",
               textAlign: "left",
+              maxWidth: "85%",
+              fontSize: "1.2rem",
+              pr: theme.spacing(1),
             }}
           >
             Topographic Position:
           </Typography>
         </Grid>
-        <Grid sx={{ display: "flex", justifyContent: "flex-end" }} size={6}>
+        <Grid
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            px: theme.spacing(1),
+          }}
+          size={6}
+        >
           <Typography
             sx={{
               color: "#003366",
               fontWeight: "bold",
               textAlign: "right",
+              maxWidth: "85%",
+              fontSize: "1.2rem",
             }}
           >
-            Portion under advisory:
+            Proportion of Advisory Area:
           </Typography>
         </Grid>
       </Grid>
@@ -76,8 +87,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
         >
           <Grid
             sx={{
-              paddingLeft: theme.spacing(0.5),
-              paddingRight: theme.spacing(0.5),
+              px: theme.spacing(1),
             }}
             container
             size={12}

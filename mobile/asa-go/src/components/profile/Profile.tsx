@@ -5,9 +5,7 @@ import { DefaultText } from "@/components/report/DefaultText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
 import { selectFireCenters } from "@/store";
-import { HEADER_GREY, INFO_PANEL_CONTENT_BACKGROUND } from "@/theme";
-import { TextSnippet } from "@mui/icons-material";
-import { Box, FormControl, Typography, useTheme } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { DateTime } from "luxon";
 import { useSelector } from "react-redux";
 
@@ -48,11 +46,10 @@ const Profile = ({
       <Box
         data-testid="profile-control-container"
         sx={{
-          alignItems: "center",
+          alignItems: "end",
           backgroundColor: "white",
           display: "flex",
-          px: theme.spacing(1),
-          pb: theme.spacing(1),
+          padding: theme.spacing(1),
         }}
       >
         <Box
@@ -61,48 +58,22 @@ const Profile = ({
           <TodayTomorrowSwitch border={true} date={date} setDate={setDate} />
         </Box>
         <Box sx={{ display: "flex", flexGrow: 1, pt: theme.spacing(1) }}>
-          <FormControl
-            sx={{
-              backgroundColor: "white",
-              margin: 1,
-              maxWidth: 300,
-              minWidth: 250,
-              flexGrow: 1,
-            }}
-          >
-            <FireCenterDropdown
-              fireCenterOptions={fireCenters ?? []}
-              selectedFireCenter={selectedFireCenter}
-              setSelectedFireCenter={setSelectedFireCenter}
-              setSelectedFireShape={setSelectedFireZoneUnit}
-            />
-          </FormControl>
+          <FireCenterDropdown
+            fireCenterOptions={fireCenters ?? []}
+            selectedFireCenter={selectedFireCenter}
+            setSelectedFireCenter={setSelectedFireCenter}
+            setSelectedFireShape={setSelectedFireZoneUnit}
+          />
         </Box>
-      </Box>
-      <Box
-        sx={{
-          alignItems: "center",
-          backgroundColor: HEADER_GREY,
-          display: "flex",
-          p: theme.spacing(1),
-        }}
-      >
-        <TextSnippet />
-        <Typography
-          sx={{ fontWeight: "bold", pl: theme.spacing(1) }}
-          variant="h5"
-        >
-          Profile
-        </Typography>
       </Box>
 
       <Box
         id="profile-content-container"
         sx={{
-          backgroundColor: INFO_PANEL_CONTENT_BACKGROUND,
+          backgroundColor: "#FFFFFF",
           display: "flex",
           flexGrow: 1,
-          padding: theme.spacing(1),
+          paddingTop: theme.spacing(1),
           overflowY: "hidden",
         }}
       >

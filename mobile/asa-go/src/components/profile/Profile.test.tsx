@@ -92,7 +92,7 @@ describe("Profile", () => {
 
   const renderWithProvider = (
     component: React.ReactElement,
-    store = createMockStore()
+    store = createMockStore(),
   ) => {
     return render(<Provider store={store}>{component}</Provider>);
   };
@@ -125,12 +125,6 @@ describe("Profile", () => {
     expect(screen.getByTestId("asa-go-profile")).toBeInTheDocument();
   });
 
-  it("should render the Profile title", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
-
-    expect(screen.getByText("Profile")).toBeInTheDocument();
-  });
-
   it("should render TodayTomorrowSwitch with correct date", () => {
     renderWithProvider(<Profile {...defaultProps} />);
 
@@ -161,7 +155,7 @@ describe("Profile", () => {
 
   it("should render FireZoneUnitTabs", () => {
     renderWithProvider(
-      <Profile {...defaultProps} selectedFireCenter={mockFireCenter} />
+      <Profile {...defaultProps} selectedFireCenter={mockFireCenter} />,
     );
 
     const tabs = screen.getByTestId("fire-zone-unit-tabs");
@@ -204,18 +198,11 @@ describe("Profile", () => {
     expect(controlContainer).toBeInTheDocument();
   });
 
-  it("should render TextSnippet icon", () => {
-    const { container } = renderWithProvider(<Profile {...defaultProps} />);
-
-    const textSnippetIcon = container.querySelector(".MuiSvgIcon-root");
-    expect(textSnippetIcon).toBeInTheDocument();
-  });
-
   it("should have correct content container ID", () => {
     renderWithProvider(<Profile {...defaultProps} />);
 
     const contentContainer = document.getElementById(
-      "profile-content-container"
+      "profile-content-container",
     );
     expect(contentContainer).toBeInTheDocument();
   });
@@ -234,12 +221,12 @@ describe("Profile", () => {
 
     // Check that fire center is passed
     expect(screen.getByTestId("fire-center-dropdown")).toHaveTextContent(
-      "Test Fire Center"
+      "Test Fire Center",
     );
 
     // Check that fire zone unit is passed
     expect(screen.getByTestId("fire-zone-unit-summary")).toHaveTextContent(
-      "Summary for Test Zone"
+      "Summary for Test Zone",
     );
   });
 });

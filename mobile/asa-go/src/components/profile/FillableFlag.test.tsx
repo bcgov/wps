@@ -17,7 +17,7 @@ describe("FillableFlag", () => {
     render(<FillableFlag maskId="test" percent={50} />);
 
     const svg = screen.getByRole("img");
-    expect(svg).toHaveAttribute("width", "120");
+    expect(svg).toHaveAttribute("width", "100");
     expect(svg).toHaveAttribute("height", "43");
     expect(svg).toHaveAttribute("viewBox", "0 0 120 43");
   });
@@ -288,5 +288,13 @@ describe("FillableFlag", () => {
       const percentText = screen.getByTestId(`test-flag-${idx}`);
       expect(percentText).toHaveTextContent(expectedText);
     });
+  });
+
+  it("should hide the percent text when showPercent is false", () => {
+    const { container } = render(
+      <FillableFlag maskId="test" percent={50} showPercent={false} />
+    );
+
+    expect(container.querySelector("text")).not.toBeInTheDocument();
   });
 });

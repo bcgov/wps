@@ -1,4 +1,11 @@
-import { MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
+import { MAP_BUTTON_GREY } from "@/theme";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import React from "react";
 
@@ -19,6 +26,9 @@ const FireCenterDropdown = ({
   setSelectedFireCenter,
   setSelectedFireShape,
 }: FireCenterDropdownProps) => {
+  const getDisplayName = (name: string): string =>
+    name.replace("Fire Centre", "").trim();
+
   const handleChange = (event: SelectChangeEvent<string>): void => {
     const selectedName = event.target.value;
     const selected = fireCenterOptions.find((fc) => fc.name === selectedName);
@@ -26,31 +36,38 @@ const FireCenterDropdown = ({
     setSelectedFireCenter(selected ?? undefined);
   };
 
-  const getSelectedDisplay = (selected: FireCenter | undefined) => {
-    if (!selected) {
-      return (
-        <Typography sx={{ color: "text.disabled" }}>
-          Select Fire Centre
-        </Typography>
-      );
-    }
-    return selected.name;
-  };
-
   return (
-    <Select
-      data-testid="fire-center-dropdown"
-      value={selectedFireCenter?.name ?? ""}
-      onChange={handleChange}
-      displayEmpty
-      renderValue={() => getSelectedDisplay(selectedFireCenter)}
-    >
-      {fireCenterOptions.map((option) => (
-        <MenuItem key={option.name} value={option.name}>
-          {option.name}
-        </MenuItem>
-      ))}
-    </Select>
+    <FormControl variant="outlined" size="small" sx={{ minWidth: 175 }}>
+      <InputLabel id="fire-center-label" shrink>
+        Centre
+      </InputLabel>
+
+      <Select
+        data-testid="fire-center-dropdown"
+        labelId="fire-center-label"
+        id="fire-center-select"
+        value={selectedFireCenter?.name ?? ""}
+        onChange={handleChange}
+        label="Centre"
+        displayEmpty
+        renderValue={(value) => (value ? getDisplayName(value) : "")}
+        sx={{ fontWeight: "bold", color: MAP_BUTTON_GREY }}
+      >
+        {fireCenterOptions.map((option) => {
+          const displayName = getDisplayName(option.name);
+
+          return (
+            <MenuItem
+              key={option.name}
+              value={option.name}
+              sx={{ fontWeight: "bold", color: MAP_BUTTON_GREY }}
+            >
+              {displayName}
+            </MenuItem>
+          );
+        })}
+      </Select>
+    </FormControl>
   );
 };
 
