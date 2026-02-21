@@ -512,8 +512,8 @@ wheels = [
 
 [[package]]
 name = "cffdrs"
-version = "0.1.2"
-source = { git = "https://github.com/cffdrs/cffdrs_py.git?rev=c760307#c7603073264906242a2c8d46ceecb01d1f539975" }
+version = "0.2.0"
+source = { git = "https://github.com/cffdrs/cffdrs_py.git?rev=4f773456dec253fbd32933813f15c2e13cc08931#4f773456dec253fbd32933813f15c2e13cc08931" }
 
 [[package]]
 name = "cffi"
@@ -4482,7 +4482,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1,<2" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "autopep8", marker = "extra == 'dev'", specifier = ">=2,<3" },
-    { name = "cffdrs", git = "https://github.com/cffdrs/cffdrs_py.git?rev=c760307" },
+    { name = "cffdrs", git = "https://github.com/cffdrs/cffdrs_py.git?rev=4f773456dec253fbd32933813f15c2e13cc08931" },
     { name = "cryptography", specifier = ">=46.0.0,<47" },
     { name = "earthaccess", specifier = ">=0.15.1" },
     { name = "fastapi", specifier = ">=0,<1" },
