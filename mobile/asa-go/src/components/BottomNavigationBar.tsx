@@ -1,20 +1,37 @@
-import { theme } from "@/theme";
-import { BottomNavigation, BottomNavigationAction, styled } from "@mui/material";
+import {
+  BottomNavigation,
+  BottomNavigationAction,
+  styled,
+} from "@mui/material";
 import MapIcon from "@mui/icons-material/Map";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import { NavPanel } from "@/utils/constants";
 
-const StyledBottomNavigationAction = styled(BottomNavigationAction)({
-  color: theme.palette.primary.contrastText,
-  '&.Mui-selected': {
-    color: theme.palette.secondary.main
-  }
-})
+const StyledBottomNavigationAction = styled(BottomNavigationAction)(
+  ({ theme }) => ({
+    color: theme.palette.primary.contrastText,
+    "&.Mui-selected": {
+      color: theme.palette.secondary.main,
+    },
+    [theme.breakpoints.up("md")]: {
+      paddingTop: theme.spacing(1),
+      "& .MuiSvgIcon-root": {
+        fontSize: "2.5rem",
+      },
+      "& .MuiBottomNavigationAction-label": {
+        fontSize: "1rem",
+        "&.Mui-selected": {
+          fontSize: "1rem",
+        },
+      },
+    },
+  }),
+);
 
 interface BottomNavigationBarProps {
-  tab: NavPanel
-  setTab: (newValue: NavPanel) => void
+  tab: NavPanel;
+  setTab: (newValue: NavPanel) => void;
 }
 
 const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
@@ -24,15 +41,15 @@ const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
       value={tab}
       onChange={(
         _: React.SyntheticEvent<Element, Event>,
-        newValue: NavPanel
+        newValue: NavPanel,
       ) => {
         setTab(newValue);
       }}
-      sx={{
+      sx={(theme) => ({
         backgroundColor: theme.palette.primary.main,
         color: theme.palette.primary.contrastText,
         py: theme.spacing(1),
-      }}
+      })}
     >
       <StyledBottomNavigationAction
         aria-label={NavPanel.MAP}
@@ -54,6 +71,6 @@ const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
       />
     </BottomNavigation>
   );
-}
+};
 
-export default BottomNavigationBar
+export default BottomNavigationBar;
