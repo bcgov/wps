@@ -43,7 +43,7 @@ dependencies = [
     "orjson>=3.9.0,<4",
     "greenlet>=3.0.0,<4",
     "sentry-sdk[fastapi]>=2.0.1,<3",
-    "numba==0.63.*",
+    "numba==0.64.*",
     "cffdrs",
     "geopandas>=1.0.1,<2",
     "shapely>=2.0.5,<3",
@@ -67,7 +67,7 @@ dev = [
 wps-shared = { workspace = true }
 wps-sfms = { workspace = true }
 wps-wf1 = { workspace = true }
-cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "c760307" }
+cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "4f773456dec253fbd32933813f15c2e13cc08931" }
 
 [tool.hatch.metadata]
 allow-direct-references = true

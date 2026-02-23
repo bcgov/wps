@@ -173,6 +173,11 @@ objects:
                           key: pgbouncer-port
                     - name: POSTGRES_DATABASE
                       value: ${POSTGRES_DATABASE}
+                    - name: FUEL_RASTER_NAME
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.fuel_raster_name
                   resources:
                     limits:
                       memory: 1024Mi
