@@ -33,12 +33,7 @@ const StyledHeader = styled("div")(({ theme }) => ({
   wordWrap: "break-word",
   fontWeight: "700",
   color: theme.palette.primary.main,
-
   fontSize: "14px",
-
-  [theme.breakpoints.down("sm")]: {
-    fontSize: "12px",
-  },
 }));
 
 // Column definitions for fire zone unit fuel summary table
@@ -176,6 +171,7 @@ const FuelSummary = ({
           sx={{
             backgroundColor: "white",
             overflow: "hidden",
+            border: "none",
             "& .MuiDataGrid-sortIcon": {
               display: "none",
             },
@@ -185,6 +181,7 @@ const FuelSummary = ({
             },
             "& .MuiDataGrid-columnHeader": {
               paddingX: 0.5,
+              border: "none",
             },
             "& .fuel-summary-header-area": {
               paddingX: 0,
