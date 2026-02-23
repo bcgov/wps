@@ -12,9 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auto_spatial_advisory.common import get_hfi_s3_key
-from app.auto_spatial_advisory.fuel_type_layer import (
-    get_fuel_type_raster_by_year,
-)
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_zone_unit_shape_type_id,
     get_fire_zone_units,

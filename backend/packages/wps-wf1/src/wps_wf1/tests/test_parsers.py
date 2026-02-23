@@ -3,7 +3,7 @@ import math
 import pytest
 from wps_wf1.parsers import parse_hourly_actual, sfms_daily_actuals_mapper
 
-from wps_shared.schemas.observations import HourlyActual
+from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.schemas.stations import WFWXWeatherStation
 

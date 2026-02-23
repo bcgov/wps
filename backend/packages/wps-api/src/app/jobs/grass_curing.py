@@ -113,8 +113,8 @@ class GrassCuringJob():
 
                 # Open the reprojected grass curing data
                 raster = gdal.Open(f"{temp_dir}/{GRASS_CURING_FILE_NAME_4326}")
-                async with ClientSession() as session:
-                    wfwx_api = WfwxApi(session)
+                async with ClientSession() as http_session:
+                    wfwx_api = WfwxApi(http_session)
                     stations = await wfwx_api.get_station_data()
                 for station, value in self._yield_value_for_stations(raster, stations):
                     percent_grass_curing = PercentGrassCuring(for_date=today,

@@ -24,6 +24,7 @@ class SFMSDailyActual(BaseModel):
     lon: float
     elevation: Optional[float] = None
     temperature: Optional[float] = None
+    dewpoint: Optional[float] = None
     relative_humidity: Optional[float] = None
     precipitation: Optional[float] = None
     wind_speed: Optional[float] = None

@@ -44,7 +44,7 @@ from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
-from app.auto_spatial_advisory.fuel_type_layer import get_fuel_type_raster_by_year
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from app.fire_behaviour import cffdrs
 from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, get_critical_hours
 from app.hourlies import get_hourly_readings_in_time_interval

@@ -6,7 +6,7 @@ from time import perf_counter
 from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auto_spatial_advisory.fuel_type_layer import get_fuel_type_raster_by_year
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.auto_spatial_advisory import (
     gather_zone_status_inputs,
     get_run_parameters_id,

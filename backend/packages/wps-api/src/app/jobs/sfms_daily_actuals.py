@@ -17,6 +17,7 @@ from aiohttp import ClientSession
 
 from wps_sfms.interpolation.source import (
     StationDCSource,
+    StationDewPointSource,
     StationDMCSource,
     StationFFMCSource,
     StationPrecipitationSource,
@@ -24,12 +25,13 @@ from wps_sfms.interpolation.source import (
 )
 from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import IDWInterpolationProcessor
+from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
-from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
-from wps_shared.fuel_raster import find_latest_version
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
@@ -49,17 +51,14 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     # Create processor for target date (noon UTC hour 20)
     datetime_to_process = target_date.replace(hour=20, minute=0, second=0, microsecond=0)
 
+    async with get_async_read_session_scope() as db_session:
+        fuel_type_raster = await get_fuel_type_raster_by_year(db_session, datetime_to_process.year)
+    if fuel_type_raster is None:
+        raise RuntimeError(f"No fuel type raster found for {datetime_to_process.year}")
+    fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_type_raster.object_store_path
+    logger.info("Using reference raster: %s", fuel_raster_path)
+
     async with S3Client() as s3_client:
-        # Use a reference raster for grid properties
-        # We'll use the fuel raster which defines the SFMS grid
-
-        latest_version = await find_latest_version(
-            s3_client, raster_addresser, datetime_to_process, 1
-        )
-        fuel_raster_key = raster_addresser.get_fuel_raster_key(target_date, version=latest_version)
-        fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_raster_key
-        logger.info("Using reference raster: %s", fuel_raster_path)
-
         # Fetch station observations from WF1
         async with ClientSession() as session:
             wfwx_api = WfwxApi(session)
@@ -109,7 +108,18 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                 )
                 logger.info("Precip interpolation raster: %s", precip_s3_key)
 
+            @track_sfms_run(SFMSRunLogJobName.RH_INTERPOLATION, sfms_run_id, session)
+            async def run_rh_interpolation() -> None:
+                rh_processor = RHInterpolationProcessor(datetime_to_process, raster_addresser)
+                rh_s3_key = await rh_processor.process(
+                    s3_client,
+                    fuel_raster_path,
+                    StationDewPointSource(sfms_actuals),
+                )
+                logger.info("RH interpolation raster: %s", rh_s3_key)
+
             await run_temperature_interpolation()
+            await run_rh_interpolation()
             await run_precipitation_interpolation()
 
             # Interpolate FWI indices (FFMC, DMC, DC) on the first Monday of April and May
@@ -147,13 +157,23 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                 fwi_processor = FWIProcessor(datetime_to_process)
 
                 fwi_calculations = [
-                    (SFMSRunLogJobName.FFMC_CALCULATION, fwi_processor.calculate_ffmc, FWIParameter.FFMC),
-                    (SFMSRunLogJobName.DMC_CALCULATION, fwi_processor.calculate_dmc, FWIParameter.DMC),
+                    (
+                        SFMSRunLogJobName.FFMC_CALCULATION,
+                        fwi_processor.calculate_ffmc,
+                        FWIParameter.FFMC,
+                    ),
+                    (
+                        SFMSRunLogJobName.DMC_CALCULATION,
+                        fwi_processor.calculate_dmc,
+                        FWIParameter.DMC,
+                    ),
                     (SFMSRunLogJobName.DC_CALCULATION, fwi_processor.calculate_dc, FWIParameter.DC),
                 ]
 
                 for job_name, calculate, fwi_param in fwi_calculations:
-                    fwi_inputs = raster_addresser.get_actual_fwi_inputs(datetime_to_process, fwi_param)
+                    fwi_inputs = raster_addresser.get_actual_fwi_inputs(
+                        datetime_to_process, fwi_param
+                    )
 
                     @track_sfms_run(job_name, sfms_run_id, session)
                     async def run_fwi_calculation() -> None:

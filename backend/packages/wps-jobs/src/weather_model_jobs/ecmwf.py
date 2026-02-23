@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import os
-import sys
 import tempfile
 from datetime import datetime, timedelta
 from typing import List
@@ -177,6 +176,7 @@ class ECMWF:
                 except Exception as exception:
                     self.exception_count += 1
                     logger.error("unexpected exception processing %s", url, exc_info=exception)
+                    self.model_run_repository.session.rollback()
 
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
             if len(prediction_hours) == self.files_processed:
@@ -259,14 +259,14 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(process_models())
-        # Exit with 0 - success.
-        sys.exit(os.EX_OK)
+        # Use os._exit to skip Python interpreter cleanup which causes a segfault
+        # due to C extension teardown order (GDAL, PROJ, eccodes, etc.)
+        os._exit(os.EX_OK)
     except Exception as exception:
-        # Exit non 0 - failure.
         logger.error("An error occurred while processing ECMWF model.", exc_info=exception)
         rc_message = ":poop: Encountered error retrieving model data from ECMWF"
         send_rocketchat_notification(rc_message, exception)
-        sys.exit(os.EX_SOFTWARE)
+        os._exit(os.EX_SOFTWARE)
 
 
 if __name__ == "__main__":
