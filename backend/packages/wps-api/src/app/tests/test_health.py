@@ -27,9 +27,11 @@ def test_health_fail(monkeypatch):
 
     def mock_requests_fail_condition(*args, **kwargs):
         """ Mock request response """
-        fixture_path = ('fixtures/console.pathfinder.gov.bc.ca:8443/apis/'
-                        'apps/v1beta1/namespaces/project_namespace/'
-                        'postgresclusters/some_suffix_fail.json')
+        fixture_path = (
+            "fixtures/console.pathfinder.gov.bc.ca_8443/apis/"
+            "apps/v1beta1/namespaces/project_namespace/"
+            "postgresclusters/some_suffix_fail.json"
+        )
         fixture_path = os.path.join(os.path.dirname(__file__), fixture_path)
         with open(fixture_path, 'r', encoding="utf-8") as fixture_file:
             return MockResponse(json=json.load(fixture_file))
