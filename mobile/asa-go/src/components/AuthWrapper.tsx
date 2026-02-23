@@ -27,8 +27,7 @@ const AuthWrapper = ({ children }: Props) => {
         bgcolor: theme.palette.primary.dark,
         display: "flex",
         flexDirection: "column",
-        height: "100dvh",
-        minHeight: "100dvh",
+        height: "100vh",
       }}
     >
       <Box
@@ -43,8 +42,8 @@ const AuthWrapper = ({ children }: Props) => {
           <Box
             component="img"
             sx={{
-              height: { xs: "250px", tiny: "300px" },
-              width: { xs: "250px", tiny: "300px" },
+              height: { xs: "250px", sm: "300px" },
+              width: { xs: "250px", sm: "300px" },
             }}
             src={AsaIcon}
           />
