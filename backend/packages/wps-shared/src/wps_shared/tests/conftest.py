@@ -47,7 +47,7 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("WFWX_BASE_URL", "https://wf1/wfwx")
     monkeypatch.setenv("WFWX_MAX_PAGE_SIZE", "1000")
     monkeypatch.setenv("KEYCLOAK_PUBLIC_KEY", "public_key")
-    monkeypatch.setenv("OPENSHIFT_BASE_URI", "https://console.pathfinder.gov.bc.ca:8443")
+    monkeypatch.setenv("OPENSHIFT_BASE_URI", "https://console.pathfinder.gov.bc.ca_8443")
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
