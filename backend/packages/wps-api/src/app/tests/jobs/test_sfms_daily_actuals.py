@@ -213,19 +213,19 @@ class TestRunSfmsDailyActuals:
 
         await run_sfms_daily_actuals(target_date)
 
-        # Three tracked runs (temp, rh, precip) means three execute calls
-        assert mock_dependencies.db_session.execute.call_count == 3
+        # Six tracked runs (temp, rh, precip, ffmc, dmc, dc) means six execute calls
+        assert mock_dependencies.db_session.execute.call_count == 6
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):
         """Test that successful jobs are updated to success status."""
-        records = [MagicMock(), MagicMock(), MagicMock()]
+        records = [MagicMock() for _ in range(6)]
         mock_dependencies.db_session.get = AsyncMock(side_effect=records)
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert mock_dependencies.db_session.get.call_count == 3
+        assert mock_dependencies.db_session.get.call_count == 6
         for record in records:
             assert record.status == SFMSRunLogStatus.SUCCESS
             assert record.completed_at is not None
