@@ -3,16 +3,9 @@ import React from "react";
 interface FillableFlagProps {
   maskId: string;
   percent: number;
-  testId?: string;
-  showPercent?: boolean;
 }
 
-const FillableFlag = ({
-  maskId,
-  percent,
-  testId,
-  showPercent = true,
-}: FillableFlagProps) => {
+const FillableFlag = ({ maskId, percent }: FillableFlagProps) => {
   const fillWidth = (percent / 100) * 120;
   return (
     <svg
@@ -28,36 +21,6 @@ const FillableFlag = ({
         <mask id={`mask-${maskId}`}>
           <rect x="0" y="0" width={`${fillWidth}`} height="43" fill="white" />
         </mask>
-        <filter id={`shadow-${maskId}`}>
-          <feDropShadow
-            dx="-2"
-            dy="2"
-            stdDeviation="4"
-            floodColor="white"
-            floodOpacity="1"
-          />
-          <feDropShadow
-            dx="2"
-            dy="2"
-            stdDeviation="4"
-            floodColor="white"
-            floodOpacity="1"
-          />
-          <feDropShadow
-            dx="2"
-            dy="-2"
-            stdDeviation="4"
-            floodColor="white"
-            floodOpacity="1"
-          />
-          <feDropShadow
-            dx="-2"
-            dy="-2"
-            stdDeviation="4"
-            floodColor="white"
-            floodOpacity="1"
-          />
-        </filter>
       </defs>
       <path
         d="M10.7443 41.822L0.558603 21.375L10.7443 0.928009L119.5 0.928009L119.5 41.822L10.7443 41.822Z"
@@ -69,21 +32,6 @@ const FillableFlag = ({
         d="M10.7443 41.822L0.558603 21.375L10.7443 0.928009L119.5 0.928009L119.5 41.822L10.7443 41.822Z"
         stroke="black"
       />
-      {showPercent && (
-        <text
-          x="60"
-          y="21.5"
-          textAnchor="middle"
-          dominantBaseline="central"
-          fontSize="16"
-          fontWeight="bold"
-          fill="black"
-          filter={`url(#shadow-${maskId})`}
-          data-testid={testId}
-        >
-          {percent}%
-        </text>
-      )}
     </svg>
   );
 };

@@ -7,17 +7,11 @@ vi.mock("@/components/profile/FillableFlag", () => ({
   default: ({
     maskId,
     percent,
-    showPercent,
   }: {
     maskId: string;
     percent: number;
-    showPercent?: boolean;
   }) => (
-    <div
-      data-testid={`mock-flag-${maskId}`}
-      data-percent={percent}
-      data-show-percent={showPercent}
-    >
+    <div data-testid={`mock-flag-${maskId}`} data-percent={percent}>
       Mock Flag: {percent}%
     </div>
   ),
@@ -39,7 +33,6 @@ describe("ElevationFlag", () => {
 
     const mockFlag = screen.getByText(/Mock Flag: 50%/);
     expect(mockFlag).toHaveAttribute("data-percent", "50");
-    expect(mockFlag).toHaveAttribute("data-show-percent", "false");
   });
 
   it("should generate random maskId correctly", () => {

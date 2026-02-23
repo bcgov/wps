@@ -34,7 +34,6 @@ const ElevationFlag = ({ percent, testId }: ElevationFlagProps) => {
       <Flag
         maskId={`elevation-flag-${uniqueId}`}
         percent={percent}
-        showPercent={false}
       />
     </Grid>
   );
