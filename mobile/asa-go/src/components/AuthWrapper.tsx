@@ -42,8 +42,8 @@ const AuthWrapper = ({ children }: Props) => {
           <Box
             component="img"
             sx={{
-              height: { xs: "250px", sm: "300px" },
-              width: { xs: "250px", sm: "300px" },
+              height: { xs: "250px", sm: "300px", lg: "400px" },
+              width: { xs: "250px", sm: "300px", lg: "400px" },
             }}
             src={AsaIcon}
           />
