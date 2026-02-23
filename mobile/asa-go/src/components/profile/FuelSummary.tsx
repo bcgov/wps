@@ -31,17 +31,21 @@ interface FuelSummaryProps {
 const StyledHeader = styled("div")(({ theme }) => ({
   whiteSpace: "normal",
   wordWrap: "break-word",
-  textAlign: "left",
-  fontSize: "14px",
   fontWeight: "700",
   color: theme.palette.primary.main,
+
+  fontSize: "14px",
+
+  [theme.breakpoints.down("sm")]: {
+    fontSize: "12px",
+  },
 }));
 
 // Column definitions for fire zone unit fuel summary table
 const columns: GridColDef[] = [
   {
     field: "code",
-    headerClassName: "fuel-summary-header",
+    headerClassName: "fuel-summary-header-code",
     headerName: "Fuel Type",
     sortable: false,
     minWidth: 120,
@@ -65,9 +69,10 @@ const columns: GridColDef[] = [
   {
     field: "area",
     flex: 1,
-    headerClassName: "fuel-summary-header",
+    headerClassName: "fuel-summary-header-area",
     headerName: "% Under Advisory",
     sortable: false,
+    headerAlign: "center",
     renderHeader: (params: GridColumnHeaderParams) => (
       <StyledHeader>{params.colDef.headerName}</StyledHeader>
     ),
@@ -82,7 +87,7 @@ const columns: GridColDef[] = [
   },
   {
     field: "criticalHours",
-    headerClassName: "fuel-summary-header",
+    headerClassName: "fuel-summary-header-ch",
     headerName: "Critical Hours",
     minWidth: 110,
     sortable: false,
@@ -158,6 +163,7 @@ const FuelSummary = ({
           disableChildrenSorting
           disableColumnResize
           disableRowSelectionOnClick
+          disableColumnSelector
           hideFooter={true}
           initialState={{
             sorting: {
@@ -176,6 +182,12 @@ const FuelSummary = ({
             "& .MuiDataGrid-cell": {
               display: "flex",
               alignItems: "center",
+            },
+            "& .MuiDataGrid-columnHeader": {
+              paddingX: 0.5,
+            },
+            "& .fuel-summary-header-area": {
+              paddingX: 0,
             },
           }}
         ></DataGridPro>

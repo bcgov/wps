@@ -35,17 +35,16 @@ const AuthWrapper = ({ children }: Props) => {
         sx={{
           alignItems: "flex-end",
           display: "flex",
-          flexGrow: { xs: 0, sm: 1 },
+          flexGrow: 1,
           justifyContent: "center",
-          pt: { xs: theme.spacing(2), sm: 0 },
         }}
       >
         <Box sx={{ display: "flex", flexGrow: 1, justifyContent: "Center" }}>
           <Box
             component="img"
             sx={{
-              height: { xs: "250px", sm: "300px" },
-              width: { xs: "250px", sm: "300px" },
+              height: { xs: "250px", tiny: "300px" },
+              width: { xs: "250px", tiny: "300px" },
             }}
             src={AsaIcon}
           />
@@ -64,7 +63,6 @@ const AuthWrapper = ({ children }: Props) => {
             color: "white",
             fontWeight: "bold",
             mb: theme.spacing(2),
-            fontSize: { xs: "2.2rem", sm: "3.75rem" },
           }}
           variant="h2"
         >
@@ -78,8 +76,8 @@ const AuthWrapper = ({ children }: Props) => {
           flexDirection: "column",
           flexGrow: 1,
           alignItems: "center",
-          justifyContent: { xs: "center", sm: "space-between" },
-          pb: { xs: theme.spacing(2), sm: theme.spacing(6) },
+          justifyContent: "space-between",
+          pb: theme.spacing(6),
         }}
       >
         <Typography

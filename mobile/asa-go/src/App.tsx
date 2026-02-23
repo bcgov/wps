@@ -43,7 +43,7 @@ const App = () => {
   const isActive = useAppIsActive();
   const dispatch: AppDispatch = useDispatch();
   const [isPortrait, setIsPortrait] = useState<boolean>(true);
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);

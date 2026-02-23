@@ -41,11 +41,11 @@ export const theme = createTheme({
   },
   breakpoints: {
     values: {
-      xs: 0,
-      sm: 600,
-      md: 1080, // Default: 960
-      lg: 1280,
-      xl: 1920,
+      xs: 0, // smallest phones
+      sm: 380, // typical modern phones portrait
+      md: 600, // larger phones + small tablets / foldables
+      lg: 900, // tablets portrait / foldables expanded
+      xl: 1200, // tablets landscape
     },
   },
   components: {
@@ -66,7 +66,7 @@ export const theme = createTheme({
   },
 });
 
-export const MAP_BUTTON_GREY = "#7F7F7F"
-export const LIGHT_GREY = '#DADADA'
-export const INFO_PANEL_CONTENT_BACKGROUND = '#EEEEEE'
-export const HEADER_GREY = "#BFBFBF"
+export const MAP_BUTTON_GREY = "#7F7F7F";
+export const LIGHT_GREY = "#DADADA";
+export const INFO_PANEL_CONTENT_BACKGROUND = "#EEEEEE";
+export const HEADER_GREY = "#BFBFBF";
