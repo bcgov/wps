@@ -3,7 +3,7 @@ from datetime import datetime, time, timedelta, timezone
 from typing import List, Optional, Tuple
 from urllib.parse import urljoin
 
-from cffdrs import bui, dc, dmc, ffmc, fwi, isi
+from cffdrs import buildup_index, drought_code, duff_moisture_code, fine_fuel_moisture_code, fire_weather_index, initial_spread_index
 from sqlalchemy.orm import Session
 from wps_shared import config
 from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
@@ -293,11 +293,11 @@ def calculate_fwi_values(
         return today
 
     if yesterday.fine_fuel_moisture_code is not None:
-        today.fine_fuel_moisture_code = ffmc(
+        today.fine_fuel_moisture_code = fine_fuel_moisture_code(
             ffmc_yda=yesterday.fine_fuel_moisture_code, temp=temp, rh=rh, prec=precip, ws=wind_spd
         )
     if yesterday.duff_moisture_code is not None:
-        today.duff_moisture_code = dmc(
+        today.duff_moisture_code = duff_moisture_code(
             dmc_yda=yesterday.duff_moisture_code,
             temp=temp,
             rh=rh,
@@ -307,7 +307,7 @@ def calculate_fwi_values(
             lat_adjust=True,
         )
     if yesterday.drought_code is not None:
-        today.drought_code = dc(
+        today.drought_code = drought_code(
             dc_yda=yesterday.drought_code,
             temp=temp,
             rh=rh,
@@ -317,11 +317,11 @@ def calculate_fwi_values(
             lat_adjust=True,
         )
     if today.fine_fuel_moisture_code is not None:
-        today.initial_spread_index = isi(ffmc=today.fine_fuel_moisture_code, ws=today.wind_speed)
+        today.initial_spread_index = initial_spread_index(ffmc=today.fine_fuel_moisture_code, ws=today.wind_speed)
     if today.duff_moisture_code is not None and today.drought_code is not None:
-        today.build_up_index = bui(dmc=today.duff_moisture_code, dc=today.drought_code)
+        today.build_up_index = buildup_index(dmc=today.duff_moisture_code, dc=today.drought_code)
     if today.initial_spread_index is not None and today.build_up_index is not None:
-        today.fire_weather_index = fwi(isi=today.initial_spread_index, bui=today.build_up_index)
+        today.fire_weather_index = fire_weather_index(isi=today.initial_spread_index, bui=today.build_up_index)
 
     return today
 
