@@ -43,7 +43,8 @@ const columns: GridColDef[] = [
     headerClassName: "fuel-summary-header-code",
     headerName: "Fuel Type",
     sortable: false,
-    minWidth: 120,
+    minWidth: 100,
+    flex: 1,
     renderHeader: (params: GridColumnHeaderParams) => (
       <StyledHeader>{params.colDef.headerName}</StyledHeader>
     ),
@@ -63,7 +64,7 @@ const columns: GridColDef[] = [
   },
   {
     field: "area",
-    flex: 1,
+    flex: 2,
     headerClassName: "fuel-summary-header-area",
     headerName: "% Under Advisory",
     sortable: false,
@@ -85,6 +86,7 @@ const columns: GridColDef[] = [
     headerClassName: "fuel-summary-header-ch",
     headerName: "Critical Hours",
     minWidth: 110,
+    flex: 1,
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => (
       <StyledHeader>{params.colDef.headerName}</StyledHeader>
@@ -171,7 +173,6 @@ const FuelSummary = ({
           sx={{
             backgroundColor: "white",
             overflow: "hidden",
-            border: "none",
             "& .MuiDataGrid-sortIcon": {
               display: "none",
             },
