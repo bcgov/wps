@@ -18,56 +18,56 @@
             "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_2.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationStatus.id==\"ACTIVE\",stationStatus.id==\"TEST\",stationStatus.id==\"PROJECT\"'}": {
-            "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_0_query_stationStatus.id==\"ACTIVE\".json"
+            "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_0_query_stationStatus.id_is_active.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 1, 'query': 'stationStatus.id==\"ACTIVE\",stationStatus.id==\"TEST\",stationStatus.id==\"PROJECT\"'}": {
-            "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_1_query_stationStatus.id==\"ACTIVE\".json"
+            "None": "wfwx/v1/stations__size_1000_sort_displayLabel_page_1_query_stationStatus.id_is_active.json"
          }
       }
    },
    "https://wf1/wfwx/v1/stations/rsql": {
       "get": {
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==146 or stationCode==230'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==146_or_stationCode==230.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_146_or_stationCode_is_230.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==230'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==230.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_230.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==322 or stationCode==346 or stationCode==334'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==322_or_stationCode==346_or_stationCode==334.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_322_or_stationCode_is_346_or_stationCode_is_334.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==836'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==836.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_836.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==230 or stationCode==239'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==230_or_stationCode==239.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_230_or_stationCode_is_239.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': ''}": {
             "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==209 or stationCode==211 or stationCode==302'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==209_or_stationCode==211_or_stationCode==302.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_209_or_stationCode_is_211_or_stationCode_is_302.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==322'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==322.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_322.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==322 or stationCode==838'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==322_or_stationCode==838.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_322_or_stationCode_is_838.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==838'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==838.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_838.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==838 or stationCode==209'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==838_or_stationCode==209.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_838_or_stationCode_is_209.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==956'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==956.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_956.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==999'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==999.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_999.json"
          },
          "{'size': '1000', 'sort': 'displayLabel', 'page': 0, 'query': 'stationCode==209 or stationCode==322'}": {
-            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode==209_or_stationCode==322.json"
+            "None": "wfwx/v1/stations/rsql__size_1000_sort_displayLabel_page_0_query_stationCode_is_209_or_stationCode_is_322.json"
          }
       }
    },
