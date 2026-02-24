@@ -202,15 +202,13 @@ describe("FireZoneUnitSummary", () => {
     renderWithProvider(
       <FireZoneUnitSummary
         selectedFireCenter={undefined}
-        selectedFireZoneUnit={mockFireZoneUnit}
+        selectedFireZoneUnit={undefined}
         date={testDate}
       />,
     );
 
-    const summary = screen.getByTestId("fire-zone-unit-summary");
-    expect(summary).toBeInTheDocument();
-
-    const fuelSummary = screen.getByTestId("fuel-summary");
-    expect(fuelSummary).toBeInTheDocument();
+    const defaultMessage = screen.getByTestId("default-message");
+    expect(defaultMessage).toBeInTheDocument();
+    expect(defaultMessage).toHaveTextContent("Please select a fire centre.");
   });
 });

@@ -162,13 +162,6 @@ describe("Profile", () => {
     expect(tabs).toBeInTheDocument();
   });
 
-  it("should render a default message if no fire centre is selected", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
-
-    const summary = screen.getByTestId("default-message");
-    expect(summary).toBeInTheDocument();
-  });
-
   it("should render FireZoneUnitSummary with selected fire zone", () => {
     const propsWithFireZone = {
       ...defaultProps,
