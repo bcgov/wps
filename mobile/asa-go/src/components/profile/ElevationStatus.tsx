@@ -71,7 +71,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
               fontSize: "1.2rem",
             }}
           >
-            Proportion of Advisory Area:
+            Portion Under Advisory:
           </Typography>
         </Grid>
       </Grid>

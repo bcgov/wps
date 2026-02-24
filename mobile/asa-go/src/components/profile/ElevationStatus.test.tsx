@@ -180,9 +180,7 @@ describe("ElevationStatus", () => {
     render(<ElevationStatus tpiStats={mockTpiStats} />);
 
     expect(screen.getByText("Topographic Position:")).toBeInTheDocument();
-    expect(
-      screen.getByText("Proportion of Advisory Area:"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Portion Under Advisory:")).toBeInTheDocument();
   });
 
   it("should have proper styling and layout", () => {
