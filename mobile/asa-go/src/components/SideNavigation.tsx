@@ -41,14 +41,14 @@ const SideNavigation = ({ tab, setTab }: SideNavigationProps) => {
           tab={tab}
         />
         <SideNavigationListItem
-          icon={<AnalyticsIcon sx={{ fontSize: "40px" }} />}
-          navItem={NavPanel.ADVISORY}
+          icon={<TextSnippetIcon sx={{ fontSize: "40px" }} />}
+          navItem={NavPanel.PROFILE}
           setTab={setTab}
           tab={tab}
         />
         <SideNavigationListItem
-          icon={<TextSnippetIcon sx={{ fontSize: "40px" }} />}
-          navItem={NavPanel.PROFILE}
+          icon={<AnalyticsIcon sx={{ fontSize: "40px" }} />}
+          navItem={NavPanel.ADVISORY}
           setTab={setTab}
           tab={tab}
         />
