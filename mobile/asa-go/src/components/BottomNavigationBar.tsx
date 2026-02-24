@@ -11,11 +11,16 @@ import { NavPanel } from "@/utils/constants";
 const StyledBottomNavigationAction = styled(BottomNavigationAction)(
   ({ theme }) => ({
     color: theme.palette.primary.contrastText,
+    // "& .MuiBottomNavigationAction-label": {
+    //   lineHeight: 1.2,
+    //   overflow: "visible",
+    // },
     "&.Mui-selected": {
       color: theme.palette.secondary.main,
     },
     [theme.breakpoints.up("md")]: {
       paddingTop: theme.spacing(1),
+      paddingBottom: theme.spacing(1),
       "& .MuiSvgIcon-root": {
         fontSize: "2.5rem",
       },
@@ -49,6 +54,9 @@ const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
         backgroundColor: theme.palette.primary.main,
         color: theme.palette.primary.contrastText,
         py: theme.spacing(1),
+        [theme.breakpoints.up("md")]: {
+          minHeight: theme.spacing(8),
+        },
       })}
     >
       <StyledBottomNavigationAction
