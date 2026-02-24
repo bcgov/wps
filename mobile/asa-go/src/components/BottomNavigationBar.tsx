@@ -11,10 +11,6 @@ import { NavPanel } from "@/utils/constants";
 const StyledBottomNavigationAction = styled(BottomNavigationAction)(
   ({ theme }) => ({
     color: theme.palette.primary.contrastText,
-    // "& .MuiBottomNavigationAction-label": {
-    //   lineHeight: 1.2,
-    //   overflow: "visible",
-    // },
     "&.Mui-selected": {
       color: theme.palette.secondary.main,
     },
