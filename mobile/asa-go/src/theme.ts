@@ -44,8 +44,8 @@ export const theme = createTheme({
       xs: 0, // smallest phones
       sm: 380, // typical modern phones portrait
       md: 600, // larger phones + small tablets / foldables
-      lg: 900, // tablets portrait / foldables expanded
-      xl: 1200, // tablets landscape
+      lg: 1080, // tablets portrait / foldables expanded
+      xl: 1280, // tablets landscape
     },
   },
   components: {
