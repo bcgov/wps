@@ -20,9 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install Ionic CLI
-        working-directory: ./mobile/asa-go
-        run: npm install -g @ionic/cli
       - uses: actions/cache@v5
         id: asa-go-cache
         with:
@@ -62,5 +59,8 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{secrets.CODECOV_TOKEN}}
+          files: ./mobile/asa-go/coverage/lcov.info
+          flags: asa_go
+          name: asa-go-coverage
           # we want to ensure code coverage is good, so we fail on error. (default is false)
           fail_ci_if_error: true
