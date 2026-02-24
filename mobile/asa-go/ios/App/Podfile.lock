@@ -10,28 +10,30 @@ PODS:
   - CapacitorApp (7.0.0):
     - Capacitor
   - CapacitorCordova (7.1.0)
-  - CapacitorEmailComposer (7.0.0):
+  - CapacitorEmailComposer (7.0.2):
     - Capacitor
-  - CapacitorFilesystem (7.0.0):
+  - CapacitorFilesystem (7.1.8):
     - Capacitor
-  - CapacitorGeolocation (7.1.4):
+    - IONFilesystemLib (~> 1.1.1)
+  - CapacitorGeolocation (7.1.8):
     - Capacitor
-    - IONGeolocationLib (~> 1.0)
+    - IONGeolocationLib (= 1.0.1)
   - CapacitorHaptics (7.0.0):
     - Capacitor
   - CapacitorKeyboard (7.0.0):
     - Capacitor
-  - CapacitorNetwork (7.0.0):
+  - CapacitorNetwork (7.0.4):
     - Capacitor
-  - CapacitorPreferences (7.0.2):
+  - CapacitorPreferences (7.0.4):
     - Capacitor
-  - CapacitorScreenOrientation (8.0.0):
+  - CapacitorScreenOrientation (8.0.1):
     - Capacitor
-  - CapacitorSplashScreen (7.0.2):
+  - CapacitorSplashScreen (7.0.5):
     - Capacitor
   - CapacitorStatusBar (7.0.0):
     - Capacitor
-  - IONGeolocationLib (1.0.0)
+  - IONFilesystemLib (1.1.1)
+  - IONGeolocationLib (1.0.1)
   - Keycloak (0.0.1):
     - AppAuth
     - Capacitor
@@ -55,6 +57,7 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - AppAuth
+    - IONFilesystemLib
     - IONGeolocationLib
 
 EXTERNAL SOURCES:
@@ -92,17 +95,18 @@ SPEC CHECKSUMS:
   Capacitor: 68ff8eabbcce387e69767c13b5fbcc1c5399eabc
   CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
-  CapacitorEmailComposer: 5f0ae4bd516997aba61034ba4387f2a67947ce21
-  CapacitorFilesystem: 2881ad012b5c8d0ffbfed1216aadfc2cca16d5b5
-  CapacitorGeolocation: 5583eb25815522c4b4cb38936ac7fea8a34996d9
+  CapacitorEmailComposer: 6e06f75898334036cc95ada2238b3dcbb78932c0
+  CapacitorFilesystem: f54cd6b76be06fa7ceb219cf313d32e0d626ea87
+  CapacitorGeolocation: de4b0ccf90140528184e31676dd5e3a328eb589a
   CapacitorHaptics: 1fba3e460e7614349c6d5f868b1fccdc5c87b66d
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
-  CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
-  CapacitorPreferences: b583b5deb74e564c35968189d25d32c0fd41200d
-  CapacitorScreenOrientation: 82b7c0bcc6189e97269ec66c613d0cd4f1c1c004
-  CapacitorSplashScreen: 8d6c8cb0542a8e81585c593815db8785ed8ce454
+  CapacitorNetwork: 3d56050f929a8c86427a5b28558ce605e7cf61b3
+  CapacitorPreferences: d82a7e3b95fcab43a553268b803356522910d153
+  CapacitorScreenOrientation: 07503c9d633377427f1e122449b06b1dbc992d10
+  CapacitorSplashScreen: b3d12b4324d93ce605fe57f05a199ade7f26189e
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
-  IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
+  IONFilesystemLib: dfa8706539ac9ab77ccfd6e5b3830ce9b5e57f6c
+  IONGeolocationLib: 20f9d0248a0b5264511fb57a37e25dd2badf797a
   Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
 
 PODFILE CHECKSUM: 856f039e24292b4ec10a418a5c901e1fe1428a40
