@@ -43,21 +43,16 @@ jobs:
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
-      - name: Use Xcode 16.4
+      - name: Use Xcode latest stable
         uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd
         with:
           xcode-version: latest-stable
-      - name: Check sims
-        run: xcrun simctl list runtimes
-        #   sudo xcodebuild -license accept || true
-        #   sudo xcodebuild -downloadPlatform iOS
-
       - name: Test Keycloak Swift Plugin
         working-directory: ./mobile/keycloak
         run: |
           xcodebuild test \
             -scheme "Keycloak" \
-            -destination "platform=iOS Simulator,name=iPhone 16 Pro,OS=26.2" \
+            -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
             -enableCodeCoverage YES \
             build test
       - name: Upload test coverage to Codecov
