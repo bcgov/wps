@@ -173,5 +173,5 @@ class FWIProcessor:
                     fwi_inputs.output_key,
                 )
 
-                # Clear gdal virtual file system cache of S3 metadata in order to allow newly uploaded hffmc rasters to be opened immediately.
+                # Clear gdal virtual file system cache of S3 metadata
                 gdal.VSICurlClearCache()
