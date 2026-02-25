@@ -7,9 +7,11 @@ allowing the same processor to be used for both actuals and forecasts.
 
 import logging
 import tempfile
+from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Callable, Iterator, List, cast
+from typing import Callable, Iterator, List, Tuple, cast
 
+import numpy as np
 from osgeo import gdal
 
 from wps_shared.geospatial.cog import generate_and_store_cog
@@ -25,44 +27,52 @@ logger = logging.getLogger(__name__)
 MultiDatasetContext = Callable[[List[str]], Iterator[List["WPSDataset"]]]
 
 
+class FWICalculator(ABC):
+    fwi_param: FWIParameter
+
+    @abstractmethod
+    def calculate(self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset) -> Tuple[np.ndarray, float]:
+        ...
+
+
+class FFMCCalculator(FWICalculator):
+    fwi_param = FWIParameter.FFMC
+
+    def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
+        return compute_ffmc(prev_fwi_ds, temp_ds, rh_ds, precip_ds)
+
+
+class DMCCalculator(FWICalculator):
+    fwi_param = FWIParameter.DMC
+
+    def __init__(self, month: int):
+        self.month = month
+
+    def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
+        return compute_dmc(prev_fwi_ds, temp_ds, rh_ds, precip_ds, self.month)
+
+
+class DCCalculator(FWICalculator):
+    fwi_param = FWIParameter.DC
+
+    def __init__(self, month: int):
+        self.month = month
+
+    def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
+        return compute_dc(prev_fwi_ds, temp_ds, rh_ds, precip_ds, self.month)
+
+
 class FWIProcessor:
     """Calculates FFMC, DMC, DC rasters from weather inputs described by FWIInputs."""
 
     def __init__(self, datetime_to_process: datetime):
         self.datetime_to_process = datetime_to_process
 
-    async def calculate_ffmc(
+    async def calculate_index(
         self,
         s3_client: S3Client,
         input_dataset_context: MultiDatasetContext,
-        fwi_inputs: FWIInputs,
-    ):
-        """Calculate FFMC from weather inputs and the previous day's FFMC."""
-        await self._calculate_index(s3_client, input_dataset_context, FWIParameter.FFMC, fwi_inputs)
-
-    async def calculate_dmc(
-        self,
-        s3_client: S3Client,
-        input_dataset_context: MultiDatasetContext,
-        fwi_inputs: FWIInputs,
-    ):
-        """Calculate DMC from weather inputs and the previous day's DMC."""
-        await self._calculate_index(s3_client, input_dataset_context, FWIParameter.DMC, fwi_inputs)
-
-    async def calculate_dc(
-        self,
-        s3_client: S3Client,
-        input_dataset_context: MultiDatasetContext,
-        fwi_inputs: FWIInputs,
-    ):
-        """Calculate DC from weather inputs and the previous day's DC."""
-        await self._calculate_index(s3_client, input_dataset_context, FWIParameter.DC, fwi_inputs)
-
-    async def _calculate_index(
-        self,
-        s3_client: S3Client,
-        input_dataset_context: MultiDatasetContext,
-        fwi_param: FWIParameter,
+        calculator: FWICalculator,
         fwi_inputs: FWIInputs,
     ):
         """
@@ -70,7 +80,7 @@ class FWIProcessor:
 
         :param s3_client: S3Client instance for checking keys and persisting results
         :param input_dataset_context: Context manager for opening multiple WPSDatasets
-        :param fwi_param: Which FWI parameter to calculate (FFMC, DMC, or DC)
+        :param calculator: FWICalculator instance that performs the index calculation
         :param fwi_inputs: All S3 keys and metadata for this calculation
         """
         set_s3_gdal_config()
@@ -85,13 +95,13 @@ class FWIProcessor:
         fwi_key_exists = await s3_client.all_objects_exist(fwi_inputs.prev_fwi_key)
         if not fwi_key_exists:
             logger.warning(
-                "Missing previous %s key for %s", fwi_param.value, self.datetime_to_process.date()
+                "Missing previous %s key for %s", calculator.fwi_param.value, self.datetime_to_process.date()
             )
             return
 
         logger.info(
             "Calculating %s %s for %s",
-            fwi_param.value,
+            calculator.fwi_param.value,
             fwi_inputs.run_type.value,
             self.datetime_to_process.date(),
         )
@@ -116,27 +126,7 @@ class FWIProcessor:
                 if not rasters_match(precip_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
                     raise ValueError("Precip raster does not match FWI grid")
 
-                # Compute the index
-                compute_fns = {
-                    FWIParameter.FFMC: lambda: compute_ffmc(
-                        prev_fwi_ds, temp_ds, rh_ds, precip_ds
-                    ),
-                    FWIParameter.DMC: lambda: compute_dmc(
-                        prev_fwi_ds,
-                        temp_ds,
-                        rh_ds,
-                        precip_ds,
-                        self.datetime_to_process.month,
-                    ),
-                    FWIParameter.DC: lambda: compute_dc(
-                        prev_fwi_ds,
-                        temp_ds,
-                        rh_ds,
-                        precip_ds,
-                        self.datetime_to_process.month,
-                    ),
-                }
-                values, nodata_value = compute_fns[fwi_param]()
+                values, nodata_value = calculator.calculate(prev_fwi_ds, temp_ds, rh_ds, precip_ds)
 
                 await s3_client.persist_raster_data(
                     temp_dir,
@@ -152,7 +142,7 @@ class FWIProcessor:
                 )
                 logger.info(
                     "Stored %s %s: %s",
-                    fwi_param.value,
+                    calculator.fwi_param.value,
                     fwi_inputs.run_type.value,
                     fwi_inputs.output_key,
                 )

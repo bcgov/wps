@@ -97,9 +97,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     )
 
     mock_fwi_processor = MagicMock()
-    mock_fwi_processor.calculate_ffmc = AsyncMock(return_value=None)
-    mock_fwi_processor.calculate_dmc = AsyncMock(return_value=None)
-    mock_fwi_processor.calculate_dc = AsyncMock(return_value=None)
+    mock_fwi_processor.calculate_index = AsyncMock(return_value=None)
     mocker.patch(f"{MODULE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
 
     # Mock DB session
@@ -362,9 +360,7 @@ class TestFWICalculationVsInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        mock_dependencies.fwi_processor.calculate_ffmc.assert_not_called()
-        mock_dependencies.fwi_processor.calculate_dmc.assert_not_called()
-        mock_dependencies.fwi_processor.calculate_dc.assert_not_called()
+        mock_dependencies.fwi_processor.calculate_index.assert_not_called()
 
     @pytest.mark.anyio
     async def test_regular_day_runs_fwi_calculation_not_interpolation(self, mock_dependencies: MockDailyActualsDeps):
@@ -374,9 +370,7 @@ class TestFWICalculationVsInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        mock_dependencies.fwi_processor.calculate_ffmc.assert_called_once()
-        mock_dependencies.fwi_processor.calculate_dmc.assert_called_once()
-        mock_dependencies.fwi_processor.calculate_dc.assert_called_once()
+        assert mock_dependencies.fwi_processor.calculate_index.call_count == 3
         # IDW called once only for precip, not for FWI indices
         mock_dependencies.idw_processor.process.assert_called_once()
 

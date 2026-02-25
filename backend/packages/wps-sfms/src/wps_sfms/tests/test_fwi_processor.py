@@ -11,7 +11,7 @@ from wps_shared.tests.geospatial.dataset_common import (
     create_mock_input_dataset_context,
 )
 from wps_shared.utils.s3_client import S3Client
-from wps_sfms.processors.fwi import FWIProcessor
+from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator, FWIProcessor
 
 TEST_DATETIME = datetime(2024, 10, 10, 20, tzinfo=timezone.utc)
 
@@ -37,7 +37,7 @@ def make_fwi_inputs(fwi_param: FWIParameter, run_type: RunType = RunType.ACTUAL)
 
 @pytest.mark.anyio
 async def test_fwi_processor_ffmc(mocker: MockerFixture):
-    """Test that calculate_ffmc loads correct inputs and produces output."""
+    """Test that calculate_index with FFMCCalculator loads correct inputs and produces output."""
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
 
@@ -54,7 +54,7 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
             mock_s3_client, "persist_raster_data", return_value="test_key.tif"
         )
 
-        await processor.calculate_ffmc(mock_s3_client, mock_input_dataset_context, fwi_inputs)
+        await processor.calculate_index(mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs)
 
         # Verify weather + FWI keys were checked
         assert mock_all_objects_exist.call_count == 2
@@ -75,7 +75,7 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
 
 @pytest.mark.anyio
 async def test_fwi_processor_dmc(mocker: MockerFixture):
-    """Test that calculate_dmc produces output with correct key."""
+    """Test that calculate_index with DMCCalculator produces output with correct key."""
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.DMC)
 
@@ -90,7 +90,7 @@ async def test_fwi_processor_dmc(mocker: MockerFixture):
             mock_s3_client, "persist_raster_data", return_value="test_key.tif"
         )
 
-        await processor.calculate_dmc(mock_s3_client, mock_input_dataset_context, fwi_inputs)
+        await processor.calculate_index(mock_s3_client, mock_input_dataset_context, DMCCalculator(TEST_DATETIME.month), fwi_inputs)
 
         assert persist_raster_spy.call_count == 1
         assert persist_raster_spy.call_args[0][1] == fwi_inputs.output_key
@@ -98,7 +98,7 @@ async def test_fwi_processor_dmc(mocker: MockerFixture):
 
 @pytest.mark.anyio
 async def test_fwi_processor_dc(mocker: MockerFixture):
-    """Test that calculate_dc produces output with correct key."""
+    """Test that calculate_index with DCCalculator produces output with correct key."""
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.DC)
 
@@ -113,7 +113,7 @@ async def test_fwi_processor_dc(mocker: MockerFixture):
             mock_s3_client, "persist_raster_data", return_value="test_key.tif"
         )
 
-        await processor.calculate_dc(mock_s3_client, mock_input_dataset_context, fwi_inputs)
+        await processor.calculate_index(mock_s3_client, mock_input_dataset_context, DCCalculator(TEST_DATETIME.month), fwi_inputs)
 
         assert persist_raster_spy.call_count == 1
         assert persist_raster_spy.call_args[0][1] == fwi_inputs.output_key
@@ -133,7 +133,7 @@ async def test_fwi_processor_missing_weather_keys(mocker: MockerFixture):
         )
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
 
-        await processor.calculate_ffmc(mock_s3_client, mock_input_dataset_context, fwi_inputs)
+        await processor.calculate_index(mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs)
 
         persist_raster_spy.assert_not_called()
 
@@ -152,7 +152,7 @@ async def test_fwi_processor_missing_fwi_keys(mocker: MockerFixture):
         )
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
 
-        await processor.calculate_dmc(mock_s3_client, mock_input_dataset_context, fwi_inputs)
+        await processor.calculate_index(mock_s3_client, mock_input_dataset_context, DMCCalculator(TEST_DATETIME.month), fwi_inputs)
 
         persist_raster_spy.assert_not_called()
 
@@ -180,7 +180,7 @@ async def test_fwi_processor_run_type_in_output_key(mocker: MockerFixture):
             mock_s3_client, "persist_raster_data", return_value="test_key.tif"
         )
 
-        await processor.calculate_ffmc(mock_s3_client, mock_input_dataset_context, actual_inputs)
+        await processor.calculate_index(mock_s3_client, mock_input_dataset_context, FFMCCalculator(), actual_inputs)
 
         output_key = persist_raster_spy.call_args[0][1]
         assert "actual" in output_key

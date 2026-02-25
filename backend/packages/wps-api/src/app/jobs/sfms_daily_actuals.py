@@ -23,7 +23,7 @@ from wps_sfms.interpolation.source import (
     StationPrecipitationSource,
     StationTemperatureSource,
 )
-from wps_sfms.processors.fwi import FWIProcessor
+from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator, FWIProcessor
 from wps_sfms.processors.idw import IDWInterpolationProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
@@ -33,7 +33,7 @@ from wps_shared.db.database import get_async_read_session_scope, get_async_write
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
-from wps_shared.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
@@ -151,19 +151,20 @@ async def run_fwi_calculations(
     )
 
     fwi_processor = FWIProcessor(datetime_to_process)
+    month = datetime_to_process.month
 
     fwi_calculations = [
-        (SFMSRunLogJobName.FFMC_CALCULATION, fwi_processor.calculate_ffmc, FWIParameter.FFMC),
-        (SFMSRunLogJobName.DMC_CALCULATION, fwi_processor.calculate_dmc, FWIParameter.DMC),
-        (SFMSRunLogJobName.DC_CALCULATION, fwi_processor.calculate_dc, FWIParameter.DC),
+        (SFMSRunLogJobName.FFMC_CALCULATION, FFMCCalculator()),
+        (SFMSRunLogJobName.DMC_CALCULATION, DMCCalculator(month)),
+        (SFMSRunLogJobName.DC_CALCULATION, DCCalculator(month)),
     ]
 
-    for job_name, calculate, fwi_param in fwi_calculations:
-        fwi_inputs = raster_addresser.get_actual_fwi_inputs(datetime_to_process, fwi_param)
+    for job_name, calculator in fwi_calculations:
+        fwi_inputs = raster_addresser.get_actual_fwi_inputs(datetime_to_process, calculator.fwi_param)
 
         @track_sfms_run(job_name, sfms_run_id, session)
         async def _run() -> None:
-            await calculate(s3_client, multi_wps_dataset_context, fwi_inputs)
+            await fwi_processor.calculate_index(s3_client, multi_wps_dataset_context, calculator, fwi_inputs)
 
         await _run()
 
