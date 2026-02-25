@@ -28,7 +28,7 @@ const render = () => {
           </StyledEngineProvider>
         </ThemeProvider>
       </Provider>
-    </StrictMode>
+    </StrictMode>,
   );
 };
 

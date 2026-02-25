@@ -29,7 +29,7 @@ describe("FireCenterDropdown", () => {
         selectedFireCenter={fireCenters[0]}
         setSelectedFireCenter={setSelectedFireCenter}
         setSelectedFireShape={setSelectedFireShape}
-      />
+      />,
     );
     const element = queryByTestId("fire-center-dropdown");
     expect(element).toHaveTextContent("Center A");
@@ -42,7 +42,7 @@ describe("FireCenterDropdown", () => {
         selectedFireCenter={undefined}
         setSelectedFireCenter={setSelectedFireCenter}
         setSelectedFireShape={setSelectedFireShape}
-      />
+      />,
     );
 
     expect(setSelectedFireCenter).not.toHaveBeenCalled();
@@ -55,7 +55,7 @@ describe("FireCenterDropdown", () => {
         selectedFireCenter={fireCenters[0]}
         setSelectedFireCenter={setSelectedFireCenter}
         setSelectedFireShape={setSelectedFireShape}
-      />
+      />,
     );
 
     const user = userEvent.setup();
@@ -76,11 +76,31 @@ describe("FireCenterDropdown", () => {
         selectedFireCenter={undefined}
         setSelectedFireCenter={setSelectedFireCenter}
         setSelectedFireShape={setSelectedFireShape}
-      />
+      />,
     );
-    // Expect empty select to render with a zero width space.
-    expect(screen.getByRole("combobox")).toHaveTextContent(
-      "Select Fire Centre"
+    expect(
+      screen.getByRole("combobox", { name: /centre/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("does not show 'Fire Centre' in the selected value", () => {
+    const selectedFireCenter: FireCenter = {
+      id: 3,
+      name: "Kamloops Fire Centre",
+      stations: [],
+    };
+
+    render(
+      <FireCenterDropdown
+        fireCenterOptions={[selectedFireCenter]}
+        selectedFireCenter={selectedFireCenter}
+        setSelectedFireCenter={setSelectedFireCenter}
+        setSelectedFireShape={setSelectedFireShape}
+      />,
     );
+
+    const dropdown = screen.getByTestId("fire-center-dropdown");
+    expect(dropdown).toHaveTextContent("Kamloops");
+    expect(dropdown).not.toHaveTextContent("Fire Centre");
   });
 });
