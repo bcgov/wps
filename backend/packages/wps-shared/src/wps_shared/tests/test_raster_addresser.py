@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import pytest
 from zoneinfo import ZoneInfo
+from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FWIParameter,
     RasterKeyAddresser,
@@ -201,3 +202,60 @@ def test_get_mask_key(raster_key_addresser: RasterKeyAddresser):
     """Test mask key returns correct GDAL virtual file system path."""
     result = raster_key_addresser.get_mask_key()
     assert result == f"{raster_key_addresser.s3_prefix}/sfms/static/bc_mask.tif"
+
+
+# 2024-04-15 20:00 UTC = 2024-04-15 13:00 PDT
+ACTUALS_DATETIME = datetime(2024, 4, 15, 20, 0, 0, tzinfo=timezone.utc)
+
+
+@pytest.mark.parametrize("fwi_param", [FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC])
+def test_get_actual_fwi_inputs_all_params(raster_key_addresser: RasterKeyAddresser, fwi_param: FWIParameter):
+    """Test that get_actual_fwi_inputs produces correct keys for each FWI parameter."""
+    s3 = raster_key_addresser.s3_prefix
+    p = fwi_param.value
+    result = raster_key_addresser.get_actual_fwi_inputs(ACTUALS_DATETIME, fwi_param)
+
+    assert result.temp_key == f"{s3}/sfms/interpolated/temp/2024/04/15/temp_20240415.tif"
+    assert result.rh_key == f"{s3}/sfms/interpolated/rh/2024/04/15/rh_20240415.tif"
+    assert result.precip_key == f"{s3}/sfms/interpolated/precip/2024/04/15/precip_20240415.tif"
+    assert result.prev_fwi_key == f"{s3}/sfms/uploads/actual/2024-04-14/{p}20240414.tif"
+    assert result.output_key == f"sfms/calculated/actual/2024-04-15/{p}20240415.tif"
+    assert result.cog_key == f"{s3}/sfms/calculated/actual/2024-04-15/{p}20240415_cog.tif"
+    assert result.run_type == RunType.ACTUAL
+
+
+def test_get_actual_fwi_inputs_gdal_prefix_on_inputs_not_output(raster_key_addresser: RasterKeyAddresser):
+    """Input keys (temp, rh, precip, prev_fwi) should have GDAL vsis3 prefix; output_key should not."""
+    s3 = raster_key_addresser.s3_prefix
+    result = raster_key_addresser.get_actual_fwi_inputs(ACTUALS_DATETIME, FWIParameter.DMC)
+
+    assert result.temp_key.startswith(s3)
+    assert result.rh_key.startswith(s3)
+    assert result.precip_key.startswith(s3)
+    assert result.prev_fwi_key.startswith(s3)
+    assert not result.output_key.startswith(s3)
+
+
+def test_get_actual_fwi_inputs_prev_fwi_key_uses_yesterday(raster_key_addresser: RasterKeyAddresser):
+    """prev_fwi_key should reference yesterday's uploaded raster, not today's."""
+    result = raster_key_addresser.get_actual_fwi_inputs(ACTUALS_DATETIME, FWIParameter.DC)
+
+    assert "2024-04-14" in result.prev_fwi_key
+    assert "2024-04-15" not in result.prev_fwi_key
+
+
+def test_get_actual_fwi_inputs_output_key_uses_actual_run_type(raster_key_addresser: RasterKeyAddresser):
+    """output_key should use 'actual' run type, not 'forecast'."""
+    result = raster_key_addresser.get_actual_fwi_inputs(ACTUALS_DATETIME, FWIParameter.DMC)
+
+    assert "actual" in result.output_key
+    assert "forecast" not in result.output_key
+
+
+def test_get_actual_fwi_inputs_non_utc_raises(raster_key_addresser: RasterKeyAddresser):
+    """Non-UTC datetime should raise an assertion error."""
+    vancouver_tz = ZoneInfo("America/Vancouver")
+    non_utc_dt = datetime(2024, 4, 15, 13, 0, 0, tzinfo=vancouver_tz)
+
+    with pytest.raises(Exception):
+        raster_key_addresser.get_actual_fwi_inputs(non_utc_dt, FWIParameter.DMC)
