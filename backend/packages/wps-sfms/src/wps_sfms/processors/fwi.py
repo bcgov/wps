@@ -6,7 +6,6 @@ allowing the same processor to be used for both actuals and forecasts.
 """
 
 import logging
-import os
 import tempfile
 from datetime import datetime
 from typing import Callable, Iterator, List, cast
@@ -14,7 +13,7 @@ from typing import Callable, Iterator, List, cast
 from osgeo import gdal
 
 from wps_shared.geospatial.cog import generate_and_store_cog
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
+from wps_shared.geospatial.geospatial import rasters_match
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIInputs, FWIParameter
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -109,46 +108,31 @@ class FWIProcessor:
                 input_datasets = cast(List[WPSDataset], input_datasets)
                 temp_ds, rh_ds, precip_ds, prev_fwi_ds = input_datasets
 
-                # Warp weather datasets to match FWI grid
-                warped_temp_ds = temp_ds.warp_to_match(
-                    prev_fwi_ds,
-                    f"{temp_dir}/{os.path.basename(fwi_inputs.temp_key)}.tif",
-                    GDALResamplingMethod.BILINEAR,
-                )
-                warped_rh_ds = rh_ds.warp_to_match(
-                    prev_fwi_ds,
-                    f"{temp_dir}/{os.path.basename(fwi_inputs.rh_key)}.tif",
-                    GDALResamplingMethod.BILINEAR,
-                    max_value=100,
-                )
-                warped_precip_ds = precip_ds.warp_to_match(
-                    prev_fwi_ds,
-                    f"{temp_dir}/{os.path.basename(fwi_inputs.precip_key)}.tif",
-                    GDALResamplingMethod.BILINEAR,
-                )
-
-                # Close raw weather datasets to free memory
-                temp_ds.close()
-                rh_ds.close()
-                precip_ds.close()
+                # Assert weather rasters already match the FWI grid
+                if not rasters_match(temp_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
+                    raise ValueError("Temperature raster does not match FWI grid")
+                if not rasters_match(rh_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
+                    raise ValueError("RH raster does not match FWI grid")
+                if not rasters_match(precip_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
+                    raise ValueError("Precip raster does not match FWI grid")
 
                 # Compute the index
                 compute_fns = {
                     FWIParameter.FFMC: lambda: compute_ffmc(
-                        prev_fwi_ds, warped_temp_ds, warped_rh_ds, warped_precip_ds
+                        prev_fwi_ds, temp_ds, rh_ds, precip_ds
                     ),
                     FWIParameter.DMC: lambda: compute_dmc(
                         prev_fwi_ds,
-                        warped_temp_ds,
-                        warped_rh_ds,
-                        warped_precip_ds,
+                        temp_ds,
+                        rh_ds,
+                        precip_ds,
                         self.datetime_to_process.month,
                     ),
                     FWIParameter.DC: lambda: compute_dc(
                         prev_fwi_ds,
-                        warped_temp_ds,
-                        warped_rh_ds,
-                        warped_precip_ds,
+                        temp_ds,
+                        rh_ds,
+                        precip_ds,
                         self.datetime_to_process.month,
                     ),
                 }

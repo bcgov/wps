@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock
 import pytest
 from pytest_mock import MockerFixture
 
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import FWIInputs, FWIParameter
 from wps_shared.tests.geospatial.dataset_common import (
@@ -42,15 +41,11 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
 
-    input_datasets, mock_input_dataset_context = create_mock_input_dataset_context(4)
-    mock_temp_ds, mock_rh_ds, mock_precip_ds, mock_prev_ffmc_ds = input_datasets
-
-    temp_ds_spy = mocker.spy(mock_temp_ds, "warp_to_match")
-    rh_ds_spy = mocker.spy(mock_rh_ds, "warp_to_match")
-    precip_ds_spy = mocker.spy(mock_precip_ds, "warp_to_match")
+    _, mock_input_dataset_context = create_mock_input_dataset_context(4)
 
     mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
     generate_and_store_cog_spy = mocker.patch("wps_sfms.processors.fwi.generate_and_store_cog")
+    rasters_match_spy = mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
 
     async with S3Client() as mock_s3_client:
         mock_all_objects_exist = AsyncMock(return_value=True)
@@ -64,16 +59,8 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
         # Verify weather + FWI keys were checked
         assert mock_all_objects_exist.call_count == 2
 
-        # Verify weather was warped to match prev FWI grid
-        temp_ds_spy.assert_called_once_with(
-            mock_prev_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR
-        )
-        rh_ds_spy.assert_called_once_with(
-            mock_prev_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR, max_value=100
-        )
-        precip_ds_spy.assert_called_once_with(
-            mock_prev_ffmc_ds, mocker.ANY, GDALResamplingMethod.BILINEAR
-        )
+        # Verify all three weather rasters were checked against the FWI grid
+        assert rasters_match_spy.call_count == 3
 
         # Verify output was persisted with the correct key
         assert persist_raster_spy.call_count == 1
