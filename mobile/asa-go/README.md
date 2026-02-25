@@ -37,6 +37,14 @@ Capacitor app using react/vite.
    ```
 6. Build and run with live reload: `ionic cap run android -l --external`
 
+#### Running on a physical Android device against your local API
+
+1. Set `VITE_API_BASE_URL=http://{local_machine_ip}:8080/api` in `.env.development`
+2. Add your local machine IP address as an acceptable origin in your API `.env` (`ORIGINS="http://localhost/ http://{local_machine_ip}:8080"`)
+3. Add `server: { androidScheme: "http" }` to the root of the config in `capacitor.config.ts`
+4. Add `<domain includeSubdomains="true">{local_machine_ip}</domain>` to the `domain-config` list in `network_security_config.xml`
+    
+
 ### Asset Generation
 
 The `@capacitor/assets` npm package was used to generate icon and splash screen assets for Android with the following command: `npx capacitor-assets generate --android`
