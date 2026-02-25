@@ -43,7 +43,7 @@ const App = () => {
   const isActive = useAppIsActive();
   const dispatch: AppDispatch = useDispatch();
   const [isPortrait, setIsPortrait] = useState<boolean>(true);
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -62,6 +62,12 @@ const App = () => {
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
+
+  const selectedFireCenterName = selectedFireShape?.mof_fire_centre_name;
+  const matchingFireCenter = selectedFireCenterName
+    ? fireCenters.find((center) => center.name === selectedFireCenterName)
+    : undefined;
+  const selectedFireCenter = matchingFireCenter ?? fireCenter;
 
   useEffect(() => {
     // Effect to manage status bar visibility
@@ -132,18 +138,6 @@ const App = () => {
       dispatch(fetchSFMSRunParameters());
     }
   }, [dateOfInterest, networkStatus.connected]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (selectedFireShape?.mof_fire_centre_name) {
-      const matchingFireCenter = fireCenters.find(
-        (center) => center.name === selectedFireShape.mof_fire_centre_name,
-      );
-
-      if (matchingFireCenter) {
-        setFireCenter(matchingFireCenter);
-      }
-    }
-  }, [selectedFireShape, fireCenters]);
 
   useEffect(() => {
     if (!isNil(runParameters)) {
@@ -231,7 +225,7 @@ const App = () => {
           <Profile
             date={dateOfInterest}
             setDate={setDateOfInterest}
-            selectedFireCenter={fireCenter}
+            selectedFireCenter={selectedFireCenter}
             setSelectedFireCenter={setFireCenter}
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
@@ -241,7 +235,7 @@ const App = () => {
           <Advisory
             date={dateOfInterest}
             setDate={setDateOfInterest}
-            selectedFireCenter={fireCenter}
+            selectedFireCenter={selectedFireCenter}
             setSelectedFireCenter={setFireCenter}
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
