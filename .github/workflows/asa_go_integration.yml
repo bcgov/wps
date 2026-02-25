@@ -53,8 +53,7 @@ jobs:
           xcodebuild test \
             -scheme "Keycloak" \
             -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
-            -enableCodeCoverage YES \
-            build test
+            -enableCodeCoverage YES
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
