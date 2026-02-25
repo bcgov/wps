@@ -1,6 +1,7 @@
 import ElevationStatus from "@/components/profile/ElevationStatus";
 import FuelSummary from "@/components/profile/FuelSummary";
-import { SerifTypography } from "@/components/report/AdvisoryText";
+import { AdvisoryTypography } from "@/components/report/AdvisoryText";
+import DefaultText from "@/components/report/DefaultText";
 import {
   useFilteredHFIStatsForDate,
   useTPIStatsForDate,
@@ -9,7 +10,7 @@ import { hasRequiredFields } from "@/utils/profileUtils";
 import { Box, Grid2 as Grid, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { FireCenter, FireShape } from "api/fbaAPI";
-import { isNil, isUndefined } from "lodash";
+import { isNil } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
 
@@ -43,7 +44,7 @@ const FireZoneUnitSummary = ({
       return tpiStatsArray
         ? tpiStatsArray.find(
             (stats) =>
-              stats.fire_zone_id === selectedFireZoneUnit?.fire_shape_id
+              stats.fire_zone_id === selectedFireZoneUnit?.fire_shape_id,
           )
         : undefined;
     }
@@ -67,13 +68,17 @@ const FireZoneUnitSummary = ({
     return {};
   }, [hfiFuelStats, selectedFireZoneUnit]);
 
-  if (isUndefined(selectedFireZoneUnit)) {
-    return (
-      <SerifTypography data-testid="fire-zone-unit-summary-empty">
-        {`No profile data available for the ${selectedFireCenter?.name}.`}
-      </SerifTypography>
-    );
-  }
+  const renderDefaultMessage = () => (
+    <Box sx={{ px: theme.spacing(2), pb: theme.spacing(2) }}>
+      {isNil(selectedFireCenter) ? (
+        <DefaultText />
+      ) : (
+        <AdvisoryTypography data-testid="fire-zone-unit-summary-empty">
+          {`No profile data available for the ${selectedFireCenter.name}.`}
+        </AdvisoryTypography>
+      )}
+    </Box>
+  );
 
   return (
     <Box
@@ -81,40 +86,50 @@ const FireZoneUnitSummary = ({
       sx={{
         backgroundColor: "white",
         width: "100%",
-        padding: theme.spacing(2),
+        border: "1px solid #ccc",
+        borderRadius: 1,
+        paddingTop: theme.spacing(2),
         overflowY: "auto",
       }}
     >
-      <Typography
-        data-testid="fire-zone-title-tabs"
-        sx={{
-          color: "#003366",
-          fontWeight: "bold",
-          pb: theme.spacing(2),
-        }}
-      >
-        {selectedFireZoneUnit.mof_fire_zone_name}
-      </Typography>
-      <Grid
-        container
-        alignItems={"center"}
-        direction={"column"}
-        sx={{ width: "100%" }}
-      >
-        <Grid sx={{ pb: theme.spacing(4), width: "100%" }}>
-          <FuelSummary
-            selectedFireZoneUnit={selectedFireZoneUnit}
-            fireZoneFuelStats={fireZoneFuelStats}
-          />
-        </Grid>
-        <Grid sx={{ width: "100%" }}>
-          {fireZoneTPIStats && hasRequiredFields(fireZoneTPIStats) ? (
-            <ElevationStatus tpiStats={fireZoneTPIStats}></ElevationStatus>
-          ) : (
-            <Typography>No elevation information available.</Typography>
-          )}
-        </Grid>
-      </Grid>
+      {isNil(selectedFireCenter) || isNil(selectedFireZoneUnit) ? (
+        renderDefaultMessage()
+      ) : (
+        <>
+          <Typography
+            data-testid="fire-zone-title-tabs"
+            sx={{
+              color: theme.palette.primary.main,
+              fontWeight: "bold",
+              fontSize: "1.25rem",
+              pb: theme.spacing(2),
+              pl: theme.spacing(1),
+            }}
+          >
+            {selectedFireZoneUnit.mof_fire_zone_name}
+          </Typography>
+          <Grid
+            container
+            alignItems={"center"}
+            direction={"column"}
+            sx={{ width: "100%" }}
+          >
+            <Grid sx={{ pb: theme.spacing(4), width: "100%" }}>
+              <FuelSummary
+                selectedFireZoneUnit={selectedFireZoneUnit}
+                fireZoneFuelStats={fireZoneFuelStats}
+              />
+            </Grid>
+            <Grid sx={{ width: "100%" }}>
+              {fireZoneTPIStats && hasRequiredFields(fireZoneTPIStats) ? (
+                <ElevationStatus tpiStats={fireZoneTPIStats}></ElevationStatus>
+              ) : (
+                <Typography>No elevation information available.</Typography>
+              )}
+            </Grid>
+          </Grid>
+        </>
+      )}
     </Box>
   );
 };
