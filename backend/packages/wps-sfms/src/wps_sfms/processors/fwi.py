@@ -9,18 +9,19 @@ import logging
 import tempfile
 from abc import ABC, abstractmethod
 from datetime import datetime
+from time import perf_counter
 from typing import Callable, Iterator, List, Tuple, cast
 
 import numpy as np
 from osgeo import gdal
 
+from wps_shared.fwi import vectorized_dc, vectorized_dmc, vectorized_ffmc
 from wps_shared.geospatial.cog import generate_and_store_cog
 from wps_shared.geospatial.geospatial import rasters_match
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIInputs, FWIParameter
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
-from wps_sfms.processors.fwi_indices import compute_dc, compute_dmc, compute_ffmc
 
 logger = logging.getLogger(__name__)
 
@@ -31,35 +32,81 @@ class FWICalculator(ABC):
     fwi_param: FWIParameter
 
     @abstractmethod
-    def calculate(self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset) -> Tuple[np.ndarray, float]:
-        ...
+    def calculate(
+        self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
+    ) -> Tuple[np.ndarray, float]: ...
+
+
+class MonthlyFWICalculator(FWICalculator, ABC):
+    """Base for indices that require latitude and month arrays (DMC, DC)."""
+
+    def __init__(self, month: int):
+        self.month = month
+
+    def _lat_month_arrays(self, ds: WPSDataset) -> Tuple[np.ndarray, np.ndarray]:
+        latitude = ds.generate_latitude_array()
+        return latitude, np.full(latitude.shape, self.month)
 
 
 class FFMCCalculator(FWICalculator):
     fwi_param = FWIParameter.FFMC
 
     def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
-        return compute_ffmc(prev_fwi_ds, temp_ds, rh_ds, precip_ds)
+        # TODO: Wind speed interpolation not yet available — use zeros as placeholder
+        ffmc_yda, _ = prev_fwi_ds.replace_nodata_with(0)
+        temp, _ = temp_ds.replace_nodata_with(0)
+        rh, _ = rh_ds.replace_nodata_with(0)
+        ws = np.zeros_like(temp)
+        prec, _ = precip_ds.replace_nodata_with(0)
+
+        start = perf_counter()
+        values = vectorized_ffmc(ffmc_yda, temp, rh, ws, prec)
+        logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
+
+        nodata_mask, nodata_value = prev_fwi_ds.get_nodata_mask()
+        if nodata_mask is not None:
+            values[nodata_mask] = nodata_value
+        return values, nodata_value
 
 
-class DMCCalculator(FWICalculator):
+class DMCCalculator(MonthlyFWICalculator):
     fwi_param = FWIParameter.DMC
 
-    def __init__(self, month: int):
-        self.month = month
-
     def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
-        return compute_dmc(prev_fwi_ds, temp_ds, rh_ds, precip_ds, self.month)
+        lat, mon = self._lat_month_arrays(prev_fwi_ds)
+        dmc_yda, _ = prev_fwi_ds.replace_nodata_with(0)
+        temp, _ = temp_ds.replace_nodata_with(0)
+        rh, _ = rh_ds.replace_nodata_with(0)
+        prec, _ = precip_ds.replace_nodata_with(0)
+
+        start = perf_counter()
+        values = vectorized_dmc(dmc_yda, temp, rh, prec, lat, mon, True)
+        logger.info("%f seconds to calculate vectorized dmc", perf_counter() - start)
+
+        nodata_mask, nodata_value = prev_fwi_ds.get_nodata_mask()
+        if nodata_mask is not None:
+            values[nodata_mask] = nodata_value
+        return values, nodata_value
 
 
-class DCCalculator(FWICalculator):
+class DCCalculator(MonthlyFWICalculator):
     fwi_param = FWIParameter.DC
 
-    def __init__(self, month: int):
-        self.month = month
-
     def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
-        return compute_dc(prev_fwi_ds, temp_ds, rh_ds, precip_ds, self.month)
+        lat, mon = self._lat_month_arrays(prev_fwi_ds)
+        dc_yda, _ = prev_fwi_ds.replace_nodata_with(0)
+        temp, _ = temp_ds.replace_nodata_with(0)
+        rh, _ = rh_ds.replace_nodata_with(0)
+        prec, _ = precip_ds.replace_nodata_with(0)
+
+        start = perf_counter()
+        values = vectorized_dc(dc_yda, temp, rh, prec, lat, mon, True)
+        logger.info("%f seconds to calculate vectorized dc", perf_counter() - start)
+
+        nodata_mask, nodata_value = prev_fwi_ds.get_nodata_mask()
+        if nodata_mask is not None:
+            values[nodata_mask] = nodata_value
+        return values, nodata_value
 
 
 class FWIProcessor:
@@ -95,7 +142,9 @@ class FWIProcessor:
         fwi_key_exists = await s3_client.all_objects_exist(fwi_inputs.prev_fwi_key)
         if not fwi_key_exists:
             logger.warning(
-                "Missing previous %s key for %s", calculator.fwi_param.value, self.datetime_to_process.date()
+                "Missing previous %s key for %s",
+                calculator.fwi_param.value,
+                self.datetime_to_process.date(),
             )
             return
 
