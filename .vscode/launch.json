@@ -329,6 +329,23 @@
             ]
         },
         {
+            "name": "Interpolation Plotter",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_tools.interpolation_plotter",
+            "console": "integratedTerminal",
+            "args": [
+                "--out_dir",
+                "./temp",
+                "--start",
+                "2025-07-15",
+                "--end",
+                "2025-07-16",
+            ]
+        },
+        {
             "name": "Chrome",
             "type": "chrome",
             "request": "launch",
