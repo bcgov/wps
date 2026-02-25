@@ -46,10 +46,10 @@ def is_fwi_interpolation_day(dt: datetime) -> bool:
     """Return True if FWI indices should be re-interpolated from station observations.
 
     Re-interpolation resets the FWI grid from measured station values rather than
-    calculating forward from yesterday's raster. This happens on the first Monday of
+    calculating forward from yesterday's raster. This happens every Monday in
     April and May to align with the start of the fire season.
     """
-    return dt.weekday() == 0 and dt.day <= 7 and dt.month in (4, 5)
+    return dt.weekday() == 0 and dt.month in (4, 5)
 
 
 async def run_weather_interpolation(
