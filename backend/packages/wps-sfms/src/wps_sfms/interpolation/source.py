@@ -174,6 +174,7 @@ class StationActualSource(StationInterpolationSource):
     # Map enum values to SFMSDailyActual attribute names where they differ
     _ATTRIBUTE_OVERRIDES = {
         SFMSInterpolatedWeatherParameter.PRECIP: "precipitation",
+        SFMSInterpolatedWeatherParameter.RH: "relative_humidity",
     }
 
     def __init__(self, weather_param: SFMSInterpolatedWeatherParameter):

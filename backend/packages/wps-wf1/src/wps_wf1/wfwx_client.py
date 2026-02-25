@@ -151,11 +151,11 @@ class WfwxClient:
     async def fetch_stations_by_group_id(self, headers: Dict[str, Any], group_id: str) -> dict:
         url = f"{self.settings.base_url}/v1/stationGroups/{group_id}/members"
         async with self.session.get(url, headers=headers) as resp:
-            resp.raise_for_status()
+            await resp.raise_for_status()
             return await resp.json()
         
     async def post_forecasts(self, headers, forecasts_json):
         url = f"{self.settings.base_url}/v1/dailies/daily-bulk"
         async with self.session.post(url, json=forecasts_json, headers=headers) as response:
-            response.raise_for_status()
+            await response.raise_for_status()
         logger.info("submitted forecasts to wf1..")
