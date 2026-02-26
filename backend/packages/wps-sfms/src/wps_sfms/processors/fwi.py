@@ -200,9 +200,13 @@ class FWIProcessor:
                     nodata_value,
                 )
 
-                generate_and_store_cog(
-                    src_ds=prev_fwi_ds.as_gdal_ds(), output_path=fwi_inputs.cog_key
-                )
+                with WPSDataset.from_array(
+                    values,
+                    prev_fwi_ds.as_gdal_ds().GetGeoTransform(),
+                    prev_fwi_ds.as_gdal_ds().GetProjection(),
+                    nodata_value,
+                ) as output_ds:
+                    generate_and_store_cog(src_ds=output_ds.as_gdal_ds(), output_path=fwi_inputs.cog_key)
                 logger.info(
                     "Stored %s %s: %s",
                     calculator.fwi_param.value,
