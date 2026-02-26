@@ -56,7 +56,7 @@ def test_replace_nodata_with_nan_casts_integer_array():
         assert array.dtype == np.float64
         assert np.isnan(nodata)
         assert np.isnan(array[0, 0])
-        assert array[0, 1] == 5.0
+        assert array[0, 1] == pytest.approx(5.0)
 
 
 def test_replace_nodata_with_nan_float_array():
