@@ -4,6 +4,7 @@ import logging
 import hashlib
 from typing import Any
 from aiobotocore.session import get_session
+from botocore.exceptions import ClientError
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
@@ -41,12 +42,15 @@ class S3Client:
         self.client_context = None
 
     async def object_exists(self, target_path: str):
-        """Check if and object exists in the object store"""
+        """Check if an object exists in the object store"""
         try:
             await self.client.head_object(Bucket=self.bucket, Key=target_path)
             return True
-        except Exception:
-            return False
+        except ClientError as e:
+            if e.response["Error"]["Code"] in ("404", "NoSuchKey"):
+                return False
+            logger.error("S3 error checking existence of %s: %s", target_path, e.response["Error"])
+            raise
 
     async def all_objects_exist(self, *s3_keys: str):
         for key in s3_keys:

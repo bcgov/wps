@@ -2,12 +2,17 @@ from io import BufferedReader
 import os
 import tempfile
 import pytest
+from botocore.exceptions import ClientError
 from osgeo import gdal
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset
 from wps_shared.utils.s3_client import S3Client
 from pytest_mock import MockerFixture
 from unittest.mock import AsyncMock, MagicMock
+
+
+def make_client_error(code: str) -> ClientError:
+    return ClientError({"Error": {"Code": code, "Message": "test"}}, "HeadObject")
 
 
 @pytest.fixture
@@ -419,3 +424,24 @@ async def test_all_objects_exist_strips_vsis3_prefix(mocker: MockerFixture, use_
         input_key = f"/vsis3/{s3.bucket}/{raw_key}" if use_vsis3_prefix else raw_key
         await s3.all_objects_exist(input_key)
         object_exists_mock.assert_called_once_with(raw_key)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("code", ["404", "NoSuchKey"], ids=["404", "NoSuchKey"])
+async def test_object_exists_returns_false_on_404(mocker: MockerFixture, code: str):
+    """A 404 ClientError means the object is absent — return False, don't raise."""
+    async with S3Client() as s3:
+        s3.client = AsyncMock()
+        s3.client.head_object.side_effect = make_client_error(code)
+        assert await s3.object_exists("some/key.tif") is False
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("code", ["403", "500"], ids=["403", "500"])
+async def test_object_exists_raises_on_non_404_client_error(mocker: MockerFixture, code: str):
+    """Non-404 ClientErrors (auth failures, server errors) must propagate so they are not silently ignored."""
+    async with S3Client() as s3:
+        s3.client = AsyncMock()
+        s3.client.head_object.side_effect = make_client_error(code)
+        with pytest.raises(ClientError):
+            await s3.object_exists("some/key.tif")
