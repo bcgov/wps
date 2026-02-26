@@ -296,11 +296,11 @@ class TestFWINodeataPropagation:
         rh_ds = self.make_ds(50.0, nodata_at=nodata_pixel if nodata_input == "rh" else None)
         precip_ds = self.make_ds(0.0, nodata_at=nodata_pixel if nodata_input == "precip" else None)
 
-        values, nodata_value = calculator.calculate(prev_ds, temp_ds, rh_ds, precip_ds)
+        result = calculator.calculate(prev_ds, temp_ds, rh_ds, precip_ds)
 
-        assert np.isnan(nodata_value)
-        assert np.isnan(values[0, 0]), "nodata pixel must propagate as NaN"
+        assert np.isnan(result.nodata_value)
+        assert np.isnan(result.values[0, 0]), "nodata pixel must propagate as NaN"
         # All other pixels must have been computed (not NaN)
-        assert not np.isnan(values[0, 1])
-        assert not np.isnan(values[1, 0])
-        assert not np.isnan(values[1, 1])
+        assert not np.isnan(result.values[0, 1])
+        assert not np.isnan(result.values[1, 0])
+        assert not np.isnan(result.values[1, 1])

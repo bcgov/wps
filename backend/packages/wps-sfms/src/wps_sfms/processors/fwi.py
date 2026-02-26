@@ -10,7 +10,7 @@ import tempfile
 from abc import ABC, abstractmethod
 from datetime import datetime
 from time import perf_counter
-from typing import Callable, Iterator, List, Tuple, cast
+from typing import Callable, Iterator, List, NamedTuple, Tuple, cast
 
 import numpy as np
 from osgeo import gdal
@@ -28,13 +28,18 @@ logger = logging.getLogger(__name__)
 MultiDatasetContext = Callable[[List[str]], Iterator[List["WPSDataset"]]]
 
 
+class FWIResult(NamedTuple):
+    values: np.ndarray
+    nodata_value: float
+
+
 class FWICalculator(ABC):
     fwi_param: FWIParameter
 
     @abstractmethod
     def calculate(
         self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
-    ) -> Tuple[np.ndarray, float]: ...
+    ) -> FWIResult: ...
 
 
 class MonthlyFWICalculator(FWICalculator, ABC):
@@ -55,7 +60,7 @@ class FFMCCalculator(FWICalculator):
 
     def calculate(
         self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
-    ) -> Tuple[np.ndarray, float]:
+    ) -> FWIResult:
         ffmc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
         rh, _ = rh_ds.replace_nodata_with(np.nan)
@@ -74,7 +79,7 @@ class FFMCCalculator(FWICalculator):
         logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
 
         values[mask] = nodata_value
-        return values, nodata_value
+        return FWIResult(values, nodata_value)
 
 
 class DMCCalculator(MonthlyFWICalculator):
@@ -82,7 +87,7 @@ class DMCCalculator(MonthlyFWICalculator):
 
     def calculate(
         self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
-    ) -> Tuple[np.ndarray, float]:
+    ) -> FWIResult:
         lat, mon = self._lat_month_arrays(prev_fwi_ds)
         dmc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
@@ -101,7 +106,7 @@ class DMCCalculator(MonthlyFWICalculator):
         logger.info("%f seconds to calculate vectorized dmc", perf_counter() - start)
 
         values[mask] = nodata_value
-        return values, nodata_value
+        return FWIResult(values, nodata_value)
 
 
 class DCCalculator(MonthlyFWICalculator):
@@ -109,7 +114,7 @@ class DCCalculator(MonthlyFWICalculator):
 
     def calculate(
         self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
-    ) -> Tuple[np.ndarray, float]:
+    ) -> FWIResult:
         lat, mon = self._lat_month_arrays(prev_fwi_ds)
         dc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
@@ -128,7 +133,7 @@ class DCCalculator(MonthlyFWICalculator):
         logger.info("%f seconds to calculate vectorized dc", perf_counter() - start)
 
         values[mask] = nodata_value
-        return values, nodata_value
+        return FWIResult(values, nodata_value)
 
 
 class FWIProcessor:
@@ -193,22 +198,22 @@ class FWIProcessor:
                 if not rasters_match(precip_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
                     raise ValueError("Precip raster does not match FWI grid")
 
-                values, nodata_value = calculator.calculate(prev_fwi_ds, temp_ds, rh_ds, precip_ds)
+                result = calculator.calculate(prev_fwi_ds, temp_ds, rh_ds, precip_ds)
 
                 await s3_client.persist_raster_data(
                     temp_dir,
                     fwi_inputs.output_key,
                     prev_fwi_ds.as_gdal_ds().GetGeoTransform(),
                     prev_fwi_ds.as_gdal_ds().GetProjection(),
-                    values,
-                    nodata_value,
+                    result.values,
+                    result.nodata_value,
                 )
 
                 with WPSDataset.from_array(
-                    values,
+                    result.values,
                     prev_fwi_ds.as_gdal_ds().GetGeoTransform(),
                     prev_fwi_ds.as_gdal_ds().GetProjection(),
-                    nodata_value,
+                    result.nodata_value,
                 ) as output_ds:
                     generate_and_store_cog(src_ds=output_ds.as_gdal_ds(), output_path=fwi_inputs.cog_key)
                 logger.info(
