@@ -13,6 +13,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.jobs.sfms_daily_actuals import is_fwi_interpolation_day, run_sfms_daily_actuals, main
 from app.tests.conftest import create_mock_sfms_actuals
+from wps_sfms.processors.fwi import FWIProcessor
+from wps_sfms.processors.idw import IDWInterpolationProcessor
+from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
+from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.db.models.sfms_run import SFMSRunLogStatus
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
@@ -96,28 +100,28 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mocker.patch(f"{MODULE_PATH}.SFMSNGRasterAddresser", return_value=mock_addresser)
 
     # Mock processors
-    mock_temp_processor = MagicMock()
+    mock_temp_processor = MagicMock(spec=TemperatureInterpolationProcessor)
     mock_temp_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/temp.tif")
     mocker.patch(
         f"{MODULE_PATH}.TemperatureInterpolationProcessor",
         return_value=mock_temp_processor,
     )
 
-    mock_rh_processor = MagicMock()
+    mock_rh_processor = MagicMock(spec=RHInterpolationProcessor)
     mock_rh_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/rh.tif")
     mocker.patch(
         f"{MODULE_PATH}.RHInterpolationProcessor",
         return_value=mock_rh_processor,
     )
 
-    mock_idw_processor = MagicMock()
+    mock_idw_processor = MagicMock(spec=IDWInterpolationProcessor)
     mock_idw_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/precip.tif")
     mocker.patch(
         f"{MODULE_PATH}.IDWInterpolationProcessor",
         return_value=mock_idw_processor,
     )
 
-    mock_fwi_processor = MagicMock()
+    mock_fwi_processor = MagicMock(spec=FWIProcessor)
     mock_fwi_processor.calculate_index = AsyncMock(return_value=None)
     mocker.patch(f"{MODULE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
 

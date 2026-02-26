@@ -4,7 +4,6 @@ import numpy as np
 
 from numpy.typing import NDArray
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_shared.sfms.raster_addresser import SFMSInterpolatedWeatherParameter
 
 # Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
 # This matches the CWFIS implementation
@@ -16,8 +15,6 @@ DEW_POINT_LAPSE_RATE = 0.002
 
 @runtime_checkable
 class StationInterpolationSource(Protocol):
-    weather_param: SFMSInterpolatedWeatherParameter
-
     def get_interpolation_data(
         self, sfms_actuals: List[SFMSDailyActual]
     ) -> Tuple[List[float], List[float], List[float]]: ...
@@ -28,12 +25,9 @@ class LapseRateAdjustedSource(ABC):
     Base class for station sources whose values require lapse-rate elevation
     adjustment (e.g. temperature, dew point).
 
-    Subclasses only need to set ``weather_param`` and implement
-    ``_extract_values`` to pull the relevant per-station values from the
-    pre-built numpy arrays.
+    Subclasses only need to implement ``_extract_values`` to pull the relevant
+    per-station values from the pre-built numpy arrays.
     """
-
-    weather_param: SFMSInterpolatedWeatherParameter
 
     def __init__(self, sfms_actuals: List[SFMSDailyActual]):
         self._sfms_actuals = sfms_actuals
@@ -129,7 +123,6 @@ class StationTemperatureSource(LapseRateAdjustedSource):
 
     def __init__(self, sfms_actuals: List[SFMSDailyActual]):
         super().__init__(sfms_actuals)
-        self.weather_param = SFMSInterpolatedWeatherParameter.TEMP
 
     def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
         return self._optional_to_array(actuals, "temperature")
@@ -143,7 +136,6 @@ class StationDewPointSource(LapseRateAdjustedSource):
 
     def __init__(self, sfms_actuals: List[SFMSDailyActual]):
         super().__init__(sfms_actuals)
-        self.weather_param = SFMSInterpolatedWeatherParameter.RH
 
     def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
         dewpoints = self._optional_to_array(actuals, "dewpoint")
@@ -170,16 +162,9 @@ class StationDewPointSource(LapseRateAdjustedSource):
 class StationActualSource(StationInterpolationSource):
     """Generic source for interpolating a named attribute from SFMSDailyActual."""
 
-    # Map enum values to SFMSDailyActual attribute names where they differ
-    _ATTRIBUTE_OVERRIDES = {
-        SFMSInterpolatedWeatherParameter.PRECIP: "precipitation",
-        SFMSInterpolatedWeatherParameter.RH: "relative_humidity",
-    }
-
-    def __init__(self, weather_param: SFMSInterpolatedWeatherParameter):
+    def __init__(self, attribute: str):
         super().__init__()
-        self.weather_param = weather_param
-        self._attribute = self._ATTRIBUTE_OVERRIDES.get(weather_param, weather_param.value)
+        self._attribute = attribute
 
     def get_interpolation_data(
         self, sfms_actuals: List[SFMSDailyActual]
@@ -193,16 +178,16 @@ class StationActualSource(StationInterpolationSource):
 
 
 def StationPrecipitationSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.PRECIP)
+    return StationActualSource("precipitation")
 
 
 def StationFFMCSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.FFMC)
+    return StationActualSource("ffmc")
 
 
 def StationDMCSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.DMC)
+    return StationActualSource("dmc")
 
 
 def StationDCSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.DC)
+    return StationActualSource("dc")

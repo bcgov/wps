@@ -44,6 +44,7 @@ class IDWInterpolationProcessor:
         reference_raster_path: str,
         sfms_actuals: List[SFMSDailyActual],
         weather_data_source: StationInterpolationSource,
+        output_key: str,
     ) -> str:
         """
         Process weather parameter interpolation for the specified datetime.
@@ -51,12 +52,13 @@ class IDWInterpolationProcessor:
         :param s3_client: S3Client instance for uploading results
         :param reference_raster_path: Path to reference raster (defines grid properties)
         :param sfms_actuals: daily actuals for stations for the date of interest
+        :param output_key: S3 key where the resulting raster will be uploaded
         :return: S3 key of uploaded raster
         """
         logger.info(
-            "Starting interpolation for date: %s and weather parameter: %s ",
+            "Starting interpolation for date: %s, output: %s",
             self.datetime_to_process,
-            weather_data_source.weather_param.value,
+            output_key,
         )
 
         # Configure GDAL for S3 access
@@ -78,10 +80,7 @@ class IDWInterpolationProcessor:
 
         # Generate temporary file path
         temp_dir = tempfile.gettempdir()
-        temp_raster_path = os.path.join(
-            temp_dir,
-            f"{weather_data_source.weather_param.value}_interpolation_{self.datetime_to_process.strftime('%Y%m%d')}.tif",
-        )
+        temp_raster_path = os.path.join(temp_dir, os.path.basename(output_key))
 
         try:
             interpolate_to_raster(
@@ -93,18 +92,13 @@ class IDWInterpolationProcessor:
                 mask_path=mask_path,
             )
 
-            # Upload to S3
-            s3_key = self.raster_addresser.get_actual_weather_key(
-                self.datetime_to_process, weather_data_source.weather_param
-            )
-
-            logger.info("Uploading raster to S3: %s", s3_key)
+            logger.info("Uploading raster to S3: %s", output_key)
             async with aiofiles.open(temp_raster_path, "rb") as f:
                 contents = await f.read()
-                await s3_client.put_object(key=s3_key, body=contents)
+                await s3_client.put_object(key=output_key, body=contents)
 
-            logger.info("Interpolation complete: %s", s3_key)
-            return s3_key
+            logger.info("Interpolation complete: %s", output_key)
+            return output_key
 
         finally:
             # Clean up temporary file asynchronously

@@ -32,6 +32,7 @@ from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
+from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.utils.s3_client import S3Client
@@ -93,6 +94,9 @@ async def run_weather_interpolation(
             fuel_raster_path,
             sfms_actuals,
             StationPrecipitationSource(),
+            raster_addresser.get_actual_weather_key(
+                datetime_to_process, SFMSInterpolatedWeatherParameter.PRECIP
+            ),
         )
         logger.info("Precip interpolation raster: %s", precip_s3_key)
 
@@ -116,21 +120,22 @@ async def run_fwi_interpolation(
     )
 
     fwi_sources = [
-        (SFMSRunLogJobName.FFMC_INTERPOLATION, StationFFMCSource()),
-        (SFMSRunLogJobName.DMC_INTERPOLATION, StationDMCSource()),
-        (SFMSRunLogJobName.DC_INTERPOLATION, StationDCSource()),
+        (SFMSRunLogJobName.FFMC_INTERPOLATION, StationFFMCSource(), FWIParameter.FFMC),
+        (SFMSRunLogJobName.DMC_INTERPOLATION, StationDMCSource(), FWIParameter.DMC),
+        (SFMSRunLogJobName.DC_INTERPOLATION, StationDCSource(), FWIParameter.DC),
     ]
 
-    for job_name, source in fwi_sources:
+    for job_name, source, fwi_param in fwi_sources:
 
         @track_sfms_run(job_name, sfms_run_id, session)
-        async def _run(_source=source, _job_name=job_name) -> None:
+        async def _run(_source=source, _job_name=job_name, _fwi_param=fwi_param) -> None:
             processor = IDWInterpolationProcessor(datetime_to_process, raster_addresser)
             s3_key = await processor.process(
                 s3_client,
                 fuel_raster_path,
                 sfms_actuals,
                 _source,
+                raster_addresser.get_actual_index_key(datetime_to_process, _fwi_param),
             )
             logger.info("%s interpolation raster: %s", _job_name.value, s3_key)
 
