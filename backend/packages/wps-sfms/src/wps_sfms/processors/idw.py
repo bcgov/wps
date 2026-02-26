@@ -51,7 +51,7 @@ class IDWInterpolationProcessor:
         :param s3_client: S3Client instance for uploading results
         :param reference_raster_path: Path to reference raster (defines grid properties)
         :param sfms_actuals: daily actuals for stations for the date of interest
-        :return: S3 key of uploaded temperature raster
+        :return: S3 key of uploaded raster
         """
         logger.info(
             "Starting interpolation for date: %s and weather parameter: %s ",
