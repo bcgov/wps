@@ -53,7 +53,9 @@ class MonthlyFWICalculator(FWICalculator, ABC):
 class FFMCCalculator(FWICalculator):
     fwi_param = FWIParameter.FFMC
 
-    def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
+    def calculate(
+        self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
+    ) -> Tuple[np.ndarray, float]:
         ffmc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
         rh, _ = rh_ds.replace_nodata_with(np.nan)
@@ -78,7 +80,9 @@ class FFMCCalculator(FWICalculator):
 class DMCCalculator(MonthlyFWICalculator):
     fwi_param = FWIParameter.DMC
 
-    def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
+    def calculate(
+        self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
+    ) -> Tuple[np.ndarray, float]:
         lat, mon = self._lat_month_arrays(prev_fwi_ds)
         dmc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
@@ -103,7 +107,9 @@ class DMCCalculator(MonthlyFWICalculator):
 class DCCalculator(MonthlyFWICalculator):
     fwi_param = FWIParameter.DC
 
-    def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
+    def calculate(
+        self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
+    ) -> Tuple[np.ndarray, float]:
         lat, mon = self._lat_month_arrays(prev_fwi_ds)
         dc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
