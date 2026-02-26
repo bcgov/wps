@@ -16,6 +16,17 @@ from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator,
 TEST_DATETIME = datetime(2024, 10, 10, 20, tzinfo=timezone.utc)
 
 
+@pytest.mark.parametrize("month", range(1, 13))
+def test_monthly_fwi_calculator_valid_months(month):
+    DMCCalculator(month)  # should not raise
+
+
+@pytest.mark.parametrize("month", [0, 13, -1])
+def test_monthly_fwi_calculator_invalid_month_raises(month):
+    with pytest.raises(ValueError, match="month must be"):
+        DMCCalculator(month)
+
+
 def make_fwi_inputs(fwi_param: FWIParameter, run_type: RunType = RunType.ACTUAL) -> FWIInputs:
     param = fwi_param.value
     date_str = "20241010"

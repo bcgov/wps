@@ -41,6 +41,8 @@ class MonthlyFWICalculator(FWICalculator, ABC):
     """Base for indices that require latitude and month arrays (DMC, DC)."""
 
     def __init__(self, month: int):
+        if not 1 <= month <= 12:
+            raise ValueError(f"month must be 1–12, got {month}")
         self.month = month
 
     def _lat_month_arrays(self, ds: WPSDataset) -> Tuple[np.ndarray, np.ndarray]:
