@@ -160,6 +160,34 @@ async def test_fwi_processor_missing_fwi_keys(mocker: MockerFixture):
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize(
+    "match_side_effects,expected_message",
+    [
+        ([False], "Temperature raster does not match FWI grid"),
+        ([True, False], "RH raster does not match FWI grid"),
+        ([True, True, False], "Precip raster does not match FWI grid"),
+    ],
+    ids=["temp_mismatch", "rh_mismatch", "precip_mismatch"],
+)
+async def test_fwi_processor_raster_mismatch_raises(mocker: MockerFixture, match_side_effects, expected_message):
+    """Test that ValueError is raised when any weather raster does not match the FWI grid."""
+    processor = FWIProcessor(TEST_DATETIME)
+    fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
+
+    _, mock_input_dataset_context = create_mock_input_dataset_context(4)
+    mocker.patch("wps_sfms.processors.fwi.rasters_match", side_effect=match_side_effects)
+
+    async with S3Client() as mock_s3_client:
+        mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
+        persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
+
+        with pytest.raises(ValueError, match=expected_message):
+            await processor.calculate_index(mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs)
+
+        persist_raster_spy.assert_not_called()
+
+
+@pytest.mark.anyio
 async def test_fwi_processor_run_type_in_output_key(mocker: MockerFixture):
     """Test that the run_type from FWIInputs ends up in the output key."""
     processor = FWIProcessor(TEST_DATETIME)
