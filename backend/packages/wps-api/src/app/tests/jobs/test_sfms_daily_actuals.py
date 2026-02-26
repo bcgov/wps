@@ -11,11 +11,32 @@ import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.jobs.sfms_daily_actuals import run_sfms_daily_actuals, main
+from app.jobs.sfms_daily_actuals import is_fwi_interpolation_day, run_sfms_daily_actuals, main
 from app.tests.conftest import create_mock_sfms_actuals
 from wps_shared.db.models.sfms_run import SFMSRunLogStatus
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
+
+
+@pytest.mark.parametrize(
+    "dt,expected",
+    [
+        # True cases: Mondays in April or May (any week)
+        (datetime(2024, 4, 1, tzinfo=timezone.utc), True),   # Monday, April, day 1
+        (datetime(2024, 4, 8, tzinfo=timezone.utc), True),   # Monday, April, day 8 (second Monday)
+        (datetime(2024, 5, 6, tzinfo=timezone.utc), True),   # Monday, May
+        (datetime(2024, 5, 27, tzinfo=timezone.utc), True),  # Monday, May, last Monday
+        # False cases: wrong weekday
+        (datetime(2024, 4, 2, tzinfo=timezone.utc), False),  # Tuesday, April
+        (datetime(2024, 4, 7, tzinfo=timezone.utc), False),  # Sunday, April
+        # False cases: wrong month (Monday but not April or May)
+        (datetime(2024, 3, 4, tzinfo=timezone.utc), False),  # Monday, March
+        (datetime(2024, 6, 3, tzinfo=timezone.utc), False),  # Monday, June
+        (datetime(2024, 7, 1, tzinfo=timezone.utc), False),  # Monday, July
+    ],
+)
+def test_is_fwi_interpolation_day(dt: datetime, expected: bool):
+    assert is_fwi_interpolation_day(dt) is expected
 
 
 class MockDailyActualsDeps(NamedTuple):
