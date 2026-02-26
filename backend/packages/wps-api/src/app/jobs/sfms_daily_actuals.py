@@ -112,7 +112,7 @@ async def run_fwi_interpolation(
 ) -> None:
     """Re-interpolate FFMC, DMC, and DC from station observations."""
     logger.info(
-        "First Monday of %s — running FWI index interpolation", datetime_to_process.strftime("%B")
+        "Monday in %s — running FWI index interpolation", datetime_to_process.strftime("%B")
     )
 
     fwi_sources = [
