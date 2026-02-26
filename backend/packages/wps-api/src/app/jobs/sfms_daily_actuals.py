@@ -182,7 +182,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
         fuel_type_raster = await get_fuel_type_raster_by_year(db_session, datetime_to_process.year)
     if fuel_type_raster is None:
         raise RuntimeError(f"No fuel type raster found for {datetime_to_process.year}")
-    fuel_raster_path = raster_addresser.s3_prefix + "/" + fuel_type_raster.object_store_path
+    fuel_raster_path = raster_addresser.gdal_path(fuel_type_raster.object_store_path)
     logger.info("Using reference raster: %s", fuel_raster_path)
 
     async with S3Client() as s3_client:

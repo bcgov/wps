@@ -64,7 +64,7 @@ class RHInterpolationProcessor:
         temp_raster_key = self.raster_addresser.get_interpolated_key(
             self.datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP
         )
-        temp_raster_path = self.raster_addresser.s3_prefix + "/" + temp_raster_key
+        temp_raster_path = self.raster_addresser.gdal_path(temp_raster_key)
 
         logger.info("Using DEM: %s", dem_path)
         logger.info("Using mask: %s", mask_path)

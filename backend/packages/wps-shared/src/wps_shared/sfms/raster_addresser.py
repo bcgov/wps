@@ -58,9 +58,13 @@ class BaseRasterAddresser:
     def __init__(self):
         self.s3_prefix = f"/vsis3/{config.get('OBJECT_STORE_BUCKET')}"
 
+    def gdal_path(self, key: str) -> str:
+        """Return a GDAL vsis3-prefixed path for a plain S3 key."""
+        return f"{self.s3_prefix}/{key}"
+
     def gdal_prefix_keys(self, *keys):
         """Prefix keys with vsis3/{bucket} for reading from S3 with GDAL."""
-        return tuple(f"{self.s3_prefix}/{key}" for key in keys)
+        return tuple(self.gdal_path(key) for key in keys)
 
     def get_cog_key(self, key: str) -> str:
         """Given a .tif key, return a GDAL-prefixed _cog.tif path."""
