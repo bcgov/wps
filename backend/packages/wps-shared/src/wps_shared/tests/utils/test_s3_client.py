@@ -428,7 +428,7 @@ async def test_all_objects_exist_strips_vsis3_prefix(mocker: MockerFixture, use_
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("code", ["404", "NoSuchKey"], ids=["404", "NoSuchKey"])
-async def test_object_exists_returns_false_on_404(mocker: MockerFixture, code: str):
+async def test_object_exists_returns_false_on_404(code: str):
     """A 404 ClientError means the object is absent — return False, don't raise."""
     async with S3Client() as s3:
         s3.client = AsyncMock()
@@ -438,7 +438,7 @@ async def test_object_exists_returns_false_on_404(mocker: MockerFixture, code: s
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("code", ["403", "500"], ids=["403", "500"])
-async def test_object_exists_raises_on_non_404_client_error(mocker: MockerFixture, code: str):
+async def test_object_exists_raises_on_non_404_client_error(code: str):
     """Non-404 ClientErrors (auth failures, server errors) must propagate so they are not silently ignored."""
     async with S3Client() as s3:
         s3.client = AsyncMock()
