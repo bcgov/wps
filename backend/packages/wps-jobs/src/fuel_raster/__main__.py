@@ -17,7 +17,7 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models import FuelTypeRaster
 from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 async def start_job(
-    raster_addresser: RasterKeyAddresser, start_datetime: datetime, unprocessed_object_name: str
+    raster_addresser: BaseRasterAddresser, start_datetime: datetime, unprocessed_object_name: str
 ):
     (
         year,
@@ -74,7 +74,7 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(
-            start_job(RasterKeyAddresser(), start_datetime, unprocessed_object_name)
+            start_job(BaseRasterAddresser(), start_datetime, unprocessed_object_name)
         )
 
         # Exit with 0 - success.

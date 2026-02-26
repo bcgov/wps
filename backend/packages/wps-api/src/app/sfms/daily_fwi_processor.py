@@ -16,7 +16,8 @@ from app.sfms.fwi_processor import (
     calculate_isi,
 )
 from wps_shared.geospatial.cog import generate_and_store_cog
-from wps_shared.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
+from app.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import FWIParameter
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client

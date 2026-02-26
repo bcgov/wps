@@ -9,7 +9,7 @@ from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from app.jobs.rdps_sfms import MAX_MODEL_RUN_HOUR
 from app.sfms.daily_fwi_processor import DailyFWIProcessor
 from app.sfms.hourly_ffmc_processor import HourlyFFMCProcessor
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from app.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 

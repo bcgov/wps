@@ -16,7 +16,6 @@ from wps_sfms.interpolation.source import (
 )
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_shared.sfms.raster_addresser import SFMSInterpolatedWeatherParameter
 from wps_wf1.wfwx_api import WfwxApi
 
 from wps_tools.sfms_histogram import create_sfms_histogram
@@ -84,7 +83,7 @@ async def main(start: datetime, end: datetime, out_dir: Path):
             interpolated_rh_from_observed_temps = StationDewPointSource.compute_rh(observed_temps, interpolated_dewpoint_temps)
 
             # Get observed rh values for comparison
-            rh_source = StationActualSource(SFMSInterpolatedWeatherParameter.RH)
+            rh_source = StationActualSource("relative_humidity")
             _, _, observed_rh = rh_source.get_interpolation_data(sfms_actuals)
             observed_rh_np = np.array(observed_rh)
             # Weather stations show a rh of 0.0 when no observation is present
