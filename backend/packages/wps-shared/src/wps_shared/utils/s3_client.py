@@ -4,6 +4,7 @@ import logging
 import hashlib
 from typing import Any
 from aiobotocore.session import get_session
+import aiofiles
 from botocore.exceptions import ClientError
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import WPSDataset
@@ -196,9 +197,9 @@ class S3Client:
         with WPSDataset.from_array(values, transform, projection, no_data_value) as ds:
             ds.export_to_geotiff(temp_geotiff)
 
-        logger.info(f"Writing to s3 -- {key}")
-        with open(temp_geotiff, "rb") as f:
-            await self.put_object(key=key, body=f)
+        async with aiofiles.open(temp_geotiff, "rb") as f:
+            contents = await f.read()
+            await self.put_object(key=key, body=contents)
         return temp_geotiff
 
     @staticmethod

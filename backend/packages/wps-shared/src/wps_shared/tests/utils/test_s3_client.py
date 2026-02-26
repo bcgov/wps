@@ -66,7 +66,7 @@ async def test_put_object_called(mocker: MockerFixture):
                 assert persist_raster_spy.call_args_list == [
                     mocker.call(key=expected_key, body=mocker.ANY)
                 ]
-                assert isinstance(persist_raster_spy.call_args.kwargs["body"], BufferedReader)
+                assert isinstance(persist_raster_spy.call_args.kwargs["body"], bytes)
 
 
 @pytest.mark.anyio
@@ -396,15 +396,24 @@ async def test_iter_common_prefixes(mocker: MockerFixture):
 @pytest.mark.parametrize(
     "keys,side_effects,expected_result,expected_call_count",
     [
-        (["key/a.tif", "key/b.tif", "key/c.tif"], [True, True, True], True, 3),   # all exist
-        (["key/a.tif", "key/b.tif", "key/c.tif"], [True, False, True], False, 2), # one missing, short-circuits
-        ([], [], True, 0),                                                          # no keys
+        (["key/a.tif", "key/b.tif", "key/c.tif"], [True, True, True], True, 3),  # all exist
+        (
+            ["key/a.tif", "key/b.tif", "key/c.tif"],
+            [True, False, True],
+            False,
+            2,
+        ),  # one missing, short-circuits
+        ([], [], True, 0),  # no keys
     ],
 )
-async def test_all_objects_exist(mocker: MockerFixture, keys, side_effects, expected_result, expected_call_count):
+async def test_all_objects_exist(
+    mocker: MockerFixture, keys, side_effects, expected_result, expected_call_count
+):
     """Tests return value and short-circuit behaviour of all_objects_exist."""
     async with S3Client() as s3:
-        object_exists_mock = mocker.patch.object(s3, "object_exists", new=AsyncMock(side_effect=side_effects))
+        object_exists_mock = mocker.patch.object(
+            s3, "object_exists", new=AsyncMock(side_effect=side_effects)
+        )
         result = await s3.all_objects_exist(*keys)
         assert result is expected_result
         assert object_exists_mock.call_count == expected_call_count
@@ -420,7 +429,9 @@ async def test_all_objects_exist_strips_vsis3_prefix(mocker: MockerFixture, use_
     """GDAL-prefixed keys have /vsis3/{bucket}/ stripped; unprefixed keys are passed through unchanged."""
     raw_key = "sfms/calculated/actual/file.tif"
     async with S3Client() as s3:
-        object_exists_mock = mocker.patch.object(s3, "object_exists", new=AsyncMock(return_value=True))
+        object_exists_mock = mocker.patch.object(
+            s3, "object_exists", new=AsyncMock(return_value=True)
+        )
         input_key = f"/vsis3/{s3.bucket}/{raw_key}" if use_vsis3_prefix else raw_key
         await s3.all_objects_exist(input_key)
         object_exists_mock.assert_called_once_with(raw_key)
