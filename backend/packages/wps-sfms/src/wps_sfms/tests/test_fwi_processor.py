@@ -153,7 +153,7 @@ async def test_fwi_processor_missing_fwi_keys(mocker: MockerFixture):
         )
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
 
-        with pytest.raises(RuntimeError, match="Missing previous DMC key"):
+        with pytest.raises(RuntimeError, match="Missing previous dmc key"):
             await processor.calculate_index(mock_s3_client, mock_input_dataset_context, DMCCalculator(TEST_DATETIME.month), fwi_inputs)
 
         persist_raster_spy.assert_not_called()

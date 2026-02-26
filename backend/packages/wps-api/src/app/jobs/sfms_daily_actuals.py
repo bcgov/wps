@@ -124,15 +124,15 @@ async def run_fwi_interpolation(
     for job_name, source in fwi_sources:
 
         @track_sfms_run(job_name, sfms_run_id, session)
-        async def _run() -> None:
+        async def _run(_source=source, _job_name=job_name) -> None:
             processor = IDWInterpolationProcessor(datetime_to_process, raster_addresser)
             s3_key = await processor.process(
                 s3_client,
                 fuel_raster_path,
                 sfms_actuals,
-                source,
+                _source,
             )
-            logger.info("%s interpolation raster: %s", job_name.value, s3_key)
+            logger.info("%s interpolation raster: %s", _job_name.value, s3_key)
 
         await _run()
 
@@ -163,8 +163,8 @@ async def run_fwi_calculations(
         fwi_inputs = raster_addresser.get_actual_fwi_inputs(datetime_to_process, calculator.fwi_param)
 
         @track_sfms_run(job_name, sfms_run_id, session)
-        async def _run() -> None:
-            await fwi_processor.calculate_index(s3_client, multi_wps_dataset_context, calculator, fwi_inputs)
+        async def _run(_calculator=calculator, _fwi_inputs=fwi_inputs) -> None:
+            await fwi_processor.calculate_index(s3_client, multi_wps_dataset_context, _calculator, _fwi_inputs)
 
         await _run()
 
