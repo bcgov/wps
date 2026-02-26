@@ -117,36 +117,6 @@ class RasterKeyAddresser(BaseRasterAddresser):
         """
         return f"sfms/static/{object_name}"
 
-    def get_actual_fwi_inputs(self, datetime_to_process: datetime, fwi_param: FWIParameter) -> FWIInputs:
-        """
-        Build a FWIInputs for a station-interpolated actuals run.
-
-        Uses yesterday's uploaded FWI value as the seed and today's interpolated
-        weather rasters (temp, rh, precip) as inputs.
-
-        :param datetime_to_process: UTC datetime being processed
-        :param fwi_param: Which FWI parameter to calculate (FFMC, DMC, or DC)
-        :return: FWIInputs ready for FWIProcessor
-        """
-        assert_all_utc(datetime_to_process)
-        yesterday = datetime_to_process - timedelta(days=1)
-        temp_key, rh_key, precip_key, prev_fwi_key = self.gdal_prefix_keys(
-            self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP),
-            self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.RH),
-            self.get_interpolated_key(datetime_to_process, SFMSInterpolatedWeatherParameter.PRECIP),
-            self.get_uploaded_index_key(yesterday, fwi_param),
-        )
-        output_key = self.get_calculated_index_key(datetime_to_process, fwi_param, run_type=RunType.ACTUAL.value)
-        return FWIInputs(
-            temp_key=temp_key,
-            rh_key=rh_key,
-            precip_key=precip_key,
-            prev_fwi_key=prev_fwi_key,
-            output_key=output_key,
-            cog_key=self.get_cog_key(output_key),
-            run_type=RunType.ACTUAL,
-        )
-
     def get_uploaded_index_key(self, datetime: datetime, fwi_param: FWIParameter):
         sfms_datetime = convert_to_sfms_timezone(datetime)
         iso_date = sfms_datetime.date().isoformat()
