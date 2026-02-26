@@ -19,7 +19,7 @@ from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_sfms.interpolation.precipitation import interpolate_to_raster
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class IDWInterpolationProcessor:
     """Processor for interpolating station weather values to raster format."""
 
-    def __init__(self, datetime_to_process: datetime, raster_addresser: RasterKeyAddresser):
+    def __init__(self, datetime_to_process: datetime, raster_addresser: SFMSNGRasterAddresser):
         """
         Initialize the interpolation processor.
 

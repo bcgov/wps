@@ -14,7 +14,8 @@ from datetime import datetime
 import aiofiles
 import aiofiles.os
 from wps_sfms.interpolation.source import StationDewPointSource
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser, SFMSInterpolatedWeatherParameter
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
+from wps_shared.sfms.raster_addresser import SFMSInterpolatedWeatherParameter
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 from wps_sfms.interpolation.relative_humidity import interpolate_rh_to_raster
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 class RHInterpolationProcessor:
     """Processor for interpolating station relative humidity to raster format."""
 
-    def __init__(self, datetime_to_process: datetime, raster_addresser: RasterKeyAddresser):
+    def __init__(self, datetime_to_process: datetime, raster_addresser: SFMSNGRasterAddresser):
         """
         Initialize the RH interpolation processor.
 

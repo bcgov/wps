@@ -33,7 +33,7 @@ from wps_shared.db.database import get_async_read_session_scope, get_async_write
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
@@ -54,7 +54,7 @@ def is_fwi_interpolation_day(dt: datetime) -> bool:
 
 async def run_weather_interpolation(
     datetime_to_process: datetime,
-    raster_addresser: RasterKeyAddresser,
+    raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
     fuel_raster_path: str,
     sfms_actuals: list,
@@ -103,7 +103,7 @@ async def run_weather_interpolation(
 
 async def run_fwi_interpolation(
     datetime_to_process: datetime,
-    raster_addresser: RasterKeyAddresser,
+    raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
     fuel_raster_path: str,
     sfms_actuals: list,
@@ -139,7 +139,7 @@ async def run_fwi_interpolation(
 
 async def run_fwi_calculations(
     datetime_to_process: datetime,
-    raster_addresser: RasterKeyAddresser,
+    raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
     sfms_run_id: int,
     session,
@@ -173,7 +173,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     """Run temperature then precipitation interpolation for the given date."""
     logger.info("Starting SFMS daily actuals for %s", target_date.date())
 
-    raster_addresser = RasterKeyAddresser()
+    raster_addresser = SFMSNGRasterAddresser()
 
     # Create processor for target date (noon UTC hour 20)
     datetime_to_process = target_date.replace(hour=20, minute=0, second=0, microsecond=0)

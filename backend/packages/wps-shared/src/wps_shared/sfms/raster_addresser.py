@@ -52,14 +52,38 @@ class FWIInputs:
     run_type: RunType
 
 
-class RasterKeyAddresser:
+class BaseRasterAddresser:
+    """S3/GDAL utilities shared across raster key addressers."""
+
+    def __init__(self):
+        self.s3_prefix = f"/vsis3/{config.get('OBJECT_STORE_BUCKET')}"
+
+    def gdal_prefix_keys(self, *keys):
+        """Prefix keys with vsis3/{bucket} for reading from S3 with GDAL."""
+        return tuple(f"{self.s3_prefix}/{key}" for key in keys)
+
+    def get_cog_key(self, key: str) -> str:
+        """Given a .tif key, return a GDAL-prefixed _cog.tif path."""
+        assert key.endswith(".tif"), f"Expected .tif file path, got {key}"
+        return self.s3_prefix + "/" + key.removesuffix(".tif") + "_cog.tif"
+
+    def get_dem_key(self) -> str:
+        """GDAL virtual file system path to the BC DEM raster."""
+        return f"{self.s3_prefix}/sfms/static/bc_elevation.tif"
+
+    def get_mask_key(self) -> str:
+        """GDAL virtual file system path to the BC boundary mask raster."""
+        return f"{self.s3_prefix}/sfms/static/bc_mask.tif"
+
+
+class RasterKeyAddresser(BaseRasterAddresser):
     """
     Encapsulates logic for addressing model and weather data rasters stored in object storage.
     """
 
     def __init__(self):
+        super().__init__()
         self.sfms_calculated_prefix = "sfms/calculated"
-        self.s3_prefix = f"/vsis3/{config.get('OBJECT_STORE_BUCKET')}"
         self.sfms_hourly_upload_prefix = "sfms/uploads/hourlies"
         self.sfms_daily_upload_prefix = "sfms/uploads/actual"
         self.sfms_fuel_raster_prefix = "sfms/static/fuel"
@@ -200,15 +224,6 @@ class RasterKeyAddresser:
 
         return all_weather_data_keys
 
-    def gdal_prefix_keys(self, *keys):
-        """
-        Prefix keys with vsis3/{bucket} for reading from s3 with gdal. GDAL s3 config must be setup for these
-        paths to work with GDAL. Can be set using app/utils/s3.set_s3_gdal_config()
-
-        :return: A tuple of all strings provided, prefixed with vsis3/{bucket}
-        """
-        return tuple(f"{self.s3_prefix}/{key}" for key in keys)
-
     def get_uploaded_hffmc_key(self, datetime_utc: datetime):
         """
         Given the start time of an RDPS model run, return a key to the most recent hFFMC raster which will be
@@ -275,16 +290,6 @@ class RasterKeyAddresser:
         weather_param_prefix = "fine_fuel_moisture_code"
         return f"{self.sfms_calculated_prefix}/hourlies/{iso_date}/{weather_param_prefix}{iso_date.replace('-', '')}{datetime_utc.hour:02d}.tif"
 
-    def get_cog_key(self, key: str):
-        """
-        Given an existing key, replace extension with _cog.tif and prefix with vsis3 for gdal
-
-        :param key: a key with a .tif extension
-        """
-        assert key.endswith(".tif"), f"Expected .tif file path, got {key}"
-        cog_key = self.s3_prefix + "/" + key.removesuffix(".tif") + "_cog.tif"
-        return cog_key
-
     def get_interpolated_key(
         self, datetime_utc: datetime, weather_param: SFMSInterpolatedWeatherParameter
     ):
@@ -312,18 +317,3 @@ class RasterKeyAddresser:
 
         return f"sfms/interpolated/{param_value}/{year:04d}/{month:02d}/{day:02d}/{param_value}_{date_str}.tif"
 
-    def get_dem_key(self) -> str:
-        """
-        Get the GDAL virtual file system path to the DEM raster.
-
-        :return: GDAL virtual file system path to DEM
-        """
-        return f"{self.s3_prefix}/sfms/static/bc_elevation.tif"
-
-    def get_mask_key(self) -> str:
-        """
-        Get the GDAL virtual file system path to the BC mask raster.
-
-        :return: GDAL virtual file system path to BC mask
-        """
-        return f"{self.s3_prefix}/sfms/static/bc_mask.tif"
