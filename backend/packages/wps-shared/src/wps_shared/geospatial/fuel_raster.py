@@ -1,10 +1,10 @@
 from typing import Optional
 from wps_shared import config
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 
 
 def get_versioned_fuel_raster_key(
-    raster_addresser: RasterKeyAddresser, object_store_path: Optional[str]
+    raster_addresser: BaseRasterAddresser, object_store_path: Optional[str]
 ):
     """
     Get the latest processed fuel layer key.
