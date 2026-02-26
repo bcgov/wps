@@ -39,7 +39,7 @@ class FWIParameter(enum.Enum):
     FWI = "fwi"
 
 
-@dataclass
+@dataclass(frozen=True)
 class FWIInputs:
     """All S3 keys and metadata needed for a single FWI index calculation."""
 
