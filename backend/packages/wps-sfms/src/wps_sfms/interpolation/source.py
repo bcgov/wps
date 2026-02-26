@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Protocol, Tuple
+from typing import List, Optional, Protocol, Tuple, runtime_checkable
 import numpy as np
 
 from numpy.typing import NDArray
@@ -14,14 +14,13 @@ LAPSE_RATE = 0.0065
 DEW_POINT_LAPSE_RATE = 0.002
 
 
+@runtime_checkable
 class StationInterpolationSource(Protocol):
     weather_param: SFMSInterpolatedWeatherParameter
 
-    @abstractmethod
     def get_interpolation_data(
         self, sfms_actuals: List[SFMSDailyActual]
-    ) -> Tuple[List[float], List[float], List[float]]:
-        raise NotImplementedError
+    ) -> Tuple[List[float], List[float], List[float]]: ...
 
 
 class LapseRateAdjustedSource(ABC):
