@@ -133,7 +133,8 @@ async def test_fwi_processor_missing_weather_keys(mocker: MockerFixture):
         )
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
 
-        await processor.calculate_index(mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs)
+        with pytest.raises(RuntimeError, match="Missing weather keys"):
+            await processor.calculate_index(mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs)
 
         persist_raster_spy.assert_not_called()
 
@@ -152,7 +153,8 @@ async def test_fwi_processor_missing_fwi_keys(mocker: MockerFixture):
         )
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
 
-        await processor.calculate_index(mock_s3_client, mock_input_dataset_context, DMCCalculator(TEST_DATETIME.month), fwi_inputs)
+        with pytest.raises(RuntimeError, match="Missing previous DMC key"):
+            await processor.calculate_index(mock_s3_client, mock_input_dataset_context, DMCCalculator(TEST_DATETIME.month), fwi_inputs)
 
         persist_raster_spy.assert_not_called()
 
