@@ -52,20 +52,24 @@ class FFMCCalculator(FWICalculator):
     fwi_param = FWIParameter.FFMC
 
     def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
-        # TODO: Wind speed interpolation not yet available — use zeros as placeholder
-        ffmc_yda, _ = prev_fwi_ds.replace_nodata_with(0)
-        temp, _ = temp_ds.replace_nodata_with(0)
-        rh, _ = rh_ds.replace_nodata_with(0)
-        ws = np.zeros_like(temp)
-        prec, _ = precip_ds.replace_nodata_with(0)
+        ffmc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
+        temp, _ = temp_ds.replace_nodata_with(np.nan)
+        rh, _ = rh_ds.replace_nodata_with(np.nan)
+        prec, _ = precip_ds.replace_nodata_with(np.nan)
+        ws = np.zeros_like(temp)  # TODO: implement wind speed
+
+        # mask out nan values before passing to vectorized function, reapply to result
+        mask = np.isnan(ffmc_yda) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
+        ffmc_yda[mask] = 0
+        temp[mask] = 0
+        rh[mask] = 0
+        prec[mask] = 0
 
         start = perf_counter()
         values = vectorized_ffmc(ffmc_yda, temp, rh, ws, prec)
         logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
 
-        nodata_mask, nodata_value = prev_fwi_ds.get_nodata_mask()
-        if nodata_mask is not None:
-            values[nodata_mask] = nodata_value
+        values[mask] = nodata_value
         return values, nodata_value
 
 
@@ -74,18 +78,23 @@ class DMCCalculator(MonthlyFWICalculator):
 
     def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
         lat, mon = self._lat_month_arrays(prev_fwi_ds)
-        dmc_yda, _ = prev_fwi_ds.replace_nodata_with(0)
-        temp, _ = temp_ds.replace_nodata_with(0)
-        rh, _ = rh_ds.replace_nodata_with(0)
-        prec, _ = precip_ds.replace_nodata_with(0)
+        dmc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
+        temp, _ = temp_ds.replace_nodata_with(np.nan)
+        rh, _ = rh_ds.replace_nodata_with(np.nan)
+        prec, _ = precip_ds.replace_nodata_with(np.nan)
+
+        # mask out nan values before passing to vectorized function, reapply to result
+        mask = np.isnan(dmc_yda) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
+        dmc_yda[mask] = 0
+        temp[mask] = 0
+        rh[mask] = 0
+        prec[mask] = 0
 
         start = perf_counter()
         values = vectorized_dmc(dmc_yda, temp, rh, prec, lat, mon, True)
         logger.info("%f seconds to calculate vectorized dmc", perf_counter() - start)
 
-        nodata_mask, nodata_value = prev_fwi_ds.get_nodata_mask()
-        if nodata_mask is not None:
-            values[nodata_mask] = nodata_value
+        values[mask] = nodata_value
         return values, nodata_value
 
 
@@ -94,18 +103,23 @@ class DCCalculator(MonthlyFWICalculator):
 
     def calculate(self, prev_fwi_ds, temp_ds, rh_ds, precip_ds):
         lat, mon = self._lat_month_arrays(prev_fwi_ds)
-        dc_yda, _ = prev_fwi_ds.replace_nodata_with(0)
-        temp, _ = temp_ds.replace_nodata_with(0)
-        rh, _ = rh_ds.replace_nodata_with(0)
-        prec, _ = precip_ds.replace_nodata_with(0)
+        dc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
+        temp, _ = temp_ds.replace_nodata_with(np.nan)
+        rh, _ = rh_ds.replace_nodata_with(np.nan)
+        prec, _ = precip_ds.replace_nodata_with(np.nan)
+
+        # mask out nan values before passing to vectorized function, reapply to result
+        mask = np.isnan(dc_yda) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
+        dc_yda[mask] = 0
+        temp[mask] = 0
+        rh[mask] = 0
+        prec[mask] = 0
 
         start = perf_counter()
         values = vectorized_dc(dc_yda, temp, rh, prec, lat, mon, True)
         logger.info("%f seconds to calculate vectorized dc", perf_counter() - start)
 
-        nodata_mask, nodata_value = prev_fwi_ds.get_nodata_mask()
-        if nodata_mask is not None:
-            values[nodata_mask] = nodata_value
+        values[mask] = nodata_value
         return values, nodata_value
 
 
