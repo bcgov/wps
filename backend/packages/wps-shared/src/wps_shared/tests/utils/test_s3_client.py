@@ -1,4 +1,3 @@
-from io import BufferedReader
 import os
 import tempfile
 import pytest
