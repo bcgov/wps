@@ -94,7 +94,7 @@ class IDWInterpolationProcessor:
             )
 
             # Upload to S3
-            s3_key = self.raster_addresser.get_interpolated_key(
+            s3_key = self.raster_addresser.get_actual_weather_key(
                 self.datetime_to_process, weather_data_source.weather_param
             )
 

@@ -126,7 +126,9 @@ class RasterKeyAddresser(BaseRasterAddresser):
         iso_date = sfms_datetime.date().isoformat()
         return f"{self.sfms_daily_upload_prefix}/{iso_date}/{fwi_param.value}{iso_date.replace('-', '')}.tif"
 
-    def get_calculated_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter, run_type: str = "forecast"):
+    def get_calculated_index_key(
+        self, datetime_utc: datetime, fwi_param: FWIParameter, run_type: str = "forecast"
+    ):
         """
         Generates the calculated fire weather index key that points to the associated raster artifact in the object store.
 
@@ -290,4 +292,3 @@ class RasterKeyAddresser(BaseRasterAddresser):
         param_value = weather_param.value
 
         return f"sfms/interpolated/{param_value}/{year:04d}/{month:02d}/{day:02d}/{param_value}_{date_str}.tif"
-

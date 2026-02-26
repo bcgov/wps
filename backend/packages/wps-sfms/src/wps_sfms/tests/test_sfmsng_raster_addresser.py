@@ -17,88 +17,79 @@ def addresser():
     return SFMSNGRasterAddresser()
 
 
-class TestGetInterpolatedKey:
+class TestGetActualWeatherKey:
     @pytest.mark.parametrize(
         "weather_param,expected_key",
         [
             (
                 SFMSInterpolatedWeatherParameter.TEMP,
-                "sfms_ng/interpolated/temp/2024/04/15/temp_20240415.tif",
+                "sfms_ng/actual/2024/04/15/temp_20240415.tif",
             ),
             (
                 SFMSInterpolatedWeatherParameter.RH,
-                "sfms_ng/interpolated/rh/2024/04/15/rh_20240415.tif",
+                "sfms_ng/actual/2024/04/15/rh_20240415.tif",
             ),
             (
                 SFMSInterpolatedWeatherParameter.WIND_SPEED,
-                "sfms_ng/interpolated/wind_speed/2024/04/15/wind_speed_20240415.tif",
+                "sfms_ng/actual/2024/04/15/wind_speed_20240415.tif",
             ),
             (
                 SFMSInterpolatedWeatherParameter.PRECIP,
-                "sfms_ng/interpolated/precip/2024/04/15/precip_20240415.tif",
+                "sfms_ng/actual/2024/04/15/precip_20240415.tif",
             ),
         ],
     )
-    def test_weather_params(self, addresser, weather_param, expected_key):
-        assert addresser.get_interpolated_key(TEST_DATETIME, weather_param) == expected_key
+    def test_weather_params(
+        self,
+        addresser: SFMSNGRasterAddresser,
+        weather_param: SFMSInterpolatedWeatherParameter,
+        expected_key,
+    ):
+        assert addresser.get_actual_weather_key(TEST_DATETIME, weather_param) == expected_key
 
-    def test_zero_pads_month_and_day(self, addresser):
+    def test_zero_pads_month_and_day(self, addresser: SFMSNGRasterAddresser):
         dt = datetime(2024, 3, 5, 20, 0, 0, tzinfo=timezone.utc)
-        result = addresser.get_interpolated_key(dt, SFMSInterpolatedWeatherParameter.TEMP)
-        assert result == "sfms_ng/interpolated/temp/2024/03/05/temp_20240305.tif"
+        result = addresser.get_actual_weather_key(dt, SFMSInterpolatedWeatherParameter.TEMP)
+        assert result == "sfms_ng/actual/2024/03/05/temp_20240305.tif"
 
-    def test_non_utc_raises(self, addresser):
+    def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
         with pytest.raises(Exception):
-            addresser.get_interpolated_key(NON_UTC, SFMSInterpolatedWeatherParameter.TEMP)
+            addresser.get_actual_weather_key(NON_UTC, SFMSInterpolatedWeatherParameter.TEMP)
 
 
-class TestGetUploadedIndexKey:
+class TestGetActualIndexKey:
     @pytest.mark.parametrize(
         "fwi_param,expected_key",
         [
-            (FWIParameter.FFMC, "sfms_ng/uploads/actual/2024-04-15/ffmc20240415.tif"),
-            (FWIParameter.DMC, "sfms_ng/uploads/actual/2024-04-15/dmc20240415.tif"),
-            (FWIParameter.DC, "sfms_ng/uploads/actual/2024-04-15/dc20240415.tif"),
+            (FWIParameter.FFMC, "sfms_ng/actual/2024/04/15/ffmc_20240415.tif"),
+            (FWIParameter.DMC, "sfms_ng/actual/2024/04/15/dmc_20240415.tif"),
+            (FWIParameter.DC, "sfms_ng/actual/2024/04/15/dc_20240415.tif"),
         ],
     )
-    def test_fwi_params(self, addresser, fwi_param, expected_key):
-        assert addresser.get_uploaded_index_key(TEST_DATETIME, fwi_param) == expected_key
+    def test_fwi_params(self, addresser: SFMSNGRasterAddresser, fwi_param, expected_key):
+        assert addresser.get_actual_index_key(TEST_DATETIME, fwi_param) == expected_key
 
-    def test_non_utc_raises(self, addresser):
+    def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
         with pytest.raises(Exception):
-            addresser.get_uploaded_index_key(NON_UTC, FWIParameter.FFMC)
-
-
-class TestGetCalculatedIndexKey:
-    def test_default_run_type_is_actual(self, addresser):
-        result = addresser.get_calculated_index_key(TEST_DATETIME, FWIParameter.DC)
-        assert result == "sfms_ng/calculated/actual/2024-04-15/dc20240415.tif"
-
-    def test_forecast_run_type(self, addresser):
-        result = addresser.get_calculated_index_key(TEST_DATETIME, FWIParameter.FFMC, run_type="forecast")
-        assert result == "sfms_ng/calculated/forecast/2024-04-15/ffmc20240415.tif"
-
-    def test_non_utc_raises(self, addresser):
-        with pytest.raises(Exception):
-            addresser.get_calculated_index_key(NON_UTC, FWIParameter.DC)
+            addresser.get_actual_index_key(NON_UTC, FWIParameter.FFMC)
 
 
 class TestGetActualFwiInputs:
     @pytest.mark.parametrize("fwi_param", [FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC])
-    def test_all_params(self, addresser, fwi_param):
+    def test_all_params(self, addresser: SFMSNGRasterAddresser, fwi_param: FWIParameter):
         s3 = addresser.s3_prefix
         p = fwi_param.value
         result = addresser.get_actual_fwi_inputs(TEST_DATETIME, fwi_param)
 
-        assert result.temp_key == f"{s3}/sfms_ng/interpolated/temp/2024/04/15/temp_20240415.tif"
-        assert result.rh_key == f"{s3}/sfms_ng/interpolated/rh/2024/04/15/rh_20240415.tif"
-        assert result.precip_key == f"{s3}/sfms_ng/interpolated/precip/2024/04/15/precip_20240415.tif"
-        assert result.prev_fwi_key == f"{s3}/sfms_ng/uploads/actual/2024-04-14/{p}20240414.tif"
-        assert result.output_key == f"sfms_ng/calculated/actual/2024-04-15/{p}20240415.tif"
-        assert result.cog_key == f"{s3}/sfms_ng/calculated/actual/2024-04-15/{p}20240415_cog.tif"
+        assert result.temp_key == f"{s3}/sfms_ng/actual/2024/04/15/temp_20240415.tif"
+        assert result.rh_key == f"{s3}/sfms_ng/actual/2024/04/15/rh_20240415.tif"
+        assert result.precip_key == f"{s3}/sfms_ng/actual/2024/04/15/precip_20240415.tif"
+        assert result.prev_fwi_key == f"{s3}/sfms_ng/actual/2024/04/14/{p}_20240414.tif"
+        assert result.output_key == f"sfms_ng/actual/2024/04/15/{p}_20240415.tif"
+        assert result.cog_key == f"{s3}/sfms_ng/actual/2024/04/15/{p}_20240415_cog.tif"
         assert result.run_type == RunType.ACTUAL
 
-    def test_gdal_prefix_on_inputs_not_output(self, addresser):
+    def test_gdal_prefix_on_inputs_not_output(self, addresser: SFMSNGRasterAddresser):
         s3 = addresser.s3_prefix
         result = addresser.get_actual_fwi_inputs(TEST_DATETIME, FWIParameter.DMC)
 
@@ -108,18 +99,18 @@ class TestGetActualFwiInputs:
         assert result.prev_fwi_key.startswith(s3)
         assert not result.output_key.startswith(s3)
 
-    def test_prev_fwi_key_uses_yesterday(self, addresser):
+    def test_prev_fwi_key_uses_yesterday(self, addresser: SFMSNGRasterAddresser):
         result = addresser.get_actual_fwi_inputs(TEST_DATETIME, FWIParameter.DC)
 
-        assert "2024-04-14" in result.prev_fwi_key
-        assert "2024-04-15" not in result.prev_fwi_key
+        assert "2024/04/14" in result.prev_fwi_key
+        assert "2024/04/15" not in result.prev_fwi_key
 
-    def test_output_key_uses_actual_run_type(self, addresser):
+    def test_output_key_uses_actual_run_type(self, addresser: SFMSNGRasterAddresser):
         result = addresser.get_actual_fwi_inputs(TEST_DATETIME, FWIParameter.DMC)
 
         assert "actual" in result.output_key
         assert "forecast" not in result.output_key
 
-    def test_non_utc_raises(self, addresser):
+    def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
         with pytest.raises(Exception):
             addresser.get_actual_fwi_inputs(NON_UTC, FWIParameter.DMC)

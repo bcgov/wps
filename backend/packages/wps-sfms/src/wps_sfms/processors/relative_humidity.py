@@ -61,7 +61,7 @@ class RHInterpolationProcessor:
         # Get DEM, mask, and interpolated temperature raster paths
         dem_path = self.raster_addresser.get_dem_key()
         mask_path = self.raster_addresser.get_mask_key()
-        temp_raster_key = self.raster_addresser.get_interpolated_key(
+        temp_raster_key = self.raster_addresser.get_actual_weather_key(
             self.datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP
         )
         temp_raster_path = self.raster_addresser.gdal_path(temp_raster_key)
@@ -87,7 +87,7 @@ class RHInterpolationProcessor:
             )
 
             # Upload to S3
-            s3_key = self.raster_addresser.get_interpolated_key(
+            s3_key = self.raster_addresser.get_actual_weather_key(
                 self.datetime_to_process, SFMSInterpolatedWeatherParameter.RH
             )
 
