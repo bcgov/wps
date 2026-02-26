@@ -197,7 +197,8 @@ class S3Client:
             ds.export_to_geotiff(temp_geotiff)
 
         logger.info(f"Writing to s3 -- {key}")
-        await self.put_object(key=key, body=open(temp_geotiff, "rb"))
+        with open(temp_geotiff, "rb") as f:
+            await self.put_object(key=key, body=f)
         return temp_geotiff
 
     @staticmethod
