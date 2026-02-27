@@ -89,8 +89,8 @@ def track_sfms_run(
                 hours, remainder = divmod(execution_time.seconds, 3600)
                 minutes, seconds = divmod(remainder, 60)
                 logger.info(
-                    f"{job_name.value} interpolation completed successfully -- "
-                    "time elapsed %d hours, %d minutes, %.2f seconds",
+                    "%s completed successfully -- time elapsed %d hours, %d minutes, %.2f seconds",
+                    job_name.value,
                     hours,
                     minutes,
                     seconds,
