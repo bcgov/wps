@@ -24,9 +24,9 @@ from wps_sfms.interpolation.source import (
     StationTemperatureSource,
 )
 from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator, FWIProcessor
-from wps_sfms.processors.idw import InterpolationProcessor
-from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
-from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
+from wps_sfms.processors.idw import Interpolator
+from wps_sfms.processors.relative_humidity import RHInterpolator
+from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -65,12 +65,12 @@ async def run_weather_interpolation(
     """Interpolate temperature, RH, and precipitation from station observations."""
     mask_path = raster_addresser.get_mask_key()
     dem_path = raster_addresser.get_dem_key()
-    temp_processor = TemperatureInterpolationProcessor(mask_path, dem_path)
     temp_key = raster_addresser.get_actual_weather_key(
         datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP
     )
-    rh_processor = RHInterpolationProcessor(mask_path, dem_path, raster_addresser.gdal_path(temp_key))
-    precip_processor = InterpolationProcessor(mask_path)
+    temp_processor = TemperatureInterpolator(mask_path, dem_path)
+    rh_processor = RHInterpolator(mask_path, dem_path, raster_addresser.gdal_path(temp_key))
+    precip_processor = Interpolator(mask_path)
 
     @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, sfms_run_id, session)
     async def run_temperature_interpolation() -> None:
@@ -129,7 +129,7 @@ async def run_fwi_interpolation(
         (SFMSRunLogJobName.DC_INTERPOLATION, StationDCSource(sfms_actuals), FWIParameter.DC),
     ]
 
-    processor = InterpolationProcessor(mask_path)
+    processor = Interpolator(mask_path)
 
     for job_name, source, fwi_param in fwi_sources:
 
@@ -165,11 +165,15 @@ async def run_fwi_calculations(
     ]
 
     for job_name, calculator in fwi_calculations:
-        fwi_inputs = raster_addresser.get_actual_fwi_inputs(datetime_to_process, calculator.fwi_param)
+        fwi_inputs = raster_addresser.get_actual_fwi_inputs(
+            datetime_to_process, calculator.fwi_param
+        )
 
         @track_sfms_run(job_name, sfms_run_id, session)
         async def _run(_calculator=calculator, _fwi_inputs=fwi_inputs) -> None:
-            await fwi_processor.calculate_index(s3_client, multi_wps_dataset_context, _calculator, _fwi_inputs)
+            await fwi_processor.calculate_index(
+                s3_client, multi_wps_dataset_context, _calculator, _fwi_inputs
+            )
 
         await _run()
 

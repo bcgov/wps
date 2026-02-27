@@ -14,9 +14,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.jobs.sfms_daily_actuals import is_fwi_interpolation_day, run_sfms_daily_actuals, main
 from app.tests.conftest import create_mock_sfms_actuals
 from wps_sfms.processors.fwi import FWIProcessor
-from wps_sfms.processors.idw import InterpolationProcessor
-from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
-from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
+from wps_sfms.processors.idw import Interpolator
+from wps_sfms.processors.relative_humidity import RHInterpolator
+from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_shared.db.models.sfms_run import SFMSRunLogStatus
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
@@ -101,26 +101,26 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mocker.patch(f"{MODULE_PATH}.SFMSNGRasterAddresser", return_value=mock_addresser)
 
     # Mock processors
-    mock_temp_processor = MagicMock(spec=TemperatureInterpolationProcessor)
+    mock_temp_processor = MagicMock(spec=TemperatureInterpolator)
     mock_temp_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/temp.tif")
     mocker.patch(
-        f"{MODULE_PATH}.TemperatureInterpolationProcessor",
+        f"{MODULE_PATH}.TemperatureInterpolator",
         return_value=mock_temp_processor,
     )
 
-    mock_rh_processor = MagicMock(spec=RHInterpolationProcessor)
+    mock_rh_processor = MagicMock(spec=RHInterpolator)
     mock_rh_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/rh.tif")
     mocker.patch(
-        f"{MODULE_PATH}.RHInterpolationProcessor",
+        f"{MODULE_PATH}.RHInterpolator",
         return_value=mock_rh_processor,
     )
 
-    mock_interpolation_processor = MagicMock(spec=InterpolationProcessor)
+    mock_interpolation_processor = MagicMock(spec=Interpolator)
     mock_interpolation_processor.process = AsyncMock(
         return_value="sfms/interpolated/2024/07/04/precip.tif"
     )
     mocker.patch(
-        f"{MODULE_PATH}.InterpolationProcessor",
+        f"{MODULE_PATH}.Interpolator",
         return_value=mock_interpolation_processor,
     )
 

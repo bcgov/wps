@@ -8,7 +8,7 @@ from typing import Optional
 from osgeo import gdal, osr
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_sfms.interpolation.source import StationDewPointSource
-from wps_sfms.interpolation.relative_humidity import interpolate_rh_to_raster
+from wps_sfms.processors.relative_humidity import RHInterpolator
 
 
 def create_test_raster(
@@ -104,8 +104,8 @@ class TestComputeRHFromTempAndDewpoint:
         assert rh.dtype == np.float32
 
 
-class TestInterpolateRHToRaster:
-    """Tests for interpolate_rh_to_raster function."""
+class TestRHInterpolator:
+    """Tests for RHInterpolator."""
 
     def test_interpolate_basic_success(self):
         """Test successful RH raster interpolation."""
@@ -114,17 +114,14 @@ class TestInterpolateRHToRaster:
         dem_path = f"/vsimem/dem_{test_id}.tif"
         temp_raster_path = f"/vsimem/temp_{test_id}.tif"
         mask_path = f"/vsimem/mask_{test_id}.tif"
-        output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             extent = (-123.1, -123.0, 49.0, 49.1)
             create_test_raster(ref_path, 10, 10, extent, fill_value=1.0)
             create_test_raster(dem_path, 10, 10, extent, fill_value=100.0)
             create_test_raster(mask_path, 10, 10, extent, fill_value=1.0)
-            # Create a temperature raster with uniform 15°C
             create_test_raster(temp_raster_path, 10, 10, extent, fill_value=15.0)
 
-            # Create stations within extent with dewpoint values
             actuals = create_test_actuals(
                 lats=[49.05, 49.08],
                 lons=[-123.05, -123.02],
@@ -133,38 +130,25 @@ class TestInterpolateRHToRaster:
             )
             dewpoint_source = StationDewPointSource(actuals)
 
-            result = interpolate_rh_to_raster(
-                dewpoint_source,
-                temp_raster_path,
-                ref_path,
-                dem_path,
-                output_path,
-                mask_path=mask_path,
-            )
+            dataset = RHInterpolator(
+                mask_path=mask_path, dem_path=dem_path, temp_raster_path=temp_raster_path
+            ).interpolate(dewpoint_source, ref_path)
 
-            assert result == output_path
-
-            ds = gdal.Open(output_path)
-            assert ds is not None
-            data = ds.GetRasterBand(1).ReadAsArray()
-            nodata = ds.GetRasterBand(1).GetNoDataValue()
+            data = dataset.ds.GetRasterBand(1).ReadAsArray()
+            nodata = dataset.ds.GetRasterBand(1).GetNoDataValue()
 
             assert data.shape == (10, 10)
             valid_count = np.sum(data != nodata)
             assert valid_count > 0, "Expected some interpolated RH values"
 
-            # RH values should be in valid range
             valid_values = data[data != nodata]
             assert np.all(valid_values >= 0.0)
             assert np.all(valid_values <= 100.0)
-
-            ds = None
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
             gdal.Unlink(temp_raster_path)
             gdal.Unlink(mask_path)
-            gdal.Unlink(output_path)
 
     def test_interpolate_skips_masked_cells(self):
         """Test that cells masked out by BC mask are skipped."""
@@ -173,7 +157,6 @@ class TestInterpolateRHToRaster:
         dem_path = f"/vsimem/dem_{test_id}.tif"
         temp_raster_path = f"/vsimem/temp_{test_id}.tif"
         mask_path = f"/vsimem/mask_{test_id}.tif"
-        output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             extent = (-123.1, -123.0, 49.0, 49.1)
@@ -186,40 +169,25 @@ class TestInterpolateRHToRaster:
             create_test_raster(mask_path, 5, 5, extent, data=mask_data)
 
             actuals = create_test_actuals(
-                lats=[49.05],
-                lons=[-123.05],
-                dewpoints=[12.0],
-                elevations=[100.0],
+                lats=[49.05], lons=[-123.05], dewpoints=[12.0], elevations=[100.0]
             )
             dewpoint_source = StationDewPointSource(actuals)
 
-            result = interpolate_rh_to_raster(
-                dewpoint_source,
-                temp_raster_path,
-                ref_path,
-                dem_path,
-                output_path,
-                mask_path=mask_path,
-            )
+            dataset = RHInterpolator(
+                mask_path=mask_path, dem_path=dem_path, temp_raster_path=temp_raster_path
+            ).interpolate(dewpoint_source, ref_path)
 
-            assert result == output_path
+            data = dataset.ds.GetRasterBand(1).ReadAsArray()
+            nodata = dataset.ds.GetRasterBand(1).GetNoDataValue()
 
-            ds = gdal.Open(output_path)
-            data = ds.GetRasterBand(1).ReadAsArray()
-            nodata = ds.GetRasterBand(1).GetNoDataValue()
-
-            # The cell at (2,2) should be nodata in output
             assert data[2, 2] == nodata
             valid_count = np.sum(data != nodata)
             assert valid_count == 24, "Expected 24 valid cells (25 - 1 masked)"
-
-            ds = None
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
             gdal.Unlink(temp_raster_path)
             gdal.Unlink(mask_path)
-            gdal.Unlink(output_path)
 
     def test_output_preserves_reference_properties(self):
         """Test that output raster preserves reference raster properties."""
@@ -228,7 +196,6 @@ class TestInterpolateRHToRaster:
         dem_path = f"/vsimem/dem_{test_id}.tif"
         temp_raster_path = f"/vsimem/temp_{test_id}.tif"
         mask_path = f"/vsimem/mask_{test_id}.tif"
-        output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             extent = (-123.1, -123.0, 49.0, 49.1)
@@ -238,38 +205,25 @@ class TestInterpolateRHToRaster:
             create_test_raster(mask_path, 8, 6, extent, fill_value=1.0)
 
             actuals = create_test_actuals(
-                lats=[49.05],
-                lons=[-123.05],
-                dewpoints=[12.0],
-                elevations=[100.0],
+                lats=[49.05], lons=[-123.05], dewpoints=[12.0], elevations=[100.0]
             )
             dewpoint_source = StationDewPointSource(actuals)
 
-            interpolate_rh_to_raster(
-                dewpoint_source,
-                temp_raster_path,
-                ref_path,
-                dem_path,
-                output_path,
-                mask_path=mask_path,
-            )
+            dataset = RHInterpolator(
+                mask_path=mask_path, dem_path=dem_path, temp_raster_path=temp_raster_path
+            ).interpolate(dewpoint_source, ref_path)
 
             ref_ds = gdal.Open(ref_path)
-            out_ds = gdal.Open(output_path)
-
-            assert out_ds.RasterXSize == ref_ds.RasterXSize
-            assert out_ds.RasterYSize == ref_ds.RasterYSize
-            assert out_ds.GetGeoTransform() == ref_ds.GetGeoTransform()
-            assert out_ds.GetProjection() == ref_ds.GetProjection()
-
+            assert dataset.ds.RasterXSize == ref_ds.RasterXSize
+            assert dataset.ds.RasterYSize == ref_ds.RasterYSize
+            assert dataset.ds.GetGeoTransform() == ref_ds.GetGeoTransform()
+            assert dataset.ds.GetProjection() == ref_ds.GetProjection()
             ref_ds = None
-            out_ds = None
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
             gdal.Unlink(temp_raster_path)
             gdal.Unlink(mask_path)
-            gdal.Unlink(output_path)
 
     def test_rh_values_respond_to_elevation(self):
         """Test that RH varies with elevation since dew point is elevation-adjusted."""
@@ -278,44 +232,30 @@ class TestInterpolateRHToRaster:
         dem_path = f"/vsimem/dem_{test_id}.tif"
         temp_raster_path = f"/vsimem/temp_{test_id}.tif"
         mask_path = f"/vsimem/mask_{test_id}.tif"
-        output_path = f"/vsimem/output_{test_id}.tif"
 
         try:
             extent = (-123.1, -123.0, 49.0, 49.1)
             create_test_raster(ref_path, 5, 5, extent, fill_value=1.0)
             create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
+            create_test_raster(temp_raster_path, 5, 5, extent, fill_value=15.0)
 
-            # DEM with varying elevation
             dem_data = np.full((5, 5), 100.0)
             dem_data[0, 0] = 0.0  # Sea level
             dem_data[4, 4] = 1000.0  # 1000m elevation
             create_test_raster(dem_path, 5, 5, extent, data=dem_data)
 
-            # Temperature raster with uniform value
-            create_test_raster(temp_raster_path, 5, 5, extent, fill_value=15.0)
-
             actuals = create_test_actuals(
-                lats=[49.05],
-                lons=[-123.05],
-                dewpoints=[12.0],
-                elevations=[100.0],
+                lats=[49.05], lons=[-123.05], dewpoints=[12.0], elevations=[100.0]
             )
             dewpoint_source = StationDewPointSource(actuals)
 
-            interpolate_rh_to_raster(
-                dewpoint_source,
-                temp_raster_path,
-                ref_path,
-                dem_path,
-                output_path,
-                mask_path=mask_path,
-            )
+            dataset = RHInterpolator(
+                mask_path=mask_path, dem_path=dem_path, temp_raster_path=temp_raster_path
+            ).interpolate(dewpoint_source, ref_path)
 
-            ds = gdal.Open(output_path)
-            data = ds.GetRasterBand(1).ReadAsArray()
-            nodata = ds.GetRasterBand(1).GetNoDataValue()
+            data = dataset.ds.GetRasterBand(1).ReadAsArray()
+            nodata = dataset.ds.GetRasterBand(1).GetNoDataValue()
 
-            # RH at different elevations should differ since dew point is elevation-adjusted
             rh_sea_level = data[0, 0]
             rh_high_elevation = data[4, 4]
 
@@ -324,11 +264,8 @@ class TestInterpolateRHToRaster:
             # With a constant temp raster but elevation-adjusted dew point,
             # higher elevation = lower dew point = lower RH
             assert rh_high_elevation < rh_sea_level
-
-            ds = None
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
             gdal.Unlink(temp_raster_path)
             gdal.Unlink(mask_path)
-            gdal.Unlink(output_path)
