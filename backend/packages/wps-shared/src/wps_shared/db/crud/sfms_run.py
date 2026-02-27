@@ -101,9 +101,12 @@ def track_sfms_run(
                 return result
             except Exception:
                 logger.error("%s failed", job_name.value, exc_info=True)
-                await update_sfms_run_log(
-                    session, log_id, status=SFMSRunLogStatus.FAILED, completed_at=get_utc_now()
-                )
+                try:
+                    await update_sfms_run_log(
+                        session, log_id, status=SFMSRunLogStatus.FAILED, completed_at=get_utc_now()
+                    )
+                except Exception:
+                    logger.error("Failed to update run log for %s after job failure", job_name.value, exc_info=True)
                 raise
 
         return wrapper
