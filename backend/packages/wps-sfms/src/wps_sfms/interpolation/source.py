@@ -157,11 +157,15 @@ class StationDewPointSource(LapseRateAdjustedSource):
         return np.clip(rh, 0.0, 100.0).astype(np.float32)
 
 
+_VALID_SFMS_ATTRIBUTES = frozenset(SFMSDailyActual.model_fields.keys())
+
+
 class StationActualSource(StationInterpolationSource):
     """Generic source for interpolating a named attribute from SFMSDailyActual."""
 
     def __init__(self, attribute: str, sfms_actuals: List[SFMSDailyActual]):
-        super().__init__()
+        if attribute not in _VALID_SFMS_ATTRIBUTES:
+            raise ValueError(f"Unknown attribute {attribute!r} on SFMSDailyActual. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}")
         self._attribute = attribute
         self._sfms_actuals = sfms_actuals
 
