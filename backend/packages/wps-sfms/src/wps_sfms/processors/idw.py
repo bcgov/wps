@@ -13,7 +13,6 @@ import tempfile
 from datetime import datetime
 from typing import List
 import aiofiles
-import aiofiles.os
 from wps_sfms.interpolation.source import StationInterpolationSource
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_sfms.interpolation.precipitation import interpolate_to_raster
@@ -78,11 +77,9 @@ class IDWInterpolationProcessor:
             sfms_actuals
         )
 
-        # Generate temporary file path
-        temp_dir = tempfile.gettempdir()
-        temp_raster_path = os.path.join(temp_dir, os.path.basename(output_key))
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_raster_path = os.path.join(temp_dir, os.path.basename(output_key))
 
-        try:
             interpolate_to_raster(
                 station_lats,
                 station_lons,
@@ -97,12 +94,5 @@ class IDWInterpolationProcessor:
                 contents = await f.read()
                 await s3_client.put_object(key=output_key, body=contents)
 
-            logger.info("Interpolation complete: %s", output_key)
-            return output_key
-
-        finally:
-            # Clean up temporary file asynchronously
-            try:
-                await aiofiles.os.remove(temp_raster_path)
-            except FileNotFoundError:
-                pass  # File doesn't exist, nothing to clean up
+        logger.info("Interpolation complete: %s", output_key)
+        return output_key
