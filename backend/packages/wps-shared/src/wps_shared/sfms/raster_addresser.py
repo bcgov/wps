@@ -52,7 +52,8 @@ class BaseRasterAddresser:
 
     def get_cog_key(self, key: str) -> str:
         """Given a .tif key, return a GDAL-prefixed _cog.tif path."""
-        assert key.endswith(".tif"), f"Expected .tif file path, got {key}"
+        if not key.endswith(".tif"):
+            raise ValueError(f"Expected .tif file path, got {key}")
         return self.s3_prefix + "/" + key.removesuffix(".tif") + "_cog.tif"
 
     def get_dem_key(self) -> str:
