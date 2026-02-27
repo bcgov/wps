@@ -24,7 +24,7 @@ from wps_sfms.interpolation.source import (
     StationTemperatureSource,
 )
 from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator, FWIProcessor
-from wps_sfms.processors.idw import IDWInterpolationProcessor
+from wps_sfms.processors.idw import InterpolationProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
@@ -63,37 +63,40 @@ async def run_weather_interpolation(
     session,
 ) -> None:
     """Interpolate temperature, RH, and precipitation from station observations."""
+    mask_path = raster_addresser.get_mask_key()
+    dem_path = raster_addresser.get_dem_key()
+    temp_processor = TemperatureInterpolationProcessor(mask_path, dem_path)
+    temp_key = raster_addresser.get_actual_weather_key(
+        datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP
+    )
+    rh_processor = RHInterpolationProcessor(mask_path, dem_path, raster_addresser.gdal_path(temp_key))
+    precip_processor = InterpolationProcessor(mask_path)
 
     @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, sfms_run_id, session)
     async def run_temperature_interpolation() -> None:
-        temperature_processor = TemperatureInterpolationProcessor(
-            datetime_to_process, raster_addresser
-        )
-        temp_s3_key = await temperature_processor.process(
-            s3_client,
-            fuel_raster_path,
-            StationTemperatureSource(sfms_actuals),
+        temp_s3_key = await temp_processor.process(
+            s3_client, fuel_raster_path, StationTemperatureSource(sfms_actuals), temp_key
         )
         logger.info("Temperature interpolation raster: %s", temp_s3_key)
 
     @track_sfms_run(SFMSRunLogJobName.RH_INTERPOLATION, sfms_run_id, session)
     async def run_rh_interpolation() -> None:
-        rh_processor = RHInterpolationProcessor(datetime_to_process, raster_addresser)
         rh_s3_key = await rh_processor.process(
             s3_client,
             fuel_raster_path,
             StationDewPointSource(sfms_actuals),
+            raster_addresser.get_actual_weather_key(
+                datetime_to_process, SFMSInterpolatedWeatherParameter.RH
+            ),
         )
         logger.info("RH interpolation raster: %s", rh_s3_key)
 
     @track_sfms_run(SFMSRunLogJobName.PRECIPITATION_INTERPOLATION, sfms_run_id, session)
     async def run_precipitation_interpolation() -> None:
-        processor = IDWInterpolationProcessor(datetime_to_process, raster_addresser)
-        precip_s3_key = await processor.process(
+        precip_s3_key = await precip_processor.process(
             s3_client,
             fuel_raster_path,
-            sfms_actuals,
-            StationPrecipitationSource(),
+            StationPrecipitationSource(sfms_actuals),
             raster_addresser.get_actual_weather_key(
                 datetime_to_process, SFMSInterpolatedWeatherParameter.PRECIP
             ),
@@ -119,24 +122,21 @@ async def run_fwi_interpolation(
         "Monday in %s — running FWI index interpolation", datetime_to_process.strftime("%B")
     )
 
+    mask_path = raster_addresser.get_mask_key()
     fwi_sources = [
-        (SFMSRunLogJobName.FFMC_INTERPOLATION, StationFFMCSource(), FWIParameter.FFMC),
-        (SFMSRunLogJobName.DMC_INTERPOLATION, StationDMCSource(), FWIParameter.DMC),
-        (SFMSRunLogJobName.DC_INTERPOLATION, StationDCSource(), FWIParameter.DC),
+        (SFMSRunLogJobName.FFMC_INTERPOLATION, StationFFMCSource(sfms_actuals), FWIParameter.FFMC),
+        (SFMSRunLogJobName.DMC_INTERPOLATION, StationDMCSource(sfms_actuals), FWIParameter.DMC),
+        (SFMSRunLogJobName.DC_INTERPOLATION, StationDCSource(sfms_actuals), FWIParameter.DC),
     ]
+
+    processor = InterpolationProcessor(mask_path)
 
     for job_name, source, fwi_param in fwi_sources:
 
         @track_sfms_run(job_name, sfms_run_id, session)
         async def _run(_source=source, _job_name=job_name, _fwi_param=fwi_param) -> None:
-            processor = IDWInterpolationProcessor(datetime_to_process, raster_addresser)
-            s3_key = await processor.process(
-                s3_client,
-                fuel_raster_path,
-                sfms_actuals,
-                _source,
-                raster_addresser.get_actual_index_key(datetime_to_process, _fwi_param),
-            )
+            output_key = raster_addresser.get_actual_index_key(datetime_to_process, _fwi_param)
+            s3_key = await processor.process(s3_client, fuel_raster_path, _source, output_key)
             logger.info("%s interpolation raster: %s", _job_name.value, s3_key)
 
         await _run()

@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.jobs.sfms_daily_actuals import is_fwi_interpolation_day, run_sfms_daily_actuals, main
 from app.tests.conftest import create_mock_sfms_actuals
 from wps_sfms.processors.fwi import FWIProcessor
-from wps_sfms.processors.idw import IDWInterpolationProcessor
+from wps_sfms.processors.idw import InterpolationProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolationProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolationProcessor
 from wps_shared.db.models.sfms_run import SFMSRunLogStatus
@@ -50,9 +50,10 @@ class MockDailyActualsDeps(NamedTuple):
     s3_client: AsyncMock
     temp_processor: MagicMock
     rh_processor: MagicMock
-    idw_processor: MagicMock
+    interpolation_processor: MagicMock
     fwi_processor: MagicMock
     wfwx_api: AsyncMock
+    addresser: MagicMock
 
 
 @pytest.fixture
@@ -114,11 +115,13 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         return_value=mock_rh_processor,
     )
 
-    mock_idw_processor = MagicMock(spec=IDWInterpolationProcessor)
-    mock_idw_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/precip.tif")
+    mock_interpolation_processor = MagicMock(spec=InterpolationProcessor)
+    mock_interpolation_processor.process = AsyncMock(
+        return_value="sfms/interpolated/2024/07/04/precip.tif"
+    )
     mocker.patch(
-        f"{MODULE_PATH}.IDWInterpolationProcessor",
-        return_value=mock_idw_processor,
+        f"{MODULE_PATH}.InterpolationProcessor",
+        return_value=mock_interpolation_processor,
     )
 
     mock_fwi_processor = MagicMock(spec=FWIProcessor)
@@ -140,9 +143,10 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         s3_client=mock_s3_client,
         temp_processor=mock_temp_processor,
         rh_processor=mock_rh_processor,
-        idw_processor=mock_idw_processor,
+        interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
         wfwx_api=mock_wfwx_api,
+        addresser=mock_addresser,
     )
 
 
@@ -158,7 +162,7 @@ class TestRunSfmsDailyActuals:
 
         mock_dependencies.temp_processor.process.assert_called_once()
         mock_dependencies.rh_processor.process.assert_called_once()
-        mock_dependencies.idw_processor.process.assert_called_once()
+        mock_dependencies.interpolation_processor.process.assert_called_once()
 
     @pytest.mark.anyio
     async def test_runs_processors_in_order(
@@ -172,7 +176,7 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.rh_processor.process = AsyncMock(
             side_effect=lambda *a, **kw: call_order.append("rh") or "rh.tif"
         )
-        mock_dependencies.idw_processor.process = AsyncMock(
+        mock_dependencies.interpolation_processor.process = AsyncMock(
             side_effect=lambda *a, **kw: call_order.append("precip") or "precip.tif"
         )
 
@@ -191,33 +195,19 @@ class TestRunSfmsDailyActuals:
         temp_call_args = mock_dependencies.temp_processor.process.call_args
         assert temp_call_args[0][0] is mock_dependencies.s3_client
 
-        precip_call_args = mock_dependencies.idw_processor.process.call_args
+        precip_call_args = mock_dependencies.interpolation_processor.process.call_args
         assert precip_call_args[0][0] is mock_dependencies.s3_client
 
     @pytest.mark.anyio
-    async def test_sets_correct_hour(
-        self, mock_dependencies: MockDailyActualsDeps, mocker: MockerFixture
-    ):
-        """Test that processors are initialized with hour 20 (noon PDT)."""
-        captured_datetime = None
-
-        def capture_temp_init(datetime_to_process, _raster_addresser):
-            nonlocal captured_datetime
-            captured_datetime = datetime_to_process
-            return mock_dependencies.temp_processor
-
-        mocker.patch(
-            f"{MODULE_PATH}.TemperatureInterpolationProcessor",
-            side_effect=capture_temp_init,
-        )
-
+    async def test_sets_correct_hour(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that observations are processed at hour 20 (noon PDT)."""
         target_date = datetime(2024, 7, 4, hour=10, minute=30, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert captured_datetime is not None
-        assert captured_datetime.hour == 20
-        assert captured_datetime.minute == 0
-        assert captured_datetime.second == 0
+        dt = mock_dependencies.addresser.get_actual_weather_key.call_args_list[0][0][0]
+        assert dt.hour == 20
+        assert dt.minute == 0
+        assert dt.second == 0
 
     @pytest.mark.anyio
     async def test_raises_on_empty_actuals(self, mock_dependencies: MockDailyActualsDeps):
@@ -268,14 +258,14 @@ class TestRunSfmsDailyActuals:
             await run_sfms_daily_actuals(target_date)
 
         mock_dependencies.rh_processor.process.assert_not_called()
-        mock_dependencies.idw_processor.process.assert_not_called()
+        mock_dependencies.interpolation_processor.process.assert_not_called()
 
     @pytest.mark.anyio
     async def test_precipitation_failure_logs_failed_and_raises(
         self, mock_dependencies: MockDailyActualsDeps
     ):
         """Test that when precipitation fails, it's logged as failed and the error propagates."""
-        mock_dependencies.idw_processor.process = AsyncMock(
+        mock_dependencies.interpolation_processor.process = AsyncMock(
             side_effect=RuntimeError("precip failed")
         )
 
@@ -302,7 +292,7 @@ class TestMondayFWIInterpolation:
 
         # temp processor called once, IDW processor called 4 times (1 precip + 3 FWI)
         mock_dependencies.temp_processor.process.assert_called_once()
-        assert mock_dependencies.idw_processor.process.call_count == 4
+        assert mock_dependencies.interpolation_processor.process.call_count == 4
 
     @pytest.mark.anyio
     async def test_first_monday_april_runs_fwi_interpolation(
@@ -316,7 +306,7 @@ class TestMondayFWIInterpolation:
 
         # temp processor called once, IDW processor called 4 times (1 precip + 3 FWI)
         mock_dependencies.temp_processor.process.assert_called_once()
-        assert mock_dependencies.idw_processor.process.call_count == 4
+        assert mock_dependencies.interpolation_processor.process.call_count == 4
 
     @pytest.mark.anyio
     async def test_non_monday_skips_fwi_interpolation(
@@ -330,7 +320,7 @@ class TestMondayFWIInterpolation:
 
         # Only temp + RH + precip, no FWI
         mock_dependencies.temp_processor.process.assert_called_once()
-        mock_dependencies.idw_processor.process.assert_called_once()
+        mock_dependencies.interpolation_processor.process.assert_called_once()
 
     @pytest.mark.anyio
     async def test_monday_outside_april_may_skips_fwi_interpolation(
@@ -344,7 +334,7 @@ class TestMondayFWIInterpolation:
 
         # Only temp + RH + precip, no FWI
         mock_dependencies.temp_processor.process.assert_called_once()
-        mock_dependencies.idw_processor.process.assert_called_once()
+        mock_dependencies.interpolation_processor.process.assert_called_once()
 
     @pytest.mark.anyio
     async def test_second_monday_april_runs_fwi_interpolation(
@@ -358,7 +348,7 @@ class TestMondayFWIInterpolation:
 
         # temp processor called once, IDW processor called 4 times (1 precip + 3 FWI)
         mock_dependencies.temp_processor.process.assert_called_once()
-        assert mock_dependencies.idw_processor.process.call_count == 4
+        assert mock_dependencies.interpolation_processor.process.call_count == 4
 
     @pytest.mark.anyio
     async def test_monday_april_writes_six_run_log_entries(
@@ -397,7 +387,7 @@ class TestFWICalculationVsInterpolation:
 
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 3
         # IDW called once only for precip, not for FWI indices
-        mock_dependencies.idw_processor.process.assert_called_once()
+        mock_dependencies.interpolation_processor.process.assert_called_once()
 
 
 class TestMain:

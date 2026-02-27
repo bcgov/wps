@@ -15,9 +15,7 @@ DEW_POINT_LAPSE_RATE = 0.002
 
 @runtime_checkable
 class StationInterpolationSource(Protocol):
-    def get_interpolation_data(
-        self, sfms_actuals: List[SFMSDailyActual]
-    ) -> Tuple[List[float], List[float], List[float]]: ...
+    def get_interpolation_data(self) -> Tuple: ...
 
 
 class LapseRateAdjustedSource(ABC):
@@ -162,14 +160,13 @@ class StationDewPointSource(LapseRateAdjustedSource):
 class StationActualSource(StationInterpolationSource):
     """Generic source for interpolating a named attribute from SFMSDailyActual."""
 
-    def __init__(self, attribute: str):
+    def __init__(self, attribute: str, sfms_actuals: List[SFMSDailyActual]):
         super().__init__()
         self._attribute = attribute
+        self._sfms_actuals = sfms_actuals
 
-    def get_interpolation_data(
-        self, sfms_actuals: List[SFMSDailyActual]
-    ) -> Tuple[List[float], List[float], List[float]]:
-        valid = [s for s in sfms_actuals if getattr(s, self._attribute) is not None]
+    def get_interpolation_data(self) -> Tuple[List[float], List[float], List[float]]:
+        valid = [s for s in self._sfms_actuals if getattr(s, self._attribute) is not None]
         return (
             [s.lat for s in valid],
             [s.lon for s in valid],
@@ -177,17 +174,17 @@ class StationActualSource(StationInterpolationSource):
         )
 
 
-def StationPrecipitationSource() -> StationActualSource:
-    return StationActualSource("precipitation")
+def StationPrecipitationSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
+    return StationActualSource("precipitation", sfms_actuals)
 
 
-def StationFFMCSource() -> StationActualSource:
-    return StationActualSource("ffmc")
+def StationFFMCSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
+    return StationActualSource("ffmc", sfms_actuals)
 
 
-def StationDMCSource() -> StationActualSource:
-    return StationActualSource("dmc")
+def StationDMCSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
+    return StationActualSource("dmc", sfms_actuals)
 
 
-def StationDCSource() -> StationActualSource:
-    return StationActualSource("dc")
+def StationDCSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
+    return StationActualSource("dc", sfms_actuals)
