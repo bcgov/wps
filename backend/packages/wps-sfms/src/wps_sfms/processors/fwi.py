@@ -10,7 +10,7 @@ import tempfile
 from abc import ABC, abstractmethod
 from datetime import datetime
 from time import perf_counter
-from typing import Callable, Iterator, List, NamedTuple, Tuple, cast
+from typing import Callable, ContextManager, List, NamedTuple, Tuple, cast
 
 import numpy as np
 from osgeo import gdal
@@ -25,7 +25,7 @@ from wps_shared.utils.s3_client import S3Client
 
 logger = logging.getLogger(__name__)
 
-MultiDatasetContext = Callable[[List[str]], Iterator[List["WPSDataset"]]]
+MultiDatasetContext = Callable[[List[str]], ContextManager[List["WPSDataset"]]]
 
 
 class FWIResult(NamedTuple):
@@ -67,18 +67,14 @@ class FFMCCalculator(FWICalculator):
         prec, _ = precip_ds.replace_nodata_with(np.nan)
         ws = np.zeros_like(temp)  # TODO: implement wind speed
 
-        # mask out nan values before passing to vectorized function, reapply to result
         mask = np.isnan(ffmc_yda) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
-        ffmc_yda[mask] = 0
-        temp[mask] = 0
-        rh[mask] = 0
-        prec[mask] = 0
+        valid = ~mask
+        values = np.full(ffmc_yda.shape, nodata_value, dtype=ffmc_yda.dtype)
 
         start = perf_counter()
-        values = vectorized_ffmc(ffmc_yda, temp, rh, ws, prec)
+        values[valid] = vectorized_ffmc(ffmc_yda[valid], temp[valid], rh[valid], ws[valid], prec[valid])
         logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
 
-        values[mask] = nodata_value
         return FWIResult(values, nodata_value)
 
 
@@ -94,18 +90,14 @@ class DMCCalculator(MonthlyFWICalculator):
         rh, _ = rh_ds.replace_nodata_with(np.nan)
         prec, _ = precip_ds.replace_nodata_with(np.nan)
 
-        # mask out nan values before passing to vectorized function, reapply to result
         mask = np.isnan(dmc_yda) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
-        dmc_yda[mask] = 0
-        temp[mask] = 0
-        rh[mask] = 0
-        prec[mask] = 0
+        valid = ~mask
+        values = np.full(dmc_yda.shape, nodata_value, dtype=dmc_yda.dtype)
 
         start = perf_counter()
-        values = vectorized_dmc(dmc_yda, temp, rh, prec, lat, mon, True)
+        values[valid] = vectorized_dmc(dmc_yda[valid], temp[valid], rh[valid], prec[valid], lat[valid], mon[valid], True)
         logger.info("%f seconds to calculate vectorized dmc", perf_counter() - start)
 
-        values[mask] = nodata_value
         return FWIResult(values, nodata_value)
 
 
@@ -121,18 +113,14 @@ class DCCalculator(MonthlyFWICalculator):
         rh, _ = rh_ds.replace_nodata_with(np.nan)
         prec, _ = precip_ds.replace_nodata_with(np.nan)
 
-        # mask out nan values before passing to vectorized function, reapply to result
         mask = np.isnan(dc_yda) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
-        dc_yda[mask] = 0
-        temp[mask] = 0
-        rh[mask] = 0
-        prec[mask] = 0
+        valid = ~mask
+        values = np.full(dc_yda.shape, nodata_value, dtype=dc_yda.dtype)
 
         start = perf_counter()
-        values = vectorized_dc(dc_yda, temp, rh, prec, lat, mon, True)
+        values[valid] = vectorized_dc(dc_yda[valid], temp[valid], rh[valid], prec[valid], lat[valid], mon[valid], True)
         logger.info("%f seconds to calculate vectorized dc", perf_counter() - start)
 
-        values[mask] = nodata_value
         return FWIResult(values, nodata_value)
 
 
