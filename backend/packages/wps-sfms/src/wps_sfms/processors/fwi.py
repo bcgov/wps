@@ -163,12 +163,16 @@ class FWIProcessor:
             fwi_inputs.temp_key, fwi_inputs.rh_key, fwi_inputs.precip_key
         )
         if not weather_keys_exist:
-            raise RuntimeError(f"Missing weather keys for {self.datetime_to_process.date()}")
+            raise RuntimeError(
+                f"Missing weather keys for {self.datetime_to_process.date()}: "
+                f"temp={fwi_inputs.temp_key}, rh={fwi_inputs.rh_key}, precip={fwi_inputs.precip_key}"
+            )
 
         fwi_key_exists = await s3_client.all_objects_exist(fwi_inputs.prev_fwi_key)
         if not fwi_key_exists:
             raise RuntimeError(
-                f"Missing previous {calculator.fwi_param.value} key for {self.datetime_to_process.date()}"
+                f"Missing previous {calculator.fwi_param.value} raster for "
+                f"{self.datetime_to_process.date()}: {fwi_inputs.prev_fwi_key}"
             )
 
         logger.info(
