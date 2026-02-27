@@ -15,7 +15,7 @@ DEW_POINT_LAPSE_RATE = 0.002
 
 @runtime_checkable
 class StationInterpolationSource(Protocol):
-    def get_interpolation_data(self) -> Tuple: ...
+    def get_interpolation_data(self) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]: ...
 
 
 class LapseRateAdjustedSource(ABC):
