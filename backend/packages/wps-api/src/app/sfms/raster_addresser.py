@@ -2,6 +2,7 @@ import enum
 import os
 from datetime import datetime, timedelta
 
+from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     BaseRasterAddresser,
     FWIParameter,
@@ -40,18 +41,18 @@ class RasterKeyAddresser(BaseRasterAddresser):
         return f"{self.sfms_daily_upload_prefix}/{iso_date}/{fwi_param.value}{iso_date.replace('-', '')}.tif"
 
     def get_calculated_index_key(
-        self, datetime_utc: datetime, fwi_param: FWIParameter, run_type: str = "forecast"
+        self, datetime_utc: datetime, fwi_param: FWIParameter, run_type: RunType = RunType.FORECAST
     ):
         """
         Generates the calculated fire weather index key that points to the associated raster artifact in the object store.
 
         :param datetime_utc: UTC datetime the calculated raster is for
         :param fwi_param: the fire weather index caller is interested in
-        :param run_type: "forecast" for RDPS-based forecasts, "actual" for station-interpolated actuals
+        :param run_type: RunType.FORECAST for RDPS-based forecasts, RunType.ACTUAL for station-interpolated actuals
         :return: the key to the raster artifact in object storage
         """
         assert_all_utc(datetime_utc)
-        return f"{self.sfms_calculated_prefix}/{run_type}/{datetime_utc.date().isoformat()}/{fwi_param.value}{datetime_utc.date().isoformat().replace('-', '')}.tif"
+        return f"{self.sfms_calculated_prefix}/{run_type.value}/{datetime_utc.date().isoformat()}/{fwi_param.value}{datetime_utc.date().isoformat().replace('-', '')}.tif"
 
     def get_model_data_key(
         self, start_time_utc: datetime, prediction_hour: int, weather_param: WeatherParameter
