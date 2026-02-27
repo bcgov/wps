@@ -58,13 +58,13 @@ class Interpolator:
         set_s3_gdal_config()
         logger.info("Starting interpolation, output: %s", output_key)
 
-        dataset = self.interpolate(source, reference_raster_path)
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_path = os.path.join(tmp_dir, os.path.basename(output_key))
-            dataset.export_to_geotiff(tmp_path)
+        with self.interpolate(source, reference_raster_path) as dataset:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                tmp_path = os.path.join(tmp_dir, os.path.basename(output_key))
+                dataset.export_to_geotiff(tmp_path)
 
-            async with aiofiles.open(tmp_path, "rb") as f:
-                await s3_client.put_object(key=output_key, body=await f.read())
+                async with aiofiles.open(tmp_path, "rb") as f:
+                    await s3_client.put_object(key=output_key, body=await f.read())
 
         logger.info("Interpolation complete: %s", output_key)
         return output_key
