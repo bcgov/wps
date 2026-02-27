@@ -18,6 +18,7 @@ from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_shared.db.models.sfms_run import SFMSRunLogStatus
+from wps_shared.sfms.raster_addresser import FWIParameter
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
 
@@ -386,6 +387,13 @@ class TestFWICalculationVsInterpolation:
         await run_sfms_daily_actuals(target_date)
 
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 3
+        # Each calculator must use its own FWIParameter — a wiring bug where all three
+        # share the same fwi_param would silently produce wrong rasters.
+        actual_fwi_params = [
+            call.args[1]
+            for call in mock_dependencies.addresser.get_actual_fwi_inputs.call_args_list
+        ]
+        assert set(actual_fwi_params) == {FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC}
         # IDW called once only for precip, not for FWI indices
         mock_dependencies.interpolation_processor.process.assert_called_once()
 
