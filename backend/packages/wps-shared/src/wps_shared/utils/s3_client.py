@@ -58,6 +58,7 @@ class S3Client:
             raw_key = key.removeprefix(f"/vsis3/{self.bucket}/")
             key_exists = await self.object_exists(raw_key)
             if not key_exists:
+                logger.error("Required S3 object does not exist: %s", raw_key)
                 return False
         return True
 
@@ -197,6 +198,7 @@ class S3Client:
         with WPSDataset.from_array(values, transform, projection, no_data_value) as ds:
             ds.export_to_geotiff(temp_geotiff)
 
+        logger.info("Writing to S3: %s", key)
         async with aiofiles.open(temp_geotiff, "rb") as f:
             contents = await f.read()
             await self.put_object(key=key, body=contents)
