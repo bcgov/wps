@@ -185,7 +185,7 @@ async def test_fwi_processor_missing_fwi_keys(mocker: MockerFixture):
         )
         persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
 
-        with pytest.raises(RuntimeError, match="Missing previous dmc key"):
+        with pytest.raises(RuntimeError, match="Missing previous dmc raster for"):
             await processor.calculate_index(
                 mock_s3_client,
                 mock_input_dataset_context,
@@ -258,6 +258,39 @@ async def test_fwi_processor_run_type_in_output_key(mocker: MockerFixture):
         output_key = persist_raster_spy.call_args[0][1]
         assert "actual" in output_key
         assert "forecast" not in output_key
+
+
+@pytest.mark.anyio
+async def test_fwi_processor_cog_failure_propagates(mocker: MockerFixture):
+    """If COG generation fails after a successful persist, the error propagates.
+
+    This covers the partial-success scenario where the raster is written to S3
+    but the COG is not — the caller must see the failure so it can be retried.
+    """
+    processor = FWIProcessor(TEST_DATETIME)
+    fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
+
+    _, mock_input_dataset_context = create_mock_input_dataset_context(4)
+    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
+    mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
+    mocker.patch(
+        "wps_sfms.processors.fwi.generate_and_store_cog",
+        side_effect=RuntimeError("COG generation failed"),
+    )
+
+    async with S3Client() as mock_s3_client:
+        mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
+        persist_raster_spy = mocker.patch.object(
+            mock_s3_client, "persist_raster_data", return_value="test_key.tif"
+        )
+
+        with pytest.raises(RuntimeError, match="COG generation failed"):
+            await processor.calculate_index(
+                mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs
+            )
+
+        # Raster was persisted before COG generation was attempted
+        persist_raster_spy.assert_called_once()
 
 
 class TestFWINodeataPropagation:
