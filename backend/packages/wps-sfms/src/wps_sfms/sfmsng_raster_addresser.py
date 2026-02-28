@@ -12,6 +12,7 @@ from wps_shared.sfms.raster_addresser import (
     BaseRasterAddresser,
     FWIInputs,
     FWIParameter,
+    S3Key,
     SFMSInterpolatedWeatherParameter,
 )
 from wps_shared.utils.time import assert_all_utc
@@ -31,7 +32,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
 
     def get_actual_weather_key(
         self, datetime_utc: datetime, weather_param: SFMSInterpolatedWeatherParameter
-    ) -> str:
+    ) -> S3Key:
         """
         S3 key for an interpolated weather parameter raster.
 
@@ -41,9 +42,9 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         date = datetime_utc.date()
         param = weather_param.value
         date_str = date.isoformat().replace("-", "")
-        return f"{self.root}/actual/{date.year:04d}/{date.month:02d}/{date.day:02d}/{param}_{date_str}.tif"
+        return S3Key(f"{self.root}/actual/{date.year:04d}/{date.month:02d}/{date.day:02d}/{param}_{date_str}.tif")
 
-    def get_actual_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter) -> str:
+    def get_actual_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter) -> S3Key:
         """
         S3 key for an actual FWI index raster output.
 
@@ -52,7 +53,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_utc)
         date = datetime_utc.date()
         date_str = date.isoformat().replace("-", "")
-        return f"{self.root}/actual/{date.year:04d}/{date.month:02d}/{date.day:02d}/{fwi_param.value}_{date_str}.tif"
+        return S3Key(f"{self.root}/actual/{date.year:04d}/{date.month:02d}/{date.day:02d}/{fwi_param.value}_{date_str}.tif")
 
     def get_actual_fwi_inputs(
         self, datetime_to_process: datetime, fwi_param: FWIParameter

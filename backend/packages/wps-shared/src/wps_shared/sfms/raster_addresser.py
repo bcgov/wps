@@ -1,10 +1,17 @@
 import enum
 from dataclasses import dataclass
 from datetime import datetime
+from typing import NewType
 
 from wps_shared import config
 from wps_shared.run_type import RunType
 from wps_shared.utils.time import assert_all_utc
+
+# Distinct types for plain S3 keys vs GDAL vsis3-prefixed paths.
+# Swapping them produces a silent runtime failure, so the distinction
+# is expressed at the type level to catch errors at static analysis time.
+S3Key = NewType("S3Key", str)
+GDALPath = NewType("GDALPath", str)
 
 
 class SFMSInterpolatedWeatherParameter(enum.Enum):
@@ -25,14 +32,19 @@ class FWIParameter(enum.Enum):
 
 @dataclass(frozen=True)
 class FWIInputs:
-    """All S3 keys and metadata needed for a single FWI index calculation."""
+    """All S3 keys and metadata needed for a single FWI index calculation.
 
-    temp_key: str
-    rh_key: str
-    precip_key: str
-    prev_fwi_key: str
-    output_key: str
-    cog_key: str  # GDAL-prefixed path for COG output
+    Input keys (temp_key, rh_key, precip_key, prev_fwi_key, cog_key) are
+    GDALPath values (/vsis3/...) for reading via GDAL. output_key is a plain
+    S3Key for writing via boto3.
+    """
+
+    temp_key: GDALPath
+    rh_key: GDALPath
+    precip_key: GDALPath
+    prev_fwi_key: GDALPath
+    output_key: S3Key
+    cog_key: GDALPath
     run_type: RunType
 
 
@@ -42,34 +54,34 @@ class BaseRasterAddresser:
     def __init__(self):
         self.s3_prefix = f"/vsis3/{config.get('OBJECT_STORE_BUCKET')}"
 
-    def gdal_path(self, key: str) -> str:
+    def gdal_path(self, key: S3Key) -> GDALPath:
         """Return a GDAL vsis3-prefixed path for a plain S3 key."""
-        return f"{self.s3_prefix}/{key}"
+        return GDALPath(f"{self.s3_prefix}/{key}")
 
-    def gdal_prefix_keys(self, *keys):
+    def gdal_prefix_keys(self, *keys: S3Key) -> tuple[GDALPath, ...]:
         """Prefix keys with vsis3/{bucket} for reading from S3 with GDAL."""
         return tuple(self.gdal_path(key) for key in keys)
 
-    def get_cog_key(self, key: str) -> str:
+    def get_cog_key(self, key: S3Key) -> GDALPath:
         """Given a .tif key, return a GDAL-prefixed _cog.tif path."""
         if not key.endswith(".tif"):
             raise ValueError(f"Expected .tif file path, got {key}")
-        return self.s3_prefix + "/" + key.removesuffix(".tif") + "_cog.tif"
+        return GDALPath(self.s3_prefix + "/" + key.removesuffix(".tif") + "_cog.tif")
 
-    def get_dem_key(self) -> str:
+    def get_dem_key(self) -> GDALPath:
         """GDAL virtual file system path to the BC DEM raster."""
-        return f"{self.s3_prefix}/sfms/static/bc_elevation.tif"
+        return GDALPath(f"{self.s3_prefix}/sfms/static/bc_elevation.tif")
 
-    def get_mask_key(self) -> str:
+    def get_mask_key(self) -> GDALPath:
         """GDAL virtual file system path to the BC boundary mask raster."""
-        return f"{self.s3_prefix}/sfms/static/bc_mask.tif"
+        return GDALPath(f"{self.s3_prefix}/sfms/static/bc_mask.tif")
 
-    def get_fuel_raster_key(self, datetime_utc: datetime, version: int) -> str:
+    def get_fuel_raster_key(self, datetime_utc: datetime, version: int) -> S3Key:
         """S3 key for a versioned fuel type raster."""
         assert_all_utc(datetime_utc)
         year = datetime_utc.year
-        return f"sfms/static/fuel/{year}/fbp{year}_v{version}.tif"
+        return S3Key(f"sfms/static/fuel/{year}/fbp{year}_v{version}.tif")
 
-    def get_unprocessed_fuel_raster_key(self, object_name: str) -> str:
+    def get_unprocessed_fuel_raster_key(self, object_name: str) -> S3Key:
         """S3 key for an unprocessed fuel raster staged at sfms/static/."""
-        return f"sfms/static/{object_name}"
+        return S3Key(f"sfms/static/{object_name}")
