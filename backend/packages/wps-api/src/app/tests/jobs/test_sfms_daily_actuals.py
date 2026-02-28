@@ -393,6 +393,7 @@ class TestFWICalculationVsInterpolation:
             call.args[1]
             for call in mock_dependencies.addresser.get_actual_fwi_inputs.call_args_list
         ]
+        assert len(actual_fwi_params) == 3
         assert set(actual_fwi_params) == {FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC}
         # IDW called once only for precip, not for FWI indices
         mock_dependencies.interpolation_processor.process.assert_called_once()
