@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
+import logging
 from typing import List, Optional, Protocol, Tuple, runtime_checkable
 import numpy as np
 
 from numpy.typing import NDArray
 from wps_shared.schemas.sfms import SFMSDailyActual
+
+logger = logging.getLogger(__name__)
 
 # Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
 # This matches the CWFIS implementation
@@ -85,7 +88,11 @@ class LapseRateAdjustedSource(ABC):
         """Returns arrays for IDW: (lats, lons, sea_level_values), vectorized."""
         lats, lons, elevs, values = self.get_station_arrays(only_valid=True)
         if lats.size == 0:
-            return lats, lons, values  # all empty arrays
+            logger.warning(
+                "%s has no valid stations (missing elevation or value) — interpolation will produce no output",
+                type(self).__name__,
+            )
+            return lats, lons, values
 
         sea = self.compute_sea_level_values(values, elevs, lapse_rate)
         return lats, lons, sea
