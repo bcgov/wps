@@ -165,12 +165,12 @@ async def run_fwi_calculations(
     ]
 
     for job_name, calculator in fwi_calculations:
-        fwi_inputs = raster_addresser.get_actual_fwi_inputs(
-            datetime_to_process, calculator.fwi_param
-        )
 
         @track_sfms_run(job_name, sfms_run_id, session)
-        async def _run(_calculator=calculator, _fwi_inputs=fwi_inputs) -> None:
+        async def _run(_calculator=calculator) -> None:
+            _fwi_inputs = raster_addresser.get_actual_fwi_inputs(
+                datetime_to_process, _calculator.fwi_param
+            )
             await fwi_processor.calculate_index(
                 s3_client, multi_wps_dataset_context, _calculator, _fwi_inputs
             )
