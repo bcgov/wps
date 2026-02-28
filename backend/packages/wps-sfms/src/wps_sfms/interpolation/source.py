@@ -169,12 +169,12 @@ class StationActualSource(StationInterpolationSource):
         self._attribute = attribute
         self._sfms_actuals = sfms_actuals
 
-    def get_interpolation_data(self) -> Tuple[List[float], List[float], List[float]]:
+    def get_interpolation_data(self) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
         valid = [s for s in self._sfms_actuals if getattr(s, self._attribute) is not None]
         return (
-            [s.lat for s in valid],
-            [s.lon for s in valid],
-            [getattr(s, self._attribute) for s in valid],
+            np.array([s.lat for s in valid], dtype=np.float32),
+            np.array([s.lon for s in valid], dtype=np.float32),
+            np.array([getattr(s, self._attribute) for s in valid], dtype=np.float32),
         )
 
 

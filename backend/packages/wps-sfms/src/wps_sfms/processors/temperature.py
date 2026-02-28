@@ -85,6 +85,13 @@ class TemperatureInterpolator(Interpolator):
                 total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count
             )
 
+            if interpolated_count == 0:
+                raise RuntimeError(
+                    f"No pixels were successfully interpolated from {len(station_lats)} station(s). "
+                    "Check that station coordinates fall within the raster extent and that at least "
+                    "one station has a valid temperature value."
+                )
+
             return WPSDataset.from_array(
                 array=temp_array,
                 geotransform=geo_transform,

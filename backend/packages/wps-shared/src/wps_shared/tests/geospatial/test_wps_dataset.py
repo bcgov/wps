@@ -71,6 +71,7 @@ def test_replace_nodata_with_nan_float_array():
     with WPSDataset(ds_path=None, ds=dataset) as wps_ds:
         array, nodata = wps_ds.replace_nodata_with(np.nan)
 
+        assert array.dtype == np.float32
         assert np.isnan(nodata)
         assert np.isnan(array[1, 1])
         assert array[0, 0] == pytest.approx(3.0)
