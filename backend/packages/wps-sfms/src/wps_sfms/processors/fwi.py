@@ -184,11 +184,17 @@ class FWIProcessor:
 
                 # Assert weather rasters already match the FWI grid
                 if not rasters_match(temp_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
-                    raise ValueError("Temperature raster does not match FWI grid")
+                    raise ValueError(
+                        f"Temperature raster does not match FWI grid: {fwi_inputs.temp_key} vs {fwi_inputs.prev_fwi_key}"
+                    )
                 if not rasters_match(rh_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
-                    raise ValueError("RH raster does not match FWI grid")
+                    raise ValueError(
+                        f"RH raster does not match FWI grid: {fwi_inputs.rh_key} vs {fwi_inputs.prev_fwi_key}"
+                    )
                 if not rasters_match(precip_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
-                    raise ValueError("Precip raster does not match FWI grid")
+                    raise ValueError(
+                        f"Precip raster does not match FWI grid: {fwi_inputs.precip_key} vs {fwi_inputs.prev_fwi_key}"
+                    )
 
                 result = calculator.calculate(prev_fwi_ds, temp_ds, rh_ds, precip_ds)
 
