@@ -4,6 +4,7 @@ Unit tests for temperature interpolation module.
 
 import numpy as np
 import uuid
+import pytest
 from osgeo import gdal
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_sfms.interpolation.source import StationTemperatureSource
@@ -178,6 +179,33 @@ class TestTemperatureInterpolator:
             assert dataset.ds.GetGeoTransform() == ref_ds.GetGeoTransform()
             assert dataset.ds.GetProjection() == ref_ds.GetProjection()
             ref_ds = None
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(dem_path)
+            gdal.Unlink(mask_path)
+
+    def test_interpolate_raises_when_no_valid_stations(self):
+        """Test that RuntimeError is raised when no stations have valid temperature values."""
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        dem_path = f"/vsimem/dem_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
+
+        try:
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            create_test_raster(ref_path, 5, 5, extent, fill_value=1.0)
+            create_test_raster(dem_path, 5, 5, extent, fill_value=100.0)
+            create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
+
+            actuals = [
+                SFMSDailyActual(code=1, lat=49.05, lon=-123.05, elevation=100.0, temperature=None)
+            ]
+            temperature_source = StationTemperatureSource(actuals)
+
+            with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):
+                TemperatureInterpolator(
+                    mask_path=mask_path, dem_path=dem_path
+                ).interpolate(temperature_source, ref_path)
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
