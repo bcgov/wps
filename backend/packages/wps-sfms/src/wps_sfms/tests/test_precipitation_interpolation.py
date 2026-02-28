@@ -4,41 +4,9 @@ Unit tests for precipitation interpolation module.
 
 import numpy as np
 import uuid
-from osgeo import gdal, osr
+from osgeo import gdal
 from wps_sfms.interpolation.idw import interpolate_to_raster
-
-
-def create_test_raster(path: str, width: int, height: int, extent: tuple, epsg: int = 4326, fill_value: float = 1.0, nodata: float = -9999.0):
-    """
-    Create a test GeoTIFF raster in memory using GDAL's /vsimem/ filesystem.
-
-    :param path: Output path (should use /vsimem/ prefix)
-    :param width: Raster width in pixels
-    :param height: Raster height in pixels
-    :param extent: (xmin, xmax, ymin, ymax)
-    :param epsg: EPSG code for projection
-    :param fill_value: Value to fill raster with
-    :param nodata: NoData value
-    :return: None
-    """
-    driver = gdal.GetDriverByName("GTiff")
-    ds = driver.Create(path, width, height, 1, gdal.GDT_Float32)
-
-    xmin, xmax, ymin, ymax = extent
-    xres = (xmax - xmin) / width
-    yres = (ymax - ymin) / height
-    ds.SetGeoTransform((xmin, xres, 0, ymax, 0, -yres))
-
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(epsg)
-    ds.SetProjection(srs.ExportToWkt())
-
-    band = ds.GetRasterBand(1)
-    band.SetNoDataValue(nodata)
-    band.WriteArray(np.full((height, width), fill_value, dtype=np.float32))
-    band.FlushCache()
-
-    ds = None  # Close dataset
+from wps_sfms.tests.conftest import create_test_raster
 
 
 class TestInterpolateToRaster:
