@@ -47,3 +47,4 @@ def create_test_raster(
     else:
         band.WriteArray(np.full((height, width), fill_value, dtype=np.float32))
     band.FlushCache()
+    ds = None
