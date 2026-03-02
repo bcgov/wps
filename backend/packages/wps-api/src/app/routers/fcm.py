@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-
 from wps_shared.db.crud.fcm import (
     get_device_by_token,
     save_device_token,
@@ -9,12 +8,10 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fcm import DeviceToken
 from wps_shared.utils.time import get_utc_now
 
-import app
 from app.fcm.schema import DeviceRequestResponse, RegisterDeviceRequest, UnregisterDeviceRequest
 
-router = APIRouter(
-    prefix="/device"
-)
+router = APIRouter(prefix="/device")
+
 
 @router.post("/register")
 async def register_device(request: RegisterDeviceRequest):

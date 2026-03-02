@@ -1,10 +1,6 @@
-import enum
-from typing import Literal
-
-from sqlalchemy import Boolean, Column, Enum, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String
 
 from wps_shared.db.models import Base
-from wps_shared.db.models.auto_spatial_advisory import Shape
 from wps_shared.db.models.common import TZTimeStamp
 from wps_shared.utils.time import get_utc_now
 
