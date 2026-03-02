@@ -387,15 +387,27 @@ def hourly_fine_fuel_moisture_code(weatherstream: pd.DataFrame, ffmc_old: float,
 
     current_ffmc = ffmc_old
     hffmc_values = []
-    for _, row in weatherstream.iterrows():
-        current_ffmc = _hourly_ffmc(
-            temp=row['temp'],
-            rh=row['rh'],
-            ws=row['ws'],
-            prec=row['prec'],
-            fo=current_ffmc,
-            t0=time_step,
-        )
+    for idx, row in weatherstream.iterrows():
+        try:
+            current_ffmc = _hourly_ffmc(
+                temp=row['temp'],
+                rh=row['rh'],
+                ws=row['ws'],
+                prec=row['prec'],
+                fo=current_ffmc,
+                t0=time_step,
+            )
+        except Exception as exc:
+            logger.error(
+                "hourly_ffmc failed at row %s: temp=%s, rh=%s, ws=%s, prec=%s, fo=%s — %s",
+                idx, row['temp'], row['rh'], row['ws'], row['prec'], current_ffmc, exc,
+            )
+            raise CFFDRSException(f"hourly_ffmc failed at row {idx}: {exc}") from exc
+        if math.isnan(current_ffmc):
+            raise CFFDRSException(
+                f"hourly_ffmc returned NaN at row {idx}: temp={row['temp']}, rh={row['rh']}, "
+                f"ws={row['ws']}, prec={row['prec']}, fo={ffmc_old}"
+            )
         hffmc_values.append(current_ffmc)
 
     weatherstream = weatherstream.copy()
