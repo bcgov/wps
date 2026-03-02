@@ -18,7 +18,9 @@ DEW_POINT_LAPSE_RATE = 0.002
 
 @runtime_checkable
 class StationInterpolationSource(Protocol):
-    def get_interpolation_data(self) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]: ...
+    def get_interpolation_data(
+        self,
+    ) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]: ...
 
 
 class LapseRateAdjustedSource(ABC):
@@ -172,11 +174,15 @@ class StationActualSource(StationInterpolationSource):
 
     def __init__(self, attribute: str, sfms_actuals: List[SFMSDailyActual]):
         if attribute not in _VALID_SFMS_ATTRIBUTES:
-            raise ValueError(f"Unknown attribute {attribute!r} on SFMSDailyActual. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}")
+            raise ValueError(
+                f"Unknown attribute {attribute!r} on SFMSDailyActual. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}"
+            )
         self._attribute = attribute
         self._sfms_actuals = sfms_actuals
 
-    def get_interpolation_data(self) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
+    def get_interpolation_data(
+        self,
+    ) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
         valid = [s for s in self._sfms_actuals if getattr(s, self._attribute) is not None]
         return (
             np.array([s.lat for s in valid], dtype=np.float32),
@@ -185,8 +191,43 @@ class StationActualSource(StationInterpolationSource):
         )
 
 
+class StationWindVectorSource:
+    """Station source for paired wind speed/direction transformed to u/v vectors."""
+
+    def __init__(self, sfms_actuals: List[SFMSDailyActual]):
+        self._sfms_actuals = sfms_actuals
+
+    def get_uv_interpolation_data(
+        self,
+    ) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
+        valid = [
+            s
+            for s in self._sfms_actuals
+            if s.wind_speed is not None and s.wind_direction is not None
+        ]
+        if not valid:
+            empty = np.array([], dtype=np.float32)
+            return empty, empty, empty, empty
+
+        lats = np.array([s.lat for s in valid], dtype=np.float32)
+        lons = np.array([s.lon for s in valid], dtype=np.float32)
+        speed = np.array([s.wind_speed for s in valid], dtype=np.float32)
+        direction = np.array([s.wind_direction for s in valid], dtype=np.float32)
+
+        # Match legacy SFMS wind vector transform:
+        # u = -ws * sin(dir), v = -ws * cos(dir), with direction in degrees.
+        direction_radians = np.radians(direction.astype(np.float32))
+        u = (-speed * np.sin(direction_radians)).astype(np.float32)
+        v = (-speed * np.cos(direction_radians)).astype(np.float32)
+        return lats, lons, u, v
+
+
 def StationPrecipitationSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
     return StationActualSource("precipitation", sfms_actuals)
+
+
+def StationWindSpeedSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
+    return StationActualSource("wind_speed", sfms_actuals)
 
 
 def StationFFMCSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:

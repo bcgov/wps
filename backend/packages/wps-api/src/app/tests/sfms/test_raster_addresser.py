@@ -108,6 +108,10 @@ def test_get_calculated_hffmc_index_key(addresser: RasterKeyAddresser):
             "sfms/interpolated/wind_speed/2024/01/15/wind_speed_20240115.tif",
         ),
         (
+            SFMSInterpolatedWeatherParameter.WIND_DIRECTION,
+            "sfms/interpolated/wind_direction/2024/01/15/wind_direction_20240115.tif",
+        ),
+        (
             SFMSInterpolatedWeatherParameter.PRECIP,
             "sfms/interpolated/precipitation/2024/01/15/precipitation_20240115.tif",
         ),

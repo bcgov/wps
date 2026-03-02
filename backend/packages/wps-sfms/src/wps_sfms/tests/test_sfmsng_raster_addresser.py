@@ -34,6 +34,10 @@ class TestGetActualWeatherKey:
                 "sfms_ng/actual/2024/04/15/wind_speed_20240415.tif",
             ),
             (
+                SFMSInterpolatedWeatherParameter.WIND_DIRECTION,
+                "sfms_ng/actual/2024/04/15/wind_direction_20240415.tif",
+            ),
+            (
                 SFMSInterpolatedWeatherParameter.PRECIP,
                 "sfms_ng/actual/2024/04/15/precipitation_20240415.tif",
             ),

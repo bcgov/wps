@@ -3,12 +3,11 @@ import numpy as np
 from osgeo import gdal
 from wps_sfms.interpolation.source import DEW_POINT_LAPSE_RATE, StationDewPointSource
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_sfms.interpolation.common import (
     SFMS_NO_DATA,
     log_interpolation_stats,
 )
-from wps_sfms.processors.idw import Interpolator
+from wps_sfms.processors.idw import Interpolator, idw_on_valid_pixels
 
 logger = logging.getLogger(__name__)
 
@@ -59,59 +58,46 @@ class RHInterpolator(Interpolator):
                 valid_elevations = dem_data[valid_mask]
 
                 total_pixels = x_size * y_size
-                skipped_nodata_count = total_pixels - len(valid_yi)
 
                 logger.info(
                     "Interpolating dew point for RH raster grid (%d x %d)", x_size, y_size
-                )
-                logger.info(
-                    "Processing %d valid pixels (skipping %d NoData pixels)",
-                    len(valid_yi),
-                    skipped_nodata_count,
                 )
 
                 station_lats, station_lons, sea_level_dewpoints = (
                     source.get_interpolation_data(lapse_rate=DEW_POINT_LAPSE_RATE)
                 )
-                logger.info(
-                    "Running batch dew point IDW interpolation for %d pixels and %d stations",
-                    len(lats),
-                    len(station_lats),
+                idw_result = idw_on_valid_pixels(
+                    valid_lats=lats,
+                    valid_lons=lons,
+                    valid_yi=valid_yi,
+                    valid_xi=valid_xi,
+                    station_lats=station_lats,
+                    station_lons=station_lons,
+                    station_values=sea_level_dewpoints,
+                    total_pixels=total_pixels,
+                    label="dew point",
                 )
 
-                interpolated_sea_level_dewpoints = idw_interpolation(
-                    lats, lons, station_lats, station_lons, sea_level_dewpoints
-                )
-                assert isinstance(interpolated_sea_level_dewpoints, np.ndarray)
-
-                interpolation_succeeded = ~np.isnan(interpolated_sea_level_dewpoints)
-                interpolated_count = int(np.sum(interpolation_succeeded))
-                failed_interpolation_count = (
-                    len(interpolated_sea_level_dewpoints) - interpolated_count
-                )
-
-                rows = valid_yi[interpolation_succeeded]
-                cols = valid_xi[interpolation_succeeded]
-
-                sea = interpolated_sea_level_dewpoints[interpolation_succeeded].astype(
-                    np.float32, copy=False
-                )
-                elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
+                sea = idw_result.values
+                elev = valid_elevations[idw_result.succeeded_mask].astype(np.float32, copy=False)
                 adjusted_dewpoints = StationDewPointSource.compute_adjusted_values(
                     sea, elev, DEW_POINT_LAPSE_RATE
                 )
 
                 rh_values = StationDewPointSource.compute_rh(
-                    temp_data[rows, cols].astype(np.float32),
+                    temp_data[idw_result.rows, idw_result.cols].astype(np.float32),
                     adjusted_dewpoints,
                 )
-                rh_array[rows, cols] = rh_values
+                rh_array[idw_result.rows, idw_result.cols] = rh_values
 
             log_interpolation_stats(
-                total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count
+                idw_result.total_pixels,
+                idw_result.interpolated_count,
+                idw_result.failed_interpolation_count,
+                idw_result.skipped_nodata_count,
             )
 
-            if interpolated_count == 0:
+            if idw_result.interpolated_count == 0:
                 raise RuntimeError(
                     f"No pixels were successfully interpolated from {len(station_lats)} station(s). "
                     "Check that station coordinates fall within the raster extent and that at least "

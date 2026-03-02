@@ -1,6 +1,5 @@
 """
-Job for running SFMS daily actuals: temperature interpolation followed by
-precipitation interpolation for the current date.
+Job for running SFMS daily actuals weather interpolation and FWI processing.
 
 Usage:
     python -m app.jobs.sfms_daily_actuals "YYYY-MM-DD"
@@ -22,11 +21,14 @@ from wps_sfms.interpolation.source import (
     StationFFMCSource,
     StationPrecipitationSource,
     StationTemperatureSource,
+    StationWindSpeedSource,
+    StationWindVectorSource,
 )
 from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator, FWIProcessor
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
+from wps_sfms.processors.wind import WindDirectionInterpolator
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -62,7 +64,7 @@ async def run_weather_interpolation(
     sfms_run_id: int,
     session,
 ) -> None:
-    """Interpolate temperature, RH, and precipitation from station observations."""
+    """Interpolate weather rasters from station observations."""
     mask_path = raster_addresser.get_mask_key()
     dem_path = raster_addresser.get_dem_key()
     temp_key = raster_addresser.get_actual_weather_key(
@@ -70,6 +72,8 @@ async def run_weather_interpolation(
     )
     temp_processor = TemperatureInterpolator(mask_path, dem_path)
     rh_processor = RHInterpolator(mask_path, dem_path, raster_addresser.gdal_path(temp_key))
+    wind_speed_processor = Interpolator(mask_path)
+    wind_direction_processor = WindDirectionInterpolator(mask_path)
     precip_processor = Interpolator(mask_path)
 
     @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, sfms_run_id, session)
@@ -103,8 +107,34 @@ async def run_weather_interpolation(
         )
         logger.info("Precip interpolation raster: %s", precip_s3_key)
 
+    @track_sfms_run(SFMSRunLogJobName.WIND_SPEED_INTERPOLATION, sfms_run_id, session)
+    async def run_wind_speed_interpolation() -> None:
+        wind_speed_s3_key = await wind_speed_processor.process(
+            s3_client,
+            fuel_raster_path,
+            StationWindSpeedSource(sfms_actuals),
+            raster_addresser.get_actual_weather_key(
+                datetime_to_process, SFMSInterpolatedWeatherParameter.WIND_SPEED
+            ),
+        )
+        logger.info("Wind speed interpolation raster: %s", wind_speed_s3_key)
+
+    @track_sfms_run(SFMSRunLogJobName.WIND_DIRECTION_INTERPOLATION, sfms_run_id, session)
+    async def run_wind_direction_interpolation() -> None:
+        wind_direction_s3_key = await wind_direction_processor.process(
+            s3_client,
+            fuel_raster_path,
+            StationWindVectorSource(sfms_actuals),
+            raster_addresser.get_actual_weather_key(
+                datetime_to_process, SFMSInterpolatedWeatherParameter.WIND_DIRECTION
+            ),
+        )
+        logger.info("Wind direction interpolation raster: %s", wind_direction_s3_key)
+
     await run_temperature_interpolation()
     await run_rh_interpolation()
+    await run_wind_speed_interpolation()
+    await run_wind_direction_interpolation()
     await run_precipitation_interpolation()
 
 
@@ -179,7 +209,7 @@ async def run_fwi_calculations(
 
 
 async def run_sfms_daily_actuals(target_date: datetime) -> None:
-    """Run temperature then precipitation interpolation for the given date."""
+    """Run SFMS daily weather interpolation and FWI updates for the given date."""
     logger.info("Starting SFMS daily actuals for %s", target_date.date())
 
     raster_addresser = SFMSNGRasterAddresser()

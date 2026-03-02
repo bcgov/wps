@@ -1,6 +1,6 @@
 import pytest
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_sfms.interpolation.source import StationActualSource
+from wps_sfms.interpolation.source import StationActualSource, StationWindVectorSource
 
 
 class TestStationActualSource:
@@ -30,3 +30,49 @@ class TestStationActualSource:
         lats, _, values = source.get_interpolation_data()
         assert len(lats) == 1
         assert values[0] == pytest.approx(3.0)
+
+
+class TestStationWindVectorSource:
+    """Tests for StationWindVectorSource paired wind vector extraction."""
+
+    def test_get_uv_interpolation_data_filters_unpaired_values(self):
+        actuals = [
+            SFMSDailyActual(
+                code=1, lat=49.0, lon=-123.0, wind_speed=10.0, wind_direction=0.0
+            ),
+            SFMSDailyActual(
+                code=2, lat=49.1, lon=-123.1, wind_speed=8.0, wind_direction=90.0
+            ),
+            SFMSDailyActual(
+                code=3, lat=49.2, lon=-123.2, wind_speed=12.0, wind_direction=None
+            ),
+            SFMSDailyActual(
+                code=4, lat=49.3, lon=-123.3, wind_speed=None, wind_direction=180.0
+            ),
+        ]
+        source = StationWindVectorSource(actuals)
+
+        lats, lons, u, v = source.get_uv_interpolation_data()
+
+        assert len(lats) == 2
+        assert len(lons) == 2
+
+        # For dir=0: u=-ws*sin(0)=0, v=-ws*cos(0)=-10
+        assert u[0] == pytest.approx(0.0, abs=1e-6)
+        assert v[0] == pytest.approx(-10.0)
+        # For dir=90: u=-ws*sin(90)=-8, v=-ws*cos(90)=0
+        assert u[1] == pytest.approx(-8.0, abs=1e-5)
+        assert v[1] == pytest.approx(0.0, abs=1e-5)
+
+    def test_get_uv_interpolation_data_returns_empty_when_no_pairs(self):
+        actuals = [
+            SFMSDailyActual(code=1, lat=49.0, lon=-123.0, wind_speed=None, wind_direction=0.0),
+            SFMSDailyActual(code=2, lat=49.1, lon=-123.1, wind_speed=5.0, wind_direction=None),
+        ]
+        source = StationWindVectorSource(actuals)
+
+        lats, lons, u, v = source.get_uv_interpolation_data()
+        assert len(lats) == 0
+        assert len(lons) == 0
+        assert len(u) == 0
+        assert len(v) == 0
