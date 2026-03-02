@@ -29,6 +29,14 @@ def test_hourly_ffmc_calculates_values():
     assert not df['hffmc'].isnull().any()
 
 
+def test_hourly_ffmc_returned_columns():
+    """hourly_fine_fuel_moisture_code renames input columns to cffdrs_py's short names and appends hffmc."""
+    ffmc_old = 80.0
+    df = hourly_fine_fuel_moisture_code(df_hourly, ffmc_old)
+
+    assert set(df.columns) == {'temp', 'rh', 'ws', 'prec', 'hffmc'}
+
+
 def test_hourly_ffmc_no_temperature():
     ffmc_old = 80.0
     df_no_temp = pd.DataFrame(
@@ -129,3 +137,20 @@ def test_none_latitude_dc():
 def test_none_month_dc():
     res = cffdrs.drought_code(100, 10, 90, 0, month=None)
     assert res is not None
+
+
+def test_dmc_temp_below_threshold_gives_zero_drying():
+    """cffdrs_py clamps temp to -1.1 when temp < 1.1°C (Eq. 16), making drying rate rk = 0.
+    With no precipitation and a low initial DMC, the result stays at the initial value."""
+    # temp=1.0 is below the 1.1°C threshold — rk = 1.894 * (-1.1 + 1.1) * ... = 0
+    res_below = cffdrs.duff_moisture_code(10, 1.0, 50, 0)
+    # temp=1.2 is above the threshold — rk > 0, so DMC increases slightly
+    res_above = cffdrs.duff_moisture_code(10, 1.2, 50, 0)
+    assert res_below < res_above
+
+
+def test_dmc_temp_at_threshold_gives_zero_drying():
+    """At exactly 1.1°C, temp is not clamped (condition is temp < 1.1), so rk is a small positive value."""
+    res_at = cffdrs.duff_moisture_code(10, 1.1, 50, 0)
+    res_below = cffdrs.duff_moisture_code(10, 1.0, 50, 0)
+    assert res_at >= res_below
