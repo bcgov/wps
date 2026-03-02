@@ -8,7 +8,6 @@ from wps_shared.tests.common import default_mock_client_get
 firebat_url = "/api/fba-calc/stations"
 
 
-
 @pytest.fixture()
 async def async_client():
     from app.main import app as test_app

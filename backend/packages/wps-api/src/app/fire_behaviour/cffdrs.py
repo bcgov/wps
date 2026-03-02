@@ -50,11 +50,12 @@ class CFFDRSException(Exception):
 def _validate_fuel_type_params(fuel_type: FuelTypeEnum, pc: float, pdf: float, cc: float, cbh: float):
     """Raise CFFDRSException if a parameter required for the given fuel type is None.
 
-    cbh is always required because cffdrs_py unconditionally computes critical surface intensity.
     pc, pdf, and cc are only required for the fuel types that use them.
+    cbh is always required because cffdrs_py unconditionally computes critical surface intensity.
+    Callers should resolve cbh from FUEL_TYPE_DEFAULTS before calling cffdrs functions.
     """
     if cbh is None:
-        raise CFFDRSException(f"cbh is required for fuel_type {fuel_type.value}")
+        raise CFFDRSException(f"cbh is required for fuel_type {fuel_type.value}; pass crown_base_height or use FUEL_TYPE_DEFAULTS")
     if fuel_type in _FUEL_TYPES_REQUIRING_PC and pc is None:
         raise CFFDRSException(f"pc is required for fuel_type {fuel_type.value}")
     if fuel_type in _FUEL_TYPES_REQUIRING_PDF and pdf is None:
