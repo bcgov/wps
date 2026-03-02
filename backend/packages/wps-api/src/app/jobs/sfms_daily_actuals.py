@@ -28,7 +28,7 @@ from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator,
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
-from wps_sfms.processors.wind import WindDirectionInterpolator
+from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -72,7 +72,7 @@ async def run_weather_interpolation(
     )
     temp_processor = TemperatureInterpolator(mask_path, dem_path)
     rh_processor = RHInterpolator(mask_path, dem_path, raster_addresser.gdal_path(temp_key))
-    wind_speed_processor = Interpolator(mask_path)
+    wind_speed_processor = WindSpeedInterpolator(mask_path)
     wind_direction_processor = WindDirectionInterpolator(mask_path)
     precip_processor = Interpolator(mask_path)
 

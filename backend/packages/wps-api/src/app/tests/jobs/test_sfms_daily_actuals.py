@@ -17,7 +17,7 @@ from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
-from wps_sfms.processors.wind import WindDirectionInterpolator
+from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_shared.db.models.sfms_run import SFMSRunLogStatus
 from wps_shared.sfms.raster_addresser import FWIParameter
 
@@ -119,12 +119,12 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         return_value=mock_rh_processor,
     )
 
-    mock_wind_speed_processor = MagicMock(spec=Interpolator)
+    mock_wind_speed_processor = MagicMock(spec=WindSpeedInterpolator)
     mock_wind_speed_processor.process = AsyncMock(
         return_value="sfms/interpolated/2024/07/04/wind_speed.tif"
     )
     mocker.patch(
-        f"{MODULE_PATH}.Interpolator",
+        f"{MODULE_PATH}.WindSpeedInterpolator",
         return_value=mock_wind_speed_processor,
     )
 

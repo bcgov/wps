@@ -11,6 +11,10 @@ from wps_sfms.processors.idw import Interpolator, idw_on_valid_pixels
 logger = logging.getLogger(__name__)
 
 
+class WindSpeedInterpolator(Interpolator):
+    """Interpolates wind speed using base IDW workflow."""
+
+
 class WindDirectionInterpolator(Interpolator):
     """Interpolates wind direction by IDW on u/v components then reconstructing direction."""
 
