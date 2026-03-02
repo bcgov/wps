@@ -165,6 +165,8 @@ def back_rate_of_spread(fuel_type: FuelTypeEnum,
 
 def bui_calc(dmc: float, dc: float):
     """Buildup Index calculation."""
+    if dmc is None or dc is None:
+        return None
     return buildup_index(dmc, dc)
 
 
@@ -311,13 +313,15 @@ def drought_code(dc: float, temperature: float, relative_humidity: float, precip
 
 def initial_spread_index(ffmc: float, wind_speed: float, fbp_mod: bool = False):
     """Computes Initial Spread Index (ISI)."""
-    if ffmc is None:
+    if ffmc is None or wind_speed is None:
         return None
     return _initial_spread_index(ffmc=ffmc, ws=wind_speed, fbp_mod=fbp_mod)
 
 
 def fire_weather_index(isi: float, bui: float):
     """Computes Fire Weather Index (FWI)."""
+    if isi is None or bui is None:
+        return None
     return _fire_weather_index(isi=isi, bui=bui)
 
 
