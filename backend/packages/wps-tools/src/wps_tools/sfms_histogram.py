@@ -1,5 +1,6 @@
 import matplotlib
 import numpy as np
+from pathlib import Path
 
 from wps_tools.sfms_raster_input_parser import create_parser, parse_input
 
@@ -44,9 +45,11 @@ def main():
     _, _, _, _, diff, args = parse_input(
         create_parser(description="Generate histogram of differences between two SFMS raster files")
     )
+    generated_name = Path(args.generated).name
+    reference_name = Path(args.reference).name
     x_label = "Difference (Generated - Reference)"
     y_label = "Pixel Count"
-    title = "Histogram of Raster Differences"
+    title = f"Histogram of Raster Differences\n{generated_name} - {reference_name}"
 
     create_sfms_histogram(diff, x_label, y_label, title, args.output)
 
