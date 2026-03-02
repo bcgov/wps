@@ -1,13 +1,17 @@
-from io import BufferedReader
 import os
 import tempfile
 import pytest
+from botocore.exceptions import ClientError
 from osgeo import gdal
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset
 from wps_shared.utils.s3_client import S3Client
 from pytest_mock import MockerFixture
 from unittest.mock import AsyncMock, MagicMock
+
+
+def make_client_error(code: str) -> ClientError:
+    return ClientError({"Error": {"Code": code, "Message": "test"}}, "HeadObject")
 
 
 @pytest.fixture
@@ -61,7 +65,7 @@ async def test_put_object_called(mocker: MockerFixture):
                 assert persist_raster_spy.call_args_list == [
                     mocker.call(key=expected_key, body=mocker.ANY)
                 ]
-                assert isinstance(persist_raster_spy.call_args.kwargs["body"], BufferedReader)
+                assert isinstance(persist_raster_spy.call_args.kwargs["body"], bytes)
 
 
 @pytest.mark.anyio
@@ -385,3 +389,69 @@ async def test_iter_common_prefixes(mocker: MockerFixture):
 
         prefixes = [p async for p in s3.iter_common_prefixes("fuel/")]
         assert prefixes == ["fuel/2024/", "fuel/2025/"]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "keys,side_effects,expected_result,expected_call_count",
+    [
+        (["key/a.tif", "key/b.tif", "key/c.tif"], [True, True, True], True, 3),  # all exist
+        (
+            ["key/a.tif", "key/b.tif", "key/c.tif"],
+            [True, False, True],
+            False,
+            2,
+        ),  # one missing, short-circuits
+        ([], [], True, 0),  # no keys
+    ],
+)
+async def test_all_objects_exist(
+    mocker: MockerFixture, keys, side_effects, expected_result, expected_call_count
+):
+    """Tests return value and short-circuit behaviour of all_objects_exist."""
+    async with S3Client() as s3:
+        object_exists_mock = mocker.patch.object(
+            s3, "object_exists", new=AsyncMock(side_effect=side_effects)
+        )
+        result = await s3.all_objects_exist(*keys)
+        assert result is expected_result
+        assert object_exists_mock.call_count == expected_call_count
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "use_vsis3_prefix",
+    [True, False],
+    ids=["gdal_prefixed", "raw_key"],
+)
+async def test_all_objects_exist_strips_vsis3_prefix(mocker: MockerFixture, use_vsis3_prefix):
+    """GDAL-prefixed keys have /vsis3/{bucket}/ stripped; unprefixed keys are passed through unchanged."""
+    raw_key = "sfms/calculated/actual/file.tif"
+    async with S3Client() as s3:
+        object_exists_mock = mocker.patch.object(
+            s3, "object_exists", new=AsyncMock(return_value=True)
+        )
+        input_key = f"/vsis3/{s3.bucket}/{raw_key}" if use_vsis3_prefix else raw_key
+        await s3.all_objects_exist(input_key)
+        object_exists_mock.assert_called_once_with(raw_key)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("code", ["404", "NoSuchKey"], ids=["404", "NoSuchKey"])
+async def test_object_exists_returns_false_on_404(code: str):
+    """A 404 ClientError means the object is absent — return False, don't raise."""
+    async with S3Client() as s3:
+        s3.client = AsyncMock()
+        s3.client.head_object.side_effect = make_client_error(code)
+        assert await s3.object_exists("some/key.tif") is False
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("code", ["403", "500"], ids=["403", "500"])
+async def test_object_exists_raises_on_non_404_client_error(code: str):
+    """Non-404 ClientErrors (auth failures, server errors) must propagate so they are not silently ignored."""
+    async with S3Client() as s3:
+        s3.client = AsyncMock()
+        s3.client.head_object.side_effect = make_client_error(code)
+        with pytest.raises(ClientError):
+            await s3.object_exists("some/key.tif")

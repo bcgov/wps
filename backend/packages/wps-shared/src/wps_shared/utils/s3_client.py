@@ -4,6 +4,8 @@ import logging
 import hashlib
 from typing import Any
 from aiobotocore.session import get_session
+import aiofiles
+from botocore.exceptions import ClientError
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
@@ -41,17 +43,22 @@ class S3Client:
         self.client_context = None
 
     async def object_exists(self, target_path: str):
-        """Check if and object exists in the object store"""
+        """Check if an object exists in the object store"""
         try:
             await self.client.head_object(Bucket=self.bucket, Key=target_path)
             return True
-        except Exception:
-            return False
+        except ClientError as e:
+            if e.response["Error"]["Code"] in ("404", "NoSuchKey"):
+                return False
+            logger.error("S3 error checking existence of %s: %s", target_path, e.response["Error"])
+            raise
 
     async def all_objects_exist(self, *s3_keys: str):
         for key in s3_keys:
-            key_exists = await self.object_exists(key)
+            raw_key = key.removeprefix(f"/vsis3/{self.bucket}/")
+            key_exists = await self.object_exists(raw_key)
             if not key_exists:
+                logger.error("Required S3 object does not exist: %s", raw_key)
                 return False
         return True
 
@@ -191,8 +198,10 @@ class S3Client:
         with WPSDataset.from_array(values, transform, projection, no_data_value) as ds:
             ds.export_to_geotiff(temp_geotiff)
 
-        logger.info(f"Writing to s3 -- {key}")
-        await self.put_object(key=key, body=open(temp_geotiff, "rb"))
+        logger.info("Writing to S3: %s", key)
+        async with aiofiles.open(temp_geotiff, "rb") as f:
+            contents = await f.read()
+            await self.put_object(key=key, body=contents)
         return temp_geotiff
 
     @staticmethod

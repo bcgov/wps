@@ -234,7 +234,11 @@ class WPSDataset:
         nodata_value = band.GetNoDataValue()
         array = band.ReadAsArray()
 
-        array[array == nodata_value] = new_no_data_value
+        if np.isnan(new_no_data_value):
+            if not np.issubdtype(array.dtype, np.floating):
+                array = array.astype(np.float64)
+        if nodata_value is not None:
+            array[array == nodata_value] = new_no_data_value
 
         return array, new_no_data_value
 

@@ -41,6 +41,58 @@ def test_raster_set_no_data_value():
         assert updated_array[0, 0] == updated_nodata_value
 
 
+def test_replace_nodata_with_nan_casts_integer_array():
+    """replace_nodata_with(np.nan) on an integer raster should cast to float64 and replace nodata with nan."""
+    driver: gdal.Driver = gdal.GetDriverByName("MEM")
+    dataset: gdal.Dataset = driver.Create("test_nan_int.tif", 2, 2, 1, eType=gdal.GDT_Int32)
+    fill_data = np.full((2, 2), 5, dtype=np.int32)
+    fill_data[0, 0] = -9999
+    dataset.GetRasterBand(1).SetNoDataValue(-9999)
+    dataset.GetRasterBand(1).WriteArray(fill_data)
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_ds:
+        array, nodata = wps_ds.replace_nodata_with(np.nan)
+
+        assert array.dtype == np.float64
+        assert np.isnan(nodata)
+        assert np.isnan(array[0, 0])
+        assert array[0, 1] == pytest.approx(5.0)
+
+
+def test_replace_nodata_with_nan_float_array():
+    """replace_nodata_with(np.nan) on a float raster should replace nodata with nan."""
+    driver: gdal.Driver = gdal.GetDriverByName("MEM")
+    dataset: gdal.Dataset = driver.Create("test_nan_float.tif", 2, 2, 1, eType=gdal.GDT_Float32)
+    fill_data = np.full((2, 2), 3.0, dtype=np.float32)
+    fill_data[1, 1] = -9999.0
+    dataset.GetRasterBand(1).SetNoDataValue(-9999.0)
+    dataset.GetRasterBand(1).WriteArray(fill_data)
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_ds:
+        array, nodata = wps_ds.replace_nodata_with(np.nan)
+
+        assert array.dtype == np.float32
+        assert np.isnan(nodata)
+        assert np.isnan(array[1, 1])
+        assert array[0, 0] == pytest.approx(3.0)
+
+
+def test_replace_nodata_with_no_nodata_set():
+    """replace_nodata_with(np.nan) when the band has no nodata value set should not raise and should leave all pixels unchanged."""
+    driver: gdal.Driver = gdal.GetDriverByName("MEM")
+    dataset: gdal.Dataset = driver.Create("test_no_nodata.tif", 2, 2, 1, eType=gdal.GDT_Float32)
+    fill_data = np.full((2, 2), 5.0, dtype=np.float32)
+    # deliberately do NOT call SetNoDataValue
+    dataset.GetRasterBand(1).WriteArray(fill_data)
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_ds:
+        array, nodata = wps_ds.replace_nodata_with(np.nan)
+
+        assert np.isnan(nodata)
+        assert not np.any(np.isnan(array))  # no pixels replaced
+        assert np.all(array == pytest.approx(5.0))
+
+
 def test_raster_mul():
     with WPSDataset(hfi_tif) as wps_ds, WPSDataset(zero_tif) as zero_ds:
         output_ds = wps_ds * zero_ds

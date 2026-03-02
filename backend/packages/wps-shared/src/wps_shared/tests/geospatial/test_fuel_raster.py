@@ -1,9 +1,7 @@
-from unittest.mock import AsyncMock
-
 import pytest
 
 from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 
 
 @pytest.mark.anyio
@@ -13,7 +11,7 @@ async def test_get_fuel_layer_key_returns_processed(monkeypatch):
     )
 
     key = get_versioned_fuel_raster_key(
-        raster_addresser=RasterKeyAddresser(),
+        raster_addresser=BaseRasterAddresser(),
         object_store_path="sfms/static/fuel/2024/fbp2024_v2.tif",
     )
 
@@ -28,7 +26,7 @@ async def test_get_fuel_layer_key_returns_unprocessed(monkeypatch):
     )
 
     key = get_versioned_fuel_raster_key(
-        raster_addresser=RasterKeyAddresser(),
+        raster_addresser=BaseRasterAddresser(),
         object_store_path=None,
     )
 
