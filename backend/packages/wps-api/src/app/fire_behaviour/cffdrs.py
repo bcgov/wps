@@ -328,9 +328,9 @@ def fire_weather_index(isi: float, bui: float):
 def crown_fraction_burned(fuel_type: FuelTypeEnum, fmc: float, sfc: float,
                           ros: float, cbh: float) -> float:
     """Computes Crown Fraction Burned (CFB). Value returned will be between 0-1."""
-    if cbh is None or fmc is None:
+    if cbh is None or fmc is None or sfc is None or ros is None:
         message = PARAMS_ERROR_MESSAGE + \
-            f"_CFBcalc; fuel_type: {fuel_type.value}, cbh: {cbh}, fmc: {fmc}"
+            f"_CFBcalc; fuel_type: {fuel_type.value}, cbh: {cbh}, fmc: {fmc}, sfc: {sfc}, ros: {ros}"
         raise CFFDRSException(message)
     csi = critical_surface_intensity(fmc, cbh)
     rso = surface_fire_rate_of_spread(csi, sfc)
