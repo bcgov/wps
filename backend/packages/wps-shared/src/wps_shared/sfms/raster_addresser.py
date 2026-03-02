@@ -1,10 +1,8 @@
 import enum
-from dataclasses import dataclass
 from datetime import datetime
 from typing import NewType
 
 from wps_shared import config
-from wps_shared.run_type import RunType
 from wps_shared.utils.time import assert_all_utc
 
 # Distinct types for plain S3 keys vs GDAL vsis3-prefixed paths.
@@ -28,24 +26,6 @@ class FWIParameter(enum.Enum):
     FFMC = "ffmc"
     ISI = "isi"
     FWI = "fwi"
-
-
-@dataclass(frozen=True)
-class FWIInputs:
-    """All S3 keys and metadata needed for a single FWI index calculation.
-
-    Input keys (temp_key, rh_key, precip_key, prev_fwi_key, cog_key) are
-    GDALPath values (/vsis3/...) for reading via GDAL. output_key is a plain
-    S3Key for writing via boto3.
-    """
-
-    temp_key: GDALPath
-    rh_key: GDALPath
-    precip_key: GDALPath
-    prev_fwi_key: GDALPath
-    output_key: S3Key
-    cog_key: GDALPath
-    run_type: RunType
 
 
 class BaseRasterAddresser:

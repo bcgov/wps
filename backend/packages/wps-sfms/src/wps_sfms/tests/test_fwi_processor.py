@@ -7,7 +7,8 @@ from pytest_mock import MockerFixture
 
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
-from wps_shared.sfms.raster_addresser import FWIInputs, FWIParameter
+from wps_shared.sfms.raster_addresser import FWIParameter
+from wps_sfms.sfmsng_raster_addresser import FWIInputs
 from wps_shared.tests.geospatial.dataset_common import (
     create_mock_gdal_dataset,
     create_mock_input_dataset_context,

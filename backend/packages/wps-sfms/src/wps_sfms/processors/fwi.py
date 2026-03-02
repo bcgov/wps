@@ -19,7 +19,8 @@ from wps_shared.fwi import vectorized_dc, vectorized_dmc, vectorized_ffmc
 from wps_shared.geospatial.cog import generate_and_store_cog
 from wps_shared.geospatial.geospatial import rasters_match
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.sfms.raster_addresser import FWIInputs, FWIParameter
+from wps_shared.sfms.raster_addresser import FWIParameter
+from wps_sfms.sfmsng_raster_addresser import FWIInputs
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 
