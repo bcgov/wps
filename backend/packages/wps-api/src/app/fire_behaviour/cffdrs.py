@@ -299,13 +299,13 @@ def drought_code(dc: float, temperature: float, relative_humidity: float, precip
     if dc is None:
         logger.error("Failed to calculate DC; initial DC is required.")
         return None
-    if temperature is None or precipitation is None:
+    if temperature is None or relative_humidity is None or precipitation is None:
         return None
     if latitude is None:
         latitude = 55
     if month is None:
         month = 7
-    return _drought_code(dc_yda=dc, temp=temperature, rh=relative_humidity if relative_humidity is not None else 0,
+    return _drought_code(dc_yda=dc, temp=temperature, rh=relative_humidity,
                          prec=precipitation, lat=latitude, mon=month, lat_adjust=latitude_adjust)
 
 
