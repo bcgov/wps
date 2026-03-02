@@ -85,6 +85,8 @@ export class PushNotificationService {
   async unregister(): Promise<void> {
     try {
       await FirebaseMessaging.removeAllListeners(); // (plugin cleanup) [1](https://dev.to/vaclav_svara_50ba53bc0010/firebase-push-notifications-in-capacitor-angular-apps-the-complete-implementation-guide-1c67)
+    } catch {
+      /* noop */
     } finally {
       await Promise.all(
         this.handles.map(async (h) => {
