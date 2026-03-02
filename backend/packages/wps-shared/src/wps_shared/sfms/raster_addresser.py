@@ -6,8 +6,9 @@ from wps_shared import config
 from wps_shared.utils.time import assert_all_utc
 
 # Distinct types for plain S3 keys vs GDAL vsis3-prefixed paths.
-# Swapping them produces a silent runtime failure, so the distinction
-# is expressed at the type level to catch errors at static analysis time.
+# Swapping them produces a silent runtime failure. These NewType aliases
+# have no runtime enforcement — a type checker (pyright, mypy) is needed
+# to catch misuse statically.
 S3Key = NewType("S3Key", str)
 GDALPath = NewType("GDALPath", str)
 
