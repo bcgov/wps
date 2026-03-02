@@ -248,7 +248,7 @@ def foliar_moisture_content(lat: int, long: int, elv: float, day_of_year: int,
 def length_to_breadth_ratio(fuel_type: FuelTypeEnum, wind_speed: float):
     """Computes L/B ratio."""
     if wind_speed is None or fuel_type is None:
-        return CFFDRSException()
+        raise CFFDRSException(PARAMS_ERROR_MESSAGE + f"length_to_breadth_ratio; fuel_type: {fuel_type}, wind_speed: {wind_speed}")
     return length_to_breadth(fuel_type.value, wind_speed)
 
 
