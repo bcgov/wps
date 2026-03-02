@@ -1,12 +1,11 @@
 from datetime import datetime
 import pandas as pd
 import numpy as np
-import rpy2.robjects as robjs
 import pytest
 import math
 from wps_shared.fuel_types import FuelTypeEnum
 from app.fire_behaviour import cffdrs
-from app.fire_behaviour.cffdrs import pandas_to_r_converter, hourly_fine_fuel_moisture_code, CFFDRSException
+from app.fire_behaviour.cffdrs import hourly_fine_fuel_moisture_code, CFFDRSException
 
 
 start_date = datetime(2023, 8, 17)
@@ -14,20 +13,13 @@ end_date = datetime(2023, 8, 18)
 hourly_datetimes = pd.date_range(start=start_date, end=end_date, freq='H')
 
 hourly_data = {
-    'datetime': hourly_datetimes,
-    'temp': np.random.default_rng(111).uniform(20.0, 30.0, size=len(hourly_datetimes)),
-    'rh': np.random.default_rng(111).uniform(40.0, 100.0, size=len(hourly_datetimes)),
+    'temperature': np.random.default_rng(111).uniform(20.0, 30.0, size=len(hourly_datetimes)),
+    'relative_humidity': np.random.default_rng(111).uniform(40.0, 100.0, size=len(hourly_datetimes)),
     'precipitation': np.random.default_rng(111).uniform(0.0, 1.0, size=len(hourly_datetimes)),
-    'ws': np.random.default_rng(111).uniform(0.0, 30.0, size=len(hourly_datetimes)),
+    'wind_speed': np.random.default_rng(111).uniform(0.0, 30.0, size=len(hourly_datetimes)),
 }
 
 df_hourly = pd.DataFrame(hourly_data)
-
-
-def test_pandas_to_r_converter():
-    r_df = pandas_to_r_converter(df_hourly)
-
-    assert isinstance(r_df, robjs.vectors.DataFrame)
 
 
 def test_hourly_ffmc_calculates_values():
@@ -39,18 +31,17 @@ def test_hourly_ffmc_calculates_values():
 
 def test_hourly_ffmc_no_temperature():
     ffmc_old = 80.0
-    df_hourly = pd.DataFrame(
+    df_no_temp = pd.DataFrame(
         {
-            'datetime': [hourly_datetimes[0], hourly_datetimes[1]],
             'celsius': [12, 1],
             'precipitation': [0, 1],
-            'ws': [14, 12],
-            'rh': [50, 50],
+            'wind_speed': [14, 12],
+            'relative_humidity': [50, 50],
         }
     )
 
     with pytest.raises(CFFDRSException):
-        hourly_fine_fuel_moisture_code(df_hourly, ffmc_old)
+        hourly_fine_fuel_moisture_code(df_no_temp, ffmc_old)
 
 
 def test_ros():

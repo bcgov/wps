@@ -82,7 +82,7 @@ def test_adjusted_fwi_result_with_precipitation():
         },
         raw_daily=raw_daily,
     )
-    assert math.isclose(adjusted_fwi_result.dmc, 0.256, abs_tol=0.001)
+    assert math.isclose(adjusted_fwi_result.dmc, 0.0, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.dc, 0.0, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.bui, 0.0, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.ffmc, 26.757, abs_tol=0.001)
