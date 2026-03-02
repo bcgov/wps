@@ -47,12 +47,14 @@ class CFFDRSException(Exception):
     """ CFFDRS contextual exception """
 
 
-def _validate_fuel_type_params(fuel_type: FuelTypeEnum, pc: float, pdf: float, cc: float):
+def _validate_fuel_type_params(fuel_type: FuelTypeEnum, pc: float, pdf: float, cc: float, cbh: float):
     """Raise CFFDRSException if a parameter required for the given fuel type is None.
 
-    pc, pdf, and cc are only meaningful for specific fuel types — passing None for them
-    when required produces scientifically incorrect results rather than a clear error.
+    cbh is always required because cffdrs_py unconditionally computes critical surface intensity.
+    pc, pdf, and cc are only required for the fuel types that use them.
     """
+    if cbh is None:
+        raise CFFDRSException(f"cbh is required for fuel_type {fuel_type.value}")
     if fuel_type in _FUEL_TYPES_REQUIRING_PC and pc is None:
         raise CFFDRSException(f"pc is required for fuel_type {fuel_type.value}")
     if fuel_type in _FUEL_TYPES_REQUIRING_PDF and pdf is None:
@@ -127,7 +129,7 @@ def calculate_net_effective_windspeed(fuel_type: FuelTypeEnum,
     WSV = Slopecalc(..., output="WSV") when GS > 0 and FFMC > 0, else WS.
     """
     if gs > 0 and ffmc > 0:
-        _validate_fuel_type_params(fuel_type, pc, pdf, cc)
+        _validate_fuel_type_params(fuel_type, pc, pdf, cc, cbh)
         result = slope_adjustment(
             fuel_type=fuel_type.value,
             ffmc=ffmc,
@@ -141,7 +143,7 @@ def calculate_net_effective_windspeed(fuel_type: FuelTypeEnum,
             pc=pc,
             pdf=pdf,
             cc=cc,
-            cbh=cbh if cbh is not None else 0,
+            cbh=cbh,
             isi=isi,
         )
         return result.wsv
@@ -168,7 +170,7 @@ def back_rate_of_spread(fuel_type: FuelTypeEnum,
         message = PARAMS_ERROR_MESSAGE + \
             f"_BROScalc ; fuel_type: {fuel_type.value}, ffmc: {ffmc}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
-    _validate_fuel_type_params(fuel_type, pc, pdf, cc)
+    _validate_fuel_type_params(fuel_type, pc, pdf, cc, cbh)
 
     return _back_rate_of_spread(
         fuel_type=fuel_type.value,
@@ -180,7 +182,7 @@ def back_rate_of_spread(fuel_type: FuelTypeEnum,
         pc=pc,
         pdf=pdf,
         cc=cc,
-        cbh=cbh if cbh is not None else 0,
+        cbh=cbh,
     )
 
 
@@ -216,7 +218,7 @@ def rate_of_spread(fuel_type: FuelTypeEnum,
         message = PARAMS_ERROR_MESSAGE + \
             f"_ROScalc ; fuel_type: {fuel_type.value}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
-    _validate_fuel_type_params(fuel_type, pc, pdf, cc)
+    _validate_fuel_type_params(fuel_type, pc, pdf, cc, cbh)
 
     return _rate_of_spread(
         fuel_type=fuel_type.value,
@@ -227,7 +229,7 @@ def rate_of_spread(fuel_type: FuelTypeEnum,
         pc=pc,
         pdf=pdf,
         cc=cc,
-        cbh=cbh if cbh is not None else 0,
+        cbh=cbh,
     )
 
 
