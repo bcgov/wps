@@ -1,0 +1,52 @@
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from wps_shared.db.models.fcm import DeviceToken
+from wps_shared.utils.time import get_utc_now
+
+
+def save_device_token(session: AsyncSession, device_token: DeviceToken):
+    """Add a new DeviceToken for tracking devices registered for push notifications.
+    :param session: An async database session.
+    :param device_token: The record to be saved.
+    :type device_token: DeviceToken
+    """
+    session.add(device_token)
+
+
+async def get_device_by_token(session: AsyncSession, token: str):
+    """
+    Lookup a DeviceToken by token value.
+
+    :param session: An async database session
+    :param token: A token for a registered device.
+    :return: A DeviceToken object or None.
+    """
+    return await session.scalar(select(DeviceToken).where(DeviceToken.token == token))
+
+
+async def update_device_token_is_active(session: AsyncSession, token: str):
+    device_token = await session.scalar(select(DeviceToken).where(DeviceToken.token == token))
+    if not token:
+        raise ValueError(f"DeviceToken with id {token} does not exist.")
+    device_token.is_active = True
+    device_token.updated_at(get_utc_now())
+
+
+async def deactivate_device_tokens(session: AsyncSession, tokens: list[str]) -> int:
+    if not tokens:
+        return 0
+
+    stmt = (
+        update(DeviceToken)
+        .where(DeviceToken.token.in_(tokens))
+        .values(
+            is_active=False,
+            updated_at=get_utc_now(),
+        )
+        # No need to synchronize the session: set-based UPDATE + no ORM objects loaded.
+        .execution_options(synchronize_session=False)
+    )
+    result = await session.execute(stmt)
+
+    return result.rowcount or 0

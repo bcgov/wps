@@ -5,7 +5,12 @@ const config: CapacitorConfig = {
   appName: "asa-go",
   webDir: "dist",
   ios: { scheme: "ASA Go" },
+  server: { androidScheme: "http" },
   plugins: {
+    FirebaseMessaging: {
+      presentationOptions: ["alert", "badge", "sound"], // iOS only
+    },
+
     SplashScreen: {
       launchAutoHide: true,
       launchShowDuration: 500,

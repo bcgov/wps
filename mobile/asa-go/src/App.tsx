@@ -21,6 +21,7 @@ import {
   selectFireCenters,
   selectNetworkStatus,
   selectRunParameters,
+  selectAuthentication,
 } from "@/store";
 import { theme } from "@/theme";
 import { NavPanel } from "@/utils/constants";
@@ -37,6 +38,9 @@ import { isNil, isNull } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { Capacitor } from "@capacitor/core";
+import { Platform, registerToken } from "@/api/pushNotificationsAPI";
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
@@ -44,6 +48,7 @@ const App = () => {
   const dispatch: AppDispatch = useDispatch();
   const [isPortrait, setIsPortrait] = useState<boolean>(true);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
+  const { idToken, isAuthenticated } = useSelector(selectAuthentication);
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -62,6 +67,7 @@ const App = () => {
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
+  const { initPushNotifications, token } = usePushNotifications();
 
   const selectedFireCenterName = selectedFireShape?.mof_fire_centre_name;
   const matchingFireCenter = selectedFireCenterName
@@ -97,6 +103,18 @@ const App = () => {
       ScreenOrientation.removeAllListeners();
     };
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      initPushNotifications();
+    }
+  }, [initPushNotifications, isAuthenticated]);
+
+  useEffect(() => {
+    if (token) {
+      registerToken(Capacitor.getPlatform() as Platform, token, idToken || "");
+    }
+  }, [token, idToken]);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status
