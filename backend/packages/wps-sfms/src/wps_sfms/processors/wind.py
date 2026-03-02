@@ -21,16 +21,18 @@ class WindDirectionInterpolator(Interpolator):
         v = np.asarray(v, dtype=np.float32)
         direction = np.zeros(u.shape, dtype=np.float32)
 
-        zero_v = v == 0.0
+        zero_v = np.abs(v) < np.float32(1e-6)
         nonzero_v = ~zero_v
 
         direction[nonzero_v] = (
             np.degrees(np.arctan2(u[nonzero_v], v[nonzero_v])) + np.float32(180.0)
         ).astype(np.float32)
 
+        zero_u = np.abs(u) < np.float32(1e-6)
+
         direction[zero_v & (u < 0.0)] = 90.0
         direction[zero_v & (u > 0.0)] = 270.0
-        direction[zero_v & (u == 0.0)] = 0.0
+        direction[zero_v & zero_u] = 0.0
         return direction
 
     def interpolate(
