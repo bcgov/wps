@@ -37,9 +37,28 @@ logger = logging.getLogger(__name__)
 # To store in DB: PC, PDF, CC, CBH (attached to fuel type, red book)
 PARAMS_ERROR_MESSAGE = "One or more params passed to cffdrs call is None."
 
+# Fuel types that require specific optional parameters.
+_FUEL_TYPES_REQUIRING_PC = {FuelTypeEnum.M1, FuelTypeEnum.M2}
+_FUEL_TYPES_REQUIRING_PDF = {FuelTypeEnum.M3, FuelTypeEnum.M4}
+_FUEL_TYPES_REQUIRING_CC = {FuelTypeEnum.O1A, FuelTypeEnum.O1B}
+
 
 class CFFDRSException(Exception):
     """ CFFDRS contextual exception """
+
+
+def _validate_fuel_type_params(fuel_type: FuelTypeEnum, pc: float, pdf: float, cc: float):
+    """Raise CFFDRSException if a parameter required for the given fuel type is None.
+
+    pc, pdf, and cc are only meaningful for specific fuel types — passing None for them
+    when required produces scientifically incorrect results rather than a clear error.
+    """
+    if fuel_type in _FUEL_TYPES_REQUIRING_PC and pc is None:
+        raise CFFDRSException(f"pc is required for fuel_type {fuel_type.value}")
+    if fuel_type in _FUEL_TYPES_REQUIRING_PDF and pdf is None:
+        raise CFFDRSException(f"pdf is required for fuel_type {fuel_type.value}")
+    if fuel_type in _FUEL_TYPES_REQUIRING_CC and cc is None:
+        raise CFFDRSException(f"cc is required for fuel_type {fuel_type.value}")
 
 
 def correct_wind_azimuth(wind_direction: float):
@@ -108,6 +127,7 @@ def calculate_net_effective_windspeed(fuel_type: FuelTypeEnum,
     WSV = Slopecalc(..., output="WSV") when GS > 0 and FFMC > 0, else WS.
     """
     if gs > 0 and ffmc > 0:
+        _validate_fuel_type_params(fuel_type, pc, pdf, cc)
         result = slope_adjustment(
             fuel_type=fuel_type.value,
             ffmc=ffmc,
@@ -118,9 +138,9 @@ def calculate_net_effective_windspeed(fuel_type: FuelTypeEnum,
             saz=saz,
             fmc=fmc,
             sfc=sfc,
-            pc=pc if pc is not None else 0,
-            pdf=pdf if pdf is not None else 0,
-            cc=cc if cc is not None else 0,
+            pc=pc,
+            pdf=pdf,
+            cc=cc,
             cbh=cbh if cbh is not None else 0,
             isi=isi,
         )
@@ -148,6 +168,7 @@ def back_rate_of_spread(fuel_type: FuelTypeEnum,
         message = PARAMS_ERROR_MESSAGE + \
             f"_BROScalc ; fuel_type: {fuel_type.value}, ffmc: {ffmc}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
+    _validate_fuel_type_params(fuel_type, pc, pdf, cc)
 
     return _back_rate_of_spread(
         fuel_type=fuel_type.value,
@@ -156,9 +177,9 @@ def back_rate_of_spread(fuel_type: FuelTypeEnum,
         wsv=wsv if wsv is not None else 0,
         fmc=fmc,
         sfc=sfc,
-        pc=pc if pc is not None else 0,
-        pdf=pdf if pdf is not None else 0,
-        cc=cc if cc is not None else 0,
+        pc=pc,
+        pdf=pdf,
+        cc=cc,
         cbh=cbh if cbh is not None else 0,
     )
 
@@ -195,6 +216,7 @@ def rate_of_spread(fuel_type: FuelTypeEnum,
         message = PARAMS_ERROR_MESSAGE + \
             f"_ROScalc ; fuel_type: {fuel_type.value}, isi: {isi}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
         raise CFFDRSException(message)
+    _validate_fuel_type_params(fuel_type, pc, pdf, cc)
 
     return _rate_of_spread(
         fuel_type=fuel_type.value,
@@ -202,9 +224,9 @@ def rate_of_spread(fuel_type: FuelTypeEnum,
         bui=bui,
         fmc=fmc,
         sfc=sfc,
-        pc=pc if pc is not None else 0,
-        pdf=pdf if pdf is not None else 0,
-        cc=cc if cc is not None else 0,
+        pc=pc,
+        pdf=pdf,
+        cc=cc,
         cbh=cbh if cbh is not None else 0,
     )
 
@@ -219,13 +241,15 @@ def surface_fuel_consumption(
         message = PARAMS_ERROR_MESSAGE + \
             f"_SFCcalc; fuel_type: {fuel_type.value}, bui: {bui}, ffmc: {ffmc}"
         raise CFFDRSException(message)
+    if fuel_type in _FUEL_TYPES_REQUIRING_PC and pc is None:
+        raise CFFDRSException(f"pc is required for fuel_type {fuel_type.value}")
 
     # Note: cffdrs_py signature is (fuel_type, ffmc, bui, pc, gfl) — ffmc before bui
     return _surface_fuel_consumption(
         fuel_type=fuel_type.value,
         ffmc=ffmc,
         bui=bui,
-        pc=pc if pc is not None else 0,
+        pc=pc,
         gfl=0.35,
     )
 
@@ -344,13 +368,17 @@ def total_fuel_consumption(
         message = PARAMS_ERROR_MESSAGE + \
             f"_TFCcalc; fuel_type: {fuel_type.value}, cfb: {cfb}, cfl: {cfl}"
         raise CFFDRSException(message)
+    if fuel_type in _FUEL_TYPES_REQUIRING_PC and pc is None:
+        raise CFFDRSException(f"pc is required for fuel_type {fuel_type.value}")
+    if fuel_type in _FUEL_TYPES_REQUIRING_PDF and pdf is None:
+        raise CFFDRSException(f"pdf is required for fuel_type {fuel_type.value}")
     return _total_fuel_consumption(
         fuel_type=fuel_type.value,
         cfl=cfl,
         cfb=cfb,
         sfc=sfc,
-        pc=pc if pc is not None else 0,
-        pdf=pdf if pdf is not None else 0,
+        pc=pc,
+        pdf=pdf,
     )
 
 
