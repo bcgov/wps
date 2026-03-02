@@ -15,10 +15,10 @@ GDALPath = NewType("GDALPath", str)
 
 
 class SFMSInterpolatedWeatherParameter(enum.Enum):
-    TEMP = "temp"
-    RH = "rh"
+    TEMP = "temperature"
+    RH = "relative_humidity"
     WIND_SPEED = "wind_speed"
-    PRECIP = "precip"
+    PRECIP = "precipitation"
 
 
 class FWIParameter(enum.Enum):

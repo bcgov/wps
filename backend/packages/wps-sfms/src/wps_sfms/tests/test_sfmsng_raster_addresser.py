@@ -23,11 +23,11 @@ class TestGetActualWeatherKey:
         [
             (
                 SFMSInterpolatedWeatherParameter.TEMP,
-                "sfms_ng/actual/2024/04/15/temp_20240415.tif",
+                "sfms_ng/actual/2024/04/15/temperature_20240415.tif",
             ),
             (
                 SFMSInterpolatedWeatherParameter.RH,
-                "sfms_ng/actual/2024/04/15/rh_20240415.tif",
+                "sfms_ng/actual/2024/04/15/relative_humidity_20240415.tif",
             ),
             (
                 SFMSInterpolatedWeatherParameter.WIND_SPEED,
@@ -35,7 +35,7 @@ class TestGetActualWeatherKey:
             ),
             (
                 SFMSInterpolatedWeatherParameter.PRECIP,
-                "sfms_ng/actual/2024/04/15/precip_20240415.tif",
+                "sfms_ng/actual/2024/04/15/precipitation_20240415.tif",
             ),
         ],
     )
@@ -50,7 +50,7 @@ class TestGetActualWeatherKey:
     def test_zero_pads_month_and_day(self, addresser: SFMSNGRasterAddresser):
         dt = datetime(2024, 3, 5, 20, 0, 0, tzinfo=timezone.utc)
         result = addresser.get_actual_weather_key(dt, SFMSInterpolatedWeatherParameter.TEMP)
-        assert result == "sfms_ng/actual/2024/03/05/temp_20240305.tif"
+        assert result == "sfms_ng/actual/2024/03/05/temperature_20240305.tif"
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
         with pytest.raises(Exception):
@@ -81,9 +81,9 @@ class TestGetActualFwiInputs:
         p = fwi_param.value
         result = addresser.get_actual_fwi_inputs(TEST_DATETIME, fwi_param)
 
-        assert result.temp_key == f"{s3}/sfms_ng/actual/2024/04/15/temp_20240415.tif"
-        assert result.rh_key == f"{s3}/sfms_ng/actual/2024/04/15/rh_20240415.tif"
-        assert result.precip_key == f"{s3}/sfms_ng/actual/2024/04/15/precip_20240415.tif"
+        assert result.temp_key == f"{s3}/sfms_ng/actual/2024/04/15/temperature_20240415.tif"
+        assert result.rh_key == f"{s3}/sfms_ng/actual/2024/04/15/relative_humidity_20240415.tif"
+        assert result.precip_key == f"{s3}/sfms_ng/actual/2024/04/15/precipitation_20240415.tif"
         assert result.prev_fwi_key == f"{s3}/sfms_ng/actual/2024/04/14/{p}_20240414.tif"
         assert result.output_key == f"sfms_ng/actual/2024/04/15/{p}_20240415.tif"
         assert result.cog_key == f"{s3}/sfms_ng/actual/2024/04/15/{p}_20240415_cog.tif"

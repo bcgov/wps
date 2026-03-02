@@ -100,16 +100,16 @@ def test_get_calculated_hffmc_index_key(addresser: RasterKeyAddresser):
     [
         (
             SFMSInterpolatedWeatherParameter.TEMP,
-            "sfms/interpolated/temp/2024/01/15/temp_20240115.tif",
+            "sfms/interpolated/temperature/2024/01/15/temperature_20240115.tif",
         ),
-        (SFMSInterpolatedWeatherParameter.RH, "sfms/interpolated/rh/2024/01/15/rh_20240115.tif"),
+        (SFMSInterpolatedWeatherParameter.RH, "sfms/interpolated/relative_humidity/2024/01/15/relative_humidity_20240115.tif"),
         (
             SFMSInterpolatedWeatherParameter.WIND_SPEED,
             "sfms/interpolated/wind_speed/2024/01/15/wind_speed_20240115.tif",
         ),
         (
             SFMSInterpolatedWeatherParameter.PRECIP,
-            "sfms/interpolated/precip/2024/01/15/precip_20240115.tif",
+            "sfms/interpolated/precipitation/2024/01/15/precipitation_20240115.tif",
         ),
     ],
 )
@@ -128,15 +128,15 @@ def test_get_interpolated_key_weather_params(
     [
         (
             datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc),
-            "sfms/interpolated/temp/2024/01/15/temp_20240115.tif",
+            "sfms/interpolated/temperature/2024/01/15/temperature_20240115.tif",
         ),
         (
             datetime(2024, 12, 31, 20, 0, 0, tzinfo=timezone.utc),
-            "sfms/interpolated/temp/2024/12/31/temp_20241231.tif",
+            "sfms/interpolated/temperature/2024/12/31/temperature_20241231.tif",
         ),
         (
             datetime(2024, 3, 5, 20, 0, 0, tzinfo=timezone.utc),
-            "sfms/interpolated/temp/2024/03/05/temp_20240305.tif",
+            "sfms/interpolated/temperature/2024/03/05/temperature_20240305.tif",
         ),
     ],
 )
