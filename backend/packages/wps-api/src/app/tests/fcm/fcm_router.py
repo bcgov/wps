@@ -6,6 +6,10 @@ from unittest.mock import patch
 import app.main
 from starlette.testclient import TestClient
 
+DB_SESSION = "app.routers.fcm.get_async_write_session_scope"
+GET_DEVICE_TOKEN = "app.routers.fcm.get_device_by_token"
+SAVE_DEVICE_TOKEN = "app.routers.fcm.save_device_token"
+API_DEVICE_REGISTER = "/api/device/register"
 
 def test_register_device_success():
     """Test that device registration returns 200/OK."""
@@ -18,13 +22,13 @@ def test_register_device_success():
         "platform": "android",
     }
 
-    with patch("app.routers.fcm.get_async_write_session_scope") as mock_session_scope:
+    with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch("app.routers.fcm.get_device_by_token", return_value=None),
-            patch("app.routers.fcm.save_device_token"),
+            patch(GET_DEVICE_TOKEN, return_value=None),
+            patch(SAVE_DEVICE_TOKEN),
         ):
-            response = client.post("/api/device/register", json=request_data)
+            response = client.post(API_DEVICE_REGISTER, json=request_data)
 
             assert response.status_code == 200
             assert response.json()["success"] == True
@@ -37,7 +41,7 @@ def test_register_device_already_exists():
 
     request_data = {"user_id": "test-user-123", "token": "existing-fcm-token", "platform": "ios"}
 
-    with patch("app.routers.fcm.get_async_write_session_scope") as mock_session_scope:
+    with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
 
         existing_device = type(
@@ -47,10 +51,10 @@ def test_register_device_already_exists():
         )()
 
         with (
-            patch("app.routers.fcm.get_device_by_token", return_value=existing_device),
-            patch("app.routers.fcm.save_device_token"),
+            patch(GET_DEVICE_TOKEN, return_value=existing_device),
+            patch(SAVE_DEVICE_TOKEN),
         ):
-            response = client.post("/api/device/register", json=request_data)
+            response = client.post(API_DEVICE_REGISTER, json=request_data)
 
             assert response.status_code == 200
             assert response.json()["success"] == True
@@ -64,10 +68,10 @@ def test_register_device_missing_fields():
     # Missing 'token' field which is required
     request_data = {"user_id": "test-user-123", "platform": "android"}
 
-    with patch("app.routers.fcm.get_async_write_session_scope") as mock_session_scope:
+    with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
 
-        response = client.post("/api/device/register", json=request_data)
+        response = client.post(API_DEVICE_REGISTER, json=request_data)
 
         assert response.status_code == 422
 
@@ -82,10 +86,10 @@ def test_register_device_invalid_platform():
         "platform": "invalid-platform",
     }
 
-    with patch("app.routers.fcm.get_async_write_session_scope") as mock_session_scope:
+    with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
 
-        response = client.post("/api/device/register", json=request_data)
+        response = client.post(API_DEVICE_REGISTER, json=request_data)
 
         assert response.status_code == 422
 
@@ -100,10 +104,10 @@ def test_register_device_short_token():
         "platform": "android",
     }
 
-    with patch("app.routers.fcm.get_async_write_session_scope") as mock_session_scope:
+    with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
 
-        response = client.post("/api/device/register", json=request_data)
+        response = client.post(API_DEVICE_REGISTER, json=request_data)
 
         assert response.status_code == 422
 
@@ -129,7 +133,7 @@ def test_unregister_device_missing_token():
 
     request_data = {}
 
-    with patch("app.routers.fcm.get_async_write_session_scope") as mock_session_scope:
+    with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
 
         response = client.request("DELETE", "/api/device/unregister", json=request_data)
@@ -146,13 +150,13 @@ def test_register_device_without_user_id():
         "platform": "android",
     }
 
-    with patch("app.routers.fcm.get_async_write_session_scope") as mock_session_scope:
+    with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch("app.routers.fcm.get_device_by_token", return_value=None),
-            patch("app.routers.fcm.save_device_token"),
+            patch(GET_DEVICE_TOKEN, return_value=None),
+            patch(SAVE_DEVICE_TOKEN),
         ):
-            response = client.post("/api/device/register", json=request_data)
+            response = client.post(API_DEVICE_REGISTER, json=request_data)
 
             assert response.status_code == 200
             assert response.json()["success"] == True
