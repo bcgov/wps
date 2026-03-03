@@ -390,7 +390,7 @@ class TestMondayFWIInterpolation:
     async def test_monday_april_writes_six_run_log_entries(
         self, mock_dependencies: MockDailyActualsDeps
     ):
-        """Test that a Monday in April produces 8 run log entries including wind outputs."""
+        """Test that a Monday in April produces 8 run log entries (temp + rh + precip + ws + wd + 3 FWI)."""
         # 2024-04-01 is the first Monday of April 2024
         target_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
 
