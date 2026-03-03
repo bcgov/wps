@@ -20,7 +20,14 @@ class WindDirectionInterpolator(Interpolator):
 
     @staticmethod
     def compute_direction_from_uv(u: np.ndarray, v: np.ndarray) -> np.ndarray:
-        """Match legacy SFMS direction reconstruction from interpolated u/v."""
+        """
+        Match legacy SFMS wind direction reconstruction from interpolated u/v.
+        https://github.com/cffdrs/sfms/blob/main/src/SfmsWeather.cpp
+
+        :param u: u component of wind vector
+        :param v: v component of wind vector
+        :return: wind direction in degrees
+        """
         u = np.asarray(u, dtype=np.float32)
         v = np.asarray(v, dtype=np.float32)
         direction = np.zeros(u.shape, dtype=np.float32)
