@@ -28,6 +28,7 @@ end
 
 target 'ASA Go' do
   capacitor_pods
+  pod 'FirebaseMessaging'
   # Add your Pods here
 end
 

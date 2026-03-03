@@ -2,6 +2,8 @@ import AppAuth
 import Capacitor
 import Keycloak
 import UIKit
+import FirebaseCore
+import FirebaseMessaging
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, KeycloakAppDelegate {
@@ -14,6 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, KeycloakAppDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         // Override point for customization after application launch.
+        FirebaseApp.configure()
         return true
     }
 
