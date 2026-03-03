@@ -29,6 +29,7 @@ from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
+from wps_shared.geospatial.cog import generate_web_optimized_cog
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -167,7 +168,18 @@ async def run_fwi_interpolation(
         async def _run(_source=source, _job_name=job_name, _fwi_param=fwi_param) -> None:
             output_key = raster_addresser.get_actual_index_key(datetime_to_process, _fwi_param)
             s3_key = await processor.process(s3_client, fuel_raster_path, _source, output_key)
-            logger.info("%s interpolation raster: %s", _job_name.value, s3_key)
+
+            cog_key = raster_addresser.get_cog_key(output_key)
+            generate_web_optimized_cog(
+                input_path=raster_addresser.gdal_path(output_key),
+                output_path=cog_key,
+            )
+            logger.info(
+                "%s interpolation raster: %s (COG: %s)",
+                _job_name.value,
+                s3_key,
+                cog_key,
+            )
 
         await _run()
 
