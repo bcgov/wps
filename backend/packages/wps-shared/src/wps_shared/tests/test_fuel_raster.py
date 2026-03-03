@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 from wps_shared.fuel_raster import find_latest_version, process_fuel_type_raster
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3_client import S3Client
 
 CREATE_TIMESTAMP = datetime(2024, 4, 15, 12, 0)
@@ -31,7 +31,7 @@ async def test_find_latest_version_non_existing(monkeypatch, keys):
         return f"raster_v{version}"
 
     s3_client = S3Client()
-    raster_addresser = RasterKeyAddresser()
+    raster_addresser = BaseRasterAddresser()
 
     monkeypatch.setattr(s3_client, "all_objects_exist", mock_all_objects_exist)
     monkeypatch.setattr(raster_addresser, "get_fuel_raster_key", mock_get_fuel_raster_key)
@@ -88,7 +88,7 @@ def setup_mocks(monkeypatch):
     def mock_get_fuel_key(_, version):
         return f"fuel-key-v{version}"
 
-    raster_addresser = RasterKeyAddresser()
+    raster_addresser = BaseRasterAddresser()
     monkeypatch.setattr(
         raster_addresser, "get_unprocessed_fuel_raster_key", mock_get_unprocessed_key
     )

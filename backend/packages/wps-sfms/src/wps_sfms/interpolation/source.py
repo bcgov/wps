@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Protocol, Tuple
+import logging
+from typing import List, Optional, Protocol, Tuple, runtime_checkable
 import numpy as np
 
 from numpy.typing import NDArray
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_shared.sfms.raster_addresser import SFMSInterpolatedWeatherParameter
+
+logger = logging.getLogger(__name__)
 
 # Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
 # This matches the CWFIS implementation
@@ -14,14 +16,9 @@ LAPSE_RATE = 0.0065
 DEW_POINT_LAPSE_RATE = 0.002
 
 
+@runtime_checkable
 class StationInterpolationSource(Protocol):
-    weather_param: SFMSInterpolatedWeatherParameter
-
-    @abstractmethod
-    def get_interpolation_data(
-        self, sfms_actuals: List[SFMSDailyActual]
-    ) -> Tuple[List[float], List[float], List[float]]:
-        raise NotImplementedError
+    def get_interpolation_data(self) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]: ...
 
 
 class LapseRateAdjustedSource(ABC):
@@ -29,12 +26,9 @@ class LapseRateAdjustedSource(ABC):
     Base class for station sources whose values require lapse-rate elevation
     adjustment (e.g. temperature, dew point).
 
-    Subclasses only need to set ``weather_param`` and implement
-    ``_extract_values`` to pull the relevant per-station values from the
-    pre-built numpy arrays.
+    Subclasses only need to implement ``_extract_values`` to pull the relevant
+    per-station values from the pre-built numpy arrays.
     """
-
-    weather_param: SFMSInterpolatedWeatherParameter
 
     def __init__(self, sfms_actuals: List[SFMSDailyActual]):
         self._sfms_actuals = sfms_actuals
@@ -94,7 +88,11 @@ class LapseRateAdjustedSource(ABC):
         """Returns arrays for IDW: (lats, lons, sea_level_values), vectorized."""
         lats, lons, elevs, values = self.get_station_arrays(only_valid=True)
         if lats.size == 0:
-            return lats, lons, values  # all empty arrays
+            logger.warning(
+                "%s has no valid stations (missing elevation or value) — interpolation will produce no output",
+                type(self).__name__,
+            )
+            return lats, lons, values
 
         sea = self.compute_sea_level_values(values, elevs, lapse_rate)
         return lats, lons, sea
@@ -130,7 +128,6 @@ class StationTemperatureSource(LapseRateAdjustedSource):
 
     def __init__(self, sfms_actuals: List[SFMSDailyActual]):
         super().__init__(sfms_actuals)
-        self.weather_param = SFMSInterpolatedWeatherParameter.TEMP
 
     def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
         return self._optional_to_array(actuals, "temperature")
@@ -144,7 +141,6 @@ class StationDewPointSource(LapseRateAdjustedSource):
 
     def __init__(self, sfms_actuals: List[SFMSDailyActual]):
         super().__init__(sfms_actuals)
-        self.weather_param = SFMSInterpolatedWeatherParameter.RH
 
     def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
         dewpoints = self._optional_to_array(actuals, "dewpoint")
@@ -168,42 +164,38 @@ class StationDewPointSource(LapseRateAdjustedSource):
         return np.clip(rh, 0.0, 100.0).astype(np.float32)
 
 
+_VALID_SFMS_ATTRIBUTES = frozenset(SFMSDailyActual.model_fields.keys())
+
+
 class StationActualSource(StationInterpolationSource):
     """Generic source for interpolating a named attribute from SFMSDailyActual."""
 
-    # Map enum values to SFMSDailyActual attribute names where they differ
-    _ATTRIBUTE_OVERRIDES = {
-        SFMSInterpolatedWeatherParameter.PRECIP: "precipitation",
-        SFMSInterpolatedWeatherParameter.RH: "relative_humidity",
-    }
+    def __init__(self, attribute: str, sfms_actuals: List[SFMSDailyActual]):
+        if attribute not in _VALID_SFMS_ATTRIBUTES:
+            raise ValueError(f"Unknown attribute {attribute!r} on SFMSDailyActual. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}")
+        self._attribute = attribute
+        self._sfms_actuals = sfms_actuals
 
-    def __init__(self, weather_param: SFMSInterpolatedWeatherParameter):
-        super().__init__()
-        self.weather_param = weather_param
-        self._attribute = self._ATTRIBUTE_OVERRIDES.get(weather_param, weather_param.value)
-
-    def get_interpolation_data(
-        self, sfms_actuals: List[SFMSDailyActual]
-    ) -> Tuple[List[float], List[float], List[float]]:
-        valid = [s for s in sfms_actuals if getattr(s, self._attribute) is not None]
+    def get_interpolation_data(self) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
+        valid = [s for s in self._sfms_actuals if getattr(s, self._attribute) is not None]
         return (
-            [s.lat for s in valid],
-            [s.lon for s in valid],
-            [getattr(s, self._attribute) for s in valid],
+            np.array([s.lat for s in valid], dtype=np.float32),
+            np.array([s.lon for s in valid], dtype=np.float32),
+            np.array([getattr(s, self._attribute) for s in valid], dtype=np.float32),
         )
 
 
-def StationPrecipitationSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.PRECIP)
+def StationPrecipitationSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
+    return StationActualSource("precipitation", sfms_actuals)
 
 
-def StationFFMCSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.FFMC)
+def StationFFMCSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
+    return StationActualSource("ffmc", sfms_actuals)
 
 
-def StationDMCSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.DMC)
+def StationDMCSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
+    return StationActualSource("dmc", sfms_actuals)
 
 
-def StationDCSource() -> StationActualSource:
-    return StationActualSource(SFMSInterpolatedWeatherParameter.DC)
+def StationDCSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
+    return StationActualSource("dc", sfms_actuals)

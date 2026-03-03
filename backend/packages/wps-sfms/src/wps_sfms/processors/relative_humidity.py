@@ -1,106 +1,127 @@
-"""
-Relative humidity interpolation processor for SFMS.
-
-This processor orchestrates the daily RH interpolation workflow:
-1. Interpolate dew point to raster using IDW with elevation adjustment
-2. Combine with already-interpolated temperature raster to compute RH
-3. Upload to S3 storage
-"""
-
 import logging
-import os
-import tempfile
-from datetime import datetime
-import aiofiles
-import aiofiles.os
-from wps_sfms.interpolation.source import StationDewPointSource
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser, SFMSInterpolatedWeatherParameter
-from wps_shared.utils.s3 import set_s3_gdal_config
-from wps_shared.utils.s3_client import S3Client
-from wps_sfms.interpolation.relative_humidity import interpolate_rh_to_raster
+import numpy as np
+from osgeo import gdal
+from wps_sfms.interpolation.source import DEW_POINT_LAPSE_RATE, StationDewPointSource
+from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.spatial_interpolation import idw_interpolation
+from wps_sfms.interpolation.common import (
+    SFMS_NO_DATA,
+    log_interpolation_stats,
+)
+from wps_sfms.processors.idw import Interpolator
 
 logger = logging.getLogger(__name__)
 
 
-class RHInterpolationProcessor:
-    """Processor for interpolating station relative humidity to raster format."""
+class RHInterpolator(Interpolator):
+    """Interpolates RH via dew point IDW + elevation adjustment.
 
-    def __init__(self, datetime_to_process: datetime, raster_addresser: RasterKeyAddresser):
-        """
-        Initialize the RH interpolation processor.
+    Requires that temperature interpolation has already been run for this date,
+    as it reads the interpolated temperature raster from S3.
+    """
 
-        :param datetime_to_process: The datetime to process (typically noon observation time)
-        :param raster_addresser: The raster addresser instance used for addressing SFMS keys
-        """
-        self.datetime_to_process = datetime_to_process
-        self.raster_addresser = raster_addresser
+    def __init__(self, mask_path: str, dem_path: str, temp_raster_path: str):
+        super().__init__(mask_path)
+        self.dem_path = dem_path
+        self.temp_raster_path = temp_raster_path
 
-    async def process(
-        self,
-        s3_client: S3Client,
-        reference_raster_path: str,
-        dewpoint_source: StationDewPointSource,
-    ) -> str:
-        """
-        Process RH interpolation for the specified datetime.
+    def interpolate(
+        self, source: StationDewPointSource, reference_raster_path: str
+    ) -> WPSDataset:
+        with WPSDataset(reference_raster_path) as ref_ds:
+            geo_transform = ref_ds.ds.GetGeoTransform()
+            if geo_transform is None:
+                raise ValueError(
+                    f"Failed to get geotransform from reference raster: {reference_raster_path}"
+                )
+            projection = ref_ds.ds.GetProjection()
+            x_size = ref_ds.ds.RasterXSize
+            y_size = ref_ds.ds.RasterYSize
 
-        Requires that temperature interpolation has already been run for this date,
-        as it reads the interpolated temperature raster from S3.
+            with WPSDataset(self.dem_path) as dem_ds:
+                dem_band: gdal.Band = dem_ds.ds.GetRasterBand(1)
+                dem_data = dem_band.ReadAsArray()
+                if dem_data is None:
+                    raise ValueError("Failed to read DEM data")
 
-        :param s3_client: S3Client instance for uploading results
-        :param reference_raster_path: Path to reference raster (defines grid properties)
-        :param dewpoint_source: StationDewPointSource with station dew point data
-        :return: S3 key of uploaded RH raster
-        """
-        logger.info("Starting RH interpolation for %s", self.datetime_to_process)
+                with WPSDataset(self.temp_raster_path) as temp_ds:
+                    temp_band: gdal.Band = temp_ds.ds.GetRasterBand(1)
+                    temp_data = temp_band.ReadAsArray()
+                    if temp_data is None:
+                        raise ValueError("Failed to read temperature raster data")
 
-        # Configure GDAL for S3 access
-        set_s3_gdal_config()
+                rh_array = np.full((y_size, x_size), SFMS_NO_DATA, dtype=np.float32)
 
-        # Get DEM, mask, and interpolated temperature raster paths
-        dem_path = self.raster_addresser.get_dem_key()
-        mask_path = self.raster_addresser.get_mask_key()
-        temp_raster_key = self.raster_addresser.get_interpolated_key(
-            self.datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP
-        )
-        temp_raster_path = self.raster_addresser.s3_prefix + "/" + temp_raster_key
+                with WPSDataset(self.mask_path) as mask_ds:
+                    valid_mask = ref_ds.apply_mask(mask_ds.warp_to_match(ref_ds))
 
-        logger.info("Using DEM: %s", dem_path)
-        logger.info("Using mask: %s", mask_path)
-        logger.info("Using interpolated temperature raster: %s", temp_raster_path)
+                lats, lons, valid_yi, valid_xi = dem_ds.get_lat_lon_coords(valid_mask)
+                valid_elevations = dem_data[valid_mask]
 
-        # Generate temporary file path
-        temp_dir = tempfile.gettempdir()
-        temp_raster_path_local = os.path.join(
-            temp_dir, f"rh_interpolation_{self.datetime_to_process.strftime('%Y%m%d')}.tif"
-        )
+                total_pixels = x_size * y_size
+                skipped_nodata_count = total_pixels - len(valid_yi)
 
-        try:
-            interpolate_rh_to_raster(
-                dewpoint_source,
-                temp_raster_path,
-                reference_raster_path,
-                dem_path,
-                temp_raster_path_local,
-                mask_path=mask_path,
+                logger.info(
+                    "Interpolating dew point for RH raster grid (%d x %d)", x_size, y_size
+                )
+                logger.info(
+                    "Processing %d valid pixels (skipping %d NoData pixels)",
+                    len(valid_yi),
+                    skipped_nodata_count,
+                )
+
+                station_lats, station_lons, sea_level_dewpoints = (
+                    source.get_interpolation_data(lapse_rate=DEW_POINT_LAPSE_RATE)
+                )
+                logger.info(
+                    "Running batch dew point IDW interpolation for %d pixels and %d stations",
+                    len(lats),
+                    len(station_lats),
+                )
+
+                interpolated_sea_level_dewpoints = idw_interpolation(
+                    lats, lons, station_lats, station_lons, sea_level_dewpoints
+                )
+                assert isinstance(interpolated_sea_level_dewpoints, np.ndarray)
+
+                interpolation_succeeded = ~np.isnan(interpolated_sea_level_dewpoints)
+                interpolated_count = int(np.sum(interpolation_succeeded))
+                failed_interpolation_count = (
+                    len(interpolated_sea_level_dewpoints) - interpolated_count
+                )
+
+                rows = valid_yi[interpolation_succeeded]
+                cols = valid_xi[interpolation_succeeded]
+
+                sea = interpolated_sea_level_dewpoints[interpolation_succeeded].astype(
+                    np.float32, copy=False
+                )
+                elev = valid_elevations[interpolation_succeeded].astype(np.float32, copy=False)
+                adjusted_dewpoints = StationDewPointSource.compute_adjusted_values(
+                    sea, elev, DEW_POINT_LAPSE_RATE
+                )
+
+                rh_values = StationDewPointSource.compute_rh(
+                    temp_data[rows, cols].astype(np.float32),
+                    adjusted_dewpoints,
+                )
+                rh_array[rows, cols] = rh_values
+
+            log_interpolation_stats(
+                total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count
             )
 
-            # Upload to S3
-            s3_key = self.raster_addresser.get_interpolated_key(
-                self.datetime_to_process, SFMSInterpolatedWeatherParameter.RH
+            if interpolated_count == 0:
+                raise RuntimeError(
+                    f"No pixels were successfully interpolated from {len(station_lats)} station(s). "
+                    "Check that station coordinates fall within the raster extent and that at least "
+                    "one station has a valid dew point value."
+                )
+
+            return WPSDataset.from_array(
+                array=rh_array,
+                geotransform=geo_transform,
+                projection=projection,
+                nodata_value=SFMS_NO_DATA,
+                datatype=gdal.GDT_Float32,
             )
-
-            logger.info("Uploading RH raster to S3: %s", s3_key)
-            async with aiofiles.open(temp_raster_path_local, "rb") as f:
-                contents = await f.read()
-                await s3_client.put_object(key=s3_key, body=contents)
-
-            logger.info("RH interpolation complete: %s", s3_key)
-            return s3_key
-
-        finally:
-            # Clean up temporary file asynchronously
-            try:
-                await aiofiles.os.remove(temp_raster_path_local)
-            except FileNotFoundError:
-                pass  # File doesn't exist, nothing to clean up

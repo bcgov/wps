@@ -48,7 +48,7 @@ jobs:
           export SFMS_SECRET=secret
           uv run pytest -n auto --cov=packages/wps-api/src/app --cov-branch --cov-report=xml:packages/wps-api/coverage-reports/api-coverage-report.xml packages/wps-api/src/app/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (api)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: api-coverage-report
           path: ./backend/packages/wps-api/coverage-reports/api-coverage-report.xml
@@ -73,7 +73,7 @@ jobs:
           export SFMS_SECRET=secret
           uv run pytest --cov=packages/wps-shared/src/wps_shared --cov-branch --cov-report=xml:packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml packages/wps-shared/src/wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_shared)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: wps-shared-coverage-report
           path: ./backend/packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml
@@ -99,7 +99,7 @@ jobs:
           export SFMS_SECRET=secret
           uv run pytest --cov=packages/wps-jobs/src --cov-branch --cov-report=xml:packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml packages/wps-jobs/src/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_jobs)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: wps-jobs-coverage-report
           path: ./backend/packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml
@@ -140,7 +140,7 @@ jobs:
         run: |
           uv run pytest --cov=packages/wps-wf1/src/wps_wf1 --cov-branch --cov-report=xml:packages/wps-wf1/coverage-reports/wps-wf1-coverage-report.xml packages/wps-wf1/src/wps_wf1/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_wf1)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: wps-wf1-coverage-report
           path: ./backend/packages/wps-wf1/coverage-reports/wps-wf1-coverage-report.xml
@@ -188,7 +188,7 @@ jobs:
         working-directory: ./web
         run: yarn run finalizeCoverage
       - name: Archive coverage report (web)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: web-coverage-report
           path: ./web/finalCoverage
@@ -208,7 +208,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

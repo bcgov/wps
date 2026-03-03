@@ -1,9 +1,7 @@
 """
-Weather interpolation using Inverse Distance Weighting (IDW).
+Generic IDW (Inverse Distance Weighting) interpolation for SFMS.
 
-This module implements the SFMS weather interpolation workflow:
-1. Create raster grid matching reference raster
-2. Interpolate weather values to raster using IDW
+Interpolates station observations to a raster grid using IDW.
 """
 
 import logging
@@ -25,19 +23,17 @@ def interpolate_to_raster(
     station_lons: List[float],
     station_values: List[float],
     reference_raster_path: str,
-    output_path: str,
     mask_path: str,
-) -> str:
+) -> WPSDataset:
     """
-    Interpolate station weather data to a raster using IDW.
+    Interpolate station values to a raster using IDW.
 
     :param station_lats: List of station latitudes
     :param station_lons: List of station longitudes
-    :param station_values: List of weather values
+    :param station_values: List of values to interpolate
     :param reference_raster_path: Path to reference raster (defines grid)
-    :param output_path: Path to write output weather raster
     :param mask_path: Path to BC mask raster (0 = masked, non-zero = valid)
-    :return: Path to output raster
+    :return: In-memory WPSDataset containing interpolated values
     """
     logger.info("Starting interpolation for %d stations", len(station_lats))
 
@@ -81,26 +77,30 @@ def interpolate_to_raster(
         )
         assert isinstance(interpolated_values, np.ndarray)
 
-        precip_array = np.full((y_size, x_size), SFMS_NO_DATA, dtype=np.float32)
+        output_array = np.full((y_size, x_size), SFMS_NO_DATA, dtype=np.float32)
 
         interpolation_succeeded = ~np.isnan(interpolated_values)
         interpolated_count = int(np.sum(interpolation_succeeded))
         failed_interpolation_count = len(interpolated_values) - interpolated_count
 
         for idx in np.nonzero(interpolation_succeeded)[0]:
-            precip_array[valid_yi[idx], valid_xi[idx]] = interpolated_values[idx]
+            output_array[valid_yi[idx], valid_xi[idx]] = interpolated_values[idx]
 
         log_interpolation_stats(
             total_pixels, interpolated_count, failed_interpolation_count, skipped_nodata_count
         )
 
-        WPSDataset.from_array(
-            array=precip_array,
+        if interpolated_count == 0:
+            raise RuntimeError(
+                f"No pixels were successfully interpolated from {len(station_lats)} station(s). "
+                "Check that station coordinates fall within the raster extent and that at least "
+                "one station has a valid value for this parameter."
+            )
+
+        return WPSDataset.from_array(
+            array=output_array,
             geotransform=geo_transform,
             projection=projection,
             nodata_value=SFMS_NO_DATA,
             datatype=gdal.GDT_Float32,
-        ).export_to_geotiff(output_path)
-
-        logger.info("Interpolation complete: %s", output_path)
-        return output_path
+        )
