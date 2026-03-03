@@ -335,15 +335,15 @@ class FWIProcessor:
         """
         set_s3_gdal_config()
 
+        # get only the dependency keys required by this calculator.
+        # ex: ISI uses FFMC + wind speed, while BUI uses DMC + DC.
         weather_keys_by_param = self._get_required_weather_keys(calculator, fwi_inputs)
         index_keys_by_param = self._get_required_index_keys(calculator, fwi_inputs)
 
         await self._assert_dependency_keys_exist(
             s3_client, weather_keys_by_param, "weather dependency"
         )
-        await self._assert_dependency_keys_exist(
-            s3_client, index_keys_by_param, "index dependency"
-        )
+        await self._assert_dependency_keys_exist(s3_client, index_keys_by_param, "index dependency")
 
         logger.info(
             "Calculating %s %s for %s",
@@ -353,6 +353,8 @@ class FWIProcessor:
         )
 
         with tempfile.TemporaryDirectory() as temp_dir:
+            # build the key list for all dependencies required by this calculator, to open them
+            # together in a single context manager call
             weather_params = list(calculator.required_weather_params)
             index_params = list(calculator.required_index_params)
             input_keys = [
@@ -361,6 +363,7 @@ class FWIProcessor:
             ]
 
             with input_dataset_context(input_keys) as input_datasets:
+                # open datasets as WPSDatasets and organize into dicts keyed by parameter for easy access in calculations
                 dataset_iter = iter(cast(List[WPSDataset], input_datasets))
                 weather_datasets: WeatherDatasetMap = {
                     param: next(dataset_iter) for param in weather_params
@@ -369,9 +372,11 @@ class FWIProcessor:
                     param: next(dataset_iter) for param in index_params
                 }
 
+                # use reference index's geotransform and projection for the output dataset, and verify all dependencies match that grid
                 reference_ds = index_datasets[calculator.reference_index_param]
                 reference_key = index_keys_by_param[calculator.reference_index_param]
 
+                # every weather raster must match the reference index grid
                 for param in calculator.required_weather_params:
                     weather_ds = weather_datasets[param]
                     weather_key = weather_keys_by_param[param]
@@ -380,6 +385,7 @@ class FWIProcessor:
                             f"{param.value} raster does not match FWI grid: {weather_key} vs {reference_key}"
                         )
 
+                # every index raster must match the reference index grid
                 for param in calculator.required_index_params:
                     if param == calculator.reference_index_param:
                         continue
@@ -392,6 +398,7 @@ class FWIProcessor:
 
                 result = calculator.calculate(index_datasets, weather_datasets)
 
+                # store GeoTIFF output using georeferencing from the reference grid
                 await s3_client.persist_raster_data(
                     temp_dir,
                     fwi_inputs.output_key,
@@ -401,6 +408,7 @@ class FWIProcessor:
                     result.nodata_value,
                 )
 
+                # generate/store a COG from the computed raster array
                 with WPSDataset.from_array(
                     result.values,
                     reference_ds.as_gdal_ds().GetGeoTransform(),
