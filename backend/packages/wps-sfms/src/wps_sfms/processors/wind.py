@@ -2,8 +2,8 @@ import logging
 
 import numpy as np
 from osgeo import gdal
-
 from wps_shared.geospatial.wps_dataset import WPSDataset
+
 from wps_sfms.interpolation.common import SFMS_NO_DATA, log_interpolation_stats
 from wps_sfms.interpolation.source import StationWindVectorSource
 from wps_sfms.processors.idw import Interpolator, idw_on_valid_pixels
@@ -34,6 +34,8 @@ class WindDirectionInterpolator(Interpolator):
 
         zero_u = np.abs(u) < np.float32(1e-6)
 
+        # when v is effectively zero, avoid unstable/ambiguous atan2 results by applying legacy
+        # SFMS rules: u<0 => 90 deg, u>0 => 270 deg, and u~=0 & v~=0 (calm/no directional signal) => 0 deg.
         direction[zero_v & (u < 0.0)] = 90.0
         direction[zero_v & (u > 0.0)] = 270.0
         direction[zero_v & zero_u] = 0.0
