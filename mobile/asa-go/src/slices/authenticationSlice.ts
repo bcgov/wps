@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { AppThunk } from "@/store";
+import { jwtDecode } from "jwt-decode";
+import { isUndefined } from "lodash";
 import { Keycloak } from "../../../keycloak/src";
 
 export interface AuthState {
@@ -9,6 +11,7 @@ export interface AuthState {
   tokenRefreshed: boolean;
   token: string | undefined;
   idToken: string | undefined;
+  idir: string | undefined;
   error: string | null;
 }
 
@@ -18,6 +21,7 @@ export const initialState: AuthState = {
   tokenRefreshed: false,
   token: undefined,
   idToken: undefined,
+  idir: undefined,
   error: null,
 };
 
@@ -34,8 +38,10 @@ const authSlice = createSlice({
         isAuthenticated: boolean;
         token: string | undefined;
         idToken: string | undefined;
-      }>
+      }>,
     ) {
+      const userDetails = decodeUserDetails(action.payload.token);
+      state.idir = userDetails?.idir;
       state.authenticating = false;
       state.isAuthenticated = action.payload.isAuthenticated;
       state.token = action.payload.token;
@@ -52,8 +58,10 @@ const authSlice = createSlice({
         tokenRefreshed: boolean;
         token: string | undefined;
         idToken: string | undefined;
-      }>
+      }>,
     ) {
+      const userDetails = decodeUserDetails(action.payload.token);
+      state.idir = userDetails?.idir;
       state.token = action.payload.token;
       state.idToken = action.payload.idToken;
       state.tokenRefreshed = action.payload.tokenRefreshed;
@@ -101,7 +109,7 @@ export const authenticate = (): AppThunk => (dispatch) => {
             isAuthenticated: result.isAuthenticated,
             token: result.accessToken,
             idToken: result.idToken,
-          })
+          }),
         );
       } else {
         dispatch(authenticateError(JSON.stringify(result.error)));
@@ -126,11 +134,26 @@ export const authenticate = (): AppThunk => (dispatch) => {
           tokenRefreshed: true,
           token: tokenResponse.accessToken,
           idToken: tokenResponse.idToken,
-        })
+        }),
       );
     }
   };
 
   // Set up event listener for token refresh events (works for both web and iOS)
   Keycloak.addListener("tokenRefresh", handleTokenRefresh);
+};
+
+const decodeUserDetails = (token: string | undefined) => {
+  if (isUndefined(token)) {
+    return undefined;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const decodedToken: any = jwtDecode(token);
+  try {
+    return { idir: decodedToken.idir_username, email: decodedToken.email };
+  } catch (e) {
+    // No idir username
+    console.error(e);
+    return undefined;
+  }
 };

@@ -48,7 +48,7 @@ const App = () => {
   const dispatch: AppDispatch = useDispatch();
   const [isPortrait, setIsPortrait] = useState<boolean>(true);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
-  const { idToken, isAuthenticated } = useSelector(selectAuthentication);
+  const { idir, isAuthenticated } = useSelector(selectAuthentication);
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -112,9 +112,9 @@ const App = () => {
 
   useEffect(() => {
     if (token) {
-      registerToken(Capacitor.getPlatform() as Platform, token, idToken || "");
+      registerToken(Capacitor.getPlatform() as Platform, token, idir || "");
     }
-  }, [token, idToken]);
+  }, [token, idir]);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status
