@@ -1,7 +1,5 @@
 import axios from "api/axios";
 
-const DEVICE_REGISTRATION_PATH = "device/register";
-
 export type Platform = "android" | "ios";
 
 export interface RegisterDeviceRequest {
@@ -24,7 +22,7 @@ export async function registerToken(
   token: string,
   userId: string | null,
 ): Promise<DeviceRequestResponse> {
-  const url = `${DEVICE_REGISTRATION_PATH}`;
+  const url = "device/register";
   const { data } = await axios.post(url, {
     platform,
     token,
@@ -36,7 +34,7 @@ export async function registerToken(
 export async function unregisterToken(
   token: string,
 ): Promise<DeviceRequestResponse> {
-  const url = `${DEVICE_REGISTRATION_PATH}/`;
-  const { data } = await axios.post(url, { token });
+  const url = "device/unregister";
+  const { data } = await axios.delete(url, { data: { token } });
   return data;
 }

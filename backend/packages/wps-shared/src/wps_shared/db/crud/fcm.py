@@ -27,10 +27,10 @@ async def get_device_by_token(session: AsyncSession, token: str):
 
 async def update_device_token_is_active(session: AsyncSession, token: str):
     device_token = await session.scalar(select(DeviceToken).where(DeviceToken.token == token))
-    if not token:
-        raise ValueError(f"DeviceToken with id {token} does not exist.")
-    device_token.is_active = True
-    device_token.updated_at(get_utc_now())
+    if not device_token:
+        raise ValueError(f"DeviceToken with token {token} does not exist.")
+    device_token.is_active = False
+    device_token.updated_at = get_utc_now()
 
 
 async def deactivate_device_tokens(session: AsyncSession, tokens: list[str]) -> int:
