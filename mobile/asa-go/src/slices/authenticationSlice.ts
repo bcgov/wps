@@ -143,16 +143,16 @@ export const authenticate = (): AppThunk => (dispatch) => {
   Keycloak.addListener("tokenRefresh", handleTokenRefresh);
 };
 
-const decodeUserDetails = (token: string | undefined) => {
+export const decodeUserDetails = (token: string | undefined) => {
   if (isUndefined(token)) {
     return undefined;
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const decodedToken: any = jwtDecode(token);
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const decodedToken: any = jwtDecode(token);
     return { idir: decodedToken.idir_username, email: decodedToken.email };
   } catch (e) {
-    // No idir username
+    // Handle invalid token or missing claims
     console.error(e);
     return undefined;
   }

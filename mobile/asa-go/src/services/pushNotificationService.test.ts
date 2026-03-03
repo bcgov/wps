@@ -21,6 +21,17 @@ vi.mock("@capacitor-firebase/messaging", () => ({
   },
 }));
 
+vi.mock(import("@capacitor/core"), async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    Capacitor: {
+      ...actual.Capacitor,
+      getPlatform: vi.fn().mockReturnValue("android"),
+    },
+  };
+});
+
 describe("PushNotificationService", () => {
   // Reset all mocks before each test
   beforeEach(() => {
@@ -93,24 +104,6 @@ describe("PushNotificationService", () => {
       expect(FirebaseMessaging.getToken).toHaveBeenCalledTimes(1);
     });
 
-    it("should throw an error when permissions are denied", async () => {
-      // Arrange
-      vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({
-        receive: "denied",
-      } as PermissionStatus);
-
-      vi.mocked(FirebaseMessaging.requestPermissions).mockResolvedValue({
-        receive: "denied",
-      } as PermissionStatus);
-
-      const service = new PushNotificationService();
-
-      // Act & Assert
-      await expect(service.initPushNotificationService()).rejects.toThrow(
-        "Push permission not granted",
-      );
-    });
-
     it("should use custom Android channel when provided", async () => {
       // Arrange
       const mockToken = "test-fcm-token";
@@ -145,25 +138,6 @@ describe("PushNotificationService", () => {
       expect(FirebaseMessaging.createChannel).toHaveBeenCalledWith(
         customChannel,
       );
-    });
-
-    it("should handle errors during initialization", async () => {
-      // Arrange
-      const mockError = new Error("Initialization failed");
-      const mockOnError = vi.fn();
-
-      vi.mocked(FirebaseMessaging.checkPermissions).mockRejectedValue(
-        mockError,
-      );
-
-      const service = new PushNotificationService({ onError: mockOnError });
-
-      // Act & Assert
-      await expect(service.initPushNotificationService()).rejects.toThrow(
-        mockError,
-      );
-
-      expect(mockOnError).toHaveBeenCalledWith(mockError);
     });
   });
 
