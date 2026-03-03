@@ -1,8 +1,8 @@
 """
-FWI processor for calculating FFMC, DMC, DC rasters from weather inputs.
+FWI processor for calculating FWI index rasters from weather/index dependencies.
 
-Accepts a FWIInputs dataclass that fully describes the input and output keys,
-allowing the same processor to be used for both actuals and forecasts.
+Accepts an FWIInputs dataclass that declares all dependency keys and output keys,
+allowing each calculator to specify only the inputs it needs.
 """
 
 import logging
@@ -10,23 +10,32 @@ import tempfile
 from abc import ABC, abstractmethod
 from datetime import datetime
 from time import perf_counter
-from typing import Callable, ContextManager, List, NamedTuple, Tuple, cast
+from typing import Callable, ContextManager, List, Mapping, NamedTuple, cast
 
 import numpy as np
 from osgeo import gdal
 
-from wps_shared.fwi import vectorized_dc, vectorized_dmc, vectorized_ffmc
+from wps_shared.fwi import (
+    vectorized_bui,
+    vectorized_dc,
+    vectorized_dmc,
+    vectorized_ffmc,
+    vectorized_fwi,
+    vectorized_isi,
+)
 from wps_shared.geospatial.cog import generate_and_store_cog
 from wps_shared.geospatial.geospatial import rasters_match
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.sfms.raster_addresser import FWIParameter
-from wps_sfms.sfmsng_raster_addresser import FWIInputs
+from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
+from wps_sfms.sfmsng_raster_addresser import FWIInputs
 
 logger = logging.getLogger(__name__)
 
 MultiDatasetContext = Callable[[List[str]], ContextManager[List["WPSDataset"]]]
+WeatherDatasetMap = dict[SFMSInterpolatedWeatherParameter, WPSDataset]
+IndexDatasetMap = dict[FWIParameter, WPSDataset]
 
 
 class FWIResult(NamedTuple):
@@ -36,10 +45,13 @@ class FWIResult(NamedTuple):
 
 class FWICalculator(ABC):
     fwi_param: FWIParameter
+    reference_index_param: FWIParameter
+    required_weather_params: tuple[SFMSInterpolatedWeatherParameter, ...] = ()
+    required_index_params: tuple[FWIParameter, ...] = ()
 
     @abstractmethod
     def calculate(
-        self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
+        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
     ) -> FWIResult: ...
 
 
@@ -51,29 +63,45 @@ class MonthlyFWICalculator(FWICalculator, ABC):
             raise ValueError(f"month must be 1–12, got {month}")
         self.month = month
 
-    def _lat_month_arrays(self, ds: WPSDataset) -> Tuple[np.ndarray, np.ndarray]:
+    def _lat_month_arrays(self, ds: WPSDataset) -> tuple[np.ndarray, np.ndarray]:
         latitude = ds.generate_latitude_array()
         return latitude, np.full(latitude.shape, self.month)
 
 
 class FFMCCalculator(FWICalculator):
     fwi_param = FWIParameter.FFMC
+    reference_index_param = FWIParameter.FFMC
+    required_weather_params = (
+        SFMSInterpolatedWeatherParameter.TEMP,
+        SFMSInterpolatedWeatherParameter.RH,
+        SFMSInterpolatedWeatherParameter.PRECIP,
+        SFMSInterpolatedWeatherParameter.WIND_SPEED,
+    )
+    required_index_params = (FWIParameter.FFMC,)
 
     def calculate(
-        self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
+        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
     ) -> FWIResult:
-        ffmc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
+        temp_ds = weather_datasets[SFMSInterpolatedWeatherParameter.TEMP]
+        rh_ds = weather_datasets[SFMSInterpolatedWeatherParameter.RH]
+        precip_ds = weather_datasets[SFMSInterpolatedWeatherParameter.PRECIP]
+        wind_ds = weather_datasets[SFMSInterpolatedWeatherParameter.WIND_SPEED]
+        ffmc_prev_ds = index_datasets[FWIParameter.FFMC]
+
+        ffmc_prev, nodata_value = ffmc_prev_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
         rh, _ = rh_ds.replace_nodata_with(np.nan)
         prec, _ = precip_ds.replace_nodata_with(np.nan)
-        ws = np.zeros_like(temp)  # TODO: implement wind speed
+        ws, _ = wind_ds.replace_nodata_with(np.nan)
 
-        mask = np.isnan(ffmc_yda) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
+        mask = np.isnan(ffmc_prev) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec) | np.isnan(ws)
         valid = ~mask
-        values = np.full(ffmc_yda.shape, nodata_value, dtype=ffmc_yda.dtype)
+        values = np.full(ffmc_prev.shape, nodata_value, dtype=ffmc_prev.dtype)
 
         start = perf_counter()
-        values[valid] = vectorized_ffmc(ffmc_yda[valid], temp[valid], rh[valid], ws[valid], prec[valid])
+        values[valid] = vectorized_ffmc(
+            ffmc_prev[valid], temp[valid], rh[valid], ws[valid], prec[valid]
+        )
         logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
 
         return FWIResult(values, nodata_value)
@@ -81,22 +109,36 @@ class FFMCCalculator(FWICalculator):
 
 class DMCCalculator(MonthlyFWICalculator):
     fwi_param = FWIParameter.DMC
+    reference_index_param = FWIParameter.DMC
+    required_weather_params = (
+        SFMSInterpolatedWeatherParameter.TEMP,
+        SFMSInterpolatedWeatherParameter.RH,
+        SFMSInterpolatedWeatherParameter.PRECIP,
+    )
+    required_index_params = (FWIParameter.DMC,)
 
     def calculate(
-        self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
+        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
     ) -> FWIResult:
-        lat, mon = self._lat_month_arrays(prev_fwi_ds)
-        dmc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
+        temp_ds = weather_datasets[SFMSInterpolatedWeatherParameter.TEMP]
+        rh_ds = weather_datasets[SFMSInterpolatedWeatherParameter.RH]
+        precip_ds = weather_datasets[SFMSInterpolatedWeatherParameter.PRECIP]
+        dmc_prev_ds = index_datasets[FWIParameter.DMC]
+
+        lat, mon = self._lat_month_arrays(dmc_prev_ds)
+        dmc_prev, nodata_value = dmc_prev_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
         rh, _ = rh_ds.replace_nodata_with(np.nan)
         prec, _ = precip_ds.replace_nodata_with(np.nan)
 
-        mask = np.isnan(dmc_yda) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
+        mask = np.isnan(dmc_prev) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
         valid = ~mask
-        values = np.full(dmc_yda.shape, nodata_value, dtype=dmc_yda.dtype)
+        values = np.full(dmc_prev.shape, nodata_value, dtype=dmc_prev.dtype)
 
         start = perf_counter()
-        values[valid] = vectorized_dmc(dmc_yda[valid], temp[valid], rh[valid], prec[valid], lat[valid], mon[valid], True)
+        values[valid] = vectorized_dmc(
+            dmc_prev[valid], temp[valid], rh[valid], prec[valid], lat[valid], mon[valid], True
+        )
         logger.info("%f seconds to calculate vectorized dmc", perf_counter() - start)
 
         return FWIResult(values, nodata_value)
@@ -104,32 +146,177 @@ class DMCCalculator(MonthlyFWICalculator):
 
 class DCCalculator(MonthlyFWICalculator):
     fwi_param = FWIParameter.DC
+    reference_index_param = FWIParameter.DC
+    required_weather_params = (
+        SFMSInterpolatedWeatherParameter.TEMP,
+        SFMSInterpolatedWeatherParameter.RH,
+        SFMSInterpolatedWeatherParameter.PRECIP,
+    )
+    required_index_params = (FWIParameter.DC,)
 
     def calculate(
-        self, prev_fwi_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset
+        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
     ) -> FWIResult:
-        lat, mon = self._lat_month_arrays(prev_fwi_ds)
-        dc_yda, nodata_value = prev_fwi_ds.replace_nodata_with(np.nan)
+        temp_ds = weather_datasets[SFMSInterpolatedWeatherParameter.TEMP]
+        rh_ds = weather_datasets[SFMSInterpolatedWeatherParameter.RH]
+        precip_ds = weather_datasets[SFMSInterpolatedWeatherParameter.PRECIP]
+        dc_prev_ds = index_datasets[FWIParameter.DC]
+
+        lat, mon = self._lat_month_arrays(dc_prev_ds)
+        dc_prev, nodata_value = dc_prev_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
         rh, _ = rh_ds.replace_nodata_with(np.nan)
         prec, _ = precip_ds.replace_nodata_with(np.nan)
 
-        mask = np.isnan(dc_yda) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
+        mask = np.isnan(dc_prev) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
         valid = ~mask
-        values = np.full(dc_yda.shape, nodata_value, dtype=dc_yda.dtype)
+        values = np.full(dc_prev.shape, nodata_value, dtype=dc_prev.dtype)
 
         start = perf_counter()
-        values[valid] = vectorized_dc(dc_yda[valid], temp[valid], rh[valid], prec[valid], lat[valid], mon[valid], True)
+        values[valid] = vectorized_dc(
+            dc_prev[valid], temp[valid], rh[valid], prec[valid], lat[valid], mon[valid], True
+        )
         logger.info("%f seconds to calculate vectorized dc", perf_counter() - start)
 
         return FWIResult(values, nodata_value)
 
 
+class ISICalculator(FWICalculator):
+    fwi_param = FWIParameter.ISI
+    reference_index_param = FWIParameter.FFMC
+    required_weather_params = (SFMSInterpolatedWeatherParameter.WIND_SPEED,)
+    required_index_params = (FWIParameter.FFMC,)
+
+    def calculate(
+        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
+    ) -> FWIResult:
+        ffmc_ds = index_datasets[FWIParameter.FFMC]
+        wind_ds = weather_datasets[SFMSInterpolatedWeatherParameter.WIND_SPEED]
+
+        ffmc, nodata_value = ffmc_ds.replace_nodata_with(np.nan)
+        ws, _ = wind_ds.replace_nodata_with(np.nan)
+
+        mask = np.isnan(ffmc) | np.isnan(ws)
+        valid = ~mask
+        values = np.full(ffmc.shape, nodata_value, dtype=ffmc.dtype)
+
+        start = perf_counter()
+        values[valid] = vectorized_isi(ffmc[valid], ws[valid], False)
+        logger.info("%f seconds to calculate vectorized isi", perf_counter() - start)
+
+        return FWIResult(values, nodata_value)
+
+
+class BUICalculator(FWICalculator):
+    fwi_param = FWIParameter.BUI
+    reference_index_param = FWIParameter.DMC
+    required_index_params = (FWIParameter.DMC, FWIParameter.DC)
+
+    def calculate(
+        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
+    ) -> FWIResult:
+        del weather_datasets  # Unused for BUI by definition.
+
+        dmc_ds = index_datasets[FWIParameter.DMC]
+        dc_ds = index_datasets[FWIParameter.DC]
+
+        dmc, nodata_value = dmc_ds.replace_nodata_with(np.nan)
+        dc, _ = dc_ds.replace_nodata_with(np.nan)
+
+        mask = np.isnan(dmc) | np.isnan(dc)
+        valid = ~mask
+        values = np.full(dmc.shape, nodata_value, dtype=dmc.dtype)
+
+        start = perf_counter()
+        values[valid] = vectorized_bui(dmc[valid], dc[valid])
+        logger.info("%f seconds to calculate vectorized bui", perf_counter() - start)
+
+        return FWIResult(values, nodata_value)
+
+
+class FWIFinalCalculator(FWICalculator):
+    fwi_param = FWIParameter.FWI
+    reference_index_param = FWIParameter.ISI
+    required_index_params = (FWIParameter.ISI, FWIParameter.BUI)
+
+    def calculate(
+        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
+    ) -> FWIResult:
+        del weather_datasets  # Unused for FWI by definition.
+
+        isi_ds = index_datasets[FWIParameter.ISI]
+        bui_ds = index_datasets[FWIParameter.BUI]
+
+        isi, nodata_value = isi_ds.replace_nodata_with(np.nan)
+        bui, _ = bui_ds.replace_nodata_with(np.nan)
+
+        mask = np.isnan(isi) | np.isnan(bui)
+        valid = ~mask
+        values = np.full(isi.shape, nodata_value, dtype=isi.dtype)
+
+        start = perf_counter()
+        values[valid] = vectorized_fwi(isi[valid], bui[valid])
+        logger.info("%f seconds to calculate vectorized fwi", perf_counter() - start)
+
+        return FWIResult(values, nodata_value)
+
+
 class FWIProcessor:
-    """Calculates FFMC, DMC, DC rasters from weather inputs described by FWIInputs."""
+    """Calculates FWI index rasters from dependency keys described by FWIInputs."""
 
     def __init__(self, datetime_to_process: datetime):
         self.datetime_to_process = datetime_to_process
+
+    @staticmethod
+    def _get_required_weather_keys(
+        calculator: FWICalculator,
+        fwi_inputs: FWIInputs,
+    ) -> dict[SFMSInterpolatedWeatherParameter, str]:
+        missing_params = [
+            param
+            for param in calculator.required_weather_params
+            if param not in fwi_inputs.weather_keys
+        ]
+        if missing_params:
+            missing = ", ".join(param.value for param in missing_params)
+            raise ValueError(f"FWIInputs missing weather key mappings for: {missing}")
+
+        return {
+            param: fwi_inputs.weather_keys[param] for param in calculator.required_weather_params
+        }
+
+    @staticmethod
+    def _get_required_index_keys(
+        calculator: FWICalculator,
+        fwi_inputs: FWIInputs,
+    ) -> dict[FWIParameter, str]:
+        missing_params = [
+            param
+            for param in calculator.required_index_params
+            if param not in fwi_inputs.index_keys
+        ]
+        if missing_params:
+            missing = ", ".join(param.value for param in missing_params)
+            raise ValueError(f"FWIInputs missing index key mappings for: {missing}")
+
+        return {param: fwi_inputs.index_keys[param] for param in calculator.required_index_params}
+
+    async def _assert_dependency_keys_exist(
+        self,
+        s3_client: S3Client,
+        keys_by_param: Mapping[SFMSInterpolatedWeatherParameter | FWIParameter, str],
+        dependency_kind: str,
+    ) -> None:
+        if not keys_by_param:
+            return
+
+        if await s3_client.all_objects_exist(*keys_by_param.values()):
+            return
+
+        details = ", ".join(f"{param.value}={key}" for param, key in keys_by_param.items())
+        raise RuntimeError(
+            f"Missing {dependency_kind} keys for {self.datetime_to_process.date()}: {details}"
+        )
 
     async def calculate_index(
         self,
@@ -139,30 +326,24 @@ class FWIProcessor:
         fwi_inputs: FWIInputs,
     ):
         """
-        Calculate a single FWI index from the provided inputs.
+        Calculate a single FWI index from the provided dependencies.
 
         :param s3_client: S3Client instance for checking keys and persisting results
         :param input_dataset_context: Context manager for opening multiple WPSDatasets
         :param calculator: FWICalculator instance that performs the index calculation
-        :param fwi_inputs: All S3 keys and metadata for this calculation
+        :param fwi_inputs: Dependency keys and metadata for this calculation
         """
         set_s3_gdal_config()
 
-        weather_keys_exist = await s3_client.all_objects_exist(
-            fwi_inputs.temp_key, fwi_inputs.rh_key, fwi_inputs.precip_key
-        )
-        if not weather_keys_exist:
-            raise RuntimeError(
-                f"Missing weather keys for {self.datetime_to_process.date()}: "
-                f"temp={fwi_inputs.temp_key}, rh={fwi_inputs.rh_key}, precip={fwi_inputs.precip_key}"
-            )
+        weather_keys_by_param = self._get_required_weather_keys(calculator, fwi_inputs)
+        index_keys_by_param = self._get_required_index_keys(calculator, fwi_inputs)
 
-        fwi_key_exists = await s3_client.all_objects_exist(fwi_inputs.prev_fwi_key)
-        if not fwi_key_exists:
-            raise RuntimeError(
-                f"Missing previous {calculator.fwi_param.value} raster for "
-                f"{self.datetime_to_process.date()}: {fwi_inputs.prev_fwi_key}"
-            )
+        await self._assert_dependency_keys_exist(
+            s3_client, weather_keys_by_param, "weather dependency"
+        )
+        await self._assert_dependency_keys_exist(
+            s3_client, index_keys_by_param, "index dependency"
+        )
 
         logger.info(
             "Calculating %s %s for %s",
@@ -172,49 +353,64 @@ class FWIProcessor:
         )
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            with input_dataset_context(
-                [
-                    fwi_inputs.temp_key,
-                    fwi_inputs.rh_key,
-                    fwi_inputs.precip_key,
-                    fwi_inputs.prev_fwi_key,
-                ]
-            ) as input_datasets:
-                input_datasets = cast(List[WPSDataset], input_datasets)
-                temp_ds, rh_ds, precip_ds, prev_fwi_ds = input_datasets
+            weather_params = list(calculator.required_weather_params)
+            index_params = list(calculator.required_index_params)
+            input_keys = [
+                *(weather_keys_by_param[param] for param in weather_params),
+                *(index_keys_by_param[param] for param in index_params),
+            ]
 
-                # Assert weather rasters already match the FWI grid
-                if not rasters_match(temp_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
-                    raise ValueError(
-                        f"Temperature raster does not match FWI grid: {fwi_inputs.temp_key} vs {fwi_inputs.prev_fwi_key}"
-                    )
-                if not rasters_match(rh_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
-                    raise ValueError(
-                        f"RH raster does not match FWI grid: {fwi_inputs.rh_key} vs {fwi_inputs.prev_fwi_key}"
-                    )
-                if not rasters_match(precip_ds.as_gdal_ds(), prev_fwi_ds.as_gdal_ds()):
-                    raise ValueError(
-                        f"Precip raster does not match FWI grid: {fwi_inputs.precip_key} vs {fwi_inputs.prev_fwi_key}"
-                    )
+            with input_dataset_context(input_keys) as input_datasets:
+                dataset_iter = iter(cast(List[WPSDataset], input_datasets))
+                weather_datasets: WeatherDatasetMap = {
+                    param: next(dataset_iter) for param in weather_params
+                }
+                index_datasets: IndexDatasetMap = {
+                    param: next(dataset_iter) for param in index_params
+                }
 
-                result = calculator.calculate(prev_fwi_ds, temp_ds, rh_ds, precip_ds)
+                reference_ds = index_datasets[calculator.reference_index_param]
+                reference_key = index_keys_by_param[calculator.reference_index_param]
+
+                for param in calculator.required_weather_params:
+                    weather_ds = weather_datasets[param]
+                    weather_key = weather_keys_by_param[param]
+                    if not rasters_match(weather_ds.as_gdal_ds(), reference_ds.as_gdal_ds()):
+                        raise ValueError(
+                            f"{param.value} raster does not match FWI grid: {weather_key} vs {reference_key}"
+                        )
+
+                for param in calculator.required_index_params:
+                    if param == calculator.reference_index_param:
+                        continue
+                    index_ds = index_datasets[param]
+                    index_key = index_keys_by_param[param]
+                    if not rasters_match(index_ds.as_gdal_ds(), reference_ds.as_gdal_ds()):
+                        raise ValueError(
+                            f"{param.value} raster does not match FWI grid: {index_key} vs {reference_key}"
+                        )
+
+                result = calculator.calculate(index_datasets, weather_datasets)
 
                 await s3_client.persist_raster_data(
                     temp_dir,
                     fwi_inputs.output_key,
-                    prev_fwi_ds.as_gdal_ds().GetGeoTransform(),
-                    prev_fwi_ds.as_gdal_ds().GetProjection(),
+                    reference_ds.as_gdal_ds().GetGeoTransform(),
+                    reference_ds.as_gdal_ds().GetProjection(),
                     result.values,
                     result.nodata_value,
                 )
 
                 with WPSDataset.from_array(
                     result.values,
-                    prev_fwi_ds.as_gdal_ds().GetGeoTransform(),
-                    prev_fwi_ds.as_gdal_ds().GetProjection(),
+                    reference_ds.as_gdal_ds().GetGeoTransform(),
+                    reference_ds.as_gdal_ds().GetProjection(),
                     result.nodata_value,
                 ) as output_ds:
-                    generate_and_store_cog(src_ds=output_ds.as_gdal_ds(), output_path=fwi_inputs.cog_key)
+                    generate_and_store_cog(
+                        src_ds=output_ds.as_gdal_ds(), output_path=fwi_inputs.cog_key
+                    )
+
                 logger.info(
                     "Stored %s %s: %s",
                     calculator.fwi_param.value,
@@ -222,5 +418,5 @@ class FWIProcessor:
                     fwi_inputs.output_key,
                 )
 
-                # Clear gdal virtual file system cache of S3 metadata
+                # Clear gdal virtual file system cache of S3 metadata.
                 gdal.VSICurlClearCache()

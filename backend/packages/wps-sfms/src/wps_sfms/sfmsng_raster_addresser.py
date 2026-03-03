@@ -7,6 +7,7 @@ Uses a `sfms_ng/` S3 root prefix, completely separate from the legacy
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Mapping
 
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
@@ -21,17 +22,14 @@ from wps_shared.utils.time import assert_all_utc
 
 @dataclass(frozen=True)
 class FWIInputs:
-    """All S3 keys and metadata needed for a single FWI index calculation.
+    """All input key mappings and metadata needed for a single FWI calculation.
 
-    Input keys (temp_key, rh_key, precip_key, prev_fwi_key, cog_key) are
-    GDALPath values (/vsis3/...) for reading via GDAL. output_key is a plain
-    S3Key for writing via boto3.
+    `weather_keys` and `index_keys` values are GDALPath values (/vsis3/...) for
+    reading via GDAL. `output_key` is a plain S3Key for writing via boto3.
     """
 
-    temp_key: GDALPath
-    rh_key: GDALPath
-    precip_key: GDALPath
-    prev_fwi_key: GDALPath
+    weather_keys: Mapping[SFMSInterpolatedWeatherParameter, GDALPath]
+    index_keys: Mapping[FWIParameter, GDALPath]
     output_key: S3Key
     cog_key: GDALPath
     run_type: RunType
@@ -61,7 +59,9 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         date = datetime_utc.date()
         param = weather_param.value
         date_str = date.isoformat().replace("-", "")
-        return S3Key(f"{self.root}/actual/{date.year:04d}/{date.month:02d}/{date.day:02d}/{param}_{date_str}.tif")
+        return S3Key(
+            f"{self.root}/actual/{date.year:04d}/{date.month:02d}/{date.day:02d}/{param}_{date_str}.tif"
+        )
 
     def get_actual_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter) -> S3Key:
         """
@@ -72,37 +72,74 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_utc)
         date = datetime_utc.date()
         date_str = date.isoformat().replace("-", "")
-        return S3Key(f"{self.root}/actual/{date.year:04d}/{date.month:02d}/{date.day:02d}/{fwi_param.value}_{date_str}.tif")
+        return S3Key(
+            f"{self.root}/actual/{date.year:04d}/{date.month:02d}/{date.day:02d}/{fwi_param.value}_{date_str}.tif"
+        )
 
     def get_actual_fwi_inputs(
         self, datetime_to_process: datetime, fwi_param: FWIParameter
     ) -> FWIInputs:
         """
-        Build a FWIInputs for a station-interpolated actual run.
+        Build FWIInputs for one actual-run index calculation.
 
-        Uses yesterday's uploaded FWI value as seed and today's interpolated
-        weather rasters (temp, rh, precip) as inputs.
+        Dependency keys vary by requested index:
+        - FFMC, DMC, DC: yesterday's same index + today's weather
+        - ISI: today's FFMC + today's wind speed
+        - BUI: today's DMC + today's DC
+        - FWI: today's ISI + today's BUI
 
         :param datetime_to_process: UTC datetime being processed
-        :param fwi_param: Which FWI parameter to calculate (FFMC, DMC, or DC)
+        :param fwi_param: Which FWI parameter to calculate
         :return: FWIInputs ready for FWIProcessor
         """
         assert_all_utc(datetime_to_process)
         yesterday = datetime_to_process - timedelta(days=1)
-        temp_key, rh_key, precip_key, prev_fwi_key = self.gdal_prefix_keys(
-            self.get_actual_weather_key(datetime_to_process, SFMSInterpolatedWeatherParameter.TEMP),
-            self.get_actual_weather_key(datetime_to_process, SFMSInterpolatedWeatherParameter.RH),
-            self.get_actual_weather_key(
-                datetime_to_process, SFMSInterpolatedWeatherParameter.PRECIP
-            ),
-            self.get_actual_index_key(yesterday, fwi_param),
-        )
+
+        weather_keys = {
+            param: self.gdal_path(self.get_actual_weather_key(datetime_to_process, param))
+            for param in (
+                SFMSInterpolatedWeatherParameter.TEMP,
+                SFMSInterpolatedWeatherParameter.RH,
+                SFMSInterpolatedWeatherParameter.PRECIP,
+                SFMSInterpolatedWeatherParameter.WIND_SPEED,
+            )
+        }
+
+        if fwi_param in (FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC):
+            index_keys = {
+                fwi_param: self.gdal_path(self.get_actual_index_key(yesterday, fwi_param))
+            }
+        elif fwi_param == FWIParameter.ISI:
+            index_keys = {
+                FWIParameter.FFMC: self.gdal_path(
+                    self.get_actual_index_key(datetime_to_process, FWIParameter.FFMC)
+                )
+            }
+        elif fwi_param == FWIParameter.BUI:
+            index_keys = {
+                FWIParameter.DMC: self.gdal_path(
+                    self.get_actual_index_key(datetime_to_process, FWIParameter.DMC)
+                ),
+                FWIParameter.DC: self.gdal_path(
+                    self.get_actual_index_key(datetime_to_process, FWIParameter.DC)
+                ),
+            }
+        elif fwi_param == FWIParameter.FWI:
+            index_keys = {
+                FWIParameter.ISI: self.gdal_path(
+                    self.get_actual_index_key(datetime_to_process, FWIParameter.ISI)
+                ),
+                FWIParameter.BUI: self.gdal_path(
+                    self.get_actual_index_key(datetime_to_process, FWIParameter.BUI)
+                ),
+            }
+        else:
+            raise ValueError(f"Unsupported FWI parameter: {fwi_param.value}")
+
         output_key = self.get_actual_index_key(datetime_to_process, fwi_param)
         return FWIInputs(
-            temp_key=temp_key,
-            rh_key=rh_key,
-            precip_key=precip_key,
-            prev_fwi_key=prev_fwi_key,
+            weather_keys=weather_keys,
+            index_keys=index_keys,
             output_key=output_key,
             cog_key=self.get_cog_key(output_key),
             run_type=RunType.ACTUAL,

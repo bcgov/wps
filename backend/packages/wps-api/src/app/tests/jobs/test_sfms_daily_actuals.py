@@ -103,6 +103,10 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_addresser = MagicMock()
     mock_addresser.s3_prefix = "/vsis3/test-bucket"
     mocker.patch(f"{MODULE_PATH}.SFMSNGRasterAddresser", return_value=mock_addresser)
+    mocker.patch(
+        f"{MODULE_PATH}.generate_web_optimized_cog",
+        return_value="/vsis3/test-bucket/sfms_ng/actual/2024/07/04/fwi_20240704_cog.tif",
+    )
 
     # Mock processors
     mock_temp_processor = MagicMock(spec=TemperatureInterpolator)
