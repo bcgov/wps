@@ -7,7 +7,7 @@ import {
   PermissionStatus,
   TokenReceivedEvent,
 } from "@capacitor-firebase/messaging";
-import { PluginListenerHandle } from "@capacitor/core";
+import { Capacitor, PluginListenerHandle } from "@capacitor/core";
 
 export type PushInitOptions = {
   onRegister?: (token: string) => void;
@@ -33,15 +33,17 @@ export class PushNotificationService {
       }
 
       // Android channel (recommended on 8+)
-      await FirebaseMessaging.createChannel(
-        this.opts.androidChannel ?? {
-          id: "general",
-          name: "General",
-          description: "General notifications",
-          importance: Importance.High,
-          sound: "default",
-        },
-      );
+      if (Capacitor.getPlatform() === "android") {
+        await FirebaseMessaging.createChannel(
+          this.opts.androidChannel ?? {
+            id: "general",
+            name: "General",
+            description: "General notifications",
+            importance: Importance.High,
+            sound: "default",
+          },
+        );
+      }
 
       // FCM token (works on iOS & Android)
       const { token } = await FirebaseMessaging.getToken();
