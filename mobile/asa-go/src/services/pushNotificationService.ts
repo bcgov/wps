@@ -23,7 +23,7 @@ export class PushNotificationService {
 
   async initPushNotificationService(): Promise<void> {
     try {
-      // 1) Permissions (Android 13+ & iOS)
+      // Permissions (Android 13+ & iOS)
       const check: PermissionStatus =
         await FirebaseMessaging.checkPermissions();
       if (check.receive !== "granted") {
@@ -31,9 +31,8 @@ export class PushNotificationService {
         if (req.receive !== "granted")
           throw new Error("Push permission not granted");
       }
-      // (Permissions + methods per plugin README) [1](https://dev.to/vaclav_svara_50ba53bc0010/firebase-push-notifications-in-capacitor-angular-apps-the-complete-implementation-guide-1c67)
 
-      // 2) Android channel (recommended on 8+)
+      // Android channel (recommended on 8+)
       await FirebaseMessaging.createChannel(
         this.opts.androidChannel ?? {
           id: "general",
@@ -42,17 +41,16 @@ export class PushNotificationService {
           importance: Importance.High,
           sound: "default",
         },
-      ); // (Channel API from plugin) [1](https://dev.to/vaclav_svara_50ba53bc0010/firebase-push-notifications-in-capacitor-angular-apps-the-complete-implementation-guide-1c67)
+      );
 
-      // 3) FCM token (works on iOS & Android)
+      // FCM token (works on iOS & Android)
       const { token } = await FirebaseMessaging.getToken();
-      this.opts.onRegister?.(token); // (getToken returns { token }) [1](https://dev.to/vaclav_svara_50ba53bc0010/firebase-push-notifications-in-capacitor-angular-apps-the-complete-implementation-guide-1c67)
+      this.opts.onRegister?.(token);
 
       // 4) Strongly-typed listeners
       const tokenReceivedHandler = await FirebaseMessaging.addListener(
         "tokenReceived",
         (e: TokenReceivedEvent) => {
-          console.log("tokenReceivedHandler called");
           this.opts.onRegister?.(e.token);
         },
       );
@@ -78,13 +76,12 @@ export class PushNotificationService {
       );
     } catch (err) {
       this.opts.onError?.(err);
-      throw err;
     }
   }
 
   async unregister(): Promise<void> {
     try {
-      await FirebaseMessaging.removeAllListeners(); // (plugin cleanup) [1](https://dev.to/vaclav_svara_50ba53bc0010/firebase-push-notifications-in-capacitor-angular-apps-the-complete-implementation-guide-1c67)
+      await FirebaseMessaging.removeAllListeners();
     } catch {
       /* noop */
     } finally {
