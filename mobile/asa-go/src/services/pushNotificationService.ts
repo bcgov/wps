@@ -81,11 +81,10 @@ export class PushNotificationService {
         notificationReceivedHandler,
         onNotificationAction,
       );
+      this.isInitialized = true;
     } catch (e) {
       console.error(e);
       this.opts.onError?.(e);
-    } finally {
-      this.isInitialized = true;
     }
   }
 

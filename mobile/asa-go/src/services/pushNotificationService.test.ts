@@ -5,6 +5,7 @@ import {
   PermissionStatus,
   Importance,
 } from "@capacitor-firebase/messaging";
+import { Capacitor } from "@capacitor/core";
 
 // Mock the FirebaseMessaging plugin
 vi.mock("@capacitor-firebase/messaging", () => ({
@@ -21,6 +22,7 @@ vi.mock("@capacitor-firebase/messaging", () => ({
   },
 }));
 
+// Mock Capacitor.getPlatform()
 vi.mock(import("@capacitor/core"), async (importOriginal) => {
   const actual = await importOriginal();
   return {
@@ -39,10 +41,36 @@ describe("PushNotificationService", () => {
   });
 
   describe("initPushNotificationService", () => {
+    it("should not call createChannel when platform is iOS", async () => {
+      const mockToken = "test-fcm-token";
+
+      // Override Capacitor.getPlatform to return 'ios'
+      vi.mocked(Capacitor.getPlatform).mockReturnValue("ios");
+
+      vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({
+        receive: "granted",
+      } as PermissionStatus);
+
+      vi.mocked(FirebaseMessaging.getToken).mockResolvedValue({
+        token: mockToken,
+      });
+
+      vi.mocked(FirebaseMessaging.addListener).mockResolvedValue({
+        remove: vi.fn(),
+      });
+
+      const service = new PushNotificationService();
+      await service.initPushNotificationService();
+
+      expect(FirebaseMessaging.createChannel).not.toHaveBeenCalled();
+    });
+
     it("should initialize push notifications successfully when permissions are granted", async () => {
-      // Arrange
       const mockToken = "test-fcm-token";
       const mockOnRegister = vi.fn();
+
+      // Ensure platform is back to Android for this test
+      vi.mocked(Capacitor.getPlatform).mockReturnValue("android");
 
       vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({
         receive: "granted",
@@ -73,7 +101,6 @@ describe("PushNotificationService", () => {
     });
 
     it("should request permissions when not granted initially", async () => {
-      // Arrange
       const mockToken = "test-fcm-token";
 
       vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({
@@ -94,18 +121,39 @@ describe("PushNotificationService", () => {
 
       const service = new PushNotificationService();
 
-      // Act
       await service.initPushNotificationService();
 
-      // Assert
       expect(FirebaseMessaging.checkPermissions).toHaveBeenCalledTimes(1);
       expect(FirebaseMessaging.requestPermissions).toHaveBeenCalledTimes(1);
       expect(FirebaseMessaging.createChannel).toHaveBeenCalledTimes(1);
       expect(FirebaseMessaging.getToken).toHaveBeenCalledTimes(1);
     });
 
+    it("should call onError handler when permission request is denied", async () => {
+      const mockOnError = vi.fn();
+
+      vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({
+        receive: "denied",
+      } as PermissionStatus);
+
+      vi.mocked(FirebaseMessaging.requestPermissions).mockResolvedValue({
+        receive: "denied",
+      } as PermissionStatus);
+
+      vi.mocked(FirebaseMessaging.addListener).mockResolvedValue({
+        remove: vi.fn(),
+      });
+
+      const service = new PushNotificationService({
+        onError: mockOnError,
+      });
+
+      await service.initPushNotificationService();
+
+      expect(mockOnError).toHaveBeenCalledOnce();
+    });
+
     it("should use custom Android channel when provided", async () => {
-      // Arrange
       const mockToken = "test-fcm-token";
       const customChannel = {
         id: "custom-channel",
@@ -131,10 +179,8 @@ describe("PushNotificationService", () => {
         androidChannel: customChannel,
       });
 
-      // Act
       await service.initPushNotificationService();
 
-      // Assert
       expect(FirebaseMessaging.createChannel).toHaveBeenCalledWith(
         customChannel,
       );
@@ -143,7 +189,6 @@ describe("PushNotificationService", () => {
 
   describe("unregister", () => {
     it("should unregister all listeners", async () => {
-      // Arrange
       const mockRemoveAllListeners = vi.fn();
       const mockRemoveListener1 = vi.fn();
       const mockRemoveListener2 = vi.fn();
@@ -164,15 +209,15 @@ describe("PushNotificationService", () => {
       vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({
         receive: "granted",
       } as PermissionStatus);
+
       vi.mocked(FirebaseMessaging.getToken).mockResolvedValue({
         token: "test-token",
       });
+
       await service.initPushNotificationService();
 
-      // Act
       await service.unregister();
 
-      // Assert
       expect(FirebaseMessaging.removeAllListeners).toHaveBeenCalledTimes(1);
       expect(mockRemoveListener1).toHaveBeenCalledTimes(1);
       expect(mockRemoveListener2).toHaveBeenCalledTimes(1);
@@ -180,7 +225,6 @@ describe("PushNotificationService", () => {
     });
 
     it("should handle errors when removing listeners", async () => {
-      // Arrange
       const mockRemoveListener = vi
         .fn()
         .mockRejectedValue(new Error("Remove failed"));
@@ -195,7 +239,6 @@ describe("PushNotificationService", () => {
 
       const service = new PushNotificationService();
 
-      // First, initialize to add listeners
       vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({
         receive: "granted",
       } as PermissionStatus);
@@ -204,7 +247,6 @@ describe("PushNotificationService", () => {
       });
       await service.initPushNotificationService();
 
-      // Act & Assert - Should not throw an error
       await expect(service.unregister()).resolves.not.toThrow();
     });
   });
