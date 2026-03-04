@@ -49,7 +49,7 @@ export class PushNotificationService {
       const { token } = await FirebaseMessaging.getToken();
       this.opts.onRegister?.(token);
 
-      // 4) Strongly-typed listeners
+      // Strongly-typed listeners
       const tokenReceivedHandler = await FirebaseMessaging.addListener(
         "tokenReceived",
         (e: TokenReceivedEvent) => {
