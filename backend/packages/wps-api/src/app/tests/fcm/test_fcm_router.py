@@ -52,13 +52,14 @@ def test_register_device_already_exists():
 
         with (
             patch(GET_DEVICE_TOKEN, return_value=existing_device),
-            patch(SAVE_DEVICE_TOKEN),
+            patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
             response = client.post(API_DEVICE_REGISTER, json=request_data)
 
             assert response.status_code == 200
             assert response.json()["success"] == True
             assert existing_device.is_active == True  # Should be updated
+            mock_save.assert_not_called()  # Should not call save for existing device
 
 
 def test_register_device_missing_fields():
