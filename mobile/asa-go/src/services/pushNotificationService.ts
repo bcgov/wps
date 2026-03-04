@@ -19,9 +19,14 @@ export type PushInitOptions = {
 
 export class PushNotificationService {
   private handles: PluginListenerHandle[] = [];
+  private isInitialized = false;
+
   constructor(private readonly opts: PushInitOptions = {}) {}
 
   async initPushNotificationService(): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
     try {
       // Permissions (Android 13+ & iOS)
       const check: PermissionStatus =
@@ -79,6 +84,8 @@ export class PushNotificationService {
     } catch (e) {
       console.error(e);
       this.opts.onError?.(e);
+    } finally {
+      this.isInitialized = true;
     }
   }
 
@@ -100,6 +107,7 @@ export class PushNotificationService {
         }),
       );
       this.handles = [];
+      this.isInitialized = false;
     }
   }
 }
