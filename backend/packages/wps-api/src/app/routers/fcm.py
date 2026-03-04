@@ -46,7 +46,7 @@ async def register_device(request: RegisterDeviceRequest):
         return DeviceRequestResponse(success=True)
 
 
-@router.delete("/unregister")
+@router.post("/unregister")
 async def unregister_device(request: UnregisterDeviceRequest):
     """
     Mark a token inactive (e.g., user logged out or uninstalled).
