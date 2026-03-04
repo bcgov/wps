@@ -18,7 +18,12 @@
         "${workspaceFolder}/backend/packages/wps-wf1/src",
     ],
     "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff"
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+        }
     },
     "autoDocstring.docstringFormat": "sphinx-notypes",
     "autoDocstring.startOnNewLine": true,
