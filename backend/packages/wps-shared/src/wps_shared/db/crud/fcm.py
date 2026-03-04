@@ -25,11 +25,11 @@ async def get_device_by_token(session: AsyncSession, token: str):
     return await session.scalar(select(DeviceToken).where(DeviceToken.token == token))
 
 
-async def update_device_token_is_active(session: AsyncSession, token: str) -> bool:
+async def update_device_token_is_active(session: AsyncSession, token: str, is_active: bool) -> bool:
     device_token = await session.scalar(select(DeviceToken).where(DeviceToken.token == token))
     if not device_token:
         return False
-    device_token.is_active = False
+    device_token.is_active = is_active
     device_token.updated_at = get_utc_now()
     return True
 

@@ -49,7 +49,7 @@ async def unregister_device(request: UnregisterDeviceRequest):
     """
     logger.info("/device/unregister")
     async with get_async_write_session_scope() as session:
-        success = await update_device_token_is_active(session, request.token)
+        success = await update_device_token_is_active(session, request.token, False)
         if not success:
             logger.error(f"Could not find a record matching the provided token: {request.token}")
             raise HTTPException(status_code=404, detail=f"Token not found: {request.token}")

@@ -76,22 +76,25 @@ export class PushNotificationService {
         notificationReceivedHandler,
         onNotificationAction,
       );
-    } catch (err) {
-      this.opts.onError?.(err);
+    } catch (e) {
+      console.error(e);
+      this.opts.onError?.(e);
     }
   }
 
   async unregister(): Promise<void> {
     try {
       await FirebaseMessaging.removeAllListeners();
-    } catch {
+    } catch (e) {
+      console.error(e);
       /* noop */
     } finally {
       await Promise.all(
         this.handles.map(async (h) => {
           try {
             await h.remove();
-          } catch {
+          } catch (e) {
+            console.error(e);
             /* noop */
           }
         }),
