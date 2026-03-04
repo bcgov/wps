@@ -2,17 +2,6 @@ import axios from "api/axios";
 
 export type Platform = "android" | "ios";
 
-export interface RegisterDeviceRequest {
-  platform: Platform;
-  token: string;
-  deviceId: string;
-  userId: string | null;
-}
-
-export interface UnregisterDeviceRequest {
-  token: string;
-}
-
 interface DeviceRequestResponse {
   success: boolean;
 }
