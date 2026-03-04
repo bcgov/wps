@@ -19,6 +19,32 @@ class TestWindDirectionInterpolator:
 
         np.testing.assert_allclose(direction, np.array([90.0, 270.0, 0.0], dtype=np.float32))
 
+    def test_compute_direction_from_uv_uses_arctan_branch_when_v_nonzero(self):
+        # Four quadrants with v != 0 should follow: deg(atan2(u, v)) + 180
+        u = np.array([1.0, -1.0, 1.0, -1.0], dtype=np.float32)
+        v = np.array([1.0, 1.0, -1.0, -1.0], dtype=np.float32)
+
+        direction = WindDirectionInterpolator.compute_direction_from_uv(u, v)
+
+        np.testing.assert_allclose(
+            direction,
+            np.array([225.0, 135.0, 315.0, 45.0], dtype=np.float32),
+            atol=1e-5,
+        )
+
+    def test_compute_direction_from_uv_mixed_zero_and_nonzero_v(self):
+        # Mixed inputs should apply atan2 where v != 0 and legacy overrides where v == 0.
+        u = np.array([1.0, -1.0, 0.0], dtype=np.float32)
+        v = np.array([1.0, 0.0, 0.5], dtype=np.float32)
+
+        direction = WindDirectionInterpolator.compute_direction_from_uv(u, v)
+
+        np.testing.assert_allclose(
+            direction,
+            np.array([225.0, 90.0, 180.0], dtype=np.float32),
+            atol=1e-5,
+        )
+
     def test_interpolate_basic_success(self):
         test_id = uuid.uuid4().hex
         ref_path = f"/vsimem/reference_{test_id}.tif"
