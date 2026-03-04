@@ -1,6 +1,7 @@
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.fcm import (
     get_device_by_token,
     save_device_token,
@@ -14,7 +15,10 @@ from app.fcm.schema import DeviceRequestResponse, RegisterDeviceRequest, Unregis
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/device")
+router = APIRouter(
+    prefix="/device",
+    dependencies=[Depends(asa_authentication_required), Depends(audit_asa)],
+)
 
 
 @router.post("/register")
