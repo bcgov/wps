@@ -3,15 +3,14 @@ name: Build ASA Go Android
 env:
   appBuildVersion: "1.0.1"
 
-permissions:
-  contents: read
-
 on:
   workflow_dispatch:
 
 jobs:
   check-secrets:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - name: Check secrets
         shell: bash
@@ -38,6 +37,8 @@ jobs:
     name: Build and deploy
     needs: [check-secrets]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
