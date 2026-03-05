@@ -26,6 +26,6 @@ export async function unregisterToken(
   token: string,
 ): Promise<DeviceRequestResponse> {
   const url = "device/unregister";
-  const { data } = await axios.post(url, { data: { token } });
+  const { data } = await axios.post(url, { token });
   return data;
 }

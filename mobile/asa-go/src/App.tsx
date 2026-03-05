@@ -114,14 +114,15 @@ const App = () => {
   useEffect(() => {
     async function handleTokenChange(t: string) {
       const deviceId = await Device.getId();
-      if (!isNil(deviceId?.identifier)) {
-        console.log(`DEBUG: Calling registerToken from App.tsx.`);
+      try {
         registerToken(
           Capacitor.getPlatform() as Platform,
           t,
-          deviceId.identifier,
+          deviceId?.identifier,
           idir || null,
         );
+      } catch (e) {
+        console.error("Failed to register push token", e);
       }
     }
     if (!isNil(token)) {
