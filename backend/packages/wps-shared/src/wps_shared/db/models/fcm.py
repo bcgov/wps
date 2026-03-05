@@ -8,8 +8,8 @@ from wps_shared.utils.time import get_utc_now
 
 
 class PlatformEnum(enum.Enum):
-    ANDROID = "android"
-    IOS = "ios"
+    android = "android"
+    ios = "ios"
 
 
 class DeviceToken(Base):
@@ -18,6 +18,7 @@ class DeviceToken(Base):
     __tablename__ = "device_token"
     __table_args__ = {"comment": "Device token management."}
     id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(String, index=True, nullable=False)
     user_id = Column(String, nullable=True)  # Optional storage of IDIR for logged in users
     platform = Column(Enum(PlatformEnum), index=True, nullable=False)
     token = Column(String, unique=True, index=True, nullable=False)

@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.fcm import (
-    get_device_by_token,
+    get_device_by_device_id,
     save_device_token,
     update_device_token_is_active,
 )
@@ -24,11 +24,11 @@ router = APIRouter(
 @router.post("/register")
 async def register_device(request: RegisterDeviceRequest):
     """
-    Upsert a device token for a user. Called this at app start and whenever FCM token refreshes.
+    Upsert a device token for a device_id.
     """
     logger.info("/device/register")
     async with get_async_write_session_scope() as session:
-        existing = await get_device_by_token(session, request.token)
+        existing = await get_device_by_device_id(session, request.device_id)
         if existing:
             existing.is_active = True
             existing.token = request.token
@@ -37,6 +37,7 @@ async def register_device(request: RegisterDeviceRequest):
         else:
             device_token = DeviceToken(
                 user_id=request.user_id,
+                device_id=request.device_id,
                 token=request.token,
                 platform=request.platform,
                 is_active=True,

@@ -10,15 +10,16 @@ from fastapi.testclient import TestClient
 from wps_shared.db.models.fcm import PlatformEnum
 
 DB_SESSION = "app.routers.fcm.get_async_write_session_scope"
-GET_DEVICE_TOKEN = "app.routers.fcm.get_device_by_token"
+GET_DEVICE_TOKEN = "app.routers.fcm.get_device_by_device_id"
 SAVE_DEVICE_TOKEN = "app.routers.fcm.save_device_token"
 API_DEVICE_REGISTER = "/api/device/register"
 API_DEVICE_UNREGISTER = "/api/device/unregister"
 MOCK_DEVICE_TOKEN = "abcdefghijklmonp"
 TEST_REGISTER_DEVICE_REQUEST = {
     "user_id": "test_idir",
+    "device_id": "test_device_id",
     "token": MOCK_DEVICE_TOKEN,
-    "platform": PlatformEnum.ANDROID.value,
+    "platform": PlatformEnum.android.value,
 }
 TEST_UNREGISTER_DEVICE_REQUEST = {"token": MOCK_DEVICE_TOKEN}
 
@@ -54,6 +55,7 @@ def test_register_device_success():
     # Test data
     request_data = {
         "user_id": "test-user-123",
+        "device_id": "test_device_id",
         "token": "test-fcm-token-456",
         "platform": "android",
     }
@@ -75,7 +77,12 @@ def test_register_device_already_exists():
     """Test that existing device registration updates successfully."""
     client = TestClient(app.main.app)
 
-    request_data = {"user_id": "test-user-123", "token": "existing-fcm-token", "platform": "ios"}
+    request_data = {
+        "user_id": "test-user-123",
+        "device_id": "test_device_id",
+        "token": "existing-fcm-token",
+        "platform": "ios",
+    }
 
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
@@ -83,7 +90,12 @@ def test_register_device_already_exists():
         existing_device = type(
             "",
             (object,),
-            {"is_active": False, "token": "existing-fcm-token", "updated_at": datetime(2026, 1, 1)},
+            {
+                "is_active": False,
+                "device_id": "test_device_id",
+                "token": "existing-fcm-token",
+                "updated_at": datetime(2026, 1, 1),
+            },
         )()
 
         with (
@@ -139,6 +151,26 @@ def test_register_device_short_token():
         "user_id": "test-user-123",
         "token": "short",  # Less than 10 characters
         "platform": "android",
+        "device_id": "test_device_id",
+    }
+
+    with patch(DB_SESSION) as mock_session_scope:
+        mock_session_scope.return_value.__aenter__.return_value
+
+        response = client.post(API_DEVICE_REGISTER, json=request_data)
+
+        assert response.status_code == 422
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_missing_device_id_returns_422():
+    """Test that a missing device_id returns 422."""
+    client = TestClient(app.main.app)
+
+    request_data = {
+        "user_id": "test-user-123",
+        "token": "short",  # Less than 10 characters
+        "platform": "android",
     }
 
     with patch(DB_SESSION) as mock_session_scope:
@@ -185,6 +217,7 @@ def test_register_device_without_user_id():
     request_data = {
         "token": "test-fcm-token-789",
         "platform": "android",
+        "device_id": "test_device_id",
     }
 
     with patch(DB_SESSION) as mock_session_scope:

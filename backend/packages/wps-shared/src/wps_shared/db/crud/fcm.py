@@ -14,15 +14,8 @@ def save_device_token(session: AsyncSession, device_token: DeviceToken):
     session.add(device_token)
 
 
-async def get_device_by_token(session: AsyncSession, token: str):
-    """
-    Lookup a DeviceToken by token value.
-
-    :param session: An async database session
-    :param token: A token for a registered device.
-    :return: A DeviceToken object or None.
-    """
-    return await session.scalar(select(DeviceToken).where(DeviceToken.token == token))
+async def get_device_by_device_id(session: AsyncSession, device_id: str):
+    return await session.scalar(select(DeviceToken).where(DeviceToken.device_id == device_id))
 
 
 async def update_device_token_is_active(session: AsyncSession, token: str, is_active: bool) -> bool:

@@ -7,7 +7,7 @@ from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
 from wps_shared.db.crud.fcm import (
     deactivate_device_tokens,
-    get_device_by_token,
+    get_device_by_device_id,
     save_device_token,
     update_device_token_is_active,
 )
@@ -17,6 +17,7 @@ from wps_shared.utils.time import get_utc_now
 test_target_date = date(2025, 7, 15)
 test_completed_at = datetime(2025, 7, 15, 20, 45, 0, tzinfo=timezone.utc)
 
+mock_device_id = "mock_device_id"
 mock_fcm_token = "abcdefghijklmnop"
 now = get_utc_now()
 
@@ -38,8 +39,8 @@ async def engine(postgres_container):
         await conn.run_sync(DeviceToken.__table__.create)
         # Insert a mock device_token record
         await conn.execute(
-            text(f"""INSERT INTO device_token (user_id, platform, token, is_active, created_at, updated_at)
-                 VALUES ('test_idir', 'ANDROID', '{mock_fcm_token}', True, '{now}', '{now}');""")
+            text(f"""INSERT INTO device_token (user_id, device_id, platform, token, is_active, created_at, updated_at)
+                 VALUES ('test_idir', '{mock_device_id}', 'ANDROID', '{mock_fcm_token}', True, '{now}', '{now}');""")
         )
 
     yield engine
@@ -72,6 +73,7 @@ async def test_save_device_token(async_session: AsyncSession):
     mock_fcm_token2 = "qwertyuiopasdfg"
     device_token = DeviceToken(
         user_id="test_idir2",
+        device_id=mock_device_id,
         platform="IOS",
         token=mock_fcm_token2,
         is_active=True,
@@ -89,15 +91,17 @@ async def test_save_device_token(async_session: AsyncSession):
     assert saved.platform == "IOS"
     assert saved.token == mock_fcm_token2
     assert saved.is_active is True
+    assert saved.device_id == mock_device_id
 
 
 @pytest.mark.anyio
-async def test_get_device_by_token(async_session: AsyncSession):
+async def test_get_device_by_device_id(async_session: AsyncSession):
     """Test retrieving an existing device_token record by token."""
-    device_token = await get_device_by_token(async_session, mock_fcm_token)
+    device_token = await get_device_by_device_id(async_session, mock_device_id)
 
+    assert device_token.device_id == mock_device_id
     assert device_token.user_id == "test_idir"
-    assert device_token.platform == PlatformEnum.ANDROID
+    assert device_token.platform == PlatformEnum.android
     assert device_token.token == mock_fcm_token
     assert device_token.is_active is True
 
