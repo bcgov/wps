@@ -85,14 +85,19 @@ def circular_difference_degrees(generated: np.ndarray, reference: np.ndarray) ->
 
 
 def interpolate_wind_direction(sfms_actuals: List[SFMSDailyActual]):
-    valid = [s for s in sfms_actuals if s.wind_speed is not None and s.wind_direction is not None]
-    lats = np.array([s.lat for s in valid], dtype=np.float32)
-    lons = np.array([s.lon for s in valid], dtype=np.float32)
+    valid = [
+        s
+        for s in sfms_actuals
+        if s.wind_speed is not None
+        and s.wind_direction is not None
+        and s.lat is not None
+        and s.lon is not None
+    ]
     observed_wind_speed = np.array([s.wind_speed for s in valid], dtype=np.float32)
     observed_wind_direction = np.array([s.wind_direction for s in valid], dtype=np.float32)
 
     wind_vector_source = StationWindVectorSource(valid)
-    _, _, station_u, station_v = wind_vector_source.get_uv_interpolation_data()
+    lats, lons, station_u, station_v = wind_vector_source.get_uv_interpolation_data()
     interpolated_u = leave_one_out_idw(lats, lons, station_u)
     interpolated_v = leave_one_out_idw(lats, lons, station_v)
 
