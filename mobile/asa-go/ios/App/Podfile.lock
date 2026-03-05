@@ -10,6 +10,8 @@ PODS:
   - CapacitorApp (7.0.0):
     - Capacitor
   - CapacitorCordova (7.1.0)
+  - CapacitorDevice (8.0.1):
+    - Capacitor
   - CapacitorEmailComposer (7.0.0):
     - Capacitor
   - CapacitorFilesystem (7.0.0):
@@ -81,7 +83,7 @@ PODS:
   - GoogleUtilities/UserDefaults (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - IONGeolocationLib (1.0.0)
+  - IONGeolocationLib (1.0.2)
   - Keycloak (0.0.1):
     - AppAuth
     - Capacitor
@@ -96,6 +98,7 @@ DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorDevice (from `../../node_modules/@capacitor/device`)"
   - CapacitorEmailComposer (from `../../node_modules/capacitor-email-composer`)
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorFirebaseMessaging (from `../../node_modules/@capacitor-firebase/messaging`)"
@@ -130,6 +133,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/app"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorDevice:
+    :path: "../../node_modules/@capacitor/device"
   CapacitorEmailComposer:
     :path: "../../node_modules/capacitor-email-composer"
   CapacitorFilesystem:
@@ -160,6 +165,7 @@ SPEC CHECKSUMS:
   Capacitor: 68ff8eabbcce387e69767c13b5fbcc1c5399eabc
   CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
+  CapacitorDevice: ebd210e29ae690225291b8616e6cfaf419d2e866
   CapacitorEmailComposer: 5f0ae4bd516997aba61034ba4387f2a67947ce21
   CapacitorFilesystem: 2881ad012b5c8d0ffbfed1216aadfc2cca16d5b5
   CapacitorFirebaseMessaging: 798b7f8af4318b97b11eb9b84c8ebe9920237c17
@@ -177,11 +183,11 @@ SPEC CHECKSUMS:
   FirebaseMessaging: b5f7bdc62b91b6102015991fb7bc6fa75f643908
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
-  IONGeolocationLib: 81f33f88d025846946de2cf63b0c7628e7c6bc9d
+  IONGeolocationLib: adbb2a739b0ccda686d4a66f9bc05f8c4fd3d3c0
   Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
 
-PODFILE CHECKSUM: f4aed5b4c66e22e15f5151a4c65a3d82525631d2
+PODFILE CHECKSUM: 628b81ca6723b5813c3d45a730d7dc8d60765b92
 
 COCOAPODS: 1.16.2

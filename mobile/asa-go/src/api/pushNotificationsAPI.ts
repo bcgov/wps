@@ -9,12 +9,14 @@ interface DeviceRequestResponse {
 export async function registerToken(
   platform: Platform,
   token: string,
+  deviceId: string,
   userId: string | null,
 ): Promise<DeviceRequestResponse> {
   const url = "device/register";
   const { data } = await axios.post(url, {
     platform,
     token,
+    device_id: deviceId,
     user_id: userId,
   });
   return data;
@@ -24,6 +26,6 @@ export async function unregisterToken(
   token: string,
 ): Promise<DeviceRequestResponse> {
   const url = "device/unregister";
-  const { data } = await axios.delete(url, { data: { token } });
+  const { data } = await axios.post(url, { data: { token } });
   return data;
 }

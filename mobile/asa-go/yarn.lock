@@ -297,6 +297,11 @@
   dependencies:
     tslib "^2.1.0"
 
+"@capacitor/device@^8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@capacitor/device/-/device-8.0.1.tgz#344ab012bc1c858e6a9afe302ebe22a672827fdf"
+  integrity sha512-LHtf3ObK7dpFS3jJ0GNrTG0lHufNgD0tLBukeEAxeR28mu80dHQA1XxmQV0CWo+KKcI0hBdz4dfucRta3TdVxw==
+
 "@capacitor/filesystem@^7.0.0":
   version "7.0.0"
   resolved "https://registry.npmjs.org/@capacitor/filesystem/-/filesystem-7.0.0.tgz"

@@ -41,6 +41,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Capacitor } from "@capacitor/core";
 import { Platform, registerToken } from "@/api/pushNotificationsAPI";
+import { Device } from "@capacitor/device";
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
@@ -111,8 +112,20 @@ const App = () => {
   }, [initPushNotifications, isAuthenticated]);
 
   useEffect(() => {
-    if (token) {
-      registerToken(Capacitor.getPlatform() as Platform, token, idir || "");
+    async function handleTokenChange(t: string) {
+      const deviceId = await Device.getId();
+      if (!isNil(deviceId?.identifier)) {
+        console.log(`DEBUG: Calling registerToken from App.tsx.`);
+        registerToken(
+          Capacitor.getPlatform() as Platform,
+          t,
+          deviceId.identifier,
+          idir || null,
+        );
+      }
+    }
+    if (!isNil(token)) {
+      handleTokenChange(token);
     }
   }, [token, idir]);
 
