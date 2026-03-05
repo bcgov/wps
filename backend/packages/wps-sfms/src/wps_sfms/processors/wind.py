@@ -6,7 +6,7 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 
 from wps_sfms.interpolation.common import SFMS_NO_DATA, log_interpolation_stats
 from wps_sfms.interpolation.source import StationWindVectorSource
-from wps_sfms.processors.idw import Interpolator, idw_on_valid_pixels
+from wps_sfms.processors.idw import BaseInterpolator, Interpolator, idw_on_valid_pixels
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,13 @@ class WindSpeedInterpolator(Interpolator):
     """Interpolates wind speed using base IDW workflow."""
 
 
-class WindDirectionInterpolator(Interpolator):
-    """Interpolates wind direction by IDW on u/v components then reconstructing direction."""
+class WindDirectionInterpolator(BaseInterpolator[StationWindVectorSource]):
+    """Interpolates wind direction via IDW on u/v components.
+
+    This uses ``BaseInterpolator[StationWindVectorSource]`` instead of the scalar
+    ``Interpolator`` because the source contract is
+    ``get_uv_interpolation_data() -> (lats, lons, u, v)``.
+    """
 
     @staticmethod
     def compute_direction_from_uv(u: np.ndarray, v: np.ndarray) -> np.ndarray:
@@ -51,6 +56,13 @@ class WindDirectionInterpolator(Interpolator):
     def interpolate(
         self, source: StationWindVectorSource, reference_raster_path: str
     ) -> WPSDataset:
+        """Interpolate wind direction over the reference grid.
+
+        Workflow:
+        1. IDW-interpolate u and v separately on valid pixels.
+        2. Keep only pixels where both component interpolations succeed.
+        3. Reconstruct direction degrees from interpolated u/v vectors.
+        """
         with WPSDataset(reference_raster_path) as ref_ds:
             geo_transform = ref_ds.ds.GetGeoTransform()
             if geo_transform is None:

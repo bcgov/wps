@@ -7,13 +7,16 @@ from wps_sfms.interpolation.common import (
     SFMS_NO_DATA,
     log_interpolation_stats,
 )
-from wps_sfms.processors.idw import Interpolator, idw_on_valid_pixels
+from wps_sfms.processors.idw import BaseInterpolator, idw_on_valid_pixels
 
 logger = logging.getLogger(__name__)
 
 
-class RHInterpolator(Interpolator):
+class RHInterpolator(BaseInterpolator[StationDewPointSource]):
     """Interpolates RH via dew point IDW + elevation adjustment.
+
+    Uses ``BaseInterpolator[StationDewPointSource]``; the source contract is
+    ``get_interpolation_data(lapse_rate=...) -> (lats, lons, sea_level_dewpoints)``.
 
     Requires that temperature interpolation has already been run for this date,
     as it reads the interpolated temperature raster from S3.
@@ -24,9 +27,7 @@ class RHInterpolator(Interpolator):
         self.dem_path = dem_path
         self.temp_raster_path = temp_raster_path
 
-    def interpolate(
-        self, source: StationDewPointSource, reference_raster_path: str
-    ) -> WPSDataset:
+    def interpolate(self, source: StationDewPointSource, reference_raster_path: str) -> WPSDataset:
         with WPSDataset(reference_raster_path) as ref_ds:
             geo_transform = ref_ds.ds.GetGeoTransform()
             if geo_transform is None:
@@ -59,12 +60,10 @@ class RHInterpolator(Interpolator):
 
                 total_pixels = x_size * y_size
 
-                logger.info(
-                    "Interpolating dew point for RH raster grid (%d x %d)", x_size, y_size
-                )
+                logger.info("Interpolating dew point for RH raster grid (%d x %d)", x_size, y_size)
 
-                station_lats, station_lons, sea_level_dewpoints = (
-                    source.get_interpolation_data(lapse_rate=DEW_POINT_LAPSE_RATE)
+                station_lats, station_lons, sea_level_dewpoints = source.get_interpolation_data(
+                    lapse_rate=DEW_POINT_LAPSE_RATE
                 )
                 idw_result = idw_on_valid_pixels(
                     valid_lats=lats,

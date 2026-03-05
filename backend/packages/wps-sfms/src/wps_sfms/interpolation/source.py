@@ -203,7 +203,10 @@ class StationWindVectorSource:
         valid = [
             s
             for s in self._sfms_actuals
-            if s.wind_speed is not None and s.wind_direction is not None
+            if s.wind_speed is not None
+            and s.wind_direction is not None
+            and s.lat is not None
+            and s.lon is not None
         ]
         if not valid:
             empty = np.array([], dtype=np.float32)
