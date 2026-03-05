@@ -5,6 +5,7 @@ Accepts an FWIInputs dataclass that declares all dependency keys and output keys
 allowing each calculator to specify only the inputs it needs.
 """
 
+from dataclasses import dataclass
 import logging
 import tempfile
 from abc import ABC, abstractmethod
@@ -38,6 +39,12 @@ WeatherDatasetMap = dict[SFMSInterpolatedWeatherParameter, WPSDataset]
 IndexDatasetMap = dict[FWIParameter, WPSDataset]
 
 
+@dataclass
+class FWIDatasets:
+    index: IndexDatasetMap
+    weather: WeatherDatasetMap
+
+
 class FWIResult(NamedTuple):
     values: np.ndarray
     nodata_value: float
@@ -50,9 +57,7 @@ class FWICalculator(ABC):
     required_index_params: tuple[FWIParameter, ...] = ()
 
     @abstractmethod
-    def calculate(
-        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
-    ) -> FWIResult: ...
+    def calculate(self, datasets: FWIDatasets) -> FWIResult: ...
 
 
 class MonthlyFWICalculator(FWICalculator, ABC):
@@ -79,14 +84,12 @@ class FFMCCalculator(FWICalculator):
     )
     required_index_params = (FWIParameter.FFMC,)
 
-    def calculate(
-        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
-    ) -> FWIResult:
-        temp_ds = weather_datasets[SFMSInterpolatedWeatherParameter.TEMP]
-        rh_ds = weather_datasets[SFMSInterpolatedWeatherParameter.RH]
-        precip_ds = weather_datasets[SFMSInterpolatedWeatherParameter.PRECIP]
-        wind_ds = weather_datasets[SFMSInterpolatedWeatherParameter.WIND_SPEED]
-        ffmc_prev_ds = index_datasets[FWIParameter.FFMC]
+    def calculate(self, datasets: FWIDatasets) -> FWIResult:
+        temp_ds = datasets.weather[SFMSInterpolatedWeatherParameter.TEMP]
+        rh_ds = datasets.weather[SFMSInterpolatedWeatherParameter.RH]
+        precip_ds = datasets.weather[SFMSInterpolatedWeatherParameter.PRECIP]
+        wind_ds = datasets.weather[SFMSInterpolatedWeatherParameter.WIND_SPEED]
+        ffmc_prev_ds = datasets.index[FWIParameter.FFMC]
 
         ffmc_prev, nodata_value = ffmc_prev_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
@@ -117,13 +120,11 @@ class DMCCalculator(MonthlyFWICalculator):
     )
     required_index_params = (FWIParameter.DMC,)
 
-    def calculate(
-        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
-    ) -> FWIResult:
-        temp_ds = weather_datasets[SFMSInterpolatedWeatherParameter.TEMP]
-        rh_ds = weather_datasets[SFMSInterpolatedWeatherParameter.RH]
-        precip_ds = weather_datasets[SFMSInterpolatedWeatherParameter.PRECIP]
-        dmc_prev_ds = index_datasets[FWIParameter.DMC]
+    def calculate(self, datasets: FWIDatasets) -> FWIResult:
+        temp_ds = datasets.weather[SFMSInterpolatedWeatherParameter.TEMP]
+        rh_ds = datasets.weather[SFMSInterpolatedWeatherParameter.RH]
+        precip_ds = datasets.weather[SFMSInterpolatedWeatherParameter.PRECIP]
+        dmc_prev_ds = datasets.index[FWIParameter.DMC]
 
         lat, mon = self._lat_month_arrays(dmc_prev_ds)
         dmc_prev, nodata_value = dmc_prev_ds.replace_nodata_with(np.nan)
@@ -154,13 +155,11 @@ class DCCalculator(MonthlyFWICalculator):
     )
     required_index_params = (FWIParameter.DC,)
 
-    def calculate(
-        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
-    ) -> FWIResult:
-        temp_ds = weather_datasets[SFMSInterpolatedWeatherParameter.TEMP]
-        rh_ds = weather_datasets[SFMSInterpolatedWeatherParameter.RH]
-        precip_ds = weather_datasets[SFMSInterpolatedWeatherParameter.PRECIP]
-        dc_prev_ds = index_datasets[FWIParameter.DC]
+    def calculate(self, datasets: FWIDatasets) -> FWIResult:
+        temp_ds = datasets.weather[SFMSInterpolatedWeatherParameter.TEMP]
+        rh_ds = datasets.weather[SFMSInterpolatedWeatherParameter.RH]
+        precip_ds = datasets.weather[SFMSInterpolatedWeatherParameter.PRECIP]
+        dc_prev_ds = datasets.index[FWIParameter.DC]
 
         lat, mon = self._lat_month_arrays(dc_prev_ds)
         dc_prev, nodata_value = dc_prev_ds.replace_nodata_with(np.nan)
@@ -187,11 +186,9 @@ class ISICalculator(FWICalculator):
     required_weather_params = (SFMSInterpolatedWeatherParameter.WIND_SPEED,)
     required_index_params = (FWIParameter.FFMC,)
 
-    def calculate(
-        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
-    ) -> FWIResult:
-        ffmc_ds = index_datasets[FWIParameter.FFMC]
-        wind_ds = weather_datasets[SFMSInterpolatedWeatherParameter.WIND_SPEED]
+    def calculate(self, datasets: FWIDatasets) -> FWIResult:
+        ffmc_ds = datasets.index[FWIParameter.FFMC]
+        wind_ds = datasets.weather[SFMSInterpolatedWeatherParameter.WIND_SPEED]
 
         ffmc, nodata_value = ffmc_ds.replace_nodata_with(np.nan)
         ws, _ = wind_ds.replace_nodata_with(np.nan)
@@ -212,13 +209,9 @@ class BUICalculator(FWICalculator):
     reference_index_param = FWIParameter.DMC
     required_index_params = (FWIParameter.DMC, FWIParameter.DC)
 
-    def calculate(
-        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
-    ) -> FWIResult:
-        del weather_datasets  # Unused for BUI by definition.
-
-        dmc_ds = index_datasets[FWIParameter.DMC]
-        dc_ds = index_datasets[FWIParameter.DC]
+    def calculate(self, datasets: FWIDatasets) -> FWIResult:
+        dmc_ds = datasets.index[FWIParameter.DMC]
+        dc_ds = datasets.index[FWIParameter.DC]
 
         dmc, nodata_value = dmc_ds.replace_nodata_with(np.nan)
         dc, _ = dc_ds.replace_nodata_with(np.nan)
@@ -239,13 +232,9 @@ class FWIFinalCalculator(FWICalculator):
     reference_index_param = FWIParameter.ISI
     required_index_params = (FWIParameter.ISI, FWIParameter.BUI)
 
-    def calculate(
-        self, index_datasets: IndexDatasetMap, weather_datasets: WeatherDatasetMap
-    ) -> FWIResult:
-        del weather_datasets  # Unused for FWI by definition.
-
-        isi_ds = index_datasets[FWIParameter.ISI]
-        bui_ds = index_datasets[FWIParameter.BUI]
+    def calculate(self, datasets: FWIDatasets) -> FWIResult:
+        isi_ds = datasets.index[FWIParameter.ISI]
+        bui_ds = datasets.index[FWIParameter.BUI]
 
         isi, nodata_value = isi_ds.replace_nodata_with(np.nan)
         bui, _ = bui_ds.replace_nodata_with(np.nan)
@@ -396,7 +385,8 @@ class FWIProcessor:
                             f"{param.value} raster does not match FWI grid: {index_key} vs {reference_key}"
                         )
 
-                result = calculator.calculate(index_datasets, weather_datasets)
+                datasets = FWIDatasets(index=index_datasets, weather=weather_datasets)
+                result = calculator.calculate(datasets)
 
                 # store GeoTIFF output using georeferencing from the reference grid
                 await s3_client.persist_raster_data(

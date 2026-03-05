@@ -21,6 +21,7 @@ from wps_sfms.processors.fwi import (
     DMCCalculator,
     FFMCCalculator,
     FWICalculator,
+    FWIDatasets,
     FWIFinalCalculator,
     FWIProcessor,
     ISICalculator,
@@ -460,7 +461,9 @@ class TestFWINodeataPropagation:
         }
         index_datasets = {calculator.reference_index_param: prev_ds}
 
-        result = calculator.calculate(index_datasets, weather_datasets)
+        result = calculator.calculate(
+            FWIDatasets(index=index_datasets, weather=weather_datasets)
+        )
 
         assert np.isnan(result.nodata_value)
         assert np.isnan(result.values[0, 0]), "nodata pixel must propagate as NaN"
