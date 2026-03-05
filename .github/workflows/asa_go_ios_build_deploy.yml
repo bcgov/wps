@@ -58,6 +58,9 @@ jobs:
         working-directory: ./mobile/keycloak
         if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
         run: yarn install
+      - name: Build keycloak plugin
+        working-directory: ./mobile/keycloak
+        run: yarn build
       - name: Install dependencies
         working-directory: ./mobile/asa-go
         if: steps.asa-go-cache.outputs.cache-hit != 'true'
