@@ -9,6 +9,9 @@ permissions:
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - task/android-build-automation
 
 jobs:
   check-secrets:
