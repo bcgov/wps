@@ -4,8 +4,10 @@ import numpy as np
 import pytest
 from osgeo import gdal
 
+import wps_sfms.processors.wind as wind_module
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_sfms.interpolation.source import StationWindVectorSource
+from wps_sfms.processors.idw import ValidPixelIDWResult
 from wps_sfms.processors.wind import WindDirectionInterpolator
 from wps_sfms.tests.conftest import create_test_raster
 
@@ -93,6 +95,63 @@ class TestWindDirectionInterpolator:
                 )
             ]
             source = StationWindVectorSource(actuals)
+
+            with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):
+                WindDirectionInterpolator(mask_path=mask_path).interpolate(source, ref_path)
+        finally:
+            gdal.Unlink(ref_path)
+            gdal.Unlink(mask_path)
+
+    @pytest.mark.parametrize("successful_component_label", ["wind-u component", "wind-v component"])
+    def test_interpolate_raises_when_only_one_component_succeeds(
+        self, monkeypatch, successful_component_label
+    ):
+        test_id = uuid.uuid4().hex
+        ref_path = f"/vsimem/reference_{test_id}.tif"
+        mask_path = f"/vsimem/mask_{test_id}.tif"
+
+        try:
+            extent = (-123.1, -123.0, 49.0, 49.1)
+            create_test_raster(ref_path, 5, 5, extent, fill_value=1.0)
+            create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
+
+            actuals = [
+                SFMSDailyActual(
+                    code=100, lat=49.05, lon=-123.05, wind_speed=10.0, wind_direction=90.0
+                ),
+                SFMSDailyActual(
+                    code=101, lat=49.08, lon=-123.02, wind_speed=8.0, wind_direction=180.0
+                ),
+            ]
+            source = StationWindVectorSource(actuals)
+
+            def _fake_idw_on_valid_pixels(**kwargs):
+                valid_yi = kwargs["valid_yi"]
+                valid_xi = kwargs["valid_xi"]
+                total_pixels = kwargs["total_pixels"]
+                label = kwargs["label"]
+                n = len(valid_yi)
+
+                if label == successful_component_label:
+                    interpolated_values = np.full(n, 4.0, dtype=np.float32)
+                    succeeded_mask = np.ones(n, dtype=bool)
+                else:
+                    interpolated_values = np.full(n, np.nan, dtype=np.float32)
+                    succeeded_mask = np.zeros(n, dtype=bool)
+
+                return ValidPixelIDWResult(
+                    interpolated_values=interpolated_values,
+                    succeeded_mask=succeeded_mask,
+                    rows=valid_yi[succeeded_mask],
+                    cols=valid_xi[succeeded_mask],
+                    values=interpolated_values[succeeded_mask].astype(np.float32, copy=False),
+                    total_pixels=total_pixels,
+                    interpolated_count=int(np.sum(succeeded_mask)),
+                    failed_interpolation_count=n - int(np.sum(succeeded_mask)),
+                    skipped_nodata_count=total_pixels - n,
+                )
+
+            monkeypatch.setattr(wind_module, "idw_on_valid_pixels", _fake_idw_on_valid_pixels)
 
             with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):
                 WindDirectionInterpolator(mask_path=mask_path).interpolate(source, ref_path)
