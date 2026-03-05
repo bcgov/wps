@@ -40,7 +40,7 @@ async def engine(postgres_container):
         # Insert a mock device_token record
         await conn.execute(
             text(f"""INSERT INTO device_token (user_id, device_id, platform, token, is_active, created_at, updated_at)
-                 VALUES ('test_idir', '{mock_device_id}', 'ANDROID', '{mock_fcm_token}', True, '{now}', '{now}');""")
+                 VALUES ('test_idir', '{mock_device_id}', '{PlatformEnum.android.value}', '{mock_fcm_token}', True, '{now}', '{now}');""")
         )
 
     yield engine
@@ -74,7 +74,7 @@ async def test_save_device_token(async_session: AsyncSession):
     device_token = DeviceToken(
         user_id="test_idir2",
         device_id=mock_device_id,
-        platform="IOS",
+        platform=PlatformEnum.ios.value,
         token=mock_fcm_token2,
         is_active=True,
         created_at=now,
@@ -88,7 +88,7 @@ async def test_save_device_token(async_session: AsyncSession):
     )
     saved = result.scalar_one()
     assert saved.user_id == "test_idir2"
-    assert saved.platform == "IOS"
+    assert saved.platform == PlatformEnum.ios.value
     assert saved.token == mock_fcm_token2
     assert saved.is_active is True
     assert saved.device_id == mock_device_id
