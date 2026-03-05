@@ -47,7 +47,7 @@ async def register_device(request: RegisterDeviceRequest):
         return DeviceRequestResponse(success=True)
 
 
-@router.post("/unregister")
+@router.post("/unregister", responses={404: {"description": "Token not found."}})
 async def unregister_device(request: UnregisterDeviceRequest):
     """
     Mark a token inactive (e.g., user logged out or uninstalled).
