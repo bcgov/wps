@@ -5,9 +5,6 @@ env:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - task/android-build-automation
 
 jobs:
   check-secrets:
@@ -49,7 +46,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - uses: actions/cache@v5
         id: asa-go-cache
@@ -102,7 +99,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@12318b01111bfa6462c00534ffa998f8b397b979 # v3
