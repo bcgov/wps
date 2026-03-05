@@ -5,9 +5,7 @@ env:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - task/android-build-automation
+
 jobs:
   check-secrets:
     runs-on: ubuntu-22.04
