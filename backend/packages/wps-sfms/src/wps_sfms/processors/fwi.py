@@ -344,16 +344,15 @@ class FWIProcessor:
         with tempfile.TemporaryDirectory() as temp_dir:
             # build the key list for all dependencies required by this calculator, to open them
             # together in a single context manager call
-            weather_params = list(calculator.required_weather_params)
-            index_params = list(calculator.required_index_params)
+            weather_params = calculator.required_weather_params
+            index_params = calculator.required_index_params
             input_keys = [
                 *(weather_keys_by_param[param] for param in weather_params),
                 *(index_keys_by_param[param] for param in index_params),
             ]
 
             with input_dataset_context(input_keys) as input_datasets:
-                # open datasets as WPSDatasets and organize into dicts keyed by parameter for easy access in calculations
-                dataset_iter = iter(cast(List[WPSDataset], input_datasets))
+                dataset_iter = iter(input_datasets)
                 weather_datasets: WeatherDatasetMap = {
                     param: next(dataset_iter) for param in weather_params
                 }
