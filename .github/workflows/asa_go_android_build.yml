@@ -1,4 +1,4 @@
-name: Publish ASA Go Android
+name: Build ASA Go Android
 
 env:
   appBuildVersion: "1.0.1"
@@ -121,5 +121,5 @@ jobs:
         with:
           name: ASA-Go-AAB
           path: mobile/asa-go/android/app/build/outputs/bundle/release/*.aab
-          retention-days: 3
+          retention-days: 1
           if-no-files-found: error

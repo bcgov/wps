@@ -1,4 +1,4 @@
-name: Publish ASA Go
+name: Publish ASA Go iOS
 
 env:
   appBuildNumber: ${{ github.run_number }}
