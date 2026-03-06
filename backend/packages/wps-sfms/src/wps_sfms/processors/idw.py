@@ -5,17 +5,14 @@ Base class implementing the shared workflow for all IDW-based interpolation:
 1. Interpolate station observations to raster
 2. Upload to S3 storage
 
-`Interpolator` is the default scalar-IDW implementation (`get_interpolation_data` +
-`interpolate_to_raster`), while custom processors can inherit `BaseInterpolator`
-to provide specialized interpolation logic.
+Subclasses override interpolate() for parameter-specific logic
+(elevation adjustment, DEM-based corrections, etc.).
 """
 
 import logging
 import os
 import tempfile
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, TypeVar
 
 import aiofiles
 import numpy as np
@@ -28,12 +25,6 @@ from wps_sfms.interpolation.idw import interpolate_to_raster
 from wps_sfms.interpolation.source import StationInterpolationSource
 
 logger = logging.getLogger(__name__)
-
-# Source contract for a specific interpolator implementation.
-# Examples:
-# - StationInterpolationSource for scalar fields
-# - StationWindVectorSource for wind-direction u/v interpolation
-SourceT = TypeVar("SourceT")
 
 
 @dataclass(frozen=True)
@@ -104,31 +95,27 @@ def idw_on_valid_pixels(
     )
 
 
-class BaseInterpolator(ABC, Generic[SourceT]):
-    """Generic interpolation processor with shared export/upload workflow.
+class Interpolator:
+    """Base processor: plain IDW interpolation + S3 upload.
 
-    Subclasses bind ``SourceT`` to their expected source interface and implement
-    ``interpolate()`` using that source contract.
+    Subclasses override interpolate() to add parameter-specific logic
+    such as elevation adjustment or derived quantities.
     """
 
     def __init__(self, mask_path: str):
         self.mask_path = mask_path
 
-    @abstractmethod
-    def interpolate(self, source: SourceT, reference_raster_path: str) -> WPSDataset:
-        """Build an interpolated raster that matches the reference grid.
-
-        :param source: Interpolation source bound by this class' ``SourceT``
-        :param reference_raster_path: Raster path providing grid/geospatial metadata
-        :return: Dataset containing interpolated values on the reference grid
-        """
-        ...
+    def interpolate(
+        self, source: StationInterpolationSource, reference_raster_path: str
+    ) -> WPSDataset:
+        lats, lons, values = source.get_interpolation_data()
+        return interpolate_to_raster(lats, lons, values, reference_raster_path, self.mask_path)
 
     async def process(
         self,
         s3_client: S3Client,
         reference_raster_path: str,
-        source: SourceT,
+        source: StationInterpolationSource,
         output_key: str,
     ) -> str:
         """
@@ -136,7 +123,7 @@ class BaseInterpolator(ABC, Generic[SourceT]):
 
         :param s3_client: S3Client instance for uploading results
         :param reference_raster_path: Path to reference raster (defines grid properties)
-        :param source: Source object expected by this interpolator's ``SourceT``
+        :param source: Station data source providing interpolation inputs
         :param output_key: S3 key where the resulting raster will be uploaded
         :return: S3 key of uploaded raster
         """
@@ -153,17 +140,3 @@ class BaseInterpolator(ABC, Generic[SourceT]):
 
         logger.info("Interpolation complete: %s", output_key)
         return output_key
-
-
-class Interpolator(BaseInterpolator[StationInterpolationSource]):
-    """Default scalar-IDW interpolation processor.
-
-    Expects a source implementing ``get_interpolation_data()`` with
-    ``(lats, lons, values)`` arrays.
-    """
-
-    def interpolate(
-        self, source: StationInterpolationSource, reference_raster_path: str
-    ) -> WPSDataset:
-        lats, lons, values = source.get_interpolation_data()
-        return interpolate_to_raster(lats, lons, values, reference_raster_path, self.mask_path)

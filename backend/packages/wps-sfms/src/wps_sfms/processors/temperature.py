@@ -4,17 +4,13 @@ from osgeo import gdal
 from wps_sfms.interpolation.source import LAPSE_RATE, StationTemperatureSource
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_sfms.interpolation.common import SFMS_NO_DATA, log_interpolation_stats
-from wps_sfms.processors.idw import BaseInterpolator, idw_on_valid_pixels
+from wps_sfms.processors.idw import Interpolator, idw_on_valid_pixels
 
 logger = logging.getLogger(__name__)
 
 
-class TemperatureInterpolator(BaseInterpolator[StationTemperatureSource]):
-    """Interpolates station temperatures using IDW with elevation adjustment.
-
-    Uses ``BaseInterpolator[StationTemperatureSource]``; the source contract is
-    ``get_interpolation_data() -> (lats, lons, sea_level_temps)``.
-    """
+class TemperatureInterpolator(Interpolator):
+    """Interpolates station temperatures using IDW with elevation adjustment."""
 
     def __init__(self, mask_path: str, dem_path: str):
         super().__init__(mask_path)
