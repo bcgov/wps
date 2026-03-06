@@ -9,9 +9,10 @@ from dataclasses import dataclass
 import logging
 import tempfile
 from abc import ABC, abstractmethod
+from contextlib import contextmanager
 from datetime import datetime
 from time import perf_counter
-from typing import Callable, ContextManager, List, Mapping, NamedTuple, cast
+from typing import Callable, ContextManager, Iterator, List, Mapping, NamedTuple
 
 import numpy as np
 from osgeo import gdal
@@ -307,6 +308,34 @@ class FWIProcessor:
             f"Missing {dependency_kind} keys for {self.datetime_to_process.date()}: {details}"
         )
 
+    @contextmanager
+    def _open_required_datasets(
+        self,
+        input_dataset_context: MultiDatasetContext,
+        weather_keys_by_param: Mapping[SFMSInterpolatedWeatherParameter, str],
+        index_keys_by_param: Mapping[FWIParameter, str],
+    ) -> Iterator[FWIDatasets]:
+        """
+        Open all required weather/index dependency rasters and yield them as `FWIDatasets`.
+
+        This method opens every key in one context manager and reorganizes the resulting
+        datasets back into parameter-keyed weather and index maps for calculator consumption.
+        """
+        input_keys = [*weather_keys_by_param.values(), *index_keys_by_param.values()]
+        with input_dataset_context(input_keys) as input_datasets:
+            datasets_by_key: dict[str, WPSDataset] = {}
+            for ds in input_datasets:
+                datasets_by_key[ds.ds_path] = ds
+
+            weather_datasets: WeatherDatasetMap = {
+                param: datasets_by_key[key] for param, key in weather_keys_by_param.items()
+            }
+            index_datasets: IndexDatasetMap = {
+                param: datasets_by_key[key] for param, key in index_keys_by_param.items()
+            }
+
+            yield FWIDatasets(index=index_datasets, weather=weather_datasets)
+
     async def calculate_index(
         self,
         s3_client: S3Client,
@@ -318,7 +347,7 @@ class FWIProcessor:
         Calculate a single FWI index from the provided dependencies.
 
         :param s3_client: S3Client instance for checking keys and persisting results
-        :param input_dataset_context: Context manager for opening multiple WPSDatasets
+        :param input_dataset_context: Context manager for opening dependency datasets
         :param calculator: FWICalculator instance that performs the index calculation
         :param fwi_inputs: Dependency keys and metadata for this calculation
         """
@@ -342,23 +371,11 @@ class FWIProcessor:
         )
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            # build the key list for all dependencies required by this calculator, to open them
-            # together in a single context manager call
-            weather_params = calculator.required_weather_params
-            index_params = calculator.required_index_params
-            input_keys = [
-                *(weather_keys_by_param[param] for param in weather_params),
-                *(index_keys_by_param[param] for param in index_params),
-            ]
-
-            with input_dataset_context(input_keys) as input_datasets:
-                dataset_iter = iter(input_datasets)
-                weather_datasets: WeatherDatasetMap = {
-                    param: next(dataset_iter) for param in weather_params
-                }
-                index_datasets: IndexDatasetMap = {
-                    param: next(dataset_iter) for param in index_params
-                }
+            with self._open_required_datasets(
+                input_dataset_context, weather_keys_by_param, index_keys_by_param
+            ) as datasets:
+                weather_datasets = datasets.weather
+                index_datasets = datasets.index
 
                 # use reference index's geotransform and projection for the output dataset, and verify all dependencies match that grid
                 reference_ds = index_datasets[calculator.reference_index_param]
@@ -384,7 +401,6 @@ class FWIProcessor:
                             f"{param.value} raster does not match FWI grid: {index_key} vs {reference_key}"
                         )
 
-                datasets = FWIDatasets(index=index_datasets, weather=weather_datasets)
                 result = calculator.calculate(datasets)
 
                 # store GeoTIFF output using georeferencing from the reference grid
