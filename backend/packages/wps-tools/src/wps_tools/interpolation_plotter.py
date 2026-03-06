@@ -97,7 +97,7 @@ def interpolate_wind_direction(sfms_actuals: List[SFMSDailyActual]):
     observed_wind_direction = np.array([s.wind_direction for s in valid], dtype=np.float32)
 
     wind_vector_source = StationWindVectorSource(valid)
-    lats, lons, station_u, station_v = wind_vector_source.get_uv_interpolation_data()
+    lats, lons, station_u, station_v = wind_vector_source.get_interpolation_data()
     interpolated_u = leave_one_out_idw(lats, lons, station_u)
     interpolated_v = leave_one_out_idw(lats, lons, station_v)
 

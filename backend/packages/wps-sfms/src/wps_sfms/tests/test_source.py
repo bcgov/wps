@@ -37,7 +37,7 @@ class TestStationActualSource:
 class TestStationWindVectorSource:
     """Tests for StationWindVectorSource paired wind vector extraction."""
 
-    def test_get_uv_interpolation_data_filters_unpaired_values(self):
+    def test_get_interpolation_data_filters_unpaired_values(self):
         actuals = [
             SFMSDailyActual(code=1, lat=49.0, lon=-123.0, wind_speed=10.0, wind_direction=0.0),
             SFMSDailyActual(code=2, lat=49.1, lon=-123.1, wind_speed=8.0, wind_direction=90.0),
@@ -46,7 +46,7 @@ class TestStationWindVectorSource:
         ]
         source = StationWindVectorSource(actuals)
 
-        lats, lons, u, v = source.get_uv_interpolation_data()
+        lats, lons, u, v = source.get_interpolation_data()
 
         assert len(lats) == 2
         assert len(lons) == 2
@@ -58,14 +58,14 @@ class TestStationWindVectorSource:
         assert u[1] == pytest.approx(-8.0, abs=1e-5)
         assert v[1] == pytest.approx(0.0, abs=1e-5)
 
-    def test_get_uv_interpolation_data_returns_empty_when_no_pairs(self):
+    def test_get_interpolation_data_returns_empty_when_no_pairs(self):
         actuals = [
             SFMSDailyActual(code=1, lat=49.0, lon=-123.0, wind_speed=None, wind_direction=0.0),
             SFMSDailyActual(code=2, lat=49.1, lon=-123.1, wind_speed=5.0, wind_direction=None),
         ]
         source = StationWindVectorSource(actuals)
 
-        lats, lons, u, v = source.get_uv_interpolation_data()
+        lats, lons, u, v = source.get_interpolation_data()
         assert len(lats) == 0
         assert len(lons) == 0
         assert len(u) == 0
@@ -89,7 +89,7 @@ class TestStationWindVectorSource:
             )
         ]
         source = StationWindVectorSource(actuals)
-        _, _, u, v = source.get_uv_interpolation_data()
+        _, _, u, v = source.get_interpolation_data()
 
         reconstructed = WindDirectionInterpolator.compute_direction_from_uv(u, v)
 

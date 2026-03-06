@@ -192,12 +192,17 @@ class StationActualSource(StationInterpolationSource):
 
 
 class StationWindVectorSource:
-    """Station source for paired wind speed/direction transformed to u/v vectors."""
+    """
+    Station source for paired wind speed/direction transformed to u/v vectors.
+
+    Unlike `StationInterpolationSource`, wind interpolation needs two value arrays
+    (u and v), so this source returns four arrays: `(lats, lons, u, v)`.
+    """
 
     def __init__(self, sfms_actuals: List[SFMSDailyActual]):
         self._sfms_actuals = sfms_actuals
 
-    def get_uv_interpolation_data(
+    def get_interpolation_data(
         self,
     ) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
         valid = [

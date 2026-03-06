@@ -100,6 +100,10 @@ class Interpolator:
 
     Subclasses override interpolate() to add parameter-specific logic
     such as elevation adjustment or derived quantities.
+
+    This base contract is for scalar-value sources (lats, lons, values).
+    Specialized interpolators (for example wind direction) may use a different
+    source shape in their own `interpolate()` override.
     """
 
     def __init__(self, mask_path: str):

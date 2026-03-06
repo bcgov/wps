@@ -71,7 +71,7 @@ class WindDirectionInterpolator(Interpolator):
 
             logger.info("Interpolating wind direction for raster grid (%d x %d)", x_size, y_size)
 
-            station_lats, station_lons, station_u, station_v = source.get_uv_interpolation_data()
+            station_lats, station_lons, station_u, station_v = source.get_interpolation_data()
 
             u_result = idw_on_valid_pixels(
                 valid_lats=lats,
