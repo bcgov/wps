@@ -314,7 +314,9 @@ class TestRunSfmsDailyActuals:
             await run_sfms_daily_actuals(target_date)
 
         mock_dependencies.temp_processor.process.assert_called_once()
+        mock_dependencies.rh_processor.process.assert_called_once()
         mock_dependencies.wind_speed_processor.process.assert_called_once()
+        mock_dependencies.wind_direction_processor.process.assert_called_once()
 
 
 class TestMondayFWIInterpolation:
