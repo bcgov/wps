@@ -119,7 +119,7 @@ class Interpolator:
         self,
         s3_client: S3Client,
         reference_raster_path: str,
-        source: StationInterpolationSource,
+        source: object,
         output_key: str,
     ) -> str:
         """
@@ -127,7 +127,8 @@ class Interpolator:
 
         :param s3_client: S3Client instance for uploading results
         :param reference_raster_path: Path to reference raster (defines grid properties)
-        :param source: Station data source providing interpolation inputs
+        :param source: Station data source for this processor. The expected
+            source shape is defined by the concrete `interpolate()` implementation.
         :param output_key: S3 key where the resulting raster will be uploaded
         :return: S3 key of uploaded raster
         """
