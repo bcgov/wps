@@ -33,6 +33,7 @@ async def register_device(request: RegisterDeviceRequest):
             existing.is_active = True
             existing.token = request.token
             existing.updated_at = get_utc_now()
+            existing.user_id = request.user_id
             logger.info(f"Updated existing DeviceInfo record for token: {request.token}")
         else:
             device_token = DeviceToken(

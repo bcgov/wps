@@ -115,7 +115,7 @@ const App = () => {
     async function handleTokenChange(t: string) {
       const deviceId = await Device.getId();
       try {
-        registerToken(
+        await registerToken(
           Capacitor.getPlatform() as Platform,
           t,
           deviceId?.identifier,

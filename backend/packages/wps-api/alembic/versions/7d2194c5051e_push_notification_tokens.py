@@ -44,3 +44,4 @@ def downgrade():
     op.drop_index(op.f('ix_device_token_platform'), table_name='device_token')
     op.drop_index(op.f('ix_device_token_id'), table_name='device_token')
     op.drop_table('device_token')
+    op.execute("DROP TYPE platformenum;")
