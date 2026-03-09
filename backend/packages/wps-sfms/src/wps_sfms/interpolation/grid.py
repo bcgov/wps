@@ -1,3 +1,15 @@
+"""Shared raster-grid loading for SFMS interpolation workflows.
+
+This module centralizes the repeated setup work needed before interpolation:
+- open the reference raster and read its grid metadata
+- apply the BC mask to determine which pixels are valid for interpolation
+- precompute valid pixel coordinates in WGS84
+- optionally load auxiliary rasters that must align with the reference grid
+
+The goal is to let interpolation code focus on parameter-specific math while
+this module owns the common raster plumbing and grid consistency checks.
+"""
+
 from dataclasses import dataclass
 from typing import Optional
 
