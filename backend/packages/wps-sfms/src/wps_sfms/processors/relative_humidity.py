@@ -1,113 +1,94 @@
 import logging
 import numpy as np
 from osgeo import gdal
-from wps_sfms.interpolation.source import DEW_POINT_LAPSE_RATE, StationDewPointSource
+from wps_sfms.interpolation.fields import ScalarField, compute_adjusted_values, compute_rh
+from wps_sfms.interpolation.source import DEW_POINT_LAPSE_RATE
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_sfms.interpolation.common import (
     SFMS_NO_DATA,
     log_interpolation_stats,
 )
-from wps_sfms.processors.idw import Interpolator, idw_on_valid_pixels
+from wps_sfms.interpolation.grid import build_grid_context
+from wps_sfms.processors.idw import RasterProcessor, idw_on_valid_pixels
 
 logger = logging.getLogger(__name__)
 
 
-class RHInterpolator(Interpolator):
+class RHInterpolator(RasterProcessor):
     """Interpolates RH via dew point IDW + elevation adjustment.
 
     Requires that temperature interpolation has already been run for this date,
     as it reads the interpolated temperature raster from S3.
     """
 
-    def __init__(self, mask_path: str, dem_path: str, temp_raster_path: str):
+    def __init__(
+        self,
+        mask_path: str,
+        dem_path: str,
+        temp_raster_path: str,
+        field: ScalarField,
+    ):
         super().__init__(mask_path)
         self.dem_path = dem_path
         self.temp_raster_path = temp_raster_path
+        self.field = field
 
-    def interpolate(
-        self, source: StationDewPointSource, reference_raster_path: str
-    ) -> WPSDataset:
-        with WPSDataset(reference_raster_path) as ref_ds:
-            geo_transform = ref_ds.ds.GetGeoTransform()
-            if geo_transform is None:
-                raise ValueError(
-                    f"Failed to get geotransform from reference raster: {reference_raster_path}"
-                )
-            projection = ref_ds.ds.GetProjection()
-            x_size = ref_ds.ds.RasterXSize
-            y_size = ref_ds.ds.RasterYSize
+    def interpolate(self, reference_raster_path: str) -> WPSDataset:
+        grid = build_grid_context(
+            reference_raster_path,
+            self.mask_path,
+            dem_path=self.dem_path,
+            temperature_raster_path=self.temp_raster_path,
+        )
+        assert grid.valid_dem_values is not None
+        assert grid.temperature_data is not None
 
-            with WPSDataset(self.dem_path) as dem_ds:
-                dem_band: gdal.Band = dem_ds.ds.GetRasterBand(1)
-                dem_data = dem_band.ReadAsArray()
-                if dem_data is None:
-                    raise ValueError("Failed to read DEM data")
+        rh_array = np.full((grid.y_size, grid.x_size), SFMS_NO_DATA, dtype=np.float32)
 
-                with WPSDataset(self.temp_raster_path) as temp_ds:
-                    temp_band: gdal.Band = temp_ds.ds.GetRasterBand(1)
-                    temp_data = temp_band.ReadAsArray()
-                    if temp_data is None:
-                        raise ValueError("Failed to read temperature raster data")
+        logger.info(
+            "Interpolating dew point for RH raster grid (%d x %d)", grid.x_size, grid.y_size
+        )
 
-                rh_array = np.full((y_size, x_size), SFMS_NO_DATA, dtype=np.float32)
+        idw_result = idw_on_valid_pixels(
+            valid_lats=grid.valid_lats,
+            valid_lons=grid.valid_lons,
+            valid_yi=grid.valid_yi,
+            valid_xi=grid.valid_xi,
+            station_lats=self.field.lats,
+            station_lons=self.field.lons,
+            station_values=self.field.values,
+            total_pixels=grid.total_pixels,
+            label="dew point",
+        )
 
-                with WPSDataset(self.mask_path) as mask_ds:
-                    valid_mask = ref_ds.apply_mask(mask_ds.warp_to_match(ref_ds))
+        sea = idw_result.values
+        elev = grid.valid_dem_values[idw_result.succeeded_mask].astype(np.float32, copy=False)
+        adjusted_dewpoints = compute_adjusted_values(sea, elev, DEW_POINT_LAPSE_RATE)
 
-                lats, lons, valid_yi, valid_xi = dem_ds.get_lat_lon_coords(valid_mask)
-                valid_elevations = dem_data[valid_mask]
+        rh_values = compute_rh(
+            grid.temperature_data[idw_result.rows, idw_result.cols],
+            adjusted_dewpoints,
+        )
+        rh_array[idw_result.rows, idw_result.cols] = rh_values
 
-                total_pixels = x_size * y_size
+        log_interpolation_stats(
+            idw_result.total_pixels,
+            idw_result.interpolated_count,
+            idw_result.failed_interpolation_count,
+            idw_result.skipped_nodata_count,
+        )
 
-                logger.info(
-                    "Interpolating dew point for RH raster grid (%d x %d)", x_size, y_size
-                )
-
-                station_lats, station_lons, sea_level_dewpoints = (
-                    source.get_interpolation_data(lapse_rate=DEW_POINT_LAPSE_RATE)
-                )
-                idw_result = idw_on_valid_pixels(
-                    valid_lats=lats,
-                    valid_lons=lons,
-                    valid_yi=valid_yi,
-                    valid_xi=valid_xi,
-                    station_lats=station_lats,
-                    station_lons=station_lons,
-                    station_values=sea_level_dewpoints,
-                    total_pixels=total_pixels,
-                    label="dew point",
-                )
-
-                sea = idw_result.values
-                elev = valid_elevations[idw_result.succeeded_mask].astype(np.float32, copy=False)
-                adjusted_dewpoints = StationDewPointSource.compute_adjusted_values(
-                    sea, elev, DEW_POINT_LAPSE_RATE
-                )
-
-                rh_values = StationDewPointSource.compute_rh(
-                    temp_data[idw_result.rows, idw_result.cols].astype(np.float32),
-                    adjusted_dewpoints,
-                )
-                rh_array[idw_result.rows, idw_result.cols] = rh_values
-
-            log_interpolation_stats(
-                idw_result.total_pixels,
-                idw_result.interpolated_count,
-                idw_result.failed_interpolation_count,
-                idw_result.skipped_nodata_count,
+        if idw_result.interpolated_count == 0:
+            raise RuntimeError(
+                f"No pixels were successfully interpolated from {len(self.field.lats)} station(s). "
+                "Check that station coordinates fall within the raster extent and that at least "
+                "one station has a valid dew point value."
             )
 
-            if idw_result.interpolated_count == 0:
-                raise RuntimeError(
-                    f"No pixels were successfully interpolated from {len(station_lats)} station(s). "
-                    "Check that station coordinates fall within the raster extent and that at least "
-                    "one station has a valid dew point value."
-                )
-
-            return WPSDataset.from_array(
-                array=rh_array,
-                geotransform=geo_transform,
-                projection=projection,
-                nodata_value=SFMS_NO_DATA,
-                datatype=gdal.GDT_Float32,
-            )
+        return WPSDataset.from_array(
+            array=rh_array,
+            geotransform=grid.geotransform,
+            projection=grid.projection,
+            nodata_value=SFMS_NO_DATA,
+            datatype=gdal.GDT_Float32,
+        )

@@ -12,6 +12,7 @@ Subclasses override interpolate() for parameter-specific logic
 import logging
 import os
 import tempfile
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 import aiofiles
@@ -21,8 +22,8 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
+from wps_sfms.interpolation.fields import ScalarField
 from wps_sfms.interpolation.idw import interpolate_to_raster
-from wps_sfms.interpolation.source import StationInterpolationSource
 
 logger = logging.getLogger(__name__)
 
@@ -95,31 +96,20 @@ def idw_on_valid_pixels(
     )
 
 
-class Interpolator:
-    """Base processor: plain IDW interpolation + S3 upload.
-
-    Subclasses override interpolate() to add parameter-specific logic
-    such as elevation adjustment or derived quantities.
-
-    This base contract is for scalar-value sources (lats, lons, values).
-    Specialized interpolators (for example wind direction) may use a different
-    source shape in their own `interpolate()` override.
-    """
+class RasterProcessor(ABC):
+    """Shared upload workflow for interpolation processors."""
 
     def __init__(self, mask_path: str):
         self.mask_path = mask_path
 
-    def interpolate(
-        self, source: StationInterpolationSource, reference_raster_path: str
-    ) -> WPSDataset:
-        lats, lons, values = source.get_interpolation_data()
-        return interpolate_to_raster(lats, lons, values, reference_raster_path, self.mask_path)
+    @abstractmethod
+    def interpolate(self, reference_raster_path: str) -> WPSDataset:
+        """Build an in-memory raster for upload."""
 
     async def process(
         self,
         s3_client: S3Client,
         reference_raster_path: str,
-        source: object,
         output_key: str,
     ) -> str:
         """
@@ -127,15 +117,13 @@ class Interpolator:
 
         :param s3_client: S3Client instance for uploading results
         :param reference_raster_path: Path to reference raster (defines grid properties)
-        :param source: Station data source for this processor. The expected
-            source shape is defined by the concrete `interpolate()` implementation.
         :param output_key: S3 key where the resulting raster will be uploaded
         :return: S3 key of uploaded raster
         """
         set_s3_gdal_config()
         logger.info("Starting interpolation, output: %s", output_key)
 
-        with self.interpolate(source, reference_raster_path) as dataset:
+        with self.interpolate(reference_raster_path) as dataset:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 tmp_path = os.path.join(tmp_dir, os.path.basename(output_key))
                 dataset.export_to_geotiff(tmp_path)
@@ -145,3 +133,20 @@ class Interpolator:
 
         logger.info("Interpolation complete: %s", output_key)
         return output_key
+
+
+class Interpolator(RasterProcessor):
+    """Scalar-field IDW interpolation plus shared upload workflow."""
+
+    def __init__(self, mask_path: str, field: ScalarField):
+        super().__init__(mask_path)
+        self.field = field
+
+    def interpolate(self, reference_raster_path: str) -> WPSDataset:
+        return interpolate_to_raster(
+            self.field.lats,
+            self.field.lons,
+            self.field.values,
+            reference_raster_path,
+            self.mask_path,
+        )

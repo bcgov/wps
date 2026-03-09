@@ -4,6 +4,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from types import SimpleNamespace
 from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
 
@@ -75,6 +76,12 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     # Mock WfwxApi
     mock_wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(
         return_value=create_mock_sfms_actuals()
+    )
+    mock_wfwx_api.get_station_data = AsyncMock(
+        return_value=[
+            SimpleNamespace(code=100, name="Vancouver Harbour"),
+            SimpleNamespace(code=101, name="Burnaby Mountain"),
+        ]
     )
     mocker.patch(f"{MODULE_PATH}.WfwxApi", return_value=mock_wfwx_api)
 
@@ -255,6 +262,22 @@ class TestRunSfmsDailyActuals:
 
         with pytest.raises(RuntimeError, match="No station observations found"):
             await run_sfms_daily_actuals(target_date)
+
+    @pytest.mark.anyio
+    async def test_exports_sfms_actuals_geojson_with_station_names(
+        self, mock_dependencies: MockDailyActualsDeps, mocker: MockerFixture
+    ):
+        """Test that sfms actuals GeoJSON export receives station name mapping."""
+        mock_export = mocker.patch(f"{MODULE_PATH}.export_sfms_actuals_to_geojson")
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+
+        await run_sfms_daily_actuals(target_date)
+
+        mock_export.assert_called_once()
+        assert mock_export.call_args.kwargs["station_name_by_code"] == {
+            100: "Vancouver Harbour",
+            101: "Burnaby Mountain",
+        }
 
     @pytest.mark.anyio
     async def test_writes_run_log_entries(self, mock_dependencies: MockDailyActualsDeps):

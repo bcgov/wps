@@ -1,19 +1,20 @@
-from abc import ABC, abstractmethod
 import logging
 from typing import List, Optional, Protocol, Tuple, runtime_checkable
 import numpy as np
 
 from numpy.typing import NDArray
 from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_sfms.interpolation.fields import (
+    DEW_POINT_LAPSE_RATE,
+    LAPSE_RATE,
+    build_attribute_field,
+    build_wind_vector_field,
+    compute_adjusted_values,
+    compute_rh,
+    compute_sea_level_values,
+)
 
 logger = logging.getLogger(__name__)
-
-# Environmental lapse rate: 6.5°C per 1000m elevation (average observed rate)
-# This matches the CWFIS implementation
-LAPSE_RATE = 0.0065
-
-# Dew point lapse rate: 2.0°C per 1000m: https://www.atmos.illinois.edu/~snodgrss/Airflow_over_mtn.html
-DEW_POINT_LAPSE_RATE = 0.002
 
 
 @runtime_checkable
@@ -23,14 +24,15 @@ class StationInterpolationSource(Protocol):
     ) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]: ...
 
 
-class LapseRateAdjustedSource(ABC):
+class LapseRateAdjustedSource:
     """
-    Base class for station sources whose values require lapse-rate elevation
-    adjustment (e.g. temperature, dew point).
+    Compatibility wrapper for station sources requiring lapse-rate adjustment.
 
-    Subclasses only need to implement ``_extract_values`` to pull the relevant
-    per-station values from the pre-built numpy arrays.
+    This preserves the older source API for tools/tests while delegating the
+    underlying interpolation math to the field-builder helpers.
     """
+
+    _attribute: str
 
     def __init__(self, sfms_actuals: List[SFMSDailyActual]):
         self._sfms_actuals = sfms_actuals
@@ -40,28 +42,19 @@ class LapseRateAdjustedSource(ABC):
         self._values: Optional[NDArray[np.float32]] = None
         self._valid_mask: Optional[NDArray[np.float32]] = None
 
-    @abstractmethod
-    def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
-        """Return a float32 array of values (one per station), ``np.nan`` where unavailable."""
-        ...
-
     @staticmethod
     def compute_sea_level_values(
         values: NDArray[np.float32], elevs: NDArray[np.float32], lapse_rate: float
     ) -> NDArray[np.float32]:
-        """Vectorized: V_sea = V_station + elevation * lapse_rate"""
-        values = np.asarray(values, dtype=np.float32)
-        elevs = np.asarray(elevs, dtype=np.float32)
-        return values + elevs * np.float32(lapse_rate)
+        """Vectorized: V_sea = V_station + elevation * lapse_rate."""
+        return compute_sea_level_values(values, elevs, lapse_rate)
 
     @staticmethod
     def compute_adjusted_values(
         sea: NDArray[np.float32], elev: NDArray[np.float32], lapse_rate: float
     ) -> NDArray[np.float32]:
-        """Vectorized: V(z) = V_sea - z * lapse_rate"""
-        sea = np.asarray(sea, dtype=np.float32)
-        elev = np.asarray(elev, dtype=np.float32)
-        return sea - elev * np.float32(lapse_rate)
+        """Vectorized: V(z) = V_sea - z * lapse_rate."""
+        return compute_adjusted_values(sea, elev, lapse_rate)
 
     def get_station_count(self) -> int:
         return len(self._sfms_actuals)
@@ -121,18 +114,14 @@ class LapseRateAdjustedSource(ABC):
         self._lats = np.array([a.lat for a in actuals], dtype=np.float32)
         self._lons = np.array([a.lon for a in actuals], dtype=np.float32)
         self._elevs = self._optional_to_array(actuals, "elevation")
-        self._values = self._extract_values(actuals)
+        self._values = self._optional_to_array(actuals, self._attribute)
         self._valid_mask = np.isfinite(self._elevs) & np.isfinite(self._values)
 
 
 class StationTemperatureSource(LapseRateAdjustedSource):
     """Station source for temperature values with lapse-rate elevation adjustment."""
 
-    def __init__(self, sfms_actuals: List[SFMSDailyActual]):
-        super().__init__(sfms_actuals)
-
-    def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
-        return self._optional_to_array(actuals, "temperature")
+    _attribute = "temperature"
 
 
 class StationDewPointSource(LapseRateAdjustedSource):
@@ -141,12 +130,7 @@ class StationDewPointSource(LapseRateAdjustedSource):
     with lapse-rate elevation adjustment.
     """
 
-    def __init__(self, sfms_actuals: List[SFMSDailyActual]):
-        super().__init__(sfms_actuals)
-
-    def _extract_values(self, actuals: List[SFMSDailyActual]) -> NDArray[np.float32]:
-        dewpoints = self._optional_to_array(actuals, "dewpoint")
-        return dewpoints
+    _attribute = "dewpoint"
 
     @staticmethod
     def compute_rh(temp: np.ndarray, dewpoint: np.ndarray) -> np.ndarray:
@@ -160,10 +144,10 @@ class StationDewPointSource(LapseRateAdjustedSource):
         :param dewpoint: Dew point temperature array in Celsius
         :return: Relative humidity as percentage (0-100), clamped
         """
-        e_td = 6.1121 * np.exp((18.678 - dewpoint / 234.5) * (dewpoint / (257.14 + dewpoint)))
-        e_t = 6.1121 * np.exp((18.678 - temp / 234.5) * (temp / (257.14 + temp)))
-        rh = 100.0 * e_td / e_t
-        return np.clip(rh, 0.0, 100.0).astype(np.float32)
+        return compute_rh(
+            np.asarray(temp, dtype=np.float32),
+            np.asarray(dewpoint, dtype=np.float32),
+        )
 
 
 _VALID_SFMS_ATTRIBUTES = frozenset(SFMSDailyActual.model_fields.keys())
@@ -183,12 +167,8 @@ class StationActualSource(StationInterpolationSource):
     def get_interpolation_data(
         self,
     ) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
-        valid = [s for s in self._sfms_actuals if getattr(s, self._attribute) is not None]
-        return (
-            np.array([s.lat for s in valid], dtype=np.float32),
-            np.array([s.lon for s in valid], dtype=np.float32),
-            np.array([getattr(s, self._attribute) for s in valid], dtype=np.float32),
-        )
+        field = build_attribute_field(self._sfms_actuals, self._attribute)
+        return field.lats, field.lons, field.values
 
 
 class StationWindVectorSource:
@@ -205,26 +185,8 @@ class StationWindVectorSource:
     def get_interpolation_data(
         self,
     ) -> Tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
-        valid = [
-            s
-            for s in self._sfms_actuals
-            if s.wind_speed is not None and s.wind_direction is not None
-        ]
-        if not valid:
-            empty = np.array([], dtype=np.float32)
-            return empty, empty, empty, empty
-
-        lats = np.array([s.lat for s in valid], dtype=np.float32)
-        lons = np.array([s.lon for s in valid], dtype=np.float32)
-        speed = np.array([s.wind_speed for s in valid], dtype=np.float32)
-        direction = np.array([s.wind_direction for s in valid], dtype=np.float32)
-
-        # Match legacy SFMS wind vector transform:
-        # u = -ws * sin(dir), v = -ws * cos(dir), with direction in degrees.
-        direction_radians = np.radians(direction.astype(np.float32))
-        u = (-speed * np.sin(direction_radians)).astype(np.float32)
-        v = (-speed * np.cos(direction_radians)).astype(np.float32)
-        return lats, lons, u, v
+        field = build_wind_vector_field(self._sfms_actuals)
+        return field.lats, field.lons, field.u, field.v
 
 
 def StationPrecipitationSource(sfms_actuals: List[SFMSDailyActual]) -> StationActualSource:
