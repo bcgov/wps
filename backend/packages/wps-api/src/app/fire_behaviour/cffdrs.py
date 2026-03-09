@@ -476,69 +476,6 @@ def head_fire_intensity(
     return fire_intensity(fc=tfc, ros=ros)
 
 
-def hourly_fine_fuel_moisture_code(
-    weatherstream: pd.DataFrame,
-    ffmc_old: float,
-    time_step: int = 1,
-    calc_step: bool = False,
-    batch: bool = True,
-    hourly_fwi: bool = False,
-) -> pd.DataFrame:
-    """Computes hourly FFMC from a weatherstream DataFrame.
-
-    The DataFrame must contain columns: temperature (or temp), relative_humidity (or rh),
-    wind_speed (or ws), precipitation (or prec). Iterates row-by-row, carrying the FFMC
-    forward as the initial condition for each subsequent step.
-    """
-    column_name_map = {
-        "temperature": "temp",
-        "relative_humidity": "rh",
-        "wind_speed": "ws",
-        "precipitation": "prec",
-    }
-    weatherstream = weatherstream.rename(columns=column_name_map)
-
-    required = {"temp", "rh", "ws", "prec"}
-    missing = required - set(weatherstream.columns)
-    if missing:
-        raise CFFDRSException(f"Missing required columns in weatherstream: {missing}")
-
-    current_ffmc = ffmc_old
-    hffmc_values = []
-    for idx, row in weatherstream.iterrows():
-        try:
-            current_ffmc = _hourly_ffmc(
-                temp=row["temp"],
-                rh=row["rh"],
-                ws=row["ws"],
-                prec=row["prec"],
-                fo=current_ffmc,
-                t0=time_step,
-            )
-        except Exception as exc:
-            logger.error(
-                "hourly_ffmc failed at row %s: temp=%s, rh=%s, ws=%s, prec=%s, fo=%s — %s",
-                idx,
-                row["temp"],
-                row["rh"],
-                row["ws"],
-                row["prec"],
-                current_ffmc,
-                exc,
-            )
-            raise CFFDRSException(f"hourly_ffmc failed at row {idx}: {exc}") from exc
-        if math.isnan(current_ffmc):
-            raise CFFDRSException(
-                f"hourly_ffmc returned NaN at row {idx}: temp={row['temp']}, rh={row['rh']}, "
-                f"ws={row['ws']}, prec={row['prec']}, fo={ffmc_old}"
-            )
-        hffmc_values.append(current_ffmc)
-
-    weatherstream = weatherstream.copy()
-    weatherstream["hffmc"] = hffmc_values
-    return weatherstream
-
-
 def get_ffmc_for_target_hfi(
     fuel_type: FuelTypeEnum,
     percentage_conifer: float,

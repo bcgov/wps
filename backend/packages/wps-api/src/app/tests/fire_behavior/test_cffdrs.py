@@ -1,55 +1,26 @@
-from datetime import datetime
-import pandas as pd
-import numpy as np
-import pytest
 import math
-from wps_shared.fuel_types import FuelTypeEnum
-from app.fire_behaviour import cffdrs
-from app.fire_behaviour.cffdrs import hourly_fine_fuel_moisture_code, CFFDRSException
+from datetime import datetime
 
+import numpy as np
+import pandas as pd
+import pytest
+from app.fire_behaviour import cffdrs
+from wps_shared.fuel_types import FuelTypeEnum
 
 start_date = datetime(2023, 8, 17)
 end_date = datetime(2023, 8, 18)
-hourly_datetimes = pd.date_range(start=start_date, end=end_date, freq='H')
+hourly_datetimes = pd.date_range(start=start_date, end=end_date, freq="H")
 
 hourly_data = {
-    'temperature': np.random.default_rng(111).uniform(20.0, 30.0, size=len(hourly_datetimes)),
-    'relative_humidity': np.random.default_rng(111).uniform(40.0, 100.0, size=len(hourly_datetimes)),
-    'precipitation': np.random.default_rng(111).uniform(0.0, 1.0, size=len(hourly_datetimes)),
-    'wind_speed': np.random.default_rng(111).uniform(0.0, 30.0, size=len(hourly_datetimes)),
+    "temperature": np.random.default_rng(111).uniform(20.0, 30.0, size=len(hourly_datetimes)),
+    "relative_humidity": np.random.default_rng(111).uniform(
+        40.0, 100.0, size=len(hourly_datetimes)
+    ),
+    "precipitation": np.random.default_rng(111).uniform(0.0, 1.0, size=len(hourly_datetimes)),
+    "wind_speed": np.random.default_rng(111).uniform(0.0, 30.0, size=len(hourly_datetimes)),
 }
 
 df_hourly = pd.DataFrame(hourly_data)
-
-
-def test_hourly_ffmc_calculates_values():
-    ffmc_old = 80.0
-    df = hourly_fine_fuel_moisture_code(df_hourly, ffmc_old)
-
-    assert not df['hffmc'].isnull().any()
-
-
-def test_hourly_ffmc_returned_columns():
-    """hourly_fine_fuel_moisture_code renames input columns to cffdrs_py's short names and appends hffmc."""
-    ffmc_old = 80.0
-    df = hourly_fine_fuel_moisture_code(df_hourly, ffmc_old)
-
-    assert set(df.columns) == {'temp', 'rh', 'ws', 'prec', 'hffmc'}
-
-
-def test_hourly_ffmc_no_temperature():
-    ffmc_old = 80.0
-    df_no_temp = pd.DataFrame(
-        {
-            'celsius': [12, 1],
-            'precipitation': [0, 1],
-            'wind_speed': [14, 12],
-            'relative_humidity': [50, 50],
-        }
-    )
-
-    with pytest.raises(CFFDRSException):
-        hourly_fine_fuel_moisture_code(df_no_temp, ffmc_old)
 
 
 def test_ros():
@@ -73,7 +44,9 @@ def test_ros_no_bui():
 def test_ros_no_params():
     """ROS fails"""
     with pytest.raises(cffdrs.CFFDRSException):
-        cffdrs.rate_of_spread(FuelTypeEnum.C7, None, None, None, None, pc=100, pdf=None, cc=None, cbh=10)
+        cffdrs.rate_of_spread(
+            FuelTypeEnum.C7, None, None, None, None, pc=100, pdf=None, cc=None, cbh=10
+        )
 
 
 @pytest.mark.parametrize(
@@ -101,7 +74,7 @@ def test_failing_ffmc(ffmc, temperature, precipitation, relative_humidity, wind_
 
 
 @pytest.mark.parametrize(
-    'dmc,temperature,relative_humidity,precipitation',
+    "dmc,temperature,relative_humidity,precipitation",
     [(None, 10, 90, 1), (100, None, 90, 1), (100, 10, None, 1), (100, 10, 90, None)],
 )
 def test_failing_dmc(dmc, temperature, relative_humidity, precipitation):
@@ -111,7 +84,8 @@ def test_failing_dmc(dmc, temperature, relative_humidity, precipitation):
 
 
 @pytest.mark.parametrize(
-    'dc,temperature,relative_humidity,precipitation', [(None, 10, 90, 1), (100, None, 90, 1), (100, 10, 90, None)]
+    "dc,temperature,relative_humidity,precipitation",
+    [(None, 10, 90, 1), (100, None, 90, 1), (100, 10, 90, None)],
 )
 def test_failing_dc(dc, temperature, relative_humidity, precipitation):
     """Test that we can handle None values when attempting to calculate dc"""
