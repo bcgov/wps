@@ -147,7 +147,6 @@ def calculate_net_effective_windspeed(
 ):
     """
     Calculate the net effective windspeed (WSV).
-    WSV = Slopecalc(..., output="WSV") when GS > 0 and FFMC > 0, else WS.
     """
     if gs > 0 and ffmc > 0:
         _validate_fuel_type_params(fuel_type, pc, pdf, cc, cbh)
