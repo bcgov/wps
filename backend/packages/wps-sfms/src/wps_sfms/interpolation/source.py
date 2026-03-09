@@ -135,11 +135,6 @@ class StationDewPointSource(LapseRateAdjustedSource):
     @staticmethod
     def compute_rh(temp: np.ndarray, dewpoint: np.ndarray) -> np.ndarray:
         """
-        Compute relative humidity from temperature and dew point using the Arden Buck equation.
-
-        Buck (1981): e_s(T) = 6.1121 * exp((18.678 - T/234.5) * (T / (257.14 + T)))
-        RH = 100 * e_s(Td) / e_s(T)
-
         :param temp: Temperature array in Celsius
         :param dewpoint: Dew point temperature array in Celsius
         :return: Relative humidity as percentage (0-100), clamped
