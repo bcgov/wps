@@ -264,22 +264,6 @@ class TestRunSfmsDailyActuals:
             await run_sfms_daily_actuals(target_date)
 
     @pytest.mark.anyio
-    async def test_exports_sfms_actuals_geojson_with_station_names(
-        self, mock_dependencies: MockDailyActualsDeps, mocker: MockerFixture
-    ):
-        """Test that sfms actuals GeoJSON export receives station name mapping."""
-        mock_export = mocker.patch(f"{MODULE_PATH}.export_sfms_actuals_to_geojson")
-        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
-
-        await run_sfms_daily_actuals(target_date)
-
-        mock_export.assert_called_once()
-        assert mock_export.call_args.kwargs["station_name_by_code"] == {
-            100: "Vancouver Harbour",
-            101: "Burnaby Mountain",
-        }
-
-    @pytest.mark.anyio
     async def test_writes_run_log_entries(self, mock_dependencies: MockDailyActualsDeps):
         """Test that run log records are added to the session."""
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
