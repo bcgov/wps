@@ -37,7 +37,7 @@ import {
 import { startWatchingLocation } from "@/slices/geolocationSlice";
 import { NavPanel } from "@/utils/constants";
 import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
-import { PMTilesCache } from "@/utils/pmtilesCache";
+import { PMTilesCache, RemotePMTilesCache } from "@/utils/pmtilesCache";
 import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
 import { Filesystem } from "@capacitor/filesystem";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
@@ -389,8 +389,13 @@ const ASAGoMap = ({
     setMap(mapObject);
 
     const loadPMTiles = async () => {
+      const pmtilesCache =
+        import.meta.env.VITE_SCREENSHOT_MODE === "true"
+          ? new RemotePMTilesCache()
+          : new PMTilesCache(Filesystem);
+
       const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(
-        new PMTilesCache(Filesystem),
+        pmtilesCache,
         {
           filename: "fireCentres.pmtiles",
         }
@@ -398,14 +403,14 @@ const ASAGoMap = ({
 
       const fireCentreLabelVectorSource =
         await PMTilesFileVectorSource.createStaticLayer(
-          new PMTilesCache(Filesystem),
+          pmtilesCache,
           {
             filename: "fireCentreLabels.pmtiles",
           }
         );
 
       const fireZoneSource = await PMTilesFileVectorSource.createStaticLayer(
-        new PMTilesCache(Filesystem),
+        pmtilesCache,
         {
           filename: "fireZoneUnits.pmtiles",
         }
@@ -416,7 +421,7 @@ const ASAGoMap = ({
 
       const fireZoneLabelVectorSource =
         await PMTilesFileVectorSource.createStaticLayer(
-          new PMTilesCache(Filesystem),
+          pmtilesCache,
           {
             filename: "fireZoneUnitLabels.pmtiles",
           }

@@ -32,3 +32,8 @@ coverage
 # env files
 .env*
 !.env.sample
+!.env.screenshot
+
+# screenshot output
+screenshots/
+playwright-report/

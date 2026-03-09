@@ -1,5 +1,6 @@
 import { RunType } from "@/api/fbaAPI";
 import { fetchHFIPMTiles, fetchStaticPMTiles } from "@/api/pmtilesAPI";
+import { PMTILES_BUCKET } from "@/utils/env";
 import {
   Directory,
   Encoding,
@@ -110,6 +111,28 @@ const fetchAndStoreHFIPMTiles = (
     }
   };
 };
+
+/**
+ * Loads PMTiles directly from the remote bucket via HTTP range requests.
+ * Used in screenshot mode where the Capacitor filesystem is unavailable.
+ */
+export class RemotePMTilesCache implements IPMTilesCache {
+  public readonly loadPMTiles = async (
+    filename: string
+  ): Promise<PMTiles | undefined> => {
+    return new PMTiles(`${PMTILES_BUCKET}${filename}`);
+  };
+
+  public readonly loadHFIPMTiles = async (
+    for_date: DateTime,
+    run_type: RunType,
+    run_date: DateTime,
+    _filename: string
+  ): Promise<PMTiles | undefined> => {
+    const url = `${PMTILES_BUCKET}hfi/${run_type.toLowerCase()}/${run_date.toISODate()}/hfi${for_date.toISODate({ format: "basic" })}.pmtiles`;
+    return new PMTiles(url);
+  };
+}
 
 export interface IPMTilesCache {
   loadPMTiles: (

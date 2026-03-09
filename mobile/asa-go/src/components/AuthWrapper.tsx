@@ -17,7 +17,7 @@ const AuthWrapper = ({ children }: Props) => {
     useSelector(selectAuthentication);
   const { networkStatus } = useSelector(selectNetworkStatus);
 
-  if (isAuthenticated || !networkStatus.connected) {
+  if (isAuthenticated || !networkStatus.connected || import.meta.env.VITE_SCREENSHOT_MODE === 'true') {
     return <React.StrictMode>{children}</React.StrictMode>;
   }
 

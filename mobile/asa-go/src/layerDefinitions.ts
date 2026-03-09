@@ -1,7 +1,7 @@
 import { localBasemapStyle } from "@/components/map/localBasemapStyle";
 import { hfiStyler } from "@/featureStylers";
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from "@/utils/env";
-import { PMTilesCache } from "@/utils/pmtilesCache";
+import { PMTilesCache, RemotePMTilesCache } from "@/utils/pmtilesCache";
 import {
   HFIPMTilesFileVectorOptions,
   PMTilesFileVectorSource,
@@ -38,8 +38,12 @@ export const createBasemapLayer = async () => {
 };
 
 export const createLocalBasemapVectorLayer = async () => {
+  const pmtilesCache =
+    import.meta.env.VITE_SCREENSHOT_MODE === "true"
+      ? new RemotePMTilesCache()
+      : new PMTilesCache(Filesystem);
   const localBasemapSource = await PMTilesFileVectorSource.createBasemapSource(
-    new PMTilesCache(Filesystem),
+    pmtilesCache,
     {
       filename: "bc_20250326_z6.pmtiles",
     }
@@ -57,8 +61,12 @@ export const createHFILayer = async (
   options: HFIPMTilesFileVectorOptions,
   visible: boolean = true
 ): Promise<VectorTileLayer> => {
+  const pmtilesCache =
+    import.meta.env.VITE_SCREENSHOT_MODE === "true"
+      ? new RemotePMTilesCache()
+      : new PMTilesCache(Filesystem);
   const hfiVectorSource = await PMTilesFileVectorSource.createHFILayer(
-    new PMTilesCache(Filesystem),
+    pmtilesCache,
     {
       filename: options.filename,
       for_date: options.for_date,
