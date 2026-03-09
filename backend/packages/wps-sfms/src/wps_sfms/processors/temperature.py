@@ -1,8 +1,7 @@
 import logging
 import numpy as np
 from osgeo import gdal
-from wps_sfms.interpolation.fields import ScalarField, compute_adjusted_values
-from wps_sfms.interpolation.source import LAPSE_RATE
+from wps_sfms.interpolation.field import LAPSE_RATE, ScalarField, compute_adjusted_values
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_sfms.interpolation.common import SFMS_NO_DATA, log_interpolation_stats
 from wps_sfms.interpolation.grid import build_grid_context

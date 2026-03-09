@@ -6,13 +6,14 @@ from typing import List, Optional
 
 import numpy as np
 from aiohttp import ClientSession
-from wps_sfms.interpolation.source import (
+from wps_sfms.interpolation.field import (
     DEW_POINT_LAPSE_RATE,
     LAPSE_RATE,
-    StationActualSource,
-    StationDewPointSource,
-    StationTemperatureSource,
-    StationWindVectorSource,
+    build_attribute_field,
+    build_wind_vector_field,
+    compute_adjusted_values,
+    compute_rh,
+    compute_sea_level_values,
 )
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_shared.schemas.sfms import SFMSDailyActual
@@ -44,27 +45,31 @@ def leave_one_out_idw(lats: np.ndarray, lons: np.ndarray, values: np.ndarray) ->
 
 
 def interpolate_temp(sfms_actuals: List[SFMSDailyActual]):
-    temp_source = StationTemperatureSource(sfms_actuals)
-    lats, lons, elevs, values = temp_source.get_station_arrays(only_valid=True)
-    sea = StationTemperatureSource.compute_sea_level_values(values, elevs, LAPSE_RATE)
+    valid = [s for s in sfms_actuals if s.temperature is not None and s.elevation is not None]
+    lats = np.array([s.lat for s in valid], dtype=np.float32)
+    lons = np.array([s.lon for s in valid], dtype=np.float32)
+    elevs = np.array([s.elevation for s in valid], dtype=np.float32)
+    values = np.array([s.temperature for s in valid], dtype=np.float32)
+    sea = compute_sea_level_values(values, elevs, LAPSE_RATE)
     assert len(lats) == len(lons) == len(elevs) == len(values) == len(sea)
     sea_interpolated = leave_one_out_idw(lats, lons, sea)
 
-    interpolated_values = StationTemperatureSource.compute_adjusted_values(
-        sea_interpolated, elevs, LAPSE_RATE
-    )
+    interpolated_values = compute_adjusted_values(sea_interpolated, elevs, LAPSE_RATE)
 
     return (elevs, values, interpolated_values)
 
 
 def interpolate_dewpoint_temp(sfms_actuals: List[SFMSDailyActual]):
-    dewpoint_source = StationDewPointSource(sfms_actuals)
-    lats, lons, elevs, values = dewpoint_source.get_station_arrays(only_valid=True)
-    sea = StationDewPointSource.compute_sea_level_values(values, elevs, DEW_POINT_LAPSE_RATE)
+    valid = [s for s in sfms_actuals if s.dewpoint is not None and s.elevation is not None]
+    lats = np.array([s.lat for s in valid], dtype=np.float32)
+    lons = np.array([s.lon for s in valid], dtype=np.float32)
+    elevs = np.array([s.elevation for s in valid], dtype=np.float32)
+    values = np.array([s.dewpoint for s in valid], dtype=np.float32)
+    sea = compute_sea_level_values(values, elevs, DEW_POINT_LAPSE_RATE)
     assert len(lats) == len(lons) == len(elevs) == len(values) == len(sea)
     sea_interpolated = leave_one_out_idw(lats, lons, sea)
 
-    interpolated_values = StationDewPointSource.compute_adjusted_values(
+    interpolated_values = compute_adjusted_values(
         sea_interpolated, elevs, DEW_POINT_LAPSE_RATE
     )
     return (elevs, values, interpolated_values)
@@ -96,8 +101,13 @@ def interpolate_wind_direction(sfms_actuals: List[SFMSDailyActual]):
     observed_wind_speed = np.array([s.wind_speed for s in valid], dtype=np.float32)
     observed_wind_direction = np.array([s.wind_direction for s in valid], dtype=np.float32)
 
-    wind_vector_source = StationWindVectorSource(valid)
-    lats, lons, station_u, station_v = wind_vector_source.get_interpolation_data()
+    wind_vector_field = build_wind_vector_field(valid)
+    lats, lons, station_u, station_v = (
+        wind_vector_field.lats,
+        wind_vector_field.lons,
+        wind_vector_field.u,
+        wind_vector_field.v,
+    )
     interpolated_u = leave_one_out_idw(lats, lons, station_u)
     interpolated_v = leave_one_out_idw(lats, lons, station_v)
 
@@ -131,13 +141,12 @@ async def main(start: datetime, end: datetime, out_dir: Optional[Path]):
             elevs, observed_temps, interpolated_temps = interpolate_temp(sfms_actuals)
             _, _, interpolated_dewpoint_temps = interpolate_dewpoint_temp(sfms_actuals)
 
-            interpolated_rh_from_observed_temps = StationDewPointSource.compute_rh(
+            interpolated_rh_from_observed_temps = compute_rh(
                 observed_temps, interpolated_dewpoint_temps
             )
 
             # Get observed rh values for comparison
-            rh_source = StationActualSource("relative_humidity", sfms_actuals)
-            _, _, observed_rh = rh_source.get_interpolation_data()
+            observed_rh = build_attribute_field(sfms_actuals, "relative_humidity").values
             observed_rh_np = np.array(observed_rh)
             # Weather stations show a rh of 0.0 when no observation is present
             observed_rh_masked = observed_rh_np[observed_rh_np > 0.0]

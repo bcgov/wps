@@ -6,7 +6,7 @@ from osgeo import gdal
 
 import wps_sfms.processors.wind as wind_module
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_sfms.interpolation.fields import build_wind_vector_field
+from wps_sfms.interpolation.field import build_wind_vector_field
 from wps_sfms.processors.idw import ValidPixelIDWResult
 from wps_sfms.processors.wind import WindDirectionInterpolator
 from wps_sfms.tests.conftest import create_test_raster

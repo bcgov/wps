@@ -7,7 +7,7 @@ import uuid
 import pytest
 from osgeo import gdal
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_sfms.interpolation.fields import build_temperature_field
+from wps_sfms.interpolation.field import build_temperature_field
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.tests.conftest import create_test_raster
 

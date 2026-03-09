@@ -16,7 +16,7 @@ from typing import Awaitable, Callable
 
 from aiohttp import ClientSession
 
-from wps_sfms.interpolation.fields import (
+from wps_sfms.interpolation.field import (
     build_dc_field,
     build_dewpoint_field,
     build_dmc_field,

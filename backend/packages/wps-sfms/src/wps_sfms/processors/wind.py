@@ -5,7 +5,7 @@ from osgeo import gdal
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 from wps_sfms.interpolation.common import SFMS_NO_DATA, log_interpolation_stats
-from wps_sfms.interpolation.fields import WindVectorField
+from wps_sfms.interpolation.field import WindVectorField
 from wps_sfms.interpolation.grid import build_grid_context
 from wps_sfms.processors.idw import Interpolator, RasterProcessor, idw_on_valid_pixels
 

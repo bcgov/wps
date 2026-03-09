@@ -22,7 +22,7 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
-from wps_sfms.interpolation.fields import ScalarField
+from wps_sfms.interpolation.field import ScalarField
 from wps_sfms.interpolation.idw import interpolate_to_raster
 
 logger = logging.getLogger(__name__)

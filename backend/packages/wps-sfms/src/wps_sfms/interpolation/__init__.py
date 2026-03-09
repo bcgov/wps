@@ -2,7 +2,9 @@
 Interpolation modules for SFMS weather data.
 """
 
-from wps_sfms.interpolation.fields import (
+from wps_sfms.interpolation.field import (
+    DEW_POINT_LAPSE_RATE,
+    LAPSE_RATE,
     ScalarField,
     WindVectorField,
     build_attribute_field,
@@ -18,24 +20,12 @@ from wps_sfms.interpolation.fields import (
     compute_rh,
     compute_sea_level_values,
 )
-from wps_sfms.interpolation.source import (
-    DEW_POINT_LAPSE_RATE,
-    LAPSE_RATE,
-    StationActualSource,
-    StationInterpolationSource,
-    StationTemperatureSource,
-    StationPrecipitationSource,
-)
 from wps_sfms.interpolation.common import log_interpolation_stats
 
 __all__ = [
     "DEW_POINT_LAPSE_RATE",
     "LAPSE_RATE",
     "ScalarField",
-    "StationActualSource",
-    "StationInterpolationSource",
-    "StationTemperatureSource",
-    "StationPrecipitationSource",
     "WindVectorField",
     "build_attribute_field",
     "build_dc_field",

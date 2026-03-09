@@ -1,8 +1,12 @@
 import logging
 import numpy as np
 from osgeo import gdal
-from wps_sfms.interpolation.fields import ScalarField, compute_adjusted_values, compute_rh
-from wps_sfms.interpolation.source import DEW_POINT_LAPSE_RATE
+from wps_sfms.interpolation.field import (
+    DEW_POINT_LAPSE_RATE,
+    ScalarField,
+    compute_adjusted_values,
+    compute_rh,
+)
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_sfms.interpolation.common import (
     SFMS_NO_DATA,
