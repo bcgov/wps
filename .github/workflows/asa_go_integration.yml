@@ -1,8 +1,5 @@
 name: ASA Go
 
-permissions:
-  contents: read
-
 on:
   pull_request:
     branches:
@@ -13,6 +10,8 @@ on:
 jobs:
   js_test:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     strategy:
       matrix:
         node-version: [20.x]
@@ -37,6 +36,8 @@ jobs:
 
   ios_test:
     runs-on: macos-latest
+    permissions:
+      contents: read
     name: Test iOS
     steps:
       - name: Checkout
@@ -68,6 +69,8 @@ jobs:
 
   android_test:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     name: Test Android
     steps:
       - name: Checkout
