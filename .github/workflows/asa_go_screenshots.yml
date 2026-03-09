@@ -2,6 +2,9 @@ name: ASA Go Screenshots
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - task/asago-automated-screenshots
 
 jobs:
   screenshots:
