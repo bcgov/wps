@@ -37,3 +37,8 @@ runs:
       working-directory: ./mobile/asa-go
       shell: bash
       run: yarn install
+
+    - name: Build
+      working-directory: ./mobile/asa-go
+      shell: bash
+      run: yarn build

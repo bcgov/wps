@@ -45,9 +45,7 @@ jobs:
         uses: ./.github/actions/asa-go-setup
       - name: Sync Capacitor iOS
         working-directory: ./mobile/asa-go
-        run: |
-          mkdir -p dist
-          yarn cap sync ios
+        run: yarn cap sync ios
       - name: Use Xcode latest stable
         uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd
         with:
@@ -78,9 +76,7 @@ jobs:
         uses: ./.github/actions/asa-go-setup
       - name: Sync Capacitor Android
         working-directory: ./mobile/asa-go
-        run: |
-          mkdir -p dist
-          yarn cap sync android
+        run: yarn cap sync android
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
