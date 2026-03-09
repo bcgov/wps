@@ -86,16 +86,16 @@ jobs:
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
       - name: Test ASA Go Android
         working-directory: ./mobile/asa-go/android
-        run: ./gradlew testDebugUnitTestCoverage
+        run: ./gradlew jacocoTestReport
       - name: Test Keycloak Android plugin
         working-directory: ./mobile/keycloak/android
-        run: ./gradlew testDebugUnitTestCoverage
+        run: ./gradlew jacocoTestReport
       - name: Upload Android coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |
-            ./mobile/asa-go/android/app/build/reports/coverage/test/debug/report.xml
-            ./mobile/keycloak/android/build/reports/coverage/test/debug/report.xml
+            ./mobile/asa-go/android/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+            ./mobile/keycloak/android/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
           flags: android
           fail_ci_if_error: true
