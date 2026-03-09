@@ -16,7 +16,6 @@ from typing import Awaitable, Callable
 
 from aiohttp import ClientSession
 
-from app.jobs.sfms_actuals_geojson import export_sfms_actuals_to_geojson
 from wps_sfms.interpolation.fields import (
     build_dc_field,
     build_dewpoint_field,
