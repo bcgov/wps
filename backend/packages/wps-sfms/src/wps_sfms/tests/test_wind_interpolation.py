@@ -6,7 +6,7 @@ from osgeo import gdal
 
 import wps_sfms.processors.wind as wind_module
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_sfms.interpolation.source import StationWindVectorSource
+from wps_sfms.interpolation.fields import build_wind_vector_field
 from wps_sfms.processors.idw import ValidPixelIDWResult
 from wps_sfms.processors.wind import WindDirectionInterpolator
 from wps_sfms.tests.conftest import create_test_raster
@@ -65,9 +65,11 @@ class TestWindDirectionInterpolator:
                     code=101, lat=49.08, lon=-123.02, wind_speed=8.0, wind_direction=180.0
                 ),
             ]
-            source = StationWindVectorSource(actuals)
+            field = build_wind_vector_field(actuals)
 
-            dataset = WindDirectionInterpolator(mask_path=mask_path).interpolate(source, ref_path)
+            dataset = WindDirectionInterpolator(mask_path=mask_path, field=field).interpolate(
+                ref_path
+            )
             data = dataset.ds.GetRasterBand(1).ReadAsArray()
             nodata = dataset.ds.GetRasterBand(1).GetNoDataValue()
             valid = data[data != nodata]
@@ -94,10 +96,10 @@ class TestWindDirectionInterpolator:
                     code=100, lat=49.05, lon=-123.05, wind_speed=10.0, wind_direction=None
                 )
             ]
-            source = StationWindVectorSource(actuals)
+            field = build_wind_vector_field(actuals)
 
             with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):
-                WindDirectionInterpolator(mask_path=mask_path).interpolate(source, ref_path)
+                WindDirectionInterpolator(mask_path=mask_path, field=field).interpolate(ref_path)
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(mask_path)
@@ -123,7 +125,7 @@ class TestWindDirectionInterpolator:
                     code=101, lat=49.08, lon=-123.02, wind_speed=8.0, wind_direction=180.0
                 ),
             ]
-            source = StationWindVectorSource(actuals)
+            field = build_wind_vector_field(actuals)
 
             def _fake_idw_on_valid_pixels(**kwargs):
                 valid_yi = kwargs["valid_yi"]
@@ -154,7 +156,7 @@ class TestWindDirectionInterpolator:
             monkeypatch.setattr(wind_module, "idw_on_valid_pixels", _fake_idw_on_valid_pixels)
 
             with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):
-                WindDirectionInterpolator(mask_path=mask_path).interpolate(source, ref_path)
+                WindDirectionInterpolator(mask_path=mask_path, field=field).interpolate(ref_path)
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(mask_path)

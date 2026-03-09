@@ -7,7 +7,7 @@ import uuid
 import pytest
 from osgeo import gdal
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_sfms.interpolation.source import StationTemperatureSource
+from wps_sfms.interpolation.fields import build_temperature_field
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.tests.conftest import create_test_raster
 
@@ -52,11 +52,11 @@ class TestTemperatureInterpolator:
                 temps=[15.0, 12.0],
                 elevations=[100.0, 200.0],
             )
-            temperature_source = StationTemperatureSource(actuals)
+            temperature_field = build_temperature_field(actuals)
 
             dataset = TemperatureInterpolator(
-                mask_path=mask_path, dem_path=dem_path
-            ).interpolate(temperature_source, ref_path)
+                mask_path=mask_path, dem_path=dem_path, field=temperature_field
+            ).interpolate(ref_path)
 
             data = dataset.ds.GetRasterBand(1).ReadAsArray()
             nodata = dataset.ds.GetRasterBand(1).GetNoDataValue()
@@ -88,11 +88,11 @@ class TestTemperatureInterpolator:
             actuals = create_test_actuals(
                 lats=[49.05], lons=[-123.05], temps=[15.0], elevations=[100.0]
             )
-            temperature_source = StationTemperatureSource(actuals)
+            temperature_field = build_temperature_field(actuals)
 
             dataset = TemperatureInterpolator(
-                mask_path=mask_path, dem_path=dem_path
-            ).interpolate(temperature_source, ref_path)
+                mask_path=mask_path, dem_path=dem_path, field=temperature_field
+            ).interpolate(ref_path)
 
             data = dataset.ds.GetRasterBand(1).ReadAsArray()
             nodata = dataset.ds.GetRasterBand(1).GetNoDataValue()
@@ -128,11 +128,11 @@ class TestTemperatureInterpolator:
             actuals = create_test_actuals(
                 lats=[49.05], lons=[-123.05], temps=[15.0], elevations=[100.0]
             )
-            temperature_source = StationTemperatureSource(actuals)
+            temperature_field = build_temperature_field(actuals)
 
             dataset = TemperatureInterpolator(
-                mask_path=mask_path, dem_path=dem_path
-            ).interpolate(temperature_source, ref_path)
+                mask_path=mask_path, dem_path=dem_path, field=temperature_field
+            ).interpolate(ref_path)
 
             data = dataset.ds.GetRasterBand(1).ReadAsArray()
 
@@ -167,11 +167,11 @@ class TestTemperatureInterpolator:
             actuals = create_test_actuals(
                 lats=[49.05], lons=[-123.05], temps=[15.0], elevations=[100.0]
             )
-            temperature_source = StationTemperatureSource(actuals)
+            temperature_field = build_temperature_field(actuals)
 
             dataset = TemperatureInterpolator(
-                mask_path=mask_path, dem_path=dem_path
-            ).interpolate(temperature_source, ref_path)
+                mask_path=mask_path, dem_path=dem_path, field=temperature_field
+            ).interpolate(ref_path)
 
             ref_ds = gdal.Open(ref_path)
             assert dataset.ds.RasterXSize == ref_ds.RasterXSize
@@ -200,12 +200,12 @@ class TestTemperatureInterpolator:
             actuals = [
                 SFMSDailyActual(code=1, lat=49.05, lon=-123.05, elevation=100.0, temperature=None)
             ]
-            temperature_source = StationTemperatureSource(actuals)
+            temperature_field = build_temperature_field(actuals)
 
             with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):
                 TemperatureInterpolator(
-                    mask_path=mask_path, dem_path=dem_path
-                ).interpolate(temperature_source, ref_path)
+                    mask_path=mask_path, dem_path=dem_path, field=temperature_field
+                ).interpolate(ref_path)
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)
