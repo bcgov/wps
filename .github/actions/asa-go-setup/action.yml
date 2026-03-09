@@ -1,0 +1,39 @@
+name: ASA Go Setup
+description: Install Node.js, build the keycloak plugin, and install asa-go dependencies
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v6
+      with:
+        node-version: "20"
+
+    - uses: actions/cache@v5
+      id: asa-go-keycloak-cache
+      with:
+        path: mobile/keycloak/node_modules
+        key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+    - name: Install keycloak plugin
+      if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
+      working-directory: ./mobile/keycloak
+      shell: bash
+      run: yarn install
+
+    - name: Build keycloak plugin
+      working-directory: ./mobile/keycloak
+      shell: bash
+      run: yarn build
+
+    - uses: actions/cache@v5
+      id: asa-go-cache
+      with:
+        path: mobile/asa-go/node_modules
+        key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+    - name: Install dependencies
+      if: steps.asa-go-cache.outputs.cache-hit != 'true'
+      working-directory: ./mobile/asa-go
+      shell: bash
+      run: yarn install

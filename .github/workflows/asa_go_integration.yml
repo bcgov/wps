@@ -20,26 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        id: asa-go-cache
-        with:
-          path: |
-            mobile/asa-go/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - uses: actions/cache@v5
-        id: asa-go-keycloak-cache
-        with:
-          path: |
-            mobile/keycloak/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - name: Install keycloak plugin
-        working-directory: ./mobile/keycloak
-        if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
-        run: yarn install
-      - name: Install dependencies
-        working-directory: ./mobile/asa-go
-        if: steps.asa-go-cache.outputs.cache-hit != 'true'
-        run: yarn install
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
@@ -59,6 +41,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
       - name: Use Xcode latest stable
         uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd
         with:
@@ -85,6 +69,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
