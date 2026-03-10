@@ -47,12 +47,6 @@ jobs:
       - name: Sync Capacitor iOS
         working-directory: ./mobile/asa-go
         run: yarn cap sync ios
-        continue-on-error: true
-      - name: Remove nanopb build directory
-        run: find ~/Library/Developer/Xcode/DerivedData -type d -path "*/nanopb/build" -exec rm -rf {} +
-      - name: Sync Capacitor iOS (retry)
-        working-directory: ./mobile/asa-go
-        run: yarn cap sync ios
       - name: Use Xcode latest stable
         uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd
         with:
