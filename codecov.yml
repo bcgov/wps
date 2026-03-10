@@ -22,6 +22,10 @@ flags:
     paths:
       - mobile/asa-go
     carryforward: true
+  keycloak_ios:
+    carryforward: true
+  android:
+    carryforward: true
 
 coverage:
   # https://docs.codecov.com/docs/commit-status
