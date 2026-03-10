@@ -33,6 +33,7 @@ from app.routers import (
     morecast_v2,
     snow,
     fire_watch,
+    fcm,
 )
 from app.fire_behaviour.cffdrs import CFFDRS
 
@@ -122,7 +123,7 @@ api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "HEAD", "POST", "PATCH"],
+    allow_methods=["GET", "HEAD", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 api.middleware("http")(catch_exception_middleware)
@@ -139,6 +140,7 @@ api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
+api.include_router(fcm.router, tags=["Firebase Cloud Messaging"])
 
 
 @api.get("/ready")
