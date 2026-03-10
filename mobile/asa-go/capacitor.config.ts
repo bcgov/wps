@@ -6,6 +6,9 @@ const config: CapacitorConfig = {
   webDir: "dist",
   ios: { scheme: "ASA Go" },
   plugins: {
+    FirebaseMessaging: {
+      presentationOptions: ["alert", "badge", "sound"], // iOS only
+    },
     SplashScreen: {
       launchAutoHide: true,
       launchShowDuration: 500,

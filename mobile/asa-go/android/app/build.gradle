@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'jacoco'
+apply plugin: 'com.google.gms.google-services'
 
 android {
     namespace "ca.bc.gov.asago"
@@ -64,6 +65,8 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    // Import the Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:34.9.0')
 }
 
 apply from: 'capacitor.build.gradle'
