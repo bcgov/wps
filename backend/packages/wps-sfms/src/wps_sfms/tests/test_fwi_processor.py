@@ -7,20 +7,23 @@ from pytest_mock import MockerFixture
 
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
-from wps_shared.sfms.raster_addresser import FWIParameter
+from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 from wps_sfms.sfmsng_raster_addresser import FWIInputs
 from wps_shared.tests.geospatial.dataset_common import (
-    create_mock_gdal_dataset,
     create_mock_input_dataset_context,
     create_test_dataset,
 )
 from wps_shared.utils.s3_client import S3Client
 from wps_sfms.processors.fwi import (
+    BUICalculator,
     DCCalculator,
     DMCCalculator,
     FFMCCalculator,
     FWICalculator,
+    FWIDatasets,
+    FWIFinalCalculator,
     FWIProcessor,
+    ISICalculator,
 )
 
 TEST_DATETIME = datetime(2024, 10, 10, 20, tzinfo=timezone.utc)
@@ -45,13 +48,39 @@ def make_fwi_inputs(fwi_param: FWIParameter, run_type: RunType = RunType.ACTUAL)
     prev_date_iso = "2024-10-09"
     s3_prefix = "/vsis3/test-bucket"
     output_key = f"sfms/calculated/{run_type.value}/{date_iso}/{param}{date_str}.tif"
+
+    weather_keys = {
+        SFMSInterpolatedWeatherParameter.TEMP: f"{s3_prefix}/sfms/interpolated/temp/2024/10/10/temp_{date_str}.tif",
+        SFMSInterpolatedWeatherParameter.RH: f"{s3_prefix}/sfms/interpolated/rh/2024/10/10/rh_{date_str}.tif",
+        SFMSInterpolatedWeatherParameter.PRECIP: f"{s3_prefix}/sfms/interpolated/precip/2024/10/10/precip_{date_str}.tif",
+        SFMSInterpolatedWeatherParameter.WIND_SPEED: f"{s3_prefix}/sfms/interpolated/wind_speed/2024/10/10/wind_speed_{date_str}.tif",
+    }
+
+    if fwi_param in (FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC):
+        index_keys = {
+            fwi_param: f"{s3_prefix}/sfms/uploads/actual/{prev_date_iso}/{param}{prev_date_str}.tif"
+        }
+    elif fwi_param == FWIParameter.ISI:
+        index_keys = {
+            FWIParameter.FFMC: f"{s3_prefix}/sfms/calculated/actual/{date_iso}/ffmc{date_str}.tif"
+        }
+    elif fwi_param == FWIParameter.BUI:
+        index_keys = {
+            FWIParameter.DMC: f"{s3_prefix}/sfms/calculated/actual/{date_iso}/dmc{date_str}.tif",
+            FWIParameter.DC: f"{s3_prefix}/sfms/calculated/actual/{date_iso}/dc{date_str}.tif",
+        }
+    elif fwi_param == FWIParameter.FWI:
+        index_keys = {
+            FWIParameter.ISI: f"{s3_prefix}/sfms/calculated/actual/{date_iso}/isi{date_str}.tif",
+            FWIParameter.BUI: f"{s3_prefix}/sfms/calculated/actual/{date_iso}/bui{date_str}.tif",
+        }
+    else:
+        raise AssertionError(f"Unhandled FWI parameter for test: {fwi_param}")
+
     return FWIInputs(
-        temp_key=f"{s3_prefix}/sfms/interpolated/temp/2024/10/10/temp_{date_str}.tif",
-        rh_key=f"{s3_prefix}/sfms/interpolated/rh/2024/10/10/rh_{date_str}.tif",
-        precip_key=f"{s3_prefix}/sfms/interpolated/precip/2024/10/10/precip_{date_str}.tif",
-        prev_fwi_key=f"{s3_prefix}/sfms/uploads/actual/{prev_date_iso}/{param}{prev_date_str}.tif",
+        weather_keys=weather_keys,
+        index_keys=index_keys,
         output_key=output_key,
-        cog_key=f"{s3_prefix}/{output_key.removesuffix('.tif')}_cog.tif",
         run_type=run_type,
     )
 
@@ -62,18 +91,17 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
 
-    _, mock_input_dataset_context = create_mock_input_dataset_context(4)
+    _, mock_input_dataset_context = create_mock_input_dataset_context(5)
 
-    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
-    generate_and_store_cog_spy = mocker.patch("wps_sfms.processors.fwi.generate_and_store_cog")
+    publish_spy = mocker.patch(
+        "wps_sfms.processors.fwi.publish_dataset",
+        new=AsyncMock(),
+    )
     rasters_match_spy = mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
 
     async with S3Client() as mock_s3_client:
         mock_all_objects_exist = AsyncMock(return_value=True)
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=mock_all_objects_exist)
-        persist_raster_spy = mocker.patch.object(
-            mock_s3_client, "persist_raster_data", return_value="test_key.tif"
-        )
 
         await processor.calculate_index(
             mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs
@@ -82,18 +110,11 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
         # Verify weather + FWI keys were checked
         assert mock_all_objects_exist.call_count == 2
 
-        # Verify all three weather rasters were checked against the FWI grid
-        assert rasters_match_spy.call_count == 3
+        # Verify all required weather rasters were checked against the FWI grid
+        assert rasters_match_spy.call_count == 4
 
-        # Verify output was persisted with the correct key
-        assert persist_raster_spy.call_count == 1
-        assert persist_raster_spy.call_args[0][1] == fwi_inputs.output_key
-
-        # Verify COG was generated with the correct key
-        assert generate_and_store_cog_spy.call_count == 1
-        generate_and_store_cog_spy.assert_called_once_with(
-            src_ds=mocker.ANY, output_path=fwi_inputs.cog_key
-        )
+        assert publish_spy.call_count == 1
+        assert publish_spy.await_args.kwargs["output_key"] == fwi_inputs.output_key
 
 
 @pytest.mark.anyio
@@ -104,14 +125,13 @@ async def test_fwi_processor_dmc(mocker: MockerFixture):
 
     _, mock_input_dataset_context = create_mock_input_dataset_context(4)
 
-    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
-    mocker.patch("wps_sfms.processors.fwi.generate_and_store_cog")
+    publish_spy = mocker.patch(
+        "wps_sfms.processors.fwi.publish_dataset",
+        new=AsyncMock(),
+    )
 
     async with S3Client() as mock_s3_client:
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
-        persist_raster_spy = mocker.patch.object(
-            mock_s3_client, "persist_raster_data", return_value="test_key.tif"
-        )
 
         await processor.calculate_index(
             mock_s3_client,
@@ -120,8 +140,8 @@ async def test_fwi_processor_dmc(mocker: MockerFixture):
             fwi_inputs,
         )
 
-        assert persist_raster_spy.call_count == 1
-        assert persist_raster_spy.call_args[0][1] == fwi_inputs.output_key
+        assert publish_spy.call_count == 1
+        assert publish_spy.await_args.kwargs["output_key"] == fwi_inputs.output_key
 
 
 @pytest.mark.anyio
@@ -132,14 +152,13 @@ async def test_fwi_processor_dc(mocker: MockerFixture):
 
     _, mock_input_dataset_context = create_mock_input_dataset_context(4)
 
-    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
-    mocker.patch("wps_sfms.processors.fwi.generate_and_store_cog")
+    publish_spy = mocker.patch(
+        "wps_sfms.processors.fwi.publish_dataset",
+        new=AsyncMock(),
+    )
 
     async with S3Client() as mock_s3_client:
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
-        persist_raster_spy = mocker.patch.object(
-            mock_s3_client, "persist_raster_data", return_value="test_key.tif"
-        )
 
         await processor.calculate_index(
             mock_s3_client,
@@ -148,8 +167,8 @@ async def test_fwi_processor_dc(mocker: MockerFixture):
             fwi_inputs,
         )
 
-        assert persist_raster_spy.call_count == 1
-        assert persist_raster_spy.call_args[0][1] == fwi_inputs.output_key
+        assert publish_spy.call_count == 1
+        assert publish_spy.await_args.kwargs["output_key"] == fwi_inputs.output_key
 
 
 @pytest.mark.anyio
@@ -162,19 +181,22 @@ async def test_fwi_processor_missing_weather_keys(mocker: MockerFixture):
 
     async with S3Client() as mock_s3_client:
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=False))
-        persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
+        publish_spy = mocker.patch(
+            "wps_sfms.processors.fwi.publish_dataset",
+            new=AsyncMock(),
+        )
 
-        with pytest.raises(RuntimeError, match="Missing weather keys"):
+        with pytest.raises(RuntimeError, match="Missing weather dependency keys"):
             await processor.calculate_index(
                 mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs
             )
 
-        persist_raster_spy.assert_not_called()
+        publish_spy.assert_not_called()
 
 
 @pytest.mark.anyio
 async def test_fwi_processor_missing_fwi_keys(mocker: MockerFixture):
-    """Test that processor bails when the previous day's FWI key is missing."""
+    """Test that processor bails when required index dependency keys are missing."""
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.DMC)
 
@@ -184,9 +206,12 @@ async def test_fwi_processor_missing_fwi_keys(mocker: MockerFixture):
         mocker.patch.object(
             mock_s3_client, "all_objects_exist", new=AsyncMock(side_effect=[True, False])
         )
-        persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
+        publish_spy = mocker.patch(
+            "wps_sfms.processors.fwi.publish_dataset",
+            new=AsyncMock(),
+        )
 
-        with pytest.raises(RuntimeError, match="Missing previous dmc raster for"):
+        with pytest.raises(RuntimeError, match="Missing index dependency keys"):
             await processor.calculate_index(
                 mock_s3_client,
                 mock_input_dataset_context,
@@ -194,18 +219,19 @@ async def test_fwi_processor_missing_fwi_keys(mocker: MockerFixture):
                 fwi_inputs,
             )
 
-        persist_raster_spy.assert_not_called()
+        publish_spy.assert_not_called()
 
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
     "match_side_effects,expected_message",
     [
-        ([False], "Temperature raster does not match FWI grid"),
-        ([True, False], "RH raster does not match FWI grid"),
-        ([True, True, False], "Precip raster does not match FWI grid"),
+        ([False], "temperature raster does not match FWI grid"),
+        ([True, False], "relative_humidity raster does not match FWI grid"),
+        ([True, True, False], "precipitation raster does not match FWI grid"),
+        ([True, True, True, False], "wind_speed raster does not match FWI grid"),
     ],
-    ids=["temp_mismatch", "rh_mismatch", "precip_mismatch"],
+    ids=["temp_mismatch", "rh_mismatch", "precip_mismatch", "wind_mismatch"],
 )
 async def test_fwi_processor_raster_mismatch_raises(
     mocker: MockerFixture, match_side_effects, expected_message
@@ -214,19 +240,22 @@ async def test_fwi_processor_raster_mismatch_raises(
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
 
-    _, mock_input_dataset_context = create_mock_input_dataset_context(4)
+    _, mock_input_dataset_context = create_mock_input_dataset_context(5)
     mocker.patch("wps_sfms.processors.fwi.rasters_match", side_effect=match_side_effects)
 
     async with S3Client() as mock_s3_client:
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
-        persist_raster_spy = mocker.patch.object(mock_s3_client, "persist_raster_data")
+        publish_spy = mocker.patch(
+            "wps_sfms.processors.fwi.publish_dataset",
+            new=AsyncMock(),
+        )
 
         with pytest.raises(ValueError, match=expected_message):
             await processor.calculate_index(
                 mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs
             )
 
-        persist_raster_spy.assert_not_called()
+        publish_spy.assert_not_called()
 
 
 @pytest.mark.anyio
@@ -242,23 +271,109 @@ async def test_fwi_processor_run_type_in_output_key(mocker: MockerFixture):
     assert "forecast" in forecast_inputs.output_key
     assert "actual" not in forecast_inputs.output_key
 
-    _, mock_input_dataset_context = create_mock_input_dataset_context(4)
-    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
-    mocker.patch("wps_sfms.processors.fwi.generate_and_store_cog")
+    _, mock_input_dataset_context = create_mock_input_dataset_context(5)
+    publish_spy = mocker.patch(
+        "wps_sfms.processors.fwi.publish_dataset",
+        new=AsyncMock(),
+    )
 
     async with S3Client() as mock_s3_client:
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
-        persist_raster_spy = mocker.patch.object(
-            mock_s3_client, "persist_raster_data", return_value="test_key.tif"
-        )
 
         await processor.calculate_index(
             mock_s3_client, mock_input_dataset_context, FFMCCalculator(), actual_inputs
         )
 
-        output_key = persist_raster_spy.call_args[0][1]
+        output_key = publish_spy.await_args.kwargs["output_key"]
         assert "actual" in output_key
         assert "forecast" not in output_key
+
+
+@pytest.mark.anyio
+async def test_fwi_processor_isi(mocker: MockerFixture):
+    """Test that calculate_index with ISICalculator produces output with correct key."""
+    processor = FWIProcessor(TEST_DATETIME)
+    fwi_inputs = make_fwi_inputs(FWIParameter.ISI)
+
+    _, mock_input_dataset_context = create_mock_input_dataset_context(2)
+
+    publish_spy = mocker.patch(
+        "wps_sfms.processors.fwi.publish_dataset",
+        new=AsyncMock(),
+    )
+    rasters_match_spy = mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
+
+    async with S3Client() as mock_s3_client:
+        mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
+
+        await processor.calculate_index(
+            mock_s3_client,
+            mock_input_dataset_context,
+            ISICalculator(),
+            fwi_inputs,
+        )
+
+        assert rasters_match_spy.call_count == 1
+        assert publish_spy.call_count == 1
+        assert publish_spy.await_args.kwargs["output_key"] == fwi_inputs.output_key
+
+
+@pytest.mark.anyio
+async def test_fwi_processor_bui(mocker: MockerFixture):
+    """Test that calculate_index with BUICalculator produces output with correct key."""
+    processor = FWIProcessor(TEST_DATETIME)
+    fwi_inputs = make_fwi_inputs(FWIParameter.BUI)
+
+    _, mock_input_dataset_context = create_mock_input_dataset_context(2)
+
+    publish_spy = mocker.patch(
+        "wps_sfms.processors.fwi.publish_dataset",
+        new=AsyncMock(),
+    )
+    rasters_match_spy = mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
+
+    async with S3Client() as mock_s3_client:
+        mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
+
+        await processor.calculate_index(
+            mock_s3_client,
+            mock_input_dataset_context,
+            BUICalculator(),
+            fwi_inputs,
+        )
+
+        assert rasters_match_spy.call_count == 1
+        assert publish_spy.call_count == 1
+        assert publish_spy.await_args.kwargs["output_key"] == fwi_inputs.output_key
+
+
+@pytest.mark.anyio
+async def test_fwi_processor_fwi(mocker: MockerFixture):
+    """Test that calculate_index with FWIFinalCalculator produces output with correct key."""
+    processor = FWIProcessor(TEST_DATETIME)
+    fwi_inputs = make_fwi_inputs(FWIParameter.FWI)
+
+    _, mock_input_dataset_context = create_mock_input_dataset_context(2)
+
+    publish_spy = mocker.patch(
+        "wps_sfms.processors.fwi.publish_dataset",
+        new=AsyncMock(),
+    )
+    rasters_match_spy = mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
+
+    async with S3Client() as mock_s3_client:
+        mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
+
+        await processor.calculate_index(
+            mock_s3_client,
+            mock_input_dataset_context,
+            FWIFinalCalculator(),
+            fwi_inputs,
+        )
+
+        assert rasters_match_spy.call_count == 1
+        assert publish_spy.call_count == 1
+        assert publish_spy.await_args.kwargs["output_key"] == fwi_inputs.output_key
 
 
 @pytest.mark.anyio
@@ -271,27 +386,22 @@ async def test_fwi_processor_cog_failure_propagates(mocker: MockerFixture):
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
 
-    _, mock_input_dataset_context = create_mock_input_dataset_context(4)
-    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
+    _, mock_input_dataset_context = create_mock_input_dataset_context(5)
     mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
-    mocker.patch(
-        "wps_sfms.processors.fwi.generate_and_store_cog",
+    publish_spy = mocker.patch(
+        "wps_sfms.processors.fwi.publish_dataset",
         side_effect=RuntimeError("COG generation failed"),
     )
 
     async with S3Client() as mock_s3_client:
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
-        persist_raster_spy = mocker.patch.object(
-            mock_s3_client, "persist_raster_data", return_value="test_key.tif"
-        )
 
         with pytest.raises(RuntimeError, match="COG generation failed"):
             await processor.calculate_index(
                 mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs
             )
 
-        # Raster was persisted before COG generation was attempted
-        persist_raster_spy.assert_called_once()
+        publish_spy.assert_called_once()
 
 
 class TestFWINodeataPropagation:
@@ -330,7 +440,18 @@ class TestFWINodeataPropagation:
         rh_ds = self.make_ds(50.0, nodata_at=nodata_pixel if nodata_input == "rh" else None)
         precip_ds = self.make_ds(0.0, nodata_at=nodata_pixel if nodata_input == "precip" else None)
 
-        result = calculator.calculate(prev_ds, temp_ds, rh_ds, precip_ds)
+        wind_ds = self.make_ds(10.0)
+        weather_datasets = {
+            SFMSInterpolatedWeatherParameter.TEMP: temp_ds,
+            SFMSInterpolatedWeatherParameter.RH: rh_ds,
+            SFMSInterpolatedWeatherParameter.PRECIP: precip_ds,
+            SFMSInterpolatedWeatherParameter.WIND_SPEED: wind_ds,
+        }
+        index_datasets = {calculator.reference_index_param: prev_ds}
+
+        result = calculator.calculate(
+            FWIDatasets(index=index_datasets, weather=weather_datasets)
+        )
 
         assert np.isnan(result.nodata_value)
         assert np.isnan(result.values[0, 0]), "nodata pixel must propagate as NaN"

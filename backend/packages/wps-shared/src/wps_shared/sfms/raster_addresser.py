@@ -17,6 +17,7 @@ class SFMSInterpolatedWeatherParameter(enum.Enum):
     TEMP = "temperature"
     RH = "relative_humidity"
     WIND_SPEED = "wind_speed"
+    WIND_DIRECTION = "wind_direction"
     PRECIP = "precipitation"
 
 

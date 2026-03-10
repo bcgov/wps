@@ -4,6 +4,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from types import SimpleNamespace
 from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
 
@@ -17,6 +18,7 @@ from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
+from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_shared.db.models.sfms_run import SFMSRunLogStatus
 from wps_shared.sfms.raster_addresser import FWIParameter
 
@@ -27,9 +29,9 @@ MODULE_PATH = "app.jobs.sfms_daily_actuals"
     "dt,expected",
     [
         # True cases: Mondays in April or May (any week)
-        (datetime(2024, 4, 1, tzinfo=timezone.utc), True),   # Monday, April, day 1
-        (datetime(2024, 4, 8, tzinfo=timezone.utc), True),   # Monday, April, day 8 (second Monday)
-        (datetime(2024, 5, 6, tzinfo=timezone.utc), True),   # Monday, May
+        (datetime(2024, 4, 1, tzinfo=timezone.utc), True),  # Monday, April, day 1
+        (datetime(2024, 4, 8, tzinfo=timezone.utc), True),  # Monday, April, day 8 (second Monday)
+        (datetime(2024, 5, 6, tzinfo=timezone.utc), True),  # Monday, May
         (datetime(2024, 5, 27, tzinfo=timezone.utc), True),  # Monday, May, last Monday
         # False cases: wrong weekday
         (datetime(2024, 4, 2, tzinfo=timezone.utc), False),  # Tuesday, April
@@ -51,6 +53,8 @@ class MockDailyActualsDeps(NamedTuple):
     s3_client: AsyncMock
     temp_processor: MagicMock
     rh_processor: MagicMock
+    wind_speed_processor: MagicMock
+    wind_direction_processor: MagicMock
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
     wfwx_api: AsyncMock
@@ -72,6 +76,12 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     # Mock WfwxApi
     mock_wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(
         return_value=create_mock_sfms_actuals()
+    )
+    mock_wfwx_api.get_station_data = AsyncMock(
+        return_value=[
+            SimpleNamespace(code=100, name="Vancouver Harbour"),
+            SimpleNamespace(code=101, name="Burnaby Mountain"),
+        ]
     )
     mocker.patch(f"{MODULE_PATH}.WfwxApi", return_value=mock_wfwx_api)
 
@@ -100,7 +110,6 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_addresser = MagicMock()
     mock_addresser.s3_prefix = "/vsis3/test-bucket"
     mocker.patch(f"{MODULE_PATH}.SFMSNGRasterAddresser", return_value=mock_addresser)
-
     # Mock processors
     mock_temp_processor = MagicMock(spec=TemperatureInterpolator)
     mock_temp_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/temp.tif")
@@ -114,6 +123,24 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mocker.patch(
         f"{MODULE_PATH}.RHInterpolator",
         return_value=mock_rh_processor,
+    )
+
+    mock_wind_speed_processor = MagicMock(spec=WindSpeedInterpolator)
+    mock_wind_speed_processor.process = AsyncMock(
+        return_value="sfms/interpolated/2024/07/04/wind_speed.tif"
+    )
+    mocker.patch(
+        f"{MODULE_PATH}.WindSpeedInterpolator",
+        return_value=mock_wind_speed_processor,
+    )
+
+    mock_wind_direction_processor = MagicMock(spec=WindDirectionInterpolator)
+    mock_wind_direction_processor.process = AsyncMock(
+        return_value="sfms/interpolated/2024/07/04/wind_direction.tif"
+    )
+    mocker.patch(
+        f"{MODULE_PATH}.WindDirectionInterpolator",
+        return_value=mock_wind_direction_processor,
     )
 
     mock_interpolation_processor = MagicMock(spec=Interpolator)
@@ -144,6 +171,8 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         s3_client=mock_s3_client,
         temp_processor=mock_temp_processor,
         rh_processor=mock_rh_processor,
+        wind_speed_processor=mock_wind_speed_processor,
+        wind_direction_processor=mock_wind_direction_processor,
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
         wfwx_api=mock_wfwx_api,
@@ -156,26 +185,32 @@ class TestRunSfmsDailyActuals:
 
     @pytest.mark.anyio
     async def test_runs_all_processors(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that temperature, RH, and precipitation processors are all called."""
+        """Test that all weather interpolation processors are called."""
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
         mock_dependencies.temp_processor.process.assert_called_once()
         mock_dependencies.rh_processor.process.assert_called_once()
+        mock_dependencies.wind_speed_processor.process.assert_called_once()
+        mock_dependencies.wind_direction_processor.process.assert_called_once()
         mock_dependencies.interpolation_processor.process.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_runs_processors_in_order(
-        self, mock_dependencies: MockDailyActualsDeps
-    ):
-        """Test that processors run in order: temperature, RH, precipitation."""
+    async def test_runs_processors_in_order(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that weather processors run in the expected sequence."""
         call_order = []
         mock_dependencies.temp_processor.process = AsyncMock(
             side_effect=lambda *a, **kw: call_order.append("temp") or "temp.tif"
         )
         mock_dependencies.rh_processor.process = AsyncMock(
             side_effect=lambda *a, **kw: call_order.append("rh") or "rh.tif"
+        )
+        mock_dependencies.wind_speed_processor.process = AsyncMock(
+            side_effect=lambda *a, **kw: call_order.append("wind_speed") or "wind_speed.tif"
+        )
+        mock_dependencies.wind_direction_processor.process = AsyncMock(
+            side_effect=lambda *a, **kw: call_order.append("wind_direction") or "wind_direction.tif"
         )
         mock_dependencies.interpolation_processor.process = AsyncMock(
             side_effect=lambda *a, **kw: call_order.append("precip") or "precip.tif"
@@ -184,17 +219,20 @@ class TestRunSfmsDailyActuals:
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert call_order == ["temp", "rh", "precip"]
+        assert call_order == ["temp", "rh", "wind_speed", "wind_direction", "precip"]
 
     @pytest.mark.anyio
     async def test_passes_s3_client_to_processors(self, mock_dependencies: MockDailyActualsDeps):
-        """Test that the S3 client is passed to both processors."""
+        """Test that the S3 client is passed to weather processors."""
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
         temp_call_args = mock_dependencies.temp_processor.process.call_args
         assert temp_call_args[0][0] is mock_dependencies.s3_client
+
+        wind_speed_call_args = mock_dependencies.wind_speed_processor.process.call_args
+        assert wind_speed_call_args[0][0] is mock_dependencies.s3_client
 
         precip_call_args = mock_dependencies.interpolation_processor.process.call_args
         assert precip_call_args[0][0] is mock_dependencies.s3_client
@@ -227,19 +265,19 @@ class TestRunSfmsDailyActuals:
 
         await run_sfms_daily_actuals(target_date)
 
-        # Six tracked runs (temp, rh, precip, ffmc, dmc, dc) means six execute calls
-        assert mock_dependencies.db_session.execute.call_count == 6
+        # Eight tracked runs (temp, rh, ws, wd, precip, ffmc, dmc, dc) means eight execute calls
+        assert mock_dependencies.db_session.execute.call_count == 8
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):
         """Test that successful jobs are updated to success status."""
-        records = [MagicMock() for _ in range(6)]
+        records = [MagicMock() for _ in range(8)]
         mock_dependencies.db_session.get = AsyncMock(side_effect=records)
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert mock_dependencies.db_session.get.call_count == 6
+        assert mock_dependencies.db_session.get.call_count == 8
         for record in records:
             assert record.status == SFMSRunLogStatus.SUCCESS
             assert record.completed_at is not None
@@ -259,6 +297,8 @@ class TestRunSfmsDailyActuals:
             await run_sfms_daily_actuals(target_date)
 
         mock_dependencies.rh_processor.process.assert_not_called()
+        mock_dependencies.wind_speed_processor.process.assert_not_called()
+        mock_dependencies.wind_direction_processor.process.assert_not_called()
         mock_dependencies.interpolation_processor.process.assert_not_called()
 
     @pytest.mark.anyio
@@ -276,6 +316,9 @@ class TestRunSfmsDailyActuals:
             await run_sfms_daily_actuals(target_date)
 
         mock_dependencies.temp_processor.process.assert_called_once()
+        mock_dependencies.rh_processor.process.assert_called_once()
+        mock_dependencies.wind_speed_processor.process.assert_called_once()
+        mock_dependencies.wind_direction_processor.process.assert_called_once()
 
 
 class TestMondayFWIInterpolation:
@@ -355,21 +398,23 @@ class TestMondayFWIInterpolation:
     async def test_monday_april_writes_six_run_log_entries(
         self, mock_dependencies: MockDailyActualsDeps
     ):
-        """Test that a Monday in April produces 6 run log entries (temp + rh + precip + 3 FWI)."""
+        """Test that a Monday in April produces 8 run log entries (temp + rh + precip + ws + wd + 3 FWI)."""
         # 2024-04-01 is the first Monday of April 2024
         target_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
-        # 6 tracked runs: temp, rh, precip, ffmc, dmc, dc
-        assert mock_dependencies.db_session.execute.call_count == 6
+        # 8 tracked runs: temp, rh, ws, wd, precip, ffmc, dmc, dc
+        assert mock_dependencies.db_session.execute.call_count == 8
 
 
 class TestFWICalculationVsInterpolation:
     """Regression tests: FWI interpolation and FWI calculation are mutually exclusive."""
 
     @pytest.mark.anyio
-    async def test_monday_interpolation_skips_fwi_calculation(self, mock_dependencies: MockDailyActualsDeps):
+    async def test_monday_interpolation_skips_fwi_calculation(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
         """On a re-interpolation Monday, FWI calculation must not run."""
         # 2024-05-06 is the first Monday of May 2024
         target_date = datetime(2024, 5, 6, tzinfo=timezone.utc)
@@ -379,7 +424,9 @@ class TestFWICalculationVsInterpolation:
         mock_dependencies.fwi_processor.calculate_index.assert_not_called()
 
     @pytest.mark.anyio
-    async def test_regular_day_runs_fwi_calculation_not_interpolation(self, mock_dependencies: MockDailyActualsDeps):
+    async def test_regular_day_runs_fwi_calculation_not_interpolation(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
         """On a regular day, FWI calculation runs and FWI interpolation does not."""
         # 2024-07-04 is a Thursday
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)

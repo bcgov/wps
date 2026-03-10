@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib
+from pathlib import Path
 from wps_tools.sfms_raster_input_parser import parse_input, create_parser
 
 matplotlib.use("Agg")  # Non-interactive backend
@@ -10,6 +11,8 @@ def main():
     data1, data2, valid1, valid2, diff, args = parse_input(
         create_parser(description="Compare two SFMS raster files and generate a difference image")
     )
+    generated_name = Path(args.generated).name
+    reference_name = Path(args.reference).name
 
     # Compute value ranges from valid data
     valid_data1 = data1[valid1]
@@ -26,19 +29,19 @@ def main():
     # Generated
     ax1 = axes[0]
     im1 = ax1.imshow(np.where(valid1, data1, np.nan), cmap="coolwarm", vmin=data_min, vmax=data_max)
-    ax1.set_title("Generated")
+    ax1.set_title(f"Generated\n{generated_name}")
     plt.colorbar(im1, ax=ax1)
 
     # Reference
     ax2 = axes[1]
     im2 = ax2.imshow(np.where(valid2, data2, np.nan), cmap="coolwarm", vmin=data_min, vmax=data_max)
-    ax2.set_title("Reference")
+    ax2.set_title(f"Reference\n{reference_name}")
     plt.colorbar(im2, ax=ax2)
 
     # Difference
     ax3 = axes[2]
     im3 = ax3.imshow(diff, cmap="RdBu_r", vmin=-diff_abs_max, vmax=diff_abs_max)
-    ax3.set_title("Difference (Gen - Ref)")
+    ax3.set_title(f"Difference (Gen - Ref)\n{generated_name} - {reference_name}")
     plt.colorbar(im3, ax=ax3)
 
     plt.tight_layout()
