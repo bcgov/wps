@@ -118,11 +118,11 @@ async def _missing_previous_index_keys(
 ) -> list[str]:
     """Return any missing previous-day index keys needed by the requested calculators."""
     base_index_params = {FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC}
-    required_previous_params = [
+    required_previous_params = {
         calculator.fwi_param
         for calculator in calculators
         if calculator.fwi_param in base_index_params
-    ]
+    }
     if not required_previous_params:
         return []
 
