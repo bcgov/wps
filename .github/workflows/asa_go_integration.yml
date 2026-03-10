@@ -44,6 +44,8 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
+      - name: Clear DerivedData
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
       - name: Sync Capacitor iOS
         working-directory: ./mobile/asa-go
         run: yarn cap sync ios
