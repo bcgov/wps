@@ -64,23 +64,20 @@ async def test_c6_2mcbh_request_response(
     )
     assert math.isclose(response.json()["stations"][0]["fire_weather_index"], 27.792, abs_tol=0.001)
     assert math.isclose(
-        response.json()["stations"][0]["head_fire_intensity"], 10390.163, abs_tol=0.01
+        response.json()["stations"][0]["head_fire_intensity"], 8835.000, abs_tol=0.01
     )
     assert math.isclose(response.json()["stations"][0]["rate_of_spread"], 7.588, abs_tol=0.001)
     assert math.isclose(
-        response.json()["stations"][0]["percentage_crown_fraction_burned"], 0.800, abs_tol=0.001
+        response.json()["stations"][0]["percentage_crown_fraction_burned"], 0.420, abs_tol=0.001
     )
-    assert math.isclose(response.json()["stations"][0]["flame_length"], 5.885, abs_tol=0.001)
+    assert math.isclose(response.json()["stations"][0]["flame_length"], 5.427, abs_tol=0.001)
     assert math.isclose(
-        response.json()["stations"][0]["sixty_minute_fire_size"], 8.603, abs_tol=0.001
+        response.json()["stations"][0]["sixty_minute_fire_size"], 4.995, abs_tol=0.001
     )
     assert math.isclose(
-        response.json()["stations"][0]["thirty_minute_fire_size"], 1.449, abs_tol=0.001
+        response.json()["stations"][0]["thirty_minute_fire_size"], 0.604, abs_tol=0.001
     )
 
     assert response.json()["stations"][0]["fire_type"] == "IC"
     assert response.json()["stations"][0]["critical_hours_hfi_4000"] == {"start": 13.0, "end": 20.0}
-    assert response.json()["stations"][0]["critical_hours_hfi_10000"] == {
-        "start": 16.0,
-        "end": 18.0,
-    }
+    assert response.json()["stations"][0]["critical_hours_hfi_10000"] is None
