@@ -1,6 +1,8 @@
 import math
 from datetime import datetime
 
+import pytest
+
 from app.fire_behaviour.fwi_adjust import calculate_adjusted_fwi_result
 from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.schemas.fba_calc import StationRequest
@@ -95,3 +97,23 @@ def test_adjusted_fwi_result_with_precipitation():
     assert math.isclose(adjusted_fwi_result.wind_speed, 1.0, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.fwi, 0.0, abs_tol=0.001)
     assert adjusted_fwi_result.status == "ADJUSTED"
+
+
+def test_adjusted_fwi_result_raises_when_weather_data_missing():
+    raw_daily_missing = {
+        "duffMoistureCode": None,
+        "droughtCode": None,
+        "temperature": None,
+        "relativeHumidity": None,
+        "precipitation": None,
+        "windSpeed": None,
+        "recordType": {"id": "ACTUAL"},
+    }
+    with pytest.raises(ValueError, match="Insufficient weather data"):
+        calculate_adjusted_fwi_result(
+            requested_station=StationRequest(station_code=1, fuel_type=FuelTypeEnum.C2),
+            wfwx_station=station_1,
+            time_of_interest=time_of_interest,
+            yesterday={},
+            raw_daily=raw_daily_missing,
+        )
