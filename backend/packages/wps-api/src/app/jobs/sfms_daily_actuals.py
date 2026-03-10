@@ -11,7 +11,7 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Awaitable, Callable
 
 from aiohttp import ClientSession
@@ -108,6 +108,32 @@ async def _process_raster_job(
         logger.info("%s: %s", log_label, s3_key)
 
     await _run_tracked_job(job_name, sfms_run_id, session, _run)
+
+
+async def _missing_previous_index_keys(
+    datetime_to_process: datetime,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+    calculators: tuple[FWICalculator, ...],
+) -> list[str]:
+    """Return any missing previous-day index keys needed by the requested calculators."""
+    base_index_params = {FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC}
+    required_previous_params = [
+        calculator.fwi_param
+        for calculator in calculators
+        if calculator.fwi_param in base_index_params
+    ]
+    if not required_previous_params:
+        return []
+
+    previous_date = datetime_to_process - timedelta(days=1)
+    missing_keys = []
+    for param in required_previous_params:
+        key = raster_addresser.get_actual_index_key(previous_date, param)
+        if not await s3_client.all_objects_exist(key):
+            missing_keys.append(f"{param.value}={key}")
+
+    return missing_keys
 
 
 async def run_weather_interpolation(
@@ -267,6 +293,22 @@ async def run_fwi_calculations(
     # Interpolation days pass a smaller calculator subset here because FFMC/DMC/DC
     # have been interpolated from station observations earlier in the run
     calculators_to_run = calculators or default_calculators
+
+    missing_previous_keys = await _missing_previous_index_keys(
+        datetime_to_process,
+        raster_addresser,
+        s3_client,
+        calculators_to_run,
+    )
+    if missing_previous_keys:
+        previous_date = datetime_to_process - timedelta(days=1)
+        logger.warning(
+            "Skipping FWI calculations for %s because previous-day index rasters are missing for %s: %s",
+            datetime_to_process.date(),
+            previous_date.date(),
+            ", ".join(missing_previous_keys),
+        )
+        return
 
     job_names_by_param = {
         FWIParameter.FFMC: SFMSRunLogJobName.FFMC_CALCULATION,

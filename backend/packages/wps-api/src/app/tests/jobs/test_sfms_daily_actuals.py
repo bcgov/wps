@@ -66,6 +66,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     """Mock all external dependencies for run_sfms_daily_actuals."""
     # Mock S3Client
     mocker.patch(f"{MODULE_PATH}.S3Client", return_value=mock_s3_client)
+    mock_s3_client.all_objects_exist = AsyncMock(return_value=True)
 
     # Mock ClientSession
     mock_session = AsyncMock()
@@ -461,6 +462,20 @@ class TestFWICalculationVsInterpolation:
         ]
         # IDW called once only for precip, not for FWI indices
         mock_dependencies.interpolation_processor.process.assert_called_once()
+
+    @pytest.mark.anyio
+    async def test_regular_day_skips_fwi_calculation_when_previous_indices_missing(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        """On a regular day, missing previous-day seed rasters should skip FWI gracefully."""
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+        mock_dependencies.s3_client.all_objects_exist = AsyncMock(return_value=False)
+
+        await run_sfms_daily_actuals(target_date)
+
+        mock_dependencies.fwi_processor.calculate_index.assert_not_called()
+        # Only weather interpolation jobs are tracked when the FWI chain is skipped.
+        assert mock_dependencies.db_session.execute.call_count == 5
 
 
 class TestMain:
