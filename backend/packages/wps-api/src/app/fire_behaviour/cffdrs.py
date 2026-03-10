@@ -112,6 +112,11 @@ def calculate_wind_speed(
     """
     Wind azimuth, slope azimuth, ground slope, net effective windspeed
     """
+    if fuel_type is None or ffmc is None or bui is None or ws is None or fmc is None or sfc is None or isi is None:
+        raise CFFDRSException(
+            PARAMS_ERROR_MESSAGE
+            + f"calculate_wind_speed; fuel_type: {fuel_type}, ffmc: {ffmc}, bui: {bui}, ws: {ws}, fmc: {fmc}, sfc: {sfc}, isi: {isi}"
+        )
     wind_azimuth = correct_wind_azimuth(ws)
     slope_azimuth = None  # a.k.a. SAZ
     ground_slope = 0  # right now we're not taking slope into account
@@ -153,6 +158,11 @@ def calculate_net_effective_windspeed(
     """
     Calculate the net effective windspeed (WSV).
     """
+    if fuel_type is None or ffmc is None or bui is None or ws is None or gs is None or fmc is None or sfc is None or isi is None:
+        raise CFFDRSException(
+            PARAMS_ERROR_MESSAGE
+            + f"calculate_net_effective_windspeed; fuel_type: {fuel_type}, ffmc: {ffmc}, bui: {bui}, ws: {ws}, gs: {gs}, fmc: {fmc}, sfc: {sfc}, isi: {isi}"
+        )
     if gs > 0 and ffmc > 0:
         _validate_fuel_type_params(fuel_type, pc, pdf, cc, cbh)
         result = slope_adjustment(
@@ -218,7 +228,10 @@ def back_rate_of_spread(
 
 
 def bui_calc(dmc: float, dc: float):
-    """Buildup Index calculation."""
+    """Buildup Index calculation.
+
+    Returns None if any input is None. See fine_fuel_moisture_code for rationale.
+    """
     if dmc is None or dc is None:
         return None
     return buildup_index(dmc, dc)
@@ -231,6 +244,11 @@ def rate_of_spread_t(
     Computes the Rate of Spread prediction at elapsed time since ignition.
     NOTE: HR is minutes since ignition (not hours, despite the documentation).
     """
+    if fuel_type is None or ros_eq is None or minutes_since_ignition is None or cfb is None:
+        raise CFFDRSException(
+            PARAMS_ERROR_MESSAGE
+            + f"rate_of_spread_t; fuel_type: {fuel_type}, ros_eq: {ros_eq}, minutes_since_ignition: {minutes_since_ignition}, cfb: {cfb}"
+        )
     return rate_of_spread_at_time(fuel_type.value, ros_eq, minutes_since_ignition, cfb)
 
 
@@ -290,6 +308,11 @@ def surface_fuel_consumption(fuel_type: FuelTypeEnum, bui: float, ffmc: float, p
 
 def fire_distance(fuel_type: FuelTypeEnum, ros_eq: float, hr: int, cfb: float):
     """Calculate the Head fire spread distance at time t."""
+    if fuel_type is None or ros_eq is None or hr is None or cfb is None:
+        raise CFFDRSException(
+            PARAMS_ERROR_MESSAGE
+            + f"fire_distance; fuel_type: {fuel_type}, ros_eq: {ros_eq}, hr: {hr}, cfb: {cfb}"
+        )
     return distance_at_time(fuel_type.value, ros_eq, hr, cfb)
 
 
@@ -301,6 +324,11 @@ def foliar_moisture_content(
     date_of_minimum_foliar_moisture_content: int = 0,
 ):
     """Computes FMC."""
+    if lat is None or long is None or elv is None or day_of_year is None:
+        raise CFFDRSException(
+            PARAMS_ERROR_MESSAGE
+            + f"foliar_moisture_content; lat: {lat}, long: {long}, elv: {elv}, day_of_year: {day_of_year}"
+        )
     logger.debug(
         "calling FMCcalc(LAT=%s, LONG=%s, ELV=%s, DJ=%s, D0=%s)",
         lat,
@@ -331,6 +359,11 @@ def length_to_breadth_ratio_t(
     fuel_type: FuelTypeEnum, lb: float, time_since_ignition: float, cfb: float
 ):
     """Computes L/B ratio at elapsed time since ignition."""
+    if fuel_type is None or lb is None or time_since_ignition is None or cfb is None:
+        raise CFFDRSException(
+            PARAMS_ERROR_MESSAGE
+            + f"length_to_breadth_ratio_t; fuel_type: {fuel_type}, lb: {lb}, time_since_ignition: {time_since_ignition}, cfb: {cfb}"
+        )
     return length_to_breadth_at_time(fuel_type.value, lb, time_since_ignition, cfb)
 
 
@@ -341,7 +374,11 @@ def fine_fuel_moisture_code(
     precipitation: float,
     wind_speed: float,
 ):
-    """Computes Fine Fuel Moisture Code (FFMC)."""
+    """Computes Fine Fuel Moisture Code (FFMC).
+
+    Returns None if any input is None. This is intentional: callers chain FWI calculations
+    (ffmc → isi → fwi) and rely on None propagating through the chain rather than raising.
+    """
     if ffmc is None:
         logger.error("Failed to calculate FFMC; initial FFMC is required.")
         return None
@@ -364,7 +401,10 @@ def duff_moisture_code(
     month: int = 7,
     latitude_adjust: bool = True,
 ):
-    """Computes Duff Moisture Code (DMC)."""
+    """Computes Duff Moisture Code (DMC).
+
+    Returns None if any required input is None. See fine_fuel_moisture_code for rationale.
+    """
     if dmc is None:
         logger.error("Failed to calculate DMC; initial DMC is required.")
         return None
@@ -394,7 +434,10 @@ def drought_code(
     month: int = 7,
     latitude_adjust: bool = True,
 ):
-    """Computes Drought Code (DC)."""
+    """Computes Drought Code (DC).
+
+    Returns None if any required input is None. See fine_fuel_moisture_code for rationale.
+    """
     if dc is None:
         logger.error("Failed to calculate DC; initial DC is required.")
         return None
@@ -416,14 +459,20 @@ def drought_code(
 
 
 def initial_spread_index(ffmc: float, wind_speed: float, fbp_mod: bool = False):
-    """Computes Initial Spread Index (ISI)."""
+    """Computes Initial Spread Index (ISI).
+
+    Returns None if any input is None. See fine_fuel_moisture_code for rationale.
+    """
     if ffmc is None or wind_speed is None:
         return None
     return _initial_spread_index(ffmc=ffmc, ws=wind_speed, fbp_mod=fbp_mod)
 
 
 def fire_weather_index(isi: float, bui: float):
-    """Computes Fire Weather Index (FWI)."""
+    """Computes Fire Weather Index (FWI).
+
+    Returns None if any input is None. See fine_fuel_moisture_code for rationale.
+    """
     if isi is None or bui is None:
         return None
     return _fire_weather_index(isi=isi, bui=bui)

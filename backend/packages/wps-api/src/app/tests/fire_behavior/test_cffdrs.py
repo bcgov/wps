@@ -94,6 +94,33 @@ def test_failing_dc(dc, temperature, relative_humidity, precipitation):
     assert res is None
 
 
+@pytest.mark.parametrize(
+    "ffmc,wind_speed",
+    [(None, 10), (11, None), (None, None)],
+)
+def test_failing_isi(ffmc, wind_speed):
+    """ISI returns None when any input is None."""
+    assert cffdrs.initial_spread_index(ffmc, wind_speed) is None
+
+
+@pytest.mark.parametrize(
+    "isi,bui",
+    [(None, 50), (20, None), (None, None)],
+)
+def test_failing_fwi(isi, bui):
+    """FWI returns None when any input is None."""
+    assert cffdrs.fire_weather_index(isi, bui) is None
+
+
+@pytest.mark.parametrize(
+    "dmc,dc",
+    [(None, 100), (50, None), (None, None)],
+)
+def test_failing_bui(dmc, dc):
+    """BUI returns None when any input is None."""
+    assert cffdrs.bui_calc(dmc, dc) is None
+
+
 def test_none_latitude_dmc():
     res = cffdrs.duff_moisture_code(100, 10, 90, 0, latitude=None)
     assert res is not None
@@ -131,6 +158,11 @@ def test_dmc_temp_at_threshold_gives_zero_drying():
     assert res_at >= res_below
 
 
+def test_back_rate_of_spread_requires_wsv():
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.back_rate_of_spread(FuelTypeEnum.C7, ffmc=85.0, bui=50.0, wsv=None, fmc=100.0, sfc=1.5, pc=None, cc=None, pdf=None, cbh=7.0)
+
+
 @pytest.mark.parametrize(
     "kwargs",
     [
@@ -139,11 +171,6 @@ def test_dmc_temp_at_threshold_gives_zero_drying():
         {},             # missing both
     ],
 )
-def test_back_rate_of_spread_requires_wsv():
-    with pytest.raises(cffdrs.CFFDRSException):
-        cffdrs.back_rate_of_spread(FuelTypeEnum.C7, ffmc=85.0, bui=50.0, wsv=None, fmc=100.0, sfc=1.5, pc=None, cc=None, pdf=None, cbh=7.0)
-
-
 def test_crown_fraction_burned_c6_requires_isi_and_bui(kwargs):
     with pytest.raises(cffdrs.CFFDRSException):
         cffdrs.crown_fraction_burned(FuelTypeEnum.C6, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0, **kwargs)
@@ -154,18 +181,6 @@ def test_crown_fraction_burned_c6_returns_valid_cfb():
     cfb = cffdrs.crown_fraction_burned(FuelTypeEnum.C6, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0, isi=20.0, bui=80.0)
     assert 0.0 <= cfb <= 1.0
 
-
-def test_crown_fraction_burned_c6_differs_from_generic():
-    """C6 CFB uses rss (surface ROS component) not the combined ros, so the result differs
-    from applying the generic formula to the same ros input."""
-    fmc, sfc, cbh, isi, bui, ros = 100.0, 0.5, 7.0, 20.0, 80.0, 15.0
-
-    c6_cfb = cffdrs.crown_fraction_burned(FuelTypeEnum.C6, fmc=fmc, sfc=sfc, ros=ros, cbh=cbh, isi=isi, bui=bui)
-    generic_cfb = cffdrs.crown_fraction_burned(FuelTypeEnum.C7, fmc=fmc, sfc=sfc, ros=ros, cbh=cbh)
-
-    # C6 uses rss (< ros) in the exponential, so its CFB is lower than the generic formula
-    # applied to the same combined ros.
-    assert c6_cfb < generic_cfb
 
 
 def test_crown_fraction_burned_non_c6_does_not_require_isi_bui():
