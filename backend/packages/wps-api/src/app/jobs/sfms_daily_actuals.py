@@ -292,7 +292,7 @@ async def run_fwi_calculations(
     )
     # Interpolation days pass a smaller calculator subset here because FFMC/DMC/DC
     # have been interpolated from station observations earlier in the run
-    calculators_to_run = calculators or default_calculators
+    calculators_to_run = default_calculators if calculators is None else calculators
 
     missing_previous_keys = await _missing_previous_index_keys(
         datetime_to_process,
