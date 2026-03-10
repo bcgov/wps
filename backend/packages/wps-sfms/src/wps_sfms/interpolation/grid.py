@@ -45,7 +45,24 @@ def build_grid_context(
     dem_path: Optional[str] = None,
     temperature_raster_path: Optional[str] = None,
 ) -> GridContext:
-    """Load the shared raster state used by interpolation routines."""
+    """Load and validate the shared raster state for interpolation.
+
+    The reference raster defines the output grid. This function applies the BC
+    mask to that grid, computes the valid pixel coordinates used by
+    IDW interpolation, and optionally loads aligned auxiliary rasters such as
+    DEM or temperature.
+
+    The optional raster inputs are validated against the reference raster so
+    downstream interpolation code can assume the arrays are already on the same
+    grid and can be indexed directly with the valid pixel mask.
+
+    :param reference_raster_path: Raster whose grid defines the interpolation output.
+    :param mask_path: BC mask raster; zero/nodata pixels are excluded from interpolation.
+    :param dem_path: Optional DEM raster aligned to the reference grid.
+    :param temperature_raster_path: Optional temperature raster aligned to the reference grid.
+    :return: A ``GridContext`` containing metadata, valid-pixel coordinates, and
+        any requested auxiliary raster data.
+    """
     with WPSDataset(reference_raster_path) as ref_ds:
         geotransform = ref_ds.ds.GetGeoTransform()
         if geotransform is None:
