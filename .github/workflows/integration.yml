@@ -115,8 +115,6 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/python-setup
-        with:
-          install-jdk: "true"
       - name: Unit Test (wps_weather)
         working-directory: ./backend
         run: |
@@ -133,8 +131,6 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/python-setup
-        with:
-          install-jdk: "true"
       - name: Unit Test (wps_sfms)
         working-directory: ./backend
         run: |
