@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from app.fire_behaviour import cffdrs
+from app.fire_behaviour.prediction import calculate_cfb
 from wps_shared.fuel_types import FuelTypeEnum
 
 start_date = datetime(2023, 8, 17)
@@ -128,3 +129,63 @@ def test_dmc_temp_at_threshold_gives_zero_drying():
     res_at = cffdrs.duff_moisture_code(10, 1.1, 50, 0)
     res_below = cffdrs.duff_moisture_code(10, 1.0, 50, 0)
     assert res_at >= res_below
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"bui": 80.0},  # missing isi
+        {"isi": 20.0},  # missing bui
+        {},             # missing both
+    ],
+)
+def test_crown_fraction_burned_c6_requires_isi_and_bui(kwargs):
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.crown_fraction_burned(FuelTypeEnum.C6, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0, **kwargs)
+
+
+def test_crown_fraction_burned_c6_returns_valid_cfb():
+    """C6 CFB is between 0 and 1 with crown-burning conditions."""
+    cfb = cffdrs.crown_fraction_burned(FuelTypeEnum.C6, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0, isi=20.0, bui=80.0)
+    assert 0.0 <= cfb <= 1.0
+
+
+def test_crown_fraction_burned_c6_differs_from_generic():
+    """C6 CFB uses rss (surface ROS component) not the combined ros, so the result differs
+    from applying the generic formula to the same ros input."""
+    fmc, sfc, cbh, isi, bui, ros = 100.0, 0.5, 7.0, 20.0, 80.0, 15.0
+
+    c6_cfb = cffdrs.crown_fraction_burned(FuelTypeEnum.C6, fmc=fmc, sfc=sfc, ros=ros, cbh=cbh, isi=isi, bui=bui)
+    generic_cfb = cffdrs.crown_fraction_burned(FuelTypeEnum.C7, fmc=fmc, sfc=sfc, ros=ros, cbh=cbh)
+
+    # C6 uses rss (< ros) in the exponential, so its CFB is lower than the generic formula
+    # applied to the same combined ros.
+    assert c6_cfb < generic_cfb
+
+
+def test_crown_fraction_burned_non_c6_does_not_require_isi_bui():
+    """Non-C6 fuel types work without isi/bui."""
+    cfb = cffdrs.crown_fraction_burned(FuelTypeEnum.C7, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0)
+    assert 0.0 <= cfb <= 1.0
+
+
+def test_calculate_cfb_c6_threads_isi_bui():
+    """calculate_cfb passes isi and bui through to crown_fraction_burned for C6."""
+    cfb = calculate_cfb(FuelTypeEnum.C6, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0, isi=20.0, bui=80.0)
+    assert cfb is not None
+    assert 0.0 <= cfb <= 1.0
+
+
+def test_calculate_cfb_c6_missing_isi_bui_raises():
+    """calculate_cfb raises for C6 when isi/bui not provided."""
+    with pytest.raises(cffdrs.CFFDRSException):
+        calculate_cfb(FuelTypeEnum.C6, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0)
+
+
+@pytest.mark.parametrize(
+    "fuel_type",
+    [FuelTypeEnum.D1, FuelTypeEnum.O1A, FuelTypeEnum.O1B, FuelTypeEnum.S1, FuelTypeEnum.S2, FuelTypeEnum.S3],
+)
+def test_calculate_cfb_returns_zero_for_no_crown_fuel_types(fuel_type):
+    """Fuel types without crowns return 0 regardless of inputs."""
+    assert calculate_cfb(fuel_type, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0) == 0

@@ -24,6 +24,12 @@ from cffdrs import (
     initial_spread_index as _initial_spread_index,
 )
 from cffdrs.back_rate_of_spread import back_rate_of_spread as _back_rate_of_spread
+from cffdrs.c6_calc import (
+    crown_fraction_burned_c6,
+    crown_rate_of_spread_c6,
+    intermediate_surface_rate_of_spread_c6,
+    surface_rate_of_spread_c6,
+)
 from cffdrs.cfb_calc import critical_surface_intensity, surface_fire_rate_of_spread
 from cffdrs.cfb_calc import crown_fraction_burned as _crown_fraction_burned
 from cffdrs.distance_at_time import distance_at_time
@@ -423,9 +429,19 @@ def fire_weather_index(isi: float, bui: float):
 
 
 def crown_fraction_burned(
-    fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, cbh: float
+    fuel_type: FuelTypeEnum,
+    fmc: float,
+    sfc: float,
+    ros: float,
+    cbh: float,
+    isi: Optional[float] = None,
+    bui: Optional[float] = None,
 ) -> float:
-    """Computes Crown Fraction Burned (CFB). Value returned will be between 0-1."""
+    """Computes Crown Fraction Burned (CFB). Value returned will be between 0-1.
+
+    C6 requires isi and bui to compute the crown and surface rates of spread separately,
+    which are inputs to the C6-specific CFB formula.
+    """
     if cbh is None or fmc is None or sfc is None or ros is None:
         message = (
             PARAMS_ERROR_MESSAGE
@@ -434,6 +450,13 @@ def crown_fraction_burned(
         raise CFFDRSException(message)
     csi = critical_surface_intensity(fmc, cbh)
     rso = surface_fire_rate_of_spread(csi, sfc)
+    if fuel_type == FuelTypeEnum.C6:
+        if isi is None or bui is None:
+            raise CFFDRSException("isi and bui are required for C6 crown_fraction_burned")
+        rsi = intermediate_surface_rate_of_spread_c6(isi)
+        rss = surface_rate_of_spread_c6(rsi, bui)
+        rsc = crown_rate_of_spread_c6(isi, fmc)
+        return crown_fraction_burned_c6(rsc, rss, rso)
     return _crown_fraction_burned(ros, rso)
 
 
