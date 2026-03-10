@@ -34,7 +34,6 @@ from cffdrs.cfb_calc import critical_surface_intensity, surface_fire_rate_of_spr
 from cffdrs.cfb_calc import crown_fraction_burned as _crown_fraction_burned
 from cffdrs.distance_at_time import distance_at_time
 from cffdrs.fire_intensity import fire_intensity
-from cffdrs.flank_rate_of_spread import flank_rate_of_spread as _flank_rate_of_spread
 from cffdrs.foliar_moisture_content import foliar_moisture_content as _foliar_moisture_content
 from cffdrs.hourly_fine_fuel_moisture_code import hourly_fine_fuel_moisture_code as _hourly_ffmc
 from cffdrs.length_to_breadth import length_to_breadth
@@ -176,11 +175,6 @@ def calculate_net_effective_windspeed(
     return ws
 
 
-def flank_rate_of_spread(ros: float, bros: float, lb: float):
-    """Calculate the Flank Fire Spread Rate."""
-    return _flank_rate_of_spread(ros, bros, lb)
-
-
 def back_rate_of_spread(
     fuel_type: FuelTypeEnum,
     ffmc: float,
@@ -194,7 +188,14 @@ def back_rate_of_spread(
     cbh: float,
 ):
     """Calculate the Back Fire Spread Rate."""
-    if fuel_type is None or ffmc is None or bui is None or wsv is None or fmc is None or sfc is None:
+    if (
+        fuel_type is None
+        or ffmc is None
+        or bui is None
+        or wsv is None
+        or fmc is None
+        or sfc is None
+    ):
         message = (
             PARAMS_ERROR_MESSAGE
             + f"_BROScalc ; fuel_type: {fuel_type.value}, ffmc: {ffmc}, bui: {bui}, wsv: {wsv}, fmc: {fmc}, sfc: {sfc}"
