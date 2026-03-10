@@ -7,7 +7,7 @@ import uuid
 import pytest
 from osgeo import gdal
 from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_sfms.interpolation.source import StationDewPointSource
+from wps_sfms.interpolation.field import build_dewpoint_field, compute_rh
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.tests.conftest import create_test_raster
 
@@ -34,21 +34,21 @@ class TestComputeRHFromTempAndDewpoint:
         """When dew point equals temperature, RH should be 100%."""
         temp = np.array([20.0, 10.0, 0.0], dtype=np.float32)
         dewpoint = np.array([20.0, 10.0, 0.0], dtype=np.float32)
-        rh = StationDewPointSource.compute_rh(temp, dewpoint)
+        rh = compute_rh(temp, dewpoint)
         np.testing.assert_allclose(rh, 100.0, atol=0.01)
 
     def test_lower_dewpoint_gives_lower_rh(self):
         """Lower dew point relative to temperature should give lower RH."""
         temp = np.array([20.0, 20.0, 20.0], dtype=np.float32)
         dewpoint = np.array([20.0, 15.0, 10.0], dtype=np.float32)
-        rh = StationDewPointSource.compute_rh(temp, dewpoint)
+        rh = compute_rh(temp, dewpoint)
         assert rh[0] > rh[1] > rh[2]
 
     def test_rh_clamped_to_0_100(self):
         """RH should be clamped between 0 and 100."""
         temp = np.array([20.0], dtype=np.float32)
         dewpoint = np.array([-50.0], dtype=np.float32)
-        rh = StationDewPointSource.compute_rh(temp, dewpoint)
+        rh = compute_rh(temp, dewpoint)
         assert np.all(rh >= 0.0)
         assert np.all(rh <= 100.0)
 
@@ -57,14 +57,14 @@ class TestComputeRHFromTempAndDewpoint:
         # At 20°C with dewpoint of 10°C: e_s(10)/e_s(20) ≈ 0.5258 → ~52.58%
         temp = np.array([20.0], dtype=np.float32)
         dewpoint = np.array([10.0], dtype=np.float32)
-        rh = StationDewPointSource.compute_rh(temp, dewpoint)
+        rh = compute_rh(temp, dewpoint)
         np.testing.assert_allclose(rh, 52.58, atol=0.1)
 
     def test_output_dtype_is_float32(self):
         """Output should be float32."""
         temp = np.array([20.0], dtype=np.float32)
         dewpoint = np.array([15.0], dtype=np.float32)
-        rh = StationDewPointSource.compute_rh(temp, dewpoint)
+        rh = compute_rh(temp, dewpoint)
         assert rh.dtype == np.float32
 
 
@@ -92,11 +92,14 @@ class TestRHInterpolator:
                 dewpoints=[12.0, 11.0],
                 elevations=[100.0, 200.0],
             )
-            dewpoint_source = StationDewPointSource(actuals)
+            dewpoint_field = build_dewpoint_field(actuals)
 
             dataset = RHInterpolator(
-                mask_path=mask_path, dem_path=dem_path, temp_raster_path=temp_raster_path
-            ).interpolate(dewpoint_source, ref_path)
+                mask_path=mask_path,
+                dem_path=dem_path,
+                temp_raster_path=temp_raster_path,
+                field=dewpoint_field,
+            ).interpolate(ref_path)
 
             data = dataset.ds.GetRasterBand(1).ReadAsArray()
             nodata = dataset.ds.GetRasterBand(1).GetNoDataValue()
@@ -135,11 +138,14 @@ class TestRHInterpolator:
             actuals = create_test_actuals(
                 lats=[49.05], lons=[-123.05], dewpoints=[12.0], elevations=[100.0]
             )
-            dewpoint_source = StationDewPointSource(actuals)
+            dewpoint_field = build_dewpoint_field(actuals)
 
             dataset = RHInterpolator(
-                mask_path=mask_path, dem_path=dem_path, temp_raster_path=temp_raster_path
-            ).interpolate(dewpoint_source, ref_path)
+                mask_path=mask_path,
+                dem_path=dem_path,
+                temp_raster_path=temp_raster_path,
+                field=dewpoint_field,
+            ).interpolate(ref_path)
 
             data = dataset.ds.GetRasterBand(1).ReadAsArray()
             nodata = dataset.ds.GetRasterBand(1).GetNoDataValue()
@@ -171,11 +177,14 @@ class TestRHInterpolator:
             actuals = create_test_actuals(
                 lats=[49.05], lons=[-123.05], dewpoints=[12.0], elevations=[100.0]
             )
-            dewpoint_source = StationDewPointSource(actuals)
+            dewpoint_field = build_dewpoint_field(actuals)
 
             dataset = RHInterpolator(
-                mask_path=mask_path, dem_path=dem_path, temp_raster_path=temp_raster_path
-            ).interpolate(dewpoint_source, ref_path)
+                mask_path=mask_path,
+                dem_path=dem_path,
+                temp_raster_path=temp_raster_path,
+                field=dewpoint_field,
+            ).interpolate(ref_path)
 
             ref_ds = gdal.Open(ref_path)
             assert dataset.ds.RasterXSize == ref_ds.RasterXSize
@@ -211,11 +220,14 @@ class TestRHInterpolator:
             actuals = create_test_actuals(
                 lats=[49.05], lons=[-123.05], dewpoints=[12.0], elevations=[100.0]
             )
-            dewpoint_source = StationDewPointSource(actuals)
+            dewpoint_field = build_dewpoint_field(actuals)
 
             dataset = RHInterpolator(
-                mask_path=mask_path, dem_path=dem_path, temp_raster_path=temp_raster_path
-            ).interpolate(dewpoint_source, ref_path)
+                mask_path=mask_path,
+                dem_path=dem_path,
+                temp_raster_path=temp_raster_path,
+                field=dewpoint_field,
+            ).interpolate(ref_path)
 
             data = dataset.ds.GetRasterBand(1).ReadAsArray()
             nodata = dataset.ds.GetRasterBand(1).GetNoDataValue()
@@ -252,12 +264,15 @@ class TestRHInterpolator:
             actuals = [
                 SFMSDailyActual(code=1, lat=49.05, lon=-123.05, elevation=100.0, dewpoint=None)
             ]
-            dewpoint_source = StationDewPointSource(actuals)
+            dewpoint_field = build_dewpoint_field(actuals)
 
             with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):
                 RHInterpolator(
-                    mask_path=mask_path, dem_path=dem_path, temp_raster_path=temp_raster_path
-                ).interpolate(dewpoint_source, ref_path)
+                    mask_path=mask_path,
+                    dem_path=dem_path,
+                    temp_raster_path=temp_raster_path,
+                    field=dewpoint_field,
+                ).interpolate(ref_path)
         finally:
             gdal.Unlink(ref_path)
             gdal.Unlink(dem_path)

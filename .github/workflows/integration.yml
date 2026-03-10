@@ -115,12 +115,26 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/python-setup
-        with:
-          install-jdk: "true"
       - name: Unit Test (wps_weather)
         working-directory: ./backend
         run: |
           uv run pytest packages/wps-weather/src/wps_weather/tests -x -o log_cli=true --disable-warnings -vvv
+
+  test-wps-sfms:
+    name: Python - WPS SFMS Test
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
+      options: --user 0
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/python-setup
+      - name: Unit Test (wps_sfms)
+        working-directory: ./backend
+        run: |
+          uv run pytest packages/wps-sfms/src/wps_sfms/tests -x -o log_cli=true --disable-warnings -vvv
 
   test-wps-wf1:
     name: Python - WF1 Test with coverage
