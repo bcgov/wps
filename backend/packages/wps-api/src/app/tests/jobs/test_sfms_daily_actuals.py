@@ -265,19 +265,19 @@ class TestRunSfmsDailyActuals:
 
         await run_sfms_daily_actuals(target_date)
 
-        # Eight tracked runs (temp, rh, ws, wd, precip, ffmc, dmc, dc) means eight execute calls
-        assert mock_dependencies.db_session.execute.call_count == 8
+        # Eleven tracked runs: 5 weather interpolations + 6 FWI calculations.
+        assert mock_dependencies.db_session.execute.call_count == 11
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):
         """Test that successful jobs are updated to success status."""
-        records = [MagicMock() for _ in range(8)]
+        records = [MagicMock() for _ in range(11)]
         mock_dependencies.db_session.get = AsyncMock(side_effect=records)
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert mock_dependencies.db_session.get.call_count == 8
+        assert mock_dependencies.db_session.get.call_count == 11
         for record in records:
             assert record.status == SFMSRunLogStatus.SUCCESS
             assert record.completed_at is not None
@@ -334,9 +334,10 @@ class TestMondayFWIInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        # temp processor called once, IDW processor called 4 times (1 precip + 3 FWI)
+        # temp processor called once, IDW processor called 4 times (1 precip + 3 base FWI)
         mock_dependencies.temp_processor.process.assert_called_once()
         assert mock_dependencies.interpolation_processor.process.call_count == 4
+        assert mock_dependencies.fwi_processor.calculate_index.call_count == 3
 
     @pytest.mark.anyio
     async def test_first_monday_april_runs_fwi_interpolation(
@@ -348,9 +349,10 @@ class TestMondayFWIInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        # temp processor called once, IDW processor called 4 times (1 precip + 3 FWI)
+        # temp processor called once, IDW processor called 4 times (1 precip + 3 base FWI)
         mock_dependencies.temp_processor.process.assert_called_once()
         assert mock_dependencies.interpolation_processor.process.call_count == 4
+        assert mock_dependencies.fwi_processor.calculate_index.call_count == 3
 
     @pytest.mark.anyio
     async def test_non_monday_skips_fwi_interpolation(
@@ -390,22 +392,23 @@ class TestMondayFWIInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        # temp processor called once, IDW processor called 4 times (1 precip + 3 FWI)
+        # temp processor called once, IDW processor called 4 times (1 precip + 3 base FWI)
         mock_dependencies.temp_processor.process.assert_called_once()
         assert mock_dependencies.interpolation_processor.process.call_count == 4
+        assert mock_dependencies.fwi_processor.calculate_index.call_count == 3
 
     @pytest.mark.anyio
-    async def test_monday_april_writes_six_run_log_entries(
+    async def test_monday_april_writes_eleven_run_log_entries(
         self, mock_dependencies: MockDailyActualsDeps
     ):
-        """Test that a Monday in April produces 8 run log entries (temp + rh + precip + ws + wd + 3 FWI)."""
+        """Test that a Monday in April produces 11 run log entries."""
         # 2024-04-01 is the first Monday of April 2024
         target_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
-        # 8 tracked runs: temp, rh, ws, wd, precip, ffmc, dmc, dc
-        assert mock_dependencies.db_session.execute.call_count == 8
+        # 11 tracked runs: 5 weather + 3 FWI interpolation + 3 derived FWI calculations.
+        assert mock_dependencies.db_session.execute.call_count == 11
 
 
 class TestFWICalculationVsInterpolation:
@@ -415,13 +418,21 @@ class TestFWICalculationVsInterpolation:
     async def test_monday_interpolation_skips_fwi_calculation(
         self, mock_dependencies: MockDailyActualsDeps
     ):
-        """On a re-interpolation Monday, FWI calculation must not run."""
+        """On a re-interpolation Monday, only derived FWI calculations should run."""
         # 2024-05-06 is the first Monday of May 2024
         target_date = datetime(2024, 5, 6, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
-        mock_dependencies.fwi_processor.calculate_index.assert_not_called()
+        actual_fwi_params = [
+            call.args[1]
+            for call in mock_dependencies.addresser.get_actual_fwi_inputs.call_args_list
+        ]
+        assert actual_fwi_params == [
+            FWIParameter.ISI,
+            FWIParameter.BUI,
+            FWIParameter.FWI,
+        ]
 
     @pytest.mark.anyio
     async def test_regular_day_runs_fwi_calculation_not_interpolation(
@@ -433,15 +444,21 @@ class TestFWICalculationVsInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        assert mock_dependencies.fwi_processor.calculate_index.call_count == 3
-        # Each calculator must use its own FWIParameter — a wiring bug where all three
+        assert mock_dependencies.fwi_processor.calculate_index.call_count == 6
+        # Each calculator must use its own FWIParameter — a wiring bug where calls
         # share the same fwi_param would silently produce wrong rasters.
         actual_fwi_params = [
             call.args[1]
             for call in mock_dependencies.addresser.get_actual_fwi_inputs.call_args_list
         ]
-        assert len(actual_fwi_params) == 3
-        assert set(actual_fwi_params) == {FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC}
+        assert actual_fwi_params == [
+            FWIParameter.FFMC,
+            FWIParameter.DMC,
+            FWIParameter.DC,
+            FWIParameter.ISI,
+            FWIParameter.BUI,
+            FWIParameter.FWI,
+        ]
         # IDW called once only for precip, not for FWI indices
         mock_dependencies.interpolation_processor.process.assert_called_once()
 

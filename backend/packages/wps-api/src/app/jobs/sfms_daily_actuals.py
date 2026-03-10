@@ -7,15 +7,14 @@ Usage:
 """
 
 import asyncio
-from dataclasses import dataclass
 import logging
 import os
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Awaitable, Callable
 
 from aiohttp import ClientSession
-
 from wps_sfms.interpolation.field import (
     build_dc_field,
     build_dewpoint_field,
@@ -26,19 +25,28 @@ from wps_sfms.interpolation.field import (
     build_wind_speed_field,
     build_wind_vector_field,
 )
-from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator, FWIProcessor
+from wps_sfms.processors.fwi import (
+    BUICalculator,
+    DCCalculator,
+    DMCCalculator,
+    FFMCCalculator,
+    FWICalculator,
+    FWIFinalCalculator,
+    FWIProcessor,
+    ISICalculator,
+)
 from wps_sfms.processors.idw import Interpolator, RasterProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
-from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
-from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
+from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
@@ -58,7 +66,7 @@ class RasterInterpolationJob:
 @dataclass(frozen=True)
 class FWICalculationJob:
     job_name: SFMSRunLogJobName
-    calculator: FFMCCalculator | DMCCalculator | DCCalculator
+    calculator: FWICalculator
 
 
 def is_fwi_interpolation_day(dt: datetime) -> bool:
@@ -234,8 +242,10 @@ async def run_fwi_calculations(
     s3_client: S3Client,
     sfms_run_id: int,
     session,
+    *,
+    calculators: tuple[FWICalculator, ...] | None = None,
 ) -> None:
-    """Calculate FFMC, DMC, and DC from interpolated weather and yesterday's actuals."""
+    """Calculate the requested FWI rasters from weather/index dependencies."""
     logger.info(
         "Calculating FWI from existing rasters for %s",
         datetime_to_process.date(),
@@ -244,19 +254,33 @@ async def run_fwi_calculations(
     fwi_processor = FWIProcessor(datetime_to_process)
     month = datetime_to_process.month
 
+    # Regular days calculate the full FWI chain in dependency order:
+    # FFMC/DMC/DC first, then ISI/BUI, then FWI
+    default_calculators = (
+        FFMCCalculator(),
+        DMCCalculator(month),
+        DCCalculator(month),
+        ISICalculator(),
+        BUICalculator(),
+        FWIFinalCalculator(),
+    )
+    # Interpolation days pass a smaller calculator subset here because FFMC/DMC/DC
+    # have been interpolated from station observations earlier in the run
+    calculators_to_run = calculators or default_calculators
+    job_names_by_param = {
+        FWIParameter.FFMC: SFMSRunLogJobName.FFMC_CALCULATION,
+        FWIParameter.DMC: SFMSRunLogJobName.DMC_CALCULATION,
+        FWIParameter.DC: SFMSRunLogJobName.DC_CALCULATION,
+        FWIParameter.ISI: SFMSRunLogJobName.ISI_CALCULATION,
+        FWIParameter.BUI: SFMSRunLogJobName.BUI_CALCULATION,
+        FWIParameter.FWI: SFMSRunLogJobName.FWI_CALCULATION,
+    }
     jobs = [
         FWICalculationJob(
-            job_name=SFMSRunLogJobName.FFMC_CALCULATION,
-            calculator=FFMCCalculator(),
-        ),
-        FWICalculationJob(
-            job_name=SFMSRunLogJobName.DMC_CALCULATION,
-            calculator=DMCCalculator(month),
-        ),
-        FWICalculationJob(
-            job_name=SFMSRunLogJobName.DC_CALCULATION,
-            calculator=DCCalculator(month),
-        ),
+            job_name=job_names_by_param[calculator.fwi_param],
+            calculator=calculator,
+        )
+        for calculator in calculators_to_run
     ]
 
     for job in jobs:
@@ -326,6 +350,14 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                     sfms_actuals,
                     sfms_run_id,
                     session,
+                )
+                await run_fwi_calculations(
+                    datetime_to_process,
+                    raster_addresser,
+                    s3_client,
+                    sfms_run_id,
+                    session,
+                    calculators=(ISICalculator(), BUICalculator(), FWIFinalCalculator()),
                 )
             else:
                 await run_fwi_calculations(
