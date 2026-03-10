@@ -434,6 +434,7 @@ class TestFWICalculationVsInterpolation:
             FWIParameter.BUI,
             FWIParameter.FWI,
         ]
+        mock_dependencies.s3_client.all_objects_exist.assert_not_called()
 
     @pytest.mark.anyio
     async def test_regular_day_runs_fwi_calculation_not_interpolation(

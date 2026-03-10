@@ -262,53 +262,21 @@ async def run_fwi_interpolation(
         )
 
 
-async def run_fwi_calculations(
+async def _run_fwi_calculation_jobs(
     datetime_to_process: datetime,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
     sfms_run_id: int,
     session,
-    *,
-    calculators: tuple[FWICalculator, ...] | None = None,
+    calculators: tuple[FWICalculator, ...],
 ) -> None:
-    """Calculate the requested FWI rasters from weather/index dependencies."""
+    """Run the provided FWI calculator jobs in order."""
     logger.info(
         "Calculating FWI from existing rasters for %s",
         datetime_to_process.date(),
     )
 
     fwi_processor = FWIProcessor(datetime_to_process)
-    month = datetime_to_process.month
-
-    # Regular days calculate the full FWI chain in dependency order:
-    # FFMC/DMC/DC first, then ISI/BUI, then FWI
-    default_calculators = (
-        FFMCCalculator(),
-        DMCCalculator(month),
-        DCCalculator(month),
-        ISICalculator(),
-        BUICalculator(),
-        FWIFinalCalculator(),
-    )
-    # Interpolation days pass a smaller calculator subset here because FFMC/DMC/DC
-    # have been interpolated from station observations earlier in the run
-    calculators_to_run = default_calculators if calculators is None else calculators
-
-    missing_previous_keys = await _missing_previous_index_keys(
-        datetime_to_process,
-        raster_addresser,
-        s3_client,
-        calculators_to_run,
-    )
-    if missing_previous_keys:
-        previous_date = datetime_to_process - timedelta(days=1)
-        logger.warning(
-            "Skipping FWI calculations for %s because previous-day index rasters are missing for %s: %s",
-            datetime_to_process.date(),
-            previous_date.date(),
-            ", ".join(missing_previous_keys),
-        )
-        return
 
     job_names_by_param = {
         FWIParameter.FFMC: SFMSRunLogJobName.FFMC_CALCULATION,
@@ -323,7 +291,7 @@ async def run_fwi_calculations(
             job_name=job_names_by_param[calculator.fwi_param],
             calculator=calculator,
         )
-        for calculator in calculators_to_run
+        for calculator in calculators
     ]
 
     for job in jobs:
@@ -337,6 +305,67 @@ async def run_fwi_calculations(
             )
 
         await _run_tracked_job(job.job_name, sfms_run_id, session, _run)
+
+
+async def run_fwi_calculations(
+    datetime_to_process: datetime,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+    sfms_run_id: int,
+    session,
+) -> None:
+    """Calculate the full regular-day FWI chain from weather and previous-day seeds."""
+    month = datetime_to_process.month
+    calculators = (
+        FFMCCalculator(),
+        DMCCalculator(month),
+        DCCalculator(month),
+        ISICalculator(),
+        BUICalculator(),
+        FWIFinalCalculator(),
+    )
+    missing_previous_keys = await _missing_previous_index_keys(
+        datetime_to_process,
+        raster_addresser,
+        s3_client,
+        calculators,
+    )
+    if missing_previous_keys:
+        previous_date = datetime_to_process - timedelta(days=1)
+        logger.warning(
+            "Skipping FWI calculations for %s because previous-day index rasters are missing for %s: %s",
+            datetime_to_process.date(),
+            previous_date.date(),
+            ", ".join(missing_previous_keys),
+        )
+        return
+
+    await _run_fwi_calculation_jobs(
+        datetime_to_process,
+        raster_addresser,
+        s3_client,
+        sfms_run_id,
+        session,
+        calculators,
+    )
+
+
+async def run_derived_fwi_calculations(
+    datetime_to_process: datetime,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+    sfms_run_id: int,
+    session,
+) -> None:
+    """Calculate ISI, BUI, and FWI from same-day weather and interpolated base indices."""
+    await _run_fwi_calculation_jobs(
+        datetime_to_process,
+        raster_addresser,
+        s3_client,
+        sfms_run_id,
+        session,
+        (ISICalculator(), BUICalculator(), FWIFinalCalculator()),
+    )
 
 
 async def run_sfms_daily_actuals(target_date: datetime) -> None:
@@ -394,13 +423,12 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                     sfms_run_id,
                     session,
                 )
-                await run_fwi_calculations(
+                await run_derived_fwi_calculations(
                     datetime_to_process,
                     raster_addresser,
                     s3_client,
                     sfms_run_id,
                     session,
-                    calculators=(ISICalculator(), BUICalculator(), FWIFinalCalculator()),
                 )
             else:
                 await run_fwi_calculations(
