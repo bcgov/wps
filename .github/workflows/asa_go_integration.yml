@@ -44,9 +44,13 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
-      - name: Clear DerivedData
-        run: rm -rf ~/Library/Developer/Xcode/DerivedData
       - name: Sync Capacitor iOS
+        working-directory: ./mobile/asa-go
+        run: yarn cap sync ios
+        continue-on-error: true
+      - name: Fix nanopb xattr
+        run: find ~/Library/Developer/Xcode/DerivedData -type d -path "*/nanopb/build" -exec xattr -w com.apple.xcode.CreatedByBuildSystem true {} +
+      - name: Sync Capacitor iOS (retry)
         working-directory: ./mobile/asa-go
         run: yarn cap sync ios
       - name: Use Xcode latest stable
