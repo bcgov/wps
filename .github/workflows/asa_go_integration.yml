@@ -77,6 +77,8 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
+      - name: Create google-services.json
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' | base64 -d > ./mobile/asa-go/android/app/google-services.json
       - name: Sync Capacitor Android
         working-directory: ./mobile/asa-go
         run: yarn cap sync android
