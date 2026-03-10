@@ -131,7 +131,6 @@ class TestGetActualFwiInputs:
         for index_param, expected_suffix in index_key_checks.items():
             assert result.index_keys[index_param] == f"{s3}/sfms_ng/actual/{expected_suffix}"
         assert result.output_key == f"sfms_ng/actual/2024/04/15/{p}_20240415.tif"
-        assert result.cog_key == f"{s3}/sfms_ng/actual/2024/04/15/{p}_20240415_cog.tif"
         assert result.run_type == RunType.ACTUAL
 
     def test_gdal_prefix_on_inputs_not_output(self, addresser: SFMSNGRasterAddresser):

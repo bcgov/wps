@@ -10,14 +10,12 @@ Subclasses override interpolate() for parameter-specific logic
 """
 
 import logging
-import os
-import tempfile
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-import aiofiles
 import numpy as np
 from numpy.typing import NDArray
+from wps_sfms.publish import publish_dataset
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -124,14 +122,13 @@ class RasterProcessor(ABC):
         logger.info("Starting interpolation, output: %s", output_key)
 
         with self.interpolate(reference_raster_path) as dataset:
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                tmp_path = os.path.join(tmp_dir, os.path.basename(output_key))
-                dataset.export_to_geotiff(tmp_path)
+            published = await publish_dataset(s3_client, dataset, output_key)
 
-                async with aiofiles.open(tmp_path, "rb") as f:
-                    await s3_client.put_object(key=output_key, body=await f.read())
-
-        logger.info("Interpolation complete: %s", output_key)
+        logger.info(
+            "Interpolation complete: %s (COG: %s)",
+            published.output_key,
+            published.cog_key,
+        )
         return output_key
 
 

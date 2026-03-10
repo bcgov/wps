@@ -7,7 +7,6 @@ allowing each calculator to specify only the inputs it needs.
 
 from dataclasses import dataclass
 import logging
-import tempfile
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from datetime import datetime
@@ -25,8 +24,8 @@ from wps_shared.fwi import (
     vectorized_fwi,
     vectorized_isi,
 )
-from wps_shared.geospatial.cog import generate_and_store_cog
 from wps_shared.geospatial.geospatial import rasters_match
+from wps_sfms.publish import publish_dataset
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -370,66 +369,57 @@ class FWIProcessor:
             self.datetime_to_process.date(),
         )
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with self._open_required_datasets(
-                input_dataset_context, weather_keys_by_param, index_keys_by_param
-            ) as datasets:
-                weather_datasets = datasets.weather
-                index_datasets = datasets.index
+        with self._open_required_datasets(
+            input_dataset_context, weather_keys_by_param, index_keys_by_param
+        ) as datasets:
+            weather_datasets = datasets.weather
+            index_datasets = datasets.index
 
-                # use reference index's geotransform and projection for the output dataset, and verify all dependencies match that grid
-                reference_ds = index_datasets[calculator.reference_index_param]
-                reference_key = index_keys_by_param[calculator.reference_index_param]
+            # use reference index's geotransform and projection for the output dataset, and verify all dependencies match that grid
+            reference_ds = index_datasets[calculator.reference_index_param]
+            reference_key = index_keys_by_param[calculator.reference_index_param]
 
-                # every weather raster must match the reference index grid
-                for param in calculator.required_weather_params:
-                    weather_ds = weather_datasets[param]
-                    weather_key = weather_keys_by_param[param]
-                    if not rasters_match(weather_ds.as_gdal_ds(), reference_ds.as_gdal_ds()):
-                        raise ValueError(
-                            f"{param.value} raster does not match FWI grid: {weather_key} vs {reference_key}"
-                        )
-
-                # every index raster must match the reference index grid
-                for param in calculator.required_index_params:
-                    if param == calculator.reference_index_param:
-                        continue
-                    index_ds = index_datasets[param]
-                    index_key = index_keys_by_param[param]
-                    if not rasters_match(index_ds.as_gdal_ds(), reference_ds.as_gdal_ds()):
-                        raise ValueError(
-                            f"{param.value} raster does not match FWI grid: {index_key} vs {reference_key}"
-                        )
-
-                result = calculator.calculate(datasets)
-
-                # store GeoTIFF output using georeferencing from the reference grid
-                await s3_client.persist_raster_data(
-                    temp_dir,
-                    fwi_inputs.output_key,
-                    reference_ds.as_gdal_ds().GetGeoTransform(),
-                    reference_ds.as_gdal_ds().GetProjection(),
-                    result.values,
-                    result.nodata_value,
-                )
-
-                # generate/store a COG from the computed raster array
-                with WPSDataset.from_array(
-                    result.values,
-                    reference_ds.as_gdal_ds().GetGeoTransform(),
-                    reference_ds.as_gdal_ds().GetProjection(),
-                    result.nodata_value,
-                ) as output_ds:
-                    generate_and_store_cog(
-                        src_ds=output_ds.as_gdal_ds(), output_path=fwi_inputs.cog_key
+            # every weather raster must match the reference index grid
+            for param in calculator.required_weather_params:
+                weather_ds = weather_datasets[param]
+                weather_key = weather_keys_by_param[param]
+                if not rasters_match(weather_ds.as_gdal_ds(), reference_ds.as_gdal_ds()):
+                    raise ValueError(
+                        f"{param.value} raster does not match FWI grid: {weather_key} vs {reference_key}"
                     )
 
-                logger.info(
-                    "Stored %s %s: %s",
-                    calculator.fwi_param.value,
-                    fwi_inputs.run_type.value,
-                    fwi_inputs.output_key,
+            # every index raster must match the reference index grid
+            for param in calculator.required_index_params:
+                if param == calculator.reference_index_param:
+                    continue
+                index_ds = index_datasets[param]
+                index_key = index_keys_by_param[param]
+                if not rasters_match(index_ds.as_gdal_ds(), reference_ds.as_gdal_ds()):
+                    raise ValueError(
+                        f"{param.value} raster does not match FWI grid: {index_key} vs {reference_key}"
+                    )
+
+            result = calculator.calculate(datasets)
+
+            with WPSDataset.from_array(
+                result.values,
+                reference_ds.as_gdal_ds().GetGeoTransform(),
+                reference_ds.as_gdal_ds().GetProjection(),
+                result.nodata_value,
+            ) as output_ds:
+                published = await publish_dataset(
+                    s3_client=s3_client,
+                    dataset=output_ds,
+                    output_key=fwi_inputs.output_key,
                 )
 
-                # Clear gdal virtual file system cache of S3 metadata.
-                gdal.VSICurlClearCache()
+            logger.info(
+                "Stored %s %s: %s (COG: %s)",
+                calculator.fwi_param.value,
+                fwi_inputs.run_type.value,
+                published.output_key,
+                published.cog_key,
+            )
+
+            # Clear gdal virtual file system cache of S3 metadata.
+            gdal.VSICurlClearCache()

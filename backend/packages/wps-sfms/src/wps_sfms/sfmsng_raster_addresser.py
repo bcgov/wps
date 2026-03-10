@@ -31,7 +31,6 @@ class FWIInputs:
     weather_keys: Mapping[SFMSInterpolatedWeatherParameter, GDALPath]
     index_keys: Mapping[FWIParameter, GDALPath]
     output_key: S3Key
-    cog_key: GDALPath
     run_type: RunType
 
 
@@ -141,6 +140,5 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             weather_keys=weather_keys,
             index_keys=index_keys,
             output_key=output_key,
-            cog_key=self.get_cog_key(output_key),
             run_type=RunType.ACTUAL,
         )

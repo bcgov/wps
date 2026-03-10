@@ -31,7 +31,6 @@ from wps_sfms.processors.idw import Interpolator, RasterProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
-from wps_shared.geospatial.cog import generate_web_optimized_cog
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -49,13 +48,17 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
-class RasterJob:
+class RasterInterpolationJob:
     job_name: SFMSRunLogJobName
     output_key: str
     log_label: str
     processor: RasterProcessor
-    cog_key: str | None = None
-    cog_input_path: str | None = None
+
+
+@dataclass(frozen=True)
+class FWICalculationJob:
+    job_name: SFMSRunLogJobName
+    calculator: FFMCCalculator | DMCCalculator | DCCalculator
 
 
 def is_fwi_interpolation_day(dt: datetime) -> bool:
@@ -91,15 +94,9 @@ async def _process_raster_job(
     fuel_raster_path: str,
     output_key: str,
     log_label: str,
-    cog_key: str | None = None,
-    cog_input_path: str | None = None,
 ) -> None:
     async def _run() -> None:
         s3_key = await processor.process(s3_client, fuel_raster_path, output_key)
-        if cog_key is not None and cog_input_path is not None:
-            generate_web_optimized_cog(input_path=cog_input_path, output_path=cog_key)
-            logger.info("%s: %s (COG: %s)", log_label, s3_key, cog_key)
-            return
         logger.info("%s: %s", log_label, s3_key)
 
     await _run_tracked_job(job_name, sfms_run_id, session, _run)
@@ -122,7 +119,7 @@ async def run_weather_interpolation(
     )
     temp_raster_path = raster_addresser.gdal_path(temp_output_key)
     jobs = [
-        RasterJob(
+        RasterInterpolationJob(
             job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
             output_key=temp_output_key,
             log_label="Temperature interpolation raster",
@@ -130,7 +127,7 @@ async def run_weather_interpolation(
                 mask_path, dem_path, build_temperature_field(sfms_actuals)
             ),
         ),
-        RasterJob(
+        RasterInterpolationJob(
             job_name=SFMSRunLogJobName.RH_INTERPOLATION,
             output_key=raster_addresser.get_actual_weather_key(
                 datetime_to_process, SFMSInterpolatedWeatherParameter.RH
@@ -140,7 +137,7 @@ async def run_weather_interpolation(
                 mask_path, dem_path, temp_raster_path, build_dewpoint_field(sfms_actuals)
             ),
         ),
-        RasterJob(
+        RasterInterpolationJob(
             job_name=SFMSRunLogJobName.WIND_SPEED_INTERPOLATION,
             output_key=raster_addresser.get_actual_weather_key(
                 datetime_to_process, SFMSInterpolatedWeatherParameter.WIND_SPEED
@@ -148,7 +145,7 @@ async def run_weather_interpolation(
             log_label="Wind speed interpolation raster",
             processor=WindSpeedInterpolator(mask_path, build_wind_speed_field(sfms_actuals)),
         ),
-        RasterJob(
+        RasterInterpolationJob(
             job_name=SFMSRunLogJobName.WIND_DIRECTION_INTERPOLATION,
             output_key=raster_addresser.get_actual_weather_key(
                 datetime_to_process, SFMSInterpolatedWeatherParameter.WIND_DIRECTION
@@ -156,7 +153,7 @@ async def run_weather_interpolation(
             log_label="Wind direction interpolation raster",
             processor=WindDirectionInterpolator(mask_path, build_wind_vector_field(sfms_actuals)),
         ),
-        RasterJob(
+        RasterInterpolationJob(
             job_name=SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
             output_key=raster_addresser.get_actual_weather_key(
                 datetime_to_process, SFMSInterpolatedWeatherParameter.PRECIP
@@ -198,29 +195,23 @@ async def run_fwi_interpolation(
     dmc_output_key = raster_addresser.get_actual_index_key(datetime_to_process, FWIParameter.DMC)
     dc_output_key = raster_addresser.get_actual_index_key(datetime_to_process, FWIParameter.DC)
     jobs = [
-        RasterJob(
+        RasterInterpolationJob(
             job_name=SFMSRunLogJobName.FFMC_INTERPOLATION,
             output_key=ffmc_output_key,
             log_label=f"{SFMSRunLogJobName.FFMC_INTERPOLATION.value} raster",
             processor=Interpolator(mask_path, build_ffmc_field(sfms_actuals)),
-            cog_key=raster_addresser.get_cog_key(ffmc_output_key),
-            cog_input_path=raster_addresser.gdal_path(ffmc_output_key),
         ),
-        RasterJob(
+        RasterInterpolationJob(
             job_name=SFMSRunLogJobName.DMC_INTERPOLATION,
             output_key=dmc_output_key,
             log_label=f"{SFMSRunLogJobName.DMC_INTERPOLATION.value} raster",
             processor=Interpolator(mask_path, build_dmc_field(sfms_actuals)),
-            cog_key=raster_addresser.get_cog_key(dmc_output_key),
-            cog_input_path=raster_addresser.gdal_path(dmc_output_key),
         ),
-        RasterJob(
+        RasterInterpolationJob(
             job_name=SFMSRunLogJobName.DC_INTERPOLATION,
             output_key=dc_output_key,
             log_label=f"{SFMSRunLogJobName.DC_INTERPOLATION.value} raster",
             processor=Interpolator(mask_path, build_dc_field(sfms_actuals)),
-            cog_key=raster_addresser.get_cog_key(dc_output_key),
-            cog_input_path=raster_addresser.gdal_path(dc_output_key),
         ),
     ]
 
@@ -234,8 +225,6 @@ async def run_fwi_interpolation(
             fuel_raster_path=fuel_raster_path,
             output_key=job.output_key,
             log_label=job.log_label,
-            cog_key=job.cog_key,
-            cog_input_path=job.cog_input_path,
         )
 
 
@@ -255,15 +244,24 @@ async def run_fwi_calculations(
     fwi_processor = FWIProcessor(datetime_to_process)
     month = datetime_to_process.month
 
-    fwi_calculations = [
-        (SFMSRunLogJobName.FFMC_CALCULATION, FFMCCalculator()),
-        (SFMSRunLogJobName.DMC_CALCULATION, DMCCalculator(month)),
-        (SFMSRunLogJobName.DC_CALCULATION, DCCalculator(month)),
+    jobs = [
+        FWICalculationJob(
+            job_name=SFMSRunLogJobName.FFMC_CALCULATION,
+            calculator=FFMCCalculator(),
+        ),
+        FWICalculationJob(
+            job_name=SFMSRunLogJobName.DMC_CALCULATION,
+            calculator=DMCCalculator(month),
+        ),
+        FWICalculationJob(
+            job_name=SFMSRunLogJobName.DC_CALCULATION,
+            calculator=DCCalculator(month),
+        ),
     ]
 
-    for job_name, calculator in fwi_calculations:
+    for job in jobs:
 
-        async def _run(_calculator=calculator) -> None:
+        async def _run(_calculator=job.calculator) -> None:
             _fwi_inputs = raster_addresser.get_actual_fwi_inputs(
                 datetime_to_process, _calculator.fwi_param
             )
@@ -271,7 +269,7 @@ async def run_fwi_calculations(
                 s3_client, multi_wps_dataset_context, _calculator, _fwi_inputs
             )
 
-        await _run_tracked_job(job_name, sfms_run_id, session, _run)
+        await _run_tracked_job(job.job_name, sfms_run_id, session, _run)
 
 
 async def run_sfms_daily_actuals(target_date: datetime) -> None:
