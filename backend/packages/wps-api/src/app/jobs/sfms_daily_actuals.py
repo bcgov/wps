@@ -267,6 +267,7 @@ async def run_fwi_calculations(
     # Interpolation days pass a smaller calculator subset here because FFMC/DMC/DC
     # have been interpolated from station observations earlier in the run
     calculators_to_run = calculators or default_calculators
+
     job_names_by_param = {
         FWIParameter.FFMC: SFMSRunLogJobName.FFMC_CALCULATION,
         FWIParameter.DMC: SFMSRunLogJobName.DMC_CALCULATION,
