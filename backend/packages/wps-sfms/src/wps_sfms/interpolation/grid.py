@@ -74,7 +74,7 @@ def build_grid_context(
         y_size = ref_ds.ds.RasterYSize
 
         with WPSDataset(mask_path) as mask_ds:
-            valid_mask = ref_ds.apply_mask(mask_ds.warp_to_match(ref_ds))
+            valid_mask = ref_ds.apply_mask(mask_ds)
 
         valid_lats, valid_lons, valid_yi, valid_xi = ref_ds.get_lat_lon_coords(valid_mask)
         total_pixels = x_size * y_size
