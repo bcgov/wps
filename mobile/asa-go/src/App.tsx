@@ -5,6 +5,7 @@ import SideNavigation from "@/components/SideNavigation";
 import ASAGoMap from "@/components/map/ASAGoMap";
 import Profile from "@/components/profile/Profile";
 import Advisory from "@/components/report/Advisory";
+import Settings from "@/components/settings/Settings";
 import TabPanel from "@/components/TabPanel";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
@@ -272,6 +273,9 @@ const App = () => {
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
+        </TabPanel>
+        <TabPanel value={tab} panel={NavPanel.SETTINGS}>
+          <Settings />
         </TabPanel>
       </Box>
 
