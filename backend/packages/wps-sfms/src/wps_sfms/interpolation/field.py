@@ -130,6 +130,10 @@ def build_wind_vector_field(actuals: List[SFMSDailyActual]) -> WindVectorField:
 def _build_lapse_rate_field(
     actuals: List[SFMSDailyActual], attribute: str, lapse_rate: float, label: str
 ) -> ScalarField:
+    if attribute not in _VALID_SFMS_ATTRIBUTES:
+        raise ValueError(
+            f"Unknown attribute {attribute!r} on SFMSDailyActual. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}"
+        )
     lats = np.array([a.lat for a in actuals], dtype=np.float32)
     lons = np.array([a.lon for a in actuals], dtype=np.float32)
     elevs = np.array(
