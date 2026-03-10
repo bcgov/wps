@@ -194,10 +194,10 @@ def back_rate_of_spread(
     cbh: float,
 ):
     """Calculate the Back Fire Spread Rate."""
-    if fuel_type is None or ffmc is None or bui is None or fmc is None or sfc is None:
+    if fuel_type is None or ffmc is None or bui is None or wsv is None or fmc is None or sfc is None:
         message = (
             PARAMS_ERROR_MESSAGE
-            + f"_BROScalc ; fuel_type: {fuel_type.value}, ffmc: {ffmc}, bui: {bui}, fmc: {fmc}, sfc: {sfc}"
+            + f"_BROScalc ; fuel_type: {fuel_type.value}, ffmc: {ffmc}, bui: {bui}, wsv: {wsv}, fmc: {fmc}, sfc: {sfc}"
         )
         raise CFFDRSException(message)
     _validate_fuel_type_params(fuel_type, pc, pdf, cc, cbh)
@@ -206,7 +206,7 @@ def back_rate_of_spread(
         fuel_type=fuel_type.value,
         ffmc=ffmc,
         bui=bui,
-        wsv=wsv if wsv is not None else 0,
+        wsv=wsv,
         fmc=fmc,
         sfc=sfc,
         pc=pc,

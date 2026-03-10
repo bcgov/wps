@@ -139,6 +139,11 @@ def test_dmc_temp_at_threshold_gives_zero_drying():
         {},             # missing both
     ],
 )
+def test_back_rate_of_spread_requires_wsv():
+    with pytest.raises(cffdrs.CFFDRSException):
+        cffdrs.back_rate_of_spread(FuelTypeEnum.C7, ffmc=85.0, bui=50.0, wsv=None, fmc=100.0, sfc=1.5, pc=None, cc=None, pdf=None, cbh=7.0)
+
+
 def test_crown_fraction_burned_c6_requires_isi_and_bui(kwargs):
     with pytest.raises(cffdrs.CFFDRSException):
         cffdrs.crown_fraction_burned(FuelTypeEnum.C6, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0, **kwargs)
