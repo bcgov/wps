@@ -4,7 +4,6 @@ See README.md for details on how to run.
 """
 
 import logging
-from time import perf_counter
 from urllib.request import Request
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,7 +34,6 @@ from app.routers import (
     fire_watch,
     fcm,
 )
-from app.fire_behaviour.cffdrs import CFFDRS
 
 
 configure_logging()
@@ -159,15 +157,6 @@ async def get_health():
         logger.debug(
             "/health - healthy: %s. %s", health_check.get("healthy"), health_check.get("message")
         )
-
-        # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
-        cffdrs_start = perf_counter()
-        CFFDRS.instance()
-        cffdrs_end = perf_counter()
-        delta = cffdrs_end - cffdrs_start
-        # Any delta below 100 milliseconds is just noise in the logs.
-        if delta > 0.1:
-            logger.info("%f seconds added by CFFDRS startup", delta)
 
         return health_check
     except Exception as exception:

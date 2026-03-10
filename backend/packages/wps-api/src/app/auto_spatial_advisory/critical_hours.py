@@ -233,7 +233,7 @@ def calculate_critical_hours_for_station_by_fuel_type(
         pdf=percentage_dead_balsam_fir,
         cbh=crown_base_height,
     )
-    cfb = calculate_cfb(fuel_type, fmc, sfc, ros, crown_base_height)
+    cfb = calculate_cfb(fuel_type, fmc, sfc, ros, crown_base_height, isi=isi, bui=bui)
 
     critical_hours = get_critical_hours(
         4000,

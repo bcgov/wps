@@ -12,12 +12,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update
 RUN apt-get -y install unixodbc-dev libgdal-dev libudunits2-dev
 
-# Install R
-RUN apt-get update --fix-missing && apt-get -y install r-base
-
-# Install cffdrs
-RUN R -e "install.packages('cffdrs')"
-
 # Install other dependencies
 RUN apt-get -y install git build-essential python3 python3-dev python3-pip curl vim
 
