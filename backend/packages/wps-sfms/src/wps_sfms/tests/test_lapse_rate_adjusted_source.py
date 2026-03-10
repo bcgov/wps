@@ -8,7 +8,7 @@ from numpy.testing import assert_allclose
 from hypothesis import given, strategies as st, settings
 import hypothesis.extra.numpy as hnp
 
-from wps_sfms.interpolation.source import LAPSE_RATE, LapseRateAdjustedSource
+from wps_sfms.interpolation.field import LAPSE_RATE, compute_adjusted_values, compute_sea_level_values
 
 
 finite_value_c = st.floats(
@@ -52,8 +52,8 @@ def test_round_trip_property(values, elevs, lapse):
     values = values[:n].astype(np.float32, copy=False)
     elevs = elevs[:n].astype(np.float32, copy=False)
 
-    sea = LapseRateAdjustedSource.compute_sea_level_values(values, elevs, lapse)
-    back = LapseRateAdjustedSource.compute_adjusted_values(sea, elevs, lapse)
+    sea = compute_sea_level_values(values, elevs, lapse)
+    back = compute_adjusted_values(sea, elevs, lapse)
     assert_allclose(back, values, atol=1e-4)
 
 
@@ -76,7 +76,7 @@ def test_monotone_cooling_with_positive_elevation(sea, elev, lapse):
     sea = sea[:n]
     elev = elev[:n]
 
-    out = LapseRateAdjustedSource.compute_adjusted_values(sea, elev, lapse)
+    out = compute_adjusted_values(sea, elev, lapse)
     assert np.all(out <= sea + 1e-6)
 
 
@@ -99,5 +99,5 @@ def test_negative_elevation_warms(sea, elev, lapse):
     sea = sea[:n]
     elev = elev[:n]
 
-    out = LapseRateAdjustedSource.compute_adjusted_values(sea, elev, lapse)
+    out = compute_adjusted_values(sea, elev, lapse)
     assert np.all(out >= sea - 1e-6)

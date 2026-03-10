@@ -4659,6 +4659,8 @@ version = "0.1.0"
 source = { editable = "packages/wps-tools" }
 dependencies = [
     { name = "aiobotocore" },
+    { name = "aiohttp" },
+    { name = "matplotlib" },
     { name = "pandas" },
     { name = "python-decouple" },
     { name = "requests" },
@@ -4668,6 +4670,8 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "aiobotocore", specifier = ">=2.4.1,<3" },
+    { name = "aiohttp", specifier = ">=3.13.2" },
+    { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "pandas", specifier = ">=1.5.2,<3" },
     { name = "python-decouple", specifier = ">=3.6,<4" },
     { name = "requests", specifier = ">=2.31.0,<3" },
