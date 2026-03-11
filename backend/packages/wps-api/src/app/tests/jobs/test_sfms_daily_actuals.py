@@ -19,7 +19,7 @@ from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
-from wps_shared.db.models.sfms_run import SFMSRunLogStatus
+from wps_shared.db.models.sfms_run import SFMSRunLogJobName, SFMSRunLogStatus
 from wps_shared.sfms.raster_addresser import FWIParameter
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
@@ -477,6 +477,66 @@ class TestFWICalculationVsInterpolation:
         mock_dependencies.fwi_processor.calculate_index.assert_not_called()
         # Only weather interpolation jobs are tracked when the FWI chain is skipped.
         assert mock_dependencies.db_session.execute.call_count == 5
+
+    @pytest.mark.anyio
+    async def test_regular_day_tracks_expected_job_names_in_order(
+        self, mock_dependencies: MockDailyActualsDeps, mocker: MockerFixture
+    ):
+        """Regular-day runs should track the full weather + FWI job names in order."""
+        captured_job_names = []
+
+        async def fake_run_tracked_job(job_name, sfms_run_id, session, action):
+            captured_job_names.append(job_name)
+            return await action()
+
+        mocker.patch(f"{MODULE_PATH}._run_tracked_job", side_effect=fake_run_tracked_job)
+
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+        await run_sfms_daily_actuals(target_date)
+
+        assert captured_job_names == [
+            SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+            SFMSRunLogJobName.RH_INTERPOLATION,
+            SFMSRunLogJobName.WIND_SPEED_INTERPOLATION,
+            SFMSRunLogJobName.WIND_DIRECTION_INTERPOLATION,
+            SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+            SFMSRunLogJobName.FFMC_CALCULATION,
+            SFMSRunLogJobName.DMC_CALCULATION,
+            SFMSRunLogJobName.DC_CALCULATION,
+            SFMSRunLogJobName.ISI_CALCULATION,
+            SFMSRunLogJobName.BUI_CALCULATION,
+            SFMSRunLogJobName.FWI_CALCULATION,
+        ]
+
+    @pytest.mark.anyio
+    async def test_interpolation_monday_tracks_expected_job_names_in_order(
+        self, mock_dependencies: MockDailyActualsDeps, mocker: MockerFixture
+    ):
+        """Interpolation Mondays should track interpolation/calculation job names in order."""
+        captured_job_names = []
+
+        async def fake_run_tracked_job(job_name, sfms_run_id, session, action):
+            captured_job_names.append(job_name)
+            return await action()
+
+        mocker.patch(f"{MODULE_PATH}._run_tracked_job", side_effect=fake_run_tracked_job)
+
+        target_date = datetime(2024, 5, 6, tzinfo=timezone.utc)
+        await run_sfms_daily_actuals(target_date)
+
+        assert captured_job_names == [
+            SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+            SFMSRunLogJobName.RH_INTERPOLATION,
+            SFMSRunLogJobName.WIND_SPEED_INTERPOLATION,
+            SFMSRunLogJobName.WIND_DIRECTION_INTERPOLATION,
+            SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+            SFMSRunLogJobName.FFMC_INTERPOLATION,
+            SFMSRunLogJobName.DMC_INTERPOLATION,
+            SFMSRunLogJobName.DC_INTERPOLATION,
+            SFMSRunLogJobName.ISI_CALCULATION,
+            SFMSRunLogJobName.BUI_CALCULATION,
+            SFMSRunLogJobName.FWI_CALCULATION,
+        ]
 
 
 class TestMain:
