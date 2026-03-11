@@ -5,7 +5,7 @@ import math
 import os
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 from app.fire_behaviour import c7b, cffdrs
@@ -80,7 +80,15 @@ class DiurnalFFMCLookupTable:
         self.morning_df = morning_df
 
 
-def calculate_cfb(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, cbh: float):
+def calculate_cfb(
+    fuel_type: FuelTypeEnum,
+    fmc: float,
+    sfc: float,
+    ros: float,
+    cbh: float,
+    isi: Optional[float] = None,
+    bui: Optional[float] = None,
+):
     """Calculate the crown fraction burned  (returning 0 for fuel types without crowns to burn)"""
     if fuel_type in [
         FuelTypeEnum.D1,
@@ -97,7 +105,7 @@ def calculate_cfb(fuel_type: FuelTypeEnum, fmc: float, sfc: float, ros: float, c
         # We can't calculate cfb without a crown base height!
         cfb = None
     else:
-        cfb = cffdrs.crown_fraction_burned(fuel_type, fmc=fmc, sfc=sfc, ros=ros, cbh=cbh)
+        cfb = cffdrs.crown_fraction_burned(fuel_type, fmc=fmc, sfc=sfc, ros=ros, cbh=cbh, isi=isi, bui=bui)
     return cfb
 
 
@@ -428,7 +436,7 @@ def calculate_fire_behaviour_prediction_using_cffdrs(
         FuelTypeEnum[fuel_type], isi, bui, fmc, sfc, pc=pc, cc=cc, pdf=pdf, cbh=cbh
     )
     if sfc is not None:
-        cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh)
+        cfb = calculate_cfb(FuelTypeEnum[fuel_type], fmc, sfc, ros, cbh, isi=isi, bui=bui)
 
     if ros is not None and cfb is not None and cfl is not None:
         hfi = cffdrs.head_fire_intensity(

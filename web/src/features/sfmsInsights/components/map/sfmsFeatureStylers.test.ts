@@ -49,11 +49,9 @@ describe('snowStyler', () => {
     expect(snowStyle.getFill()?.getColor()).toBe(SNOW_FILL)
   })
   it('should render the correct fill color for no snow', () => {
-    describe('snowStyler', () => {
-      const feature = new ol.Feature<Geometry>({ snow: 0 })
-      const snowStyle = snowStyler(feature)
-      expect(snowStyle.getFill()?.getColor()).toBe(EMPTY_FILL)
-    })
+    const feature = new ol.Feature<Geometry>({ snow: 0 })
+    const snowStyle = snowStyler(feature)
+    expect(snowStyle.getFill()?.getColor()).toBe(EMPTY_FILL)
   })
 })
 

@@ -12,27 +12,28 @@ PODS:
   - CapacitorCordova (7.1.0)
   - CapacitorDevice (8.0.1):
     - Capacitor
-  - CapacitorEmailComposer (7.0.0):
+  - CapacitorEmailComposer (7.0.2):
     - Capacitor
-  - CapacitorFilesystem (7.0.0):
+  - CapacitorFilesystem (7.1.8):
     - Capacitor
+    - IONFilesystemLib (~> 1.1.1)
   - CapacitorFirebaseMessaging (8.1.0):
     - Capacitor
     - FirebaseMessaging (~> 12.7.0)
-  - CapacitorGeolocation (7.1.4):
+  - CapacitorGeolocation (7.1.8):
     - Capacitor
-    - IONGeolocationLib (~> 1.0)
+    - IONGeolocationLib (= 1.0.1)
   - CapacitorHaptics (7.0.0):
     - Capacitor
   - CapacitorKeyboard (7.0.0):
     - Capacitor
-  - CapacitorNetwork (7.0.0):
+  - CapacitorNetwork (7.0.4):
     - Capacitor
-  - CapacitorPreferences (7.0.2):
+  - CapacitorPreferences (7.0.4):
     - Capacitor
-  - CapacitorScreenOrientation (8.0.0):
+  - CapacitorScreenOrientation (8.0.1):
     - Capacitor
-  - CapacitorSplashScreen (7.0.2):
+  - CapacitorSplashScreen (7.0.5):
     - Capacitor
   - CapacitorStatusBar (7.0.0):
     - Capacitor
@@ -83,7 +84,8 @@ PODS:
   - GoogleUtilities/UserDefaults (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - IONGeolocationLib (1.0.2)
+  - IONFilesystemLib (1.1.1)
+  - IONGeolocationLib (1.0.1)
   - Keycloak (0.0.1):
     - AppAuth
     - Capacitor
@@ -122,6 +124,7 @@ SPEC REPOS:
     - FirebaseMessaging
     - GoogleDataTransport
     - GoogleUtilities
+    - IONFilesystemLib
     - IONGeolocationLib
     - nanopb
     - PromisesObjC
@@ -166,16 +169,16 @@ SPEC CHECKSUMS:
   CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
   CapacitorDevice: ebd210e29ae690225291b8616e6cfaf419d2e866
-  CapacitorEmailComposer: 5f0ae4bd516997aba61034ba4387f2a67947ce21
-  CapacitorFilesystem: 2881ad012b5c8d0ffbfed1216aadfc2cca16d5b5
+  CapacitorEmailComposer: 6e06f75898334036cc95ada2238b3dcbb78932c0
+  CapacitorFilesystem: f54cd6b76be06fa7ceb219cf313d32e0d626ea87
   CapacitorFirebaseMessaging: 798b7f8af4318b97b11eb9b84c8ebe9920237c17
-  CapacitorGeolocation: 5583eb25815522c4b4cb38936ac7fea8a34996d9
+  CapacitorGeolocation: de4b0ccf90140528184e31676dd5e3a328eb589a
   CapacitorHaptics: 1fba3e460e7614349c6d5f868b1fccdc5c87b66d
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
-  CapacitorNetwork: cd17b98182841055ff58629213242a1f22f4a76b
-  CapacitorPreferences: b583b5deb74e564c35968189d25d32c0fd41200d
-  CapacitorScreenOrientation: 82b7c0bcc6189e97269ec66c613d0cd4f1c1c004
-  CapacitorSplashScreen: 8d6c8cb0542a8e81585c593815db8785ed8ce454
+  CapacitorNetwork: 3d56050f929a8c86427a5b28558ce605e7cf61b3
+  CapacitorPreferences: d82a7e3b95fcab43a553268b803356522910d153
+  CapacitorScreenOrientation: 07503c9d633377427f1e122449b06b1dbc992d10
+  CapacitorSplashScreen: b3d12b4324d93ce605fe57f05a199ade7f26189e
   CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
   FirebaseCore: c7b57863ce0859281a66d16ca36d665c45d332b5
   FirebaseCoreInternal: 571a2dd8c975410966199623351db3a3265c874d
@@ -183,7 +186,8 @@ SPEC CHECKSUMS:
   FirebaseMessaging: b5f7bdc62b91b6102015991fb7bc6fa75f643908
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
-  IONGeolocationLib: adbb2a739b0ccda686d4a66f9bc05f8c4fd3d3c0
+  IONFilesystemLib: dfa8706539ac9ab77ccfd6e5b3830ce9b5e57f6c
+  IONGeolocationLib: 20f9d0248a0b5264511fb57a37e25dd2badf797a
   Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47

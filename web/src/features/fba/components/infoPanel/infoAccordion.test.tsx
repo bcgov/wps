@@ -74,7 +74,7 @@ describe('InfoAccordion', () => {
     const statusBar = getByTestId('advisory-status-bar')
     expect(statusBar).toBeVisible()
     expect(statusBar).toHaveStyle(`
-      background: repeating-linear-gradient(135deg, ${ADVISORY_RED_LINE} , ${ADVISORY_RED_LINE} 40px, white 40px, white 70px)
+      background: repeating-linear-gradient(135deg, ${ADVISORY_RED_LINE}, ${ADVISORY_RED_LINE} 40px, white 40px, white 70px)
     `)
   })
   it('should render an orange advisory status bar if provided an Advisory status', () => {
@@ -91,7 +91,7 @@ describe('InfoAccordion', () => {
     const statusBar = getByTestId('advisory-status-bar')
     expect(statusBar).toBeVisible()
     expect(statusBar).toHaveStyle(`
-      background: repeating-linear-gradient(135deg, ${ADVISORY_ORANGE_FILL} , ${ADVISORY_ORANGE_FILL} 40px, white 40px, white 70px)
+      background: repeating-linear-gradient(135deg, ${ADVISORY_ORANGE_FILL}, ${ADVISORY_ORANGE_FILL} 40px, white 40px, white 70px)
     `)
   })
   it('should render a grey advisory status bar if no status is provided or the status is undefined', () => {

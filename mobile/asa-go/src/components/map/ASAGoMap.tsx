@@ -359,7 +359,7 @@ const ASAGoMap = ({
     /******* Start map popup ******/
     popup.setElement(popupRef.current);
     mapObject.addOverlay(popup);
-    const mapClickHandler = (event: MapBrowserEvent<UIEvent>) => {
+    const mapClickHandler = (event: MapBrowserEvent) => {
       fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
         clickSourceRef.current = true; // Mark as click source
         if (!features.length) {

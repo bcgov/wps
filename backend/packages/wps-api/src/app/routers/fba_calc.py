@@ -5,9 +5,9 @@ from datetime import date, datetime, timedelta
 
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
-from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.auth import audit, authentication_required
 from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
+from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS
 from wps_shared.schemas.fba_calc import (
     StationListRequest,
     StationRequest,
@@ -16,6 +16,7 @@ from wps_shared.schemas.fba_calc import (
 )
 from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.utils.time import get_hour_20_from_date
+from wps_wf1.wfwx_api import WfwxApi
 
 from app.fire_behaviour.advisory import (
     FBACalculatorWeatherStation,
@@ -132,7 +133,9 @@ async def process_request(
         percentage_conifer=requested_station.percentage_conifer,
         percentage_dead_balsam_fir=requested_station.percentage_dead_balsam_fir,
         grass_cure=requested_station.grass_cure,
-        crown_base_height=requested_station.crown_base_height,
+        crown_base_height=requested_station.crown_base_height
+        if requested_station.crown_base_height is not None
+        else FUEL_TYPE_DEFAULTS[requested_station.fuel_type]["CBH"],
         crown_fuel_load=requested_station.crown_fuel_load,
         lat=wfwx_station.lat,
         long=wfwx_station.long,

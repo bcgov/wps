@@ -3,6 +3,7 @@ import { PMTilesCache } from "@/utils/pmtilesCache";
 import { PluginListenerHandle } from "@capacitor/core";
 import {
   AppendFileOptions,
+  CallbackID,
   CopyOptions,
   CopyResult,
   DeleteFileOptions,
@@ -16,6 +17,8 @@ import {
   ProgressListener,
   ReaddirOptions,
   ReaddirResult,
+  ReadFileInChunksCallback,
+  ReadFileInChunksOptions,
   ReadFileOptions,
   ReadFileResult,
   RenameOptions,
@@ -64,7 +67,11 @@ export class MockFilesystem implements FilesystemPlugin {
   }
   stat(options: StatOptions): Promise<StatResult> {
     console.log("Method not implemented.", options);
-    return Promise.resolve({ type: "file", size: 0, mtime: 0, uri: "" });
+    return Promise.resolve({ type: "file", size: 0, mtime: 0, uri: "", name: "" });
+  }
+  readFileInChunks(options: ReadFileInChunksOptions, callback: ReadFileInChunksCallback): Promise<CallbackID> {
+    console.log("Method not implemented.", options, callback);
+    return Promise.resolve("");
   }
   rename(options: RenameOptions): Promise<void> {
     console.log("Method not implemented.", options);

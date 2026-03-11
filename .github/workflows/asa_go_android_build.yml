@@ -47,38 +47,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-
-      - uses: actions/cache@v5
-        id: asa-go-cache
-        with:
-          path: |
-            mobile/asa-go/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - uses: actions/cache@v5
-        id: asa-go-keycloak-cache
-        with:
-          path: |
-            mobile/keycloak/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install keycloak plugin
-        working-directory: ./mobile/keycloak
-        if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
-        run: yarn install
-
-      - name: Build keycloak plugin
-        working-directory: ./mobile/keycloak
-        run: yarn build
-
-      - name: Install dependencies
-        working-directory: ./mobile/asa-go
-        if: steps.asa-go-cache.outputs.cache-hit != 'true'
-        run: yarn install
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
 
       - name: Create environment settings
         working-directory: ./mobile/asa-go
