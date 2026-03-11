@@ -48,13 +48,12 @@ cd mobile/asa-go/android
 
 #### Running on a physical Android device against your local API
 
-Get your local machine IP: `ipconfig getifaddr en0` (returns a `10.x.x.x` address on macOS)
+Get your local machine IP: `ipconfig getifaddr en0`
 
 1. Set `VITE_API_BASE_URL=http://{local_machine_ip}:8080/api` in `.env.development`
 2. Set `ORIGINS="http://localhost/ http://{local_machine_ip}:8080"` in `backend/packages/wps-api/src/app/.env`
 3. Add `server: { androidScheme: "http" }` to the root of the config in `capacitor.config.ts`
 4. Add `<domain includeSubdomains="true">{local_machine_ip}</domain>` to the `domain-config` list in `network_security_config.xml`
-
 
 ### Asset Generation
 
@@ -89,6 +88,7 @@ Runs on pull requests to `main` that touch `mobile/**`. Three parallel jobs:
 - **`android_test`** — Runs `yarn cap sync android`, then `./gradlew jacocoTestReport` for both `asa-go/android` and `keycloak/android` on Ubuntu; uploads JaCoCo XML reports to Codecov (`android` flag)
 
 All three jobs use the shared composite action `.github/actions/asa-go-setup`, which:
+
 1. Sets up Node.js 20
 2. Caches and installs `mobile/keycloak` node_modules, then runs `yarn build`
 3. Caches and installs `mobile/asa-go` node_modules, then runs `yarn build`
@@ -96,6 +96,7 @@ All three jobs use the shared composite action `.github/actions/asa-go-setup`, w
 ### Android Release Build (`.github/workflows/asa_go_android_build.yml`)
 
 Builds a signed release APK. Requires these GitHub secrets:
+
 - `VITE_API_BASE_URL`, `VITE_KEYCLOAK_AUTH_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT`
 - `VITE_PMTILES_BUCKET`, `VITE_BASEMAP_TILE_URL`, `VITE_BASEMAP_STYLE_URL`
 - `ANDROID_KEY_ALIAS`, `ANDROID_SIGNING_STORE_PASSWORD`, `ANDROID_SIGNING_KEY_PASSWORD`, `ANDROID_KEYSTORE_BASE64`
