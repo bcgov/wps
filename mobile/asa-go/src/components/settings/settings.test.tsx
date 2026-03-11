@@ -6,6 +6,7 @@ import Settings from "./Settings";
 import settingsReducer from "@/slices/settingsSlice";
 import networkStatusReducer from "@/slices/networkStatusSlice";
 import { FireCentreInfo, getFireCentreInfo } from "@/api/fbaAPI";
+import * as Storage from "@/utils/storage";
 
 // Mock the API call
 vi.mock("@/api/fbaAPI", async () => {
@@ -23,6 +24,17 @@ vi.mock("@capacitor-firebase/messaging", () => {
     FirebaseMessaging: {
       checkPermissions: mockCheckPermissions,
     },
+  };
+});
+
+vi.mock("@/utils/storage", async () => {
+  const actual = await vi.importActual<typeof import("@/utils/storage")>(
+    "@/utils/storage",
+  );
+  return {
+    ...actual,
+    readFromFilesystem: vi.fn(),
+    writeToFileSystem: vi.fn(),
   };
 });
 
@@ -61,6 +73,7 @@ describe("Settings", () => {
     (getFireCentreInfo as Mock).mockResolvedValue({
       fire_centre_info: mockFireCentreInfos,
     });
+    (Storage.readFromFilesystem as Mock).mockResolvedValue(null);
   });
 
   it("renders the settings component correctly", async () => {
@@ -101,12 +114,9 @@ describe("Settings", () => {
         <Settings />
       </Provider>,
     );
-    // Check if fire centre accordions are rendered
-    for (const fc of mockFireCentreInfos) {
-      expect(
-        await screen.findByText(fc.fire_centre_name.toUpperCase()),
-      ).toBeInTheDocument();
-    }
+    const fireCentreElements = await screen.findAllByRole("heading");
+    expect(fireCentreElements[0]).toHaveTextContent(/KAMLOOPS/i);
+    expect(fireCentreElements[1]).toHaveTextContent(/PRINCE GEORGE/i);
   });
 
   it("renders offline message when offline", async () => {
