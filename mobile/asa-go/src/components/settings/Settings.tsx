@@ -97,12 +97,14 @@ const Settings = () => {
     }
 
     return (
-      <Typography
-        sx={{ color: theme.palette.primary.main, padding: theme.spacing(1) }}
-        variant="body1"
+      <Alert
+        severity="warning"
+        sx={{ mx: 1, my: 1 }}
+        data-testid="notifications-permission-warning"
       >
+        <AlertTitle>Offline</AlertTitle>
         Notification settings are not available while offline.
-      </Typography>
+      </Alert>
     );
   };
 

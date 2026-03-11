@@ -1,8 +1,17 @@
 import { AppThunk } from "@/store";
+import { today } from "@/utils/dataSliceUtils";
+import {
+  FIRE_CENTER_INFO_CACHE_EXPIRATION,
+  FIRE_CENTER_INFO_KEY,
+  readFromFilesystem,
+  writeToFileSystem,
+} from "@/utils/storage";
+import { Filesystem } from "@capacitor/filesystem";
 import { Preferences } from "@capacitor/preferences";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { FireCentreInfo, getFireCentreInfo } from "api/fbaAPI";
 import { isNil, isNull } from "lodash";
+import { DateTime } from "luxon";
 
 export interface SettingsState {
   loading: boolean;
@@ -87,17 +96,52 @@ export const savePinnedFireCentre =
     dispatch(setPinnedFireCentre(fireCentre));
   };
 
-//
-export const fetchFireCentreInfo = (): AppThunk => async (dispatch) => {
-  try {
-    dispatch(getFireCenterInfoStart());
-    console.log("DEBUG: Making an API call to get settings info.");
-    const fireCentreInfo = await getFireCentreInfo();
-    dispatch(
-      getFireCenterInfoSuccess(fireCentreInfo.fire_centre_info),
+export const fetchFireCentreInfo =
+  (): AppThunk => async (dispatch, getState) => {
+    // Check for cached fire centers data. If the data is not stale save it in redux state.
+    const cachedFireCenterInfo = await readFromFilesystem(
+      Filesystem,
+      FIRE_CENTER_INFO_KEY,
     );
-  } catch (err) {
-    dispatch(getFireCenterInfoFailed((err as Error).toString()));
-    console.log(err);
-  }
-};
+    const networkStatus = getState().networkStatus;
+    if (!isNull(cachedFireCenterInfo)) {
+      const lastUpdated = DateTime.fromISO(cachedFireCenterInfo.lastUpdated);
+      // Update state from the cached data if it isn't stale or if we're offline.
+      if (
+        lastUpdated.plus({ hours: FIRE_CENTER_INFO_CACHE_EXPIRATION }) >
+          today ||
+        !networkStatus.networkStatus.connected
+      ) {
+        dispatch(
+          getFireCenterInfoSuccess(
+            cachedFireCenterInfo.data as FireCentreInfo[],
+          ),
+        );
+        return;
+      }
+    }
+    // Cached data is not available or is stale so we need to fetch and cache if we're online.
+    if (networkStatus.networkStatus.connected) {
+      try {
+        dispatch(getFireCenterInfoStart());
+        const fireCenterInfo = await getFireCentreInfo();
+        await writeToFileSystem(
+          Filesystem,
+          FIRE_CENTER_INFO_KEY,
+          fireCenterInfo.fire_centre_info,
+          today,
+        );
+        dispatch(getFireCenterInfoSuccess(fireCenterInfo.fire_centre_info));
+      } catch (err) {
+        dispatch(getFireCenterInfoFailed((err as Error).toString()));
+        console.log(err);
+      }
+    } else {
+      // We're offline so there is nothing to do but set the error state.
+      dispatch(
+        getFireCenterInfoFailed(
+          "Unable to refresh fire center info data. Data may be stale.",
+        ),
+      );
+    }
+  };
