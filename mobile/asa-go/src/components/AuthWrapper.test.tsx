@@ -42,6 +42,7 @@ describe("AuthWrapper", () => {
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
+      idir: undefined,
       token: "test-token",
     });
 
@@ -58,6 +59,7 @@ describe("AuthWrapper", () => {
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
+      idir: undefined,
       token: "test-token",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
@@ -77,6 +79,7 @@ describe("AuthWrapper", () => {
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
+      idir: undefined,
       token: "test-token",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
@@ -96,6 +99,7 @@ describe("AuthWrapper", () => {
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
+      idir: undefined,
       token: "test-token",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
@@ -117,6 +121,7 @@ describe("AuthWrapper", () => {
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
+      idir: undefined,
       token: "test-token",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
@@ -136,6 +141,7 @@ describe("AuthWrapper", () => {
       error: "Invalid credentials",
       tokenRefreshed: false,
       idToken: undefined,
+      idir: undefined,
       token: "test-token",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
