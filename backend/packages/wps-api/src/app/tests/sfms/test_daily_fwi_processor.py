@@ -7,7 +7,8 @@ from pytest_mock import MockerFixture
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from app.sfms import daily_fwi_processor
 from app.sfms.daily_fwi_processor import DailyFWIProcessor
-from wps_shared.sfms.raster_addresser import FWIParameter, RasterKeyAddresser
+from app.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import FWIParameter
 from wps_shared.tests.geospatial.dataset_common import (
     create_mock_gdal_dataset,
     create_mock_input_dataset_context,

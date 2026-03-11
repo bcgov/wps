@@ -31,16 +31,6 @@ pyenv global 3.12.3
 ### uv
 brew install uv
 
-### r
-brew install --cask r
-brew install udunits
-brew install proj
-
-echo "installing r packages, this takes awhile..."
-r -e 'install.packages(c("rgdal","sf", "units"),,"https://mac.R-project.org")'
-r -e "install.packages('cffdrs', repos = 'http://cran.us.r-project.org')"
-echo "finished installing r packages"
-
 ### postgres - Nov 2024 - Commenting out the postgres setup. See MANUAL.md for reasons and manual postgres setup.
 # echo "installing and configuring postgres"
 # brew install postgresql

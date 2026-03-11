@@ -167,3 +167,7 @@ Pods
 
 # hypothesis directories
 .hypothesis/
+
+# Push notification config
+google-services.json
+GoogleService-Info.plist

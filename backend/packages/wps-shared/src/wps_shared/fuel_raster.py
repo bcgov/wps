@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 async def find_latest_version(
-    s3_client: S3Client, raster_addresser: RasterKeyAddresser, now: datetime, version: int
+    s3_client: S3Client, raster_addresser: BaseRasterAddresser, now: datetime, version: int
 ):
     current_version = version
     key = raster_addresser.get_fuel_raster_key(now, current_version)
@@ -30,7 +30,7 @@ async def find_latest_version(
 
 
 async def process_fuel_type_raster(
-    raster_addresser: RasterKeyAddresser, start_datetime: datetime, unprocessed_object_name: str
+    raster_addresser: BaseRasterAddresser, start_datetime: datetime, unprocessed_object_name: str
 ):
     """
     This function performs the following steps:
@@ -41,7 +41,7 @@ async def process_fuel_type_raster(
     5. If validation succeeds, extracts raster dimensions and returns metadata to the caller.
 
     Args:
-        raster_addresser (RasterKeyAddresser): An instance used to generate S3 keys for raster objects.
+        raster_addresser (BaseRasterAddresser): An instance used to generate S3 keys for raster objects.
         start_datetime (datetime): The datetime associated with the raster job.
         unprocessed_object_name (str): The S3 object name of the unprocessed raster.
 
@@ -50,7 +50,7 @@ async def process_fuel_type_raster(
     """
     async with S3Client() as s3_client:
         current_version = await find_latest_version(
-            s3_client, RasterKeyAddresser(), start_datetime, 1
+            s3_client, BaseRasterAddresser(), start_datetime, 1
         )
         new_version = current_version + 1
         unprocessed_key = raster_addresser.get_unprocessed_fuel_raster_key(unprocessed_object_name)

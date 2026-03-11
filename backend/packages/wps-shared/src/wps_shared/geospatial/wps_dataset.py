@@ -5,7 +5,7 @@ from osgeo import gdal, osr
 import numpy as np
 import io
 
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
+from wps_shared.geospatial.geospatial import GDALResamplingMethod, rasters_match
 
 gdal.UseExceptions()
 
@@ -234,7 +234,11 @@ class WPSDataset:
         nodata_value = band.GetNoDataValue()
         array = band.ReadAsArray()
 
-        array[array == nodata_value] = new_no_data_value
+        if np.isnan(new_no_data_value):
+            if not np.issubdtype(array.dtype, np.floating):
+                array = array.astype(np.float64)
+        if nodata_value is not None:
+            array[array == nodata_value] = new_no_data_value
 
         return array, new_no_data_value
 
@@ -386,24 +390,8 @@ class WPSDataset:
         :return: Boolean array where True = valid, False = masked
         :raises ValueError: If the mask grid does not match this dataset's grid
         """
-        mismatches = []
-        if self.ds.RasterXSize != mask_ds.ds.RasterXSize or self.ds.RasterYSize != mask_ds.ds.RasterYSize:
-            mismatches.append(
-                f"size: reference=({self.ds.RasterXSize}x{self.ds.RasterYSize}), "
-                f"mask=({mask_ds.ds.RasterXSize}x{mask_ds.ds.RasterYSize})"
-            )
-        if self.ds.GetGeoTransform() != mask_ds.ds.GetGeoTransform():
-            mismatches.append(
-                f"geotransform: reference={self.ds.GetGeoTransform()}, "
-                f"mask={mask_ds.ds.GetGeoTransform()}"
-            )
-        if self.ds.GetProjection() != mask_ds.ds.GetProjection():
-            mismatches.append("projection differs")
-
-        if mismatches:
-            raise ValueError(
-                "Mask grid does not match reference grid: " + "; ".join(mismatches)
-            )
+        if not rasters_match(self.ds, mask_ds.ds):
+            raise ValueError("Mask grid does not match reference grid")
 
         mask_band: gdal.Band = mask_ds.ds.GetRasterBand(1)
         mask_data = mask_band.ReadAsArray()

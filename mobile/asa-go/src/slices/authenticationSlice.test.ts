@@ -19,6 +19,10 @@ interface TokenResponse {
   scope?: string;
 }
 
+// Mock valid JWT token with idir_username and email claims
+const mockValidToken =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGlyX3VzZXJuYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG4uZG9lQGNvbnRhY3QuY29tIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
 // Mock the Keycloak module
 vi.mock("../../../keycloak/src", () => ({
   Keycloak: {
@@ -36,7 +40,7 @@ describe("authenticationSlice", () => {
 
   const createSuccessfulAuthResult = (overrides = {}) => ({
     isAuthenticated: true,
-    accessToken: "test-token",
+    accessToken: mockValidToken,
     idToken: "test-id-token",
     ...overrides,
   });
@@ -47,9 +51,9 @@ describe("authenticationSlice", () => {
   });
 
   const createTokenResponse = (
-    overrides: Partial<TokenResponse> = {}
+    overrides: Partial<TokenResponse> = {},
   ): TokenResponse => ({
-    accessToken: "new-access-token",
+    accessToken: mockValidToken,
     refreshToken: "new-refresh-token",
     tokenType: "Bearer",
     expiresIn: 3600,
@@ -65,7 +69,7 @@ describe("authenticationSlice", () => {
   };
 
   const setupTokenRefreshListener = (
-    store: ReturnType<typeof createTestStore>
+    store: ReturnType<typeof createTestStore>,
   ) => {
     let tokenRefreshCallback: (tokenResponse: TokenResponse) => void = () => {};
 
@@ -91,7 +95,7 @@ describe("authenticationSlice", () => {
   describe("reducers", () => {
     it("should return the initial state", () => {
       expect(authenticationSlice(undefined, { type: "unknown" })).toEqual(
-        initialState
+        initialState,
       );
     });
 
@@ -110,19 +114,19 @@ describe("authenticationSlice", () => {
       const previousState = createAuthState({ authenticating: true });
       const payload = {
         isAuthenticated: true,
-        token: "access-token-123",
+        token: mockValidToken,
         idToken: "id-token-456",
       };
 
       const nextState = authenticationSlice(
         previousState,
-        authenticateFinished(payload)
+        authenticateFinished(payload),
       );
 
       expectAuthState(nextState, {
         authenticating: false,
         isAuthenticated: true,
-        token: "access-token-123",
+        token: mockValidToken,
         idToken: "id-token-456",
       });
     });
@@ -137,7 +141,7 @@ describe("authenticationSlice", () => {
 
       const nextState = authenticationSlice(
         previousState,
-        authenticateFinished(payload)
+        authenticateFinished(payload),
       );
 
       expectAuthState(nextState, {
@@ -157,7 +161,7 @@ describe("authenticationSlice", () => {
 
       const nextState = authenticationSlice(
         previousState,
-        authenticateError(errorMessage)
+        authenticateError(errorMessage),
       );
 
       expectAuthState(nextState, {
@@ -175,17 +179,17 @@ describe("authenticationSlice", () => {
       });
       const payload = {
         tokenRefreshed: true,
-        token: "new-access-token",
+        token: mockValidToken,
         idToken: "new-id-token",
       };
 
       const nextState = authenticationSlice(
         previousState,
-        refreshTokenFinished(payload)
+        refreshTokenFinished(payload),
       );
 
       expectAuthState(nextState, {
-        token: "new-access-token",
+        token: mockValidToken,
         idToken: "new-id-token",
         tokenRefreshed: true,
       });
@@ -205,7 +209,7 @@ describe("authenticationSlice", () => {
 
       const nextState = authenticationSlice(
         previousState,
-        refreshTokenFinished(payload)
+        refreshTokenFinished(payload),
       );
 
       expect(nextState.token).toBeUndefined();
@@ -232,7 +236,7 @@ describe("authenticationSlice", () => {
 
       it("should dispatch authenticateFinished on successful authentication", async () => {
         const mockResult = createSuccessfulAuthResult({
-          accessToken: "test-access-token",
+          accessToken: mockValidToken,
         });
         const store = setupStoreWithMockAuth(mockResult);
 
@@ -240,7 +244,7 @@ describe("authenticationSlice", () => {
 
         expectAuthState(store.getState().authentication, {
           isAuthenticated: true,
-          token: "test-access-token",
+          token: mockValidToken,
           idToken: "test-id-token",
           authenticating: false,
           error: null,
@@ -298,7 +302,7 @@ describe("authenticationSlice", () => {
 
         expect(Keycloak.addListener).toHaveBeenCalledWith(
           "tokenRefresh",
-          expect.any(Function)
+          expect.any(Function),
         );
       });
 
@@ -314,7 +318,7 @@ describe("authenticationSlice", () => {
 
         expectAuthState(store.getState().authentication, {
           tokenRefreshed: true,
-          token: "new-access-token",
+          token: mockValidToken,
         });
         expect(store.getState().authentication.idToken).toBeUndefined();
       });

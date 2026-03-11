@@ -1,0 +1,144 @@
+name: Build ASA Go Android
+
+env:
+  appBuildVersion: "1.0.2"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-secrets:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: Check secrets
+        shell: bash
+        run: |
+          required_env_vars=(
+            "KEYSTORE"
+            "KEY_ALIAS"
+            "SIGNING_STORE_PASSWORD"
+            "SIGNING_KEY_PASSWORD"
+            "VITE_BASEMAP_TILE_URL"
+            "VITE_BASEMAP_STYLE_URL"
+          )
+          for var in "${required_env_vars[@]}"; do
+            if [ -z "${!var}" ]; then
+              echo "error: $var is not set."
+              exit 1
+            fi
+          done
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          VITE_BASEMAP_TILE_URL: ${{ secrets.VITE_BASEMAP_TILE_URL }}
+          VITE_BASEMAP_STYLE_URL: ${{ secrets.VITE_BASEMAP_STYLE_URL }}
+
+  build-and-publish:
+    name: Build and deploy
+    needs: [check-secrets]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - uses: actions/cache@v5
+        id: asa-go-cache
+        with:
+          path: |
+            mobile/asa-go/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - uses: actions/cache@v5
+        id: asa-go-keycloak-cache
+        with:
+          path: |
+            mobile/keycloak/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install keycloak plugin
+        working-directory: ./mobile/keycloak
+        if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
+        run: yarn install
+
+      - name: Build keycloak plugin
+        working-directory: ./mobile/keycloak
+        run: yarn build
+
+      - name: Install dependencies
+        working-directory: ./mobile/asa-go
+        if: steps.asa-go-cache.outputs.cache-hit != 'true'
+        run: yarn install
+
+      - name: Create environment settings
+        working-directory: ./mobile/asa-go
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_KEYCLOAK_AUTH_URL: ${{ secrets.VITE_KEYCLOAK_AUTH_URL }}
+          VITE_KEYCLOAK_REALM: ${{ secrets.VITE_KEYCLOAK_REALM }}
+          VITE_KEYCLOAK_CLIENT: ${{ secrets.VITE_KEYCLOAK_CLIENT }}
+          VITE_PMTILES_BUCKET: ${{ secrets.VITE_PMTILES_BUCKET }}
+          VITE_MUI_LICENSE_KEY: ${{ secrets.VITE_MUI_LICENSE_KEY }}
+          VITE_BASEMAP_TILE_URL: ${{ secrets.VITE_BASEMAP_TILE_URL }}
+          VITE_BASEMAP_STYLE_URL: ${{ secrets.VITE_BASEMAP_STYLE_URL }}
+        run: |
+          echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" > .env.production
+          echo "VITE_KEYCLOAK_AUTH_URL=${VITE_KEYCLOAK_AUTH_URL}" >> .env.production
+          echo "VITE_KEYCLOAK_REALM=${VITE_KEYCLOAK_REALM}" >> .env.production
+          echo "VITE_KEYCLOAK_CLIENT=${VITE_KEYCLOAK_CLIENT}" >> .env.production
+          echo "VITE_PMTILES_BUCKET=${VITE_PMTILES_BUCKET}" >> .env.production
+          echo "VITE_MUI_LICENSE_KEY=${VITE_MUI_LICENSE_KEY}" >> .env.production
+          echo "VITE_BASEMAP_TILE_URL=${VITE_BASEMAP_TILE_URL}" >> .env.production
+          echo "VITE_BASEMAP_STYLE_URL=${VITE_BASEMAP_STYLE_URL}" >> .env.production
+
+      - name: Build Capacitor and Sync
+        working-directory: ./mobile/asa-go
+        run: |
+          yarn build:prod
+          yarn cap sync android
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+
+      - name: Decode keystore file
+        env:
+          UPLOAD_KEYSTORE: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          echo "${UPLOAD_KEYSTORE}" | base64 -d > mobile/asa-go/android/app/release.keystore
+
+      - name: Bump Build Number
+        run: |
+          echo "VERSION_CODE=${{ github.run_number }}" >> $GITHUB_ENV
+          echo "VERSION_NAME=${{ env.appBuildVersion }}" >> $GITHUB_ENV
+
+      - name: Build Release AAB
+        working-directory: mobile/asa-go/android
+        env:
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+        run: |
+          ./gradlew bundleRelease
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ASA-Go-AAB
+          path: mobile/asa-go/android/app/build/outputs/bundle/release/*.aab
+          retention-days: 1
+          if-no-files-found: error

@@ -89,8 +89,8 @@ def track_sfms_run(
                 hours, remainder = divmod(execution_time.seconds, 3600)
                 minutes, seconds = divmod(remainder, 60)
                 logger.info(
-                    f"{job_name.value} interpolation completed successfully -- "
-                    "time elapsed %d hours, %d minutes, %.2f seconds",
+                    "%s completed successfully -- time elapsed %d hours, %d minutes, %.2f seconds",
+                    job_name.value,
                     hours,
                     minutes,
                     seconds,
@@ -100,9 +100,13 @@ def track_sfms_run(
                 )
                 return result
             except Exception:
-                await update_sfms_run_log(
-                    session, log_id, status=SFMSRunLogStatus.FAILED, completed_at=get_utc_now()
-                )
+                logger.error("%s failed", job_name.value, exc_info=True)
+                try:
+                    await update_sfms_run_log(
+                        session, log_id, status=SFMSRunLogStatus.FAILED, completed_at=get_utc_now()
+                    )
+                except Exception:
+                    logger.error("Failed to update run log for %s after job failure", job_name.value, exc_info=True)
                 raise
 
         return wrapper

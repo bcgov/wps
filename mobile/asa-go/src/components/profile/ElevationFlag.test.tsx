@@ -7,17 +7,11 @@ vi.mock("@/components/profile/FillableFlag", () => ({
   default: ({
     maskId,
     percent,
-    testId,
   }: {
     maskId: string;
     percent: number;
-    testId?: string;
   }) => (
-    <div
-      data-testid={`mock-flag-${maskId}`}
-      data-percent={percent}
-      data-test-id={testId}
-    >
+    <div data-testid={`mock-flag-${maskId}`} data-percent={percent}>
       Mock Flag: {percent}%
     </div>
   ),
@@ -31,7 +25,7 @@ describe("ElevationFlag", () => {
 
     const mockFlag = container.querySelector('[data-percent="75"]');
     expect(mockFlag).toBeInTheDocument();
-    expect(mockFlag).toHaveAttribute("data-test-id", "upper-slope");
+    expect(screen.getByTestId("upper-slope")).toHaveTextContent("75%");
   });
 
   it("should pass correct props to FillableFlag", () => {
@@ -39,7 +33,6 @@ describe("ElevationFlag", () => {
 
     const mockFlag = screen.getByText(/Mock Flag: 50%/);
     expect(mockFlag).toHaveAttribute("data-percent", "50");
-    expect(mockFlag).toHaveAttribute("data-test-id", "test-flag");
   });
 
   it("should generate random maskId correctly", () => {
