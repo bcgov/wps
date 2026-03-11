@@ -13,13 +13,13 @@ from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.jobs.sfms_daily_actuals import (
-    _missing_previous_index_keys,
+    _missing_seed_keys,
     is_fwi_interpolation_day,
     main,
     run_sfms_daily_actuals,
 )
 from app.tests.conftest import create_mock_sfms_actuals
-from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator, FWIProcessor
+from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
@@ -471,30 +471,17 @@ class TestFWICalculationVsInterpolation:
 
     @pytest.mark.anyio
     @pytest.mark.parametrize(
-        ("missing_param", "calculators", "expected_missing"),
+        ("missing_param", "expected_missing"),
         [
-            (
-                FWIParameter.FFMC,
-                (FFMCCalculator(),),
-                ["ffmc=ffmc_20240703.tif"],
-            ),
-            (
-                FWIParameter.DMC,
-                (DMCCalculator(7),),
-                ["dmc=dmc_20240703.tif"],
-            ),
-            (
-                FWIParameter.DC,
-                (DCCalculator(7),),
-                ["dc=dc_20240703.tif"],
-            ),
+            (FWIParameter.FFMC, ["ffmc=ffmc_20240703.tif"]),
+            (FWIParameter.DMC, ["dmc=dmc_20240703.tif"]),
+            (FWIParameter.DC, ["dc=dc_20240703.tif"]),
         ],
     )
-    async def test_missing_previous_index_keys_returns_only_missing_keys(
+    async def test_missing_seed_keys_returns_only_missing_keys(
         self,
         mock_dependencies: MockDailyActualsDeps,
         missing_param: FWIParameter,
-        calculators: tuple,
         expected_missing: list[str],
     ):
         """Previous-day seed checks should report only the missing FFMC/DMC/DC key."""
@@ -508,11 +495,10 @@ class TestFWICalculationVsInterpolation:
 
         mock_dependencies.s3_client.all_objects_exist = AsyncMock(side_effect=fake_all_objects_exist)
 
-        missing = await _missing_previous_index_keys(
+        missing = await _missing_seed_keys(
             target_date,
             mock_dependencies.addresser,
             mock_dependencies.s3_client,
-            calculators,
         )
 
         assert missing == expected_missing

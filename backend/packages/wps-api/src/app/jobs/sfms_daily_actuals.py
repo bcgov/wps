@@ -110,25 +110,16 @@ async def _process_raster_job(
     await _run_tracked_job(job_name, sfms_run_id, session, _run)
 
 
-async def _missing_previous_index_keys(
+async def _missing_seed_keys(
     datetime_to_process: datetime,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
-    calculators: tuple[FWICalculator, ...],
 ) -> list[str]:
-    """Return any missing previous-day index keys needed by the requested calculators."""
+    """Return any missing previous-day FFMC/DMC/DC seed rasters for a regular-day run."""
     base_index_params = {FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC}
-    required_previous_params = {
-        calculator.fwi_param
-        for calculator in calculators
-        if calculator.fwi_param in base_index_params
-    }
-    if not required_previous_params:
-        return []
-
     previous_date = datetime_to_process - timedelta(days=1)
     missing_keys = []
-    for param in required_previous_params:
+    for param in base_index_params:
         key = raster_addresser.get_actual_index_key(previous_date, param)
         if not await s3_client.all_objects_exist(key):
             missing_keys.append(f"{param.value}={key}")
@@ -324,11 +315,10 @@ async def run_fwi_calculations(
         BUICalculator(),
         FWIFinalCalculator(),
     )
-    missing_previous_keys = await _missing_previous_index_keys(
+    missing_previous_keys = await _missing_seed_keys(
         datetime_to_process,
         raster_addresser,
         s3_client,
-        calculators,
     )
     if missing_previous_keys:
         previous_date = datetime_to_process - timedelta(days=1)
