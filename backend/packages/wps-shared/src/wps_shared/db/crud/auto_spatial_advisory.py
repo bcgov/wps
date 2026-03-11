@@ -961,7 +961,7 @@ async def gather_zone_status_inputs(
     return thresholds_lut, hfi_rows
 
 
-async def get_fire_centre_fire_shapes(db_session: AsyncSession):
+async def get_fire_centre_info(db_session: AsyncSession):
     stmt = (
         select(
             Shape.id, Shape.label, FireCentre.name

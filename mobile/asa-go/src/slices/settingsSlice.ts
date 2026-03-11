@@ -1,20 +1,20 @@
 import { AppThunk } from "@/store";
 import { Preferences } from "@capacitor/preferences";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { FireCentreFireZoneUnits, getFireCentreInfo } from "api/fbaAPI";
+import { FireCentreInfo, getFireCentreInfo } from "api/fbaAPI";
 import { isNil, isNull } from "lodash";
 
 export interface PushNotificationState {
   loading: boolean;
   error: string | null;
-  fireCentreFireZoneUnits: FireCentreFireZoneUnits[];
+  fireCentreInfos: FireCentreInfo[];
   pinnedFireCentre: string | null;
 }
 
 export const initialState: PushNotificationState = {
   loading: false,
   error: null,
-  fireCentreFireZoneUnits: [],
+  fireCentreInfos: [],
   pinnedFireCentre: null,
 };
 
@@ -27,7 +27,7 @@ const pushNotificationSlice = createSlice({
     getFireCenterFireZoneUnitsStart(state: PushNotificationState) {
       state.error = null;
       state.loading = true;
-      state.fireCentreFireZoneUnits = [];
+      state.fireCentreInfos = [];
     },
     getFireCenterFireZoneUnitsFailed(
       state: PushNotificationState,
@@ -38,10 +38,10 @@ const pushNotificationSlice = createSlice({
     },
     getFireCenterFireZoneUnitsSuccess(
       state: PushNotificationState,
-      action: PayloadAction<FireCentreFireZoneUnits[]>,
+      action: PayloadAction<FireCentreInfo[]>,
     ) {
       state.error = null;
-      state.fireCentreFireZoneUnits = action.payload;
+      state.fireCentreInfos = action.payload;
       state.loading = false;
     },
     setPinnedFireCentre(
@@ -92,11 +92,9 @@ export const fetchFireCentreInfo = (): AppThunk => async (dispatch) => {
   try {
     dispatch(getFireCenterFireZoneUnitsStart());
     console.log("DEBUG: Making an API call to get settings info.");
-    const fireCentreFireZoneUnits = await getFireCentreInfo();
+    const fireCentreInfo = await getFireCentreInfo();
     dispatch(
-      getFireCenterFireZoneUnitsSuccess(
-        fireCentreFireZoneUnits.fire_centre_fire_zone_units,
-      ),
+      getFireCenterFireZoneUnitsSuccess(fireCentreInfo.fire_centre_info),
     );
   } catch (err) {
     dispatch(getFireCenterFireZoneUnitsFailed((err as Error).toString()));

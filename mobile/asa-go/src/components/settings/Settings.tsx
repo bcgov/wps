@@ -1,4 +1,4 @@
-import { FireCentreFireZoneUnits } from "@/api/fbaAPI";
+import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
 import {
   fetchFireCentreInfo,
@@ -19,8 +19,7 @@ type ReceivePermission = PermissionState | "unknown";
 const Settings = () => {
   const dispatch: AppDispatch = useDispatch();
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const { fireCentreFireZoneUnits, pinnedFireCentre } =
-    useSelector(selectSettings);
+  const { fireCentreInfos, pinnedFireCentre } = useSelector(selectSettings);
 
   const [receivePermission, setReceivePermission] =
     useState<ReceivePermission>("unknown");
@@ -56,10 +55,10 @@ const Settings = () => {
   }, [refreshNotificationPermission]);
 
   // Derived ordered list of centres for display (memoized)
-  const orderedFireCentres = useMemo<FireCentreFireZoneUnits[]>(() => {
-    if (!fireCentreFireZoneUnits) return [];
+  const orderedFireCentres = useMemo<FireCentreInfo[]>(() => {
+    if (!fireCentreInfos) return [];
 
-    const sorted = fireCentreFireZoneUnits.toSorted((a, b) =>
+    const sorted = fireCentreInfos.toSorted((a, b) =>
       a.fire_centre_name.localeCompare(b.fire_centre_name),
     );
 
@@ -76,7 +75,7 @@ const Settings = () => {
     }
 
     return sorted;
-  }, [fireCentreFireZoneUnits, pinnedFireCentre]);
+  }, [fireCentreInfos, pinnedFireCentre]);
 
   const renderNotificationMessage = () => {
     if (!networkStatus.connected || receivePermission !== "granted") {
@@ -150,7 +149,7 @@ const Settings = () => {
       {orderedFireCentres.map((unit) => (
         <SubscriptionAccordion
           key={unit.fire_centre_name}
-          fireCentreFireZoneUnits={unit}
+          FireCentreInfo={unit}
           disabled={notificationSettingsDisabled}
         />
       ))}

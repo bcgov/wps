@@ -35,13 +35,13 @@ class FireZoneUnit(BaseModel):
     name: str
 
 
-class FireCentreFireZoneUnits(BaseModel):
+class FireCentreInfo(BaseModel):
     fire_centre_name: str
     fire_zone_units: list[FireZoneUnit]
-class FireCentreFireZoneUnitsResponse(BaseModel):
+class FireCentreInfoResponse(BaseModel):
     """Response including a dictionary of fire zone units keyed by fire centre name."""
 
-    fire_centre_fire_zone_units: List[FireCentreFireZoneUnits]
+    fire_centre_info: List[FireCentreInfo]
 
 class FireShapeStatus(BaseModel):
     """Advisory status of a fire zone."""

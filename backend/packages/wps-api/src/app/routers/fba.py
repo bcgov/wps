@@ -15,7 +15,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_sfms_fuel_type_records,
     get_all_zone_source_ids,
     get_centre_tpi_stats,
-    get_fire_centre_fire_shapes,
+    get_fire_centre_info,
     get_fire_centre_tpi_fuel_areas,
     get_min_wind_speed_hfi_thresholds,
     get_most_recent_run_datetime_for_date,
@@ -36,8 +36,8 @@ from wps_shared.db.models.auto_spatial_advisory import (
 )
 from wps_shared.schemas.fba import (
     FireCenterListResponse,
-    FireCentreFireZoneUnits,
-    FireCentreFireZoneUnitsResponse,
+    FireCentreInfo,
+    FireCentreInfoResponse,
     FireCentreTPIResponse,
     FireZoneHFIStats,
     FireZoneTPIStats,
@@ -155,20 +155,20 @@ async def get_all_fire_centers(_=Depends(asa_authentication_required)):
     return FireCenterListResponse(fire_centers=fire_centers)
 
 
-@router.get("/fire-center-fire-zone-units", response_model=FireCentreFireZoneUnitsResponse)
-async def get_fire_centres_and_fire_shapes(_=Depends(asa_authentication_required)):
+@router.get("/fire-center-info", response_model=FireCentreInfoResponse)
+async def get_fire_centres_and_fire_zone_units(_=Depends(asa_authentication_required)):
     """Returns a dictionary of fire centre names as keys and the fire shapes/zone units they contain as values."""
-    logger.info("/fba/fire-center-fire-zones/")
+    logger.info("/fba/fire-center-info/")
     async with get_async_read_session_scope() as session:
-        result = await get_fire_centre_fire_shapes(session)
+        result = await get_fire_centre_info(session)
         result_dict = defaultdict(list)
         for id, fire_zone_unit, fire_centre_name in result:
             result_dict[fire_centre_name].append(FireZoneUnit(id=id, name=fire_zone_unit))
-        fire_centre_fire_zone_units_list = []
+        fire_centre_info_list = []
         for key, values in result_dict.items():
-            item = FireCentreFireZoneUnits(fire_centre_name=key, fire_zone_units=values)
-            fire_centre_fire_zone_units_list.append(item)
-    return FireCentreFireZoneUnitsResponse(fire_centre_fire_zone_units=fire_centre_fire_zone_units_list)
+            item = FireCentreInfo(fire_centre_name=key, fire_zone_units=values)
+            fire_centre_info_list.append(item)
+    return FireCentreInfoResponse(fire_centre_info=fire_centre_info_list)
 
 
 @router.get(

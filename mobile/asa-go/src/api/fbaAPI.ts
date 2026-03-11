@@ -150,13 +150,13 @@ export interface FireZoneUnit {
   name: string;
 }
 
-export interface FireCentreFireZoneUnits {
+export interface FireCentreInfo {
   fire_centre_name: string;
   fire_zone_units: FireZoneUnit[];
 }
 
 export interface FireCentreInfoResponse {
-  fire_centre_fire_zone_units: FireCentreFireZoneUnits[];
+  fire_centre_info: FireCentreInfo[];
 }
 
 const ASA_GO_API_PREFIX = "fba";
@@ -252,7 +252,7 @@ export async function getTPIStats(
 }
 
 export async function getFireCentreInfo(): Promise<FireCentreInfoResponse> {
-  const url = `${ASA_GO_API_PREFIX}/fire-center-fire-zone-units`;
+  const url = `${ASA_GO_API_PREFIX}/fire-center-info`;
   const { data } = await axios.get(url);
   return data;
 }
