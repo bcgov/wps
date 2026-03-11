@@ -37,7 +37,7 @@ const SubscriptionOption = ({ fireZoneUnit }: SubscriptionOptionProps) => {
       disableGutters
     >
       <Typography variant="body2" fontWeight="bold">
-        {nameFormatter(fireZoneUnit, "Fire Zone")}
+        {nameFormatter(fireZoneUnit, "Fire Zone", false)}
       </Typography>
     </ListItem>
   );

@@ -1,13 +1,20 @@
 import { isNil } from "lodash";
 
-export const nameFormatter = (input: string, suffix: string) => {
+export const nameFormatter = (
+  input: string,
+  suffix: string,
+  toUpper: boolean,
+) => {
   if (isNil(input) || input === "") {
     return "";
   }
+  let output: string;
   const index = input.indexOf(suffix);
   if (index <= 0) {
-    return input.trim().toUpperCase();
+    output = input;
+  } else {
+    output = input.substring(0, index);
   }
-  const output = input.substring(0, index);
-  return output.trim().toUpperCase();
+
+  return toUpper ? output.trim().toUpperCase() : output.trim();
 };

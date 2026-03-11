@@ -1,4 +1,4 @@
-import { FireCentreFireZoneUnits } from "@/api/fbaAPI";
+import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionOption from "@/components/settings/SubscriptionOption";
 import { savePinnedFireCentre } from "@/slices/settingsSlice";
 import { AppDispatch, selectSettings } from "@/store";
@@ -21,12 +21,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 interface SubscriptionAccordionProps {
   disabled: boolean;
-  fireCentreFireZoneUnits: FireCentreFireZoneUnits;
+  FireCentreInfo: FireCentreInfo;
 }
 
 const SubscriptionAccordion = ({
   disabled,
-  fireCentreFireZoneUnits,
+  FireCentreInfo,
 }: SubscriptionAccordionProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { pinnedFireCentre } = useSelector(selectSettings);
@@ -42,12 +42,10 @@ const SubscriptionAccordion = ({
 
   const handlePinTouch = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (pinnedFireCentre === fireCentreFireZoneUnits.fire_centre_name) {
-      console.log("DEBUG: Turning off pinned fire centre");
+    if (pinnedFireCentre === FireCentreInfo.fire_centre_name) {
       dispatch(savePinnedFireCentre(null));
     } else {
-      dispatch(savePinnedFireCentre(fireCentreFireZoneUnits.fire_centre_name));
-      console.log("DEBUG: Turning on pinned fire centre");
+      dispatch(savePinnedFireCentre(FireCentreInfo.fire_centre_name));
     }
   };
 
@@ -80,7 +78,7 @@ const SubscriptionAccordion = ({
           }}
         >
           <IconButton onClick={handlePinTouch}>
-            {pinnedFireCentre === fireCentreFireZoneUnits.fire_centre_name ? (
+            {pinnedFireCentre === FireCentreInfo.fire_centre_name ? (
               <PushPinIcon color="primary" />
             ) : (
               <PushPinOutlinedIcon color="primary" />
@@ -91,14 +89,15 @@ const SubscriptionAccordion = ({
             sx={{ fontWeight: 600, pl: theme.spacing(1) }}
           >
             {nameFormatter(
-              fireCentreFireZoneUnits.fire_centre_name,
+              FireCentreInfo.fire_centre_name,
               "Fire Centre",
+              true,
             )}
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
           <List>
-            {fireCentreFireZoneUnits.fire_zone_units.map((fireZoneUnit) => {
+            {FireCentreInfo.fire_zone_units.map((fireZoneUnit) => {
               return (
                 <SubscriptionOption
                   key={fireZoneUnit.id}
