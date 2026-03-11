@@ -21,12 +21,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 interface SubscriptionAccordionProps {
   disabled: boolean;
-  FireCentreInfo: FireCentreInfo;
+  fireCentreInfo: FireCentreInfo;
 }
 
 const SubscriptionAccordion = ({
   disabled,
-  FireCentreInfo,
+  fireCentreInfo,
 }: SubscriptionAccordionProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { pinnedFireCentre } = useSelector(selectSettings);
@@ -42,10 +42,10 @@ const SubscriptionAccordion = ({
 
   const handlePinTouch = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (pinnedFireCentre === FireCentreInfo.fire_centre_name) {
+    if (pinnedFireCentre === fireCentreInfo.fire_centre_name) {
       dispatch(savePinnedFireCentre(null));
     } else {
-      dispatch(savePinnedFireCentre(FireCentreInfo.fire_centre_name));
+      dispatch(savePinnedFireCentre(fireCentreInfo.fire_centre_name));
     }
   };
 
@@ -78,7 +78,7 @@ const SubscriptionAccordion = ({
           }}
         >
           <IconButton onClick={handlePinTouch}>
-            {pinnedFireCentre === FireCentreInfo.fire_centre_name ? (
+            {pinnedFireCentre === fireCentreInfo.fire_centre_name ? (
               <PushPinIcon color="primary" />
             ) : (
               <PushPinOutlinedIcon color="primary" />
@@ -89,7 +89,7 @@ const SubscriptionAccordion = ({
             sx={{ fontWeight: 600, pl: theme.spacing(1) }}
           >
             {nameFormatter(
-              FireCentreInfo.fire_centre_name,
+              fireCentreInfo.fire_centre_name,
               "Fire Centre",
               true,
             )}
@@ -97,7 +97,7 @@ const SubscriptionAccordion = ({
         </AccordionSummary>
         <AccordionDetails>
           <List>
-            {FireCentreInfo.fire_zone_units.map((fireZoneUnit) => {
+            {fireCentreInfo.fire_zone_units.map((fireZoneUnit) => {
               return (
                 <SubscriptionOption
                   key={fireZoneUnit.id}

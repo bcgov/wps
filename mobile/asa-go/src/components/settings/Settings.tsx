@@ -149,7 +149,7 @@ const Settings = () => {
       {orderedFireCentres.map((unit) => (
         <SubscriptionAccordion
           key={unit.fire_centre_name}
-          FireCentreInfo={unit}
+          fireCentreInfo={unit}
           disabled={notificationSettingsDisabled}
         />
       ))}
