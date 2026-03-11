@@ -12,9 +12,14 @@ import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.jobs.sfms_daily_actuals import is_fwi_interpolation_day, run_sfms_daily_actuals, main
+from app.jobs.sfms_daily_actuals import (
+    _missing_previous_index_keys,
+    is_fwi_interpolation_day,
+    main,
+    run_sfms_daily_actuals,
+)
 from app.tests.conftest import create_mock_sfms_actuals
-from wps_sfms.processors.fwi import FWIProcessor
+from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator, FWIProcessor
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
@@ -463,6 +468,54 @@ class TestFWICalculationVsInterpolation:
         ]
         # IDW called once only for precip, not for FWI indices
         mock_dependencies.interpolation_processor.process.assert_called_once()
+
+    @pytest.mark.anyio
+    @pytest.mark.parametrize(
+        ("missing_param", "calculators", "expected_missing"),
+        [
+            (
+                FWIParameter.FFMC,
+                (FFMCCalculator(),),
+                ["ffmc=ffmc_20240703.tif"],
+            ),
+            (
+                FWIParameter.DMC,
+                (DMCCalculator(7),),
+                ["dmc=dmc_20240703.tif"],
+            ),
+            (
+                FWIParameter.DC,
+                (DCCalculator(7),),
+                ["dc=dc_20240703.tif"],
+            ),
+        ],
+    )
+    async def test_missing_previous_index_keys_returns_only_missing_keys(
+        self,
+        mock_dependencies: MockDailyActualsDeps,
+        missing_param: FWIParameter,
+        calculators: tuple,
+        expected_missing: list[str],
+    ):
+        """Previous-day seed checks should report only the missing FFMC/DMC/DC key."""
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+        mock_dependencies.addresser.get_actual_index_key.side_effect = (
+            lambda dt, param: f"{param.value}_{dt.strftime('%Y%m%d')}.tif"
+        )
+
+        async def fake_all_objects_exist(*keys):
+            return all(f"{missing_param.value}_20240703.tif" not in str(key) for key in keys)
+
+        mock_dependencies.s3_client.all_objects_exist = AsyncMock(side_effect=fake_all_objects_exist)
+
+        missing = await _missing_previous_index_keys(
+            target_date,
+            mock_dependencies.addresser,
+            mock_dependencies.s3_client,
+            calculators,
+        )
+
+        assert missing == expected_missing
 
     @pytest.mark.anyio
     async def test_regular_day_skips_fwi_calculation_when_previous_indices_missing(
