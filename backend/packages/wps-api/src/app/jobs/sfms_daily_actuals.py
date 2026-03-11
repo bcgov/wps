@@ -7,15 +7,14 @@ Usage:
 """
 
 import asyncio
-from dataclasses import dataclass
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Awaitable, Callable
 
 from aiohttp import ClientSession
-
 from wps_sfms.interpolation.field import (
     build_dc_field,
     build_dewpoint_field,
@@ -26,19 +25,28 @@ from wps_sfms.interpolation.field import (
     build_wind_speed_field,
     build_wind_vector_field,
 )
-from wps_sfms.processors.fwi import DCCalculator, DMCCalculator, FFMCCalculator, FWIProcessor
+from wps_sfms.processors.fwi import (
+    BUICalculator,
+    DCCalculator,
+    DMCCalculator,
+    FFMCCalculator,
+    FWICalculator,
+    FWIFinalCalculator,
+    FWIProcessor,
+    ISICalculator,
+)
 from wps_sfms.processors.idw import Interpolator, RasterProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run, track_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
-from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
-from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
+from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
@@ -58,7 +66,7 @@ class RasterInterpolationJob:
 @dataclass(frozen=True)
 class FWICalculationJob:
     job_name: SFMSRunLogJobName
-    calculator: FFMCCalculator | DMCCalculator | DCCalculator
+    calculator: FWICalculator
 
 
 def is_fwi_interpolation_day(dt: datetime) -> bool:
@@ -100,6 +108,23 @@ async def _process_raster_job(
         logger.info("%s: %s", log_label, s3_key)
 
     await _run_tracked_job(job_name, sfms_run_id, session, _run)
+
+
+async def _missing_seed_keys(
+    datetime_to_process: datetime,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+) -> list[str]:
+    """Return any missing previous-day FFMC/DMC/DC seed rasters for a regular-day run."""
+    base_index_params = {FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC}
+    previous_date = datetime_to_process - timedelta(days=1)
+    missing_keys = []
+    for param in base_index_params:
+        key = raster_addresser.get_actual_index_key(previous_date, param)
+        if not await s3_client.all_objects_exist(key):
+            missing_keys.append(f"{param.value}={key}")
+
+    return missing_keys
 
 
 async def run_weather_interpolation(
@@ -228,35 +253,36 @@ async def run_fwi_interpolation(
         )
 
 
-async def run_fwi_calculations(
+async def _run_fwi_calculation_jobs(
     datetime_to_process: datetime,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
     sfms_run_id: int,
     session,
+    calculators: tuple[FWICalculator, ...],
 ) -> None:
-    """Calculate FFMC, DMC, and DC from interpolated weather and yesterday's actuals."""
+    """Run the provided FWI calculator jobs in order."""
     logger.info(
         "Calculating FWI from existing rasters for %s",
         datetime_to_process.date(),
     )
 
     fwi_processor = FWIProcessor(datetime_to_process)
-    month = datetime_to_process.month
 
+    job_names_by_param = {
+        FWIParameter.FFMC: SFMSRunLogJobName.FFMC_CALCULATION,
+        FWIParameter.DMC: SFMSRunLogJobName.DMC_CALCULATION,
+        FWIParameter.DC: SFMSRunLogJobName.DC_CALCULATION,
+        FWIParameter.ISI: SFMSRunLogJobName.ISI_CALCULATION,
+        FWIParameter.BUI: SFMSRunLogJobName.BUI_CALCULATION,
+        FWIParameter.FWI: SFMSRunLogJobName.FWI_CALCULATION,
+    }
     jobs = [
         FWICalculationJob(
-            job_name=SFMSRunLogJobName.FFMC_CALCULATION,
-            calculator=FFMCCalculator(),
-        ),
-        FWICalculationJob(
-            job_name=SFMSRunLogJobName.DMC_CALCULATION,
-            calculator=DMCCalculator(month),
-        ),
-        FWICalculationJob(
-            job_name=SFMSRunLogJobName.DC_CALCULATION,
-            calculator=DCCalculator(month),
-        ),
+            job_name=job_names_by_param[calculator.fwi_param],
+            calculator=calculator,
+        )
+        for calculator in calculators
     ]
 
     for job in jobs:
@@ -270,6 +296,66 @@ async def run_fwi_calculations(
             )
 
         await _run_tracked_job(job.job_name, sfms_run_id, session, _run)
+
+
+async def run_fwi_calculations(
+    datetime_to_process: datetime,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+    sfms_run_id: int,
+    session,
+) -> None:
+    """Calculate the full regular-day FWI chain from weather and previous-day seeds."""
+    month = datetime_to_process.month
+    calculators = (
+        FFMCCalculator(),
+        DMCCalculator(month),
+        DCCalculator(month),
+        ISICalculator(),
+        BUICalculator(),
+        FWIFinalCalculator(),
+    )
+    missing_previous_keys = await _missing_seed_keys(
+        datetime_to_process,
+        raster_addresser,
+        s3_client,
+    )
+    if missing_previous_keys:
+        previous_date = datetime_to_process - timedelta(days=1)
+        logger.warning(
+            "Skipping FWI calculations for %s because previous-day index rasters are missing for %s: %s",
+            datetime_to_process.date(),
+            previous_date.date(),
+            ", ".join(missing_previous_keys),
+        )
+        return
+
+    await _run_fwi_calculation_jobs(
+        datetime_to_process,
+        raster_addresser,
+        s3_client,
+        sfms_run_id,
+        session,
+        calculators,
+    )
+
+
+async def run_derived_fwi_calculations(
+    datetime_to_process: datetime,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+    sfms_run_id: int,
+    session,
+) -> None:
+    """Calculate ISI, BUI, and FWI from same-day weather and interpolated base indices."""
+    await _run_fwi_calculation_jobs(
+        datetime_to_process,
+        raster_addresser,
+        s3_client,
+        sfms_run_id,
+        session,
+        (ISICalculator(), BUICalculator(), FWIFinalCalculator()),
+    )
 
 
 async def run_sfms_daily_actuals(target_date: datetime) -> None:
@@ -324,6 +410,13 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                     s3_client,
                     fuel_raster_path,
                     sfms_actuals,
+                    sfms_run_id,
+                    session,
+                )
+                await run_derived_fwi_calculations(
+                    datetime_to_process,
+                    raster_addresser,
+                    s3_client,
                     sfms_run_id,
                     session,
                 )
