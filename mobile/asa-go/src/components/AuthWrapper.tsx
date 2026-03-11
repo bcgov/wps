@@ -41,7 +41,10 @@ const AuthWrapper = ({ children }: Props) => {
         <Box sx={{ display: "flex", flexGrow: 1, justifyContent: "Center" }}>
           <Box
             component="img"
-            sx={{ height: "300px", width: "300px" }}
+            sx={{
+              height: { xs: "250px", sm: "300px", lg: "400px" },
+              width: { xs: "250px", sm: "300px", lg: "400px" },
+            }}
             src={AsaIcon}
           />
         </Box>

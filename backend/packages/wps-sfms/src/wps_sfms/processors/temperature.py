@@ -1,94 +1,66 @@
-"""
-Temperature interpolation processor for SFMS.
-
-This processor orchestrates the daily temperature interpolation workflow:
-1. Fetch station observations from WF1
-2. Interpolate to raster using IDW with elevation adjustment
-3. Upload to S3 storage
-"""
-
 import logging
-import os
-import tempfile
-from datetime import datetime
-import aiofiles
-import aiofiles.os
-from wps_sfms.interpolation.source import StationTemperatureSource
-from wps_shared.utils.s3 import set_s3_gdal_config
-from wps_shared.utils.s3_client import S3Client
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
-from wps_sfms.interpolation.temperature import interpolate_temperature_to_raster
+import numpy as np
+from osgeo import gdal
+from wps_sfms.interpolation.field import LAPSE_RATE, ScalarField, compute_adjusted_values
+from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_sfms.interpolation.common import SFMS_NO_DATA, log_interpolation_stats
+from wps_sfms.interpolation.grid import build_grid_context
+from wps_sfms.processors.idw import RasterProcessor, idw_on_valid_pixels
 
 logger = logging.getLogger(__name__)
 
 
-class TemperatureInterpolationProcessor:
-    """Processor for interpolating station temperatures to raster format."""
+class TemperatureInterpolator(RasterProcessor):
+    """Interpolates station temperatures using IDW with elevation adjustment."""
 
-    def __init__(self, datetime_to_process: datetime, raster_addresser: RasterKeyAddresser):
-        """
-        Initialize the temperature interpolation processor.
+    def __init__(self, mask_path: str, dem_path: str, field: ScalarField):
+        super().__init__(mask_path)
+        self.dem_path = dem_path
+        self.field = field
 
-        :param datetime_to_process: The datetime to process (typically noon observation time)
-        """
-        self.datetime_to_process = datetime_to_process
-        self.raster_addresser = raster_addresser
+    def interpolate(self, reference_raster_path: str) -> WPSDataset:
+        grid = build_grid_context(reference_raster_path, self.mask_path, dem_path=self.dem_path)
+        assert grid.valid_dem_values is not None
 
-    async def process(
-        self,
-        s3_client: S3Client,
-        reference_raster_path: str,
-        temperature_source: StationTemperatureSource,
-    ) -> str:
-        """
-        Process temperature interpolation for the specified datetime.
+        temp_array = np.full((grid.y_size, grid.x_size), SFMS_NO_DATA, dtype=np.float32)
 
-        :param s3_client: S3Client instance for uploading results
-        :param reference_raster_path: Path to reference raster (defines grid properties)
-        :return: S3 key of uploaded temperature raster
-        """
-        logger.info("Starting temperature interpolation for %s", self.datetime_to_process)
+        logger.info("Interpolating temperature for raster grid (%d x %d)", grid.x_size, grid.y_size)
 
-        # Configure GDAL for S3 access
-        set_s3_gdal_config()
-
-        # Get DEM and mask paths
-        dem_path = self.raster_addresser.get_dem_key()
-        mask_path = self.raster_addresser.get_mask_key()
-        logger.info("Using DEM: %s", dem_path)
-        logger.info("Using mask: %s", mask_path)
-
-        # Generate temporary file path
-        temp_dir = tempfile.gettempdir()
-        temp_raster_path = os.path.join(
-            temp_dir, f"temp_interpolation_{self.datetime_to_process.strftime('%Y%m%d')}.tif"
+        idw_result = idw_on_valid_pixels(
+            valid_lats=grid.valid_lats,
+            valid_lons=grid.valid_lons,
+            valid_yi=grid.valid_yi,
+            valid_xi=grid.valid_xi,
+            station_lats=self.field.lats,
+            station_lons=self.field.lons,
+            station_values=self.field.values,
+            total_pixels=grid.total_pixels,
+            label="temperature",
         )
 
-        try:
-            interpolate_temperature_to_raster(
-                temperature_source,
-                reference_raster_path,
-                dem_path,
-                temp_raster_path,
-                mask_path=mask_path,
+        sea = idw_result.values
+        elev = grid.valid_dem_values[idw_result.succeeded_mask].astype(np.float32, copy=False)
+        actual_temps = compute_adjusted_values(sea, elev, LAPSE_RATE)
+        temp_array[idw_result.rows, idw_result.cols] = actual_temps
+
+        log_interpolation_stats(
+            idw_result.total_pixels,
+            idw_result.interpolated_count,
+            idw_result.failed_interpolation_count,
+            idw_result.skipped_nodata_count,
+        )
+
+        if idw_result.interpolated_count == 0:
+            raise RuntimeError(
+                f"No pixels were successfully interpolated from {len(self.field.lats)} station(s). "
+                "Check that station coordinates fall within the raster extent and that at least "
+                "one station has a valid temperature value."
             )
 
-            # Upload to S3
-            s3_key = self.raster_addresser.get_interpolated_key(
-                self.datetime_to_process, temperature_source.weather_param
-            )
-
-            logger.info("Uploading raster to S3: %s", s3_key)
-            async with aiofiles.open(temp_raster_path, "rb") as f:
-                contents = await f.read()
-                await s3_client.put_object(key=s3_key, body=contents)
-
-            logger.info("Temperature interpolation complete: %s", s3_key)
-            return s3_key
-
-        finally:
-            # Clean up temporary file asynchronously
-            try:
-                await aiofiles.os.remove(temp_raster_path)
-            except FileNotFoundError:
-                pass  # File doesn't exist, nothing to clean up
+        return WPSDataset.from_array(
+            array=temp_array,
+            geotransform=grid.geotransform,
+            projection=grid.projection,
+            nodata_value=SFMS_NO_DATA,
+            datatype=gdal.GDT_Float32,
+        )

@@ -40,3 +40,4 @@ from wps_shared.db.models.grass_curing import PercentGrassCuring
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather, PrescriptionStatus
 from wps_shared.db.models.sfms_run import SFMSRunLog
+from wps_shared.db.models.fcm import DeviceToken

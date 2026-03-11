@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'jacoco'
+apply plugin: 'com.google.gms.google-services'
 
 android {
     namespace "ca.bc.gov.asago"
@@ -7,8 +9,8 @@ android {
         applicationId "ca.bc.gov.asago"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "1.0"
+        versionCode System.getenv("VERSION_CODE") ? System.getenv("VERSION_CODE").toInteger() : 7
+        versionName System.getenv("VERSION_NAME") ?: "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -20,8 +22,19 @@ android {
             appAuthManagementActivity: "ca.bc.gov.asago.MainActivity"
         ]
     }
-    buildTypes {
+    signingConfigs {
         release {
+            storeFile = file("release.keystore")
+            keyAlias System.getenv("ANDROID_KEY_ALIAS")
+            storePassword System.getenv("ANDROID_SIGNING_STORE_PASSWORD")
+            keyPassword System.getenv("ANDROID_SIGNING_KEY_PASSWORD")
+        }
+    }
+    buildTypes {
+        debug {
+        }
+        release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -45,16 +58,35 @@ dependencies {
     implementation 'net.openid:appauth:0.11.1'
     
     testImplementation "junit:junit:$junitVersion"
-    testImplementation 'org.mockito:mockito-core:5.21.0'
+    testImplementation 'org.mockito:mockito-core:5.22.0'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
-    testImplementation 'org.robolectric:robolectric:4.16'
+    testImplementation 'org.robolectric:robolectric:4.16.1'
     testImplementation 'androidx.test:core:1.7.0'
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    // Import the Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:34.9.0')
 }
 
 apply from: 'capacitor.build.gradle'
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+    jacoco.excludes = ['jdk.internal.*']
+}
+
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
+    reports {
+        xml.required = true
+        html.required = false
+    }
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/javac/debug/compileDebugJavaWithJavac/classes", excludes: fileFilter)
+    sourceDirectories.setFrom(files(["${project.projectDir}/src/main/java"]))
+    classDirectories.setFrom(files([debugTree]))
+    executionData.setFrom(fileTree(dir: "$buildDir", includes: ["jacoco/testDebugUnitTest.exec"]))
+}
 
 try {
     def servicesJSON = file('google-services.json')

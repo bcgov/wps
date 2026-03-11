@@ -20,7 +20,7 @@ from wps_shared.db.models.auto_spatial_advisory import AdvisoryShapeFuels
 from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from app.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging

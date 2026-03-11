@@ -1,114 +1,149 @@
 """
-Weather interpolation processor for SFMS.
+Interpolation processor for SFMS.
 
-This processor orchestrates the daily weather parameter interpolation workflow:
-1. Fetch station observations from WF1
-2. Interpolate to raster using IDW
-3. Upload to S3 storage
+Base class implementing the shared workflow for all IDW-based interpolation:
+1. Interpolate station observations to raster
+2. Upload to S3 storage
+
+Subclasses override interpolate() for parameter-specific logic
+(elevation adjustment, DEM-based corrections, etc.).
 """
 
 import logging
-import os
-import tempfile
-from datetime import datetime
-from typing import List
-import aiofiles
-import aiofiles.os
-from wps_sfms.interpolation.source import StationInterpolationSource
-from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_sfms.interpolation.precipitation import interpolate_to_raster
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+import numpy as np
+from numpy.typing import NDArray
+from wps_sfms.publish import publish_dataset
+from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_sfms.interpolation.field import ScalarField
+from wps_sfms.interpolation.idw import interpolate_to_raster
 
 logger = logging.getLogger(__name__)
 
 
-class IDWInterpolationProcessor:
-    """Processor for interpolating station weather values to raster format."""
+@dataclass(frozen=True)
+class ValidPixelIDWResult:
+    """Result of IDW interpolation performed on valid raster pixels only."""
 
-    def __init__(self, datetime_to_process: datetime, raster_addresser: RasterKeyAddresser):
-        """
-        Initialize the interpolation processor.
+    interpolated_values: NDArray[np.float32]
+    succeeded_mask: NDArray[np.bool_]
+    rows: NDArray[np.intp]
+    cols: NDArray[np.intp]
+    values: NDArray[np.float32]
+    total_pixels: int
+    interpolated_count: int
+    failed_interpolation_count: int
+    skipped_nodata_count: int
 
-        :param datetime_to_process: The datetime to process (typically noon observation time)
-        :param raster_addresser: The raster addresser instance used for addressing SFMS keys
 
-        """
-        self.datetime_to_process = datetime_to_process
-        self.raster_addresser = raster_addresser
+def idw_on_valid_pixels(
+    valid_lats: NDArray[np.float32],
+    valid_lons: NDArray[np.float32],
+    valid_yi: NDArray[np.intp],
+    valid_xi: NDArray[np.intp],
+    station_lats: NDArray[np.float32],
+    station_lons: NDArray[np.float32],
+    station_values: NDArray[np.float32],
+    total_pixels: int,
+    label: str,
+) -> ValidPixelIDWResult:
+    """Run batch IDW interpolation for valid pixels and return indexed results."""
+    skipped_nodata_count = total_pixels - len(valid_yi)
+
+    logger.info(
+        "Processing %d valid pixels (skipping %d NoData pixels)",
+        len(valid_yi),
+        skipped_nodata_count,
+    )
+    logger.info(
+        "Running batch %s IDW interpolation for %d pixels and %d stations",
+        label,
+        len(valid_lats),
+        len(station_lats),
+    )
+
+    raw_interpolated = idw_interpolation(
+        valid_lats, valid_lons, station_lats, station_lons, station_values
+    )
+    assert isinstance(raw_interpolated, np.ndarray)
+    interpolated_values = raw_interpolated.astype(np.float32, copy=False)
+
+    succeeded_mask = ~np.isnan(interpolated_values)
+    interpolated_count = int(np.sum(succeeded_mask))
+    failed_interpolation_count = len(interpolated_values) - interpolated_count
+
+    rows = valid_yi[succeeded_mask]
+    cols = valid_xi[succeeded_mask]
+    values = interpolated_values[succeeded_mask].astype(np.float32, copy=False)
+
+    return ValidPixelIDWResult(
+        interpolated_values=interpolated_values,
+        succeeded_mask=succeeded_mask,
+        rows=rows,
+        cols=cols,
+        values=values,
+        total_pixels=total_pixels,
+        interpolated_count=interpolated_count,
+        failed_interpolation_count=failed_interpolation_count,
+        skipped_nodata_count=skipped_nodata_count,
+    )
+
+
+class RasterProcessor(ABC):
+    """Shared upload workflow for interpolation processors."""
+
+    def __init__(self, mask_path: str):
+        self.mask_path = mask_path
+
+    @abstractmethod
+    def interpolate(self, reference_raster_path: str) -> WPSDataset:
+        """Build an in-memory raster for upload."""
 
     async def process(
         self,
         s3_client: S3Client,
         reference_raster_path: str,
-        sfms_actuals: List[SFMSDailyActual],
-        weather_data_source: StationInterpolationSource,
+        output_key: str,
     ) -> str:
         """
-        Process weather parameter interpolation for the specified datetime.
+        Interpolate station observations to a raster and upload to S3.
 
         :param s3_client: S3Client instance for uploading results
         :param reference_raster_path: Path to reference raster (defines grid properties)
-        :param sfms_actuals: daily actuals for stations for the date of interest
-        :return: S3 key of uploaded temperature raster
+        :param output_key: S3 key where the resulting raster will be uploaded
+        :return: S3 key of uploaded raster
         """
-        logger.info(
-            "Starting interpolation for date: %s and weather parameter: %s ",
-            self.datetime_to_process,
-            weather_data_source.weather_param.value,
-        )
-
-        # Configure GDAL for S3 access
         set_s3_gdal_config()
+        logger.info("Starting interpolation, output: %s", output_key)
 
-        # Get mask path for BC boundary
-        mask_path = self.raster_addresser.get_mask_key()
-        logger.info("Using mask: %s", mask_path)
+        with self.interpolate(reference_raster_path) as dataset:
+            published = await publish_dataset(s3_client, dataset, output_key)
 
-        if not sfms_actuals:
-            raise RuntimeError(f"No station actuals found for {self.datetime_to_process}")
-
-        logger.info("Processing %d stations data", len(sfms_actuals))
-
-        # Extract interpolation data
-        station_lats, station_lons, station_values = weather_data_source.get_interpolation_data(
-            sfms_actuals
+        logger.info(
+            "Interpolation complete: %s (COG: %s)",
+            published.output_key,
+            published.cog_key,
         )
+        return output_key
 
-        # Generate temporary file path
-        temp_dir = tempfile.gettempdir()
-        temp_raster_path = os.path.join(
-            temp_dir,
-            f"{weather_data_source.weather_param.value}_interpolation_{self.datetime_to_process.strftime('%Y%m%d')}.tif",
+
+class Interpolator(RasterProcessor):
+    """Scalar-field IDW interpolation plus shared upload workflow."""
+
+    def __init__(self, mask_path: str, field: ScalarField):
+        super().__init__(mask_path)
+        self.field = field
+
+    def interpolate(self, reference_raster_path: str) -> WPSDataset:
+        return interpolate_to_raster(
+            self.field.lats,
+            self.field.lons,
+            self.field.values,
+            reference_raster_path,
+            self.mask_path,
         )
-
-        try:
-            interpolate_to_raster(
-                station_lats,
-                station_lons,
-                station_values,
-                reference_raster_path,
-                temp_raster_path,
-                mask_path=mask_path,
-            )
-
-            # Upload to S3
-            s3_key = self.raster_addresser.get_interpolated_key(
-                self.datetime_to_process, weather_data_source.weather_param
-            )
-
-            logger.info("Uploading raster to S3: %s", s3_key)
-            async with aiofiles.open(temp_raster_path, "rb") as f:
-                contents = await f.read()
-                await s3_client.put_object(key=s3_key, body=contents)
-
-            logger.info("Interpolation complete: %s", s3_key)
-            return s3_key
-
-        finally:
-            # Clean up temporary file asynchronously
-            try:
-                await aiofiles.os.remove(temp_raster_path)
-            except FileNotFoundError:
-                pass  # File doesn't exist, nothing to clean up

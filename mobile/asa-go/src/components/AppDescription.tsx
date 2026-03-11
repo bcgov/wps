@@ -1,8 +1,8 @@
 import { styled, Typography } from "@mui/material";
 
 const StyledDescription = styled(Typography)(({ theme }) => ({
-  [theme.breakpoints.down("sm")]: { maxWidth: "80%" },
-  [theme.breakpoints.up("sm")]: { maxWidth: "50%" },
+  [theme.breakpoints.down("md")]: { maxWidth: "80%" },
+  [theme.breakpoints.up("md")]: { maxWidth: "50%" },
 }));
 
 const AppDescription = () => {

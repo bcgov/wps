@@ -4,7 +4,6 @@ See README.md for details on how to run.
 """
 
 import logging
-from time import perf_counter
 from urllib.request import Request
 from fastapi import FastAPI, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,8 +32,8 @@ from app.routers import (
     morecast_v2,
     snow,
     fire_watch,
+    fcm,
 )
-from app.fire_behaviour.cffdrs import CFFDRS
 
 
 configure_logging()
@@ -122,7 +121,7 @@ api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "HEAD", "POST", "PATCH"],
+    allow_methods=["GET", "HEAD", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 api.middleware("http")(catch_exception_middleware)
@@ -139,6 +138,7 @@ api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
+api.include_router(fcm.router, tags=["Firebase Cloud Messaging"])
 
 
 @api.get("/ready")
@@ -157,15 +157,6 @@ async def get_health():
         logger.debug(
             "/health - healthy: %s. %s", health_check.get("healthy"), health_check.get("message")
         )
-
-        # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
-        cffdrs_start = perf_counter()
-        CFFDRS.instance()
-        cffdrs_end = perf_counter()
-        delta = cffdrs_end - cffdrs_start
-        # Any delta below 100 milliseconds is just noise in the logs.
-        if delta > 0.1:
-            logger.info("%f seconds added by CFFDRS startup", delta)
 
         return health_check
     except Exception as exception:

@@ -1,5 +1,4 @@
 import { Box, Button, styled } from "@mui/material";
-import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { MAP_BUTTON_GREY } from "@/theme";
 import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/components/MapIconButton";
@@ -11,24 +10,17 @@ interface TodayTomorrowSwitchProps {
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
 }
 
-const BUTTON_WIDTH = 48;
-const TEXT_BOX_WIDTH = BUTTON_WIDTH - 4;
-const TEXT_BOX_HEIGHT = BUTTON_HEIGHT - 4;
+const BUTTON_WIDTH = 60;
 
 const StyledButton = styled(Button)({
   alignItems: "center",
-  borderBottomLeftRadius: `${BORDER_RADIUS}px`,
-  borderTopLeftRadius: `${BORDER_RADIUS}px`,
-  borderTopRightRadius: 0,
-  borderBottomRightRadius: 0,
   display: "flex",
-  flexGrow: 1,
-  fontSize: "0.8rem",
-  fontWeight: "bold",
-  height: `${BUTTON_HEIGHT}px`,
   justifyContent: "center",
+  fontWeight: "bold",
+  fontSize: "1rem",
   minWidth: `${BUTTON_WIDTH}px`,
   maxWidth: `${BUTTON_WIDTH}px`,
+  padding: "2px",
 });
 
 // A container for the text displayed on a button.
@@ -36,9 +28,9 @@ const StyledTextContainer = styled(Box)({
   alignItems: "center",
   borderRadius: `${BORDER_RADIUS}px`,
   display: "flex",
-  height: `${TEXT_BOX_HEIGHT}px`,
+  height: "100%",
+  width: "100%",
   justifyContent: "center",
-  minWidth: `${TEXT_BOX_WIDTH}px`,
 });
 
 const TodayTomorrowSwitch = ({
@@ -47,16 +39,17 @@ const TodayTomorrowSwitch = ({
   setDate,
 }: TodayTomorrowSwitchProps) => {
   const borderStyle = border ? `1px solid ${MAP_BUTTON_GREY}` : "none";
-  const [value, setValue] = useState<number>(date.day === today.day ? 0 : 1);
 
-  useEffect(() => {
-    setValue(date.day === today.day ? 0 : 1);
-  }, [date]);
+  const isToday = date.day === today.day;
 
   const handleDayChange = (newValue: number) => {
-    if (value !== newValue) {
-      setValue(newValue);
-      const duration = newValue === 0 ? -1 : 1;
+    // newValue: 0 = today, 1 = tomorrow
+    const shouldBeToday = newValue === 0;
+
+    if (isToday !== shouldBeToday) {
+      // If we need to go to today but we're on tomorrow, subtract a day
+      // If we need to go to tomorrow but we're on today, add a day
+      const duration = shouldBeToday ? -1 : 1;
       setDate(date.plus({ day: duration }));
     }
   };
@@ -69,23 +62,24 @@ const TodayTomorrowSwitch = ({
         background: "white",
         borderRadius: `${BORDER_RADIUS}px`,
         display: "flex",
+        height: `${BUTTON_HEIGHT - 2}px`,
       }}
     >
-      <StyledButton disabled={value === 0} onClick={() => handleDayChange(0)}>
+      <StyledButton disabled={isToday} onClick={() => handleDayChange(0)}>
         <StyledTextContainer
           sx={{
-            backgroundColor: value === 0 ? MAP_BUTTON_GREY : "white",
-            color: value === 0 ? "white" : "black",
+            backgroundColor: isToday ? MAP_BUTTON_GREY : "white",
+            color: isToday ? "white" : MAP_BUTTON_GREY,
           }}
         >
           NOW
         </StyledTextContainer>
       </StyledButton>
-      <StyledButton disabled={value === 1} onClick={() => handleDayChange(1)}>
+      <StyledButton disabled={!isToday} onClick={() => handleDayChange(1)}>
         <StyledTextContainer
           sx={{
-            backgroundColor: value === 1 ? MAP_BUTTON_GREY : "white",
-            color: value === 1 ? "white" : "black",
+            backgroundColor: !isToday ? MAP_BUTTON_GREY : "white",
+            color: !isToday ? "white" : MAP_BUTTON_GREY,
           }}
         >
           TMR

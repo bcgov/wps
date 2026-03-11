@@ -16,9 +16,11 @@
     "cap:sync:prod": "yarn build:prod && yarn cap sync"
   },
   "dependencies": {
+    "@capacitor-firebase/messaging": "^8.1.0",
     "@capacitor/android": "7.1.0",
     "@capacitor/app": "7.0.0",
     "@capacitor/core": "7.1.0",
+    "@capacitor/device": "^8.0.1",
     "@capacitor/filesystem": "^7.0.0",
     "@capacitor/geolocation": "^7.1.2",
     "@capacitor/haptics": "7.0.0",
@@ -40,6 +42,8 @@
     "@reduxjs/toolkit": "^2.5.1",
     "axios": "^1.7.9",
     "capacitor-email-composer": "^7.0.0",
+    "firebase": "^12.9.0",
+    "jwt-decode": "^4.0.0",
     "keycloak": "../keycloak",
     "lodash": "^4.17.21",
     "luxon": "^3.5.0",

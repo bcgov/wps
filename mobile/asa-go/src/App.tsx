@@ -21,6 +21,7 @@ import {
   selectFireCenters,
   selectNetworkStatus,
   selectRunParameters,
+  selectAuthentication,
 } from "@/store";
 import { theme } from "@/theme";
 import { NavPanel } from "@/utils/constants";
@@ -37,13 +38,18 @@ import { isNil, isNull } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { Capacitor } from "@capacitor/core";
+import { Platform, registerToken } from "@/api/pushNotificationsAPI";
+import { Device } from "@capacitor/device";
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
   const isActive = useAppIsActive();
   const dispatch: AppDispatch = useDispatch();
   const [isPortrait, setIsPortrait] = useState<boolean>(true);
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
+  const { idir, isAuthenticated } = useSelector(selectAuthentication);
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -62,6 +68,13 @@ const App = () => {
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
+  const { initPushNotifications, token } = usePushNotifications();
+
+  const selectedFireCenterName = selectedFireShape?.mof_fire_centre_name;
+  const matchingFireCenter = selectedFireCenterName
+    ? fireCenters.find((center) => center.name === selectedFireCenterName)
+    : undefined;
+  const selectedFireCenter = matchingFireCenter ?? fireCenter;
 
   useEffect(() => {
     // Effect to manage status bar visibility
@@ -91,6 +104,31 @@ const App = () => {
       ScreenOrientation.removeAllListeners();
     };
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      initPushNotifications();
+    }
+  }, [initPushNotifications, isAuthenticated]);
+
+  useEffect(() => {
+    async function handleTokenChange(t: string) {
+      const deviceId = await Device.getId();
+      try {
+        await registerToken(
+          Capacitor.getPlatform() as Platform,
+          t,
+          deviceId?.identifier,
+          idir || null,
+        );
+      } catch (e) {
+        console.error("Failed to register push token", e);
+      }
+    }
+    if (!isNil(token)) {
+      handleTokenChange(token);
+    }
+  }, [token, idir]);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status
@@ -132,18 +170,6 @@ const App = () => {
       dispatch(fetchSFMSRunParameters());
     }
   }, [dateOfInterest, networkStatus.connected]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (selectedFireShape?.mof_fire_centre_name) {
-      const matchingFireCenter = fireCenters.find(
-        (center) => center.name === selectedFireShape.mof_fire_centre_name,
-      );
-
-      if (matchingFireCenter) {
-        setFireCenter(matchingFireCenter);
-      }
-    }
-  }, [selectedFireShape, fireCenters]);
 
   useEffect(() => {
     if (!isNil(runParameters)) {
@@ -231,7 +257,7 @@ const App = () => {
           <Profile
             date={dateOfInterest}
             setDate={setDateOfInterest}
-            selectedFireCenter={fireCenter}
+            selectedFireCenter={selectedFireCenter}
             setSelectedFireCenter={setFireCenter}
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
@@ -241,7 +267,7 @@ const App = () => {
           <Advisory
             date={dateOfInterest}
             setDate={setDateOfInterest}
-            selectedFireCenter={fireCenter}
+            selectedFireCenter={selectedFireCenter}
             setSelectedFireCenter={setFireCenter}
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
