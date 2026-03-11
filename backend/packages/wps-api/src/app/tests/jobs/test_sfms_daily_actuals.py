@@ -54,15 +54,15 @@ def test_is_fwi_interpolation_day(dt: datetime, expected: bool):
 class MockDailyActualsDeps(NamedTuple):
     """Typed container for sfms_daily_actuals mock dependencies."""
 
-    db_session: AsyncMock
-    s3_client: AsyncMock
+    db_session: MagicMock
+    s3_client: MagicMock
     temp_processor: MagicMock
     rh_processor: MagicMock
     wind_speed_processor: MagicMock
     wind_direction_processor: MagicMock
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
-    wfwx_api: AsyncMock
+    wfwx_api: MagicMock
     addresser: MagicMock
 
 
@@ -74,12 +74,13 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_s3_client.all_objects_exist = AsyncMock(return_value=True)
 
     # Mock ClientSession
-    mock_session = AsyncMock()
+    mock_session = MagicMock()
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=None)
     mocker.patch(f"{MODULE_PATH}.ClientSession", return_value=mock_session)
 
     # Mock WfwxApi
+    mock_wfwx_api = MagicMock()
     mock_wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(
         return_value=create_mock_sfms_actuals()
     )
@@ -101,7 +102,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     )
 
     # Mock get_async_read_session_scope
-    mock_read_session = AsyncMock(spec=AsyncSession)
+    mock_read_session = MagicMock(spec=AsyncSession)
 
     @asynccontextmanager
     async def _read_scope():
@@ -162,8 +163,13 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_fwi_processor.calculate_index = AsyncMock(return_value=None)
     mocker.patch(f"{MODULE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
 
-    # Mock DB session
-    db_session = AsyncMock(spec=AsyncSession)
+    # Keep the session root as a normal mock and only make the async methods AsyncMocks.
+    # The session itself is used in async code, but some things it returns are still sync,
+    # like `result.scalar()`. An AsyncMock root makes those look awaitable and causes noisy warnings.
+    db_session = MagicMock(spec=AsyncSession)
+    db_execute_result = MagicMock()
+    db_execute_result.scalar = MagicMock(return_value=1)
+    db_session.execute = AsyncMock(return_value=db_execute_result)
     db_session.get = AsyncMock(return_value=MagicMock())
 
     @asynccontextmanager
