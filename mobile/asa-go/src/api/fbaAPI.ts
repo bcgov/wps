@@ -252,7 +252,7 @@ export async function getTPIStats(
 }
 
 export async function getFireCentreInfo(): Promise<FireCentreInfoResponse> {
-  const url = `${ASA_GO_API_PREFIX}/fire-center-info`;
+  const url = `${ASA_GO_API_PREFIX}/fire-centre-info`;
   const { data } = await axios.get(url);
   return data;
 }

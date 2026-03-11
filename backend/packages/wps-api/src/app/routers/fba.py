@@ -155,10 +155,10 @@ async def get_all_fire_centers(_=Depends(asa_authentication_required)):
     return FireCenterListResponse(fire_centers=fire_centers)
 
 
-@router.get("/fire-center-info", response_model=FireCentreInfoResponse)
+@router.get("/fire-centre-info", response_model=FireCentreInfoResponse)
 async def get_fire_centres_and_fire_zone_units(_=Depends(asa_authentication_required)):
-    """Returns a dictionary of fire centre names as keys and the fire shapes/zone units they contain as values."""
-    logger.info("/fba/fire-center-info/")
+    """Returns a list of fire centres and the fire zone units they contain."""
+    logger.info("/fba/fire-centre-info/")
     async with get_async_read_session_scope() as session:
         result = await get_fire_centre_info(session)
         result_dict = defaultdict(list)
