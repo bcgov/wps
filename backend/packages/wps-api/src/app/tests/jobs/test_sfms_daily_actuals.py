@@ -11,6 +11,13 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
+from wps_sfms.processors.fwi import FWIProcessor
+from wps_sfms.processors.idw import Interpolator
+from wps_sfms.processors.relative_humidity import RHInterpolator
+from wps_sfms.processors.temperature import TemperatureInterpolator
+from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
+from wps_shared.db.models.sfms_run import SFMSRunLogJobName, SFMSRunLogStatus
+from wps_shared.sfms.raster_addresser import FWIParameter
 
 from app.jobs.sfms_daily_actuals import (
     _missing_seed_keys,
@@ -19,13 +26,6 @@ from app.jobs.sfms_daily_actuals import (
     run_sfms_daily_actuals,
 )
 from app.tests.conftest import create_mock_sfms_actuals
-from wps_sfms.processors.fwi import FWIProcessor
-from wps_sfms.processors.idw import Interpolator
-from wps_sfms.processors.relative_humidity import RHInterpolator
-from wps_sfms.processors.temperature import TemperatureInterpolator
-from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
-from wps_shared.db.models.sfms_run import SFMSRunLogJobName, SFMSRunLogStatus
-from wps_shared.sfms.raster_addresser import FWIParameter
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
 
@@ -80,7 +80,6 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mocker.patch(f"{MODULE_PATH}.ClientSession", return_value=mock_session)
 
     # Mock WfwxApi
-    mock_wfwx_api = MagicMock()
     mock_wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(
         return_value=create_mock_sfms_actuals()
     )
@@ -499,7 +498,9 @@ class TestFWICalculationVsInterpolation:
         async def fake_all_objects_exist(*keys):
             return all(f"{missing_param.value}_20240703.tif" not in str(key) for key in keys)
 
-        mock_dependencies.s3_client.all_objects_exist = AsyncMock(side_effect=fake_all_objects_exist)
+        mock_dependencies.s3_client.all_objects_exist = AsyncMock(
+            side_effect=fake_all_objects_exist
+        )
 
         missing = await _missing_seed_keys(
             target_date,
