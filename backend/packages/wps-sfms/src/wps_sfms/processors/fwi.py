@@ -1,21 +1,21 @@
 """
-FWI processor for calculating FWI index rasters from weather/index dependencies.
+FWI processor for calculating the six FWI component/index rasters from dependencies.
 
-Accepts an FWIInputs dataclass that declares all dependency keys and output keys,
-allowing each calculator to specify only the inputs it needs.
+Accepts an FWIInputs dataclass that declares weather/index keys and an output key,
+allowing each calculator to specify only the inputs it needs for FFMC, DMC, DC,
+ISI, BUI, or final FWI.
 """
 
-from dataclasses import dataclass
 import logging
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import datetime
 from time import perf_counter
 from typing import Callable, ContextManager, Iterator, List, Mapping, NamedTuple
 
 import numpy as np
 from osgeo import gdal
-
 from wps_shared.fwi import (
     vectorized_bui,
     vectorized_dc,
@@ -25,11 +25,12 @@ from wps_shared.fwi import (
     vectorized_isi,
 )
 from wps_shared.geospatial.geospatial import rasters_match
-from wps_sfms.publish import publish_dataset
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
+
+from wps_sfms.publish import publish_dataset
 from wps_sfms.sfmsng_raster_addresser import FWIInputs
 
 logger = logging.getLogger(__name__)
