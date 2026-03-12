@@ -6,7 +6,7 @@
 ARG NODE_OPTIONS="--v8-pool-size=4"
 
 # PHASE 1 - build frontend.
-FROM docker.io/library/node:22-alpine AS static
+FROM docker.io/library/node:24-alpine AS static
 # Switch to root user for package installs
 USER 0
 WORKDIR /app
