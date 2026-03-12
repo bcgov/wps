@@ -6,20 +6,30 @@
 ARG NODE_OPTIONS="--v8-pool-size=4"
 
 # PHASE 1 - build frontend.
-FROM docker.io/library/node:20-alpine AS static
+FROM docker.io/library/node:22-alpine AS static
 # Switch to root user for package installs
 USER 0
 WORKDIR /app
 
-COPY web/package.json .
-COPY web/yarn.lock . 
-COPY web/.yarnrc.yml .
+COPY web/package.json web/yarn.lock web/.yarnrc.yml web/turbo.json ./
+
+# Copy package manifests before source for better layer caching
+COPY web/packages/tsconfig/package.json packages/tsconfig/
+COPY web/packages/types/package.json     packages/types/
+COPY web/packages/utils/package.json     packages/utils/
+COPY web/packages/api/package.json       packages/api/
+COPY web/packages/ui/package.json        packages/ui/
+COPY web/apps/wps-web/package.json       apps/wps-web/
+
 # do install first so it will be cached
 RUN corepack enable \
-    && yarn set version berry \
     && CYPRESS_INSTALL_BINARY=0 yarn install --immutable
-COPY web .
-RUN yarn run build:prod 
+
+# Copy all source
+COPY web/packages/ packages/
+COPY web/apps/wps-web/ apps/wps-web/
+
+RUN yarn turbo build
 
 # PHASE 2 - prepare hosting.
 FROM docker.io/library/nginx:stable-alpine
@@ -28,7 +38,7 @@ FROM docker.io/library/nginx:stable-alpine
 COPY ./openshift/nginx.conf /etc/nginx/nginx.conf
 
 # Copy the static content:
-COPY --from=static /app/build .
+COPY --from=static /app/apps/wps-web/build .
 
 RUN mkdir -p /tmp/nginx/client_temp
 RUN chmod -R 755 /tmp/nginx
