@@ -1,111 +1,158 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { Provider } from "react-redux";
-import SubscriptionOption from "./SubscriptionOption";
-import settingsReducer from "@/slices/settingsSlice";
+import { vi } from "vitest";
 import { createTestStore } from "@/testUtils";
+import { Preferences } from "@capacitor/preferences";
+import SubscriptionOption from "./SubscriptionOption";
 import { FireZoneUnit } from "@/api/fbaAPI";
 
-// Mock data
-const mockFireZoneUnit: FireZoneUnit = {
-  id: 1,
-  name: "Kamloops Fire Zone",
-};
+vi.mock("@capacitor/preferences", () => ({
+  Preferences: {
+    get: vi.fn().mockResolvedValue({ value: null }),
+    set: vi.fn().mockResolvedValue(undefined),
+  },
+}));
 
 describe("SubscriptionOption", () => {
-  it("renders correctly with fire zone unit name", () => {
-    const store = createTestStore();
+  const mockFireZoneUnit: FireZoneUnit = {
+    id: 123,
+    name: "Kamloops Fire Zone",
+  };
 
-    render(
-      <Provider store={store}>
-        <SubscriptionOption fireZoneUnit={mockFireZoneUnit} />
-      </Provider>,
-    );
+  const renderWithProvider = (
+    fireZoneUnit: FireZoneUnit,
+    initialSubscriptions: number[] = [],
+  ) => {
+    const store = createTestStore({
+      settings: {
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptions: initialSubscriptions,
+      },
+    });
+
+    return {
+      ...render(
+        <Provider store={store}>
+          <SubscriptionOption fireZoneUnit={fireZoneUnit} />
+        </Provider>,
+      ),
+      store,
+    };
+  };
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("renders the fire zone unit name correctly", () => {
+    renderWithProvider(mockFireZoneUnit);
 
     expect(screen.getByText("Kamloops")).toBeInTheDocument();
   });
 
-  it("displays switch as unchecked when fire zone unit is not subscribed", () => {
-    const store = createTestStore();
+  it("renders with switch unchecked when not subscribed", () => {
+    renderWithProvider(mockFireZoneUnit, []);
 
-    render(
-      <Provider store={store}>
-        <SubscriptionOption fireZoneUnit={mockFireZoneUnit} />
-      </Provider>,
-    );
-
-    const switchElement = screen.getByRole("checkbox");
-    expect(switchElement).not.toBeChecked();
-  });
-
-  it("displays switch as checked when fire zone unit is subscribed", () => {
-    const store = createTestStore({
-      settings: {
-        ...settingsReducer(undefined, { type: "unknown" }),
-        subscriptions: [mockFireZoneUnit.id],
-      },
+    const switchEl = screen.getByRole("checkbox", {
+      name: /Toggle subscription for Kamloops Fire Zone/i,
     });
-
-    render(
-      <Provider store={store}>
-        <SubscriptionOption fireZoneUnit={mockFireZoneUnit} />
-      </Provider>,
-    );
-
-    const switchElement = screen.getByRole("checkbox");
-    expect(switchElement).toBeChecked();
+    expect(switchEl).not.toBeChecked();
   });
 
-  it("subscribes to fire zone unit when switch is toggled on", async () => {
-    const store = createTestStore();
+  it("renders with switch checked when subscribed", () => {
+    renderWithProvider(mockFireZoneUnit, [123]);
 
-    render(
-      <Provider store={store}>
-        <SubscriptionOption fireZoneUnit={mockFireZoneUnit} />
-      </Provider>,
-    );
+    const switchEl = screen.getByRole("checkbox", {
+      name: /Toggle subscription for Kamloops Fire Zone/i,
+    });
+    expect(switchEl).toBeChecked();
+  });
 
-    const switchElement = screen.getByRole("checkbox");
-    fireEvent.click(switchElement);
+  it("dispatches saveSubscriptions when clicking the list item (not subscribed)", async () => {
+    const { store } = renderWithProvider(mockFireZoneUnit, []);
 
-    await waitFor(() => {
-      expect(store.getState().settings.subscriptions).toEqual([
-        mockFireZoneUnit.id,
-      ]);
+    const listItemButton = screen.getByRole("button");
+    fireEvent.click(listItemButton);
+
+    // Wait for async dispatch
+    await vi.waitFor(() => {
+      expect(store.getState().settings.subscriptions).toContain(123);
+    });
+    expect(Preferences.set).toHaveBeenCalledWith({
+      key: "asaGoSubscriptions",
+      value: JSON.stringify([123]),
     });
   });
 
-  it("unsubscribes from fire zone unit when switch is toggled off", async () => {
-    const store = createTestStore({
-      settings: {
-        ...settingsReducer(undefined, { type: "unknown" }),
-        subscriptions: [mockFireZoneUnit.id],
-      },
+  it("dispatches saveSubscriptions when clicking the list item (already subscribed)", async () => {
+    const { store } = renderWithProvider(mockFireZoneUnit, [123]);
+
+    const listItemButton = screen.getByRole("button");
+    fireEvent.click(listItemButton);
+
+    // Wait for async dispatch
+    await vi.waitFor(() => {
+      expect(store.getState().settings.subscriptions).not.toContain(123);
     });
-
-    render(
-      <Provider store={store}>
-        <SubscriptionOption fireZoneUnit={mockFireZoneUnit} />
-      </Provider>,
-    );
-
-    const switchElement = screen.getByRole("checkbox");
-    fireEvent.click(switchElement);
-
-    await waitFor(() => {
-      expect(store.getState().settings.subscriptions).toEqual([]);
+    expect(Preferences.set).toHaveBeenCalledWith({
+      key: "asaGoSubscriptions",
+      value: JSON.stringify([]),
     });
   });
 
-  it("formats fire zone unit name correctly using nameFormatter", () => {
-    const store = createTestStore();
+  it("dispatches saveSubscriptions when toggling the switch (turn on)", async () => {
+    const { store } = renderWithProvider(mockFireZoneUnit, []);
 
-    render(
-      <Provider store={store}>
-        <SubscriptionOption fireZoneUnit={mockFireZoneUnit} />
-      </Provider>,
-    );
+    const switchEl = screen.getByRole("checkbox", {
+      name: /Toggle subscription for Kamloops Fire Zone/i,
+    });
+    fireEvent.click(switchEl);
 
-    expect(screen.getByText("Kamloops")).toBeInTheDocument();
+    // Wait for async dispatch
+    await vi.waitFor(() => {
+      expect(store.getState().settings.subscriptions).toContain(123);
+    });
+  });
+
+  it("dispatches saveSubscriptions when toggling the switch (turn off)", async () => {
+    const { store } = renderWithProvider(mockFireZoneUnit, [123]);
+
+    const switchEl = screen.getByRole("checkbox", {
+      name: /Toggle subscription for Kamloops Fire Zone/i,
+    });
+    fireEvent.click(switchEl);
+
+    // Wait for async dispatch
+    await vi.waitFor(() => {
+      expect(store.getState().settings.subscriptions).not.toContain(123);
+    });
+  });
+
+  it("handles multiple subscriptions correctly", async () => {
+    const { store } = renderWithProvider(mockFireZoneUnit, [100, 200]);
+
+    const switchEl = screen.getByRole("checkbox", {
+      name: /Toggle subscription for Kamloops Fire Zone/i,
+    });
+    fireEvent.click(switchEl);
+
+    // Should remove the subscription
+    await vi.waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([100, 200]);
+    });
+  });
+
+  it("adds subscription when not in list", async () => {
+    const { store } = renderWithProvider(mockFireZoneUnit, [100, 200]);
+
+    const listItemButton = screen.getByRole("button");
+    fireEvent.click(listItemButton);
+
+    await vi.waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([100, 200, 123]);
+    });
   });
 });

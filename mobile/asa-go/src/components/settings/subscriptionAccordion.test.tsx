@@ -22,6 +22,7 @@ describe("SubscriptionAccordion", () => {
     render(
       <Provider store={store}>
         <SubscriptionAccordion
+          defaultExpanded={false}
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
         />
@@ -33,6 +34,40 @@ describe("SubscriptionAccordion", () => {
     expect(accordionText).toBeInTheDocument();
   });
 
+  it("renders as expanded when defaultExpanded is true", () => {
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={true}
+        />
+      </Provider>,
+    );
+
+    expect(screen.getByText("Kamloops")).toBeInTheDocument();
+    expect(screen.getByText("Vernon")).toBeInTheDocument();
+  });
+
+  it("renders as collapsed when defaultExpanded is false", () => {
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={false}
+        />
+      </Provider>,
+    );
+
+    expect(screen.queryByText(/Kamloops/i)).not.toBeVisible();
+    expect(screen.queryByText(/Vernon/i)).not.toBeVisible();
+  });
+
   it("renders all fire zone units as SubscriptionOptions", () => {
     const store = createTestStore();
 
@@ -41,6 +76,7 @@ describe("SubscriptionAccordion", () => {
         <SubscriptionAccordion
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={false}
         />
       </Provider>,
     );
@@ -60,6 +96,7 @@ describe("SubscriptionAccordion", () => {
         <SubscriptionAccordion
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={false}
         />
       </Provider>,
     );
@@ -91,6 +128,7 @@ describe("SubscriptionAccordion", () => {
         <SubscriptionAccordion
           disabled={true}
           fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={false}
         />
       </Provider>,
     );
@@ -120,6 +158,7 @@ describe("SubscriptionAccordion", () => {
         <SubscriptionAccordion
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={false}
         />
       </Provider>,
     );
@@ -137,6 +176,7 @@ describe("SubscriptionAccordion", () => {
         <SubscriptionAccordion
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={false}
         />
       </Provider>,
     );
@@ -153,6 +193,7 @@ describe("SubscriptionAccordion", () => {
         <SubscriptionAccordion
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={false}
         />
       </Provider>,
     );
@@ -181,6 +222,7 @@ describe("SubscriptionAccordion", () => {
         <SubscriptionAccordion
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={false}
         />
       </Provider>,
     );
