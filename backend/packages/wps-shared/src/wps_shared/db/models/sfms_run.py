@@ -23,6 +23,9 @@ class SFMSRunLogJobName(str, enum.Enum):
     FFMC_CALCULATION = "ffmc_calculation"
     DMC_CALCULATION = "dmc_calculation"
     DC_CALCULATION = "dc_calculation"
+    ISI_CALCULATION = "isi_calculation"
+    BUI_CALCULATION = "bui_calculation"
+    FWI_CALCULATION = "fwi_calculation"
 
 
 class SFMSRunLogStatus(str, enum.Enum):

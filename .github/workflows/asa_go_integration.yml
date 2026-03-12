@@ -1,8 +1,5 @@
 name: ASA Go
 
-permissions:
-  contents: read
-
 on:
   pull_request:
     branches:
@@ -11,38 +8,45 @@ on:
       - "mobile/**"
 
 jobs:
-  build_and_test:
-    runs-on: macos-latest
+  js_test:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     strategy:
       matrix:
         node-version: [20.x]
-    name: Build and test ASA Go
+    name: Test JS
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        id: asa-go-cache
-        with:
-          path: |
-            mobile/asa-go/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - uses: actions/cache@v5
-        id: asa-go-keycloak-cache
-        with:
-          path: |
-            mobile/keycloak/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - name: Install keycloak plugin
-        working-directory: ./mobile/keycloak
-        if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
-        run: yarn install
-      - name: Install dependencies
-        working-directory: ./mobile/asa-go
-        if: steps.asa-go-cache.outputs.cache-hit != 'true'
-        run: yarn install
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
       - name: Test with Coverage
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          files: ./mobile/asa-go/coverage/lcov.info
+          flags: asa_go
+          name: asa-go-coverage
+          # we want to ensure code coverage is good, so we fail on error. (default is false)
+          fail_ci_if_error: true
+
+  ios_test:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    name: Test iOS
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
+      - name: Sync Capacitor iOS
+        working-directory: ./mobile/asa-go
+        run: yarn cap sync ios
       - name: Use Xcode latest stable
         uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd
         with:
@@ -53,13 +57,52 @@ jobs:
           xcodebuild test \
             -scheme "Keycloak" \
             -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
-            -enableCodeCoverage YES
-      - name: Upload test coverage to Codecov
-        uses: codecov/codecov-action@v4
+            -enableCodeCoverage YES \
+            -resultBundlePath ${{ runner.temp }}/keycloak.xcresult
+      - name: Upload iOS coverage to Codecov
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
         with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          files: ./mobile/asa-go/coverage/lcov.info
-          flags: asa_go
-          name: asa-go-coverage
-          # we want to ensure code coverage is good, so we fail on error. (default is false)
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ runner.temp }}/keycloak.xcresult
+          flags: keycloak_ios
+          fail_ci_if_error: true
+
+  android_test:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    name: Test Android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
+      - name: Create google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: echo "$GOOGLE_SERVICES_JSON" | base64 -d > ./mobile/asa-go/android/app/google-services.json
+      - name: Sync Capacitor Android
+        working-directory: ./mobile/asa-go
+        run: yarn cap sync android
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+      - name: Test ASA Go Android
+        working-directory: ./mobile/asa-go/android
+        run: ./gradlew jacocoTestReport
+      - name: Test Keycloak Android plugin
+        working-directory: ./mobile/keycloak/android
+        run: ./gradlew jacocoTestReport
+      - name: Upload Android coverage to Codecov
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: |
+            ./mobile/asa-go/android/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+            ./mobile/keycloak/android/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          flags: android
           fail_ci_if_error: true

@@ -12,7 +12,7 @@ const StyledTableCell = styled(TableCell, {
   backgroundColor: props.backgroundColor ? props.backgroundColor : undefined
 }))
 
-interface StickyCellProps {
+export interface StickyCellProps {
   left: number
   zIndexOffset: number
   children?: React.ReactNode
