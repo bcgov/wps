@@ -134,12 +134,23 @@ describe("SubscriptionOption", () => {
   it("handles multiple subscriptions correctly", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, [100, 200]);
 
+    await vi.waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([100, 200]);
+    });
+
     const switchEl = screen.getByRole("checkbox", {
       name: /Toggle subscription for Kamloops Fire Zone/i,
     });
     fireEvent.click(switchEl);
 
-    // Should remove the subscription
+    // All fire zone units should be subscribed to
+    await vi.waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([100, 200, 123]);
+    });
+
+    // Hit toggleAll function again to remove fire zone units associated with this fire centre.
+    fireEvent.click(switchEl);
+
     await vi.waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([100, 200]);
     });

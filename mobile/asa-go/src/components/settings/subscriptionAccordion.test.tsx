@@ -201,12 +201,11 @@ describe("SubscriptionAccordion", () => {
     // Click the pin button
     fireEvent.click(screen.getByRole("button", { name: "" }));
 
-    // Check if the fire centre is now pinned
-    // Since savePinnedFireCentre is a thunk, we need to wait a bit
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(store.getState().settings.pinnedFireCentre).toEqual(
-      mockFireCentreInfo.fire_centre_name,
-    );
+    waitFor(() => {
+      expect(store.getState().settings.pinnedFireCentre).toEqual(
+        mockFireCentreInfo.fire_centre_name,
+      );
+    });
   });
 
   it("unpins the fire centre when pin button is clicked and already pinned", async () => {

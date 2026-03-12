@@ -95,7 +95,7 @@ export const initSubscriptions = (): AppThunk => async (dispatch) => {
   try {
     if (result.value) {
       const subs = JSON.parse(result.value);
-      if (subs) {
+      if (subs && Array.isArray(subs)) {
         dispatch(setSubscriptions(subs));
       }
     }
@@ -125,7 +125,7 @@ export const savePinnedFireCentre =
     } else {
       await Preferences.set({
         key: PINNED_FIRE_CENTRE_KEY,
-        value: fireCentre ?? "",
+        value: fireCentre,
       });
     }
     dispatch(setPinnedFireCentre(fireCentre));
@@ -169,7 +169,7 @@ export const fetchFireCentreInfo =
         dispatch(getFireCenterInfoSuccess(fireCenterInfo.fire_centre_info));
       } catch (err) {
         dispatch(getFireCenterInfoFailed((err as Error).toString()));
-        console.log(err);
+        console.error(err);
       }
     } else {
       // We're offline so there is nothing to do but set the error state.
