@@ -42,7 +42,6 @@ class FireCentreInfo(BaseModel):
 
 
 class FireCentreInfoResponse(BaseModel):
-    """Response including a dictionary of fire zone units keyed by fire centre name."""
 
     fire_centre_info: List[FireCentreInfo]
 
