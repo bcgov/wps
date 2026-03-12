@@ -7,14 +7,21 @@ import {
 } from "@/slices/settingsSlice";
 import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
 import { theme } from "@/theme";
-import { Alert, AlertTitle, Box, Button, Typography } from "@mui/material";
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  LinearProgress,
+  Typography,
+} from "@mui/material";
 import { isNil } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { NavPanel } from "@/utils/constants";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { PermissionState } from "@capacitor/core";
-import { NavPanel } from "@/utils/constants";
 
 type ReceivePermission = PermissionState | "unknown";
 
@@ -27,7 +34,8 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const isVisible = activeTab === NavPanel.SETTINGS;
 
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const { fireCentreInfos, pinnedFireCentre } = useSelector(selectSettings);
+  const { fireCentreInfos, loading, error, pinnedFireCentre } =
+    useSelector(selectSettings);
 
   const [receivePermission, setReceivePermission] =
     useState<ReceivePermission>("unknown");
@@ -89,7 +97,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
   }, [fireCentreInfos, pinnedFireCentre]);
 
   const renderNotificationMessage = () => {
-    if (!networkStatus.connected || receivePermission !== "granted") {
+    if (!networkStatus.connected || receivePermission !== "granted" || error) {
       return;
     }
     return (
@@ -152,26 +160,57 @@ const Settings = ({ activeTab }: SettingsProps) => {
     }
   };
 
-  const renderSettings = () => (
-    <Box
-      sx={{
-        display: "flex",
-        flex: 1,
-        minHeight: 0,
-        overflowY: "auto",
-        flexDirection: "column",
-      }}
-    >
-      {orderedFireCentres.map((unit, index) => (
-        <SubscriptionAccordion
-          key={unit.fire_centre_name}
-          fireCentreInfo={unit}
-          disabled={notificationSettingsDisabled}
-          defaultExpanded={index === 0}
-        />
-      ))}
-    </Box>
-  );
+  const renderSettings = () => {
+    if (loading) {
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            padding: theme.spacing(2),
+          }}
+        >
+          <Typography variant="body2" color="primary">
+            Retrieving notification settings...
+          </Typography>
+          <LinearProgress color="primary" sx={{ pt: theme.spacing(1) }} />
+        </Box>
+      );
+    }
+    if (error) {
+      return (
+        <Alert
+          severity="warning"
+          sx={{ mx: 1, my: 1 }}
+          data-testid="settings-error-alert"
+        >
+          <AlertTitle>Error</AlertTitle>
+          An error occurred when attempting to retrieve notification settings.
+          Please check your network connection and reload the app.
+        </Alert>
+      );
+    }
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          flexDirection: "column",
+        }}
+      >
+        {orderedFireCentres.map((unit, index) => (
+          <SubscriptionAccordion
+            key={unit.fire_centre_name}
+            fireCentreInfo={unit}
+            disabled={notificationSettingsDisabled}
+            defaultExpanded={index === 0}
+          />
+        ))}
+      </Box>
+    );
+  };
 
   return (
     <Box

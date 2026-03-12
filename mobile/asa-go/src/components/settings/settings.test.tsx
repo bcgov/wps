@@ -227,4 +227,55 @@ describe("Settings", () => {
     const fireCentreElements = await screen.findAllByRole("heading");
     expect(fireCentreElements[0]).toHaveTextContent(/PRINCE GEORGE/i);
   });
+
+  it("renders loading state when loading is true", async () => {
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        loading: true,
+        fireCentreInfos: [],
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+
+    expect(
+      screen.getByText(/Retrieving notification settings/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+  });
+
+  it("renders error state when error is present", async () => {
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        loading: false,
+        error: "Failed to fetch fire centre info",
+        fireCentreInfos: [],
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+
+    expect(screen.getByTestId("settings-error-alert")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /An error occurred when attempting to retrieve notification settings/i,
+      ),
+    ).toBeInTheDocument();
+  });
 });
