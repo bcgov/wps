@@ -4019,6 +4019,98 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@wps/tsconfig@workspace:*, @wps/tsconfig@workspace:packages/tsconfig":
+  version: 0.0.0-use.local
+  resolution: "@wps/tsconfig@workspace:packages/tsconfig"
+  languageName: unknown
+  linkType: soft
+
+"@wps/wps-web@workspace:apps/wps-web":
+  version: 0.0.0-use.local
+  resolution: "@wps/wps-web@workspace:apps/wps-web"
+  dependencies:
+    "@babel/core": "npm:^7.29.0"
+    "@babel/preset-env": "npm:^7.29.0"
+    "@cypress/code-coverage": "npm:^4.0.0"
+    "@emotion/react": "npm:^11.8.2"
+    "@emotion/styled": "npm:^11.8.1"
+    "@eslint/compat": "npm:^2.0.0"
+    "@mui/icons-material": "npm:^5.5.1"
+    "@mui/material": "npm:5.15.20"
+    "@mui/system": "npm:^5.15.14"
+    "@mui/x-data-grid-pro": "npm:^6.0.0"
+    "@mui/x-date-pickers": "npm:^7.29.4"
+    "@psu/cffdrs_ts": "git+https://github.com/cffdrs/cffdrs_ts#b9afdabc89dd4bdf04ccf1e406a4a5d8d552ff51"
+    "@reduxjs/toolkit": "npm:^2.2.7"
+    "@sentry/react": "npm:^10.0.0"
+    "@sentry/vite-plugin": "npm:^5.0.0"
+    "@testing-library/dom": "npm:^10.1.0"
+    "@testing-library/jest-dom": "npm:^6.4.2"
+    "@testing-library/react": "npm:^16.0.0"
+    "@testing-library/user-event": "npm:^14.5.2"
+    "@types/babel__core": "npm:^7"
+    "@types/babel__preset-env": "npm:^7"
+    "@types/esri-leaflet": "npm:^3.0.0"
+    "@types/jest": "npm:^30.0.0"
+    "@types/leaflet": "npm:^1.7.0"
+    "@types/lodash": "npm:^4.14.173"
+    "@types/luxon": "npm:^3.0.2"
+    "@types/react": "npm:18.3.3"
+    "@types/react-dom": "npm:^18.3.0"
+    "@types/react-is": "npm:^19"
+    "@types/react-plotly.js": "npm:^2.2.4"
+    "@types/react-router-dom": "npm:^5.3.3"
+    "@types/recharts": "npm:^1.8.23"
+    "@types/webpack-env": "npm:^1.15.1"
+    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
+    "@typescript-eslint/parser": "npm:^8.0.0"
+    "@vitejs/plugin-react": "npm:^4.3.1"
+    "@vitest/coverage-v8": "npm:^4.0.8"
+    "@wps/tsconfig": "workspace:*"
+    axios: "npm:1.8.2"
+    babel-loader: "npm:^10.1.1"
+    cypress: "npm:^15.10.0"
+    date-fns: "npm:^4.0.0"
+    eslint: "npm:^9.7.0"
+    eslint-config-prettier: "npm:^10.0.0"
+    eslint-plugin-prettier: "npm:^5.1.3"
+    eslint-plugin-react: "npm:^7.34.4"
+    eslint-plugin-react-hooks: "npm:^7.0.0"
+    eslint-plugin-react-refresh: "npm:^0.4.7"
+    esri-leaflet: "npm:3.0.12"
+    filefy: "npm:^0.1.11"
+    globals: "npm:^17.0.0"
+    jsdom: "npm:^26.0.0"
+    jwt-decode: "npm:^4.0.0"
+    keycloak-js: "npm:^25.0.0"
+    leaflet: "npm:^1.7.1"
+    lodash: "npm:^4.17.21"
+    luxon: "npm:^3.0.2"
+    match-sorter: "npm:^8.0.0"
+    nyc: "npm:^17.0.0"
+    ol: "npm:10.0.0"
+    ol-mapbox-style: "npm:^13.1.1"
+    ol-pmtiles: "npm:^2.0.0"
+    prettier: "npm:^3.3.3"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    react-is: "npm:^19.2.4"
+    react-redux: "npm:^9.1.2"
+    react-router-dom: "npm:^7.6.2"
+    recharts: "npm:^3.0.0"
+    rollup: "npm:^4.59.0"
+    start-server-and-test: "npm:^2.0.0"
+    ts-sinon: "npm:^2.0.2"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^7.0.0"
+    vite-plugin-istanbul: "npm:^7.0.0"
+    vite-plugin-svgr: "npm:^4.2.0"
+    vitest: "npm:^4.0.0"
+    webpack: "npm:^5.105.4"
+    whatwg-fetch: "npm:^3.6.20"
+  languageName: unknown
+  linkType: soft
+
 "@xtuc/ieee754@npm:^1.2.0":
   version: 1.2.0
   resolution: "@xtuc/ieee754@npm:1.2.0"
@@ -10543,6 +10635,77 @@ __metadata:
   languageName: node
   linkType: hard
 
+"turbo-darwin-64@npm:2.8.16":
+  version: 2.8.16
+  resolution: "turbo-darwin-64@npm:2.8.16"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"turbo-darwin-arm64@npm:2.8.16":
+  version: 2.8.16
+  resolution: "turbo-darwin-arm64@npm:2.8.16"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo-linux-64@npm:2.8.16":
+  version: 2.8.16
+  resolution: "turbo-linux-64@npm:2.8.16"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"turbo-linux-arm64@npm:2.8.16":
+  version: 2.8.16
+  resolution: "turbo-linux-arm64@npm:2.8.16"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo-windows-64@npm:2.8.16":
+  version: 2.8.16
+  resolution: "turbo-windows-64@npm:2.8.16"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"turbo-windows-arm64@npm:2.8.16":
+  version: 2.8.16
+  resolution: "turbo-windows-arm64@npm:2.8.16"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo@npm:^2.0.0":
+  version: 2.8.16
+  resolution: "turbo@npm:2.8.16"
+  dependencies:
+    turbo-darwin-64: "npm:2.8.16"
+    turbo-darwin-arm64: "npm:2.8.16"
+    turbo-linux-64: "npm:2.8.16"
+    turbo-linux-arm64: "npm:2.8.16"
+    turbo-windows-64: "npm:2.8.16"
+    turbo-windows-arm64: "npm:2.8.16"
+  dependenciesMeta:
+    turbo-darwin-64:
+      optional: true
+    turbo-darwin-arm64:
+      optional: true
+    turbo-linux-64:
+      optional: true
+    turbo-linux-arm64:
+      optional: true
+    turbo-windows-64:
+      optional: true
+    turbo-windows-arm64:
+      optional: true
+  bin:
+    turbo: bin/turbo
+  checksum: 10c0/5ac16e61a723f45e8ab265d7bbeb932f8843e982d8b9eca07d8df4778d5c2152d96d2a54ddca761588c5a538178333cce5b55ba765a32c2cb4c5be07609c25de
+  languageName: node
+  linkType: hard
+
 "tweetnacl@npm:^0.14.3, tweetnacl@npm:~0.14.0":
   version: 0.14.5
   resolution: "tweetnacl@npm:0.14.5"
@@ -11222,88 +11385,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wps-web@workspace:.":
+"wps-frontend@workspace:.":
   version: 0.0.0-use.local
-  resolution: "wps-web@workspace:."
+  resolution: "wps-frontend@workspace:."
   dependencies:
-    "@babel/core": "npm:^7.29.0"
-    "@babel/preset-env": "npm:^7.29.0"
-    "@cypress/code-coverage": "npm:^4.0.0"
-    "@emotion/react": "npm:^11.8.2"
-    "@emotion/styled": "npm:^11.8.1"
-    "@eslint/compat": "npm:^2.0.0"
-    "@mui/icons-material": "npm:^5.5.1"
-    "@mui/material": "npm:5.15.20"
-    "@mui/system": "npm:^5.15.14"
-    "@mui/x-data-grid-pro": "npm:^6.0.0"
-    "@mui/x-date-pickers": "npm:^7.29.4"
-    "@psu/cffdrs_ts": "git+https://github.com/cffdrs/cffdrs_ts#b9afdabc89dd4bdf04ccf1e406a4a5d8d552ff51"
-    "@reduxjs/toolkit": "npm:^2.2.7"
-    "@sentry/react": "npm:^10.0.0"
-    "@sentry/vite-plugin": "npm:^5.0.0"
-    "@testing-library/dom": "npm:^10.1.0"
-    "@testing-library/jest-dom": "npm:^6.4.2"
-    "@testing-library/react": "npm:^16.0.0"
-    "@testing-library/user-event": "npm:^14.5.2"
-    "@types/babel__core": "npm:^7"
-    "@types/babel__preset-env": "npm:^7"
-    "@types/esri-leaflet": "npm:^3.0.0"
-    "@types/jest": "npm:^30.0.0"
-    "@types/leaflet": "npm:^1.7.0"
-    "@types/lodash": "npm:^4.14.173"
-    "@types/luxon": "npm:^3.0.2"
-    "@types/react": "npm:18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
-    "@types/react-is": "npm:^19"
-    "@types/react-plotly.js": "npm:^2.2.4"
-    "@types/react-router-dom": "npm:^5.3.3"
-    "@types/recharts": "npm:^1.8.23"
-    "@types/webpack-env": "npm:^1.15.1"
-    "@typescript-eslint/eslint-plugin": "npm:^8.0.0"
-    "@typescript-eslint/parser": "npm:^8.0.0"
-    "@vitejs/plugin-react": "npm:^4.3.1"
-    "@vitest/coverage-v8": "npm:^4.0.8"
-    axios: "npm:1.8.2"
-    babel-loader: "npm:^10.1.1"
-    cypress: "npm:^15.10.0"
-    date-fns: "npm:^4.0.0"
-    eslint: "npm:^9.7.0"
-    eslint-config-prettier: "npm:^10.0.0"
-    eslint-plugin-prettier: "npm:^5.1.3"
-    eslint-plugin-react: "npm:^7.34.4"
-    eslint-plugin-react-hooks: "npm:^7.0.0"
-    eslint-plugin-react-refresh: "npm:^0.4.7"
-    esri-leaflet: "npm:3.0.12"
-    filefy: "npm:^0.1.11"
-    globals: "npm:^17.0.0"
-    jsdom: "npm:^26.0.0"
-    jwt-decode: "npm:^4.0.0"
-    keycloak-js: "npm:^25.0.0"
-    leaflet: "npm:^1.7.1"
-    lodash: "npm:^4.17.21"
-    luxon: "npm:^3.0.2"
-    match-sorter: "npm:^8.0.0"
-    nyc: "npm:^17.0.0"
-    ol: "npm:10.0.0"
-    ol-mapbox-style: "npm:^13.1.1"
-    ol-pmtiles: "npm:^2.0.0"
-    prettier: "npm:^3.3.3"
-    react: "npm:^18.3.1"
-    react-dom: "npm:^18.3.1"
-    react-is: "npm:^19.2.4"
-    react-redux: "npm:^9.1.2"
-    react-router-dom: "npm:^7.6.2"
-    recharts: "npm:^3.0.0"
-    rollup: "npm:^4.59.0"
-    start-server-and-test: "npm:^2.0.0"
-    ts-sinon: "npm:^2.0.2"
-    typescript: "npm:^5.2.2"
-    vite: "npm:^7.0.0"
-    vite-plugin-istanbul: "npm:^7.0.0"
-    vite-plugin-svgr: "npm:^4.2.0"
-    vitest: "npm:^4.0.0"
-    webpack: "npm:^5.105.4"
-    whatwg-fetch: "npm:^3.6.20"
+    turbo: "npm:^2.0.0"
   languageName: unknown
   linkType: soft
 

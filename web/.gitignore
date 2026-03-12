@@ -3,6 +3,7 @@
 .sentryclirc
 .pnp.*
 .yarn/*
+.turbo/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases

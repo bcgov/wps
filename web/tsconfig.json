@@ -1,11 +1,10 @@
 {
   "files": [],
   "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ],
+    { "path": "apps/wps-web" },
+    { "path": "packages/api" },
+    { "path": "packages/utils" },
+    { "path": "packages/ui" },
+    { "path": "packages/types" }
+  ]
 }

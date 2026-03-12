@@ -1,0 +1,18 @@
+{
+  "extends": "@wps/tsconfig/base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "es2015",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "utils/*": ["./src/*"],
+      "api/*": ["../api/src/*"]
+    }
+  },
+  "include": ["src", "../types/src"]
+}
