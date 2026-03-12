@@ -235,4 +235,126 @@ describe("SubscriptionAccordion", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(store.getState().settings.pinnedFireCentre).toBeNull();
   });
+
+  it("selects all fire zone units when 'All' checkbox is checked", async () => {
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={true}
+        />
+      </Provider>,
+    );
+
+    // Click the "All" checkbox to select all
+    const allCheckbox = screen.getByLabelText("All");
+    fireEvent.click(allCheckbox);
+
+    // Wait for state update
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Check that all fire zone units are now subscribed
+    expect(store.getState().settings.subscriptions).toEqual([1, 2]);
+  });
+
+  it("deselects all fire zone units when 'All' checkbox is unchecked", async () => {
+    const store = createTestStore({
+      settings: {
+        ...pushNotificationReducer(undefined, { type: "unknown" }),
+        subscriptions: [1, 2], // Both fire zone units are already subscribed
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={true}
+        />
+      </Provider>,
+    );
+
+    // Click the "All" checkbox to deselect all
+    const allCheckbox = screen.getByLabelText("All");
+    fireEvent.click(allCheckbox);
+
+    // Wait for state update
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Check that all fire zone units are now unsubscribed
+    expect(store.getState().settings.subscriptions).toEqual([]);
+  });
+
+  it("shows indeterminate state when some fire zone units are selected", () => {
+    const store = createTestStore({
+      settings: {
+        ...pushNotificationReducer(undefined, { type: "unknown" }),
+        subscriptions: [1], // Only one fire zone unit is subscribed
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={true}
+        />
+      </Provider>,
+    );
+
+    // Find the checkbox - when indeterminate, checked should be false
+    const checkbox = screen.getByRole("checkbox", { name: "All" });
+    // When indeterminate: checked is false, but subscriptions exist for this fire centre
+    expect(checkbox).not.toBeChecked();
+    // The checkbox should be in an indeterminate state (not checked but some selected)
+    expect(store.getState().settings.subscriptions).toContain(1);
+    expect(store.getState().settings.subscriptions).not.toContain(2);
+  });
+
+  it("checkbox is checked when all fire zone units are selected", () => {
+    const store = createTestStore({
+      settings: {
+        ...pushNotificationReducer(undefined, { type: "unknown" }),
+        subscriptions: [1, 2], // All fire zone units are subscribed
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={true}
+        />
+      </Provider>,
+    );
+
+    // Find the checkbox and verify it's checked
+    const checkbox = screen.getByRole("checkbox", { name: "All" });
+    expect(checkbox).toBeChecked();
+  });
+
+  it("checkbox is unchecked when no fire zone units are selected", () => {
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={true}
+        />
+      </Provider>,
+    );
+
+    // Find the checkbox and verify it's unchecked
+    const checkbox = screen.getByRole("checkbox", { name: "All" });
+    expect(checkbox).not.toBeChecked();
+    expect(checkbox).toHaveProperty("indeterminate", false);
+  });
 });
