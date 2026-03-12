@@ -18,6 +18,7 @@ export interface SettingsState {
   error: string | null;
   fireCentreInfos: FireCentreInfo[];
   pinnedFireCentre: string | null;
+  subscriptions: number[];
 }
 
 export const initialState: SettingsState = {
@@ -25,9 +26,11 @@ export const initialState: SettingsState = {
   error: null,
   fireCentreInfos: [],
   pinnedFireCentre: null,
+  subscriptions: [],
 };
 
-const PINNED_FIRE_CENTRE_KEY = "pinnedFireCentre";
+const PINNED_FIRE_CENTRE_KEY = "asaGoPinnedFireCentre";
+const SUBSCRIPTIONS_KEY = "asaGoSubscriptions";
 
 const settingsSlice = createSlice({
   name: "settings",
@@ -59,6 +62,9 @@ const settingsSlice = createSlice({
     ) {
       state.pinnedFireCentre = action.payload;
     },
+    setSubscriptions(state: SettingsState, action: PayloadAction<number[]>) {
+      state.subscriptions = action.payload;
+    },
   },
 });
 
@@ -67,6 +73,7 @@ export const {
   getFireCenterInfoFailed,
   getFireCenterInfoSuccess,
   setPinnedFireCentre,
+  setSubscriptions,
 } = settingsSlice.actions;
 
 export default settingsSlice.reducer;
@@ -80,6 +87,34 @@ export const initPinnedFireCentre = (): AppThunk => async (dispatch) => {
     dispatch(setPinnedFireCentre(pinnedFireCentre.value));
   }
 };
+
+export const initSubscriptions = (): AppThunk => async (dispatch) => {
+  const result = await Preferences.get({
+    key: SUBSCRIPTIONS_KEY,
+  });
+  try {
+    if (result.value) {
+      const subs = JSON.parse(result.value);
+      if (subs) {
+        dispatch(setSubscriptions(subs));
+      }
+    }
+  } catch (e) {
+    console.error(
+      `An error occurred when populating notification subscriptions: ${e}`,
+    );
+  }
+};
+
+export const saveSubscriptions =
+  (subs: number[]): AppThunk =>
+  async (dispatch) => {
+    await Preferences.set({
+      key: SUBSCRIPTIONS_KEY,
+      value: JSON.stringify(subs),
+    });
+    dispatch(setSubscriptions(subs));
+  };
 
 // Update @capacitor/preferences and redux state with pinned fire centre
 export const savePinnedFireCentre =

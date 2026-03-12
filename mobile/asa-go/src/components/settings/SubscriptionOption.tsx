@@ -1,43 +1,45 @@
+import { FireZoneUnit } from "@/api/fbaAPI";
+import { saveSubscriptions } from "@/slices/settingsSlice";
+import { AppDispatch, selectSettings } from "@/store";
 import { nameFormatter } from "@/utils/stringUtils";
 import { ListItem, Typography, Switch } from "@mui/material";
-import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 interface SubscriptionOptionProps {
-  fireZoneUnit: string;
+  fireZoneUnit: FireZoneUnit;
 }
 
 const SubscriptionOption = ({ fireZoneUnit }: SubscriptionOptionProps) => {
-  const [checked, setChecked] = useState(false);
+  const dispatch: AppDispatch = useDispatch();
+  const { subscriptions } = useSelector(selectSettings);
 
-  // Toggles when the user taps anywhere on the row (except the switch)
-  const handleRowToggle = () => {
-    setChecked((prev) => !prev);
-  };
-
-  // Toggles when the user taps the switch directly
+  // Toggles when the user taps the switch
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setChecked(e.target.checked);
+    let newSubs: number[];
+    if (e.target.checked) {
+      newSubs = [...subscriptions, fireZoneUnit.id];
+    } else {
+      newSubs = subscriptions.filter((sub) => sub !== fireZoneUnit.id);
+    }
+    dispatch(saveSubscriptions(newSubs));
   };
 
   return (
     <ListItem
-      onClick={handleRowToggle}
       secondaryAction={
         <Switch
           edge="end"
-          checked={checked}
+          checked={subscriptions.includes(fireZoneUnit.id)}
           onChange={handleSwitchChange}
-          // Prevent the parent ListItemButton from also toggling
-          onClick={(e) => e.stopPropagation()}
           inputProps={{
-            "aria-label": `Toggle subscription for ${fireZoneUnit}`,
+            "aria-label": `Toggle subscription for ${fireZoneUnit.name}`,
           }}
         />
       }
       disableGutters
     >
       <Typography variant="body2" fontWeight="bold">
-        {nameFormatter(fireZoneUnit, "Fire Zone", false)}
+        {nameFormatter(fireZoneUnit.name, "Fire Zone", false)}
       </Typography>
     </ListItem>
   );

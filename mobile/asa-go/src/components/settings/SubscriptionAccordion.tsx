@@ -20,17 +20,19 @@ import { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 interface SubscriptionAccordionProps {
+  defaultExpanded: boolean;
   disabled: boolean;
   fireCentreInfo: FireCentreInfo;
 }
 
 const SubscriptionAccordion = ({
+  defaultExpanded,
   disabled,
   fireCentreInfo,
 }: SubscriptionAccordionProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { pinnedFireCentre } = useSelector(selectSettings);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
 
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newExpanded: boolean) => {
@@ -67,6 +69,8 @@ const SubscriptionAccordion = ({
       aria-disabled={disabled ? true : undefined}
     >
       <Accordion
+        defaultExpanded={defaultExpanded}
+        disableGutters
         expanded={expanded}
         onChange={handleChange}
         sx={{ ...disabledStyles }}
@@ -84,16 +88,18 @@ const SubscriptionAccordion = ({
               <PushPinOutlinedIcon color="primary" />
             )}
           </IconButton>
-          <Typography
-            variant="body1"
-            sx={{ fontWeight: 600, pl: theme.spacing(1) }}
-          >
-            {nameFormatter(
-              fireCentreInfo.fire_centre_name,
-              "Fire Centre",
-              true,
-            )}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: "bold", pl: theme.spacing(1) }}
+            >
+              {nameFormatter(
+                fireCentreInfo.fire_centre_name,
+                "Fire Centre",
+                true,
+              )}
+            </Typography>
+          </Box>
         </AccordionSummary>
         <AccordionDetails>
           <List>
@@ -101,7 +107,7 @@ const SubscriptionAccordion = ({
               return (
                 <SubscriptionOption
                   key={fireZoneUnit.id}
-                  fireZoneUnit={fireZoneUnit.name}
+                  fireZoneUnit={fireZoneUnit}
                 />
               );
             })}

@@ -3,6 +3,7 @@ import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
 import {
   fetchFireCentreInfo,
   initPinnedFireCentre,
+  initSubscriptions,
 } from "@/slices/settingsSlice";
 import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
 import { theme } from "@/theme";
@@ -31,6 +32,7 @@ const Settings = () => {
   // Load fire centres on mount
   useEffect(() => {
     dispatch(initPinnedFireCentre());
+    dispatch(initSubscriptions());
     dispatch(fetchFireCentreInfo());
   }, [dispatch]);
 
@@ -83,8 +85,11 @@ const Settings = () => {
     }
     return (
       <Typography
-        sx={{ color: theme.palette.primary.main, padding: theme.spacing(1) }}
-        variant="body1"
+        sx={{
+          color: theme.palette.primary.main,
+          padding: theme.spacing(2),
+        }}
+        variant="body2"
       >
         Set your notification subscriptions.
       </Typography>
@@ -148,11 +153,12 @@ const Settings = () => {
         flexDirection: "column",
       }}
     >
-      {orderedFireCentres.map((unit) => (
+      {orderedFireCentres.map((unit, index) => (
         <SubscriptionAccordion
           key={unit.fire_centre_name}
           fireCentreInfo={unit}
           disabled={notificationSettingsDisabled}
+          defaultExpanded={index === 0}
         />
       ))}
     </Box>
@@ -170,6 +176,35 @@ const Settings = () => {
         overflow: "hidden",
       }}
     >
+      <Box
+        sx={{
+          display: "flex",
+          pl: theme.spacing(1),
+          py: theme.spacing(1),
+          borderBottomColor: "rgba(0,0,0,0.1)",
+          borderBottomWidth: "1px",
+          borderBottomStyle: "solid",
+        }}
+      >
+        <Box
+          sx={{
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: "24px",
+            display: "inline-flex",
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              color: "white",
+              px: theme.spacing(2),
+              py: theme.spacing(0.5),
+            }}
+          >
+            Notifications
+          </Typography>
+        </Box>
+      </Box>
       {renderPermissionBanner()}
       {renderOfflineMessage()}
       {renderNotificationMessage()}
