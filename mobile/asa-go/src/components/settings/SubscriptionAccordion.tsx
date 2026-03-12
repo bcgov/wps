@@ -22,7 +22,7 @@ import {
   List,
   Typography,
 } from "@mui/material";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 interface SubscriptionAccordionProps {
@@ -41,7 +41,7 @@ const SubscriptionAccordion = ({
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   // All fire zone unit ids in this fire centre.
-  const allFireZoneUnitIds = useCallback(() => {
+  const allFireZoneUnitIds = useMemo(() => {
     if (fireCentreInfo?.fire_zone_units?.length) {
       return fireCentreInfo.fire_zone_units.map((fzu) => fzu.id);
     }
@@ -49,8 +49,8 @@ const SubscriptionAccordion = ({
   }, [fireCentreInfo]);
 
   // All fire zone units ids in this fire centre that are subscribed to.
-  const subscribedFireZoneUnits = useCallback(() => {
-    return allFireZoneUnitIds().filter((zone) => subscriptions.includes(zone));
+  const subscribedFireZoneUnits = useMemo(() => {
+    return allFireZoneUnitIds.filter((zone) => subscriptions.includes(zone));
   }, [subscriptions, allFireZoneUnitIds]);
 
   // Handle expanding/collapsing the accordion.
@@ -74,8 +74,8 @@ const SubscriptionAccordion = ({
 
   const allSelected = () => {
     if (
-      subscribedFireZoneUnits().length &&
-      subscribedFireZoneUnits().length === allFireZoneUnitIds().length
+      subscribedFireZoneUnits.length &&
+      subscribedFireZoneUnits.length === allFireZoneUnitIds.length
     ) {
       return true;
     }
@@ -87,11 +87,11 @@ const SubscriptionAccordion = ({
     e.stopPropagation();
     // Remove all of this fire centre's fire zone unit ids to avoid adding duplicates in the following if block.
     const newSubs = subscriptions.filter(
-      (sub) => !allFireZoneUnitIds().includes(sub),
+      (sub) => !allFireZoneUnitIds.includes(sub),
     );
     // If none or some ids are already subscribed to, add back all ids to select all.
     if (!allSelected()) {
-      newSubs.push(...allFireZoneUnitIds());
+      newSubs.push(...allFireZoneUnitIds);
     }
 
     dispatch(saveSubscriptions(newSubs));
@@ -156,13 +156,14 @@ const SubscriptionAccordion = ({
                   <Checkbox
                     checked={allSelected()}
                     indeterminate={
-                      !allSelected() && subscribedFireZoneUnits().length > 0
+                      !allSelected() && subscribedFireZoneUnits.length > 0
                     }
                     onChange={toggleAll}
                     onClick={(e) => e.stopPropagation()}
                   />
                 }
                 label="All"
+                onClick={(e) => e.stopPropagation()}
               />
             </FormGroup>
           </Box>

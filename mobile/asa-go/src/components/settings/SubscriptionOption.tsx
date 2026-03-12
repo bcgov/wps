@@ -4,10 +4,10 @@ import { AppDispatch, selectSettings } from "@/store";
 import { nameFormatter } from "@/utils/stringUtils";
 import {
   ListItem,
-  Typography,
-  Switch,
   ListItemButton,
   ListItemText,
+  Switch,
+  Typography,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
