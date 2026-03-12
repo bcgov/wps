@@ -7,6 +7,7 @@ import settingsReducer from "@/slices/settingsSlice";
 import networkStatusReducer from "@/slices/networkStatusSlice";
 import { FireCentreInfo, getFireCentreInfo } from "@/api/fbaAPI";
 import * as Storage from "@/utils/storage";
+import { NavPanel } from "@/utils/constants";
 
 // Mock the API call
 vi.mock("@/api/fbaAPI", async () => {
@@ -85,7 +86,7 @@ describe("Settings", () => {
 
     render(
       <Provider store={store}>
-        <Settings />
+        <Settings activeTab={NavPanel.SETTINGS} />
       </Provider>,
     );
 
@@ -111,7 +112,7 @@ describe("Settings", () => {
 
     render(
       <Provider store={store}>
-        <Settings />
+        <Settings activeTab={NavPanel.SETTINGS} />
       </Provider>,
     );
     const fireCentreElements = await screen.findAllByRole("heading");
@@ -132,7 +133,7 @@ describe("Settings", () => {
 
     render(
       <Provider store={store}>
-        <Settings />
+        <Settings activeTab={NavPanel.SETTINGS} />
       </Provider>,
     );
     expect(
@@ -161,7 +162,7 @@ describe("Settings", () => {
 
     render(
       <Provider store={store}>
-        <Settings />
+        <Settings activeTab={NavPanel.SETTINGS} />
       </Provider>,
     );
     expect(
@@ -191,7 +192,7 @@ describe("Settings", () => {
 
     render(
       <Provider store={store}>
-        <Settings />
+        <Settings activeTab={NavPanel.SETTINGS} />
       </Provider>,
     );
     expect(
@@ -219,7 +220,7 @@ describe("Settings", () => {
 
     render(
       <Provider store={store}>
-        <Settings />
+        <Settings activeTab={NavPanel.SETTINGS} />
       </Provider>,
     );
     // Check if pinned fire centre is first

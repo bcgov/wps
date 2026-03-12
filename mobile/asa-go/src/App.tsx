@@ -275,7 +275,7 @@ const App = () => {
           />
         </TabPanel>
         <TabPanel value={tab} panel={NavPanel.SETTINGS}>
-          <Settings />
+          <Settings activeTab={tab} />
         </TabPanel>
       </Box>
 

@@ -14,11 +14,18 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { PermissionState } from "@capacitor/core";
+import { NavPanel } from "@/utils/constants";
 
 type ReceivePermission = PermissionState | "unknown";
 
-const Settings = () => {
+interface SettingsProps {
+  activeTab: NavPanel;
+}
+
+const Settings = ({ activeTab }: SettingsProps) => {
   const dispatch: AppDispatch = useDispatch();
+  const isVisible = activeTab === NavPanel.SETTINGS;
+
   const { networkStatus } = useSelector(selectNetworkStatus);
   const { fireCentreInfos, pinnedFireCentre } = useSelector(selectSettings);
 
@@ -53,8 +60,10 @@ const Settings = () => {
 
   // Check push notification settings on mount
   useEffect(() => {
-    refreshNotificationPermission();
-  }, [refreshNotificationPermission]);
+    if (isVisible) {
+      refreshNotificationPermission();
+    }
+  }, [refreshNotificationPermission, isVisible]);
 
   // Derived ordered list of centres for display (memoized)
   const orderedFireCentres = useMemo<FireCentreInfo[]>(() => {
