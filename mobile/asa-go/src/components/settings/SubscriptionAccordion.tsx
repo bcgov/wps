@@ -1,6 +1,9 @@
 import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionOption from "@/components/settings/SubscriptionOption";
-import { savePinnedFireCentre } from "@/slices/settingsSlice";
+import {
+  savePinnedFireCentre,
+  saveSubscriptions,
+} from "@/slices/settingsSlice";
 import { AppDispatch, selectSettings } from "@/store";
 import { theme } from "@/theme";
 import { nameFormatter } from "@/utils/stringUtils";
@@ -12,6 +15,9 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
   IconButton,
   List,
   Typography,
@@ -31,9 +37,23 @@ const SubscriptionAccordion = ({
   fireCentreInfo,
 }: SubscriptionAccordionProps) => {
   const dispatch: AppDispatch = useDispatch();
-  const { pinnedFireCentre } = useSelector(selectSettings);
+  const { pinnedFireCentre, subscriptions } = useSelector(selectSettings);
   const [expanded, setExpanded] = useState(defaultExpanded);
 
+  // All fire zone unit ids in this fire centre.
+  const allFireZoneUnitIds = useCallback(() => {
+    if (fireCentreInfo?.fire_zone_units?.length) {
+      return fireCentreInfo.fire_zone_units.map((fzu) => fzu.id);
+    }
+    return [];
+  }, [fireCentreInfo]);
+
+  // All fire zone units ids in this fire centre that are subscribed to.
+  const subscribedFireZoneUnits = useCallback(() => {
+    return allFireZoneUnitIds().filter((zone) => subscriptions.includes(zone));
+  }, [subscriptions, allFireZoneUnitIds]);
+
+  // Handle expanding/collapsing the accordion.
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newExpanded: boolean) => {
       if (disabled) return; // block expansion when disabled
@@ -42,6 +62,7 @@ const SubscriptionAccordion = ({
     [disabled],
   );
 
+  // Handle a touch of the pin icon to move a fire centre to the top of the group of accordions.
   const handlePinTouch = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (pinnedFireCentre === fireCentreInfo.fire_centre_name) {
@@ -49,6 +70,31 @@ const SubscriptionAccordion = ({
     } else {
       dispatch(savePinnedFireCentre(fireCentreInfo.fire_centre_name));
     }
+  };
+
+  const allSelected = () => {
+    if (
+      subscribedFireZoneUnits().length &&
+      subscribedFireZoneUnits().length === allFireZoneUnitIds().length
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  // Add/remove subscription to all fire zone units in this fire centre.
+  const toggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    // Remove all of this fire centre's fire zone unit ids to avoid adding duplicates in the following if block.
+    const newSubs = subscriptions.filter(
+      (sub) => !allFireZoneUnitIds().includes(sub),
+    );
+    // If none or some ids are already subscribed to, add back all ids to select all.
+    if (!allSelected()) {
+      newSubs.push(...allFireZoneUnitIds());
+    }
+
+    dispatch(saveSubscriptions(newSubs));
   };
 
   const disabledStyles = disabled
@@ -63,7 +109,6 @@ const SubscriptionAccordion = ({
     <Box
       sx={{
         position: "relative",
-        // Keep keyboard focus out and indicate disabled to AT
         "& [role='button']": disabled ? { pointerEvents: "none" } : undefined,
       }}
       aria-disabled={disabled ? true : undefined}
@@ -88,10 +133,16 @@ const SubscriptionAccordion = ({
               <PushPinOutlinedIcon color="primary" />
             )}
           </IconButton>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
             <Typography
               variant="body2"
-              sx={{ fontWeight: "bold", pl: theme.spacing(1) }}
+              sx={{
+                display: "flex",
+                flex: 1,
+                flexShrink: 0,
+                fontWeight: "bold",
+                pl: theme.spacing(1),
+              }}
             >
               {nameFormatter(
                 fireCentreInfo.fire_centre_name,
@@ -99,6 +150,21 @@ const SubscriptionAccordion = ({
                 true,
               )}
             </Typography>
+            <FormGroup>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={allSelected()}
+                    indeterminate={
+                      !allSelected() && subscribedFireZoneUnits().length > 0
+                    }
+                    onChange={toggleAll}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                }
+                label="All"
+              />
+            </FormGroup>
           </Box>
         </AccordionSummary>
         <AccordionDetails>
