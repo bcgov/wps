@@ -1,0 +1,14 @@
+{
+  "extends": "@wps/tsconfig/react-app.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "app/theme": ["./src/theme"],
+      "api/*": ["../api/src/*"],
+      "utils/*": ["../utils/src/*"],
+      "components/*": ["./src/*"],
+      "components": ["./src/index"]
+    }
+  },
+  "include": ["src"]
+}

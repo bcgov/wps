@@ -1,0 +1,16 @@
+{
+  "extends": "@wps/tsconfig/base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "es2015",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "api/*": ["./src/*"],
+      "utils/*": ["../utils/src/*"]
+    }
+  },
+  "include": ["src"]
+}
