@@ -23,3 +23,4 @@ export const selectProvincialSummaries = (state: RootState) =>
   state.data.provincialSummaries;
 export const selectTPIStats = (state: RootState) => state.data.tpiStats;
 export const selectHFIStats = (state: RootState) => state.data.hfiStats;
+export const selectSettings = (state: RootState) => state.settings;
