@@ -98,7 +98,7 @@
     "@types/jest": "^30.0.0",
     "@types/react-is": "^19",
     "@types/recharts": "^1.8.23",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react": "^6.0.0",
     "babel-loader": "^10.1.1",
     "cypress": "^15.10.0",
     "eslint": "^9.7.0",
