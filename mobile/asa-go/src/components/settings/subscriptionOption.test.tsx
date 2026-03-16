@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { vi } from "vitest";
 import { createTestStore } from "@/testUtils";
@@ -77,8 +77,7 @@ describe("SubscriptionOption", () => {
     const listItemButton = screen.getByRole("button");
     fireEvent.click(listItemButton);
 
-    // Wait for async dispatch
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.subscriptions).toContain(123);
     });
     expect(Preferences.set).toHaveBeenCalledWith({
@@ -93,8 +92,7 @@ describe("SubscriptionOption", () => {
     const listItemButton = screen.getByRole("button");
     fireEvent.click(listItemButton);
 
-    // Wait for async dispatch
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.subscriptions).not.toContain(123);
     });
     expect(Preferences.set).toHaveBeenCalledWith({
@@ -111,8 +109,7 @@ describe("SubscriptionOption", () => {
     });
     fireEvent.click(switchEl);
 
-    // Wait for async dispatch
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.subscriptions).toContain(123);
     });
   });
@@ -125,8 +122,7 @@ describe("SubscriptionOption", () => {
     });
     fireEvent.click(switchEl);
 
-    // Wait for async dispatch
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.subscriptions).not.toContain(123);
     });
   });
@@ -134,7 +130,7 @@ describe("SubscriptionOption", () => {
   it("handles multiple subscriptions correctly", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, [100, 200]);
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([100, 200]);
     });
 
@@ -144,14 +140,14 @@ describe("SubscriptionOption", () => {
     fireEvent.click(switchEl);
 
     // All fire zone units should be subscribed to
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([100, 200, 123]);
     });
 
     // Hit toggleAll function again to remove fire zone units associated with this fire centre.
     fireEvent.click(switchEl);
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([100, 200]);
     });
   });
@@ -162,7 +158,7 @@ describe("SubscriptionOption", () => {
     const listItemButton = screen.getByRole("button");
     fireEvent.click(listItemButton);
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([100, 200, 123]);
     });
   });
