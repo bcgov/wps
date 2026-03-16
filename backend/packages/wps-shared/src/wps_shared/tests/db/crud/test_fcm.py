@@ -8,10 +8,13 @@ from testcontainers.postgres import PostgresContainer
 from wps_shared.db.crud.fcm import (
     deactivate_device_tokens,
     get_device_by_device_id,
+    get_device_tokens_for_zone,
+    get_notification_settings_for_device,
     save_device_token,
     update_device_token_is_active,
+    upsert_notification_settings,
 )
-from wps_shared.db.models.fcm import DeviceToken, PlatformEnum
+from wps_shared.db.models.fcm import DeviceToken, NotificationSettings, PlatformEnum
 from wps_shared.utils.time import get_utc_now
 
 test_target_date = date(2025, 7, 15)
@@ -28,6 +31,10 @@ def postgres_container():
         yield postgres
 
 
+mock_fire_shape_id = 42
+mock_fire_shape_id_2 = 99
+
+
 @pytest.fixture(scope="function")
 async def engine(postgres_container):
     sync_url = postgres_container.get_connection_url()
@@ -36,7 +43,15 @@ async def engine(postgres_container):
     engine = create_async_engine(db_url, echo=False)
 
     async with engine.begin() as conn:
+        # advisory_shapes is referenced by NotificationSettings FK; create a minimal stub
+        await conn.execute(text("""CREATE TABLE advisory_shapes (id INTEGER PRIMARY KEY)"""))
+        await conn.execute(
+            text(
+                f"INSERT INTO advisory_shapes (id) VALUES ({mock_fire_shape_id}), ({mock_fire_shape_id_2})"
+            )
+        )
         await conn.run_sync(DeviceToken.__table__.create)
+        await conn.run_sync(NotificationSettings.__table__.create)
         # Insert a mock device_token record
         await conn.execute(
             text(f"""INSERT INTO device_token (user_id, device_id, platform, token, is_active, created_at, updated_at)
@@ -58,7 +73,7 @@ async def async_session(session_factory):
     async with session_factory() as session:
         yield session
 
-        
+
 @pytest.fixture(scope="function")
 async def async_session_with_commit(session_factory):
     async with session_factory() as session:
@@ -107,28 +122,115 @@ async def test_get_device_by_device_id(async_session: AsyncSession):
 
 
 @pytest.mark.anyio
-async def test_update_device_token_is_active_valid_token(async_session: AsyncSession):
-    """Test updating the is_active field of an existing record."""
-    result = await update_device_token_is_active(async_session, mock_fcm_token, False)
-    assert result is True
+@pytest.mark.parametrize(
+    "token, expected",
+    [
+        (mock_fcm_token, True),
+        ("invalid_token", False),
+    ],
+)
+async def test_update_device_token_is_active(
+    async_session: AsyncSession, token: str, expected: bool
+):
+    """Test updating the is_active field for valid and invalid tokens."""
+    result = await update_device_token_is_active(async_session, token, False)
+    assert result is expected
 
 
 @pytest.mark.anyio
-async def test_update_device_token_is_active_invalid_token(async_session: AsyncSession):
-    """Test updating the is_active field using invalid token."""
-    result = await update_device_token_is_active(async_session, "invalid_token", True)
-    assert result is False
+@pytest.mark.parametrize(
+    "tokens, expected_count",
+    [
+        ([], 0),
+        ([mock_fcm_token], 1),
+    ],
+)
+async def test_deactivate_device_tokens(
+    async_session: AsyncSession, tokens: list, expected_count: int
+):
+    """Test deactivating a list of tokens returns the number of affected rows."""
+    result = await deactivate_device_tokens(async_session, tokens)
+    assert result == expected_count
 
 
 @pytest.mark.anyio
-async def test_deactivate_device_tokens_empty_token_list(async_session: AsyncSession):
-    """Test unregistering with empty token list."""
-    result = await deactivate_device_tokens(async_session, [])
-    assert result == 0
+async def test_get_notification_settings_no_subscriptions(async_session: AsyncSession):
+    """get_notification_settings_for_device returns empty list when device has no subscriptions."""
+    result = await get_notification_settings_for_device(async_session, mock_device_id)
+    assert result == []
 
 
 @pytest.mark.anyio
-async def test_deactivate_device_tokens_valid_token_list(async_session: AsyncSession):
-    """Test unregistering with empty token list."""
-    result = await deactivate_device_tokens(async_session, [mock_fcm_token])
-    assert result == 1
+async def test_upsert_notification_settings_adds_subscriptions(async_session: AsyncSession):
+    """upsert_notification_settings persists fire_shape_ids for a device."""
+    await upsert_notification_settings(async_session, mock_device_id, [mock_fire_shape_id])
+    await async_session.commit()
+
+    result = await get_notification_settings_for_device(async_session, mock_device_id)
+    assert result == [mock_fire_shape_id]
+
+
+@pytest.mark.anyio
+async def test_upsert_notification_settings_replaces_existing(async_session: AsyncSession):
+    """upsert_notification_settings replaces existing subscriptions rather than appending."""
+    await upsert_notification_settings(async_session, mock_device_id, [mock_fire_shape_id])
+    await async_session.commit()
+
+    await upsert_notification_settings(async_session, mock_device_id, [mock_fire_shape_id_2])
+    await async_session.commit()
+
+    result = await get_notification_settings_for_device(async_session, mock_device_id)
+    assert result == [mock_fire_shape_id_2]
+
+
+@pytest.mark.anyio
+async def test_upsert_notification_settings_empty_list_clears_subscriptions(
+    async_session: AsyncSession,
+):
+    """upsert_notification_settings with an empty list removes all subscriptions."""
+    await upsert_notification_settings(async_session, mock_device_id, [mock_fire_shape_id])
+    await async_session.commit()
+
+    await upsert_notification_settings(async_session, mock_device_id, [])
+    await async_session.commit()
+
+    result = await get_notification_settings_for_device(async_session, mock_device_id)
+    assert result == []
+
+
+@pytest.mark.anyio
+async def test_upsert_notification_settings_unknown_device_is_noop(async_session: AsyncSession):
+    """upsert_notification_settings silently does nothing for an unknown device_id."""
+    await upsert_notification_settings(async_session, "unknown_device_id", [mock_fire_shape_id])
+    await async_session.commit()
+
+    result = await get_notification_settings_for_device(async_session, "unknown_device_id")
+    assert result == []
+
+
+@pytest.mark.anyio
+async def test_get_device_tokens_for_zone_returns_active_tokens(async_session: AsyncSession):
+    """get_device_tokens_for_zone returns the FCM token for an active subscribed device."""
+    await upsert_notification_settings(async_session, mock_device_id, [mock_fire_shape_id])
+    await async_session.commit()
+
+    result = await get_device_tokens_for_zone(async_session, mock_fire_shape_id)
+    assert result == [mock_fcm_token]
+
+
+@pytest.mark.anyio
+async def test_get_device_tokens_for_zone_excludes_inactive_tokens(async_session: AsyncSession):
+    """get_device_tokens_for_zone does not return tokens from inactive devices."""
+    await upsert_notification_settings(async_session, mock_device_id, [mock_fire_shape_id])
+    await update_device_token_is_active(async_session, mock_fcm_token, False)
+    await async_session.commit()
+
+    result = await get_device_tokens_for_zone(async_session, mock_fire_shape_id)
+    assert result == []
+
+
+@pytest.mark.anyio
+async def test_get_device_tokens_for_zone_no_subscribers(async_session: AsyncSession):
+    """get_device_tokens_for_zone returns empty list when no device subscribes to the zone."""
+    result = await get_device_tokens_for_zone(async_session, mock_fire_shape_id)
+    assert result == []

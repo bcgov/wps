@@ -22,5 +22,5 @@
       "commonSlices/*": ["./src/commonSlices/*"]
     }
   },
-  "include": ["src", "../../packages/ui/src", "../../packages/api/src", "../../packages/utils/src"]
+  "include": ["src", "../../packages/ui/src", "../../packages/api/src", "../../packages/utils/src", "../../packages/types/src"]
 }

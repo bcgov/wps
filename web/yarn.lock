@@ -4019,9 +4019,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@wps/api@workspace:packages/api":
+  version: 0.0.0-use.local
+  resolution: "@wps/api@workspace:packages/api"
+  languageName: unknown
+  linkType: soft
+
 "@wps/tsconfig@workspace:*, @wps/tsconfig@workspace:packages/tsconfig":
   version: 0.0.0-use.local
   resolution: "@wps/tsconfig@workspace:packages/tsconfig"
+  languageName: unknown
+  linkType: soft
+
+"@wps/types@workspace:packages/types":
+  version: 0.0.0-use.local
+  resolution: "@wps/types@workspace:packages/types"
+  languageName: unknown
+  linkType: soft
+
+"@wps/ui@workspace:packages/ui":
+  version: 0.0.0-use.local
+  resolution: "@wps/ui@workspace:packages/ui"
+  languageName: unknown
+  linkType: soft
+
+"@wps/utils@workspace:packages/utils":
+  version: 0.0.0-use.local
+  resolution: "@wps/utils@workspace:packages/utils"
   languageName: unknown
   linkType: soft
 
