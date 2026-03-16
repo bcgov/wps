@@ -13,7 +13,7 @@ export default defineConfig({
   },
   //this is added to avoid error styled_default is not a function read more: https://github.com/vitejs/vite/issues/12423
   optimizeDeps: {
-    include: ['@mui/material/Tooltip', '@mui/material/Unstable_Grid2']
+    include: ['@mui/material/Tooltip', '@emotion/styled/base', '@mui/material/Unstable_Grid2']
   },
   plugins: [
     {
@@ -50,6 +50,12 @@ export default defineConfig({
       cypress: true
     })
   ],
+  legacy: {
+    // @emotion/styled (required by @mui/styled-engine) is a CJS module with
+    // __esModule:true that breaks under Vite v8's new consistent CJS interop
+    // rules. Remove once MUI/emotion ship proper ESM builds.
+    inconsistentCjsInterop: true
+  },
   server: {
     port: Number(process.env.PORT) || 3000,
     watch: {
