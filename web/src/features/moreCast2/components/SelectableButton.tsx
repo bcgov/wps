@@ -1,8 +1,8 @@
 import React from 'react'
 
 import { Button } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from 'app/theme'
-import styled from '@emotion/styled'
 
 const StyledButton = styled(Button)(() => ({
   marginLeft: theme.spacing(1),
