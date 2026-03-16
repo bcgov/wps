@@ -78,7 +78,9 @@ describe('PrecipCell', () => {
     const props = buildProps(row)
     render(<PrecipCell {...props} />)
     expect(screen.getByTestId('precipInput-fba-0').firstChild).toHaveStyle({
-      border: '2px solid #460270'
+      borderWidth: '2px',
+      borderStyle: 'solid',
+      borderColor: '#460270'
     })
   })
   it('should return field without adjusted border color and weight when there is no input value', () => {
