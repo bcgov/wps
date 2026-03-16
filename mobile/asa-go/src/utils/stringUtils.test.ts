@@ -40,4 +40,10 @@ describe("nameFormatter", () => {
     const result = nameFormatter(input, suffix, false);
     expect(result).toBe(prefix);
   });
+  it("returns an empty string if suffix at index 0", () => {
+    const suffix = "Fire Centre";
+    const input = `${suffix}`;
+    const result = nameFormatter(input, suffix, true);
+    expect(result).toBe("");
+  });
 });

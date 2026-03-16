@@ -10,7 +10,7 @@ export const nameFormatter = (
   }
   let output: string;
   const index = input.indexOf(suffix);
-  if (index <= 0) {
+  if (index < 0 || suffix === "") {
     output = input;
   } else {
     output = input.substring(0, index);
