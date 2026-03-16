@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'jacoco'
-apply plugin: 'com.google.gms.google-services'
 
 android {
     namespace "ca.bc.gov.asago"
@@ -99,20 +98,26 @@ tasks.withType(Test) {
     jacoco.excludes = ['jdk.internal.*']
 }
 
-task jacocoTestReport(type: JacocoReport, dependsOn: ['testDevDebugUnitTest', 'testProdDebugUnitTest']) {
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testProdDebugUnitTest']) {
     reports {
         xml.required = true
         html.required = false
     }
     def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
-    def debugTrees = files(
-        fileTree(dir: "${buildDir}/intermediates/javac/devDebug/compileDevDebugJavaWithJavac/classes", excludes: fileFilter),
-        fileTree(dir: "${buildDir}/intermediates/javac/prodDebug/compileProdDebugJavaWithJavac/classes", excludes: fileFilter)
-    )
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/javac/prodDebug/compileProdDebugJavaWithJavac/classes", excludes: fileFilter)
     sourceDirectories.setFrom(files(["${project.projectDir}/src/main/java"]))
-    classDirectories.setFrom(debugTrees)
-    executionData.setFrom(fileTree(dir: "$buildDir", includes: [
-        "jacoco/testDevDebugUnitTest.exec",
-        "jacoco/testProdDebugUnitTest.exec"
-    ]))
+    classDirectories.setFrom(files([debugTree]))
+    executionData.setFrom(fileTree(dir: "$buildDir", includes: ["jacoco/testProdDebugUnitTest.exec"]))
+}
+
+try {
+    def googleServicesFiles = [
+        file('src/dev/google-services.json'),
+        file('src/prod/google-services.json')
+    ]
+    if (googleServicesFiles.any { it.exists() && it.text.trim() }) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
