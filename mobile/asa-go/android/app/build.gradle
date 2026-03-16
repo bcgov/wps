@@ -58,7 +58,7 @@ dependencies {
     implementation 'net.openid:appauth:0.11.1'
     
     testImplementation "junit:junit:$junitVersion"
-    testImplementation 'org.mockito:mockito-core:5.22.0'
+    testImplementation 'org.mockito:mockito-core:5.23.0'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'org.robolectric:robolectric:4.16.1'
     testImplementation 'androidx.test:core:1.7.0'
@@ -66,7 +66,7 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
     // Import the Firebase BoM
-    implementation platform('com.google.firebase:firebase-bom:34.9.0')
+    implementation platform('com.google.firebase:firebase-bom:34.10.0')
 }
 
 apply from: 'capacitor.build.gradle'
