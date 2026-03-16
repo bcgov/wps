@@ -1,4 +1,4 @@
-import { HFI_CALC_ROUTE } from '../../src/utils/constants'
+import { HFI_CALC_ROUTE } from '../../../../packages/utils/src/constants'
 
 function interceptSelectStationTrue(
   fire_centre: number,

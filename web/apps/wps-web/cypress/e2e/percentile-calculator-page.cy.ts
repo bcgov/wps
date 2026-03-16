@@ -1,6 +1,6 @@
-import { NOT_AVAILABLE } from '../../src/utils/strings'
-import { PERCENTILE_CALC_ROUTE } from '../../src/utils/constants'
-import { stationCodeQueryKey } from '../../src/utils/url'
+import { NOT_AVAILABLE } from '../../../../packages/utils/src/strings'
+import { PERCENTILE_CALC_ROUTE } from '../../../../packages/utils/src/constants'
+import { stationCodeQueryKey } from '../../../../packages/utils/src/url'
 
 describe('Percentile Calculator Page', () => {
   describe('Weather station dropdown', () => {

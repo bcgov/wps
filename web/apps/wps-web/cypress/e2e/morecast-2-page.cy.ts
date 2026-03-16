@@ -1,4 +1,4 @@
-import { MORE_CAST_2_ROUTE } from '../../src/utils/constants'
+import { MORE_CAST_2_ROUTE } from '../../../../packages/utils/src/constants'
 
 describe('More Cast 2 Page', () => {
   beforeEach(() => {

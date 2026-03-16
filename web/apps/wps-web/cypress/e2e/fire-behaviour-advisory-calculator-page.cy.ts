@@ -1,4 +1,4 @@
-import { FIRE_BEHAVIOR_CALC_ROUTE } from '../../src/utils/constants'
+import { FIRE_BEHAVIOR_CALC_ROUTE } from '../../../../packages/utils/src/constants'
 import { FuelTypes } from '../../src/features/fbaCalculator/fuelTypes'
 
 describe('FireCalc Page', () => {
