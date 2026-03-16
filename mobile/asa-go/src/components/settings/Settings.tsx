@@ -19,6 +19,7 @@ import { isNil } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { useAppIsActive } from "@/hooks/useAppIsActive";
 import { NavPanel } from "@/utils/constants";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { PermissionState } from "@capacitor/core";
@@ -31,6 +32,7 @@ interface SettingsProps {
 
 const Settings = ({ activeTab }: SettingsProps) => {
   const dispatch: AppDispatch = useDispatch();
+  const isActive = useAppIsActive();
   const isVisible = activeTab === NavPanel.SETTINGS;
 
   const { networkStatus } = useSelector(selectNetworkStatus);
@@ -44,12 +46,16 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const notificationSettingsDisabled =
     receivePermission !== "granted" || !networkStatus.connected;
 
-  // Load fire centres on mount
+  // Load subscriptions and pinned fire centre from locally cached user preferences
   useEffect(() => {
     dispatch(initPinnedFireCentre());
     dispatch(initSubscriptions());
-    dispatch(fetchFireCentreInfo());
   }, [dispatch]);
+
+  // Fetch fire centre info on mount or anytime the app is foregrounded
+  useEffect(() => {
+    dispatch(fetchFireCentreInfo());
+  }, [isActive, dispatch]);
 
   // Check push notification permission
   const refreshNotificationPermission = useCallback(async () => {
