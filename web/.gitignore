@@ -9,4 +9,4 @@
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-cypress/downloads
+apps/wps-web/cypress/downloads
