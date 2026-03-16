@@ -50,6 +50,12 @@ export default defineConfig({
       cypress: true
     })
   ],
+  legacy: {
+    // @emotion/styled and other CJS modules with __esModule:true break under
+    // Vite v8's new consistent CJS interop rules. Remove once dependencies
+    // ship proper ESM builds.
+    inconsistentCjsInterop: true
+  },
   server: {
     port: Number(process.env.PORT) || 3000,
     watch: {
