@@ -1,10 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { Provider } from "react-redux";
-import SubscriptionAccordion from "./SubscriptionAccordion";
-import pushNotificationReducer from "@/slices/settingsSlice";
 import { FireCentreInfo } from "@/api/fbaAPI";
+import pushNotificationReducer from "@/slices/settingsSlice";
 import { createTestStore } from "@/testUtils";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { describe, expect, it } from "vitest";
+import SubscriptionAccordion from "./SubscriptionAccordion";
 
 // Mock data
 const mockFireCentreInfo: FireCentreInfo = {
@@ -354,7 +354,7 @@ describe("SubscriptionAccordion", () => {
     expect(checkbox).toHaveProperty("indeterminate", false);
   });
 
-  it("checkbox does not impact fire zone unit ids that are not related to the current fire centre", () => {
+  it("checkbox does not impact fire zone unit ids that are not related to the current fire centre", async () => {
     const initialSubscriptions = [100, 200];
     const store = createTestStore({
       settings: {
@@ -380,27 +380,25 @@ describe("SubscriptionAccordion", () => {
     const allCheckbox = screen.getByLabelText("All");
     fireEvent.click(allCheckbox);
 
-    // Confirm initial subscriptions are still there
-    waitFor(() => {
-      expect(store.getState().settings.subscriptions).toContain(
-        initialSubscriptions[0],
-      );
-      expect(store.getState().settings.subscriptions).toContain(
-        initialSubscriptions[1],
-      );
+    // Confirm initial subscriptions are still there and that the current fire centre fire zone units were added
+    await waitFor(() => {
+      const subs = store.getState().settings.subscriptions;
+      expect(subs).toContain(initialSubscriptions[0]);
+      expect(subs).toContain(initialSubscriptions[1]);
+      expect(subs).not.toContain(mockFireCentreInfo.fire_zone_units[0].id);
+      expect(subs).not.toContain(mockFireCentreInfo.fire_zone_units[1].id);
     });
 
     // Hit toggleAll again to remove fire zone unit ids from this fire centre
     fireEvent.click(allCheckbox);
 
-    // Confirm initial subscriptions are still there
-    waitFor(() => {
-      expect(store.getState().settings.subscriptions).toContain(
-        initialSubscriptions[0],
-      );
-      expect(store.getState().settings.subscriptions).toContain(
-        initialSubscriptions[1],
-      );
+    // Confirm initial subscriptions are still there and the current fire centre fire zone units are removed
+    await waitFor(() => {
+      const subs = store.getState().settings.subscriptions;
+      expect(subs).toContain(initialSubscriptions[0]);
+      expect(subs).toContain(initialSubscriptions[1]);
+      expect(subs).not.toContain(mockFireCentreInfo.fire_zone_units[0].id);
+      expect(subs).not.toContain(mockFireCentreInfo.fire_zone_units[1].id);
     });
   });
 });
