@@ -1,20 +1,22 @@
-import { GeneralHeader } from '@/components/GeneralHeader'
-import Footer from '@/features/landingPage/components/Footer'
-import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
-import ASADatePicker from '@/features/fba/components/ASADatePicker'
-import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
-import { StyledFormControl } from '@/components/StyledFormControl'
-import { SFMS_INSIGHTS_NAME } from '@/utils/constants'
 import { getMostRecentProcessedSnowByDate } from '@/api/snow'
-import { fetchSFMSBounds, selectLatestSFMSBounds, selectEarliestSFMSBounds } from '@/features/fba/slices/runDatesSlice'
-import { Box, Checkbox, FormControlLabel, Grid, CircularProgress } from '@mui/material'
+import { AppDispatch } from '@/app/store'
+import { theme } from '@/app/theme'
+import { GeneralHeader } from '@/components/GeneralHeader'
+import { StyledFormControl } from '@/components/StyledFormControl'
+import ASADatePicker from '@/features/fba/components/ASADatePicker'
+import { fetchSFMSBounds, selectEarliestSFMSBounds, selectLatestSFMSBounds } from '@/features/fba/slices/runDatesSlice'
+import Footer from '@/features/landingPage/components/Footer'
+import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
+import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
+import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
+import { SFMS_INSIGHTS_NAME } from '@/utils/constants'
+import { getDateTimeNowPST } from '@/utils/date'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import { Box, Checkbox, CircularProgress, FormControlLabel, Grid, Tooltip } from '@mui/material'
+import { isNil, isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { isNull } from 'lodash'
-import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
-import { getDateTimeNowPST } from '@/utils/date'
-import { AppDispatch } from '@/app/store'
 
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -66,6 +68,17 @@ export const SFMSInsightsPage = () => {
     fetchLastProcessedSnow(rasterDate)
   }, [rasterDate])
 
+  const renderSnowWarning = () => {
+    const tempLastSnow = DateTime.fromISO("2026-03-08").ordinal
+    if (!isNil(snowDate?.ordinal) && snowDate?.ordinal === tempLastSnow && !isNil(rasterDate?.ordinal) && rasterDate?.ordinal > tempLastSnow) {
+      return (
+        <Tooltip title="The VIIRS sensor that supplies snow coverage imagery experienced an anomaly on March 9, 2026 and updated imagery is currently unavailable.">
+          <WarningAmberIcon fontSize="large" sx={{color: theme.palette.warning.main, pt: theme.spacing()}}/>
+        </Tooltip>
+      )
+    }
+  }
+
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader isBeta={true} spacing={1} title={SFMS_INSIGHTS_NAME} />
@@ -113,7 +126,9 @@ export const SFMSInsightsPage = () => {
             <FormControlLabel
               control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
               label={snowDate ? `Show Latest Snow: ${snowDate.toLocaleString(DateTime.DATE_MED)}` : 'Show Latest Snow'}
+              sx={{verticalAlign: "unset"}}
             />
+            { renderSnowWarning() }
           </Grid>
         </Grid>
       </Box>
