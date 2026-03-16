@@ -493,4 +493,108 @@ describe('SFMSInsightsPage', () => {
     const dropdown = screen.getByTestId('raster-type-dropdown')
     expect(dropdown).toHaveAttribute('data-raster-data-available', 'true')
   })
+
+  it('should display warning tooltip when rasterDate greater than March 8, 2026 and snowDate is March 8, 2026.', async () => {
+    const dateTimeNow = DateTime.fromISO('2026-03-10')
+    ;(getDateTimeNowPST as Mock).mockReturnValue(dateTimeNow)
+    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue({
+      forDate: DateTime.fromISO('2026-03-08'),
+      processedDate: DateTime.fromISO('2025-03-09'),
+      snowSource: 'viirs'
+    })
+    ;(getSFMSBounds as Mock).mockResolvedValue({
+      sfms_bounds: {
+        '2026': {
+          forecast: {
+            minimum: '2026-01-01',
+            maximum: '2026-03-10'
+          }
+        }
+      }
+    })
+
+    renderWithStore()
+    await waitForPageLoad()
+
+    const warningIcon = screen.queryByTestId("WarningAmberIcon")
+    expect(warningIcon).toBeInTheDocument()
+  })
+
+  it('should not display warning tooltip when rasterDate equal to March 8, 2026 and snowDate is March 8, 2026.', async () => {
+    const dateTimeNow = DateTime.fromISO('2026-03-08')
+    ;(getDateTimeNowPST as Mock).mockReturnValue(dateTimeNow)
+    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue({
+      forDate: DateTime.fromISO('2026-03-08'),
+      processedDate: DateTime.fromISO('2025-03-09'),
+      snowSource: 'viirs'
+    })
+    ;(getSFMSBounds as Mock).mockResolvedValue({
+      sfms_bounds: {
+        '2026': {
+          forecast: {
+            minimum: '2026-01-01',
+            maximum: '2026-03-10'
+          }
+        }
+      }
+    })
+
+    renderWithStore()
+    await waitForPageLoad()
+
+    const warningIcon = screen.queryByTestId("WarningAmberIcon")
+    expect(warningIcon).toBe(null)
+  })
+  
+  it('should not display warning tooltip when rasterDate greater than March 8, 2026 and snowDate greater than March 8, 2026.', async () => {
+    const dateTimeNow = DateTime.fromISO('2026-03-09')
+    ;(getDateTimeNowPST as Mock).mockReturnValue(dateTimeNow)
+    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue({
+      forDate: DateTime.fromISO('2026-03-10'),
+      processedDate: DateTime.fromISO('2025-03-09'),
+      snowSource: 'viirs'
+    })
+    ;(getSFMSBounds as Mock).mockResolvedValue({
+      sfms_bounds: {
+        '2026': {
+          forecast: {
+            minimum: '2026-01-01',
+            maximum: '2026-03-10'
+          }
+        }
+      }
+    })
+
+    renderWithStore()
+    await waitForPageLoad()
+
+    const warningIcon = screen.queryByTestId("WarningAmberIcon")
+    expect(warningIcon).toBe(null)
+  })
+
+  it('should not display warning tooltip when rasterDate less than March 8, 2026 and snowDate greater than March 8, 2026.', async () => {
+    const dateTimeNow = DateTime.fromISO('2026-03-07')
+    ;(getDateTimeNowPST as Mock).mockReturnValue(dateTimeNow)
+    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue({
+      forDate: DateTime.fromISO('2026-03-10'),
+      processedDate: DateTime.fromISO('2025-03-09'),
+      snowSource: 'viirs'
+    })
+    ;(getSFMSBounds as Mock).mockResolvedValue({
+      sfms_bounds: {
+        '2026': {
+          forecast: {
+            minimum: '2026-01-01',
+            maximum: '2026-03-10'
+          }
+        }
+      }
+    })
+
+    renderWithStore()
+    await waitForPageLoad()
+
+    const warningIcon = screen.queryByTestId("WarningAmberIcon")
+    expect(warningIcon).toBe(null)
+  })
 })
