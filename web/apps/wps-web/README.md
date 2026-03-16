@@ -37,12 +37,14 @@ The short version is:
 
 From the `web/` workspace root, create `.env` file in `apps/wps-web/` using `apps/wps-web/.env.example` as a sample, then you can run:
 
-#### `yarn dev`
+All of the following commands use [Turbo](https://turbo.build/) to orchestrate tasks across the monorepo.
+
+#### `yarn turbo dev`
 
 Runs the app in the development mode.
 The page will reload if you make edits. You will also see any lint errors in the console.
 
-#### `yarn test`
+#### `yarn turbo test`
 
 Launches the vitest test runner across all packages.
 Includes logic only unit tests and [react-testing-library](https://testing-library.com/docs/react-testing-library/intro/) component tests.
@@ -52,7 +54,7 @@ Includes logic only unit tests and [react-testing-library](https://testing-libra
 Launches the cypress test runner in the interactive watch mode.
 Includes end-to-end / integration tests for frontend common path interactions.
 
-#### `yarn build`
+#### `yarn turbo build`
 
 Builds the app for production to the `apps/wps-web/build` folder.
 It correctly bundles React in production mode and optimizes the build for the best performance.
