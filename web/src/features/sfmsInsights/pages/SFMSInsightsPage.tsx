@@ -69,7 +69,7 @@ export const SFMSInsightsPage = () => {
   }, [rasterDate])
 
   const renderSnowWarning = () => {
-    const tempLastSnow = DateTime.fromISO("2026-03-08").ordinal
+    const tempLastSnow = DateTime.fromISO("2026-03-08").ordinal // Ordinal gets the numerical day of the year in the range of 1-365
     if (!isNil(snowDate?.ordinal) && snowDate?.ordinal === tempLastSnow && !isNil(rasterDate?.ordinal) && rasterDate?.ordinal > tempLastSnow) {
       return (
         <Tooltip title="The VIIRS sensor that supplies snow coverage imagery experienced an anomaly on March 9, 2026 and updated imagery is currently unavailable.">
