@@ -124,8 +124,11 @@ describe("UserLocationIndicator", () => {
     );
 
     const indicator = getByTestId("user-location-indicator");
+    // Use borderTopColor to avoid jsdom v29 shorthand expansion issue with borderColor
     expect(indicator).toHaveStyle({
-      border: "3px solid white",
+      borderTopWidth: "3px",
+      borderTopStyle: "solid",
+      borderTopColor: "rgb(255, 255, 255)",
       boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
       pointerEvents: "none",
       zIndex: "1000",
