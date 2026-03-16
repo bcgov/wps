@@ -32,10 +32,7 @@ export default defineConfig({
       }
     },
     react({
-      jsxImportSource: '@emotion/react',
-      babel: {
-        plugins: ['@emotion/babel-plugin']
-      }
+      jsxImportSource: '@emotion/react'
     }),
     svgr(),
     sentryVitePlugin({
