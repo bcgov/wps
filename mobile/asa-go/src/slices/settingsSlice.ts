@@ -6,6 +6,8 @@ import {
   readFromFilesystem,
   writeToFileSystem,
 } from "@/utils/storage";
+import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+import { PermissionState } from "@capacitor/core";
 import { Filesystem } from "@capacitor/filesystem";
 import { Preferences } from "@capacitor/preferences";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -18,6 +20,7 @@ export interface SettingsState {
   error: string | null;
   fireCentreInfos: FireCentreInfo[];
   pinnedFireCentre: string | null;
+  pushNotificationPermission: PermissionState | "unknown";
   subscriptions: number[];
 }
 
@@ -26,6 +29,7 @@ export const initialState: SettingsState = {
   error: null,
   fireCentreInfos: [],
   pinnedFireCentre: null,
+  pushNotificationPermission: "unknown",
   subscriptions: [],
 };
 
@@ -62,6 +66,12 @@ const settingsSlice = createSlice({
     ) {
       state.pinnedFireCentre = action.payload;
     },
+    setPushNotificationPermission(
+      state: SettingsState,
+      action: PayloadAction<PermissionState | "unknown">,
+    ) {
+      state.pushNotificationPermission = action.payload;
+    },
     setSubscriptions(state: SettingsState, action: PayloadAction<number[]>) {
       state.subscriptions = action.payload;
     },
@@ -73,6 +83,7 @@ export const {
   getFireCenterInfoFailed,
   getFireCenterInfoSuccess,
   setPinnedFireCentre,
+  setPushNotificationPermission,
   setSubscriptions,
 } = settingsSlice.actions;
 
@@ -178,5 +189,16 @@ export const fetchFireCentreInfo =
           "Unable to refresh fire center info data. Data may be stale.",
         ),
       );
+    }
+  };
+
+export const checkPushNotificationPermission =
+  (): AppThunk => async (dispatch) => {
+    try {
+      const permissions = await FirebaseMessaging.checkPermissions();
+      dispatch(setPushNotificationPermission(permissions.receive ?? "unknown"));
+    } catch (e) {
+      console.error(e);
+      dispatch(setPushNotificationPermission("unknown"));
     }
   };

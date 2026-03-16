@@ -1,6 +1,7 @@
 import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
 import {
+  checkPushNotificationPermission,
   fetchFireCentreInfo,
   initPinnedFireCentre,
   initSubscriptions,
@@ -11,20 +12,15 @@ import {
   Alert,
   AlertTitle,
   Box,
-  Button,
   LinearProgress,
   Typography,
 } from "@mui/material";
 import { isNil } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useAppIsActive } from "@/hooks/useAppIsActive";
 import { NavPanel } from "@/utils/constants";
-import { FirebaseMessaging } from "@capacitor-firebase/messaging";
-import { PermissionState } from "@capacitor/core";
-
-type ReceivePermission = PermissionState | "unknown";
 
 interface SettingsProps {
   activeTab: NavPanel;
@@ -36,15 +32,16 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const isVisible = activeTab === NavPanel.SETTINGS;
 
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const { fireCentreInfos, loading, error, pinnedFireCentre } =
-    useSelector(selectSettings);
-
-  const [receivePermission, setReceivePermission] =
-    useState<ReceivePermission>("unknown");
-  const [checkingPerm, setCheckingPerm] = useState<boolean>(false);
+  const {
+    fireCentreInfos,
+    loading,
+    error,
+    pinnedFireCentre,
+    pushNotificationPermission,
+  } = useSelector(selectSettings);
 
   const notificationSettingsDisabled =
-    receivePermission !== "granted" || !networkStatus.connected;
+    pushNotificationPermission !== "granted" || !networkStatus.connected;
 
   // Load subscriptions and pinned fire centre from locally cached user preferences
   useEffect(() => {
@@ -57,27 +54,12 @@ const Settings = ({ activeTab }: SettingsProps) => {
     dispatch(fetchFireCentreInfo());
   }, [isActive, dispatch]);
 
-  // Check push notification permission
-  const refreshNotificationPermission = useCallback(async () => {
-    try {
-      setCheckingPerm(true);
-      const res = await FirebaseMessaging.checkPermissions();
-      setReceivePermission(res.receive ?? "unknown");
-    } catch (err) {
-      // If the plugin throws (rare), mark as unknown but don't break the UI
-      setReceivePermission("unknown");
-      console.error("checkPermissions failed", err);
-    } finally {
-      setCheckingPerm(false);
-    }
-  }, []);
-
-  // Check push notification settings on mount
+  // Check push notification settings on mount and when app is foregrounded
   useEffect(() => {
     if (isVisible) {
-      refreshNotificationPermission();
+      dispatch(checkPushNotificationPermission());
     }
-  }, [refreshNotificationPermission, isVisible]);
+  }, [dispatch, isActive, isVisible]);
 
   // Derived ordered list of centres for display (memoized)
   const orderedFireCentres = useMemo<FireCentreInfo[]>(() => {
@@ -103,7 +85,11 @@ const Settings = ({ activeTab }: SettingsProps) => {
   }, [fireCentreInfos, pinnedFireCentre]);
 
   const renderNotificationMessage = () => {
-    if (!networkStatus.connected || receivePermission !== "granted" || error) {
+    if (
+      !networkStatus.connected ||
+      pushNotificationPermission !== "granted" ||
+      error
+    ) {
       return;
     }
     return (
@@ -139,7 +125,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const renderPermissionBanner = () => {
     // Show a banner if permission is not explicitly granted in system settings and we're online.
     const shouldShow =
-      receivePermission !== "granted" && networkStatus.connected;
+      pushNotificationPermission !== "granted" && networkStatus.connected;
     if (shouldShow) {
       return (
         <Alert
@@ -151,16 +137,6 @@ const Settings = ({ activeTab }: SettingsProps) => {
           Notifications are currently disabled in your system settings. To
           receive alerts, enable notifications for this app in your device
           settings.
-          <Box mt={1} display="flex" gap={1}>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={refreshNotificationPermission}
-              disabled={checkingPerm}
-            >
-              {checkingPerm ? "Checking…" : "Re-check"}
-            </Button>
-          </Box>
         </Alert>
       );
     }
