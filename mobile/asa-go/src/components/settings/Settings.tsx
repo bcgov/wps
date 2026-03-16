@@ -49,17 +49,13 @@ const Settings = ({ activeTab }: SettingsProps) => {
     dispatch(initSubscriptions());
   }, [dispatch]);
 
-  // Fetch fire centre info on mount or anytime the app is foregrounded
-  useEffect(() => {
-    dispatch(fetchFireCentreInfo());
-  }, [isActive, dispatch]);
-
-  // Check push notification settings on mount and when app is foregrounded
+  // Check push notification settings and fetch fire centre info on mount and when app is foregrounded
   useEffect(() => {
     if (isVisible) {
+      dispatch(fetchFireCentreInfo());
       dispatch(checkPushNotificationPermission());
     }
-  }, [dispatch, isActive, isVisible]);
+  }, [isActive, isVisible, dispatch]);
 
   // Derived ordered list of centres for display (memoized)
   const orderedFireCentres = useMemo<FireCentreInfo[]>(() => {
