@@ -1,10 +1,18 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
+const mode = process.env.APP_ENV ?? "prod";
+const isDev = mode === "dev";
+
 const config: CapacitorConfig = {
-  appId: "ca.bc.gov.asago",
-  appName: "asa-go",
+  appId: isDev ? "ca.bc.gov.asago.dev" : "ca.bc.gov.asago",
+  appName: isDev ? "ASA Go Dev" : "ASA Go",
   webDir: "dist",
-  ios: { scheme: "ASA Go" },
+  android: {
+    flavor: isDev ? "dev" : "prod",
+  },
+  ios: {
+    scheme: isDev ? "ASA Go dev" : "ASA Go",
+  },
   plugins: {
     FirebaseMessaging: {
       presentationOptions: ["alert", "badge", "sound"], // iOS only

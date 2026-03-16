@@ -2,6 +2,8 @@
 
 Capacitor app using react/vite.
 
+For iOS/Firebase push notification setup details, see [Notifications.md](Notifications.md).
+
 ## Building
 
 The keycloak plugin must be built before installing asa-go dependencies, as asa-go resolves it as a local path dependency.
@@ -18,6 +20,11 @@ yarn install
 yarn build
 ```
 
+APP_ENV=dev ionic capacitor run ios -l --external
+APP_ENV=prod ionic capacitor run ios -l --external
+APP_ENV=dev ionic capacitor run android -l --external
+APP_ENV=prod ionic capacitor run android -l --external
+
 ## Setup live reload
 
 1. Install ionic CLI and native run for live reload with: `npm install -g @ionic/cli native-run`
@@ -26,8 +33,8 @@ yarn build
 
 1. Make sure xcode is installed with `xcode-select --install`
 2. Go to `mobile/asa-go`
-3. Run `yarn cap sync ios` to synchronize app with iOS platform (handles `pod install`)
-4. Build and run with live reload: `ionic cap run ios -l --external`
+3. Run `APP_ENV=dev yarn cap:sync:ios:dev` or `APP_ENV=prod yarn cap:sync:ios:prod`
+4. Build and run with live reload: `APP_ENV=dev ionic capacitor run ios -l --external` or `APP_ENV=prod ionic capacitor run ios -l --external`
 
 ### Building/Running Android
 
@@ -36,14 +43,15 @@ yarn build
    - With Jetbrains Toolbox it should be `/Users/<user>/Library/Android/sdk/`
    - Set `$ANDROID_HOME` to the path of the Android SDK
 3. Go to `mobile/asa-go`
-4. Run `yarn cap sync android` to synchronize app with Android platform
-5. Build and run with live reload: `ionic cap run android -l --external`
+4. Run `APP_ENV=dev yarn cap:sync:android:dev` or `APP_ENV=prod yarn cap:sync:android:prod`
+5. Build and run with live reload: `APP_ENV=dev ionic capacitor run android -l --external` or `APP_ENV=prod ionic capacitor run android -l --external`
 
 To build a debug APK directly:
 
 ```bash
 cd mobile/asa-go/android
-./gradlew assembleDebug
+./gradlew assembleDevDebug
+./gradlew assembleProdDebug
 ```
 
 #### Running on a physical Android device against your local API
