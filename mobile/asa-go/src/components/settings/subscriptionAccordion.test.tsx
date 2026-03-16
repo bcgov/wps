@@ -385,8 +385,8 @@ describe("SubscriptionAccordion", () => {
       const subs = store.getState().settings.subscriptions;
       expect(subs).toContain(initialSubscriptions[0]);
       expect(subs).toContain(initialSubscriptions[1]);
-      expect(subs).not.toContain(mockFireCentreInfo.fire_zone_units[0].id);
-      expect(subs).not.toContain(mockFireCentreInfo.fire_zone_units[1].id);
+      expect(subs).toContain(mockFireCentreInfo.fire_zone_units[0].id);
+      expect(subs).toContain(mockFireCentreInfo.fire_zone_units[1].id);
     });
 
     // Hit toggleAll again to remove fire zone unit ids from this fire centre
