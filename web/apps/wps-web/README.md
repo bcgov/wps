@@ -10,21 +10,19 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 #### [Node.js](https://nodejs.org/en/)
 
-- You’ll need to have Node >= 20.x and yarn on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
-- Note: We are using Node 19 as a base image on our pipeline.
-- On ubuntu: `sudo apt install nodejs`
+- You’ll need to have Node >= 24.x and yarn on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
 
 #### [yarn](https://yarnpkg.com/)
 
-- `npm install -g yarn`
+- `corepack enable`
 
 ### Installing
 
-In the project directory, run:
+All commands should be run from the `web/` workspace root, not from this directory.
 
-#### `yarn`
+#### `yarn install`
 
-Installs all dependencies in the node_modules folder.
+Installs all dependencies for all packages in the monorepo.
 
 #### Cypress on WSL2
 
@@ -33,35 +31,35 @@ It's possible to configure cypress to run with an X-server with WSL2 and Windows
 The short version is:
 
 - Launch VcXsrv (remember to check "Disable access control")
-- `yarn run cypress`
+- `yarn workspace @wps/wps-web run cy:open`
 
 ### Executing program
 
-In the project directory, create `.env` file at root using `.env.example` as a sample, then you can run:
+From the `web/` workspace root, create `.env` file in `apps/wps-web/` using `apps/wps-web/.env.example` as a sample, then you can run:
 
-#### `yarn start`
+#### `yarn dev`
 
 Runs the app in the development mode.
 The page will reload if you make edits. You will also see any lint errors in the console.
 
 #### `yarn test`
 
-Launches the jest test runner in the interactive watch mode.
+Launches the vitest test runner across all packages.
 Includes logic only unit tests and [react-testing-library](https://testing-library.com/docs/react-testing-library/intro/) component tests.
 
-#### `yarn cypress`
+#### `yarn workspace @wps/wps-web run cy:open`
 
 Launches the cypress test runner in the interactive watch mode.
 Includes end-to-end / integration tests for frontend common path interactions.
 
-#### `yarn run build`
+#### `yarn build`
 
-Builds the app for production to the `build` folder.
+Builds the app for production to the `apps/wps-web/build` folder.
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
 ##### Running the application in docker:
 
-1. Create `.env` file at root using `.env.example` as a sample
+1. Create `.env` file in `apps/wps-web/` using `apps/wps-web/.env.example` as a sample
 2. Run `docker compose build` and then `docker compose up`
 3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
