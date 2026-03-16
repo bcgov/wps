@@ -229,10 +229,9 @@ describe("SubscriptionAccordion", () => {
     // Click the pin button
     fireEvent.click(screen.getByRole("button", { name: "" }));
 
-    // Check if the fire centre is now unpinned
-    // Since savePinnedFireCentre is a thunk, we need to wait a bit
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(store.getState().settings.pinnedFireCentre).toBeNull();
+    waitFor(() => {
+      expect(store.getState().settings.pinnedFireCentre).toBeNull();
+    });
   });
 
   it("selects all fire zone units when 'All' checkbox is checked", async () => {
@@ -252,11 +251,10 @@ describe("SubscriptionAccordion", () => {
     const allCheckbox = screen.getByLabelText("All");
     fireEvent.click(allCheckbox);
 
-    // Wait for state update
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
     // Check that all fire zone units are now subscribed
-    expect(store.getState().settings.subscriptions).toEqual([1, 2]);
+    waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([1, 2]);
+    });
   });
 
   it("deselects all fire zone units when 'All' checkbox is unchecked", async () => {
@@ -281,11 +279,10 @@ describe("SubscriptionAccordion", () => {
     const allCheckbox = screen.getByLabelText("All");
     fireEvent.click(allCheckbox);
 
-    // Wait for state update
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
     // Check that all fire zone units are now unsubscribed
-    expect(store.getState().settings.subscriptions).toEqual([]);
+    waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([]);
+    });
   });
 
   it("shows indeterminate state when some fire zone units are selected", () => {
@@ -355,5 +352,55 @@ describe("SubscriptionAccordion", () => {
     const checkbox = screen.getByRole("checkbox", { name: "All" });
     expect(checkbox).not.toBeChecked();
     expect(checkbox).toHaveProperty("indeterminate", false);
+  });
+
+  it("checkbox does not impact fire zone unit ids that are not related to the current fire centre", () => {
+    const initialSubscriptions = [100, 200];
+    const store = createTestStore({
+      settings: {
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptions: initialSubscriptions,
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={true}
+        />
+      </Provider>,
+    );
+
+    // Hit toggleAll to add all fire zone unit ids from this fire centre
+    const allCheckbox = screen.getByLabelText("All");
+    fireEvent.click(allCheckbox);
+
+    // Confirm initial subscriptions are still there
+    waitFor(() => {
+      expect(store.getState().settings.subscriptions).toContain(
+        initialSubscriptions[0],
+      );
+      expect(store.getState().settings.subscriptions).toContain(
+        initialSubscriptions[1],
+      );
+    });
+
+    // Hit toggleAll again to remove fire zone unit ids from this fire centre
+    fireEvent.click(allCheckbox);
+
+    // Confirm initial subscriptions are still there
+    waitFor(() => {
+      expect(store.getState().settings.subscriptions).toContain(
+        initialSubscriptions[0],
+      );
+      expect(store.getState().settings.subscriptions).toContain(
+        initialSubscriptions[1],
+      );
+    });
   });
 });

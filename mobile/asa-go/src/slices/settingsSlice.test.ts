@@ -1,19 +1,24 @@
-import { vi, describe, it, expect, beforeEach, Mock } from "vitest";
+import { FireCentreInfo, getFireCentreInfo } from "@/api/fbaAPI";
+import { createTestStore } from "@/testUtils";
+import { FIRE_CENTER_INFO_KEY, readFromFilesystem } from "@/utils/storage";
+import { Preferences } from "@capacitor/preferences";
+import { act } from "@testing-library/react";
+import { DateTime } from "luxon";
+import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import settingsSlice, {
-  initialState,
-  SettingsState,
-  getFireCenterInfoStart,
+  fetchFireCentreInfo,
   getFireCenterInfoFailed,
+  getFireCenterInfoStart,
   getFireCenterInfoSuccess,
-  setPinnedFireCentre,
-  setSubscriptions,
+  initialState,
   initPinnedFireCentre,
   initSubscriptions,
-  saveSubscriptions,
   savePinnedFireCentre,
+  saveSubscriptions,
+  setPinnedFireCentre,
+  setSubscriptions,
+  SettingsState,
 } from "./settingsSlice";
-import { createTestStore } from "@/testUtils";
-import { FireCentreInfo } from "@/api/fbaAPI";
 
 // Mock the @capacitor/preferences module
 vi.mock("@capacitor/preferences", () => ({
@@ -29,21 +34,13 @@ vi.mock("@/utils/storage", () => ({
   readFromFilesystem: vi.fn(),
   writeToFileSystem: vi.fn(),
   FIRE_CENTER_INFO_CACHE_EXPIRATION: 24,
-  FIRE_CENTER_INFO_KEY: "fire_centre_info",
+  FIRE_CENTER_INFO_KEY: "fireCentreInfo",
 }));
 
 // Mock the API
 vi.mock("@/api/fbaAPI", () => ({
   getFireCentreInfo: vi.fn(),
 }));
-
-// Mock dataSliceUtils
-vi.mock("@/utils/dataSliceUtils", () => ({
-  today: "2024-01-15",
-}));
-
-import { Preferences } from "@capacitor/preferences";
-import { act } from "@testing-library/react";
 
 describe("settingsSlice", () => {
   // Test data factories
@@ -333,6 +330,131 @@ describe("settingsSlice", () => {
         expectSettingsState(store.getState().settings, {
           pinnedFireCentre: null,
         });
+      });
+    });
+    describe("fecthFireCentreInfo", () => {
+      beforeEach(() => {
+        // Reset all mocks before each test
+        vi.clearAllMocks();
+      });
+
+      const today = DateTime.now().toISO();
+      const yesterday = DateTime.now().plus({ days: -2 }).toISO();
+
+      const mockFireCentreInfoA: FireCentreInfo = {
+        fire_centre_name: "Kamloops Fire Centre",
+        fire_zone_units: [
+          {
+            id: 1,
+            name: "Vernon Fire Zone",
+          },
+        ],
+      };
+      const mockFireCentreInfoB: FireCentreInfo = {
+        fire_centre_name: "Cariboo Fire Centre",
+        fire_zone_units: [
+          {
+            id: 2,
+            name: "Chilcoltin Fire Zone",
+          },
+        ],
+      };
+
+      const mockCacheWithNoData = () => {
+        (readFromFilesystem as Mock).mockImplementation(() => {
+          return null;
+        });
+      };
+      const mockCacheWithData = (isStale: boolean) => {
+        (readFromFilesystem as Mock).mockImplementation((_filesystem, key) => {
+          if (key === FIRE_CENTER_INFO_KEY) {
+            return {
+              lastUpdated: isStale ? yesterday : today,
+              data: isStale ? [mockFireCentreInfoA] : [mockFireCentreInfoB],
+            };
+          } else {
+            return null;
+          }
+        });
+      };
+
+      it("should call API and dispatch success when cache is empty and app online", async () => {
+        mockCacheWithNoData(); // mock cache returns null
+        (getFireCentreInfo as Mock).mockResolvedValue({
+          fire_centre_info: [mockFireCentreInfoA],
+        });
+        const store = createTestStore({
+          settings: { ...initialState },
+          networkStatus: {
+            networkStatus: { connected: true, connectionType: "wifi" },
+          },
+        });
+        await store.dispatch(fetchFireCentreInfo());
+        const state = store.getState().settings;
+        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoA]);
+        expect(state.loading).toBe(false);
+        expect(getFireCentreInfo).toHaveBeenCalledOnce();
+      });
+
+      it("should call API and dispatch success when cache is stale and app online", async () => {
+        mockCacheWithData(true); // mock cache returns mockFireCentreA
+        (getFireCentreInfo as Mock).mockResolvedValue({
+          fire_centre_info: [mockFireCentreInfoB],
+        }); // API call returns mockFireCentreB
+        const store = createTestStore({
+          settings: { ...initialState },
+          networkStatus: {
+            networkStatus: { connected: true, connectionType: "wifi" },
+          },
+        });
+        await store.dispatch(fetchFireCentreInfo());
+        const state = store.getState().settings;
+        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoB]);
+        expect(state.loading).toBe(false);
+        expect(getFireCentreInfo).toHaveBeenCalledOnce();
+      });
+
+      it("should not call API when cache is fresh and app online", async () => {
+        mockCacheWithData(false); // mock cache returns mockFireCentreInfoB
+        const store = createTestStore({
+          settings: { ...initialState },
+          networkStatus: {
+            networkStatus: { connected: true, connectionType: "wifi" },
+          },
+        });
+        await store.dispatch(fetchFireCentreInfo());
+        const state = store.getState().settings;
+        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoB]);
+        expect(state.loading).toBe(false);
+        expect(getFireCentreInfo).not.toBeCalled();
+      });
+
+      it("should dispatch error when cache is empty and app is offline", async () => {
+        mockCacheWithNoData();
+        const store = createTestStore({
+          settings: { ...initialState },
+          networkStatus: {
+            networkStatus: { connected: false, connectionType: "none" },
+          },
+        });
+        await store.dispatch(fetchFireCentreInfo());
+        const state = store.getState().settings;
+        expect(state.loading).toBe(false);
+        expect(state.error).toMatch(/Unable to refresh fire center info data/);
+      });
+
+      it("should dispatch success when cache is stale and app is offline", async () => {
+        mockCacheWithData(true);
+        const store = createTestStore({
+          settings: { ...initialState },
+          networkStatus: {
+            networkStatus: { connected: false, connectionType: "none" },
+          },
+        });
+        await store.dispatch(fetchFireCentreInfo());
+        const state = store.getState().settings;
+        expect(state.loading).toBe(false);
+        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoA]);
       });
     });
   });
