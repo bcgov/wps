@@ -29,6 +29,7 @@ describe("SubscriptionOption", () => {
         error: null,
         fireCentreInfos: [],
         pinnedFireCentre: null,
+        pushNotificationPermission: "unknown",
         subscriptions: initialSubscriptions,
       },
     });
