@@ -80,9 +80,7 @@ jobs:
 
       - name: Build Capacitor and Sync
         working-directory: ./mobile/asa-go
-        run: |
-          yarn build:prod
-          APP_ENV=prod yarn cap sync ios
+        run: yarn cap:sync:ios:prod
       - name: Setup iOS Signing
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_BASE64 }}
