@@ -66,6 +66,11 @@ It tells the Android app which Firebase project/app to talk to, including:
 
 It is required locally in the Android project.
 
+## Google Play App Signing
+
+When distributing via the Play Store, Google re-signs your APK with their own App Signing Key rather than your local upload key. Firebase needs the SHA-1 of this key registered to validate the app's identity when requesting FCM tokens.
+To get it: Play Console -> Test and release -> App Integrity -> App signing → copy the SHA-1 and add it to the app in Firebase Console under Project Settings.
+
 ## APNs auth key
 
 The APNs auth key is the Apple push key used by Firebase to send iOS notifications through APNs.
