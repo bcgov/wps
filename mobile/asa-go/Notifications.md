@@ -77,9 +77,7 @@ The APNs auth key is the Apple push key used by Firebase to send iOS notificatio
 
 Important points:
 
-- It does not go in this repo.
-- It does not go in Xcode project files.
-- It is uploaded in Firebase Console.
+- It is only uploaded in Firebase Console.
 - It can be used for both development and production APNs delivery.
 
 Because we have separate Firebase setups for dev and prod, make sure the Firebase project used by each app has APNs configured.
