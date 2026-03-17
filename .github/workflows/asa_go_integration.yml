@@ -46,7 +46,7 @@ jobs:
         uses: ./.github/actions/asa-go-setup
       - name: Sync Capacitor iOS
         working-directory: ./mobile/asa-go
-        run: yarn cap sync ios
+        run: APP_ENV=prod yarn cap sync ios
       - name: Use Xcode latest stable
         uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd
         with:
@@ -80,10 +80,10 @@ jobs:
       - name: Create google-services.json
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: echo "$GOOGLE_SERVICES_JSON" | base64 -d > ./mobile/asa-go/android/app/google-services.json
+        run: echo "$GOOGLE_SERVICES_JSON" | base64 -d > ./mobile/asa-go/android/app/src/prod/google-services.json
       - name: Sync Capacitor Android
         working-directory: ./mobile/asa-go
-        run: yarn cap sync android
+        run: APP_ENV=prod yarn cap sync android
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -98,7 +98,7 @@ jobs:
         working-directory: ./mobile/keycloak/android
         run: ./gradlew jacocoTestReport
       - name: Upload Android coverage to Codecov
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |

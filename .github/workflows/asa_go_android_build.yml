@@ -20,6 +20,7 @@ jobs:
             "KEY_ALIAS"
             "SIGNING_STORE_PASSWORD"
             "SIGNING_KEY_PASSWORD"
+            "GOOGLE_SERVICES_JSON"
             "VITE_BASEMAP_TILE_URL"
             "VITE_BASEMAP_STYLE_URL"
           )
@@ -34,6 +35,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           VITE_BASEMAP_TILE_URL: ${{ secrets.VITE_BASEMAP_TILE_URL }}
           VITE_BASEMAP_STYLE_URL: ${{ secrets.VITE_BASEMAP_STYLE_URL }}
 
@@ -71,11 +73,15 @@ jobs:
           echo "VITE_BASEMAP_TILE_URL=${VITE_BASEMAP_TILE_URL}" >> .env.production
           echo "VITE_BASEMAP_STYLE_URL=${VITE_BASEMAP_STYLE_URL}" >> .env.production
 
+      - name: Create google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo "$GOOGLE_SERVICES_JSON" | base64 -d > ./mobile/asa-go/android/app/src/prod/google-services.json
+
       - name: Build Capacitor and Sync
         working-directory: ./mobile/asa-go
-        run: |
-          yarn build:prod
-          yarn cap sync android
+        run: yarn cap:sync:android:prod
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -104,11 +110,11 @@ jobs:
           ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
           ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
         run: |
-          ./gradlew bundleRelease
+          ./gradlew bundleProdRelease
 
       - uses: actions/upload-artifact@v7
         with:
           name: ASA-Go-AAB
-          path: mobile/asa-go/android/app/build/outputs/bundle/release/*.aab
+          path: mobile/asa-go/android/app/build/outputs/bundle/prodRelease/*.aab
           retention-days: 1
           if-no-files-found: error
