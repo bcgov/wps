@@ -127,10 +127,15 @@ export const SFMSInsightsPage = () => {
     if (showSnow && showSnowDialog) {
       return (
         <Dialog maxWidth="sm" open={showSnowDialog} sx={{ zIndex: 2000 }}>
-          <DialogTitle>Snow Coverage Imagery Warning</DialogTitle>
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <WarningAmberIcon fontSize="medium" sx={{ color: theme.palette.warning.main, mr: theme.spacing(1) }} />
+              Snow Coverage Imagery Warning
+            </Box>
+          </DialogTitle>
           <DialogContent dividers>
-            The VIIRS satellite sensor that supplies snow coverage imagery experienced an anomaly on March 9, 2026 and
-            updated imagery is currently unavailable.
+            Snow coverage data is unavailable from March 9, 2026 to the present. The VIIRS satellite sensor that
+            supplies snow coverage imagery experienced an anomaly on March 9, 2026 and updated imagery is unavailable.
           </DialogContent>
           <DialogActions>
             <FormControlLabel
