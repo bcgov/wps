@@ -26,13 +26,12 @@
 		A511FA812F630E36007AD49F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 1E60787A749448FB8E269E5A /* PrivacyInfo.xcprivacy */; };
 		A511FA8D2F631843007AD49F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A511FA8C2F631843007AD49F /* GoogleService-Info.plist */; };
 		A511FA8F2F631858007AD49F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A511FA8E2F631858007AD49F /* GoogleService-Info.plist */; };
+		ABA9EE54FF69B84C1D8E12CA /* Pods_ASA_Go_Dev.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8A4D9A6B1370E8B40A3B42E /* Pods_ASA_Go_Dev.framework */; };
 		D51D96E4043C4B4AB92C9174 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
-		E67A8FADD0932A76EAA6E545 /* Pods_ASA_Go_dev.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1CBC484E614E4BE483813586 /* Pods_ASA_Go_dev.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0146A60730585B7E7BDD0243 /* Pods_ASA_Go.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ASA_Go.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		1CBC484E614E4BE483813586 /* Pods_ASA_Go_dev.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ASA_Go_dev.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E60787A749448FB8E269E5A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
@@ -43,16 +42,17 @@
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
-		51207C9C622B9020DC600D92 /* Pods-ASA Go dev.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ASA Go dev.release.xcconfig"; path = "Pods/Target Support Files/Pods-ASA Go dev/Pods-ASA Go dev.release.xcconfig"; sourceTree = "<group>"; };
-		5DECCDBD9A33EE51D824DC98 /* Pods-ASA Go dev.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ASA Go dev.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ASA Go dev/Pods-ASA Go dev.debug.xcconfig"; sourceTree = "<group>"; };
+		51207C9C622B9020DC600D92 /* Pods-ASA Go Dev.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ASA Go Dev.release.xcconfig"; path = "Pods/Target Support Files/Pods-ASA Go Dev/Pods-ASA Go Dev.release.xcconfig"; sourceTree = "<group>"; };
+		5DECCDBD9A33EE51D824DC98 /* Pods-ASA Go Dev.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ASA Go Dev.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ASA Go Dev/Pods-ASA Go Dev.debug.xcconfig"; sourceTree = "<group>"; };
 		6654B5E52E29AC1C000DA498 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
-		A511FA862F630E36007AD49F /* ASA Go dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ASA Go dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A511FA872F630E36007AD49F /* ASA Go dev-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "ASA Go dev-Info.plist"; path = "/Users/breedwar/projects/other/wps/mobile/asa-go/ios/App/ASA Go dev-Info.plist"; sourceTree = "<absolute>"; };
+		A511FA862F630E36007AD49F /* ASA Go Dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ASA Go Dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A511FA872F630E36007AD49F /* dev-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "dev-Info.plist"; sourceTree = "<group>"; };
 		A511FA8C2F631843007AD49F /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Firebase/Prod/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A511FA8E2F631858007AD49F /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Firebase/Dev/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 		E5BF8FB19E4A8C9DE7D16845 /* Pods-ASA Go.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ASA Go.release.xcconfig"; path = "Pods/Target Support Files/Pods-ASA Go/Pods-ASA Go.release.xcconfig"; sourceTree = "<group>"; };
 		F476C89842489D0CE7665883 /* Pods-ASA Go.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ASA Go.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ASA Go/Pods-ASA Go.debug.xcconfig"; sourceTree = "<group>"; };
+		F8A4D9A6B1370E8B40A3B42E /* Pods_ASA_Go_Dev.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ASA_Go_Dev.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -70,7 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E67A8FADD0932A76EAA6E545 /* Pods_ASA_Go_dev.framework in Frameworks */,
+				ABA9EE54FF69B84C1D8E12CA /* Pods_ASA_Go_Dev.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,8 +80,8 @@
 		27E2DDA53C4D2A4D1A88CE4A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				1CBC484E614E4BE483813586 /* Pods_ASA_Go_dev.framework */,
 				0146A60730585B7E7BDD0243 /* Pods_ASA_Go.framework */,
+				F8A4D9A6B1370E8B40A3B42E /* Pods_ASA_Go_Dev.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -94,7 +94,6 @@
 				7F8756D8B27F46E3366F6CEA /* Pods */,
 				27E2DDA53C4D2A4D1A88CE4A /* Frameworks */,
 				1E60787A749448FB8E269E5A /* PrivacyInfo.xcprivacy */,
-				A511FA872F630E36007AD49F /* ASA Go dev-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -102,7 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* ASA Go.app */,
-				A511FA862F630E36007AD49F /* ASA Go dev.app */,
+				A511FA862F630E36007AD49F /* ASA Go Dev.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -119,6 +118,7 @@
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
 				504EC3131FED79650016851F /* Info.plist */,
+				A511FA872F630E36007AD49F /* dev-Info.plist */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 			);
@@ -132,8 +132,8 @@
 				AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */,
 				F476C89842489D0CE7665883 /* Pods-ASA Go.debug.xcconfig */,
 				E5BF8FB19E4A8C9DE7D16845 /* Pods-ASA Go.release.xcconfig */,
-				5DECCDBD9A33EE51D824DC98 /* Pods-ASA Go dev.debug.xcconfig */,
-				51207C9C622B9020DC600D92 /* Pods-ASA Go dev.release.xcconfig */,
+				5DECCDBD9A33EE51D824DC98 /* Pods-ASA Go Dev.debug.xcconfig */,
+				51207C9C622B9020DC600D92 /* Pods-ASA Go Dev.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -160,9 +160,9 @@
 			productReference = 504EC3041FED79650016851F /* ASA Go.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A511FA732F630E36007AD49F /* ASA Go dev */ = {
+		A511FA732F630E36007AD49F /* ASA Go Dev */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A511FA832F630E36007AD49F /* Build configuration list for PBXNativeTarget "ASA Go dev" */;
+			buildConfigurationList = A511FA832F630E36007AD49F /* Build configuration list for PBXNativeTarget "ASA Go Dev" */;
 			buildPhases = (
 				A511FA742F630E36007AD49F /* [CP] Check Pods Manifest.lock */,
 				A511FA752F630E36007AD49F /* Sources */,
@@ -174,9 +174,9 @@
 			);
 			dependencies = (
 			);
-			name = "ASA Go dev";
+			name = "ASA Go Dev";
 			productName = App;
-			productReference = A511FA862F630E36007AD49F /* ASA Go dev.app */;
+			productReference = A511FA862F630E36007AD49F /* ASA Go Dev.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -212,7 +212,7 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* ASA Go */,
-				A511FA732F630E36007AD49F /* ASA Go dev */,
+				A511FA732F630E36007AD49F /* ASA Go Dev */,
 			);
 		};
 /* End PBXProject section */
@@ -295,7 +295,7 @@
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ASA Go dev-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-ASA Go Dev-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -314,7 +314,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ASA Go dev/Pods-ASA Go dev-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ASA Go Dev/Pods-ASA Go Dev-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -513,14 +513,14 @@
 		};
 		A511FA842F630E36007AD49F /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5DECCDBD9A33EE51D824DC98 /* Pods-ASA Go dev.debug.xcconfig */;
+			baseConfigurationReference = 5DECCDBD9A33EE51D824DC98 /* Pods-ASA Go Dev.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L796QSLV3E;
-				INFOPLIST_FILE = "ASA Go dev-Info.plist";
+				INFOPLIST_FILE = "App/dev-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
@@ -535,7 +535,7 @@
 		};
 		A511FA852F630E36007AD49F /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 51207C9C622B9020DC600D92 /* Pods-ASA Go dev.release.xcconfig */;
+			baseConfigurationReference = 51207C9C622B9020DC600D92 /* Pods-ASA Go Dev.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
@@ -544,7 +544,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = L796QSLV3E;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = L796QSLV3E;
-				INFOPLIST_FILE = "ASA Go dev-Info.plist";
+				INFOPLIST_FILE = "App/dev-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
@@ -579,7 +579,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A511FA832F630E36007AD49F /* Build configuration list for PBXNativeTarget "ASA Go dev" */ = {
+		A511FA832F630E36007AD49F /* Build configuration list for PBXNativeTarget "ASA Go Dev" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A511FA842F630E36007AD49F /* Debug */,

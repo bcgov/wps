@@ -1,6 +1,6 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-const mode = process.env.APP_ENV ?? "prod";
+const mode = process.env.APP_ENV ?? "dev";
 const isDev = mode === "dev";
 
 const config: CapacitorConfig = {
@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
     flavor: isDev ? "dev" : "prod",
   },
   ios: {
-    scheme: isDev ? "ASA Go dev" : "ASA Go",
+    scheme: isDev ? "ASA Go Dev" : "ASA Go",
   },
   plugins: {
     FirebaseMessaging: {
