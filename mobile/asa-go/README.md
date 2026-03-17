@@ -86,9 +86,24 @@ pmtiles extract https://build.protomaps.com/20250326.pmtiles bc_basemap_20250326
 
 ### Distributing
 
-Bump `appBuildVersion` appropriately via semvar, in `.github/workflows/asa_go_build_deploy.yml`.
-Run: `gh workflow run "Publish ASA Go"`
-This will build and publish the app that is on the `main` branch.
+Bump `appBuildVersion` appropriately in:
+
+- `.github/workflows/asa_go_android_build.yml`
+- `.github/workflows/asa_go_ios_build_deploy.yml`
+
+Run the Android build workflow:
+
+```bash
+gh workflow run "Build ASA Go Android" --ref <branch-name>
+```
+
+Run the iOS build/deploy workflow:
+
+```bash
+gh workflow run "Publish ASA Go iOS" --ref <branch-name>
+```
+
+These workflows build the app from the specified branch.
 
 ## CI Workflows
 
@@ -104,7 +119,7 @@ All three jobs use the shared composite action `.github/actions/asa-go-setup`, w
 
 1. Sets up Node.js 20
 2. Caches and installs `mobile/keycloak` node_modules, then runs `yarn build`
-3. Caches and installs `mobile/asa-go` node_modules, then runs `yarn build`
+3. Caches and installs `mobile/asa-go` node_modules
 
 ### Android Release Build (`.github/workflows/asa_go_android_build.yml`)
 
