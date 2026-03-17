@@ -12,12 +12,26 @@ import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDro
 import { SFMS_INSIGHTS_NAME } from '@/utils/constants'
 import { getDateTimeNowPST } from '@/utils/date'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import { Box, Checkbox, CircularProgress, FormControlLabel, Grid, Tooltip } from '@mui/material'
+import {
+  Box,
+  Button,
+  Checkbox,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  Grid,
+  IconButton
+} from '@mui/material'
 import { isNil, isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
+const SFMS_INSIGHTS_ALWAYS_HIDE_KEY = 'SFMSInsightsAlwaysHideSnowMessage'
+const TEMP_LAST_SNOW = DateTime.fromISO('2026-02-12')
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const latestBounds = useSelector(selectLatestSFMSBounds)
@@ -33,6 +47,12 @@ export const SFMSInsightsPage = () => {
 
   const [rasterType, setRasterType] = useState<RasterType>('fuel')
   const [showSnow, setShowSnow] = useState<boolean>(true)
+  const [showSnowDialog, setShowSnowDialog] = useState<boolean>(false)
+  const [showSnowWarningIcon, setShowSnowWarningIcon] = useState<boolean>(false)
+  const [alwaysHide, setAlwaysHide] = useState<boolean>(() => {
+    const stored = localStorage.getItem(SFMS_INSIGHTS_ALWAYS_HIDE_KEY)
+    return stored === 'true'
+  })
 
   useEffect(() => {
     // Only fetch SFMS bounds if we haven't fetched yet (undefined) and aren't already loading
@@ -41,6 +61,26 @@ export const SFMSInsightsPage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    // Display warning about stale snow data if user hasn't chosen to always hide the dialog
+    if (showSnow && !alwaysHide) {
+      setShowSnowDialog(true)
+    }
+  }, [alwaysHide, showSnow])
+
+  useEffect(() => {
+    if (
+      !isNil(snowDate?.ordinal) &&
+      snowDate?.ordinal === TEMP_LAST_SNOW.ordinal &&
+      !isNil(rasterDate?.ordinal) &&
+      rasterDate?.ordinal > TEMP_LAST_SNOW.ordinal
+    ) {
+      setShowSnowWarningIcon(true)
+    } else {
+      setShowSnowWarningIcon(false)
+    }
+  }, [rasterDate, snowDate])
 
   useEffect(() => {
     if (earliestBounds?.minimum) {
@@ -68,13 +108,48 @@ export const SFMSInsightsPage = () => {
     fetchLastProcessedSnow(rasterDate)
   }, [rasterDate])
 
-  const renderSnowWarning = () => {
-    const tempLastSnow = DateTime.fromISO("2026-03-08").ordinal // Ordinal gets the numerical day of the year in the range of 1-365
-    if (!isNil(snowDate?.ordinal) && snowDate?.ordinal === tempLastSnow && !isNil(rasterDate?.ordinal) && rasterDate?.ordinal > tempLastSnow) {
+  const handleAlwaysHide = () => {
+    localStorage.setItem(SFMS_INSIGHTS_ALWAYS_HIDE_KEY, `${!alwaysHide}`)
+    setAlwaysHide(!alwaysHide)
+  }
+
+  const renderSnowWarningIcon = () => {
+    if (showSnowWarningIcon) {
       return (
-        <Tooltip title="The VIIRS sensor that supplies snow coverage imagery experienced an anomaly on March 9, 2026 and updated imagery is currently unavailable.">
-          <WarningAmberIcon fontSize="large" sx={{color: theme.palette.warning.main, pt: theme.spacing()}}/>
-        </Tooltip>
+        <IconButton onClick={() => setShowSnowDialog(true)} sx={{ pl: 0, pt: 0 }}>
+          <WarningAmberIcon fontSize="large" sx={{ color: theme.palette.warning.main, pt: theme.spacing() }} />
+        </IconButton>
+      )
+    }
+  }
+
+  const renderSnowWarningDialog = () => {
+    if (showSnow && showSnowDialog) {
+      return (
+        <Dialog maxWidth="sm" open={showSnowDialog} sx={{ zIndex: 2000 }}>
+          <DialogTitle>Snow Coverage Imagery Warning</DialogTitle>
+          <DialogContent dividers>
+            The VIIRS satellite sensor that supplies snow coverage imagery experienced an anomaly on March 9, 2026 and
+            updated imagery is currently unavailable.
+          </DialogContent>
+          <DialogActions>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={alwaysHide}
+                  onChange={handleAlwaysHide}
+                  size="small"
+                  style={{ color: theme.palette.warning.contrastText }}
+                />
+              }
+              label="Don't show again"
+              style={{ fontSize: '0.8rem', color: theme.palette.warning.contrastText }}
+            />
+            <Button variant="contained" title="Dismiss" onClick={() => setShowSnowDialog(false)}>
+              Dismiss
+            </Button>
+          </DialogActions>
+        </Dialog>
       )
     }
   }
@@ -126,15 +201,15 @@ export const SFMSInsightsPage = () => {
             <FormControlLabel
               control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
               label={snowDate ? `Show Latest Snow: ${snowDate.toLocaleString(DateTime.DATE_MED)}` : 'Show Latest Snow'}
-              sx={{verticalAlign: "unset"}}
             />
-            { renderSnowWarning() }
+            {renderSnowWarningIcon()}
           </Grid>
         </Grid>
       </Box>
       <Box sx={{ flex: 1, position: 'relative' }}>
         <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} showSnow={showSnow} />
       </Box>
+      {renderSnowWarningDialog()}
       <Footer />
     </Box>
   )
