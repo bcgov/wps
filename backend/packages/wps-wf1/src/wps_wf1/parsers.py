@@ -347,9 +347,12 @@ def sfms_daily_actuals_mapper(
     sfms_daily_actuals: List[SFMSDailyActual] = []
     for raw_daily in raw_dailies:
         station_data = raw_daily.get("stationData")
-        site_type_id = (station_data or {}).get("siteType", {}).get("id")
+        station_data_or_empty = station_data or {}
+        site_type_id = station_data_or_empty.get("siteType", {}).get("id")
+        station_status_id = station_data_or_empty.get("stationStatus", {}).get("id")
         if (
             is_station_valid(station_data)
+            and station_status_id == "ACTIVE"
             and site_type_id
             in (
                 "HUB_STN",

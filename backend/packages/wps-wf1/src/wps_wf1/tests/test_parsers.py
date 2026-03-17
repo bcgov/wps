@@ -184,6 +184,13 @@ class TestSfmsDailyActualsMapper:
 
         assert sfms_daily_actuals_mapper([raw], [station]) == []
 
+    @pytest.mark.parametrize("status", ["TEST", "PROJECT"])
+    def test_filters_non_active_station(self, status):
+        station = _make_station(100)
+        raw = _make_raw_daily(100, status=status, temperature=20.0)
+
+        assert sfms_daily_actuals_mapper([raw], [station]) == []
+
     def test_filters_invalid_site_type(self):
         station = _make_station(100)
         raw = _make_raw_daily(100, site_type="UNKNOWN_TYPE", temperature=20.0)
