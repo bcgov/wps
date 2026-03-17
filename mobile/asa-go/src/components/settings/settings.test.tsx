@@ -251,7 +251,7 @@ describe("Settings", () => {
       </Provider>,
     );
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(
         screen.getByText(/Retrieving notification settings/i),
       ).toBeInTheDocument();

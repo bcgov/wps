@@ -85,9 +85,9 @@ kamloops_fire_centre = "Kamloops Fire Centre"
 
 
 mock_fire_centre_infos = [
-    (1, chilcoltin_fire_zone, cariboo_fire_centre),
-    (2, quesnel_fire_zone, cariboo_fire_centre),
-    (3, vernon_fire_zone, kamloops_fire_centre),
+    ("1", chilcoltin_fire_zone, cariboo_fire_centre),
+    ("2", quesnel_fire_zone, cariboo_fire_centre),
+    ("3", vernon_fire_zone, kamloops_fire_centre),
 ]
 
 
