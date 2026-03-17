@@ -9,13 +9,13 @@ from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds_by_id,
     get_all_sfms_fuel_type_records,
     get_all_zone_source_ids,
     get_centre_tpi_stats,
+    get_fire_centre_info,
     get_fire_centre_tpi_fuel_areas,
     get_min_wind_speed_hfi_thresholds,
     get_most_recent_run_datetime_for_date,
@@ -28,6 +28,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_tpi_stats,
     get_zone_source_ids_in_centre,
 )
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.db.models.auto_spatial_advisory import (
     RunTypeEnum,
@@ -35,9 +36,12 @@ from wps_shared.db.models.auto_spatial_advisory import (
 )
 from wps_shared.schemas.fba import (
     FireCenterListResponse,
+    FireCentreInfo,
+    FireCentreInfoResponse,
     FireCentreTPIResponse,
     FireZoneHFIStats,
     FireZoneTPIStats,
+    FireZoneUnit,
     HFIStatsResponse,
     LatestSFMSRunParameter,
     LatestSFMSRunParameterRangeResponse,
@@ -47,8 +51,8 @@ from wps_shared.schemas.fba import (
     SFMSRunParameter,
     TPIResponse,
 )
+from wps_wf1.wfwx_api import WfwxApi
 
-from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
@@ -149,6 +153,22 @@ async def get_all_fire_centers(_=Depends(asa_authentication_required)):
         wfwx_api = WfwxApi(session)
         fire_centers = await wfwx_api.get_fire_centers()
     return FireCenterListResponse(fire_centers=fire_centers)
+
+
+@router.get("/fire-centre-info", response_model=FireCentreInfoResponse)
+async def get_fire_centres_and_fire_zone_units(_=Depends(asa_authentication_required)):
+    """Returns a list of fire centres and the fire zone units they contain."""
+    logger.info("/fba/fire-centre-info/")
+    async with get_async_read_session_scope() as session:
+        result = await get_fire_centre_info(session)
+        result_dict = defaultdict(list)
+        for id, fire_zone_unit, fire_centre_name in result:
+            result_dict[fire_centre_name].append(FireZoneUnit(id=id, name=fire_zone_unit))
+        fire_centre_info_list = []
+        for key, values in result_dict.items():
+            item = FireCentreInfo(fire_centre_name=key, fire_zone_units=values)
+            fire_centre_info_list.append(item)
+    return FireCentreInfoResponse(fire_centre_info=fire_centre_info_list)
 
 
 @router.get(

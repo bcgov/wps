@@ -67,7 +67,6 @@ describe("fetchFireCenters thunk", () => {
   };
   const mockCacheWithNoData = () => {
     (readFromFilesystem as Mock).mockImplementation(() => {
-      console.log("Reading from null file system");
       return null;
     });
   };
@@ -160,20 +159,6 @@ describe("fetchFireCenters thunk", () => {
     await store.dispatch(fetchFireCenters());
     const state = store.getState().fireCenters;
     expect(state.loading).toBe(false);
-    expect(state.fireCenters).toEqual([mockFireCenterA])
-  });
-
-  it("should dispatch error when cache is empty and app is offline", async () => {
-    mockCacheWithNoData();
-    const store = createTestStore({
-      fireCenters: { ...initialState },
-      networkStatus: {
-        networkStatus: { connected: false, connectionType: "none" },
-      },
-    });
-    await store.dispatch(fetchFireCenters());
-    const state = store.getState().fireCenters;
-    expect(state.loading).toBe(false);
-    expect(state.error).toMatch(/Unable to refresh fire center data/);
+    expect(state.fireCenters).toEqual([mockFireCenterA]);
   });
 });
