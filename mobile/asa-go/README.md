@@ -20,11 +20,6 @@ yarn install
 yarn build
 ```
 
-APP_ENV=dev ionic capacitor run ios -l --external
-APP_ENV=prod ionic capacitor run ios -l --external
-APP_ENV=dev ionic capacitor run android -l --external
-APP_ENV=prod ionic capacitor run android -l --external
-
 ## Setup live reload
 
 1. Install ionic CLI and native run for live reload with: `npm install -g @ionic/cli native-run`
@@ -34,7 +29,12 @@ APP_ENV=prod ionic capacitor run android -l --external
 1. Make sure xcode is installed with `xcode-select --install`
 2. Go to `mobile/asa-go`
 3. Run `APP_ENV=dev yarn cap:sync:ios:dev` or `APP_ENV=prod yarn cap:sync:ios:prod`
-4. Build and run with live reload: `APP_ENV=dev ionic capacitor run ios -l --external` or `APP_ENV=prod ionic capacitor run ios -l --external`
+4. List available devices/simulators with `ionic capacitor run ios --list`
+5. Build and run with live reload:
+   - `APP_ENV=dev ionic capacitor run ios -l --external`
+   - `APP_ENV=prod ionic capacitor run ios -l --external`
+
+`APP_ENV=dev` selects the `ASA Go Dev` iOS scheme and `APP_ENV=prod` selects `ASA Go`.
 
 ### Building/Running Android
 
@@ -44,7 +44,12 @@ APP_ENV=prod ionic capacitor run android -l --external
    - Set `$ANDROID_HOME` to the path of the Android SDK
 3. Go to `mobile/asa-go`
 4. Run `APP_ENV=dev yarn cap:sync:android:dev` or `APP_ENV=prod yarn cap:sync:android:prod`
-5. Build and run with live reload: `APP_ENV=dev ionic capacitor run android -l --external` or `APP_ENV=prod ionic capacitor run android -l --external`
+5. If you are building from Android Studio, open the [`android`](/Users/breedwar/projects/other/wps/mobile/asa-go/android) project and choose the matching build variant in the `Build Variants` tool window:
+   - `devDebug` or `devRelease` after a dev sync
+   - `prodDebug` or `prodRelease` after a prod sync
+6. Build and run with live reload: `APP_ENV=dev ionic capacitor run android -l --external` or `APP_ENV=prod ionic capacitor run android -l --external`
+
+If the selected Android Studio build variant does not match the last `cap sync` flavor, you can end up with mismatched native config and web assets.
 
 To build a debug APK directly:
 

@@ -85,7 +85,7 @@ In the app repo:
 
 - iOS bundle IDs
 - Android application IDs / flavors
-- Xcode targets/schemes
+- Xcode targets/schemes (`ASA Go` and `ASA Go Dev`)
 - `GoogleService-Info.plist`
 - `google-services.json`
 - Capacitor config
@@ -139,6 +139,8 @@ APP_ENV=prod ionic capacitor run ios -l --external
 APP_ENV=dev ionic capacitor run android -l --external
 APP_ENV=prod ionic capacitor run android -l --external
 ```
+
+On iOS, `APP_ENV=dev` selects the `ASA Go Dev` scheme and `APP_ENV=prod` selects `ASA Go`.
 
 ## Quick checks
 
