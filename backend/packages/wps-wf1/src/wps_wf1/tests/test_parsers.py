@@ -1,11 +1,11 @@
-from datetime import datetime, timezone
 import math
-import pytest
-from wps_wf1.parsers import parse_hourly_actual, sfms_daily_actuals_mapper
+from datetime import datetime, timezone
 
+import pytest
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.schemas.stations import WFWXWeatherStation
+from wps_wf1.parsers import parse_hourly_actual, sfms_daily_actuals_mapper
 
 
 def _make_station(code, lat=49.0, lon=-123.0, elevation=100):
@@ -21,7 +21,13 @@ def _make_station(code, lat=49.0, lon=-123.0, elevation=100):
 
 
 def _make_raw_daily(
-    station_code, record_type="ACTUAL", status="ACTIVE", lat=49.0, lon=-123.0, **weather_fields
+    station_code,
+    record_type="ACTUAL",
+    status="ACTIVE",
+    lat=49.0,
+    lon=-123.0,
+    site_type="WXSTN_TEL",
+    **weather_fields,
 ):
     defaults = {
         "temperature": None,
@@ -35,6 +41,7 @@ def _make_raw_daily(
         "stationData": {
             "stationCode": station_code,
             "stationStatus": {"id": status},
+            "siteType": {"id": site_type},
             "latitude": lat,
             "longitude": lon,
         },
@@ -174,6 +181,19 @@ class TestSfmsDailyActualsMapper:
     def test_filters_inactive_station(self):
         station = _make_station(100)
         raw = _make_raw_daily(100, status="INACTIVE", temperature=20.0)
+
+        assert sfms_daily_actuals_mapper([raw], [station]) == []
+
+    def test_filters_invalid_site_type(self):
+        station = _make_station(100)
+        raw = _make_raw_daily(100, site_type="UNKNOWN_TYPE", temperature=20.0)
+
+        assert sfms_daily_actuals_mapper([raw], [station]) == []
+
+    def test_filters_missing_site_type(self):
+        station = _make_station(100)
+        raw = _make_raw_daily(100, temperature=20.0)
+        del raw["stationData"]["siteType"]
 
         assert sfms_daily_actuals_mapper([raw], [station]) == []
 

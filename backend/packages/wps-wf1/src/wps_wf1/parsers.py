@@ -4,26 +4,16 @@ import math
 from datetime import datetime, timezone
 from typing import Generator, List
 
-from wps_shared.schemas.sfms import SFMSDailyActual
-from wps_wf1.ecodivisions.ecodivision_seasons import EcodivisionSeasons
-
-from wps_wf1.util import (
-    compute_dewpoint,
-    get_zone_code_prefix,
-    is_station_fire_zone_valid,
-    is_station_valid,
-)
-from wps_wf1.validation import get_valid_flags
-
-from wps_shared.schemas.fba import FireCenterStation, FireCentre
 from wps_shared.db.models.forecasts import NoonForecast
+from wps_shared.db.models.observations import HourlyActual
+from wps_shared.schemas.fba import FireCenterStation, FireCentre
 from wps_shared.schemas.morecast_v2 import (
     StationDailyFromWF1,
     WeatherDeterminate,
     WeatherIndeterminate,
 )
-from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.observations import WeatherReading
+from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.schemas.stations import (
     FireZone,
     StationFireCentre,
@@ -33,6 +23,14 @@ from wps_shared.schemas.stations import (
     WFWXWeatherStation,
 )
 
+from wps_wf1.ecodivisions.ecodivision_seasons import EcodivisionSeasons
+from wps_wf1.util import (
+    compute_dewpoint,
+    get_zone_code_prefix,
+    is_station_fire_zone_valid,
+    is_station_valid,
+)
+from wps_wf1.validation import get_valid_flags
 
 logger = logging.getLogger(__name__)
 
@@ -349,8 +347,19 @@ def sfms_daily_actuals_mapper(
     sfms_daily_actuals: List[SFMSDailyActual] = []
     for raw_daily in raw_dailies:
         station_data = raw_daily.get("stationData")
+        site_type_id = (station_data or {}).get("siteType", {}).get("id")
         if (
             is_station_valid(station_data)
+            and site_type_id
+            in (
+                "HUB_STN",
+                "WXSTN_GOES",
+                "WXSTN_MB",
+                "WXSTN_TEL",
+                "WXSTN_CELL",
+                "WXSTN_UHF",
+                "EXTERNAL",
+            )
             and raw_daily.get("recordType").get("id") == WF1RecordTypeEnum.ACTUAL.value
         ):
             station_code = station_data.get("stationCode")
