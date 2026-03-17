@@ -353,6 +353,8 @@ def sfms_daily_actuals_mapper(
         if (
             is_station_valid(station_data)
             and station_status_id == "ACTIVE"
+            # Site types match those used to define APP_WF1_WEATHER.STATION_BC_ACTIVE_REPORTING_VW,
+            # the station source for legacy SFMS.
             and site_type_id
             in (
                 "HUB_STN",
