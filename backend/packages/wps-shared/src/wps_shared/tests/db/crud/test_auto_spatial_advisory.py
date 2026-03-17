@@ -370,9 +370,9 @@ async def test_get_fire_centre_info(async_session):
 
     result = await get_fire_centre_info(async_session)
     assert len(result) == 2
-    assert result[0][0] == shape1.source_identifier
+    assert result[0][0] == int(shape1.source_identifier)
     assert result[0][1] == shape1.label
     assert result[0][2] == fire_centre.name
-    assert result[1][0] == shape2.source_identifier
+    assert result[1][0] == int(shape2.source_identifier)
     assert result[1][1] == shape2.label
     assert result[1][2] == fire_centre.name
