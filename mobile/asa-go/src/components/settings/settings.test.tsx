@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, Mock } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import Settings from "./Settings";
@@ -90,7 +90,9 @@ describe("Settings", () => {
       </Provider>,
     );
 
-    expect(screen.getByTestId("asa-go-settings")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId("asa-go-settings")).toBeInTheDocument();
+    });
   });
 
   it("renders fire centre accordions when data is loaded", async () => {
@@ -115,9 +117,12 @@ describe("Settings", () => {
         <Settings activeTab={NavPanel.SETTINGS} />
       </Provider>,
     );
-    const fireCentreElements = await screen.findAllByRole("heading");
-    expect(fireCentreElements[0]).toHaveTextContent(/KAMLOOPS/i);
-    expect(fireCentreElements[1]).toHaveTextContent(/PRINCE GEORGE/i);
+
+    await waitFor(async () => {
+      const fireCentreElements = await screen.findAllByRole("heading");
+      expect(fireCentreElements[0]).toHaveTextContent(/KAMLOOPS/i);
+      expect(fireCentreElements[1]).toHaveTextContent(/PRINCE GEORGE/i);
+    });
   });
 
   it("renders offline message when offline", async () => {
@@ -246,10 +251,12 @@ describe("Settings", () => {
       </Provider>,
     );
 
-    expect(
-      screen.getByText(/Retrieving notification settings/i),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    waitFor(() => {
+      expect(
+        screen.getByText(/Retrieving notification settings/i),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    });
   });
 
   it("renders error state when error is present", async () => {

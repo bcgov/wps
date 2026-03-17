@@ -1,10 +1,16 @@
 import { FireCentreInfo } from "@/api/fbaAPI";
-import pushNotificationReducer from "@/slices/settingsSlice";
+import settingsReducer from "@/slices/settingsSlice";
 import { createTestStore } from "@/testUtils";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { Provider } from "react-redux";
 import { describe, expect, it } from "vitest";
-import SubscriptionAccordion from "./SubscriptionAccordion";
+import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
 
 // Mock data
 const mockFireCentreInfo: FireCentreInfo = {
@@ -14,6 +20,23 @@ const mockFireCentreInfo: FireCentreInfo = {
     { id: 2, name: "Vernon Fire Zone" },
   ],
 };
+
+const mockFireCentreInfos: FireCentreInfo[] = [
+  {
+    fire_centre_name: "Kamloops",
+    fire_zone_units: [
+      { id: 1, name: "Kamloops Zone 1" },
+      { id: 2, name: "Kamloops Zone 2" },
+    ],
+  },
+  {
+    fire_centre_name: "Prince George",
+    fire_zone_units: [
+      { id: 3, name: "Prince George Zone 1" },
+      { id: 4, name: "Prince George Zone 2" },
+    ],
+  },
+];
 
 describe("SubscriptionAccordion", () => {
   it("renders correctly with fire centre name", () => {
@@ -148,7 +171,7 @@ describe("SubscriptionAccordion", () => {
   it("displays filled push pin icon when fire centre is pinned", () => {
     const store = createTestStore({
       settings: {
-        ...pushNotificationReducer(undefined, { type: "unknown" }),
+        ...settingsReducer(undefined, { type: "unknown" }),
         pinnedFireCentre: mockFireCentreInfo.fire_centre_name,
       },
     });
@@ -211,7 +234,7 @@ describe("SubscriptionAccordion", () => {
   it("unpins the fire centre when pin button is clicked and already pinned", async () => {
     const store = createTestStore({
       settings: {
-        ...pushNotificationReducer(undefined, { type: "unknown" }),
+        ...settingsReducer(undefined, { type: "unknown" }),
         pinnedFireCentre: mockFireCentreInfo.fire_centre_name,
       },
     });
@@ -260,7 +283,7 @@ describe("SubscriptionAccordion", () => {
   it("deselects all fire zone units when 'All' checkbox is unchecked", async () => {
     const store = createTestStore({
       settings: {
-        ...pushNotificationReducer(undefined, { type: "unknown" }),
+        ...settingsReducer(undefined, { type: "unknown" }),
         subscriptions: [1, 2], // Both fire zone units are already subscribed
       },
     });
@@ -288,7 +311,7 @@ describe("SubscriptionAccordion", () => {
   it("shows indeterminate state when some fire zone units are selected", () => {
     const store = createTestStore({
       settings: {
-        ...pushNotificationReducer(undefined, { type: "unknown" }),
+        ...settingsReducer(undefined, { type: "unknown" }),
         subscriptions: [1], // Only one fire zone unit is subscribed
       },
     });
@@ -304,7 +327,9 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Find the checkbox - when indeterminate, checked should be false
-    const checkbox = screen.getByRole("checkbox", { name: "All" });
+    const checkbox = screen.getByRole("checkbox", {
+      name: "checkbox-Cariboo Fire Centre All",
+    });
     // When indeterminate: checked is false, but subscriptions exist for this fire centre
     expect(checkbox).not.toBeChecked();
     // The checkbox should be in an indeterminate state (not checked but some selected)
@@ -315,7 +340,7 @@ describe("SubscriptionAccordion", () => {
   it("checkbox is checked when all fire zone units are selected", () => {
     const store = createTestStore({
       settings: {
-        ...pushNotificationReducer(undefined, { type: "unknown" }),
+        ...settingsReducer(undefined, { type: "unknown" }),
         subscriptions: [1, 2], // All fire zone units are subscribed
       },
     });
@@ -331,25 +356,31 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Find the checkbox and verify it's checked
-    const checkbox = screen.getByRole("checkbox", { name: "All" });
+    const checkbox = screen.getByRole("checkbox", {
+      name: "checkbox-Cariboo Fire Centre All",
+    });
     expect(checkbox).toBeChecked();
   });
 
-  it("checkbox is unchecked when no fire zone units are selected", () => {
+  it("checkbox is unchecked when no fire zone units are selected", async () => {
     const store = createTestStore();
 
-    render(
-      <Provider store={store}>
-        <SubscriptionAccordion
-          disabled={false}
-          fireCentreInfo={mockFireCentreInfo}
-          defaultExpanded={true}
-        />
-      </Provider>,
+    await act(() =>
+      render(
+        <Provider store={store}>
+          <SubscriptionAccordion
+            disabled={false}
+            fireCentreInfo={mockFireCentreInfo}
+            defaultExpanded={true}
+          />
+        </Provider>,
+      ),
     );
 
     // Find the checkbox and verify it's unchecked
-    const checkbox = screen.getByRole("checkbox", { name: "All" });
+    const checkbox = screen.getByRole("checkbox", {
+      name: "checkbox-Cariboo Fire Centre All",
+    });
     expect(checkbox).not.toBeChecked();
     expect(checkbox).toHaveProperty("indeterminate", false);
   });
@@ -367,14 +398,16 @@ describe("SubscriptionAccordion", () => {
       },
     });
 
-    render(
-      <Provider store={store}>
-        <SubscriptionAccordion
-          disabled={false}
-          fireCentreInfo={mockFireCentreInfo}
-          defaultExpanded={true}
-        />
-      </Provider>,
+    await act(() =>
+      render(
+        <Provider store={store}>
+          <SubscriptionAccordion
+            disabled={false}
+            fireCentreInfo={mockFireCentreInfo}
+            defaultExpanded={true}
+          />
+        </Provider>,
+      ),
     );
 
     // Hit toggleAll to add all fire zone unit ids from this fire centre
@@ -383,23 +416,106 @@ describe("SubscriptionAccordion", () => {
 
     // Confirm initial subscriptions are still there and that the current fire centre fire zone units were added
     await waitFor(() => {
-      const subs = store.getState().settings.subscriptions;
-      expect(subs).toContain(initialSubscriptions[0]);
-      expect(subs).toContain(initialSubscriptions[1]);
-      expect(subs).toContain(mockFireCentreInfo.fire_zone_units[0].id);
-      expect(subs).toContain(mockFireCentreInfo.fire_zone_units[1].id);
+      const subs1 = store.getState().settings.subscriptions;
+      expect(subs1).not.toContain(mockFireCentreInfo.fire_zone_units[0].id);
     });
+    const subs2 = store.getState().settings.subscriptions;
+    expect(subs2).toContain(initialSubscriptions[0]);
+    expect(subs2).toContain(initialSubscriptions[1]);
 
     // Hit toggleAll again to remove fire zone unit ids from this fire centre
     fireEvent.click(allCheckbox);
 
     // Confirm initial subscriptions are still there and the current fire centre fire zone units are removed
     await waitFor(() => {
-      const subs = store.getState().settings.subscriptions;
-      expect(subs).toContain(initialSubscriptions[0]);
-      expect(subs).toContain(initialSubscriptions[1]);
-      expect(subs).not.toContain(mockFireCentreInfo.fire_zone_units[0].id);
-      expect(subs).not.toContain(mockFireCentreInfo.fire_zone_units[1].id);
+      const subs3 = store.getState().settings.subscriptions;
+      expect(subs3).toContain(initialSubscriptions[0]);
+      expect(subs3).toContain(initialSubscriptions[1]);
+    });
+    const subs4 = store.getState().settings.subscriptions;
+    expect(subs4).not.toContain(mockFireCentreInfo.fire_zone_units[0].id);
+    expect(subs4).not.toContain(mockFireCentreInfo.fire_zone_units[1].id);
+  });
+
+  it("All checkbox on accordion works independently", async () => {
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        fireCentreInfos: mockFireCentreInfos,
+        pinnedFireCentre: null,
+        subscriptions: [3, 4],
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfos[0]}
+          defaultExpanded={true}
+        />
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfos[1]}
+          defaultExpanded={true}
+        />
+      </Provider>,
+    );
+
+    // Confirm that PG fire zones switches are checked as per initial redux state
+    const switchPG1 = await screen.findByLabelText(
+      "Toggle subscription for Prince George Zone 1",
+    );
+    const switchPG2 = await screen.findByLabelText(
+      "Toggle subscription for Prince George Zone 2",
+    );
+    await waitFor(async () => {
+      expect(switchPG1).toBeChecked();
+      expect(switchPG2).toBeChecked();
+    });
+
+    // Confirm that Kamloops fire centre zone unit switches are unchecked
+    const switchK1 = await screen.findByLabelText(
+      "Toggle subscription for Kamloops Zone 1",
+    );
+    const switchK2 = await screen.findByLabelText(
+      "Toggle subscription for Kamloops Zone 2",
+    );
+    expect(switchK1).not.toBeChecked();
+    expect(switchK2).not.toBeChecked();
+
+    // Find and click the All checkbox for Kamloops fire centre
+    const kamloopsAll = await screen.findByLabelText("checkbox-Kamloops");
+    fireEvent.click(kamloopsAll);
+
+    // expect Kamloops fire centre switches to now be checked
+    await waitFor(() => {
+      expect(switchK1).toBeChecked();
+      expect(switchK2).toBeChecked();
+    });
+
+    // expect PG fire centre switches to still be checked
+    await waitFor(() => {
+      expect(switchPG1).toBeChecked();
+      expect(switchPG2).toBeChecked();
+    });
+
+    // Click the Kamloops All checkbox again to
+    fireEvent.click(kamloopsAll);
+
+    // expect Kamloops fire centre switches to now be unchecked
+    await waitFor(() => {
+      expect(switchK1).not.toBeChecked();
+      expect(switchK2).not.toBeChecked();
+    });
+
+    // expect PG fire centre switches to still be checked
+    await waitFor(() => {
+      expect(switchPG1).toBeChecked();
+      expect(switchPG2).toBeChecked();
     });
   });
 });

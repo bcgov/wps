@@ -154,6 +154,7 @@ const SubscriptionAccordion = ({
               <FormControlLabel
                 control={
                   <Checkbox
+                    aria-label={`checkbox-${fireCentreInfo.fire_centre_name}`}
                     checked={allSelected()}
                     indeterminate={
                       !allSelected() && subscribedFireZoneUnits.length > 0

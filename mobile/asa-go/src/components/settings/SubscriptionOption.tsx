@@ -46,8 +46,10 @@ const SubscriptionOption = ({ fireZoneUnit }: SubscriptionOptionProps) => {
           edge="end"
           checked={subscriptions.includes(fireZoneUnit.id)}
           onChange={handleSwitchChange}
-          inputProps={{
-            "aria-label": `Toggle subscription for ${fireZoneUnit.name}`,
+          slotProps={{
+            input: {
+              "aria-label": `Toggle subscription for ${fireZoneUnit.name}`,
+            },
           }}
         />
       </ListItemButton>
