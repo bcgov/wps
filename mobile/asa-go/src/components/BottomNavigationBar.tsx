@@ -1,12 +1,13 @@
+import { NavPanel } from "@/utils/constants";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import MapIcon from "@mui/icons-material/Map";
+import SettingsIcon from "@mui/icons-material/Settings";
+import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import {
   BottomNavigation,
   BottomNavigationAction,
   styled,
 } from "@mui/material";
-import MapIcon from "@mui/icons-material/Map";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
-import TextSnippetIcon from "@mui/icons-material/TextSnippet";
-import { NavPanel } from "@/utils/constants";
 
 const StyledBottomNavigationAction = styled(BottomNavigationAction)(
   ({ theme }) => ({
@@ -72,6 +73,12 @@ const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
         label={NavPanel.ADVISORY}
         icon={<TextSnippetIcon />}
         value={NavPanel.ADVISORY}
+      />
+      <StyledBottomNavigationAction
+        aria-label={NavPanel.SETTINGS}
+        label={NavPanel.SETTINGS}
+        icon={<SettingsIcon />}
+        value={NavPanel.SETTINGS}
       />
     </BottomNavigation>
   );
