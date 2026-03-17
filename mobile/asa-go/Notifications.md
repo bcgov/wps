@@ -96,29 +96,14 @@ In Firebase Console:
 - Firebase app registration for each bundle ID
 - Cloud Messaging setup
 
-## Auth callback scheme
-
-The Android dev and prod flavors currently share the same AppAuth redirect scheme:
-
-- `ca.bc.gov.asago`
-
-That matches the older auth setup. The app IDs are still different, but the auth callback scheme is shared.
-
-This is workable, but there is one tradeoff: if both Android app variants are installed on the same device, a custom-scheme auth callback can be ambiguous because both apps can claim the same scheme.
-
 ## Why we use separate app IDs
 
 This repo uses separate app IDs for dev and prod instead of trying to inject only Firebase config into one app identity.
 
-Why this is useful:
+This lets dev and prod be installed on the same device at the same time. It also keeps dev push notifications separate from
+prod and makes the Firebase app registration clearer, because each app variant has its own app ID.
 
-- dev and prod can both be installed on the same iPhone
-- dev and prod can both be installed on the same Android device
-- dev push notifications stay separate from prod
-- dev testing is less likely to affect the prod app
-- the Firebase app registration is clearer because each app variant has its own app ID
-
-An alternative is to keep one app ID and inject different config at build time. That can work, but it means dev and prod are still the same app identity, so they cannot be installed side by side.
+On iOS, the current implementation uses separate Xcode targets and separate `Info.plist` files for those app identities.
 
 ## Running dev vs prod
 
@@ -141,13 +126,3 @@ APP_ENV=prod ionic capacitor run android -l --external
 ```
 
 On iOS, `APP_ENV=dev` selects the `ASA Go Dev` scheme and `APP_ENV=prod` selects `ASA Go`.
-
-## Quick checks
-
-If notifications are not working, check these first:
-
-1. The installed app's iOS bundle ID or Android application ID matches the Firebase app config.
-2. The correct `GoogleService-Info.plist` or `google-services.json` is included for the target/flavor.
-3. APNs auth key is uploaded in the correct Firebase project.
-4. The iOS app is running on a real iPhone, not the iOS simulator.
-5. Push permissions were granted on the device.
