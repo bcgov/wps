@@ -1,11 +1,17 @@
-const { fixupConfigRules, fixupPluginRules } = require('@eslint/compat')
-const typescriptEslint = require('@typescript-eslint/eslint-plugin')
-const prettier = require('eslint-plugin-prettier')
-const react = require('eslint-plugin-react')
-const globals = require('globals')
-const tsParser = require('@typescript-eslint/parser')
-const js = require('@eslint/js')
-const { FlatCompat } = require('@eslint/eslintrc')
+import js from '@eslint/js'
+import { fixupConfigRules, fixupPluginRules } from '@eslint/compat'
+import { FlatCompat } from '@eslint/eslintrc'
+import tsParser from '@typescript-eslint/parser'
+import typescriptEslint from '@typescript-eslint/eslint-plugin'
+import globals from 'globals'
+import path from 'node:path'
+import prettier from 'eslint-plugin-prettier'
+import react from 'eslint-plugin-react'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const srcFiles = ['src/**/*.{ts,tsx}']
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
@@ -13,24 +19,27 @@ const compat = new FlatCompat({
   allConfig: js.configs.all
 })
 
-module.export = [
-  {
-    files: './src/**/*.{ts,tsx}'
-  },
+const compatConfigs = compat
+  .extends(
+    'eslint:recommended',
+    'plugin:react/recommended',
+    'plugin:react-hooks/recommended',
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:prettier/recommended'
+  )
+  .map(config => ({
+    ...config,
+    files: srcFiles
+  }))
+
+export default [
   {
     ignores: ['src/serviceWorker.ts', 'src/**/__tests__/**/*', 'src/**/*.stories.tsx', 'src/types/**/*', '**/cypress/']
   },
-  ...fixupConfigRules(
-    compat.extends(
-      'eslint:recommended',
-      'plugin:react/recommended',
-      'plugin:react-hooks/recommended',
-      'plugin:@typescript-eslint/eslint-recommended',
-      'plugin:@typescript-eslint/recommended',
-      'plugin:prettier/recommended'
-    )
-  ),
+  ...fixupConfigRules(compatConfigs),
   {
+    files: srcFiles,
     plugins: {
       '@typescript-eslint': fixupPluginRules(typescriptEslint),
       prettier: fixupPluginRules(prettier),
@@ -64,6 +73,8 @@ module.export = [
         }
       ],
       'react/prop-types': 'off',
+      'react/react-in-jsx-scope': 'off',
+      'react/jsx-uses-react': 'off',
       'no-useless-catch': 'off',
       '@typescript-eslint/ban-ts-comment': 'warn',
       '@typescript-eslint/camelcase': 'off',
