@@ -12,8 +12,12 @@
     "preview": "vite preview",
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
-    "cap:sync:dev": "yarn build:dev && yarn cap sync",
-    "cap:sync:prod": "yarn build:prod && yarn cap sync"
+    "cap:sync:dev": "yarn build:dev && APP_ENV=dev yarn cap sync",
+    "cap:sync:prod": "yarn build:prod && APP_ENV=prod yarn cap sync",
+    "cap:sync:android:dev": "yarn build:dev && APP_ENV=dev yarn cap sync android",
+    "cap:sync:android:prod": "yarn build:prod && APP_ENV=prod yarn cap sync android",
+    "cap:sync:ios:dev": "yarn build:dev && APP_ENV=dev yarn cap sync ios",
+    "cap:sync:ios:prod": "yarn build:prod && APP_ENV=prod yarn cap sync ios"
   },
   "dependencies": {
     "@capacitor-firebase/messaging": "^8.1.0",
@@ -66,6 +70,7 @@
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.14",
     "@types/luxon": "^3.4.2",
+    "@types/node": "^25.5.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/sinon": "^21.0.0",
