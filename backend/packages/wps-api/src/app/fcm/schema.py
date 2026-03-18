@@ -9,9 +9,19 @@ class RegisterDeviceRequest(BaseModel):
     token: str = Field(..., min_length=10)
     platform: str = Field(..., pattern="^(ios|android)$")
 
+
 class UnregisterDeviceRequest(BaseModel):
     token: str = Field(..., min_length=10)
+
 
 class DeviceRequestResponse(BaseModel):
     success: bool
 
+
+class NotificationSettingsRequest(BaseModel):
+    device_id: str
+    fire_shape_ids: list[int]
+
+
+class NotificationSettingsResponse(BaseModel):
+    fire_shape_ids: list[int]

@@ -5,6 +5,7 @@ import geolocationSlice from "@/slices/geolocationSlice";
 import networkStatusSlice from "@/slices/networkStatusSlice";
 import runParametersSlice from "@/slices/runParametersSlice";
 import { combineReducers } from "@reduxjs/toolkit";
+import settingsSlice from "@/slices/settingsSlice";
 
 export const rootReducer = combineReducers({
   fireCenters: fireCentersSlice,
@@ -13,4 +14,5 @@ export const rootReducer = combineReducers({
   runParameters: runParametersSlice,
   authentication: authenticateSlice,
   data: dataSlice,
+  settings: settingsSlice,
 });

@@ -22,6 +22,8 @@ objects:
     kind: Job
     metadata:
       name: cleanup-s3-${NAME}-${SUFFIX}
+      labels:
+        app: ${NAME}-${SUFFIX}
     spec:
       # cleanup after run
       ttlSecondsAfterFinished: 100

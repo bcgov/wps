@@ -4,15 +4,12 @@ from datetime import date, datetime
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import String, and_, case, cast, desc, extract, func, select, update
+from sqlalchemy import Integer, String, and_, case, cast, desc, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
-from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
-from wps_shared.run_type import RunType
-from wps_shared.schemas.fba import FireShapeStatusDetail, HfiArea, HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryElevationStats,
     AdvisoryFuelStats,
@@ -35,7 +32,10 @@ from wps_shared.db.models.auto_spatial_advisory import (
     ShapeType,
     TPIFuelArea,
 )
+from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.run_type import RunType
+from wps_shared.schemas.fba import FireShapeStatusDetail, HfiArea, HfiThreshold
 
 logger = logging.getLogger(__name__)
 
@@ -959,3 +959,16 @@ async def gather_zone_status_inputs(
     )
 
     return thresholds_lut, hfi_rows
+
+
+async def get_fire_centre_info(db_session: AsyncSession):
+    stmt = (
+        select(
+            cast(Shape.source_identifier,Integer), Shape.label, FireCentre.name
+        )
+        .join(ShapeType, ShapeType.id == Shape.shape_type)
+        .join(FireCentre, FireCentre.id == Shape.fire_centre)
+        .where(ShapeType.name == "fire_zone_unit")
+    )
+    result = await db_session.execute(stmt)
+    return result.all()
