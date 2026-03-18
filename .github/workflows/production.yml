@@ -48,6 +48,23 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
           PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
 
+  publish-kong-config:
+    name: Publish Kong gateway config
+    needs: [deploy_to_production]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install GWA CLI
+        run: npm install -g @bcgov/gwa-cli
+      - name: Publish Kong config
+        env:
+          GWA_NAMESPACE: ${{ secrets.GWA_NAMESPACE }}
+          GWA_CLIENT_ID: ${{ secrets.GWA_CLIENT_ID }}
+          GWA_CLIENT_SECRET: ${{ secrets.GWA_CLIENT_SECRET }}
+        run: |
+          gwa login --client-id $GWA_CLIENT_ID --client-secret $GWA_CLIENT_SECRET
+          envsubst < openshift/kong/kong.yaml | gwa pg
+
   set_deployment_status_success:
     name: Set production deployment successful
     needs: [deploy_to_production]

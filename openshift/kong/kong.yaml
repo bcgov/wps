@@ -3,14 +3,14 @@ _format_version: "1.1"
 services:
   - name: wps-fba-public
     host: psu.nrs.gov.bc.ca
-    tags: [ns.YOUR_NAMESPACE]
+    tags: [ns.${GWA_NAMESPACE}]
     port: 443
     protocol: https
     retries: 0
 
 routes:
   - name: wps-fba-public-route
-    tags: [ns.YOUR_NAMESPACE]
+    tags: [ns.${GWA_NAMESPACE}]
     service: wps-fba-public
     hosts:
       - api.psu.nrs.gov.bc.ca
@@ -21,7 +21,7 @@ routes:
 
 plugins:
   - name: rate-limiting
-    tags: [ns.YOUR_NAMESPACE]
+    tags: [ns.${GWA_NAMESPACE}]
     config:
       fault_tolerant: true
       hide_client_headers: false

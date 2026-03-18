@@ -21,10 +21,26 @@ npm install -g @bcgov/gwa-cli
 
 ## Publishing the config
 
+The config is published automatically on production deploy via `production.yml`. It requires three secrets set in GitHub:
+
+| Secret | Description |
+|---|---|
+| `GWA_NAMESPACE` | APS namespace name |
+| `GWA_CLIENT_ID` | APS service account client ID |
+| `GWA_CLIENT_SECRET` | APS service account client secret |
+
+To publish manually:
+
 ```bash
-gwa login --client-id <id> --client-secret <secret>
-gwa pg openshift/kong/kong.yaml
+export GWA_NAMESPACE=<namespace>
+export GWA_CLIENT_ID=<id>
+export GWA_CLIENT_SECRET=<secret>
+
+gwa login --client-id $GWA_CLIENT_ID --client-secret $GWA_CLIENT_SECRET
+envsubst < openshift/kong/kong.yaml | gwa pg
 ```
+
+PR dev environments do not use Kong — they are accessible directly via the OpenShift dev route at `https://${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca/api/fba/*`.
 
 ## Configuration
 
