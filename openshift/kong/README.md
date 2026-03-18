@@ -3,7 +3,17 @@
 Routes `/api/fba/*` publicly via the BC Government [API Platform Services (APS)](https://api.gov.bc.ca) Kong gateway, with IP-based rate limiting.
 
 Public endpoint: `https://api.psu.nrs.gov.bc.ca/api/fba/*`
-Upstream: `https://psu.nrs.gov.bc.ca/api/fba/*`
+Upstream: `http://wps-api-prod.e1e498-prod.svc:8080` (internal Silver cluster service)
+
+## Network Policy
+
+Kong runs on the Silver cluster and reaches the API via the internal OpenShift service. `network-policy.yaml` must be applied to `e1e498-prod` to allow ingress from the APS namespace (`264e6f`):
+
+```bash
+oc apply -f openshift/kong/network-policy.yaml
+```
+
+This is applied automatically on every production deploy.
 
 ## Onboarding (one-time)
 

@@ -2,10 +2,10 @@ _format_version: "1.1"
 
 services:
   - name: wps-fba-public
-    host: psu.nrs.gov.bc.ca
+    host: wps-api-prod.e1e498-prod.svc
     tags: [ns.${GWA_NAMESPACE}]
-    port: 443
-    protocol: https
+    port: 8080
+    protocol: http
     retries: 0
 
 routes:

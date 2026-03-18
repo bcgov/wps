@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kong-to-wps-api
+  namespace: e1e498-prod
+spec:
+  podSelector:
+    matchLabels:
+      name: wps-prod
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: "264e6f"
+      ports:
+        - port: 8080
+          protocol: TCP
+  policyTypes:
+    - Ingress

@@ -91,3 +91,5 @@ PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 2 * * *" bash $(dirname ${0})/oc_provisio
 echo Logging alerts
 oc apply -f $(dirname ${0})/../logging-alerts/nats_alerts.yaml
 oc apply -f $(dirname ${0})/../logging-alerts/sfms_alerts.yaml
+echo Kong network policy
+oc apply -f $(dirname ${0})/../kong/network-policy.yaml
