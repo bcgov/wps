@@ -28,7 +28,7 @@ from wps_shared.tests.common import default_mock_client_get
 mock_fire_centre_name = "PGFireCentre"
 
 get_fire_centres_url = "/api/fba/fire-centers"
-get_fire_centre_info_url = (
+get_fire_centre_hfi_stats_url = (
     "/api/fba/fire-centre-hfi-stats/forecast/2022-09-27/2022-09-27/Kamloops%20Fire%20Centre"
 )
 get_fire_centre_tpi_stats_url = (
@@ -37,6 +37,7 @@ get_fire_centre_tpi_stats_url = (
 get_sfms_run_datetimes_url = "/api/fba/sfms-run-datetimes/forecast/2022-09-27"
 get_sfms_run_bounds_url = "/api/fba/sfms-run-bounds"
 get_tpi_stats_url = "api/fba/tpi-stats/forecast/2022-09-27/2022-09-27"
+get_fire_centre_info_url = "api/fba/fire-centre-info"
 
 decode_fn = "jwt.decode"
 
@@ -75,6 +76,19 @@ CentreHFIFuelResponse = namedtuple(
         "pixel_size_metres",
     ],
 )
+
+chilcoltin_fire_zone = "C-5-Chilcoltin Fire Zone"
+quesnel_fire_zone = "C-1-Quesnel Fire Zone"
+vernon_fire_zone = "K-4-Vernon Fire Zone"
+cariboo_fire_centre = "Cariboo Fire Centre"
+kamloops_fire_centre = "Kamloops Fire Centre"
+
+
+mock_fire_centre_infos = [
+    ("1", chilcoltin_fire_zone, cariboo_fire_centre),
+    ("2", quesnel_fire_zone, cariboo_fire_centre),
+    ("3", vernon_fire_zone, kamloops_fire_centre),
+]
 
 
 def create_mock_centre_tpi_stats(
@@ -269,6 +283,10 @@ async def mock_get_hfi_fuels_data_for_run_parameter(*_, **__):
     return HFIStatsResponse(zone_data={1: mock_fire_zone_hfi_stats})
 
 
+async def mock_get_fire_centre_infos(*_, **__):
+    return mock_fire_centre_infos
+
+
 @pytest.fixture()
 def client():
     from app.main import app as test_app
@@ -304,10 +322,11 @@ def test_fba_endpoint_fire_centers(
     "endpoint",
     [
         get_fire_centres_url,
-        get_fire_centre_info_url,
+        get_fire_centre_hfi_stats_url,
         get_sfms_run_datetimes_url,
         get_sfms_run_bounds_url,
         get_tpi_stats_url,
+        get_fire_centre_info_url,
     ],
 )
 def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
@@ -373,7 +392,7 @@ async def mock_zone_ids_in_centre(*_, **__):
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized(client: TestClient):
     """Allowed to get fire centre info when authorized"""
-    response = client.get(get_fire_centre_info_url)
+    response = client.get(get_fire_centre_hfi_stats_url)
     assert response.status_code == 200
     kfc_json = response.json()["Kamloops Fire Centre"]
     assert kfc_json["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 1
@@ -399,7 +418,7 @@ def test_get_fire_center_info_authorized(client: TestClient):
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized_no_min_wind_speeds(client: TestClient):
     """Allowed to get fire centre info when authorized"""
-    response = client.get(get_fire_centre_info_url)
+    response = client.get(get_fire_centre_hfi_stats_url)
     assert response.status_code == 200
     kfc_json = response.json()["Kamloops Fire Centre"]
     assert kfc_json["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 1
@@ -424,7 +443,7 @@ def test_get_fire_center_info_authorized_no_min_wind_speeds(client: TestClient):
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized_grass_fuel(client: TestClient):
     """Allowed to get fire centre info when authorized with grass fuel type"""
-    response = client.get(get_fire_centre_info_url)
+    response = client.get(get_fire_centre_hfi_stats_url)
     assert response.status_code == 200
     kfc_json = response.json()["Kamloops Fire Centre"]
     assert kfc_json["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 12
@@ -593,4 +612,28 @@ def test_fba_endpoints_allowed_for_test_idir(client, endpoint, mocker, mock_wfwx
     mocker.patch("app.routers.fba.WfwxApi", return_value=mock_wfwx_api)
     headers = {"Authorization": "Bearer token"}
     response = client.get(endpoint, headers=headers)
+    assert response.status_code == 200
+
+
+@patch("app.routers.fba.get_fire_centre_info", mock_get_fire_centre_infos)
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_get_fire_centre_info_authorized(client: TestClient):
+    """Allowed to get fire centre info when authorized"""
+
+    response = client.get(get_fire_centre_info_url)
+    json_response = response.json()
+    fire_centre_infos = json_response["fire_centre_info"]
+    assert len(fire_centre_infos) == 2
+    assert fire_centre_infos[0]["fire_centre_name"] == cariboo_fire_centre
+    assert fire_centre_infos[1]["fire_centre_name"] == kamloops_fire_centre
+    cariboo_fire_zone_units = fire_centre_infos[0]["fire_zone_units"]
+    kamloops_fire_zone_units = fire_centre_infos[1]["fire_zone_units"]
+    assert len(cariboo_fire_zone_units) == 2
+    assert len(kamloops_fire_zone_units) == 1
+    assert cariboo_fire_zone_units[0]["id"] == 1
+    assert cariboo_fire_zone_units[0]["name"] == chilcoltin_fire_zone    
+    assert cariboo_fire_zone_units[1]["id"] == 2
+    assert cariboo_fire_zone_units[1]["name"] == quesnel_fire_zone
+    assert kamloops_fire_zone_units[0]["id"] == 3
+    assert kamloops_fire_zone_units[0]["name"] == vernon_fire_zone 
     assert response.status_code == 200

@@ -47,4 +47,5 @@ export enum NavPanel {
   ADVISORY = "Advisory",
   MAP = "Map",
   PROFILE = "Profile",
+  SETTINGS = "Settings",
 }

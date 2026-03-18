@@ -1,10 +1,11 @@
-import { theme } from "@/theme";
-import { Drawer, List, styled } from "@mui/material";
-import MapIcon from "@mui/icons-material/Map";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
-import TextSnippetIcon from "@mui/icons-material/TextSnippet";
-import { NavPanel } from "@/utils/constants";
 import SideNavigationListItem from "@/components/SideNavigationListItem";
+import { theme } from "@/theme";
+import { NavPanel } from "@/utils/constants";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import MapIcon from "@mui/icons-material/Map";
+import SettingsIcon from "@mui/icons-material/Settings";
+import TextSnippetIcon from "@mui/icons-material/TextSnippet";
+import { Drawer, List, styled } from "@mui/material";
 
 const StyledDrawer = styled(Drawer)({
   width: 100,
@@ -49,6 +50,12 @@ const SideNavigation = ({ tab, setTab }: SideNavigationProps) => {
         <SideNavigationListItem
           icon={<AnalyticsIcon sx={{ fontSize: "40px" }} />}
           navItem={NavPanel.ADVISORY}
+          setTab={setTab}
+          tab={tab}
+        />
+        <SideNavigationListItem
+          icon={<SettingsIcon sx={{ fontSize: "40px" }} />}
+          navItem={NavPanel.SETTINGS}
           setTab={setTab}
           tab={tab}
         />
