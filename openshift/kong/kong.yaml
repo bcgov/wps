@@ -1,0 +1,31 @@
+_format_version: "1.1"
+
+services:
+  - name: wps-fba-public
+    host: psu.nrs.gov.bc.ca
+    tags: [ns.YOUR_NAMESPACE]
+    port: 443
+    protocol: https
+    retries: 0
+
+routes:
+  - name: wps-fba-public-route
+    tags: [ns.YOUR_NAMESPACE]
+    service: wps-fba-public
+    hosts:
+      - api.psu.nrs.gov.bc.ca
+    methods: [GET]
+    paths:
+      - ~/api/fba/
+    strip_path: false
+
+plugins:
+  - name: rate-limiting
+    tags: [ns.YOUR_NAMESPACE]
+    config:
+      fault_tolerant: true
+      hide_client_headers: false
+      limit_by: ip
+      minute: 60
+      hour: 1000
+      policy: local

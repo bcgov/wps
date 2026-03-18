@@ -7,9 +7,8 @@ from datetime import date, datetime
 from typing import List
 
 from aiohttp.client import ClientSession
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds_by_id,
     get_all_sfms_fuel_type_records,
@@ -63,7 +62,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/fba",
-    dependencies=[Depends(asa_authentication_required), Depends(audit_asa)],
 )
 
 
@@ -146,7 +144,7 @@ async def get_all_zone_data_for_source_ids(
 
 
 @router.get("/fire-centers", response_model=FireCenterListResponse)
-async def get_all_fire_centers(_=Depends(asa_authentication_required)):
+async def get_all_fire_centers():
     """Returns fire centers for all active stations."""
     logger.info("/fba/fire-centers/")
     async with ClientSession() as session:
@@ -156,7 +154,7 @@ async def get_all_fire_centers(_=Depends(asa_authentication_required)):
 
 
 @router.get("/fire-centre-info", response_model=FireCentreInfoResponse)
-async def get_fire_centres_and_fire_zone_units(_=Depends(asa_authentication_required)):
+async def get_fire_centres_and_fire_zone_units():
     """Returns a list of fire centres and the fire zone units they contain."""
     logger.info("/fba/fire-centre-info/")
     async with get_async_read_session_scope() as session:
@@ -179,7 +177,6 @@ async def get_provincial_summary(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
     logger.info("/fba/provincial_summary/")
@@ -200,7 +197,6 @@ async def get_hfi_fuels_data_for_fire_centre(
     for_date: date,
     run_datetime: datetime,
     fire_centre_name: str,
-    _=Depends(asa_authentication_required),
 ):
     """
     Fetch fuel type and critical hours data for all fire zones in a fire centre for a given date
@@ -226,7 +222,6 @@ async def get_hfi_fuels_data_for_fire_centre(
 @router.get("/latest-sfms-run-datetime/{for_date}", response_model=LatestSFMSRunParameterResponse)
 async def get_latest_sfms_run_datetime_for_date(
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     async with get_async_read_session_scope() as session:
         latest_run_parameter = await get_most_recent_run_datetime_for_date(session, for_date)
@@ -260,7 +255,6 @@ async def get_fire_centre_tpi_stats(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """Return the elevation TPI statistics for each advisory threshold for a fire centre"""
     logger.info("/fba/fire-centre-tpi-stats/")
@@ -312,7 +306,6 @@ async def get_fire_centre_tpi_stats(
 async def get_run_datetimes_for_date_and_runtype(
     run_type: RunType,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """Return list of datetimes for which SFMS has run, given a specific for_date and run_type.
     Datetimes should be ordered with most recent first."""
@@ -337,7 +330,6 @@ async def get_run_datetimes_for_date_and_runtype(
 async def get_latest_sfms_run_datetime_for_date_range(
     start_date: date,
     end_date: date,
-    _=Depends(asa_authentication_required),
 ):
     async with get_async_read_session_scope() as session:
         result = await get_most_recent_run_datetime_for_date_range(session, start_date, end_date)
@@ -358,7 +350,6 @@ async def get_hfi_fuels_data_for_run_parameter(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """
     Fetch fuel type and critical hours data for all fire zones units
@@ -388,7 +379,6 @@ async def get_tpi_stats_for_run_parameter(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """Return the elevation TPI statistics for each advisory threshold for all fire shapes"""
     logger.info("/fba/tpi-stats/")
