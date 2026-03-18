@@ -114,6 +114,7 @@ const SubscriptionAccordion = ({
       aria-disabled={disabled ? true : undefined}
     >
       <Accordion
+        aria-label={`accordion-${fireCentreInfo.fire_centre_name}`}
         defaultExpanded={defaultExpanded}
         disableGutters
         expanded={expanded}
@@ -121,6 +122,8 @@ const SubscriptionAccordion = ({
         sx={{ ...disabledStyles }}
       >
         <AccordionSummary
+          aria-controls={`region-${fireCentreInfo.fire_centre_name}`}
+          id={`summary-${fireCentreInfo.fire_centre_name}`}
           expandIcon={<ExpandMoreIcon />}
           sx={{
             backgroundColor: "rgba(252, 186, 25, 0.30)",
