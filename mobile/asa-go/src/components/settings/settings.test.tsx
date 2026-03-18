@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, Mock } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import Settings from "./Settings";
@@ -42,17 +42,17 @@ vi.mock("@/utils/storage", async () => {
 // Mock data
 const mockFireCentreInfos: FireCentreInfo[] = [
   {
-    fire_centre_name: "Kamloops",
+    fire_centre_name: "Prince George",
     fire_zone_units: [
-      { id: 1, name: "Kamloops Zone 1" },
-      { id: 2, name: "Kamloops Zone 2" },
+      { id: 4, name: "Prince George Zone 2" },
+      { id: 3, name: "Prince George Zone 1" },
     ],
   },
   {
-    fire_centre_name: "Prince George",
+    fire_centre_name: "Kamloops",
     fire_zone_units: [
-      { id: 3, name: "Prince George Zone 1" },
-      { id: 4, name: "Prince George Zone 2" },
+      { id: 2, name: "Kamloops Zone 2" },
+      { id: 1, name: "Kamloops Zone 1" },
     ],
   },
 ];
@@ -284,5 +284,62 @@ describe("Settings", () => {
         /An error occurred when attempting to retrieve notification settings/i,
       ),
     ).toBeInTheDocument();
+  });
+  it("sorts fire centres alphabetically", async () => {
+    // Mock permission check to return granted immediately
+    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
+      receive: "granted",
+    });
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        fireCentreInfos: mockFireCentreInfos,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+
+    await waitFor(async () => {
+      const fireCentreElements = await screen.findAllByRole("heading");
+      expect(fireCentreElements[0]).toHaveTextContent(/KAMLOOPS/i);
+      expect(fireCentreElements[1]).toHaveTextContent(/PRINCE GEORGE/i);
+    });
+  });
+  it("sorts fire zone units alphabetically", async () => {
+    // Mock permission check to return granted immediately
+    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
+      receive: "granted",
+    });
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        fireCentreInfos: mockFireCentreInfos,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+    screen.debug(undefined, 30000);
+    await waitFor(async () => {
+      const panel = screen.getByRole("region", { name: /kamloops/i });
+      const items = within(panel).getAllByRole("listitem");
+
+      expect(items).toHaveLength(2);
+      expect(items[0]).toHaveTextContent("Kamloops Zone 1");
+      expect(items[1]).toHaveTextContent("Kamloops Zone 2");
+    });
   });
 });
