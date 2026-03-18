@@ -2,7 +2,7 @@
 
 Capacitor app using react/vite.
 
-For iOS/Firebase push notification setup details, see [Notifications.md](Notifications.md).
+For iOS & Android Firebase push notification setup details, see [Notifications.md](Notifications.md).
 
 ## Building
 
