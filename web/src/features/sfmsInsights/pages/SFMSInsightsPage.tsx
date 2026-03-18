@@ -27,11 +27,11 @@ import {
 } from '@mui/material'
 import { isNil, isNull } from 'lodash'
 import { DateTime } from 'luxon'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 const SFMS_INSIGHTS_ALWAYS_HIDE_KEY = 'SFMSInsightsAlwaysHideSnowMessage'
-const TEMP_LAST_SNOW = DateTime.fromISO('2026-03-08')
+const TEMP_LAST_SNOW = DateTime.fromISO('2026-02-12')
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const latestBounds = useSelector(selectLatestSFMSBounds)
@@ -48,11 +48,19 @@ export const SFMSInsightsPage = () => {
   const [rasterType, setRasterType] = useState<RasterType>('fuel')
   const [showSnow, setShowSnow] = useState<boolean>(true)
   const [showSnowDialog, setShowSnowDialog] = useState<boolean>(false)
-  const [showSnowWarningIcon, setShowSnowWarningIcon] = useState<boolean>(false)
   const [alwaysHide, setAlwaysHide] = useState<boolean>(() => {
     const stored = localStorage.getItem(SFMS_INSIGHTS_ALWAYS_HIDE_KEY)
     return stored === 'true'
   })
+
+  const showSnowWarningIcon = useMemo(() => {
+    return (
+      !isNil(snowDate?.ordinal) &&
+      snowDate?.ordinal === TEMP_LAST_SNOW.ordinal &&
+      !isNil(rasterDate?.ordinal) &&
+      rasterDate?.ordinal > TEMP_LAST_SNOW.ordinal
+    )
+  }, [rasterDate, snowDate])
 
   useEffect(() => {
     // Only fetch SFMS bounds if we haven't fetched yet (undefined) and aren't already loading
@@ -68,19 +76,6 @@ export const SFMSInsightsPage = () => {
       setShowSnowDialog(true)
     }
   }, [alwaysHide, showSnow])
-
-  useEffect(() => {
-    if (
-      !isNil(snowDate?.ordinal) &&
-      snowDate?.ordinal === TEMP_LAST_SNOW.ordinal &&
-      !isNil(rasterDate?.ordinal) &&
-      rasterDate?.ordinal > TEMP_LAST_SNOW.ordinal
-    ) {
-      setShowSnowWarningIcon(true)
-    } else {
-      setShowSnowWarningIcon(false)
-    }
-  }, [rasterDate, snowDate])
 
   useEffect(() => {
     if (earliestBounds?.minimum) {
