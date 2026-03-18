@@ -84,7 +84,7 @@ Because we have separate Firebase setups for dev and prod, make sure the Firebas
 
 ## What lives where
 
-In the app repo:
+In the app folder:
 
 - iOS bundle IDs
 - Android application IDs / flavors
