@@ -77,7 +77,16 @@ const Settings = ({ activeTab }: SettingsProps) => {
       }
     }
 
-    return sorted;
+    const finalSorted: FireCentreInfo[] = sorted.map((fc) => {
+      return {
+        fire_centre_name: fc.fire_centre_name,
+        fire_zone_units: fc.fire_zone_units.toSorted((a, b) =>
+          a.name.localeCompare(b.name),
+        ),
+      };
+    });
+
+    return finalSorted;
   }, [fireCentreInfos, pinnedFireCentre]);
 
   const renderNotificationMessage = () => {
