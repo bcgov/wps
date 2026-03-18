@@ -31,7 +31,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 const SFMS_INSIGHTS_ALWAYS_HIDE_KEY = 'SFMSInsightsAlwaysHideSnowMessage'
-const TEMP_LAST_SNOW = DateTime.fromISO('2026-02-12')
+const TEMP_LAST_SNOW = DateTime.fromISO('2026-03-08')
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const latestBounds = useSelector(selectLatestSFMSBounds)
