@@ -565,7 +565,6 @@ describe('SFMSInsightsPage', () => {
   it("should display modal warning when user hasn't permanently dismissed", async () => {
     renderWithStore('false')
     await waitForPageLoad()
-    screen.debug(undefined, 30000)
     const modalHeading = screen.queryByText('Snow Coverage Imagery Warning')
     expect(modalHeading).toBeInTheDocument()
   })
