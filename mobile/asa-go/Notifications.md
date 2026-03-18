@@ -22,13 +22,6 @@ These application IDs must match the Firebase Android app registration exactly.
 
 ## Firebase dev vs prod
 
-We use different Firebase app configs for prod and dev on both platforms.
-
-- Prod Firebase plist: `ios/App/App/Firebase/Prod/GoogleService-Info.plist`
-- Dev Firebase plist: `ios/App/App/Firebase/Dev/GoogleService-Info.plist`
-- Prod Android config: `android/app/src/prod/google-services.json`
-- Dev Android config: `android/app/src/dev/google-services.json`
-
 Current mapping:
 
 - Prod plist `BUNDLE_ID`: `ca.bc.gov.asago`
@@ -84,6 +77,13 @@ Because we have separate Firebase setups for dev and prod, make sure the Firebas
 
 ## What lives where
 
+We use different Firebase app configs for prod and dev on both platforms.
+
+- Prod Firebase plist: `ios/App/App/Firebase/Prod/GoogleService-Info.plist`
+- Dev Firebase plist: `ios/App/App/Firebase/Dev/GoogleService-Info.plist`
+- Prod Android config: `android/app/src/prod/google-services.json`
+- Dev Android config: `android/app/src/dev/google-services.json`
+
 In the app folder:
 
 - iOS bundle IDs
@@ -95,9 +95,9 @@ In the app folder:
 
 In Firebase Console:
 
-- APNs auth key upload
+- APNs auth key upload for iOS
+- Android SHA-1 upload for Android
 - Firebase app registration for each bundle ID
-- Cloud Messaging setup
 
 ## Why we use separate app IDs
 
