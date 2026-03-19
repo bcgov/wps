@@ -10,6 +10,10 @@
 !.yarn/sdks
 !.yarn/versions
 apps/wps-web/cypress/downloads
+coverage/
+coverage-cypress/
+finalCoverage/
+intermediateCoverage/
 
 # Generated TypeScript output — should stay in dist/ via outDir, never in src/
 packages/*/src/**/*.js
