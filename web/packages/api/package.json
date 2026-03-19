@@ -6,8 +6,13 @@
     ".": "./dist/index.js",
     "./*": "./dist/*.js"
   },
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "coverage:ci": "vitest run --coverage",
     "clean": "rm -rf dist .turbo"
   }
 }

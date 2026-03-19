@@ -12,7 +12,7 @@
     "lint": "turbo lint",
     "dev": "turbo dev",
     "cypress:ci": "yarn workspace @wps/wps-web run cypress:ci",
-    "coverage:ci": "yarn workspace @wps/wps-web run coverage:ci",
+    "coverage:ci": "turbo coverage:ci",
     "finalizeCoverage": "yarn workspace @wps/wps-web run finalizeCoverage",
     "clean": "turbo clean"
   },

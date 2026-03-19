@@ -22,6 +22,34 @@
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
+    "@wps/api#test": {
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
+    },
+    "@wps/ui#test": {
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
+    },
+    "@wps/utils#test": {
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
+    },
+    "coverage:ci": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "@wps/api#coverage:ci": {
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
+    },
+    "@wps/ui#coverage:ci": {
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
+    },
+    "@wps/utils#coverage:ci": {
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
+    },
     "lint": {
       "outputs": []
     },
