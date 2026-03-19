@@ -7,33 +7,72 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { describe, expect, it } from "vitest";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
 
+const FIRE_CENTRE_LABEL = "KAMLOOPS";
+const VERNON_ZONE_LABEL = "K4-Vernon";
+const LILLOOET_ZONE_LABEL = "K7-Lillooet";
+
+const getZoneLabel = (label: string) =>
+  screen.getByText((_, element) => {
+    return element?.tagName === "P" && element.textContent === label;
+  });
+
+const queryZoneLabel = (label: string) =>
+  screen.queryByText((_, element) => {
+    return element?.tagName === "P" && element.textContent === label;
+  });
+
+const getAccordionButton = () =>
+  screen.getByText(FIRE_CENTRE_LABEL).closest("button");
+
+const getAccordion = (fireCentreName: string) =>
+  screen.getByLabelText(`accordion-${fireCentreName}`);
+
+const getAllCheckbox = (fireCentreName: string) =>
+  within(getAccordion(fireCentreName)).getByLabelText("All");
+
+const getPinButton = () => {
+  const pinButton = within(getAccordion("Kamloops Fire Centre"))
+    .getAllByRole("button")
+    .find((button) => !button.getAttribute("aria-controls"));
+
+  expect(pinButton).toBeDefined();
+  return pinButton as HTMLElement;
+};
+
 // Mock data
 const mockFireCentreInfo: FireCentreInfo = {
-  fire_centre_name: "Cariboo Fire Centre",
+  fire_centre_name: "Kamloops Fire Centre",
   fire_zone_units: [
-    { id: 1, name: "Kamloops Fire Zone" },
-    { id: 2, name: "Vernon Fire Zone" },
+    { id: 10, name: "K4-Vernon Zone (Vernon)" },
+    { id: 12, name: "K7-Lillooet Zone" },
+    { id: 16, name: "K2-Kamloops Zone (Kamloops)" },
+    { id: 5, name: "K5-Penticton Zone" },
+    { id: 6, name: "K6-Merritt Zone" },
   ],
 };
+const KAMLOOPS_FIRE_ZONE_IDS = mockFireCentreInfo.fire_zone_units.map(
+  (fireZoneUnit) => fireZoneUnit.id,
+);
 
 const mockFireCentreInfos: FireCentreInfo[] = [
   {
     fire_centre_name: "Kamloops",
     fire_zone_units: [
-      { id: 1, name: "Kamloops Zone 1" },
-      { id: 2, name: "Kamloops Zone 2" },
+      { id: 16, name: "K2-Kamloops Zone (Kamloops)" },
+      { id: 5, name: "K5-Penticton Zone" },
     ],
   },
   {
     fire_centre_name: "Prince George",
     fire_zone_units: [
-      { id: 3, name: "Prince George Zone 1" },
-      { id: 4, name: "Prince George Zone 2" },
+      { id: 3, name: "G1-Prince George Zone" },
+      { id: 4, name: "G3-Robson Valley Zone" },
     ],
   },
 ];
@@ -52,8 +91,7 @@ describe("SubscriptionAccordion", () => {
       </Provider>,
     );
 
-    // Find the specific h1/h2/h3/p that contains the fire centre name
-    const accordionText = screen.getByRole("heading", { name: /CARIBOO/i });
+    const accordionText = screen.getByText(FIRE_CENTRE_LABEL);
     expect(accordionText).toBeInTheDocument();
   });
 
@@ -70,8 +108,8 @@ describe("SubscriptionAccordion", () => {
       </Provider>,
     );
 
-    expect(screen.getByText("Kamloops")).toBeInTheDocument();
-    expect(screen.getByText("Vernon")).toBeInTheDocument();
+    expect(getZoneLabel(LILLOOET_ZONE_LABEL)).toBeInTheDocument();
+    expect(getZoneLabel(VERNON_ZONE_LABEL)).toBeInTheDocument();
   });
 
   it("renders as collapsed when defaultExpanded is false", () => {
@@ -87,8 +125,8 @@ describe("SubscriptionAccordion", () => {
       </Provider>,
     );
 
-    expect(screen.queryByText(/Kamloops/i)).not.toBeVisible();
-    expect(screen.queryByText(/Vernon/i)).not.toBeVisible();
+    expect(getZoneLabel(LILLOOET_ZONE_LABEL)).not.toBeVisible();
+    expect(getZoneLabel(VERNON_ZONE_LABEL)).not.toBeVisible();
   });
 
   it("renders all fire zone units as SubscriptionOptions", () => {
@@ -105,10 +143,10 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Expand the accordion to see the options
-    fireEvent.click(screen.getByRole("button", { name: /CARIBOO/i }));
+    fireEvent.click(getAccordionButton() as HTMLElement);
 
-    expect(screen.getByText("Kamloops")).toBeInTheDocument();
-    expect(screen.getByText("Vernon")).toBeInTheDocument();
+    expect(getZoneLabel(LILLOOET_ZONE_LABEL)).toBeInTheDocument();
+    expect(getZoneLabel(VERNON_ZONE_LABEL)).toBeInTheDocument();
   });
 
   it("expands and collapses when clicked", async () => {
@@ -125,21 +163,21 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Initially collapsed - details should not be visible
-    expect(screen.queryByText(/Kamloops/i)).not.toBeVisible();
-    expect(screen.queryByText(/Vernon/i)).not.toBeVisible();
+    expect(getZoneLabel(LILLOOET_ZONE_LABEL)).not.toBeVisible();
+    expect(getZoneLabel(VERNON_ZONE_LABEL)).not.toBeVisible();
 
     // Expand the accordion
-    fireEvent.click(screen.getByRole("button", { name: /CARIBOO/i }));
-    expect(screen.getByText(/Kamloops/i)).toBeVisible();
-    expect(screen.getByText(/Vernon/i)).toBeVisible();
+    fireEvent.click(getAccordionButton() as HTMLElement);
+    expect(getZoneLabel(LILLOOET_ZONE_LABEL)).toBeVisible();
+    expect(getZoneLabel(VERNON_ZONE_LABEL)).toBeVisible();
 
     // Collapse the accordion
-    fireEvent.click(screen.getByRole("button", { name: /CARIBOO/i }));
+    fireEvent.click(getAccordionButton() as HTMLElement);
     await waitFor(() => {
-      const details = screen.queryByText(/Kamloops/i);
-      const details2 = screen.queryByText(/Vernon/i);
-      expect(details).not.toBeVisible();
-      expect(details2).not.toBeVisible();
+      const lillooetDetails = queryZoneLabel(LILLOOET_ZONE_LABEL);
+      const vernonDetails = queryZoneLabel(VERNON_ZONE_LABEL);
+      expect(lillooetDetails).not.toBeVisible();
+      expect(vernonDetails).not.toBeVisible();
     });
   });
 
@@ -157,15 +195,13 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Check if the accordion is visually disabled (opacity and grayscale)
-    const accordion = screen
-      .getByRole("button", { name: /CARIBOO/i })
-      .closest(".MuiAccordion-root");
+    const accordion = getAccordionButton()?.closest(".MuiAccordion-root");
     expect(accordion).toHaveStyle({ opacity: "0.5", filter: "grayscale(1)" });
 
     // Check if the accordion is not interactive
-    fireEvent.click(screen.getByRole("button", { name: /CARIBOO/i }));
-    expect(screen.queryByText(/Kamloops/i)).not.toBeVisible();
-    expect(screen.queryByText(/Vernon/i)).not.toBeVisible();
+    fireEvent.click(getAccordionButton() as HTMLElement);
+    expect(getZoneLabel(LILLOOET_ZONE_LABEL)).not.toBeVisible();
+    expect(getZoneLabel(VERNON_ZONE_LABEL)).not.toBeVisible();
   });
 
   it("displays filled push pin icon when fire centre is pinned", () => {
@@ -187,7 +223,7 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Check if filled push pin icon is displayed
-    expect(screen.getByRole("button", { name: "" })).toBeInTheDocument();
+    expect(getPinButton()).toBeInTheDocument();
     // We can't directly test icon type with RTL, but we can check if the pin icon exists
   });
 
@@ -205,7 +241,7 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Check if outlined push pin icon is displayed
-    expect(screen.getByRole("button", { name: "" })).toBeInTheDocument();
+    expect(getPinButton()).toBeInTheDocument();
   });
 
   it("pins the fire centre when pin button is clicked and not already pinned", async () => {
@@ -222,9 +258,9 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Click the pin button
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    fireEvent.click(getPinButton());
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.pinnedFireCentre).toEqual(
         mockFireCentreInfo.fire_centre_name,
       );
@@ -250,9 +286,9 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Click the pin button
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    fireEvent.click(getPinButton());
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.pinnedFireCentre).toBeNull();
     });
   });
@@ -271,12 +307,14 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Click the "All" checkbox to select all
-    const allCheckbox = screen.getByLabelText("All");
+    const allCheckbox = getAllCheckbox("Kamloops Fire Centre");
     fireEvent.click(allCheckbox);
 
     // Check that all fire zone units are now subscribed
-    waitFor(() => {
-      expect(store.getState().settings.subscriptions).toEqual([1, 2]);
+    await waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual(
+        KAMLOOPS_FIRE_ZONE_IDS,
+      );
     });
   });
 
@@ -284,7 +322,7 @@ describe("SubscriptionAccordion", () => {
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
-        subscriptions: [1, 2], // Both fire zone units are already subscribed
+        subscriptions: KAMLOOPS_FIRE_ZONE_IDS,
       },
     });
 
@@ -299,11 +337,11 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Click the "All" checkbox to deselect all
-    const allCheckbox = screen.getByLabelText("All");
+    const allCheckbox = getAllCheckbox("Kamloops Fire Centre");
     fireEvent.click(allCheckbox);
 
     // Check that all fire zone units are now unsubscribed
-    waitFor(() => {
+    await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([]);
     });
   });
@@ -312,7 +350,7 @@ describe("SubscriptionAccordion", () => {
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
-        subscriptions: [1], // Only one fire zone unit is subscribed
+        subscriptions: [mockFireCentreInfo.fire_zone_units[0].id],
       },
     });
 
@@ -327,21 +365,24 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Find the checkbox - when indeterminate, checked should be false
-    const checkbox = screen.getByRole("checkbox", {
-      name: "checkbox-Cariboo Fire Centre All",
-    });
+    const checkbox = getAllCheckbox("Kamloops Fire Centre");
     // When indeterminate: checked is false, but subscriptions exist for this fire centre
     expect(checkbox).not.toBeChecked();
+    expect(checkbox).toHaveAttribute("data-indeterminate", "true");
     // The checkbox should be in an indeterminate state (not checked but some selected)
-    expect(store.getState().settings.subscriptions).toContain(1);
-    expect(store.getState().settings.subscriptions).not.toContain(2);
+    expect(store.getState().settings.subscriptions).toContain(
+      mockFireCentreInfo.fire_zone_units[0].id,
+    );
+    expect(store.getState().settings.subscriptions).not.toContain(
+      mockFireCentreInfo.fire_zone_units[1].id,
+    );
   });
 
   it("checkbox is checked when all fire zone units are selected", () => {
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
-        subscriptions: [1, 2], // All fire zone units are subscribed
+        subscriptions: KAMLOOPS_FIRE_ZONE_IDS,
       },
     });
 
@@ -356,9 +397,7 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Find the checkbox and verify it's checked
-    const checkbox = screen.getByRole("checkbox", {
-      name: "checkbox-Cariboo Fire Centre All",
-    });
+    const checkbox = getAllCheckbox("Kamloops Fire Centre");
     expect(checkbox).toBeChecked();
   });
 
@@ -378,11 +417,9 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Find the checkbox and verify it's unchecked
-    const checkbox = screen.getByRole("checkbox", {
-      name: "checkbox-Cariboo Fire Centre All",
-    });
+    const checkbox = getAllCheckbox("Kamloops Fire Centre");
     expect(checkbox).not.toBeChecked();
-    expect(checkbox).toHaveProperty("indeterminate", false);
+    expect(checkbox).toHaveAttribute("data-indeterminate", "false");
   });
 
   it("checkbox does not impact fire zone unit ids that are not related to the current fire centre", async () => {
@@ -411,13 +448,14 @@ describe("SubscriptionAccordion", () => {
     );
 
     // Hit toggleAll to add all fire zone unit ids from this fire centre
-    const allCheckbox = screen.getByLabelText("All");
+    const allCheckbox = getAllCheckbox("Kamloops Fire Centre");
     fireEvent.click(allCheckbox);
 
     // Confirm initial subscriptions are still there and that the current fire centre fire zone units were added
     await waitFor(() => {
       const subs1 = store.getState().settings.subscriptions;
-      expect(subs1).not.toContain(mockFireCentreInfo.fire_zone_units[0].id);
+      expect(subs1).toContain(mockFireCentreInfo.fire_zone_units[0].id);
+      expect(subs1).toContain(mockFireCentreInfo.fire_zone_units[1].id);
     });
     const subs2 = store.getState().settings.subscriptions;
     expect(subs2).toContain(initialSubscriptions[0]);
@@ -467,28 +505,28 @@ describe("SubscriptionAccordion", () => {
 
     // Confirm that PG fire zones switches are checked as per initial redux state
     const switchPG1 = await screen.findByLabelText(
-      "Toggle subscription for Prince George Zone 1",
+      "Toggle subscription for G1-Prince George Zone",
     );
     const switchPG2 = await screen.findByLabelText(
-      "Toggle subscription for Prince George Zone 2",
+      "Toggle subscription for G3-Robson Valley Zone",
     );
-    await waitFor(async () => {
+    await waitFor(() => {
       expect(switchPG1).toBeChecked();
       expect(switchPG2).toBeChecked();
     });
 
     // Confirm that Kamloops fire centre zone unit switches are unchecked
     const switchK1 = await screen.findByLabelText(
-      "Toggle subscription for Kamloops Zone 1",
+      "Toggle subscription for K2-Kamloops Zone (Kamloops)",
     );
     const switchK2 = await screen.findByLabelText(
-      "Toggle subscription for Kamloops Zone 2",
+      "Toggle subscription for K5-Penticton Zone",
     );
     expect(switchK1).not.toBeChecked();
     expect(switchK2).not.toBeChecked();
 
     // Find and click the All checkbox for Kamloops fire centre
-    const kamloopsAll = await screen.findByLabelText("checkbox-Kamloops");
+    const kamloopsAll = within(getAccordion("Kamloops")).getByLabelText("All");
     fireEvent.click(kamloopsAll);
 
     // expect Kamloops fire centre switches to now be checked

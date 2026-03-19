@@ -6,6 +6,9 @@ import { Preferences } from "@capacitor/preferences";
 import SubscriptionOption from "./SubscriptionOption";
 import { FireZoneUnit } from "@/api/fbaAPI";
 
+const KAMLOOPS_SWITCH_LABEL = "Toggle subscription for K2-Kamloops Zone (Kamloops)";
+const VANJAM_LABEL = "G4-VanJam\n(Vanderhoof)";
+
 vi.mock("@capacitor/preferences", () => ({
   Preferences: {
     get: vi.fn().mockResolvedValue({ value: null }),
@@ -13,10 +16,15 @@ vi.mock("@capacitor/preferences", () => ({
   },
 }));
 
+const getZoneLabel = (label: string) =>
+  screen.getByText((_, element) => {
+    return element?.tagName === "P" && element.textContent === label;
+  });
+
 describe("SubscriptionOption", () => {
   const mockFireZoneUnit: FireZoneUnit = {
     id: 123,
-    name: "Kamloops Fire Zone",
+    name: "K2-Kamloops Zone (Kamloops)",
   };
 
   const renderWithProvider = (
@@ -51,22 +59,22 @@ describe("SubscriptionOption", () => {
   it("renders the fire zone unit name correctly", () => {
     renderWithProvider(mockFireZoneUnit);
 
-    expect(screen.getByText("Kamloops")).toBeInTheDocument();
+    expect(screen.getByText("K2-Kamloops")).toBeInTheDocument();
   });
 
   it("renders bracketed location text on a second line", () => {
     renderWithProvider({
       id: 456,
-      name: "G4-VanJam Fire Zone (Vanderhoof)",
+      name: "G4-VanJam Zone (Vanderhoof)",
     });
 
-    expect(screen.getByText("G4-VanJam\n(Vanderhoof)")).toBeInTheDocument();
+    expect(getZoneLabel(VANJAM_LABEL)).toBeInTheDocument();
   });
 
   it("omits redundant bracketed text for the special duplicate labels", () => {
     renderWithProvider({
       id: 789,
-      name: "K2-Kamloops Fire Zone (Kamloops)",
+      name: "K2-Kamloops Zone (Kamloops)",
     });
 
     expect(screen.getByText("K2-Kamloops")).toBeInTheDocument();
@@ -76,18 +84,14 @@ describe("SubscriptionOption", () => {
   it("renders with switch unchecked when not subscribed", () => {
     renderWithProvider(mockFireZoneUnit, []);
 
-    const switchEl = screen.getByRole("checkbox", {
-      name: /Toggle subscription for Kamloops Fire Zone/i,
-    });
+    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
     expect(switchEl).not.toBeChecked();
   });
 
   it("renders with switch checked when subscribed", () => {
     renderWithProvider(mockFireZoneUnit, [123]);
 
-    const switchEl = screen.getByRole("checkbox", {
-      name: /Toggle subscription for Kamloops Fire Zone/i,
-    });
+    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
     expect(switchEl).toBeChecked();
   });
 
@@ -124,9 +128,7 @@ describe("SubscriptionOption", () => {
   it("dispatches saveSubscriptions when toggling the switch (turn on)", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, []);
 
-    const switchEl = screen.getByRole("checkbox", {
-      name: /Toggle subscription for Kamloops Fire Zone/i,
-    });
+    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
     fireEvent.click(switchEl);
 
     await waitFor(() => {
@@ -137,9 +139,7 @@ describe("SubscriptionOption", () => {
   it("dispatches saveSubscriptions when toggling the switch (turn off)", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, [123]);
 
-    const switchEl = screen.getByRole("checkbox", {
-      name: /Toggle subscription for Kamloops Fire Zone/i,
-    });
+    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
     fireEvent.click(switchEl);
 
     await waitFor(() => {
@@ -154,9 +154,7 @@ describe("SubscriptionOption", () => {
       expect(store.getState().settings.subscriptions).toEqual([100, 200]);
     });
 
-    const switchEl = screen.getByRole("checkbox", {
-      name: /Toggle subscription for Kamloops Fire Zone/i,
-    });
+    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
     fireEvent.click(switchEl);
 
     // All fire zone units should be subscribed to

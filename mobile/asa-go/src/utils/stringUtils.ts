@@ -1,5 +1,7 @@
 import { isNil } from "lodash";
 
+const ZONE_SUFFIX = "Zone";
+
 const FIRE_ZONE_UNITS_WITH_REDUNDANT_LOCATION = new Set([
   "K2-Kamloops|(Kamloops)",
   "K4-Vernon|(Vernon)",
@@ -22,18 +24,14 @@ const splitBracketedSuffix = (input: string) => {
   };
 };
 
-const removeSuffix = (input: string, suffix: string) => {
-  if (suffix === "") {
-    return input.trim();
+const stripZoneSuffix = (input: string) => {
+  const trimmedInput = input.trim();
+
+  if (!trimmedInput.endsWith(ZONE_SUFFIX)) {
+    return trimmedInput;
   }
 
-  const suffixIndex = input.indexOf(suffix);
-
-  if (suffixIndex < 0) {
-    return input.trim();
-  }
-
-  return input.substring(0, suffixIndex).trim();
+  return trimmedInput.slice(0, -ZONE_SUFFIX.length).trim();
 };
 
 export const nameFormatter = (
@@ -55,17 +53,13 @@ export const nameFormatter = (
   return toUpper ? output.trim().toUpperCase() : output.trim();
 };
 
-export const fireZoneUnitNameFormatter = (
-  input: string,
-  suffix: string,
-  toUpper: boolean,
-) => {
+export const fireZoneUnitNameFormatter = (input: string) => {
   if (isNil(input) || input === "") {
     return "";
   }
 
   const { baseName, bracketedSuffix } = splitBracketedSuffix(input);
-  const formattedBaseName = removeSuffix(baseName, suffix);
+  const formattedBaseName = stripZoneSuffix(baseName);
   const isRedundantLocation = FIRE_ZONE_UNITS_WITH_REDUNDANT_LOCATION.has(
     `${formattedBaseName}|${bracketedSuffix}`,
   );
@@ -75,5 +69,5 @@ export const fireZoneUnitNameFormatter = (
       ? `${formattedBaseName}\n${bracketedSuffix}`
       : formattedBaseName;
 
-  return toUpper ? output.trim().toUpperCase() : output.trim();
+  return output.trim();
 };

@@ -43,7 +43,7 @@ const SubscriptionOption = ({ fireZoneUnit }: SubscriptionOptionProps) => {
             fontWeight="bold"
             sx={{ whiteSpace: "pre-line" }}
           >
-            {fireZoneUnitNameFormatter(fireZoneUnit.name, "Zone", false)}
+            {fireZoneUnitNameFormatter(fireZoneUnit.name)}
           </Typography>
         </ListItemText>
         <Switch

@@ -49,40 +49,30 @@ describe("nameFormatter", () => {
 });
 
 describe("fireZoneUnitNameFormatter", () => {
-  it("moves bracketed text to a second line after removing the suffix", () => {
-    const result = fireZoneUnitNameFormatter(
-      "G4-VanJam Fire Zone (Vanderhoof)",
-      "Fire Zone",
-      false,
-    );
+  it("moves bracketed text to a second line after removing the zone suffix", () => {
+    const result = fireZoneUnitNameFormatter("G4-VanJam Zone (Vanderhoof)");
 
     expect(result).toBe("G4-VanJam\n(Vanderhoof)");
   });
 
-  it("removes redundant duplicate locations for Kamloops and Vernon", () => {
-    expect(
-      fireZoneUnitNameFormatter(
-        "K2-Kamloops Fire Zone (Kamloops)",
-        "Fire Zone",
-        false,
-      ),
-    ).toBe("K2-Kamloops");
+  it("removes Zone when that is the suffix in the source name", () => {
+    const result = fireZoneUnitNameFormatter("K7-Lillooet Zone");
 
-    expect(
-      fireZoneUnitNameFormatter(
-        "K4-Vernon Fire Zone (Vernon)",
-        "Fire Zone",
-        false,
-      ),
-    ).toBe("K4-Vernon");
+    expect(result).toBe("K7-Lillooet");
   });
 
-  it("keeps bracketed text inline when there is no bracketed suffix", () => {
-    const result = fireZoneUnitNameFormatter(
-      "Kamloops Fire Zone",
-      "Fire Zone",
-      false,
+  it("removes redundant duplicate locations for Kamloops and Vernon", () => {
+    expect(fireZoneUnitNameFormatter("K2-Kamloops Zone (Kamloops)")).toBe(
+      "K2-Kamloops",
     );
+
+    expect(fireZoneUnitNameFormatter("K4-Vernon Zone (Vernon)")).toBe(
+      "K4-Vernon",
+    );
+  });
+
+  it("removes the zone suffix when there is no bracketed suffix", () => {
+    const result = fireZoneUnitNameFormatter("Kamloops Zone");
 
     expect(result).toBe("Kamloops");
   });
