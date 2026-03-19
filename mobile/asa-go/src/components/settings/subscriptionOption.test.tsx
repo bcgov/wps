@@ -54,6 +54,25 @@ describe("SubscriptionOption", () => {
     expect(screen.getByText("Kamloops")).toBeInTheDocument();
   });
 
+  it("renders bracketed location text on a second line", () => {
+    renderWithProvider({
+      id: 456,
+      name: "G4-VanJam Fire Zone (Vanderhoof)",
+    });
+
+    expect(screen.getByText("G4-VanJam\n(Vanderhoof)")).toBeInTheDocument();
+  });
+
+  it("omits redundant bracketed text for the special duplicate labels", () => {
+    renderWithProvider({
+      id: 789,
+      name: "K2-Kamloops Fire Zone (Kamloops)",
+    });
+
+    expect(screen.getByText("K2-Kamloops")).toBeInTheDocument();
+    expect(screen.queryByText(/\(Kamloops\)/)).not.toBeInTheDocument();
+  });
+
   it("renders with switch unchecked when not subscribed", () => {
     renderWithProvider(mockFireZoneUnit, []);
 

@@ -1,4 +1,4 @@
-import { nameFormatter } from "@/utils/stringUtils";
+import { fireZoneUnitNameFormatter, nameFormatter } from "@/utils/stringUtils";
 
 describe("nameFormatter", () => {
   it("removes specified suffix and returns output in upper case", () => {
@@ -45,5 +45,45 @@ describe("nameFormatter", () => {
     const input = `${suffix}`;
     const result = nameFormatter(input, suffix, true);
     expect(result).toBe("");
+  });
+});
+
+describe("fireZoneUnitNameFormatter", () => {
+  it("moves bracketed text to a second line after removing the suffix", () => {
+    const result = fireZoneUnitNameFormatter(
+      "G4-VanJam Fire Zone (Vanderhoof)",
+      "Fire Zone",
+      false,
+    );
+
+    expect(result).toBe("G4-VanJam\n(Vanderhoof)");
+  });
+
+  it("removes redundant duplicate locations for Kamloops and Vernon", () => {
+    expect(
+      fireZoneUnitNameFormatter(
+        "K2-Kamloops Fire Zone (Kamloops)",
+        "Fire Zone",
+        false,
+      ),
+    ).toBe("K2-Kamloops");
+
+    expect(
+      fireZoneUnitNameFormatter(
+        "K4-Vernon Fire Zone (Vernon)",
+        "Fire Zone",
+        false,
+      ),
+    ).toBe("K4-Vernon");
+  });
+
+  it("keeps bracketed text inline when there is no bracketed suffix", () => {
+    const result = fireZoneUnitNameFormatter(
+      "Kamloops Fire Zone",
+      "Fire Zone",
+      false,
+    );
+
+    expect(result).toBe("Kamloops");
   });
 });
