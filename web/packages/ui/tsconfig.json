@@ -2,6 +2,7 @@
   "extends": "@wps/tsconfig/react-app.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
     "paths": {
       "app/theme": ["./src/theme"],
       "api/*": ["../api/src/*"],
@@ -10,5 +11,5 @@
       "components": ["./src/index"]
     }
   },
-  "include": ["src"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../api/src/**/*.ts", "../api/src/**/*.tsx", "../utils/src/**/*.ts", "../utils/src/**/*.tsx", "../types/src"]
 }

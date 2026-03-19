@@ -2,11 +2,11 @@ import {
   marshalMoreCast2ForecastRecords,
   submitMoreCastForecastRecords,
   fetchWeatherIndeterminates,
-  WeatherDeterminate
+  WeatherDeterminate,
+  MoreCast2ForecastRow
 } from 'api/moreCast2API'
 import axios from 'api/axios'
 import { DateTime } from 'luxon'
-import { MoreCast2ForecastRow } from 'features/moreCast2/interfaces'
 import { vi } from 'vitest'
 
 describe('moreCast2API', () => {

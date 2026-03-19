@@ -6,11 +6,12 @@
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
     "noEmit": true,
+    "types": ["vite/client", "vitest/globals"],
     "baseUrl": ".",
     "paths": {
       "api/*": ["./src/*"],
       "utils/*": ["../utils/src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../utils/src/**/*.ts", "../utils/src/**/*.tsx", "../types/src"]
 }
