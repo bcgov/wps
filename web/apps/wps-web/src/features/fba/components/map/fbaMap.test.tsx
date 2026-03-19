@@ -8,7 +8,7 @@ import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { Mock } from 'vitest'
 
-vi.mock('@/utils/vectorLayerUtils', async () => {
+vi.mock('@wps/utils/vectorLayerUtils', async () => {
   return {
     getStyleJson: vi.fn(),
     createVectorTileLayer: vi.fn(),

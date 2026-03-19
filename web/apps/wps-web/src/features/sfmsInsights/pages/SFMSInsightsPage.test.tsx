@@ -12,7 +12,7 @@ vi.mock('@wps/api/snow', () => ({
   getMostRecentProcessedSnowByDate: vi.fn()
 }))
 
-vi.mock('@/utils/date', () => ({
+vi.mock('@wps/utils/date', () => ({
   getDateTimeNowPST: vi.fn()
 }))
 
@@ -43,7 +43,7 @@ vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
   }
 })
 
-vi.mock('@/utils/vectorLayerUtils', () => ({
+vi.mock('@wps/utils/vectorLayerUtils', () => ({
   getStyleJson: vi.fn(),
   createVectorTileLayer: vi.fn()
 }))
@@ -52,8 +52,10 @@ vi.mock('@/features/landingPage/components/Footer', () => ({
   default: () => <div data-testid="footer">Mock Footer</div>
 }))
 
-vi.mock('@/components/GeneralHeader', () => ({
-  GeneralHeader: () => <div data-testid="general-header">Mock Header</div>
+vi.mock('@wps/ui', () => ({
+  GeneralHeader: () => <div data-testid="general-header">Mock Header</div>,
+  StyledFormControl: ({ children }: { children?: unknown }) => <div>{children as any}</div>,
+  theme: { palette: { warning: { main: '#fff', contrastText: '#000' } }, spacing: () => '8px' }
 }))
 
 vi.mock('@/features/fba/components/ASADatePicker', () => ({

@@ -32,7 +32,7 @@ const runDatesReducer = combineReducers({ runDates: reducer })
 
 // We mock the API and error logger while keeping TS types
 vi.mock('@wps/api/fbaAPI', async () => {
-  const actual = await vi.importActual<typeof import('@wps/api/fbaAPI')>('@/api/fbaAPI')
+  const actual = await vi.importActual<typeof import('@wps/api/fbaAPI')>('@wps/api/fbaAPI')
   return {
     ...actual,
     getAllRunDates: vi.fn(),
@@ -41,7 +41,7 @@ vi.mock('@wps/api/fbaAPI', async () => {
   }
 })
 
-vi.mock('utils/error', () => ({
+vi.mock('@wps/utils/error', () => ({
   logError: vi.fn()
 }))
 

@@ -7,7 +7,7 @@ import { Mock } from 'vitest'
 import * as layerDefinitions from '@/features/sfmsInsights/components/map/layerDefinitions'
 import { Provider } from 'react-redux'
 
-vi.mock('@/utils/vectorLayerUtils', async () => {
+vi.mock('@wps/utils/vectorLayerUtils', async () => {
   return {
     getStyleJson: vi.fn(),
     createVectorTileLayer: vi.fn()
