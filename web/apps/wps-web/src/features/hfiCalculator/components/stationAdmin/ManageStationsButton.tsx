@@ -2,8 +2,7 @@ import React, { useState } from 'react'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { Button } from '@mui/material'
 import ManageStationsModal from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
-import { PlanningArea } from 'api/hfiCalculatorAPI'
-import { StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { PlanningArea, StationInfo } from 'api/hfiCalculatorAPI'
 
 export interface ManageStationsButtonProps {
   planningAreas?: PlanningArea[]

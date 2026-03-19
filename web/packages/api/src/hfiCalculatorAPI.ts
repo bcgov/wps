@@ -1,11 +1,79 @@
 import axios from 'api/axios'
-import {
-  HFIResultResponse,
-  PlanningAreaResult,
-  PrepDateRange,
-  RawHFIResultResponse
-} from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { DateTime } from 'luxon'
+
+export interface FireStartRange {
+  label: string
+  id: number
+}
+
+export interface PrepDateRange {
+  start_date: string
+  end_date: string
+}
+
+export interface StationInfo {
+  station_code: number
+  selected: boolean
+  fuel_type_id: number
+}
+
+export interface ValidatedStationDaily {
+  daily: StationDaily
+  valid: boolean
+}
+
+export interface RawValidatedStationDaily {
+  daily: RawDaily
+  valid: boolean
+}
+
+export interface DailyResult {
+  date: DateTime
+  dailies: ValidatedStationDaily[]
+  mean_intensity_group: number | undefined
+  prep_level: number | undefined
+  fire_starts: FireStartRange
+}
+
+export interface RawDailyResult {
+  date: string
+  dailies: RawValidatedStationDaily[]
+  mean_intensity_group: number | undefined
+  prep_level: number | undefined
+  fire_starts: FireStartRange
+}
+
+export interface PlanningAreaResult {
+  planning_area_id: number
+  all_dailies_valid: boolean
+  highest_daily_intensity_group: number
+  mean_prep_level: number | undefined
+  daily_results: DailyResult[]
+}
+
+export interface RawPlanningAreaResult {
+  planning_area_id: number
+  all_dailies_valid: boolean
+  highest_daily_intensity_group: number
+  mean_prep_level: number | undefined
+  daily_results: RawDailyResult[]
+}
+
+export interface HFIResultResponse {
+  date_range: PrepDateRange
+  selected_fire_center_id: number
+  planning_area_station_info: { [key: number]: StationInfo[] }
+  planning_area_hfi_results: PlanningAreaResult[]
+  fire_start_ranges: FireStartRange[]
+}
+
+export interface RawHFIResultResponse {
+  date_range: PrepDateRange
+  selected_fire_center_id: number
+  planning_area_station_info: { [key: number]: StationInfo[] }
+  planning_area_hfi_results: RawPlanningAreaResult[]
+  fire_start_ranges: FireStartRange[]
+}
 import { PACIFIC_IANA_TIMEZONE } from 'utils/constants'
 import { formatISODateInPST } from 'utils/date'
 
@@ -114,8 +182,10 @@ export interface HFIAllReadyStatesResponse {
  * RawDaily is the daily representation over the wire (a string date)
  * that we then marshall that into an object with a DateTime
  */
-export interface RawReadyPlanningAreaDetails
-  extends Omit<ReadyPlanningAreaDetails, 'create_timestamp' | 'update_timestamp'> {
+export interface RawReadyPlanningAreaDetails extends Omit<
+  ReadyPlanningAreaDetails,
+  'create_timestamp' | 'update_timestamp'
+> {
   create_timestamp: string
   update_timestamp: string
 }

@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import { DateTime } from 'luxon'
 import { range } from 'lodash'
-import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { PrepDateRange } from 'api/hfiCalculatorAPI'
 import { calculateNumPrepDays } from 'features/hfiCalculator/util'
 
 import { pstFormatter } from 'utils/date'

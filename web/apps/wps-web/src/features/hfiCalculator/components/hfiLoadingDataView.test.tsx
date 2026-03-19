@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { FireCentre } from 'api/hfiCalculatorAPI'
 import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
-import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { PrepDateRange } from 'api/hfiCalculatorAPI'
 
 
 describe('HFILoadingDataView', () => {

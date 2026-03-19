@@ -1,6 +1,5 @@
 import { Table, TableBody } from '@mui/material'
-import { FireCentre } from 'api/hfiCalculatorAPI'
-import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { FireCentre, PrepDateRange } from 'api/hfiCalculatorAPI'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { isUndefined, isNull } from 'lodash'
 import React from 'react'

@@ -1,7 +1,7 @@
 import { styled } from '@mui/material'
 import { BACKGROUND_COLOR } from 'app/theme'
 import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
-import { FireStartRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { FireStartRange } from 'api/hfiCalculatorAPI'
 import React from 'react'
 
 export interface FireStartsCellProps {

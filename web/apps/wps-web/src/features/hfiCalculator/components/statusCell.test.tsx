@@ -2,7 +2,7 @@ import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
 import { render } from '@testing-library/react'
 import { StationDaily } from 'api/hfiCalculatorAPI'
 import StatusCell from 'features/hfiCalculator/components/StatusCell'
-import { ValidatedStationDaily } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { ValidatedStationDaily } from 'api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
 describe('StatusCell', () => {

@@ -9,60 +9,20 @@ import {
   getPrepDateRange,
   setStationSelected,
   getPDF,
-  RawDaily,
-  StationDaily,
   getFuelTypes,
   FuelType,
   FireCentre,
   FuelTypesResponse,
-  updateStations
+  updateStations,
+  FireStartRange,
+  PrepDateRange,
+  PlanningAreaResult,
+  HFIResultResponse
 } from 'api/hfiCalculatorAPI'
-import { DateTime } from 'luxon'
+
 import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isUndefined } from 'lodash'
 import axios from 'axios'
-
-export interface FireStartRange {
-  label: string
-  id: number
-}
-
-export interface PrepDateRange {
-  start_date: string
-  end_date: string
-}
-
-export interface DailyResult {
-  date: DateTime
-  dailies: ValidatedStationDaily[]
-  mean_intensity_group: number | undefined
-  prep_level: number | undefined
-  fire_starts: FireStartRange
-}
-
-export interface RawDailyResult {
-  date: string
-  dailies: RawValidatedStationDaily[]
-  mean_intensity_group: number | undefined
-  prep_level: number | undefined
-  fire_starts: FireStartRange
-}
-
-export interface PlanningAreaResult {
-  planning_area_id: number
-  all_dailies_valid: boolean
-  highest_daily_intensity_group: number
-  mean_prep_level: number | undefined
-  daily_results: DailyResult[]
-}
-
-export interface RawPlanningAreaResult {
-  planning_area_id: number
-  all_dailies_valid: boolean
-  highest_daily_intensity_group: number
-  mean_prep_level: number | undefined
-  daily_results: RawDailyResult[]
-}
 
 export interface HFICalculatorState {
   pdfLoading: boolean
@@ -83,42 +43,10 @@ export interface HFICalculatorState {
   updatedPlanningAreaId: UpdatedPlanningAreaId | null
 }
 
-export interface StationInfo {
-  station_code: number
-  selected: boolean
-  fuel_type_id: number
-}
-
-export interface HFIResultResponse {
-  date_range: PrepDateRange
-  selected_fire_center_id: number
-  planning_area_station_info: { [key: number]: StationInfo[] }
-  planning_area_hfi_results: PlanningAreaResult[]
-  fire_start_ranges: FireStartRange[]
-}
-
-export interface RawHFIResultResponse {
-  date_range: PrepDateRange
-  selected_fire_center_id: number
-  planning_area_station_info: { [key: number]: StationInfo[] }
-  planning_area_hfi_results: RawPlanningAreaResult[]
-  fire_start_ranges: FireStartRange[]
-}
-
 export interface HFILoadResultRequest {
   start_date?: string
   end_date?: string
   selected_fire_center_id: number
-}
-
-export interface ValidatedStationDaily {
-  daily: StationDaily
-  valid: boolean
-}
-
-export interface RawValidatedStationDaily {
-  daily: RawDaily
-  valid: boolean
 }
 
 export interface UpdatedPlanningAreaId {

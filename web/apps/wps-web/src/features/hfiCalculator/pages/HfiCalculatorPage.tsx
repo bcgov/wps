@@ -2,8 +2,8 @@ import React, { useEffect } from 'react'
 import { DateTime } from 'luxon'
 import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
+import { FireStartRange } from 'api/hfiCalculatorAPI'
 import {
-  FireStartRange,
   setSelectedFireCentre,
   fetchSetNewFireStarts,
   fetchGetPrepDateRange,

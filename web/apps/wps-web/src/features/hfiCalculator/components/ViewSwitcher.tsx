@@ -1,7 +1,7 @@
 import { FireCentre, FuelType } from 'api/hfiCalculatorAPI'
 import { DailyViewTable } from 'features/hfiCalculator/components/DailyViewTable'
 import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
-import { FireStartRange, PrepDateRange, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { FireStartRange, PrepDateRange, StationInfo } from 'api/hfiCalculatorAPI'
 import React from 'react'
 
 export interface ViewSwitcherProps {

@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getAllReadyStates, ReadyPlanningAreaDetails, toggleReadyState } from 'api/hfiCalculatorAPI'
+import { getAllReadyStates, ReadyPlanningAreaDetails, toggleReadyState, PrepDateRange } from 'api/hfiCalculatorAPI'
 import { AppThunk } from 'app/store'
-import { PrepDateRange } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { logError } from 'utils/error'
 import { getErrorMessage } from 'utils/getError'
 

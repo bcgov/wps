@@ -5,7 +5,7 @@ import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { range } from 'lodash'
 import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
-import { FireStartRange, PlanningAreaResult, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { FireStartRange, PlanningAreaResult, StationInfo } from 'api/hfiCalculatorAPI'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 import { PlanningAreaTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 

@@ -1,5 +1,4 @@
-import { StationDaily, PlanningArea, FuelType } from 'api/hfiCalculatorAPI'
-import { HFIResultResponse, PrepDateRange, StationInfo } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { StationDaily, PlanningArea, FuelType, HFIResultResponse, PrepDateRange, StationInfo } from 'api/hfiCalculatorAPI'
 import { groupBy, isUndefined, sortBy, take } from 'lodash'
 import { DateTime } from 'luxon'
 
