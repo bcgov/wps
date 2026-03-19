@@ -65,6 +65,11 @@ export default defineConfig({
   },
   resolve: {
     alias: [
+      // @wps/* package aliases
+      { find: '@wps/api', replacement: resolve(__dirname, '../../packages/api/src') },
+      { find: '@wps/utils', replacement: resolve(__dirname, '../../packages/utils/src') },
+      { find: '@wps/types', replacement: resolve(__dirname, '../../packages/types/src') },
+      { find: '@wps/ui', replacement: resolve(__dirname, '../../packages/ui/src') },
       // @/app/theme remapped to ui package (must come before @/app/ and @/)
       { find: '@/app/theme', replacement: resolve(__dirname, '../../packages/ui/src/theme') },
       // @/api, @/utils, @/components remapped to extracted packages
