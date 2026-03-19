@@ -12,7 +12,7 @@ import VectorLayer from 'ol/layer/Vector.js'
 import { Icon, Style } from 'ol/style'
 import Feature from 'ol/Feature.js'
 import { Point } from 'ol/geom'
-import { CENTER_OF_BC } from '@/utils/constants'
+import { CENTER_OF_BC } from '@wps/utils/constants'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 
 interface ReviewSubmitStepProps {

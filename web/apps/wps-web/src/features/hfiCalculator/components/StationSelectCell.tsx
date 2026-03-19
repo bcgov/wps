@@ -1,6 +1,6 @@
 import { Checkbox, TableCell, styled } from '@mui/material'
-import { WeatherStation } from 'api/hfiCalculatorAPI'
-import { UNSELECTED_STATION_COLOR } from 'app/theme'
+import { WeatherStation } from '@wps/api/hfiCalculatorAPI'
+import { UNSELECTED_STATION_COLOR } from '@wps/ui/theme'
 import React from 'react'
 
 export interface StationSelectCellProps {

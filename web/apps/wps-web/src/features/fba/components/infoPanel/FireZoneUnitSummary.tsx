@@ -1,7 +1,7 @@
 import React from 'react'
 import { Grid, Typography } from '@mui/material'
 import { isNil, isUndefined } from 'lodash'
-import { FireShape, FireZoneTPIStats, FireZoneFuelStats } from 'api/fbaAPI'
+import { FireShape, FireZoneTPIStats, FireZoneFuelStats } from '@wps/api/fbaAPI'
 import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
 import FuelSummary from '@/features/fba/components/viz/FuelSummary'

@@ -1,4 +1,4 @@
-import { FBAStation } from 'api/fbaCalcAPI'
+import { FBAStation } from '@wps/api/fbaCalcAPI'
 import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 
 describe('RowManager', () => {

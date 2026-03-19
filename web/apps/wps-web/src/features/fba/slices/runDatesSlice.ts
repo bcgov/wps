@@ -1,8 +1,8 @@
 import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getAllRunDates, getMostRecentRunDate, getSFMSBounds, RunType, SFMSBounds } from 'api/fbaAPI'
+import { getAllRunDates, getMostRecentRunDate, getSFMSBounds, RunType, SFMSBounds } from '@wps/api/fbaAPI'
 import { AppThunk } from 'app/store'
 import { DateTime } from 'luxon'
-import { logError } from 'utils/error'
+import { logError } from '@wps/utils/error'
 
 export interface RunDateState {
   loading: boolean

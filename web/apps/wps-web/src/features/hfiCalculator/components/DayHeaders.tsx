@@ -6,7 +6,7 @@ import {
   StickyCellRightBorderOnly,
   TableCellLeftBorder
 } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
-import { PrepDateRange } from 'api/hfiCalculatorAPI'
+import { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import { calculateNumPrepDays } from 'features/hfiCalculator/util'
 import { isUndefined, range } from 'lodash'
 import { DateTime } from 'luxon'

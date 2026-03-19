@@ -1,9 +1,9 @@
 import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
-import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { Box } from '@mui/material'
-import { FireCenter, FireShape, RunType } from 'api/fbaAPI'
+import { FireCenter, FireShape, RunType } from '@wps/api/fbaAPI'
 import { selectFireWeatherStations, selectRunDates, selectProvincialSummaryZones } from 'app/rootReducer'
-import { ErrorBoundary } from 'components'
+import { ErrorBoundary } from '@wps/ui'
 import {
   fireCentreLabelStyler,
   fireCentreLineStyler,
@@ -34,8 +34,8 @@ import { fromLonLat } from 'ol/proj'
 import VectorSource from 'ol/source/Vector'
 import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { BC_EXTENT, CENTER_OF_BC } from 'utils/constants'
-import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL, HILLSHADE_STYLE_URL, HILLSHADE_TILE_URL, PMTILES_BUCKET } from 'utils/env'
+import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL, HILLSHADE_STYLE_URL, HILLSHADE_TILE_URL, PMTILES_BUCKET } from '@wps/utils/env'
 import { MapContext } from '@/features/fba/context/MapContext'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))

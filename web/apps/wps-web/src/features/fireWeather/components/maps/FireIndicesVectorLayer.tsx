@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import * as olSource from 'ol/source'
 import GeoJSON from 'ol/format/GeoJSON'
-import { getDetailedStations, StationSource } from 'api/stationAPI'
+import { getDetailedStations, StationSource } from '@wps/api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
 import VectorLayer from 'features/map/VectorLayer'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'

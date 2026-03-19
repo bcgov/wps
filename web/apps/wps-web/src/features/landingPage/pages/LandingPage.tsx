@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
-import { LANDING_BACKGROUND_COLOUR } from 'app/theme'
+import { LANDING_BACKGROUND_COLOUR } from '@wps/ui/theme'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import Footer from 'features/landingPage/components/Footer'
 import Sidebar from 'features/landingPage/components/Sidebar'
 import ToolCards from 'features/landingPage/components/ToolCards'
-import { LANDING_PAGE_DOC_TITLE } from 'utils/constants'
+import { LANDING_PAGE_DOC_TITLE } from '@wps/utils/constants'
 import { Box } from '@mui/material'
 
 const LandingPage: React.FunctionComponent = () => {

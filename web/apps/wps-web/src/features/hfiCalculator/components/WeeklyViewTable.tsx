@@ -1,14 +1,14 @@
 import React from 'react'
 
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material'
-import { FireCentre, FireStartRange, FuelType, PlanningAreaResult, PrepDateRange } from 'api/hfiCalculatorAPI'
-import FireTable from 'components/FireTable'
+import { FireCentre, FireStartRange, FuelType, PlanningAreaResult, PrepDateRange } from '@wps/api/hfiCalculatorAPI'
+import FireTable from '@wps/ui/FireTable'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
 import CalculatedPlanningAreaCells from 'features/hfiCalculator/components/CalculatedPlanningAreaCells'
 import { StaticCells } from 'features/hfiCalculator/components/StaticCells'
 import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
-import { BACKGROUND_COLOR } from 'app/theme'
+import { BACKGROUND_COLOR } from '@wps/ui/theme'
 import { isEmpty, isUndefined, sortBy } from 'lodash'
 import {
   calculateNumPrepDays,
@@ -16,7 +16,7 @@ import {
   stationCodeSelected,
   getSelectedFuelType
 } from 'features/hfiCalculator/util'
-import StickyCell from 'components/StickyCell'
+import StickyCell from '@wps/ui/StickyCell'
 import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
 import { selectAuthentication, selectHFICalculatorState, selectHFIReadyState } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'

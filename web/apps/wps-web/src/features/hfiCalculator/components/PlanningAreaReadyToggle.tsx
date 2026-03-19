@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider, StyledEngineProvider, Tooltip, IconButton }
 import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined'
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined'
 import React from 'react'
-import { ReadyPlanningAreaDetails } from 'api/hfiCalculatorAPI'
+import { ReadyPlanningAreaDetails } from '@wps/api/hfiCalculatorAPI'
 import { isUndefined } from 'lodash'
 
 export interface PlanningAreaReadyToggleProps {

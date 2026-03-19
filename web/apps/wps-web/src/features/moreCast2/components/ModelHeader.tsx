@@ -4,7 +4,7 @@ import { Info as InfoIcon } from '@mui/icons-material'
 import { DateTime } from 'luxon'
 import { MoreCast2Row } from '@/features/moreCast2/interfaces'
 import { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
-import { weatherModelsWithTooltips } from '@/api/moreCast2API'
+import { weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { isEmpty, isNil } from 'lodash'
 
 interface ModelHeaderProps {

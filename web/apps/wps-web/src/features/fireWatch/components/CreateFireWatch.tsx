@@ -1,4 +1,4 @@
-import { getStations, StationSource } from '@/api/stationAPI'
+import { getStations, StationSource } from '@wps/api/stationAPI'
 import { AppDispatch } from '@/app/store'
 import CompleteStep from '@/features/fireWatch/components/steps/CompleteStep'
 import FireBehvaiourIndicesStep from '@/features/fireWatch/components/steps/FireBehaviourIndicesStep'

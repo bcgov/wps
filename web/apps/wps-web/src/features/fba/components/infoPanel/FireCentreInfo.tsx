@@ -4,8 +4,8 @@ import { styled, useTheme } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import FireZoneUnitInfo from 'features/fba/components/infoPanel/FireZoneUnitInfo'
 import { groupBy } from 'lodash'
-import { FireShapeStatusDetail } from 'api/fbaAPI'
-import { INFO_PANEL_CONTENT_BACKGROUND } from 'app/theme'
+import { FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { INFO_PANEL_CONTENT_BACKGROUND } from '@wps/ui/theme'
 
 interface FireCentreInfoProps {
   expanded: boolean

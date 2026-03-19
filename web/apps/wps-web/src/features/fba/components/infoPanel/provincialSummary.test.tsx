@@ -3,8 +3,8 @@ import { render } from '@testing-library/react'
 import ProvincialSummary, { NO_DATA_MESSAGE } from 'features/fba/components/infoPanel/ProvincialSummary'
 import provincialSummarySlice, { initialState } from 'features/fba/slices/provincialSummarySlice'
 import { combineReducers } from '@reduxjs/toolkit'
-import { FireShapeStatusDetail } from 'api/fbaAPI'
-import { AdvisoryStatus } from '@/utils/constants'
+import { FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import { createTestStore } from '@/test/testUtils'
 
 const provincialSummaryReducer = combineReducers({ provincialSummary: provincialSummarySlice })

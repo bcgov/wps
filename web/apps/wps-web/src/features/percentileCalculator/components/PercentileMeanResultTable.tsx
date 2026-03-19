@@ -2,10 +2,10 @@ import React from 'react'
 import { styled } from '@mui/material/styles'
 import { TableContainer, Table, TableRow, TableCell, TableBody } from '@mui/material'
 
-import { MeanValues } from 'api/percentileAPI'
-import { FWI_VALUES_DECIMAL } from 'utils/constants'
-import { NOT_AVAILABLE } from 'utils/strings'
-import { theme } from 'app/theme'
+import { MeanValues } from '@wps/api/percentileAPI'
+import { FWI_VALUES_DECIMAL } from '@wps/utils/constants'
+import { NOT_AVAILABLE } from '@wps/utils/strings'
+import { theme } from '@wps/ui/theme'
 
 const PREFIX = 'PercentileMeanResultTable'
 

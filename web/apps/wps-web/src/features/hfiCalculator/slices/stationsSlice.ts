@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { FireCentre, getHFIStations, HFIWeatherStationsResponse } from 'api/hfiCalculatorAPI'
+import { FireCentre, getHFIStations, HFIWeatherStationsResponse } from '@wps/api/hfiCalculatorAPI'
 import { AppThunk } from 'app/store'
-import { logError } from 'utils/error'
+import { logError } from '@wps/utils/error'
 
 export interface StationsState {
   loading: boolean

@@ -1,4 +1,4 @@
-import { StationDaily, PlanningArea, FuelType, HFIResultResponse, PrepDateRange, StationInfo } from 'api/hfiCalculatorAPI'
+import { StationDaily, PlanningArea, FuelType, HFIResultResponse, PrepDateRange, StationInfo } from '@wps/api/hfiCalculatorAPI'
 import { groupBy, isUndefined, sortBy, take } from 'lodash'
 import { DateTime } from 'luxon'
 

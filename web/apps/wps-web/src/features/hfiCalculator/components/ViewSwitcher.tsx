@@ -1,4 +1,4 @@
-import { FireCentre, FireStartRange, FuelType, PrepDateRange, StationInfo } from 'api/hfiCalculatorAPI'
+import { FireCentre, FireStartRange, FuelType, PrepDateRange, StationInfo } from '@wps/api/hfiCalculatorAPI'
 import { DailyViewTable } from 'features/hfiCalculator/components/DailyViewTable'
 import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
 import React from 'react'

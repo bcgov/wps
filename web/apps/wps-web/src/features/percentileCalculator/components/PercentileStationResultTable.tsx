@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material'
 
-import { StationSummaryResponse } from 'api/percentileAPI'
-import { FWI_VALUES_DECIMAL } from 'utils/constants'
-import { formatMonthAndDay } from 'utils/date'
-import { NOT_AVAILABLE } from 'utils/strings'
+import { StationSummaryResponse } from '@wps/api/percentileAPI'
+import { FWI_VALUES_DECIMAL } from '@wps/utils/constants'
+import { formatMonthAndDay } from '@wps/utils/date'
+import { NOT_AVAILABLE } from '@wps/utils/strings'
 import PercentileSnackbar from 'features/percentileCalculator/components/PercentileSnackbar'
 
 interface Props {

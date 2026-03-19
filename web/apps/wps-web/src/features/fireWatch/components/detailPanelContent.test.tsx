@@ -4,7 +4,7 @@ import '@testing-library/jest-dom'
 import { DateTime } from 'luxon'
 import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
 import { BurnStatusEnum, FuelTypeEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
-import { MUI_LICENSE } from '@/utils/env'
+import { MUI_LICENSE } from '@wps/utils/env'
 import { LicenseInfo } from '@mui/x-data-grid-pro'
 
 

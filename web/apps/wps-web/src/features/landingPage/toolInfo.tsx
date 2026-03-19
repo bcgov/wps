@@ -31,7 +31,7 @@ import {
   SFMS_INSIGHTS_ROUTE,
   FIRE_WATCH_NAME,
   FIRE_WATCH_ROUTE
-} from 'utils/constants'
+} from '@wps/utils/constants'
 
 const ICON_FONT_SIZE = 'large'
 export interface ToolInfo {

@@ -1,6 +1,6 @@
-import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
-import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@/utils/env'
-import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
+import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
+import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { Box, CircularProgress } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
 import {

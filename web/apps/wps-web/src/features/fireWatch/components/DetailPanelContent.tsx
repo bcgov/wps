@@ -1,4 +1,4 @@
-import { theme } from '@/app/theme'
+import { theme } from '@wps/ui/theme'
 import { BurnForecast, BurnWatchRow } from '@/features/fireWatch/interfaces'
 import { Box, Typography } from '@mui/material'
 import { DataGridPro, GridColDef, GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid-pro'

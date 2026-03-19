@@ -2,13 +2,13 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SFMSInsightsPage } from './SFMSInsightsPage'
 import { Provider } from 'react-redux'
 import { createTestStore } from '@/test/testUtils'
-import { getMostRecentProcessedSnowByDate } from '@/api/snow'
-import { getSFMSBounds } from '@/api/fbaAPI'
-import { getDateTimeNowPST } from '@/utils/date'
+import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
+import { getSFMSBounds } from '@wps/api/fbaAPI'
+import { getDateTimeNowPST } from '@wps/utils/date'
 import { DateTime } from 'luxon'
 import { Mock } from 'vitest'
 
-vi.mock('@/api/snow', () => ({
+vi.mock('@wps/api/snow', () => ({
   getMostRecentProcessedSnowByDate: vi.fn()
 }))
 
@@ -16,7 +16,7 @@ vi.mock('@/utils/date', () => ({
   getDateTimeNowPST: vi.fn()
 }))
 
-vi.mock('@/api/fbaAPI', () => ({
+vi.mock('@wps/api/fbaAPI', () => ({
   getSFMSBounds: vi.fn()
 }))
 

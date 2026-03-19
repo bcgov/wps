@@ -1,7 +1,7 @@
 import Footer from '@/features/landingPage/components/Footer'
 import MenuHeader from '@/features/fireWatch/components/MenuHeader'
 import NavigationDrawer, { FireWatchViewEnum } from '@/features/fireWatch/components/NavigationDrawer'
-import { DRAWER_WIDTH } from '@/utils/constants'
+import { DRAWER_WIDTH } from '@wps/utils/constants'
 import { Box, BoxProps, styled } from '@mui/material'
 import { useState } from 'react'
 import FireWatchDashboard from '@/features/fireWatch/components/FireWatchDashboard'

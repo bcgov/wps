@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
-import { logError } from 'utils/error'
-import { FBAResponse, FireCenter, getFBAFireCenters } from 'api/fbaAPI'
+import { logError } from '@wps/utils/error'
+import { FBAResponse, FireCenter, getFBAFireCenters } from '@wps/api/fbaAPI'
 
 export interface FireCentresState {
   loading: boolean

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { Container, GeneralHeader, ErrorBoundary } from 'components'
+import { Container, GeneralHeader, ErrorBoundary } from '@wps/ui'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
@@ -10,10 +10,10 @@ import { fetchPercentiles, resetPercentilesResult } from 'features/percentileCal
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import PercentileResults from 'features/percentileCalculator/components/PercentileResults'
 import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percentileCalculator/components/TimeRangeSlider'
-import { getStationCodesFromUrl, stationCodeQueryKey } from 'utils/url'
-import { getStations, StationSource } from 'api/stationAPI'
+import { getStationCodesFromUrl, stationCodeQueryKey } from '@wps/utils/url'
+import { getStations, StationSource } from '@wps/api/stationAPI'
 import { AppDispatch } from 'app/store'
-import { PERCENTILE_CALC_DOC_TITLE, PERCENTILE_CALC_NAME } from 'utils/constants'
+import { PERCENTILE_CALC_DOC_TITLE, PERCENTILE_CALC_NAME } from '@wps/utils/constants'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90

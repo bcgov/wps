@@ -1,6 +1,6 @@
 import { styled } from '@mui/material/styles'
 import { TextField, Autocomplete } from '@mui/material'
-import { FuelType, WeatherStation } from 'api/hfiCalculatorAPI'
+import { FuelType, WeatherStation } from '@wps/api/hfiCalculatorAPI'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
 

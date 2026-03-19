@@ -14,18 +14,18 @@ import {
   updateSelectedPrediction,
   fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
-import { Container, GeneralHeader } from 'components'
-import { formatDatetimeInPST } from 'utils/date'
-import { logError } from 'utils/error'
+import { Container, GeneralHeader } from '@wps/ui'
+import { formatDatetimeInPST } from '@wps/utils/date'
+import { logError } from '@wps/utils/error'
 import {
   getCHainesGeoJSONURI,
   getKMLNetworkLinkURI,
   getCHainesKMLURI,
   getCHainesKMLModelRunURI,
   getCHainesModelKMLURI
-} from 'api/cHainesAPI'
+} from '@wps/api/cHainesAPI'
 import { AppDispatch } from 'app/store'
-import { C_HAINES_DOC_TITLE, C_HAINES_NAME } from 'utils/constants'
+import { C_HAINES_DOC_TITLE, C_HAINES_NAME } from '@wps/utils/constants'
 
 const PREFIX = 'CHainesPage'
 

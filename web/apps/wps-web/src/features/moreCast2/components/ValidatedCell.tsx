@@ -1,4 +1,4 @@
-import { theme } from '@/app/theme'
+import { theme } from '@wps/ui/theme'
 import InvalidCellToolTip from '@/features/moreCast2/components/InvalidCellToolTip'
 import { TextField } from '@mui/material'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'

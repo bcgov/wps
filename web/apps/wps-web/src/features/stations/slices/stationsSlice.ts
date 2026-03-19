@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { StationSource } from 'api/stationAPI'
-import type { DetailedGeoJsonStation, GeoJsonStation } from 'types/stationTypes'
+import { StationSource } from '@wps/api/stationAPI'
+import type { DetailedGeoJsonStation, GeoJsonStation } from '@wps/types/stationTypes'
 import { AppThunk } from 'app/store'
-import { logError } from 'utils/error'
+import { logError } from '@wps/utils/error'
 export interface StationsState {
   loading: boolean
   error: string | null

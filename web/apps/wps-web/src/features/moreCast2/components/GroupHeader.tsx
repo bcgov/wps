@@ -1,7 +1,7 @@
 import { Button, Checkbox, FormControlLabel, FormGroup, Popover, Stack, Typography, styled } from '@mui/material'
 import { PlaylistAdd } from '@mui/icons-material'
 import React, { ChangeEvent, MouseEvent, useState } from 'react'
-import { LIGHT_GREY, MEDIUM_GREY, DARK_GREY, MoreCastParams } from 'app/theme'
+import { LIGHT_GREY, MEDIUM_GREY, DARK_GREY, MoreCastParams } from '@wps/ui/theme'
 import { ColumnVis } from 'features/moreCast2/components/DataGridColumns'
 
 interface GroupHeaderProps {

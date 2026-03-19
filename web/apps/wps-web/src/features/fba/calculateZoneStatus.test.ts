@@ -1,4 +1,4 @@
-import { AdvisoryMinWindStats } from '@/api/fbaAPI'
+import { AdvisoryMinWindStats } from '@wps/api/fbaAPI'
 import { calculateWindSpeedText, getWindSpeedMinimum } from '@/features/fba/calculateZoneStatus'
 
 const advisoryThreshold = {

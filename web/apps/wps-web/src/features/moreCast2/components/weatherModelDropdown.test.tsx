@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 import { render, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ModelChoice, ModelChoices } from 'api/moreCast2API'
+import { ModelChoice, ModelChoices } from '@wps/api/moreCast2API'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 
 describe('WeatherModelDropdown', () => {

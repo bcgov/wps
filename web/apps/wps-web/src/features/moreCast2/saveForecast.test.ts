@@ -1,4 +1,4 @@
-import { ModelChoice } from 'api/moreCast2API'
+import { ModelChoice } from '@wps/api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { getRowsToSave, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
 import { DateTime } from 'luxon'

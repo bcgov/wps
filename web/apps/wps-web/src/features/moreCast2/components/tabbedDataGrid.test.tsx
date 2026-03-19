@@ -3,7 +3,7 @@ import { render, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
-import { DateRange } from 'components/dateRangePicker/types'
+import { DateRange } from '@wps/ui/dateRangePicker/types'
 import store from 'app/store'
 
 const FROM_TO: DateRange = {}

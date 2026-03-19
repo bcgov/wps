@@ -1,4 +1,4 @@
-import { FireZoneFuelStats } from '@/api/fbaAPI'
+import { FireZoneFuelStats } from '@wps/api/fbaAPI'
 import { getMinStartAndMaxEndTime, formatCriticalHoursTimeText } from '@/features/fba/criticalHoursStartEndTime'
 
 const sameDayC2: FireZoneFuelStats = {

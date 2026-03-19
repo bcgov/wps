@@ -2,7 +2,7 @@ import React from 'react'
 import { styled } from '@mui/material/styles'
 import Autocomplete from '@mui/material/Autocomplete'
 import { TextField } from '@mui/material'
-import { FireCentre } from 'api/hfiCalculatorAPI'
+import { FireCentre } from '@wps/api/hfiCalculatorAPI'
 import { isNull } from 'lodash'
 
 const PREFIX = 'FireCentreDropdown'

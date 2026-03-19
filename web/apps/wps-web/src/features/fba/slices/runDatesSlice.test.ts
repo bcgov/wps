@@ -25,14 +25,14 @@ import {
   RunType,
   SFMSBoundsResponse,
   type SFMSBounds
-} from 'api/fbaAPI'
-import { logError } from 'utils/error'
+} from '@wps/api/fbaAPI'
+import { logError } from '@wps/utils/error'
 
 const runDatesReducer = combineReducers({ runDates: reducer })
 
 // We mock the API and error logger while keeping TS types
-vi.mock('@/api/fbaAPI', async () => {
-  const actual = await vi.importActual<typeof import('@/api/fbaAPI')>('@/api/fbaAPI')
+vi.mock('@wps/api/fbaAPI', async () => {
+  const actual = await vi.importActual<typeof import('@wps/api/fbaAPI')>('@/api/fbaAPI')
   return {
     ...actual,
     getAllRunDates: vi.fn(),

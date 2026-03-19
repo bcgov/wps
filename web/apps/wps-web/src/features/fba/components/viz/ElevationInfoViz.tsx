@@ -8,7 +8,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import { isUndefined } from 'lodash'
-import { ElevationInfoByThreshold, FireShape } from 'api/fbaAPI'
+import { ElevationInfoByThreshold, FireShape } from '@wps/api/fbaAPI'
 
 const PREFIX = 'ElevationInfoViz'
 

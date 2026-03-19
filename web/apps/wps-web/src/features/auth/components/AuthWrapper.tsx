@@ -2,10 +2,10 @@ import React, { useEffect } from 'react'
 import * as Sentry from '@sentry/browser'
 import { useDispatch, useSelector } from 'react-redux'
 import { authenticate, testAuthenticate } from 'features/auth/slices/authenticationSlice'
-import axios from 'api/axios'
+import axios from '@wps/api/axios'
 import { AppDispatch, AppThunk } from 'app/store'
 import { selectToken, selectAuthentication } from 'app/rootReducer'
-import { TEST_AUTH } from 'utils/env'
+import { TEST_AUTH } from '@wps/utils/env'
 
 interface Props {
   children: React.ReactElement

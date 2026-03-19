@@ -1,9 +1,9 @@
 import { createTheme, ThemeProvider, StyledEngineProvider, Box } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { DateRange } from 'components/dateRangePicker/types'
+import { DateRange } from '@wps/ui/dateRangePicker/types'
 import { DateTime } from 'luxon'
 import React from 'react'
-import DateRangeSelector from 'components/DateRangeSelector'
+import DateRangeSelector from '@wps/ui/DateRangeSelector'
 
 const PREFIX = 'MoreCast2DateRangePicker'
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { FireShape, FireZoneFuelStats } from 'api/fbaAPI'
+import { FireShape, FireZoneFuelStats } from '@wps/api/fbaAPI'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { groupBy, isUndefined } from 'lodash'
 import FuelDistribution from 'features/fba/components/viz/FuelDistribution'

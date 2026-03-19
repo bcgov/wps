@@ -1,6 +1,6 @@
 import { Table, TableBody, TableRow } from '@mui/material'
 import { render, waitFor, screen, within } from '@testing-library/react'
-import { WeatherStation } from 'api/hfiCalculatorAPI'
+import { WeatherStation } from '@wps/api/hfiCalculatorAPI'
 import StationSelectCell from 'features/hfiCalculator/components/StationSelectCell'
 import { vi } from 'vitest'
 

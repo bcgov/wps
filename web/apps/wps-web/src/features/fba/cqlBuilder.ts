@@ -1,4 +1,4 @@
-import { RunType } from '@/api/fbaAPI'
+import { RunType } from '@wps/api/fbaAPI'
 import { DateTime } from 'luxon'
 
 /**

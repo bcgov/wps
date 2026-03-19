@@ -1,5 +1,5 @@
 import { styled } from '@mui/material'
-import { BACKGROUND_COLOR } from 'app/theme'
+import { BACKGROUND_COLOR } from '@wps/ui/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { isNull, isUndefined } from 'lodash'

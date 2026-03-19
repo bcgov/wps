@@ -2,7 +2,7 @@ import React from 'react'
 import * as ReactDOMClient from 'react-dom/client'
 import { Provider } from 'react-redux'
 import App from 'app/App'
-import { SENTRY_DSN, SENTRY_ENV, API_BASE_URL } from 'utils/env'
+import { SENTRY_DSN, SENTRY_ENV, API_BASE_URL } from '@wps/utils/env'
 
 import './index.css'
 import store from 'app/store'

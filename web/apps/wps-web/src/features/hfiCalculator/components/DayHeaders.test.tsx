@@ -3,10 +3,10 @@ import { render } from '@testing-library/react'
 import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
 import { DateTime } from 'luxon'
 import { range } from 'lodash'
-import { PrepDateRange } from 'api/hfiCalculatorAPI'
+import { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import { calculateNumPrepDays } from 'features/hfiCalculator/util'
 
-import { pstFormatter } from 'utils/date'
+import { pstFormatter } from '@wps/utils/date'
 
 const prepCycleIteration = (dateRange: PrepDateRange) => {
   const numPrepDays = calculateNumPrepDays(dateRange)

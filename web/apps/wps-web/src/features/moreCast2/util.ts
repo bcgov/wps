@@ -1,9 +1,9 @@
 import { DateTime, Interval } from 'luxon'
-import { ModelChoice, MoreCast2ForecastRecord, WeatherDeterminate } from 'api/moreCast2API'
+import { ModelChoice, MoreCast2ForecastRecord, WeatherDeterminate } from '@wps/api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
-import { StationGroupMember } from 'api/stationAPI'
+import { StationGroupMember } from '@wps/api/stationAPI'
 import { groupBy, isUndefined } from 'lodash'
-import { getDateTimeNowPST } from 'utils/date'
+import { getDateTimeNowPST } from '@wps/utils/date'
 import { bui, dc, dmc, ffmc, fwi, isi } from '@psu/cffdrs_ts'
 import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
 

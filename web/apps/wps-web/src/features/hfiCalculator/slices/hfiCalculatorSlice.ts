@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
-import { logError } from 'utils/error'
+import { logError } from '@wps/utils/error'
 import {
   loadDefaultHFIResult,
   setNewFireStarts,
@@ -18,7 +18,7 @@ import {
   PrepDateRange,
   PlanningAreaResult,
   HFIResultResponse
-} from 'api/hfiCalculatorAPI'
+} from '@wps/api/hfiCalculatorAPI'
 
 import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isUndefined } from 'lodash'

@@ -1,6 +1,6 @@
 import { TableCell } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { UNSELECTED_STATION_COLOR } from 'app/theme'
+import { UNSELECTED_STATION_COLOR } from '@wps/ui/theme'
 import React from 'react'
 
 export const SelectedIntensityGroupCell = styled(TableCell, { name: 'intensityGroupCell' })({

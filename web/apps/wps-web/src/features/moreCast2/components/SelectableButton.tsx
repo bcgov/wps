@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { Button } from '@mui/material'
-import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from 'app/theme'
+import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from '@wps/ui/theme'
 import styled from '@emotion/styled'
 
 const StyledButton = styled(Button)(() => ({

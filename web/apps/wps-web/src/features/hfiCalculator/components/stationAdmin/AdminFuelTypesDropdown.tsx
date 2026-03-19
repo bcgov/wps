@@ -1,6 +1,6 @@
 import { TextField, Autocomplete } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { FuelType } from 'api/hfiCalculatorAPI'
+import { FuelType } from '@wps/api/hfiCalculatorAPI'
 import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isEqual, isNull, isUndefined } from 'lodash'
 import React from 'react'

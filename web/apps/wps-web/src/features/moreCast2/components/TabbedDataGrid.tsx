@@ -15,7 +15,7 @@ import {
   WeatherDeterminate,
   WeatherDeterminateType,
   submitMoreCastForecastRecords
-} from 'api/moreCast2API'
+} from '@wps/api/moreCast2API'
 import { getTabColumnGroupModel, ColumnVis, DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
@@ -28,18 +28,18 @@ import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import { ROLES } from 'features/auth/roles'
 import { selectAuthentication } from 'app/rootReducer'
-import { DateRange } from 'components/dateRangePicker/types'
+import { DateRange } from '@wps/ui/dateRangePicker/types'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import { getRowsToSave, isForecastRowPredicate, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
-import { MoreCastParams, theme } from 'app/theme'
+import { MoreCastParams, theme } from '@wps/ui/theme'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
-import { getDateTimeNowPST } from 'utils/date'
+import { getDateTimeNowPST } from '@wps/utils/date'
 import { setRequiredInputEmpty } from '@/features/moreCast2/slices/validInputSlice'
-import AboutDataPopover from '@/components/AboutDataPopover'
+import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import MorecastAboutDataContent from '@/features/moreCast2/components/MorecastAboutDataContent'
 
 export interface ColumnClickHandlerProps {

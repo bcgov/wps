@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { StationGroupMember } from 'api/stationAPI'
+import { StationGroupMember } from '@wps/api/stationAPI'
 import { RootState } from 'app/rootReducer'
 
 export interface SelectedStationState {

@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getAllReadyStates, ReadyPlanningAreaDetails, toggleReadyState, PrepDateRange } from 'api/hfiCalculatorAPI'
+import { getAllReadyStates, ReadyPlanningAreaDetails, toggleReadyState, PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import { AppThunk } from 'app/store'
-import { logError } from 'utils/error'
-import { getErrorMessage } from 'utils/getError'
+import { logError } from '@wps/utils/error'
+import { getErrorMessage } from '@wps/utils/getError'
 
 export interface HFIReadyState {
   loading: boolean

@@ -1,8 +1,8 @@
 import React from 'react'
 import { Box, ListItem, ListItemIcon, Typography } from '@mui/material'
-import { FireShapeStatusDetail } from 'api/fbaAPI'
+import { FireShapeStatusDetail } from '@wps/api/fbaAPI'
 import { useTheme } from '@mui/material/styles'
-import { TRANSPARENT_COLOUR } from 'app/theme'
+import { TRANSPARENT_COLOUR } from '@wps/ui/theme'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 
 interface FireZoneUnitInfoProps {

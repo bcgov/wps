@@ -3,7 +3,7 @@ import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid-pro'
 import { GridStateColDef } from '@mui/x-data-grid-pro/internals'
 import { render } from '@testing-library/react'
-import { ModelChoice, WeatherDeterminate, WeatherDeterminateChoices, weatherModelsWithTooltips } from 'api/moreCast2API'
+import { ModelChoice, WeatherDeterminate, WeatherDeterminateChoices, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { GC_HEADER } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   GridComponentRenderer,
@@ -14,7 +14,7 @@ import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDat
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { vi } from 'vitest'
-import { theme } from 'app/theme'
+import { theme } from '@wps/ui/theme'
 import { MoreCast2Row } from '@/features/moreCast2/interfaces'
 
 describe('GridComponentRenderer', () => {

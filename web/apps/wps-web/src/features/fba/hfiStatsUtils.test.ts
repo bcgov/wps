@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { filterHFIFuelStatsByArea, FUEL_AREA_THRESHOLD } from './hfiStatsUtils'
-import { FireCentreHFIStats, FireZoneFuelStats } from '@/api/fbaAPI'
+import { FireCentreHFIStats, FireZoneFuelStats } from '@wps/api/fbaAPI'
 import {
   createMockCriticalHours,
   createMockFuelType,

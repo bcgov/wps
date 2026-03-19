@@ -1,4 +1,4 @@
-import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
+import { ModelChoice, WeatherDeterminate } from '@wps/api/moreCast2API'
 import {
   ColumnDefBuilder,
   DEFAULT_COLUMN_WIDTH,

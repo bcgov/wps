@@ -1,5 +1,5 @@
 import React from 'react'
-import { PlanningArea } from 'api/hfiCalculatorAPI'
+import { PlanningArea } from '@wps/api/hfiCalculatorAPI'
 import { Typography, Box, IconButton } from '@mui/material'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import ExistingStationList from 'features/hfiCalculator/components/stationAdmin/ExistingStationList'

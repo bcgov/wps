@@ -3,7 +3,7 @@ import { FireWatchDetailsModalProps } from '@/features/fireWatch/components/Fire
 import { BurnStatusEnum, FireWatch, FuelTypeEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
 import burnForecastSlice, { initialState } from '@/features/fireWatch/slices/burnForecastSlice'
 import { createTestStore } from '@/test/testUtils'
-import { MUI_LICENSE } from '@/utils/env'
+import { MUI_LICENSE } from '@wps/utils/env'
 import { LicenseInfo } from '@mui/x-data-grid-pro'
 import { combineReducers } from '@reduxjs/toolkit'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'

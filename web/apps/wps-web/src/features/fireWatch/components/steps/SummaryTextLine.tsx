@@ -1,4 +1,4 @@
-import { theme } from '@/app/theme'
+import { theme } from '@wps/ui/theme'
 import { Box, Typography } from '@mui/material'
 
 interface SummaryLineTextProps {

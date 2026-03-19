@@ -2,9 +2,9 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
 import { jwtDecode } from 'jwt-decode'
-import { logError } from 'utils/error'
+import { logError } from '@wps/utils/error'
 import { isUndefined } from 'lodash'
-import { TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL, KC_CLIENT } from 'utils/env'
+import { TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL, KC_CLIENT } from '@wps/utils/env'
 import { ROLES } from 'features/auth/roles'
 import { getKeycloakInstance, kcInitOptions } from 'features/auth/keycloak'
 

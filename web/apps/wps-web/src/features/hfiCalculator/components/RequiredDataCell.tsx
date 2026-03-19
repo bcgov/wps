@@ -1,5 +1,5 @@
 import { TableCell } from '@mui/material'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { StationDaily } from '@wps/api/hfiCalculatorAPI'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { UnSelectedTableCell } from 'features/hfiCalculator/components/StyledTableComponents'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'

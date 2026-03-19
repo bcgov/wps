@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import CreateIcon from '@mui/icons-material/Create'
 import DashboardIcon from '@mui/icons-material/Dashboard'
-import { DRAWER_WIDTH } from '@/utils/constants'
+import { DRAWER_WIDTH } from '@wps/utils/constants'
 import { SetStateAction } from 'react'
 
 export enum FireWatchViewEnum {

@@ -1,5 +1,5 @@
 import { Table, TableBody, TableRow, styled } from '@mui/material'
-import StickyCell from 'components/StickyCell'
+import StickyCell from '@wps/ui/StickyCell'
 import {
   NoBottomBorderCell,
   NonStickyHeaderCell,

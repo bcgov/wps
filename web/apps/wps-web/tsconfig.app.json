@@ -18,17 +18,7 @@
       "@wps/types": ["../../packages/types/src/index"],
       "@wps/types/*": ["../../packages/types/src/*"],
       "@wps/ui": ["../../packages/ui/src/index"],
-      "@wps/ui/*": ["../../packages/ui/src/*"],
-      "@/app/theme": ["../../packages/ui/src/theme"],
-      "@/api/*": ["../../packages/api/src/*"],
-      "@/utils/*": ["../../packages/utils/src/*"],
-      "@/components/*": ["../../packages/ui/src/*"],
-      "app/theme": ["../../packages/ui/src/theme"],
-      "utils/*": ["../../packages/utils/src/*"],
-      "api/*": ["../../packages/api/src/*"],
-      "components/*": ["../../packages/ui/src/*"],
-      "components": ["../../packages/ui/src/index"],
-      "types/*": ["../../packages/types/src/*"]
+      "@wps/ui/*": ["../../packages/ui/src/*"]
     }
   },
   "references": [

@@ -1,5 +1,5 @@
 import { TableCell } from '@mui/material'
-import { FireStartRange, FuelType, PlanningArea, PlanningAreaResult, StationInfo } from 'api/hfiCalculatorAPI'
+import { FireStartRange, FuelType, PlanningArea, PlanningAreaResult, StationInfo } from '@wps/api/hfiCalculatorAPI'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
 import { range } from 'lodash'

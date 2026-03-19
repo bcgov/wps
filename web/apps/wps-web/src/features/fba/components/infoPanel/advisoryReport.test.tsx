@@ -1,7 +1,7 @@
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import { render } from '@testing-library/react'
 import { DateTime } from 'luxon'
-import { FireCenter } from 'api/fbaAPI'
+import { FireCenter } from '@wps/api/fbaAPI'
 
 import { Provider } from 'react-redux'
 import { createTestStore } from '@/test/testUtils'

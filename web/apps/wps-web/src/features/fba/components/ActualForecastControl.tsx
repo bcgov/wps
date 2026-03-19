@@ -1,8 +1,8 @@
 import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material'
 import React from 'react'
 import { isNull } from 'lodash'
-import { theme } from 'app/theme'
-import { RunType } from '@/api/fbaAPI'
+import { theme } from '@wps/ui/theme'
+import { RunType } from '@wps/api/fbaAPI'
 
 export interface ActualForecastControlProps {
   runType: RunType

@@ -6,8 +6,8 @@ import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { isNull, isUndefined } from 'lodash'
 import { Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { INFO_PANEL_CONTENT_BACKGROUND } from 'app/theme'
-import { FireCentres } from 'utils/constants'
+import { INFO_PANEL_CONTENT_BACKGROUND } from '@wps/ui/theme'
+import { FireCentres } from '@wps/utils/constants'
 
 export const NO_DATA_MESSAGE = 'Choose a date of interest above.'
 

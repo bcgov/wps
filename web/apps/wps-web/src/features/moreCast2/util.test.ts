@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { ModelChoice } from 'api/moreCast2API'
+import { ModelChoice } from '@wps/api/moreCast2API'
 import {
   createDateInterval,
   createWeatherModelLabel,

@@ -1,6 +1,6 @@
 import { Typography } from '@mui/material'
 import { GridColumnVisibilityModel, GridColDef, GridColumnGroup } from '@mui/x-data-grid-pro'
-import { WeatherDeterminate } from 'api/moreCast2API'
+import { WeatherDeterminate } from '@wps/api/moreCast2API'
 import { ORDERED_COLUMN_HEADERS } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   MORECAST2_FIELDS,
@@ -12,7 +12,7 @@ import {
 } from 'features/moreCast2/components/MoreCast2Column'
 import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import { ColumnClickHandlerProps, handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
-import { MoreCastParams } from 'app/theme'
+import { MoreCastParams } from '@wps/ui/theme'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { GridComponentRenderer } from '@/features/moreCast2/components/GridComponentRenderer'
 

@@ -8,7 +8,7 @@ import {
   FuelTypeEnum,
   PrescriptionEnum
 } from '@/features/fireWatch/interfaces'
-import axios from 'api/axios'
+import axios from '@wps/api/axios'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 

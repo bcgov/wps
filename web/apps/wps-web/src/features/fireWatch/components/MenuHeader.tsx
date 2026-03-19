@@ -1,7 +1,7 @@
-import { FIRE_WATCH_NAME } from "@/utils/constants";
+import { FIRE_WATCH_NAME } from "@wps/utils/constants";
 import { IconButton, AppBar, styled, Toolbar, Typography } from "@mui/material"
 import MenuIcon from '@mui/icons-material/Menu'
-import HeaderImage from "@/components/HeaderImage";
+import HeaderImage from "@wps/ui/HeaderImage";
 
 interface MenuHeaderProps {
     open: boolean

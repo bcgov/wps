@@ -1,6 +1,6 @@
 import React from 'react'
 import { styled, useTheme } from '@mui/material/styles'
-import { theme } from 'app/theme'
+import { theme } from '@wps/ui/theme'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { Link } from 'react-router-dom'
 

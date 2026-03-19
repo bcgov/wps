@@ -1,4 +1,4 @@
-import { FireZoneFuelStats } from '@/api/fbaAPI'
+import { FireZoneFuelStats } from '@wps/api/fbaAPI'
 import { isNil } from 'lodash'
 
 /**

@@ -1,9 +1,9 @@
 import { render } from '@testing-library/react'
 import FireZoneUnitInfo from 'features/fba/components/infoPanel/FireZoneUnitInfo'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from 'features/fba/components/map/featureStylers'
-import { TRANSPARENT_COLOUR } from 'app/theme'
-import { FireShapeStatusDetail } from 'api/fbaAPI'
-import { AdvisoryStatus } from '@/utils/constants'
+import { TRANSPARENT_COLOUR } from '@wps/ui/theme'
+import { FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { AdvisoryStatus } from '@wps/utils/constants'
 
 const fireShapeStatusDetailA: FireShapeStatusDetail = {
   fire_shape_id: 1,

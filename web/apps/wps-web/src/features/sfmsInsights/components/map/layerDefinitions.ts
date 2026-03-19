@@ -1,6 +1,6 @@
 import { PMTilesVectorSource } from 'ol-pmtiles'
 import { FetchSource } from 'pmtiles'
-import { API_BASE_URL } from 'utils/env'
+import { API_BASE_URL } from '@wps/utils/env'
 import {
   fuelCOGColourExpression,
   getFireWeatherColourExpression,
@@ -12,7 +12,7 @@ import WebGLTile from 'ol/layer/WebGLTile'
 import GeoTIFF from 'ol/source/GeoTIFF'
 import { boundingExtent } from 'ol/extent'
 import { fromLonLat } from 'ol/proj'
-import { BC_EXTENT } from '@/utils/constants'
+import { BC_EXTENT } from '@wps/utils/constants'
 import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 export const BASEMAP_LAYER_NAME = 'basemapLayer'

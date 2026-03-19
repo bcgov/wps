@@ -8,7 +8,7 @@ import OLOverlay from 'ol/Overlay'
 import View from 'ol/View'
 import { defaults as defaultControls } from 'ol/control'
 
-import { Button, ErrorBoundary } from 'components'
+import { Button, ErrorBoundary } from '@wps/ui'
 import { ObjectEvent } from 'ol/Object'
 import { useDispatch } from 'react-redux'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'

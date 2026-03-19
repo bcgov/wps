@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react'
 import { DateTime } from 'luxon'
-import { Container, ErrorBoundary, GeneralHeader } from 'components'
+import { Container, ErrorBoundary, GeneralHeader } from '@wps/ui'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-import { FireCentre, FireStartRange } from 'api/hfiCalculatorAPI'
+import { FireCentre, FireStartRange } from '@wps/api/hfiCalculatorAPI'
 import {
   setSelectedFireCentre,
   fetchSetNewFireStarts,
@@ -29,15 +29,15 @@ import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHe
 import { isNull, isUndefined } from 'lodash'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
 import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
-import { DateRange } from 'components/dateRangePicker/types'
+import { DateRange } from '@wps/ui/dateRangePicker/types'
 import { AppDispatch } from 'app/store'
 import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
 import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
 import { ROLES } from 'features/auth/roles'
 import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
-import { HFI_CALC_DOC_TITLE, HFI_CALC_NAME } from 'utils/constants'
-import { theme } from 'app/theme'
-import { StyledFormControl } from 'components/StyledFormControl'
+import { HFI_CALC_DOC_TITLE, HFI_CALC_NAME } from '@wps/utils/constants'
+import { theme } from '@wps/ui/theme'
+import { StyledFormControl } from '@wps/ui/StyledFormControl'
 
 export const HFIPageContainer = styled(Container)({
   display: 'flex',

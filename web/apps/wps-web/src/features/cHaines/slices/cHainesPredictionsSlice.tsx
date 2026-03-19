@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getCHainesGeoJSON } from 'api/cHainesAPI'
+import { getCHainesGeoJSON } from '@wps/api/cHainesAPI'
 import { AppThunk } from 'app/store'
-import { logError } from 'utils/error'
+import { logError } from '@wps/utils/error'
 import { FeatureCollection } from 'geojson'
 
 export interface CHainesPredictionState {

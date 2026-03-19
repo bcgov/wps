@@ -3,7 +3,7 @@ import {
   WeatherDeterminateChoices,
   WeatherIndeterminate,
   WeatherIndeterminatePayload
-} from 'api/moreCast2API'
+} from '@wps/api/moreCast2API'
 import dataSliceReducer, {
   createMoreCast2Rows,
   fillMissingPredictions,

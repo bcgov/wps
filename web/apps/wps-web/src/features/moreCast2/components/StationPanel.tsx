@@ -14,7 +14,7 @@ import {
   CircularProgress
 } from '@mui/material'
 import StationGroupDropdown from 'features/moreCast2/components/StationGroupDropdown'
-import { StationGroup, StationGroupMember } from 'api/stationAPI'
+import { StationGroup, StationGroupMember } from '@wps/api/stationAPI'
 import { AppDispatch } from 'app/store'
 import { selectedStationsChanged, selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 

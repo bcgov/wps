@@ -6,10 +6,10 @@ import { TextField, Link } from '@mui/material'
 import LaunchIcon from '@mui/icons-material/Launch'
 
 import { selectPercentileStations } from 'app/rootReducer'
-import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
-import { ErrorMessage } from 'components/ErrorMessage'
-import { getSelectedStationOptions, Option } from 'utils/dropdown'
-import type { GeoJsonStation } from 'types/stationTypes'
+import { WEATHER_STATION_MAP_LINK } from '@wps/utils/constants'
+import { ErrorMessage } from '@wps/ui/ErrorMessage'
+import { getSelectedStationOptions, Option } from '@wps/utils/dropdown'
+import type { GeoJsonStation } from '@wps/types/stationTypes'
 
 const PREFIX = 'WxStationDropdown'
 

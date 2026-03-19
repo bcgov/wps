@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography'
 import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 import ElevationLabel from 'features/fba/components/viz/ElevationLabel'
 import { Box } from '@mui/material'
-import { FireZoneTPIStats } from '@/api/fbaAPI'
+import { FireZoneTPIStats } from '@wps/api/fbaAPI'
 import Mountain from 'features/fba/images/mountain.png'
 
 enum ElevationOption {

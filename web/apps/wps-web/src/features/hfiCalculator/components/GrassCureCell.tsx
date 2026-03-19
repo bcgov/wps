@@ -2,7 +2,7 @@ import { TableCell } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import React from 'react'
 import { isNull } from 'lodash'
-import { UNSELECTED_STATION_COLOR } from 'app/theme'
+import { UNSELECTED_STATION_COLOR } from '@wps/ui/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 
 const DefaultGrassFuelCell = styled(TableCell)({

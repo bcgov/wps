@@ -1,5 +1,5 @@
 import { TextField, Autocomplete, FilterOptionsState, Box, Checkbox, FormControlLabel } from '@mui/material'
-import { StationGroup } from 'api/stationAPI'
+import { StationGroup } from '@wps/api/stationAPI'
 import { isUndefined, sortBy } from 'lodash'
 import { matchSorter, rankings } from 'match-sorter'
 import React, { useEffect, useState } from 'react'

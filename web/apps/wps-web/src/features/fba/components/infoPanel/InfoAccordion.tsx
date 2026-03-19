@@ -3,8 +3,8 @@ import React from 'react'
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { INFO_PANEL_CONTENT_BACKGROUND, INFO_PANEL_HEADER_BACKGROUND } from 'app/theme'
-import { AdvisoryStatus } from '@/utils/constants'
+import { INFO_PANEL_CONTENT_BACKGROUND, INFO_PANEL_HEADER_BACKGROUND } from '@wps/ui/theme'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_LINE } from '@/features/fba/components/map/featureStylers'
 
 const getAdvisoryBarColour = (advisoryStatus?: AdvisoryStatus | null) => {

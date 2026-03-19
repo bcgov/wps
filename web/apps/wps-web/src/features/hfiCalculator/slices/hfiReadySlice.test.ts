@@ -1,4 +1,4 @@
-import { ReadyPlanningAreaDetails } from 'api/hfiCalculatorAPI'
+import { ReadyPlanningAreaDetails } from '@wps/api/hfiCalculatorAPI'
 import hfiReadyReducer, {
   initialState,
   setHFIReadyStart,

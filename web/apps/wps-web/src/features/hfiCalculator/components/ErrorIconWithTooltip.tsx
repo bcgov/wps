@@ -1,7 +1,7 @@
 import { createTheme, StyledEngineProvider, ThemeProvider, Tooltip } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import { BACKGROUND_COLOR, PLANNING_AREA } from 'app/theme'
+import { BACKGROUND_COLOR, PLANNING_AREA } from '@wps/ui/theme'
 import { isUndefined } from 'lodash'
 import React from 'react'
 

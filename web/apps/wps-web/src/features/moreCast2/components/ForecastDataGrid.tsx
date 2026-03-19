@@ -12,8 +12,8 @@ import {
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { LinearProgress } from '@mui/material'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
-import { ModelChoice } from 'api/moreCast2API'
-import { MORECAST_MODEL_COLORS, MORECAST_WEATHER_PARAMS, MoreCastModelColors, MoreCastParams } from 'app/theme'
+import { ModelChoice } from '@wps/api/moreCast2API'
+import { MORECAST_MODEL_COLORS, MORECAST_WEATHER_PARAMS, MoreCastModelColors, MoreCastParams } from '@wps/ui/theme'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { PINNED_COLUMNS } from 'features/moreCast2/components/ColumnDefBuilder'
 

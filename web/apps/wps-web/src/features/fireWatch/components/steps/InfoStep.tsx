@@ -1,4 +1,4 @@
-import type { GeoJsonStation } from 'types/stationTypes'
+import type { GeoJsonStation } from '@wps/types/stationTypes'
 import { selectFireWatchFireCentres, selectFireWeatherStations } from '@/app/rootReducer'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 import { FireWatch, FireWatchFireCentre } from '@/features/fireWatch/interfaces'
@@ -6,7 +6,7 @@ import { Autocomplete, Box, Step, TextField, Typography, useTheme } from '@mui/m
 import { isEqual, isNull } from 'lodash'
 import { SetStateAction, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { Option as StationOption } from 'utils/dropdown'
+import { Option as StationOption } from '@wps/utils/dropdown'
 
 interface InfoStepProps {
   fireWatch: FireWatch

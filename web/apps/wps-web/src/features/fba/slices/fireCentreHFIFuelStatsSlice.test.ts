@@ -1,4 +1,4 @@
-import { AdvisoryCriticalHours, AdvisoryMinWindStats, FireCentreHFIStats, FuelType, HfiThreshold } from '@/api/fbaAPI'
+import { AdvisoryCriticalHours, AdvisoryMinWindStats, FireCentreHFIStats, FuelType, HfiThreshold } from '@wps/api/fbaAPI'
 import fireCentreHFIFuelStatsReducer, {
   getFireCentreHFIFuelStatsFailed,
   getFireCentreHFIFuelStatsSuccess,

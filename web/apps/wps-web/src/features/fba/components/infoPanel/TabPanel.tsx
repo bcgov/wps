@@ -1,6 +1,6 @@
 import { Box } from '@mui/material'
 import React from 'react'
-import { theme } from 'app/theme'
+import { theme } from '@wps/ui/theme'
 
 interface TabPanelProps {
   children?: React.ReactNode

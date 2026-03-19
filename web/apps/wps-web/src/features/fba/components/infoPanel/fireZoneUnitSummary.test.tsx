@@ -1,5 +1,5 @@
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
-import { FireShape } from 'api/fbaAPI'
+import { FireShape } from '@wps/api/fbaAPI'
 import { render } from '@testing-library/react'
 
 const fireZoneTPIStats = {

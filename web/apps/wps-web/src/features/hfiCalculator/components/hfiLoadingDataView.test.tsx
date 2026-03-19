@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react'
-import { FireCentre, PrepDateRange } from 'api/hfiCalculatorAPI'
+import { FireCentre, PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
 
 

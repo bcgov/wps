@@ -1,6 +1,6 @@
 import { Table, TableBody, TableRow, styled } from '@mui/material'
-import { FireCentre } from 'api/hfiCalculatorAPI'
-import StickyCell from 'components/StickyCell'
+import { FireCentre } from '@wps/api/hfiCalculatorAPI'
+import StickyCell from '@wps/ui/StickyCell'
 import { FireCell } from 'features/hfiCalculator/components/StyledFireComponents'
 import React from 'react'
 

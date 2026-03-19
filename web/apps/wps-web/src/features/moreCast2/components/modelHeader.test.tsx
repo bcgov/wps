@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import ModelHeader from './ModelHeader'
-import { WeatherDeterminate, weatherModelsWithTooltips } from '@/api/moreCast2API'
+import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { MoreCast2Row } from '@/features/moreCast2/interfaces'
 
 describe('ModelHeader', () => {

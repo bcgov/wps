@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { TextField, Tooltip } from '@mui/material'
-import { theme } from 'app/theme'
+import { theme } from '@wps/ui/theme'
 import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 
 interface ActualCellProps {

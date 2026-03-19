@@ -1,8 +1,8 @@
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { render } from '@testing-library/react'
-import { AdvisoryStatus } from '@/utils/constants'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_LINE } from '@/features/fba/components/map/featureStylers'
-import { INFO_PANEL_CONTENT_BACKGROUND } from '@/app/theme'
+import { INFO_PANEL_CONTENT_BACKGROUND } from '@wps/ui/theme'
 
 describe('InfoAccordion', () => {
   it('should render', () => {

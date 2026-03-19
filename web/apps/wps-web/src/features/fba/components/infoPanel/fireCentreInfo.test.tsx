@@ -1,8 +1,8 @@
 import { vi } from 'vitest'
 import { render } from '@testing-library/react'
 import FireCentreInfo from 'features/fba/components/infoPanel/FireCentreInfo'
-import { FireShapeStatusDetail } from 'api/fbaAPI'
-import { AdvisoryStatus } from '@/utils/constants'
+import { FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { AdvisoryStatus } from '@wps/utils/constants'
 
 describe('FireCentreInfo', () => {
   it('should render', () => {

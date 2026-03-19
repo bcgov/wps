@@ -1,5 +1,5 @@
 import { createTheme, LinearProgress, TableCell, TableRow, ThemeProvider, StyledEngineProvider } from '@mui/material'
-import { theme } from 'app/theme'
+import { theme } from '@wps/ui/theme'
 
 import React from 'react'
 

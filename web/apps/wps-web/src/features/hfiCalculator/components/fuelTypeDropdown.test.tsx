@@ -1,6 +1,6 @@
 import { render, within, waitFor } from '@testing-library/react'
 import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
-import { FuelType } from 'api/hfiCalculatorAPI'
+import { FuelType } from '@wps/api/hfiCalculatorAPI'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 

@@ -5,7 +5,7 @@ import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tabl
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNil, isUndefined } from 'lodash'
 import React, { ChangeEvent, useState, useEffect } from 'react'
-import { adjustedTheme } from 'app/theme'
+import { adjustedTheme } from '@wps/ui/theme'
 
 const PREFIX = 'WindSpeedCell'
 

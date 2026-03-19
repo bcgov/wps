@@ -1,4 +1,4 @@
-import { KC_AUTH_URL, KC_REALM, KC_CLIENT } from 'utils/env'
+import { KC_AUTH_URL, KC_REALM, KC_CLIENT } from '@wps/utils/env'
 import Keycloak, { KeycloakInitOptions } from 'keycloak-js'
 
 export const kcInitOptions: KeycloakInitOptions = {

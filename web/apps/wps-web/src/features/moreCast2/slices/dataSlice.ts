@@ -8,7 +8,7 @@ import {
   WeatherDeterminate,
   WeatherDeterminateChoices,
   WeatherDeterminateType
-} from 'api/moreCast2API'
+} from '@wps/api/moreCast2API'
 import { AppThunk } from 'app/store'
 import {
   createDateInterval,
@@ -18,10 +18,10 @@ import {
   fillForecastsFromRows
 } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
-import { logError } from 'utils/error'
+import { logError } from '@wps/utils/error'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
-import { StationGroupMember } from 'api/stationAPI'
+import { StationGroupMember } from '@wps/api/stationAPI'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 
 const morecastDraftForecast = new MorecastDraftForecast(localStorage)

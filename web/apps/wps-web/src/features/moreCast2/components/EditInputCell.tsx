@@ -1,7 +1,7 @@
 import { GridRenderEditCellParams, useGridApiContext } from '@mui/x-data-grid-pro'
 import React, { useRef, useEffect } from 'react'
 import { TextField } from '@mui/material'
-import { theme } from '@/app/theme'
+import { theme } from '@wps/ui/theme'
 import { isEmpty } from 'lodash'
 import { AppDispatch } from '@/app/store'
 import { useDispatch } from 'react-redux'

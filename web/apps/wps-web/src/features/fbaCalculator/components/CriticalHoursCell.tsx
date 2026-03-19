@@ -1,4 +1,4 @@
-import { CriticalHoursHFI } from 'api/fbaCalcAPI'
+import { CriticalHoursHFI } from '@wps/api/fbaCalcAPI'
 import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import React from 'react'
 

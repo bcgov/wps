@@ -5,7 +5,7 @@ import fireCentreTPIStatsReducer, {
   getFireCentreTPIStatsSuccess
 } from './fireCentreTPIStatsSlice'
 import type { CentreTPIStatsState } from './fireCentreTPIStatsSlice'
-import type { FireCentreTPIResponse } from 'api/fbaAPI'
+import type { FireCentreTPIResponse } from '@wps/api/fbaAPI'
 
 const mockFireCentreTPIResponse: FireCentreTPIResponse = {
   fire_centre_name: 'Cariboo Fire Centre',

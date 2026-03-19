@@ -2,7 +2,7 @@ import React from 'react'
 import { styled } from '@mui/material/styles'
 import { Button } from '@mui/material'
 import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
-import { theme } from 'app/theme'
+import { theme } from '@wps/ui/theme'
 import { isEmpty, isUndefined, some } from 'lodash'
 
 const PREFIX = 'SaveStationUpdatesButton'

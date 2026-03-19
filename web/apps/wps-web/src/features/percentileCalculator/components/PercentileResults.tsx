@@ -5,10 +5,10 @@ import { useSelector } from 'react-redux'
 import { selectPercentiles } from 'app/rootReducer'
 import { PercentileMeanResultTable } from 'features/percentileCalculator/components/PercentileMeanResultTable'
 import { PercentileStationResultTable } from 'features/percentileCalculator/components/PercentileStationResultTable'
-import { ErrorMessage } from 'components/ErrorMessage'
-import { GridItem, GridContainer } from 'components/Grid'
+import { ErrorMessage } from '@wps/ui/ErrorMessage'
+import { GridItem, GridContainer } from '@wps/ui/Grid'
 import { PercentileCalcDocumentation } from 'features/percentileCalculator/components/PercentileCalcDocumentation'
-import { PercentilesResponse } from 'api/percentileAPI'
+import { PercentilesResponse } from '@wps/api/percentileAPI'
 
 const PREFIX = 'PercentileResultsWrapper'
 

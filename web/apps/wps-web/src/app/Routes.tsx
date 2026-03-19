@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 
-import { HIDE_DISCLAIMER } from 'utils/env'
+import { HIDE_DISCLAIMER } from '@wps/utils/env'
 import AuthWrapper from 'features/auth/components/AuthWrapper'
 const PercentileCalculatorPageWithDisclaimer = lazy(
   () => import('features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer')
@@ -19,7 +19,7 @@ import {
   MORE_CAST_2_ROUTE,
   SFMS_INSIGHTS_ROUTE,
   FIRE_WATCH_ROUTE
-} from 'utils/constants'
+} from '@wps/utils/constants'
 import { NoMatchPage } from 'features/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
 const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBehaviourAdvisoryPage'))

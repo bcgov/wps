@@ -1,6 +1,6 @@
-import { RunType } from '@/api/fbaAPI'
+import { RunType } from '@wps/api/fbaAPI'
 import { createLayerMock } from '@/test/testUtils'
-import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { render } from '@testing-library/react'
 import store from 'app/store'
 import FBAMap from 'features/fba/components/map/FBAMap'

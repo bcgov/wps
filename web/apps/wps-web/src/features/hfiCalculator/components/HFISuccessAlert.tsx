@@ -7,7 +7,7 @@ import { setChangeSaved } from 'features/hfiCalculator/slices/hfiCalculatorSlice
 import { AppDispatch } from 'app/store'
 import { setToggleSuccess } from 'features/hfiCalculator/slices/hfiReadySlice'
 import { isEqual } from 'lodash'
-import { theme } from 'app/theme'
+import { theme } from '@wps/ui/theme'
 
 const PREFIX = 'HFISuccessAlert'
 

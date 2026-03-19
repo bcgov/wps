@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FuelType, PlanningArea } from 'api/hfiCalculatorAPI'
+import { FuelType, PlanningArea } from '@wps/api/hfiCalculatorAPI'
 import { sortBy, maxBy, findIndex, every, isUndefined } from 'lodash'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { Box } from '@mui/material'

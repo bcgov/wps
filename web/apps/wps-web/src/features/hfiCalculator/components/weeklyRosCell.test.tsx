@@ -1,6 +1,6 @@
 import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
-import { StationDaily } from 'api/hfiCalculatorAPI'
+import { StationDaily } from '@wps/api/hfiCalculatorAPI'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import { buildStationDaily } from 'features/hfiCalculator/components/testHelpers'
 

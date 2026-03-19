@@ -2,7 +2,7 @@ import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import { DraftMorecast2Rows } from 'features/moreCast2/interfaces'
 import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
 import { DateTime } from 'luxon'
-import * as DateUtils from 'utils/date'
+import * as DateUtils from '@wps/utils/date'
 import { vi } from 'vitest'
 
 const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00')

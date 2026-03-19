@@ -1,6 +1,6 @@
 import { TableRow, TableCell, styled } from '@mui/material'
-import { BACKGROUND_COLOR, PLANNING_AREA, UNSELECTED_STATION_COLOR, theme } from 'app/theme'
-import StickyCell from 'components/StickyCell'
+import { BACKGROUND_COLOR, PLANNING_AREA, UNSELECTED_STATION_COLOR, theme } from '@wps/ui/theme'
+import StickyCell from '@wps/ui/StickyCell'
 import HeaderRowCell from 'features/hfiCalculator/components/HeaderRowCell'
 
 export const PlanningAreaTableRow = styled(TableRow)({

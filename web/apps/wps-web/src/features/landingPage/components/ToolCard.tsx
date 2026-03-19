@@ -7,7 +7,7 @@ import CardActions from '@mui/material/CardActions'
 import CardContent from '@mui/material/CardContent'
 import { Link } from 'react-router-dom'
 import BetaTag from 'features/landingPage/components/BetaTag'
-import { theme } from '@/app/theme'
+import { theme } from '@wps/ui/theme'
 import CardHeader from '@mui/material/CardHeader'
 
 const PREFIX = 'ToolCard'

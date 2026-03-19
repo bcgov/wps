@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import FireZoneUnitTabs from './FireZoneUnitTabs'
-import { FireCenter, FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeStatusDetail } from 'api/fbaAPI'
+import { FireCenter, FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { combineReducers } from '@reduxjs/toolkit'
@@ -10,7 +10,7 @@ import fireCentreHFIFuelStatsSlice, {
   initialState as hfiInitialState
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
 import { Provider } from 'react-redux'
-import { AdvisoryStatus } from '@/utils/constants'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import { createTestStore } from '@/test/testUtils'
 
 const getAdvisoryDetails = (

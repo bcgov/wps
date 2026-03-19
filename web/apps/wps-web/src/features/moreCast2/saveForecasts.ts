@@ -1,5 +1,5 @@
 import { isBeforeToday } from 'features/moreCast2/util'
-import { ModelChoice } from 'api/moreCast2API'
+import { ModelChoice } from '@wps/api/moreCast2API'
 import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { isNil } from 'lodash'
 

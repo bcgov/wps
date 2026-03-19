@@ -1,6 +1,6 @@
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import { createLayerMock, createTestStore } from '@/test/testUtils'
-import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
+import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { render, screen } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import { Mock } from 'vitest'

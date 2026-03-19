@@ -9,9 +9,9 @@ import {
   formatCriticalHoursTimeText,
   getMinStartAndMaxEndTime
 } from '@/features/fba/criticalHoursStartEndTime'
-import { AdvisoryMinWindStats, FireCenter, FireShape, FireZoneFuelStats, FireZoneHFIStats } from 'api/fbaAPI'
+import { AdvisoryMinWindStats, FireCenter, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
-import { AdvisoryStatus } from 'utils/constants'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import { selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { useLoading } from '@/features/fba/hooks/useLoading'
 

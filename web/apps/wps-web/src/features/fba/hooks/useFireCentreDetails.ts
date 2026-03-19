@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { FireCenter, FireShapeStatusDetail } from 'api/fbaAPI'
+import { FireCenter, FireShapeStatusDetail } from '@wps/api/fbaAPI'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 
 /**

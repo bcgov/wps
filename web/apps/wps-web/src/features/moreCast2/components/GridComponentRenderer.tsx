@@ -6,7 +6,7 @@ import {
   GridValueGetterParams,
   GridValueSetterParams
 } from '@mui/x-data-grid-pro'
-import { ModelChoice, WeatherDeterminate } from 'api/moreCast2API'
+import { ModelChoice, WeatherDeterminate } from '@wps/api/moreCast2API'
 import { createWeatherModelLabel, isBeforeToday, isForecastRow, rowContainsActual } from 'features/moreCast2/util'
 import {
   GC_HEADER,
@@ -16,7 +16,7 @@ import {
   WIND_DIR_HEADER,
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
-import { theme } from 'app/theme'
+import { theme } from '@wps/ui/theme'
 import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { cloneDeep, isNumber } from 'lodash'

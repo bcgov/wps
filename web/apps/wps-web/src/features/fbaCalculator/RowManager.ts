@@ -1,10 +1,10 @@
-import { FBAStation } from 'api/fbaCalcAPI'
+import { FBAStation } from '@wps/api/fbaCalcAPI'
 import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/FBATable'
 import { formatCrownFractionBurned } from 'features/fbaCalculator/components/CrownFractionBurnedCell'
 import { formatCriticalHoursAsString } from 'features/fbaCalculator/components/CriticalHoursCell'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import _, { isNil, isNull, isUndefined, merge } from 'lodash'
-import { Order } from 'utils/constants'
+import { Order } from '@wps/utils/constants'
 export enum SortByColumn {
   Zone,
   Station,

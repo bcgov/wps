@@ -1,5 +1,5 @@
 import { TableCell } from '@mui/material'
-import { FuelType, StationDaily, WeatherStation } from 'api/hfiCalculatorAPI'
+import { FuelType, StationDaily, WeatherStation } from '@wps/api/hfiCalculatorAPI'
 import HFICell from 'features/fbaCalculator/components/HFICell'
 import EmptyStaticCells from 'features/hfiCalculator/components/EmptyStaticCells'
 import HighestDailyFIGCell from 'features/hfiCalculator/components/HighestDailyFIGCell'

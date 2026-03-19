@@ -1,5 +1,5 @@
 import { styled, TableCell } from '@mui/material'
-import { UNSELECTED_STATION_COLOR } from 'app/theme'
+import { UNSELECTED_STATION_COLOR } from '@wps/ui/theme'
 import React from 'react'
 
 export interface WeeklyROSCellProps {

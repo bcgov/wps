@@ -1,5 +1,5 @@
 import { TableRow, TableCell, styled } from '@mui/material'
-import { UNSELECTED_STATION_COLOR } from 'app/theme'
+import { UNSELECTED_STATION_COLOR } from '@wps/ui/theme'
 
 export const UnSelectedTableRow = styled(TableRow)({
   color: UNSELECTED_STATION_COLOR

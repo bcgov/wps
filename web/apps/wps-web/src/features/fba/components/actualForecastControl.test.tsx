@@ -2,7 +2,7 @@ import React from 'react'
 import { render, fireEvent } from '@testing-library/react'
 import ActualForecastControl from './ActualForecastControl'
 import { vi } from 'vitest'
-import { RunType } from '@/api/fbaAPI'
+import { RunType } from '@wps/api/fbaAPI'
 
 describe('ActualForecastControl', () => {
   const mockSetRunType = vi.fn()

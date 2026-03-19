@@ -1,10 +1,10 @@
 import React from 'react'
 import { CssBaseline } from '@mui/material'
 import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles'
-import { theme } from 'app/theme'
+import { theme } from '@wps/ui/theme'
 import WPSRoutes from 'app/Routes'
 import { LicenseInfo } from '@mui/x-license-pro'
-import { MUI_LICENSE } from 'utils/env'
+import { MUI_LICENSE } from '@wps/utils/env'
 
 LicenseInfo.setLicenseKey(MUI_LICENSE)
 

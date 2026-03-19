@@ -1,5 +1,5 @@
 import XYZ from 'ol/source/XYZ'
-import { RASTER_SERVER_BASE_URL } from 'utils/env'
+import { RASTER_SERVER_BASE_URL } from '@wps/utils/env'
 export const SFMS_MAX_ZOOM = 8 // The SFMS data is so coarse, there's not much point in zooming in further
 export const COG_TILE_SIZE = [512, 512] // COG tiffs are 512x512 pixels - reading larger chunks should in theory be faster?
 

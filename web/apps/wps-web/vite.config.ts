@@ -70,22 +70,11 @@ export default defineConfig({
       { find: '@wps/utils', replacement: resolve(__dirname, '../../packages/utils/src') },
       { find: '@wps/types', replacement: resolve(__dirname, '../../packages/types/src') },
       { find: '@wps/ui', replacement: resolve(__dirname, '../../packages/ui/src') },
-      // @/app/theme remapped to ui package (must come before @/app/ and @/)
-      { find: '@/app/theme', replacement: resolve(__dirname, '../../packages/ui/src/theme') },
-      // @/api, @/utils, @/components remapped to extracted packages
-      { find: /^@\/api\/(.*)/, replacement: resolve(__dirname, '../../packages/api/src/$1') },
-      { find: /^@\/utils\/(.*)/, replacement: resolve(__dirname, '../../packages/utils/src/$1') },
-      { find: /^@\/components\/(.*)/, replacement: resolve(__dirname, '../../packages/ui/src/$1') },
-      // bare aliases
+      // app-internal aliases
       { find: '@', replacement: path.resolve(__dirname, './src') },
-      // app/theme specifically remapped to ui package (must come before app)
-      { find: 'app/theme', replacement: resolve(__dirname, '../../packages/ui/src/theme') },
       { find: 'app', replacement: resolve(__dirname, 'src/app') },
       { find: 'features', replacement: resolve(__dirname, 'src/features') },
-      { find: 'utils', replacement: resolve(__dirname, '../../packages/utils/src') },
       { find: 'commonSlices', replacement: resolve(__dirname, 'src/commonSlices') },
-      { find: 'components', replacement: resolve(__dirname, '../../packages/ui/src') },
-      { find: 'api', replacement: resolve(__dirname, '../../packages/api/src') },
       { find: 'documents', replacement: resolve(__dirname, 'src/documents') },
       { find: '#root', replacement: resolve(__dirname) }
     ]

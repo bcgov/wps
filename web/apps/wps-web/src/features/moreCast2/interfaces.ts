@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import { ModelType } from 'api/moreCast2API'
+import { ModelType } from '@wps/api/moreCast2API'
 
-export type { MoreCast2ForecastRow } from 'api/moreCast2API'
+export type { MoreCast2ForecastRow } from '@wps/api/moreCast2API'
 
 export interface PredictionItem {
   choice: ModelType
