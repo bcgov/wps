@@ -1,0 +1,217 @@
+import { FireShape } from "@/api/fbaAPI";
+import FireShapeActionsDrawer from "@/components/map/FireShapeActionsDrawer";
+import { createTestStore } from "@/testUtils";
+import { Preferences } from "@capacitor/preferences";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+vi.mock("@capacitor/preferences", () => ({
+  Preferences: {
+    get: vi.fn().mockResolvedValue({ value: null }),
+    set: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
+vi.mock("@capacitor-firebase/messaging", () => ({
+  FirebaseMessaging: {
+    checkPermissions: vi.fn().mockResolvedValue({ receive: "granted" }),
+  },
+}));
+
+const mockFireShape: FireShape = {
+  mof_fire_zone_name: "Test Fire Zone",
+  fire_shape_id: 1,
+  mof_fire_centre_name: "Test Fire Centre",
+};
+
+const renderWithProviders = ({
+  subscriptions = [],
+  pushNotificationPermission = "granted",
+  connected = true,
+}: {
+  subscriptions?: number[];
+  pushNotificationPermission?: "granted" | "denied" | "prompt" | "unknown";
+  connected?: boolean;
+} = {}) => {
+  const store = createTestStore({
+    networkStatus: {
+      networkStatus: {
+        connected,
+        connectionType: connected ? "wifi" : "none",
+      },
+    },
+    settings: {
+      loading: false,
+      error: null,
+      fireCentreInfos: [],
+      pinnedFireCentre: null,
+      pushNotificationPermission,
+      subscriptions,
+    },
+  });
+  const theme = createTheme();
+
+  return {
+    ...render(
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <FireShapeActionsDrawer
+            open
+            selectedFireShape={mockFireShape}
+            onClose={vi.fn()}
+            onSelectProfile={vi.fn()}
+            onSelectAdvisory={vi.fn()}
+          />
+        </ThemeProvider>
+      </Provider>
+    ),
+    store,
+  };
+};
+
+describe("FireShapeActionsDrawer", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("renders the selected fire shape name and action buttons", () => {
+    renderWithProviders();
+
+    expect(screen.getByText("Test Fire Zone")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Subscribe")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Profile" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Advisory" })).toBeInTheDocument();
+  });
+
+  it("calls onClose from the close button", () => {
+    const onClose = vi.fn();
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: {
+          connected: true,
+          connectionType: "wifi",
+        },
+      },
+      settings: {
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        pushNotificationPermission: "granted",
+        subscriptions: [],
+      },
+    });
+    const theme = createTheme();
+
+    render(
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <FireShapeActionsDrawer
+            open
+            selectedFireShape={mockFireShape}
+            onClose={onClose}
+            onSelectProfile={vi.fn()}
+            onSelectAdvisory={vi.fn()}
+          />
+        </ThemeProvider>
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByTestId("fire-shape-drawer-close-button"));
+
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("calls the navigation callbacks", () => {
+    const onSelectProfile = vi.fn();
+    const onSelectAdvisory = vi.fn();
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: {
+          connected: true,
+          connectionType: "wifi",
+        },
+      },
+      settings: {
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        pushNotificationPermission: "granted",
+        subscriptions: [],
+      },
+    });
+    const theme = createTheme();
+
+    render(
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <FireShapeActionsDrawer
+            open
+            selectedFireShape={mockFireShape}
+            onClose={vi.fn()}
+            onSelectProfile={onSelectProfile}
+            onSelectAdvisory={onSelectAdvisory}
+          />
+        </ThemeProvider>
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Profile" }));
+    fireEvent.click(screen.getByRole("button", { name: "Advisory" }));
+
+    expect(onSelectProfile).toHaveBeenCalled();
+    expect(onSelectAdvisory).toHaveBeenCalled();
+  });
+
+  it("toggles the subscription for the selected fire shape", async () => {
+    const { store } = renderWithProviders();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([1]);
+    });
+    expect(Preferences.set).toHaveBeenCalledWith({
+      key: "asaGoSubscriptions",
+      value: JSON.stringify([1]),
+    });
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      })
+    ).toHaveTextContent("Subscribed");
+  });
+
+  it("shows the subscribed state when already subscribed", () => {
+    renderWithProviders({ subscriptions: [1] });
+
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Subscribed")).toBeInTheDocument();
+  });
+
+  it("disables subscription when notifications are unavailable", () => {
+    renderWithProviders({ pushNotificationPermission: "denied" });
+
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      })
+    ).toBeDisabled();
+  });
+});
