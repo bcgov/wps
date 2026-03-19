@@ -13,99 +13,30 @@ import xarray as xr
 from wps_shared import config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
+from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
 from wps_weather.wx_4panel_charts.panel_layout import (
     add_panel_title,
     add_valid_time_stamp,
     apply_4panel_frames,
 )
-from wps_weather.wx_4panel_charts.plot_4panel_rdps import (
-    _valid_time_str,
-    rdps_fname,
-)
+from wps_weather.wx_4panel_charts.plot_4panel_gdps import gdps_fname
+from wps_weather.wx_4panel_charts.plot_4panel_rdps import rdps_fname
+from wps_weather.wx_4panel_charts.plot_500mb import CFG_500 as CFG_500_GDPS
 from wps_weather.wx_4panel_charts.plot_500mb_rdps import CFG_500 as CFG_500_RDPS
-from wps_weather.wx_4panel_charts.plot_500mb_rdps import plot_500hpa
-from wps_weather.wx_4panel_charts.plot_700mb_rdps import CFG_700_RDPS, plot_700hpa_rdps
-from wps_weather.wx_4panel_charts.plot_mslp_rdps import CFG_MSLP_RDPS, plot_mslp_thickness_rdps
+from wps_weather.wx_4panel_charts.plot_700mb import CFG_700 as CFG_700_GDPS
+from wps_weather.wx_4panel_charts.plot_700mb_rdps import CFG_700_RDPS
+from wps_weather.wx_4panel_charts.plot_mslp import CFG_MSLP as CFG_MSLP_GDPS
+from wps_weather.wx_4panel_charts.plot_mslp_rdps import CFG_MSLP_RDPS
+from wps_weather.wx_4panel_charts.plot_precip import PLOT_CONFIG_PCPN12 as CFG_PCPN_GDPS
 from wps_weather.wx_4panel_charts.plot_precip_rdps import PLOT_CONFIG_PCPN3_RDPS as CFG_PCPN_RDPS
-from wps_weather.wx_4panel_charts.plot_precip_rdps import plot_pcpn3_rdps
-from wps_weather.wx_4panel_charts.raster_addresser import (
-    ECCCModel,
-    RasterAddresser,
-)
-from wps_weather.wx_4panel_charts.wx_4panel_chart_config_builder import ConfigBuilder
+from wps_weather.wx_4panel_charts.plotter_provider import PlotterProvider
+from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel, RasterAddresser
 
 DEFAULT_FIG_SIZE = (11.8, 10)
 DEFAULT_DPI = 300
 
 configure_logging()
 logger = logging.getLogger(__name__)
-
-
-def build_cfgs_for_fh_rdps(init_ymd: str, init_hh: str, fh: int, ra: RasterAddresser):
-    """
-    Build cfg dicts using weather model grib2 S3 storage structure:
-    eg: {bucket}/weather_models/20260217/model_rdps}/10km/{HH}/{FFF}/*.grib2
-    """
-    # ---- 500 hPa ----
-    cfg500 = CFG_500_RDPS.copy()
-    cfg500["z500_grib"] = ra.get_grib_key(
-        fh,
-        rdps_fname(init_ymd, init_hh, "GeopotentialHeight", "IsbL-0500", fh),
-    )
-    cfg500["vort_grib"] = ra.get_grib_key(
-        fh,
-        rdps_fname(init_ymd, init_hh, "AbsoluteVorticity", "IsbL-0500", fh),
-    )
-    cfg500["valid_time_str"] = _valid_time_str(init_ymd, init_hh, fh)
-
-    # ---- MSLP + thickness ----
-    cfgmslp = CFG_MSLP_RDPS.copy()
-    cfgmslp["mslp_grib"] = ra.get_grib_key(
-        fh,
-        rdps_fname(init_ymd, init_hh, "Pressure_MSL", None, fh),
-    )
-    cfgmslp["thk_grib"] = ra.get_grib_key(
-        fh,
-        rdps_fname(init_ymd, init_hh, "Thickness", "IsbL-1000to0500", fh),
-    )
-
-    # ---- 700 hPa + RH layer mean ----
-    cfg700 = CFG_700_RDPS.copy()
-    cfg700["z700_grib"] = ra.get_grib_key(
-        fh,
-        rdps_fname(init_ymd, init_hh, "GeopotentialHeight", "IsbL-0700", fh),
-    )
-    cfg700["rh500_grib"] = ra.get_grib_key(
-        fh,
-        rdps_fname(init_ymd, init_hh, "RelativeHumidity", "IsbL-0500", fh),
-    )
-    cfg700["rh700_grib"] = ra.get_grib_key(
-        fh,
-        rdps_fname(init_ymd, init_hh, "RelativeHumidity", "IsbL-0700", fh),
-    )
-    cfg700["rh850_grib"] = ra.get_grib_key(
-        fh,
-        rdps_fname(init_ymd, init_hh, "RelativeHumidity", "IsbL-0850", fh),
-    )
-
-    # ---- 3h precip + jet ----
-    cfgpcpn = CFG_PCPN_RDPS.copy()
-    cfgpcpn["jet_spd_grib"] = ra.get_grib_key(
-        fh,
-        rdps_fname(init_ymd, init_hh, "WindSpeed", "IsbL-0250", fh),
-    )
-
-    if fh == 0:
-        cfgpcpn["show_precip"] = False  # jet-only at analysis time
-    else:
-        cfgpcpn["show_precip"] = True
-        # RDPS 3-hourly accumulation (adjust field token if your files differ)
-        cfgpcpn["pcpn_grib"] = ra.get_grib_key(
-            fh,
-            rdps_fname(init_ymd, init_hh, "Precip-Accum3h", "Sfc", fh),
-        )
-
-    return cfg500, cfgmslp, cfg700, cfgpcpn
 
 
 class FourPanelChartRunner:
@@ -145,7 +76,7 @@ class FourPanelChartRunner:
 
             return ds
 
-    async def _make_4panel_chart_rdps(
+    async def _make_4panel_chart(
         self,
         cfg500,
         cfgmslp,
@@ -154,6 +85,7 @@ class FourPanelChartRunner:
         figsize: Tuple[float, float],
         dpi: int,
         output_key: str,
+        plotter_provider: PlotterProvider,
     ):
         proj = ccrs.LambertConformal(
             central_longitude=cfg500.get("central_longitude", -130.0),
@@ -174,7 +106,8 @@ class FourPanelChartRunner:
         ds_z500 = await self._open_dataset_s3(cfg500["z500_grib"])
         ds_vort = await self._open_dataset_s3(cfg500["vort_grib"])
 
-        plot_500hpa(cfg500, ax=ax500, ds_z500=ds_z500, ds_vort=ds_vort)
+        plotter_500hpa = plotter_provider.get_500hpa_plotter()
+        plotter_500hpa(cfg500, ax=ax500, ds_z500=ds_z500, ds_vort=ds_vort)
         add_panel_title(ax500, "500 hPa Height + Abs Vorticity", loc="bl")
 
         ds_z500.close()
@@ -183,7 +116,8 @@ class FourPanelChartRunner:
         ds_msl = await self._open_dataset_s3(cfgmslp["mslp_grib"])
         ds_thk = await self._open_dataset_s3(cfgmslp["thk_grib"])
 
-        plot_mslp_thickness_rdps(cfgmslp, ax=axmslp, ds_msl=ds_msl, ds_thk=ds_thk)
+        plotter_mslp_thickness = plotter_provider.get_mslp_thickness_plotter()
+        plotter_mslp_thickness(cfgmslp, ax=axmslp, ds_msl=ds_msl, ds_thk=ds_thk)
         add_panel_title(axmslp, "MSLP + 1000–500 Thickness", loc="bl")
 
         ds_msl.close()
@@ -194,7 +128,8 @@ class FourPanelChartRunner:
         ds_rh700 = await self._open_dataset_s3(cfg700["rh700_grib"])
         ds_rh500 = await self._open_dataset_s3(cfg700["rh500_grib"])
 
-        plot_700hpa_rdps(
+        plotter_700hpa = plotter_provider.get_700hpa_plotter()
+        plotter_700hpa(
             cfg700,
             ax=ax700,
             ds_z700=ds_z700,
@@ -216,7 +151,8 @@ class FourPanelChartRunner:
 
         ds_js = await self._open_dataset_s3(cfgpcpn["jet_spd_grib"])
 
-        plot_pcpn3_rdps(cfgpcpn, ax=axpcpn, ds_p=ds_p, ds_js=ds_js)
+        plotter_pcpn = plotter_provider.get_pcpn_plotter()
+        plotter_pcpn(cfgpcpn, ax=axpcpn, ds_p=ds_p, ds_js=ds_js)
         add_panel_title(
             axpcpn, "3H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H", loc="bl"
         )
@@ -240,22 +176,37 @@ class FourPanelChartRunner:
                 await self._s3_client.put_object(output_key, body)
                 print("Saved:", output_key)
 
-    async def _make_4panel_charts_rdps(
-        self, init_ymd: date, init_hh: str, fstart: int, fend: int, step: int
+    async def _make_4panel_charts(
+        self, model: ECCCModel, init_ymd: date, init_hh: str, fstart: int, fend: int, step: int
     ):
-        raster_addresser = RasterAddresser(init_ymd, init_hh, ECCCModel.RDPS)
-        config_builder = ConfigBuilder(
-            init_ymd=init_ymd,
-            init_hh=init_hh,
-            raster_addresser=raster_addresser,
-            cfg500=CFG_500_RDPS,
-            cfgmslp=CFG_MSLP_RDPS,
-            cfg700=CFG_700_RDPS,
-            cfgpcpn=CFG_PCPN_RDPS,
-            file_name_builder=rdps_fname,
-        )
+        raster_addresser = RasterAddresser(init_ymd, init_hh, model)
+        if model == ECCCModel.GDPS:
+            config_builder = ConfigBuilder(
+                init_ymd=init_ymd,
+                init_hh=init_hh,
+                raster_addresser=raster_addresser,
+                cfg500=CFG_500_GDPS,
+                cfgmslp=CFG_MSLP_GDPS,
+                cfg700=CFG_700_GDPS,
+                cfgpcpn=CFG_PCPN_GDPS,
+                file_name_builder=gdps_fname,
+                model=model,
+            )
+        else:
+            config_builder = ConfigBuilder(
+                init_ymd=init_ymd,
+                init_hh=init_hh,
+                raster_addresser=raster_addresser,
+                cfg500=CFG_500_RDPS,
+                cfgmslp=CFG_MSLP_RDPS,
+                cfg700=CFG_700_RDPS,
+                cfgpcpn=CFG_PCPN_RDPS,
+                file_name_builder=rdps_fname,
+                model=model,
+            )
+        plotter_provider = PlotterProvider(model=model)
         for fh in range(int(fstart), int(fend) + 1, int(step)):
-            output_name = f"RDPS_{init_ymd}T{init_hh}Z_F{fh:03d}_4panel.png"
+            output_name = f"{model}_{init_ymd}T{init_hh}Z_F{fh:03d}_4panel.png"
             output_key = raster_addresser.get_4panel_key(fh, output_name)
 
             # If a 4panel chart already exists don't re-create it.
@@ -264,9 +215,7 @@ class FourPanelChartRunner:
                 continue
 
             cfg500, cfgmslp, cfg700, cfgpcpn = config_builder.build_config_for_hour(fh)
-            # cfg500, cfgmslp, cfg700, cfgpcpn = build_cfgs_for_fh_rdps(
-            #     init_ymd, init_hh, fh, raster_addresser
-            # )
+
             required_keys = [
                 cfg500["z500_grib"],
                 cfg500["vort_grib"],
@@ -289,9 +238,17 @@ class FourPanelChartRunner:
                 )
                 return False
 
-            await self._make_4panel_chart_rdps(
-                cfg500, cfgmslp, cfg700, cfgpcpn, DEFAULT_FIG_SIZE, DEFAULT_DPI, output_key
+            await self._make_4panel_chart(
+                cfg500,
+                cfgmslp,
+                cfg700,
+                cfgpcpn,
+                DEFAULT_FIG_SIZE,
+                DEFAULT_DPI,
+                output_key,
+                plotter_provider,
             )
+
         return True
 
     async def _make_4panel_charts_gdps(
@@ -302,20 +259,10 @@ class FourPanelChartRunner:
     async def run(
         self, init_ymd: date, model_runs: List[str], fstart: int, fend: int, step: int, model: str
     ):
-        assert model == ECCCModel.GDPS or model == ECCCModel.RDPS
+        assert model in [ECCCModel.GDPS, ECCCModel.RDPS]
         for init_hh in model_runs:
             # TODO - Get or create database record. If charts complete, continue
-            if model == ECCCModel.RDPS:
-                complete = await self._make_4panel_charts_rdps(
-                    init_ymd, init_hh, fstart, fend, step
-                )
-                # TODO - If charts complete update database
-            elif model == ECCCModel.GDPS:
-                complete = await self._make_4panel_charts_gdps(
-                    init_ymd, model_runs, fstart, fend, step
-                )
-            else:
-                raise RuntimeError("Unrecognized ECCC weather model.")
+            complete = await self._make_4panel_charts(model, init_ymd, init_hh, fstart, fend, step)
 
 
 def parse_args():
