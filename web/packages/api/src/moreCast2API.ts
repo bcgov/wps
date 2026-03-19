@@ -1,4 +1,4 @@
-import axios from 'api/axios'
+import axios from './axios'
 import { isEqual } from 'lodash'
 import { DateTime } from 'luxon'
 

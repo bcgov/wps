@@ -4,8 +4,8 @@ import {
   fetchWeatherIndeterminates,
   WeatherDeterminate,
   MoreCast2ForecastRow
-} from 'api/moreCast2API'
-import axios from 'api/axios'
+} from './moreCast2API'
+import axios from './axios'
 import { DateTime } from 'luxon'
 import { vi } from 'vitest'
 

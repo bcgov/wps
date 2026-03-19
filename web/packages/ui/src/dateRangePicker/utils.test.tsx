@@ -5,7 +5,7 @@ import {
   isSameRange,
   isStartOfRange,
   parseOptionalDate
-} from 'components/dateRangePicker/utils'
+} from './utils'
 import { addYears } from 'date-fns'
 describe('DateRangePicker - utils', () => {
   describe('isRangeSameDay', () => {

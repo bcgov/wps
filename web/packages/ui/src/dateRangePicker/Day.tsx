@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { styled } from '@mui/material/styles'
 import { IconButton, Typography } from '@mui/material'
-import { theme } from 'app/theme'
-import { combineCSSClassNames } from 'components/dateRangePicker/utils'
+import { theme } from '../theme'
+import { combineCSSClassNames } from './utils'
 
 const PREFIX = 'Day'
 

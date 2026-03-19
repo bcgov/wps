@@ -1,6 +1,6 @@
 import { TableHead, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
-import FireTable from 'components/FireTable'
+import FireTable from './FireTable'
 
 describe('FireTable', () => {
   it('should render the table', () => {

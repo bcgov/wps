@@ -1,7 +1,7 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { theme } from 'app/theme'
-import { Container } from 'components/Container'
+import { theme } from './theme'
+import { Container } from './Container'
 
 const PREFIX = 'PageTitle'
 

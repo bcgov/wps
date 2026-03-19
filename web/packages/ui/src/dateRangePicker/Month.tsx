@@ -9,10 +9,10 @@ import {
   isEndOfRange,
   inDateRange,
   isRangeSameDay
-} from 'components/dateRangePicker/utils'
-import { NavigationAction, DateRange } from 'components/dateRangePicker/types'
-import Header from 'components/dateRangePicker/Header'
-import Day from 'components/dateRangePicker/Day'
+} from './utils'
+import { NavigationAction, DateRange } from './types'
+import Header from './Header'
+import Day from './Day'
 
 const PREFIX = 'Month'
 

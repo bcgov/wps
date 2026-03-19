@@ -1,6 +1,6 @@
 import { TableCell } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { theme } from 'app/theme'
+import { theme } from './theme'
 import React from 'react'
 
 const StyledTableCell = styled(TableCell, {

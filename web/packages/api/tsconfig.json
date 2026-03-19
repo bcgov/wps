@@ -5,18 +5,7 @@
     "module": "esnext",
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "dist",
-    "types": ["vite/client", "vitest/globals"],
-    "baseUrl": ".",
-    "paths": {
-      "api/*": ["./src/*"],
-      "@wps/utils/*": ["../utils/src/*"],
-      "@wps/types/*": ["../types/src/*"]
-    }
+    "types": ["vite/client", "vitest/globals"]
   },
-  "references": [{ "path": "../utils" }, { "path": "../types" }],
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

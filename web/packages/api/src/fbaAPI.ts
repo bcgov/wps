@@ -1,5 +1,5 @@
 import { AdvisoryStatus } from '@wps/utils/constants'
-import axios, { raster } from 'api/axios'
+import axios, { raster } from './axios'
 import { DateTime } from 'luxon'
 
 export enum RunType {

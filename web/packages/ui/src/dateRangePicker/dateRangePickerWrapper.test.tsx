@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
-import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
-import { DateRange } from 'components/dateRangePicker/types'
+import DateRangePickerWrapper from './DateRangePickerWrapper'
+import { DateRange } from './types'
 import { vi } from 'vitest'
 
 const setup = (open: boolean, toggleMock: () => void, initialDateRange: DateRange, onChangeMock: () => void) => {

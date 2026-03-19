@@ -1,7 +1,7 @@
-import axios from 'api/axios'
+import axios from './axios'
 import { FeatureCollection } from 'geojson'
 import { API_BASE_URL } from '@wps/utils/env'
-import { ModelInfo } from 'api/modelAPI'
+import { ModelInfo } from './modelAPI'
 
 export interface ModelRun {
   model: ModelInfo

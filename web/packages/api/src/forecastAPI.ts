@@ -1,5 +1,5 @@
-import axios from 'api/axios'
-import { Station } from 'api/stationAPI'
+import axios from './axios'
+import { Station } from './stationAPI'
 
 export interface NoonForecastValue {
   datetime: string

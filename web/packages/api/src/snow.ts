@@ -1,4 +1,4 @@
-import axios from 'api/axios'
+import axios from './axios'
 import { DateTime } from 'luxon'
 
 enum SnowSource {

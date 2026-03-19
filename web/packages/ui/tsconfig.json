@@ -1,18 +1,7 @@
 {
   "extends": "@wps/tsconfig/react-app.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "dist",
-    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
-    "paths": {
-      "app/theme": ["./src/theme"],
-      "components/*": ["./src/*"],
-      "components": ["./src/index"]
-    }
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "references": [{ "path": "../api" }, { "path": "../utils" }],
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

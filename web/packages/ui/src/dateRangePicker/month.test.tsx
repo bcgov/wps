@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor, within } from '@testing-library/react'
-import { MARKERS } from 'components/dateRangePicker/DateRangePicker'
-import Month from 'components/dateRangePicker/Month'
-import { DateRange, NavigationAction } from 'components/dateRangePicker/types'
+import { MARKERS } from './DateRangePicker'
+import Month from './Month'
+import { DateRange, NavigationAction } from './types'
 import { vi } from 'vitest'
 
 const setup = (

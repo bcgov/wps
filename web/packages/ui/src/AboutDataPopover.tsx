@@ -2,7 +2,7 @@ import InfoIcon from '@mui/icons-material/Info'
 import { Box } from '@mui/material'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
-import { INFO_PANEL_CONTENT_BACKGROUND, theme } from 'app/theme'
+import { INFO_PANEL_CONTENT_BACKGROUND, theme } from './theme'
 import * as React from 'react'
 
 interface AboutDataPopoverProps<T = {}> {

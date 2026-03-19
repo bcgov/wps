@@ -13,7 +13,7 @@ import {
   min,
   max
 } from 'date-fns'
-import { DateRange } from 'components/dateRangePicker/types'
+import { DateRange } from './types'
 import { isUndefined } from 'lodash'
 
 export const identity = <T>(x: T): T => x

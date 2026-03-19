@@ -1,4 +1,4 @@
-import axios from 'api/axios'
+import axios from './axios'
 
 export interface CriticalHoursHFI {
   start: number

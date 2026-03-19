@@ -1,5 +1,5 @@
-import { StationGroupMember, getStationGroupsMembers } from 'api/stationAPI'
-import axios from 'api/axios'
+import { StationGroupMember, getStationGroupsMembers } from './stationAPI'
+import axios from './axios'
 import { vi } from 'vitest'
 describe('stationAPI', () => {
   it('should return groups from group endpoint', async () => {

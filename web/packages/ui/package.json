@@ -4,7 +4,7 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./*": "./src/*.ts"
+    "./*": "./src/*.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json"

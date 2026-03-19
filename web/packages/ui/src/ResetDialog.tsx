@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material'
-import { theme } from "app/theme"
+import { theme } from "./theme"
 
 export interface ResetDialogProps {
   showResetDialog: boolean

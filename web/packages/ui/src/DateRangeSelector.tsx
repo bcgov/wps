@@ -1,7 +1,7 @@
 import { Button, Dialog, Icon, InputAdornment, TextField } from '@mui/material'
 import * as materialIcons from '@mui/icons-material'
-import DateRangePickerWrapper from 'components/dateRangePicker/DateRangePickerWrapper'
-import { DateRange } from 'components/dateRangePicker/types'
+import DateRangePickerWrapper from './dateRangePicker/DateRangePickerWrapper'
+import { DateRange } from './dateRangePicker/types'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
@@ -17,7 +17,7 @@ export interface DateRangeSelectorProps {
   setDateRange: (newDateRange: DateRange) => void
 }
 
-const DateRangeSelector = ({ dateRange, dateDisplayFormat, size, label, setDateRange }: DateRangeSelectorProps) => {
+const DateRangeSelector = ({ dateRange, minDate, maxDate, maxDayOffset, dateDisplayFormat, size, label, setDateRange }: DateRangeSelectorProps) => {
   const startDate = dateRange && dateRange.startDate ? dateRange.startDate : undefined
   const endDate = dateRange && dateRange.endDate ? dateRange.endDate : undefined
 

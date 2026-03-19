@@ -1,7 +1,7 @@
 import { Slider as S, styled } from '@mui/material'
 import React from 'react'
 
-import { theme } from 'app/theme'
+import { theme } from './theme'
 
 const sliderBoxShadow = '0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.13),0 0 0 1px rgba(0,0,0,0.02)'
 

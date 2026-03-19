@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react'
 import { styled } from '@mui/material/styles'
 import { Button as B, ButtonProps, CircularProgress } from '@mui/material'
-import { theme } from 'app/theme'
+import { theme } from './theme'
 
 const PREFIX = 'Button'
 

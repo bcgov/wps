@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { DateRange } from './types'
 import { DateTime } from 'luxon'
-import DateRangePicker from 'components/dateRangePicker/DateRangePicker'
+import DateRangePicker from './DateRangePicker'
 
 export interface DateRangePickerWrapperProps {
   open: boolean

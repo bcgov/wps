@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { format } from 'date-fns'
-import Menu from 'components/dateRangePicker/Menu'
-import { DateRange, NavigationAction, Setter } from 'components/dateRangePicker/types'
+import Menu from './Menu'
+import { DateRange, NavigationAction, Setter } from './types'
 import { vi } from 'vitest'
 /* eslint-disable @typescript-eslint/no-unused-vars */
 

@@ -1,5 +1,5 @@
 import { FormControl, styled } from '@mui/material'
-import { theme } from 'app/theme'
+import { theme } from './theme'
 
 export const StyledFormControl = styled(FormControl)({
   margin: theme.spacing(1),
