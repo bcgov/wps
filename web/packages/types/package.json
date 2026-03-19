@@ -2,5 +2,9 @@
   "name": "@wps/types",
   "version": "0.0.0",
   "private": true,
-  "types": "./dist/src/window.d.ts"
+  "exports": {
+    ".": "./src/window.d.ts",
+    "./*": "./src/*.ts"
+  },
+  "types": "./src/window.d.ts"
 }
