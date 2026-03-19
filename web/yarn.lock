@@ -4019,7 +4019,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wps/api@workspace:packages/api":
+"@wps/api@workspace:*, @wps/api@workspace:packages/api":
   version: 0.0.0-use.local
   resolution: "@wps/api@workspace:packages/api"
   languageName: unknown
@@ -4031,19 +4031,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@wps/types@workspace:packages/types":
+"@wps/types@workspace:*, @wps/types@workspace:packages/types":
   version: 0.0.0-use.local
   resolution: "@wps/types@workspace:packages/types"
   languageName: unknown
   linkType: soft
 
-"@wps/ui@workspace:packages/ui":
+"@wps/ui@workspace:*, @wps/ui@workspace:packages/ui":
   version: 0.0.0-use.local
   resolution: "@wps/ui@workspace:packages/ui"
   languageName: unknown
   linkType: soft
 
-"@wps/utils@workspace:packages/utils":
+"@wps/utils@workspace:*, @wps/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@wps/utils@workspace:packages/utils"
   languageName: unknown
@@ -4090,7 +4090,11 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitejs/plugin-react": "npm:^4.3.1"
     "@vitest/coverage-v8": "npm:^4.0.8"
+    "@wps/api": "workspace:*"
     "@wps/tsconfig": "workspace:*"
+    "@wps/types": "workspace:*"
+    "@wps/ui": "workspace:*"
+    "@wps/utils": "workspace:*"
     axios: "npm:1.8.2"
     babel-loader: "npm:^10.1.1"
     cypress: "npm:^15.10.0"
@@ -11414,6 +11418,7 @@ __metadata:
   resolution: "wps-frontend@workspace:."
   dependencies:
     turbo: "npm:^2.0.0"
+    typescript: "npm:^5.2.2"
   languageName: unknown
   linkType: soft
 

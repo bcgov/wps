@@ -16,6 +16,7 @@
     "finalizeCoverage": "yarn workspace @wps/wps-web run finalizeCoverage"
   },
   "devDependencies": {
-    "turbo": "^2.0.0"
+    "turbo": "^2.0.0",
+    "typescript": "^5.2.2"
   }
 }
