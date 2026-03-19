@@ -6,6 +6,18 @@
       "outputs": ["dist/**", "build/**"],
       "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
     },
+    "@wps/api#build": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@wps/ui#build": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@wps/utils#build": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
