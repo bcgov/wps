@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { API_BASE_URL, RASTER_SERVER_BASE_URL } from 'utils/env'
+import { API_BASE_URL, RASTER_SERVER_BASE_URL } from '@wps/utils/env'
 
 const instance = axios.create({
   baseURL: API_BASE_URL

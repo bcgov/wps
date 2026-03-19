@@ -4,7 +4,7 @@ import {
   formatMonthAndDay,
   formatDateInUTC00Suffix,
   formatISODateInPST
-} from 'utils/date'
+} from './date'
 
 describe('Date util functions', () => {
   describe('isNoonInPST', () => {

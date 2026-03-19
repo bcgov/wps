@@ -1,5 +1,5 @@
-import type { GeoJsonStation } from 'types/stationTypes'
-import { getSelectedStationOptions } from 'utils/dropdown'
+import type { GeoJsonStation } from '@wps/types/stationTypes'
+import { getSelectedStationOptions } from './dropdown'
 
 describe('Dropdown utils', () => {
   const testStationCode = 1

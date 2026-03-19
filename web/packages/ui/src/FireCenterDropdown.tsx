@@ -1,5 +1,5 @@
 import { TextField, Autocomplete } from '@mui/material'
-import { FireCenter, FireShape } from 'api/fbaAPI'
+import { FireCenter, FireShape } from '@wps/api/fbaAPI'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
 

@@ -9,8 +9,8 @@
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
     "paths": {
       "app/theme": ["./src/theme"],
-      "api/*": ["../api/src/*"],
-      "utils/*": ["../utils/src/*"],
+      "@wps/api/*": ["../api/src/*"],
+      "@wps/utils/*": ["../utils/src/*"],
       "components/*": ["./src/*"],
       "components": ["./src/index"]
     }

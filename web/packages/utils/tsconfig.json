@@ -14,8 +14,7 @@
     "baseUrl": ".",
     "paths": {
       "utils/*": ["./src/*"],
-      "api/*": ["../api/src/*"],
-      "types/*": ["../types/src/*"]
+      "@wps/types/*": ["../types/src/*"]
     }
   },
   "references": [{ "path": "../types" }],

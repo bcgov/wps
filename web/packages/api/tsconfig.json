@@ -13,8 +13,8 @@
     "baseUrl": ".",
     "paths": {
       "api/*": ["./src/*"],
-      "utils/*": ["../utils/src/*"],
-      "types/*": ["../types/src/*"]
+      "@wps/utils/*": ["../utils/src/*"],
+      "@wps/types/*": ["../types/src/*"]
     }
   },
   "references": [{ "path": "../utils" }, { "path": "../types" }],

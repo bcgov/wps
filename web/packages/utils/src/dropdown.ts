@@ -1,4 +1,4 @@
-import type { DetailedGeoJsonStation, GeoJsonStation } from 'types/stationTypes'
+import type { DetailedGeoJsonStation, GeoJsonStation } from '@wps/types/stationTypes'
 
 export interface Option {
   name: string

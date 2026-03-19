@@ -74,8 +74,8 @@ export interface RawHFIResultResponse {
   planning_area_hfi_results: RawPlanningAreaResult[]
   fire_start_ranges: FireStartRange[]
 }
-import { PACIFIC_IANA_TIMEZONE } from 'utils/constants'
-import { formatISODateInPST } from 'utils/date'
+import { PACIFIC_IANA_TIMEZONE } from '@wps/utils/constants'
+import { formatISODateInPST } from '@wps/utils/date'
 
 export interface FuelType {
   id: number

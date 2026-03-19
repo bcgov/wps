@@ -1,6 +1,6 @@
 import axios from 'api/axios'
 import { FeatureCollection } from 'geojson'
-import { API_BASE_URL } from 'utils/env'
+import { API_BASE_URL } from '@wps/utils/env'
 import { ModelInfo } from 'api/modelAPI'
 
 export interface ModelRun {

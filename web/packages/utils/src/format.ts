@@ -6,7 +6,7 @@ import {
   PRECIP_VALUES_DECIMAL,
   RH_VALUES_DECIMAL,
   DEW_POINT_VALUES_DECIMAL
-} from 'utils/constants'
+} from './constants'
 
 export function formatWindDirection(wind_direction: number | undefined | null): string | undefined {
   if (typeof wind_direction === 'number') {

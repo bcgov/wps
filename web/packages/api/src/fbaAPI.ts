@@ -1,4 +1,4 @@
-import { AdvisoryStatus } from 'utils/constants'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import axios, { raster } from 'api/axios'
 import { DateTime } from 'luxon'
 
