@@ -1,27 +1,27 @@
 from datetime import datetime, timezone
 
 import pytest
+from geoalchemy2 import WKTElement
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
-
 from wps_shared.db.crud.auto_spatial_advisory import (
-    mark_run_parameter_complete,
+    get_fire_centre_info,
     get_provincial_rollup,
+    mark_run_parameter_complete,
 )
 from wps_shared.db.models import Base
-from wps_shared.db.models.auto_spatial_advisory import RunParameters
-from wps_shared.run_type import RunType
 from wps_shared.db.models.auto_spatial_advisory import (
-    Shape,
     AdvisoryZoneStatus,
+    RunParameters,
+    Shape,
     ShapeType,
     ShapeTypeEnum,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.hfi_calc import FireCentre
-from geoalchemy2 import WKTElement
+from wps_shared.run_type import RunType
 
 test_run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 test_for_date = test_run_datetime.date()
@@ -334,3 +334,45 @@ async def test_get_provincial_rollup_includes_zones_with_no_status(async_session
 
     assert result_dict[1].status == "warning"
     assert result_dict[2].status is None  # or "none" if you coalesce
+
+
+@pytest.mark.anyio
+async def test_get_fire_centre_info(async_session):
+    # Create ShapeType
+    shape_type = ShapeType(name=ShapeTypeEnum.fire_zone_unit)
+    async_session.add(shape_type)
+    await async_session.commit()
+
+    # Create FireCentre
+    fire_centre = FireCentre(name="Test Centre")
+    async_session.add(fire_centre)
+    await async_session.commit()
+
+    # Create Shapes
+    shape1 = Shape(
+        source_identifier="1",
+        placename_label="Zone 1",
+        label="Fire Zone 1",
+        fire_centre=fire_centre.id,
+        shape_type=shape_type.id,
+        geom=WKTElement("MULTIPOLYGON(((0 0, 1 0, 1 1, 0 1, 0 0)))", srid=3005),
+    )
+    shape2 = Shape(
+        source_identifier="2",
+        placename_label="Zone 2",
+        label="Fire Zone 2",
+        fire_centre=fire_centre.id,
+        shape_type=shape_type.id,
+        geom=WKTElement("MULTIPOLYGON(((0 0, 1 0, 1 1, 0 1, 0 0)))", srid=3005),
+    )
+    async_session.add_all([shape1, shape2])
+    await async_session.commit()
+
+    result = await get_fire_centre_info(async_session)
+    assert len(result) == 2
+    assert result[0][0] == int(shape1.source_identifier)
+    assert result[0][1] == shape1.label
+    assert result[0][2] == fire_centre.name
+    assert result[1][0] == int(shape2.source_identifier)
+    assert result[1][1] == shape2.label
+    assert result[1][2] == fire_centre.name

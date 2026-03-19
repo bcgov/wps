@@ -33,6 +33,12 @@ target 'ASA Go' do
   # Add your Pods here
 end
 
+target 'ASA Go Dev' do
+  capacitor_pods
+  pod 'FirebaseMessaging'
+  # Add your Pods here
+end
+
 post_install do |installer|
   assertDeploymentTarget(installer)
 end

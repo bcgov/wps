@@ -21,33 +21,38 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 23)
 public class MainActivityTest {
+    private static final String AUTH_REDIRECT_SCHEME = BuildConfig.APP_AUTH_REDIRECT_SCHEME;
+
+    private static String authUri(String pathAndQuery) {
+        return AUTH_REDIRECT_SCHEME + "://" + pathAndQuery;
+    }
 
     @Test
     public void testCustomSchemeUri_isRecognized() {
         // Test that our custom scheme is correct
-        Uri uri = Uri.parse("ca.bc.gov.asago://callback?code=test");
-        assertEquals("ca.bc.gov.asago", uri.getScheme());
+        Uri uri = Uri.parse(authUri("callback?code=test"));
+        assertEquals(AUTH_REDIRECT_SCHEME, uri.getScheme());
     }
 
     @Test
     public void testCustomSchemeUri_withDifferentPaths() {
         // Test various valid callback URIs
         String[] validPaths = {
-                "ca.bc.gov.asago://callback",
-                "ca.bc.gov.asago://auth/callback",
-                "ca.bc.gov.asago://oauth/redirect"
+                authUri("callback"),
+                authUri("auth/callback"),
+                authUri("oauth/redirect")
         };
 
         for (String path : validPaths) {
             Uri uri = Uri.parse(path);
-            assertEquals("ca.bc.gov.asago", uri.getScheme());
+            assertEquals(AUTH_REDIRECT_SCHEME, uri.getScheme());
         }
     }
 
     @Test
     public void testCustomSchemeUri_withQueryParameters() {
-        Uri uri = Uri.parse("ca.bc.gov.asago://callback?code=abc123&state=xyz");
-        assertEquals("ca.bc.gov.asago", uri.getScheme());
+        Uri uri = Uri.parse(authUri("callback?code=abc123&state=xyz"));
+        assertEquals(AUTH_REDIRECT_SCHEME, uri.getScheme());
         assertEquals("abc123", uri.getQueryParameter("code"));
         assertEquals("xyz", uri.getQueryParameter("state"));
     }
@@ -55,7 +60,7 @@ public class MainActivityTest {
     @Test
     public void testWrongScheme_isNotMatched() {
         Uri uri = Uri.parse("https://example.com/callback");
-        assertNotEquals("ca.bc.gov.asago", uri.getScheme());
+        assertNotEquals(AUTH_REDIRECT_SCHEME, uri.getScheme());
     }
 
     @Test
@@ -88,10 +93,10 @@ public class MainActivityTest {
         try (MockedStatic<KeycloakPlugin> mockedStatic = mockStatic(KeycloakPlugin.class)) {
             mockedStatic.when(KeycloakPlugin::getInstance).thenReturn(mockPlugin);
 
-            Uri testUri = Uri.parse("ca.bc.gov.asago://callback?code=testcode");
+            Uri testUri = Uri.parse(authUri("callback?code=testcode"));
             KeycloakPlugin plugin = KeycloakPlugin.getInstance();
 
-            if (plugin != null && "ca.bc.gov.asago".equals(testUri.getScheme())) {
+            if (plugin != null && AUTH_REDIRECT_SCHEME.equals(testUri.getScheme())) {
                 plugin.handleAuthCallback(testUri);
             }
 
@@ -109,7 +114,7 @@ public class MainActivityTest {
             Uri testUri = Uri.parse("https://example.com/callback");
             KeycloakPlugin plugin = KeycloakPlugin.getInstance();
 
-            if (plugin != null && "ca.bc.gov.asago".equals(testUri.getScheme())) {
+            if (plugin != null && AUTH_REDIRECT_SCHEME.equals(testUri.getScheme())) {
                 plugin.handleAuthCallback(testUri);
             }
 
@@ -122,11 +127,11 @@ public class MainActivityTest {
         try (MockedStatic<KeycloakPlugin> mockedStatic = mockStatic(KeycloakPlugin.class)) {
             mockedStatic.when(KeycloakPlugin::getInstance).thenReturn(null);
 
-            Uri testUri = Uri.parse("ca.bc.gov.asago://callback?code=test");
+            Uri testUri = Uri.parse(authUri("callback?code=test"));
             KeycloakPlugin plugin = KeycloakPlugin.getInstance();
 
             // This should not throw NullPointerException
-            if (plugin != null && "ca.bc.gov.asago".equals(testUri.getScheme())) {
+            if (plugin != null && AUTH_REDIRECT_SCHEME.equals(testUri.getScheme())) {
                 plugin.handleAuthCallback(testUri);
             }
 
@@ -144,7 +149,7 @@ public class MainActivityTest {
 
     @Test
     public void testIntentData_canBeExtracted() {
-        Uri testUri = Uri.parse("ca.bc.gov.asago://callback");
+        Uri testUri = Uri.parse(authUri("callback"));
         Intent intent = new Intent(Intent.ACTION_VIEW, testUri);
 
         Uri data = intent.getData();
@@ -155,16 +160,16 @@ public class MainActivityTest {
     @Test
     public void testSchemeMatching_isCaseSensitive() {
         // Android URI schemes are case-sensitive
-        Uri correctScheme = Uri.parse("ca.bc.gov.asago://callback");
-        Uri wrongCaseScheme = Uri.parse("CA.BC.GOV.ASAGO://callback");
+        Uri correctScheme = Uri.parse(authUri("callback"));
+        Uri wrongCaseScheme = Uri.parse(AUTH_REDIRECT_SCHEME.toUpperCase() + "://callback");
 
-        assertEquals("ca.bc.gov.asago", correctScheme.getScheme());
-        assertNotEquals("ca.bc.gov.asago", wrongCaseScheme.getScheme());
+        assertEquals(AUTH_REDIRECT_SCHEME, correctScheme.getScheme());
+        assertNotEquals(AUTH_REDIRECT_SCHEME, wrongCaseScheme.getScheme());
     }
 
     @Test
     public void testMultipleQueryParameters_canBeExtracted() {
-        Uri uri = Uri.parse("ca.bc.gov.asago://callback?code=abc&state=xyz&session_state=123");
+        Uri uri = Uri.parse(authUri("callback?code=abc&state=xyz&session_state=123"));
 
         assertEquals("abc", uri.getQueryParameter("code"));
         assertEquals("xyz", uri.getQueryParameter("state"));
@@ -173,9 +178,9 @@ public class MainActivityTest {
 
     @Test
     public void testUriWithFragment_preservesFragment() {
-        Uri uri = Uri.parse("ca.bc.gov.asago://callback?code=test#fragment");
+        Uri uri = Uri.parse(authUri("callback?code=test#fragment"));
 
-        assertEquals("ca.bc.gov.asago", uri.getScheme());
+        assertEquals(AUTH_REDIRECT_SCHEME, uri.getScheme());
         assertEquals("test", uri.getQueryParameter("code"));
         assertEquals("fragment", uri.getFragment());
     }
@@ -188,7 +193,7 @@ public class MainActivityTest {
             mockedStatic.when(KeycloakPlugin::getInstance).thenReturn(mockPlugin);
 
             Intent intent = new Intent();
-            intent.setData(Uri.parse("ca.bc.gov.asago://callback"));
+            intent.setData(Uri.parse(authUri("callback")));
 
             KeycloakPlugin plugin = KeycloakPlugin.getInstance();
             if (plugin != null) {
@@ -202,7 +207,7 @@ public class MainActivityTest {
     @Test
     public void testActivitySchemeConstant() {
         // Verify the expected scheme matches what's in AndroidManifest
-        String expectedScheme = "ca.bc.gov.asago";
+        String expectedScheme = AUTH_REDIRECT_SCHEME;
         Uri uri = Uri.parse(expectedScheme + "://callback");
 
         assertEquals(expectedScheme, uri.getScheme());
@@ -227,15 +232,15 @@ public class MainActivityTest {
         try (MockedStatic<KeycloakPlugin> mockedStatic = mockStatic(KeycloakPlugin.class)) {
             mockedStatic.when(KeycloakPlugin::getInstance).thenReturn(mockPlugin);
 
-            Uri uri1 = Uri.parse("ca.bc.gov.asago://callback?code=code1");
-            Uri uri2 = Uri.parse("ca.bc.gov.asago://callback?code=code2");
+            Uri uri1 = Uri.parse(authUri("callback?code=code1"));
+            Uri uri2 = Uri.parse(authUri("callback?code=code2"));
 
             KeycloakPlugin plugin = KeycloakPlugin.getInstance();
             if (plugin != null) {
-                if ("ca.bc.gov.asago".equals(uri1.getScheme())) {
+                if (AUTH_REDIRECT_SCHEME.equals(uri1.getScheme())) {
                     plugin.handleAuthCallback(uri1);
                 }
-                if ("ca.bc.gov.asago".equals(uri2.getScheme())) {
+                if (AUTH_REDIRECT_SCHEME.equals(uri2.getScheme())) {
                     plugin.handleAuthCallback(uri2);
                 }
             }
@@ -246,10 +251,10 @@ public class MainActivityTest {
 
     @Test
     public void testUriPreservation_fullUriString() {
-        String uriString = "ca.bc.gov.asago://auth/callback?code=abc&state=xyz&session_state=123";
+        String uriString = authUri("auth/callback?code=abc&state=xyz&session_state=123");
         Uri uri = Uri.parse(uriString);
 
-        assertEquals("ca.bc.gov.asago", uri.getScheme());
+        assertEquals(AUTH_REDIRECT_SCHEME, uri.getScheme());
         // In custom schemes, the authority/host is "auth" and path is "/callback"
         assertEquals("/callback", uri.getPath());
         assertEquals("code=abc&state=xyz&session_state=123", uri.getQuery());
