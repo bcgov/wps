@@ -5,7 +5,10 @@
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "es2015"
   },
   "include": ["src"]
 }

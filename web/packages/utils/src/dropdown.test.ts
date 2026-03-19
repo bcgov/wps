@@ -1,4 +1,4 @@
-import { GeoJsonStation } from 'api/stationAPI'
+import type { GeoJsonStation } from 'types/stationTypes'
 import { getSelectedStationOptions } from 'utils/dropdown'
 
 describe('Dropdown utils', () => {

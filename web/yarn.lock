@@ -4046,6 +4046,8 @@ __metadata:
 "@wps/utils@workspace:*, @wps/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@wps/utils@workspace:packages/utils"
+  dependencies:
+    "@wps/types": "workspace:*"
   languageName: unknown
   linkType: soft
 

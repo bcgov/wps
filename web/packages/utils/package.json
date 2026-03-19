@@ -2,7 +2,10 @@
   "name": "@wps/utils",
   "version": "0.0.0",
   "private": true,
+  "devDependencies": {
+    "@wps/types": "workspace:*"
+  },
   "scripts": {
-    "build": "tsc --noEmit -p tsconfig.json"
+    "build": "tsc -p tsconfig.json"
   }
 }

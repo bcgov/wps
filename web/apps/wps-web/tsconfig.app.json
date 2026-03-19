@@ -1,8 +1,8 @@
 {
   "extends": "@wps/tsconfig/react-app.json",
   "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom"],
+    "outDir": "dist",
+    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom", "@wps/types"],
     "noUnusedLocals": false,
     "baseUrl": ".",
     "paths": {
@@ -19,8 +19,15 @@
       "features/*": ["./src/features/*"],
       "components/*": ["../../packages/ui/src/*"],
       "components": ["../../packages/ui/src/index"],
-      "commonSlices/*": ["./src/commonSlices/*"]
+      "commonSlices/*": ["./src/commonSlices/*"],
+      "types/*": ["../../packages/types/src/*"]
     }
   },
-  "include": ["src", "../../packages/ui/src", "../../packages/api/src", "../../packages/utils/src", "../../packages/types/src"]
+  "references": [
+    { "path": "../../packages/api" },
+    { "path": "../../packages/utils" },
+    { "path": "../../packages/ui" },
+    { "path": "../../packages/types" }
+  ],
+  "include": ["src"]
 }

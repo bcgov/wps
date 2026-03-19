@@ -1,5 +1,6 @@
 {
   "name": "@wps/types",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "types": "./dist/src/window.d.ts"
 }

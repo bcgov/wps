@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { StationSource, DetailedGeoJsonStation, GeoJsonStation } from 'api/stationAPI'
+import { StationSource } from 'api/stationAPI'
+import type { DetailedGeoJsonStation, GeoJsonStation } from 'types/stationTypes'
 import { AppThunk } from 'app/store'
 import { logError } from 'utils/error'
 export interface StationsState {

@@ -1,6 +1,6 @@
 import axios from 'api/axios'
-import { FireSeason } from 'api/percentileAPI'
 import { sortBy } from 'lodash'
+import type { FireSeason, GeoJsonStation, DetailedGeoJsonStation, StationProperties, DetailedStationProperties, StationGeometry } from 'types/stationTypes'
 
 export interface Station {
   code: number
@@ -9,40 +9,6 @@ export interface Station {
   long: number
   ecodivision_name: string | null
   core_season: FireSeason
-}
-
-export interface GeoJsonStation {
-  type: string
-  properties: StationProperties
-  geometry: StationGeometry
-}
-
-export interface DetailedGeoJsonStation {
-  type: string
-  properties: DetailedStationProperties
-  geometry: StationGeometry
-}
-
-export interface DetailedStationProperties extends StationProperties {
-  observations: {
-    temperature: number
-    relative_humidity: number
-  }
-  forecasts: {
-    temperature: number
-    relative_humidity: number
-  }
-}
-export interface StationProperties {
-  code: number
-  name: string
-  ecodivision_name: string | null
-  core_season: FireSeason
-}
-
-export interface StationGeometry {
-  type: string
-  coordinates: number[]
 }
 
 export interface StationsResponse {

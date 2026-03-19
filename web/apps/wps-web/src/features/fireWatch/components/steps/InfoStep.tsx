@@ -1,4 +1,4 @@
-import { GeoJsonStation } from '@/api/stationAPI'
+import type { GeoJsonStation } from 'types/stationTypes'
 import { selectFireWatchFireCentres, selectFireWeatherStations } from '@/app/rootReducer'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 import { FireWatch, FireWatchFireCentre } from '@/features/fireWatch/interfaces'

@@ -6,13 +6,18 @@
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "react-jsx",
-    "noEmit": true,
-    "types": ["vite/client", "vitest/globals"],
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "types": ["vite/client", "vitest/globals", "@wps/types"],
     "baseUrl": ".",
     "paths": {
       "utils/*": ["./src/*"],
-      "api/*": ["../api/src/*"]
+      "api/*": ["../api/src/*"],
+      "types/*": ["../types/src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "../types/src"]
+  "references": [{ "path": "../types" }],
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

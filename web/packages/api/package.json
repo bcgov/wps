@@ -3,6 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc --noEmit -p tsconfig.json"
+    "build": "tsc -p tsconfig.json"
   }
 }

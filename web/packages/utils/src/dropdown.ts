@@ -1,4 +1,4 @@
-import { DetailedGeoJsonStation, GeoJsonStation } from 'api/stationAPI'
+import type { DetailedGeoJsonStation, GeoJsonStation } from 'types/stationTypes'
 
 export interface Option {
   name: string

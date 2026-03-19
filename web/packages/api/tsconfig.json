@@ -5,13 +5,18 @@
     "module": "esnext",
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "noEmit": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
     "types": ["vite/client", "vitest/globals"],
     "baseUrl": ".",
     "paths": {
       "api/*": ["./src/*"],
-      "utils/*": ["../utils/src/*"]
+      "utils/*": ["../utils/src/*"],
+      "types/*": ["../types/src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "../utils/src/**/*.ts", "../utils/src/**/*.tsx", "../types/src"]
+  "references": [{ "path": "../utils" }, { "path": "../types" }],
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

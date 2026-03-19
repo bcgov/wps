@@ -18,10 +18,8 @@ interface RuntimeEnv {
   REACT_APP_HILLSHADE_STYLE_URL: string
 }
 
-// Augment globalThis so that globalThis.env is typed
 declare var env: RuntimeEnv
 
-// Keep Window augmentation for legacy compatibility
 interface Window {
   env: RuntimeEnv
   Cypress: {} | undefined

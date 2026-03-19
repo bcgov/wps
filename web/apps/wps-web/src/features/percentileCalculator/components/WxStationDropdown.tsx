@@ -9,7 +9,7 @@ import { selectPercentileStations } from 'app/rootReducer'
 import { WEATHER_STATION_MAP_LINK } from 'utils/constants'
 import { ErrorMessage } from 'components/ErrorMessage'
 import { getSelectedStationOptions, Option } from 'utils/dropdown'
-import { GeoJsonStation } from 'api/stationAPI'
+import type { GeoJsonStation } from 'types/stationTypes'
 
 const PREFIX = 'WxStationDropdown'
 
