@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { DateTime } from 'luxon'
 import { Container, ErrorBoundary, GeneralHeader } from 'components'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-import { FireStartRange } from 'api/hfiCalculatorAPI'
+import { FireCentre, FireStartRange } from 'api/hfiCalculatorAPI'
 import {
   setSelectedFireCentre,
   fetchSetNewFireStarts,
@@ -25,7 +25,6 @@ import {
 import { FormControl, styled } from '@mui/material'
 import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
 import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
-import { FireCentre } from 'api/hfiCalculatorAPI'
 import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
 import { isNull, isUndefined } from 'lodash'
 import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
