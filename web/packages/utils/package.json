@@ -10,6 +10,7 @@
     "@wps/types": "workspace:*"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist .turbo"
   }
 }

@@ -24,25 +24,25 @@ if (import.meta.env.MODE === 'production') {
   // globalThis.env is set in index.html, populated by env variables.
   ENV = {
     // TODO: Figure out why axios goes to http on gets!
-    API_BASE_URL: globalThis.env.API_BASE_URL ?? `${globalThis.location.protocol}//${globalThis.location.host}/api`,
-    RASTER_SERVER_BASE_URL: globalThis.env.RASTER_SERVER_BASE_URL ?? `${globalThis.location.protocol}//${globalThis.location.host}`,
+    API_BASE_URL: env.API_BASE_URL ?? `${location.protocol}//${location.host}/api`,
+    RASTER_SERVER_BASE_URL: env.RASTER_SERVER_BASE_URL ?? `${location.protocol}//${location.host}`,
     HIDE_DISCLAIMER: undefined,
-    SM_LOGOUT_URL: globalThis.env.REACT_APP_SM_LOGOUT_URL,
-    KC_AUTH_URL: globalThis.env.REACT_APP_KEYCLOAK_AUTH_URL,
-    KC_REALM: globalThis.env.REACT_APP_KEYCLOAK_REALM,
-    KC_CLIENT: globalThis.env.REACT_APP_KEYCLOAK_CLIENT,
+    SM_LOGOUT_URL: env.REACT_APP_SM_LOGOUT_URL,
+    KC_AUTH_URL: env.REACT_APP_KEYCLOAK_AUTH_URL,
+    KC_REALM: env.REACT_APP_KEYCLOAK_REALM,
+    KC_CLIENT: env.REACT_APP_KEYCLOAK_CLIENT,
     TEST_AUTH: undefined,
-    MS_TEAMS_SPRINT_REVIEW_URL: globalThis.env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL,
-    SPRINT_REVIEW_BOARD_URL: globalThis.env.REACT_APP_SPRINT_REVIEW_BOARD_URL,
-    PMTILES_BUCKET: globalThis.env.REACT_APP_PMTILES_BUCKET,
-    MUI_LICENSE: globalThis.env.REACT_APP_MUI_LICENSE_KEY,
-    SENTRY_DSN: globalThis.env.REACT_APP_SENTRY_DSN,
-    SENTRY_ENV: globalThis.env.REACT_APP_SENTRY_ENV,
-    PSU_BUCKET: globalThis.env.REACT_APP_PSU_BUCKET,
-    BASEMAP_TILE_URL: globalThis.env.REACT_APP_BASEMAP_TILE_URL,
-    BASEMAP_STYLE_URL: globalThis.env.REACT_APP_BASEMAP_STYLE_URL,
-    HILLSHADE_TILE_URL: globalThis.env.REACT_APP_HILLSHADE_TILE_URL,
-    HILLSHADE_STYLE_URL: globalThis.env.REACT_APP_HILLSHADE_STYLE_URL
+    MS_TEAMS_SPRINT_REVIEW_URL: env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL,
+    SPRINT_REVIEW_BOARD_URL: env.REACT_APP_SPRINT_REVIEW_BOARD_URL,
+    PMTILES_BUCKET: env.REACT_APP_PMTILES_BUCKET,
+    MUI_LICENSE: env.REACT_APP_MUI_LICENSE_KEY,
+    SENTRY_DSN: env.REACT_APP_SENTRY_DSN,
+    SENTRY_ENV: env.REACT_APP_SENTRY_ENV,
+    PSU_BUCKET: env.REACT_APP_PSU_BUCKET,
+    BASEMAP_TILE_URL: env.REACT_APP_BASEMAP_TILE_URL,
+    BASEMAP_STYLE_URL: env.REACT_APP_BASEMAP_STYLE_URL,
+    HILLSHADE_TILE_URL: env.REACT_APP_HILLSHADE_TILE_URL,
+    HILLSHADE_STYLE_URL: env.REACT_APP_HILLSHADE_STYLE_URL
   }
 }
 

@@ -6,7 +6,8 @@
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "react-jsx",
-    "types": ["vite/client", "vitest/globals", "@wps/types"]
+    "types": ["vite/client", "vitest/globals", "@wps/types"],
+    "noEmit": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
