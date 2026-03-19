@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    ".": "./src/index.ts",
-    "./*": "./src/*.js"
+    ".": "./dist/index.js",
+    "./*": "./dist/*.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

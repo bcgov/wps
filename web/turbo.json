@@ -8,15 +8,15 @@
     },
     "@wps/api#build": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": ["dist/**"]
     },
     "@wps/ui#build": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": ["dist/**"]
     },
     "@wps/utils#build": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": ["dist/**"]
     },
     "test": {
       "dependsOn": ["^build"],

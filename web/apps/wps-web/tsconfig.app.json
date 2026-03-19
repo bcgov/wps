@@ -3,6 +3,7 @@
   "compilerOptions": {
     "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom", "@wps/types"],
     "noUnusedLocals": false,
+    "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
@@ -12,5 +13,6 @@
       "commonSlices/*": ["./src/commonSlices/*"],
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/setupTests.ts"]
 }

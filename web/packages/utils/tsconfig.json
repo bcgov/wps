@@ -7,7 +7,9 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "react-jsx",
     "types": ["vite/client", "vitest/globals", "@wps/types"],
-    "noEmit": true
+    "outDir": "dist",
+    "declaration": true,
+    "customConditions": ["development"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

@@ -6,7 +6,9 @@
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
     "types": ["vite/client", "vitest/globals", "@wps/types"],
-    "noEmit": true
+    "outDir": "dist",
+    "declaration": true,
+    "customConditions": ["development"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
