@@ -86,11 +86,7 @@ const FireShapeActionsDrawer = ({
   };
 
   return (
-    <SwipeableBottomDrawer
-      open={open}
-      onClose={onClose}
-      ModalProps={{ keepMounted: true }}
-    >
+    <SwipeableBottomDrawer open={open} onClose={onClose}>
       <Box sx={{ px: 2, pb: 2 }}>
         <Box
           sx={{
