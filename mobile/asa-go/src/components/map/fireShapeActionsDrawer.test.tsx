@@ -1,11 +1,24 @@
 import { FireShape } from "@/api/fbaAPI";
+import { useIsPortrait } from "@/hooks/useIsPortrait";
 import FireShapeActionsDrawer from "@/components/map/FireShapeActionsDrawer";
 import { createTestStore } from "@/testUtils";
 import { Preferences } from "@capacitor/preferences";
+import { useMediaQuery } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+
+vi.mock("@mui/material", async () => {
+  const actual = await vi.importActual<typeof import("@mui/material")>(
+    "@mui/material",
+  );
+
+  return {
+    ...actual,
+    useMediaQuery: vi.fn(),
+  };
+});
 
 vi.mock("@capacitor/preferences", () => ({
   Preferences: {
@@ -20,11 +33,17 @@ vi.mock("@capacitor-firebase/messaging", () => ({
   },
 }));
 
+vi.mock("@/hooks/useIsPortrait", () => ({
+  useIsPortrait: vi.fn(),
+}));
+
 const mockFireShape: FireShape = {
   mof_fire_zone_name: "Test Fire Zone",
   fire_shape_id: 1,
   mof_fire_centre_name: "Test Fire Centre",
 };
+
+const theme = createTheme();
 
 const renderWithProviders = ({
   subscriptions = [],
@@ -51,7 +70,6 @@ const renderWithProviders = ({
       subscriptions,
     },
   });
-  const theme = createTheme();
 
   return {
     ...render(
@@ -74,6 +92,8 @@ const renderWithProviders = ({
 describe("FireShapeActionsDrawer", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(useIsPortrait).mockReturnValue(true);
+    vi.mocked(useMediaQuery).mockReturnValue(false);
   });
 
   it("renders the selected fire shape name and action buttons", () => {
@@ -213,5 +233,48 @@ describe("FireShapeActionsDrawer", () => {
         name: /Toggle subscription for Test Fire Zone/i,
       })
     ).toBeDisabled();
+  });
+
+  it("uses the side-sheet layout on landscape small screens", async () => {
+    vi.mocked(useIsPortrait).mockReturnValue(false);
+    vi.mocked(useMediaQuery).mockReturnValue(true);
+
+    renderWithProviders();
+
+    const actionGrid = screen.getByRole("button", {
+      name: /Toggle subscription for Test Fire Zone/i,
+    }).parentElement;
+
+    expect(actionGrid).toHaveStyle({
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    });
+
+    await waitFor(() => {
+      expect(document.querySelector(".MuiDrawer-paper")).toHaveStyle({
+        left: theme.spacing(1),
+        right: "auto",
+        bottom: theme.spacing(1),
+      });
+    });
+  });
+
+  it("keeps the standard bottom-sheet layout outside landscape small screens", async () => {
+    renderWithProviders();
+
+    const actionGrid = screen.getByRole("button", {
+      name: /Toggle subscription for Test Fire Zone/i,
+    }).parentElement;
+
+    expect(actionGrid).toHaveStyle({
+      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    });
+
+    await waitFor(() => {
+      expect(document.querySelector(".MuiDrawer-paper")).toHaveStyle({
+        left: "0px",
+        right: "0px",
+        bottom: "0px",
+      });
+    });
   });
 });
