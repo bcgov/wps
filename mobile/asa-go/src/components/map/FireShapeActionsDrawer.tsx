@@ -10,7 +10,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
-import { Box, Button, IconButton, Theme, Typography } from "@mui/material";
+import { Box, Button, IconButton, Typography } from "@mui/material";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -22,36 +22,38 @@ interface FireShapeActionsDrawerProps {
   onSelectAdvisory: () => void;
 }
 
-const actionButtonSx = (theme: Theme) => ({
+const actionButtonSx = {
   borderRadius: 2,
   flexDirection: "column",
-  fontSize: "1rem",
-  gap: 0.75,
-  minHeight: 80,
+  fontSize: {
+    xs: "1rem",
+    sm: "1.25rem",
+    md: "1.5rem",
+  },
+  gap: {
+    xs: 0.75,
+    sm: 1,
+  },
+  minHeight: {
+    xs: 80,
+    sm: 88,
+    md: 96,
+  },
   px: 1,
-  py: 1.25,
+  py: {
+    xs: 1.25,
+    sm: 1.5,
+  },
   textTransform: "none",
-  [theme.breakpoints.up("sm")]: {
-    fontSize: "1.25rem",
-    gap: 1,
-    minHeight: 88,
-    py: 1.5,
-  },
-  [theme.breakpoints.up("md")]: {
-    fontSize: "1.5rem",
-    minHeight: 96,
-  },
-});
+};
 
-const actionIconSx = (theme: Theme) => ({
-  fontSize: 36,
-  [theme.breakpoints.up("sm")]: {
-    fontSize: 40,
+const actionIconSx = {
+  fontSize: {
+    xs: 36,
+    sm: 40,
+    md: 44,
   },
-  [theme.breakpoints.up("md")]: {
-    fontSize: 44,
-  },
-});
+};
 
 const FireShapeActionsDrawer = ({
   open,
