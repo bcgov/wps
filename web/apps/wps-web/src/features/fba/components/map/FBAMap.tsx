@@ -3,7 +3,7 @@ import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } f
 import { Box } from '@mui/material'
 import { FireCenter, FireShape, RunType } from '@wps/api/fbaAPI'
 import { selectFireWeatherStations, selectRunDates, selectProvincialSummaryZones } from 'app/rootReducer'
-import { ErrorBoundary } from '@wps/ui'
+import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import {
   fireCentreLabelStyler,
   fireCentreLineStyler,

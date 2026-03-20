@@ -1,5 +1,6 @@
 import { Box, FormControl, Grid, styled } from '@mui/material'
-import { GeneralHeader, ErrorBoundary } from '@wps/ui'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
+import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from '@wps/ui/FireCenterDropdown'

@@ -8,6 +8,7 @@
     "types": ["vite/client", "vitest/globals", "@wps/types"],
     "outDir": "dist",
     "declaration": true,
+    "declarationMap": true,
     "customConditions": ["development"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]

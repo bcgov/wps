@@ -57,6 +57,9 @@ export default defineConfig({
   ],
   server: {
     port: Number(process.env.PORT) || 3000,
+    warmup: {
+      clientFiles: ['./src/index.tsx', './src/app/App.tsx', './src/app/Routes.tsx']
+    },
     watch: {
       ignored: [
         path.join(__dirname, 'coverage-cypress/**'),
@@ -66,6 +69,7 @@ export default defineConfig({
     }
   },
   resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
     alias: [
       // In dev, resolve @wps/* packages from source for HMR support
       ...(!isProduction

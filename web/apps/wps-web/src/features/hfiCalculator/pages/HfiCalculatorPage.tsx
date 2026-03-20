@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react'
 import { DateTime } from 'luxon'
-import { Container, ErrorBoundary, GeneralHeader } from '@wps/ui'
+import { Container } from '@wps/ui/Container'
+import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import { FireCentre, FireStartRange } from '@wps/api/hfiCalculatorAPI'
 import {

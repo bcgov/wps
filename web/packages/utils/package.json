@@ -3,8 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    ".": "./dist/index.js",
     "./*": "./dist/*.js"
+  },
+  "typesVersions": {
+    "*": { "*": ["./src/*"] }
   },
   "devDependencies": {
     "@wps/types": "workspace:*"

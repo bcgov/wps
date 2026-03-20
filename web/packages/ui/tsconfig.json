@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "declaration": true,
+    "declarationMap": true,
     "customConditions": ["development"],
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "@wps/types"]
   },

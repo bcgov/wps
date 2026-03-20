@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
-import { Container, GeneralHeader } from '@wps/ui'
+import { Container } from '@wps/ui/Container'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import FBATable from 'features/fbaCalculator/components/FBATable'
 import { FIRECALC_DOC_TITLE } from '@wps/utils/constants'
 import Footer from '@/features/landingPage/components/Footer'

@@ -14,7 +14,8 @@ import {
   updateSelectedPrediction,
   fetchCHainesGeoJSON
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
-import { Container, GeneralHeader } from '@wps/ui'
+import { Container } from '@wps/ui/Container'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { formatDatetimeInPST } from '@wps/utils/date'
 import { logError } from '@wps/utils/error'
 import {
