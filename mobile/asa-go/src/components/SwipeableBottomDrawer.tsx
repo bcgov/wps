@@ -9,11 +9,11 @@ interface SwipeableBottomDrawerProps {
   onClose: () => void;
 }
 
-export function SwipeableBottomDrawer({
+export const SwipeableBottomDrawer = ({
   children,
   open,
   onClose,
-}: SwipeableBottomDrawerProps) {
+}: SwipeableBottomDrawerProps) => {
   const theme = useTheme();
   const isPortrait = useIsPortrait();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
@@ -84,4 +84,4 @@ export function SwipeableBottomDrawer({
       {children}
     </SwipeableDrawer>
   );
-}
+};
