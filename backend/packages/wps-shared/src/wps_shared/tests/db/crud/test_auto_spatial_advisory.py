@@ -22,6 +22,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.hfi_calc import FireCentre
 from wps_shared.run_type import RunType
+from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE
 
 test_run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 test_for_date = test_run_datetime.date()
@@ -50,7 +51,7 @@ async def base_setup(async_session):
 
 @pytest.fixture(scope="function")
 def postgres_container():
-    with PostgresContainer("postgis/postgis:15-3.3") as postgres:
+    with PostgresContainer(TESTCONTAINERS_POSTGRES_IMAGE) as postgres:
         yield postgres
 
 

@@ -13,6 +13,7 @@ from wps_shared.db.models.sfms_run import (
     SFMSRunLogJobName,
     SFMSRunLogStatus,
 )
+from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE
 
 
 test_target_date = date(2025, 7, 15)
@@ -21,7 +22,7 @@ test_completed_at = datetime(2025, 7, 15, 20, 45, 0, tzinfo=timezone.utc)
 
 @pytest.fixture(scope="function")
 def postgres_container():
-    with PostgresContainer("postgres:16") as postgres:
+    with PostgresContainer(TESTCONTAINERS_POSTGRES_IMAGE) as postgres:
         yield postgres
 
 
