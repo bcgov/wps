@@ -9,18 +9,33 @@ import {
   styled,
 } from "@mui/material";
 
+const actionIconSx = {
+  fontSize: {
+    xs: 36,
+    md: 44,
+  },
+};
+
+const StyledBottomNavigation = styled(BottomNavigation)(({ theme }) => ({
+  backgroundColor: theme.palette.primary.main,
+  color: theme.palette.primary.contrastText,
+  paddingTop: theme.spacing(1),
+  paddingBottom: theme.spacing(1),
+  minHeight: theme.spacing(8),
+  [theme.breakpoints.up("md")]: {
+    minHeight: theme.spacing(9),
+  },
+}));
+
 const StyledBottomNavigationAction = styled(BottomNavigationAction)(
   ({ theme }) => ({
     color: theme.palette.primary.contrastText,
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
     "&.Mui-selected": {
       color: theme.palette.secondary.main,
     },
     [theme.breakpoints.up("md")]: {
-      paddingTop: theme.spacing(1),
-      paddingBottom: theme.spacing(1),
-      "& .MuiSvgIcon-root": {
-        fontSize: "2.5rem",
-      },
       "& .MuiBottomNavigationAction-label": {
         fontSize: "1rem",
         "&.Mui-selected": {
@@ -38,7 +53,7 @@ interface BottomNavigationBarProps {
 
 const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
   return (
-    <BottomNavigation
+    <StyledBottomNavigation
       showLabels
       value={tab}
       onChange={(
@@ -47,40 +62,32 @@ const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
       ) => {
         setTab(newValue);
       }}
-      sx={(theme) => ({
-        backgroundColor: theme.palette.primary.main,
-        color: theme.palette.primary.contrastText,
-        py: theme.spacing(1),
-        [theme.breakpoints.up("md")]: {
-          minHeight: theme.spacing(8),
-        },
-      })}
     >
       <StyledBottomNavigationAction
         aria-label={NavPanel.MAP}
         label={NavPanel.MAP}
-        icon={<MapIcon />}
+        icon={<MapIcon sx={actionIconSx} />}
         value={NavPanel.MAP}
       />
       <StyledBottomNavigationAction
         aria-label={NavPanel.PROFILE}
         label={NavPanel.PROFILE}
-        icon={<AnalyticsIcon />}
+        icon={<AnalyticsIcon sx={actionIconSx} />}
         value={NavPanel.PROFILE}
       />
       <StyledBottomNavigationAction
         aria-label={NavPanel.ADVISORY}
         label={NavPanel.ADVISORY}
-        icon={<TextSnippetIcon />}
+        icon={<TextSnippetIcon sx={actionIconSx} />}
         value={NavPanel.ADVISORY}
       />
       <StyledBottomNavigationAction
         aria-label={NavPanel.SETTINGS}
         label={NavPanel.SETTINGS}
-        icon={<SettingsIcon />}
+        icon={<SettingsIcon sx={actionIconSx} />}
         value={NavPanel.SETTINGS}
       />
-    </BottomNavigation>
+    </StyledBottomNavigation>
   );
 };
 
