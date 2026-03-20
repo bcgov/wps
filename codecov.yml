@@ -3,16 +3,15 @@
 
 # Ignore prototype features until matured
 ignore:
-  - "web/src/features/cHaines"
-  - "web/src/features/fwiCalculator"
-  - "web/src/features/fireWatch"
-  - "web/src/api/fbaAPI.ts" # Unstable while we work on ASA prototype
-  - "web/src/utils/env.ts" # Just configuration
+  - "web/apps/wps-web/src/features/cHaines"
+  - "web/apps/wps-web/src/features/fwiCalculator"
+  - "web/apps/wps-web/src/features/fireWatch"
+  - "web/packages/api/src/fbaAPI.ts" # Unstable while we work on ASA prototype
+  - "web/packages/utils/src/env.ts" # Just configuration
   - "backend/packages/wps-shared/src/wps_shared/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
   - "backend/packages/wps-shared/src/wps_shared/db/database.py" # We don't write tests for the database layer, it's mocked out in tests.
   - "backend/packages/wps-shared/src/wps_shared/db/models" # We don't care about testing table schema.
   - "backend/packages/wps-shared/src/wps_shared/schemas" # We don't care about explicitly testing pydantic response schema.
-  - "web/src/utils/fwi" # We're temporarily hardcoding cffdrs ts modules here. Will switch to npm package eventually.
   - "mobile/keycloak/ios/" # CAPPlugin, OIDAuthState are seemingly not mockable
   - "**/tests/**"
   - "**/local/**"
@@ -42,7 +41,10 @@ coverage:
         threshold: 3%
         paths:
           - backend/packages/wps-api/src/app
-          - web/src
+          - web/apps/wps-web/src
+          - web/packages/api/src
+          - web/packages/ui/src
+          - web/packages/utils/src
           - backend/packages/wps-jobs/src
           - backend/packages/wps-shared/src/wps_shared
           - backend/packages/wps-wf1/src/wps_wf1
@@ -53,7 +55,10 @@ coverage:
         threshold: 3%
       web:
         paths:
-          - web/src
+          - web/apps/wps-web/src
+          - web/packages/api/src
+          - web/packages/ui/src
+          - web/packages/utils/src
         # web isn't quite amazing yet - would be nice to push it up to 80%
         target: 71%
       wps_jobs:
