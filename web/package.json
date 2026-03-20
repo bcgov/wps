@@ -17,7 +17,9 @@
     "clean": "turbo clean"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.0",
     "turbo": "^2.0.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vitest": "^4.1.0"
   }
 }

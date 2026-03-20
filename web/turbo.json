@@ -39,11 +39,11 @@
       "outputs": ["coverage/**"]
     },
     "@wps/api#coverage:ci": {
-      "dependsOn": [],
+      "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
     "@wps/ui#coverage:ci": {
-      "dependsOn": [],
+      "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
     "@wps/utils#coverage:ci": {

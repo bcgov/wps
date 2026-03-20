@@ -7,9 +7,7 @@
     "./*": "./dist/*.js"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.1.0",
-    "@wps/types": "workspace:*",
-    "vitest": "^4.0.18"
+    "@wps/types": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
