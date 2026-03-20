@@ -6,8 +6,8 @@ from wps_shared.db.crud.fcm import (
     get_device_by_device_id,
     get_notification_settings_for_device,
     save_device_token,
-    update_device_token_is_active,
     upsert_notification_settings,
+    update_device_token_is_active,
 )
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fcm import DeviceToken
@@ -73,12 +73,12 @@ async def unregister_device(request: UnregisterDeviceRequest):
 @router.get("/notification-settings", responses={404: {"description": "Device not found."}})
 async def get_notification_settings(device_id: str) -> NotificationSettingsResponse:
     """
-    Return the fire zone IDs the device is subscribed to for notifications.
+    Return the fire zone source identifiers the device is subscribed to for notifications.
     """
     logger.info("/device/notification-settings GET")
     async with get_async_write_session_scope() as session:
-        fire_shape_ids = await get_notification_settings_for_device(session, device_id)
-        return NotificationSettingsResponse(fire_shape_ids=fire_shape_ids)
+        fire_zone_source_ids = await get_notification_settings_for_device(session, device_id)
+        return NotificationSettingsResponse(fire_zone_source_ids=fire_zone_source_ids)
 
 
 @router.post("/notification-settings")
@@ -90,6 +90,8 @@ async def update_notification_settings(
     """
     logger.info("/device/notification-settings POST")
     async with get_async_write_session_scope() as session:
-        await upsert_notification_settings(session, request.device_id, request.fire_shape_ids)
-        fire_shape_ids = await get_notification_settings_for_device(session, request.device_id)
-        return NotificationSettingsResponse(fire_shape_ids=fire_shape_ids)
+        await upsert_notification_settings(session, request.device_id, request.fire_zone_source_ids)
+        fire_zone_source_ids = await get_notification_settings_for_device(
+            session, request.device_id
+        )
+        return NotificationSettingsResponse(fire_zone_source_ids=fire_zone_source_ids)

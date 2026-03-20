@@ -963,9 +963,7 @@ async def gather_zone_status_inputs(
 
 async def get_fire_centre_info(db_session: AsyncSession):
     stmt = (
-        select(
-            cast(Shape.source_identifier,Integer), Shape.label, FireCentre.name
-        )
+        select(cast(Shape.source_identifier, Integer), Shape.label, FireCentre.name)
         .join(ShapeType, ShapeType.id == Shape.shape_type)
         .join(FireCentre, FireCentre.id == Shape.fire_centre)
         .where(ShapeType.name == "fire_zone_unit")

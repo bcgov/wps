@@ -1,6 +1,7 @@
-from sqlalchemy import delete, select, update
+from sqlalchemy import Integer, cast, delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from wps_shared.db.models.auto_spatial_advisory import Shape, ShapeType, ShapeTypeEnum
 from wps_shared.db.models.fcm import DeviceToken, NotificationSettings
 from wps_shared.utils.time import get_utc_now
 
@@ -47,28 +48,65 @@ async def deactivate_device_tokens(session: AsyncSession, tokens: list[str]) -> 
 
 
 async def get_notification_settings_for_device(session: AsyncSession, device_id: str) -> list[int]:
-    """Return the list of subscribed fire_shape_ids for the given device_id."""
+    """Return the subscribed fire zone source identifiers for the given device_id."""
     result = await session.execute(
-        select(NotificationSettings.fire_shape_id)
+        select(cast(Shape.source_identifier, Integer))
+        .join(NotificationSettings, NotificationSettings.fire_shape_id == Shape.id)
         .join(DeviceToken, NotificationSettings.device_token_id == DeviceToken.id)
         .where(DeviceToken.device_id == device_id)
     )
     return list(result.scalars().all())
 
 
+async def get_fire_zone_unit_shape_type_id(session: AsyncSession) -> int | None:
+    return await session.scalar(
+        select(ShapeType.id).where(ShapeType.name == ShapeTypeEnum.fire_zone_unit)
+    )
+
+
+async def _resolve_fire_zone_source_identifiers(
+    session: AsyncSession, fire_zone_source_ids: list[int]
+) -> list[int]:
+    if not fire_zone_source_ids:
+        return []
+
+    fire_zone_unit_shape_type_id = await get_fire_zone_unit_shape_type_id(session)
+    if fire_zone_unit_shape_type_id is None:
+        return []
+
+    requested_source_identifiers = [str(source_id) for source_id in fire_zone_source_ids]
+    result = await session.execute(
+        select(Shape.id, Shape.source_identifier).where(
+            Shape.shape_type == fire_zone_unit_shape_type_id,
+            Shape.source_identifier.in_(requested_source_identifiers),
+        )
+    )
+    shape_ids_by_source_identifier = {
+        int(source_identifier): shape_id for shape_id, source_identifier in result.all()
+    }
+    resolved_shape_ids = [
+        shape_ids_by_source_identifier[source_id]
+        for source_id in fire_zone_source_ids
+        if source_id in shape_ids_by_source_identifier
+    ]
+    return list(dict.fromkeys(resolved_shape_ids))
+
+
 async def upsert_notification_settings(
-    session: AsyncSession, device_id: str, fire_shape_ids: list[int]
+    session: AsyncSession, device_id: str, fire_zone_source_ids: list[int]
 ) -> None:
-    """Replace all notification subscriptions for the given device with fire_shape_ids."""
+    """Replace device subscriptions using fire zone source identifiers from the API."""
     device_token = await get_device_by_device_id(session, device_id)
     if device_token is None:
         return
+
+    resolved_shape_ids = await _resolve_fire_zone_source_identifiers(session, fire_zone_source_ids)
 
     await session.execute(
         delete(NotificationSettings).where(NotificationSettings.device_token_id == device_token.id)
     )
 
-    for fire_shape_id in fire_shape_ids:
+    for fire_shape_id in resolved_shape_ids:
         session.add(
             NotificationSettings(device_token_id=device_token.id, fire_shape_id=fire_shape_id)
         )
