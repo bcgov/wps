@@ -1,5 +1,6 @@
 import { FireShape } from "@/api/fbaAPI";
 import { SwipeableBottomDrawer } from "@/components/SwipeableBottomDrawer";
+import { useIsPortrait } from "@/hooks/useIsPortrait";
 import {
   checkPushNotificationPermission,
   toggleSubscription,
@@ -10,7 +11,14 @@ import CloseIcon from "@mui/icons-material/Close";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
-import { Box, Button, IconButton, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -63,6 +71,10 @@ const FireShapeActionsDrawer = ({
   onSelectAdvisory,
 }: FireShapeActionsDrawerProps) => {
   const dispatch: AppDispatch = useDispatch();
+  const theme = useTheme();
+  const isPortrait = useIsPortrait();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
+  const useSideSheet = !isPortrait && isSmallScreen;
   const { networkStatus } = useSelector(selectNetworkStatus);
   const { pushNotificationPermission, subscriptions } =
     useSelector(selectSettings);
@@ -74,6 +86,7 @@ const FireShapeActionsDrawer = ({
     pushNotificationPermission !== "granted" || !networkStatus.connected;
 
   useEffect(() => {
+    // Refresh permission state when the drawer opens so the subscribe action is accurate
     if (open && pushNotificationPermission === "unknown") {
       dispatch(checkPushNotificationPermission());
     }
@@ -89,7 +102,13 @@ const FireShapeActionsDrawer = ({
 
   return (
     <SwipeableBottomDrawer open={open} onClose={onClose}>
-      <Box sx={{ px: 2, pb: 2 }}>
+      <Box
+        sx={{
+          px: 2,
+          pb: 2,
+          pt: useSideSheet ? 2 : 0,
+        }}
+      >
         <Box
           sx={{
             alignItems: "flex-start",
@@ -100,7 +119,7 @@ const FireShapeActionsDrawer = ({
           }}
         >
           <Typography
-            sx={{ flex: 1, fontWeight: 700, fontSize: "20px" }}
+            sx={{ flex: 1, fontWeight: 700, fontSize: "20px", pl: 0.5 }}
             variant="h6"
           >
             {selectedFireShape?.mof_fire_zone_name ?? ""}
@@ -119,7 +138,9 @@ const FireShapeActionsDrawer = ({
           sx={{
             display: "grid",
             gap: 1.5,
-            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gridTemplateColumns: useSideSheet
+              ? "repeat(2, minmax(0, 1fr))"
+              : "repeat(3, minmax(0, 1fr))",
           }}
         >
           <Button

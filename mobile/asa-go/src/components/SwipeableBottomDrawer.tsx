@@ -1,5 +1,7 @@
 import Box from "@mui/material/Box";
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
+import { useMediaQuery, useTheme } from "@mui/material";
+import { useIsPortrait } from "@/hooks/useIsPortrait";
 
 interface SwipeableBottomDrawerProps {
   children: React.ReactNode;
@@ -12,6 +14,11 @@ export function SwipeableBottomDrawer({
   open,
   onClose,
 }: SwipeableBottomDrawerProps) {
+  const theme = useTheme();
+  const isPortrait = useIsPortrait();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
+  const useSideSheet = !isPortrait && isSmallScreen;
+
   return (
     <SwipeableDrawer
       anchor="bottom"
@@ -27,6 +34,7 @@ export function SwipeableBottomDrawer({
       onClose={onClose}
       onOpen={() => {}}
       slotProps={{
+        // let map gestures pass through outside the sheet while keeping the sheet itself interactive.
         root: {
           sx: {
             pointerEvents: "none",
@@ -35,8 +43,20 @@ export function SwipeableBottomDrawer({
         paper: {
           sx: {
             borderRadius: "12px 12px 0 0",
-            paddingBottom: "env(safe-area-inset-bottom)",
+            display: "flex",
+            flexDirection: "column",
+            // in landscape on small screens constrain the sheet into a tall panel on the left.
+            left: useSideSheet ? theme.spacing(1) : 0,
+            right: useSideSheet ? "auto" : 0,
+            paddingBottom: useSideSheet
+              ? theme.spacing(1)
+              : "env(safe-area-inset-bottom)",
             pointerEvents: "auto",
+            bottom: useSideSheet ? theme.spacing(1) : 0,
+            height: useSideSheet
+              ? `calc(100% - ${theme.spacing(2)})`
+              : undefined,
+            width: useSideSheet ? "min(360px, 82vw)" : undefined,
             willChange: "transform",
           },
         },
@@ -61,7 +81,6 @@ export function SwipeableBottomDrawer({
           }}
         />
       </Box>
-
       {children}
     </SwipeableDrawer>
   );
