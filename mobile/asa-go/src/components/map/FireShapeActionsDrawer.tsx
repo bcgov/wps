@@ -38,20 +38,13 @@ const actionButtonSx = {
     sm: "1.25rem",
     md: "1.5rem",
   },
-  gap: {
-    xs: 0.75,
-    sm: 1,
-  },
+  gap: 0.75,
   minHeight: {
     xs: 80,
     sm: 88,
     md: 96,
   },
-  px: 1,
-  py: {
-    xs: 1.25,
-    sm: 1.5,
-  },
+  padding: 1,
   textTransform: "none",
 };
 
