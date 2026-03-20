@@ -7,8 +7,6 @@ interface SwipeableBottomDrawerProps {
   onClose: () => void;
 }
 
-const noop = () => {};
-
 export function SwipeableBottomDrawer({
   children,
   open,
@@ -27,7 +25,7 @@ export function SwipeableBottomDrawer({
       }}
       open={open}
       onClose={onClose}
-      onOpen={noop}
+      onOpen={() => {}}
       slotProps={{
         root: {
           sx: {
@@ -59,7 +57,7 @@ export function SwipeableBottomDrawer({
             bgcolor: "grey.300",
             borderRadius: 2,
             height: 4,
-            width: 36,
+            width: 134,
           }}
         />
       </Box>
