@@ -52,7 +52,7 @@ export const SwipeableBottomDrawer = ({
               ? theme.spacing(1)
               : "env(safe-area-inset-bottom)",
             pointerEvents: "auto",
-            bottom: useSideSheet ? theme.spacing(1) : 0,
+            bottom: 0,
             height: useSideSheet
               ? `calc(100% - ${theme.spacing(2)})`
               : undefined,
