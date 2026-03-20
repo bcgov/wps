@@ -13,7 +13,6 @@ ignore:
   - "backend/packages/wps-shared/src/wps_shared/db/models" # We don't care about testing table schema.
   - "backend/packages/wps-shared/src/wps_shared/schemas" # We don't care about explicitly testing pydantic response schema.
   - "web/src/utils/fwi" # We're temporarily hardcoding cffdrs ts modules here. Will switch to npm package eventually.
-  - "mobile/keycloak/ios/" # CAPPlugin, OIDAuthState are seemingly not mockable
   - "**/tests/**"
   - "**/local/**"
 
@@ -23,9 +22,17 @@ flags:
       - mobile/asa-go
     carryforward: true
   keycloak_ios:
+    paths:
+      - mobile/keycloak/ios
     carryforward: true
   android:
+    paths:
+      - mobile/asa-go/android
+      - mobile/keycloak/android
     carryforward: true
+
+comment:
+  show_carryforward_flags: true
 
 coverage:
   # https://docs.codecov.com/docs/commit-status
@@ -73,4 +80,17 @@ coverage:
           - asa_go
         paths:
           - mobile/asa-go
+        threshold: 3%
+      keycloak_ios:
+        flags:
+          - keycloak_ios
+        paths:
+          - mobile/keycloak/ios
+        threshold: 3%
+      android:
+        flags:
+          - android
+        paths:
+          - mobile/asa-go/android
+          - mobile/keycloak/android
         threshold: 3%
