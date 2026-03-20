@@ -83,7 +83,7 @@ const renderWithProviders = ({
             onSelectAdvisory={vi.fn()}
           />
         </ThemeProvider>
-      </Provider>
+      </Provider>,
     ),
     store,
   };
@@ -103,11 +103,13 @@ describe("FireShapeActionsDrawer", () => {
     expect(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
-      })
+      }),
     ).toBeInTheDocument();
     expect(screen.getByText("Subscribe")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Profile" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Advisory" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Advisory" }),
+    ).toBeInTheDocument();
   });
 
   it("calls onClose from the close button", () => {
@@ -141,7 +143,7 @@ describe("FireShapeActionsDrawer", () => {
             onSelectAdvisory={vi.fn()}
           />
         </ThemeProvider>
-      </Provider>
+      </Provider>,
     );
 
     fireEvent.click(screen.getByTestId("fire-shape-drawer-close-button"));
@@ -181,7 +183,7 @@ describe("FireShapeActionsDrawer", () => {
             onSelectAdvisory={onSelectAdvisory}
           />
         </ThemeProvider>
-      </Provider>
+      </Provider>,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Profile" }));
@@ -197,7 +199,7 @@ describe("FireShapeActionsDrawer", () => {
     fireEvent.click(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
-      })
+      }),
     );
 
     await waitFor(() => {
@@ -210,7 +212,7 @@ describe("FireShapeActionsDrawer", () => {
     expect(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
-      })
+      }),
     ).toHaveTextContent("Subscribed");
   });
 
@@ -220,7 +222,7 @@ describe("FireShapeActionsDrawer", () => {
     expect(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
-      })
+      }),
     ).toBeInTheDocument();
     expect(screen.getByText("Subscribed")).toBeInTheDocument();
   });
@@ -231,7 +233,7 @@ describe("FireShapeActionsDrawer", () => {
     expect(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
-      })
+      }),
     ).toBeDisabled();
   });
 
@@ -253,7 +255,7 @@ describe("FireShapeActionsDrawer", () => {
       expect(document.querySelector(".MuiDrawer-paper")).toHaveStyle({
         left: theme.spacing(1),
         right: "auto",
-        bottom: theme.spacing(1),
+        bottom: 0,
       });
     });
   });
