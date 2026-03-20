@@ -11,5 +11,8 @@
     "test": "vitest run",
     "coverage:ci": "vitest run --coverage",
     "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@wps/utils": "workspace:*"
   }
 }
