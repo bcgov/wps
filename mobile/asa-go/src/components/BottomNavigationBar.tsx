@@ -1,3 +1,4 @@
+import { useIsTablet } from "@/hooks/useIsTablet";
 import { NavPanel } from "@/utils/constants";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import MapIcon from "@mui/icons-material/Map";
@@ -8,13 +9,6 @@ import {
   BottomNavigationAction,
   styled,
 } from "@mui/material";
-
-const actionIconSx = {
-  fontSize: {
-    xs: 32,
-    lg: 40,
-  },
-};
 
 const StyledBottomNavigation = styled(BottomNavigation)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
@@ -52,6 +46,11 @@ interface BottomNavigationBarProps {
 }
 
 const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
+  const isTablet = useIsTablet();
+  const actionIconSx = {
+    fontSize: isTablet ? 40 : 32,
+  };
+
   return (
     <StyledBottomNavigation
       showLabels

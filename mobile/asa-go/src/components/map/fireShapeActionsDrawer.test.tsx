@@ -1,5 +1,6 @@
 import { FireShape } from "@/api/fbaAPI";
 import { useIsPortrait } from "@/hooks/useIsPortrait";
+import { useIsTablet } from "@/hooks/useIsTablet";
 import FireShapeActionsDrawer from "@/components/map/FireShapeActionsDrawer";
 import { createTestStore } from "@/testUtils";
 import { Preferences } from "@capacitor/preferences";
@@ -35,6 +36,10 @@ vi.mock("@capacitor-firebase/messaging", () => ({
 
 vi.mock("@/hooks/useIsPortrait", () => ({
   useIsPortrait: vi.fn(),
+}));
+
+vi.mock("@/hooks/useIsTablet", () => ({
+  useIsTablet: vi.fn(),
 }));
 
 const mockFireShape: FireShape = {
@@ -93,6 +98,7 @@ describe("FireShapeActionsDrawer", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(useIsPortrait).mockReturnValue(true);
+    vi.mocked(useIsTablet).mockReturnValue(false);
     vi.mocked(useMediaQuery).mockReturnValue(false);
   });
 
@@ -278,6 +284,16 @@ describe("FireShapeActionsDrawer", () => {
         right: "0px",
         bottom: "0px",
       });
+    });
+  });
+
+  it("uses the tablet icon size when the device is tablet-sized", () => {
+    vi.mocked(useIsTablet).mockReturnValue(true);
+
+    renderWithProviders();
+
+    expect(screen.getByTestId("AnalyticsIcon")).toHaveStyle({
+      fontSize: "40px",
     });
   });
 });
