@@ -1,5 +1,6 @@
 import { FireShape } from "@/api/fbaAPI";
 import { useIsPortrait } from "@/hooks/useIsPortrait";
+import { useIsTablet } from "@/hooks/useIsTablet";
 import FireShapeActionsDrawer from "@/components/map/FireShapeActionsDrawer";
 import { createTestStore } from "@/testUtils";
 import { Preferences } from "@capacitor/preferences";
@@ -35,6 +36,10 @@ vi.mock("@capacitor-firebase/messaging", () => ({
 
 vi.mock("@/hooks/useIsPortrait", () => ({
   useIsPortrait: vi.fn(),
+}));
+
+vi.mock("@/hooks/useIsTablet", () => ({
+  useIsTablet: vi.fn(),
 }));
 
 const mockFireShape: FireShape = {
@@ -93,6 +98,7 @@ describe("FireShapeActionsDrawer", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(useIsPortrait).mockReturnValue(true);
+    vi.mocked(useIsTablet).mockReturnValue(false);
     vi.mocked(useMediaQuery).mockReturnValue(false);
   });
 
@@ -256,6 +262,7 @@ describe("FireShapeActionsDrawer", () => {
         left: theme.spacing(1),
         right: "auto",
         bottom: 0,
+        width: "min(320px, 78vw)",
       });
     });
   });

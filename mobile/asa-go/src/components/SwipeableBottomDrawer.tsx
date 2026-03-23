@@ -56,7 +56,7 @@ export const SwipeableBottomDrawer = ({
             height: useSideSheet
               ? `calc(100% - ${theme.spacing(2)})`
               : undefined,
-            width: useSideSheet ? "min(360px, 82vw)" : undefined,
+            width: useSideSheet ? "min(320px, 50vw)" : undefined,
             willChange: "transform",
           },
         },

@@ -1,6 +1,7 @@
 import { FireShape } from "@/api/fbaAPI";
 import { SwipeableBottomDrawer } from "@/components/SwipeableBottomDrawer";
 import { useIsPortrait } from "@/hooks/useIsPortrait";
+import { useIsTablet } from "@/hooks/useIsTablet";
 import {
   checkPushNotificationPermission,
   toggleSubscription,
@@ -31,32 +32,6 @@ interface FireShapeActionsDrawerProps {
   onSelectAdvisory: () => void;
 }
 
-const actionButtonSx = {
-  borderRadius: 2,
-  flexDirection: "column",
-  fontSize: {
-    xs: "1rem",
-    sm: "1.25rem",
-    md: "1.5rem",
-  },
-  gap: 0.75,
-  minHeight: {
-    xs: 80,
-    sm: 88,
-    md: 96,
-  },
-  padding: 1,
-  textTransform: "none",
-};
-
-const actionIconSx = {
-  fontSize: {
-    xs: 36,
-    sm: 40,
-    md: 44,
-  },
-};
-
 const FireShapeActionsDrawer = ({
   open,
   selectedFireShape,
@@ -66,18 +41,35 @@ const FireShapeActionsDrawer = ({
 }: FireShapeActionsDrawerProps) => {
   const dispatch: AppDispatch = useDispatch();
   const theme = useTheme();
+
   const isPortrait = useIsPortrait();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
+  const isTablet = useIsTablet();
   const useSideSheet = !isPortrait && isSmallScreen;
+
   const { networkStatus } = useSelector(selectNetworkStatus);
   const { pushNotificationPermission, subscriptions } =
     useSelector(selectSettings);
+
   const selectedFireShapeId = selectedFireShape?.fire_shape_id;
   const isSubscribed =
     selectedFireShapeId !== undefined &&
     subscriptions.includes(selectedFireShapeId);
   const notificationSettingsDisabled =
     pushNotificationPermission !== "granted" || !networkStatus.connected;
+
+  const actionButtonSx = {
+    borderRadius: 2,
+    flexDirection: "column",
+    fontSize: isTablet ? "1.5rem" : "1rem",
+    gap: 0.75,
+    padding: 1,
+    textTransform: "none",
+  };
+
+  const actionIconSx = {
+    fontSize: isTablet ? 44 : 36,
+  };
 
   useEffect(() => {
     // Refresh permission state when the drawer opens so the subscribe action is accurate
@@ -113,7 +105,12 @@ const FireShapeActionsDrawer = ({
           }}
         >
           <Typography
-            sx={{ flex: 1, fontWeight: 700, fontSize: "20px", pl: 0.5 }}
+            sx={{
+              flex: 1,
+              fontWeight: 700,
+              fontSize: isTablet ? "1.5rem" : "1.25rem",
+              pl: 0.5,
+            }}
             variant="h6"
           >
             {fireZoneUnitNameFormatter(selectedFireShape?.mof_fire_zone_name)}
@@ -141,7 +138,6 @@ const FireShapeActionsDrawer = ({
             aria-label={`Toggle subscription for ${
               selectedFireShape?.mof_fire_zone_name ?? "selected fire zone"
             }`}
-            color={isSubscribed ? "primary" : "inherit"}
             disabled={
               selectedFireShapeId === undefined || notificationSettingsDisabled
             }
