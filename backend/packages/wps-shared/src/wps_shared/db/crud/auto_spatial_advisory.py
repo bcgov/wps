@@ -885,6 +885,25 @@ async def get_provincial_rollup(
     return [FireShapeStatusDetail.model_validate(row) for row in result.mappings().all()]
 
 
+async def get_zones_with_advisories(
+    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
+):
+    logger.info("gathering zones with advisories/warnings")
+    run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+    stmt = (
+        select(
+            AdvisoryZoneStatus.advisory_shape_id,
+            Shape.source_identifier,
+            Shape.placename_label,
+            advisory_status_case.label("status"),
+        )
+        .where(AdvisoryZoneStatus.run_parameters == run_parameter_id)
+        .join(Shape.id == AdvisoryZoneStatus.advisory_shape_id)
+    )
+    result = await session.execute(stmt)
+    return result.all()
+
+
 async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):
     geom = func.ST_Transform(func.ST_GeomFromText(geometry, srid), 3005)
     stmt = select(Shape.id).filter(func.ST_Contains(Shape.geom, geom))
