@@ -47,7 +47,7 @@ async def deactivate_device_tokens(session: AsyncSession, tokens: list[str]) -> 
     return result.rowcount or 0
 
 
-async def get_notification_settings_for_device(session: AsyncSession, device_id: str) -> list[int]:
+async def get_notification_settings_for_device(session: AsyncSession, device_id: str) -> list[str]:
     """Return the subscribed fire zone source identifiers for the given device_id."""
     result = await session.execute(
         select(Shape.source_identifier)
