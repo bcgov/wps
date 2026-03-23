@@ -65,7 +65,7 @@ const FireShapeActionsDrawer = ({
   const actionButtonSx = {
     borderRadius: 2,
     flexDirection: "column",
-    fontSize: isTablet ? "1.25rem" : "1rem",
+    fontSize: isTablet ? "20px" : "14px",
     gap: 0.75,
     padding: 1,
     textTransform: "none",
