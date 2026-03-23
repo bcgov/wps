@@ -6,6 +6,7 @@ import {
   toggleSubscription,
 } from "@/slices/settingsSlice";
 import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
+import { fireZoneUnitNameFormatter } from "@/utils/stringUtils";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import CloseIcon from "@mui/icons-material/Close";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
@@ -115,7 +116,7 @@ const FireShapeActionsDrawer = ({
             sx={{ flex: 1, fontWeight: 700, fontSize: "20px", pl: 0.5 }}
             variant="h6"
           >
-            {selectedFireShape?.mof_fire_zone_name ?? ""}
+            {fireZoneUnitNameFormatter(selectedFireShape?.mof_fire_zone_name)}
           </Typography>
           <IconButton
             aria-label="Close fire zone actions"

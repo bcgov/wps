@@ -99,7 +99,7 @@ describe("FireShapeActionsDrawer", () => {
   it("renders the selected fire shape name and action buttons", () => {
     renderWithProviders();
 
-    expect(screen.getByText("Test Fire Zone")).toBeInTheDocument();
+    expect(screen.getByText("Test Fire")).toBeInTheDocument();
     expect(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
