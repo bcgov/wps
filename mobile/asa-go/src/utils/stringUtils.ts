@@ -61,7 +61,7 @@ export const fireZoneUnitNameFormatter = (input: string | undefined) => {
   const { baseName, bracketedSuffix } = splitBracketedSuffix(input);
   const formattedBaseName = stripZoneSuffix(baseName);
 
-  const normalizedBaseName = formattedBaseName.replace(/\s+/g, "");
+  const normalizedBaseName = formattedBaseName.replaceAll(/\s+/g, "");
   const isRedundantLocation = FIRE_ZONE_UNITS_WITH_REDUNDANT_LOCATION.has(
     `${normalizedBaseName}|${bracketedSuffix}`,
   );
