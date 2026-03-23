@@ -3,7 +3,7 @@ import asyncio
 import logging
 import os
 import tempfile
-from datetime import date
+from datetime import date, datetime, time, timezone
 from typing import List, Tuple
 
 import aiofiles
@@ -11,8 +11,15 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import xarray as xr
 from wps_shared import config
+from wps_shared.db.crud.wx_4panel_charts import (
+    get_or_create_processed_four_panel_chart,
+    save_four_panel_chart,
+)
+from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.wx_4panel_charts import ChartStatusEnum, ECCCModel, ModelNames
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
+
 from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
 from wps_weather.wx_4panel_charts.panel_layout import (
     add_panel_title,
@@ -29,8 +36,8 @@ from wps_weather.wx_4panel_charts.plot_mslp import CFG_MSLP as CFG_MSLP_GDPS
 from wps_weather.wx_4panel_charts.plot_mslp_rdps import CFG_MSLP_RDPS
 from wps_weather.wx_4panel_charts.plot_precip import PLOT_CONFIG_PCPN12 as CFG_PCPN_GDPS
 from wps_weather.wx_4panel_charts.plot_precip_rdps import PLOT_CONFIG_PCPN3_RDPS as CFG_PCPN_RDPS
-from wps_weather.wx_4panel_charts.plotter_provider import PlotterProvider
-from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel, RasterAddresser
+from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
+from wps_weather.wx_4panel_charts.raster_addresser import RasterAddresser
 
 DEFAULT_FIG_SIZE = (11.8, 10)
 DEFAULT_DPI = 300
@@ -85,7 +92,7 @@ class FourPanelChartRunner:
         figsize: Tuple[float, float],
         dpi: int,
         output_key: str,
-        plotter_provider: PlotterProvider,
+        plotter_factory: PlotterFactory,
     ):
         proj = ccrs.LambertConformal(
             central_longitude=cfg500.get("central_longitude", -130.0),
@@ -106,7 +113,7 @@ class FourPanelChartRunner:
         ds_z500 = await self._open_dataset_s3(cfg500["z500_grib"])
         ds_vort = await self._open_dataset_s3(cfg500["vort_grib"])
 
-        plotter_500hpa = plotter_provider.get_500hpa_plotter()
+        plotter_500hpa = plotter_factory.get_500hpa_plotter()
         plotter_500hpa(cfg500, ax=ax500, ds_z500=ds_z500, ds_vort=ds_vort)
         add_panel_title(ax500, "500 hPa Height + Abs Vorticity", loc="bl")
 
@@ -116,7 +123,7 @@ class FourPanelChartRunner:
         ds_msl = await self._open_dataset_s3(cfgmslp["mslp_grib"])
         ds_thk = await self._open_dataset_s3(cfgmslp["thk_grib"])
 
-        plotter_mslp_thickness = plotter_provider.get_mslp_thickness_plotter()
+        plotter_mslp_thickness = plotter_factory.get_mslp_thickness_plotter()
         plotter_mslp_thickness(cfgmslp, ax=axmslp, ds_msl=ds_msl, ds_thk=ds_thk)
         add_panel_title(axmslp, "MSLP + 1000–500 Thickness", loc="bl")
 
@@ -128,7 +135,7 @@ class FourPanelChartRunner:
         ds_rh700 = await self._open_dataset_s3(cfg700["rh700_grib"])
         ds_rh500 = await self._open_dataset_s3(cfg700["rh500_grib"])
 
-        plotter_700hpa = plotter_provider.get_700hpa_plotter()
+        plotter_700hpa = plotter_factory.get_700hpa_plotter()
         plotter_700hpa(
             cfg700,
             ax=ax700,
@@ -151,7 +158,7 @@ class FourPanelChartRunner:
 
         ds_js = await self._open_dataset_s3(cfgpcpn["jet_spd_grib"])
 
-        plotter_pcpn = plotter_provider.get_pcpn_plotter()
+        plotter_pcpn = plotter_factory.get_pcpn_plotter()
         plotter_pcpn(cfgpcpn, ax=axpcpn, ds_p=ds_p, ds_js=ds_js)
         add_panel_title(
             axpcpn, "3H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H", loc="bl"
@@ -204,7 +211,7 @@ class FourPanelChartRunner:
                 file_name_builder=rdps_fname,
                 model=model,
             )
-        plotter_provider = PlotterProvider(model=model)
+        plotter_factory = PlotterFactory(model=model)
         for fh in range(int(fstart), int(fend) + 1, int(step)):
             output_name = f"{model}_{init_ymd}T{init_hh}Z_F{fh:03d}_4panel.png"
             output_key = raster_addresser.get_4panel_key(fh, output_name)
@@ -246,23 +253,38 @@ class FourPanelChartRunner:
                 DEFAULT_FIG_SIZE,
                 DEFAULT_DPI,
                 output_key,
-                plotter_provider,
+                plotter_factory,
             )
-
+        # The specified end hour has been reached and the processing is complete.
         return True
 
-    async def _make_4panel_charts_gdps(
-        self, init_ymd: date, init_hh: str, fstart: int, fend: int, step: int
-    ):
-        raise NotImplementedError()
-
     async def run(
-        self, init_ymd: date, model_runs: List[str], fstart: int, fend: int, step: int, model: str
+        self,
+        init_ymd: str,
+        model_runs: List[str],
+        fstart: int,
+        fend: int,
+        step: int,
+        model: ECCCModel,
     ):
-        assert model in [ECCCModel.GDPS, ECCCModel.RDPS]
+        assert model in ModelNames
         for init_hh in model_runs:
-            # TODO - Get or create database record. If charts complete, continue
-            complete = await self._make_4panel_charts(model, init_ymd, init_hh, fstart, fend, step)
+            model_run_time = time(0) if init_hh == "00" else time(12)
+            init_datetime = datetime.strptime(init_ymd, "%Y%m%d")
+            model_run_timestamp = datetime.combine(init_datetime.date(), model_run_time).replace(
+                tzinfo=timezone.utc
+            )
+            async with get_async_write_session_scope() as session:
+                chart = await get_or_create_processed_four_panel_chart(
+                    session, model, model_run_timestamp
+                )
+                if chart is not None and chart.status == ChartStatusEnum.INPROGRESS:
+                    complete = await self._make_4panel_charts(
+                        model, init_ymd, init_hh, fstart, fend, step
+                    )
+                    if complete:
+                        chart.status = ChartStatusEnum.COMPLETE
+                        save_four_panel_chart(session, chart)
 
 
 def parse_args():
