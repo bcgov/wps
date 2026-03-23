@@ -37,8 +37,8 @@ def postgres_container():
 
 mock_fire_shape_db_id = 1
 mock_fire_shape_db_id_2 = 2
-mock_fire_shape_source_identifier = 42
-mock_fire_shape_source_identifier_2 = 99
+mock_fire_shape_source_identifier = "42"
+mock_fire_shape_source_identifier_2 = "99"
 mock_fire_centre_id = 1
 
 
