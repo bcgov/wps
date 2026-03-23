@@ -1,17 +1,9 @@
-from enum import Enum
+from wps_shared.db.models.wx_4panel_charts import ECCCModel
 
 WEATHER_MODEL_PREFIX = "weather_models"
 FOUR_PANEL_PREFIX = "wx_4panel_charts"
 MODEL_GDPS = "model_gdps"
 MODEL_RDPS = "model_rdps"
-
-
-class ECCCModel(str, Enum):
-    """Enumerator for different kinds of supported ECCC weather models"""
-
-    GDPS = "GDPS"
-    RDPS = "RDPS"
-    HRDPS = "HRDPS"
 
 
 class RasterAddresser:
