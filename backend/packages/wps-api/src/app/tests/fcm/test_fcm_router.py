@@ -44,7 +44,7 @@ def client():
         (
             "post",
             API_NOTIFICATION_SETTINGS,
-            {"json": {"device_id": "test_device_id", "fire_zone_source_ids": [1, 2]}},
+            {"json": {"device_id": "test_device_id", "fire_zone_source_ids": ["1", "2"]}},
         ),
     ],
 )
