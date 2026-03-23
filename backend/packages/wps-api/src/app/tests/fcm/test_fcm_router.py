@@ -201,7 +201,7 @@ def test_unregister_device_missing_token():
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@pytest.mark.parametrize("subscribed_ids", [[], [10, 20, 30]])
+@pytest.mark.parametrize("subscribed_ids", [[], ["10", "20", "30"]])
 def test_get_notification_settings(subscribed_ids):
     """GET notification settings returns the device's subscribed fire zone source identifiers."""
     client = TestClient(app.main.app)
