@@ -1,7 +1,7 @@
 import { FireZoneUnit } from "@/api/fbaAPI";
 import { toggleSubscription } from "@/slices/settingsSlice";
 import { AppDispatch, selectSettings } from "@/store";
-import { nameFormatter } from "@/utils/stringUtils";
+import { fireZoneUnitNameFormatter } from "@/utils/stringUtils";
 import {
   ListItem,
   ListItemButton,
@@ -32,8 +32,12 @@ const SubscriptionOption = ({ fireZoneUnit }: SubscriptionOptionProps) => {
     <ListItem disableGutters disablePadding>
       <ListItemButton disableRipple onClick={handleSubscriptionUpdate}>
         <ListItemText>
-          <Typography variant="body2" fontWeight="bold">
-            {nameFormatter(fireZoneUnit.name, "Fire Zone", false)}
+          <Typography
+            variant="body2"
+            fontWeight="bold"
+            sx={{ whiteSpace: "pre-line" }}
+          >
+            {fireZoneUnitNameFormatter(fireZoneUnit.name)}
           </Typography>
         </ListItemText>
         <Switch
