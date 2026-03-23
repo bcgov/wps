@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from datetime import date, datetime
 from time import perf_counter
-from typing import List, Optional, Tuple
+from typing import List, NamedTuple, Optional, Tuple
 
 from sqlalchemy import Integer, String, and_, case, cast, desc, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -885,9 +885,16 @@ async def get_provincial_rollup(
     return [FireShapeStatusDetail.model_validate(row) for row in result.mappings().all()]
 
 
+class ZoneAdvisoryStatus(NamedTuple):
+    advisory_shape_id: int
+    source_identifier: str
+    placename_label: Optional[str]
+    status: str
+
+
 async def get_zones_with_advisories(
     session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
-):
+) -> list[ZoneAdvisoryStatus]:
     logger.info("gathering zones with advisories/warnings")
     run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
     stmt = (
@@ -901,7 +908,7 @@ async def get_zones_with_advisories(
         .join(Shape.id == AdvisoryZoneStatus.advisory_shape_id)
     )
     result = await session.execute(stmt)
-    return result.all()
+    return [ZoneAdvisoryStatus(*row) for row in result.all()]
 
 
 async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):
