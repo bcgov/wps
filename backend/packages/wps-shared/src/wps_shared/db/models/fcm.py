@@ -33,10 +33,12 @@ class NotificationSettings(Base):
 
     __tablename__ = "notification_settings"
     __table_args__ = (
-        UniqueConstraint("device_token_id", "fire_shape_id"),
+        UniqueConstraint("device_token_id", "fire_shape_source_id", name="notification_settings_device_token_id_fire_shape_source_id_key"),
         {"comment": "Zone-level notification subscriptions per device."},
     )
     id = Column(Integer, primary_key=True, index=True)
     device_token_id = Column(Integer, ForeignKey(DeviceToken.id), nullable=False, index=True)
-    fire_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
+    fire_shape_source_id = Column(
+        String, ForeignKey(Shape.source_identifier), nullable=False, index=True
+    )
     created_at = Column(TZTimeStamp, default=get_utc_now, nullable=False)

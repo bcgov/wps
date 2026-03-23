@@ -51,7 +51,10 @@ async def get_notification_settings_for_device(session: AsyncSession, device_id:
     """Return the subscribed fire zone source identifiers for the given device_id."""
     result = await session.execute(
         select(cast(Shape.source_identifier, Integer))
-        .join(NotificationSettings, NotificationSettings.fire_shape_id == Shape.id)
+        .join(
+            NotificationSettings,
+            NotificationSettings.fire_shape_source_id == Shape.source_identifier,
+        )
         .join(DeviceToken, NotificationSettings.device_token_id == DeviceToken.id)
         .where(DeviceToken.device_id == device_id)
     )
@@ -100,23 +103,26 @@ async def upsert_notification_settings(
     if device_token is None:
         return
 
-    resolved_shape_ids = await _resolve_fire_zone_source_identifiers(session, fire_zone_source_ids)
-
     await session.execute(
         delete(NotificationSettings).where(NotificationSettings.device_token_id == device_token.id)
     )
 
-    for fire_shape_id in resolved_shape_ids:
+    for fire_zone_source_id in fire_zone_source_ids:
         session.add(
-            NotificationSettings(device_token_id=device_token.id, fire_shape_id=fire_shape_id)
+            NotificationSettings(
+                device_token_id=device_token.id, fire_shape_source_id=fire_zone_source_id
+            )
         )
 
 
-async def get_device_tokens_for_zone(session: AsyncSession, fire_shape_id: int) -> list[str]:
-    """Return active FCM tokens subscribed to the given fire_shape_id."""
+async def get_device_tokens_for_zone(session: AsyncSession, fire_shape_source_id: int) -> list[str]:
+    """Return active FCM tokens subscribed to the given fire_shape_source_id."""
     result = await session.execute(
         select(DeviceToken.token)
         .join(NotificationSettings, NotificationSettings.device_token_id == DeviceToken.id)
-        .where(NotificationSettings.fire_shape_id == fire_shape_id, DeviceToken.is_active == True)  # noqa: E712
+        .where(
+            NotificationSettings.fire_shape_source_id == fire_shape_source_id,
+            DeviceToken.is_active == True,
+        )  # noqa: E712
     )
     return list(result.scalars().all())

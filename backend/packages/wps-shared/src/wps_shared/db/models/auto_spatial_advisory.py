@@ -70,6 +70,7 @@ class Shape(Base):
         # that for any given type of area, it has to be unique for the kind of thing that
         # it is. e.g. a zone has some id.
         UniqueConstraint("source_identifier", "shape_type"),
+        UniqueConstraint("source_identifier", name="uq_advisory_shapes_source_identifier"),
         {"comment": "Record identifying some area of interest with respect to advisories"},
     )
 
