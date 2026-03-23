@@ -241,15 +241,12 @@ async def test_upsert_notification_settings_empty_list_clears_subscriptions(
 
 
 @pytest.mark.anyio
-async def test_upsert_notification_settings_unknown_device_is_noop(async_session: AsyncSession):
-    """upsert_notification_settings silently does nothing for an unknown device_id."""
-    await upsert_notification_settings(
+async def test_upsert_notification_settings_unknown_device_returns_false(async_session: AsyncSession):
+    """upsert_notification_settings returns False for an unknown device_id."""
+    found = await upsert_notification_settings(
         async_session, "unknown_device_id", [mock_fire_shape_source_identifier]
     )
-    await async_session.commit()
-
-    result = await get_notification_settings_for_device(async_session, "unknown_device_id")
-    assert result == []
+    assert found is False
 
 
 @pytest.mark.anyio

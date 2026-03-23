@@ -9,7 +9,7 @@ from wps_shared.db.crud.fcm import (
     upsert_notification_settings,
     update_device_token_is_active,
 )
-from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.fcm import DeviceToken
 from wps_shared.utils.time import get_utc_now
 
@@ -70,18 +70,18 @@ async def unregister_device(request: UnregisterDeviceRequest):
         return DeviceRequestResponse(success=True)
 
 
-@router.get("/notification-settings", responses={404: {"description": "Device not found."}})
+@router.get("/notification-settings")
 async def get_notification_settings(device_id: str) -> NotificationSettingsResponse:
     """
     Return the fire zone source identifiers the device is subscribed to for notifications.
     """
     logger.info("/device/notification-settings GET")
-    async with get_async_write_session_scope() as session:
+    async with get_async_read_session_scope() as session:
         fire_zone_source_ids = await get_notification_settings_for_device(session, device_id)
         return NotificationSettingsResponse(fire_zone_source_ids=fire_zone_source_ids)
 
 
-@router.post("/notification-settings")
+@router.post("/notification-settings", responses={404: {"description": "Device not found."}})
 async def update_notification_settings(
     request: NotificationSettingsRequest,
 ) -> NotificationSettingsResponse:
@@ -90,7 +90,12 @@ async def update_notification_settings(
     """
     logger.info("/device/notification-settings POST")
     async with get_async_write_session_scope() as session:
-        await upsert_notification_settings(session, request.device_id, request.fire_zone_source_ids)
+        found = await upsert_notification_settings(
+            session, request.device_id, request.fire_zone_source_ids
+        )
+        if not found:
+            logger.error("Notification settings update for unknown device_id: %s", request.device_id)
+            raise HTTPException(status_code=404, detail=f"Device not found: {request.device_id}")
         fire_zone_source_ids = await get_notification_settings_for_device(
             session, request.device_id
         )
