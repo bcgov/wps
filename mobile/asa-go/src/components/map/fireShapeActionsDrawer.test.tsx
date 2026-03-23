@@ -213,7 +213,7 @@ describe("FireShapeActionsDrawer", () => {
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
       }),
-    ).toHaveTextContent("Subscribed");
+    ).toHaveTextContent("Unsubscribe");
   });
 
   it("shows the subscribed state when already subscribed", () => {
@@ -224,7 +224,7 @@ describe("FireShapeActionsDrawer", () => {
         name: /Toggle subscription for Test Fire Zone/i,
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Subscribed")).toBeInTheDocument();
+    expect(screen.getByText("Unsubscribe")).toBeInTheDocument();
   });
 
   it("disables subscription when notifications are unavailable", () => {

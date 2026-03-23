@@ -154,7 +154,7 @@ const FireShapeActionsDrawer = ({
             ) : (
               <NotificationsNoneOutlinedIcon sx={actionIconSx} />
             )}
-            {isSubscribed ? "Subscribed" : "Subscribe"}
+            {isSubscribed ? "Unsubscribe" : "Subscribe"}
           </Button>
           <Button
             disableElevation
