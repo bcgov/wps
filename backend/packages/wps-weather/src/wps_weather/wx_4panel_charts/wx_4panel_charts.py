@@ -18,6 +18,7 @@ from wps_shared.db.crud.wx_4panel_charts import (
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.wx_4panel_charts import ChartStatusEnum, ECCCModel, ModelNames
 from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
 
 from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
@@ -284,6 +285,7 @@ class FourPanelChartRunner:
                     )
                     if complete:
                         chart.status = ChartStatusEnum.COMPLETE
+                        chart.update_date = get_utc_now()
                         save_four_panel_chart(session, chart)
 
 
