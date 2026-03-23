@@ -76,7 +76,6 @@ async def async_session(session_factory):
 @pytest.fixture(scope="function", autouse=True)
 async def seed_test_data(async_session: AsyncSession):
     fire_centre = FireCentre(id=mock_fire_centre_id, name="Test Centre")
-    fire_zone_shape_type = ShapeType(id=2, name=ShapeTypeEnum.fire_zone)
     fire_zone_unit_shape_type = ShapeType(id=3, name=ShapeTypeEnum.fire_zone_unit)
     device_token = DeviceToken(
         user_id="test_idir",
@@ -88,9 +87,7 @@ async def seed_test_data(async_session: AsyncSession):
         updated_at=now,
     )
 
-    async_session.add_all(
-        [fire_centre, fire_zone_shape_type, fire_zone_unit_shape_type, device_token]
-    )
+    async_session.add_all([fire_centre, fire_zone_unit_shape_type, device_token])
     await async_session.commit()
 
     shape_1 = Shape(
@@ -107,14 +104,7 @@ async def seed_test_data(async_session: AsyncSession):
         fire_centre=fire_centre.id,
         geom=WKTElement("MULTIPOLYGON(((0 0, 1 0, 1 1, 0 1, 0 0)))", srid=3005),
     )
-    same_source_identifier_other_type = Shape(
-        id=100,
-        source_identifier=str(mock_fire_shape_source_identifier),
-        shape_type=fire_zone_shape_type.id,
-        geom=WKTElement("MULTIPOLYGON(((0 0, 1 0, 1 1, 0 1, 0 0)))", srid=3005),
-    )
-
-    async_session.add_all([shape_1, shape_2, same_source_identifier_other_type])
+    async_session.add_all([shape_1, shape_2])
     await async_session.commit()
 
 
@@ -270,7 +260,7 @@ async def test_get_device_tokens_for_zone_returns_active_tokens(async_session: A
     )
     await async_session.commit()
 
-    result = await get_device_tokens_for_zone(async_session, mock_fire_shape_db_id)
+    result = await get_device_tokens_for_zone(async_session, mock_fire_shape_source_identifier)
     assert result == [mock_fcm_token]
 
 
@@ -283,12 +273,12 @@ async def test_get_device_tokens_for_zone_excludes_inactive_tokens(async_session
     await update_device_token_is_active(async_session, mock_fcm_token, False)
     await async_session.commit()
 
-    result = await get_device_tokens_for_zone(async_session, mock_fire_shape_db_id)
+    result = await get_device_tokens_for_zone(async_session, mock_fire_shape_source_identifier)
     assert result == []
 
 
 @pytest.mark.anyio
 async def test_get_device_tokens_for_zone_no_subscribers(async_session: AsyncSession):
     """get_device_tokens_for_zone returns empty list when no device subscribes to the zone."""
-    result = await get_device_tokens_for_zone(async_session, mock_fire_shape_db_id)
+    result = await get_device_tokens_for_zone(async_session, mock_fire_shape_source_identifier)
     assert result == []
