@@ -219,7 +219,7 @@ def test_get_notification_settings(subscribed_ids):
 @pytest.mark.parametrize(
     "payload",
     [
-        {"fire_zone_source_ids": [1, 2]},  # missing device_id
+        {"fire_zone_source_ids": ["1", "2"]},  # missing device_id
         {"device_id": "test_device_id"},  # missing fire_zone_source_ids
     ],
 )
@@ -234,7 +234,7 @@ def test_post_notification_settings_invalid_request_returns_422(payload):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@pytest.mark.parametrize("fire_zone_source_ids", [[5, 10], []])
+@pytest.mark.parametrize("fire_zone_source_ids", [["5", "10"], []])
 def test_post_notification_settings_success(fire_zone_source_ids):
     """POST notification settings replaces subscriptions and returns the updated list."""
     client = TestClient(app.main.app)
