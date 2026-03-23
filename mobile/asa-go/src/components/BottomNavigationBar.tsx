@@ -12,7 +12,7 @@ import {
 const actionIconSx = {
   fontSize: {
     xs: 32,
-    md: 44,
+    lg: 40,
   },
 };
 

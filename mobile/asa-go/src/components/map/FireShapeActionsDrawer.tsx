@@ -1,7 +1,6 @@
 import { FireShape } from "@/api/fbaAPI";
 import { SwipeableBottomDrawer } from "@/components/SwipeableBottomDrawer";
 import { useIsPortrait } from "@/hooks/useIsPortrait";
-import { useIsTablet } from "@/hooks/useIsTablet";
 import {
   checkPushNotificationPermission,
   toggleSubscription,
@@ -24,6 +23,19 @@ import {
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+const actionButtonSx = {
+  borderRadius: 2,
+  flexDirection: "column",
+  fontSize: { xs: "1rem", lg: "1.25rem" },
+  gap: 0.75,
+  padding: 1,
+  textTransform: "none",
+};
+
+const actionIconSx = {
+  fontSize: { xs: 36, lg: 40 },
+};
+
 interface FireShapeActionsDrawerProps {
   open: boolean;
   selectedFireShape: FireShape | undefined;
@@ -44,7 +56,6 @@ const FireShapeActionsDrawer = ({
 
   const isPortrait = useIsPortrait();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
-  const isTablet = useIsTablet();
   const useSideSheet = !isPortrait && isSmallScreen;
 
   const { networkStatus } = useSelector(selectNetworkStatus);
@@ -57,19 +68,6 @@ const FireShapeActionsDrawer = ({
     subscriptions.includes(selectedFireShapeId);
   const notificationSettingsDisabled =
     pushNotificationPermission !== "granted" || !networkStatus.connected;
-
-  const actionButtonSx = {
-    borderRadius: 2,
-    flexDirection: "column",
-    fontSize: isTablet ? "1.5rem" : "1rem",
-    gap: 0.75,
-    padding: 1,
-    textTransform: "none",
-  };
-
-  const actionIconSx = {
-    fontSize: isTablet ? 44 : 36,
-  };
 
   useEffect(() => {
     // Refresh permission state when the drawer opens so the subscribe action is accurate
@@ -108,7 +106,7 @@ const FireShapeActionsDrawer = ({
             sx={{
               flex: 1,
               fontWeight: 700,
-              fontSize: isTablet ? "1.5rem" : "1.25rem",
+              fontSize: "1.25rem",
               pl: 0.5,
             }}
             variant="h6"
