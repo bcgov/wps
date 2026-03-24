@@ -20,8 +20,8 @@ class DeviceRequestResponse(BaseModel):
 
 class NotificationSettingsRequest(BaseModel):
     device_id: str
-    fire_shape_ids: list[int]
+    fire_zone_source_ids: list[str]
 
 
 class NotificationSettingsResponse(BaseModel):
-    fire_shape_ids: list[int]
+    fire_zone_source_ids: list[str]

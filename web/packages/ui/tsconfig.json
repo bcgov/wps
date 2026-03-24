@@ -1,0 +1,11 @@
+{
+  "extends": "@wps/tsconfig/react-app.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "customConditions": ["development"],
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "@wps/types"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

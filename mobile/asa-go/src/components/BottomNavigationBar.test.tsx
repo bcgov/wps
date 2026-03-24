@@ -1,9 +1,19 @@
+import { useIsTablet } from "@/hooks/useIsTablet";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { NavPanel } from "@/utils/constants";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/hooks/useIsTablet", () => ({
+  useIsTablet: vi.fn(),
+}));
 
 describe("BottomNavigationBar", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(useIsTablet).mockReturnValue(false);
+  });
+
   it("renders all navigation actions", () => {
     render(<BottomNavigationBar tab={NavPanel.MAP} setTab={vi.fn()} />);
 
@@ -48,5 +58,13 @@ describe("BottomNavigationBar", () => {
 
     fireEvent.click(screen.getByRole("button", { name: NavPanel.ADVISORY }));
     expect(setTab).toHaveBeenCalledWith(NavPanel.ADVISORY);
+  });
+
+  it("uses the tablet icon size when the device is tablet-sized", () => {
+    vi.mocked(useIsTablet).mockReturnValue(true);
+
+    render(<BottomNavigationBar tab={NavPanel.MAP} setTab={vi.fn()} />);
+
+    expect(screen.getByTestId("MapIcon")).toHaveStyle({ fontSize: "40px" });
   });
 });

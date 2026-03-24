@@ -1,5 +1,5 @@
 import { FireZoneUnit } from "@/api/fbaAPI";
-import { saveSubscriptions } from "@/slices/settingsSlice";
+import { toggleSubscription } from "@/slices/settingsSlice";
 import { AppDispatch, selectSettings } from "@/store";
 import { fireZoneUnitNameFormatter } from "@/utils/stringUtils";
 import {
@@ -25,13 +25,7 @@ const SubscriptionOption = ({ fireZoneUnit }: SubscriptionOptionProps) => {
   };
 
   const handleSubscriptionUpdate = () => {
-    let newSubs: number[];
-    if (subscriptions.includes(fireZoneUnit.id)) {
-      newSubs = subscriptions.filter((sub) => sub !== fireZoneUnit.id);
-    } else {
-      newSubs = [...subscriptions, fireZoneUnit.id];
-    }
-    dispatch(saveSubscriptions(newSubs));
+    dispatch(toggleSubscription(fireZoneUnit.id));
   };
 
   return (

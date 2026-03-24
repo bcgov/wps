@@ -3,9 +3,25 @@
 .sentryclirc
 .pnp.*
 .yarn/*
+.turbo/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-cypress/downloads
+apps/wps-web/cypress/downloads
+coverage/
+coverage-cypress/
+finalCoverage/
+intermediateCoverage/
+
+# Generated TypeScript output — should stay in dist/ via outDir, never in src/
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
+!packages/types/src/window.d.ts
+apps/wps-web/src/**/*.js
+apps/wps-web/src/**/*.js.map
+apps/wps-web/src/**/*.d.ts
+apps/wps-web/src/**/*.d.ts.map

@@ -209,7 +209,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: web-coverage-report
-          path: ./web/finalCoverage
+          path: ./web/apps/wps-web/finalCoverage
 
   upload-code-coverage:
     name: Coverage with CodeCov
