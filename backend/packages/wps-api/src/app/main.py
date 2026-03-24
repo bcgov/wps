@@ -3,38 +3,40 @@
 See README.md for details on how to run.
 """
 
+import json
 import logging
 from urllib.request import Request
-from fastapi import FastAPI, Depends, Response
-from fastapi.middleware.cors import CORSMiddleware
+
 import sentry_sdk
+from fastapi import Depends, FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
+from firebase_admin import credentials, initialize_app
 from starlette.applications import Starlette
+from wps_shared import config
+from wps_shared.auth import audit, authentication_required
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.schemas.observations import WeatherStationHourlyReadingsResponse
 from wps_shared.schemas.percentiles import CalculatedResponse, PercentileRequest
 from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.wps_logging import configure_logging
-from app.percentile import get_precalculated_percentiles
-from wps_shared.auth import authentication_required, audit
-from wps_shared import config
-from app import health
-from app import hourlies
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from app.routers import (
-    fba,
-    forecasts,
-    object_store_proxy,
-    weather_models,
-    c_haines,
-    stations,
-    hfi_calc,
-    fba_calc,
-    sfms,
-    morecast_v2,
-    snow,
-    fire_watch,
-    fcm,
-)
 
+from app import health, hourlies
+from app.percentile import get_precalculated_percentiles
+from app.routers import (
+    c_haines,
+    fba,
+    fba_calc,
+    fcm,
+    fire_watch,
+    forecasts,
+    hfi_calc,
+    morecast_v2,
+    object_store_proxy,
+    sfms,
+    snow,
+    stations,
+    weather_models,
+)
 
 configure_logging()
 
@@ -87,6 +89,10 @@ if config.get("ENVIRONMENT") == "production":
         # We recommend adjusting this value in production.
         profiles_sample_rate=0.5,
     )
+creds_json = config.get("FCM_CREDS")
+if creds_json:
+    creds = credentials.Certificate(json.loads(creds_json))
+    initialize_app(creds)
 
 # This is the api app.
 api = FastAPI(title="Predictive Services API", description=API_INFO, version="0.0.0")
