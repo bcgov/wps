@@ -2,9 +2,10 @@ import argparse
 import asyncio
 import logging
 import os
-import tempfile
-from datetime import date, datetime, time, timezone
-from typing import List, Tuple
+import sys
+from contextlib import asynccontextmanager
+from datetime import datetime, time, timezone
+from typing import List, Optional, Tuple
 
 import aiofiles
 import cartopy.crs as ccrs
@@ -15,7 +16,7 @@ from wps_shared.db.crud.wx_4panel_charts import (
     get_or_create_processed_four_panel_chart,
     save_four_panel_chart,
 )
-from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.wx_4panel_charts import ChartStatusEnum, ECCCModel, ModelNames
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
@@ -67,22 +68,32 @@ class FourPanelChartRunner:
                 f"Error when fetching key {key} from S3. HTTP status code was: {status}"
             )
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            fd, temp_path = tempfile.mkstemp(suffix=".grib2", dir=temp_dir)
-            os.close(fd)
-            async with response["Body"] as stream, aiofiles.open(temp_path, "wb") as f:
-                content = await stream.read()
-                await f.write(content)
+        async with (
+            aiofiles.tempfile.NamedTemporaryFile(suffix=".grib2", mode="w+b") as f,
+            response["Body"] as stream,
+        ):
+            content = await stream.read()
+            await f.write(content)
+            await f.seek(0)
 
             # Create the xarray.Dataset and load it. load() must be called before unlinking the tmp file.
             ds = xr.open_dataset(
-                temp_path,
+                f.name,
                 engine="cfgrib",
                 backend_kwargs={"indexpath": ""},
             )
             ds = ds.load()
 
             return ds
+
+    @asynccontextmanager
+    async def _dataset(self, key):
+        # Small helper to ensure datasets get closed in the event of an error.
+        ds = await self._open_dataset_s3(key)
+        try:
+            yield ds
+        finally:
+            ds.close()
 
     async def _make_4panel_chart(
         self,
@@ -111,63 +122,61 @@ class FourPanelChartRunner:
         ax500, axmslp = axes[0, 0], axes[0, 1]
         ax700, axpcpn = axes[1, 0], axes[1, 1]
 
-        ds_z500 = await self._open_dataset_s3(cfg500["z500_grib"])
-        ds_vort = await self._open_dataset_s3(cfg500["vort_grib"])
+        async with (
+            self._dataset(cfg500["z500_grib"]) as ds_z500,
+            self._dataset(cfg500["vort_grib"]) as ds_vort,
+        ):
+            plotter_500hpa = plotter_factory.get_500hpa_plotter()
+            plotter_500hpa(cfg500, ax=ax500, ds_z500=ds_z500, ds_vort=ds_vort)
+            add_panel_title(ax500, "500 hPa Height + Abs Vorticity", loc="bl")
 
-        plotter_500hpa = plotter_factory.get_500hpa_plotter()
-        plotter_500hpa(cfg500, ax=ax500, ds_z500=ds_z500, ds_vort=ds_vort)
-        add_panel_title(ax500, "500 hPa Height + Abs Vorticity", loc="bl")
+        async with (
+            self._dataset(cfgmslp["mslp_grib"]) as ds_msl,
+            self._dataset(cfgmslp["thk_grib"]) as ds_thk,
+        ):
+            plotter_mslp_thickness = plotter_factory.get_mslp_thickness_plotter()
+            plotter_mslp_thickness(cfgmslp, ax=axmslp, ds_msl=ds_msl, ds_thk=ds_thk)
+            add_panel_title(axmslp, "MSLP + 1000–500 Thickness", loc="bl")
 
-        ds_z500.close()
-        ds_vort.close()
+        async with (
+            self._dataset(cfg700["z700_grib"]) as ds_z700,
+            self._dataset(cfg700["rh850_grib"]) as ds_rh850,
+            self._dataset(cfg700["rh700_grib"]) as ds_rh700,
+            self._dataset(cfg700["rh500_grib"]) as ds_rh500,
+        ):
+            plotter_700hpa = plotter_factory.get_700hpa_plotter()
+            plotter_700hpa(
+                cfg700,
+                ax=ax700,
+                ds_z700=ds_z700,
+                ds_rh850=ds_rh850,
+                ds_rh700=ds_rh700,
+                ds_rh500=ds_rh500,
+            )
+            add_panel_title(ax700, "700 hPa Height + 850-500 Relative Humidity", loc="bl")
 
-        ds_msl = await self._open_dataset_s3(cfgmslp["mslp_grib"])
-        ds_thk = await self._open_dataset_s3(cfgmslp["thk_grib"])
+        ds_p: Optional[xr.Dataset] = None
+        ds_js: Optional[xr.Dataset] = None
 
-        plotter_mslp_thickness = plotter_factory.get_mslp_thickness_plotter()
-        plotter_mslp_thickness(cfgmslp, ax=axmslp, ds_msl=ds_msl, ds_thk=ds_thk)
-        add_panel_title(axmslp, "MSLP + 1000–500 Thickness", loc="bl")
+        try:
+            if cfgpcpn["show_precip"]:
+                ds_p = await self._open_dataset_s3(cfgpcpn["pcpn_grib"])
 
-        ds_msl.close()
-        ds_thk.close()
+            if cfgpcpn.get("show_jet_core", True):
+                ds_js = await self._open_dataset_s3(cfgpcpn["jet_spd_grib"])
 
-        ds_z700 = await self._open_dataset_s3(cfg700["z700_grib"])
-        ds_rh850 = await self._open_dataset_s3(cfg700["rh850_grib"])
-        ds_rh700 = await self._open_dataset_s3(cfg700["rh700_grib"])
-        ds_rh500 = await self._open_dataset_s3(cfg700["rh500_grib"])
-
-        plotter_700hpa = plotter_factory.get_700hpa_plotter()
-        plotter_700hpa(
-            cfg700,
-            ax=ax700,
-            ds_z700=ds_z700,
-            ds_rh850=ds_rh850,
-            ds_rh700=ds_rh700,
-            ds_rh500=ds_rh500,
-        )
-        add_panel_title(ax700, "700 hPa Height + 850-500 Relative Humidity", loc="bl")
-
-        ds_z700.close()
-        ds_rh850.close()
-        ds_rh700.close()
-        ds_rh500.close()
-
-        ds_p: xr.Dataset = None
-
-        if cfgpcpn["show_precip"]:
-            ds_p = await self._open_dataset_s3(cfgpcpn["pcpn_grib"])
-
-        ds_js = await self._open_dataset_s3(cfgpcpn["jet_spd_grib"])
-
-        plotter_pcpn = plotter_factory.get_pcpn_plotter()
-        plotter_pcpn(cfgpcpn, ax=axpcpn, ds_p=ds_p, ds_js=ds_js)
-        add_panel_title(
-            axpcpn, "3H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H", loc="bl"
-        )
-
-        if ds_p is not None:
-            ds_p.close()
-        ds_js.close()
+            plotter_pcpn = plotter_factory.get_pcpn_plotter()
+            plotter_pcpn(cfgpcpn, ax=axpcpn, ds_p=ds_p, ds_js=ds_js)
+            add_panel_title(
+                axpcpn,
+                "3H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H",
+                loc="bl",
+            )
+        finally:
+            if ds_p is not None:
+                ds_p.close()
+            if ds_js is not None:
+                ds_js.close()
 
         apply_4panel_frames(fig, axes, add_outer_border=True)
 
@@ -176,44 +185,39 @@ class FourPanelChartRunner:
             add_valid_time_stamp(fig, valid_text, height=0.04, fontsize=14)
 
         # Save the 4panel chart to S3. First save to a local temp file then write to S3.
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-            fig.savefig(tmp, dpi=dpi, bbox_inches=None, pad_inches=0.0, facecolor="white")
+        async with aiofiles.tempfile.NamedTemporaryFile(suffix=".png", mode="w+b") as f:
+            fig.savefig(f.name, dpi=dpi, bbox_inches=None, pad_inches=0.0, facecolor="white")
             plt.close(fig)
-            async with aiofiles.open(tmp.name, "rb") as f:
-                body = await f.read()
-                await self._s3_client.put_object(output_key, body)
-                print("Saved:", output_key)
+            await f.seek(0)
+            body = await f.read()
+            await self._s3_client.put_object(output_key, body)
+            logger.info(f"Saved: {output_key}")
 
     async def _make_4panel_charts(
-        self, model: ECCCModel, init_ymd: date, init_hh: str, fstart: int, fend: int, step: int
+        self, model: ECCCModel, init_ymd: str, init_hh: str, fstart: int, fend: int, step: int
     ):
+        _model_cfgs = {
+            ECCCModel.GDPS: (CFG_500_GDPS, CFG_MSLP_GDPS, CFG_700_GDPS, CFG_PCPN_GDPS, gdps_fname),
+            ECCCModel.RDPS: (CFG_500_RDPS, CFG_MSLP_RDPS, CFG_700_RDPS, CFG_PCPN_RDPS, rdps_fname),
+        }
+        cfg500_base, cfgmslp_base, cfg700_base, cfgpcpn_base, fname_builder = _model_cfgs[model]
         raster_addresser = RasterAddresser(init_ymd, init_hh, model)
-        if model == ECCCModel.GDPS:
-            config_builder = ConfigBuilder(
-                init_ymd=init_ymd,
-                init_hh=init_hh,
-                raster_addresser=raster_addresser,
-                cfg500=CFG_500_GDPS,
-                cfgmslp=CFG_MSLP_GDPS,
-                cfg700=CFG_700_GDPS,
-                cfgpcpn=CFG_PCPN_GDPS,
-                file_name_builder=gdps_fname,
-                model=model,
-            )
-        else:
-            config_builder = ConfigBuilder(
-                init_ymd=init_ymd,
-                init_hh=init_hh,
-                raster_addresser=raster_addresser,
-                cfg500=CFG_500_RDPS,
-                cfgmslp=CFG_MSLP_RDPS,
-                cfg700=CFG_700_RDPS,
-                cfgpcpn=CFG_PCPN_RDPS,
-                file_name_builder=rdps_fname,
-                model=model,
-            )
+        config_builder = ConfigBuilder(
+            init_ymd=init_ymd,
+            init_hh=init_hh,
+            raster_addresser=raster_addresser,
+            cfg500=cfg500_base,
+            cfgmslp=cfgmslp_base,
+            cfg700=cfg700_base,
+            cfgpcpn=cfgpcpn_base,
+            file_name_builder=fname_builder,
+            model=model,
+        )
         plotter_factory = PlotterFactory(model=model)
-        for fh in range(int(fstart), int(fend) + 1, int(step)):
+        for fh in range(fstart, fend + 1, step):
+            logger.info(
+                f"Start {model} 4 panel chart generation for hour {fh} of model run {init_ymd} {init_hh}."
+            )
             output_name = f"{model}_{init_ymd}T{init_hh}Z_F{fh:03d}_4panel.png"
             output_key = raster_addresser.get_4panel_key(fh, output_name)
 
@@ -256,6 +260,9 @@ class FourPanelChartRunner:
                 output_key,
                 plotter_factory,
             )
+            logger.info(
+                f"End {model} 4 panel chart generation for hour {fh} of model run {init_ymd} {init_hh}."
+            )
         # The specified end hour has been reached and the processing is complete.
         return True
 
@@ -268,25 +275,31 @@ class FourPanelChartRunner:
         step: int,
         model: ECCCModel,
     ):
-        assert model in ModelNames
+        if model not in ModelNames:
+            raise ValueError(f"Model must be one of {list(ModelNames)}, received {model}")
         for init_hh in model_runs:
-            model_run_time = time(0) if init_hh == "00" else time(12)
+            model_run_time = time(int(init_hh))
             init_datetime = datetime.strptime(init_ymd, "%Y%m%d")
             model_run_timestamp = datetime.combine(init_datetime.date(), model_run_time).replace(
                 tzinfo=timezone.utc
             )
-            async with get_async_write_session_scope() as session:
+            async with get_async_read_session_scope() as session:
                 chart = await get_or_create_processed_four_panel_chart(
                     session, model, model_run_timestamp
                 )
-                if chart is not None and chart.status == ChartStatusEnum.INPROGRESS:
-                    complete = await self._make_4panel_charts(
-                        model, init_ymd, init_hh, fstart, fend, step
-                    )
-                    if complete:
-                        chart.status = ChartStatusEnum.COMPLETE
-                        chart.update_date = get_utc_now()
+
+            if chart is not None and chart.status == ChartStatusEnum.INPROGRESS:
+                complete = await self._make_4panel_charts(
+                    model, init_ymd, init_hh, fstart, fend, step
+                )
+                if complete:
+                    chart.status = ChartStatusEnum.COMPLETE
+                    chart.update_date = get_utc_now()
+                    async with get_async_write_session_scope() as session:
                         save_four_panel_chart(session, chart)
+                    logger.info(f"Successfully generated {model} 4 panel charts for {init_ymd}.")
+                else:
+                    logger.info(f"Could not generate all {model} 4 panel charts for {init_ymd}.")
 
 
 def parse_args():
@@ -328,11 +341,22 @@ async def main():
     secret_key = config.get("WX_OBJECT_STORE_SECRET")
     bucket = config.get("WX_OBJECT_STORE_BUCKET")
 
+    logger.info(f"Creating {args.model} 4 panel chart for model run {args.init_ymd}.")
+    logger.info(f"Model run hour(s) {args.model_runs}")
+    logger.info(f"From hour {args.fstart} to {args.fend} in {args.step} hour increments.")
+
     async with S3Client(user_id=user_id, secret_key=secret_key, bucket=bucket) as s3_client:
-        runner = FourPanelChartRunner(s3_client)
-        await runner.run(
-            args.init_ymd, args.model_runs, args.fstart, args.fend, args.step, args.model
-        )
+        try:
+            runner = FourPanelChartRunner(s3_client)
+            await runner.run(
+                args.init_ymd, args.model_runs, args.fstart, args.fend, args.step, args.model
+            )
+
+            # Exit with 0 - success.
+            sys.exit(os.EX_OK)
+        except Exception as e:
+            logger.error(f"Fatal error: {e}", exc_info=True)
+            sys.exit(1)
 
 
 if __name__ == "__main__":

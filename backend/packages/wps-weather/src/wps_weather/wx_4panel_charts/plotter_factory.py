@@ -1,7 +1,5 @@
 from typing import Any, Mapping, Protocol, TypedDict
 
-from wps_shared.db.models.wx_4panel_charts import ECCCModel
-
 from wps_weather.wx_4panel_charts.plot_500mb import plot_500hpa as plot_500hpa_gdps
 from wps_weather.wx_4panel_charts.plot_500mb_rdps import plot_500hpa as plot_500hpa_rdps
 from wps_weather.wx_4panel_charts.plot_700mb import plot_700hpa as plot_700hpa_gdps
@@ -10,6 +8,7 @@ from wps_weather.wx_4panel_charts.plot_mslp import plot_mslp_thickness as plot_m
 from wps_weather.wx_4panel_charts.plot_mslp_rdps import plot_mslp_thickness_rdps
 from wps_weather.wx_4panel_charts.plot_precip import plot_pcpn12 as plot_pcpn12_gdps
 from wps_weather.wx_4panel_charts.plot_precip_rdps import plot_pcpn3_rdps
+from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel
 
 
 class PlotterFn(Protocol):

@@ -1,104 +1,152 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from wps_shared.db.models.wx_4panel_charts import ECCCModel
+from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel
 
 
-def test_debug_sys_path_and_packages():
-    import pkgutil
-    import sys
-
-    import wps_weather  # should succeed once src is on sys.path
-
-    print("sys.path =", sys.path)
-    print("wps_weather file =", getattr(wps_weather, "__file__", None))
-    print("found subpackages =", [m.name for m in pkgutil.iter_modules(wps_weather.__path__)])
-
-
-
-def test_factory_returns_correct_functions_for_gdps(module_under_test):
-    ECCCModel = module_under_test.ECCCModel
-    PlotterFactory = module_under_test.PlotterFactory
-
-    factory = PlotterFactory(ECCCModel.GDPS)
-
-    f500 = factory.get_500hpa_plotter()
-    f700 = factory.get_700hpa_plotter()
-    fmslp = factory.get_mslp_thickness_plotter()
-    fpcpn = factory.get_pcpn_plotter()
-
-    # Factory should provide callables
-    assert callable(f500)
-    assert callable(f700)
-    assert callable(fmslp)
-    assert callable(fpcpn)
-
-    # Calling the returned functions should return the mocked values
-    assert f500() == (ECCCModel.GDPS, "500")
-    assert f700() == (ECCCModel.GDPS, "700")
-    assert fmslp() == (ECCCModel.GDPS, "mslp_thickness")
-    assert fpcpn() == (ECCCModel.GDPS, "pcpn")
+# Patch all plotter imports before importing the module under test
+@pytest.fixture(autouse=True)
+def mock_plotters():
+    """Mock all external plotter functions to isolate PlotterFactory logic."""
+    with patch.dict(
+        "sys.modules",
+        {
+            "wps_weather.wx_4panel_charts.plot_500mb": MagicMock(plot_500hpa=MagicMock()),
+            "wps_weather.wx_4panel_charts.plot_500mb_rdps": MagicMock(plot_500hpa=MagicMock()),
+            "wps_weather.wx_4panel_charts.plot_700mb": MagicMock(plot_700hpa=MagicMock()),
+            "wps_weather.wx_4panel_charts.plot_700mb_rdps": MagicMock(plot_700hpa_rdps=MagicMock()),
+            "wps_weather.wx_4panel_charts.plot_mslp": MagicMock(plot_mslp_thickness=MagicMock()),
+            "wps_weather.wx_4panel_charts.plot_mslp_rdps": MagicMock(
+                plot_mslp_thickness_rdps=MagicMock()
+            ),
+            "wps_weather.wx_4panel_charts.plot_precip": MagicMock(plot_pcpn12=MagicMock()),
+            "wps_weather.wx_4panel_charts.plot_precip_rdps": MagicMock(plot_pcpn3_rdps=MagicMock()),
+        },
+    ):
+        yield
 
 
-def test_factory_returns_correct_functions_for_rdps(module_under_test):
-    PlotterFactory = module_under_test.PlotterFactory
+@pytest.fixture()
+def gdps_factory():
+    from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
 
-    factory = PlotterFactory(ECCCModel.RDPS)
-
-    f500 = factory.get_500hpa_plotter()
-    f700 = factory.get_700hpa_plotter()
-    fmslp = factory.get_mslp_thickness_plotter()
-    fpcpn = factory.get_pcpn_plotter()
-
-    assert callable(f500)
-    assert callable(f700)
-    assert callable(fmslp)
-    assert callable(fpcpn)
-
-    # And calling them should reflect our RDPS stubs
-    assert f500() == (ECCCModel.RDPS, "500")
-    assert f700() == (ECCCModel.RDPS, "700")
-    assert fmslp() == (ECCCModel.RDPS, "mslp_thickness")
-    assert fpcpn() == (ECCCModel.RDPS, "pcpn")
+    return PlotterFactory(ECCCModel.GDPS)
 
 
-def test_invalid_model_raises_value_error(module_under_test):
-    PlotterFactory = module_under_test.PlotterFactory
+@pytest.fixture()
+def rdps_factory():
+    from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
 
-    class FakeModel:
-        pass
-
-    with pytest.raises(ValueError) as exc:
-        PlotterFactory(FakeModel())
-    assert "Unsupported model" in str(exc.value)
+    return PlotterFactory(ECCCModel.RDPS)
 
 
-@pytest.mark.parametrize(
-    "method_name, expected_key",
-    [
-        ("get_500hpa_plotter", "plot_500hpa"),
-        ("get_700hpa_plotter", "plot_700hpa"),
-        ("get_mslp_thickness_plotter", "plot_mslp_thickness"),
-        ("get_pcpn_plotter", "plot_pcpn"),
-    ],
-)
-def test_registry_contains_expected_keys(module_under_test, method_name, expected_key):
-    PLOTTER_REGISTRY = module_under_test.PLOTTER_REGISTRY
-    # Ensure all known models have the same required keys
-    for model, mapping in PLOTTER_REGISTRY.items():
-        assert expected_key in mapping, f"{expected_key} missing for model {model}"
+class TestPlotterFactoryInit:
+    def test_gdps_initialises_successfully(self, gdps_factory):
+        assert gdps_factory is not None
 
-    # Smoke test: method exists on factory
-    assert hasattr(module_under_test.PlotterFactory, method_name)
+    def test_rdps_initialises_successfully(self, rdps_factory):
+        assert rdps_factory is not None
+
+    def test_unsupported_model_raises_value_error(self, mock_plotters):
+        from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
+
+        with pytest.raises(ValueError, match="Unsupported model"):
+            PlotterFactory("UNSUPPORTED_MODEL")
+
+    def test_none_model_raises_value_error(self, mock_plotters):
+        from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
+
+        with pytest.raises(ValueError, match="Unsupported model"):
+            PlotterFactory(None)
 
 
-def test_plotter_types_are_callable(module_under_test):
-    """Ensure returned objects conform to being callable (Protocol/duck-typed)."""
-    ECCCModel = module_under_test.ECCCModel
-    factory = module_under_test.PlotterFactory(ECCCModel.GDPS)
+class TestGdpsPlotters:
+    def test_get_500hpa_plotter_returns_callable(self, gdps_factory):
+        assert callable(gdps_factory.get_500hpa_plotter())
 
-    for fn in [
-        factory.get_500hpa_plotter(),
-        factory.get_700hpa_plotter(),
-        factory.get_mslp_thickness_plotter(),
-        factory.get_pcpn_plotter(),
-    ]:
-        assert callable(fn)
+    def test_get_700hpa_plotter_returns_callable(self, gdps_factory):
+        assert callable(gdps_factory.get_700hpa_plotter())
+
+    def test_get_mslp_thickness_plotter_returns_callable(self, gdps_factory):
+        assert callable(gdps_factory.get_mslp_thickness_plotter())
+
+    def test_get_pcpn_plotter_returns_callable(self, gdps_factory):
+        assert callable(gdps_factory.get_pcpn_plotter())
+
+    def test_get_500hpa_plotter_is_gdps_implementation(self, gdps_factory):
+        from wps_weather.wx_4panel_charts import plot_500mb
+
+        assert gdps_factory.get_500hpa_plotter() is plot_500mb.plot_500hpa
+
+    def test_get_700hpa_plotter_is_gdps_implementation(self, gdps_factory):
+        from wps_weather.wx_4panel_charts import plot_700mb
+
+        assert gdps_factory.get_700hpa_plotter() is plot_700mb.plot_700hpa
+
+    def test_get_mslp_thickness_plotter_is_gdps_implementation(self, gdps_factory):
+        from wps_weather.wx_4panel_charts import plot_mslp
+
+        assert gdps_factory.get_mslp_thickness_plotter() is plot_mslp.plot_mslp_thickness
+
+    def test_get_pcpn_plotter_is_gdps_implementation(self, gdps_factory):
+        from wps_weather.wx_4panel_charts import plot_precip
+
+        assert gdps_factory.get_pcpn_plotter() is plot_precip.plot_pcpn12
+
+
+class TestRdpsPlotters:
+    def test_get_500hpa_plotter_returns_callable(self, rdps_factory):
+        assert callable(rdps_factory.get_500hpa_plotter())
+
+    def test_get_700hpa_plotter_returns_callable(self, rdps_factory):
+        assert callable(rdps_factory.get_700hpa_plotter())
+
+    def test_get_mslp_thickness_plotter_returns_callable(self, rdps_factory):
+        assert callable(rdps_factory.get_mslp_thickness_plotter())
+
+    def test_get_pcpn_plotter_returns_callable(self, rdps_factory):
+        assert callable(rdps_factory.get_pcpn_plotter())
+
+    def test_get_500hpa_plotter_is_rdps_implementation(self, rdps_factory):
+        from wps_weather.wx_4panel_charts import plot_500mb_rdps
+
+        assert rdps_factory.get_500hpa_plotter() is plot_500mb_rdps.plot_500hpa
+
+    def test_get_700hpa_plotter_is_rdps_implementation(self, rdps_factory):
+        from wps_weather.wx_4panel_charts import plot_700mb_rdps
+
+        assert rdps_factory.get_700hpa_plotter() is plot_700mb_rdps.plot_700hpa_rdps
+
+    def test_get_mslp_thickness_plotter_is_rdps_implementation(self, rdps_factory):
+        from wps_weather.wx_4panel_charts import plot_mslp_rdps
+
+        assert rdps_factory.get_mslp_thickness_plotter() is plot_mslp_rdps.plot_mslp_thickness_rdps
+
+    def test_get_pcpn_plotter_is_rdps_implementation(self, rdps_factory):
+        from wps_weather.wx_4panel_charts import plot_precip_rdps
+
+        assert rdps_factory.get_pcpn_plotter() is plot_precip_rdps.plot_pcpn3_rdps
+
+
+class TestPlotterRegistryIsolation:
+    def test_gdps_and_rdps_500hpa_plotters_are_distinct(self, gdps_factory, rdps_factory):
+        assert gdps_factory.get_500hpa_plotter() is not rdps_factory.get_500hpa_plotter()
+
+    def test_gdps_and_rdps_700hpa_plotters_are_distinct(self, gdps_factory, rdps_factory):
+        assert gdps_factory.get_700hpa_plotter() is not rdps_factory.get_700hpa_plotter()
+
+    def test_gdps_and_rdps_mslp_plotters_are_distinct(self, gdps_factory, rdps_factory):
+        assert (
+            gdps_factory.get_mslp_thickness_plotter()
+            is not rdps_factory.get_mslp_thickness_plotter()
+        )
+
+    def test_gdps_and_rdps_pcpn_plotters_are_distinct(self, gdps_factory, rdps_factory):
+        assert gdps_factory.get_pcpn_plotter() is not rdps_factory.get_pcpn_plotter()
+
+    def test_same_model_returns_same_plotter_instance(self):
+        from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
+
+        factory_a = PlotterFactory(ECCCModel.GDPS)
+        factory_b = PlotterFactory(ECCCModel.GDPS)
+        assert factory_a.get_500hpa_plotter() is factory_b.get_500hpa_plotter()

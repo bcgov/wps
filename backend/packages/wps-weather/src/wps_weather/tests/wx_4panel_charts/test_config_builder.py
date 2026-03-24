@@ -1,407 +1,373 @@
-"""Unit tests for config_builder.py"""
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
+
 import pytest
+from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_raster_addresser():
-    """Create a mock RasterAddresser that returns predictable keys."""
-    class MockRasterAddresser:
-        def __init__(self):
-            self._init_ymd = "20260217"
-            self._init_hh = "00"
-            self._grid_size = "15km"
-            self._model_path = "model_gdps"
-
-        def get_grib_key(self, fh, fname):
-            return f"weather_models/20260217/{self._model_path}/{self._grid_size}/00/{fh:03d}/{fname}"
-
-    return MockRasterAddresser()
+    """Return a mock RasterAddresser whose get_grib_key returns a predictable string."""
+    addresser = MagicMock()
+    addresser.get_grib_key.side_effect = lambda fh, key: f"s3://bucket/{key}"
+    return addresser
 
 
-def simple_file_name_builder(init_ymd, init_hh, parameter, isbl, fh):
-    """Simple file name builder for testing."""
-    parts = [init_ymd, init_hh, parameter]
-    if isbl:
-        parts.append(isbl)
-    parts.append(f"f{fh}")
-    return "_".join(parts) + ".grib2"
+@pytest.fixture()
+def mock_file_name_builder():
+    """Return a mock file_name_builder that produces a readable, deterministic key."""
+    return MagicMock(
+        side_effect=lambda ymd, hh, var, level, fh: f"{ymd}_{hh}_{var}_{level}_{fh:03d}"
+    )
 
 
-class TestConfigBuilderConstructor:
-    """Tests for ConfigBuilder constructor validation."""
+@pytest.fixture()
+def base_cfg():
+    return {
+        "cfg500": {"extent": [-140, 40, -50, 80]},
+        "cfgmslp": {"cmap": "RdBu"},
+        "cfg700": {"alpha": 0.8},
+        "cfgpcpn": {"threshold": 1.0},
+    }
 
-    def test_valid_model_gdps(self, fake_wps_modules, mock_raster_addresser):
-        """Test that GDPS model is accepted."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
 
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
+def make_builder(model, mock_raster_addresser, mock_file_name_builder, base_cfg):
+    from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
+
+    return ConfigBuilder(
+        init_ymd="20260217",
+        init_hh="00",
+        raster_addresser=mock_raster_addresser,
+        cfg500=base_cfg["cfg500"],
+        cfgmslp=base_cfg["cfgmslp"],
+        cfg700=base_cfg["cfg700"],
+        cfgpcpn=base_cfg["cfgpcpn"],
+        file_name_builder=mock_file_name_builder,
+        model=model,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Initialisation
+# ---------------------------------------------------------------------------
+
+
+class TestConfigBuilderInit:
+    def test_gdps_initialises_successfully(
+        self, mock_raster_addresser, mock_file_name_builder, base_cfg
+    ):
+        builder = make_builder(
+            ECCCModel.GDPS, mock_raster_addresser, mock_file_name_builder, base_cfg
         )
         assert builder.model == ECCCModel.GDPS
 
-    def test_valid_model_rdps(self, fake_wps_modules, mock_raster_addresser):
-        """Test that RDPS model is accepted."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
-
-        mock_raster_addresser._model_path = "model_rdps"
-        mock_raster_addresser._grid_size = "10km"
-
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.RDPS,
+    def test_rdps_initialises_successfully(
+        self, mock_raster_addresser, mock_file_name_builder, base_cfg
+    ):
+        builder = make_builder(
+            ECCCModel.RDPS, mock_raster_addresser, mock_file_name_builder, base_cfg
         )
         assert builder.model == ECCCModel.RDPS
 
-    def test_invalid_model_raises_value_error(self, fake_wps_modules, mock_raster_addresser):
-        """Test that invalid model raises ValueError."""
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
+    def test_unsupported_model_raises_value_error(
+        self, mock_raster_addresser, mock_file_name_builder, base_cfg
+    ):
+        from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
 
-        class FakeModel:
-            pass
-
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match="Model must be one of GDPS or RDPS"):
             ConfigBuilder(
                 init_ymd="20260217",
                 init_hh="00",
                 raster_addresser=mock_raster_addresser,
-                cfg500={"z500_grib": ""},
-                cfgmslp={"mslp_grib": ""},
-                cfg700={"z700_grib": ""},
-                cfgpcpn={"jet_spd_grib": ""},
-                file_name_builder=simple_file_name_builder,
-                model=FakeModel(),
+                cfg500=base_cfg["cfg500"],
+                cfgmslp=base_cfg["cfgmslp"],
+                cfg700=base_cfg["cfg700"],
+                cfgpcpn=base_cfg["cfgpcpn"],
+                file_name_builder=mock_file_name_builder,
+                model="UNSUPPORTED",
             )
-        assert "Model must be one of GDPS or RDPS" in str(exc.value)
+
+    def test_init_stores_all_attributes(
+        self, mock_raster_addresser, mock_file_name_builder, base_cfg
+    ):
+        builder = make_builder(
+            ECCCModel.GDPS, mock_raster_addresser, mock_file_name_builder, base_cfg
+        )
+        assert builder.init_ymd == "20260217"
+        assert builder.init_hh == "00"
+        assert builder.raster_addresser is mock_raster_addresser
+        assert builder.file_name_builder is mock_file_name_builder
+
+
+# ---------------------------------------------------------------------------
+# _valid_time_str
+# ---------------------------------------------------------------------------
 
 
 class TestValidTimeStr:
-    """Tests for _valid_time_str method."""
+    @pytest.fixture()
+    def builder(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
+        return make_builder(ECCCModel.GDPS, mock_raster_addresser, mock_file_name_builder, base_cfg)
 
-    def test_valid_time_str_basic(self, fake_wps_modules, mock_raster_addresser):
-        """Test _valid_time_str returns expected format."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
+    def test_fh_zero_equals_init_time(self, builder):
+        result = builder._valid_time_str(0)
+        assert result == "F000 Valid: Tue 2026-02-17 00Z"
 
-        builder = ConfigBuilder(
+    def test_fh_advances_by_correct_hours(self, builder):
+        result = builder._valid_time_str(24)
+        assert result == "F024 Valid: Wed 2026-02-18 00Z"
+
+    def test_fh_crosses_midnight(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
+        # Use init_hh="12" so fh=12 crosses into the next day
+        from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
+        from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel
+
+        b = ConfigBuilder(
             init_ymd="20260217",
-            init_hh="00",
+            init_hh="12",
             raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
+            cfg500=base_cfg["cfg500"],
+            cfgmslp=base_cfg["cfgmslp"],
+            cfg700=base_cfg["cfg700"],
+            cfgpcpn=base_cfg["cfgpcpn"],
+            file_name_builder=mock_file_name_builder,
             model=ECCCModel.GDPS,
         )
-        result = builder._valid_time_str("20260217", "00", 0)
-        assert "F000" in result
+        result = b._valid_time_str(12)
+        assert result == "F012 Valid: Wed 2026-02-18 00Z"
+
+    def test_fh_format_zero_pads_to_three_digits(self, builder):
+        result = builder._valid_time_str(6)
+        assert result.startswith("F006 ")
+
+    def test_fh_large_value_zero_pads_correctly(self, builder):
+        result = builder._valid_time_str(240)
+        assert result.startswith("F240 ")
+
+    def test_valid_time_str_contains_valid_prefix(self, builder):
+        result = builder._valid_time_str(12)
         assert "Valid:" in result
 
-    def test_valid_time_str_with_forecast_hour(self, fake_wps_modules, mock_raster_addresser):
-        """Test _valid_time_str with different forecast hours."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
 
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
-        result = builder._valid_time_str("20260217", "00", 6)
-        assert "F006" in result
-
-    def test_valid_time_str_adds_hours_correctly(self, fake_wps_modules, mock_raster_addresser):
-        """Test that _valid_time_str correctly adds hours to init time."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
-
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
-        # 2026-02-17 00:00 + 6 hours = 2026-02-17 06:00
-        result = builder._valid_time_str("20260217", "00", 6)
-        assert "2026-02-17" in result
-        assert "06Z" in result
-
-    def test_valid_time_str_day_rollover(self, fake_wps_modules, mock_raster_addresser):
-        """Test _valid_time_str handles day rollover correctly."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
-
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
-        # 2026-02-17 00:00 + 24 hours = 2026-02-18 00:00
-        result = builder._valid_time_str("20260217", "00", 24)
-        assert "2026-02-18" in result
-        assert "00Z" in result
+# ---------------------------------------------------------------------------
+# build_config_for_hour — 500 hPa block
+# ---------------------------------------------------------------------------
 
 
-class TestBuildConfigForHour:
-    """Tests for build_config_for_hour method."""
+class TestBuildConfigForHour500hPa:
+    @pytest.fixture()
+    def builder(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
+        return make_builder(ECCCModel.GDPS, mock_raster_addresser, mock_file_name_builder, base_cfg)
 
-    def test_build_config_returns_tuple_of_dicts(self, fake_wps_modules, mock_raster_addresser):
-        """Test build_config_for_hour returns a tuple of 4 dicts."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
-
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
-
-        result = builder.build_config_for_hour(fh=6)
-        assert isinstance(result, tuple)
-        assert len(result) == 4
-
-    def test_build_config_500hpa_has_required_keys(self, fake_wps_modules, mock_raster_addresser):
-        """Test 500hPa config has required keys."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
-
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
-
-        cfg500, cfgmslp, cfg700, cfgpcpn = builder.build_config_for_hour(fh=6)
-
+    def test_z500_grib_key_is_set(self, builder):
+        cfg500, *_ = builder.build_config_for_hour(12)
         assert "z500_grib" in cfg500
+
+    def test_vort_grib_key_is_set(self, builder):
+        cfg500, *_ = builder.build_config_for_hour(12)
         assert "vort_grib" in cfg500
+
+    def test_valid_time_str_is_set(self, builder):
+        cfg500, *_ = builder.build_config_for_hour(12)
         assert "valid_time_str" in cfg500
-        # Verify keys are not empty
-        assert cfg500["z500_grib"]
-        assert cfg500["vort_grib"]
 
-    def test_build_config_mslp_has_required_keys(self, fake_wps_modules, mock_raster_addresser):
-        """Test MSLP config has required keys."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
+    def test_z500_grib_uses_geopotential_height_variable(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("GeopotentialHeight" in c and "IsbL-0500" in c for c in calls)
 
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
+    def test_vort_grib_uses_absolute_vorticity_variable(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("AbsoluteVorticity" in c and "IsbL-0500" in c for c in calls)
 
-        cfg500, cfgmslp, cfg700, cfgpcpn = builder.build_config_for_hour(fh=6)
+    def test_original_cfg500_is_not_mutated(self, builder, base_cfg):
+        original = base_cfg["cfg500"].copy()
+        builder.build_config_for_hour(12)
+        assert base_cfg["cfg500"] == original
 
+
+# ---------------------------------------------------------------------------
+# build_config_for_hour — MSLP block
+# ---------------------------------------------------------------------------
+
+
+class TestBuildConfigForHourMslp:
+    @pytest.fixture()
+    def builder(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
+        return make_builder(ECCCModel.GDPS, mock_raster_addresser, mock_file_name_builder, base_cfg)
+
+    def test_mslp_grib_key_is_set(self, builder):
+        _, cfgmslp, *_ = builder.build_config_for_hour(12)
         assert "mslp_grib" in cfgmslp
+
+    def test_thk_grib_key_is_set(self, builder):
+        _, cfgmslp, *_ = builder.build_config_for_hour(12)
         assert "thk_grib" in cfgmslp
-        assert cfgmslp["mslp_grib"]
-        assert cfgmslp["thk_grib"]
 
-    def test_build_config_700hpa_has_required_keys(self, fake_wps_modules, mock_raster_addresser):
-        """Test 700hPa config has required keys."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
+    def test_mslp_grib_uses_pressure_msl_variable(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("Pressure_MSL" in c for c in calls)
 
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
+    def test_thickness_grib_uses_correct_layer(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("Thickness" in c and "IsbL-1000to0500" in c for c in calls)
 
-        cfg500, cfgmslp, cfg700, cfgpcpn = builder.build_config_for_hour(fh=6)
+    def test_original_cfgmslp_is_not_mutated(self, builder, base_cfg):
+        original = base_cfg["cfgmslp"].copy()
+        builder.build_config_for_hour(12)
+        assert base_cfg["cfgmslp"] == original
 
+
+# ---------------------------------------------------------------------------
+# build_config_for_hour — 700 hPa block
+# ---------------------------------------------------------------------------
+
+
+class TestBuildConfigForHour700hPa:
+    @pytest.fixture()
+    def builder(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
+        return make_builder(ECCCModel.GDPS, mock_raster_addresser, mock_file_name_builder, base_cfg)
+
+    def test_z700_grib_key_is_set(self, builder):
+        *_, cfg700, _ = builder.build_config_for_hour(12)
         assert "z700_grib" in cfg700
+
+    def test_rh500_grib_key_is_set(self, builder):
+        *_, cfg700, _ = builder.build_config_for_hour(12)
         assert "rh500_grib" in cfg700
+
+    def test_rh700_grib_key_is_set(self, builder):
+        *_, cfg700, _ = builder.build_config_for_hour(12)
         assert "rh700_grib" in cfg700
+
+    def test_rh850_grib_key_is_set(self, builder):
+        *_, cfg700, _ = builder.build_config_for_hour(12)
         assert "rh850_grib" in cfg700
 
-    def test_build_config_pcpn_has_jet_speed(self, fake_wps_modules, mock_raster_addresser):
-        """Test precipitation config has jet speed."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
+    def test_all_three_rh_levels_requested(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        rh_calls = [c for c in calls if "RelativeHumidity" in c]
+        levels = {"IsbL-0500", "IsbL-0700", "IsbL-0850"}
+        assert all(any(lvl in c for c in rh_calls) for lvl in levels)
 
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
+    def test_original_cfg700_is_not_mutated(self, builder, base_cfg):
+        original = base_cfg["cfg700"].copy()
+        builder.build_config_for_hour(12)
+        assert base_cfg["cfg700"] == original
 
-        cfg500, cfgmslp, cfg700, cfgpcpn = builder.build_config_for_hour(fh=6)
 
+# ---------------------------------------------------------------------------
+# build_config_for_hour — precipitation block
+# ---------------------------------------------------------------------------
+
+
+class TestBuildConfigForHourPcpn:
+    @pytest.fixture()
+    def gdps_builder(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
+        return make_builder(ECCCModel.GDPS, mock_raster_addresser, mock_file_name_builder, base_cfg)
+
+    @pytest.fixture()
+    def rdps_builder(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
+        return make_builder(ECCCModel.RDPS, mock_raster_addresser, mock_file_name_builder, base_cfg)
+
+    def test_jet_spd_grib_key_always_set(self, gdps_builder):
+        *_, cfgpcpn = gdps_builder.build_config_for_hour(12)
         assert "jet_spd_grib" in cfgpcpn
-        assert cfgpcpn["jet_spd_grib"]
 
-    def test_build_config_fh_zero_no_precip(self, fake_wps_modules, mock_raster_addresser):
-        """Test fh=0 shows no precipitation."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
+    def test_jet_spd_grib_uses_wind_speed_at_250hpa(self, gdps_builder, mock_file_name_builder):
+        gdps_builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("WindSpeed" in c and "IsbL-0250" in c for c in calls)
 
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
-
-        cfg500, cfgmslp, cfg700, cfgpcpn = builder.build_config_for_hour(fh=0)
-
+    # fh == 0 (analysis time)
+    def test_fh0_show_precip_is_false(self, gdps_builder):
+        *_, cfgpcpn = gdps_builder.build_config_for_hour(0)
         assert cfgpcpn["show_precip"] is False
 
-    def test_build_config_gdps_uses_12h_precip(self, fake_wps_modules, mock_raster_addresser):
-        """Test GDPS model uses 12h precipitation."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
+    def test_fh0_pcpn_grib_not_set(self, gdps_builder):
+        *_, cfgpcpn = gdps_builder.build_config_for_hour(0)
+        assert "pcpn_grib" not in cfgpcpn
 
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
-
-        cfg500, cfgmslp, cfg700, cfgpcpn = builder.build_config_for_hour(fh=12)
-
+    # fh > 0 — precip enabled
+    def test_fh_nonzero_show_precip_is_true(self, gdps_builder):
+        *_, cfgpcpn = gdps_builder.build_config_for_hour(12)
         assert cfgpcpn["show_precip"] is True
+
+    def test_fh_nonzero_pcpn_grib_is_set(self, gdps_builder):
+        *_, cfgpcpn = gdps_builder.build_config_for_hour(12)
         assert "pcpn_grib" in cfgpcpn
-        # The file name should contain Precip-Accum12h for GDPS
-        assert "Precip-Accum12h" in cfgpcpn["pcpn_grib"]
 
-    def test_build_config_rdps_uses_3h_precip(self, fake_wps_modules):
-        """Test RDPS model uses 3h precipitation."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
+    # GDPS uses 12h accumulation
+    def test_gdps_uses_12h_precip_accumulation(self, gdps_builder, mock_file_name_builder):
+        gdps_builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("Precip-Accum12h" in c for c in calls)
 
-        class MockRasterAddresserRDPS:
-            def __init__(self):
-                self._init_ymd = "20260217"
-                self._init_hh = "00"
-                self._grid_size = "10km"
-                self._model_path = "model_rdps"
+    def test_gdps_does_not_use_3h_precip_accumulation(self, gdps_builder, mock_file_name_builder):
+        gdps_builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert not any("Precip-Accum3h" in c for c in calls)
 
-            def get_grib_key(self, fh, fname):
-                return f"weather_models/20260217/{self._model_path}/{self._grid_size}/00/{fh:03d}/{fname}"
+    # RDPS uses 3h accumulation
+    def test_rdps_uses_3h_precip_accumulation(self, rdps_builder, mock_file_name_builder):
+        rdps_builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("Precip-Accum3h" in c for c in calls)
 
-        mock_raster = MockRasterAddresserRDPS()
+    def test_rdps_does_not_use_12h_precip_accumulation(self, rdps_builder, mock_file_name_builder):
+        rdps_builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert not any("Precip-Accum12h" in c for c in calls)
 
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.RDPS,
-        )
+    def test_precip_grib_uses_sfc_level(self, gdps_builder, mock_file_name_builder):
+        gdps_builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("Precip-Accum12h" in c and "Sfc" in c for c in calls)
 
-        cfg500, cfgmslp, cfg700, cfgpcpn = builder.build_config_for_hour(fh=3)
+    def test_original_cfgpcpn_is_not_mutated(self, gdps_builder, base_cfg):
+        original = base_cfg["cfgpcpn"].copy()
+        gdps_builder.build_config_for_hour(12)
+        assert base_cfg["cfgpcpn"] == original
 
-        assert cfgpcpn["show_precip"] is True
-        assert "pcpn_grib" in cfgpcpn
-        # The file name should contain Precip-Accum3h for RDPS
-        assert "Precip-Accum3h" in cfgpcpn["pcpn_grib"]
 
-    def test_build_config_different_fh_same_structure(self, fake_wps_modules, mock_raster_addresser):
-        """Test different forecast hours produce configs with same structure."""
-        ECCCModel = fake_wps_modules.get_ECCCModel()
-        ConfigBuilder = fake_wps_modules.get_config_builder_class()
+# ---------------------------------------------------------------------------
+# Return value shape
+# ---------------------------------------------------------------------------
 
-        builder = ConfigBuilder(
-            init_ymd="20260217",
-            init_hh="00",
-            raster_addresser=mock_raster_addresser,
-            cfg500={"z500_grib": "", "vort_grib": "", "valid_time_str": ""},
-            cfgmslp={"mslp_grib": "", "thk_grib": ""},
-            cfg700={"z700_grib": "", "rh500_grib": "", "rh700_grib": "", "rh850_grib": ""},
-            cfgpcpn={"jet_spd_grib": "", "show_precip": False, "pcpn_grib": ""},
-            file_name_builder=simple_file_name_builder,
-            model=ECCCModel.GDPS,
-        )
+class TestBuildConfigForHourReturnShape:
+    @pytest.fixture()
+    def builder(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
+        return make_builder(ECCCModel.GDPS, mock_raster_addresser, mock_file_name_builder, base_cfg)
 
-        result_fh6 = builder.build_config_for_hour(fh=6)
-        result_fh12 = builder.build_config_for_hour(fh=12)
+    def test_returns_four_dicts(self, builder):
+        result = builder.build_config_for_hour(12)
+        assert len(result) == 4
+        assert all(isinstance(r, dict) for r in result)
 
-        cfg500_6, cfgmslp_6, cfg700_6, cfgpcpn_6 = result_fh6
-        cfg500_12, cfgmslp_12, cfg700_12, cfgpcpn_12 = result_fh12
+    def test_returned_dicts_are_copies_not_originals(self, builder, base_cfg):
+        cfg500, cfgmslp, cfg700, cfgpcpn = builder.build_config_for_hour(12)
+        assert cfg500 is not base_cfg["cfg500"]
+        assert cfgmslp is not base_cfg["cfgmslp"]
+        assert cfg700 is not base_cfg["cfg700"]
+        assert cfgpcpn is not base_cfg["cfgpcpn"]
 
-        # Both should have same keys
-        assert set(cfg500_6.keys()) == set(cfg500_12.keys())
-        assert set(cfgmslp_6.keys()) == set(cfgmslp_12.keys())
-        assert set(cfg700_6.keys()) == set(cfg700_12.keys())
-        assert set(cfgpcpn_6.keys()) == set(cfgpcpn_12.keys())
+    def test_original_keys_preserved_in_returned_dicts(self, builder, base_cfg):
+        cfg500, cfgmslp, cfg700, cfgpcpn = builder.build_config_for_hour(12)
+        assert cfg500["extent"] == base_cfg["cfg500"]["extent"]
+        assert cfgmslp["cmap"] == base_cfg["cfgmslp"]["cmap"]
+        assert cfg700["alpha"] == base_cfg["cfg700"]["alpha"]
+        assert cfgpcpn["threshold"] == base_cfg["cfgpcpn"]["threshold"]
+
+    def test_raster_addresser_called_for_each_grib_key(self, builder, mock_raster_addresser):
+        builder.build_config_for_hour(12)
+        # 500 (z, vort) + mslp (mslp, thk) + 700 (z700, rh500, rh700, rh850) + pcpn (jet, pcpn) = 10
+        assert mock_raster_addresser.get_grib_key.call_count == 10
+
+    def test_raster_addresser_called_fewer_times_at_fh0(self, builder, mock_raster_addresser):
+        builder.build_config_for_hour(0)
+        # pcpn_grib is skipped at fh==0, so 9 calls instead of 10
+        assert mock_raster_addresser.get_grib_key.call_count == 9
