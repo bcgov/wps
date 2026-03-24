@@ -6,7 +6,18 @@
     "./*": "./dist/*.js"
   },
   "typesVersions": {
-    "*": { "*": ["./src/*"] }
+    "*": {
+      "*": [
+        "./src/*"
+      ]
+    }
+  },
+  "dependencies": {
+    "axios": "1.8.2",
+    "lodash": "^4.17.21",
+    "luxon": "^3.0.2",
+    "ol": "10.0.0",
+    "ol-mapbox-style": "^13.1.1"
   },
   "devDependencies": {
     "@wps/types": "workspace:*"

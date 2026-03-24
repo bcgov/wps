@@ -4194,7 +4194,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@wps/api@workspace:packages/api"
   dependencies:
+    "@wps/types": "workspace:*"
     "@wps/utils": "workspace:*"
+    axios: "npm:1.8.2"
+    geojson: "npm:^0.5.0"
+    lodash: "npm:^4.17.21"
+    luxon: "npm:^3.0.2"
   languageName: unknown
   linkType: soft
 
@@ -4214,7 +4219,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@wps/ui@workspace:packages/ui"
   dependencies:
+    "@mui/icons-material": "npm:^5.5.1"
+    "@mui/material": "npm:5.15.20"
+    "@mui/x-data-grid-pro": "npm:^6.0.0"
+    "@mui/x-date-pickers": "npm:^7.29.4"
+    "@sentry/react": "npm:^10.0.0"
     "@wps/api": "workspace:*"
+    date-fns: "npm:^4.0.0"
+    lodash: "npm:^4.17.21"
+    luxon: "npm:^3.0.2"
+    react: "npm:^18.3.1"
   languageName: unknown
   linkType: soft
 
@@ -4223,6 +4237,11 @@ __metadata:
   resolution: "@wps/utils@workspace:packages/utils"
   dependencies:
     "@wps/types": "workspace:*"
+    axios: "npm:1.8.2"
+    lodash: "npm:^4.17.21"
+    luxon: "npm:^3.0.2"
+    ol: "npm:10.0.0"
+    ol-mapbox-style: "npm:^13.1.1"
   languageName: unknown
   linkType: soft
 
@@ -6862,6 +6881,13 @@ __metadata:
   version: 1.0.0-beta.2
   resolution: "gensync@npm:1.0.0-beta.2"
   checksum: 10c0/782aba6cba65b1bb5af3b095d96249d20edbe8df32dbf4696fd49be2583faf676173bf4809386588828e4dd76a3354fcbeb577bab1c833ccd9fc4577f26103f8
+  languageName: node
+  linkType: hard
+
+"geojson@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "geojson@npm:0.5.0"
+  checksum: 10c0/d7fd376c201933dea1307b7c08032f249f73b9399d6287211f6a523d0efa9260caf2a38319f55075682d53dc4cb4c52b9f9c845f2fd03bef9832903f16177ab0
   languageName: node
   linkType: hard
 
