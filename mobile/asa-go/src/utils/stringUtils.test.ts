@@ -49,6 +49,10 @@ describe("nameFormatter", () => {
 });
 
 describe("fireZoneUnitNameFormatter", () => {
+  it("returns an empty string when the input is undefined", () => {
+    expect(fireZoneUnitNameFormatter(undefined)).toBe("");
+  });
+
   it("moves bracketed text to a second line after removing the zone suffix", () => {
     const result = fireZoneUnitNameFormatter("G4-VanJam Zone (Vanderhoof)");
 
@@ -68,6 +72,16 @@ describe("fireZoneUnitNameFormatter", () => {
 
     expect(fireZoneUnitNameFormatter("K4-Vernon Zone (Vernon)")).toBe(
       "K4-Vernon",
+    );
+  });
+
+  it("treats whitespace differences as redundant duplicate locations", () => {
+    expect(fireZoneUnitNameFormatter("K2 - Kamloops Zone (Kamloops)")).toBe(
+      "K2 - Kamloops",
+    );
+
+    expect(fireZoneUnitNameFormatter("K4 - Vernon Zone (Vernon)")).toBe(
+      "K4 - Vernon",
     );
   });
 

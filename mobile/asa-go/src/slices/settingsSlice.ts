@@ -127,6 +127,24 @@ export const saveSubscriptions =
     dispatch(setSubscriptions(subs));
   };
 
+export const getUpdatedSubscriptions = (
+  subscriptions: number[],
+  fireZoneUnitId: number,
+) => {
+  if (subscriptions.includes(fireZoneUnitId)) {
+    return subscriptions.filter((sub) => sub !== fireZoneUnitId);
+  }
+
+  return [...subscriptions, fireZoneUnitId];
+};
+
+export const toggleSubscription =
+  (fireZoneUnitId: number): AppThunk =>
+  async (dispatch, getState) => {
+    const { subscriptions } = getState().settings;
+    dispatch(saveSubscriptions(getUpdatedSubscriptions(subscriptions, fireZoneUnitId)));
+  };
+
 // Update @capacitor/preferences and redux state with pinned fire centre
 export const savePinnedFireCentre =
   (fireCentre: string | null): AppThunk =>
