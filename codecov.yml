@@ -27,6 +27,9 @@ flags:
   android:
     carryforward: true
 
+comment:
+  show_carryforward_flags: true
+
 coverage:
   # https://docs.codecov.com/docs/commit-status
   status:
