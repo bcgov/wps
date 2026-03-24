@@ -1,5 +1,4 @@
-from wps_shared.db.models.wx_4panel_charts import ECCCModel
-from wps_weather.wx_4panel_charts.raster_addresser import RasterAddresser
+from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel, RasterAddresser
 
 INIT_YMD = "20260318"
 INIT_HH = "00"

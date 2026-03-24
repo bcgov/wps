@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -7,7 +8,13 @@ from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel
 # Patch all plotter imports before importing the module under test
 @pytest.fixture(autouse=True)
 def mock_plotters():
-    """Mock all external plotter functions to isolate PlotterFactory logic."""
+    """Mock all external plotter functions to isolate PlotterFactory logic.
+
+    plotter_factory.py captures function references into PLOTTER_REGISTRY at
+    import time, so the cached module must be evicted before each test to force
+    a fresh import that picks up this test's specific mock objects.
+    """
+    sys.modules.pop("wps_weather.wx_4panel_charts.plotter_factory", None)
     with patch.dict(
         "sys.modules",
         {
@@ -24,6 +31,7 @@ def mock_plotters():
         },
     ):
         yield
+    sys.modules.pop("wps_weather.wx_4panel_charts.plotter_factory", None)
 
 
 @pytest.fixture()

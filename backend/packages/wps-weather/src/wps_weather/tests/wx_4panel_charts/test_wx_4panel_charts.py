@@ -13,7 +13,6 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Build lightweight stand-ins for the enums used by the module under test.
 # These must be defined before the module is imported so that the identity
@@ -84,11 +83,31 @@ _patches = {
     "wps_weather.wx_4panel_charts.config_builder": MagicMock(),
 }
 
-for _mod_name, _mod in _patches.items():
-    sys.modules.setdefault(_mod_name, _mod)
+# Import the module under test with all heavy dependencies mocked.
+# Using patch.dict (rather than setdefault) ensures sys.modules is fully
+# restored afterwards so other test files aren't polluted.
+with patch.dict("sys.modules", _patches):
+    sys.modules.pop("wps_weather.wx_4panel_charts.wx_4panel_charts", None)
+    from wps_weather.wx_4panel_charts.wx_4panel_charts import (  # noqa: E402
+        FourPanelChartRunner,
+        parse_args,
+    )
+    _wx4panel_charts_module = sys.modules["wps_weather.wx_4panel_charts.wx_4panel_charts"]
 
-# Now it is safe to import the module under test.
-from wps_weather.wx_4panel_charts.wx_4panel_charts import FourPanelChartRunner, parse_args  # noqa: E402
+# Re-insert the module into sys.modules and bind it as a package attribute so
+# that patch("wps_weather.wx_4panel_charts.wx_4panel_charts.XXX") can resolve
+# its target via pkgutil.resolve_name during test execution.
+import wps_weather.wx_4panel_charts as _wx4panel_pkg  # noqa: E402
+
+sys.modules["wps_weather.wx_4panel_charts.wx_4panel_charts"] = _wx4panel_charts_module
+_wx4panel_pkg.wx_4panel_charts = _wx4panel_charts_module
+del _wx4panel_pkg, _wx4panel_charts_module
+
+# Keep direct references to the mocks used inside FourPanelChartRunner so that
+# test helpers can configure them without going through sys.modules (which is
+# restored to its original state after the patch.dict block above).
+_config_builder_mock = _patches["wps_weather.wx_4panel_charts.config_builder"]
+_raster_addresser_mock = _patches["wps_weather.wx_4panel_charts.raster_addresser"]
 
 
 # ---------------------------------------------------------------------------
@@ -98,12 +117,12 @@ from wps_weather.wx_4panel_charts.wx_4panel_charts import FourPanelChartRunner, 
 
 def make_runner(s3_client=None):
     if s3_client is None:
-        s3_client = MagicMock()
+        s3_client = AsyncMock()
     return FourPanelChartRunner(s3_client)
 
 
 def make_mock_chart(status=ChartStatusEnum.INPROGRESS):
-    chart = MagicMock()
+    chart = AsyncMock()
     chart.status = status
     return chart
 
@@ -143,7 +162,7 @@ def new_session_scope():
 
 
 class TestOpenDatasetS3:
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_raises_runtime_error_on_404_status(self):
         s3_client = MagicMock()
         response = {"ResponseMetadata": {"HTTPStatusCode": 404}, "Body": AsyncMock()}
@@ -153,7 +172,7 @@ class TestOpenDatasetS3:
         with pytest.raises(RuntimeError, match="HTTP status code was: 404"):
             await runner._open_dataset_s3("some/key")
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_raises_runtime_error_on_500_status(self):
         s3_client = MagicMock()
         response = {"ResponseMetadata": {"HTTPStatusCode": 500}, "Body": AsyncMock()}
@@ -163,7 +182,7 @@ class TestOpenDatasetS3:
         with pytest.raises(RuntimeError, match="HTTP status code was: 500"):
             await runner._open_dataset_s3("some/key")
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_error_message_includes_key(self):
         s3_client = MagicMock()
         response = {"ResponseMetadata": {"HTTPStatusCode": 403}, "Body": AsyncMock()}
@@ -173,7 +192,7 @@ class TestOpenDatasetS3:
         with pytest.raises(RuntimeError, match="some/specific/key"):
             await runner._open_dataset_s3("some/specific/key")
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_calls_get_object_with_key(self):
         s3_client = MagicMock()
         response = {"ResponseMetadata": {"HTTPStatusCode": 404}, "Body": AsyncMock()}
@@ -199,16 +218,16 @@ class TestMake4PanelCharts:
         runner = make_runner(s3_client)
         runner._make_4panel_chart = AsyncMock()
         # Make ConfigBuilder() instances return properly shaped configs.
-        config_builder_module = sys.modules["wps_weather.wx_4panel_charts.config_builder"]
-        config_builder_module.ConfigBuilder.return_value.build_config_for_hour.return_value = (
+        _config_builder_mock.ConfigBuilder.return_value.build_config_for_hour.return_value = (
             make_mock_configs()
         )
         # Make RasterAddresser().get_4panel_key return a deterministic string key.
-        raster_module = sys.modules["wps_weather.wx_4panel_charts.raster_addresser"]
-        raster_module.RasterAddresser.return_value.get_4panel_key.return_value = "4panel/output.png"
+        _raster_addresser_mock.RasterAddresser.return_value.get_4panel_key.return_value = (
+            "4panel/output.png"
+        )
         return runner, s3_client
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_skips_hour_when_output_key_exists(self):
         runner, _ = self._make_runner(object_exists=True)
 
@@ -217,7 +236,7 @@ class TestMake4PanelCharts:
         assert result is True
         runner._make_4panel_chart.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_returns_false_when_required_files_missing(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=False)
 
@@ -226,7 +245,7 @@ class TestMake4PanelCharts:
         assert result is False
         runner._make_4panel_chart.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_returns_true_when_all_hours_processed(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
 
@@ -235,7 +254,7 @@ class TestMake4PanelCharts:
         assert result is True
         assert runner._make_4panel_chart.call_count == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_returns_true_when_range_is_empty(self):
         # fstart > fend — no hours to process
         runner, _ = self._make_runner()
@@ -245,7 +264,7 @@ class TestMake4PanelCharts:
         assert result is True
         runner._make_4panel_chart.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_processes_correct_number_of_hours(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
 
@@ -254,12 +273,10 @@ class TestMake4PanelCharts:
         # hours: 0, 3, 6, 9 → 4 charts
         assert runner._make_4panel_chart.call_count == 4
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_output_name_contains_model_and_date_for_gdps(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
-        raster_mock = sys.modules[
-            "wps_weather.wx_4panel_charts.raster_addresser"
-        ].RasterAddresser.return_value
+        raster_mock = _raster_addresser_mock.RasterAddresser.return_value
 
         await runner._make_4panel_charts(ECCCModel.GDPS, "20260318", "00", 3, 3, 3)
 
@@ -268,19 +285,17 @@ class TestMake4PanelCharts:
         assert "20260318" in output_name
         assert "GDPS" in output_name
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_output_name_contains_rdps_for_rdps_model(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
-        raster_mock = sys.modules[
-            "wps_weather.wx_4panel_charts.raster_addresser"
-        ].RasterAddresser.return_value
+        raster_mock = _raster_addresser_mock.RasterAddresser.return_value
 
         await runner._make_4panel_charts(ECCCModel.RDPS, "20260318", "12", 3, 3, 3)
 
         output_name = raster_mock.get_4panel_key.call_args[0][1]
         assert "RDPS" in output_name
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_output_key_is_checked_before_generating(self):
         runner, s3_client = self._make_runner(object_exists=False, all_objects_exist=True)
 
@@ -289,7 +304,7 @@ class TestMake4PanelCharts:
         s3_client.object_exists.assert_called_once()
         runner._make_4panel_chart.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_stops_processing_on_missing_files(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=False)
 
@@ -305,13 +320,13 @@ class TestMake4PanelCharts:
 
 
 class TestRun:
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_raises_value_error_for_unsupported_model(self):
         runner = make_runner()
         with pytest.raises(ValueError, match="Model must be one of"):
             await runner.run("20260318", ["00"], 0, 84, 3, "INVALID_MODEL")
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_does_not_process_when_chart_status_is_complete(self):
         runner = make_runner()
         chart = make_mock_chart(status=ChartStatusEnum.COMPLETE)
@@ -331,7 +346,7 @@ class TestRun:
 
         runner._make_4panel_charts.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_does_not_process_when_chart_is_none(self):
         runner = make_runner()
         runner._make_4panel_charts = AsyncMock()
@@ -350,7 +365,7 @@ class TestRun:
 
         runner._make_4panel_charts.assert_not_called()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_calls_make_4panel_charts_when_inprogress(self):
         runner = make_runner()
         chart = make_mock_chart(status=ChartStatusEnum.INPROGRESS)
@@ -375,7 +390,7 @@ class TestRun:
 
         runner._make_4panel_charts.assert_called_once_with(ECCCModel.GDPS, "20260318", "00", 0, 84, 3)
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_sets_chart_status_to_complete_on_success(self):
         runner = make_runner()
         chart = make_mock_chart(status=ChartStatusEnum.INPROGRESS)
@@ -400,7 +415,7 @@ class TestRun:
 
         assert chart.status == ChartStatusEnum.COMPLETE
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_saves_chart_when_complete(self):
         runner = make_runner()
         chart = make_mock_chart(status=ChartStatusEnum.INPROGRESS)
@@ -425,7 +440,7 @@ class TestRun:
 
         mock_save.assert_called_once()
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_does_not_save_chart_when_make_charts_returns_false(self):
         runner = make_runner()
         chart = make_mock_chart(status=ChartStatusEnum.INPROGRESS)
@@ -445,7 +460,7 @@ class TestRun:
 
         assert chart.status != ChartStatusEnum.COMPLETE
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_processes_each_model_run_hour(self):
         runner = make_runner()
         # Use a fresh INPROGRESS chart for each model-run hour so the first iteration's
@@ -479,7 +494,7 @@ class TestRun:
         assert calls[0] == call(ECCCModel.GDPS, "20260318", "00", 0, 84, 3)
         assert calls[1] == call(ECCCModel.GDPS, "20260318", "12", 0, 84, 3)
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_does_not_process_when_chart_status_is_failed(self):
         runner = make_runner()
         chart = make_mock_chart(status=ChartStatusEnum.FAILED)
@@ -506,10 +521,10 @@ class TestRun:
 
 
 class TestParseArgs:
-    def test_default_model_runs_is_12(self):
+    def test_default_model_runs_is_00_and_12(self):
         with patch("sys.argv", ["prog", "--init_ymd", "20260318"]):
             args = parse_args()
-        assert args.model_runs == ["12"]
+        assert args.model_runs == ["00", "12"]
 
     def test_default_fstart_is_zero(self):
         with patch("sys.argv", ["prog", "--init_ymd", "20260318"]):
