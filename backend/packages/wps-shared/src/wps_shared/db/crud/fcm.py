@@ -50,11 +50,7 @@ async def deactivate_device_tokens(session: AsyncSession, tokens: list[str]) -> 
 async def get_notification_settings_for_device(session: AsyncSession, device_id: str) -> list[str]:
     """Return the subscribed fire zone source identifiers for the given device_id."""
     result = await session.execute(
-        select(Shape.source_identifier)
-        .join(
-            NotificationSettings,
-            NotificationSettings.fire_shape_source_id == Shape.source_identifier,
-        )
+        select(NotificationSettings.fire_shape_source_id)
         .join(DeviceToken, NotificationSettings.device_token_id == DeviceToken.id)
         .where(DeviceToken.device_id == device_id)
     )
