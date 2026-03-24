@@ -15,6 +15,7 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
     WeatherStationModelPrediction,
 )
+from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
 
 # Required for loading DOCKER_HOST
@@ -27,7 +28,7 @@ TEST_DATETIME = datetime(2023, 1, 1, 12, 0, tzinfo=timezone.utc)
 @pytest.fixture(scope="module")
 def postgres_container():
     """Fixture to start a Postgres container."""
-    with PostgresContainer("postgis/postgis:15-3.3") as postgres:
+    with PostgresContainer(TESTCONTAINERS_POSTGRES_IMAGE) as postgres:
         yield postgres
 
 
