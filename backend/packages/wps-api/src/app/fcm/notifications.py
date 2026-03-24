@@ -29,7 +29,6 @@ async def trigger_notifications(
         session, run_type, run_datetime, for_date
     )
     for zone_with_advisory in zones_with_advisories:
-        # TODO: this function should look up source_identifier
         device_tokens = await get_device_tokens_for_zone(
             session, zone_with_advisory.source_identifier
         )
