@@ -17,6 +17,8 @@ dependencies = [
     "fiona>=1.9.0,<2",
     "aio-pika>=9.5.8",
     "aiofiles>=25.1.0",
+    "cfgrib>=0.9.15.1",
+    "eccodes>=2.45.0",
 ]
 
 [tool.uv.sources]
