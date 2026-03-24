@@ -518,7 +518,8 @@ def plot_pcpn3_rdps(cfg: dict, ax=None, ds_p=None, ds_js=None):
                 PathEffects.Normal()
             ])
 
-        ds_js = open_ds(ROOT / cfg["jet_spd_grib"])
+        if ds_js is None:
+            ds_js = open_ds(ROOT / cfg["jet_spd_grib"])
         js_da = list(ds_js.data_vars.values())[0].squeeze()
         JS = js_da.values.astype(np.float64)
 

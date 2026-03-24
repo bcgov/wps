@@ -460,7 +460,8 @@ def plot_pcpn12(cfg: dict, ax=None, ds_p=None, ds_js=None):
                 PathEffects.Normal()
             ])
 
-        ds_js = open_ds(ROOT / cfg["jet_spd_grib"])
+        if ds_js is None:
+            ds_js = open_ds(ROOT / cfg["jet_spd_grib"])
         try:
            js_da = list(ds_js.data_vars.values())[0].squeeze()
         finally:
