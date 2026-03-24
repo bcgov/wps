@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import datetime, time, timezone
+from datetime import date, datetime, time, timezone
 from typing import List, Optional, Tuple
 
 import aiofiles
@@ -314,7 +314,7 @@ def parse_args():
         "--model_runs",
         nargs="+",
         choices=["00", "12"],
-        default=["12"],
+        default=["00", "12"],
         help="Model run hour(s).",
     )
     parser.add_argument(
@@ -336,12 +336,13 @@ def parse_args():
 async def main():
     """Main entry point"""
     args = parse_args()
+    init_ymd = date.today().strftime("%Y%m%d") if args.init_ymd is None else args.init_ymd
 
     user_id = config.get("WX_OBJECT_STORE_USER_ID")
     secret_key = config.get("WX_OBJECT_STORE_SECRET")
     bucket = config.get("WX_OBJECT_STORE_BUCKET")
 
-    logger.info(f"Creating {args.model} 4 panel chart for model run {args.init_ymd}.")
+    logger.info(f"Creating {args.model} 4 panel chart for model run {init_ymd}.")
     logger.info(f"Model run hour(s) {args.model_runs}")
     logger.info(f"From hour {args.fstart} to {args.fend} in {args.step} hour increments.")
 
@@ -349,7 +350,7 @@ async def main():
         try:
             runner = FourPanelChartRunner(s3_client)
             await runner.run(
-                args.init_ymd, args.model_runs, args.fstart, args.fend, args.step, args.model
+                init_ymd, args.model_runs, args.fstart, args.fend, args.step, args.model
             )
 
             # Exit with 0 - success.
