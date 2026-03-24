@@ -36,7 +36,9 @@ def upgrade():
         unique=False,
     )
     op.create_unique_constraint(
-        None, "notification_settings", ["device_token_id", "fire_shape_source_id"]
+        "notification_settings_device_token_id_fire_shape_source_id_key",
+        "notification_settings",
+        ["device_token_id", "fire_shape_source_id"],
     )
     op.create_unique_constraint(
         "uq_advisory_shapes_source_identifier", "advisory_shapes", ["source_identifier"]
@@ -47,7 +49,7 @@ def upgrade():
         type_="foreignkey",
     )
     op.create_foreign_key(
-        None,
+        "notification_settings_fire_shape_source_id_fkey",
         "notification_settings",
         "advisory_shapes",
         ["fire_shape_source_id"],
