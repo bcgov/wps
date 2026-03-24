@@ -53,15 +53,17 @@ export const nameFormatter = (
   return toUpper ? output.trim().toUpperCase() : output.trim();
 };
 
-export const fireZoneUnitNameFormatter = (input: string) => {
+export const fireZoneUnitNameFormatter = (input: string | undefined) => {
   if (isNil(input) || input === "") {
     return "";
   }
 
   const { baseName, bracketedSuffix } = splitBracketedSuffix(input);
   const formattedBaseName = stripZoneSuffix(baseName);
+
+  const normalizedBaseName = formattedBaseName.replaceAll(/\s+/g, "");
   const isRedundantLocation = FIRE_ZONE_UNITS_WITH_REDUNDANT_LOCATION.has(
-    `${formattedBaseName}|${bracketedSuffix}`,
+    `${normalizedBaseName}|${bracketedSuffix}`,
   );
 
   const output =
