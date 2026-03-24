@@ -25,6 +25,7 @@ async def trigger_notifications(
     if run_type == RunTypeEnum.forecast:
         return
 
+    logger.info("Checking for warnings/advisories to send FCM notifications for")
     zones_with_advisories = await get_zones_with_advisories(
         session, run_type, run_datetime, for_date
     )
@@ -35,6 +36,7 @@ async def trigger_notifications(
         if len(device_tokens) > 0:
             title = build_notification_title(zone_with_advisory)
             content = build_notification_content(zone_with_advisory, for_date)
+            logger.info("Issuing FCM notifications")
             message = messaging.MulticastMessage(
                 notification=messaging.Notification(title=title, body=content),
                 tokens=device_tokens,

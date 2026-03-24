@@ -8,8 +8,10 @@ from app.auto_spatial_advisory.process_fuel_type_area import process_fuel_type_h
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 from app.auto_spatial_advisory.process_high_hfi_area import process_high_hfi_area
 from app.auto_spatial_advisory.process_zone_status import process_zone_statuses
+from app.fcm.notifications import trigger_notifications
 from wps_shared.db.crud.auto_spatial_advisory import mark_run_parameter_complete
 from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 
 
 async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_date: date):
@@ -24,3 +26,4 @@ async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_
 
     async with get_async_write_session_scope() as session:
         await mark_run_parameter_complete(session, run_type, run_datetime, for_date)
+        await trigger_notifications(session, RunTypeEnum(run_type.value), run_datetime, for_date)
