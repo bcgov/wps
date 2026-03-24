@@ -44,7 +44,7 @@ def client():
         (
             "post",
             API_NOTIFICATION_SETTINGS,
-            {"json": {"device_id": "test_device_id", "fire_shape_ids": [1, 2]}},
+            {"json": {"device_id": "test_device_id", "fire_zone_source_ids": ["1", "2"]}},
         ),
     ],
 )
@@ -201,9 +201,9 @@ def test_unregister_device_missing_token():
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@pytest.mark.parametrize("subscribed_ids", [[], [10, 20, 30]])
+@pytest.mark.parametrize("subscribed_ids", [[], ["10", "20", "30"]])
 def test_get_notification_settings(subscribed_ids):
-    """GET notification settings returns the device's subscribed fire_shape_ids."""
+    """GET notification settings returns the device's subscribed fire zone source identifiers."""
     client = TestClient(app.main.app)
 
     with patch(DB_SESSION) as mock_session_scope:
@@ -212,15 +212,15 @@ def test_get_notification_settings(subscribed_ids):
             response = client.get(API_NOTIFICATION_SETTINGS, params={"device_id": "test_device_id"})
 
             assert response.status_code == 200
-            assert response.json() == {"fire_shape_ids": subscribed_ids}
+            assert response.json() == {"fire_zone_source_ids": subscribed_ids}
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
 @pytest.mark.parametrize(
     "payload",
     [
-        {"fire_shape_ids": [1, 2]},  # missing device_id
-        {"device_id": "test_device_id"},  # missing fire_shape_ids
+        {"fire_zone_source_ids": ["1", "2"]},  # missing device_id
+        {"device_id": "test_device_id"},  # missing fire_zone_source_ids
     ],
 )
 def test_post_notification_settings_invalid_request_returns_422(payload):
@@ -234,21 +234,39 @@ def test_post_notification_settings_invalid_request_returns_422(payload):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@pytest.mark.parametrize("fire_shape_ids", [[5, 10], []])
-def test_post_notification_settings_success(fire_shape_ids):
+def test_post_notification_settings_unknown_device_returns_404():
+    """POST notification settings returns 404 when the device_id is not registered."""
+    client = TestClient(app.main.app)
+
+    with patch(DB_SESSION) as mock_session_scope:
+        mock_session_scope.return_value.__aenter__.return_value
+        with patch(UPSERT_NOTIFICATION_SETTINGS, return_value=False):
+            response = client.post(
+                API_NOTIFICATION_SETTINGS,
+                json={"device_id": "unknown_device", "fire_zone_source_ids": ["1"]},
+            )
+            assert response.status_code == 404
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+@pytest.mark.parametrize("fire_zone_source_ids", [["5", "10"], []])
+def test_post_notification_settings_success(fire_zone_source_ids):
     """POST notification settings replaces subscriptions and returns the updated list."""
     client = TestClient(app.main.app)
 
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(UPSERT_NOTIFICATION_SETTINGS),
-            patch(GET_NOTIFICATION_SETTINGS, return_value=fire_shape_ids),
+            patch(UPSERT_NOTIFICATION_SETTINGS, return_value=True),
+            patch(GET_NOTIFICATION_SETTINGS, return_value=fire_zone_source_ids),
         ):
             response = client.post(
                 API_NOTIFICATION_SETTINGS,
-                json={"device_id": "test_device_id", "fire_shape_ids": fire_shape_ids},
+                json={
+                    "device_id": "test_device_id",
+                    "fire_zone_source_ids": fire_zone_source_ids,
+                },
             )
 
             assert response.status_code == 200
-            assert response.json() == {"fire_shape_ids": fire_shape_ids}
+            assert response.json() == {"fire_zone_source_ids": fire_zone_source_ids}
