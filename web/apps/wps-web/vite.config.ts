@@ -6,8 +6,6 @@ import svgr from 'vite-plugin-svgr'
 import istanbul from 'vite-plugin-istanbul'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 
-const isProduction = process.env.NODE_ENV === 'production'
-
 export default defineConfig({
   build: {
     sourcemap: true,
@@ -71,14 +69,10 @@ export default defineConfig({
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
     alias: [
-      // In dev, resolve @wps/* packages from source for HMR support
-      ...(!isProduction
-        ? [
-            { find: /^@wps\/api(.*)/, replacement: path.resolve(__dirname, '../../packages/api/src$1') },
-            { find: /^@wps\/ui(.*)/, replacement: path.resolve(__dirname, '../../packages/ui/src$1') },
-            { find: /^@wps\/utils(.*)/, replacement: path.resolve(__dirname, '../../packages/utils/src$1') }
-          ]
-        : []),
+      // Resolve internal workspace package subpaths from source in both dev and build.
+      { find: /^@wps\/api(.*)/, replacement: path.resolve(__dirname, '../../packages/api/src$1') },
+      { find: /^@wps\/ui(.*)/, replacement: path.resolve(__dirname, '../../packages/ui/src$1') },
+      { find: /^@wps\/utils(.*)/, replacement: path.resolve(__dirname, '../../packages/utils/src$1') },
       // app-internal aliases
       { find: '@', replacement: path.resolve(__dirname, './src') },
       { find: 'app', replacement: resolve(__dirname, 'src/app') },

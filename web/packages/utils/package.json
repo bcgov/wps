@@ -3,10 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    "./*": {
-      "types": "./src/*.ts",
-      "default": "./dist/*.js"
-    }
+    "./*": "./dist/*.js"
   },
   "dependencies": {
     "axios": "1.8.2",
