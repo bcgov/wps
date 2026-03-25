@@ -69,13 +69,7 @@ async def handle_fcm_response(
     device_tokens: list[str],
     response: messaging.BatchResponse,
 ):
-    failed_tokens = []
-    successful_tokens = []
-    for idx, resp in enumerate(response.responses):
-        if resp.success:
-            successful_tokens.append(device_tokens[idx])
-        else:
-            failed_tokens.append(device_tokens[idx])
+    failed_tokens = [device_tokens[idx] for idx, resp in enumerate(response.responses) if not resp.success]
 
     if failed_tokens:
         logger.warning(
@@ -84,7 +78,4 @@ async def handle_fcm_response(
             for_date,
             failed_tokens,
         )
-    if successful_tokens:
-        await update_device_tokens_are_active(session, successful_tokens, True)
-    if failed_tokens:
         await update_device_tokens_are_active(session, failed_tokens, False)

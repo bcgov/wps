@@ -198,7 +198,7 @@ async def test_handle_fcm_response_all_success():
 
     with patch(UPDATE_TOKENS, new_callable=AsyncMock) as mock_update:
         await handle_fcm_response(session, date(2026, 4, 1), "Kamloops", ["t1", "t2"], response)
-        mock_update.assert_called_once_with(session, ["t1", "t2"], True)
+        mock_update.assert_not_called()
 
 
 @pytest.mark.anyio
@@ -215,8 +215,7 @@ async def test_handle_fcm_response_partial_failure():
         await handle_fcm_response(
             session, date(2026, 4, 1), "Kamloops", ["token_good", "token_bad"], response
         )
-        mock_update.assert_any_call(session, ["token_good"], True)
-        mock_update.assert_any_call(session, ["token_bad"], False)
+        mock_update.assert_called_once_with(session, ["token_bad"], False)
 
 
 @pytest.mark.anyio
