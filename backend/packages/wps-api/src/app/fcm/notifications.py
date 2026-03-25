@@ -37,8 +37,17 @@ async def trigger_notifications(
             title = build_notification_title(zone_with_advisory)
             content = build_notification_content(zone_with_advisory, for_date)
             logger.info("Issuing FCM notifications")
+            tag = f"advisory-{zone_with_advisory.source_identifier}"
             message = messaging.MulticastMessage(
                 notification=messaging.Notification(title=title, body=content),
+                android=messaging.AndroidConfig(
+                    notification=messaging.AndroidNotification(tag=tag)
+                ),
+                apns=messaging.APNSConfig(
+                    payload=messaging.APNSPayload(
+                        aps=messaging.Aps(thread_id=tag)
+                    )
+                ),
                 tokens=device_tokens,
             )
             response = messaging.send_each_for_multicast(message)
