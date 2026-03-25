@@ -1,18 +1,38 @@
 {
   "extends": "@wps/tsconfig/react-app.json",
   "compilerOptions": {
-    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom", "@wps/types"],
+    "types": [
+      "vite/client",
+      "node",
+      "vitest/globals",
+      "@testing-library/jest-dom",
+      "@wps/types"
+    ],
     "noUnusedLocals": false,
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "#root/*": ["./*"],
-      "app/*": ["./src/app/*"],
-      "features/*": ["./src/features/*"],
-      "commonSlices/*": ["./src/commonSlices/*"],
+      "@/*": [
+        "./src/*"
+      ],
+      "#root/*": [
+        "./*"
+      ],
+      "app/*": [
+        "./src/app/*"
+      ],
+      "features/*": [
+        "./src/features/*"
+      ],
+      "commonSlices/*": [
+        "./src/commonSlices/*"
+      ]
     }
   },
-  "include": ["src"],
-  "exclude": ["src/setupTests.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/setupTests.ts"
+  ]
 }
