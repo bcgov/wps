@@ -3,14 +3,12 @@
 See README.md for details on how to run.
 """
 
-import json
 import logging
 from urllib.request import Request
 
 import sentry_sdk
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from firebase_admin import credentials, initialize_app
 from starlette.applications import Starlette
 from wps_shared import config
 from wps_shared.auth import audit, authentication_required
@@ -89,11 +87,6 @@ if config.get("ENVIRONMENT") == "production":
         # We recommend adjusting this value in production.
         profiles_sample_rate=0.5,
     )
-creds_json = config.get("FCM_CREDS")
-if creds_json:
-    creds = credentials.Certificate(json.loads(creds_json))
-    initialize_app(creds)
-
 # This is the api app.
 api = FastAPI(title="Predictive Services API", description=API_INFO, version="0.0.0")
 

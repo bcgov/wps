@@ -21,6 +21,7 @@ from app.auto_spatial_advisory.nats_config import (
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.process_stats import process_sfms_hfi_stats
 from app.nats_publish import publish
+from wps_shared import config
 from wps_shared.wps_logging import configure_logging
 from wps_shared.utils.time import get_utc_datetime
 
@@ -102,6 +103,10 @@ async def run():
 
 if __name__ == "__main__":
     configure_logging()
+    creds_json = config.get("FCM_CREDS")
+    if creds_json:
+        from firebase_admin import credentials, initialize_app
+        initialize_app(credentials.Certificate(json.loads(creds_json)))
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     asyncio.run(run())
