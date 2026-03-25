@@ -1,6 +1,6 @@
 """Unit tests for FCM notification logic."""
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -14,6 +14,7 @@ from firebase_admin import messaging
 from wps_shared.db.crud.auto_spatial_advisory import ZoneAdvisoryStatus
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 
+GET_APP = "app.fcm.notifications.firebase_admin.get_app"
 GET_ZONES = "app.fcm.notifications.get_zones_with_advisories"
 GET_TOKENS = "app.fcm.notifications.get_device_tokens_for_zone"
 UPDATE_TOKENS = "app.fcm.notifications.update_device_tokens_are_active"
@@ -21,28 +22,28 @@ SEND_MULTICAST = "app.fcm.notifications.messaging.send_each_for_multicast"
 
 
 @pytest.mark.parametrize(
-    "run_datetime, placename_label, expected",
+    "for_date, placename_label, expected",
     [
         (
-            datetime(2026, 4, 1, 12, 0, 0, tzinfo=timezone.utc),
+            date(2026, 4, 1),
             "K2-Kamloops Zone (Kamloops)",
             "Wed, April 1 - An advisory has been issued for K2-Kamloops Zone (Kamloops)",
         ),
         (
-            datetime(2026, 3, 23, 8, 0, 0, tzinfo=timezone.utc),
+            date(2026, 3, 23),
             "C5-Chilcotin Zone",
             "Mon, March 23 - An advisory has been issued for C5-Chilcotin Zone",
         ),
     ],
 )
-def test_build_notification_content(run_datetime, placename_label, expected):
+def test_build_notification_content(for_date, placename_label, expected):
     zone = ZoneAdvisoryStatus(
         advisory_shape_id=1,
         source_identifier="42",
         placename_label=placename_label,
         status="advisory",
     )
-    assert build_notification_content(zone, run_datetime) == expected
+    assert build_notification_content(zone, for_date) == expected
 
 
 @pytest.mark.parametrize(
@@ -114,6 +115,7 @@ async def test_trigger_notifications_sends_multicast():
     mock_response.failure_count = 0
 
     with (
+        patch(GET_APP),
         patch(GET_ZONES, return_value=[zone]),
         patch(GET_TOKENS, return_value=tokens),
         patch(SEND_MULTICAST, return_value=mock_response) as mock_send,
@@ -142,6 +144,7 @@ async def test_trigger_notifications_calls_handle_response():
     mock_response.failure_count = 0
 
     with (
+        patch(GET_APP),
         patch(GET_ZONES, return_value=[zone]),
         patch(GET_TOKENS, return_value=tokens),
         patch(SEND_MULTICAST, return_value=mock_response),
@@ -149,6 +152,42 @@ async def test_trigger_notifications_calls_handle_response():
     ):
         await trigger_notifications(session, RunTypeEnum.actual, datetime(2026, 4, 1), for_date)
         mock_handle.assert_called_once_with(session, for_date, "Kamloops", tokens, mock_response)
+
+
+@pytest.mark.anyio
+async def test_trigger_notifications_continues_on_send_failure():
+    """A send failure for one zone does not abort remaining zones."""
+    session = AsyncMock()
+    zone_a = ZoneAdvisoryStatus(
+        advisory_shape_id=1, source_identifier="1", placename_label="Zone A", status="advisory"
+    )
+    zone_b = ZoneAdvisoryStatus(
+        advisory_shape_id=2, source_identifier="2", placename_label="Zone B", status="advisory"
+    )
+    mock_response = MagicMock(spec=messaging.BatchResponse)
+    mock_response.failure_count = 0
+
+    with (
+        patch(GET_APP),
+        patch(GET_ZONES, return_value=[zone_a, zone_b]),
+        patch(GET_TOKENS, return_value=["token"]),
+        patch(SEND_MULTICAST, side_effect=[Exception("FCM error"), mock_response]) as mock_send,
+        patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock) as mock_handle,
+    ):
+        await trigger_notifications(
+            session, RunTypeEnum.actual, datetime(2026, 4, 1), date(2026, 4, 1)
+        )
+        assert mock_send.call_count == 2
+        mock_handle.assert_called_once()  # Only zone_b succeeded
+
+
+@pytest.mark.anyio
+async def test_build_notification_title_none_placename():
+    """build_notification_title does not crash when placename_label is None."""
+    zone = ZoneAdvisoryStatus(
+        advisory_shape_id=1, source_identifier="42", placename_label=None, status="advisory"
+    )
+    assert build_notification_title(zone) == "Behaviour Advisory, Unknown Zone"
 
 
 @pytest.mark.anyio
@@ -168,7 +207,7 @@ async def test_handle_fcm_response_all_success():
 
 @pytest.mark.anyio
 async def test_handle_fcm_response_partial_failure():
-    """Failed tokens are identified and successful tokens are marked active."""
+    """Successful tokens are marked active; failed tokens are marked inactive."""
     session = AsyncMock()
     resp_ok = MagicMock(success=True)
     resp_fail = MagicMock(success=False)
@@ -177,16 +216,16 @@ async def test_handle_fcm_response_partial_failure():
     response.responses = [resp_ok, resp_fail]
 
     with patch(UPDATE_TOKENS, new_callable=AsyncMock) as mock_update:
-        mock_update.return_value = 1
         await handle_fcm_response(
             session, date(2026, 4, 1), "Kamloops", ["token_good", "token_bad"], response
         )
-        mock_update.assert_called_once_with(session, ["token_good"], True)
+        mock_update.assert_any_call(session, ["token_good"], True)
+        mock_update.assert_any_call(session, ["token_bad"], False)
 
 
 @pytest.mark.anyio
 async def test_handle_fcm_response_all_failure():
-    """All tokens failed — update is called with an empty successful list."""
+    """All tokens failed — all are marked inactive."""
     session = AsyncMock()
     resp_fail = MagicMock(success=False)
     response = MagicMock(spec=messaging.BatchResponse)
@@ -194,6 +233,6 @@ async def test_handle_fcm_response_all_failure():
     response.responses = [resp_fail]
 
     with patch(UPDATE_TOKENS, new_callable=AsyncMock) as mock_update:
-        mock_update.return_value = 0
         await handle_fcm_response(session, date(2026, 4, 1), "Kamloops", ["token_bad"], response)
-        mock_update.assert_called_once_with(session, [], True)
+        mock_update.assert_any_call(session, [], True)
+        mock_update.assert_any_call(session, ["token_bad"], False)

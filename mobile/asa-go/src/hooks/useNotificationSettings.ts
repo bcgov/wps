@@ -12,7 +12,9 @@ export function useNotificationSettings() {
   const [deviceId, setDeviceId] = useState<string | null>(null);
 
   useEffect(() => {
-    Device.getId().then((info) => setDeviceId(info.identifier));
+    Device.getId()
+      .then((info) => setDeviceId(info.identifier))
+      .catch((e) => console.error(`Failed to get device ID: ${e}`));
   }, []);
 
   // Fetch from server on mount and when coming online
