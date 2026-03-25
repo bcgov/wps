@@ -286,6 +286,25 @@ describe("settingsSlice", () => {
         });
       });
 
+      it("should update Redux state before Preferences.set completes", async () => {
+        const store = createTestStore();
+        let resolvePreferences: () => void;
+        (Preferences.set as Mock).mockReturnValue(
+          new Promise<void>((resolve) => {
+            resolvePreferences = () => resolve();
+          }),
+        );
+
+        const dispatchPromise = store.dispatch(saveSubscriptions([1, 2, 3]));
+
+        // State must be updated immediately, before Preferences.set resolves,
+        // so that concurrent toggleAll calls read the correct subscriptions.
+        expect(store.getState().settings.subscriptions).toEqual([1, 2, 3]);
+
+        resolvePreferences!();
+        await dispatchPromise;
+      });
+
       it("should save empty subscriptions array", async () => {
         const store = createTestStore();
         (Preferences.set as Mock).mockResolvedValue(undefined);

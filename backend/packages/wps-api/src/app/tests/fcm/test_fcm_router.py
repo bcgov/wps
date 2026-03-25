@@ -249,6 +249,29 @@ def test_post_notification_settings_unknown_device_returns_404():
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
+def test_post_notification_settings_flushes_before_read():
+    """session.flush() must be called before reading back settings to ensure pending
+    inserts are visible within the same transaction (autoflush=False)."""
+    client = TestClient(app.main.app)
+
+    with patch(DB_SESSION) as mock_session_scope:
+        mock_session = mock_session_scope.return_value.__aenter__.return_value
+        call_order = []
+        mock_session.flush = lambda: call_order.append("flush")
+        with (
+            patch(UPSERT_NOTIFICATION_SETTINGS, side_effect=lambda *_: call_order.append("upsert") or True),
+            patch(GET_NOTIFICATION_SETTINGS, side_effect=lambda *_: call_order.append("read") or ["5"]),
+        ):
+            response = client.post(
+                API_NOTIFICATION_SETTINGS,
+                json={"device_id": "test_device_id", "fire_zone_source_ids": ["5"]},
+            )
+
+            assert response.status_code == 200
+            assert call_order.index("flush") < call_order.index("read")
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
 @pytest.mark.parametrize("fire_zone_source_ids", [["5", "10"], []])
 def test_post_notification_settings_success(fire_zone_source_ids):
     """POST notification settings replaces subscriptions and returns the updated list."""

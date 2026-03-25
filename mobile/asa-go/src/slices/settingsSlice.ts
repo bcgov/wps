@@ -120,11 +120,11 @@ export const initSubscriptions = (): AppThunk => async (dispatch) => {
 export const saveSubscriptions =
   (subs: number[]): AppThunk =>
   async (dispatch) => {
+    dispatch(setSubscriptions(subs));
     await Preferences.set({
       key: SUBSCRIPTIONS_KEY,
       value: JSON.stringify(subs),
     });
-    dispatch(setSubscriptions(subs));
   };
 
 export const getUpdatedSubscriptions = (
