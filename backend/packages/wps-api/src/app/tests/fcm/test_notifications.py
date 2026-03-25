@@ -10,6 +10,7 @@ from app.fcm.notifications import (
     handle_fcm_response,
     trigger_notifications,
 )
+from firebase_admin import exceptions as firebase_exceptions
 from firebase_admin import messaging
 from wps_shared.db.crud.auto_spatial_advisory import ZoneAdvisoryStatus
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
@@ -18,6 +19,10 @@ GET_ZONES = "app.fcm.notifications.get_zones_with_advisories"
 GET_TOKENS = "app.fcm.notifications.get_device_tokens_for_zone"
 UPDATE_TOKENS = "app.fcm.notifications.update_device_tokens_are_active"
 SEND_MULTICAST = "app.fcm.notifications.messaging.send_each_for_multicast"
+GET_VANCOUVER_NOW = "app.fcm.notifications.get_vancouver_now"
+
+FOR_DATE = date(2026, 4, 1)
+RUN_GET_VANCOUVER_NOW = datetime(2026, 4, 1)
 
 
 @pytest.mark.parametrize(
@@ -63,13 +68,22 @@ def test_build_notification_title(placename_label, expected):
 
 
 @pytest.mark.anyio
-async def test_trigger_notifications_skips_forecast():
-    """Forecast run type should return immediately without querying anything."""
+async def test_trigger_notifications_skips_actual():
+    """Actual run type should return immediately without querying anything."""
     session = AsyncMock()
-    with patch(GET_ZONES) as mock_get_zones:
-        await trigger_notifications(
-            session, RunTypeEnum.forecast, datetime(2026, 4, 1), date(2026, 4, 1)
-        )
+    with patch(GET_ZONES) as mock_get_zones, patch(GET_VANCOUVER_NOW) as mock_now:
+        mock_now.return_value.date.return_value = FOR_DATE
+        await trigger_notifications(session, RunTypeEnum.actual, RUN_GET_VANCOUVER_NOW, FOR_DATE)
+        mock_get_zones.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_trigger_notifications_skips_past_date():
+    """for_date in the past should return without querying anything."""
+    session = AsyncMock()
+    with patch(GET_ZONES) as mock_get_zones, patch(GET_VANCOUVER_NOW) as mock_now:
+        mock_now.return_value.date.return_value = date(2026, 4, 2)
+        await trigger_notifications(session, RunTypeEnum.actual, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_get_zones.assert_not_called()
 
 
@@ -77,10 +91,13 @@ async def test_trigger_notifications_skips_forecast():
 async def test_trigger_notifications_no_zones():
     """No zones with advisories means no notifications sent."""
     session = AsyncMock()
-    with patch(GET_ZONES, return_value=[]), patch(SEND_MULTICAST) as mock_send:
-        await trigger_notifications(
-            session, RunTypeEnum.actual, datetime(2026, 4, 1), date(2026, 4, 1)
-        )
+    with (
+        patch(GET_ZONES, return_value=[]),
+        patch(SEND_MULTICAST) as mock_send,
+        patch(GET_VANCOUVER_NOW) as mock_now,
+    ):
+        mock_now.return_value.date.return_value = FOR_DATE
+        await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_send.assert_not_called()
 
 
@@ -95,10 +112,10 @@ async def test_trigger_notifications_no_subscribers():
         patch(GET_ZONES, return_value=[zone]),
         patch(GET_TOKENS, return_value=[]),
         patch(SEND_MULTICAST) as mock_send,
+        patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        await trigger_notifications(
-            session, RunTypeEnum.actual, datetime(2026, 4, 1), date(2026, 4, 1)
-        )
+        mock_now.return_value.date.return_value = FOR_DATE
+        await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_send.assert_not_called()
 
 
@@ -118,10 +135,10 @@ async def test_trigger_notifications_sends_multicast():
         patch(GET_TOKENS, return_value=tokens),
         patch(SEND_MULTICAST, return_value=mock_response) as mock_send,
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock),
+        patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        await trigger_notifications(
-            session, RunTypeEnum.actual, datetime(2026, 4, 1), date(2026, 4, 1)
-        )
+        mock_now.return_value.date.return_value = FOR_DATE
+        await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_send.assert_called_once()
         call_arg = mock_send.call_args[0][0]
         assert call_arg.tokens == tokens
@@ -137,7 +154,6 @@ async def test_trigger_notifications_calls_handle_response():
         advisory_shape_id=1, source_identifier="42", placename_label="Kamloops", status="advisory"
     )
     tokens = ["token_a"]
-    for_date = date(2026, 4, 1)
     mock_response = MagicMock(spec=messaging.BatchResponse)
     mock_response.failure_count = 0
 
@@ -146,9 +162,11 @@ async def test_trigger_notifications_calls_handle_response():
         patch(GET_TOKENS, return_value=tokens),
         patch(SEND_MULTICAST, return_value=mock_response),
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock) as mock_handle,
+        patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        await trigger_notifications(session, RunTypeEnum.actual, datetime(2026, 4, 1), for_date)
-        mock_handle.assert_called_once_with(session, for_date, "Kamloops", tokens, mock_response)
+        mock_now.return_value.date.return_value = FOR_DATE
+        await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
+        mock_handle.assert_called_once_with(session, FOR_DATE, "Kamloops", tokens, mock_response)
 
 
 @pytest.mark.anyio
@@ -167,12 +185,15 @@ async def test_trigger_notifications_continues_on_send_failure():
     with (
         patch(GET_ZONES, return_value=[zone_a, zone_b]),
         patch(GET_TOKENS, return_value=["token"]),
-        patch(SEND_MULTICAST, side_effect=[Exception("FCM error"), mock_response]) as mock_send,
+        patch(
+            SEND_MULTICAST,
+            side_effect=[firebase_exceptions.UnavailableError("FCM error", None), mock_response],
+        ) as mock_send,
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock) as mock_handle,
+        patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        await trigger_notifications(
-            session, RunTypeEnum.actual, datetime(2026, 4, 1), date(2026, 4, 1)
-        )
+        mock_now.return_value.date.return_value = FOR_DATE
+        await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         assert mock_send.call_count == 2
         mock_handle.assert_called_once()  # Only zone_b succeeded
 
@@ -188,13 +209,11 @@ async def test_build_notification_title_none_placename():
 
 @pytest.mark.anyio
 async def test_handle_fcm_response_all_success():
-    """All successful responses — tokens are marked active, none marked inactive."""
+    """All successful responses — no tokens deactivated."""
     session = AsyncMock()
-    resp_a = MagicMock(success=True)
-    resp_b = MagicMock(success=True)
     response = MagicMock(spec=messaging.BatchResponse)
     response.failure_count = 0
-    response.responses = [resp_a, resp_b]
+    response.responses = [MagicMock(success=True), MagicMock(success=True)]
 
     with patch(UPDATE_TOKENS, new_callable=AsyncMock) as mock_update:
         await handle_fcm_response(session, date(2026, 4, 1), "Kamloops", ["t1", "t2"], response)
@@ -202,11 +221,13 @@ async def test_handle_fcm_response_all_success():
 
 
 @pytest.mark.anyio
-async def test_handle_fcm_response_partial_failure():
-    """Successful tokens are marked active; failed tokens are marked inactive."""
+async def test_handle_fcm_response_permanent_failure_deactivates_token():
+    """UnregisteredError tokens are permanently deactivated."""
     session = AsyncMock()
     resp_ok = MagicMock(success=True)
-    resp_fail = MagicMock(success=False)
+    resp_fail = MagicMock(
+        success=False, exception=messaging.UnregisteredError("token expired", None)
+    )
     response = MagicMock(spec=messaging.BatchResponse)
     response.failure_count = 1
     response.responses = [resp_ok, resp_fail]
@@ -219,14 +240,16 @@ async def test_handle_fcm_response_partial_failure():
 
 
 @pytest.mark.anyio
-async def test_handle_fcm_response_all_failure():
-    """All tokens failed — all are marked inactive."""
+async def test_handle_fcm_response_transient_failure_does_not_deactivate():
+    """Transient failures (non-UnregisteredError) do not deactivate the token."""
     session = AsyncMock()
-    resp_fail = MagicMock(success=False)
+    resp_fail = MagicMock(
+        success=False, exception=firebase_exceptions.UnavailableError("server down", None)
+    )
     response = MagicMock(spec=messaging.BatchResponse)
     response.failure_count = 1
     response.responses = [resp_fail]
 
     with patch(UPDATE_TOKENS, new_callable=AsyncMock) as mock_update:
-        await handle_fcm_response(session, date(2026, 4, 1), "Kamloops", ["token_bad"], response)
-        mock_update.assert_called_once_with(session, ["token_bad"], False)
+        await handle_fcm_response(session, date(2026, 4, 1), "Kamloops", ["token_ok"], response)
+        mock_update.assert_not_called()

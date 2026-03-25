@@ -2,11 +2,13 @@ import asyncio
 import logging
 from datetime import date, datetime
 
+from firebase_admin import exceptions as firebase_exceptions
 from firebase_admin import messaging
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.crud.auto_spatial_advisory import ZoneAdvisoryStatus, get_zones_with_advisories
 from wps_shared.db.crud.fcm import get_device_tokens_for_zone, update_device_tokens_are_active
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+from wps_shared.utils.time import get_vancouver_now
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +26,11 @@ def build_notification_title(zone_with_advisory: ZoneAdvisoryStatus):
 async def trigger_notifications(
     session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
 ) -> None:
-    if run_type == RunTypeEnum.forecast:
+    if run_type == RunTypeEnum.actual:
+        return
+
+    if for_date != get_vancouver_now().date():
+        logger.info("Skipping FCM notifications: for_date=%s is not today", for_date)
         return
 
     logger.info("Checking for warnings/advisories to send FCM notifications for")
@@ -51,7 +57,7 @@ async def trigger_notifications(
         try:
             # messaging.send_each_for_multicast is a synchronous blocking call
             response = await asyncio.to_thread(messaging.send_each_for_multicast, message)
-        except Exception:
+        except firebase_exceptions.FirebaseError:
             logger.exception(
                 "FCM send failed for zone=%s date=%s token_count=%d",
                 zone_with_advisory.placename_label,
@@ -71,17 +77,25 @@ async def handle_fcm_response(
     device_tokens: list[str],
     response: messaging.BatchResponse,
 ):
-    # Only deactivate failed tokens. Successful tokens are already active (get_device_tokens_for_zone
-    # filters is_active=True), and deactivated tokens are re-activated when the app re-registers on open.
-    failed_tokens = [
-        device_tokens[idx] for idx, resp in enumerate(response.responses) if not resp.success
+    # Only deactivate permanently invalid tokens (UnregisteredError — token is no longer registered).
+    # Transient failures (quota, server errors) are not deactivated; the token remains valid.
+    # Deactivated tokens are re-activated when the app re-registers on open.
+    permanently_failed = [
+        device_tokens[idx]
+        for idx, resp in enumerate(response.responses)
+        if not resp.success and isinstance(resp.exception, messaging.UnregisteredError)
     ]
+    transient_failed_count = response.failure_count - len(permanently_failed)
 
-    if failed_tokens:
+    if response.failure_count > 0:
         logger.warning(
-            "Failed issuing notification for zone: %s and date: %s to devices: %s",
+            "FCM send for zone=%s date=%s: %d permanent failures, %d transient failures out of %d tokens",
             placename_label,
             for_date,
-            failed_tokens,
+            len(permanently_failed),
+            transient_failed_count,
+            len(device_tokens),
         )
-        await update_device_tokens_are_active(session, failed_tokens, False)
+
+    if permanently_failed:
+        await update_device_tokens_are_active(session, permanently_failed, False)
