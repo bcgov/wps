@@ -14,7 +14,6 @@ from firebase_admin import messaging
 from wps_shared.db.crud.auto_spatial_advisory import ZoneAdvisoryStatus
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 
-GET_APP = "app.fcm.notifications.firebase_admin.get_app"
 GET_ZONES = "app.fcm.notifications.get_zones_with_advisories"
 GET_TOKENS = "app.fcm.notifications.get_device_tokens_for_zone"
 UPDATE_TOKENS = "app.fcm.notifications.update_device_tokens_are_active"
@@ -115,7 +114,6 @@ async def test_trigger_notifications_sends_multicast():
     mock_response.failure_count = 0
 
     with (
-        patch(GET_APP),
         patch(GET_ZONES, return_value=[zone]),
         patch(GET_TOKENS, return_value=tokens),
         patch(SEND_MULTICAST, return_value=mock_response) as mock_send,
@@ -144,7 +142,6 @@ async def test_trigger_notifications_calls_handle_response():
     mock_response.failure_count = 0
 
     with (
-        patch(GET_APP),
         patch(GET_ZONES, return_value=[zone]),
         patch(GET_TOKENS, return_value=tokens),
         patch(SEND_MULTICAST, return_value=mock_response),
@@ -168,7 +165,6 @@ async def test_trigger_notifications_continues_on_send_failure():
     mock_response.failure_count = 0
 
     with (
-        patch(GET_APP),
         patch(GET_ZONES, return_value=[zone_a, zone_b]),
         patch(GET_TOKENS, return_value=["token"]),
         patch(SEND_MULTICAST, side_effect=[Exception("FCM error"), mock_response]) as mock_send,
@@ -192,7 +188,7 @@ async def test_build_notification_title_none_placename():
 
 @pytest.mark.anyio
 async def test_handle_fcm_response_all_success():
-    """All successful responses — update_device_tokens_are_active is not called."""
+    """All successful responses — tokens are marked active, none marked inactive."""
     session = AsyncMock()
     resp_a = MagicMock(success=True)
     resp_b = MagicMock(success=True)
@@ -202,7 +198,7 @@ async def test_handle_fcm_response_all_success():
 
     with patch(UPDATE_TOKENS, new_callable=AsyncMock) as mock_update:
         await handle_fcm_response(session, date(2026, 4, 1), "Kamloops", ["t1", "t2"], response)
-        mock_update.assert_not_called()
+        mock_update.assert_called_once_with(session, ["t1", "t2"], True)
 
 
 @pytest.mark.anyio
@@ -234,5 +230,4 @@ async def test_handle_fcm_response_all_failure():
 
     with patch(UPDATE_TOKENS, new_callable=AsyncMock) as mock_update:
         await handle_fcm_response(session, date(2026, 4, 1), "Kamloops", ["token_bad"], response)
-        mock_update.assert_any_call(session, [], True)
-        mock_update.assert_any_call(session, ["token_bad"], False)
+        mock_update.assert_called_once_with(session, ["token_bad"], False)

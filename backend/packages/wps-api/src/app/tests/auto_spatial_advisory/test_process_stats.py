@@ -65,6 +65,13 @@ def mocks() -> Iterator[ProcessStatsMocks]:
 
 
 @pytest.mark.anyio
+async def test_forecast_run_marks_complete(mocks: ProcessStatsMocks):
+    await process_sfms_hfi_stats(RunType.FORECAST, RUN_DATETIME, FOR_DATE)
+    mocks.mark_run_parameter_complete.assert_awaited_once()
+    mocks.trigger_notifications.assert_awaited_once()
+
+
+@pytest.mark.anyio
 async def test_marks_run_complete_on_success(mocks: ProcessStatsMocks):
     await process_sfms_hfi_stats(RunType.ACTUAL, RUN_DATETIME, FOR_DATE)
     mocks.mark_run_parameter_complete.assert_awaited_once()

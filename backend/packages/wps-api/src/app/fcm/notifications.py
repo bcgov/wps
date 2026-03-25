@@ -69,20 +69,22 @@ async def handle_fcm_response(
     device_tokens: list[str],
     response: messaging.BatchResponse,
 ):
-    if response.failure_count > 0:
-        failed_tokens = []
-        successful_tokens = []
-        for idx, resp in enumerate(response.responses):
-            if resp.success:
-                successful_tokens.append(device_tokens[idx])
-            else:
-                failed_tokens.append(device_tokens[idx])
+    failed_tokens = []
+    successful_tokens = []
+    for idx, resp in enumerate(response.responses):
+        if resp.success:
+            successful_tokens.append(device_tokens[idx])
+        else:
+            failed_tokens.append(device_tokens[idx])
 
+    if failed_tokens:
         logger.warning(
             "Failed issuing notification for zone: %s and date: %s to devices: %s",
             placename_label,
             for_date,
             failed_tokens,
         )
+    if successful_tokens:
         await update_device_tokens_are_active(session, successful_tokens, True)
+    if failed_tokens:
         await update_device_tokens_are_active(session, failed_tokens, False)

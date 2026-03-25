@@ -30,7 +30,7 @@ async def update_device_token_is_active(session: AsyncSession, token: str, is_ac
 
 async def update_device_tokens_are_active(
     session: AsyncSession, tokens: list[str], is_active: bool
-) -> bool:
+) -> int:
     stmt = (
         update(DeviceToken)
         .where(DeviceToken.token.in_(tokens))
