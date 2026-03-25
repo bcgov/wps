@@ -163,7 +163,8 @@ jobs:
           # 00:45 UTC (5:45 PM PDT)
           SCHEDULE="45 0 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX}-545pm apply
           SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
-          FEND=6 STEP=3 MODEL=RDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
+          FEND=240 STEP=12 MODEL=GDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
+          FEND=84 STEP=3 MODEL=RDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
 
   scan-dev:
     name: ZAP Baseline Scan Dev
