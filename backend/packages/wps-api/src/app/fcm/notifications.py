@@ -69,6 +69,8 @@ async def handle_fcm_response(
     device_tokens: list[str],
     response: messaging.BatchResponse,
 ):
+    # Only deactivate failed tokens. Successful tokens are already active (get_device_tokens_for_zone
+    # filters is_active=True), and deactivated tokens are re-activated when the app re-registers on open.
     failed_tokens = [device_tokens[idx] for idx, resp in enumerate(response.responses) if not resp.success]
 
     if failed_tokens:
