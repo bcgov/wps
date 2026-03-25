@@ -1,7 +1,6 @@
 import logging
 from datetime import date, datetime
 
-import firebase_admin
 from firebase_admin import messaging
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.crud.auto_spatial_advisory import ZoneAdvisoryStatus, get_zones_with_advisories

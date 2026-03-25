@@ -905,6 +905,7 @@ async def get_zones_with_advisories(
             advisory_status_case.label("status"),
         )
         .where(AdvisoryZoneStatus.run_parameters == run_parameter_id)
+        .where(advisory_status_case.isnot(None))
         .join(Shape, Shape.id == AdvisoryZoneStatus.advisory_shape_id)
     )
     result = await session.execute(stmt)
