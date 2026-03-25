@@ -139,6 +139,16 @@ describe("useNotificationSettings", () => {
     expect(store.getState().settings.subscriptions).toEqual([2]);
   });
 
+  it("logs error when Device.getId fails", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (Device.getId as Mock).mockRejectedValue(new Error("device unavailable"));
+
+    await act(async () => renderWithStore());
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to get device ID"));
+    consoleSpy.mockRestore();
+  });
+
   it("logs error and keeps local state if fetch fails", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (getNotificationSettings as Mock).mockRejectedValue(new Error("network error"));
