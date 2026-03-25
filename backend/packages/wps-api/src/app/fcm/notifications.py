@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import date, datetime
 
@@ -48,7 +49,8 @@ async def trigger_notifications(
             tokens=device_tokens,
         )
         try:
-            response = messaging.send_each_for_multicast(message)
+            # messaging.send_each_for_multicast is a synchronous blocking call
+            response = await asyncio.to_thread(messaging.send_each_for_multicast, message)
         except Exception:
             logger.exception(
                 "FCM send failed for zone=%s date=%s token_count=%d",
@@ -71,7 +73,9 @@ async def handle_fcm_response(
 ):
     # Only deactivate failed tokens. Successful tokens are already active (get_device_tokens_for_zone
     # filters is_active=True), and deactivated tokens are re-activated when the app re-registers on open.
-    failed_tokens = [device_tokens[idx] for idx, resp in enumerate(response.responses) if not resp.success]
+    failed_tokens = [
+        device_tokens[idx] for idx, resp in enumerate(response.responses) if not resp.success
+    ]
 
     if failed_tokens:
         logger.warning(
