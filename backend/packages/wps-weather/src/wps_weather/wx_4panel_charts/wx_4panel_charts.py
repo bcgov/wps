@@ -90,6 +90,11 @@ class FourPanelChartRunner:
     async def _dataset(self, key):
         # Small helper to ensure datasets get closed in the event of an error.
         ds = await self._open_dataset_s3(key)
+        if not isinstance(ds, xr.Dataset):
+            logger.error(
+                f"Expected xr.Dataset for key '{key}', got {type(ds).__name__}. Skipping chart."
+            )
+            raise TypeError(f"Expected xr.Dataset for key '{key}', got {type(ds).__name__}.")
         try:
             yield ds
         finally:
@@ -250,16 +255,20 @@ class FourPanelChartRunner:
                 )
                 return False
 
-            await self._make_4panel_chart(
-                cfg500,
-                cfgmslp,
-                cfg700,
-                cfgpcpn,
-                DEFAULT_FIG_SIZE,
-                DEFAULT_DPI,
-                output_key,
-                plotter_factory,
-            )
+            try:
+                await self._make_4panel_chart(
+                    cfg500,
+                    cfgmslp,
+                    cfg700,
+                    cfgpcpn,
+                    DEFAULT_FIG_SIZE,
+                    DEFAULT_DPI,
+                    output_key,
+                    plotter_factory,
+                )
+            except TypeError:
+                # Error was logged when thrown. Continue processing of remaining 4panel charts.
+                continue
             logger.info(
                 f"End {model} 4 panel chart generation for hour {fh} of model run {init_ymd} {init_hh}."
             )

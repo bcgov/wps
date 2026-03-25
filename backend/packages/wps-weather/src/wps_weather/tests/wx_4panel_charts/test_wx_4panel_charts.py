@@ -206,6 +206,53 @@ class TestOpenDatasetS3:
 
 
 # ---------------------------------------------------------------------------
+# _dataset
+# ---------------------------------------------------------------------------
+
+# A real class used as a stand-in for xr.Dataset in isinstance checks below.
+_FakeDataset = type("Dataset", (), {})
+
+
+class TestDataset:
+    @pytest.mark.anyio
+    async def test_raises_type_error_when_open_dataset_returns_non_dataset(self):
+        runner = make_runner()
+        runner._open_dataset_s3 = AsyncMock(return_value="not_a_dataset")
+
+        with patch("wps_weather.wx_4panel_charts.wx_4panel_charts.xr") as mock_xr:
+            mock_xr.Dataset = _FakeDataset
+            with pytest.raises(TypeError, match="Expected xr.Dataset"):
+                async with runner._dataset("some/key"):
+                    pass
+
+    @pytest.mark.anyio
+    async def test_logs_error_when_open_dataset_returns_non_dataset(self):
+        runner = make_runner()
+        runner._open_dataset_s3 = AsyncMock(return_value="not_a_dataset")
+
+        with patch("wps_weather.wx_4panel_charts.wx_4panel_charts.xr") as mock_xr:
+            mock_xr.Dataset = _FakeDataset
+            with patch("wps_weather.wx_4panel_charts.wx_4panel_charts.logger") as mock_logger:
+                with pytest.raises(TypeError):
+                    async with runner._dataset("some/key"):
+                        pass
+
+                mock_logger.error.assert_called_once()
+                assert "some/key" in mock_logger.error.call_args[0][0]
+
+    @pytest.mark.anyio
+    async def test_error_message_includes_actual_type(self):
+        runner = make_runner()
+        runner._open_dataset_s3 = AsyncMock(return_value=42)
+
+        with patch("wps_weather.wx_4panel_charts.wx_4panel_charts.xr") as mock_xr:
+            mock_xr.Dataset = _FakeDataset
+            with pytest.raises(TypeError, match="int"):
+                async with runner._dataset("some/key"):
+                    pass
+
+
+# ---------------------------------------------------------------------------
 # _make_4panel_charts
 # ---------------------------------------------------------------------------
 
@@ -312,6 +359,17 @@ class TestMake4PanelCharts:
 
         assert result is False
         runner._make_4panel_chart.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_continues_to_next_hour_when_make_4panel_chart_raises_type_error(self):
+        runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
+        # First hour raises TypeError (e.g. _dataset returned a non-Dataset); second succeeds.
+        runner._make_4panel_chart = AsyncMock(side_effect=[TypeError("bad dataset"), None])
+
+        result = await runner._make_4panel_charts(ECCCModel.GDPS, "20260318", "00", 3, 6, 3)
+
+        assert result is True
+        assert runner._make_4panel_chart.call_count == 2
 
 
 # ---------------------------------------------------------------------------
