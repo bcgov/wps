@@ -12,18 +12,6 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@wps/api/*": [
-        "../../packages/api/src/*"
-      ],
-      "@wps/ui/*": [
-        "../../packages/ui/src/*"
-      ],
-      "@wps/utils/*": [
-        "../../packages/utils/src/*"
-      ],
-      "@wps/types/*": [
-        "../../packages/types/src/*"
-      ],
       "@/*": [
         "./src/*"
       ],
@@ -38,7 +26,7 @@
       ],
       "commonSlices/*": [
         "./src/commonSlices/*"
-      ],
+      ]
     }
   },
   "include": [

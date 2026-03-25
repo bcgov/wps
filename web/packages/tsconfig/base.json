@@ -1,13 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@wps/api/*": ["../api/src/*"],
-      "@wps/ui/*": ["../ui/src/*"],
-      "@wps/utils/*": ["../utils/src/*"],
-      "@wps/types/*": ["../types/src/*"]
-    },
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
