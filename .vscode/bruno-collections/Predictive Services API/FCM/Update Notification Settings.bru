@@ -1,0 +1,22 @@
+meta {
+  name: Update Notification Settings
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_BASE_URL}}/device/notification-settings
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}
+
+body:json {
+  {
+    "device_id": "9242842270074025",
+    "fire_zone_source_ids": ["24"]
+  }
+}

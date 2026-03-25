@@ -1,6 +1,5 @@
 import { FireZoneUnit } from "@/api/fbaAPI";
-import { toggleSubscription } from "@/slices/settingsSlice";
-import { AppDispatch, selectSettings } from "@/store";
+import { selectSettings } from "@/store";
 import { fireZoneUnitNameFormatter } from "@/utils/stringUtils";
 import {
   ListItem,
@@ -9,23 +8,23 @@ import {
   Switch,
   Typography,
 } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 interface SubscriptionOptionProps {
   fireZoneUnit: FireZoneUnit;
+  onToggle: (fireZoneUnitId: number) => void;
 }
 
-const SubscriptionOption = ({ fireZoneUnit }: SubscriptionOptionProps) => {
-  const dispatch: AppDispatch = useDispatch();
+const SubscriptionOption = ({ fireZoneUnit, onToggle }: SubscriptionOptionProps) => {
   const { subscriptions } = useSelector(selectSettings);
 
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
-    handleSubscriptionUpdate();
+    onToggle(fireZoneUnit.id);
   };
 
   const handleSubscriptionUpdate = () => {
-    dispatch(toggleSubscription(fireZoneUnit.id));
+    onToggle(fireZoneUnit.id);
   };
 
   return (

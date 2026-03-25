@@ -1,5 +1,6 @@
 import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
+import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import {
   checkPushNotificationPermission,
   fetchFireCentreInfo,
@@ -30,6 +31,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const dispatch: AppDispatch = useDispatch();
   const isActive = useAppIsActive();
   const isVisible = activeTab === NavPanel.SETTINGS;
+  const { updateSubscriptions, toggleSubscription } = useNotificationSettings();
 
   const { networkStatus } = useSelector(selectNetworkStatus);
   const {
@@ -193,6 +195,8 @@ const Settings = ({ activeTab }: SettingsProps) => {
             fireCentreInfo={unit}
             disabled={notificationSettingsDisabled}
             defaultExpanded={index === 0}
+            onSave={updateSubscriptions}
+            onToggle={toggleSubscription}
           />
         ))}
       </Box>

@@ -96,6 +96,7 @@ async def update_notification_settings(
         if not found:
             logger.error("Notification settings update for unknown device_id: %s", request.device_id)
             raise HTTPException(status_code=404, detail=f"Device not found: {request.device_id}")
+        await session.flush()
         fire_zone_source_ids = await get_notification_settings_for_device(
             session, request.device_id
         )

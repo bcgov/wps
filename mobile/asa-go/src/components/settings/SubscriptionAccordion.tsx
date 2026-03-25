@@ -2,7 +2,6 @@ import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionOption from "@/components/settings/SubscriptionOption";
 import {
   savePinnedFireCentre,
-  saveSubscriptions,
 } from "@/slices/settingsSlice";
 import { AppDispatch, selectSettings } from "@/store";
 import { theme } from "@/theme";
@@ -29,12 +28,16 @@ interface SubscriptionAccordionProps {
   defaultExpanded: boolean;
   disabled: boolean;
   fireCentreInfo: FireCentreInfo;
+  onSave: (subs: number[]) => void;
+  onToggle: (fireZoneUnitId: number) => void;
 }
 
 const SubscriptionAccordion = ({
   defaultExpanded,
   disabled,
   fireCentreInfo,
+  onSave,
+  onToggle,
 }: SubscriptionAccordionProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { pinnedFireCentre, subscriptions } = useSelector(selectSettings);
@@ -94,7 +97,7 @@ const SubscriptionAccordion = ({
       newSubs.push(...allFireZoneUnitIds);
     }
 
-    dispatch(saveSubscriptions(newSubs));
+    onSave(newSubs);
   };
 
   const disabledStyles = disabled
@@ -179,6 +182,7 @@ const SubscriptionAccordion = ({
                 <SubscriptionOption
                   key={fireZoneUnit.id}
                   fireZoneUnit={fireZoneUnit}
+                  onToggle={onToggle}
                 />
               );
             })}

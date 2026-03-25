@@ -5,6 +5,7 @@ import { createTestStore } from "@/testUtils";
 import { Preferences } from "@capacitor/preferences";
 import SubscriptionOption from "./SubscriptionOption";
 import { FireZoneUnit } from "@/api/fbaAPI";
+import { getUpdatedSubscriptions, saveSubscriptions } from "@/slices/settingsSlice";
 
 const KAMLOOPS_SWITCH_LABEL = "Toggle subscription for K2-Kamloops Zone (Kamloops)";
 const VANJAM_LABEL = "G4-VanJam\n(Vanderhoof)";
@@ -42,10 +43,15 @@ describe("SubscriptionOption", () => {
       },
     });
 
+    const onToggle = (id: number) => {
+      const current = store.getState().settings.subscriptions;
+      store.dispatch(saveSubscriptions(getUpdatedSubscriptions(current, id)));
+    };
+
     return {
       ...render(
         <Provider store={store}>
-          <SubscriptionOption fireZoneUnit={fireZoneUnit} />
+          <SubscriptionOption fireZoneUnit={fireZoneUnit} onToggle={onToggle} />
         </Provider>,
       ),
       store,
