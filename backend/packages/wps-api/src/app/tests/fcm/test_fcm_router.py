@@ -257,7 +257,8 @@ def test_post_notification_settings_flushes_before_read():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session = mock_session_scope.return_value.__aenter__.return_value
         call_order = []
-        mock_session.flush = lambda: call_order.append("flush")
+        async def mock_flush(): call_order.append("flush")
+        mock_session.flush = mock_flush
         with (
             patch(UPSERT_NOTIFICATION_SETTINGS, side_effect=lambda *_: call_order.append("upsert") or True),
             patch(GET_NOTIFICATION_SETTINGS, side_effect=lambda *_: call_order.append("read") or ["5"]),

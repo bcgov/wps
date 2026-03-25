@@ -43,6 +43,7 @@ const SubscriptionOption = ({ fireZoneUnit, onToggle }: SubscriptionOptionProps)
           edge="end"
           checked={subscriptions.includes(fireZoneUnit.id)}
           onChange={handleSwitchChange}
+          onClick={(e) => e.stopPropagation()}
           slotProps={{
             input: {
               "aria-label": `Toggle subscription for ${fireZoneUnit.name}`,
