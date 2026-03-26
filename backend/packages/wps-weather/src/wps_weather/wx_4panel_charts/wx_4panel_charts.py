@@ -112,6 +112,7 @@ class FourPanelChartRunner:
         dpi: int,
         output_key: str,
         plotter_factory: PlotterFactory,
+        step: int,
     ):
         proj = ccrs.LambertConformal(
             central_longitude=cfg500.get("central_longitude", -130.0),
@@ -133,6 +134,7 @@ class FourPanelChartRunner:
             self._dataset(cfg500["z500_grib"]) as ds_z500,
             self._dataset(cfg500["vort_grib"]) as ds_vort,
         ):
+            logger.info(f"Creating 500hpa panel for {output_key}")
             plotter_500hpa = plotter_factory.get_500hpa_plotter()
             plotter_500hpa(cfg500, ax=ax500, ds_z500=ds_z500, ds_vort=ds_vort)
             add_panel_title(ax500, "500 hPa Height + Abs Vorticity", loc="bl")
@@ -141,6 +143,7 @@ class FourPanelChartRunner:
             self._dataset(cfgmslp["mslp_grib"]) as ds_msl,
             self._dataset(cfgmslp["thk_grib"]) as ds_thk,
         ):
+            logger.info(f"Creating mslp panel for {output_key}")
             plotter_mslp_thickness = plotter_factory.get_mslp_thickness_plotter()
             plotter_mslp_thickness(cfgmslp, ax=axmslp, ds_msl=ds_msl, ds_thk=ds_thk)
             add_panel_title(axmslp, "MSLP + 1000–500 Thickness", loc="bl")
@@ -151,6 +154,7 @@ class FourPanelChartRunner:
             self._dataset(cfg700["rh700_grib"]) as ds_rh700,
             self._dataset(cfg700["rh500_grib"]) as ds_rh500,
         ):
+            logger.info(f"Creating 700hpa panel for {output_key}")
             plotter_700hpa = plotter_factory.get_700hpa_plotter()
             plotter_700hpa(
                 cfg700,
@@ -166,6 +170,7 @@ class FourPanelChartRunner:
         ds_js: Optional[xr.Dataset] = None
 
         try:
+            logger.info(f"Creating precip panel for {output_key}")
             if cfgpcpn["show_precip"]:
                 ds_p = await self._open_dataset_s3(cfgpcpn["pcpn_grib"])
 
@@ -174,9 +179,10 @@ class FourPanelChartRunner:
 
             plotter_pcpn = plotter_factory.get_pcpn_plotter()
             plotter_pcpn(cfgpcpn, ax=axpcpn, ds_p=ds_p, ds_js=ds_js)
+
             add_panel_title(
                 axpcpn,
-                "3H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H",
+                f"{step}H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H",
                 loc="bl",
             )
         finally:
@@ -223,7 +229,7 @@ class FourPanelChartRunner:
         plotter_factory = PlotterFactory(model=model)
         for fh in range(fstart, fend + 1, step):
             logger.info(
-                f"Start {model} 4 panel chart generation for hour {fh} of model run {init_ymd} {init_hh}."
+                f"Start {model} 4 panel chart generation for hour {fh} of model run {init_ymd}T{init_hh}Z."
             )
             output_name = f"{model}_{init_ymd}T{init_hh}Z_F{fh:03d}_4panel.png"
             output_key = raster_addresser.get_4panel_key(fh, output_name)
@@ -267,12 +273,13 @@ class FourPanelChartRunner:
                     DEFAULT_DPI,
                     output_key,
                     plotter_factory,
+                    step,
                 )
             except TypeError:
                 # Error was logged when thrown. Continue processing of remaining 4panel charts.
                 continue
             logger.info(
-                f"End {model} 4 panel chart generation for hour {fh} of model run {init_ymd} {init_hh}."
+                f"End {model} 4 panel chart generation for hour {fh} of model run {init_ymd}T{init_hh}Z."
             )
         # The specified end hour has been reached and the processing is complete.
         return True
@@ -357,7 +364,7 @@ async def get_init_datetime():
     async with get_async_read_session_scope() as session:
         now = get_utc_now()
         now = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        min_date = now - timedelta(days=1)
+        min_date = now - timedelta(days=7)
         # Limit lookup to 7 days in the past as we prune grib files older than 7 days
         init_datetime: Optional[datetime] = None
         incomplete_result = await get_earliest_in_progress_date_limited(session, min_date)
@@ -386,7 +393,7 @@ async def main():
         end_datetime = now.replace(hour=0, minute=0, second=0, microsecond=0)
     else:
         # If an init_ymd was provided as an argument, only process that one day
-        start_datetime = datetime.strptime(args.init_ymd).replace(tzinfo=timezone.utc)
+        start_datetime = datetime.strptime(args.init_ymd, "%Y%m%d").replace(tzinfo=timezone.utc)
         end_datetime = start_datetime
 
     user_id = config.get("WX_OBJECT_STORE_USER_ID")

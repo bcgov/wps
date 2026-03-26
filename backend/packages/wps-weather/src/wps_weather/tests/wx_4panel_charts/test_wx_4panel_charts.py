@@ -740,7 +740,7 @@ class TestGetInitDatetime:
         assert result == _FIXED_NOW_MIDNIGHT
 
     @pytest.mark.anyio
-    async def test_passes_min_date_one_day_before_now_to_incomplete_query(self):
+    async def test_passes_min_date_seven_days_before_now_to_incomplete_query(self):
         incomplete = _make_db_result(datetime(2026, 3, 25, 0, 0, 0, tzinfo=timezone.utc))
 
         with (
@@ -763,7 +763,7 @@ class TestGetInitDatetime:
         ):
             await get_init_datetime()
 
-        expected_min_date = _FIXED_NOW_MIDNIGHT - timedelta(days=1)
+        expected_min_date = _FIXED_NOW_MIDNIGHT - timedelta(days=7)
         actual_min_date = mock_incomplete.call_args[0][1]
         assert actual_min_date == expected_min_date
 

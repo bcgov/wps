@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import ECCCModel, WX4PanelChartAddresser
@@ -49,7 +49,9 @@ class ConfigBuilder:
         )
 
     def _valid_time_str(self, fh: int) -> str:
-        init_dt = datetime.strptime(f"{self.init_ymd}{self.init_hh}", "%Y%m%d%H")
+        init_dt = datetime.strptime(f"{self.init_ymd}{self.init_hh}", "%Y%m%d%H").replace(
+            tzinfo=timezone.utc
+        )
         valid_dt = init_dt + timedelta(hours=fh)
         return f"F{fh:03d} Valid: {valid_dt:%a %Y-%m-%d %HZ}"
 
