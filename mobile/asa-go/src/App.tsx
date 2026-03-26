@@ -25,6 +25,7 @@ import {
   selectRunParameters,
   selectAuthentication,
 } from "@/store";
+import { setFcmToken, setTokenRegistered } from "@/slices/settingsSlice";
 import { theme } from "@/theme";
 import { NavPanel } from "@/utils/constants";
 import { today } from "@/utils/dataSliceUtils";
@@ -106,14 +107,19 @@ const App = () => {
           deviceId?.identifier,
           idir || null,
         );
+        dispatch(setTokenRegistered(true));
       } catch (e) {
         console.error("Failed to register push token", e);
+        dispatch(setTokenRegistered(false));
       }
     }
     if (!isNil(token)) {
+      dispatch(setFcmToken(token));
+    }
+    if (!isNil(token) && networkStatus.connected) {
       handleTokenChange(token);
     }
-  }, [token, idir]);
+  }, [token, idir, networkStatus.connected, isActive, dispatch]);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status

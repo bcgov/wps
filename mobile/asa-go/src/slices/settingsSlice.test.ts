@@ -16,8 +16,10 @@ import settingsSlice, {
   savePinnedFireCentre,
   saveSubscriptions,
   setDeviceIdError,
+  setFcmToken,
   setPinnedFireCentre,
   setSubscriptions,
+  setTokenRegistered,
   SettingsState,
 } from "./settingsSlice";
 
@@ -195,6 +197,36 @@ describe("settingsSlice", () => {
 
     it("initial state has deviceIdError false", () => {
       expect(initialState.deviceIdError).toBe(false);
+    });
+
+    it("initial state has tokenRegistered false", () => {
+      expect(initialState.tokenRegistered).toBe(false);
+    });
+
+    it("initial state has fcmToken null", () => {
+      expect(initialState.fcmToken).toBeNull();
+    });
+
+    it("should handle setFcmToken", () => {
+      const nextState = settingsSlice(initialState, setFcmToken("my-token"));
+      expect(nextState.fcmToken).toBe("my-token");
+    });
+
+    it("should handle setFcmToken to null", () => {
+      const previousState = createSettingsState({ fcmToken: "my-token" });
+      const nextState = settingsSlice(previousState, setFcmToken(null));
+      expect(nextState.fcmToken).toBeNull();
+    });
+
+    it("should handle setTokenRegistered to true", () => {
+      const nextState = settingsSlice(initialState, setTokenRegistered(true));
+      expect(nextState.tokenRegistered).toBe(true);
+    });
+
+    it("should handle setTokenRegistered to false", () => {
+      const previousState = createSettingsState({ tokenRegistered: true });
+      const nextState = settingsSlice(previousState, setTokenRegistered(false));
+      expect(nextState.tokenRegistered).toBe(false);
     });
 
     it("should handle setDeviceIdError to true", () => {

@@ -6,7 +6,7 @@ import {
   initPinnedFireCentre,
   initSubscriptions,
 } from "@/slices/settingsSlice";
-import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
+import { AppDispatch, selectNetworkStatus, selectNotificationSettingsDisabled, selectNotificationSetupState, selectSettings } from "@/store";
 import { theme } from "@/theme";
 import {
   Alert,
@@ -36,12 +36,10 @@ const Settings = ({ activeTab }: SettingsProps) => {
     loading,
     error,
     pinnedFireCentre,
-    pushNotificationPermission,
     deviceIdError,
   } = useSelector(selectSettings);
-
-  const notificationSettingsDisabled =
-    pushNotificationPermission !== "granted" || !networkStatus.connected;
+  const setupState = useSelector(selectNotificationSetupState);
+  const notificationSettingsDisabled = useSelector(selectNotificationSettingsDisabled);
 
   // Load subscriptions and pinned fire centre from locally cached user preferences
   useEffect(() => {
@@ -90,11 +88,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
   }, [fireCentreInfos, pinnedFireCentre]);
 
   const renderNotificationMessage = () => {
-    if (
-      !networkStatus.connected ||
-      pushNotificationPermission !== "granted" ||
-      error
-    ) {
+    if (notificationSettingsDisabled || error) {
       return;
     }
     return (
@@ -143,8 +137,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
 
   const renderPermissionBanner = () => {
     // Show a banner if permission is not explicitly granted in system settings and we're online.
-    const shouldShow =
-      pushNotificationPermission !== "granted" && networkStatus.connected;
+    const shouldShow = setupState === "permissionDenied" && networkStatus.connected;
     if (shouldShow) {
       return (
         <Alert

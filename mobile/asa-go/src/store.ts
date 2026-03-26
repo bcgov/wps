@@ -1,5 +1,10 @@
 import { rootReducer } from "@/rootReducer";
-import { Action, configureStore, ThunkAction } from "@reduxjs/toolkit";
+import {
+  Action,
+  configureStore,
+  createSelector,
+  ThunkAction,
+} from "@reduxjs/toolkit";
 
 export const store = configureStore({
   reducer: rootReducer,
@@ -24,3 +29,37 @@ export const selectProvincialSummaries = (state: RootState) =>
 export const selectTPIStats = (state: RootState) => state.data.tpiStats;
 export const selectHFIStats = (state: RootState) => state.data.hfiStats;
 export const selectSettings = (state: RootState) => state.settings;
+
+export type NotificationSetupState =
+  | "permissionDenied"
+  | "awaitingFCMToken"
+  | "unregistered"
+  | "ready";
+
+export const selectNotificationSetupState = createSelector(
+  selectSettings,
+  ({
+    pushNotificationPermission,
+    fcmToken,
+    tokenRegistered,
+  }): NotificationSetupState => {
+    if (pushNotificationPermission !== "granted") {
+      return "permissionDenied";
+    }
+
+    if (!fcmToken) {
+      return "awaitingFCMToken";
+    }
+    if (!tokenRegistered) {
+      return "unregistered";
+    }
+    return "ready";
+  },
+);
+
+export const selectNotificationSettingsDisabled = createSelector(
+  selectNotificationSetupState,
+  selectNetworkStatus,
+  (setupState, { networkStatus }) =>
+    setupState !== "ready" || !networkStatus.connected,
+);

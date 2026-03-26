@@ -23,6 +23,8 @@ export interface SettingsState {
   pushNotificationPermission: PermissionState | "unknown";
   subscriptions: number[];
   deviceIdError: boolean;
+  tokenRegistered: boolean;
+  fcmToken: string | null;
 }
 
 export const initialState: SettingsState = {
@@ -33,6 +35,8 @@ export const initialState: SettingsState = {
   pushNotificationPermission: "unknown",
   subscriptions: [],
   deviceIdError: false,
+  tokenRegistered: false,
+  fcmToken: null,
 };
 
 const PINNED_FIRE_CENTRE_KEY = "asaGoPinnedFireCentre";
@@ -80,6 +84,12 @@ const settingsSlice = createSlice({
     setDeviceIdError(state: SettingsState, action: PayloadAction<boolean>) {
       state.deviceIdError = action.payload;
     },
+    setTokenRegistered(state: SettingsState, action: PayloadAction<boolean>) {
+      state.tokenRegistered = action.payload;
+    },
+    setFcmToken(state: SettingsState, action: PayloadAction<string | null>) {
+      state.fcmToken = action.payload;
+    },
   },
 });
 
@@ -88,9 +98,11 @@ export const {
   getFireCenterInfoFailed,
   getFireCenterInfoSuccess,
   setDeviceIdError,
+  setFcmToken,
   setPinnedFireCentre,
   setPushNotificationPermission,
   setSubscriptions,
+  setTokenRegistered,
 } = settingsSlice.actions;
 
 export default settingsSlice.reducer;

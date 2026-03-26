@@ -21,7 +21,10 @@ vi.mock("@capacitor/device", () => ({
 vi.mock("api/pushNotificationsAPI", () => ({
   getNotificationSettings: vi.fn(),
   updateNotificationSettings: vi.fn(),
+  registerToken: vi.fn(),
 }));
+
+import { getNotificationSettings, updateNotificationSettings } from "api/pushNotificationsAPI";
 
 vi.mock("@capacitor/preferences", () => ({
   Preferences: {
@@ -98,7 +101,9 @@ const mockFireCentreInfos: FireCentreInfo[] = [
 describe("SubscriptionAccordion", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(Device.getId).mockReturnValue(new Promise(() => {}));
+    vi.mocked(Device.getId).mockResolvedValue({ identifier: "test-device-id" });
+    vi.mocked(getNotificationSettings).mockResolvedValue([]);
+    vi.mocked(updateNotificationSettings).mockImplementation((_, subs) => Promise.resolve(subs));
   });
   it("renders correctly with fire centre name", () => {
     const store = createTestStore();
@@ -316,7 +321,10 @@ describe("SubscriptionAccordion", () => {
   });
 
   it("selects all fire zone units when 'All' checkbox is checked", async () => {
-    const store = createTestStore();
+    const store = createTestStore({
+      settings: { ...settingsReducer(undefined, { type: "unknown" }), tokenRegistered: true },
+      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+    });
 
     render(
       <Provider store={store}>
@@ -328,11 +336,10 @@ describe("SubscriptionAccordion", () => {
       </Provider>,
     );
 
-    // Click the "All" checkbox to select all
-    const allCheckbox = getAllCheckbox("Kamloops Fire Centre");
-    fireEvent.click(allCheckbox);
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
 
-    // Check that all fire zone units are now subscribed
+    fireEvent.click(getAllCheckbox("Kamloops Fire Centre"));
+
     await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual(
         KAMLOOPS_FIRE_ZONE_IDS,
@@ -341,11 +348,15 @@ describe("SubscriptionAccordion", () => {
   });
 
   it("deselects all fire zone units when 'All' checkbox is unchecked", async () => {
+    vi.mocked(getNotificationSettings).mockResolvedValue(KAMLOOPS_FIRE_ZONE_IDS.map(String));
+
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         subscriptions: KAMLOOPS_FIRE_ZONE_IDS,
+        tokenRegistered: true,
       },
+      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
     });
 
     render(
@@ -358,11 +369,10 @@ describe("SubscriptionAccordion", () => {
       </Provider>,
     );
 
-    // Click the "All" checkbox to deselect all
-    const allCheckbox = getAllCheckbox("Kamloops Fire Centre");
-    fireEvent.click(allCheckbox);
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
 
-    // Check that all fire zone units are now unsubscribed
+    fireEvent.click(getAllCheckbox("Kamloops Fire Centre"));
+
     await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([]);
     });
@@ -446,6 +456,8 @@ describe("SubscriptionAccordion", () => {
 
   it("checkbox does not impact fire zone unit ids that are not related to the current fire centre", async () => {
     const initialSubscriptions = [100, 200];
+    vi.mocked(getNotificationSettings).mockResolvedValue(initialSubscriptions.map(String));
+
     const store = createTestStore({
       settings: {
         loading: false,
@@ -455,7 +467,10 @@ describe("SubscriptionAccordion", () => {
         pushNotificationPermission: "unknown",
         subscriptions: initialSubscriptions,
         deviceIdError: false,
+        tokenRegistered: true,
+        fcmToken: null,
       },
+      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
     });
 
     await act(() =>
@@ -469,6 +484,8 @@ describe("SubscriptionAccordion", () => {
         </Provider>,
       ),
     );
+
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
 
     // Hit toggleAll to add all fire zone unit ids from this fire centre
     const allCheckbox = getAllCheckbox("Kamloops Fire Centre");
@@ -499,12 +516,15 @@ describe("SubscriptionAccordion", () => {
   });
 
   it("All checkbox on accordion works independently", async () => {
+    vi.mocked(getNotificationSettings).mockResolvedValue(["3", "4"]);
+
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         fireCentreInfos: mockFireCentreInfos,
         pinnedFireCentre: null,
         subscriptions: [3, 4],
+        tokenRegistered: true,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -525,6 +545,8 @@ describe("SubscriptionAccordion", () => {
         />
       </Provider>,
     );
+
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
 
     // Confirm that PG fire zones switches are checked as per initial redux state
     const switchPG1 = await screen.findByLabelText(

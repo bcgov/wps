@@ -4,7 +4,11 @@ import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { useIsTablet } from "@/hooks/useIsTablet";
 import { checkPushNotificationPermission } from "@/slices/settingsSlice";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
-import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
+import {
+  AppDispatch,
+  selectNotificationSettingsDisabled,
+  selectSettings,
+} from "@/store";
 import { fireZoneUnitNameFormatter } from "@/utils/stringUtils";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import CloseIcon from "@mui/icons-material/Close";
@@ -46,16 +50,16 @@ const FireShapeActionsDrawer = ({
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
   const useSideSheet = !isPortrait && isSmallScreen;
 
-  const { networkStatus } = useSelector(selectNetworkStatus);
   const { pushNotificationPermission, subscriptions } =
     useSelector(selectSettings);
+  const notificationSettingsDisabled = useSelector(
+    selectNotificationSettingsDisabled,
+  );
 
   const selectedFireShapeId = selectedFireShape?.fire_shape_id;
   const isSubscribed =
     selectedFireShapeId !== undefined &&
     subscriptions.includes(selectedFireShapeId);
-  const notificationSettingsDisabled =
-    pushNotificationPermission !== "granted" || !networkStatus.connected;
 
   const actionIconSx = {
     fontSize: isTablet ? 40 : 32,

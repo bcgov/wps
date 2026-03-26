@@ -67,10 +67,14 @@ const renderWithProviders = ({
   subscriptions = [],
   pushNotificationPermission = "granted",
   connected = true,
+  tokenRegistered = true,
+  fcmToken = "test-token",
 }: {
   subscriptions?: number[];
   pushNotificationPermission?: "granted" | "denied" | "prompt" | "unknown";
   connected?: boolean;
+  tokenRegistered?: boolean;
+  fcmToken?: string | null;
 } = {}) => {
   const store = createTestStore({
     networkStatus: {
@@ -87,6 +91,8 @@ const renderWithProviders = ({
       pushNotificationPermission,
       subscriptions,
       deviceIdError: false,
+      tokenRegistered,
+      fcmToken,
     },
   });
 
@@ -255,6 +261,16 @@ describe("FireShapeActionsDrawer", () => {
 
   it("disables subscription when notifications are unavailable", () => {
     renderWithProviders({ pushNotificationPermission: "denied" });
+
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
+  });
+
+  it("disables subscription when awaiting FCM token", () => {
+    renderWithProviders({ fcmToken: null });
 
     expect(
       screen.getByRole("button", {

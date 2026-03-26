@@ -1,0 +1,14 @@
+stateDiagram-v2
+    direction TB
+
+    [*] --> PermissionDenied : permission denied
+    [*] --> AwaitingFCMToken : permission granted
+
+    PermissionDenied --> AwaitingFCMToken : user enables in OS settings
+
+    AwaitingFCMToken --> Unregistered : FCM token received
+
+    Unregistered --> Ready : online and registerToken() succeeds
+    Unregistered --> Unregistered : offline or registerToken() fails (retry on reconnect or foreground)
+
+    Ready --> Ready : update succeeds or rolls back if offline

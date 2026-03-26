@@ -5,6 +5,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import Settings from "./Settings";
 import settingsReducer from "@/slices/settingsSlice";
 import networkStatusReducer from "@/slices/networkStatusSlice";
+import authenticationReducer from "@/slices/authenticationSlice";
 import { FireCentreInfo, getFireCentreInfo } from "@/api/fbaAPI";
 import * as Storage from "@/utils/storage";
 import { NavPanel } from "@/utils/constants";
@@ -63,6 +64,7 @@ const createTestStore = (initialState = {}) => {
     reducer: {
       settings: settingsReducer,
       networkStatus: networkStatusReducer,
+      authentication: authenticationReducer,
     },
     preloadedState: initialState,
   });
@@ -183,6 +185,9 @@ describe("Settings", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         fireCentreInfos: mockFireCentreInfos,
+        pushNotificationPermission: "granted",
+        fcmToken: "test-token",
+        tokenRegistered: true,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -312,6 +317,35 @@ describe("Settings", () => {
       expect(fireCentreElements[1]).toHaveTextContent(/PRINCE GEORGE/i);
     });
   });
+  it("disables accordions when awaiting FCM token", async () => {
+    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({ receive: "granted" });
+
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        fireCentreInfos: mockFireCentreInfos,
+        pushNotificationPermission: "granted",
+        fcmToken: null,
+        tokenRegistered: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      const accordion = screen.getAllByRole("heading")[0].closest(".MuiAccordion-root");
+      expect(accordion).toHaveStyle({ opacity: "0.5" });
+    });
+  });
+
   it("shows device ID error banner when deviceIdError is true", async () => {
     const store = createTestStore({
       settings: {

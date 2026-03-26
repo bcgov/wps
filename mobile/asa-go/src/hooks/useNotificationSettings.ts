@@ -1,7 +1,9 @@
 import {
   getNotificationSettings,
+  registerToken,
   updateNotificationSettings,
 } from "api/pushNotificationsAPI";
+import { Capacitor } from "@capacitor/core";
 import { Device } from "@capacitor/device";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,13 +12,16 @@ import {
   saveSubscriptions,
   setDeviceIdError,
   setSubscriptions,
+  setTokenRegistered,
 } from "@/slices/settingsSlice";
-import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
+import { AppDispatch, selectAuthentication, selectNetworkStatus, selectSettings } from "@/store";
+import { Platform } from "api/pushNotificationsAPI";
 
 export function useNotificationSettings() {
   const dispatch = useDispatch<AppDispatch>();
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const { subscriptions } = useSelector(selectSettings);
+  const { subscriptions, tokenRegistered, fcmToken } = useSelector(selectSettings);
+  const { idir } = useSelector(selectAuthentication);
   const [deviceId, setDeviceId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,9 +36,9 @@ export function useNotificationSettings() {
       });
   }, [dispatch]);
 
-  // Fetch from server on mount and when coming online
+  // Fetch from server once registered, and again when coming back online
   useEffect(() => {
-    if (!deviceId || !networkStatus.connected) return;
+    if (!deviceId || !networkStatus.connected || !tokenRegistered) return;
     getNotificationSettings(deviceId)
       .then((ids) => {
         const subs = ids.map(Number);
@@ -42,12 +47,32 @@ export function useNotificationSettings() {
       .catch((e) =>
         console.error(`Failed to fetch notification settings: ${e}`),
       );
-  }, [deviceId, networkStatus.connected, dispatch]);
+  }, [deviceId, networkStatus.connected, tokenRegistered, dispatch]);
+
+  const ensureRegistered = async (): Promise<boolean> => {
+    if (tokenRegistered) return true;
+    if (!fcmToken || !deviceId) return false;
+    try {
+      await registerToken(Capacitor.getPlatform() as Platform, fcmToken, deviceId, idir || null);
+      dispatch(setTokenRegistered(true));
+      return true;
+    } catch (e) {
+      console.error(`Failed to register device: ${e}`);
+      return false;
+    }
+  };
 
   const updateSubscriptions = async (subs: number[]) => {
     const previousSubs = subscriptions;
     dispatch(saveSubscriptions(subs));
-    if (!deviceId || !networkStatus.connected) return;
+    if (!deviceId || !networkStatus.connected) {
+      dispatch(saveSubscriptions(previousSubs));
+      return;
+    }
+    if (!await ensureRegistered()) {
+      dispatch(saveSubscriptions(previousSubs));
+      return;
+    }
     try {
       const fireZoneSourceIds = await updateNotificationSettings(
         deviceId,

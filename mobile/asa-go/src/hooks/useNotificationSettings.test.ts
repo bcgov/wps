@@ -14,6 +14,7 @@ vi.mock("@capacitor/device", () => ({
 vi.mock("api/pushNotificationsAPI", () => ({
   getNotificationSettings: vi.fn(),
   updateNotificationSettings: vi.fn(),
+  registerToken: vi.fn(),
 }));
 
 vi.mock("@capacitor/preferences", () => ({
@@ -25,10 +26,11 @@ vi.mock("@capacitor/preferences", () => ({
 }));
 
 import { Device } from "@capacitor/device";
-import { getNotificationSettings, updateNotificationSettings } from "api/pushNotificationsAPI";
+import { getNotificationSettings, registerToken, updateNotificationSettings } from "api/pushNotificationsAPI";
 
 const onlineState = {
   networkStatus: { networkStatus: { connected: true, connectionType: "wifi" as "wifi" | "cellular" | "none" | "unknown" } },
+  settings: { loading: false, error: null, fireCentreInfos: [], pinnedFireCentre: null, pushNotificationPermission: "granted" as const, subscriptions: [], deviceIdError: false, tokenRegistered: true },
 };
 
 const offlineState = {
@@ -71,6 +73,33 @@ describe("useNotificationSettings", () => {
     expect(getNotificationSettings).not.toHaveBeenCalled();
   });
 
+  it("does not fetch when tokenRegistered is false", async () => {
+    const store = createTestStore({
+      ...onlineState,
+      settings: { loading: false, error: null, fireCentreInfos: [], pinnedFireCentre: null, pushNotificationPermission: "granted", subscriptions: [], deviceIdError: false, tokenRegistered: false },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+
+    await act(async () => renderHook(() => useNotificationSettings(), { wrapper }));
+
+    expect(getNotificationSettings).not.toHaveBeenCalled();
+  });
+
+  it("fetches when tokenRegistered becomes true", async () => {
+    (getNotificationSettings as Mock).mockResolvedValue(["1"]);
+    const store = createTestStore({
+      ...onlineState,
+      settings: { loading: false, error: null, fireCentreInfos: [], pinnedFireCentre: null, pushNotificationPermission: "granted", subscriptions: [], deviceIdError: false, tokenRegistered: true },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+
+    await act(async () => renderHook(() => useNotificationSettings(), { wrapper }));
+
+    expect(getNotificationSettings).toHaveBeenCalledWith("test-device-id");
+  });
+
   it("updateSubscriptions saves locally and syncs to server when online", async () => {
     (getNotificationSettings as Mock).mockResolvedValue([]);
     (updateNotificationSettings as Mock).mockResolvedValue(["10", "20"]);
@@ -95,6 +124,42 @@ describe("useNotificationSettings", () => {
     });
 
     expect(updateNotificationSettings).not.toHaveBeenCalled();
+  });
+
+  it("rolls back subscription change when offline", async () => {
+    const store = createTestStore({
+      ...offlineState,
+      settings: { loading: false, error: null, fireCentreInfos: [], pinnedFireCentre: null, pushNotificationPermission: "granted", subscriptions: [5], deviceIdError: false, tokenRegistered: true, fcmToken: "tok" },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+
+    const { result } = await act(async () => renderHook(() => useNotificationSettings(), { wrapper }));
+
+    await act(async () => {
+      await result.current.updateSubscriptions([5, 10]);
+    });
+
+    expect(store.getState().settings.subscriptions).toEqual([5]);
+  });
+
+  it("rolls back subscription change when deviceId is unavailable", async () => {
+    (Device.getId as Mock).mockReturnValue(new Promise(() => {})); // never resolves
+
+    const store = createTestStore({
+      ...onlineState,
+      settings: { ...onlineState.settings, subscriptions: [5] },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+
+    const { result } = await act(async () => renderHook(() => useNotificationSettings(), { wrapper }));
+
+    await act(async () => {
+      await result.current.updateSubscriptions([5, 10]);
+    });
+
+    expect(store.getState().settings.subscriptions).toEqual([5]);
   });
 
   it("updateSubscriptions updates state from server response", async () => {
@@ -172,6 +237,52 @@ describe("useNotificationSettings", () => {
     await act(async () => renderWithStore());
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to fetch"));
+    consoleSpy.mockRestore();
+  });
+
+  it("retries registration before updating subscriptions when not registered", async () => {
+    (getNotificationSettings as Mock).mockResolvedValue([]);
+    (registerToken as Mock).mockResolvedValue(undefined);
+    (updateNotificationSettings as Mock).mockResolvedValue(["10"]);
+
+    const store = createTestStore({
+      ...onlineState,
+      settings: { ...onlineState.settings, tokenRegistered: false, fcmToken: "fcm-token" },
+      authentication: { loading: false, error: null, isAuthenticated: true, idir: "test-user", email: "test@example.com" },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+    const { result } = await act(async () => renderHook(() => useNotificationSettings(), { wrapper }));
+
+    await act(async () => {
+      await result.current.updateSubscriptions([10]);
+    });
+
+    expect(registerToken).toHaveBeenCalledWith(expect.any(String), "fcm-token", "test-device-id", "test-user");
+    expect(updateNotificationSettings).toHaveBeenCalled();
+    expect(store.getState().settings.tokenRegistered).toBe(true);
+  });
+
+  it("rolls back subscription change if retry registration fails", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (getNotificationSettings as Mock).mockResolvedValue([]);
+    (registerToken as Mock).mockRejectedValue(new Error("reg failed"));
+
+    const store = createTestStore({
+      ...onlineState,
+      settings: { ...onlineState.settings, tokenRegistered: false, fcmToken: "fcm-token", subscriptions: [5] },
+      authentication: { loading: false, error: null, isAuthenticated: true, idir: null, email: null },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+    const { result } = await act(async () => renderHook(() => useNotificationSettings(), { wrapper }));
+
+    await act(async () => {
+      await result.current.updateSubscriptions([5, 10]);
+    });
+
+    expect(updateNotificationSettings).not.toHaveBeenCalled();
+    expect(store.getState().settings.subscriptions).toEqual([5]);
     consoleSpy.mockRestore();
   });
 
