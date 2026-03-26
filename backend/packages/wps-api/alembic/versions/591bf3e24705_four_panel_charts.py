@@ -1,7 +1,7 @@
 """Four panel charts
 
 Revision ID: 591bf3e24705
-Revises: e2d8fc626235
+Revises: 0b35542720bf
 Create Date: 2026-03-23 13:25:08.190313
 
 """
@@ -12,7 +12,7 @@ from wps_shared.db.models.common import TZTimeStamp
 
 # revision identifiers, used by Alembic.
 revision = '591bf3e24705'
-down_revision = 'e2d8fc626235'
+down_revision = "0b35542720bf"
 branch_labels = None
 depends_on = None
 
