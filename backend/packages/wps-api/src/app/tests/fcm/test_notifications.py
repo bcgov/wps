@@ -148,6 +148,34 @@ async def test_trigger_notifications_sends_multicast():
 
 
 @pytest.mark.anyio
+async def test_trigger_notifications_batches_tokens_over_limit():
+    """Token lists larger than FCM_BATCH_SIZE are split into multiple sends."""
+    session = AsyncMock()
+    zone = ZoneAdvisoryStatus(
+        advisory_shape_id=1, source_identifier="42", placename_label="Kamloops", status="advisory"
+    )
+    tokens = [f"token_{i}" for i in range(501)]
+    mock_response = MagicMock(spec=messaging.BatchResponse)
+    mock_response.failure_count = 0
+
+    with (
+        patch(GET_ZONES, return_value=[zone]),
+        patch(GET_TOKENS, return_value=tokens),
+        patch(SEND_MULTICAST, return_value=mock_response) as mock_send,
+        patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock),
+        patch(GET_VANCOUVER_NOW) as mock_now,
+    ):
+        mock_now.return_value.date.return_value = FOR_DATE
+        await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
+        assert mock_send.call_count == 2
+        first_batch = mock_send.call_args_list[0][0][0].tokens
+        second_batch = mock_send.call_args_list[1][0][0].tokens
+        assert len(first_batch) == 500
+        assert len(second_batch) == 1
+        assert first_batch + second_batch == tokens
+
+
+@pytest.mark.anyio
 async def test_trigger_notifications_calls_handle_response():
     """handle_fcm_response is called with the correct arguments after send."""
     session = AsyncMock()

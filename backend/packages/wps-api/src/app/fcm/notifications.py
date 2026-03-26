@@ -12,6 +12,8 @@ from wps_shared.utils.time import get_vancouver_now
 
 logger = logging.getLogger(__name__)
 
+FCM_BATCH_SIZE = 500
+
 
 def build_notification_content(zone_with_advisory: ZoneAdvisoryStatus, for_date: date):
     return f"{for_date.strftime('%a, %B %-d')} - An advisory has been issued for {zone_with_advisory.placename_label}"
@@ -64,21 +66,23 @@ async def trigger_notifications(
         )
         if len(device_tokens) == 0:
             continue
-        message = build_fcm_message(for_date, zone_with_advisory, device_tokens)
-        try:
-            # messaging.send_each_for_multicast is a synchronous blocking call
-            response = await asyncio.to_thread(messaging.send_each_for_multicast, message)
-        except firebase_exceptions.FirebaseError:
-            logger.exception(
-                "FCM send failed for zone=%s date=%s token_count=%d",
-                zone_with_advisory.placename_label,
-                for_date,
-                len(device_tokens),
+        for i in range(0, len(device_tokens), FCM_BATCH_SIZE):
+            batch = device_tokens[i : i + FCM_BATCH_SIZE]
+            message = build_fcm_message(for_date, zone_with_advisory, batch)
+            try:
+                # messaging.send_each_for_multicast is a synchronous blocking call
+                response = await asyncio.to_thread(messaging.send_each_for_multicast, message)
+            except firebase_exceptions.FirebaseError:
+                logger.exception(
+                    "FCM send failed for zone=%s date=%s token_count=%d",
+                    zone_with_advisory.placename_label,
+                    for_date,
+                    len(batch),
+                )
+                continue
+            await handle_fcm_response(
+                session, for_date, zone_with_advisory.placename_label, batch, response
             )
-            continue
-        await handle_fcm_response(
-            session, for_date, zone_with_advisory.placename_label, device_tokens, response
-        )
 
 
 async def handle_fcm_response(
