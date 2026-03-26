@@ -8,7 +8,7 @@ from wps_weather.wx_4panel_charts.plot_mslp import plot_mslp_thickness as plot_m
 from wps_weather.wx_4panel_charts.plot_mslp_rdps import plot_mslp_thickness_rdps
 from wps_weather.wx_4panel_charts.plot_precip import plot_pcpn12 as plot_pcpn12_gdps
 from wps_weather.wx_4panel_charts.plot_precip_rdps import plot_pcpn3_rdps
-from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel
+from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import ECCCModel
 
 
 class PlotterFn(Protocol):

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel, RasterAddresser
+from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import ECCCModel, WX4PanelChartAddresser
 
 
 class ConfigBuilder:
@@ -9,7 +9,7 @@ class ConfigBuilder:
         self,
         init_ymd: str,
         init_hh: str,
-        raster_addresser: RasterAddresser,
+        raster_addresser: WX4PanelChartAddresser,
         cfg500: Dict[str, Any],
         cfgmslp: Dict[str, Any],
         cfg700: Dict[str, Any],
@@ -17,6 +17,20 @@ class ConfigBuilder:
         file_name_builder: Callable[[str, str, str, str, str], str],
         model: ECCCModel,
     ):
+        """
+        Initialize a ConfigBuilder that provides the configuration required to generate 4Panel Charts.
+
+        :param init_ymd: The date for which to generate a chart formatted as YYYYMMdd.
+        :param init_hh: The model run hour, either 00 or 12.
+        :param raster_addresser: A utility object to provide keys for reading and writing rasters from S3 storage.
+        :param cfg500: Configuration for the 500hPa Height and Abs Vorticity panel.
+        :param cfgmslp: Configuration for the MSLP and 1000-500 Thickness panel.
+        :param cfg700: Configuration for the 700 hPa Height and 850-500 Relative Humidity panel.
+        :param cfgpcpn: Configuration for the Precipitation panel.
+        :param file_name_builder: A helper function to generate file names of grib2 files used as input.
+        :param model: The numerical weather model.
+        :raises ValueError: Raises a ValueError if the numerical weather model is not recognized.
+        """
         if model not in [ECCCModel.GDPS, ECCCModel.RDPS]:
             raise ValueError(f"Model must be one of GDPS or RDPS, received {model}")
         self.model = model

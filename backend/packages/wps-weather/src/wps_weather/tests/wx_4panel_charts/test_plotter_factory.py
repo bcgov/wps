@@ -2,7 +2,7 @@ import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel
+from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import ECCCModel
 
 
 # Patch all plotter imports before importing the module under test

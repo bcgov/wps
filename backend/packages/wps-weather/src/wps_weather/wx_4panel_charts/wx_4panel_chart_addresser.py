@@ -13,7 +13,7 @@ MODEL_GDPS = "model_gdps"
 MODEL_RDPS = "model_rdps"
 
 
-class RasterAddresser:
+class WX4PanelChartAddresser:
     def __init__(self, init_ymd: str, init_hh: str, model: ECCCModel):
         self._init_ymd = init_ymd
         self._init_hh = init_hh

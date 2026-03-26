@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared.db.models.wx_4panel_charts import (
@@ -52,3 +52,31 @@ async def get_or_create_processed_four_panel_chart(
 
 def save_four_panel_chart(session: AsyncSession, chart: ProcessedFourPanelChart):
     session.add(chart)
+
+
+async def get_earliest_in_progress_date_limited(session: AsyncSession, min_date: datetime):
+    stmt = (
+        select(ProcessedFourPanelChart)
+        .where(
+            ProcessedFourPanelChart.status == ChartStatusEnum.INPROGRESS,
+            ProcessedFourPanelChart.model_run_timestamp >= min_date,
+        )
+        .order_by(ProcessedFourPanelChart.model_run_timestamp)
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    return result.scalar()
+
+
+async def get_last_complete(session: AsyncSession, min_date: datetime):
+    stmt = (
+        select(ProcessedFourPanelChart)
+        .where(
+            ProcessedFourPanelChart.status == ChartStatusEnum.COMPLETE,
+            ProcessedFourPanelChart.model_run_timestamp >= min_date,
+        )
+        .order_by(desc(ProcessedFourPanelChart.model_run_timestamp))
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    return result.scalar()

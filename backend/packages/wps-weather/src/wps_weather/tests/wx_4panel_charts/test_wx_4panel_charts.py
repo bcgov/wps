@@ -8,6 +8,7 @@ test is imported, so that GDAL / native libraries are never needed during the te
 
 import sys
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
@@ -79,7 +80,7 @@ _patches = {
     "wps_weather.wx_4panel_charts.plot_precip_rdps": MagicMock(),
     "wps_weather.wx_4panel_charts.panel_layout": MagicMock(),
     "wps_weather.wx_4panel_charts.plotter_factory": MagicMock(),
-    "wps_weather.wx_4panel_charts.raster_addresser": MagicMock(),
+    "wps_weather.wx_4panel_charts.wx_4panel_chart_addresser": MagicMock(),
     "wps_weather.wx_4panel_charts.config_builder": MagicMock(),
 }
 
@@ -90,6 +91,7 @@ with patch.dict("sys.modules", _patches):
     sys.modules.pop("wps_weather.wx_4panel_charts.wx_4panel_charts", None)
     from wps_weather.wx_4panel_charts.wx_4panel_charts import (  # noqa: E402
         FourPanelChartRunner,
+        get_init_datetime,
         parse_args,
     )
     _wx4panel_charts_module = sys.modules["wps_weather.wx_4panel_charts.wx_4panel_charts"]
@@ -107,7 +109,7 @@ del _wx4panel_pkg, _wx4panel_charts_module
 # test helpers can configure them without going through sys.modules (which is
 # restored to its original state after the patch.dict block above).
 _config_builder_mock = _patches["wps_weather.wx_4panel_charts.config_builder"]
-_raster_addresser_mock = _patches["wps_weather.wx_4panel_charts.raster_addresser"]
+_raster_addresser_mock = _patches["wps_weather.wx_4panel_charts.wx_4panel_chart_addresser"]
 
 
 # ---------------------------------------------------------------------------
@@ -215,18 +217,7 @@ _FakeDataset = type("Dataset", (), {})
 
 class TestDataset:
     @pytest.mark.anyio
-    async def test_raises_type_error_when_open_dataset_returns_non_dataset(self):
-        runner = make_runner()
-        runner._open_dataset_s3 = AsyncMock(return_value="not_a_dataset")
-
-        with patch("wps_weather.wx_4panel_charts.wx_4panel_charts.xr") as mock_xr:
-            mock_xr.Dataset = _FakeDataset
-            with pytest.raises(TypeError, match="Expected xr.Dataset"):
-                async with runner._dataset("some/key"):
-                    pass
-
-    @pytest.mark.anyio
-    async def test_logs_error_when_open_dataset_returns_non_dataset(self):
+    async def test_logs_error_and_raises_type_error_when_open_dataset_returns_non_dataset(self):
         runner = make_runner()
         runner._open_dataset_s3 = AsyncMock(return_value="not_a_dataset")
 
@@ -269,7 +260,7 @@ class TestMake4PanelCharts:
             make_mock_configs()
         )
         # Make RasterAddresser().get_4panel_key return a deterministic string key.
-        _raster_addresser_mock.RasterAddresser.return_value.get_4panel_key.return_value = (
+        _raster_addresser_mock.WX4PanelChartAddresser.return_value.get_4panel_key.return_value = (
             "4panel/output.png"
         )
         return runner, s3_client
@@ -323,7 +314,7 @@ class TestMake4PanelCharts:
     @pytest.mark.anyio
     async def test_output_name_contains_model_and_date_for_gdps(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
-        raster_mock = _raster_addresser_mock.RasterAddresser.return_value
+        raster_mock = _raster_addresser_mock.WX4PanelChartAddresser.return_value
 
         await runner._make_4panel_charts(ECCCModel.GDPS, "20260318", "00", 3, 3, 3)
 
@@ -335,7 +326,7 @@ class TestMake4PanelCharts:
     @pytest.mark.anyio
     async def test_output_name_contains_rdps_for_rdps_model(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
-        raster_mock = _raster_addresser_mock.RasterAddresser.return_value
+        raster_mock = _raster_addresser_mock.WX4PanelChartAddresser.return_value
 
         await runner._make_4panel_charts(ECCCModel.RDPS, "20260318", "12", 3, 3, 3)
 
@@ -392,7 +383,7 @@ class TestRun:
 
         with (
             patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
                 side_effect=new_session_scope,
             ),
             patch(
@@ -411,7 +402,7 @@ class TestRun:
 
         with (
             patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
                 side_effect=new_session_scope,
             ),
             patch(
@@ -431,16 +422,12 @@ class TestRun:
 
         with (
             patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
                 side_effect=new_session_scope,
             ),
             patch(
                 "wps_weather.wx_4panel_charts.wx_4panel_charts.get_or_create_processed_four_panel_chart",
                 new=AsyncMock(return_value=chart),
-            ),
-            patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
-                side_effect=new_session_scope,
             ),
             patch("wps_weather.wx_4panel_charts.wx_4panel_charts.save_four_panel_chart"),
         ):
@@ -456,16 +443,12 @@ class TestRun:
 
         with (
             patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
                 side_effect=new_session_scope,
             ),
             patch(
                 "wps_weather.wx_4panel_charts.wx_4panel_charts.get_or_create_processed_four_panel_chart",
                 new=AsyncMock(return_value=chart),
-            ),
-            patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
-                side_effect=new_session_scope,
             ),
             patch("wps_weather.wx_4panel_charts.wx_4panel_charts.save_four_panel_chart"),
         ):
@@ -481,16 +464,12 @@ class TestRun:
 
         with (
             patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
                 side_effect=new_session_scope,
             ),
             patch(
                 "wps_weather.wx_4panel_charts.wx_4panel_charts.get_or_create_processed_four_panel_chart",
                 new=AsyncMock(return_value=chart),
-            ),
-            patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
-                side_effect=new_session_scope,
             ),
             patch("wps_weather.wx_4panel_charts.wx_4panel_charts.save_four_panel_chart") as mock_save,
         ):
@@ -506,7 +485,7 @@ class TestRun:
 
         with (
             patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
                 side_effect=new_session_scope,
             ),
             patch(
@@ -527,7 +506,7 @@ class TestRun:
 
         with (
             patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
                 side_effect=new_session_scope,
             ),
             patch(
@@ -538,10 +517,6 @@ class TestRun:
                         make_mock_chart(status=ChartStatusEnum.INPROGRESS),
                     ]
                 ),
-            ),
-            patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
-                side_effect=new_session_scope,
             ),
             patch("wps_weather.wx_4panel_charts.wx_4panel_charts.save_four_panel_chart"),
         ):
@@ -560,7 +535,7 @@ class TestRun:
 
         with (
             patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_write_session_scope",
                 side_effect=new_session_scope,
             ),
             patch(
@@ -629,6 +604,7 @@ class TestParseArgs:
             args = parse_args()
         assert args.init_ymd == "20260318"
 
+
     def test_invalid_model_runs_rejected(self):
         with patch("sys.argv", ["prog", "--init_ymd", "20260318", "--model_runs", "06"]):
             with pytest.raises(SystemExit):
@@ -638,3 +614,186 @@ class TestParseArgs:
         with patch("sys.argv", ["prog", "--init_ymd", "20260318", "--model", "HRDPS"]):
             with pytest.raises(SystemExit):
                 parse_args()
+
+
+# ---------------------------------------------------------------------------
+# get_init_datetime
+# ---------------------------------------------------------------------------
+
+_FIXED_NOW = datetime(2026, 3, 26, 15, 30, 45, tzinfo=timezone.utc)
+_FIXED_NOW_MIDNIGHT = _FIXED_NOW.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def _make_db_result(timestamp: datetime):
+    result = MagicMock()
+    result.model_run_timestamp = timestamp
+    return result
+
+
+class TestGetInitDatetime:
+    @pytest.mark.anyio
+    async def test_returns_incomplete_timestamp_when_in_progress_found(self):
+        incomplete_ts = datetime(2026, 3, 24, 12, 0, 0, tzinfo=timezone.utc)
+        incomplete = _make_db_result(incomplete_ts)
+
+        with (
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                side_effect=new_session_scope,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_utc_now",
+                return_value=_FIXED_NOW,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_earliest_in_progress_date_limited",
+                new=AsyncMock(return_value=incomplete),
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_last_complete",
+                new=AsyncMock(return_value=None),
+            ),
+        ):
+            result = await get_init_datetime()
+
+        assert result == incomplete_ts.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    @pytest.mark.anyio
+    async def test_result_is_always_zeroed_to_midnight(self):
+        incomplete_ts = datetime(2026, 3, 24, 18, 45, 59, 999999, tzinfo=timezone.utc)
+        incomplete = _make_db_result(incomplete_ts)
+
+        with (
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                side_effect=new_session_scope,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_utc_now",
+                return_value=_FIXED_NOW,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_earliest_in_progress_date_limited",
+                new=AsyncMock(return_value=incomplete),
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_last_complete",
+                new=AsyncMock(return_value=None),
+            ),
+        ):
+            result = await get_init_datetime()
+
+        assert result.hour == 0
+        assert result.minute == 0
+        assert result.second == 0
+        assert result.microsecond == 0
+
+    @pytest.mark.anyio
+    async def test_returns_last_complete_plus_one_day_when_no_incomplete(self):
+        last_complete_ts = datetime(2026, 3, 25, 0, 0, 0, tzinfo=timezone.utc)
+        last_complete = _make_db_result(last_complete_ts)
+
+        with (
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                side_effect=new_session_scope,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_utc_now",
+                return_value=_FIXED_NOW,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_earliest_in_progress_date_limited",
+                new=AsyncMock(return_value=None),
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_last_complete",
+                new=AsyncMock(return_value=last_complete),
+            ),
+        ):
+            result = await get_init_datetime()
+
+        assert result == last_complete_ts + timedelta(days=1)
+
+    @pytest.mark.anyio
+    async def test_returns_today_midnight_when_both_results_are_none(self):
+        with (
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                side_effect=new_session_scope,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_utc_now",
+                return_value=_FIXED_NOW,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_earliest_in_progress_date_limited",
+                new=AsyncMock(return_value=None),
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_last_complete",
+                new=AsyncMock(return_value=None),
+            ),
+        ):
+            result = await get_init_datetime()
+
+        assert result == _FIXED_NOW_MIDNIGHT
+
+    @pytest.mark.anyio
+    async def test_passes_min_date_one_day_before_now_to_incomplete_query(self):
+        incomplete = _make_db_result(datetime(2026, 3, 25, 0, 0, 0, tzinfo=timezone.utc))
+
+        with (
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                side_effect=new_session_scope,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_utc_now",
+                return_value=_FIXED_NOW,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_earliest_in_progress_date_limited",
+                new=AsyncMock(return_value=incomplete),
+            ) as mock_incomplete,
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_last_complete",
+                new=AsyncMock(return_value=None),
+            ),
+        ):
+            await get_init_datetime()
+
+        expected_min_date = _FIXED_NOW_MIDNIGHT - timedelta(days=1)
+        actual_min_date = mock_incomplete.call_args[0][1]
+        assert actual_min_date == expected_min_date
+
+    @pytest.mark.anyio
+    async def test_incomplete_query_takes_priority_over_last_complete(self):
+        incomplete_ts = datetime(2026, 3, 24, 0, 0, 0, tzinfo=timezone.utc)
+        last_complete_ts = datetime(2026, 3, 25, 0, 0, 0, tzinfo=timezone.utc)
+        incomplete = _make_db_result(incomplete_ts)
+        last_complete = _make_db_result(last_complete_ts)
+
+        with (
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                side_effect=new_session_scope,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_utc_now",
+                return_value=_FIXED_NOW,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_earliest_in_progress_date_limited",
+                new=AsyncMock(return_value=incomplete),
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_last_complete",
+                new=AsyncMock(return_value=last_complete),
+            ) as mock_last_complete,
+        ):
+            result = await get_init_datetime()
+
+        # When incomplete exists, get_last_complete should not be called at all.
+        mock_last_complete.assert_not_called()
+        assert result == incomplete_ts.replace(hour=0, minute=0, second=0, microsecond=0)

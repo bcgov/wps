@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import List, Optional, Tuple
 
 import aiofiles
@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from wps_shared import config
 from wps_shared.db.crud.wx_4panel_charts import (
+    get_earliest_in_progress_date_limited,
+    get_last_complete,
     get_or_create_processed_four_panel_chart,
     save_four_panel_chart,
 )
@@ -39,7 +41,7 @@ from wps_weather.wx_4panel_charts.plot_mslp_rdps import CFG_MSLP_RDPS
 from wps_weather.wx_4panel_charts.plot_precip import PLOT_CONFIG_PCPN12 as CFG_PCPN_GDPS
 from wps_weather.wx_4panel_charts.plot_precip_rdps import PLOT_CONFIG_PCPN3_RDPS as CFG_PCPN_RDPS
 from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
-from wps_weather.wx_4panel_charts.raster_addresser import RasterAddresser
+from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import WX4PanelChartAddresser
 
 DEFAULT_FIG_SIZE = (11.8, 10)
 DEFAULT_DPI = 300
@@ -206,7 +208,7 @@ class FourPanelChartRunner:
             ECCCModel.RDPS: (CFG_500_RDPS, CFG_MSLP_RDPS, CFG_700_RDPS, CFG_PCPN_RDPS, rdps_fname),
         }
         cfg500_base, cfgmslp_base, cfg700_base, cfgpcpn_base, fname_builder = _model_cfgs[model]
-        raster_addresser = RasterAddresser(init_ymd, init_hh, model)
+        raster_addresser = WX4PanelChartAddresser(init_ymd, init_hh, model)
         config_builder = ConfigBuilder(
             init_ymd=init_ymd,
             init_hh=init_hh,
@@ -292,23 +294,26 @@ class FourPanelChartRunner:
             model_run_timestamp = datetime.combine(init_datetime.date(), model_run_time).replace(
                 tzinfo=timezone.utc
             )
-            async with get_async_read_session_scope() as session:
+            async with get_async_write_session_scope() as session:
                 chart = await get_or_create_processed_four_panel_chart(
                     session, model, model_run_timestamp
                 )
 
-            if chart is not None and chart.status == ChartStatusEnum.INPROGRESS:
-                complete = await self._make_4panel_charts(
-                    model, init_ymd, init_hh, fstart, fend, step
-                )
-                if complete:
-                    chart.status = ChartStatusEnum.COMPLETE
-                    chart.update_date = get_utc_now()
-                    async with get_async_write_session_scope() as session:
+                if chart is not None and chart.status == ChartStatusEnum.INPROGRESS:
+                    complete = await self._make_4panel_charts(
+                        model, init_ymd, init_hh, fstart, fend, step
+                    )
+                    if complete:
+                        chart.status = ChartStatusEnum.COMPLETE
+                        chart.update_date = get_utc_now()
                         save_four_panel_chart(session, chart)
-                    logger.info(f"Successfully generated {model} 4 panel charts for {init_ymd}.")
-                else:
-                    logger.info(f"Could not generate all {model} 4 panel charts for {init_ymd}.")
+                        logger.info(
+                            f"Successfully generated {model} 4 panel charts for {init_ymd}."
+                        )
+                    else:
+                        logger.info(
+                            f"Could not generate all {model} 4 panel charts for {init_ymd}."
+                        )
 
 
 def parse_args():
@@ -342,25 +347,68 @@ def parse_args():
     return parser.parse_args()
 
 
+async def get_init_datetime():
+    """
+    Determine the UTC datetime at which to start processing
+
+    :return: A UTC datetime object.
+    """
+    #
+    async with get_async_read_session_scope() as session:
+        now = get_utc_now()
+        now = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        min_date = now - timedelta(days=1)
+        # Limit lookup to 7 days in the past as we prune grib files older than 7 days
+        init_datetime: Optional[datetime] = None
+        incomplete_result = await get_earliest_in_progress_date_limited(session, min_date)
+        if incomplete_result is not None:
+            # Try generating charts from a previous day that were incomplete
+            init_datetime: datetime = incomplete_result.model_run_timestamp
+        else:
+            # Lookup the last complete run in the past 7 days
+            last_complete_result = await get_last_complete(session, min_date)
+            if last_complete_result is not None:
+                init_datetime: datetime = last_complete_result.model_run_timestamp + timedelta(days=1)
+        if init_datetime is None:
+            # Begin processing from today at 0:00 UTC if no useful result returned from db
+            init_datetime = now
+
+        return init_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
 async def main():
     """Main entry point"""
     args = parse_args()
-    init_ymd = date.today().strftime("%Y%m%d") if args.init_ymd is None else args.init_ymd
+
+    if args.init_ymd is None:
+        now = get_utc_now()
+        start_datetime = await get_init_datetime()
+        end_datetime = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    else:
+        # If an init_ymd was provided as an argument, only process that one day
+        start_datetime = datetime.strptime(args.init_ymd).replace(tzinfo=timezone.utc)
+        end_datetime = start_datetime
 
     user_id = config.get("WX_OBJECT_STORE_USER_ID")
     secret_key = config.get("WX_OBJECT_STORE_SECRET")
     bucket = config.get("WX_OBJECT_STORE_BUCKET")
 
-    logger.info(f"Creating {args.model} 4 panel chart for model run {init_ymd}.")
-    logger.info(f"Model run hour(s) {args.model_runs}")
-    logger.info(f"From hour {args.fstart} to {args.fend} in {args.step} hour increments.")
-
     async with S3Client(user_id=user_id, secret_key=secret_key, bucket=bucket) as s3_client:
         try:
-            runner = FourPanelChartRunner(s3_client)
-            await runner.run(
-                init_ymd, args.model_runs, args.fstart, args.fend, args.step, args.model
-            )
+            current_datetime = start_datetime
+            while current_datetime <= end_datetime:
+                init_ymd = current_datetime.strftime("%Y%m%d")
+                logger.info(f"Creating {args.model} 4 panel chart for model run {init_ymd}.")
+                logger.info(f"Model run hour(s) {args.model_runs}")
+                logger.info(
+                    f"From hour {args.fstart} to {args.fend} in {args.step} hour increments."
+                )
+
+                runner = FourPanelChartRunner(s3_client)
+                await runner.run(
+                    init_ymd, args.model_runs, args.fstart, args.fend, args.step, args.model
+                )
+                current_datetime = current_datetime + timedelta(days=1)
 
             # Exit with 0 - success.
             sys.exit(os.EX_OK)

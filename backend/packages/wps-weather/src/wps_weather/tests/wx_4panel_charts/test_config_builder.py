@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
-from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel
+from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import ECCCModel
 
 
 @pytest.fixture()
@@ -53,21 +53,18 @@ def make_builder(model, mock_raster_addresser, mock_file_name_builder, base_cfg)
 
 
 class TestConfigBuilderInit:
-    def test_gdps_initialises_successfully(
-        self, mock_raster_addresser, mock_file_name_builder, base_cfg
+    @pytest.mark.parametrize(
+        "model, expected_model",
+        [
+            ("GDPS", ECCCModel.GDPS),
+            ("RDPS", ECCCModel.RDPS),
+        ],
+    )
+    def test_initialises_successfully(
+        self, model, expected_model, mock_raster_addresser, mock_file_name_builder, base_cfg
     ):
-        builder = make_builder(
-            ECCCModel.GDPS, mock_raster_addresser, mock_file_name_builder, base_cfg
-        )
-        assert builder.model == ECCCModel.GDPS
-
-    def test_rdps_initialises_successfully(
-        self, mock_raster_addresser, mock_file_name_builder, base_cfg
-    ):
-        builder = make_builder(
-            ECCCModel.RDPS, mock_raster_addresser, mock_file_name_builder, base_cfg
-        )
-        assert builder.model == ECCCModel.RDPS
+        builder = make_builder(model, mock_raster_addresser, mock_file_name_builder, base_cfg)
+        assert builder.model == expected_model
 
     def test_unsupported_model_raises_value_error(
         self, mock_raster_addresser, mock_file_name_builder, base_cfg
@@ -120,7 +117,7 @@ class TestValidTimeStr:
     def test_fh_crosses_midnight(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
         # Use init_hh="12" so fh=12 crosses into the next day
         from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
-        from wps_weather.wx_4panel_charts.raster_addresser import ECCCModel
+        from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import ECCCModel
 
         b = ConfigBuilder(
             init_ymd="20260217",
