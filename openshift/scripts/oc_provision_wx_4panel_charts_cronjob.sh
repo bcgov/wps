@@ -30,7 +30,7 @@ SCHEDULE="${SCHEDULE:-$((3 + $RANDOM % 54)) * * * *}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wx_4panel_charts.cronjob.yaml \
--p JOB_NAME=wx-4panel-charts-${MODEL}-${APP_NAME}-${SUFFIX} \
+-p JOB_NAME=wx-4panel-charts-${MODEL,,}-${APP_NAME}-${SUFFIX} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
