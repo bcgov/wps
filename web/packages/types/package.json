@@ -3,8 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    ".": "./src/window.d.ts",
-    "./*": "./src/*.ts"
+    ".": {
+      "types": "./src/window.d.ts"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts"
+    }
   },
-  "types": "./src/window.d.ts"
+  "types": "./src/window.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"
+  }
 }
