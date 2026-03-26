@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Minimal deps
 RUN apt-get update && apt-get install -y \
-    git libeccodes0 python3-pip \
+    git libeccodes-tools python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 
