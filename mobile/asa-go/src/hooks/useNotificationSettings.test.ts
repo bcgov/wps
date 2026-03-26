@@ -139,14 +139,30 @@ describe("useNotificationSettings", () => {
     expect(store.getState().settings.subscriptions).toEqual([2]);
   });
 
-  it("logs error when Device.getId fails", async () => {
+  it("sets deviceIdError in store when Device.getId fails", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (Device.getId as Mock).mockRejectedValue(new Error("device unavailable"));
 
-    await act(async () => renderWithStore());
+    const { store } = await act(async () => renderWithStore());
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to get device ID"));
+    expect(store.getState().settings.deviceIdError).toBe(true);
     consoleSpy.mockRestore();
+  });
+
+  it("clears deviceIdError in store when Device.getId succeeds", async () => {
+    (getNotificationSettings as Mock).mockResolvedValue([]);
+    (Device.getId as Mock).mockResolvedValue({ identifier: "test-device-id" });
+
+    const store = createTestStore({
+      settings: { loading: false, error: null, fireCentreInfos: [], pinnedFireCentre: null, pushNotificationPermission: "granted", subscriptions: [], deviceIdError: true },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+
+    await act(async () => renderHook(() => useNotificationSettings(), { wrapper }));
+
+    expect(store.getState().settings.deviceIdError).toBe(false);
   });
 
   it("logs error and keeps local state if fetch fails", async () => {

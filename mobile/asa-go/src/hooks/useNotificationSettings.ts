@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   getUpdatedSubscriptions,
   saveSubscriptions,
+  setDeviceIdError,
   setSubscriptions,
 } from "@/slices/settingsSlice";
 import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
@@ -20,9 +21,15 @@ export function useNotificationSettings() {
 
   useEffect(() => {
     Device.getId()
-      .then((info) => setDeviceId(info.identifier))
-      .catch((e) => console.error(`Failed to get device ID: ${e}`));
-  }, []);
+      .then((info) => {
+        setDeviceId(info.identifier);
+        dispatch(setDeviceIdError(false));
+      })
+      .catch((e) => {
+        console.error(`Failed to get device ID: ${e}`);
+        dispatch(setDeviceIdError(true));
+      });
+  }, [dispatch]);
 
   // Fetch from server on mount and when coming online
   useEffect(() => {

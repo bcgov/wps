@@ -37,6 +37,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
     error,
     pinnedFireCentre,
     pushNotificationPermission,
+    deviceIdError,
   } = useSelector(selectSettings);
 
   const notificationSettingsDisabled =
@@ -122,6 +123,20 @@ const Settings = ({ activeTab }: SettingsProps) => {
       >
         <AlertTitle>Offline</AlertTitle>
         Notification settings are not available while offline.
+      </Alert>
+    );
+  };
+
+  const renderDeviceIdErrorBanner = () => {
+    if (!deviceIdError) return;
+    return (
+      <Alert
+        severity="warning"
+        sx={{ mx: 1, my: 1 }}
+        data-testid="device-id-error-banner"
+      >
+        <AlertTitle>Device identification error</AlertTitle>
+        Unable to identify this device. Notification settings are unavailable.
       </Alert>
     );
   };
@@ -239,6 +254,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
           </Typography>
         </Box>
       </Box>
+      {renderDeviceIdErrorBanner()}
       {renderPermissionBanner()}
       {renderOfflineMessage()}
       {renderNotificationMessage()}

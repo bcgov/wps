@@ -86,6 +86,7 @@ const renderWithProviders = ({
       pinnedFireCentre: null,
       pushNotificationPermission,
       subscriptions,
+      deviceIdError: false,
     },
   });
 
@@ -150,6 +151,7 @@ describe("FireShapeActionsDrawer", () => {
         pinnedFireCentre: null,
         pushNotificationPermission: "granted",
         subscriptions: [],
+        deviceIdError: false,
       },
     });
     const theme = createTheme();
@@ -190,6 +192,7 @@ describe("FireShapeActionsDrawer", () => {
         pinnedFireCentre: null,
         pushNotificationPermission: "granted",
         subscriptions: [],
+        deviceIdError: false,
       },
     });
     const theme = createTheme();

@@ -22,6 +22,7 @@ export interface SettingsState {
   pinnedFireCentre: string | null;
   pushNotificationPermission: PermissionState | "unknown";
   subscriptions: number[];
+  deviceIdError: boolean;
 }
 
 export const initialState: SettingsState = {
@@ -31,6 +32,7 @@ export const initialState: SettingsState = {
   pinnedFireCentre: null,
   pushNotificationPermission: "unknown",
   subscriptions: [],
+  deviceIdError: false,
 };
 
 const PINNED_FIRE_CENTRE_KEY = "asaGoPinnedFireCentre";
@@ -75,6 +77,9 @@ const settingsSlice = createSlice({
     setSubscriptions(state: SettingsState, action: PayloadAction<number[]>) {
       state.subscriptions = action.payload;
     },
+    setDeviceIdError(state: SettingsState, action: PayloadAction<boolean>) {
+      state.deviceIdError = action.payload;
+    },
   },
 });
 
@@ -82,6 +87,7 @@ export const {
   getFireCenterInfoStart,
   getFireCenterInfoFailed,
   getFireCenterInfoSuccess,
+  setDeviceIdError,
   setPinnedFireCentre,
   setPushNotificationPermission,
   setSubscriptions,

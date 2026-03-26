@@ -454,6 +454,7 @@ describe("SubscriptionAccordion", () => {
         pinnedFireCentre: null,
         pushNotificationPermission: "unknown",
         subscriptions: initialSubscriptions,
+        deviceIdError: false,
       },
     });
 

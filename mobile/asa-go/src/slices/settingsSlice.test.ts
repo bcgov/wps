@@ -15,6 +15,7 @@ import settingsSlice, {
   initSubscriptions,
   savePinnedFireCentre,
   saveSubscriptions,
+  setDeviceIdError,
   setPinnedFireCentre,
   setSubscriptions,
   SettingsState,
@@ -190,6 +191,21 @@ describe("settingsSlice", () => {
       expectSettingsState(nextState, {
         subscriptions: [],
       });
+    });
+
+    it("initial state has deviceIdError false", () => {
+      expect(initialState.deviceIdError).toBe(false);
+    });
+
+    it("should handle setDeviceIdError to true", () => {
+      const nextState = settingsSlice(initialState, setDeviceIdError(true));
+      expect(nextState.deviceIdError).toBe(true);
+    });
+
+    it("should handle setDeviceIdError to false", () => {
+      const previousState = createSettingsState({ deviceIdError: true });
+      const nextState = settingsSlice(previousState, setDeviceIdError(false));
+      expect(nextState.deviceIdError).toBe(false);
     });
   });
 

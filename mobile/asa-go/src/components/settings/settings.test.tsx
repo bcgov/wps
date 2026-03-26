@@ -312,6 +312,52 @@ describe("Settings", () => {
       expect(fireCentreElements[1]).toHaveTextContent(/PRINCE GEORGE/i);
     });
   });
+  it("shows device ID error banner when deviceIdError is true", async () => {
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        deviceIdError: true,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("device-id-error-banner")).toBeInTheDocument();
+    });
+  });
+
+  it("does not show device ID error banner when deviceIdError is false", async () => {
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        deviceIdError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("device-id-error-banner"),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   it("sorts fire zone units alphabetically", async () => {
     // Mock permission check to return granted immediately
     const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
