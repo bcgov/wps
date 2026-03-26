@@ -1,8 +1,15 @@
-import { getNotificationSettings, updateNotificationSettings } from "api/pushNotificationsAPI";
+import {
+  getNotificationSettings,
+  updateNotificationSettings,
+} from "api/pushNotificationsAPI";
 import { Device } from "@capacitor/device";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getUpdatedSubscriptions, saveSubscriptions, setSubscriptions } from "@/slices/settingsSlice";
+import {
+  getUpdatedSubscriptions,
+  saveSubscriptions,
+  setSubscriptions,
+} from "@/slices/settingsSlice";
 import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
 
 export function useNotificationSettings() {
@@ -25,14 +32,19 @@ export function useNotificationSettings() {
         const subs = ids.map(Number);
         dispatch(setSubscriptions(subs));
       })
-      .catch((e) => console.error(`Failed to fetch notification settings: ${e}`));
+      .catch((e) =>
+        console.error(`Failed to fetch notification settings: ${e}`),
+      );
   }, [deviceId, networkStatus.connected, dispatch]);
 
   const updateSubscriptions = async (subs: number[]) => {
-    await dispatch(saveSubscriptions(subs));
+    dispatch(saveSubscriptions(subs));
     if (!deviceId || !networkStatus.connected) return;
     try {
-      const fireZoneSourceIds = await updateNotificationSettings(deviceId, subs.map(String));
+      const fireZoneSourceIds = await updateNotificationSettings(
+        deviceId,
+        subs.map(String),
+      );
       dispatch(setSubscriptions(fireZoneSourceIds.map(Number)));
     } catch (e) {
       console.error(`Failed to update notification settings: ${e}`);
