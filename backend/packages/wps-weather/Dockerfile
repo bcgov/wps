@@ -13,11 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Minimal deps
 RUN apt-get update && apt-get install -y \
-<<<<<<< task/wx-4pan-charts/5160
     git libeccodes-tools python3-pip \
-=======
-    git python3-pip \
->>>>>>> main
     && rm -rf /var/lib/apt/lists/*
 
 
