@@ -1,4 +1,4 @@
-from typing import Any, Mapping, Protocol, TypedDict
+from typing import Any, Dict, Mapping, Protocol, TypedDict
 
 from wps_weather.wx_4panel_charts.plot_500mb import plot_500hpa as plot_500hpa_gdps
 from wps_weather.wx_4panel_charts.plot_500mb_rdps import plot_500hpa as plot_500hpa_rdps
@@ -12,7 +12,7 @@ from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import ECCCModel
 
 
 class PlotterFn(Protocol):
-    def __call__(self, *args: Any, **kwargs: Any) -> None: ...
+    def __call__(self, config: Dict[str, Any], ax: Any, **kwargs: Any) -> None: ...
 
 
 class Plotters(TypedDict):
