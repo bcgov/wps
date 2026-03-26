@@ -17,7 +17,6 @@ from wps_shared.db.models.wx_4panel_charts import (
     ECCCModel,
     ProcessedFourPanelChart,
 )
-from wps_shared.utils.time import get_utc_TEST_DATE
 
 MODEL_RUN_TIMESTAMP = datetime(2026, 3, 19, 0, tzinfo=timezone.utc)
 INVALID_MODEL_RUN_TIMESTAMP = datetime(2026, 3, 20, 0, tzinfo=timezone.utc)
