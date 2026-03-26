@@ -159,18 +159,19 @@ describe("useNotificationSettings", () => {
     consoleSpy.mockRestore();
   });
 
-  it("logs error if update fails", async () => {
+  it("reverts local state when update fails", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    (getNotificationSettings as Mock).mockResolvedValue([]);
+    (getNotificationSettings as Mock).mockResolvedValue(["5", "6"]);
     (updateNotificationSettings as Mock).mockRejectedValue(new Error("server error"));
 
-    const { result } = await act(async () => renderWithStore());
+    const { result, store } = await act(async () => renderWithStore());
 
     await act(async () => {
       await result.current.updateSubscriptions([1]);
     });
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to update"));
+    expect(store.getState().settings.subscriptions).toEqual([5, 6]);
     consoleSpy.mockRestore();
   });
 });

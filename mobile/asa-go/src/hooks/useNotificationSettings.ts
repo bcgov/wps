@@ -38,6 +38,7 @@ export function useNotificationSettings() {
   }, [deviceId, networkStatus.connected, dispatch]);
 
   const updateSubscriptions = async (subs: number[]) => {
+    const previousSubs = subscriptions;
     dispatch(saveSubscriptions(subs));
     if (!deviceId || !networkStatus.connected) return;
     try {
@@ -48,6 +49,7 @@ export function useNotificationSettings() {
       dispatch(setSubscriptions(fireZoneSourceIds.map(Number)));
     } catch (e) {
       console.error(`Failed to update notification settings: ${e}`);
+      dispatch(saveSubscriptions(previousSubs));
     }
   };
 
