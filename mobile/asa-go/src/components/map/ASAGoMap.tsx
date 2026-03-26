@@ -7,9 +7,9 @@ import {
   setDefaultLayerVisibility,
   setZoneStatusLayerVisibility,
 } from "@/components/map/layerVisibility";
+import FireShapeActionsDrawer from "@/components/map/FireShapeActionsDrawer";
 import LegendPopover from "@/components/map/LegendPopover";
 import UserLocationIndicator from "@/components/map/LocationIndicator";
-import MapPopup from "@/components/map/MapPopup";
 import { loadMapViewState, saveMapViewState } from "@/components/map/mapView";
 import ScaleContainer from "@/components/map/ScaleContainer";
 import MapIconButton from "@/components/MapIconButton";
@@ -47,7 +47,7 @@ import { Box } from "@mui/material";
 import { FireCenter, FireShape } from "api/fbaAPI";
 import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
-import { Map, MapBrowserEvent, Overlay, View } from "ol";
+import { Map, MapBrowserEvent, View } from "ol";
 import { defaults as defaultControls } from "ol/control";
 import ScaleLine from "ol/control/ScaleLine";
 import { boundingExtent } from "ol/extent";
@@ -118,6 +118,8 @@ const ASAGoMap = ({
   );
   const [legendAnchorEl, setLegendAnchorEl] =
     useState<HTMLButtonElement | null>(null);
+  const [isFireShapeDrawerOpen, setIsFireShapeDrawerOpen] =
+    useState<boolean>(false);
 
   const [fireZoneFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
@@ -149,20 +151,7 @@ const ASAGoMap = ({
   const scaleRef = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLElement>;
-  const popupRef = useRef<HTMLDivElement | null>(
-    null
-  ) as React.MutableRefObject<HTMLElement>;
   const clickSourceRef = useRef<boolean>(false);
-
-  const [popup] = useState<Overlay>(
-    new Overlay({
-      autoPan: {
-        animation: {
-          duration: 250,
-        },
-      },
-    })
-  );
 
   const removeLayerByName = (map: Map, layerName: string) => {
     const layer = map
@@ -276,13 +265,19 @@ const ASAGoMap = ({
 
     // Only center if the change didn't come from a click
     if (!clickSourceRef.current) {
-      centerOnFireShape(map, selectedFireShape, fireZoneExtentsMap, popup);
+      centerOnFireShape(map, selectedFireShape, fireZoneExtentsMap);
     }
 
     // Reset the flag for next change
     clickSourceRef.current = false;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFireShape]);
+
+  useEffect(() => {
+    if (isUndefined(selectedFireShape)) {
+      setIsFireShapeDrawerOpen(false);
+    }
   }, [selectedFireShape]);
 
   useEffect(() => {
@@ -356,14 +351,12 @@ const ASAGoMap = ({
 
     /******* End scale line ******/
 
-    /******* Start map popup ******/
-    popup.setElement(popupRef.current);
-    mapObject.addOverlay(popup);
+    /******* Start fire shape selection ******/
     const mapClickHandler = (event: MapBrowserEvent) => {
       fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
         clickSourceRef.current = true; // Mark as click source
         if (!features.length) {
-          popup.setPosition(undefined);
+          setIsFireShapeDrawerOpen(false);
           setSelectedFireCenter(undefined);
           setSelectedFireShape(undefined);
           return;
@@ -378,13 +371,13 @@ const ASAGoMap = ({
           mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
           area_sqm: feature.getProperties().Shape_Area,
         };
-        popup.setPosition(event.coordinate);
         setSelectedFireShape(fireZone);
+        setIsFireShapeDrawerOpen(true);
       });
     };
     mapObject.on("singleclick", mapClickHandler);
 
-    /******* End map popup ******/
+    /******* End fire shape selection ******/
 
     setMap(mapObject);
 
@@ -461,7 +454,7 @@ const ASAGoMap = ({
 
     return () => {
       mapObject.removeControl(scaleBar);
-      mapObject.un("click", mapClickHandler);
+      mapObject.un("singleclick", mapClickHandler);
       mapObject.getView().un("change:resolution", setScalelineVisibility);
       mapObject.setTarget("");
     };
@@ -521,27 +514,8 @@ const ASAGoMap = ({
     })();
   }, [map, runParameter, date, layerVisibility, replaceMapLayer]);
 
-  const handlePopupClose = () => {
-    popup.setPosition(undefined);
-  };
-
-  const handleZoomToSelectedFireShape = () => {
-    if (isNull(map)) {
-      return;
-    }
-    if (selectedFireShape) {
-      const zoneExtent = fireZoneExtentsMap.get(
-        selectedFireShape.fire_shape_id.toString()
-      );
-      if (!isUndefined(zoneExtent)) {
-        map.getView().fit(zoneExtent, {
-          duration: 400,
-          padding: [50, 50, 50, 50],
-          maxZoom: 10,
-        });
-      }
-    }
-    popup.setPosition(undefined);
+  const handleDrawerClose = () => {
+    setIsFireShapeDrawerOpen(false);
   };
 
   const handleLayerVisibilityChange = (
@@ -617,19 +591,18 @@ const ASAGoMap = ({
           setVisible={setScaleVisible}
           ref={scaleRef}
         />
-        <MapPopup
-          ref={popupRef}
+        <FireShapeActionsDrawer
+          open={isFireShapeDrawerOpen}
           selectedFireShape={selectedFireShape}
-          onClose={handlePopupClose}
+          onClose={handleDrawerClose}
           onSelectProfile={() => {
             setTab(NavPanel.PROFILE);
-            handlePopupClose();
+            handleDrawerClose();
           }}
-          onSelectReport={() => {
+          onSelectAdvisory={() => {
             setTab(NavPanel.ADVISORY);
-            handlePopupClose();
+            handleDrawerClose();
           }}
-          onSelectZoom={handleZoomToSelectedFireShape}
         />
       </Box>
     </MapContext.Provider>

@@ -1,0 +1,10 @@
+{
+  "name": "@wps/types",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/window.d.ts",
+    "./*": "./src/*.ts"
+  },
+  "types": "./src/window.d.ts"
+}

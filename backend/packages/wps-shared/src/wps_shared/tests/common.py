@@ -11,6 +11,8 @@ from wps_shared.tests.fixtures.loader import FixtureFinder
 
 logger = logging.getLogger(__name__)
 
+TESTCONTAINERS_POSTGRES_IMAGE = "postgis/postgis:16-3.4"
+
 
 class MockJWTDecode:
     """Mock pyjwt module"""

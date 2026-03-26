@@ -1,8 +1,4 @@
-# Wildfire Predictive Services Web Application
-
-## Description
-
-Wildfire Predictive Services to support decision making in prevention, preparedness, response and recovery.
+# WPS Web Monorepo
 
 ## Getting Started
 
@@ -10,84 +6,75 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 #### [Node.js](https://nodejs.org/en/)
 
-- You’ll need to have Node >= 20.x and yarn on your machine. You can use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between different projects.
-- Note: We are using Node 19 as a base image on our pipeline.
-- On ubuntu: `sudo apt install nodejs`
+You'll need Node 24.x and yarn. Use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between projects.
 
 #### [yarn](https://yarnpkg.com/)
 
-- `npm install -g yarn`
+```
+corepack enable
+```
 
 ### Installing
 
-In the project directory, run:
+All commands should be run from this directory (`web/`).
 
-#### `yarn`
+#### `yarn install`
 
-Installs all dependencies in the node_modules folder.
+Installs all dependencies for all packages in the monorepo.
 
-#### Cypress on WSL2
+## Executing
 
-It's possible to configure cypress to run with an X-server with WSL2 and Windows [see this blog entry](https://nickymeuleman.netlify.app/blog/gui-on-wsl2-cypress)
+All of the following commands use [Turbo](https://turbo.build/) to orchestrate tasks across the monorepo. Create a `.env` file in `apps/wps-web/` using `apps/wps-web/.env.example` as a sample before running.
 
-The short version is:
+#### `yarn turbo dev`
 
-- Launch VcXsrv (remember to check "Disable access control")
-- `yarn run cypress`
+Runs the app in development mode. The page will reload on edits and lint errors will appear in the console.
 
-### Executing program
+#### `yarn turbo test`
 
-In the project directory, create `.env` file at root using `.env.example` as a sample, then you can run:
+Launches the Vitest test runner across all packages, including unit tests and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) component tests.
 
-#### `yarn start`
+#### `yarn workspace @wps/wps-web run cy:open`
 
-Runs the app in the development mode.
-The page will reload if you make edits. You will also see any lint errors in the console.
+Launches the Cypress test runner in interactive watch mode for end-to-end and integration tests.
 
-#### `yarn test`
+#### `yarn turbo build`
 
-Launches the jest test runner in the interactive watch mode.
-Includes logic only unit tests and [react-testing-library](https://testing-library.com/docs/react-testing-library/intro/) component tests.
+Builds the app for production to `apps/wps-web/build`.
 
-#### `yarn cypress`
+##### Running in Docker
 
-Launches the cypress test runner in the interactive watch mode.
-Includes end-to-end / integration tests for frontend common path interactions.
-
-#### `yarn run build`
-
-Builds the app for production to the `build` folder.
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-##### Running the application in docker:
-
-1. Create `.env` file at root using `.env.example` as a sample
+1. Create `.env` in `apps/wps-web/` using `apps/wps-web/.env.example` as a sample
 2. Run `docker compose build` and then `docker compose up`
-3. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+3. Open [http://localhost:3000](http://localhost:3000)
 
-## Config
+## Structure
 
-In `openshift/templates/global.config.yaml` there is a template for a global ConfigMap. This template can be applied to the Openshift project from the command line. For example, to apply the global.config template and pass a value for the VITE_KEYCLOAK_REALM parameter, run
+```
+apps/
+  wps-web/        # Main React app (@wps/wps-web)
+packages/
+  api/            # API client functions (@wps/api)
+  types/          # Shared type declarations (@wps/types)
+  ui/             # Shared React components (@wps/ui)
+  utils/          # Shared utilities (@wps/utils)
+  tsconfig/       # Shared TypeScript configs (@wps/tsconfig)
+```
 
-`oc -n <openshift-project-name> process -f openshift/templates/global.config.yaml -p VITE_KEYCLOAK_REALM=<realm-name> | oc create -f -`
+## Dependency Management
 
-## License
+Each package declares its own dependencies explicitly in its `package.json`. This matters because multiple apps consume these packages — a new app that omits a dependency that happens to be hoisted by another package will fail in non-obvious ways.
 
-This project is licensed under the [Apache License, Version 2.0](https://github.com/bcgov/wps/blob/main/LICENSE).
+### Rules
 
-## Contributing
+- Runtime imports → `dependencies`
+- `import type` only → `devDependencies`
+- Workspace packages used only for types → `devDependencies` (e.g. `@wps/types`)
 
-Frontend changes should follow [MaterialUI](https://material.io) design as closely as possible, leveraging the [Material-UI React implementation library](https://mui.com), unless [decided otherwise](https://github.com/bcgov/wps/wiki/Frontend-Design-Decisions).
+### Why builds don't currently fail on undeclared deps
 
-## Acknowledgments
+The workspace uses `nodeLinker: node-modules` (configured in `.yarnrc.yml`), which hoists all packages into a shared `node_modules`. Any package can resolve any other package at build time regardless of what's declared.
 
-Inspiration, code snippets, etc.
+### Enforcing strict dependency boundaries (future)
 
-- [Create React App](https://github.com/facebook/create-react-app/)
-- [Redux Toolkit - advanced tutorial](https://redux-toolkit.js.org/tutorials/advanced-tutorial/)
-
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=bcgov_wps)
-
-Template copied from
-
-- [DomPizzie](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
+Switching to `nodeLinker: pnp` (Yarn Plug'n'Play) would enforce strict boundaries — packages can only import what they explicitly declare, and build errors surface immediately. PnP also reduces disk usage and speeds up installs by storing packages as zips rather than extracted file trees. This hasn't been adopted yet due to migration risk (Vite and other tooling require PnP compatibility verification).

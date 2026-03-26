@@ -8,6 +8,7 @@ import Advisory from "@/components/report/Advisory";
 import Settings from "@/components/settings/Settings";
 import TabPanel from "@/components/TabPanel";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
+import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import { fetchAndCacheData } from "@/slices/dataSlice";
 import { fetchFireCenters } from "@/slices/fireCentersSlice";
@@ -31,7 +32,6 @@ import { PMTilesCache } from "@/utils/pmtilesCache";
 import { clearStaleHFIPMTiles } from "@/utils/storage";
 import { Filesystem } from "@capacitor/filesystem";
 import { ConnectionStatus, Network } from "@capacitor/network";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { StatusBar } from "@capacitor/status-bar";
 import { Box, useMediaQuery } from "@mui/material";
 import { LicenseInfo } from "@mui/x-license-pro";
@@ -47,8 +47,8 @@ import { Device } from "@capacitor/device";
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
   const isActive = useAppIsActive();
+  const isPortrait = useIsPortrait();
   const dispatch: AppDispatch = useDispatch();
-  const [isPortrait, setIsPortrait] = useState<boolean>(true);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
   const { idir, isAuthenticated } = useSelector(selectAuthentication);
 
@@ -79,32 +79,16 @@ const App = () => {
 
   useEffect(() => {
     // Effect to manage status bar visibility
-    const handleOrientationChange = async () => {
-      const info = await ScreenOrientation.orientation();
-      if (info.type.includes("landscape")) {
-        // Device is in landscape mode
-        await StatusBar.hide();
-        setIsPortrait(false);
-      } else {
-        // Device is in portrait mode
+    const syncStatusBar = async () => {
+      if (isPortrait) {
         await StatusBar.show();
-        setIsPortrait(true);
+      } else {
+        await StatusBar.hide();
       }
     };
 
-    // Add the listener
-    ScreenOrientation.addListener(
-      "screenOrientationChange",
-      handleOrientationChange,
-    );
-
-    // Call it initially in case the app starts in landscape
-    handleOrientationChange();
-
-    return () => {
-      ScreenOrientation.removeAllListeners();
-    };
-  }, []);
+    void syncStatusBar();
+  }, [isPortrait]);
 
   useEffect(() => {
     if (isAuthenticated) {

@@ -1,0 +1,31 @@
+{
+  "name": "@wps/api",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./*": "./dist/*.js"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./src/*"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "coverage:ci": "vitest run --coverage",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@wps/utils": "workspace:*",
+    "axios": "1.8.2",
+    "lodash": "^4.17.21",
+    "luxon": "^3.0.2"
+  },
+  "devDependencies": {
+    "@wps/types": "workspace:*",
+    "geojson": "^0.5.0"
+  }
+}
