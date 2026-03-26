@@ -298,32 +298,32 @@ class TestBuildConfigForHourPcpn:
         *_, cfgpcpn = gdps_builder.build_config_for_hour(12)
         assert "pcpn_grib" in cfgpcpn
 
-    # GDPS uses 12h accumulation
-    def test_gdps_uses_12h_precip_accumulation(self, gdps_builder, mock_file_name_builder):
-        gdps_builder.build_config_for_hour(12)
+    # GDPS uses 6h accumulation
+    def test_gdps_uses_6h_precip_accumulation(self, gdps_builder, mock_file_name_builder):
+        gdps_builder.build_config_for_hour(6)
         calls = [str(c) for c in mock_file_name_builder.call_args_list]
-        assert any("Precip-Accum12h" in c for c in calls)
+        assert any("Precip-Accum6h" in c for c in calls)
 
     def test_gdps_does_not_use_3h_precip_accumulation(self, gdps_builder, mock_file_name_builder):
-        gdps_builder.build_config_for_hour(12)
+        gdps_builder.build_config_for_hour(6)
         calls = [str(c) for c in mock_file_name_builder.call_args_list]
         assert not any("Precip-Accum3h" in c for c in calls)
 
     # RDPS uses 3h accumulation
     def test_rdps_uses_3h_precip_accumulation(self, rdps_builder, mock_file_name_builder):
-        rdps_builder.build_config_for_hour(12)
+        rdps_builder.build_config_for_hour(6)
         calls = [str(c) for c in mock_file_name_builder.call_args_list]
         assert any("Precip-Accum3h" in c for c in calls)
 
-    def test_rdps_does_not_use_12h_precip_accumulation(self, rdps_builder, mock_file_name_builder):
-        rdps_builder.build_config_for_hour(12)
+    def test_rdps_does_not_use_6h_precip_accumulation(self, rdps_builder, mock_file_name_builder):
+        rdps_builder.build_config_for_hour(6)
         calls = [str(c) for c in mock_file_name_builder.call_args_list]
         assert not any("Precip-Accum12h" in c for c in calls)
 
     def test_precip_grib_uses_sfc_level(self, gdps_builder, mock_file_name_builder):
-        gdps_builder.build_config_for_hour(12)
+        gdps_builder.build_config_for_hour(6)
         calls = [str(c) for c in mock_file_name_builder.call_args_list]
-        assert any("Precip-Accum12h" in c and "Sfc" in c for c in calls)
+        assert any("Precip-Accum6h" in c and "Sfc" in c for c in calls)
 
     def test_original_cfgpcpn_is_not_mutated(self, gdps_builder, base_cfg):
         original = base_cfg["cfgpcpn"].copy()

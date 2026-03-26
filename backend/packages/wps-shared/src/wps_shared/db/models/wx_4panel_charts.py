@@ -1,7 +1,6 @@
 import enum
-from typing import Literal
 
-from sqlalchemy import CheckConstraint, Column, Enum, Integer, Sequence, String
+from sqlalchemy import CheckConstraint, Column, Enum, Integer, String
 
 from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
