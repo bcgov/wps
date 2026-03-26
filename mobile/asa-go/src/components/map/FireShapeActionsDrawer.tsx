@@ -2,10 +2,8 @@ import { FireShape } from "@/api/fbaAPI";
 import { SwipeableBottomDrawer } from "@/components/SwipeableBottomDrawer";
 import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { useIsTablet } from "@/hooks/useIsTablet";
-import {
-  checkPushNotificationPermission,
-  toggleSubscription,
-} from "@/slices/settingsSlice";
+import { checkPushNotificationPermission } from "@/slices/settingsSlice";
+import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
 import { fireZoneUnitNameFormatter } from "@/utils/stringUtils";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
@@ -40,6 +38,7 @@ const FireShapeActionsDrawer = ({
   onSelectAdvisory,
 }: FireShapeActionsDrawerProps) => {
   const dispatch: AppDispatch = useDispatch();
+  const { toggleSubscription } = useNotificationSettings();
   const theme = useTheme();
 
   const isPortrait = useIsPortrait();
@@ -83,7 +82,7 @@ const FireShapeActionsDrawer = ({
       return;
     }
 
-    dispatch(toggleSubscription(selectedFireShapeId));
+    toggleSubscription(selectedFireShapeId);
   };
 
   return (

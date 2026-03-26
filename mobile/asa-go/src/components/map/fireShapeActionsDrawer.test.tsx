@@ -8,7 +8,8 @@ import { useMediaQuery } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, Mock } from "vitest";
+import { updateNotificationSettings } from "api/pushNotificationsAPI";
 
 vi.mock("@mui/material", async () => {
   const actual = await vi.importActual<typeof import("@mui/material")>(
@@ -20,6 +21,17 @@ vi.mock("@mui/material", async () => {
     useMediaQuery: vi.fn(),
   };
 });
+
+vi.mock("@capacitor/device", () => ({
+  Device: {
+    getId: vi.fn().mockResolvedValue({ identifier: "test-device-id" }),
+  },
+}));
+
+vi.mock("api/pushNotificationsAPI", () => ({
+  getNotificationSettings: vi.fn().mockResolvedValue([]),
+  updateNotificationSettings: vi.fn().mockResolvedValue([]),
+}));
 
 vi.mock("@capacitor/preferences", () => ({
   Preferences: {
@@ -295,5 +307,66 @@ describe("FireShapeActionsDrawer", () => {
     expect(screen.getByTestId("AnalyticsIcon")).toHaveStyle({
       fontSize: "40px",
     });
+  });
+
+  it("calls updateNotificationSettings when toggling subscription", async () => {
+    (updateNotificationSettings as Mock).mockResolvedValue(["1"]);
+
+    renderWithProviders();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(updateNotificationSettings).toHaveBeenCalledWith("test-device-id", ["1"]);
+    });
+  });
+
+  it("updates store from server response after toggling", async () => {
+    // Server returns a corrected list (e.g. deduped or reordered)
+    (updateNotificationSettings as Mock).mockResolvedValue(["1", "99"]);
+
+    const { store } = renderWithProviders();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([1, 99]);
+    });
+  });
+
+  it("reverts local state when the server call fails", async () => {
+    (updateNotificationSettings as Mock).mockRejectedValue(new Error("server error"));
+
+    const { store } = renderWithProviders({ subscriptions: [42] });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([42]);
+    });
+  });
+
+  it("does not call updateNotificationSettings when offline", async () => {
+    renderWithProviders({ connected: false, pushNotificationPermission: "granted" });
+
+    // Button is disabled when offline, so no click possible — just verify the API is never called
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
+    expect(updateNotificationSettings).not.toHaveBeenCalled();
   });
 });
