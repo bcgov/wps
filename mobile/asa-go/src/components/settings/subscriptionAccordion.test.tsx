@@ -1,5 +1,5 @@
 import { FireCentreInfo } from "@/api/fbaAPI";
-import settingsReducer, { getUpdatedSubscriptions, saveSubscriptions } from "@/slices/settingsSlice";
+import settingsReducer from "@/slices/settingsSlice";
 import { createTestStore } from "@/testUtils";
 import {
   act,
@@ -10,8 +10,26 @@ import {
   within,
 } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
+import { Device } from "@capacitor/device";
+
+vi.mock("@capacitor/device", () => ({
+  Device: { getId: vi.fn().mockReturnValue(new Promise(() => {})) },
+}));
+
+vi.mock("api/pushNotificationsAPI", () => ({
+  getNotificationSettings: vi.fn(),
+  updateNotificationSettings: vi.fn(),
+}));
+
+vi.mock("@capacitor/preferences", () => ({
+  Preferences: {
+    get: vi.fn().mockResolvedValue({ value: null }),
+    set: vi.fn().mockResolvedValue(undefined),
+    remove: vi.fn().mockResolvedValue(undefined),
+  },
+}));
 
 const FIRE_CENTRE_LABEL = "KAMLOOPS";
 const VERNON_ZONE_LABEL = "K4-Vernon";
@@ -77,15 +95,11 @@ const mockFireCentreInfos: FireCentreInfo[] = [
   },
 ];
 
-const createHandlers = (store: ReturnType<typeof createTestStore>) => ({
-  onSave: (subs: number[]) => store.dispatch(saveSubscriptions(subs)),
-  onToggle: (id: number) => {
-    const current = store.getState().settings.subscriptions;
-    store.dispatch(saveSubscriptions(getUpdatedSubscriptions(current, id)));
-  },
-});
-
 describe("SubscriptionAccordion", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(Device.getId).mockReturnValue(new Promise(() => {}));
+  });
   it("renders correctly with fire centre name", () => {
     const store = createTestStore();
 
@@ -95,7 +109,6 @@ describe("SubscriptionAccordion", () => {
           defaultExpanded={false}
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -113,7 +126,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={true}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -131,7 +143,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={false}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -149,7 +160,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={false}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -170,7 +180,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={false}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -203,7 +212,6 @@ describe("SubscriptionAccordion", () => {
           disabled={true}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={false}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -232,7 +240,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={false}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -251,7 +258,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={false}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -269,7 +275,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={false}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -298,7 +303,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={false}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -320,7 +324,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={true}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -351,7 +354,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={true}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -380,7 +382,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={true}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -413,7 +414,6 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfo}
           defaultExpanded={true}
-          {...createHandlers(store)}
         />
       </Provider>,
     );
@@ -433,8 +433,7 @@ describe("SubscriptionAccordion", () => {
             disabled={false}
             fireCentreInfo={mockFireCentreInfo}
             defaultExpanded={true}
-            {...createHandlers(store)}
-          />
+            />
         </Provider>,
       ),
     );
@@ -465,8 +464,7 @@ describe("SubscriptionAccordion", () => {
             disabled={false}
             fireCentreInfo={mockFireCentreInfo}
             defaultExpanded={true}
-            {...createHandlers(store)}
-          />
+            />
         </Provider>,
       ),
     );
@@ -518,13 +516,11 @@ describe("SubscriptionAccordion", () => {
           disabled={false}
           fireCentreInfo={mockFireCentreInfos[0]}
           defaultExpanded={true}
-          {...createHandlers(store)}
         />
         <SubscriptionAccordion
           disabled={false}
           fireCentreInfo={mockFireCentreInfos[1]}
           defaultExpanded={true}
-          {...createHandlers(store)}
         />
       </Provider>,
     );

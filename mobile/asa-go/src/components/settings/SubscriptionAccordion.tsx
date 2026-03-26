@@ -1,8 +1,7 @@
 import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionOption from "@/components/settings/SubscriptionOption";
-import {
-  savePinnedFireCentre,
-} from "@/slices/settingsSlice";
+import { useNotificationSettings } from "@/hooks/useNotificationSettings";
+import { savePinnedFireCentre } from "@/slices/settingsSlice";
 import { AppDispatch, selectSettings } from "@/store";
 import { theme } from "@/theme";
 import { nameFormatter } from "@/utils/stringUtils";
@@ -28,18 +27,15 @@ interface SubscriptionAccordionProps {
   defaultExpanded: boolean;
   disabled: boolean;
   fireCentreInfo: FireCentreInfo;
-  onSave: (subs: number[]) => void;
-  onToggle: (fireZoneUnitId: number) => void;
 }
 
 const SubscriptionAccordion = ({
   defaultExpanded,
   disabled,
   fireCentreInfo,
-  onSave,
-  onToggle,
 }: SubscriptionAccordionProps) => {
   const dispatch: AppDispatch = useDispatch();
+  const { updateSubscriptions, toggleSubscription } = useNotificationSettings();
   const { pinnedFireCentre, subscriptions } = useSelector(selectSettings);
   const [expanded, setExpanded] = useState(defaultExpanded);
 
@@ -97,7 +93,7 @@ const SubscriptionAccordion = ({
       newSubs.push(...allFireZoneUnitIds);
     }
 
-    onSave(newSubs);
+    updateSubscriptions(newSubs);
   };
 
   const disabledStyles = disabled
@@ -182,7 +178,7 @@ const SubscriptionAccordion = ({
                 <SubscriptionOption
                   key={fireZoneUnit.id}
                   fireZoneUnit={fireZoneUnit}
-                  onToggle={onToggle}
+                  onToggle={toggleSubscription}
                 />
               );
             })}

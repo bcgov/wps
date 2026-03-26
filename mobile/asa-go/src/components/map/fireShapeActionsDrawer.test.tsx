@@ -9,7 +9,8 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { describe, expect, it, vi, beforeEach, Mock } from "vitest";
-import { updateNotificationSettings } from "api/pushNotificationsAPI";
+import { getNotificationSettings, updateNotificationSettings } from "api/pushNotificationsAPI";
+import { Device } from "@capacitor/device";
 
 vi.mock("@mui/material", async () => {
   const actual = await vi.importActual<typeof import("@mui/material")>(
@@ -109,6 +110,9 @@ const renderWithProviders = ({
 describe("FireShapeActionsDrawer", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(Device.getId).mockResolvedValue({ identifier: "test-device-id" });
+    vi.mocked(getNotificationSettings).mockResolvedValue([]);
+    vi.mocked(updateNotificationSettings).mockImplementation((_, subs) => Promise.resolve(subs));
     vi.mocked(useIsPortrait).mockReturnValue(true);
     vi.mocked(useIsTablet).mockReturnValue(false);
     vi.mocked(useMediaQuery).mockReturnValue(false);
@@ -213,6 +217,7 @@ describe("FireShapeActionsDrawer", () => {
 
   it("toggles the subscription for the selected fire shape", async () => {
     const { store } = renderWithProviders();
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -310,9 +315,8 @@ describe("FireShapeActionsDrawer", () => {
   });
 
   it("calls updateNotificationSettings when toggling subscription", async () => {
-    (updateNotificationSettings as Mock).mockResolvedValue(["1"]);
-
     renderWithProviders();
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -330,6 +334,7 @@ describe("FireShapeActionsDrawer", () => {
     (updateNotificationSettings as Mock).mockResolvedValue(["1", "99"]);
 
     const { store } = renderWithProviders();
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -344,8 +349,10 @@ describe("FireShapeActionsDrawer", () => {
 
   it("reverts local state when the server call fails", async () => {
     (updateNotificationSettings as Mock).mockRejectedValue(new Error("server error"));
+    (getNotificationSettings as Mock).mockResolvedValue(["42"]);
 
     const { store } = renderWithProviders({ subscriptions: [42] });
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
 
     fireEvent.click(
       screen.getByRole("button", {
