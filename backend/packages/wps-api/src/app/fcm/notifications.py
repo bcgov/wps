@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 
 from firebase_admin import exceptions as firebase_exceptions
 from firebase_admin import messaging
@@ -23,6 +23,27 @@ def build_notification_title(zone_with_advisory: ZoneAdvisoryStatus):
     return f"Behaviour Advisory, {zone}"
 
 
+def build_fcm_message(
+    for_date: date, zone_with_advisory: ZoneAdvisoryStatus, device_tokens: list[str]
+):
+    title = build_notification_title(zone_with_advisory)
+    content = build_notification_content(zone_with_advisory, for_date)
+    tag = f"advisory-{zone_with_advisory.source_identifier}"
+    ttl = timedelta(days=2)
+    apns_expiration = str(int((datetime.now(timezone.utc) + ttl).timestamp()))
+    message = messaging.MulticastMessage(
+        notification=messaging.Notification(title=title, body=content),
+        android=messaging.AndroidConfig(ttl=ttl, notification=messaging.AndroidNotification(tag=tag)),
+        apns=messaging.APNSConfig(
+            headers={"apns-expiration": apns_expiration},
+            payload=messaging.APNSPayload(aps=messaging.Aps(thread_id=tag)),
+        ),
+        tokens=device_tokens,
+    )
+
+    return message
+
+
 async def trigger_notifications(
     session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
 ) -> None:
@@ -43,17 +64,7 @@ async def trigger_notifications(
         )
         if len(device_tokens) == 0:
             continue
-        title = build_notification_title(zone_with_advisory)
-        content = build_notification_content(zone_with_advisory, for_date)
-        tag = f"advisory-{zone_with_advisory.source_identifier}"
-        message = messaging.MulticastMessage(
-            notification=messaging.Notification(title=title, body=content),
-            android=messaging.AndroidConfig(notification=messaging.AndroidNotification(tag=tag)),
-            apns=messaging.APNSConfig(
-                payload=messaging.APNSPayload(aps=messaging.Aps(thread_id=tag))
-            ),
-            tokens=device_tokens,
-        )
+        message = build_fcm_message(for_date, zone_with_advisory, device_tokens)
         try:
             # messaging.send_each_for_multicast is a synchronous blocking call
             response = await asyncio.to_thread(messaging.send_each_for_multicast, message)

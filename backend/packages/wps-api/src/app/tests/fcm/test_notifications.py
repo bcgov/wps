@@ -1,10 +1,11 @@
 """Unit tests for FCM notification logic."""
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from app.fcm.notifications import (
+    build_fcm_message,
     build_notification_content,
     build_notification_title,
     handle_fcm_response,
@@ -253,3 +254,35 @@ async def test_handle_fcm_response_transient_failure_does_not_deactivate():
     with patch(UPDATE_TOKENS, new_callable=AsyncMock) as mock_update:
         await handle_fcm_response(session, date(2026, 4, 1), "Kamloops", ["token_ok"], response)
         mock_update.assert_not_called()
+
+
+ZONE = ZoneAdvisoryStatus(
+    advisory_shape_id=1,
+    source_identifier="42",
+    placename_label="K2-Kamloops Zone (Kamloops)",
+    status="advisory",
+)
+TOKENS = ["token_a", "token_b", "token_c"]
+MSG_DATE = date(2026, 4, 1)
+FIXED_NOW = datetime(2026, 4, 1, 12, 0, 0, tzinfo=timezone.utc)
+EXPECTED_APNS_EXPIRATION = str(int((FIXED_NOW + timedelta(days=2)).timestamp()))
+
+
+def test_build_fcm_message_notification_content():
+    msg = build_fcm_message(MSG_DATE, ZONE, TOKENS)
+    assert isinstance(msg, messaging.MulticastMessage)
+    assert msg.tokens == TOKENS
+    assert msg.notification.title == "Behaviour Advisory, K2"
+    assert "K2-Kamloops Zone (Kamloops)" in msg.notification.body
+    assert "Wed, April 1" in msg.notification.body
+
+
+def test_build_fcm_message_platform_tags():
+    with patch("app.fcm.notifications.datetime") as mock_dt:
+        mock_dt.now.return_value = FIXED_NOW
+        msg = build_fcm_message(MSG_DATE, ZONE, TOKENS)
+
+    assert msg.android.notification.tag == "advisory-42"
+    assert msg.apns.payload.aps.thread_id == msg.android.notification.tag
+    assert msg.android.ttl == timedelta(days=2)
+    assert msg.apns.headers["apns-expiration"] == EXPECTED_APNS_EXPIRATION
