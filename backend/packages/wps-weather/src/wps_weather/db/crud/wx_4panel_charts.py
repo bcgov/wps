@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from wps_shared.db.models.wx_4panel_charts import (
+from wps_weather.db.models.wx_4panel_charts import (
     ChartStatusEnum,
     ECCCModel,
     ProcessedFourPanelChart,

@@ -19,6 +19,7 @@ dependencies = [
     "aiofiles>=25.1.0",
     "cfgrib>=0.9.15.1",
     "eccodes>=2.45.0",
+    "sqlalchemy>=2,<3",
 ]
 
 [tool.uv.sources]

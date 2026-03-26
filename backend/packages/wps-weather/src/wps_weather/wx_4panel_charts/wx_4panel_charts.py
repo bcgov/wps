@@ -12,14 +12,14 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import xarray as xr
 from wps_shared import config
-from wps_shared.db.crud.wx_4panel_charts import (
+from wps_weather.db.crud.wx_4panel_charts import (
     get_earliest_in_progress_date_limited,
     get_last_complete,
     get_or_create_processed_four_panel_chart,
     save_four_panel_chart,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
-from wps_shared.db.models.wx_4panel_charts import ChartStatusEnum, ECCCModel, ModelNames
+from wps_weather.db.models.wx_4panel_charts import ChartStatusEnum, ECCCModel, ModelNames
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging

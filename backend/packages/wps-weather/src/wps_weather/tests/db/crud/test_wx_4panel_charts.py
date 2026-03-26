@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from testcontainers.postgres import PostgresContainer
-from wps_shared.db.crud.wx_4panel_charts import (
+from wps_weather.db.crud.wx_4panel_charts import (
     create_processed_four_panel_chart,
     get_earliest_in_progress_date_limited,
     get_last_complete,
@@ -12,7 +12,7 @@ from wps_shared.db.crud.wx_4panel_charts import (
     get_processed_four_panel_chart,
     save_four_panel_chart,
 )
-from wps_shared.db.models.wx_4panel_charts import (
+from wps_weather.db.models.wx_4panel_charts import (
     ChartStatusEnum,
     ECCCModel,
     ProcessedFourPanelChart,
