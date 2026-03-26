@@ -84,7 +84,7 @@ PLOT_CONFIG_PCPN12 = {
     "axes_linewidth": 0.3,
 
     # --- Legend ---
-    "legend_title": "12h PCPN (mm)",
+    "legend_title": "6h PCPN (mm)",
     "legend_loc": "upper right",
     "legend_fontsize": 7,
     "legend_title_fontsize": 8,

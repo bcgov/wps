@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import datetime, time, timedelta, timezone
 from typing import List, Optional, Tuple
 
 import aiofiles
@@ -207,7 +207,7 @@ class FourPanelChartRunner:
             logger.info(f"Saved: {output_key}")
 
     async def _make_4panel_charts(
-        self, model: ECCCModel, init_ymd: str, init_hh: str, fstart: int, fend: int, step: int
+        self, model: ECCCModel, init_ymd: str, init_hh: str, start_hour: int, end_hour: int, step: int
     ):
         _model_cfgs = {
             ECCCModel.GDPS: (CFG_500_GDPS, CFG_MSLP_GDPS, CFG_700_GDPS, CFG_PCPN_GDPS, gdps_fname),
@@ -227,7 +227,7 @@ class FourPanelChartRunner:
             model=model,
         )
         plotter_factory = PlotterFactory(model=model)
-        for fh in range(fstart, fend + 1, step):
+        for fh in range(start_hour, end_hour + 1, step):
             logger.info(
                 f"Start {model} 4 panel chart generation for hour {fh} of model run {init_ymd}T{init_hh}Z."
             )
@@ -288,8 +288,8 @@ class FourPanelChartRunner:
         self,
         init_ymd: str,
         model_runs: List[str],
-        fstart: int,
-        fend: int,
+        start_hour: int,
+        end_hour: int,
         step: int,
         model: ECCCModel,
     ):
@@ -308,7 +308,7 @@ class FourPanelChartRunner:
 
                 if chart is not None and chart.status == ChartStatusEnum.INPROGRESS:
                     complete = await self._make_4panel_charts(
-                        model, init_ymd, init_hh, fstart, fend, step
+                        model, init_ymd, init_hh, start_hour, end_hour, step
                     )
                     if complete:
                         chart.status = ChartStatusEnum.COMPLETE
@@ -321,37 +321,6 @@ class FourPanelChartRunner:
                         logger.info(
                             f"Could not generate all {model} 4 panel charts for {init_ymd}."
                         )
-
-
-def parse_args():
-    """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description="Create 4Panel Charts from ECCC NWM data.")
-
-    parser.add_argument(
-        "--init_ymd",
-        help="Model run date formatted as YYYYMMDD",
-    )
-    parser.add_argument(
-        "--model_runs",
-        nargs="+",
-        choices=["00", "12"],
-        default=["00", "12"],
-        help="Model run hour(s).",
-    )
-    parser.add_argument(
-        "--fstart", type=int, default=0, help="The first prediction hour to generate a chart for."
-    )
-    parser.add_argument(
-        "--fend", type=int, default=84, help="The last prediction hour to generate a chart for."
-    )
-    parser.add_argument(
-        "--step", type=int, default=3, help="The hourly step increment between charts."
-    )
-    parser.add_argument(
-        "--model", choices=["GDPS", "RDPS"], default="RDPS", help="The ECCC NWM (GDPS or RDPS)"
-    )
-
-    return parser.parse_args()
 
 
 async def get_init_datetime():
@@ -375,12 +344,48 @@ async def get_init_datetime():
             # Lookup the last complete run in the past 7 days
             last_complete_result = await get_last_complete(session, min_date)
             if last_complete_result is not None:
-                init_datetime: datetime = last_complete_result.model_run_timestamp + timedelta(days=1)
+                init_datetime: datetime = last_complete_result.model_run_timestamp + timedelta(
+                    days=1
+                )
         if init_datetime is None:
             # Begin processing from today at 0:00 UTC if no useful result returned from db
             init_datetime = now
 
         return init_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def parse_args():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description="Create 4Panel Charts from ECCC NWM data.")
+
+    parser.add_argument(
+        "--init_ymd",
+        help="Model run date formatted as YYYYMMDD",
+    )
+    parser.add_argument(
+        "--model_runs",
+        nargs="+",
+        choices=["00", "12"],
+        default=["00", "12"],
+        help="Model run hour(s).",
+    )
+    parser.add_argument(
+        "--start_hour",
+        type=int,
+        default=0,
+        help="The first prediction hour to generate a chart for.",
+    )
+    parser.add_argument(
+        "--end_hour", type=int, default=84, help="The last prediction hour to generate a chart for."
+    )
+    parser.add_argument(
+        "--step", type=int, default=3, help="The hourly step increment between charts."
+    )
+    parser.add_argument(
+        "--model", choices=["GDPS", "RDPS"], default="RDPS", help="The ECCC NWM (GDPS or RDPS)"
+    )
+
+    return parser.parse_args()
 
 
 async def main():
@@ -408,12 +413,12 @@ async def main():
                 logger.info(f"Creating {args.model} 4 panel chart for model run {init_ymd}.")
                 logger.info(f"Model run hour(s) {args.model_runs}")
                 logger.info(
-                    f"From hour {args.fstart} to {args.fend} in {args.step} hour increments."
+                    f"From hour {args.start_hour} to {args.end_hour} in {args.step} hour increments."
                 )
 
                 runner = FourPanelChartRunner(s3_client)
                 await runner.run(
-                    init_ymd, args.model_runs, args.fstart, args.fend, args.step, args.model
+                    init_ymd, args.model_runs, args.start_hour, args.end_hour, args.step, args.model
                 )
                 current_datetime = current_datetime + timedelta(days=1)
 

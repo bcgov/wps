@@ -89,9 +89,9 @@ PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m bash $(dirname ${0})/oc_provision_b
 echo Configure hourly pruner
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 2 * * *" bash $(dirname ${0})/oc_provision_hourly_prune_cronjob.sh prod ${RUN_TYPE}
 echo Configure GDPS 4panel charts
-PROJ_TARGET=${PROJ_TARGET} FEND=240 STEP=12 MODEL=GDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} END_HOUR=240 STEP=6 MODEL=GDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod ${RUN_TYPE}
 echo Configure RDPS 4panel charts
-PROJ_TARGET=${PROJ_TARGET} FEND=84 STEP=3 MODEL=RDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} END_HOUR=84 STEP=3 MODEL=RDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod ${RUN_TYPE}
 echo Logging alerts
 oc apply -f $(dirname ${0})/../logging-alerts/nats_alerts.yaml
 oc apply -f $(dirname ${0})/../logging-alerts/sfms_alerts.yaml

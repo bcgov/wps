@@ -338,7 +338,7 @@
             "args": [
                 "--model_runs",
                 "12",
-                "--fend",
+                "--end_hour",
                 "6",
                 "--model",
                 "RDPS"
@@ -356,7 +356,7 @@
                 "20260326",
                 "--model_runs",
                 "00",
-                "--fend",
+                "--end_hour",
                 "24",
                 "--step",
                 "12",

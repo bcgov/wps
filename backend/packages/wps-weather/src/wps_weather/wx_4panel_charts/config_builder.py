@@ -85,7 +85,7 @@ class ConfigBuilder:
         if fh == 0:
             cfgpcpn["show_precip"] = False  # jet-only at analysis time
         else:
-            precip_string = "Precip-Accum12h" if self.model == ECCCModel.GDPS else "Precip-Accum3h"
+            precip_string = "Precip-Accum6h" if self.model == ECCCModel.GDPS else "Precip-Accum3h"
             cfgpcpn["show_precip"] = True
             cfgpcpn["pcpn_grib"] = self._grib_key(fh, precip_string, "Sfc")
 

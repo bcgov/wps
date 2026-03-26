@@ -294,7 +294,7 @@ class TestMake4PanelCharts:
 
     @pytest.mark.anyio
     async def test_returns_true_when_range_is_empty(self):
-        # fstart > fend — no hours to process
+        # start_hour > end_hour — no hours to process
         runner, _ = self._make_runner()
 
         result = await runner._make_4panel_charts(ECCCModel.GDPS, "20260318", "00", 10, 3, 3)
@@ -559,15 +559,15 @@ class TestParseArgs:
             args = parse_args()
         assert args.model_runs == ["00", "12"]
 
-    def test_default_fstart_is_zero(self):
+    def test_default_start_hour_is_zero(self):
         with patch("sys.argv", ["prog", "--init_ymd", "20260318"]):
             args = parse_args()
-        assert args.fstart == 0
+        assert args.start_hour == 0
 
-    def test_default_fend_is_84(self):
+    def test_default_end_hour_is_84(self):
         with patch("sys.argv", ["prog", "--init_ymd", "20260318"]):
             args = parse_args()
-        assert args.fend == 84
+        assert args.end_hour == 84
 
     def test_default_step_is_3(self):
         with patch("sys.argv", ["prog", "--init_ymd", "20260318"]):
@@ -584,14 +584,14 @@ class TestParseArgs:
             args = parse_args()
         assert args.model_runs == ["00", "12"]
 
-    def test_explicit_fstart_fend_step(self):
+    def test_explicit_start_hour_end_hour_step(self):
         with patch(
             "sys.argv",
-            ["prog", "--init_ymd", "20260318", "--fstart", "6", "--fend", "48", "--step", "6"],
+            ["prog", "--init_ymd", "20260318", "--start_hour", "6", "--end_hour", "48", "--step", "6"],
         ):
             args = parse_args()
-        assert args.fstart == 6
-        assert args.fend == 48
+        assert args.start_hour == 6
+        assert args.end_hour == 48
         assert args.step == 6
 
     def test_gdps_model_accepted(self):

@@ -31,7 +31,7 @@ parameters:
     required: true
   - name: APP_LABEL
     required: true
-  - name: FEND
+  - name: END_HOUR
     required: true
   - name: STEP
     required: true
@@ -71,12 +71,12 @@ objects:
                       "python",
                       "-m",
                       "wps_weather.wx_4panel_charts.wx_4panel_charts",
-                      "--fend",
-                      "${FEND}",
+                      "--end_hour",
+                      "${END_HOUR}",
                       "--step",
                       "${STEP}",
                       "--model",
-                      "${MODEL}"
+                      "${MODEL}",
                     ]
                   env:
                     - name: UV_NO_CACHE
