@@ -329,6 +329,42 @@
             ]
         },
         {
+            "name": "Weather - RDPS 4Panel Charts",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_weather.wx_4panel_charts.wx_4panel_charts",
+            "args": [
+                "--model_runs",
+                "12",
+                "--fend",
+                "6",
+                "--model",
+                "RDPS"
+            ]
+        },
+        {
+            "name": "Weather - GDPS 4Panel Charts",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_weather.wx_4panel_charts.wx_4panel_charts",
+            "args": [
+                "--init_ym",
+                "20260326",
+                "--model_runs",
+                "00",
+                "--fend",
+                "24",
+                "--step",
+                "12",
+                "--model",
+                "GDPS"
+            ]
+        },
+        {
             "name": "Interpolation Plotter",
             "type": "debugpy",
             "request": "launch",
