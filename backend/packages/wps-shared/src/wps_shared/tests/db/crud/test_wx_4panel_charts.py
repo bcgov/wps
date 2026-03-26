@@ -21,7 +21,7 @@ from wps_shared.db.models.wx_4panel_charts import (
 MODEL_RUN_TIMESTAMP = datetime(2026, 3, 19, 0, tzinfo=timezone.utc)
 INVALID_MODEL_RUN_TIMESTAMP = datetime(2026, 3, 20, 0, tzinfo=timezone.utc)
 
-TEST_DATE = datetime(2026, 3, 20)
+TEST_DATE = datetime(2026, 3, 20, tzinfo=timezone.utc)
 
 
 @pytest.fixture(scope="function")
