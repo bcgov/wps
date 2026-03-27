@@ -6,7 +6,6 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import List
 
-from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.auth import asa_authentication_required, audit_asa
@@ -51,13 +50,13 @@ from wps_shared.schemas.fba import (
     SFMSRunParameter,
     TPIResponse,
 )
-from wps_wf1.wfwx_api import WfwxApi
 
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
     get_zone_wind_stats_for_source_id,
 )
+from app.psu.fire_centres import build_fba_fire_centers_response, fetch_fire_centres
 
 logger = logging.getLogger(__name__)
 
@@ -145,14 +144,14 @@ async def get_all_zone_data_for_source_ids(
     return all_zone_data
 
 
-@router.get("/fire-centers", response_model=FireCenterListResponse)
+@router.get(
+    "/fire-centers", response_model=FireCenterListResponse, response_model_exclude_none=True
+)
 async def get_all_fire_centers(_=Depends(asa_authentication_required)):
-    """Returns fire centers for all active stations."""
+    """Returns fire centres from the shared PSU source."""
     logger.info("/fba/fire-centers/")
-    async with ClientSession() as session:
-        wfwx_api = WfwxApi(session)
-        fire_centers = await wfwx_api.get_fire_centers()
-    return FireCenterListResponse(fire_centers=fire_centers)
+    fire_centres = await fetch_fire_centres()
+    return build_fba_fire_centers_response(fire_centres)
 
 
 @router.get("/fire-centre-info", response_model=FireCentreInfoResponse)

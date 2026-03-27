@@ -1,11 +1,12 @@
 from sqlalchemy import func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from wps_shared.db.models.fire_watch import (
     FireWatch,
     FireWatchWeather,
     PrescriptionStatus,
 )
-from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.db.models.psu import FireCentre
 
 
 def fire_watch_to_dict(fire_watch: FireWatch) -> dict:
@@ -93,12 +94,6 @@ async def update_fire_watch(
     )
     result = await session.execute(statement)
     return result.scalar_one()
-
-
-async def get_fire_centres(session: AsyncSession):
-    statement = select(FireCentre)
-    result = await session.execute(statement)
-    return result.scalars()
 
 
 async def get_all_prescription_status(session: AsyncSession) -> dict[str, int]:

@@ -1,7 +1,7 @@
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import { render } from '@testing-library/react'
 import { DateTime } from 'luxon'
-import { FireCenter } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 
 import { Provider } from 'react-redux'
 import { createTestStore } from '@/test/testUtils'
@@ -9,10 +9,9 @@ import { createTestStore } from '@/test/testUtils'
 const issueDate = DateTime.now()
 const forDate = DateTime.now()
 
-const mockFireCenter: FireCenter = {
+const mockFireCenter: FireCentre = {
   id: 1,
-  name: 'Fire Center 1',
-  stations: []
+  name: 'Fire Center 1'
 }
 
 describe('AdvisoryReport', () => {

@@ -5,7 +5,8 @@ import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
-import { FireCenter, FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import { AdvisoryStatus } from '@wps/utils/constants'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
@@ -37,7 +38,7 @@ export const fireCentreLabelStyler = (feature: RenderFeature | ol.Feature<Geomet
   })
 }
 
-export const fireCentreStyler = (selectedFireCenter: FireCenter | undefined) => {
+export const fireCentreStyler = (selectedFireCenter: FireCentre | undefined) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME
     const isSelected = selectedFireCenter && fireCenterId == selectedFireCenter.name
@@ -50,7 +51,7 @@ export const fireCentreStyler = (selectedFireCenter: FireCenter | undefined) => 
   }
 }
 
-export const fireCentreLineStyler = (selectedFireCenter: FireCenter | undefined) => {
+export const fireCentreLineStyler = (selectedFireCenter: FireCentre | undefined) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME
     const isSelected = selectedFireCenter && fireCenterId == selectedFireCenter.name

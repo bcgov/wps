@@ -1,5 +1,5 @@
-from collections import defaultdict
 import logging
+from collections import defaultdict
 from datetime import datetime
 from typing import List, Sequence, Tuple
 
@@ -9,18 +9,11 @@ from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
 from sqlalchemy import Row
-from wps_wf1.wfwx_api import WfwxApi
-
-from app.fire_watch.calculate_weather import (
-    MissingWeatherDataError,
-    reprocess_fire_watch_weather,
-)
 from wps_shared.auth import audit, authentication_required
 from wps_shared.db.crud.fire_watch import (
     get_all_fire_watch_weather_with_prescription_status,
     get_all_fire_watches,
     get_fire_centre_by_name,
-    get_fire_centres,
     get_fire_watch_by_id,
     get_fire_watch_weather_by_model_with_prescription_status,
     get_latest_processed_model_run_id_in_fire_watch_weather,
@@ -30,14 +23,12 @@ from wps_shared.db.crud.fire_watch import (
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.fire_watch import BurnStatusEnum, FireWatch, FireWatchWeather
 from wps_shared.db.models.fire_watch import FireWatch as DBFireWatch
+from wps_shared.db.models.psu import FireCentre as DBFireCentre
 from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS, WEB_MERCATOR, PointTransformer
-from wps_shared.schemas.fba import FireCentre
 from wps_shared.schemas.fire_watch import (
     BurnForecastOutput,
     FireWatchBurnForecastsResponse,
-    FireWatchFireCentre,
-    FireWatchFireCentresResponse,
     FireWatchInput,
     FireWatchInputRequest,
     FireWatchListResponse,
@@ -46,8 +37,15 @@ from wps_shared.schemas.fire_watch import (
     FireWatchResponse,
     FireWatchStation,
 )
+from wps_shared.schemas.psu import PSUFireCentre
 from wps_shared.schemas.stations import GeoJsonWeatherStation
 from wps_shared.utils.time import get_utc_now
+from wps_wf1.wfwx_api import WfwxApi
+
+from app.fire_watch.calculate_weather import (
+    MissingWeatherDataError,
+    reprocess_fire_watch_weather,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +137,7 @@ def get_coordinates_from_geometry(geometry) -> List[float]:
 
 def create_fire_watch_output(
     db_fire_watch: DBFireWatch,
-    fire_centre: FireWatchFireCentre,
+    fire_centre: PSUFireCentre,
     stations: List[GeoJsonWeatherStation],
 ) -> FireWatchOutput:
     station = next(
@@ -165,7 +163,7 @@ def create_fire_watch_output(
         contact_email=db_fire_watch.contact_email,
         create_timestamp=db_fire_watch.create_timestamp.isoformat(),
         create_user=db_fire_watch.create_user,
-        fire_centre=FireWatchFireCentre(id=fire_centre.id, name=fire_centre.name),
+        fire_centre=PSUFireCentre(id=fire_centre.id, name=fire_centre.name),
         station=fw_station,
         status=db_fire_watch.status,
         title=db_fire_watch.title,
@@ -228,7 +226,7 @@ def create_burn_forecast_output(fire_watch_weather: FireWatchWeather, prescripti
 
 def create_fire_watch_burn_forecasts_response(
     stations: List[GeoJsonWeatherStation],
-    fire_watches: Sequence[Row[Tuple[FireWatch, FireCentre]]],
+    fire_watches: Sequence[Row[Tuple[FireWatch, DBFireCentre]]],
     fire_watch_weather: Sequence[Row[Tuple[FireWatchWeather, str]]],
 ) -> FireWatchBurnForecastsResponse:
     # Build a dictionary of BurnForecastOutputs keyed by fire watch id for easy lookup
@@ -336,15 +334,6 @@ async def update_existing_fire_watch(
         )
 
         return updated_burn_forecast
-
-
-@router.get("/fire-centres", response_model=FireWatchFireCentresResponse)
-async def get_all_fire_centres(token=Depends(authentication_required)):
-    logger.info("/fire-watch/fire-centres")
-    async with get_async_read_session_scope() as session:
-        result = await get_fire_centres(session)
-        fire_centres = [FireWatchFireCentre(id=item.id, name=item.name) for item in result]
-        return FireWatchFireCentresResponse(fire_centres=fire_centres)
 
 
 @router.get("/burn-forecasts", response_model=FireWatchBurnForecastsResponse)

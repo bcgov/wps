@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { FireCenter, FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 
 /**
@@ -10,7 +11,7 @@ import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySl
  * @param selectedFireCenter
  * @returns
  */
-export const useFireCentreDetails = (selectedFireCenter: FireCenter | undefined): FireShapeStatusDetail[] => {
+export const useFireCentreDetails = (selectedFireCenter: FireCentre | undefined): FireShapeStatusDetail[] => {
   const provincialSummary = useSelector(selectProvincialSummary)
 
   return useMemo(() => {

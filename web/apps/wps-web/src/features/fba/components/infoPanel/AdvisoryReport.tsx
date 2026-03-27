@@ -1,6 +1,7 @@
 import { useFireCentreDetails } from '@/features/fba/hooks/useFireCentreDetails'
 import { Grid } from '@mui/material'
-import { FireCenter, FireShape } from '@wps/api/fbaAPI'
+import { FireShape } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND } from '@wps/ui/theme'
 import AdvisoryText from 'features/fba/components/infoPanel/AdvisoryText'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
@@ -10,7 +11,7 @@ import React from 'react'
 interface AdvisoryReportProps {
   issueDate: DateTime | null
   forDate: DateTime
-  selectedFireCenter?: FireCenter
+  selectedFireCenter?: FireCentre
   selectedFireZoneUnit?: FireShape
 }
 

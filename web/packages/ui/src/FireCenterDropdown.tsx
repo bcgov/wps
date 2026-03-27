@@ -1,12 +1,13 @@
 import { TextField, Autocomplete } from '@mui/material'
-import { FireCenter, FireShape } from '@wps/api/fbaAPI'
+import { FireShape } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
 
 interface FireCenterDropdownProps {
-  selectedFireCenter?: FireCenter
-  fireCenterOptions: FireCenter[]
-  setSelectedFireCenter: React.Dispatch<React.SetStateAction<FireCenter | undefined>>
+  selectedFireCenter?: FireCentre
+  fireCenterOptions: FireCentre[]
+  setSelectedFireCenter: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
 }

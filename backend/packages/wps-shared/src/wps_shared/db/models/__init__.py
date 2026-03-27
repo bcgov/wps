@@ -20,7 +20,8 @@ from wps_shared.db.models.weather_models import (
     SavedModelRunForSFMSUrl,
     ModelRunForSFMS,
 )
-from wps_shared.db.models.hfi_calc import FireCentre, FuelType, PlanningArea, PlanningWeatherStation
+from wps_shared.db.models.psu import FireCentre
+from wps_shared.db.models.hfi_calc import FuelType, PlanningArea, PlanningWeatherStation
 from wps_shared.db.models.auto_spatial_advisory import (
     Shape,
     ShapeType,

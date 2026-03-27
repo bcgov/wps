@@ -1,7 +1,8 @@
 import { selectFireCentreTPIStats, selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 import { Box, Grid, Tab, Tabs, Tooltip, Typography } from '@mui/material'
-import { FireCenter, FireShape } from '@wps/api/fbaAPI'
+import { FireShape } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import { INFO_PANEL_CONTENT_BACKGROUND, theme } from '@wps/ui/theme'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
@@ -14,7 +15,7 @@ import { useSelector } from 'react-redux'
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
-  selectedFireCenter: FireCenter | undefined
+  selectedFireCenter: FireCentre | undefined
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
 }
 

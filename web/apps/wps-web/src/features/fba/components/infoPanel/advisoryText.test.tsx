@@ -7,7 +7,8 @@ import { initialState as runDatesInitialState } from '@/features/fba/slices/runD
 import { initialState as fireCentreTPIStatsInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
 import { createTestStore } from '@/test/testUtils'
 import { render, screen, waitFor, act } from '@testing-library/react'
-import { FireCenter, FireShape, FireShapeStatusDetail, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import { FireShape, FireShapeStatusDetail, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import AdvisoryText, {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -31,10 +32,9 @@ const postCoreSeasonDate = createDateTime(2025, 10, 1)
 const issueDate = DateTime.now()
 const forDate = DateTime.now()
 
-const mockFireCenter: FireCenter = {
+const mockFireCenter: FireCentre = {
   id: 1,
-  name: 'Cariboo Fire Centre',
-  stations: []
+  name: 'Cariboo Fire Centre'
 }
 
 const mockFireZoneUnit: FireShape = {

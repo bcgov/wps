@@ -1,53 +1,53 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { AppThunk } from 'app/store'
+import { FireCentre, FireCentresResponse, getFireCentres } from '@wps/api/psuAPI'
 import { logError } from '@wps/utils/error'
-import { FBAResponse, FireCenter, getFBAFireCenters } from '@wps/api/fbaAPI'
 
 export interface FireCentresState {
   loading: boolean
   error: string | null
-  fireCenters: FireCenter[]
+  fireCentres: FireCentre[]
 }
 
 const initialState: FireCentresState = {
   loading: false,
   error: null,
-  fireCenters: []
+  fireCentres: []
 }
 
-const fireCentersSlice = createSlice({
-  name: 'fireCenters',
+const fireCentresSlice = createSlice({
+  name: 'fireCentres',
   initialState,
   reducers: {
-    getFireCentersStart(state: FireCentresState) {
+    getFireCentresStart(state: FireCentresState) {
       state.error = null
       state.loading = true
-      state.fireCenters = []
+      state.fireCentres = []
     },
-    getFireCentersFailed(state: FireCentresState, action: PayloadAction<string>) {
+    getFireCentresFailed(state: FireCentresState, action: PayloadAction<string>) {
       state.error = action.payload
       state.loading = false
     },
-    getFireCentersSuccess(state: FireCentresState, action: PayloadAction<FBAResponse>) {
+    getFireCentresSuccess(state: FireCentresState, action: PayloadAction<FireCentresResponse>) {
       state.error = null
-      state.fireCenters = action.payload.fire_centers
+      state.fireCentres = action.payload.fire_centres
       state.loading = false
     }
   }
 })
 
-export const { getFireCentersStart, getFireCentersFailed, getFireCentersSuccess } = fireCentersSlice.actions
+export const { getFireCentresStart, getFireCentresFailed, getFireCentresSuccess } = fireCentresSlice.actions
 
-export default fireCentersSlice.reducer
+export default fireCentresSlice.reducer
 
-export const fetchFireCenters = (): AppThunk => async dispatch => {
+export const fetchFireCentres = (): AppThunk => async dispatch => {
   try {
-    dispatch(getFireCentersStart())
-    const fireCenters = await getFBAFireCenters()
-    dispatch(getFireCentersSuccess(fireCenters))
+    dispatch(getFireCentresStart())
+    const fireCentres = await getFireCentres()
+    dispatch(getFireCentresSuccess(fireCentres))
   } catch (err) {
-    dispatch(getFireCentersFailed((err as Error).toString()))
+    dispatch(getFireCentresFailed((err as Error).toString()))
     logError(err)
   }
 }

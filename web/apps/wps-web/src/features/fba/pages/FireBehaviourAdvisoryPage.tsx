@@ -5,13 +5,14 @@ import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import FireCenterDropdown from '@wps/ui/FireCenterDropdown'
 import { DateTime } from 'luxon'
-import { selectFireCenters, selectRunDates } from 'app/rootReducer'
+import { selectFireCentres, selectRunDates } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchFireCenters } from 'commonSlices/fireCentersSlice'
+import { fetchFireCentres } from 'commonSlices/fireCentersSlice'
 import { theme } from '@wps/ui/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from '@wps/api/stationAPI'
-import { FireCenter, FireShape, RunType } from '@wps/api/fbaAPI'
+import { FireShape, RunType } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from '@wps/utils/constants'
 import { AppDispatch } from 'app/store'
 import ActualForecastControl from 'features/fba/components/ActualForecastControl'
@@ -37,11 +38,11 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
 
   // selectors
-  const { fireCenters } = useSelector(selectFireCenters)
+  const { fireCentres } = useSelector(selectFireCentres)
   const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
 
   // state
-  const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(undefined)
+  const [fireCenter, setFireCenter] = useState<FireCentre | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
   const [dateOfInterest, setDateOfInterest] = useState(
@@ -91,11 +92,11 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   useEffect(() => updateDatePickerOptions(), [currentYear, runType, sfmsBounds])
 
   useEffect(() => {
-    const findCenter = (id: string | null): FireCenter | undefined => {
-      return fireCenters.find(center => center.id.toString() == id)
+    const findCenter = (id: string | null): FireCentre | undefined => {
+      return fireCentres.find(center => center.id.toString() == id)
     }
     setFireCenter(findCenter(localStorage.getItem('preferredFireCenter')))
-  }, [fireCenters])
+  }, [fireCentres])
 
   useEffect(() => {
     if (fireCenter?.id) {
@@ -105,13 +106,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   useEffect(() => {
     if (selectedFireShape?.mof_fire_centre_name) {
-      const matchingFireCenter = fireCenters.find(center => center.name === selectedFireShape.mof_fire_centre_name)
+      const matchingFireCenter = fireCentres.find(center => center.name === selectedFireShape.mof_fire_centre_name)
 
       if (matchingFireCenter) {
         setFireCenter(matchingFireCenter)
       }
     }
-  }, [selectedFireShape, fireCenters])
+  }, [selectedFireShape, fireCentres])
 
   const updateDate = (newDate: DateTime) => {
     if (newDate !== dateOfInterest) {
@@ -127,7 +128,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchFireCenters())
+    dispatch(fetchFireCentres())
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
@@ -196,7 +197,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <Grid item>
             <FireCentreFormControl>
               <FireCenterDropdown
-                fireCenterOptions={fireCenters}
+                fireCenterOptions={fireCentres}
                 selectedFireCenter={fireCenter}
                 setSelectedFireCenter={setFireCenter}
                 setSelectedFireShape={setSelectedFireShape}

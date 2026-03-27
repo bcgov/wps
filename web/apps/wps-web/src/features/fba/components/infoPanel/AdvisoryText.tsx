@@ -9,7 +9,8 @@ import {
   formatCriticalHoursTimeText,
   getMinStartAndMaxEndTime
 } from '@/features/fba/criticalHoursStartEndTime'
-import { AdvisoryMinWindStats, FireCenter, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import { AdvisoryMinWindStats, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { AdvisoryStatus } from '@wps/utils/constants'
 import { selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
@@ -94,7 +95,7 @@ const SerifTypography = styled(Typography)({
 interface AdvisoryTextProps {
   issueDate: DateTime | null
   forDate: DateTime
-  selectedFireCenter?: FireCenter
+  selectedFireCenter?: FireCentre
   selectedFireZoneUnit?: FireShape
 }
 

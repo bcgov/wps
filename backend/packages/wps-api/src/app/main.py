@@ -5,36 +5,37 @@ See README.md for details on how to run.
 
 import logging
 from urllib.request import Request
-from fastapi import FastAPI, Depends, Response
-from fastapi.middleware.cors import CORSMiddleware
+
 import sentry_sdk
+from fastapi import Depends, FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
+from wps_shared import config
+from wps_shared.auth import audit, authentication_required
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.schemas.observations import WeatherStationHourlyReadingsResponse
 from wps_shared.schemas.percentiles import CalculatedResponse, PercentileRequest
 from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.wps_logging import configure_logging
-from app.percentile import get_precalculated_percentiles
-from wps_shared.auth import authentication_required, audit
-from wps_shared import config
-from app import health
-from app import hourlies
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from app.routers import (
-    fba,
-    forecasts,
-    object_store_proxy,
-    weather_models,
-    c_haines,
-    stations,
-    hfi_calc,
-    fba_calc,
-    sfms,
-    morecast_v2,
-    snow,
-    fire_watch,
-    fcm,
-)
 
+from app import health, hourlies
+from app.percentile import get_precalculated_percentiles
+from app.routers import (
+    c_haines,
+    fba,
+    fba_calc,
+    fcm,
+    fire_watch,
+    forecasts,
+    hfi_calc,
+    morecast_v2,
+    object_store_proxy,
+    psu,
+    sfms,
+    snow,
+    stations,
+    weather_models,
+)
 
 configure_logging()
 
@@ -137,6 +138,7 @@ api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
+api.include_router(psu.router, tags=["PSU"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
 api.include_router(fcm.router, tags=["Firebase Cloud Messaging"])
 

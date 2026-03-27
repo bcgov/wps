@@ -1,8 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { FireCentresResponse, getFireCentres } from '@wps/api/psuAPI'
 import { AppThunk } from 'app/store'
-import { getFireCentres } from '@/features/fireWatch/fireWatchApi'
 import { FireWatchFireCentre } from '@/features/fireWatch/interfaces'
-
 
 export interface FireWatchFireCentresState {
   loading: boolean
@@ -13,7 +12,7 @@ export interface FireWatchFireCentresState {
 const initialState: FireWatchFireCentresState = {
   loading: false,
   error: null,
-  fireCentres: [],
+  fireCentres: []
 }
 
 const fireWatchFireCentresSlice = createSlice({
@@ -29,32 +28,25 @@ const fireWatchFireCentresSlice = createSlice({
       state.error = action.payload
       state.loading = false
     },
-    getFireWatchFireCentresSuccess(
-      state: FireWatchFireCentresState,
-      action: PayloadAction<{ fireCentres: FireWatchFireCentre[] }>
-    ) {
+    getFireWatchFireCentresSuccess(state: FireWatchFireCentresState, action: PayloadAction<FireCentresResponse>) {
       state.error = null
-      state.fireCentres = action.payload.fireCentres
+      state.fireCentres = action.payload.fire_centres
       state.loading = false
     }
   }
 })
 
-export const { getFireWatchFireCentresStart, getFireWatchFireCentresFailed, getFireWatchFireCentresSuccess} = fireWatchFireCentresSlice.actions
+export const { getFireWatchFireCentresStart, getFireWatchFireCentresFailed, getFireWatchFireCentresSuccess } =
+  fireWatchFireCentresSlice.actions
 
 export default fireWatchFireCentresSlice.reducer
 
-export const fetchFireWatchFireCentres = (): AppThunk =>
-  async dispatch => {
-    try {
-      dispatch(getFireWatchFireCentresStart())
-      const fireCentresResponse = await getFireCentres()
-      dispatch(getFireWatchFireCentresSuccess({ fireCentres: fireCentresResponse.fire_centres }))
-    } catch (err) {
-      dispatch(getFireWatchFireCentresFailed((err as Error).toString()))
-    }
+export const fetchFireWatchFireCentres = (): AppThunk => async dispatch => {
+  try {
+    dispatch(getFireWatchFireCentresStart())
+    const fireCentresResponse = await getFireCentres()
+    dispatch(getFireWatchFireCentresSuccess(fireCentresResponse))
+  } catch (err) {
+    dispatch(getFireWatchFireCentresFailed((err as Error).toString()))
   }
-
-
-
-
+}

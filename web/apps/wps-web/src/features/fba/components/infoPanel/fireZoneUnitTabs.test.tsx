@@ -1,7 +1,8 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import FireZoneUnitTabs from './FireZoneUnitTabs'
-import { FireCenter, FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { combineReducers } from '@reduxjs/toolkit'
@@ -43,10 +44,9 @@ const mockSelectedFireZoneUnitA: FireShape = {
   mof_fire_zone_name: zoneA
 }
 
-const mockSelectedFireCenter: FireCenter = {
+const mockSelectedFireCenter: FireCentre = {
   id: 1,
-  name: fireCentre1,
-  stations: []
+  name: fireCentre1
 }
 
 const mockFireCentreTPIStats: FireCentreTPIResponse = {

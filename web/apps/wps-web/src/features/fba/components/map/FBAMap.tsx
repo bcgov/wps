@@ -1,7 +1,8 @@
 import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { Box } from '@mui/material'
-import { FireCenter, FireShape, RunType } from '@wps/api/fbaAPI'
+import { FireShape, RunType } from '@wps/api/fbaAPI'
+import { FireCentre } from '@wps/api/psuAPI'
 import { selectFireWeatherStations, selectRunDates, selectProvincialSummaryZones } from 'app/rootReducer'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import {
@@ -35,7 +36,13 @@ import VectorSource from 'ol/source/Vector'
 import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
-import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL, HILLSHADE_STYLE_URL, HILLSHADE_TILE_URL, PMTILES_BUCKET } from '@wps/utils/env'
+import {
+  BASEMAP_STYLE_URL,
+  BASEMAP_TILE_URL,
+  HILLSHADE_STYLE_URL,
+  HILLSHADE_TILE_URL,
+  PMTILES_BUCKET
+} from '@wps/utils/env'
 import { MapContext } from '@/features/fba/context/MapContext'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -45,7 +52,7 @@ export const zoneStatusLayerName = 'fireShapeVector'
 
 export interface FBAMapProps {
   testId?: string
-  selectedFireCenter: FireCenter | undefined
+  selectedFireCenter: FireCentre | undefined
   selectedFireShape: FireShape | undefined
   forDate: DateTime
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>

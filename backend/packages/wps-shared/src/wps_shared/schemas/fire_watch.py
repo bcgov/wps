@@ -1,12 +1,10 @@
-from typing import Dict, List, Optional
+from typing import List, Optional
+
 from pydantic import BaseModel
+
 from wps_shared.db.models.fire_watch import BurnStatusEnum
 from wps_shared.fuel_types import FuelTypeEnum
-
-
-class FireWatchFireCentre(BaseModel):
-    id: int
-    name: str
+from wps_shared.schemas.psu import PSUFireCentre
 
 
 class FireWatchStation(BaseModel):
@@ -19,7 +17,7 @@ class FireWatchInput(BaseModel):
     burn_window_end: Optional[str] = None
     burn_window_start: Optional[str] = None
     contact_email: List[str]
-    fire_centre: FireWatchFireCentre
+    fire_centre: PSUFireCentre
     station: FireWatchStation
     status: BurnStatusEnum
     title: str
@@ -78,10 +76,6 @@ class FireWatchResponse(BaseModel):
 
 class FireWatchListResponse(BaseModel):
     watch_list: List[FireWatchOutput]
-
-
-class FireWatchFireCentresResponse(BaseModel):
-    fire_centres: List[FireWatchFireCentre]
 
 
 class BurnForecastOutput(BaseModel):
