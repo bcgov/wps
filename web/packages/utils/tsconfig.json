@@ -4,15 +4,31 @@
     "moduleResolution": "bundler",
     "module": "esnext",
     "target": "es2015",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "jsx": "react-jsx",
-    "types": ["vite/client", "vitest/globals", "@wps/types"],
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "@wps/types"
+    ],
     "rootDir": "src",
     "outDir": "dist",
     "declaration": true,
     "declarationMap": true,
-    "customConditions": ["development"]
+    "customConditions": [
+      "development"
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
+  ]
 }
