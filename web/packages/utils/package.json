@@ -4,6 +4,10 @@
   "private": true,
   "exports": {
     "./*": {
+      "development": [
+        "./src/*.ts",
+        "./src/*.tsx"
+      ],
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"
     }

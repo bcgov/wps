@@ -3,12 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    ".": {
-      "types": "./src/window.d.ts"
-    },
-    "./*": {
-      "types": "./dist/*.d.ts"
-    }
+    ".": "./src/window.d.ts",
+    "./*": "./src/*.ts"
   },
   "types": "./src/window.d.ts",
   "scripts": {
