@@ -17,7 +17,7 @@ from wps_shared.db.crud.fcm import (
 )
 from wps_shared.db.models.auto_spatial_advisory import Shape, ShapeType, ShapeTypeEnum
 from wps_shared.db.models.fcm import DeviceToken, NotificationSettings, PlatformEnum
-from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.db.models.psu import FireCentre
 from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE
 from wps_shared.utils.time import get_utc_now
 
@@ -241,7 +241,9 @@ async def test_upsert_notification_settings_empty_list_clears_subscriptions(
 
 
 @pytest.mark.anyio
-async def test_upsert_notification_settings_unknown_device_returns_false(async_session: AsyncSession):
+async def test_upsert_notification_settings_unknown_device_returns_false(
+    async_session: AsyncSession,
+):
     """upsert_notification_settings returns False for an unknown device_id."""
     found = await upsert_notification_settings(
         async_session, "unknown_device_id", [mock_fire_shape_source_identifier]
