@@ -113,6 +113,8 @@ RUN chmod -R a-w pyproject.toml uv.lock packages/*/pyproject.toml \
 # Pre-download Natural Earth shapefiles used at runtime so the container
 # does not need outbound network access and avoids writes to /.local
 RUN python3 -c "\
+import cartopy; \
+cartopy.config['data_dir'] = '/app/cartopy/data'; \
 import cartopy.io.shapereader as shpreader; \
 shpreader.natural_earth(resolution='110m', category='physical',  name='land'); \
 shpreader.natural_earth(resolution='110m', category='physical',  name='coastline'); \
