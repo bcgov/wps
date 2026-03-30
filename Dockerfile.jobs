@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-jobs-base:dev
+ARG DOCKER_IMAGE=image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-jobs-base:30-03-2026
 # To build locally, point to a local base image you've already built (see wps-jobs-base)
 # e.g. : docker build --build-arg DOCKER_IMAGE=wps-jobs-base:my-tag .
 
