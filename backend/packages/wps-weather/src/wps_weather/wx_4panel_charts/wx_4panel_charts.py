@@ -8,6 +8,7 @@ from datetime import datetime, time, timedelta, timezone
 from typing import List, Optional, Tuple
 
 import aiofiles
+import cartopy
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import xarray as xr
@@ -405,7 +406,7 @@ async def main():
     secret_key = config.get("WX_OBJECT_STORE_SECRET")
     bucket = config.get("WX_OBJECT_STORE_BUCKET")
     cartopy_data_dir = "/app/.local/share/cartopy"
-    ccrs.config["data_dir"] = cartopy_data_dir
+    cartopy.config["data_dir"] = cartopy_data_dir
 
     async with S3Client(user_id=user_id, secret_key=secret_key, bucket=bucket) as s3_client:
         try:
