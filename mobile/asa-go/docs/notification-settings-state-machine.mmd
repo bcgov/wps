@@ -2,13 +2,37 @@ stateDiagram-v2
     direction TB
 
     [*] --> PermissionDenied : permission denied
-    [*] --> AwaitingFCMToken : permission granted
+    [*] --> Unregistered : permission granted
 
-    PermissionDenied --> AwaitingFCMToken : user enables in OS settings
+    PermissionDenied --> Unregistered : user enables in OS settings
 
-    AwaitingFCMToken --> Unregistered : FCM token received
+    Unregistered --> Ready : online + deviceId resolved + registerToken() succeeds\n(retried with exponential backoff)
+    Unregistered --> Unregistered : offline or registerToken() exhausts retries
+    Unregistered --> DeviceIdError : Device.getId() fails
 
-    Unregistered --> Ready : online and registerToken() succeeds
-    Unregistered --> Unregistered : offline or registerToken() fails (retry on reconnect or foreground)
+    DeviceIdError --> Unregistered : app restart / retry
 
-    Ready --> Ready : update succeeds or rolls back if offline
+    Ready --> Unregistered : new FCM token received (token rotation)
+
+    state Ready {
+        [*] --> Idle
+        Idle --> Updating : user toggles subscription
+        Updating --> Idle : server confirms
+        Updating --> UpdateFailed : server rejects after retries
+        UpdateFailed --> Updating : user toggles again
+    }
+
+    note right of Ready
+        Subscription toggle UI:
+        Updating → disabled + thumb pulse animation (LoadingSwitch)
+        UpdateFailed → reverted state + inline error text (LoadingSwitch)
+    end note
+
+    note right of Unregistered
+        Subscribe button UI:
+        Unregistered + online → spinner in subscribe button
+        Unregistered + offline → "Unavailable offline" caption
+        PermissionDenied → "Enable notifications in device settings" caption
+        DeviceIdError → "Unable to identify device" caption
+        (driven by selectNotificationSettingsDisabledReason)
+    end note

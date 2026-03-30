@@ -1,10 +1,13 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, Mock, vi } from "vitest";
 import App from "./App";
 import { Provider } from "react-redux";
 import { createTestStore } from "./testUtils";
 import { NavPanel } from "@/utils/constants";
 import { useMediaQuery } from "@mui/material";
+import { registerToken } from "@/api/pushNotificationsAPI";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { initialState as pushNotificationInitialState } from "@/slices/pushNotificationSlice";
 
 // Mock MUI useMediaQuery to control screen size detection
 vi.mock("@mui/material", async () => {
@@ -96,6 +99,26 @@ vi.mock("@/hooks/useAppIsActive", () => ({
 
 vi.mock("@/hooks/useRunParameterForDate", () => ({
   useRunParameterForDate: () => undefined,
+}));
+
+vi.mock("@/hooks/usePushNotifications", () => ({
+  usePushNotifications: vi.fn().mockReturnValue({
+    initPushNotifications: vi.fn().mockResolvedValue(undefined),
+    token: null,
+  }),
+}));
+
+vi.mock("@capacitor/device", () => ({
+  Device: { getId: vi.fn().mockResolvedValue({ identifier: "device-id" }) },
+}));
+
+vi.mock("@capacitor/core", () => ({
+  Capacitor: { getPlatform: () => "ios" },
+}));
+
+vi.mock("@/api/pushNotificationsAPI", () => ({
+  registerToken: vi.fn(),
+  Platform: {},
 }));
 
 describe("App", () => {
@@ -294,6 +317,36 @@ describe("App", () => {
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
     expect(screen.queryByTestId("side-navigation")).not.toBeInTheDocument();
+  });
+
+  it("does not clear registeredFcmToken when re-registration fails", async () => {
+    (registerToken as Mock).mockRejectedValue(new Error("backend error"));
+    vi.mocked(usePushNotifications).mockReturnValue({
+      initPushNotifications: vi.fn().mockResolvedValue(undefined),
+      token: "new-fcm-token",
+    });
+
+    const store = createTestStore({
+      pushNotification: {
+        ...pushNotificationInitialState,
+        registeredFcmToken: "old-fcm-token",
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+      );
+    });
+
+    expect(store.getState().pushNotification.registeredFcmToken).toBe(
+      "old-fcm-token",
+    );
   });
 
   it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {

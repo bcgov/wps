@@ -2,7 +2,11 @@ import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionOption from "@/components/settings/SubscriptionOption";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { savePinnedFireCentre } from "@/slices/settingsSlice";
-import { AppDispatch, selectSettings } from "@/store";
+import {
+  AppDispatch,
+  selectNotificationSettingsDisabled,
+  selectSettings,
+} from "@/store";
 import { theme } from "@/theme";
 import { nameFormatter } from "@/utils/stringUtils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -18,6 +22,7 @@ import {
   FormGroup,
   IconButton,
   List,
+  Snackbar,
   Typography,
 } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
@@ -35,8 +40,13 @@ const SubscriptionAccordion = ({
   fireCentreInfo,
 }: SubscriptionAccordionProps) => {
   const dispatch: AppDispatch = useDispatch();
-  const { updateSubscriptions, toggleSubscription } = useNotificationSettings();
+  const { updateSubscriptions, toggleSubscription, updateError } =
+    useNotificationSettings();
   const { pinnedFireCentre, subscriptions } = useSelector(selectSettings);
+  const notificationSettingsDisabled = useSelector(
+    selectNotificationSettingsDisabled,
+  );
+
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   // All fire zone unit ids in this fire centre.
@@ -112,9 +122,15 @@ const SubscriptionAccordion = ({
       }}
       aria-disabled={disabled ? true : undefined}
     >
+      <Snackbar
+        open={updateError}
+        message="Failed to update notification settings. Please try again later."
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
       <Accordion
         aria-label={`accordion-${fireCentreInfo.fire_centre_name}`}
         defaultExpanded={defaultExpanded}
+        disabled={notificationSettingsDisabled}
         disableGutters
         expanded={expanded}
         onChange={handleChange}
@@ -179,6 +195,7 @@ const SubscriptionAccordion = ({
                   key={fireZoneUnit.id}
                   fireZoneUnit={fireZoneUnit}
                   onToggle={toggleSubscription}
+                  disabled={notificationSettingsDisabled}
                 />
               );
             })}

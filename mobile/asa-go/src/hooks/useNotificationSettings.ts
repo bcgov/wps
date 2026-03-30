@@ -1,92 +1,56 @@
 import {
   getNotificationSettings,
-  registerToken,
   updateNotificationSettings,
 } from "api/pushNotificationsAPI";
-import { Capacitor } from "@capacitor/core";
-import { Device } from "@capacitor/device";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getUpdatedSubscriptions,
-  saveSubscriptions,
-  setDeviceIdError,
   setSubscriptions,
-  setTokenRegistered,
 } from "@/slices/settingsSlice";
-import { AppDispatch, selectAuthentication, selectNetworkStatus, selectSettings } from "@/store";
-import { Platform } from "api/pushNotificationsAPI";
+import { AppDispatch, selectNetworkStatus, selectPushNotification, selectSettings } from "@/store";
+import { useDeviceId } from "@/hooks/useDeviceId";
+import { retryWithBackoff } from "@/utils/retryWithBackoff";
 
 export function useNotificationSettings() {
   const dispatch = useDispatch<AppDispatch>();
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const { subscriptions, tokenRegistered, fcmToken } = useSelector(selectSettings);
-  const { idir } = useSelector(selectAuthentication);
-  const [deviceId, setDeviceId] = useState<string | null>(null);
+  const { subscriptions } = useSelector(selectSettings);
+  const { registeredFcmToken } = useSelector(selectPushNotification);
+  const deviceId = useDeviceId();
+  const [updateError, setUpdateError] = useState(false);
 
+  // Fetch from server once registered, and again when coming back online.
+  // The guard is intentional: deviceId and registeredFcmToken resolve asynchronously
+  // after mount, and networkStatus may start offline. The effect re-runs automatically
+  // when any dependency changes, so no fetch is missed.
   useEffect(() => {
-    Device.getId()
-      .then((info) => {
-        setDeviceId(info.identifier);
-        dispatch(setDeviceIdError(false));
-      })
-      .catch((e) => {
-        console.error(`Failed to get device ID: ${e}`);
-        dispatch(setDeviceIdError(true));
-      });
-  }, [dispatch]);
-
-  // Fetch from server once registered, and again when coming back online
-  useEffect(() => {
-    if (!deviceId || !networkStatus.connected || !tokenRegistered) return;
+    if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;
     getNotificationSettings(deviceId)
-      .then((ids) => {
-        const subs = ids.map(Number);
-        dispatch(setSubscriptions(subs));
-      })
-      .catch((e) =>
-        console.error(`Failed to fetch notification settings: ${e}`),
-      );
-  }, [deviceId, networkStatus.connected, tokenRegistered, dispatch]);
-
-  const ensureRegistered = async (): Promise<boolean> => {
-    if (tokenRegistered) return true;
-    if (!fcmToken || !deviceId) return false;
-    try {
-      await registerToken(Capacitor.getPlatform() as Platform, fcmToken, deviceId, idir || null);
-      dispatch(setTokenRegistered(true));
-      return true;
-    } catch (e) {
-      console.error(`Failed to register device: ${e}`);
-      return false;
-    }
-  };
+      .then((ids) => dispatch(setSubscriptions(ids.map(Number))))
+      .catch((e) => console.error(`Failed to fetch notification settings: ${e}`));
+  }, [deviceId, networkStatus.connected, registeredFcmToken, dispatch]);
 
   const updateSubscriptions = async (subs: number[]) => {
+    // Guard matches selectNotificationSettingsDisabled — button should be disabled
+    // before this is reachable, but guard prevents any state change if not.
+    if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;
     const previousSubs = subscriptions;
-    dispatch(saveSubscriptions(subs));
-    if (!deviceId || !networkStatus.connected) {
-      dispatch(saveSubscriptions(previousSubs));
-      return;
-    }
-    if (!await ensureRegistered()) {
-      dispatch(saveSubscriptions(previousSubs));
-      return;
-    }
-    try {
-      const fireZoneSourceIds = await updateNotificationSettings(
-        deviceId,
-        subs.map(String),
-      );
-      dispatch(setSubscriptions(fireZoneSourceIds.map(Number)));
-    } catch (e) {
-      console.error(`Failed to update notification settings: ${e}`);
-      dispatch(saveSubscriptions(previousSubs));
-    }
+    dispatch(setSubscriptions(subs));
+    retryWithBackoff(() => updateNotificationSettings(deviceId, subs.map(String)))
+      .then((ids) => {
+        dispatch(setSubscriptions(ids.map(Number)));
+        setUpdateError(false);
+      })
+      .catch((e) => {
+        console.error(`Failed to update notification settings: ${e}`);
+        dispatch(setSubscriptions(previousSubs));
+        setUpdateError(true);
+      });
   };
 
   const toggleSubscription = (fireZoneUnitId: number) =>
     updateSubscriptions(getUpdatedSubscriptions(subscriptions, fireZoneUnitId));
 
-  return { updateSubscriptions, toggleSubscription };
+  return { updateSubscriptions, toggleSubscription, updateError };
 }

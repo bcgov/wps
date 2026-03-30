@@ -3,6 +3,7 @@ import dataSlice from "@/slices/dataSlice";
 import fireCentersSlice from "@/slices/fireCentersSlice";
 import geolocationSlice from "@/slices/geolocationSlice";
 import networkStatusSlice from "@/slices/networkStatusSlice";
+import pushNotificationSlice from "@/slices/pushNotificationSlice";
 import runParametersSlice from "@/slices/runParametersSlice";
 import { combineReducers } from "@reduxjs/toolkit";
 import settingsSlice from "@/slices/settingsSlice";
@@ -15,4 +16,5 @@ export const rootReducer = combineReducers({
   authentication: authenticateSlice,
   data: dataSlice,
   settings: settingsSlice,
+  pushNotification: pushNotificationSlice,
 });

@@ -2,11 +2,13 @@ import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
 import {
   checkPushNotificationPermission,
+  registerDevice,
+} from "@/slices/pushNotificationSlice";
+import {
   fetchFireCentreInfo,
   initPinnedFireCentre,
-  initSubscriptions,
 } from "@/slices/settingsSlice";
-import { AppDispatch, selectNetworkStatus, selectNotificationSettingsDisabled, selectNotificationSetupState, selectSettings } from "@/store";
+import { AppDispatch, selectNetworkStatus, selectNotificationSettingsDisabled, selectNotificationSetupState, selectPushNotification, selectSettings } from "@/store";
 import { theme } from "@/theme";
 import {
   Alert,
@@ -36,22 +38,23 @@ const Settings = ({ activeTab }: SettingsProps) => {
     loading,
     error,
     pinnedFireCentre,
-    deviceIdError,
   } = useSelector(selectSettings);
+  const { deviceIdError } = useSelector(selectPushNotification);
   const setupState = useSelector(selectNotificationSetupState);
   const notificationSettingsDisabled = useSelector(selectNotificationSettingsDisabled);
 
-  // Load subscriptions and pinned fire centre from locally cached user preferences
+  // Load pinned fire centre from locally cached user preferences
   useEffect(() => {
     dispatch(initPinnedFireCentre());
-    dispatch(initSubscriptions());
   }, [dispatch]);
 
-  // Check push notification settings and fetch fire centre info on mount and when app is foregrounded
+  // Check push notification settings and fetch fire centre info on mount and when app is foregrounded.
+  // Also retry device registration in case the initial attempt failed (e.g. offline at startup).
   useEffect(() => {
     if (isVisible) {
       dispatch(fetchFireCentreInfo());
       dispatch(checkPushNotificationPermission());
+      dispatch(registerDevice());
     }
   }, [isActive, isVisible, dispatch]);
 

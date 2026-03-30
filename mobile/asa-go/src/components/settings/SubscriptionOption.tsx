@@ -13,11 +13,15 @@ import { useSelector } from "react-redux";
 interface SubscriptionOptionProps {
   fireZoneUnit: FireZoneUnit;
   onToggle: (fireZoneUnitId: number) => void;
+  disabled: boolean;
 }
 
-const SubscriptionOption = ({ fireZoneUnit, onToggle }: SubscriptionOptionProps) => {
+const SubscriptionOption = ({
+  fireZoneUnit,
+  onToggle,
+  disabled,
+}: SubscriptionOptionProps) => {
   const { subscriptions } = useSelector(selectSettings);
-
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
     onToggle(fireZoneUnit.id);
@@ -41,6 +45,7 @@ const SubscriptionOption = ({ fireZoneUnit, onToggle }: SubscriptionOptionProps)
         </ListItemText>
         <Switch
           edge="end"
+          disabled={disabled}
           checked={subscriptions.includes(fireZoneUnit.id)}
           onChange={handleSwitchChange}
           onClick={(e) => e.stopPropagation()}

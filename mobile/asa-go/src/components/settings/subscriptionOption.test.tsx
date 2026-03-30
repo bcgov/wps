@@ -2,20 +2,16 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { vi } from "vitest";
 import { createTestStore } from "@/testUtils";
-import { Preferences } from "@capacitor/preferences";
 import SubscriptionOption from "./SubscriptionOption";
 import { FireZoneUnit } from "@/api/fbaAPI";
-import { getUpdatedSubscriptions, saveSubscriptions } from "@/slices/settingsSlice";
+import {
+  getUpdatedSubscriptions,
+  setSubscriptions,
+} from "@/slices/settingsSlice";
 
-const KAMLOOPS_SWITCH_LABEL = "Toggle subscription for K2-Kamloops Zone (Kamloops)";
+const KAMLOOPS_SWITCH_LABEL =
+  "Toggle subscription for K2-Kamloops Zone (Kamloops)";
 const VANJAM_LABEL = "G4-VanJam\n(Vanderhoof)";
-
-vi.mock("@capacitor/preferences", () => ({
-  Preferences: {
-    get: vi.fn().mockResolvedValue({ value: null }),
-    set: vi.fn().mockResolvedValue(undefined),
-  },
-}));
 
 const getZoneLabel = (label: string) =>
   screen.getByText((_, element) => {
@@ -38,21 +34,23 @@ describe("SubscriptionOption", () => {
         error: null,
         fireCentreInfos: [],
         pinnedFireCentre: null,
-        pushNotificationPermission: "unknown",
         subscriptions: initialSubscriptions,
-        deviceIdError: false,
       },
     });
 
     const onToggle = (id: number) => {
       const current = store.getState().settings.subscriptions;
-      store.dispatch(saveSubscriptions(getUpdatedSubscriptions(current, id)));
+      store.dispatch(setSubscriptions(getUpdatedSubscriptions(current, id)));
     };
 
     return {
       ...render(
         <Provider store={store}>
-          <SubscriptionOption fireZoneUnit={fireZoneUnit} onToggle={onToggle} />
+          <SubscriptionOption
+            fireZoneUnit={fireZoneUnit}
+            onToggle={onToggle}
+            disabled={false}
+          />
         </Provider>,
       ),
       store,
@@ -91,18 +89,22 @@ describe("SubscriptionOption", () => {
   it("renders with switch unchecked when not subscribed", () => {
     renderWithProvider(mockFireZoneUnit, []);
 
-    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
+    const switchEl = screen.getByRole("checkbox", {
+      name: KAMLOOPS_SWITCH_LABEL,
+    });
     expect(switchEl).not.toBeChecked();
   });
 
   it("renders with switch checked when subscribed", () => {
     renderWithProvider(mockFireZoneUnit, [123]);
 
-    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
+    const switchEl = screen.getByRole("checkbox", {
+      name: KAMLOOPS_SWITCH_LABEL,
+    });
     expect(switchEl).toBeChecked();
   });
 
-  it("dispatches saveSubscriptions when clicking the list item (not subscribed)", async () => {
+  it("toggles subscription on when clicking the list item (not subscribed)", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, []);
 
     const listItemButton = screen.getByRole("button");
@@ -111,13 +113,9 @@ describe("SubscriptionOption", () => {
     await waitFor(() => {
       expect(store.getState().settings.subscriptions).toContain(123);
     });
-    expect(Preferences.set).toHaveBeenCalledWith({
-      key: "asaGoSubscriptions",
-      value: JSON.stringify([123]),
-    });
   });
 
-  it("dispatches saveSubscriptions when clicking the list item (already subscribed)", async () => {
+  it("toggles subscription off when clicking the list item (already subscribed)", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, [123]);
 
     const listItemButton = screen.getByRole("button");
@@ -126,16 +124,14 @@ describe("SubscriptionOption", () => {
     await waitFor(() => {
       expect(store.getState().settings.subscriptions).not.toContain(123);
     });
-    expect(Preferences.set).toHaveBeenCalledWith({
-      key: "asaGoSubscriptions",
-      value: JSON.stringify([]),
-    });
   });
 
-  it("dispatches saveSubscriptions when toggling the switch (turn on)", async () => {
+  it("toggles subscription on when toggling the switch (turn on)", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, []);
 
-    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
+    const switchEl = screen.getByRole("checkbox", {
+      name: KAMLOOPS_SWITCH_LABEL,
+    });
     fireEvent.click(switchEl);
 
     await waitFor(() => {
@@ -143,10 +139,12 @@ describe("SubscriptionOption", () => {
     });
   });
 
-  it("dispatches saveSubscriptions when toggling the switch (turn off)", async () => {
+  it("toggles subscription off when toggling the switch (turn off)", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, [123]);
 
-    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
+    const switchEl = screen.getByRole("checkbox", {
+      name: KAMLOOPS_SWITCH_LABEL,
+    });
     fireEvent.click(switchEl);
 
     await waitFor(() => {
@@ -161,7 +159,9 @@ describe("SubscriptionOption", () => {
       expect(store.getState().settings.subscriptions).toEqual([100, 200]);
     });
 
-    const switchEl = screen.getByRole("checkbox", { name: KAMLOOPS_SWITCH_LABEL });
+    const switchEl = screen.getByRole("checkbox", {
+      name: KAMLOOPS_SWITCH_LABEL,
+    });
     fireEvent.click(switchEl);
 
     // All fire zone units should be subscribed to

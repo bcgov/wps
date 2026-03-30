@@ -6,8 +6,6 @@ import {
   readFromFilesystem,
   writeToFileSystem,
 } from "@/utils/storage";
-import { FirebaseMessaging } from "@capacitor-firebase/messaging";
-import { PermissionState } from "@capacitor/core";
 import { Filesystem } from "@capacitor/filesystem";
 import { Preferences } from "@capacitor/preferences";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -20,11 +18,7 @@ export interface SettingsState {
   error: string | null;
   fireCentreInfos: FireCentreInfo[];
   pinnedFireCentre: string | null;
-  pushNotificationPermission: PermissionState | "unknown";
   subscriptions: number[];
-  deviceIdError: boolean;
-  tokenRegistered: boolean;
-  fcmToken: string | null;
 }
 
 export const initialState: SettingsState = {
@@ -32,15 +26,10 @@ export const initialState: SettingsState = {
   error: null,
   fireCentreInfos: [],
   pinnedFireCentre: null,
-  pushNotificationPermission: "unknown",
   subscriptions: [],
-  deviceIdError: false,
-  tokenRegistered: false,
-  fcmToken: null,
 };
 
 const PINNED_FIRE_CENTRE_KEY = "asaGoPinnedFireCentre";
-const SUBSCRIPTIONS_KEY = "asaGoSubscriptions";
 
 const settingsSlice = createSlice({
   name: "settings",
@@ -72,23 +61,8 @@ const settingsSlice = createSlice({
     ) {
       state.pinnedFireCentre = action.payload;
     },
-    setPushNotificationPermission(
-      state: SettingsState,
-      action: PayloadAction<PermissionState | "unknown">,
-    ) {
-      state.pushNotificationPermission = action.payload;
-    },
     setSubscriptions(state: SettingsState, action: PayloadAction<number[]>) {
       state.subscriptions = action.payload;
-    },
-    setDeviceIdError(state: SettingsState, action: PayloadAction<boolean>) {
-      state.deviceIdError = action.payload;
-    },
-    setTokenRegistered(state: SettingsState, action: PayloadAction<boolean>) {
-      state.tokenRegistered = action.payload;
-    },
-    setFcmToken(state: SettingsState, action: PayloadAction<string | null>) {
-      state.fcmToken = action.payload;
     },
   },
 });
@@ -97,12 +71,8 @@ export const {
   getFireCenterInfoStart,
   getFireCenterInfoFailed,
   getFireCenterInfoSuccess,
-  setDeviceIdError,
-  setFcmToken,
   setPinnedFireCentre,
-  setPushNotificationPermission,
   setSubscriptions,
-  setTokenRegistered,
 } = settingsSlice.actions;
 
 export default settingsSlice.reducer;
@@ -117,33 +87,6 @@ export const initPinnedFireCentre = (): AppThunk => async (dispatch) => {
   }
 };
 
-export const initSubscriptions = (): AppThunk => async (dispatch) => {
-  const result = await Preferences.get({
-    key: SUBSCRIPTIONS_KEY,
-  });
-  try {
-    if (result.value) {
-      const subs = JSON.parse(result.value);
-      if (subs && Array.isArray(subs)) {
-        dispatch(setSubscriptions(subs));
-      }
-    }
-  } catch (e) {
-    console.error(
-      `An error occurred when populating notification subscriptions: ${e}`,
-    );
-  }
-};
-
-export const saveSubscriptions =
-  (subs: number[]): AppThunk =>
-  async (dispatch) => {
-    dispatch(setSubscriptions(subs));
-    await Preferences.set({
-      key: SUBSCRIPTIONS_KEY,
-      value: JSON.stringify(subs),
-    });
-  };
 
 export const getUpdatedSubscriptions = (
   subscriptions: number[],
@@ -155,13 +98,6 @@ export const getUpdatedSubscriptions = (
 
   return [...subscriptions, fireZoneUnitId];
 };
-
-export const toggleSubscription =
-  (fireZoneUnitId: number): AppThunk =>
-  async (dispatch, getState) => {
-    const { subscriptions } = getState().settings;
-    dispatch(saveSubscriptions(getUpdatedSubscriptions(subscriptions, fireZoneUnitId)));
-  };
 
 // Update @capacitor/preferences and redux state with pinned fire centre
 export const savePinnedFireCentre =
@@ -228,13 +164,3 @@ export const fetchFireCentreInfo =
     }
   };
 
-export const checkPushNotificationPermission =
-  (): AppThunk => async (dispatch) => {
-    try {
-      const permissions = await FirebaseMessaging.checkPermissions();
-      dispatch(setPushNotificationPermission(permissions.receive ?? "unknown"));
-    } catch (e) {
-      console.error(e);
-      dispatch(setPushNotificationPermission("unknown"));
-    }
-  };

@@ -6,6 +6,7 @@ import Settings from "./Settings";
 import settingsReducer from "@/slices/settingsSlice";
 import networkStatusReducer from "@/slices/networkStatusSlice";
 import authenticationReducer from "@/slices/authenticationSlice";
+import pushNotificationReducer from "@/slices/pushNotificationSlice";
 import { FireCentreInfo, getFireCentreInfo } from "@/api/fbaAPI";
 import * as Storage from "@/utils/storage";
 import { NavPanel } from "@/utils/constants";
@@ -65,6 +66,7 @@ const createTestStore = (initialState = {}) => {
       settings: settingsReducer,
       networkStatus: networkStatusReducer,
       authentication: authenticationReducer,
+      pushNotification: pushNotificationReducer,
     },
     preloadedState: initialState,
   });
@@ -185,9 +187,11 @@ describe("Settings", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         fireCentreInfos: mockFireCentreInfos,
+      },
+      pushNotification: {
         pushNotificationPermission: "granted",
-        fcmToken: "test-token",
-        tokenRegistered: true,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -325,9 +329,11 @@ describe("Settings", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         fireCentreInfos: mockFireCentreInfos,
+      },
+      pushNotification: {
         pushNotificationPermission: "granted",
-        fcmToken: null,
-        tokenRegistered: false,
+        registeredFcmToken: null,
+        deviceIdError: false,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -350,6 +356,10 @@ describe("Settings", () => {
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
+      },
+      pushNotification: {
+        pushNotificationPermission: "unknown",
+        registeredFcmToken: null,
         deviceIdError: true,
       },
       networkStatus: {
@@ -372,6 +382,10 @@ describe("Settings", () => {
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
+      },
+      pushNotification: {
+        pushNotificationPermission: "unknown",
+        registeredFcmToken: null,
         deviceIdError: false,
       },
       networkStatus: {

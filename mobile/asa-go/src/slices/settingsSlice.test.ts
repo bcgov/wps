@@ -12,14 +12,9 @@ import settingsSlice, {
   getFireCenterInfoSuccess,
   initialState,
   initPinnedFireCentre,
-  initSubscriptions,
   savePinnedFireCentre,
-  saveSubscriptions,
-  setDeviceIdError,
-  setFcmToken,
   setPinnedFireCentre,
   setSubscriptions,
-  setTokenRegistered,
   SettingsState,
 } from "./settingsSlice";
 
@@ -44,6 +39,7 @@ vi.mock("@/utils/storage", () => ({
 vi.mock("@/api/fbaAPI", () => ({
   getFireCentreInfo: vi.fn(),
 }));
+
 
 describe("settingsSlice", () => {
   // Test data factories
@@ -195,50 +191,6 @@ describe("settingsSlice", () => {
       });
     });
 
-    it("initial state has deviceIdError false", () => {
-      expect(initialState.deviceIdError).toBe(false);
-    });
-
-    it("initial state has tokenRegistered false", () => {
-      expect(initialState.tokenRegistered).toBe(false);
-    });
-
-    it("initial state has fcmToken null", () => {
-      expect(initialState.fcmToken).toBeNull();
-    });
-
-    it("should handle setFcmToken", () => {
-      const nextState = settingsSlice(initialState, setFcmToken("my-token"));
-      expect(nextState.fcmToken).toBe("my-token");
-    });
-
-    it("should handle setFcmToken to null", () => {
-      const previousState = createSettingsState({ fcmToken: "my-token" });
-      const nextState = settingsSlice(previousState, setFcmToken(null));
-      expect(nextState.fcmToken).toBeNull();
-    });
-
-    it("should handle setTokenRegistered to true", () => {
-      const nextState = settingsSlice(initialState, setTokenRegistered(true));
-      expect(nextState.tokenRegistered).toBe(true);
-    });
-
-    it("should handle setTokenRegistered to false", () => {
-      const previousState = createSettingsState({ tokenRegistered: true });
-      const nextState = settingsSlice(previousState, setTokenRegistered(false));
-      expect(nextState.tokenRegistered).toBe(false);
-    });
-
-    it("should handle setDeviceIdError to true", () => {
-      const nextState = settingsSlice(initialState, setDeviceIdError(true));
-      expect(nextState.deviceIdError).toBe(true);
-    });
-
-    it("should handle setDeviceIdError to false", () => {
-      const previousState = createSettingsState({ deviceIdError: true });
-      const nextState = settingsSlice(previousState, setDeviceIdError(false));
-      expect(nextState.deviceIdError).toBe(false);
-    });
   });
 
   describe("thunks", () => {
@@ -270,101 +222,6 @@ describe("settingsSlice", () => {
 
         expectSettingsState(store.getState().settings, {
           pinnedFireCentre: null,
-        });
-      });
-    });
-
-    describe("initSubscriptions", () => {
-      it("should dispatch setSubscriptions when stored value exists", async () => {
-        const store = createTestStore();
-        (Preferences.get as Mock).mockResolvedValue({
-          value: JSON.stringify([1, 2, 3]),
-        });
-
-        await store.dispatch(initSubscriptions());
-
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [1, 2, 3],
-        });
-      });
-
-      it("should not dispatch setSubscriptions when no stored value", async () => {
-        const store = createTestStore();
-        (Preferences.get as Mock).mockResolvedValue({ value: null });
-
-        await store.dispatch(initSubscriptions());
-
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [],
-        });
-      });
-
-      it("should handle invalid JSON gracefully", async () => {
-        const store = createTestStore();
-        const consoleSpy = vi
-          .spyOn(console, "error")
-          .mockImplementation(() => {});
-        (Preferences.get as Mock).mockResolvedValue({
-          value: "invalid-json",
-        });
-
-        await store.dispatch(initSubscriptions());
-
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [],
-        });
-        expect(consoleSpy).toHaveBeenCalled();
-        consoleSpy.mockRestore();
-      });
-    });
-
-    describe("saveSubscriptions", () => {
-      it("should save subscriptions to preferences and update state", async () => {
-        const store = createTestStore();
-        (Preferences.set as Mock).mockResolvedValue(undefined);
-
-        await store.dispatch(saveSubscriptions([1, 2, 3]));
-
-        expect(Preferences.set).toHaveBeenCalledWith({
-          key: "asaGoSubscriptions",
-          value: "[1,2,3]",
-        });
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [1, 2, 3],
-        });
-      });
-
-      it("should update Redux state before Preferences.set completes", async () => {
-        const store = createTestStore();
-        let resolvePreferences: () => void;
-        (Preferences.set as Mock).mockReturnValue(
-          new Promise<void>((resolve) => {
-            resolvePreferences = () => resolve();
-          }),
-        );
-
-        const dispatchPromise = store.dispatch(saveSubscriptions([1, 2, 3]));
-
-        // State must be updated immediately, before Preferences.set resolves,
-        // so that concurrent toggleAll calls read the correct subscriptions.
-        expect(store.getState().settings.subscriptions).toEqual([1, 2, 3]);
-
-        resolvePreferences!();
-        await dispatchPromise;
-      });
-
-      it("should save empty subscriptions array", async () => {
-        const store = createTestStore();
-        (Preferences.set as Mock).mockResolvedValue(undefined);
-
-        await store.dispatch(saveSubscriptions([]));
-
-        expect(Preferences.set).toHaveBeenCalledWith({
-          key: "asaGoSubscriptions",
-          value: "[]",
-        });
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [],
         });
       });
     });
@@ -524,5 +381,6 @@ describe("settingsSlice", () => {
         expect(state.fireCentreInfos).toEqual([mockFireCentreInfoA]);
       });
     });
+
   });
 });

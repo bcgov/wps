@@ -34,6 +34,10 @@ vi.mock("api/pushNotificationsAPI", () => ({
   updateNotificationSettings: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock("@/utils/retryWithBackoff", () => ({
+  retryWithBackoff: vi.fn((op: () => Promise<unknown>) => op()),
+}));
+
 vi.mock("@capacitor/preferences", () => ({
   Preferences: {
     get: vi.fn().mockResolvedValue({ value: null }),
@@ -67,14 +71,14 @@ const renderWithProviders = ({
   subscriptions = [],
   pushNotificationPermission = "granted",
   connected = true,
-  tokenRegistered = true,
-  fcmToken = "test-token",
+  registeredFcmToken = "test-token",
+  deviceIdError = false,
 }: {
   subscriptions?: number[];
   pushNotificationPermission?: "granted" | "denied" | "prompt" | "unknown";
   connected?: boolean;
-  tokenRegistered?: boolean;
-  fcmToken?: string | null;
+  registeredFcmToken?: string | null;
+  deviceIdError?: boolean;
 } = {}) => {
   const store = createTestStore({
     networkStatus: {
@@ -88,11 +92,12 @@ const renderWithProviders = ({
       error: null,
       fireCentreInfos: [],
       pinnedFireCentre: null,
-      pushNotificationPermission,
       subscriptions,
-      deviceIdError: false,
-      tokenRegistered,
-      fcmToken,
+    },
+    pushNotification: {
+      pushNotificationPermission,
+      registeredFcmToken,
+      deviceIdError,
     },
   });
 
@@ -155,8 +160,11 @@ describe("FireShapeActionsDrawer", () => {
         error: null,
         fireCentreInfos: [],
         pinnedFireCentre: null,
-        pushNotificationPermission: "granted",
         subscriptions: [],
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: null,
         deviceIdError: false,
       },
     });
@@ -196,8 +204,11 @@ describe("FireShapeActionsDrawer", () => {
         error: null,
         fireCentreInfos: [],
         pinnedFireCentre: null,
-        pushNotificationPermission: "granted",
         subscriptions: [],
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: null,
         deviceIdError: false,
       },
     });
@@ -270,7 +281,7 @@ describe("FireShapeActionsDrawer", () => {
   });
 
   it("disables subscription when awaiting FCM token", () => {
-    renderWithProviders({ fcmToken: null });
+    renderWithProviders({ registeredFcmToken: null });
 
     expect(
       screen.getByRole("button", {
@@ -287,7 +298,7 @@ describe("FireShapeActionsDrawer", () => {
 
     const actionGrid = screen.getByRole("button", {
       name: /Toggle subscription for Test Fire Zone/i,
-    }).parentElement;
+    }).parentElement?.parentElement;
 
     expect(actionGrid).toHaveStyle({
       gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
@@ -308,7 +319,7 @@ describe("FireShapeActionsDrawer", () => {
 
     const actionGrid = screen.getByRole("button", {
       name: /Toggle subscription for Test Fire Zone/i,
-    }).parentElement;
+    }).parentElement?.parentElement;
 
     expect(actionGrid).toHaveStyle({
       gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
@@ -382,6 +393,44 @@ describe("FireShapeActionsDrawer", () => {
     await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([42]);
     });
+  });
+
+  it("shows error snackbar when subscription toggle fails", async () => {
+    vi.mocked(updateNotificationSettings).mockRejectedValue(new Error("server error"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    renderWithProviders();
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to update/i)).toBeInTheDocument();
+    });
+  });
+
+  it("shows a loading spinner on the subscribe button when awaiting FCM token", () => {
+    renderWithProviders({ registeredFcmToken: null });
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+  });
+
+  it("shows a message when permission is denied", () => {
+    renderWithProviders({ pushNotificationPermission: "denied" });
+    expect(screen.getByText(/enable notifications/i)).toBeInTheDocument();
+  });
+
+  it("shows a message when offline", () => {
+    renderWithProviders({ connected: false });
+    expect(screen.getByText(/offline/i)).toBeInTheDocument();
+  });
+
+  it("shows a message when device ID error", () => {
+    renderWithProviders({ deviceIdError: true, registeredFcmToken: null });
+    expect(screen.getByText(/unable to identify device/i)).toBeInTheDocument();
   });
 
   it("does not call updateNotificationSettings when offline", async () => {

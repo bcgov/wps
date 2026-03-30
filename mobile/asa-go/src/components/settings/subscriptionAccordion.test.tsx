@@ -24,6 +24,10 @@ vi.mock("api/pushNotificationsAPI", () => ({
   registerToken: vi.fn(),
 }));
 
+vi.mock("@/utils/retryWithBackoff", () => ({
+  retryWithBackoff: vi.fn((op: () => Promise<unknown>) => op()),
+}));
+
 import { getNotificationSettings, updateNotificationSettings } from "api/pushNotificationsAPI";
 
 vi.mock("@capacitor/preferences", () => ({
@@ -322,7 +326,8 @@ describe("SubscriptionAccordion", () => {
 
   it("selects all fire zone units when 'All' checkbox is checked", async () => {
     const store = createTestStore({
-      settings: { ...settingsReducer(undefined, { type: "unknown" }), tokenRegistered: true },
+      settings: { ...settingsReducer(undefined, { type: "unknown" }) },
+      pushNotification: { pushNotificationPermission: "granted" as const, registeredFcmToken: "test-token", deviceIdError: false },
       networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
     });
 
@@ -354,8 +359,8 @@ describe("SubscriptionAccordion", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         subscriptions: KAMLOOPS_FIRE_ZONE_IDS,
-        tokenRegistered: true,
       },
+      pushNotification: { pushNotificationPermission: "granted" as const, registeredFcmToken: "test-token", deviceIdError: false },
       networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
     });
 
@@ -464,12 +469,9 @@ describe("SubscriptionAccordion", () => {
         error: null,
         fireCentreInfos: [],
         pinnedFireCentre: null,
-        pushNotificationPermission: "unknown",
         subscriptions: initialSubscriptions,
-        deviceIdError: false,
-        tokenRegistered: true,
-        fcmToken: null,
       },
+      pushNotification: { pushNotificationPermission: "unknown" as const, registeredFcmToken: "test-token", deviceIdError: false },
       networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
     });
 
@@ -515,6 +517,35 @@ describe("SubscriptionAccordion", () => {
     expect(subs4).not.toContain(mockFireCentreInfo.fire_zone_units[1].id);
   });
 
+  it("shows error snackbar when subscription update fails", async () => {
+    vi.mocked(updateNotificationSettings).mockRejectedValue(new Error("server error"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const store = createTestStore({
+      settings: { ...settingsReducer(undefined, { type: "unknown" }) },
+      pushNotification: { pushNotificationPermission: "granted" as const, registeredFcmToken: "test-token", deviceIdError: false },
+      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+    });
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+          defaultExpanded={true}
+        />
+      </Provider>,
+    );
+
+    await waitFor(() => expect(getNotificationSettings).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByLabelText("Toggle subscription for K4-Vernon Zone (Vernon)"));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to update/i)).toBeInTheDocument();
+    });
+  });
+
   it("All checkbox on accordion works independently", async () => {
     vi.mocked(getNotificationSettings).mockResolvedValue(["3", "4"]);
 
@@ -524,8 +555,8 @@ describe("SubscriptionAccordion", () => {
         fireCentreInfos: mockFireCentreInfos,
         pinnedFireCentre: null,
         subscriptions: [3, 4],
-        tokenRegistered: true,
       },
+      pushNotification: { pushNotificationPermission: "granted" as const, registeredFcmToken: "test-token", deviceIdError: false },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
       },

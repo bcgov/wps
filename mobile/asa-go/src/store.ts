@@ -29,28 +29,23 @@ export const selectProvincialSummaries = (state: RootState) =>
 export const selectTPIStats = (state: RootState) => state.data.tpiStats;
 export const selectHFIStats = (state: RootState) => state.data.hfiStats;
 export const selectSettings = (state: RootState) => state.settings;
+export const selectPushNotification = (state: RootState) => state.pushNotification;
 
 export type NotificationSetupState =
   | "permissionDenied"
-  | "awaitingFCMToken"
   | "unregistered"
   | "ready";
 
 export const selectNotificationSetupState = createSelector(
-  selectSettings,
+  selectPushNotification,
   ({
     pushNotificationPermission,
-    fcmToken,
-    tokenRegistered,
+    registeredFcmToken,
   }): NotificationSetupState => {
     if (pushNotificationPermission !== "granted") {
       return "permissionDenied";
     }
-
-    if (!fcmToken) {
-      return "awaitingFCMToken";
-    }
-    if (!tokenRegistered) {
+    if (!registeredFcmToken) {
       return "unregistered";
     }
     return "ready";
@@ -62,4 +57,16 @@ export const selectNotificationSettingsDisabled = createSelector(
   selectNetworkStatus,
   (setupState, { networkStatus }) =>
     setupState !== "ready" || !networkStatus.connected,
+);
+
+export const selectNotificationSettingsDisabledReason = createSelector(
+  selectNotificationSetupState,
+  selectNetworkStatus,
+  selectPushNotification,
+  (setupState, { networkStatus }, { deviceIdError }): string | undefined => {
+    if (!networkStatus.connected) return "Unavailable offline";
+    if (deviceIdError) return "Unable to identify device";
+    if (setupState === "permissionDenied") return "Enable notifications in device settings";
+    return undefined;
+  },
 );
