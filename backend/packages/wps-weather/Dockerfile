@@ -69,8 +69,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH" \
-    CARTOPY_DATA_DIR=/app/cartopy/data
+    PATH="/app/.venv/bin:$PATH"
 
 # Use root during image build
 USER 0
@@ -85,7 +84,7 @@ RUN apt-get update && apt-get install -y libeccodes-tools \
 # Prepare /app for OpenShift:
 # Ensure the root group (GID 0) has read/write/execute permissions
 # so containers running as a random non-root UID (in group 0) can write here
-RUN mkdir -p /app/cartopy/data \
+RUN mkdir -p /app/.local/share/cartopy \
     && chgrp -R 0 /app \
     && chmod -R g+rwX /app
 
@@ -109,19 +108,6 @@ COPY ./backend/pyproject.toml ./backend/uv.lock ./
 # Hardening: make configs read-only but keep src directories group-writable
 RUN chmod -R a-w pyproject.toml uv.lock packages/*/pyproject.toml \
     && chmod -R g+rwX packages/*/src
-
-# Pre-download Natural Earth shapefiles used at runtime so the container
-# does not need outbound network access and avoids writes to /.local
-RUN python3 -c "\
-import cartopy; \
-cartopy.config['pre_existing_data_dir'] = '/app/cartopy/data'; \
-cartopy.config['data_dir'] = '/app/cartopy/data'; \
-import cartopy.io.shapereader as shpreader; \
-shpreader.natural_earth(resolution='110m', category='physical',  name='land'); \
-shpreader.natural_earth(resolution='110m', category='physical',  name='coastline'); \
-shpreader.natural_earth(resolution='110m', category='cultural',  name='admin_0_boundary_lines_land'); \
-shpreader.natural_earth(resolution='50m',  category='cultural',  name='admin_1_states_provinces_lines'); \
-"
 
 # OpenShift simulation: random non-root UID
 USER 1001
