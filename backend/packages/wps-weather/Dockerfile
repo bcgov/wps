@@ -12,8 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
 
 # Minimal deps
-RUN apt-get update && apt-get install -y \
-    git libeccodes-tools python3-pip \
+RUN apt-get update && apt-get install -y git \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -77,6 +76,10 @@ USER 0
 
 # Copy uv binary into runtime (enables uv at runtime)
 COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
+
+# eccodes C library required by cfgrib at runtime
+RUN apt-get update && apt-get install -y libeccodes-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Prepare /app for OpenShift:
 # Ensure the root group (GID 0) has read/write/execute permissions
