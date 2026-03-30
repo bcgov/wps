@@ -405,8 +405,10 @@ async def main():
     user_id = config.get("WX_OBJECT_STORE_USER_ID")
     secret_key = config.get("WX_OBJECT_STORE_SECRET")
     bucket = config.get("WX_OBJECT_STORE_BUCKET")
-    cartopy_data_dir = "/app/.local/share/cartopy"
-    cartopy.config["data_dir"] = cartopy_data_dir
+    # cartopy downloads some geographic data that needs to be stored locally
+    cartopy_data_dir = config.get("WX_CARTOPY_DATA_DIR")
+    if cartopy_data_dir:
+        cartopy.config["data_dir"] = cartopy_data_dir
 
     async with S3Client(user_id=user_id, secret_key=secret_key, bucket=bucket) as s3_client:
         try:

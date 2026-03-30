@@ -131,6 +131,11 @@ objects:
                         secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: wx-object-store-bucket
+                    - name: WX_CARTOPY_DATA_DIR
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.wx-object-store-bucket
                   resources:
                     limits:
                       memory: 2048Mi

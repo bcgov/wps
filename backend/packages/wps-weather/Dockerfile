@@ -84,7 +84,7 @@ RUN apt-get update && apt-get install -y libeccodes-tools \
 # Prepare /app for OpenShift:
 # Ensure the root group (GID 0) has read/write/execute permissions
 # so containers running as a random non-root UID (in group 0) can write here
-RUN mkdir -p /app/.local/share/cartopy \
+RUN mkdir -p /app \
     && chgrp -R 0 /app \
     && chmod -R g+rwX /app
 
