@@ -25,7 +25,7 @@ jobs:
         working-directory: ./mobile/asa-go
         run: yarn run test:ci
       - name: Upload test coverage to Codecov
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           files: ./mobile/asa-go/coverage/lcov.info
@@ -60,7 +60,7 @@ jobs:
             -enableCodeCoverage YES \
             -resultBundlePath ${{ runner.temp }}/keycloak.xcresult
       - name: Upload iOS coverage to Codecov
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ${{ runner.temp }}/keycloak.xcresult
@@ -98,7 +98,7 @@ jobs:
         working-directory: ./mobile/keycloak/android
         run: ./gradlew jacocoTestReport
       - name: Upload Android coverage to Codecov
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |
