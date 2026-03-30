@@ -78,7 +78,7 @@ USER 0
 COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
 
 # eccodes C library required by cfgrib at runtime
-RUN apt-get update && apt-get install -y libeccodes-dev \
+RUN apt-get update && apt-get install -y libeccodes-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Prepare /app for OpenShift:
