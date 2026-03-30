@@ -12,18 +12,18 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import xarray as xr
 from wps_shared import config
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
+from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
+from wps_shared.wps_logging import configure_logging
+
 from wps_weather.db.crud.wx_4panel_charts import (
     get_earliest_in_progress_date_limited,
     get_last_complete,
     get_or_create_processed_four_panel_chart,
     save_four_panel_chart,
 )
-from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_weather.db.models.wx_4panel_charts import ChartStatusEnum, ECCCModel, ModelNames
-from wps_shared.utils.s3_client import S3Client
-from wps_shared.utils.time import get_utc_now
-from wps_shared.wps_logging import configure_logging
-
 from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
 from wps_weather.wx_4panel_charts.panel_layout import (
     add_panel_title,
@@ -404,6 +404,8 @@ async def main():
     user_id = config.get("WX_OBJECT_STORE_USER_ID")
     secret_key = config.get("WX_OBJECT_STORE_SECRET")
     bucket = config.get("WX_OBJECT_STORE_BUCKET")
+    cartopy_data_dir = "/app/.local/share/cartopy"
+    ccrs.config["data_dir"] = cartopy_data_dir
 
     async with S3Client(user_id=user_id, secret_key=secret_key, bucket=bucket) as s3_client:
         try:
