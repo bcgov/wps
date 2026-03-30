@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
 
 # Minimal deps
-RUN apt-get update && apt-get install -y git \
+RUN apt-get update && apt-get install -y git python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 
