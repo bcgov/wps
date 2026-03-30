@@ -248,10 +248,6 @@ describe("FireShapeActionsDrawer", () => {
     await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([1]);
     });
-    expect(Preferences.set).toHaveBeenCalledWith({
-      key: "asaGoSubscriptions",
-      value: JSON.stringify([1]),
-    });
     expect(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,

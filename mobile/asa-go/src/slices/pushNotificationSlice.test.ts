@@ -168,7 +168,7 @@ describe("pushNotificationSlice", () => {
           },
         });
 
-        await store.dispatch(registerDevice());
+        await store.dispatch(registerDevice(null));
 
         expect(registerToken).toHaveBeenCalledWith(
           "ios",
@@ -190,19 +190,11 @@ describe("pushNotificationSlice", () => {
           token: "existing-token",
         });
 
-        const store = createTestStore({
-          pushNotification: {
-            ...initialState,
-            registeredFcmToken: "existing-token",
-          },
-        });
+        const store = createTestStore();
 
-        await store.dispatch(registerDevice());
+        await store.dispatch(registerDevice("existing-token"));
 
         expect(registerToken).not.toHaveBeenCalled();
-        expect(store.getState().pushNotification.registeredFcmToken).toBe(
-          "existing-token",
-        );
       });
 
       it("re-registers when token has rotated", async () => {
@@ -219,14 +211,9 @@ describe("pushNotificationSlice", () => {
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockResolvedValue(undefined);
 
-        const store = createTestStore({
-          pushNotification: {
-            ...initialState,
-            registeredFcmToken: "old-token",
-          },
-        });
+        const store = createTestStore();
 
-        await store.dispatch(registerDevice());
+        await store.dispatch(registerDevice("old-token"));
 
         expect(registerToken).toHaveBeenCalledWith(
           "ios",
@@ -258,7 +245,7 @@ describe("pushNotificationSlice", () => {
 
         const store = createTestStore();
 
-        await store.dispatch(registerDevice());
+        await store.dispatch(registerDevice(null));
 
         expect(store.getState().pushNotification.registeredFcmToken).toBeNull();
         consoleSpy.mockRestore();
@@ -291,7 +278,7 @@ describe("pushNotificationSlice", () => {
           },
         });
 
-        await store.dispatch(registerDevice());
+        await store.dispatch(registerDevice(null));
 
         expect(retryWithBackoff).toHaveBeenCalledTimes(1);
         expect(store.getState().pushNotification.registeredFcmToken).toBe(
@@ -323,7 +310,7 @@ describe("pushNotificationSlice", () => {
         );
 
         const store = createTestStore();
-        await store.dispatch(registerDevice());
+        await store.dispatch(registerDevice(null));
 
         expect(store.getState().pushNotification.registeredFcmToken).toBeNull();
         expect(consoleSpy).toHaveBeenCalled();

@@ -59,19 +59,20 @@ export const checkPushNotificationPermission =
     }
   };
 
-export const registerDevice = (): AppThunk => async (dispatch, getState) => {
-  const { registeredFcmToken } = getState().pushNotification;
-  try {
-    const { token } = await FirebaseMessaging.getToken();
-    if (!token) return; // no token available yet
-    if (token === registeredFcmToken) return; // already registered, nothing to do
-    const { idir } = getState().authentication;
-    const { identifier } = await Device.getId();
-    await retryWithBackoff(() =>
-      registerToken(Capacitor.getPlatform() as Platform, token, identifier, idir || null),
-    );
-    dispatch(setRegisteredFcmToken(token));
-  } catch (e) {
-    console.error("Failed to register device:", e);
-  }
-};
+export const registerDevice =
+  (registeredFcmToken: string | null): AppThunk =>
+  async (dispatch, getState) => {
+    try {
+      const { token } = await FirebaseMessaging.getToken();
+      if (!token) return; // no token available yet
+      if (token === registeredFcmToken) return; // already registered, nothing to do
+      const { idir } = getState().authentication;
+      const { identifier } = await Device.getId();
+      await retryWithBackoff(() =>
+        registerToken(Capacitor.getPlatform() as Platform, token, identifier, idir || null),
+      );
+      dispatch(setRegisteredFcmToken(token));
+    } catch (e) {
+      console.error("Failed to register device:", e);
+    }
+  };

@@ -181,7 +181,10 @@ describe("SubscriptionAccordion", () => {
   });
 
   it("expands and collapses when clicked", async () => {
-    const store = createTestStore();
+    const store = createTestStore({
+      pushNotification: { pushNotificationPermission: "granted", registeredFcmToken: "test-token", deviceIdError: false },
+      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+    });
 
     render(
       <Provider store={store}>

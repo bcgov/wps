@@ -8,7 +8,14 @@ import {
   fetchFireCentreInfo,
   initPinnedFireCentre,
 } from "@/slices/settingsSlice";
-import { AppDispatch, selectNetworkStatus, selectNotificationSettingsDisabled, selectNotificationSetupState, selectPushNotification, selectSettings } from "@/store";
+import {
+  AppDispatch,
+  selectNetworkStatus,
+  selectNotificationSettingsDisabled,
+  selectNotificationSetupState,
+  selectPushNotification,
+  selectSettings,
+} from "@/store";
 import { theme } from "@/theme";
 import {
   Alert,
@@ -33,15 +40,15 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const isActive = useAppIsActive();
   const isVisible = activeTab === NavPanel.SETTINGS;
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const {
-    fireCentreInfos,
-    loading,
-    error,
-    pinnedFireCentre,
-  } = useSelector(selectSettings);
-  const { deviceIdError } = useSelector(selectPushNotification);
+  const { fireCentreInfos, loading, error, pinnedFireCentre } =
+    useSelector(selectSettings);
+  const { deviceIdError, registeredFcmToken } = useSelector(
+    selectPushNotification,
+  );
   const setupState = useSelector(selectNotificationSetupState);
-  const notificationSettingsDisabled = useSelector(selectNotificationSettingsDisabled);
+  const notificationSettingsDisabled = useSelector(
+    selectNotificationSettingsDisabled,
+  );
 
   // Load pinned fire centre from locally cached user preferences
   useEffect(() => {
@@ -54,9 +61,9 @@ const Settings = ({ activeTab }: SettingsProps) => {
     if (isVisible) {
       dispatch(fetchFireCentreInfo());
       dispatch(checkPushNotificationPermission());
-      dispatch(registerDevice());
+      dispatch(registerDevice(registeredFcmToken));
     }
-  }, [isActive, isVisible, dispatch]);
+  }, [isActive, isVisible, registeredFcmToken, dispatch]);
 
   // Derived ordered list of centres for display (memoized)
   const orderedFireCentres = useMemo<FireCentreInfo[]>(() => {
@@ -140,7 +147,8 @@ const Settings = ({ activeTab }: SettingsProps) => {
 
   const renderPermissionBanner = () => {
     // Show a banner if permission is not explicitly granted in system settings and we're online.
-    const shouldShow = setupState === "permissionDenied" && networkStatus.connected;
+    const shouldShow =
+      setupState === "permissionDenied" && networkStatus.connected;
     if (shouldShow) {
       return (
         <Alert
