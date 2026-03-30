@@ -16,8 +16,9 @@ jobs:
   lint-api:
     name: Python - Lint
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
+    # https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#yaml-anchors-and-aliases
+    container: &api-base-image
+      image: ghcr.io/bcgov/wps/wps-api-base:03-30-2026
       options: --user 0
     steps:
       - uses: actions/checkout@v6
@@ -29,9 +30,7 @@ jobs:
   test-api:
     name: Python - API Test with coverage
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
-      options: --user 0
+    container: *api-base-image
     steps:
       - uses: actions/checkout@v6
         with:
@@ -56,9 +55,7 @@ jobs:
   test-wps-shared:
     name: Python - WPS Shared Test with coverage
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
-      options: --user 0
+    container: *api-base-image
     steps:
       - uses: actions/checkout@v6
         with:
@@ -81,9 +78,7 @@ jobs:
   test-wps-jobs:
     name: Python - WPS Jobs Test with coverage
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
-      options: --user 0
+    container: *api-base-image
     steps:
       - uses: actions/checkout@v6
         with:
@@ -111,9 +106,7 @@ jobs:
   test-wps-weather:
     name: Python - WPS Weather Test
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
-      options: --user 0
+    container: *api-base-image
     steps:
       - uses: actions/checkout@v6
         with:
@@ -127,9 +120,7 @@ jobs:
   test-wps-sfms:
     name: Python - WPS SFMS Test
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
-      options: --user 0
+    container: *api-base-image
     steps:
       - uses: actions/checkout@v6
         with:
@@ -143,9 +134,7 @@ jobs:
   test-wps-wf1:
     name: Python - WF1 Test with coverage
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:01-29-2026
-      options: --user 0
+    container: *api-base-image
     steps:
       - uses: actions/checkout@v6
         with:
