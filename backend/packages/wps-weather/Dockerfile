@@ -69,7 +69,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH" 
+    PATH="/app/.venv/bin:$PATH" \
+    CARTOPY_DATA_DIR=/app/cartopy/data
 
 # Use root during image build
 USER 0
@@ -114,6 +115,7 @@ RUN chmod -R a-w pyproject.toml uv.lock packages/*/pyproject.toml \
 RUN python3 -c "\
 import cartopy; \
 cartopy.config['pre_existing_data_dir'] = '/app/cartopy/data'; \
+cartopy.config['data_dir'] = '/app/cartopy/data'; \
 import cartopy.io.shapereader as shpreader; \
 shpreader.natural_earth(resolution='110m', category='physical',  name='land'); \
 shpreader.natural_earth(resolution='110m', category='physical',  name='coastline'); \
