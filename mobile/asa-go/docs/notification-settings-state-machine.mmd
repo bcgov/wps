@@ -32,7 +32,7 @@ stateDiagram-v2
         Subscribe button disabled in LoadingSubscriptions\n(selectNotificationSettingsDisabled checks subscriptionsInitialized)
         Subscription toggle UI:
         Updating → disabled + thumb pulse animation (LoadingSwitch)
-        UpdateFailed → reverted state + inline error text (LoadingSwitch)
+        UpdateFailed → reverted state + snackbar + inline error on the failed switch (LoadingSwitch)
     end note
 
     note right of Unregistered
