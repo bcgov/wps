@@ -138,7 +138,7 @@ objects:
                           key: env.wx-cartopy-data-dir
                   resources:
                     limits:
-                      memory: 2048Mi
+                      memory: 4096Mi
                     requests:
                       cpu: "75m"
                       memory: 512Mi
