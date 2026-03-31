@@ -107,6 +107,7 @@ const renderWithProviders = ({
       pushNotificationPermission,
       registeredFcmToken,
       deviceIdError,
+      registrationError: false,
     },
   });
 
@@ -176,6 +177,7 @@ describe("FireShapeActionsDrawer", () => {
         pushNotificationPermission: "granted",
         registeredFcmToken: null,
         deviceIdError: false,
+        registrationError: false,
       },
     });
     const theme = createTheme();
@@ -221,6 +223,7 @@ describe("FireShapeActionsDrawer", () => {
         pushNotificationPermission: "granted",
         registeredFcmToken: null,
         deviceIdError: false,
+        registrationError: false,
       },
     });
     const theme = createTheme();
