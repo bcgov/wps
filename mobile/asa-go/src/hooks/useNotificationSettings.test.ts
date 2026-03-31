@@ -49,6 +49,7 @@ const onlineState = {
     pushNotificationPermission: "granted" as const,
     registeredFcmToken: "test-token",
     deviceIdError: false,
+    registrationError: false,
   },
 };
 
@@ -129,6 +130,7 @@ describe("useNotificationSettings", () => {
         pushNotificationPermission: "granted" as const,
         registeredFcmToken: "tok",
         deviceIdError: false,
+        registrationError: false,
       },
     });
     const wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -162,7 +164,10 @@ describe("useNotificationSettings", () => {
     (updateNotificationSettings as Mock).mockResolvedValue(["1", "2"]);
 
     const { result, store } = await act(async () =>
-      renderWithStore({ ...onlineState, settings: { ...onlineState.settings, subscriptions: [1] } }),
+      renderWithStore({
+        ...onlineState,
+        settings: { ...onlineState.settings, subscriptions: [1] },
+      }),
     );
 
     await act(async () => {
@@ -180,7 +185,10 @@ describe("useNotificationSettings", () => {
     (updateNotificationSettings as Mock).mockResolvedValue(["2"]);
 
     const { result, store } = await act(async () =>
-      renderWithStore({ ...onlineState, settings: { ...onlineState.settings, subscriptions: [1, 2] } }),
+      renderWithStore({
+        ...onlineState,
+        settings: { ...onlineState.settings, subscriptions: [1, 2] },
+      }),
     );
 
     await act(async () => {
@@ -201,6 +209,7 @@ describe("useNotificationSettings", () => {
         pushNotificationPermission: "granted" as const,
         registeredFcmToken: null,
         deviceIdError: false,
+        registrationError: false,
       },
     });
     const wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -224,7 +233,10 @@ describe("useNotificationSettings", () => {
     );
 
     const { result, store } = await act(async () =>
-      renderWithStore({ ...onlineState, settings: { ...onlineState.settings, subscriptions: [5, 6] } }),
+      renderWithStore({
+        ...onlineState,
+        settings: { ...onlineState.settings, subscriptions: [5, 6] },
+      }),
     );
 
     await act(async () => {
