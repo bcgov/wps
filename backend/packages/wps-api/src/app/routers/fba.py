@@ -148,7 +148,7 @@ async def get_all_zone_data_for_source_ids(
     "/fire-centers", response_model=FireCenterListResponse, response_model_exclude_none=True
 )
 async def get_all_fire_centers(_=Depends(asa_authentication_required)):
-    """Returns fire centres from the shared PSU source."""
+    """Returns fire centres from the wps database."""
     logger.info("/fba/fire-centers/")
     fire_centres = await fetch_fire_centres()
     return build_fba_fire_centers_response(fire_centres)
