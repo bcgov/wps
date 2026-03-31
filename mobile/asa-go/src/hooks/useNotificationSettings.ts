@@ -5,7 +5,12 @@ import {
   getUpdatedSubscriptions,
   setSubscriptions,
 } from "@/slices/settingsSlice";
-import { AppDispatch, selectNetworkStatus, selectPushNotification, selectSettings } from "@/store";
+import {
+  AppDispatch,
+  selectNetworkStatus,
+  selectPushNotification,
+  selectSettings,
+} from "@/store";
 import { useDeviceId } from "@/hooks/useDeviceId";
 import { retryWithBackoff } from "@/utils/retryWithBackoff";
 
@@ -33,12 +38,18 @@ export function useNotificationSettings() {
       console.error(`Failed to update notification settings: ${e}`);
       dispatch(setSubscriptions(previousSubs));
       setUpdateError(true);
-      throw e;
     }
   };
 
   const toggleSubscription = (fireZoneUnitId: number) =>
     updateSubscriptions(getUpdatedSubscriptions(subscriptions, fireZoneUnitId));
 
-  return { updateSubscriptions, toggleSubscription, updateError };
+  const clearUpdateError = () => setUpdateError(false);
+
+  return {
+    updateSubscriptions,
+    toggleSubscription,
+    updateError,
+    clearUpdateError,
+  };
 }

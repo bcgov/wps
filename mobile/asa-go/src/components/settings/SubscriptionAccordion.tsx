@@ -40,8 +40,12 @@ const SubscriptionAccordion = ({
   fireCentreInfo,
 }: SubscriptionAccordionProps) => {
   const dispatch: AppDispatch = useDispatch();
-  const { updateSubscriptions, toggleSubscription, updateError } =
-    useNotificationSettings();
+  const {
+    updateSubscriptions,
+    toggleSubscription,
+    updateError,
+    clearUpdateError,
+  } = useNotificationSettings();
   const { pinnedFireCentre, subscriptions } = useSelector(selectSettings);
   const notificationSettingsDisabled = useSelector(
     selectNotificationSettingsDisabled,
@@ -138,6 +142,8 @@ const SubscriptionAccordion = ({
     >
       <Snackbar
         open={updateError}
+        autoHideDuration={6000}
+        onClose={clearUpdateError}
         message="Failed to update notification settings. Please try again later."
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />

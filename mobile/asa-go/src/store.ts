@@ -34,6 +34,7 @@ export const selectPushNotification = (state: RootState) => state.pushNotificati
 export type NotificationSetupState =
   | "permissionDenied"
   | "unregistered"
+  | "registrationFailed"
   | "ready";
 
 export const selectNotificationSetupState = createSelector(
@@ -41,12 +42,13 @@ export const selectNotificationSetupState = createSelector(
   ({
     pushNotificationPermission,
     registeredFcmToken,
+    registrationError,
   }): NotificationSetupState => {
     if (pushNotificationPermission !== "granted") {
       return "permissionDenied";
     }
     if (!registeredFcmToken) {
-      return "unregistered";
+      return registrationError ? "registrationFailed" : "unregistered";
     }
     return "ready";
   },
@@ -67,6 +69,7 @@ export const selectNotificationSettingsDisabledReason = createSelector(
     if (!networkStatus.connected) return "Unavailable offline";
     if (deviceIdError) return "Unable to identify device";
     if (setupState === "permissionDenied") return "Enable notifications in device settings";
+    if (setupState === "registrationFailed") return "Unable to register for notifications";
     return undefined;
   },
 );

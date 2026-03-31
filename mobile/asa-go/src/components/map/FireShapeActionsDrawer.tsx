@@ -48,7 +48,7 @@ const FireShapeActionsDrawer = ({
   onSelectAdvisory,
 }: FireShapeActionsDrawerProps) => {
   const dispatch: AppDispatch = useDispatch();
-  const { toggleSubscription, updateError } = useNotificationSettings();
+  const { toggleSubscription, updateError, clearUpdateError } = useNotificationSettings();
   const theme = useTheme();
 
   const isPortrait = useIsPortrait();
@@ -108,6 +108,8 @@ const FireShapeActionsDrawer = ({
     <>
       <Snackbar
         open={updateError}
+        autoHideDuration={6000}
+        onClose={clearUpdateError}
         message="Failed to update notification settings. Please try again later."
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />

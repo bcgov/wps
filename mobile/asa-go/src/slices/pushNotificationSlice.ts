@@ -10,12 +10,14 @@ export interface PushNotificationState {
   pushNotificationPermission: PermissionState | "unknown";
   registeredFcmToken: string | null;
   deviceIdError: boolean;
+  registrationError: boolean;
 }
 
 export const initialState: PushNotificationState = {
   pushNotificationPermission: "unknown",
   registeredFcmToken: null,
   deviceIdError: false,
+  registrationError: false,
 };
 
 const pushNotificationSlice = createSlice({
@@ -37,11 +39,15 @@ const pushNotificationSlice = createSlice({
     setDeviceIdError(state: PushNotificationState, action: PayloadAction<boolean>) {
       state.deviceIdError = action.payload;
     },
+    setRegistrationError(state: PushNotificationState, action: PayloadAction<boolean>) {
+      state.registrationError = action.payload;
+    },
   },
 });
 
 export const {
   setDeviceIdError,
+  setRegistrationError,
   setPushNotificationPermission,
   setRegisteredFcmToken,
 } = pushNotificationSlice.actions;
@@ -71,8 +77,10 @@ export const registerDevice =
       await retryWithBackoff(() =>
         registerToken(Capacitor.getPlatform() as Platform, token, identifier, idir || null),
       );
+      dispatch(setRegistrationError(false));
       dispatch(setRegisteredFcmToken(token));
     } catch (e) {
       console.error("Failed to register device:", e);
+      dispatch(setRegistrationError(true));
     }
   };
