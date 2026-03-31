@@ -1,11 +1,27 @@
 {
   "extends": "@wps/tsconfig/react-app.json",
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist",
     "declaration": true,
     "declarationMap": true,
-    "customConditions": ["development"],
-    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "@wps/types"]
+    "customConditions": [
+      "development"
+    ],
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "@testing-library/jest-dom",
+      "@wps/types"
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/setupTests.ts"
+  ]
 }
