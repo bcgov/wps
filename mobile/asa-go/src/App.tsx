@@ -41,6 +41,7 @@ import { isNil, isNull } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useInitSubscriptions } from "@/hooks/useInitSubscriptions";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const App = () => {
@@ -49,7 +50,7 @@ const App = () => {
   const isPortrait = useIsPortrait();
   const dispatch: AppDispatch = useDispatch();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
-  const { idir, isAuthenticated } = useSelector(selectAuthentication);
+  const { isAuthenticated } = useSelector(selectAuthentication);
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -70,6 +71,7 @@ const App = () => {
   const runParameter = useRunParameterForDate(dateOfInterest);
   const { initPushNotifications } = usePushNotifications();
   const { registeredFcmToken } = useSelector(selectPushNotification);
+  useInitSubscriptions();
 
   const selectedFireCenterName = selectedFireShape?.mof_fire_centre_name;
   const matchingFireCenter = selectedFireCenterName

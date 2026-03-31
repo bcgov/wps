@@ -6,7 +6,6 @@ import { Provider } from "react-redux";
 import React from "react";
 
 vi.mock("api/pushNotificationsAPI", () => ({
-  getNotificationSettings: vi.fn(),
   updateNotificationSettings: vi.fn(),
 }));
 
@@ -28,10 +27,7 @@ vi.mock("@capacitor/preferences", () => ({
   },
 }));
 
-import {
-  getNotificationSettings,
-  updateNotificationSettings,
-} from "api/pushNotificationsAPI";
+import { updateNotificationSettings } from "api/pushNotificationsAPI";
 import { retryWithBackoff } from "@/utils/retryWithBackoff";
 
 const onlineState = {
@@ -46,7 +42,8 @@ const onlineState = {
     error: null,
     fireCentreInfos: [],
     pinnedFireCentre: null,
-    subscriptions: [],
+    subscriptions: [] as number[],
+    subscriptionsInitialized: false,
   },
   pushNotification: {
     pushNotificationPermission: "granted" as const,
@@ -76,65 +73,11 @@ describe("useNotificationSettings", () => {
     vi.clearAllMocks();
   });
 
-  it("fetches notification settings on mount when online", async () => {
-    (getNotificationSettings as Mock).mockResolvedValue(["1", "2", "3"]);
-
-    const { store } = await act(async () => renderWithStore());
-
-    expect(getNotificationSettings).toHaveBeenCalledWith("test-device-id");
-    expect(store.getState().settings.subscriptions).toEqual([1, 2, 3]);
-  });
-
-  it("does not fetch when offline", async () => {
-    await act(async () => renderWithStore({ ...onlineState, ...offlineState }));
-
-    expect(getNotificationSettings).not.toHaveBeenCalled();
-  });
-
-  it("does not fetch when not registered", async () => {
-    const store = createTestStore({
-      ...onlineState,
-      pushNotification: {
-        pushNotificationPermission: "granted" as const,
-        registeredFcmToken: null,
-        deviceIdError: false,
-      },
-    });
-    const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(Provider, { store, children });
-
-    await act(async () =>
-      renderHook(() => useNotificationSettings(), { wrapper }),
-    );
-
-    expect(getNotificationSettings).not.toHaveBeenCalled();
-  });
-
-  it("fetches when registeredFcmToken is set", async () => {
-    (getNotificationSettings as Mock).mockResolvedValue(["1"]);
-    const store = createTestStore({
-      ...onlineState,
-      pushNotification: {
-        pushNotificationPermission: "granted" as const,
-        registeredFcmToken: "test-token",
-        deviceIdError: false,
-      },
-    });
-    const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(Provider, { store, children });
-
-    await act(async () =>
-      renderHook(() => useNotificationSettings(), { wrapper }),
-    );
-
-    expect(getNotificationSettings).toHaveBeenCalledWith("test-device-id");
-  });
-
   it("uses retryWithBackoff when updating subscriptions", async () => {
-    (getNotificationSettings as Mock).mockResolvedValue([]);
     (updateNotificationSettings as Mock).mockResolvedValue(["1"]);
 
     const { result } = await act(async () => renderWithStore());
+    vi.clearAllMocks();
 
     await act(async () => {
       await result.current.updateSubscriptions([1]);
@@ -144,7 +87,6 @@ describe("useNotificationSettings", () => {
   });
 
   it("updateSubscriptions saves locally and syncs to server when online", async () => {
-    (getNotificationSettings as Mock).mockResolvedValue([]);
     (updateNotificationSettings as Mock).mockResolvedValue(["10", "20"]);
 
     const { result, store } = await act(async () => renderWithStore());
@@ -161,8 +103,6 @@ describe("useNotificationSettings", () => {
   });
 
   it("updateSubscriptions skips API call when offline", async () => {
-    (getNotificationSettings as Mock).mockResolvedValue([]);
-
     const { result } = await act(async () =>
       renderWithStore({ ...onlineState, ...offlineState }),
     );
@@ -183,6 +123,7 @@ describe("useNotificationSettings", () => {
         fireCentreInfos: [],
         pinnedFireCentre: null,
         subscriptions: [5],
+        subscriptionsInitialized: false,
       },
       pushNotification: {
         pushNotificationPermission: "granted" as const,
@@ -205,7 +146,6 @@ describe("useNotificationSettings", () => {
   });
 
   it("updateSubscriptions updates state from server response", async () => {
-    (getNotificationSettings as Mock).mockResolvedValue([]);
     // server returns different subs than what was sent (e.g. server corrects the list)
     (updateNotificationSettings as Mock).mockResolvedValue(["5", "6"]);
 
@@ -219,10 +159,11 @@ describe("useNotificationSettings", () => {
   });
 
   it("toggleSubscription adds a subscription", async () => {
-    (getNotificationSettings as Mock).mockResolvedValue(["1"]);
     (updateNotificationSettings as Mock).mockResolvedValue(["1", "2"]);
 
-    const { result, store } = await act(async () => renderWithStore());
+    const { result, store } = await act(async () =>
+      renderWithStore({ ...onlineState, settings: { ...onlineState.settings, subscriptions: [1] } }),
+    );
 
     await act(async () => {
       await result.current.toggleSubscription(2);
@@ -236,10 +177,11 @@ describe("useNotificationSettings", () => {
   });
 
   it("toggleSubscription removes an existing subscription", async () => {
-    (getNotificationSettings as Mock).mockResolvedValue(["1", "2"]);
     (updateNotificationSettings as Mock).mockResolvedValue(["2"]);
 
-    const { result, store } = await act(async () => renderWithStore());
+    const { result, store } = await act(async () =>
+      renderWithStore({ ...onlineState, settings: { ...onlineState.settings, subscriptions: [1, 2] } }),
+    );
 
     await act(async () => {
       await result.current.toggleSubscription(1);
@@ -249,20 +191,6 @@ describe("useNotificationSettings", () => {
       "2",
     ]);
     expect(store.getState().settings.subscriptions).toEqual([2]);
-  });
-
-  it("logs error and keeps local state if fetch fails", async () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    (getNotificationSettings as Mock).mockRejectedValue(
-      new Error("network error"),
-    );
-
-    await act(async () => renderWithStore());
-
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Failed to fetch"),
-    );
-    consoleSpy.mockRestore();
   });
 
   it("rolls back subscription change when not registered", async () => {
@@ -291,15 +219,16 @@ describe("useNotificationSettings", () => {
 
   it("reverts local state when update fails", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    (getNotificationSettings as Mock).mockResolvedValue(["5", "6"]);
     (updateNotificationSettings as Mock).mockRejectedValue(
       new Error("server error"),
     );
 
-    const { result, store } = await act(async () => renderWithStore());
+    const { result, store } = await act(async () =>
+      renderWithStore({ ...onlineState, settings: { ...onlineState.settings, subscriptions: [5, 6] } }),
+    );
 
     await act(async () => {
-      await result.current.updateSubscriptions([1]);
+      await result.current.updateSubscriptions([1]).catch(() => {});
     });
 
     expect(consoleSpy).toHaveBeenCalledWith(
@@ -311,7 +240,6 @@ describe("useNotificationSettings", () => {
 
   it("sets updateError to true when update fails", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    (getNotificationSettings as Mock).mockResolvedValue([]);
     (updateNotificationSettings as Mock).mockRejectedValue(
       new Error("server error"),
     );
@@ -319,7 +247,7 @@ describe("useNotificationSettings", () => {
     const { result } = await act(async () => renderWithStore());
 
     await act(async () => {
-      await result.current.updateSubscriptions([1]);
+      await result.current.updateSubscriptions([1]).catch(() => {});
     });
 
     expect(result.current.updateError).toBe(true);
@@ -328,7 +256,6 @@ describe("useNotificationSettings", () => {
 
   it("clears updateError after a successful update", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    (getNotificationSettings as Mock).mockResolvedValue([]);
     (updateNotificationSettings as Mock)
       .mockRejectedValueOnce(new Error("server error"))
       .mockResolvedValueOnce(["1"]);
@@ -336,7 +263,7 @@ describe("useNotificationSettings", () => {
     const { result } = await act(async () => renderWithStore());
 
     await act(async () => {
-      await result.current.updateSubscriptions([1]);
+      await result.current.updateSubscriptions([1]).catch(() => {});
     });
     expect(result.current.updateError).toBe(true);
 

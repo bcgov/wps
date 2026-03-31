@@ -19,6 +19,7 @@ export interface SettingsState {
   fireCentreInfos: FireCentreInfo[];
   pinnedFireCentre: string | null;
   subscriptions: number[];
+  subscriptionsInitialized: boolean;
 }
 
 export const initialState: SettingsState = {
@@ -27,6 +28,7 @@ export const initialState: SettingsState = {
   fireCentreInfos: [],
   pinnedFireCentre: null,
   subscriptions: [],
+  subscriptionsInitialized: false,
 };
 
 const PINNED_FIRE_CENTRE_KEY = "asaGoPinnedFireCentre";
@@ -63,6 +65,7 @@ const settingsSlice = createSlice({
     },
     setSubscriptions(state: SettingsState, action: PayloadAction<number[]>) {
       state.subscriptions = action.payload;
+      state.subscriptionsInitialized = true;
     },
   },
 });

@@ -48,6 +48,8 @@ const SubscriptionAccordion = ({
   );
 
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const [pendingZoneId, setPendingZoneId] = useState<number | null>(null);
+  const [errorZoneId, setErrorZoneId] = useState<number | null>(null);
 
   // All fire zone unit ids in this fire centre.
   const allFireZoneUnitIds = useMemo(() => {
@@ -92,6 +94,18 @@ const SubscriptionAccordion = ({
   };
 
   // Add/remove subscription to all fire zone units in this fire centre.
+  const handleToggle = async (id: number) => {
+    setPendingZoneId(id);
+    setErrorZoneId(null);
+    try {
+      await toggleSubscription(id);
+    } catch {
+      setErrorZoneId(id);
+    } finally {
+      setPendingZoneId(null);
+    }
+  };
+
   const toggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
     // Remove all of this fire centre's fire zone unit ids to avoid adding duplicates in the following if block.
@@ -194,8 +208,14 @@ const SubscriptionAccordion = ({
                 <SubscriptionOption
                   key={fireZoneUnit.id}
                   fireZoneUnit={fireZoneUnit}
-                  onToggle={toggleSubscription}
+                  onToggle={handleToggle}
                   disabled={notificationSettingsDisabled}
+                  loading={pendingZoneId === fireZoneUnit.id}
+                  error={
+                    errorZoneId === fireZoneUnit.id
+                      ? "Failed to update. Please try again later."
+                      : undefined
+                  }
                 />
               );
             })}

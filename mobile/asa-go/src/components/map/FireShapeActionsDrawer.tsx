@@ -101,7 +101,7 @@ const FireShapeActionsDrawer = ({
       return;
     }
 
-    toggleSubscription(selectedFireShapeId);
+    toggleSubscription(selectedFireShapeId).catch(() => {});
   };
 
   return (

@@ -35,6 +35,7 @@ describe("SubscriptionOption", () => {
         fireCentreInfos: [],
         pinnedFireCentre: null,
         subscriptions: initialSubscriptions,
+        subscriptionsInitialized: false,
       },
     });
 
