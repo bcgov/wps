@@ -17,8 +17,8 @@ class FireCenterStation(BaseModel):
     zone: Optional[str] = None
 
 
-class FireCentre(BaseModel):
-    """Legacy WFWX fire centre shape with attached stations."""
+class WFWXFireCentre(BaseModel):
+    """WFWX fire centre shape with attached stations."""
 
     id: int
     name: str

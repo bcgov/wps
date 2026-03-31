@@ -6,9 +6,9 @@ from typing import AsyncGenerator, Dict, List, Optional, Tuple
 
 from aiohttp import ClientSession
 from wps_shared import config
-from wps_shared.db.models.observations import HourlyActual
-from wps_shared.schemas.fba import FireCentre
 from wps_shared.db.models.forecasts import NoonForecast
+from wps_shared.db.models.observations import HourlyActual
+from wps_shared.schemas.fba import WFWXFireCentre
 from wps_shared.schemas.morecast_v2 import StationDailyFromWF1, WF1PostForecast
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.schemas.sfms import SFMSDailyActual
@@ -383,7 +383,7 @@ class WfwxApi:
 
         # Default to all known WFWX station ids if no station codes are specified
         if station_codes is None:
-            return list(filter(lambda x: (x.code in fire_centre_station_codes), wfwx_stations))
+            return list(filter(lambda x: x.code in fire_centre_station_codes, wfwx_stations))
         requested_stations: List[WFWXWeatherStation] = []
         station_code_dict = {station.code: station for station in wfwx_stations}
         for station_code in station_codes:
@@ -452,7 +452,7 @@ class WfwxApi:
 
         return dailies_iterator
 
-    async def get_fire_centers(self) -> List[FireCentre]:
+    async def get_fire_centers(self) -> List[WFWXFireCentre]:
         """Get the fire centers from WFWX."""
         wfwx_fire_centers = await self.get_station_data(mapper=fire_center_mapper)
         return list(wfwx_fire_centers.values())

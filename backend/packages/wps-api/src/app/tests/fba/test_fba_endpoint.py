@@ -1,7 +1,6 @@
 import math
 from collections import namedtuple
 from datetime import date, datetime, timezone
-from types import SimpleNamespace
 from unittest.mock import patch
 
 import app.main
@@ -14,6 +13,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     TPIClassEnum,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
+from wps_shared.db.models.psu import FireCentre
 from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
 from wps_shared.schemas.fba import (
     FireZoneHFIStats,
@@ -296,8 +296,8 @@ def client():
 @patch("app.routers.fba.fetch_fire_centres")
 def test_fba_endpoint_fire_centers(mock_fetch_fire_centres):
     mock_fetch_fire_centres.return_value = [
-        SimpleNamespace(id=1, name="Coastal Fire Centre"),
-        SimpleNamespace(id=2, name="Northwest Fire Centre"),
+        FireCentre(id=1, name="Coastal Fire Centre"),
+        FireCentre(id=2, name="Northwest Fire Centre"),
     ]
     client = TestClient(app.main.app)
     headers = {"Content-Type": "application/json", "Authorization": "Bearer token"}
@@ -335,7 +335,7 @@ def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
 @patch("app.routers.fba.fetch_fire_centres")
 def test_get_fire_centres_authorized(mock_fetch_fire_centres, client: TestClient):
     """Allowed to get fire centres when authorized"""
-    mock_fetch_fire_centres.return_value = [SimpleNamespace(id=1, name="Test Fire Centre")]
+    mock_fetch_fire_centres.return_value = [FireCentre(id=1, name="Test Fire Centre")]
     response = client.get(get_fire_centres_url)
     assert response.status_code == 200
 
@@ -607,7 +607,7 @@ FBA_ENDPOINTS = [
 def test_fba_endpoints_allowed_for_test_idir(client, endpoint, mocker):
     mocker.patch(
         "app.routers.fba.fetch_fire_centres",
-        return_value=[SimpleNamespace(id=1, name="Test Fire Centre")],
+        return_value=[FireCentre(id=1, name="Test Fire Centre")],
     )
     headers = {"Authorization": "Bearer token"}
     response = client.get(endpoint, headers=headers)
