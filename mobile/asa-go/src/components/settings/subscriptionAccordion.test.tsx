@@ -28,7 +28,10 @@ vi.mock("@/utils/retryWithBackoff", () => ({
   retryWithBackoff: vi.fn((op: () => Promise<unknown>) => op()),
 }));
 
-import { getNotificationSettings, updateNotificationSettings } from "api/pushNotificationsAPI";
+import {
+  getNotificationSettings,
+  updateNotificationSettings,
+} from "api/pushNotificationsAPI";
 
 vi.mock("@capacitor/preferences", () => ({
   Preferences: {
@@ -107,7 +110,9 @@ describe("SubscriptionAccordion", () => {
     vi.clearAllMocks();
     vi.mocked(Device.getId).mockResolvedValue({ identifier: "test-device-id" });
     vi.mocked(getNotificationSettings).mockResolvedValue([]);
-    vi.mocked(updateNotificationSettings).mockImplementation((_, subs) => Promise.resolve(subs));
+    vi.mocked(updateNotificationSettings).mockImplementation((_, subs) =>
+      Promise.resolve(subs),
+    );
   });
   it("renders correctly with fire centre name", () => {
     const store = createTestStore();
@@ -182,9 +187,23 @@ describe("SubscriptionAccordion", () => {
 
   it("expands and collapses when clicked", async () => {
     const store = createTestStore({
-      pushNotification: { pushNotificationPermission: "granted", registeredFcmToken: "test-token", deviceIdError: false, registrationError: false },
-      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
-      settings: { loading: false, error: null, fireCentreInfos: [], pinnedFireCentre: null, subscriptions: [], subscriptionsInitialized: true },
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+      settings: {
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptions: [],
+        subscriptionsInitialized: true,
+      },
     });
 
     render(
@@ -330,9 +349,24 @@ describe("SubscriptionAccordion", () => {
 
   it("selects all fire zone units when 'All' checkbox is checked", async () => {
     const store = createTestStore({
-      settings: { ...settingsReducer(undefined, { type: "unknown" }) },
-      pushNotification: { pushNotificationPermission: "granted" as const, registeredFcmToken: "test-token", deviceIdError: false },
-      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptions: [],
+        subscriptionsInitialized: true,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
     });
 
     await act(async () =>
@@ -361,9 +395,21 @@ describe("SubscriptionAccordion", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         subscriptions: KAMLOOPS_FIRE_ZONE_IDS,
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptionsInitialized: true,
       },
-      pushNotification: { pushNotificationPermission: "granted" as const, registeredFcmToken: "test-token", deviceIdError: false },
-      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
     });
 
     await act(async () =>
@@ -390,6 +436,11 @@ describe("SubscriptionAccordion", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         subscriptions: [mockFireCentreInfo.fire_zone_units[0].id],
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptionsInitialized: true,
       },
     });
 
@@ -450,7 +501,7 @@ describe("SubscriptionAccordion", () => {
             disabled={false}
             fireCentreInfo={mockFireCentreInfo}
             defaultExpanded={true}
-            />
+          />
         </Provider>,
       ),
     );
@@ -471,10 +522,17 @@ describe("SubscriptionAccordion", () => {
         fireCentreInfos: [],
         pinnedFireCentre: null,
         subscriptions: initialSubscriptions,
-        subscriptionsInitialized: false,
+        subscriptionsInitialized: true,
       },
-      pushNotification: { pushNotificationPermission: "granted" as const, registeredFcmToken: "test-token", deviceIdError: false },
-      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
     });
 
     await act(() =>
@@ -484,7 +542,7 @@ describe("SubscriptionAccordion", () => {
             disabled={false}
             fireCentreInfo={mockFireCentreInfo}
             defaultExpanded={true}
-            />
+          />
         </Provider>,
       ),
     );
@@ -518,13 +576,30 @@ describe("SubscriptionAccordion", () => {
   });
 
   it("shows error snackbar when subscription update fails", async () => {
-    vi.mocked(updateNotificationSettings).mockRejectedValue(new Error("server error"));
+    vi.mocked(updateNotificationSettings).mockRejectedValue(
+      new Error("server error"),
+    );
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     const store = createTestStore({
-      settings: { ...settingsReducer(undefined, { type: "unknown" }) },
-      pushNotification: { pushNotificationPermission: "granted" as const, registeredFcmToken: "test-token", deviceIdError: false },
-      networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptions: [],
+        subscriptionsInitialized: true,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
     });
 
     await act(async () =>
@@ -539,7 +614,9 @@ describe("SubscriptionAccordion", () => {
       ),
     );
 
-    fireEvent.click(screen.getByLabelText("Toggle subscription for K4-Vernon Zone (Vernon)"));
+    fireEvent.click(
+      screen.getByLabelText("Toggle subscription for K4-Vernon Zone (Vernon)"),
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/Failed to update/i)).toBeInTheDocument();
@@ -553,8 +630,16 @@ describe("SubscriptionAccordion", () => {
         fireCentreInfos: mockFireCentreInfos,
         pinnedFireCentre: null,
         subscriptions: [3, 4],
+        loading: false,
+        error: null,
+        subscriptionsInitialized: true,
       },
-      pushNotification: { pushNotificationPermission: "granted" as const, registeredFcmToken: "test-token", deviceIdError: false },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
       },

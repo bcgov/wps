@@ -25,9 +25,9 @@ import {
   selectRunParameters,
   selectAuthentication,
   selectSettings,
+  selectPushNotification,
 } from "@/store";
 import { registerDevice } from "@/slices/pushNotificationSlice";
-import { selectPushNotification } from "@/store";
 import { theme } from "@/theme";
 import { NavPanel } from "@/utils/constants";
 import { today } from "@/utils/dataSliceUtils";
