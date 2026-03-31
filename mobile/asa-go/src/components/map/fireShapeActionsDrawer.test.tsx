@@ -18,7 +18,10 @@ import {
   getNotificationSettings,
   updateNotificationSettings,
 } from "api/pushNotificationsAPI";
-import { Device } from "@capacitor/device";
+import { useDeviceId } from "@/hooks/useDeviceId";
+vi.mock("@/hooks/useDeviceId", () => ({
+  useDeviceId: vi.fn().mockReturnValue("test-device-id"),
+}));
 
 vi.mock("@mui/material", async () => {
   const actual = await vi.importActual<typeof import("@mui/material")>(
@@ -30,12 +33,6 @@ vi.mock("@mui/material", async () => {
     useMediaQuery: vi.fn(),
   };
 });
-
-vi.mock("@capacitor/device", () => ({
-  Device: {
-    getId: vi.fn().mockResolvedValue({ identifier: "test-device-id" }),
-  },
-}));
 
 vi.mock("api/pushNotificationsAPI", () => ({
   getNotificationSettings: vi.fn().mockResolvedValue([]),
@@ -130,7 +127,7 @@ const renderWithProviders = ({
 describe("FireShapeActionsDrawer", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(Device.getId).mockResolvedValue({ identifier: "test-device-id" });
+    vi.mocked(useDeviceId).mockReturnValue("test-device-id");
     vi.mocked(getNotificationSettings).mockResolvedValue([]);
     vi.mocked(updateNotificationSettings).mockImplementation((_, subs) =>
       Promise.resolve(subs),
@@ -251,7 +248,6 @@ describe("FireShapeActionsDrawer", () => {
 
   it("toggles the subscription for the selected fire shape", async () => {
     const { store } = renderWithProviders();
-    await act(async () => {});
     fireEvent.click(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
@@ -355,8 +351,6 @@ describe("FireShapeActionsDrawer", () => {
 
   it("calls updateNotificationSettings when toggling subscription", async () => {
     renderWithProviders();
-    await act(async () => {});
-
     fireEvent.click(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
@@ -376,8 +370,6 @@ describe("FireShapeActionsDrawer", () => {
     (updateNotificationSettings as Mock).mockResolvedValue(["1", "99"]);
 
     const { store } = renderWithProviders();
-    await act(async () => {});
-
     fireEvent.click(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
@@ -396,8 +388,6 @@ describe("FireShapeActionsDrawer", () => {
     (getNotificationSettings as Mock).mockResolvedValue(["42"]);
 
     const { store } = renderWithProviders({ subscriptions: [42] });
-    await act(async () => {});
-
     fireEvent.click(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
@@ -416,8 +406,6 @@ describe("FireShapeActionsDrawer", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     renderWithProviders();
-    await act(async () => {});
-
     fireEvent.click(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
