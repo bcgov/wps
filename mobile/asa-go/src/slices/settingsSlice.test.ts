@@ -5,13 +5,16 @@ import { Preferences } from "@capacitor/preferences";
 import { act } from "@testing-library/react";
 import { DateTime } from "luxon";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
+import { getNotificationSettings } from "api/pushNotificationsAPI";
 import settingsSlice, {
   fetchFireCentreInfo,
   getFireCenterInfoFailed,
   getFireCenterInfoStart,
   getFireCenterInfoSuccess,
+  getUpdatedSubscriptions,
   initialState,
   initPinnedFireCentre,
+  initSubscriptions,
   savePinnedFireCentre,
   setPinnedFireCentre,
   setSubscriptions,
@@ -40,6 +43,13 @@ vi.mock("@/api/fbaAPI", () => ({
   getFireCentreInfo: vi.fn(),
 }));
 
+vi.mock("api/pushNotificationsAPI", () => ({
+  getNotificationSettings: vi.fn(),
+}));
+
+vi.mock("@/utils/retryWithBackoff", () => ({
+  retryWithBackoff: vi.fn((op: () => Promise<unknown>) => op()),
+}));
 
 describe("settingsSlice", () => {
   // Test data factories
@@ -191,6 +201,33 @@ describe("settingsSlice", () => {
       });
     });
 
+    it("setSubscriptions marks subscriptionsInitialized as true", () => {
+      const previousState = createSettingsState({
+        subscriptionsInitialized: false,
+      });
+
+      const nextState = settingsSlice(previousState, setSubscriptions([1, 2]));
+
+      expect(nextState.subscriptionsInitialized).toBe(true);
+    });
+  });
+
+  describe("getUpdatedSubscriptions", () => {
+    it("adds a zone ID that is not yet subscribed", () => {
+      expect(getUpdatedSubscriptions([1, 2], 3)).toEqual([1, 2, 3]);
+    });
+
+    it("removes a zone ID that is already subscribed", () => {
+      expect(getUpdatedSubscriptions([1, 2, 3], 2)).toEqual([1, 3]);
+    });
+
+    it("adds to an empty subscription list", () => {
+      expect(getUpdatedSubscriptions([], 5)).toEqual([5]);
+    });
+
+    it("removes the only subscription", () => {
+      expect(getUpdatedSubscriptions([5], 5)).toEqual([]);
+    });
   });
 
   describe("thunks", () => {
@@ -256,7 +293,32 @@ describe("settingsSlice", () => {
         });
       });
     });
-    describe("fecthFireCentreInfo", () => {
+    describe("initSubscriptions", () => {
+      it("dispatches setSubscriptions with parsed numbers on success", async () => {
+        (getNotificationSettings as Mock).mockResolvedValue(["1", "2", "3"]);
+        const store = createTestStore();
+
+        await store.dispatch(initSubscriptions("test-device-id"));
+
+        expect(store.getState().settings.subscriptions).toEqual([1, 2, 3]);
+        expect(store.getState().settings.subscriptionsInitialized).toBe(true);
+      });
+
+      it("does not update state when fetch fails", async () => {
+        (getNotificationSettings as Mock).mockRejectedValue(
+          new Error("network error"),
+        );
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        const store = createTestStore();
+
+        await store.dispatch(initSubscriptions("test-device-id"));
+
+        expect(store.getState().settings.subscriptions).toEqual([]);
+        expect(store.getState().settings.subscriptionsInitialized).toBe(false);
+      });
+    });
+
+    describe("fetchFireCentreInfo", () => {
       beforeEach(() => {
         // Reset all mocks before each test
         vi.clearAllMocks();
@@ -380,7 +442,25 @@ describe("settingsSlice", () => {
         expect(state.loading).toBe(false);
         expect(state.fireCentreInfos).toEqual([mockFireCentreInfoA]);
       });
-    });
 
+      it("should dispatch error when API call fails", async () => {
+        mockCacheWithNoData();
+        (getFireCentreInfo as Mock).mockRejectedValue(
+          new Error("server error"),
+        );
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        const store = createTestStore({
+          settings: { ...initialState },
+          networkStatus: {
+            networkStatus: { connected: true, connectionType: "wifi" },
+          },
+        });
+        await store.dispatch(fetchFireCentreInfo());
+        const state = store.getState().settings;
+        expect(state.loading).toBe(false);
+        expect(state.error).toMatch(/Error: server error/);
+        expect(state.fireCentreInfos).toEqual([]);
+      });
+    });
   });
 });
