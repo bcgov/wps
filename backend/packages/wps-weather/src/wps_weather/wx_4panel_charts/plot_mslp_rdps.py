@@ -15,21 +15,19 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import matplotlib as mpl
-import matplotlib.patheffects as PathEffects
-
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.feature import NaturalEarthFeature, ShapelyFeature
-
-from scipy.ndimage import maximum_filter, minimum_filter, gaussian_filter
 import geopandas as gpd
+import matplotlib as mpl
 import matplotlib.patches as mpatches
-import matplotlib.tri as mtri  
+import matplotlib.patheffects as PathEffects
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import matplotlib.tri as mtri
+import numpy as np
+import xarray as xr
+from cartopy.feature import NaturalEarthFeature, ShapelyFeature
+from scipy.ndimage import gaussian_filter, maximum_filter, minimum_filter
 
 # --------------------------------------------------
 # CONFIG (RDPS)
@@ -373,7 +371,7 @@ def _boxed_labels_along_lon_rdps(ax, lon2, lat2, field2, levels, cfg,
 # --------------------------------------------------
 # Main plotter
 # --------------------------------------------------
-def plot_mslp_thickness_rdps(cfg=None, ax=None):
+def plot_mslp_thickness_rdps(cfg=None, ax=None, ds_msl=None, ds_thk=None):
     if cfg is None:
         cfg = CFG_MSLP_RDPS
 
@@ -401,9 +399,10 @@ def plot_mslp_thickness_rdps(cfg=None, ax=None):
     lon_min, lon_max, lat_min, lat_max = extent
     ax.set_extent(extent, crs=pc)
 
-    # --- Open data ---
-    ds_msl = open_ds(ROOT / cfg["mslp_grib"])
-    ds_thk = open_ds(ROOT / cfg["thk_grib"])
+    # --- Load data if not provided ---
+    if ds_msl is None or ds_thk is None:
+        ds_msl = open_ds(ROOT / cfg["mslp_grib"])
+        ds_thk = open_ds(ROOT / cfg["thk_grib"])
 
     msl = ds_msl[list(ds_msl.data_vars)[0]].squeeze()
     thk = ds_thk[list(ds_thk.data_vars)[0]].squeeze()

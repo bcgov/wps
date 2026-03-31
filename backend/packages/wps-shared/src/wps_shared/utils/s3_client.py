@@ -1,11 +1,13 @@
-import os
+import hashlib
 import io
 import logging
-import hashlib
+import os
 from typing import Any
-from aiobotocore.session import get_session
+
 import aiofiles
+from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
+
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
@@ -84,6 +86,9 @@ class S3Client:
                         key,
                     )
                 return fuel_layer_bytes
+
+    async def get_object(self, key: str):
+        return await self.client.get_object(Bucket=self.bucket, Key=key)
 
     async def put_object(self, key: str, body: Any):
         await self.client.put_object(Bucket=self.bucket, Key=key, Body=body)

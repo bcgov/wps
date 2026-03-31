@@ -4590,7 +4590,10 @@ version = "0.1.0"
 source = { editable = "packages/wps-weather" }
 dependencies = [
     { name = "aio-pika" },
+    { name = "aiofiles" },
     { name = "cartopy" },
+    { name = "cfgrib" },
+    { name = "eccodes" },
     { name = "fiona" },
     { name = "geopandas" },
     { name = "matplotlib" },
@@ -4598,6 +4601,7 @@ dependencies = [
     { name = "pyproj" },
     { name = "scipy" },
     { name = "shapely" },
+    { name = "sqlalchemy" },
     { name = "wps-shared" },
     { name = "xarray" },
 ]
@@ -4612,7 +4616,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aio-pika", specifier = ">=9.5.8" },
+    { name = "aiofiles", specifier = ">=25.1.0" },
     { name = "cartopy", specifier = ">=0.22.0,<1" },
+    { name = "cfgrib", specifier = ">=0.9.15.1" },
+    { name = "eccodes", specifier = ">=2.45.0" },
     { name = "fiona", specifier = ">=1.9.0,<2" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "matplotlib", specifier = ">=3.7.0,<4" },
@@ -4620,6 +4627,7 @@ requires-dist = [
     { name = "pyproj", specifier = ">=3.5.0,<4" },
     { name = "scipy", specifier = ">=1.15.2,<2" },
     { name = "shapely", specifier = ">=2.0.5,<3" },
+    { name = "sqlalchemy", specifier = ">=2,<3" },
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "xarray", specifier = ">=2025.3.1,<2026" },
 ]

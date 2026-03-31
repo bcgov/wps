@@ -8,21 +8,19 @@ Supports:
 
 import os
 from pathlib import Path
-import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import matplotlib.patheffects as PathEffects
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.feature import NaturalEarthFeature, ShapelyFeature
-
-from scipy.ndimage import maximum_filter, minimum_filter
 import geopandas as gpd
 import matplotlib.patches as mpatches
+import matplotlib.patheffects as PathEffects
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import numpy as np
+import xarray as xr
+from cartopy.feature import NaturalEarthFeature, ShapelyFeature
 from cartopy.util import add_cyclic_point
-
+from scipy.ndimage import maximum_filter, minimum_filter
 
 # --------------------------------------------------
 # FINAL "decided" feature values live here
@@ -283,7 +281,7 @@ def draw_vort_symbol(ax, lon, lat, sign, value, pc, lon_min, lon_max, lat_min, l
 # --------------------------------------------------
 # Main plotter
 # --------------------------------------------------
-def plot_500hpa(cfg=None, ax=None):
+def plot_500hpa(cfg=None, ax=None, ds_z500=None, ds_vort=None):
     if cfg is None:
         cfg = CFG_500
     ROOT = get_project_root()
@@ -309,9 +307,10 @@ def plot_500hpa(cfg=None, ax=None):
     lon_min, lon_max, lat_min, lat_max = cfg["extent"]
     ax.set_extent(cfg["extent"], crs=pc)
 
-    # --- Load data ---
-    ds_z500 = open_ds(ROOT / cfg["z500_grib"])
-    ds_vort = open_ds(ROOT / cfg["vort_grib"])
+    # --- Load data if not provided ---
+    if ds_z500 is None or ds_vort is None:
+        ds_z500 = open_ds(ROOT / cfg["z500_grib"])
+        ds_vort = open_ds(ROOT / cfg["vort_grib"])
 
     try:
        z = ds_z500[list(ds_z500.data_vars)[0]].squeeze().values
