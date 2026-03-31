@@ -37,7 +37,7 @@ from wps_shared.schemas.fire_watch import (
     FireWatchResponse,
     FireWatchStation,
 )
-from wps_shared.schemas.psu import PSUFireCentre
+from wps_shared.schemas.psu import FireCentre
 from wps_shared.schemas.stations import GeoJsonWeatherStation
 from wps_shared.utils.time import get_utc_now
 from wps_wf1.wfwx_api import WfwxApi
@@ -137,7 +137,7 @@ def get_coordinates_from_geometry(geometry) -> List[float]:
 
 def create_fire_watch_output(
     db_fire_watch: DBFireWatch,
-    fire_centre: PSUFireCentre,
+    fire_centre: FireCentre,
     stations: List[GeoJsonWeatherStation],
 ) -> FireWatchOutput:
     station = next(
@@ -163,7 +163,7 @@ def create_fire_watch_output(
         contact_email=db_fire_watch.contact_email,
         create_timestamp=db_fire_watch.create_timestamp.isoformat(),
         create_user=db_fire_watch.create_user,
-        fire_centre=PSUFireCentre(id=fire_centre.id, name=fire_centre.name),
+        fire_centre=FireCentre(id=fire_centre.id, name=fire_centre.name),
         station=fw_station,
         status=db_fire_watch.status,
         title=db_fire_watch.title,

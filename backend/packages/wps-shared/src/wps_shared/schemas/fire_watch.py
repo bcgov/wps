@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from wps_shared.db.models.fire_watch import BurnStatusEnum
 from wps_shared.fuel_types import FuelTypeEnum
-from wps_shared.schemas.psu import PSUFireCentre
+from wps_shared.schemas.psu import FireCentre
 
 
 class FireWatchStation(BaseModel):
@@ -17,7 +17,7 @@ class FireWatchInput(BaseModel):
     burn_window_end: Optional[str] = None
     burn_window_start: Optional[str] = None
     contact_email: List[str]
-    fire_centre: PSUFireCentre
+    fire_centre: FireCentre
     station: FireWatchStation
     status: BurnStatusEnum
     title: str

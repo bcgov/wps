@@ -6,7 +6,7 @@ from wps_shared.db.models.psu import FireCentre as DBFireCentre
 from wps_shared.schemas.fba import (
     FireCenterListResponse,
 )
-from wps_shared.schemas.psu import FireCentresResponse, PSUFireCentre
+from wps_shared.schemas.psu import FireCentre, FireCentresResponse
 
 
 async def fetch_fire_centres() -> list[DBFireCentre]:
@@ -15,8 +15,8 @@ async def fetch_fire_centres() -> list[DBFireCentre]:
         return list(result)
 
 
-def build_fire_centre_items(fire_centres: Sequence[DBFireCentre]) -> list[PSUFireCentre]:
-    return [PSUFireCentre(id=item.id, name=item.name) for item in fire_centres]
+def build_fire_centre_items(fire_centres: Sequence[DBFireCentre]) -> list[FireCentre]:
+    return [FireCentre(id=item.id, name=item.name) for item in fire_centres]
 
 
 def build_psu_fire_centres_response(
@@ -28,4 +28,9 @@ def build_psu_fire_centres_response(
 def build_fba_fire_centers_response(
     fire_centres: Sequence[DBFireCentre],
 ) -> FireCenterListResponse:
+    """
+    Included for now because ASA Go expects the spelling in the response to be "fire_centers" instead of "fire_centres".
+    This can be removed once ASA Go is updated to use the same spelling as the rest of the codebase.
+    ASA Go is currently released as version 1.0.2 on ios and version 1.0 on android
+    """
     return FireCenterListResponse(fire_centers=build_fire_centre_items(fire_centres))

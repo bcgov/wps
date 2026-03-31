@@ -10,7 +10,7 @@ from fastapi import HTTPException
 from wps_shared.schemas.fire_watch import (
     FireWatchOutput,
 )
-from wps_shared.schemas.psu import PSUFireCentre
+from wps_shared.schemas.psu import FireCentre
 from wps_shared.schemas.stations import GeoJsonWeatherStation
 
 
@@ -40,7 +40,7 @@ def mock_stations():
 
 @pytest.fixture
 def mock_fire_centre():
-    return PSUFireCentre(id=1, name="Test Fire Centre")
+    return FireCentre(id=1, name="Test Fire Centre")
 
 
 @pytest.mark.anyio

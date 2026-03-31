@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel
 
 from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
-from wps_shared.schemas.psu import PSUFireCentre
+from wps_shared.schemas.psu import FireCentre
 
 
 class FireCenterStation(BaseModel):
@@ -28,7 +28,7 @@ class FireCentre(BaseModel):
 class FireCenterListResponse(BaseModel):
     """Response for all fire centers, in a list"""
 
-    fire_centers: List[PSUFireCentre]
+    fire_centers: List[FireCentre]
 
 
 class FireZoneUnit(BaseModel):
