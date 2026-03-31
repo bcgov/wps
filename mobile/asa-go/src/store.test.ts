@@ -10,10 +10,12 @@ const base: {
   pushNotificationPermission: "granted" | "denied";
   registeredFcmToken: string | null;
   deviceIdError: boolean;
+  registrationError: boolean;
 } = {
   pushNotificationPermission: "granted" as const,
   registeredFcmToken: "some-token",
   deviceIdError: false,
+  registrationError: false,
 };
 
 const makeState = (
@@ -59,6 +61,14 @@ describe("selectNotificationSetupState", () => {
     expect(
       selectNotificationSetupState(makeState({ registeredFcmToken: null })),
     ).toBe("unregistered");
+  });
+
+  it("returns registrationFailed when token is null and registrationError is true", () => {
+    expect(
+      selectNotificationSetupState(
+        makeState({ registeredFcmToken: null, registrationError: true }),
+      ),
+    ).toBe("registrationFailed");
   });
 
   it("returns ready when permission granted and registeredFcmToken is set", () => {
@@ -132,6 +142,14 @@ describe("selectNotificationSettingsDisabledReason", () => {
         makeState({ pushNotificationPermission: "denied" }, false),
       ),
     ).toBe("Unavailable offline");
+  });
+
+  it("returns registration failed message when registration failed", () => {
+    expect(
+      selectNotificationSettingsDisabledReason(
+        makeState({ registeredFcmToken: null, registrationError: true }),
+      ),
+    ).toBe("Unable to register for notifications");
   });
 
   it("prioritises device ID error over permission denied", () => {
