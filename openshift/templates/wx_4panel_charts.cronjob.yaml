@@ -135,7 +135,7 @@ objects:
                       valueFrom:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
-                          key: env.wx-object-store-bucket
+                          key: env.wx-cartopy-data-dir
                   resources:
                     limits:
                       memory: 2048Mi
