@@ -316,11 +316,11 @@ class FourPanelChartRunner:
                         chart.update_date = get_utc_now()
                         save_four_panel_chart(session, chart)
                         logger.info(
-                            f"Successfully generated {model} 4 panel charts for {init_ymd}."
+                            f"Successfully generated {model} 4 panel charts for {init_ymd}Z{model_run_time}."
                         )
                     else:
                         logger.info(
-                            f"Could not generate all {model} 4 panel charts for {init_ymd}."
+                            f"Could not generate all {model} 4 panel charts for {init_ymd}Z{model_run_time}."
                         )
 
 
