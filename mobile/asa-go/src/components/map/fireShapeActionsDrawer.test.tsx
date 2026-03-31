@@ -5,13 +5,7 @@ import FireShapeActionsDrawer from "@/components/map/FireShapeActionsDrawer";
 import { createTestStore } from "@/testUtils";
 import { useMediaQuery } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { describe, expect, it, vi, beforeEach, Mock } from "vitest";
 import {
