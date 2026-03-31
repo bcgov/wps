@@ -23,7 +23,7 @@ export function useNotificationSettings() {
   const deviceId = useDeviceId();
   const [updateError, setUpdateError] = useState(false);
 
-  const updateSubscriptions = async (subs: number[]): Promise<void> => {
+  const updateSubscriptions = async (subs: number[]): Promise<boolean> => {
     // Guard matches selectNotificationSettingsDisabled — button should be disabled
     // before this is reachable, but guard prevents any state change if not.
     if (
@@ -32,7 +32,7 @@ export function useNotificationSettings() {
       !registeredFcmToken ||
       !subscriptionsInitialized
     )
-      return;
+      return false;
     const previousSubs = subscriptions;
     dispatch(setSubscriptions(subs));
     try {
@@ -41,10 +41,12 @@ export function useNotificationSettings() {
       );
       dispatch(setSubscriptions(ids.map(Number)));
       setUpdateError(false);
+      return true;
     } catch (e) {
       console.error(`Failed to update notification settings: ${e}`);
       dispatch(setSubscriptions(previousSubs));
       setUpdateError(true);
+      return false;
     }
   };
 

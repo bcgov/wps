@@ -103,7 +103,7 @@ const FireShapeActionsDrawer = ({
       return;
     }
 
-    toggleSubscription(selectedFireShapeId).catch(() => {});
+    toggleSubscription(selectedFireShapeId);
   };
 
   return (

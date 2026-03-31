@@ -72,7 +72,9 @@ const SubscriptionAccordion = ({
   // Handle expanding/collapsing the accordion.
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newExpanded: boolean) => {
-      if (disabled) return; // block expansion when disabled
+      if (disabled) {
+        return; // block expansion when disabled
+      }
       setExpanded(newExpanded);
     },
     [disabled],
@@ -102,13 +104,11 @@ const SubscriptionAccordion = ({
   const handleToggle = async (id: number) => {
     setPendingZoneId(id);
     setErrorZoneId(null);
-    try {
-      await toggleSubscription(id);
-    } catch {
+    const success = await toggleSubscription(id);
+    if (!success) {
       setErrorZoneId(id);
-    } finally {
-      setPendingZoneId(null);
     }
+    setPendingZoneId(null);
   };
 
   const toggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,6 +193,7 @@ const SubscriptionAccordion = ({
               <FormControlLabel
                 control={
                   <Checkbox
+                    disabled={disabled}
                     aria-label={`checkbox-${fireCentreInfo.fire_centre_name}`}
                     checked={allSelected()}
                     indeterminate={
@@ -209,7 +210,7 @@ const SubscriptionAccordion = ({
           </Box>
         </AccordionSummary>
         <AccordionDetails>
-          <List>
+          <List data-testid="switch-options">
             {fireCentreInfo.fire_zone_units.map((fireZoneUnit) => {
               return (
                 <SubscriptionOption

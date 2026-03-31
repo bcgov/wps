@@ -9,13 +9,12 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+
 import { Provider } from "react-redux";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
-import { Device } from "@capacitor/device";
-
-vi.mock("@capacitor/device", () => ({
-  Device: { getId: vi.fn().mockReturnValue(new Promise(() => {})) },
+vi.mock("@/hooks/useDeviceId", () => ({
+  useDeviceId: vi.fn().mockReturnValue("test-device-id"),
 }));
 
 vi.mock("api/pushNotificationsAPI", () => ({
@@ -32,6 +31,7 @@ import {
   getNotificationSettings,
   updateNotificationSettings,
 } from "api/pushNotificationsAPI";
+import { subscriptionUpdateErrorMessage } from "@/utils/constants";
 
 vi.mock("@capacitor/preferences", () => ({
   Preferences: {
@@ -108,7 +108,6 @@ const mockFireCentreInfos: FireCentreInfo[] = [
 describe("SubscriptionAccordion", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(Device.getId).mockResolvedValue({ identifier: "test-device-id" });
     vi.mocked(getNotificationSettings).mockResolvedValue([]);
     vi.mocked(updateNotificationSettings).mockImplementation((_, subs) =>
       Promise.resolve(subs),
@@ -252,10 +251,88 @@ describe("SubscriptionAccordion", () => {
     const accordion = getAccordionButton()?.closest(".MuiAccordion-root");
     expect(accordion).toHaveStyle({ opacity: "0.5", filter: "grayscale(1)" });
 
+    // Check that checkbox is disabled
+    const checkbox = within(accordion as HTMLElement).getByRole("checkbox");
+    expect(checkbox).toBeDisabled();
+
     // Check if the accordion is not interactive
     fireEvent.click(getAccordionButton() as HTMLElement);
     expect(getZoneLabel(LILLOOET_ZONE_LABEL)).not.toBeVisible();
     expect(getZoneLabel(VERNON_ZONE_LABEL)).not.toBeVisible();
+
+    // Check all toggle switches are disabled
+    const toggleSwitches = within(accordion as HTMLElement).getAllByTestId(
+      "loading-switch",
+    );
+
+    toggleSwitches.forEach((toggleSwitch) => {
+      // MUI switches are spans, so we gotta check for the class
+      expect(toggleSwitch).toHaveClass("Mui-disabled");
+    });
+  });
+
+  it("shows an error only for the option that fails", async () => {
+    vi.mocked(updateNotificationSettings).mockRejectedValue(
+      new Error("server error"),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      settings: {
+        subscriptionsInitialized: true,
+        subscriptions: [],
+        pinnedFireCentre: null,
+        loading: false,
+        error: null,
+        fireCentreInfos: [mockFireCentreInfo],
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          defaultExpanded={true}
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+        />
+      </Provider>,
+    );
+
+    const firstZone = mockFireCentreInfo.fire_zone_units[0];
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByLabelText(`Toggle subscription for ${firstZone.name}`),
+      );
+    });
+
+    expect(updateNotificationSettings).toHaveBeenCalled();
+    expect(screen.getByTestId("loading-switch-error")).toBeInTheDocument();
+
+    // Error appears only once — only the first zone failed
+    expect(screen.getAllByTestId("loading-switch-error")).toHaveLength(1);
+    // The other zones have no error
+    for (const zone of mockFireCentreInfo.fire_zone_units.slice(1)) {
+      expect(
+        screen
+          .queryByLabelText(`Toggle subscription for ${zone.name}`)
+          ?.closest("li")
+          ?.querySelector("[data-testid='loading-switch-error']"),
+      ).toBeNull();
+    }
+
+    expect(
+      screen.getAllByText(subscriptionUpdateErrorMessage).length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("displays filled push pin icon when fire centre is pinned", () => {
