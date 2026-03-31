@@ -3,7 +3,6 @@ from datetime import datetime
 
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from wps_weather.db.models.wx_4panel_charts import (
     ChartStatusEnum,
     ECCCModel,
@@ -54,12 +53,15 @@ def save_four_panel_chart(session: AsyncSession, chart: ProcessedFourPanelChart)
     session.add(chart)
 
 
-async def get_earliest_in_progress_date_limited(session: AsyncSession, min_date: datetime):
+async def get_earliest_in_progress_date_limited(
+    session: AsyncSession, min_date: datetime, model: ECCCModel
+):
     stmt = (
         select(ProcessedFourPanelChart)
         .where(
             ProcessedFourPanelChart.status == ChartStatusEnum.INPROGRESS,
             ProcessedFourPanelChart.model_run_timestamp >= min_date,
+            ProcessedFourPanelChart.model == model,
         )
         .order_by(ProcessedFourPanelChart.model_run_timestamp)
         .limit(1)
@@ -68,12 +70,13 @@ async def get_earliest_in_progress_date_limited(session: AsyncSession, min_date:
     return result.scalar()
 
 
-async def get_last_complete(session: AsyncSession, min_date: datetime):
+async def get_last_complete(session: AsyncSession, min_date: datetime, model: ECCCModel):
     stmt = (
         select(ProcessedFourPanelChart)
         .where(
             ProcessedFourPanelChart.status == ChartStatusEnum.COMPLETE,
             ProcessedFourPanelChart.model_run_timestamp >= min_date,
+            ProcessedFourPanelChart.model == model,
         )
         .order_by(desc(ProcessedFourPanelChart.model_run_timestamp))
         .limit(1)

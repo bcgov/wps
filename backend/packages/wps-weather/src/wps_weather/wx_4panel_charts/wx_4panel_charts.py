@@ -324,7 +324,7 @@ class FourPanelChartRunner:
                         )
 
 
-async def get_init_datetime():
+async def get_init_datetime(model):
     """
     Determine the UTC datetime at which to start processing
 
@@ -337,22 +337,22 @@ async def get_init_datetime():
         min_date = now - timedelta(days=7)
         # Limit lookup to 7 days in the past as we prune grib files older than 7 days
         init_datetime: Optional[datetime] = None
-        incomplete_result = await get_earliest_in_progress_date_limited(session, min_date)
+        incomplete_result = await get_earliest_in_progress_date_limited(session, min_date, model)
         if incomplete_result is not None:
             # Try generating charts from a previous day that were incomplete
             init_datetime: datetime = incomplete_result.model_run_timestamp
         else:
             # Lookup the last complete run in the past 7 days
-            last_complete_result = await get_last_complete(session, min_date)
+            last_complete_result = await get_last_complete(session, min_date, model)
             if last_complete_result is not None:
                 init_datetime: datetime = last_complete_result.model_run_timestamp + timedelta(
-                    days=1
+                    hours=12
                 )
         if init_datetime is None:
             # Begin processing from today at 0:00 UTC if no useful result returned from db
-            init_datetime = now
+            init_datetime = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        return init_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+        return init_datetime
 
 
 def parse_args():
@@ -395,7 +395,7 @@ async def main():
 
     if args.init_ymd is None:
         now = get_utc_now()
-        start_datetime = await get_init_datetime()
+        start_datetime = await get_init_datetime(args.model)
         end_datetime = now.replace(hour=0, minute=0, second=0, microsecond=0)
     else:
         # If an init_ymd was provided as an argument, only process that one day

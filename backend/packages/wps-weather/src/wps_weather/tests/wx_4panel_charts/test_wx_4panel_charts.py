@@ -41,24 +41,26 @@ ModelNames = (ECCCModel.GDPS.value, ECCCModel.RDPS.value)
 # the GDAL / cartopy / matplotlib native-library chain.
 # ---------------------------------------------------------------------------
 
-_wps_shared_models_mock = MagicMock()
-_wps_shared_models_mock.ChartStatusEnum = ChartStatusEnum
-_wps_shared_models_mock.ECCCModel = ECCCModel
-_wps_shared_models_mock.ModelNames = ModelNames
+_models_mock = MagicMock()
+_models_mock.ChartStatusEnum = ChartStatusEnum
+_models_mock.ECCCModel = ECCCModel
+_models_mock.ModelNames = ModelNames
 
 _patches = {
     # wps_shared
     "wps_shared": MagicMock(),
     "wps_shared.db": MagicMock(),
-    "wps_shared.db.models": MagicMock(),
-    "wps_shared.db.models.wx_4panel_charts": _wps_shared_models_mock,
-    "wps_shared.db.crud": MagicMock(),
-    "wps_shared.db.crud.wx_4panel_charts": MagicMock(),
     "wps_shared.db.database": MagicMock(),
     "wps_shared.utils": MagicMock(),
     "wps_shared.utils.s3_client": MagicMock(),
     "wps_shared.utils.time": MagicMock(),
     "wps_shared.wps_logging": MagicMock(),
+    # wps_weather db (models moved from wps_shared to wps_weather)
+    "wps_weather.db": MagicMock(),
+    "wps_weather.db.models": MagicMock(),
+    "wps_weather.db.models.wx_4panel_charts": _models_mock,
+    "wps_weather.db.crud": MagicMock(),
+    "wps_weather.db.crud.wx_4panel_charts": MagicMock(),
     # native / heavy libs
     "cartopy": MagicMock(),
     "cartopy.crs": MagicMock(),
@@ -654,43 +656,15 @@ class TestGetInitDatetime:
                 new=AsyncMock(return_value=None),
             ),
         ):
-            result = await get_init_datetime()
+            result = await get_init_datetime(ECCCModel.GDPS)
 
-        assert result == incomplete_ts.replace(hour=0, minute=0, second=0, microsecond=0)
-
-    @pytest.mark.anyio
-    async def test_result_is_always_zeroed_to_midnight(self):
-        incomplete_ts = datetime(2026, 3, 24, 18, 45, 59, 999999, tzinfo=timezone.utc)
-        incomplete = _make_db_result(incomplete_ts)
-
-        with (
-            patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
-                side_effect=new_session_scope,
-            ),
-            patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_utc_now",
-                return_value=_FIXED_NOW,
-            ),
-            patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_earliest_in_progress_date_limited",
-                new=AsyncMock(return_value=incomplete),
-            ),
-            patch(
-                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_last_complete",
-                new=AsyncMock(return_value=None),
-            ),
-        ):
-            result = await get_init_datetime()
-
-        assert result.hour == 0
-        assert result.minute == 0
-        assert result.second == 0
-        assert result.microsecond == 0
+        assert result == incomplete_ts
 
     @pytest.mark.anyio
-    async def test_returns_last_complete_plus_one_day_when_no_incomplete(self):
-        last_complete_ts = datetime(2026, 3, 25, 0, 0, 0, tzinfo=timezone.utc)
+    async def test_returns_last_complete_plus_twelve_hours_when_no_incomplete(self):
+        # Use a 12:00 timestamp so that +12h crosses midnight to the next day, making
+        # the expected result distinguishable from last_complete_ts itself.
+        last_complete_ts = datetime(2026, 3, 25, 12, 0, 0, tzinfo=timezone.utc)
         last_complete = _make_db_result(last_complete_ts)
 
         with (
@@ -711,9 +685,10 @@ class TestGetInitDatetime:
                 new=AsyncMock(return_value=last_complete),
             ),
         ):
-            result = await get_init_datetime()
+            result = await get_init_datetime(ECCCModel.GDPS)
 
-        assert result == last_complete_ts + timedelta(days=1)
+        # +12h from 2026-03-25 12:00 = 2026-03-26 00:00, which is already midnight.
+        assert result == datetime(2026, 3, 26, 0, 0, 0, tzinfo=timezone.utc)
 
     @pytest.mark.anyio
     async def test_returns_today_midnight_when_both_results_are_none(self):
@@ -735,7 +710,7 @@ class TestGetInitDatetime:
                 new=AsyncMock(return_value=None),
             ),
         ):
-            result = await get_init_datetime()
+            result = await get_init_datetime(ECCCModel.GDPS)
 
         assert result == _FIXED_NOW_MIDNIGHT
 
@@ -761,7 +736,7 @@ class TestGetInitDatetime:
                 new=AsyncMock(return_value=None),
             ),
         ):
-            await get_init_datetime()
+            await get_init_datetime(ECCCModel.GDPS)
 
         expected_min_date = _FIXED_NOW_MIDNIGHT - timedelta(days=7)
         actual_min_date = mock_incomplete.call_args[0][1]
@@ -792,8 +767,34 @@ class TestGetInitDatetime:
                 new=AsyncMock(return_value=last_complete),
             ) as mock_last_complete,
         ):
-            result = await get_init_datetime()
+            result = await get_init_datetime(ECCCModel.GDPS)
 
         # When incomplete exists, get_last_complete should not be called at all.
         mock_last_complete.assert_not_called()
-        assert result == incomplete_ts.replace(hour=0, minute=0, second=0, microsecond=0)
+        assert result == incomplete_ts
+
+    @pytest.mark.anyio
+    async def test_passes_model_to_queries(self):
+        incomplete = _make_db_result(datetime(2026, 3, 25, 0, 0, 0, tzinfo=timezone.utc))
+
+        with (
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_async_read_session_scope",
+                side_effect=new_session_scope,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_utc_now",
+                return_value=_FIXED_NOW,
+            ),
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_earliest_in_progress_date_limited",
+                new=AsyncMock(return_value=incomplete),
+            ) as mock_incomplete,
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.get_last_complete",
+                new=AsyncMock(return_value=None),
+            ),
+        ):
+            await get_init_datetime(ECCCModel.RDPS)
+
+        assert mock_incomplete.call_args[0][2] == ECCCModel.RDPS

@@ -237,7 +237,7 @@ _EARLIER = datetime(2026, 3, 17, 0, tzinfo=timezone.utc)
 @pytest.mark.anyio
 async def test_get_earliest_in_progress_date_limited_returns_record(async_session: AsyncSession):
     # The seeded GDPS INPROGRESS row is at MODEL_RUN_TIMESTAMP >= _BEFORE_SEEDED.
-    result = await get_earliest_in_progress_date_limited(async_session, _BEFORE_SEEDED)
+    result = await get_earliest_in_progress_date_limited(async_session, _BEFORE_SEEDED, ECCCModel.GDPS)
     assert result is not None
     assert result.model_run_timestamp == MODEL_RUN_TIMESTAMP
     assert result.status == ChartStatusEnum.INPROGRESS
@@ -248,7 +248,7 @@ async def test_get_earliest_in_progress_date_limited_returns_none_when_all_befor
     async_session: AsyncSession,
 ):
     # min_date is after the only seeded row — should return nothing.
-    result = await get_earliest_in_progress_date_limited(async_session, _AFTER_SEEDED)
+    result = await get_earliest_in_progress_date_limited(async_session, _AFTER_SEEDED, ECCCModel.GDPS)
     assert result is None
 
 
@@ -261,7 +261,7 @@ async def test_get_earliest_in_progress_date_limited_returns_none_when_no_inprog
     seeded.status = ChartStatusEnum.COMPLETE
     await async_session.commit()
 
-    result = await get_earliest_in_progress_date_limited(async_session, _BEFORE_SEEDED)
+    result = await get_earliest_in_progress_date_limited(async_session, _BEFORE_SEEDED, ECCCModel.GDPS)
     assert result is None
 
 
@@ -269,17 +269,17 @@ async def test_get_earliest_in_progress_date_limited_returns_none_when_no_inprog
 async def test_get_earliest_in_progress_date_limited_returns_earliest_when_multiple(
     async_session: AsyncSession,
 ):
-    # Add a second INPROGRESS row with an earlier timestamp.
+    # Add a second GDPS INPROGRESS row with an earlier timestamp.
     earlier_ts = datetime(2026, 3, 18, 0, tzinfo=timezone.utc)
     await async_session.execute(
         text(
             f"INSERT INTO processed_four_panel_chart (model, model_run_timestamp, status, create_date, update_date) "
-            f"VALUES ('RDPS', '{earlier_ts}', 'INPROGRESS', '{TEST_DATE}', '{TEST_DATE}');"
+            f"VALUES ('GDPS', '{earlier_ts}', 'INPROGRESS', '{TEST_DATE}', '{TEST_DATE}');"
         )
     )
     await async_session.commit()
 
-    result = await get_earliest_in_progress_date_limited(async_session, _EARLIER)
+    result = await get_earliest_in_progress_date_limited(async_session, _EARLIER, ECCCModel.GDPS)
     assert result is not None
     assert result.model_run_timestamp == earlier_ts
 
@@ -292,7 +292,7 @@ async def test_get_earliest_in_progress_date_limited_returns_earliest_when_multi
 @pytest.mark.anyio
 async def test_get_last_complete_returns_none_when_no_complete_records(async_session: AsyncSession):
     # The seeded row is INPROGRESS — no COMPLETE rows exist.
-    result = await get_last_complete(async_session, _BEFORE_SEEDED)
+    result = await get_last_complete(async_session, _BEFORE_SEEDED, ECCCModel.GDPS)
     assert result is None
 
 
@@ -307,7 +307,7 @@ async def test_get_last_complete_returns_complete_record(async_session: AsyncSes
     )
     await async_session.commit()
 
-    result = await get_last_complete(async_session, _BEFORE_SEEDED)
+    result = await get_last_complete(async_session, _BEFORE_SEEDED, ECCCModel.RDPS)
     assert result is not None
     assert result.model_run_timestamp == complete_ts
     assert result.status == ChartStatusEnum.COMPLETE
@@ -320,13 +320,13 @@ async def test_get_last_complete_returns_most_recent_when_multiple(async_session
     await async_session.execute(
         text(
             f"INSERT INTO processed_four_panel_chart (model, model_run_timestamp, status, create_date, update_date) "
-            f"VALUES ('RDPS', '{earlier_complete_ts}', 'COMPLETE', '{TEST_DATE}', '{TEST_DATE}'), "
+            f"VALUES ('GDPS', '{earlier_complete_ts}', 'COMPLETE', '{TEST_DATE}', '{TEST_DATE}'), "
             f"       ('GDPS', '{later_complete_ts}', 'COMPLETE', '{TEST_DATE}', '{TEST_DATE}');"
         )
     )
     await async_session.commit()
 
-    result = await get_last_complete(async_session, _BEFORE_SEEDED)
+    result = await get_last_complete(async_session, _BEFORE_SEEDED, ECCCModel.GDPS)
     assert result is not None
     assert result.model_run_timestamp == later_complete_ts
 
@@ -343,12 +343,12 @@ async def test_get_last_complete_excludes_records_before_min_date(async_session:
     await async_session.commit()
 
     # min_date is after the inserted complete row.
-    result = await get_last_complete(async_session, _AFTER_SEEDED)
+    result = await get_last_complete(async_session, _AFTER_SEEDED, ECCCModel.RDPS)
     assert result is None
 
 
 @pytest.mark.anyio
 async def test_get_last_complete_excludes_inprogress_records(async_session: AsyncSession):
     # The only row in the DB is the seeded INPROGRESS one — get_last_complete must ignore it.
-    result = await get_last_complete(async_session, _BEFORE_SEEDED)
+    result = await get_last_complete(async_session, _BEFORE_SEEDED, ECCCModel.GDPS)
     assert result is None
