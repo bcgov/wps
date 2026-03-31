@@ -1,8 +1,8 @@
-from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
+from wps_shared.db.models.psu import FireCentre
 
 
 @pytest.fixture()
@@ -17,8 +17,8 @@ def client():
 @patch("app.routers.psu.fetch_fire_centres")
 def test_psu_fire_centres_endpoint(mock_fetch_fire_centres, client: TestClient):
     mock_fetch_fire_centres.return_value = [
-        SimpleNamespace(id=1, name="Coastal Fire Centre"),
-        SimpleNamespace(id=2, name="Northwest Fire Centre"),
+        FireCentre(id=1, name="Coastal Fire Centre"),
+        FireCentre(id=2, name="Northwest Fire Centre"),
     ]
 
     response = client.get("/api/psu/fire-centres")
