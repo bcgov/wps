@@ -228,12 +228,22 @@ async def test_trigger_notifications_continues_on_send_failure():
 
 
 @pytest.mark.anyio
-async def test_build_notification_title_none_placename():
-    """build_notification_title does not crash when placename_label is None."""
+async def test_trigger_notifications_skips_zone_with_missing_placename():
+    """Zones with no placename_label are skipped — no tokens fetched, no notification sent."""
+    session = AsyncMock()
     zone = ZoneAdvisoryStatus(
         advisory_shape_id=1, source_identifier="42", placename_label=None, status="advisory"
     )
-    assert build_notification_title(zone) == "Behaviour Advisory, Unknown Zone"
+    with (
+        patch(GET_ZONES, return_value=[zone]),
+        patch(GET_TOKENS) as mock_get_tokens,
+        patch(SEND_MULTICAST) as mock_send,
+        patch(GET_VANCOUVER_NOW) as mock_now,
+    ):
+        mock_now.return_value.date.return_value = FOR_DATE
+        await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
+        mock_get_tokens.assert_not_called()
+        mock_send.assert_not_called()
 
 
 @pytest.mark.anyio

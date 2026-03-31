@@ -20,8 +20,7 @@ def build_notification_content(zone_with_advisory: ZoneAdvisoryStatus, for_date:
 
 
 def build_notification_title(zone_with_advisory: ZoneAdvisoryStatus):
-    label = zone_with_advisory.placename_label or "Unknown Zone"
-    zone = label.split("-")[0]
+    zone = zone_with_advisory.placename_label.split("-")[0]
     return f"Behaviour Advisory, {zone}"
 
 
@@ -61,6 +60,12 @@ async def trigger_notifications(
         session, run_type, run_datetime, for_date
     )
     for zone_with_advisory in zones_with_advisories:
+        if not zone_with_advisory.placename_label:
+            logger.error(
+                "Skipping FCM notification: missing placename_label for zone source_identifier=%s",
+                zone_with_advisory.source_identifier,
+            )
+            continue
         device_tokens = await get_device_tokens_for_zone(
             session, zone_with_advisory.source_identifier
         )
