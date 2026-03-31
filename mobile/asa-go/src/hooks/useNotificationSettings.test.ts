@@ -43,7 +43,7 @@ const onlineState = {
     fireCentreInfos: [],
     pinnedFireCentre: null,
     subscriptions: [] as number[],
-    subscriptionsInitialized: false,
+    subscriptionsInitialized: true,
   },
   pushNotification: {
     pushNotificationPermission: "granted" as const,
