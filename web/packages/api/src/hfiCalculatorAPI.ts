@@ -1,5 +1,6 @@
 import axios from './axios'
 import { DateTime } from 'luxon'
+import type { FireCentre as BaseFireCentre } from '@wps/types/fireCentre'
 
 export interface FireStartRange {
   label: string
@@ -96,9 +97,7 @@ export interface WeatherStationProperties {
   uuid: string
 }
 
-export interface FireCentre {
-  id: number
-  name: string
+export interface FireCentre extends BaseFireCentre {
   planning_areas: PlanningArea[]
 }
 

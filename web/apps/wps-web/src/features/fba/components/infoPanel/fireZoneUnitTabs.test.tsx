@@ -1,8 +1,7 @@
-import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import FireZoneUnitTabs from './FireZoneUnitTabs'
 import { FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
-import { FireCentre } from '@wps/api/psuAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 import { combineReducers } from '@reduxjs/toolkit'
@@ -13,21 +12,6 @@ import fireCentreHFIFuelStatsSlice, {
 import { Provider } from 'react-redux'
 import { AdvisoryStatus } from '@wps/utils/constants'
 import { createTestStore } from '@/test/testUtils'
-
-const getAdvisoryDetails = (
-  fireZoneName: string,
-  fireShapeId: number,
-  advisoryStatus: AdvisoryStatus
-): FireShapeStatusDetail[] => {
-  return [
-    {
-      fire_shape_id: fireShapeId,
-      fire_shape_name: fireZoneName,
-      fire_centre_name: fireCentre1,
-      status: advisoryStatus
-    }
-  ]
-}
 
 const fireZoneUnitReducer = combineReducers({
   fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,

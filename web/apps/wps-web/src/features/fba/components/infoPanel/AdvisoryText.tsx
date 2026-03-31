@@ -10,7 +10,7 @@ import {
   getMinStartAndMaxEndTime
 } from '@/features/fba/criticalHoursStartEndTime'
 import { AdvisoryMinWindStats, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
-import { FireCentre } from '@wps/api/psuAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { AdvisoryStatus } from '@wps/utils/constants'
 import { selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'

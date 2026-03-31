@@ -8,7 +8,7 @@ import { initialState as fireCentreTPIStatsInitialState } from '@/features/fba/s
 import { createTestStore } from '@/test/testUtils'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import { FireShape, FireShapeStatusDetail, FireZoneHFIStats } from '@wps/api/fbaAPI'
-import { FireCentre } from '@wps/api/psuAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
 import AdvisoryText, {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -233,7 +233,7 @@ describe('AdvisoryText', () => {
     const store = getInitialStore()
     await renderAdvisoryTextWithStore(store)
     assertInitialState()
-    let smallAreaStats = cloneDeep(initialHFIFuelStats)
+    const smallAreaStats = cloneDeep(initialHFIFuelStats)
     smallAreaStats['Cariboo Fire Centre'][20].fuel_area_stats[0].area = 10
     smallAreaStats['Cariboo Fire Centre'][20].fuel_area_stats[0].fuel_area = 100
     await dispatchFuelStats(store, smallAreaStats)
@@ -378,7 +378,7 @@ describe('AdvisoryText', () => {
     await renderAdvisoryTextWithStore(store)
     assertInitialState()
 
-    let overnightStats = cloneDeep(initialHFIFuelStats)
+    const overnightStats = cloneDeep(initialHFIFuelStats)
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
 
     await dispatchFuelStats(store, overnightStats)
@@ -396,7 +396,7 @@ describe('AdvisoryText', () => {
     await renderAdvisoryTextWithStore(store)
     assertInitialState()
 
-    let overnightStats = cloneDeep(initialHFIFuelStats)
+    const overnightStats = cloneDeep(initialHFIFuelStats)
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.start_time = 13
 
@@ -477,7 +477,7 @@ describe('AdvisoryText', () => {
     await renderAdvisoryTextWithStore(store)
     assertInitialState()
 
-    let newHFIFuelStats = cloneDeep(initialHFIFuelStats)
+    const newHFIFuelStats = cloneDeep(initialHFIFuelStats)
     newHFIFuelStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 22
 
     await dispatchFuelStats(store, newHFIFuelStats)

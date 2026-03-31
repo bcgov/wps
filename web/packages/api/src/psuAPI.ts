@@ -1,9 +1,5 @@
 import axios from './axios'
-
-export interface FireCentre {
-  id: number
-  name: string
-}
+import type { FireCentre } from '@wps/types/fireCentre'
 
 export interface FireCentresResponse {
   fire_centres: FireCentre[]

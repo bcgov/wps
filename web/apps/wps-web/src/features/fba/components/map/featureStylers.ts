@@ -6,7 +6,7 @@ import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
 import { FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
-import { FireCentre } from '@wps/api/psuAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
 import { AdvisoryStatus } from '@wps/utils/constants'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'

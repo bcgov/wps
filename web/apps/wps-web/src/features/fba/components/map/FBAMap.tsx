@@ -2,7 +2,7 @@ import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layer
 import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { Box } from '@mui/material'
 import { FireShape, RunType } from '@wps/api/fbaAPI'
-import { FireCentre } from '@wps/api/psuAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
 import { selectFireWeatherStations, selectRunDates, selectProvincialSummaryZones } from 'app/rootReducer'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import {
