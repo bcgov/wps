@@ -10,22 +10,19 @@ Supports:
 import os
 from pathlib import Path
 
-import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import matplotlib.ticker as mticker
-import matplotlib.patheffects as PathEffects
-
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.feature import NaturalEarthFeature, ShapelyFeature
-
-from scipy.ndimage import maximum_filter, minimum_filter
 import geopandas as gpd
-from matplotlib.patches import Patch
+import matplotlib as mpl
+import matplotlib.patheffects as PathEffects
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import numpy as np
+import xarray as xr
+from cartopy.feature import NaturalEarthFeature, ShapelyFeature
 from cartopy.util import add_cyclic_point
-
+from matplotlib.patches import Patch
+from scipy.ndimage import maximum_filter, minimum_filter
 
 # --------------------------------------------------
 # FINAL "decided" feature values live here
@@ -271,7 +268,14 @@ def add_column_labels(ax, lon_plot, lats, field2d,
 # --------------------------------------------------
 # Main plotter
 # --------------------------------------------------
-def plot_700hpa(cfg=None, ax=None):
+def plot_700hpa(
+    cfg=None,
+    ax=None,
+    ds_z700=None,
+    ds_rh850=None,
+    ds_rh700=None,
+    ds_rh500=None,
+):
     if cfg is None:
         cfg = CFG_700
     ROOT = get_project_root()
@@ -300,14 +304,15 @@ def plot_700hpa(cfg=None, ax=None):
     # --------------------------------------------------
     # 1) Load height + RHs
     # --------------------------------------------------
-    ds_z700 = open_ds(ROOT / cfg["z700_grib"])
+    # --- Load data if not provided ---
+    if ds_z700 is None or ds_rh850 is None or ds_rh700 is None or ds_rh500 is None:
+        ds_z700 = open_ds(ROOT / cfg["z700_grib"])
+        ds_rh850 = open_ds(ROOT / cfg["rh850_grib"])
+        ds_rh700 = open_ds(ROOT / cfg["rh700_grib"])
+        ds_rh500 = open_ds(ROOT / cfg["rh500_grib"])
+
     z700 = ds_z700[list(ds_z700.data_vars)[0]].squeeze()
-
     H700 = z700 / 10.0 if float(z700.max()) > 1000 else z700
-
-    ds_rh850 = open_ds(ROOT / cfg["rh850_grib"])
-    ds_rh700 = open_ds(ROOT / cfg["rh700_grib"])
-    ds_rh500 = open_ds(ROOT / cfg["rh500_grib"])
 
     try:
         rh850 = ds_rh850[list(ds_rh850.data_vars)[0]].squeeze()

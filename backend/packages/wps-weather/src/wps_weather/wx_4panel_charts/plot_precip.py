@@ -4,22 +4,22 @@ GDPS 12/6h Accumulated Precipitation + Jet Stream
 """
 
 import os
+import time
 from pathlib import Path
-import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import matplotlib.patheffects as PathEffects
-import matplotlib.patches as mpatches
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.feature import NaturalEarthFeature, ShapelyFeature
 import geopandas as gpd
-from scipy.ndimage import maximum_filter
 import matplotlib as mpl
+import matplotlib.patches as mpatches
+import matplotlib.patheffects as PathEffects
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import numpy as np
+import xarray as xr
+from cartopy.feature import NaturalEarthFeature, ShapelyFeature
 from cartopy.util import add_cyclic_point
-import time
+from scipy.ndimage import maximum_filter
 
 t0 = time.perf_counter()
 # --------------------------------------------------
@@ -84,7 +84,7 @@ PLOT_CONFIG_PCPN12 = {
     "axes_linewidth": 0.3,
 
     # --- Legend ---
-    "legend_title": "12h PCPN (mm)",
+    "legend_title": "6h PCPN (mm)",
     "legend_loc": "upper right",
     "legend_fontsize": 7,
     "legend_title_fontsize": 8,
@@ -239,7 +239,7 @@ def add_jet_legend(ax, cfg):
 # --------------------------------------------------
 # MAIN PLOT FUNCTION (standalone OR 4-panel)
 # --------------------------------------------------
-def plot_pcpn12(cfg: dict, ax=None):
+def plot_pcpn12(cfg: dict, ax=None, ds_p=None, ds_js=None):
     ROOT = get_project_root()
     OUTPUT_DIR = ROOT / cfg["output_dir"]
     OUTPUT_DIR.mkdir(exist_ok=True)
@@ -264,40 +264,42 @@ def plot_pcpn12(cfg: dict, ax=None):
     # 1. LOAD 12h PCPN
     # --------------------------------------------------
     t = time.perf_counter()
-    ds_p = open_ds(ROOT / cfg["pcpn_grib"])
-    print("pcpn open_ds:", time.perf_counter()-t)
-    try: 
-       da = to_mm(infer_precip_var(ds_p).squeeze())
-    finally:
-       ds_p.close()
-       
-    lats = ds_p["latitude"].values
-    lons = ds_p["longitude"].values
-    lon_plot, order = wrap_lon_180(lons)
-    
-    t = time.perf_counter()
-    P0 = da.values[:, order].astype(np.float32)
-    
-    # --- IMPORTANT FIX ---
-    # outlines need dry-side values so 0.5 contour exists
-    P_outline = np.where(np.isfinite(P0), P0, 0.0)
+    if cfg.get("show_precip", True):
+        if ds_p is None:
+            ds_p = open_ds(ROOT / cfg["pcpn_grib"])
+        print("pcpn open_ds:", time.perf_counter() - t)
+        try:
+            da = to_mm(infer_precip_var(ds_p).squeeze())
+        finally:
+            ds_p.close()
 
-    thr = cfg.get("mask_below_mm", 0.5)
-    if thr is not None:
-        P_shade = np.where(P_outline >= float(thr), P_outline, np.nan)
-    else:
-        P_shade = P_outline.copy()
-    
-    # use the ORIGINAL lon_plot for both fields
-    P_outline_cyc, lon_plot_cyc = add_cyclic_point(P_outline, coord=lon_plot)
-    P_shade_cyc, _            = add_cyclic_point(P_shade,   coord=lon_plot)
-    
-    # overwrite after both are done
-    P_outline = P_outline_cyc
-    P_shade   = P_shade_cyc
-    lon_plot  = lon_plot_cyc
-    
-    print("pcpn extract:", time.perf_counter()-t)
+        lats = ds_p["latitude"].values
+        lons = ds_p["longitude"].values
+        lon_plot, order = wrap_lon_180(lons)
+
+        t = time.perf_counter()
+        P0 = da.values[:, order].astype(np.float32)
+
+        # --- IMPORTANT FIX ---
+        # outlines need dry-side values so 0.5 contour exists
+        P_outline = np.where(np.isfinite(P0), P0, 0.0)
+
+        thr = cfg.get("mask_below_mm", 0.5)
+        if thr is not None:
+            P_shade = np.where(P_outline >= float(thr), P_outline, np.nan)
+        else:
+            P_shade = P_outline.copy()
+
+        # use the ORIGINAL lon_plot for both fields
+        P_outline_cyc, lon_plot_cyc = add_cyclic_point(P_outline, coord=lon_plot)
+        P_shade_cyc, _ = add_cyclic_point(P_shade, coord=lon_plot)
+
+        # overwrite after both are done
+        P_outline = P_outline_cyc
+        P_shade = P_shade_cyc
+        lon_plot = lon_plot_cyc
+
+        print("pcpn extract:", time.perf_counter() - t)
     
     lon_min, lon_max, lat_min, lat_max = cfg["extent"]
     ax.set_extent(cfg["extent"], crs=pc)
@@ -458,7 +460,8 @@ def plot_pcpn12(cfg: dict, ax=None):
                 PathEffects.Normal()
             ])
 
-        ds_js = open_ds(ROOT / cfg["jet_spd_grib"])
+        if ds_js is None:
+            ds_js = open_ds(ROOT / cfg["jet_spd_grib"])
         try:
            js_da = list(ds_js.data_vars.values())[0].squeeze()
         finally:

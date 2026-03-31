@@ -14,21 +14,20 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import matplotlib.patches as mpatches
-import matplotlib.patheffects as PathEffects
-import matplotlib as mpl
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.feature import NaturalEarthFeature, ShapelyFeature
 import geopandas as gpd
-
-from scipy.ndimage import maximum_filter
+import matplotlib as mpl
+import matplotlib.patches as mpatches
+import matplotlib.patheffects as PathEffects
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import matplotlib.tri as mtri
+import numpy as np
+import xarray as xr
+from cartopy.feature import NaturalEarthFeature, ShapelyFeature
+from scipy.ndimage import maximum_filter
 
 # --------------------------------------------------
 # CONFIG (RDPS)
@@ -298,7 +297,7 @@ def add_jet_legend(ax, cfg):
 # --------------------------------------------------
 # MAIN PLOT FUNCTION
 # --------------------------------------------------
-def plot_pcpn3_rdps(cfg: dict, ax=None):
+def plot_pcpn3_rdps(cfg: dict, ax=None, ds_p=None, ds_js=None):
     ROOT = get_project_root()
     OUTPUT_DIR = ROOT / cfg["output_dir"]
     OUTPUT_DIR.mkdir(exist_ok=True)
@@ -327,24 +326,22 @@ def plot_pcpn3_rdps(cfg: dict, ax=None):
     lon_min, lon_max, lat_min, lat_max = extent
     ax.set_extent(extent, crs=pc)
 
-    # --------------------------------------------------
-    # 1) LOAD RDPS 3h PCPN
-    # --------------------------------------------------
-    ds_p = open_ds(ROOT / cfg["pcpn_grib"])
-    da = to_mm(infer_precip_var(ds_p).squeeze())
+    if cfg.get("show_precip", True):
+        if ds_p is None:
+            ds_p = open_ds(ROOT / cfg["pcpn_grib"])
+        da = to_mm(infer_precip_var(ds_p).squeeze())
 
-    # RDPS coords are 2D
-    lat2 = ds_p["latitude"].values
-    #lon2 = ds_p["longitude"].values
-    lon2 = normalize_lon_to_extent(ds_p["longitude"].values, extent)
-    
-    P = da.values.astype(np.float64)
+        # RDPS coords are 2D
+        lat2 = ds_p["latitude"].values
+        # lon2 = ds_p["longitude"].values
+        lon2 = normalize_lon_to_extent(ds_p["longitude"].values, extent)
 
-    mask_thr = cfg.get("mask_below_mm", 0.5)
-    if mask_thr is not None:
-        P = np.where(np.isfinite(P), P, 0.0)      # keep grid coverage
-        P = np.where(P >= float(mask_thr), P, 0.0)  # dry = 0 mm
+        P = da.values.astype(np.float64)
 
+        mask_thr = cfg.get("mask_below_mm", 0.5)
+        if mask_thr is not None:
+            P = np.where(np.isfinite(P), P, 0.0)  # keep grid coverage
+            P = np.where(P >= float(mask_thr), P, 0.0)  # dry = 0 mm
 
     # --------------------------------------------------
     # 2) GRIDLINES + SINGLE LABELS
@@ -407,19 +404,24 @@ def plot_pcpn3_rdps(cfg: dict, ax=None):
     # --------------------------------------------------
     # 4) PROJECTED TRI POINTS (fix scope)
     # --------------------------------------------------
-    stride = int(cfg.get("tri_stride", 2))
-    clip = bool(cfg.get("tri_clip_to_extent", True))
-    pad_deg = float(cfg.get("tri_clip_pad_deg", 8.0))
+    if cfg.get("show_precip", True):
+        stride = int(cfg.get("tri_stride", 2))
+        clip = bool(cfg.get("tri_clip_to_extent", True))
+        pad_deg = float(cfg.get("tri_clip_pad_deg", 8.0))
+        max_edge_m = float(cfg.get("tri_max_edge_m", 350000.0))
 
-    stride = int(cfg.get("tri_stride", 2))
-    clip = bool(cfg.get("tri_clip_to_extent", True))
-    pad_deg = float(cfg.get("tri_clip_pad_deg", 8.0))
-    max_edge_m = float(cfg.get("tri_max_edge_m", 350000.0))
-    
-    triP, vP = _tri_projected_safe(
-        lon2, lat2, P, extent, proj, pc,
-        stride=stride, clip=clip, pad_deg=pad_deg, max_edge_m=max_edge_m
-    )
+        triP, vP = _tri_projected_safe(
+            lon2,
+            lat2,
+            P,
+            extent,
+            proj,
+            pc,
+            stride=stride,
+            clip=clip,
+            pad_deg=pad_deg,
+            max_edge_m=max_edge_m,
+        )
 
     # --------------------------------------------------
     # 5) PCPN DISCRETE SHADING + OUTLINES
@@ -516,7 +518,8 @@ def plot_pcpn3_rdps(cfg: dict, ax=None):
                 PathEffects.Normal()
             ])
 
-        ds_js = open_ds(ROOT / cfg["jet_spd_grib"])
+        if ds_js is None:
+            ds_js = open_ds(ROOT / cfg["jet_spd_grib"])
         js_da = list(ds_js.data_vars.values())[0].squeeze()
         JS = js_da.values.astype(np.float64)
 
