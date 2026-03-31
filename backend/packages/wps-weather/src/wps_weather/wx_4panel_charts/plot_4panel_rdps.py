@@ -37,13 +37,13 @@ matplotlib.use("Agg")
 # -----------------------------
 # Import RDPS plotters
 # -----------------------------
-from plot_500mb_rdps import plot_500hpa, CFG_500 as CFG_500_RDPS
-from plot_mslp_rdps import plot_mslp_thickness_rdps, CFG_MSLP_RDPS as CFG_MSLP_RDPS
-from plot_700mb_rdps import plot_700hpa_rdps, CFG_700_RDPS as CFG_700_RDPS
-from plot_precip_rdps import plot_pcpn3_rdps, PLOT_CONFIG_PCPN3_RDPS  as CFG_PCPN_RDPS
+from wps_weather.wx_4panel_charts.plot_500mb_rdps import plot_500hpa, CFG_500 as CFG_500_RDPS
+from wps_weather.wx_4panel_charts.plot_mslp_rdps import plot_mslp_thickness_rdps, CFG_MSLP_RDPS as CFG_MSLP_RDPS
+from wps_weather.wx_4panel_charts.plot_700mb_rdps import plot_700hpa_rdps, CFG_700_RDPS as CFG_700_RDPS
+from wps_weather.wx_4panel_charts.plot_precip_rdps import plot_pcpn3_rdps, PLOT_CONFIG_PCPN3_RDPS  as CFG_PCPN_RDPS
 
 # Import the panel settings
-from panel_layout import (
+from wps_weather.wx_4panel_charts.panel_layout import (
     get_project_root,
     add_panel_title,
     add_valid_time_stamp,

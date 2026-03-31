@@ -16,22 +16,21 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import matplotlib as mpl
-import matplotlib.patheffects as PathEffects
-
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.feature import NaturalEarthFeature, ShapelyFeature
-
-from scipy.ndimage import maximum_filter, minimum_filter, gaussian_filter
 import geopandas as gpd
+import matplotlib as mpl
 import matplotlib.patches as mpatches
+import matplotlib.patheffects as PathEffects
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import matplotlib.tri as mtri
+import numpy as np
+import xarray as xr
+from cartopy.feature import NaturalEarthFeature, ShapelyFeature
 from matplotlib.patches import Patch
+from scipy.ndimage import gaussian_filter, maximum_filter, minimum_filter
+
 # --------------------------------------------------
 # CONFIG (RDPS)
 # --------------------------------------------------
@@ -40,25 +39,20 @@ CFG_700_RDPS = {
     "z700_grib": "data_hpfx/20260109/12/006/20260109T12Z_MSC_RDPS_GeopotentialHeight_IsbL-0700_RLatLon0.09_PT006H.grib2",
     # =====  Three RH files (for layer-mean)  =====
     "rh850_grib": "data_hpfx/20260109/12/006/20260109T12Z_MSC_RDPS_RelativeHumidity_IsbL-0850_RLatLon0.09_PT006H.grib2",
-
     "rh700_grib": "data_hpfx/20260109/12/006/20260109T12Z_MSC_RDPS_RelativeHumidity_IsbL-0700_RLatLon0.09_PT006H.grib2",
     "rh700_index": "rh700_rdps.idx",
-
     "rh500_grib": "data_hpfx/20260109/12/006/20260109T12Z_MSC_RDPS_RelativeHumidity_IsbL-0500_RLatLon0.09_PT006H.grib2",
     "rh500_index": "rh500_rdps.idx",
-
     # --- Fire boundary (optional) ---
     "fire_outline": "fire_centers_all.geojson",
     "show_fire_boundary": False,
     "fire_facecolor": "none",
     "fire_edgecolor": "0.3",
     "fire_linewidth": 0.4,
-
     # --- Projection / domain ---
     "central_longitude": -130.0,
     "central_latitude": 50.0,
     "extent": [-160.0, -100.0, 30.0, 70.0],
-
     # --- Gridlines / labels ---
     "grid_dx": 10,
     "grid_dy": 10,
@@ -66,34 +60,28 @@ CFG_700_RDPS = {
     "lat_label_value": 40,
     "label_fontsize": 7,
     "label_alpha": 0.65,
-
     # --- Basemap styling ---
     "coastline_lw": 0.5,
     "borders_lw": 0.4,
     "province_lw": 0.5,
-
     # --- 700 hPa heights (dam) ---
     "height_interval": 6,
     "height_range": [240, 330],
     "height_highlight": [276, 300],  # bold
-
     # Black boxed height labels
     "height_label_levels": list(np.arange(264, 320, 6)),
     "height_label_lon": -140.0,
     "height_label_tol": 3.0,
     "height_label_min_dlat": 0.7,
-
     # --- Humidity contours ---
     "rh_levels": [50, 70, 90],
     "rh_linewidth": 1.0,
     "rh_linestyle": "dashed",
-
     # White boxed RH labels at multiple longitudes
     "rh_label_levels": [50],
     "rh_label_lons": [-165.0, -160.0, -150.0, -145.0, -130.0, -115.0, -100.0],
     "rh_label_tol": 2.0,
     "rh_label_min_dlat": 0.7,
-
     # --- Shaded humidity bands (dots) ---
     "shade_70_90": True,
     "shade_90_plus": True,
@@ -102,15 +90,13 @@ CFG_700_RDPS = {
     "shade_hatch_lw": 0.15,
     "shade_edge_lw": 0.6,
     "shade_hatch_lw": 0.15,
-    "shade_70_color": "#d9d9d9",   # Humidity 70% area color Light grey (light blue #bcd9ff). 
-    "shade_90_color": "#6b6b6b",   # Humidity 90% area color Dark grey (dark blue #1f5fa8).  
-
+    "shade_70_color": "#d9d9d9",  # Humidity 70% area color Light grey (light blue #bcd9ff).
+    "shade_90_color": "#6b6b6b",  # Humidity 90% area color Dark grey (dark blue #1f5fa8).
     # --- H/L centres based on 700-hPa height ---
     "show_HL": True,
     "hl_window": 41,
-    "hl_grid_min_dist": 25,   # 
-    "hl_deg_min_dist": 5.0,   # extra thinning in geographic space
-
+    "hl_grid_min_dist": 25,  #
+    "hl_deg_min_dist": 5.0,  # extra thinning in geographic space
     # H/L drawing geometry and styles
     "hl_d_letter": 1.5,
     "hl_d_value": 1.2,
@@ -122,17 +108,14 @@ CFG_700_RDPS = {
     "hl_center_halo_width": 2.0,
     "hl_value_fontsize": 10,
     "hl_value_halo_width": 2.0,
-
     # --- Smoothing (optional; usually keep light) ---
-    "smooth_height_sigma": 0.0,   # try 0.0 or 0.4
-    "smooth_rh_sigma": 0.6,       # try 0.4–1.0
-
+    "smooth_height_sigma": 0.0,  # try 0.0 or 0.4
+    "smooth_rh_sigma": 0.6,  # try 0.4–1.0
     # --- Triangulation control (projected tricontour) ---
-    "tri_stride": 2,                # 1=slow, 2–3 recommended
-    "tri_clip_to_extent": False,    # keep points around map
-    "tri_clip_pad_deg": 10.0,       # IMPORTANT: prevents hull cutting into the panel
+    "tri_stride": 2,  # 1=slow, 2–3 recommended
+    "tri_clip_to_extent": False,  # keep points around map
+    "tri_clip_pad_deg": 10.0,  # IMPORTANT: prevents hull cutting into the panel
     "tri_max_edge_m": 350000.0,
-    
     # --- Output ---
     "title": "RDPS 700 hPa Height (dam) + 850–700–500 hPa Humidity (%)",
     "output_dir": "outputs",
@@ -168,6 +151,7 @@ def open_ds(grib_path: Path) -> xr.Dataset:
         backend_kwargs={"indexpath": str(idx_path)},
     )
 
+
 def normalize_lon_to_extent(lon2, extent):
     """
     Return lon2 adjusted so it matches the 'style' of the extent.
@@ -183,6 +167,7 @@ def normalize_lon_to_extent(lon2, extent):
     if data_0360 and extent_neg:
         lon2 = ((lon2 + 180) % 360) - 180  # 0..360 -> -180..180
     return lon2
+
 
 def thin_pts_grid(iy: np.ndarray, ix: np.ndarray, min_dist: int = 25):
     kept = []
@@ -202,7 +187,7 @@ def thin_pts_grid(iy: np.ndarray, ix: np.ndarray, min_dist: int = 25):
 
 def further_thin_latlon_points(points_yx, lon2, lat2, field2, min_deg=2.0, prefer_high=True):
     pts = []
-    for (y, x) in points_yx:
+    for y, x in points_yx:
         lon = float(lon2[y, x])
         lat = float(lat2[y, x])
         val = float(field2[y, x])
@@ -236,47 +221,73 @@ def draw_HL(ax, lon, lat, letter, val, pc, lon_min, lon_max, lat_min, lat_max, c
     lat_value = lat - d_value
 
     if (
-        (lon < lon_min + pad_lon) or (lon > lon_max - pad_lon) or
-        (lat_letter > lat_max - pad_lat) or
-        (lat_value < lat_min + pad_lat)
+        (lon < lon_min + pad_lon)
+        or (lon > lon_max - pad_lon)
+        or (lat_letter > lat_max - pad_lat)
+        or (lat_value < lat_min + pad_lat)
     ):
         return
 
     txt = ax.text(
-        lon, lat_letter, letter,
-        transform=pc, ha="center", va="center",
-        fontsize=cfg["hl_letter_fontsize"], fontweight="bold",
-        color="black", zorder=20,
+        lon,
+        lat_letter,
+        letter,
+        transform=pc,
+        ha="center",
+        va="center",
+        fontsize=cfg["hl_letter_fontsize"],
+        fontweight="bold",
+        color="black",
+        zorder=20,
     )
-    txt.set_path_effects([
-        PathEffects.Stroke(linewidth=cfg["hl_letter_halo_width"], foreground="white"),
-        PathEffects.Normal()
-    ])
+    txt.set_path_effects(
+        [
+            PathEffects.Stroke(linewidth=cfg["hl_letter_halo_width"], foreground="white"),
+            PathEffects.Normal(),
+        ]
+    )
 
     circ = ax.text(
-        lon, lat, "⊗",
-        transform=pc, ha="center", va="center",
+        lon,
+        lat,
+        "⊗",
+        transform=pc,
+        ha="center",
+        va="center",
         fontsize=cfg["hl_center_fontsize"],
-        color="black", zorder=20,
+        color="black",
+        zorder=20,
     )
-    circ.set_path_effects([
-        PathEffects.Stroke(linewidth=cfg["hl_center_halo_width"], foreground="white"),
-        PathEffects.Normal()
-    ])
+    circ.set_path_effects(
+        [
+            PathEffects.Stroke(linewidth=cfg["hl_center_halo_width"], foreground="white"),
+            PathEffects.Normal(),
+        ]
+    )
 
     num = ax.text(
-        lon, lat_value, f"{int(val)}",
-        transform=pc, ha="center", va="center",
-        fontsize=cfg["hl_value_fontsize"], fontweight="bold",
-        color="black", zorder=20,
+        lon,
+        lat_value,
+        f"{int(val)}",
+        transform=pc,
+        ha="center",
+        va="center",
+        fontsize=cfg["hl_value_fontsize"],
+        fontweight="bold",
+        color="black",
+        zorder=20,
     )
-    num.set_path_effects([
-        PathEffects.Stroke(linewidth=cfg["hl_value_halo_width"], foreground="white"),
-        PathEffects.Normal()
-    ])
+    num.set_path_effects(
+        [
+            PathEffects.Stroke(linewidth=cfg["hl_value_halo_width"], foreground="white"),
+            PathEffects.Normal(),
+        ]
+    )
 
-def build_tri_projected_safe(lon2, lat2, fld2, extent, proj, pc,
-                             stride=2, clip=True, pad_deg=5.0, max_edge_m=350000.0):
+
+def build_tri_projected_safe(
+    lon2, lat2, fld2, extent, proj, pc, stride=2, clip=True, pad_deg=5.0, max_edge_m=350000.0
+):
     """
     Build triangulation in projected x/y, and mask triangles with very long edges.
     This removes seam / wrap-around triangles that create weird diagonal lines.
@@ -284,7 +295,7 @@ def build_tri_projected_safe(lon2, lat2, fld2, extent, proj, pc,
     """
     lon_s = lon2[::stride, ::stride]
     lat_s = lat2[::stride, ::stride]
-    v_s   = fld2[::stride, ::stride]
+    v_s = fld2[::stride, ::stride]
 
     lon_min, lon_max, lat_min, lat_max = extent
     lon_min_p = lon_min - pad_deg
@@ -295,25 +306,30 @@ def build_tri_projected_safe(lon2, lat2, fld2, extent, proj, pc,
     m = np.isfinite(v_s) & np.isfinite(lon_s) & np.isfinite(lat_s)
     if clip:
         m &= (
-            (lon_s >= lon_min_p) & (lon_s <= lon_max_p) &
-            (lat_s >= lat_min_p) & (lat_s <= lat_max_p)
+            (lon_s >= lon_min_p)
+            & (lon_s <= lon_max_p)
+            & (lat_s >= lat_min_p)
+            & (lat_s <= lat_max_p)
         )
 
     lon1 = lon_s[m].ravel()
     lat1 = lat_s[m].ravel()
-    v1   = v_s[m].ravel()
+    v1 = v_s[m].ravel()
 
     pts = proj.transform_points(pc, lon1, lat1)
     X = pts[:, 0]
     Y = pts[:, 1]
 
     good = np.isfinite(X) & np.isfinite(Y) & np.isfinite(v1)
-    X = X[good]; Y = Y[good]; v1 = v1[good]
+    X = X[good]
+    Y = Y[good]
+    v1 = v1[good]
 
     tri = mtri.Triangulation(X, Y)
 
     tris = tri.triangles
-    Xtri = X[tris]; Ytri = Y[tris]
+    Xtri = X[tris]
+    Ytri = Y[tris]
     e0 = np.hypot(Xtri[:, 1] - Xtri[:, 0], Ytri[:, 1] - Ytri[:, 0])
     e1 = np.hypot(Xtri[:, 2] - Xtri[:, 1], Ytri[:, 2] - Ytri[:, 1])
     e2 = np.hypot(Xtri[:, 0] - Xtri[:, 2], Ytri[:, 0] - Ytri[:, 2])
@@ -324,21 +340,39 @@ def build_tri_projected_safe(lon2, lat2, fld2, extent, proj, pc,
     return tri, v1
 
 
-def _boxed_labels_along_lon_rdps(ax, lon2, lat2, field2, levels, cfg,
-                                lon_target, tol_val, min_dlat, fontsize, pc, extent,
-                                text_color="white", facecolor="black", edgecolor="black",
-                                lw=0.7, tol_lon=0.35):
+def _boxed_labels_along_lon_rdps(
+    ax,
+    lon2,
+    lat2,
+    field2,
+    levels,
+    cfg,
+    lon_target,
+    tol_val,
+    min_dlat,
+    fontsize,
+    pc,
+    extent,
+    text_color="white",
+    facecolor="black",
+    edgecolor="black",
+    lw=0.7,
+    tol_lon=0.35,
+):
     """
     RDPS-friendly boxed labels along a longitude stripe.
     """
     lon_min, lon_max, lat_min, lat_max = extent
 
     m = (
-        np.isfinite(field2) &
-        np.isfinite(lon2) & np.isfinite(lat2) &
-        (np.abs(lon2 - lon_target) <= tol_lon) &
-        (lon2 >= lon_min) & (lon2 <= lon_max) &
-        (lat2 >= lat_min) & (lat2 <= lat_max)
+        np.isfinite(field2)
+        & np.isfinite(lon2)
+        & np.isfinite(lat2)
+        & (np.abs(lon2 - lon_target) <= tol_lon)
+        & (lon2 >= lon_min)
+        & (lon2 <= lon_max)
+        & (lat2 >= lat_min)
+        & (lat2 <= lat_max)
     )
     if not np.any(m):
         return
@@ -357,23 +391,33 @@ def _boxed_labels_along_lon_rdps(ax, lon2, lat2, field2, levels, cfg,
         used_lats.append(lat_lab)
 
         ax.text(
-            lon_target, lat_lab, f"{int(lev)}",
-            transform=pc, ha="center", va="center",
-            fontsize=fontsize, fontweight="bold", color=text_color,
+            lon_target,
+            lat_lab,
+            f"{int(lev)}",
+            transform=pc,
+            ha="center",
+            va="center",
+            fontsize=fontsize,
+            fontweight="bold",
+            color=text_color,
             bbox=dict(
-                boxstyle="square,pad=0.1",
-                facecolor=facecolor,
-                edgecolor=edgecolor,
-                linewidth=lw
+                boxstyle="square,pad=0.1", facecolor=facecolor, edgecolor=edgecolor, linewidth=lw
             ),
-            zorder=18
+            zorder=18,
         )
 
 
 # --------------------------------------------------
 # Main plotter
 # --------------------------------------------------
-def plot_700hpa_rdps(cfg=None, ax=None):
+def plot_700hpa_rdps(
+    cfg=None,
+    ax=None,
+    ds_z700=None,
+    ds_rh850=None,
+    ds_rh700=None,
+    ds_rh500=None,
+):
     if cfg is None:
         cfg = CFG_700_RDPS
 
@@ -390,7 +434,7 @@ def plot_700hpa_rdps(cfg=None, ax=None):
         central_latitude=cfg["central_latitude"],
     )
 
-    standalone = (ax is None)
+    standalone = ax is None
     if standalone:
         fig = plt.figure(figsize=cfg["figsize"])
         ax = plt.axes(projection=proj)
@@ -403,16 +447,19 @@ def plot_700hpa_rdps(cfg=None, ax=None):
 
     # --------------------------------------------------
     # 1) Load height + RHs
-    # --------------------------------------------------
-    ds_z700 = open_ds(ROOT / cfg["z700_grib"])
+    # --------------------------------------------------+
+
+    # --- Load data if not provided ---
+    if ds_z700 is None or ds_rh850 is None or ds_rh700 is None or ds_rh500 is None:
+        ds_z700 = open_ds(ROOT / cfg["z700_grib"])
+        ds_rh850 = open_ds(ROOT / cfg["rh850_grib"])
+        ds_rh700 = open_ds(ROOT / cfg["rh700_grib"])
+        ds_rh500 = open_ds(ROOT / cfg["rh500_grib"])
+
     z700 = ds_z700[list(ds_z700.data_vars)[0]].squeeze()
 
     H700 = z700 / 10.0 if float(z700.max()) > 1000 else z700
     Z = H700.values.astype(np.float64)
-
-    ds_rh850 = open_ds(ROOT / cfg["rh850_grib"])
-    ds_rh700 = open_ds(ROOT / cfg["rh700_grib"])
-    ds_rh500 = open_ds(ROOT / cfg["rh500_grib"])
 
     rh850 = ds_rh850[list(ds_rh850.data_vars)[0]].squeeze()
     rh700 = ds_rh700[list(ds_rh700.data_vars)[0]].squeeze()

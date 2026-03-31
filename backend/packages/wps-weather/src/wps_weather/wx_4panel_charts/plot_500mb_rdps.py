@@ -14,20 +14,17 @@ Supports:
 import os
 from pathlib import Path
 
-import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import matplotlib.patheffects as PathEffects
-
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.feature import NaturalEarthFeature, ShapelyFeature
-
-from scipy.ndimage import maximum_filter, minimum_filter, gaussian_filter, label
 import geopandas as gpd
+import matplotlib.patheffects as PathEffects
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import matplotlib.tri as mtri
-
+import numpy as np
+import xarray as xr
+from cartopy.feature import NaturalEarthFeature, ShapelyFeature
+from scipy.ndimage import gaussian_filter, label, maximum_filter, minimum_filter
 
 # --------------------------------------------------
 # CONFIG (RDPS)
@@ -355,7 +352,7 @@ def add_boxed_height_labels_rdps(ax, lon2, lat2, Z, cfg, pc, extent):
 # --------------------------------------------------
 # Main plotter
 # --------------------------------------------------
-def plot_500hpa(cfg=None, ax=None):
+def plot_500hpa(cfg=None, ax=None, ds_z500=None, ds_vort=None):
     if cfg is None:
         cfg = CFG_500
 
@@ -385,9 +382,10 @@ def plot_500hpa(cfg=None, ax=None):
     lon_min, lon_max, lat_min, lat_max = extent
     ax.set_extent(extent, crs=pc)
 
-    # --- Load data ---
-    ds_z500 = open_ds(ROOT / cfg["z500_grib"])
-    ds_vort = open_ds(ROOT / cfg["vort_grib"])
+    # --- Load data if not provided ---
+    if ds_z500 is None or ds_vort is None:
+        ds_z500 = open_ds(ROOT / cfg["z500_grib"])
+        ds_vort = open_ds(ROOT / cfg["vort_grib"])
 
     z = ds_z500[list(ds_z500.data_vars)[0]].squeeze()
     v = ds_vort[list(ds_vort.data_vars)[0]].squeeze()

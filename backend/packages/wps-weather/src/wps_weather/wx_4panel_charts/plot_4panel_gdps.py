@@ -4,39 +4,44 @@ Generate a 2x2 4-panel plot for MANY forecast hours (6/12-hourly out to 10 days)
 
 """
 
+import argparse
+import gc
 import os
-from pathlib import Path
+import time
 from datetime import datetime, timedelta
+from pathlib import Path
 
-import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import matplotlib
+import matplotlib.patheffects as PathEffects
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+from wps_weather.wx_4panel_charts.plot_500mb import CFG_500 as CFG_500
 
 # -----------------------------
 # Import GDPS plotters
 # -----------------------------
-from plot_500mb import plot_500hpa, CFG_500 as CFG_500
-from plot_mslp import plot_mslp_thickness, CFG_MSLP as CFG_MSLP
-from plot_700mb import plot_700hpa, CFG_700 as CFG_700
-from plot_precip import plot_pcpn12, PLOT_CONFIG_PCPN12 as CFG_PCPN
+from wps_weather.wx_4panel_charts.plot_500mb import plot_500hpa
+from wps_weather.wx_4panel_charts.plot_700mb import CFG_700 as CFG_700
+from wps_weather.wx_4panel_charts.plot_700mb import plot_700hpa
+from wps_weather.wx_4panel_charts.plot_mslp import CFG_MSLP as CFG_MSLP
+from wps_weather.wx_4panel_charts.plot_mslp import plot_mslp_thickness
+from wps_weather.wx_4panel_charts.plot_precip import PLOT_CONFIG_PCPN12 as CFG_PCPN
+from wps_weather.wx_4panel_charts.plot_precip import plot_pcpn12
 
-from matplotlib.patches import Rectangle
-import matplotlib.patheffects as PathEffects
-import argparse
-from datetime import datetime, timedelta
-import time
-import gc
-import matplotlib
 matplotlib.use("Agg")
 
 # -----------------------------
 # Import the panel settings
 # -----------------------------
-from panel_layout import (
-    get_project_root,
+from wps_weather.wx_4panel_charts.panel_layout import (
     add_panel_title,
     add_valid_time_stamp,
     apply_4panel_frames,
+    get_project_root,
 )
+
+
 # -----------------------------
 # File naming + cfg builders
 # -----------------------------
