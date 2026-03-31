@@ -57,8 +57,9 @@ export const selectNotificationSetupState = createSelector(
 export const selectNotificationSettingsDisabled = createSelector(
   selectNotificationSetupState,
   selectNetworkStatus,
-  (setupState, { networkStatus }) =>
-    setupState !== "ready" || !networkStatus.connected,
+  selectSettings,
+  (setupState, { networkStatus }, { subscriptionsInitialized }) =>
+    setupState !== "ready" || !networkStatus.connected || !subscriptionsInitialized,
 );
 
 export const selectNotificationSettingsDisabledReason = createSelector(

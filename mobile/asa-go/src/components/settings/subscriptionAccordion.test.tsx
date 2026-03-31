@@ -182,8 +182,9 @@ describe("SubscriptionAccordion", () => {
 
   it("expands and collapses when clicked", async () => {
     const store = createTestStore({
-      pushNotification: { pushNotificationPermission: "granted", registeredFcmToken: "test-token", deviceIdError: false },
+      pushNotification: { pushNotificationPermission: "granted", registeredFcmToken: "test-token", deviceIdError: false, registrationError: false },
       networkStatus: { networkStatus: { connected: true, connectionType: "wifi" } },
+      settings: { loading: false, error: null, fireCentreInfos: [], pinnedFireCentre: null, subscriptions: [], subscriptionsInitialized: true },
     });
 
     render(

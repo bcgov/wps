@@ -7,8 +7,12 @@ stateDiagram-v2
     PermissionDenied --> Unregistered : user enables in OS settings
 
     Unregistered --> Ready : online + deviceId resolved + registerToken() succeeds\n(retried with exponential backoff)
-    Unregistered --> Unregistered : offline or registerToken() exhausts retries
+    Unregistered --> Unregistered : offline
+    Unregistered --> RegistrationFailed : online + deviceId resolved + registerToken() exhausts retries
     Unregistered --> DeviceIdError : Device.getId() fails
+
+    RegistrationFailed --> Ready : app foreground + registerToken() succeeds
+    RegistrationFailed --> RegistrationFailed : app foreground + registerToken() fails again
 
     DeviceIdError --> Unregistered : app restart / retry
 
@@ -32,6 +36,7 @@ stateDiagram-v2
         Subscribe button UI:
         Unregistered + online → spinner in subscribe button
         Unregistered + offline → "Unavailable offline" caption
+        RegistrationFailed → "Unable to register for notifications" caption
         PermissionDenied → "Enable notifications in device settings" caption
         DeviceIdError → "Unable to identify device" caption
         (driven by selectNotificationSettingsDisabledReason)

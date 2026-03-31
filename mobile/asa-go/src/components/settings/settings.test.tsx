@@ -187,11 +187,13 @@ describe("Settings", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         fireCentreInfos: mockFireCentreInfos,
+        subscriptionsInitialized: true,
       },
       pushNotification: {
         pushNotificationPermission: "granted",
         registeredFcmToken: "test-token",
         deviceIdError: false,
+        registrationError: false,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },

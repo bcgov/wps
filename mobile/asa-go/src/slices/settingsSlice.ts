@@ -6,10 +6,12 @@ import {
   readFromFilesystem,
   writeToFileSystem,
 } from "@/utils/storage";
+import { retryWithBackoff } from "@/utils/retryWithBackoff";
 import { Filesystem } from "@capacitor/filesystem";
 import { Preferences } from "@capacitor/preferences";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { FireCentreInfo, getFireCentreInfo } from "api/fbaAPI";
+import { getNotificationSettings } from "api/pushNotificationsAPI";
 import { isNil, isNull } from "lodash";
 import { DateTime } from "luxon";
 
@@ -90,6 +92,17 @@ export const initPinnedFireCentre = (): AppThunk => async (dispatch) => {
   }
 };
 
+
+export const initSubscriptions =
+  (deviceId: string): AppThunk =>
+  async (dispatch) => {
+    try {
+      const ids = await retryWithBackoff(() => getNotificationSettings(deviceId));
+      dispatch(setSubscriptions(ids.map(Number)));
+    } catch (e) {
+      console.error(`Failed to fetch notification settings: ${e}`);
+    }
+  };
 
 export const getUpdatedSubscriptions = (
   subscriptions: number[],

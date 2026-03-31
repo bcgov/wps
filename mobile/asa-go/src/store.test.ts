@@ -27,6 +27,7 @@ const makeState = (
       fireCentreInfos: [],
       pinnedFireCentre: null,
       subscriptions: [],
+      subscriptionsInitialized: true,
     },
     pushNotification: {
       ...base,
@@ -88,6 +89,11 @@ describe("selectNotificationSettingsDisabled", () => {
 
   it("returns true when offline", () => {
     expect(selectNotificationSettingsDisabled(makeState({}, false))).toBe(true);
+  });
+
+  it("returns true when subscriptions are not yet initialized", () => {
+    const state = { ...makeState({}), settings: { ...makeState({}).settings, subscriptionsInitialized: false } };
+    expect(selectNotificationSettingsDisabled(state as RootState)).toBe(true);
   });
 });
 

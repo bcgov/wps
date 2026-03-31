@@ -24,6 +24,7 @@ import {
   selectNetworkStatus,
   selectRunParameters,
   selectAuthentication,
+  selectSettings,
 } from "@/store";
 import { registerDevice } from "@/slices/pushNotificationSlice";
 import { selectPushNotification } from "@/store";
@@ -41,8 +42,9 @@ import { isNil, isNull } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useInitSubscriptions } from "@/hooks/useInitSubscriptions";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useDeviceId } from "@/hooks/useDeviceId";
+import { initSubscriptions } from "@/slices/settingsSlice";
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
@@ -66,12 +68,13 @@ const App = () => {
   const { fireCenters } = useSelector(selectFireCenters);
   const { networkStatus } = useSelector(selectNetworkStatus);
   const runParameters = useSelector(selectRunParameters);
+  const { registeredFcmToken } = useSelector(selectPushNotification);
+  const { subscriptionsInitialized } = useSelector(selectSettings);
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
   const { initPushNotifications } = usePushNotifications();
-  const { registeredFcmToken } = useSelector(selectPushNotification);
-  useInitSubscriptions();
+  const deviceId = useDeviceId();
 
   const selectedFireCenterName = selectedFireShape?.mof_fire_centre_name;
   const matchingFireCenter = selectedFireCenterName
@@ -103,6 +106,18 @@ const App = () => {
       dispatch(registerDevice(registeredFcmToken));
     }
   }, [registeredFcmToken, networkStatus.connected, isActive, dispatch]);
+
+  useEffect(() => {
+    if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;
+    if (subscriptionsInitialized) return;
+    dispatch(initSubscriptions(deviceId));
+  }, [
+    deviceId,
+    networkStatus.connected,
+    registeredFcmToken,
+    subscriptionsInitialized,
+    dispatch,
+  ]);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status

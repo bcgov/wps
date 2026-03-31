@@ -101,7 +101,7 @@ const renderWithProviders = ({
       fireCentreInfos: [],
       pinnedFireCentre: null,
       subscriptions,
-      subscriptionsInitialized: false,
+      subscriptionsInitialized: true,
     },
     pushNotification: {
       pushNotificationPermission,
