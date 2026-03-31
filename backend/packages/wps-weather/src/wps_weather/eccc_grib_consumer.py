@@ -8,6 +8,7 @@ from urllib.parse import urljoin
 import aiohttp
 from aio_pika import IncomingMessage, connect_robust
 from aio_pika.abc import AbstractRobustConnection
+from wps_shared import config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
@@ -17,6 +18,8 @@ from wps_weather.utils import parse_date_and_run, s3_key_from_eccc_path
 logger = logging.getLogger(__name__)
 
 ModelName = Literal["RDPS", "GDPS", "HRDPS"]
+
+NAMESPACE = config.get("NAMESPACE", "dev")
 
 
 class ModelConfig(TypedDict):
@@ -378,7 +381,8 @@ class ECCCGribConsumer:
 
             # must match pattern specified by: https://eccc-msc.github.io/open-data/msc-datamart/amqp_en/
             # q_anonymous.subscribe.{config_name}.{company_name}
-            queue_name = f"q_anonymous.subscribe.{model}.bcgov"
+            queue_name = f"q_anonymous.subscribe.{model}.bcgov-{NAMESPACE}"
+            logger.info(f"Subscribing with queue: {queue_name}")
 
             # don't set exclusive queue, so we can have multiple consumers if needed
             # auto_delete=False so queue persists if consumer disconnects

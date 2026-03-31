@@ -78,6 +78,10 @@ objects:
               env:
                 - name: UV_NO_CACHE
                   value: "1"
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:

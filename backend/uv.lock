@@ -4856,6 +4856,7 @@ source = { editable = "packages/wps-shared" }
 dependencies = [
     { name = "affine" },
     { name = "aiobotocore" },
+    { name = "aiofiles" },
     { name = "aiohttp" },
     { name = "asyncpg" },
     { name = "cffdrs" },
@@ -4885,6 +4886,7 @@ dev = [
 requires-dist = [
     { name = "affine", specifier = ">=2.4.0,<3" },
     { name = "aiobotocore", specifier = "==2.15.1" },
+    { name = "aiofiles", specifier = ">=25.0.0,<26" },
     { name = "aiohttp", specifier = ">=3,<4" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "cffdrs", specifier = ">=0,<1" },
