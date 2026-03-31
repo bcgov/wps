@@ -54,8 +54,8 @@ def test_build_notification_content(for_date, placename_label, expected):
 @pytest.mark.parametrize(
     "placename_label, expected",
     [
-        ("K2-Kamloops Zone (Kamloops)", "Behaviour Advisory, K2"),
-        ("C5-Chilcotin Zone", "Behaviour Advisory, C5"),
+        ("K2-Kamloops Zone (Kamloops)", "Fire Behaviour Advisory, K2"),
+        ("C5-Chilcotin Zone", "Fire Behaviour Advisory, C5"),
     ],
 )
 def test_build_notification_title(placename_label, expected):
@@ -125,7 +125,7 @@ async def test_trigger_notifications_sends_multicast():
     """Zones with advisories and subscribers triggers a multicast send."""
     session = AsyncMock()
     zone = ZoneAdvisoryStatus(
-        advisory_shape_id=1, source_identifier="42", placename_label="Kamloops", status="advisory"
+        advisory_shape_id=1, source_identifier="42", placename_label="K2-Kamloops Zone (Kamloops)", status="advisory"
     )
     tokens = ["token_a", "token_b"]
     mock_response = MagicMock(spec=messaging.BatchResponse)
@@ -143,8 +143,8 @@ async def test_trigger_notifications_sends_multicast():
         mock_send.assert_called_once()
         call_arg = mock_send.call_args[0][0]
         assert call_arg.tokens == tokens
-        assert "Kamloops" in call_arg.notification.title
-        assert "Kamloops" in call_arg.notification.body
+        assert call_arg.notification.title == "Fire Behaviour Advisory, K2"
+        assert "K2-Kamloops Zone (Kamloops)" in call_arg.notification.body
 
 
 @pytest.mark.anyio
@@ -310,7 +310,7 @@ def test_build_fcm_message_notification_content():
     msg = build_fcm_message(MSG_DATE, ZONE, TOKENS)
     assert isinstance(msg, messaging.MulticastMessage)
     assert msg.tokens == TOKENS
-    assert msg.notification.title == "Behaviour Advisory, K2"
+    assert msg.notification.title == "Fire Behaviour Advisory, K2"
     assert "K2-Kamloops Zone (Kamloops)" in msg.notification.body
     assert "Wed, April 1" in msg.notification.body
 

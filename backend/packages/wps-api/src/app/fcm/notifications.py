@@ -21,7 +21,7 @@ def build_notification_content(zone_with_advisory: ZoneAdvisoryStatus, for_date:
 
 def build_notification_title(zone_with_advisory: ZoneAdvisoryStatus):
     zone = zone_with_advisory.placename_label.split("-")[0]
-    return f"Behaviour Advisory, {zone}"
+    return f"Fire Behaviour Advisory, {zone}"
 
 
 def build_fcm_message(
