@@ -428,6 +428,7 @@ async def main():
                 current_datetime = current_datetime + timedelta(days=1)
 
             # Exit with 0 - success.
+            logger.info("4-Panel Chart creation is up to date.")
             sys.exit(os.EX_OK)
         except Exception as e:
             logger.error(f"Fatal error: {e}", exc_info=True)
