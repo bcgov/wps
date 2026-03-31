@@ -31,6 +31,7 @@ import {
 } from "@mui/material";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { subscriptionUpdateErrorMessage } from "@/utils/constants";
 
 interface FireShapeActionsDrawerProps {
   open: boolean;
@@ -48,7 +49,8 @@ const FireShapeActionsDrawer = ({
   onSelectAdvisory,
 }: FireShapeActionsDrawerProps) => {
   const dispatch: AppDispatch = useDispatch();
-  const { toggleSubscription, updateError, clearUpdateError } = useNotificationSettings();
+  const { toggleSubscription, updateError, clearUpdateError } =
+    useNotificationSettings();
   const theme = useTheme();
 
   const isPortrait = useIsPortrait();
@@ -110,7 +112,7 @@ const FireShapeActionsDrawer = ({
         open={updateError}
         autoHideDuration={6000}
         onClose={clearUpdateError}
-        message="Failed to update notification settings. Please try again later."
+        message={subscriptionUpdateErrorMessage}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
       <SwipeableBottomDrawer open={open} onClose={onClose}>

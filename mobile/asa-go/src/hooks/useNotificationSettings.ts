@@ -19,13 +19,20 @@ export function useNotificationSettings() {
   const { networkStatus } = useSelector(selectNetworkStatus);
   const { subscriptions } = useSelector(selectSettings);
   const { registeredFcmToken } = useSelector(selectPushNotification);
+  const { subscriptionsInitialized } = useSelector(selectSettings);
   const deviceId = useDeviceId();
   const [updateError, setUpdateError] = useState(false);
 
   const updateSubscriptions = async (subs: number[]): Promise<void> => {
     // Guard matches selectNotificationSettingsDisabled — button should be disabled
     // before this is reachable, but guard prevents any state change if not.
-    if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;
+    if (
+      !deviceId ||
+      !networkStatus.connected ||
+      !registeredFcmToken ||
+      !subscriptionsInitialized
+    )
+      return;
     const previousSubs = subscriptions;
     dispatch(setSubscriptions(subs));
     try {

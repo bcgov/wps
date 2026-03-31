@@ -8,6 +8,7 @@ import {
   selectSettings,
 } from "@/store";
 import { theme } from "@/theme";
+import { subscriptionUpdateErrorMessage } from "@/utils/constants";
 import { nameFormatter } from "@/utils/stringUtils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import PushPinIcon from "@mui/icons-material/PushPin";
@@ -144,7 +145,7 @@ const SubscriptionAccordion = ({
         open={updateError}
         autoHideDuration={6000}
         onClose={clearUpdateError}
-        message="Failed to update notification settings. Please try again later."
+        message={subscriptionUpdateErrorMessage}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
       <Accordion
@@ -219,7 +220,7 @@ const SubscriptionAccordion = ({
                   loading={pendingZoneId === fireZoneUnit.id}
                   error={
                     errorZoneId === fireZoneUnit.id
-                      ? "Failed to update. Please try again later."
+                      ? subscriptionUpdateErrorMessage
                       : undefined
                   }
                 />
