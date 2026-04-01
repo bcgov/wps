@@ -48,12 +48,6 @@
     // JavaScript/TypeScript
     "eslint.format.enable": true,
     "eslint.run": "onType",
-    "eslint.workingDirectories": [
-        {
-            "directory": "web",
-            "changeProcessCWD": true
-        }
-    ],
     "eslint.validate": [
         "javascript",
         "javascriptreact",
