@@ -4,37 +4,37 @@ import type { FireCentre } from '@wps/types/fireCentre'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
 
-interface FireCenterDropdownProps {
-  selectedFireCenter?: FireCentre
-  fireCenterOptions: FireCentre[]
-  setSelectedFireCenter: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
+interface FireCentreDropdownProps {
+  selectedFireCentre?: FireCentre
+  fireCentreOptions: FireCentre[]
+  setSelectedFireCentre: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
 }
 
-const FireCenterDropdown = (props: FireCenterDropdownProps) => {
+const FireCentreDropdown = (props: FireCentreDropdownProps) => {
   // eslint-disable-next-line
   const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
-    if (!isEqual(props.selectedFireCenter, value)) {
+    if (!isEqual(props.selectedFireCentre, value)) {
       props.setSelectedFireShape(undefined)
-      props.setSelectedFireCenter(value ?? undefined)
+      props.setSelectedFireCentre(value ?? undefined)
       props.setZoomSource('fireCenter')
     }
     if (isNull(value)) {
-      localStorage.removeItem('preferredFireCenter')
+      localStorage.removeItem('preferredFireCentre')
     }
   }
 
   return (
     <Autocomplete
       data-testid={`fire-center-dropdown`}
-      options={props.fireCenterOptions}
+      options={props.fireCentreOptions}
       getOptionLabel={option => option?.name}
       renderInput={params => <TextField {...params} label="Select Fire Centre" variant="outlined" />}
       onChange={changeHandler}
-      value={props.selectedFireCenter || null}
+      value={props.selectedFireCentre || null}
     />
   )
 }
 
-export default React.memo(FireCenterDropdown)
+export default React.memo(FireCentreDropdown)

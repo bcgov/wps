@@ -32,7 +32,7 @@ const postCoreSeasonDate = createDateTime(2025, 10, 1)
 const issueDate = DateTime.now()
 const forDate = DateTime.now()
 
-const mockFireCenter: FireCentre = {
+const mockFireCentre: FireCentre = {
   id: 1,
   name: 'Cariboo Fire Centre'
 }
@@ -156,7 +156,7 @@ describe('AdvisoryText', () => {
           <AdvisoryText
             issueDate={issueDate}
             forDate={forDate}
-            selectedFireCenter={mockFireCenter}
+            selectedFireCentre={mockFireCentre}
             selectedFireZoneUnit={mockFireZoneUnit}
           />
         </Provider>
@@ -195,7 +195,7 @@ describe('AdvisoryText', () => {
   it('should render default message when no fire zone unit is selected', () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryText issueDate={issueDate} forDate={forDate} selectedFireCenter={mockFireCenter} />
+        <AdvisoryText issueDate={issueDate} forDate={forDate} selectedFireCentre={mockFireCentre} />
       </Provider>
     )
     const message = getByTestId('default-message')
@@ -254,7 +254,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
@@ -278,7 +278,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
@@ -313,7 +313,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
@@ -341,7 +341,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
         />
       </Provider>
@@ -426,7 +426,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
         />
       </Provider>
@@ -453,7 +453,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
         />
       </Provider>
@@ -502,7 +502,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
@@ -522,7 +522,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>

@@ -38,23 +38,23 @@ export const fireCentreLabelStyler = (feature: RenderFeature | ol.Feature<Geomet
   })
 }
 
-export const fireCentreStyler = (selectedFireCenter: FireCentre | undefined) => {
+export const fireCentreStyler = (selectedFireCentre: FireCentre | undefined) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME
-    const isSelected = selectedFireCenter && fireCenterId == selectedFireCenter.name
+    const fireCentreId = feature.getProperties().MOF_FIRE_CENTRE_NAME
+    const isSelected = selectedFireCentre && fireCentreId == selectedFireCentre.name
 
     const fillColour = isSelected ? new Fill({ color: EMPTY_FILL }) : new Fill({ color: GREY_FILL })
 
     return new Style({
-      fill: selectedFireCenter ? fillColour : undefined
+      fill: selectedFireCentre ? fillColour : undefined
     })
   }
 }
 
-export const fireCentreLineStyler = (selectedFireCenter: FireCentre | undefined) => {
+export const fireCentreLineStyler = (selectedFireCentre: FireCentre | undefined) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME
-    const isSelected = selectedFireCenter && fireCenterId == selectedFireCenter.name
+    const fireCentreId = feature.getProperties().MOF_FIRE_CENTRE_NAME
+    const isSelected = selectedFireCentre && fireCentreId == selectedFireCentre.name
 
     return new Style({
       stroke: new Stroke({

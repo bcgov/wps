@@ -15,19 +15,19 @@ import { useSelector } from 'react-redux'
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
-  selectedFireCenter: FireCentre | undefined
+  selectedFireCentre: FireCentre | undefined
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
 }
 
 const FireZoneUnitTabs = ({
   selectedFireZoneUnit,
   setZoomSource,
-  selectedFireCenter,
+  selectedFireCentre: selectedFireCentre,
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
 
-  const sortedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
+  const sortedFireZoneUnits = useFireCentreDetails(selectedFireCentre)
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
 
   const tabNumber = useMemo(() => {
@@ -59,16 +59,16 @@ const FireZoneUnitTabs = ({
   }
 
   const tpiStatsArray = useMemo(() => {
-    if (selectedFireCenter && !isNil(fireCentreTPIStats)) {
+    if (selectedFireCentre && !isNil(fireCentreTPIStats)) {
       return fireCentreTPIStats?.firezone_tpi_stats
     }
-  }, [fireCentreTPIStats, selectedFireCenter])
+  }, [fireCentreTPIStats, selectedFireCentre])
 
   const hfiFuelStats = useMemo(() => {
-    if (selectedFireCenter) {
-      return filteredFireCentreHFIFuelStats?.[selectedFireCenter?.name]
+    if (selectedFireCentre) {
+      return filteredFireCentreHFIFuelStats?.[selectedFireCentre?.name]
     }
-  }, [filteredFireCentreHFIFuelStats, selectedFireCenter])
+  }, [filteredFireCentreHFIFuelStats, selectedFireCentre])
 
   useEffect(() => {
     if (!selectedFireZoneUnit) {
@@ -76,7 +76,7 @@ const FireZoneUnitTabs = ({
     }
   }, [getTabFireShape, selectedFireZoneUnit, setSelectedFireShape])
 
-  if (isUndefined(selectedFireCenter) || isNull(selectedFireCenter)) {
+  if (isUndefined(selectedFireCentre) || isNull(selectedFireCentre)) {
     return <div data-testid="fire-zone-unit-tabs-empty"></div>
   }
 
@@ -84,7 +84,7 @@ const FireZoneUnitTabs = ({
     <div data-testid="firezone-summary-tabs">
       <InfoAccordion
         defaultExpanded={true}
-        title={selectedFireCenter.name}
+        title={selectedFireCentre.name}
         accordionDetailBackgroundColour={INFO_PANEL_CONTENT_BACKGROUND}
       >
         {isEmpty(sortedFireZoneUnits) && (

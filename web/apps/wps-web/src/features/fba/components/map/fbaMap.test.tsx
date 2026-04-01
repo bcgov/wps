@@ -38,7 +38,7 @@ describe('FBAMap', () => {
       <Provider store={store}>
         <FBAMap
           forDate={DateTime.fromISO('2016-05-25')}
-          selectedFireCenter={undefined}
+          selectedFireCentre={undefined}
           selectedFireShape={undefined}
           runType={RunType.FORECAST}
           setSelectedFireShape={function (): void {

@@ -10,12 +10,17 @@ import { DateTime } from 'luxon'
 interface AdvisoryReportProps {
   issueDate: DateTime | null
   forDate: DateTime
-  selectedFireCenter?: FireCentre
+  selectedFireCentre?: FireCentre
   selectedFireZoneUnit?: FireShape
 }
 
-const AdvisoryReport = ({ issueDate, forDate, selectedFireCenter, selectedFireZoneUnit }: AdvisoryReportProps) => {
-  const groupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
+const AdvisoryReport = ({
+  issueDate,
+  forDate,
+  selectedFireCentre: selectedFireCentre,
+  selectedFireZoneUnit
+}: AdvisoryReportProps) => {
+  const groupedFireZoneUnits = useFireCentreDetails(selectedFireCentre)
   const fireZoneUnitDetails = groupedFireZoneUnits.find(
     zone => zone.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
   )
@@ -34,7 +39,7 @@ const AdvisoryReport = ({ issueDate, forDate, selectedFireCenter, selectedFireZo
             <AdvisoryText
               issueDate={issueDate}
               forDate={forDate}
-              selectedFireCenter={selectedFireCenter}
+              selectedFireCentre={selectedFireCentre}
               selectedFireZoneUnit={selectedFireZoneUnit}
             ></AdvisoryText>
           </Grid>
