@@ -396,7 +396,7 @@ async def main():
     if args.init_ymd is None:
         now = get_utc_now()
         start_datetime = await get_init_datetime(args.model)
-        end_datetime = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_datetime = now
     else:
         # If an init_ymd was provided as an argument, only process that one day
         start_datetime = datetime.strptime(args.init_ymd, "%Y%m%d").replace(tzinfo=timezone.utc)

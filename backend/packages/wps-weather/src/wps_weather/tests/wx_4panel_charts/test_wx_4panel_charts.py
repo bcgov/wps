@@ -94,6 +94,7 @@ with patch.dict("sys.modules", _patches):
     from wps_weather.wx_4panel_charts.wx_4panel_charts import (  # noqa: E402
         FourPanelChartRunner,
         get_init_datetime,
+        main,
         parse_args,
     )
     _wx4panel_charts_module = sys.modules["wps_weather.wx_4panel_charts.wx_4panel_charts"]
@@ -798,3 +799,70 @@ class TestGetInitDatetime:
             await get_init_datetime(ECCCModel.RDPS)
 
         assert mock_incomplete.call_args[0][2] == ECCCModel.RDPS
+
+
+# ---------------------------------------------------------------------------
+# main
+# ---------------------------------------------------------------------------
+
+
+def _make_main_patches(now, start_datetime):
+    """Return a context-manager stack that patches everything main() touches."""
+    mock_args = MagicMock()
+    mock_args.init_ymd = None
+    mock_args.model = ECCCModel.RDPS
+    mock_args.model_runs = ["12"]
+    mock_args.start_hour = 0
+    mock_args.end_hour = 84
+    mock_args.step = 3
+
+    mock_s3_cls = MagicMock()
+    mock_s3_cls.return_value.__aenter__ = AsyncMock(return_value=AsyncMock())
+    mock_s3_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+
+    mock_runner = AsyncMock()
+    mock_runner_cls = MagicMock(return_value=mock_runner)
+
+    patches = (
+        patch("wps_weather.wx_4panel_charts.wx_4panel_charts.parse_args", return_value=mock_args),
+        patch("wps_weather.wx_4panel_charts.wx_4panel_charts.get_utc_now", return_value=now),
+        patch(
+            "wps_weather.wx_4panel_charts.wx_4panel_charts.get_init_datetime",
+            new=AsyncMock(return_value=start_datetime),
+        ),
+        patch("wps_weather.wx_4panel_charts.wx_4panel_charts.S3Client", mock_s3_cls),
+        patch("wps_weather.wx_4panel_charts.wx_4panel_charts.FourPanelChartRunner", mock_runner_cls),
+        patch("wps_weather.wx_4panel_charts.wx_4panel_charts.sys.exit"),
+    )
+    return patches, mock_runner
+
+
+class TestMain:
+    @pytest.mark.anyio
+    async def test_processes_12z_chart_when_start_is_after_midnight(self):
+        """Regression: end_datetime=now (15:30) allows a 12Z start (12:00) to be processed.
+
+        With the old code end_datetime was truncated to midnight (00:00), so
+        start (12:00) > end (00:00) and the loop never ran — the chart was skipped.
+        """
+        now = datetime(2026, 3, 31, 15, 30, 0, tzinfo=timezone.utc)
+        start = datetime(2026, 3, 31, 12, 0, 0, tzinfo=timezone.utc)
+
+        patches, mock_runner = _make_main_patches(now, start)
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+            await main()
+
+        mock_runner.run.assert_called_once()
+        assert mock_runner.run.call_args[0][0] == "20260331"
+
+    @pytest.mark.anyio
+    async def test_does_not_process_when_start_is_after_now(self):
+        """When start_datetime is ahead of now, no charts are processed (loop guard)."""
+        now = datetime(2026, 3, 31, 9, 0, 0, tzinfo=timezone.utc)
+        start = datetime(2026, 3, 31, 12, 0, 0, tzinfo=timezone.utc)
+
+        patches, mock_runner = _make_main_patches(now, start)
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+            await main()
+
+        mock_runner.run.assert_not_called()
