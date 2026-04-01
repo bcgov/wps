@@ -25,7 +25,7 @@ const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
   }
 }))
 
-const FireCenterInfo = ({ expanded, fireCentreName, fireZoneUnitInfos, onChangeExpanded }: FireCentreInfoProps) => {
+const FireCentreInfo = ({ expanded, fireCentreName, fireZoneUnitInfos, onChangeExpanded }: FireCentreInfoProps) => {
   const theme = useTheme()
   const groupedFireZoneUnitInfos = groupBy(fireZoneUnitInfos, 'fire_shape_name')
   return (
@@ -57,4 +57,4 @@ const FireCenterInfo = ({ expanded, fireCentreName, fireZoneUnitInfos, onChangeE
   )
 }
 
-export default FireCenterInfo
+export default FireCentreInfo

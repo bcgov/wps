@@ -95,11 +95,11 @@ const SerifTypography = styled(Typography)({
 interface AdvisoryTextProps {
   issueDate: DateTime | null
   forDate: DateTime
-  selectedFireCenter?: FireCentre
+  selectedFireCentre?: FireCentre
   selectedFireZoneUnit?: FireShape
 }
 
-const AdvisoryText = ({ issueDate, forDate, selectedFireCenter, selectedFireZoneUnit }: AdvisoryTextProps) => {
+const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZoneUnit }: AdvisoryTextProps) => {
   // selectors
   const provincialSummary = useSelector(selectProvincialSummary)
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
@@ -110,12 +110,12 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCenter, selectedFireZone
     if (
       isUndefined(filteredFireCentreHFIFuelStats) ||
       isEmpty(filteredFireCentreHFIFuelStats) ||
-      isUndefined(selectedFireCenter) ||
+      isUndefined(selectedFireCentre) ||
       isUndefined(selectedFireZoneUnit)
     ) {
       return { fuel_area_stats: [], min_wind_stats: [] }
     }
-    const allFilteredZoneUnitFuelStats = filteredFireCentreHFIFuelStats[selectedFireCenter.name]
+    const allFilteredZoneUnitFuelStats = filteredFireCentreHFIFuelStats[selectedFireCentre.name]
     return (
       allFilteredZoneUnitFuelStats?.[selectedFireZoneUnit.fire_shape_id] ?? {
         fuel_area_stats: [],
@@ -141,14 +141,14 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCenter, selectedFireZone
   }, [selectedFireZoneUnitTopFuels])
 
   const getZoneStatus = () => {
-    if (selectedFireCenter) {
-      const fireCenterSummary = provincialSummary[selectedFireCenter.name]
-      const fireZoneUnitInfo = fireCenterSummary?.find(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
+    if (selectedFireCentre) {
+      const fireCentreSummary = provincialSummary[selectedFireCentre.name]
+      const fireZoneUnitInfo = fireCentreSummary?.find(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
       return fireZoneUnitInfo?.status
     }
   }
 
-  const zoneStatus = useMemo(() => getZoneStatus(), [selectedFireCenter, selectedFireZoneUnit, provincialSummary])
+  const zoneStatus = useMemo(() => getZoneStatus(), [selectedFireCentre, selectedFireZoneUnit, provincialSummary])
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
@@ -353,7 +353,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCenter, selectedFireZone
               </Box>
             )
           }
-          if (!selectedFireCenter || !issueDate?.isValid || !selectedFireZoneUnit) {
+          if (!selectedFireCentre || !issueDate?.isValid || !selectedFireZoneUnit) {
             return renderDefaultMessage()
           }
           return renderAdvisoryText()

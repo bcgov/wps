@@ -3,11 +3,11 @@ import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import React, { useEffect, useState } from 'react'
 import FBAMap from 'features/fba/components/map/FBAMap'
-import FireCenterDropdown from '@wps/ui/FireCenterDropdown'
+import FireCentreDropdown from '@wps/ui/FireCentreDropdown'
 import { DateTime } from 'luxon'
 import { selectFireCentres, selectRunDates } from 'app/rootReducer'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchFireCentres } from 'commonSlices/fireCentersSlice'
+import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
 import { theme } from '@wps/ui/theme'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { getStations, StationSource } from '@wps/api/stationAPI'
@@ -42,9 +42,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const { mostRecentRunDate, sfmsBounds } = useSelector(selectRunDates)
 
   // state
-  const [fireCenter, setFireCenter] = useState<FireCentre | undefined>(undefined)
+  const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
-  const [zoomSource, setZoomSource] = useState<'fireCenter' | 'fireShape' | undefined>('fireCenter')
+  const [zoomSource, setZoomSource] = useState<'fireCentre' | 'fireShape' | undefined>('fireCentre')
   const [dateOfInterest, setDateOfInterest] = useState(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -95,21 +95,21 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     const findCenter = (id: string | null): FireCentre | undefined => {
       return fireCentres.find(center => center.id.toString() == id)
     }
-    setFireCenter(findCenter(localStorage.getItem('preferredFireCenter')))
+    setFireCentre(findCenter(localStorage.getItem('preferredFireCentre')))
   }, [fireCentres])
 
   useEffect(() => {
-    if (fireCenter?.id) {
-      localStorage.setItem('preferredFireCenter', fireCenter?.id.toString())
+    if (fireCentre?.id) {
+      localStorage.setItem('preferredFireCentre', fireCentre?.id.toString())
     }
-  }, [fireCenter])
+  }, [fireCentre])
 
   useEffect(() => {
     if (selectedFireShape?.mof_fire_centre_name) {
-      const matchingFireCenter = fireCentres.find(center => center.name === selectedFireShape.mof_fire_centre_name)
+      const matchingFireCentre = fireCentres.find(center => center.name === selectedFireShape.mof_fire_centre_name)
 
-      if (matchingFireCenter) {
-        setFireCenter(matchingFireCenter)
+      if (matchingFireCentre) {
+        setFireCentre(matchingFireCentre)
       }
     }
   }, [selectedFireShape, fireCentres])
@@ -153,13 +153,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       !isNull(mostRecentRunDate) &&
       !isNull(doiISODate) &&
       !isUndefined(mostRecentRunDate) &&
-      !isUndefined(fireCenter) &&
-      !isNull(fireCenter)
+      !isUndefined(fireCentre) &&
+      !isNull(fireCentre)
     ) {
-      dispatch(fetchFireCentreTPIStats(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
-      dispatch(fetchFireCentreHFIFuelStats(fireCenter.name, runType, doiISODate, mostRecentRunDate.toString()))
+      dispatch(fetchFireCentreTPIStats(fireCentre.name, runType, doiISODate, mostRecentRunDate.toString()))
+      dispatch(fetchFireCentreHFIFuelStats(fireCentre.name, runType, doiISODate, mostRecentRunDate.toString()))
     }
-  }, [fireCenter, mostRecentRunDate])
+  }, [fireCentre, mostRecentRunDate])
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
@@ -196,10 +196,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           </ErrorBoundary>
           <Grid item>
             <FireCentreFormControl>
-              <FireCenterDropdown
-                fireCenterOptions={fireCentres}
-                selectedFireCenter={fireCenter}
-                setSelectedFireCenter={setFireCenter}
+              <FireCentreDropdown
+                fireCentreOptions={fireCentres}
+                selectedFireCentre={fireCentre}
+                setSelectedFireCentre={setFireCentre}
                 setSelectedFireShape={setSelectedFireShape}
                 setZoomSource={setZoomSource}
               />
@@ -215,13 +215,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
           <AdvisoryReport
             issueDate={mostRecentRunDate !== null ? DateTime.fromISO(mostRecentRunDate) : null}
             forDate={dateOfInterest}
-            selectedFireCenter={fireCenter}
+            selectedFireCentre={fireCentre}
             selectedFireZoneUnit={selectedFireShape}
           />
           <FireZoneUnitTabs
             selectedFireZoneUnit={selectedFireShape}
             setZoomSource={setZoomSource}
-            selectedFireCenter={fireCenter}
+            selectedFireCentre={fireCentre}
             setSelectedFireShape={setSelectedFireShape}
           />
         </Box>
@@ -230,7 +230,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             forDate={dateOfInterest}
             runType={runType}
             selectedFireShape={selectedFireShape}
-            selectedFireCenter={fireCenter}
+            selectedFireCentre={fireCentre}
             setSelectedFireShape={setSelectedFireShape}
             zoomSource={zoomSource}
             setZoomSource={setZoomSource}

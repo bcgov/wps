@@ -8,17 +8,17 @@ import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySl
  * Hook for grabbing a fire centre from the provincial summary, grouping by unique 'fire_shape_id' and
  * providing easy access to the shape name, centre, and FireShapeStatusDetails for calculating zone status
  *
- * @param selectedFireCenter
+ * @param selectedFireCentre
  * @returns
  */
-export const useFireCentreDetails = (selectedFireCenter: FireCentre | undefined): FireShapeStatusDetail[] => {
+export const useFireCentreDetails = (selectedFireCentre: FireCentre | undefined): FireShapeStatusDetail[] => {
   const provincialSummary = useSelector(selectProvincialSummary)
 
   return useMemo(() => {
-    if (!selectedFireCenter) return []
+    if (!selectedFireCentre) return []
 
-    const fireCenterSummary = provincialSummary[selectedFireCenter.name] || []
+    const fireCentreSummary = provincialSummary[selectedFireCentre.name] || []
 
-    return fireCenterSummary.sort((a, b) => a.fire_shape_name.localeCompare(b.fire_shape_name))
-  }, [selectedFireCenter, provincialSummary])
+    return fireCentreSummary.sort((a, b) => a.fire_shape_name.localeCompare(b.fire_shape_name))
+  }, [selectedFireCentre, provincialSummary])
 }

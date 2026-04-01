@@ -28,7 +28,7 @@ const mockSelectedFireZoneUnitA: FireShape = {
   mof_fire_zone_name: zoneA
 }
 
-const mockSelectedFireCenter: FireCentre = {
+const mockSelectedFireCentre: FireCentre = {
   id: 1,
   name: fireCentre1
 }
@@ -115,7 +115,7 @@ const renderComponent = (testStore: any) =>
       <FireZoneUnitTabs
         selectedFireZoneUnit={undefined}
         setZoomSource={setZoomSourceMock}
-        selectedFireCenter={mockSelectedFireCenter}
+        selectedFireCentre={mockSelectedFireCentre}
         setSelectedFireShape={setSelectedFireShapeMock}
       />
     </Provider>
@@ -175,7 +175,7 @@ describe('FireZoneUnitTabs', () => {
         <FireZoneUnitTabs
           selectedFireZoneUnit={undefined}
           setZoomSource={setZoomSourceMock}
-          selectedFireCenter={undefined}
+          selectedFireCentre={undefined}
           setSelectedFireShape={setSelectedFireShapeMock}
         />
       </Provider>
