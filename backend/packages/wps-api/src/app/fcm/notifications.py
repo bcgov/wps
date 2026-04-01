@@ -72,25 +72,23 @@ async def trigger_notifications(
             session, zone_with_advisory.source_identifier
         )
         if len(device_tokens) == 0:
+            logger.info(f"No devices subscribed to {zone_with_advisory.placename_label}")
             continue
-        for i in range(0, len(device_tokens), FCM_BATCH_SIZE):
-            batch = device_tokens[i : i + FCM_BATCH_SIZE]
-            message = build_fcm_message(for_date, zone_with_advisory, batch)
-            try:
-                logger.info(f"Notifiying {len(batch)} devices")
-                # messaging.send_each_for_multicast is a synchronous blocking call
-                response = await asyncio.to_thread(messaging.send_each_for_multicast, message)
-            except firebase_exceptions.FirebaseError:
-                logger.exception(
-                    "FCM send failed for zone=%s date=%s token_count=%d",
-                    zone_with_advisory.placename_label,
-                    for_date,
-                    len(batch),
-                )
-                continue
-            await handle_fcm_response(
-                session, for_date, zone_with_advisory.placename_label, batch, response
+        message = build_fcm_message(for_date, zone_with_advisory, device_tokens)
+        try:
+            logger.info(f"Notifiying {len(device_tokens)} devices")
+            # messaging.send_each_for_multicast is a synchronous blocking call
+            response = await asyncio.to_thread(messaging.send_each_for_multicast, message)
+        except firebase_exceptions.FirebaseError:
+            logger.exception(
+                "FCM send failed for zone=%s date=%s token_count=%d",
+                zone_with_advisory.placename_label,
+                for_date,
+                len(device_tokens),
             )
+        await handle_fcm_response(
+            session, for_date, zone_with_advisory.placename_label, device_tokens, response
+        )
 
 
 async def handle_fcm_response(
