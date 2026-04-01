@@ -20,7 +20,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     ShapeTypeEnum,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
-from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.db.models.psu import FireCentre
 from wps_shared.run_type import RunType
 from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE
 

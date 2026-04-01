@@ -1,21 +1,21 @@
 import { useFireCentreDetails } from '@/features/fba/hooks/useFireCentreDetails'
 import { Grid } from '@mui/material'
-import { FireCenter, FireShape } from '@wps/api/fbaAPI'
+import { FireShape } from '@wps/api/fbaAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
 import { INFO_PANEL_CONTENT_BACKGROUND } from '@wps/ui/theme'
 import AdvisoryText from 'features/fba/components/infoPanel/AdvisoryText'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import { DateTime } from 'luxon'
-import React from 'react'
 
 interface AdvisoryReportProps {
   issueDate: DateTime | null
   forDate: DateTime
-  selectedFireCenter?: FireCenter
+  selectedFireCentre?: FireCentre
   selectedFireZoneUnit?: FireShape
 }
 
-const AdvisoryReport = ({ issueDate, forDate, selectedFireCenter, selectedFireZoneUnit }: AdvisoryReportProps) => {
-  const groupedFireZoneUnits = useFireCentreDetails(selectedFireCenter)
+const AdvisoryReport = ({ issueDate, forDate, selectedFireCentre, selectedFireZoneUnit }: AdvisoryReportProps) => {
+  const groupedFireZoneUnits = useFireCentreDetails(selectedFireCentre)
   const fireZoneUnitDetails = groupedFireZoneUnits.find(
     zone => zone.fire_shape_id === selectedFireZoneUnit?.fire_shape_id
   )
@@ -34,7 +34,7 @@ const AdvisoryReport = ({ issueDate, forDate, selectedFireCenter, selectedFireZo
             <AdvisoryText
               issueDate={issueDate}
               forDate={forDate}
-              selectedFireCenter={selectedFireCenter}
+              selectedFireCentre={selectedFireCentre}
               selectedFireZoneUnit={selectedFireZoneUnit}
             ></AdvisoryText>
           </Grid>

@@ -9,7 +9,7 @@ import hfiCalculatorDailiesReducer, { HFICalculatorState } from 'features/hfiCal
 import hfiStationsReducer from 'features/hfiCalculator/slices/stationsSlice'
 import hfiReadyReducer, { HFIReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
 import fbaCalculatorSlice from 'features/fbaCalculator/slices/fbaCalculatorSlice'
-import fireCentersSlice from 'commonSlices/fireCentersSlice'
+import fireCentresSlice from '@/commonSlices/fireCentresSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
 import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
@@ -37,7 +37,7 @@ const rootReducer = combineReducers({
   hfiStations: hfiStationsReducer,
   hfiReady: hfiReadyReducer,
   fbaCalculatorResults: fbaCalculatorSlice,
-  fireCenters: fireCentersSlice,
+  fireCentres: fireCentresSlice,
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
   fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
@@ -69,7 +69,7 @@ export const selectAuthentication = (state: RootState) => state.authentication
 export const selectToken = (state: RootState) => state.authentication.token
 export const selectFireBehaviourCalcResult = (state: RootState) => state.fbaCalculatorResults
 export const selectHFIStations = (state: RootState) => state.hfiStations
-export const selectFireCenters = (state: RootState) => state.fireCenters
+export const selectFireCentres = (state: RootState) => state.fireCentres
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 export const selectFireCentreHFIFuelStats = (state: RootState) => state.fireCentreHFIFuelStats
@@ -80,7 +80,7 @@ export const selectHFICalculatorState = (state: RootState): HFICalculatorState =
 export const selectHFIStationsLoading = (state: RootState): boolean => state.hfiStations.loading
 export const selectHFIReadyState = (state: RootState): HFIReadyState => state.hfiReady
 export const selectFireBehaviourStationsLoading = (state: RootState): boolean => state.fbaCalculatorResults.loading
-export const selectFireCentersLoading = (state: RootState): boolean => state.fireCenters.loading
+export const selectFireCentresLoading = (state: RootState): boolean => state.fireCentres.loading
 export const selectStationGroupsLoading = (state: RootState): boolean => state.stationGroups.loading
 export const selectStationGroups = (state: RootState) => state.stationGroups
 export const selectStationGroupsMembers = (state: RootState) => state.stationGroupsMembers

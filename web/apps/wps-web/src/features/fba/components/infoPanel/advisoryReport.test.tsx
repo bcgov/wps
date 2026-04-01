@@ -1,7 +1,7 @@
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import { render } from '@testing-library/react'
 import { DateTime } from 'luxon'
-import { FireCenter } from '@wps/api/fbaAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
 
 import { Provider } from 'react-redux'
 import { createTestStore } from '@/test/testUtils'
@@ -9,10 +9,9 @@ import { createTestStore } from '@/test/testUtils'
 const issueDate = DateTime.now()
 const forDate = DateTime.now()
 
-const mockFireCenter: FireCenter = {
+const mockFireCentre: FireCentre = {
   id: 1,
-  name: 'Fire Center 1',
-  stations: []
+  name: 'Fire Center 1'
 }
 
 describe('AdvisoryReport', () => {
@@ -20,7 +19,7 @@ describe('AdvisoryReport', () => {
   it('should render', () => {
     const { getByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryReport issueDate={issueDate} forDate={forDate} selectedFireCenter={mockFireCenter} />
+        <AdvisoryReport issueDate={issueDate} forDate={forDate} selectedFireCentre={mockFireCentre} />
       </Provider>
     )
     const advisoryReport = getByTestId('advisory-report')
@@ -29,7 +28,7 @@ describe('AdvisoryReport', () => {
   it('should render advisoryText as children', () => {
     const { getByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryReport issueDate={issueDate} forDate={forDate} selectedFireCenter={mockFireCenter} />
+        <AdvisoryReport issueDate={issueDate} forDate={forDate} selectedFireCentre={mockFireCentre} />
       </Provider>
     )
     const advisoryText = getByTestId('advisory-text')

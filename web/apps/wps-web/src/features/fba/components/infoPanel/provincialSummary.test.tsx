@@ -31,7 +31,7 @@ describe('ProvincialSummary', () => {
     expect(noDataMessage).toBeInTheDocument()
     expect(noDataMessage).toHaveTextContent(NO_DATA_MESSAGE)
   })
-  it('should render fireCenterInfo component as children', () => {
+  it('should render fireCentreInfo component as children', () => {
     const fireShapeStatusDetails: FireShapeStatusDetail[] = [
       {
         fire_shape_id: 1,

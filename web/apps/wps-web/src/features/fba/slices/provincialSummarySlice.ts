@@ -68,6 +68,6 @@ export const fetchProvincialSummary =
 const selectFireShapeStatusDetails = (state: RootState) => state.provincialSummary
 
 export const selectProvincialSummary = createSelector([selectFireShapeStatusDetails], fireShapeStatusDetails => {
-  const groupedByFireCenter = groupBy(fireShapeStatusDetails.fireShapeStatusDetails, 'fire_centre_name')
-  return groupedByFireCenter
+  const groupedByFireCentre = groupBy(fireShapeStatusDetails.fireShapeStatusDetails, 'fire_centre_name')
+  return groupedByFireCentre
 })
