@@ -34,7 +34,9 @@ def build_fcm_message(
     apns_expiration = str(int((datetime.now(timezone.utc) + ttl).timestamp()))
     message = messaging.MulticastMessage(
         notification=messaging.Notification(title=title, body=content),
-        android=messaging.AndroidConfig(ttl=ttl, notification=messaging.AndroidNotification(tag=tag)),
+        android=messaging.AndroidConfig(
+            ttl=ttl, notification=messaging.AndroidNotification(tag=tag)
+        ),
         apns=messaging.APNSConfig(
             headers={"apns-expiration": apns_expiration},
             payload=messaging.APNSPayload(aps=messaging.Aps(thread_id=tag)),
@@ -75,6 +77,7 @@ async def trigger_notifications(
             batch = device_tokens[i : i + FCM_BATCH_SIZE]
             message = build_fcm_message(for_date, zone_with_advisory, batch)
             try:
+                logger.info(f"Notifiying {len(batch)} devices")
                 # messaging.send_each_for_multicast is a synchronous blocking call
                 response = await asyncio.to_thread(messaging.send_each_for_multicast, message)
             except firebase_exceptions.FirebaseError:
@@ -97,6 +100,9 @@ async def handle_fcm_response(
     device_tokens: list[str],
     response: messaging.BatchResponse,
 ):
+    logger.info(
+        f"Received FCM response with successful notifications sent: {response.success_count}"
+    )
     # Only deactivate permanently invalid tokens (UnregisteredError — token is no longer registered).
     # Transient failures (quota, server errors) are not deactivated; the token remains valid.
     # Deactivated tokens are re-activated when the app re-registers on open.
