@@ -99,12 +99,7 @@ interface AdvisoryTextProps {
   selectedFireZoneUnit?: FireShape
 }
 
-const AdvisoryText = ({
-  issueDate,
-  forDate,
-  selectedFireCentre: selectedFireCentre,
-  selectedFireZoneUnit
-}: AdvisoryTextProps) => {
+const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZoneUnit }: AdvisoryTextProps) => {
   // selectors
   const provincialSummary = useSelector(selectProvincialSummary)
   const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)

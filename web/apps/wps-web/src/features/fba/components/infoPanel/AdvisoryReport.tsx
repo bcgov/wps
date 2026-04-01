@@ -14,12 +14,7 @@ interface AdvisoryReportProps {
   selectedFireZoneUnit?: FireShape
 }
 
-const AdvisoryReport = ({
-  issueDate,
-  forDate,
-  selectedFireCentre: selectedFireCentre,
-  selectedFireZoneUnit
-}: AdvisoryReportProps) => {
+const AdvisoryReport = ({ issueDate, forDate, selectedFireCentre, selectedFireZoneUnit }: AdvisoryReportProps) => {
   const groupedFireZoneUnits = useFireCentreDetails(selectedFireCentre)
   const fireZoneUnitDetails = groupedFireZoneUnits.find(
     zone => zone.fire_shape_id === selectedFireZoneUnit?.fire_shape_id

@@ -22,7 +22,7 @@ interface FireZoneUnitTabs {
 const FireZoneUnitTabs = ({
   selectedFireZoneUnit,
   setZoomSource,
-  selectedFireCentre: selectedFireCentre,
+  selectedFireCentre,
   setSelectedFireShape
 }: FireZoneUnitTabs) => {
   const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
