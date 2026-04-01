@@ -70,11 +70,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     const runTypeLower = runType.toLocaleLowerCase()
     if (!isNull(sfmsBounds) && !isEmpty(sfmsBounds)) {
       for (const key of Object.keys(sfmsBounds)) {
-        const minValue = sfmsBounds[key][runTypeLower]['minimum']
-        const maxValue = sfmsBounds[key][runTypeLower]['maximum']
-        const minDate = DateTime.fromISO(minValue)
-        const maxDate = DateTime.fromISO(maxValue)
-        dates.push(minDate, maxDate)
+        const minValue = sfmsBounds[key]?.[runTypeLower]?.['minimum']
+        const maxValue = sfmsBounds[key]?.[runTypeLower]?.['maximum']
+        if (minValue && maxValue) {
+          const minDate = DateTime.fromISO(minValue)
+          const maxDate = DateTime.fromISO(maxValue)
+          dates.push(minDate, maxDate)
+        }
       }
       if (dates.length >= 2) {
         dates.sort(dateTimeComparator)
