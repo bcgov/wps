@@ -61,6 +61,9 @@ async def trigger_notifications(
     zones_with_advisories = await get_zones_with_advisories(
         session, run_type, run_datetime, for_date
     )
+    logger.info(
+        f"{len(zones_with_advisories)} have warnings/advisories, checking for devices to notify"
+    )
     for zone_with_advisory in zones_with_advisories:
         if not zone_with_advisory.placename_label:
             logger.error(
@@ -72,7 +75,11 @@ async def trigger_notifications(
             session, zone_with_advisory.source_identifier
         )
         if len(device_tokens) == 0:
+            logger.info(f"No devices subscribed to {zone_with_advisory.placename_label}")
             continue
+        logger.info(
+            f"{len(device_tokens)} are subscribed to {zone_with_advisory.placename_label} about to notify"
+        )
         for i in range(0, len(device_tokens), FCM_BATCH_SIZE):
             batch = device_tokens[i : i + FCM_BATCH_SIZE]
             message = build_fcm_message(for_date, zone_with_advisory, batch)
