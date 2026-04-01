@@ -3,7 +3,7 @@ import {
   FireZoneFuelStats,
   FireZoneHFIStats,
 } from "@/api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import DefaultText from "@/components/report/DefaultText";
 import {
   useFilteredHFIStatsForDate,

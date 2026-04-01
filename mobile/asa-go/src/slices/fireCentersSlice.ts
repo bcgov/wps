@@ -9,7 +9,7 @@ import {
 import { Filesystem } from "@capacitor/filesystem";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getFireCentres } from "api/psuAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { isNull } from "lodash";
 import { DateTime } from "luxon";
 

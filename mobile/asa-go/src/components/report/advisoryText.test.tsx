@@ -5,7 +5,7 @@ import {
   RunParameter,
   RunType,
 } from "@/api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import AdvisoryText from "@/components/report/AdvisoryText";
 import dataSlice, {
   DataState,

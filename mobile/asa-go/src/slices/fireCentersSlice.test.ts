@@ -12,7 +12,7 @@ vi.mock("api/psuAPI", () => ({
 import { createTestStore } from "@/testUtils";
 import { FIRE_CENTERS_KEY, readFromFilesystem } from "@/utils/storage";
 import { getFireCentres } from "api/psuAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { DateTime } from "luxon";
 import { describe, expect, it, Mock, vi } from "vitest";
 import reducer, {

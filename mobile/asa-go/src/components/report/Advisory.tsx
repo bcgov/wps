@@ -1,5 +1,5 @@
 import { FireShape } from "@/api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import FireCenterDropdown from "@/components/FireCenterDropdown";
 import AdvisoryText from "@/components/report/AdvisoryText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";

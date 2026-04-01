@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
 import { FireShape, FireShapeStatusDetail } from "@/api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { DateTime } from "luxon";
 import { AdvisoryStatus } from "@/utils/constants";
 import { useFireCentreDetails } from "@/hooks/useFireCentreDetails";

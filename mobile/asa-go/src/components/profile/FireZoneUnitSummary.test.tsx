@@ -5,7 +5,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
 import { FireShape, FireZoneTPIStats } from "@/api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { DateTime } from "luxon";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "@/theme";

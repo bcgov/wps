@@ -1,5 +1,5 @@
 import { FireShape } from "@/api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { useFireCentreDetails } from "@/hooks/useFireCentreDetails";
 import { calculateStatusColour } from "@/utils/calculateZoneStatus";
 import { Tab, Tabs } from "@mui/material";

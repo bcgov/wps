@@ -6,7 +6,7 @@ import {
   FireZoneTPIStats,
   RunParameter,
 } from "@/api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { Directory, Encoding, FilesystemPlugin } from "@capacitor/filesystem";
 import { DateTime } from "luxon";
 

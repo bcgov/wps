@@ -1,6 +1,6 @@
 import { useProvincialSummaryForDate } from "@/hooks/dataHooks";
 import { FireShapeStatusDetail } from "api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { DateTime } from "luxon";
 import { useMemo } from "react";
 

@@ -45,7 +45,7 @@ import LayersIcon from "@mui/icons-material/Layers";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { Box } from "@mui/material";
 import { FireShape } from "api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, MapBrowserEvent, View } from "ol";

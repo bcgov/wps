@@ -1,5 +1,5 @@
 import { FireShape } from "@/api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { AppHeader } from "@/components/AppHeader";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import SideNavigation from "@/components/SideNavigation";

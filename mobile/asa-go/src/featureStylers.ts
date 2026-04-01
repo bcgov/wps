@@ -7,7 +7,7 @@ import Style from "ol/style/Style";
 import { range, startCase, lowerCase, isUndefined } from "lodash";
 import { AdvisoryStatus } from "@/utils/constants";
 import { FireShape, FireShapeStatusDetail } from "api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 
 const GREY_FILL = "rgba(128, 128, 128, 0.8)";
 const EMPTY_FILL = "rgba(0, 0, 0, 0.0)";

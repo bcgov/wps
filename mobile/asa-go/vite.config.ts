@@ -12,7 +12,6 @@ export default defineConfig({
       app: resolve(__dirname, "src", "app"),
       utils: resolve(__dirname, "src", "utils"),
       api: resolve(__dirname, "src", "api"),
-      "@wps/types": resolve(__dirname, "..", "..", "web", "packages", "types", "src"),
       "#root": resolve(__dirname),
     },
   },

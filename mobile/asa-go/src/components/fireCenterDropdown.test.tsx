@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import FireCenterDropdown from "./FireCenterDropdown";
 import { FireShape } from "api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 
 describe("FireCenterDropdown", () => {
   let fireCenters: FireCentre[];

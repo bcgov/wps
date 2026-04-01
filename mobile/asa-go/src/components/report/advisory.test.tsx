@@ -3,7 +3,7 @@ import { vi } from "vitest";
 import Advisory from "@/components/report/Advisory";
 import { DateTime } from "luxon";
 import { useSelector } from "react-redux";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import { AdvisoryTextProps } from "@/components/report/AdvisoryText";
 import { FireZoneUnitTabsProps } from "@/components/report/FireZoneUnitTabs";
 import { FireCenterDropdownProps } from "@/components/FireCenterDropdown";

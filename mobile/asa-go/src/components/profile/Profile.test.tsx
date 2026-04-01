@@ -5,7 +5,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { DateTime } from "luxon";
 import Profile, { ProfileProps } from "@/components/profile/Profile";
 import { FireShape } from "@/api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 
 // Mock child components
 vi.mock("@/components/FireCenterDropdown", () => ({

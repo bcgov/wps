@@ -7,7 +7,7 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { FireShape } from "api/fbaAPI";
-import type { FireCentre } from "@wps/types/fireCentre";
+import type { FireCentre } from "@/types/fireCentre";
 import React from "react";
 
 export interface FireCenterDropdownProps {
