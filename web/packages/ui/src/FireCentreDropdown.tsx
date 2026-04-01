@@ -9,7 +9,7 @@ interface FireCentreDropdownProps {
   fireCentreOptions: FireCentre[]
   setSelectedFireCentre: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
-  setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
+  setZoomSource: React.Dispatch<React.SetStateAction<'fireCentre' | 'fireShape' | undefined>>
 }
 
 const FireCentreDropdown = (props: FireCentreDropdownProps) => {
@@ -18,7 +18,7 @@ const FireCentreDropdown = (props: FireCentreDropdownProps) => {
     if (!isEqual(props.selectedFireCentre, value)) {
       props.setSelectedFireShape(undefined)
       props.setSelectedFireCentre(value ?? undefined)
-      props.setZoomSource('fireCenter')
+      props.setZoomSource('fireCentre')
     }
     if (isNull(value)) {
       localStorage.removeItem('preferredFireCentre')

@@ -9,12 +9,12 @@ import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
 import { isEmpty, isNil, isNull, isUndefined } from 'lodash'
-import React, { useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
-  setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
+  setZoomSource: React.Dispatch<React.SetStateAction<'fireCentre' | 'fireShape' | undefined>>
   selectedFireCentre: FireCentre | undefined
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
 }
@@ -38,19 +38,22 @@ const FireZoneUnitTabs = ({
     return Math.max(idx, 0)
   }, [selectedFireZoneUnit, sortedFireZoneUnits])
 
-  const getTabFireShape = (tabNumber: number): FireShape | undefined => {
-    if (sortedFireZoneUnits.length > 0) {
-      const selectedTabZone = sortedFireZoneUnits[tabNumber]
+  const getTabFireShape = useCallback(
+    (tabNumber: number): FireShape | undefined => {
+      if (sortedFireZoneUnits.length > 0) {
+        const selectedTabZone = sortedFireZoneUnits[tabNumber]
 
-      const fireShape: FireShape = {
-        fire_shape_id: selectedTabZone.fire_shape_id,
-        mof_fire_centre_name: selectedTabZone.fire_centre_name,
-        mof_fire_zone_name: selectedTabZone.fire_shape_name
+        const fireShape: FireShape = {
+          fire_shape_id: selectedTabZone.fire_shape_id,
+          mof_fire_centre_name: selectedTabZone.fire_centre_name,
+          mof_fire_zone_name: selectedTabZone.fire_shape_name
+        }
+
+        return fireShape
       }
-
-      return fireShape
-    }
-  }
+    },
+    [sortedFireZoneUnits]
+  )
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     const fireShape = getTabFireShape(newValue)

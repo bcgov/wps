@@ -57,8 +57,8 @@ export interface FBAMapProps {
   forDate: DateTime
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
   runType: RunType
-  zoomSource?: 'fireCenter' | 'fireShape'
-  setZoomSource: React.Dispatch<React.SetStateAction<'fireCenter' | 'fireShape' | undefined>>
+  zoomSource?: 'fireCentre' | 'fireShape'
+  setZoomSource: React.Dispatch<React.SetStateAction<'fireCentre' | 'fireShape' | undefined>>
 }
 
 const removeLayerByName = (map: Map, layerName: string) => {
@@ -199,7 +199,7 @@ const FBAMap = (props: FBAMapProps) => {
     // zoom to fire center or whole province
     if (!map) return
 
-    if (props.selectedFireCentre && props.zoomSource === 'fireCenter') {
+    if (props.selectedFireCentre && props.zoomSource === 'fireCentre') {
       const fireCentreExtent = extentsMap.get(props.selectedFireCentre.name)
       if (fireCentreExtent) {
         map.getView().fit(fireCentreExtent.extent, { duration: 400, padding: [50, 50, 50, 50] })

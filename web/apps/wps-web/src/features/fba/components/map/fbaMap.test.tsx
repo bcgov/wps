@@ -44,7 +44,7 @@ describe('FBAMap', () => {
           setSelectedFireShape={function (): void {
             throw new Error('Function not implemented.')
           }}
-          zoomSource={'fireCenter'}
+          zoomSource={'fireCentre'}
           setZoomSource={function (): void {
             throw new Error('Function not implemented.')
           }}
