@@ -1,8 +1,8 @@
 import { today } from "@/utils/dataSliceUtils";
 import { AppThunk } from "@/store";
 import {
-  FIRE_CENTERS_CACHE_EXPIRATION,
-  FIRE_CENTERS_KEY,
+  FIRE_CENTRES_CACHE_EXPIRATION,
+  FIRE_CENTRES_KEY,
   readFromFilesystem,
   writeToFileSystem,
 } from "@/utils/storage";
@@ -16,87 +16,90 @@ import { DateTime } from "luxon";
 export interface FireCentresState {
   loading: boolean;
   error: string | null;
-  fireCenters: FireCentre[];
+  fireCentres: FireCentre[];
 }
 
 export const initialState: FireCentresState = {
   loading: false,
   error: null,
-  fireCenters: [],
+  fireCentres: [],
 };
 
-const fireCentersSlice = createSlice({
-  name: "fireCenters",
+const fireCentresSlice = createSlice({
+  name: "fireCentres",
   initialState,
   reducers: {
-    getFireCentersStart(state: FireCentresState) {
+    getFireCentresStart(state: FireCentresState) {
       state.error = null;
       state.loading = true;
-      state.fireCenters = [];
+      state.fireCentres = [];
     },
-    getFireCentersFailed(
+    getFireCentresFailed(
       state: FireCentresState,
-      action: PayloadAction<string>
+      action: PayloadAction<string>,
     ) {
       state.error = action.payload;
       state.loading = false;
     },
-    getFireCentersSuccess(
+    getFireCentresSuccess(
       state: FireCentresState,
-      action: PayloadAction<FireCentre[]>
+      action: PayloadAction<FireCentre[]>,
     ) {
       state.error = null;
-      state.fireCenters = action.payload;
+      state.fireCentres = action.payload;
       state.loading = false;
     },
   },
 });
 
 export const {
-  getFireCentersStart,
-  getFireCentersFailed,
-  getFireCentersSuccess,
-} = fireCentersSlice.actions;
+  getFireCentresStart,
+  getFireCentresFailed,
+  getFireCentresSuccess,
+} = fireCentresSlice.actions;
 
-export default fireCentersSlice.reducer;
+export default fireCentresSlice.reducer;
 
-export const fetchFireCenters = (): AppThunk => async (dispatch, getState) => {
+export const fetchFireCentres = (): AppThunk => async (dispatch, getState) => {
   // Check for cached fire centers data. If the data is not stale save it in redux state.
-  const cachedFireCenters = await readFromFilesystem(
+  const cachedFireCentres = await readFromFilesystem(
     Filesystem,
-    FIRE_CENTERS_KEY
+    FIRE_CENTRES_KEY,
   );
   const networkStatus = getState().networkStatus;
-  if (!isNull(cachedFireCenters)) {
-    const lastUpdated = DateTime.fromISO(cachedFireCenters.lastUpdated);
+  if (!isNull(cachedFireCentres)) {
+    const lastUpdated = DateTime.fromISO(cachedFireCentres.lastUpdated);
     // Update state from the cached data if it isn't stale or if we're offline.
-    if (lastUpdated.plus({ hours: FIRE_CENTERS_CACHE_EXPIRATION }) > today || !networkStatus.networkStatus.connected) {
-      dispatch(getFireCentersSuccess(cachedFireCenters.data as FireCentre[]));
+    if (
+      lastUpdated.plus({ hours: FIRE_CENTRES_CACHE_EXPIRATION }) > today ||
+      !networkStatus.networkStatus.connected
+    ) {
+      dispatch(getFireCentresSuccess(cachedFireCentres.data as FireCentre[]));
       return;
     }
   }
   // Cached data is not available or is stale so we need to fetch and cache if we're online.
   if (networkStatus.networkStatus.connected) {
     try {
-      dispatch(getFireCentersStart());
-      const fireCenters = await getFireCentres();
+      dispatch(getFireCentresStart());
+      const fireCentres = await getFireCentres();
       await writeToFileSystem(
         Filesystem,
-        FIRE_CENTERS_KEY,
-        fireCenters.fire_centres,
-        today
+        FIRE_CENTRES_KEY,
+        fireCentres.fire_centres,
+        today,
       );
-      dispatch(getFireCentersSuccess(fireCenters.fire_centres));
+      dispatch(getFireCentresSuccess(fireCentres.fire_centres));
     } catch (err) {
-      dispatch(getFireCentersFailed((err as Error).toString()));
+      dispatch(getFireCentresFailed((err as Error).toString()));
       console.log(err);
     }
   } else {
     // We're offline so there is nothing to do but set the error state.
     dispatch(
-      getFireCentersFailed(
-        "Unable to refresh fire center data. Data may be stale."
-      )
+      getFireCentresFailed(
+        "Unable to refresh fire centre data. Data may be stale.",
+      ),
     );
   }
 };

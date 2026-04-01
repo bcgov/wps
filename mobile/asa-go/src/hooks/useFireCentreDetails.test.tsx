@@ -10,7 +10,7 @@ import { createTestStore } from "@/testUtils";
 describe("useFireCentreDetails", () => {
   it("returns grouped and sorted fire shape details for a selected fire center", () => {
     const testDate = DateTime.fromISO("2025-08-25");
-    const mockFireCenter: FireCentre = {
+    const mockFireCentre: FireCentre = {
       id: 1,
       name: "Test Centre",
     };
@@ -53,12 +53,12 @@ describe("useFireCentreDetails", () => {
     });
 
     const { result } = renderHook(
-      () => useFireCentreDetails(mockFireCenter, testDate),
+      () => useFireCentreDetails(mockFireCentre, testDate),
       {
         wrapper: ({ children }) => (
           <Provider store={store}>{children}</Provider>
         ),
-      }
+      },
     );
 
     expect(result.current).toEqual([
@@ -77,7 +77,7 @@ describe("useFireCentreDetails", () => {
     ]);
   });
 
-  it("returns an empty array if no fire center is selected", () => {
+  it("returns an empty array if no fire centre is selected", () => {
     const testDate = DateTime.fromISO("2025-08-25");
     const store = createTestStore();
 
@@ -87,7 +87,7 @@ describe("useFireCentreDetails", () => {
         wrapper: ({ children }) => (
           <Provider store={store}>{children}</Provider>
         ),
-      }
+      },
     );
 
     expect(result.current).toEqual([]);

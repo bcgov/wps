@@ -1,8 +1,4 @@
-import {
-  FireShape,
-  FireZoneFuelStats,
-  FireZoneHFIStats,
-} from "@/api/fbaAPI";
+import { FireShape, FireZoneFuelStats, FireZoneHFIStats } from "@/api/fbaAPI";
 import type { FireCentre } from "@/types/fireCentre";
 import DefaultText from "@/components/report/DefaultText";
 import {
@@ -33,13 +29,13 @@ export const AdvisoryTypography = styled(Typography)({
 }) as typeof Typography;
 
 export interface AdvisoryTextProps {
-  selectedFireCenter: FireCentre | undefined;
+  selectedFireCentre: FireCentre | undefined;
   selectedFireZoneUnit: FireShape | undefined;
   date: DateTime;
 }
 
 const AdvisoryText = ({
-  selectedFireCenter,
+  selectedFireCentre,
   selectedFireZoneUnit,
   date,
 }: AdvisoryTextProps) => {
@@ -93,14 +89,14 @@ const AdvisoryText = ({
   }, [selectedFireZoneUnitTopFuels]);
 
   const zoneStatus = useMemo(() => {
-    if (selectedFireCenter) {
-      const fireCenterSummary = provincialSummary?.[selectedFireCenter.name];
-      const fireZoneUnitInfo = fireCenterSummary?.find(
+    if (selectedFireCentre) {
+      const fireCentreSummary = provincialSummary?.[selectedFireCentre.name];
+      const fireZoneUnitInfo = fireCentreSummary?.find(
         (fc) => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id,
       );
       return fireZoneUnitInfo?.status;
     }
-  }, [selectedFireCenter, selectedFireZoneUnit, provincialSummary]);
+  }, [selectedFireCentre, selectedFireZoneUnit, provincialSummary]);
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
@@ -215,7 +211,7 @@ const AdvisoryText = ({
   const renderDefaultMessage = () => {
     return (
       <>
-        {isNil(selectedFireCenter) ? (
+        {isNil(selectedFireCentre) ? (
           <DefaultText />
         ) : (
           <AdvisoryTypography data-testid="no-data-message">
@@ -362,7 +358,7 @@ const AdvisoryText = ({
         backgroundColor: "white",
       }}
     >
-      {!selectedFireCenter ||
+      {!selectedFireCentre ||
       isNil(runParameter?.run_datetime) ||
       !selectedFireZoneUnit
         ? renderDefaultMessage()

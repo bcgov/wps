@@ -17,13 +17,13 @@ import React, { useMemo } from "react";
 
 interface FireZoneUnitSummaryProps {
   date: DateTime;
-  selectedFireCenter: FireCentre | undefined;
+  selectedFireCentre: FireCentre | undefined;
   selectedFireZoneUnit: FireShape | undefined;
 }
 
 const FireZoneUnitSummary = ({
   date,
-  selectedFireCenter,
+  selectedFireCentre,
   selectedFireZoneUnit,
 }: FireZoneUnitSummaryProps) => {
   const theme = useTheme();
@@ -34,13 +34,13 @@ const FireZoneUnitSummary = ({
 
   // derived state
   const hfiFuelStats = useMemo(() => {
-    if (selectedFireCenter) {
+    if (selectedFireCentre) {
       return filteredFireZoneUnitHFIStats;
     }
-  }, [filteredFireZoneUnitHFIStats, selectedFireCenter]);
+  }, [filteredFireZoneUnitHFIStats, selectedFireCentre]);
 
   const fireZoneTPIStats = useMemo(() => {
-    if (selectedFireCenter && !isNil(fireCentreTPIStats)) {
+    if (selectedFireCentre && !isNil(fireCentreTPIStats)) {
       const tpiStatsArray = fireCentreTPIStats;
       return tpiStatsArray
         ? tpiStatsArray.find(
@@ -51,7 +51,7 @@ const FireZoneUnitSummary = ({
     }
   }, [
     fireCentreTPIStats,
-    selectedFireCenter,
+    selectedFireCentre,
     selectedFireZoneUnit?.fire_shape_id,
   ]);
 
@@ -71,11 +71,11 @@ const FireZoneUnitSummary = ({
 
   const renderDefaultMessage = () => (
     <Box sx={{ px: theme.spacing(2), pb: theme.spacing(2) }}>
-      {isNil(selectedFireCenter) ? (
+      {isNil(selectedFireCentre) ? (
         <DefaultText />
       ) : (
         <AdvisoryTypography data-testid="fire-zone-unit-summary-empty">
-          {`No profile data available for the ${selectedFireCenter.name}.`}
+          {`No profile data available for the ${selectedFireCentre.name}.`}
         </AdvisoryTypography>
       )}
     </Box>
@@ -93,7 +93,7 @@ const FireZoneUnitSummary = ({
         overflowY: "auto",
       }}
     >
-      {isNil(selectedFireCenter) || isNil(selectedFireZoneUnit) ? (
+      {isNil(selectedFireCentre) || isNil(selectedFireZoneUnit) ? (
         renderDefaultMessage()
       ) : (
         <>

@@ -19,30 +19,30 @@ vi.mock("@/hooks/useFireCentreDetails", () => ({
 const mockUseFireCentreDetails = vi.mocked(useFireCentreDetails);
 mockUseFireCentreDetails.mockImplementation(
   (
-    fireCenter: FireCentre | undefined,
+    fireCentre: FireCentre | undefined,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _forDate: DateTime
+    _forDate: DateTime,
   ): FireShapeStatusDetail[] => {
-    if (!fireCenter) return [];
+    if (!fireCentre) return [];
     return [
       {
         fire_shape_id: 1,
         fire_shape_name: "Zone-1",
-        fire_centre_name: fireCenter.name,
+        fire_centre_name: fireCentre.name,
         status: AdvisoryStatus.ADVISORY,
       },
       {
         fire_shape_id: 2,
         fire_shape_name: "Zone-2",
-        fire_centre_name: fireCenter.name,
+        fire_centre_name: fireCentre.name,
         status: AdvisoryStatus.WARNING,
       },
     ];
-  }
+  },
 );
 
 describe("FireZoneUnitTabs", () => {
-  const mockFireCenter: FireCentre = {
+  const mockFireCentre: FireCentre = {
     id: 1,
     name: "Fire Center 1",
   };
@@ -62,13 +62,13 @@ describe("FireZoneUnitTabs", () => {
   it("renders tabs and children", () => {
     render(
       <FireZoneUnitTabs
-        selectedFireCenter={mockFireCenter}
+        selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireShape}
         setSelectedFireZoneUnit={setSelectedFireZoneUnit}
         date={DateTime.now()}
       >
         <div data-testid="child-content">Child Content</div>
-      </FireZoneUnitTabs>
+      </FireZoneUnitTabs>,
     );
 
     expect(screen.getByTestId("zone-1-tab")).toBeInTheDocument();
@@ -79,13 +79,13 @@ describe("FireZoneUnitTabs", () => {
   it("calls setSelectedFireZoneUnit when a tab is clicked", () => {
     render(
       <FireZoneUnitTabs
-        selectedFireCenter={mockFireCenter}
+        selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireShape}
         setSelectedFireZoneUnit={setSelectedFireZoneUnit}
         date={DateTime.now()}
       >
         <div />
-      </FireZoneUnitTabs>
+      </FireZoneUnitTabs>,
     );
 
     const tab = screen.getByTestId("zone-2-tab");

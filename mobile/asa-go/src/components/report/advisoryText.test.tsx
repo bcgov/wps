@@ -54,7 +54,7 @@ const testRunParameter: RunParameter = {
   run_type: RunType.FORECAST,
 };
 
-const mockFireCenter: FireCentre = {
+const mockFireCentre: FireCentre = {
   id: 1,
   name: "Cariboo Fire Centre",
 };
@@ -308,7 +308,7 @@ describe("AdvisoryText", () => {
     const { getByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
-          selectedFireCenter={undefined}
+          selectedFireCentre={undefined}
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -318,11 +318,11 @@ describe("AdvisoryText", () => {
     expect(advisoryText).toBeInTheDocument();
   });
 
-  it("should render default message when no fire center is selected", () => {
+  it("should render default message when no fire centre is selected", () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
-          selectedFireCenter={undefined}
+          selectedFireCentre={undefined}
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -338,7 +338,7 @@ describe("AdvisoryText", () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -366,7 +366,7 @@ describe("AdvisoryText", () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -394,7 +394,7 @@ describe("AdvisoryText", () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={undefined}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -415,7 +415,7 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -446,7 +446,7 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -472,7 +472,7 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={getInitialStore()}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -507,7 +507,7 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -538,7 +538,7 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={noAdvisoryStore}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -569,7 +569,7 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={warningStore}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -600,7 +600,7 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={testStore}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -636,7 +636,7 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -663,7 +663,7 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -694,7 +694,7 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -739,7 +739,7 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -775,7 +775,7 @@ describe("AdvisoryText", () => {
     const { queryByTestId } = render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -798,7 +798,7 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />
@@ -824,7 +824,7 @@ describe("AdvisoryText", () => {
     render(
       <Provider store={store}>
         <AdvisoryText
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
           date={TEST_FOR_DATE_LUXON}
         />

@@ -4,7 +4,7 @@ import FireCenterDropdown from "@/components/FireCenterDropdown";
 import AdvisoryText from "@/components/report/AdvisoryText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
-import { selectFireCenters } from "@/store";
+import { selectFireCentres } from "@/store";
 import { Box, useTheme } from "@mui/material";
 import { DateTime } from "luxon";
 import { useSelector } from "react-redux";
@@ -12,8 +12,8 @@ import { useSelector } from "react-redux";
 interface AdvisoryProps {
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
-  selectedFireCenter: FireCentre | undefined;
-  setSelectedFireCenter: React.Dispatch<
+  selectedFireCentre: FireCentre | undefined;
+  setSelectedFireCentre: React.Dispatch<
     React.SetStateAction<FireCentre | undefined>
   >;
   selectedFireZoneUnit: FireShape | undefined;
@@ -25,12 +25,12 @@ interface AdvisoryProps {
 const Advisory = ({
   date,
   setDate,
-  selectedFireCenter,
-  setSelectedFireCenter,
+  selectedFireCentre,
+  setSelectedFireCentre,
   selectedFireZoneUnit,
   setSelectedFireZoneUnit,
 }: AdvisoryProps) => {
-  const { fireCenters } = useSelector(selectFireCenters);
+  const { fireCentres } = useSelector(selectFireCentres);
   const theme = useTheme();
   return (
     <Box
@@ -58,9 +58,9 @@ const Advisory = ({
         </Box>
         <Box sx={{ display: "flex", flexGrow: 1, pt: theme.spacing(1) }}>
           <FireCenterDropdown
-            fireCenterOptions={fireCenters ?? []}
-            selectedFireCenter={selectedFireCenter}
-            setSelectedFireCenter={setSelectedFireCenter}
+            fireCentreOptions={fireCentres ?? []}
+            selectedFireCentre={selectedFireCentre}
+            setSelectedFireCentre={setSelectedFireCentre}
             setSelectedFireShape={setSelectedFireZoneUnit}
           />
         </Box>
@@ -76,13 +76,13 @@ const Advisory = ({
         }}
       >
         <FireZoneUnitTabs
-          selectedFireCenter={selectedFireCenter}
+          selectedFireCentre={selectedFireCentre}
           selectedFireZoneUnit={selectedFireZoneUnit}
           setSelectedFireZoneUnit={setSelectedFireZoneUnit}
           date={date}
         >
           <AdvisoryText
-            selectedFireCenter={selectedFireCenter}
+            selectedFireCentre={selectedFireCentre}
             selectedFireZoneUnit={selectedFireZoneUnit}
             date={date}
           />

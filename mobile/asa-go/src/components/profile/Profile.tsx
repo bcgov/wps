@@ -4,7 +4,7 @@ import FireCenterDropdown from "@/components/FireCenterDropdown";
 import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
-import { selectFireCenters } from "@/store";
+import { selectFireCentres } from "@/store";
 import { Box, useTheme } from "@mui/material";
 import { DateTime } from "luxon";
 import { useSelector } from "react-redux";
@@ -12,8 +12,8 @@ import { useSelector } from "react-redux";
 export interface ProfileProps {
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
-  selectedFireCenter: FireCentre | undefined;
-  setSelectedFireCenter: React.Dispatch<
+  selectedFireCentre: FireCentre | undefined;
+  setSelectedFireCentre: React.Dispatch<
     React.SetStateAction<FireCentre | undefined>
   >;
   selectedFireZoneUnit: FireShape | undefined;
@@ -25,12 +25,12 @@ export interface ProfileProps {
 const Profile = ({
   date,
   setDate,
-  selectedFireCenter,
-  setSelectedFireCenter,
+  selectedFireCentre,
+  setSelectedFireCentre,
   selectedFireZoneUnit,
   setSelectedFireZoneUnit,
 }: ProfileProps) => {
-  const { fireCenters } = useSelector(selectFireCenters);
+  const { fireCentres } = useSelector(selectFireCentres);
   const theme = useTheme();
   return (
     <Box
@@ -59,9 +59,9 @@ const Profile = ({
         </Box>
         <Box sx={{ display: "flex", flexGrow: 1, pt: theme.spacing(1) }}>
           <FireCenterDropdown
-            fireCenterOptions={fireCenters ?? []}
-            selectedFireCenter={selectedFireCenter}
-            setSelectedFireCenter={setSelectedFireCenter}
+            fireCentreOptions={fireCentres ?? []}
+            selectedFireCentre={selectedFireCentre}
+            setSelectedFireCentre={setSelectedFireCentre}
             setSelectedFireShape={setSelectedFireZoneUnit}
           />
         </Box>
@@ -78,13 +78,13 @@ const Profile = ({
         }}
       >
         <FireZoneUnitTabs
-          selectedFireCenter={selectedFireCenter}
+          selectedFireCentre={selectedFireCentre}
           selectedFireZoneUnit={selectedFireZoneUnit}
           setSelectedFireZoneUnit={setSelectedFireZoneUnit}
           date={date}
         >
           <FireZoneUnitSummary
-            selectedFireCenter={selectedFireCenter}
+            selectedFireCentre={selectedFireCentre}
             selectedFireZoneUnit={selectedFireZoneUnit}
             date={date}
           />
