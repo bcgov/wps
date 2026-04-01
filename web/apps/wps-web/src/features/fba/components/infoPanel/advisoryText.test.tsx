@@ -7,7 +7,8 @@ import { initialState as runDatesInitialState } from '@/features/fba/slices/runD
 import { initialState as fireCentreTPIStatsInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
 import { createTestStore } from '@/test/testUtils'
 import { render, screen, waitFor, act } from '@testing-library/react'
-import { FireCenter, FireShape, FireShapeStatusDetail, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import { FireShape, FireShapeStatusDetail, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
 import AdvisoryText, {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -31,10 +32,9 @@ const postCoreSeasonDate = createDateTime(2025, 10, 1)
 const issueDate = DateTime.now()
 const forDate = DateTime.now()
 
-const mockFireCenter: FireCenter = {
+const mockFireCentre: FireCentre = {
   id: 1,
-  name: 'Cariboo Fire Centre',
-  stations: []
+  name: 'Cariboo Fire Centre'
 }
 
 const mockFireZoneUnit: FireShape = {
@@ -156,7 +156,7 @@ describe('AdvisoryText', () => {
           <AdvisoryText
             issueDate={issueDate}
             forDate={forDate}
-            selectedFireCenter={mockFireCenter}
+            selectedFireCentre={mockFireCentre}
             selectedFireZoneUnit={mockFireZoneUnit}
           />
         </Provider>
@@ -195,7 +195,7 @@ describe('AdvisoryText', () => {
   it('should render default message when no fire zone unit is selected', () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={testStore}>
-        <AdvisoryText issueDate={issueDate} forDate={forDate} selectedFireCenter={mockFireCenter} />
+        <AdvisoryText issueDate={issueDate} forDate={forDate} selectedFireCentre={mockFireCentre} />
       </Provider>
     )
     const message = getByTestId('default-message')
@@ -233,7 +233,7 @@ describe('AdvisoryText', () => {
     const store = getInitialStore()
     await renderAdvisoryTextWithStore(store)
     assertInitialState()
-    let smallAreaStats = cloneDeep(initialHFIFuelStats)
+    const smallAreaStats = cloneDeep(initialHFIFuelStats)
     smallAreaStats['Cariboo Fire Centre'][20].fuel_area_stats[0].area = 10
     smallAreaStats['Cariboo Fire Centre'][20].fuel_area_stats[0].fuel_area = 100
     await dispatchFuelStats(store, smallAreaStats)
@@ -254,7 +254,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
@@ -278,7 +278,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
@@ -313,7 +313,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
@@ -341,7 +341,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
         />
       </Provider>
@@ -378,7 +378,7 @@ describe('AdvisoryText', () => {
     await renderAdvisoryTextWithStore(store)
     assertInitialState()
 
-    let overnightStats = cloneDeep(initialHFIFuelStats)
+    const overnightStats = cloneDeep(initialHFIFuelStats)
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
 
     await dispatchFuelStats(store, overnightStats)
@@ -396,7 +396,7 @@ describe('AdvisoryText', () => {
     await renderAdvisoryTextWithStore(store)
     assertInitialState()
 
-    let overnightStats = cloneDeep(initialHFIFuelStats)
+    const overnightStats = cloneDeep(initialHFIFuelStats)
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 5
     overnightStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.start_time = 13
 
@@ -426,7 +426,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
         />
       </Provider>
@@ -453,7 +453,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
         />
       </Provider>
@@ -477,7 +477,7 @@ describe('AdvisoryText', () => {
     await renderAdvisoryTextWithStore(store)
     assertInitialState()
 
-    let newHFIFuelStats = cloneDeep(initialHFIFuelStats)
+    const newHFIFuelStats = cloneDeep(initialHFIFuelStats)
     newHFIFuelStats['Cariboo Fire Centre'][20].fuel_area_stats[0].critical_hours.end_time = 22
 
     await dispatchFuelStats(store, newHFIFuelStats)
@@ -502,7 +502,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>
@@ -522,7 +522,7 @@ describe('AdvisoryText', () => {
         <AdvisoryText
           issueDate={issueDate}
           forDate={forDate}
-          selectedFireCenter={mockFireCenter}
+          selectedFireCentre={mockFireCentre}
           selectedFireZoneUnit={mockFireZoneUnit}
         />
       </Provider>

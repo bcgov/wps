@@ -1263,9 +1263,9 @@ wheels = [
 
 [[package]]
 name = "gdal"
-version = "3.9.2"
+version = "3.12.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bd/10/85c41cc7c520be9cf755f5862e8c6c8b0c91c8987cb1c706f7092f9893ee/gdal-3.9.2.tar.gz", hash = "sha256:cf9c1add09ce152975c94d48a1a89dd300c292e0761fd3d22a8071a98852e129", size = 840643, upload-time = "2024-08-16T11:03:01.315Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/65/cb/64ab7a1dd03e53870fd4c993d72baf6881a663953d2d2e8dd92098c12e94/gdal-3.12.3.tar.gz", hash = "sha256:a5aebb8f50b8f4d5b0c238cc9a6c988be3041bc276535daeddc399fa6ec13972", size = 899374, upload-time = "2026-03-20T13:48:41.273Z" }
 
 [[package]]
 name = "geoalchemy2"
@@ -4741,7 +4741,7 @@ requires-dist = [
     { name = "earthaccess", specifier = ">=0.15.1" },
     { name = "fastapi", specifier = ">=0,<1" },
     { name = "firebase-admin", specifier = ">=7.3.0" },
-    { name = "gdal", specifier = "==3.9.2" },
+    { name = "gdal", specifier = "==3.12.3" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "greenlet", specifier = ">=3.0.0,<4" },
@@ -4812,7 +4812,7 @@ dev = [
 requires-dist = [
     { name = "affine", specifier = ">=2.4.0,<3" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
-    { name = "gdal", specifier = "==3.9.2" },
+    { name = "gdal", specifier = "==3.12.3" },
     { name = "herbie-data", specifier = ">=2025.11.1,<2026" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
     { name = "numpy", specifier = "==2.3.*" },
@@ -4891,7 +4891,7 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "cffdrs", specifier = ">=0,<1" },
     { name = "fastapi", specifier = ">=0.115.11,<1" },
-    { name = "gdal", specifier = "==3.9.2" },
+    { name = "gdal", specifier = "==3.12.3" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "numba", specifier = ">=0,<1" },
@@ -4940,7 +4940,10 @@ version = "0.1.0"
 source = { editable = "packages/wps-weather" }
 dependencies = [
     { name = "aio-pika" },
+    { name = "aiofiles" },
     { name = "cartopy" },
+    { name = "cfgrib" },
+    { name = "eccodes" },
     { name = "fiona" },
     { name = "geopandas" },
     { name = "matplotlib" },
@@ -4948,6 +4951,7 @@ dependencies = [
     { name = "pyproj" },
     { name = "scipy" },
     { name = "shapely" },
+    { name = "sqlalchemy" },
     { name = "wps-shared" },
     { name = "xarray" },
 ]
@@ -4962,7 +4966,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aio-pika", specifier = ">=9.5.8" },
+    { name = "aiofiles", specifier = ">=25.1.0" },
     { name = "cartopy", specifier = ">=0.22.0,<1" },
+    { name = "cfgrib", specifier = ">=0.9.15.1" },
+    { name = "eccodes", specifier = ">=2.45.0" },
     { name = "fiona", specifier = ">=1.9.0,<2" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "matplotlib", specifier = ">=3.7.0,<4" },
@@ -4970,6 +4977,7 @@ requires-dist = [
     { name = "pyproj", specifier = ">=3.5.0,<4" },
     { name = "scipy", specifier = ">=1.15.2,<2" },
     { name = "shapely", specifier = ">=2.0.5,<3" },
+    { name = "sqlalchemy", specifier = ">=2,<3" },
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "xarray", specifier = ">=2025.3.1,<2026" },
 ]

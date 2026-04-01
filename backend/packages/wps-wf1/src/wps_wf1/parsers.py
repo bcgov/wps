@@ -6,7 +6,7 @@ from typing import Generator, List
 
 from wps_shared.db.models.forecasts import NoonForecast
 from wps_shared.db.models.observations import HourlyActual
-from wps_shared.schemas.fba import FireCenterStation, FireCentre
+from wps_shared.schemas.fba import FireCenterStation, WFWXFireCentre
 from wps_shared.schemas.morecast_v2 import (
     StationDailyFromWF1,
     WeatherDeterminate,
@@ -300,7 +300,7 @@ async def fire_center_mapper(raw_stations: Generator[dict, None, None]):
 
             fire_center = fire_centers.get(fire_center_id, None)
             if fire_center is None:
-                fire_centers[fire_center_id] = FireCentre(
+                fire_centers[fire_center_id] = WFWXFireCentre(
                     id=str(raw_fire_center["id"]),
                     name=raw_fire_center["displayLabel"],
                     stations=[station],

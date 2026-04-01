@@ -1,4 +1,3 @@
-import json
 import math
 from collections import namedtuple
 from datetime import date, datetime, timezone
@@ -6,8 +5,6 @@ from unittest.mock import patch
 
 import app.main
 import pytest
-from aiohttp import ClientSession
-from app.tests import get_complete_filename
 from fastapi.testclient import TestClient
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryHFIWindSpeed,
@@ -16,6 +13,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     TPIClassEnum,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
+from wps_shared.db.models.psu import FireCentre
 from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
 from wps_shared.schemas.fba import (
     FireZoneHFIStats,
@@ -23,7 +21,6 @@ from wps_shared.schemas.fba import (
     HfiThreshold,
     SFMSRunParameter,
 )
-from wps_shared.tests.common import default_mock_client_get
 
 mock_fire_centre_name = "PGFireCentre"
 
@@ -296,25 +293,23 @@ def client():
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@pytest.mark.parametrize(
-    "status, expected_fire_centers", [(200, "test_fba_endpoint_fire_centers.json")]
-)
-def test_fba_endpoint_fire_centers(
-    status, expected_fire_centers, monkeypatch, mocker, mock_wfwx_api
-):
-    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
-
+@patch("app.routers.fba.fetch_fire_centres")
+def test_fba_endpoint_fire_centers(mock_fetch_fire_centres):
+    mock_fetch_fire_centres.return_value = [
+        FireCentre(id=1, name="Coastal Fire Centre"),
+        FireCentre(id=2, name="Northwest Fire Centre"),
+    ]
     client = TestClient(app.main.app)
     headers = {"Content-Type": "application/json", "Authorization": "Bearer token"}
 
     response = client.get("/api/fba/fire-centers/", headers=headers)
-
-    response_filename = get_complete_filename(__file__, expected_fire_centers)
-    with open(response_filename) as res_file:
-        expected_response = json.load(res_file)
-
-    assert response.status_code == status
-    assert response.json() == expected_response
+    assert response.status_code == 200
+    assert response.json() == {
+        "fire_centers": [
+            {"id": 1, "name": "Coastal Fire Centre"},
+            {"id": 2, "name": "Northwest Fire Centre"},
+        ]
+    }
 
 
 @pytest.mark.usefixtures("mock_client_session")
@@ -337,9 +332,10 @@ def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_get_fire_centres_authorized(client: TestClient, mocker, mock_wfwx_api):
+@patch("app.routers.fba.fetch_fire_centres")
+def test_get_fire_centres_authorized(mock_fetch_fire_centres, client: TestClient):
     """Allowed to get fire centres when authorized"""
-    mocker.patch("app.routers.fba.WfwxApi", return_value=mock_wfwx_api)
+    mock_fetch_fire_centres.return_value = [FireCentre(id=1, name="Test Fire Centre")]
     response = client.get(get_fire_centres_url)
     assert response.status_code == 200
 
@@ -608,8 +604,11 @@ FBA_ENDPOINTS = [
 )
 @patch("app.routers.fba.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
 @patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
-def test_fba_endpoints_allowed_for_test_idir(client, endpoint, mocker, mock_wfwx_api):
-    mocker.patch("app.routers.fba.WfwxApi", return_value=mock_wfwx_api)
+def test_fba_endpoints_allowed_for_test_idir(client, endpoint, mocker):
+    mocker.patch(
+        "app.routers.fba.fetch_fire_centres",
+        return_value=[FireCentre(id=1, name="Test Fire Centre")],
+    )
     headers = {"Authorization": "Bearer token"}
     response = client.get(endpoint, headers=headers)
     assert response.status_code == 200
@@ -631,9 +630,9 @@ def test_get_fire_centre_info_authorized(client: TestClient):
     assert len(cariboo_fire_zone_units) == 2
     assert len(kamloops_fire_zone_units) == 1
     assert cariboo_fire_zone_units[0]["id"] == 1
-    assert cariboo_fire_zone_units[0]["name"] == chilcoltin_fire_zone    
+    assert cariboo_fire_zone_units[0]["name"] == chilcoltin_fire_zone
     assert cariboo_fire_zone_units[1]["id"] == 2
     assert cariboo_fire_zone_units[1]["name"] == quesnel_fire_zone
     assert kamloops_fire_zone_units[0]["id"] == 3
-    assert kamloops_fire_zone_units[0]["name"] == vernon_fire_zone 
+    assert kamloops_fire_zone_units[0]["name"] == vernon_fire_zone
     assert response.status_code == 200

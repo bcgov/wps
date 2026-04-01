@@ -1,14 +1,17 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from fastapi import HTTPException
-import app
-from wps_shared.schemas.fire_watch import FireWatchFireCentre, FireWatchOutput
-from wps_shared.schemas.stations import GeoJsonWeatherStation
 from app.routers.fire_watch import (
+    MissingWeatherDataError,
     create_fire_watch_output,
     update_existing_fire_watch,
-    MissingWeatherDataError,
 )
+from fastapi import HTTPException
+from wps_shared.schemas.fire_watch import (
+    FireWatchOutput,
+)
+from wps_shared.schemas.psu import FireCentre
+from wps_shared.schemas.stations import GeoJsonWeatherStation
 
 
 @pytest.fixture
@@ -37,7 +40,7 @@ def mock_stations():
 
 @pytest.fixture
 def mock_fire_centre():
-    return FireWatchFireCentre(id=1, name="Test Fire Centre")
+    return FireCentre(id=1, name="Test Fire Centre")
 
 
 @pytest.mark.anyio

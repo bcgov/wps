@@ -75,10 +75,6 @@ export interface FireWatchListResponse {
   watch_list: FireWatchOutput[]
 }
 
-export interface FireWatchFireCentresResponse {
-  fire_centres: FireWatchFireCentre[]
-}
-
 // API data transfer object
 export interface BurnForecastOutput {
   id: number
@@ -130,12 +126,6 @@ export const patchFireWatchUpdate = async (fireWatch: FireWatch): Promise<FireWa
   })
   const updatedFireWatchBurnForecasts = marshalBurnForecasts(data.fire_watch_burn_forecasts)
   return updatedFireWatchBurnForecasts[0]
-}
-
-export const getFireCentres = async (): Promise<FireWatchFireCentresResponse> => {
-  const url = 'fire-watch/fire-centres'
-  const { data } = await axios.get(url)
-  return data
 }
 
 export async function getBurnForecasts(): Promise<FireWatchBurnForecast[]> {

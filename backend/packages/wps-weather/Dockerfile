@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
+ARG DOCKER_IMAGE=ghcr.io/osgeo/gdal:ubuntu-small-3.12.3
 
 # Builder stage
 # ────────────────────────────────────────────────────────────────
@@ -12,8 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
 
 # Minimal deps
-RUN apt-get update && apt-get install -y \
-    git python3-pip \
+RUN apt-get update && apt-get install -y git python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -78,10 +77,14 @@ USER 0
 # Copy uv binary into runtime (enables uv at runtime)
 COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
 
+# eccodes C library required by cfgrib at runtime
+RUN apt-get update && apt-get install -y libeccodes-tools \
+    && rm -rf /var/lib/apt/lists/*
+
 # Prepare /app for OpenShift:
 # Ensure the root group (GID 0) has read/write/execute permissions
 # so containers running as a random non-root UID (in group 0) can write here
-RUN mkdir /app \
+RUN mkdir -p /app \
     && chgrp -R 0 /app \
     && chmod -R g+rwX /app
 

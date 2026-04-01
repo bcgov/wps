@@ -16,8 +16,8 @@ brew install gh
 
 ### gdal
 brew tap-new $(whoami)/local-gdal
-# Grabs 3.9.2 formula, needed until https://github.com/OSGeo/gdal/issues/13777 is fixed and we update the base image
-curl -s https://raw.githubusercontent.com/Homebrew/homebrew-core/c230b76333dac4781414835c87811bdd09382ff4/Formula/g/gdal.rb > $(brew --repository)/Library/Taps/$(whoami)/homebrew-local-gdal/Formula/gdal.rb
+# Grabs 3.12.3 formula -- https://github.com/Homebrew/homebrew-core/commits/master/Formula/g/gdal.rb
+curl -s https://raw.githubusercontent.com/Homebrew/homebrew-core/2761c8e5f5547753c8bebc39e95968006f5deb69/Formula/g/gdal.rb > $(brew --repository)/Library/Taps/$(whoami)/homebrew-local-gdal/Formula/gdal.rb
 brew install $(whoami)/local-gdal/gdal # if you have gdal/postgis already installed you'll have to uninstall them both, see MANUAL.md for more details
 
 ### For generated HFI Calculator PDFs
