@@ -18,7 +18,7 @@ from sqlalchemy.dialects import postgresql
 from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
-from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.db.models.psu import FireCentre
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
 
 

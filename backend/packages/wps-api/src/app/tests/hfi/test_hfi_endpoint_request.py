@@ -12,7 +12,6 @@ from aiohttp import ClientSession
 from fastapi.testclient import TestClient
 from pytest_mock import MockerFixture
 from wps_shared.db.models.hfi_calc import (
-    FireCentre,
     FireStartLookup,
     FireStartRange,
     FuelType,
@@ -20,6 +19,7 @@ from wps_shared.db.models.hfi_calc import (
     PlanningArea,
     PlanningWeatherStation,
 )
+from wps_shared.db.models.psu import FireCentre
 from wps_shared.tests.common import default_mock_client_get
 
 import app.main

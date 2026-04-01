@@ -5,7 +5,8 @@ import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Text } from 'ol/style'
 import Style from 'ol/style/Style'
 import { range, startCase, lowerCase, isUndefined } from 'lodash'
-import { FireCenter, FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
 import { AdvisoryStatus } from '@wps/utils/constants'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
@@ -37,23 +38,23 @@ export const fireCentreLabelStyler = (feature: RenderFeature | ol.Feature<Geomet
   })
 }
 
-export const fireCentreStyler = (selectedFireCenter: FireCenter | undefined) => {
+export const fireCentreStyler = (selectedFireCentre: FireCentre | undefined) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME
-    const isSelected = selectedFireCenter && fireCenterId == selectedFireCenter.name
+    const fireCentreId = feature.getProperties().MOF_FIRE_CENTRE_NAME
+    const isSelected = selectedFireCentre && fireCentreId == selectedFireCentre.name
 
     const fillColour = isSelected ? new Fill({ color: EMPTY_FILL }) : new Fill({ color: GREY_FILL })
 
     return new Style({
-      fill: selectedFireCenter ? fillColour : undefined
+      fill: selectedFireCentre ? fillColour : undefined
     })
   }
 }
 
-export const fireCentreLineStyler = (selectedFireCenter: FireCenter | undefined) => {
+export const fireCentreLineStyler = (selectedFireCentre: FireCentre | undefined) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME
-    const isSelected = selectedFireCenter && fireCenterId == selectedFireCenter.name
+    const fireCentreId = feature.getProperties().MOF_FIRE_CENTRE_NAME
+    const isSelected = selectedFireCentre && fireCentreId == selectedFireCentre.name
 
     return new Style({
       stroke: new Stroke({

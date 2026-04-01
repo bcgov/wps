@@ -1,9 +1,11 @@
 import enum
-from wps_shared.db.models import Base
+
 from geoalchemy2 import Geometry
-from sqlalchemy import ARRAY, Boolean, Column, Date, Enum, Float, ForeignKey, Integer, String
+from sqlalchemy import ARRAY, Column, Date, Enum, Float, ForeignKey, Integer, String
+
+from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
-from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.db.models.psu import FireCentre
 from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
 from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS

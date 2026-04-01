@@ -28,9 +28,9 @@ const ProvincialSummary = () => {
     isNull(provincialSummary) || isUndefined(provincialSummary) || Object.keys(provincialSummary).length === 0
 
   const handleFireCentreAccordionChanged =
-    (fireCenterName: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    (fireCentreName: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       const newValue = { ...fireCentreExpanded }
-      newValue[fireCenterName] = isExpanded
+      newValue[fireCentreName] = isExpanded
       setFireCentreExpanded(newValue)
     }
 
