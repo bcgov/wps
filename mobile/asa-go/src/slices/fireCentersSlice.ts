@@ -8,14 +8,15 @@ import {
 } from "@/utils/storage";
 import { Filesystem } from "@capacitor/filesystem";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { FireCenter, getFBAFireCenters } from "api/fbaAPI";
+import { getFireCentres } from "api/psuAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { isNull } from "lodash";
 import { DateTime } from "luxon";
 
 export interface FireCentresState {
   loading: boolean;
   error: string | null;
-  fireCenters: FireCenter[];
+  fireCenters: FireCentre[];
 }
 
 export const initialState: FireCentresState = {
@@ -42,7 +43,7 @@ const fireCentersSlice = createSlice({
     },
     getFireCentersSuccess(
       state: FireCentresState,
-      action: PayloadAction<FireCenter[]>
+      action: PayloadAction<FireCentre[]>
     ) {
       state.error = null;
       state.fireCenters = action.payload;
@@ -70,7 +71,7 @@ export const fetchFireCenters = (): AppThunk => async (dispatch, getState) => {
     const lastUpdated = DateTime.fromISO(cachedFireCenters.lastUpdated);
     // Update state from the cached data if it isn't stale or if we're offline.
     if (lastUpdated.plus({ hours: FIRE_CENTERS_CACHE_EXPIRATION }) > today || !networkStatus.networkStatus.connected) {
-      dispatch(getFireCentersSuccess(cachedFireCenters.data as FireCenter[]));
+      dispatch(getFireCentersSuccess(cachedFireCenters.data as FireCentre[]));
       return;
     }
   }
@@ -78,14 +79,14 @@ export const fetchFireCenters = (): AppThunk => async (dispatch, getState) => {
   if (networkStatus.networkStatus.connected) {
     try {
       dispatch(getFireCentersStart());
-      const fireCenters = await getFBAFireCenters();
+      const fireCenters = await getFireCentres();
       await writeToFileSystem(
         Filesystem,
         FIRE_CENTERS_KEY,
-        fireCenters.fire_centers,
+        fireCenters.fire_centres,
         today
       );
-      dispatch(getFireCentersSuccess(fireCenters.fire_centers));
+      dispatch(getFireCentersSuccess(fireCenters.fire_centres));
     } catch (err) {
       dispatch(getFireCentersFailed((err as Error).toString()));
       console.log(err);

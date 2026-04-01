@@ -1,5 +1,4 @@
 import {
-  FireCenter,
   FireCentreInfo,
   FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
@@ -7,6 +6,7 @@ import {
   FireZoneTPIStats,
   RunParameter,
 } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { Directory, Encoding, FilesystemPlugin } from "@capacitor/filesystem";
 import { DateTime } from "luxon";
 
@@ -25,7 +25,7 @@ export type CacheableData<T extends CacheableDataType> = {
 };
 
 type Cacheable =
-  | FireCenter[]
+  | FireCentre[]
   | FireCentreInfo[]
   | { [key: string]: RunParameter };
 

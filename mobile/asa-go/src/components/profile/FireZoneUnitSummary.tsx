@@ -9,14 +9,15 @@ import {
 import { hasRequiredFields } from "@/utils/profileUtils";
 import { Box, Grid2 as Grid, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { FireCenter, FireShape } from "api/fbaAPI";
+import { FireShape } from "api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { isNil } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
 
 interface FireZoneUnitSummaryProps {
   date: DateTime;
-  selectedFireCenter: FireCenter | undefined;
+  selectedFireCenter: FireCentre | undefined;
   selectedFireZoneUnit: FireShape | undefined;
 }
 

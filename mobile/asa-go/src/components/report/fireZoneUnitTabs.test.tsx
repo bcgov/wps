@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
-import { FireCenter, FireShape, FireShapeStatusDetail } from "@/api/fbaAPI";
+import { FireShape, FireShapeStatusDetail } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { DateTime } from "luxon";
 import { AdvisoryStatus } from "@/utils/constants";
 import { useFireCentreDetails } from "@/hooks/useFireCentreDetails";
@@ -18,7 +19,7 @@ vi.mock("@/hooks/useFireCentreDetails", () => ({
 const mockUseFireCentreDetails = vi.mocked(useFireCentreDetails);
 mockUseFireCentreDetails.mockImplementation(
   (
-    fireCenter: FireCenter | undefined,
+    fireCenter: FireCentre | undefined,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _forDate: DateTime
   ): FireShapeStatusDetail[] => {
@@ -41,10 +42,9 @@ mockUseFireCentreDetails.mockImplementation(
 );
 
 describe("FireZoneUnitTabs", () => {
-  const mockFireCenter: FireCenter = {
+  const mockFireCenter: FireCentre = {
     id: 1,
     name: "Fire Center 1",
-    stations: [],
   };
 
   const mockFireShape: FireShape = {

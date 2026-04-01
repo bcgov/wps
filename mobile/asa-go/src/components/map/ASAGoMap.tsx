@@ -44,7 +44,8 @@ import GpsOffIcon from "@mui/icons-material/GpsOff";
 import LayersIcon from "@mui/icons-material/Layers";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { Box } from "@mui/material";
-import { FireCenter, FireShape } from "api/fbaAPI";
+import { FireShape } from "api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, MapBrowserEvent, View } from "ol";
@@ -78,7 +79,7 @@ export interface ASAGoMapProps {
     React.SetStateAction<FireShape | undefined>
   >;
   setSelectedFireCenter: React.Dispatch<
-    React.SetStateAction<FireCenter | undefined>
+    React.SetStateAction<FireCentre | undefined>
   >;
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;

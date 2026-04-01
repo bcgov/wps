@@ -1,11 +1,11 @@
 import {
-  FireCenter,
   FireShape,
   FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
   RunParameter,
   RunType,
 } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import AdvisoryText from "@/components/report/AdvisoryText";
 import dataSlice, {
   DataState,
@@ -54,10 +54,9 @@ const testRunParameter: RunParameter = {
   run_type: RunType.FORECAST,
 };
 
-const mockFireCenter: FireCenter = {
+const mockFireCenter: FireCentre = {
   id: 1,
   name: "Cariboo Fire Centre",
-  stations: [],
 };
 
 const mockFireZoneUnit: FireShape = {

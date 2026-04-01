@@ -1,4 +1,5 @@
-import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { FireShape } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import FireCenterDropdown from "@/components/FireCenterDropdown";
 import AdvisoryText from "@/components/report/AdvisoryText";
 import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
@@ -11,9 +12,9 @@ import { useSelector } from "react-redux";
 interface AdvisoryProps {
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
-  selectedFireCenter: FireCenter | undefined;
+  selectedFireCenter: FireCentre | undefined;
   setSelectedFireCenter: React.Dispatch<
-    React.SetStateAction<FireCenter | undefined>
+    React.SetStateAction<FireCentre | undefined>
   >;
   selectedFireZoneUnit: FireShape | undefined;
   setSelectedFireZoneUnit: React.Dispatch<

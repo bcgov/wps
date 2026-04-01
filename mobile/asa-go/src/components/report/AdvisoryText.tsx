@@ -1,9 +1,9 @@
 import {
-  FireCenter,
   FireShape,
   FireZoneFuelStats,
   FireZoneHFIStats,
 } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import DefaultText from "@/components/report/DefaultText";
 import {
   useFilteredHFIStatsForDate,
@@ -33,7 +33,7 @@ export const AdvisoryTypography = styled(Typography)({
 }) as typeof Typography;
 
 export interface AdvisoryTextProps {
-  selectedFireCenter: FireCenter | undefined;
+  selectedFireCenter: FireCentre | undefined;
   selectedFireZoneUnit: FireShape | undefined;
   date: DateTime;
 }

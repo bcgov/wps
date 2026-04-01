@@ -5,8 +5,9 @@ import CircleStyle from "ol/style/Circle";
 import { Fill, Stroke, Text } from "ol/style";
 import Style from "ol/style/Style";
 import { range, startCase, lowerCase, isUndefined } from "lodash";
-import { FireCenter, FireShape, FireShapeStatusDetail } from "api/fbaAPI";
 import { AdvisoryStatus } from "@/utils/constants";
+import { FireShape, FireShapeStatusDetail } from "api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 
 const GREY_FILL = "rgba(128, 128, 128, 0.8)";
 const EMPTY_FILL = "rgba(0, 0, 0, 0.0)";
@@ -44,7 +45,7 @@ export const fireCentreLabelStyler = (
 };
 
 export const fireCentreStyler = (
-  selectedFireCenter: FireCenter | undefined
+  selectedFireCenter: FireCentre | undefined
 ) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME;
@@ -62,7 +63,7 @@ export const fireCentreStyler = (
 };
 
 export const fireCentreLineStyler = (
-  selectedFireCenter: FireCenter | undefined
+  selectedFireCenter: FireCentre | undefined
 ) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fireCenterId = feature.getProperties().MOF_FIRE_CENTRE_NAME;

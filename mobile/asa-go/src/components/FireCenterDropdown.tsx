@@ -6,14 +6,15 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
-import { FireCenter, FireShape } from "api/fbaAPI";
+import { FireShape } from "api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import React from "react";
 
 export interface FireCenterDropdownProps {
-  selectedFireCenter?: FireCenter;
-  fireCenterOptions: FireCenter[];
+  selectedFireCenter?: FireCentre;
+  fireCenterOptions: FireCentre[];
   setSelectedFireCenter: React.Dispatch<
-    React.SetStateAction<FireCenter | undefined>
+    React.SetStateAction<FireCentre | undefined>
   >;
   setSelectedFireShape: React.Dispatch<
     React.SetStateAction<FireShape | undefined>

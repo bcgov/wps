@@ -2,12 +2,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import FireCenterDropdown from "./FireCenterDropdown";
-import { FireCenter, FireShape } from "api/fbaAPI";
+import { FireShape } from "api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 
 describe("FireCenterDropdown", () => {
-  let fireCenters: FireCenter[];
+  let fireCenters: FireCentre[];
   let setSelectedFireCenter: React.Dispatch<
-    React.SetStateAction<FireCenter | undefined>
+    React.SetStateAction<FireCentre | undefined>
   >;
   let setSelectedFireShape: React.Dispatch<
     React.SetStateAction<FireShape | undefined>
@@ -15,8 +16,8 @@ describe("FireCenterDropdown", () => {
 
   beforeEach(() => {
     fireCenters = [
-      { id: 1, name: "Center A", stations: [] },
-      { id: 2, name: "Center B", stations: [] },
+      { id: 1, name: "Center A" },
+      { id: 2, name: "Center B" },
     ];
     setSelectedFireCenter = vi.fn();
     setSelectedFireShape = vi.fn();
@@ -84,10 +85,9 @@ describe("FireCenterDropdown", () => {
   });
 
   it("does not show 'Fire Centre' in the selected value", () => {
-    const selectedFireCenter: FireCenter = {
+    const selectedFireCenter: FireCentre = {
       id: 3,
       name: "Kamloops Fire Centre",
-      stations: [],
     };
 
     render(

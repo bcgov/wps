@@ -1,5 +1,6 @@
 import { useProvincialSummaryForDate } from "@/hooks/dataHooks";
-import { FireCenter, FireShapeStatusDetail } from "api/fbaAPI";
+import { FireShapeStatusDetail } from "api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { DateTime } from "luxon";
 import { useMemo } from "react";
 
@@ -11,7 +12,7 @@ import { useMemo } from "react";
  * @returns
  */
 export const useFireCentreDetails = (
-  selectedFireCenter: FireCenter | undefined,
+  selectedFireCenter: FireCentre | undefined,
   forDate: DateTime
 ): FireShapeStatusDetail[] => {
   const provincialSummary = useProvincialSummaryForDate(forDate);

@@ -1,4 +1,5 @@
-import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { FireShape } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { useFireCentreDetails } from "@/hooks/useFireCentreDetails";
 import { calculateStatusColour } from "@/utils/calculateZoneStatus";
 import { Tab, Tabs } from "@mui/material";
@@ -8,7 +9,7 @@ import { DateTime } from "luxon";
 import { useEffect, useCallback, useMemo } from "react";
 
 export interface FireZoneUnitTabsProps {
-  selectedFireCenter: FireCenter | undefined;
+  selectedFireCenter: FireCentre | undefined;
   selectedFireZoneUnit: FireShape | undefined;
   setSelectedFireZoneUnit: React.Dispatch<
     React.SetStateAction<FireShape | undefined>

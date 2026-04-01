@@ -37,6 +37,9 @@
       "api/*": [
         "./src/api/*"
       ],
+      "@wps/types/*": [
+        "../../web/packages/types/src/*"
+      ],
     }
   },
   "include": [

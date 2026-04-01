@@ -4,14 +4,15 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { DateTime } from "luxon";
 import Profile, { ProfileProps } from "@/components/profile/Profile";
-import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { FireShape } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 
 // Mock child components
 vi.mock("@/components/FireCenterDropdown", () => ({
   default: ({
     selectedFireCenter,
   }: {
-    selectedFireCenter: FireCenter | undefined;
+    selectedFireCenter: FireCentre | undefined;
   }) => (
     <div data-testid="fire-center-dropdown">
       {selectedFireCenter ? selectedFireCenter.name : "No fire center selected"}
@@ -64,10 +65,9 @@ describe("Profile", () => {
   const mockSetSelectedFireCenter = vi.fn();
   const mockSetSelectedFireZoneUnit = vi.fn();
 
-  const mockFireCenter: FireCenter = {
+  const mockFireCenter: FireCentre = {
     id: 1,
     name: "Test Fire Center",
-    stations: [],
   };
 
   const mockFireZoneUnit: FireShape = {

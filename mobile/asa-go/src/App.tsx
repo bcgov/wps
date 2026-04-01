@@ -1,4 +1,5 @@
-import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { FireShape } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { AppHeader } from "@/components/AppHeader";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import SideNavigation from "@/components/SideNavigation";
@@ -54,7 +55,7 @@ const App = () => {
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
-  const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
+  const [fireCenter, setFireCenter] = useState<FireCentre | undefined>(
     undefined,
   );
   const [selectedFireShape, setSelectedFireShape] = useState<

@@ -4,7 +4,8 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
-import { FireCenter, FireShape, FireZoneTPIStats } from "@/api/fbaAPI";
+import { FireShape, FireZoneTPIStats } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { DateTime } from "luxon";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "@/theme";
@@ -49,10 +50,9 @@ vi.mock("react-redux", async () => {
 
 describe("FireZoneUnitSummary", () => {
   const testDate = DateTime.fromISO("2025-08-25");
-  const mockFireCenter: FireCenter = {
+  const mockFireCenter: FireCentre = {
     id: 1,
     name: "Test Fire Center",
-    stations: [],
   };
 
   const mockFireZoneUnit: FireShape = {

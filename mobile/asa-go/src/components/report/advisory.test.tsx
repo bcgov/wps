@@ -3,7 +3,7 @@ import { vi } from "vitest";
 import Advisory from "@/components/report/Advisory";
 import { DateTime } from "luxon";
 import { useSelector } from "react-redux";
-import { FireCenter } from "@/api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { AdvisoryTextProps } from "@/components/report/AdvisoryText";
 import { FireZoneUnitTabsProps } from "@/components/report/FireZoneUnitTabs";
 import { FireCenterDropdownProps } from "@/components/FireCenterDropdown";
@@ -49,9 +49,9 @@ vi.mock("react-redux", async (importOriginal) => {
 });
 
 describe("Advisory Component", () => {
-  const mockFireCenters: FireCenter[] = [
-    { name: "Center 1", id: 1, stations: [] },
-    { name: "Center 2", id: 2, stations: [] },
+  const mockFireCenters: FireCentre[] = [
+    { name: "Center 1", id: 1 },
+    { name: "Center 2", id: 2 },
   ];
 
   const mockDate: DateTime = DateTime.fromISO("2025-07-15");

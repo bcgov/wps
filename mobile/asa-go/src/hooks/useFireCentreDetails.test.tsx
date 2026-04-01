@@ -1,6 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { useFireCentreDetails } from "./useFireCentreDetails";
-import { FireCenter, RunParameter, RunType } from "api/fbaAPI";
+import { RunParameter, RunType } from "api/fbaAPI";
+import type { FireCentre } from "@wps/types/fireCentre";
 import { Provider } from "react-redux";
 import { DateTime } from "luxon";
 import { AdvisoryStatus } from "@/utils/constants";
@@ -9,10 +10,9 @@ import { createTestStore } from "@/testUtils";
 describe("useFireCentreDetails", () => {
   it("returns grouped and sorted fire shape details for a selected fire center", () => {
     const testDate = DateTime.fromISO("2025-08-25");
-    const mockFireCenter: FireCenter = {
+    const mockFireCenter: FireCentre = {
       id: 1,
       name: "Test Centre",
-      stations: [],
     };
 
     const mockProvincialSummaries = [
