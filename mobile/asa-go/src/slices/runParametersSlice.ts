@@ -73,8 +73,7 @@ export const fetchSFMSRunParameters =
           await getMostRecentRunParameters(todayKey, tomorrowKey);
         if (
           !isNil(latestRunParameters) &&
-          !isNil(latestRunParameters[todayKey]) &&
-          !isNil(latestRunParameters[tomorrowKey])
+          Object.keys(latestRunParameters).length > 0
         ) {
           // Cache the run parameters for today and tomorrow
           await writeToFileSystem(
@@ -101,6 +100,8 @@ export const fetchSFMSRunParameters =
             );
             return;
           }
+
+          return;
         }
         dispatch(
           getRunParametersFailed("Unable to update runParameters from the API.")
@@ -161,19 +162,19 @@ const stateUpdateRequired = (
   a: { [key: string]: RunParameter },
   b: { [key: string]: RunParameter }
 ) => {
-  if (isNil(a[todayKey]) || isNil(a[tomorrowKey])) {
-    return true;
-  }
-  if (isNil(b[todayKey]) || isNil(b[tomorrowKey])) {
-    return false;
-  }
   return (
     !runParametersAreEqual(a[todayKey], b[todayKey]) ||
     !runParametersAreEqual(a[tomorrowKey], b[tomorrowKey])
   );
 };
 
-const runParametersAreEqual = (a: RunParameter, b: RunParameter) => {
+const runParametersAreEqual = (
+  a: RunParameter | undefined,
+  b: RunParameter | undefined
+) => {
+  if (isNil(a) || isNil(b)) {
+    return isNil(a) && isNil(b);
+  }
   return (
     a.for_date === b.for_date &&
     a.run_datetime === b.run_datetime &&
