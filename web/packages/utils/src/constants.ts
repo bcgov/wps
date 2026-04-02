@@ -50,7 +50,7 @@ export const MORE_CAST_NAME = 'MoreCast'
 export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
 export const SFMS_INSIGHTS_NAME = 'SFMS Insights'
 export const FIRE_WATCH_NAME = 'Fire Watch'
-export const WEATHER_TOOLKIT_NAME = 'Weather Toolkit'
+export const WEATHER_TOOLKIT_NAME = 'Weather Forecast Toolkit'
 
 // UI constants
 export const HEADER_HEIGHT = 56
@@ -66,7 +66,7 @@ export const MORE_CAST_DOC_TITLE = 'MoreCast | BCWS PSU'
 export const PERCENTILE_CALC_DOC_TITLE = 'Percentile Calculator | BCWS PSU'
 export const SFMS_INSIGHTS_DOC_TITLE = 'SFMS Insights | BCWS PSU'
 export const FIRE_WATCH_TITLE = 'Fire Watch | BCWS PSU'
-export const WEATHER_TOOLKIT_TITLE = 'Weather Toolkit | BCWS PSU'
+export const WEATHER_TOOLKIT_TITLE = 'Weather Forecast Toolkit | BCWS PSU'
 
 export enum FireCentres {
   CARIBOO_FC = 'Cariboo Fire Centre',
