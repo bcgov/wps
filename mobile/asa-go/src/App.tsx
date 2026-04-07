@@ -1,4 +1,5 @@
-import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { FireShape } from "@/api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 import { AppHeader } from "@/components/AppHeader";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import SideNavigation from "@/components/SideNavigation";
@@ -11,7 +12,7 @@ import { useAppIsActive } from "@/hooks/useAppIsActive";
 import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import { fetchAndCacheData } from "@/slices/dataSlice";
-import { fetchFireCenters } from "@/slices/fireCentersSlice";
+import { fetchFireCentres } from "@/slices/fireCentresSlice";
 import {
   startWatchingLocation,
   stopWatchingLocation,
@@ -20,7 +21,7 @@ import { updateNetworkStatus } from "@/slices/networkStatusSlice";
 import { fetchSFMSRunParameters } from "@/slices/runParametersSlice";
 import {
   AppDispatch,
-  selectFireCenters,
+  selectFireCentres,
   selectNetworkStatus,
   selectRunParameters,
   selectAuthentication,
@@ -54,7 +55,7 @@ const App = () => {
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
-  const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
+  const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(
     undefined,
   );
   const [selectedFireShape, setSelectedFireShape] = useState<
@@ -63,7 +64,7 @@ const App = () => {
   const [dateOfInterest, setDateOfInterest] = useState<DateTime>(today);
 
   // selected redux state
-  const { fireCenters } = useSelector(selectFireCenters);
+  const { fireCentres } = useSelector(selectFireCentres);
   const { networkStatus } = useSelector(selectNetworkStatus);
   const runParameters = useSelector(selectRunParameters);
 
@@ -71,11 +72,11 @@ const App = () => {
   const runParameter = useRunParameterForDate(dateOfInterest);
   const { initPushNotifications, token } = usePushNotifications();
 
-  const selectedFireCenterName = selectedFireShape?.mof_fire_centre_name;
-  const matchingFireCenter = selectedFireCenterName
-    ? fireCenters.find((center) => center.name === selectedFireCenterName)
+  const selectedFireCentreName = selectedFireShape?.mof_fire_centre_name;
+  const matchingFireCentre = selectedFireCentreName
+    ? fireCentres.find((center) => center.name === selectedFireCentreName)
     : undefined;
-  const selectedFireCenter = matchingFireCenter ?? fireCenter;
+  const selectedFireCentre = matchingFireCentre ?? fireCentre;
 
   useEffect(() => {
     // Effect to manage status bar visibility
@@ -142,7 +143,7 @@ const App = () => {
   }, [networkStatus.connected, dispatch]);
 
   useEffect(() => {
-    dispatch(fetchFireCenters());
+    dispatch(fetchFireCentres());
     const doiISODate = dateOfInterest.toISODate();
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunParameters());
@@ -231,7 +232,7 @@ const App = () => {
           <ASAGoMap
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
-            setSelectedFireCenter={setFireCenter}
+            setSelectedFireCentre={setFireCentre}
             date={dateOfInterest}
             setDate={setDateOfInterest}
             setTab={setTab}
@@ -242,8 +243,8 @@ const App = () => {
           <Profile
             date={dateOfInterest}
             setDate={setDateOfInterest}
-            selectedFireCenter={selectedFireCenter}
-            setSelectedFireCenter={setFireCenter}
+            selectedFireCentre={selectedFireCentre}
+            setSelectedFireCentre={setFireCentre}
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
@@ -252,8 +253,8 @@ const App = () => {
           <Advisory
             date={dateOfInterest}
             setDate={setDateOfInterest}
-            selectedFireCenter={selectedFireCenter}
-            setSelectedFireCenter={setFireCenter}
+            selectedFireCentre={selectedFireCentre}
+            setSelectedFireCentre={setFireCentre}
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
