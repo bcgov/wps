@@ -186,6 +186,10 @@ class FourPanelChartRunner:
                 f"{step}H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H",
                 loc="bl",
             )
+        except Exception as e:
+            logger.error(f"Unable to generate 4-panel chart for: {output_key}")
+            logger.error(e)
+            return
         finally:
             if ds_p is not None:
                 ds_p.close()
