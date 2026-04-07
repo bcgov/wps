@@ -70,8 +70,10 @@ describe('WindSpeedCell', () => {
     const row = buildTableRow(undefined)
     const props = buildProps(row)
     render(<WindSpeedCell {...props} />)
-    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild).toHaveStyle({
-      border: ''
+    expect(screen.getByTestId('windSpeedInput-fba-0').firstChild).not.toHaveStyle({
+      borderWidth: '2px',
+      borderStyle: 'solid',
+      borderColor: '#460270'
     })
   })
 })
