@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from datetime import date, datetime
 from time import perf_counter
-from typing import List, NamedTuple, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from sqlalchemy import Integer, String, and_, case, cast, desc, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -35,6 +35,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.psu import FireCentre
 from wps_shared.run_type import RunType
+from wps_shared.schemas.auto_spatial_advisory import ZoneAdvisoryStatus
 from wps_shared.schemas.fba import FireShapeStatusDetail, HfiArea, HfiThreshold
 
 logger = logging.getLogger(__name__)
@@ -885,13 +886,6 @@ async def get_provincial_rollup(
     return [FireShapeStatusDetail.model_validate(row) for row in result.mappings().all()]
 
 
-class ZoneAdvisoryStatus(NamedTuple):
-    advisory_shape_id: int
-    source_identifier: str
-    placename_label: Optional[str]
-    status: str
-
-
 async def get_zones_with_advisories(
     session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
 ) -> list[ZoneAdvisoryStatus]:
@@ -909,7 +903,7 @@ async def get_zones_with_advisories(
         .join(Shape, Shape.id == AdvisoryZoneStatus.advisory_shape_id)
     )
     result = await session.execute(stmt)
-    return [ZoneAdvisoryStatus(*row) for row in result.all()]
+    return [ZoneAdvisoryStatus.model_validate(row) for row in result.mappings().all()]
 
 
 async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):
