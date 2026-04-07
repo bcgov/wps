@@ -38,8 +38,7 @@ async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_
             )
     except Exception:
         logger.exception(
-            "Failed to send FCM notifications for run_type=%s run_datetime=%s for_date=%s. "
-            "Advisory processing completed successfully.",
+            "Failed to send FCM notifications for run_type=%s run_datetime=%s for_date=%s.",
             run_type,
             run_datetime,
             for_date,
