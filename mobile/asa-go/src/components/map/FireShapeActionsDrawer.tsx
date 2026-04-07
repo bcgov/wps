@@ -23,11 +23,11 @@ import {
   Button,
   CircularProgress,
   IconButton,
-  Snackbar,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+import NotificationErrorSnackbar from "@/components/NotificationErrorSnackbar";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { subscriptionUpdateErrorMessage } from "@/utils/constants";
@@ -110,12 +110,10 @@ const FireShapeActionsDrawer = ({
 
   return (
     <>
-      <Snackbar
+      <NotificationErrorSnackbar
         open={updateError}
-        autoHideDuration={6000}
         onClose={clearUpdateError}
         message={subscriptionUpdateErrorMessage}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
       <SwipeableBottomDrawer open={open} onClose={onClose}>
         <Box

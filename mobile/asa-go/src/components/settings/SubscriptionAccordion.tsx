@@ -13,7 +13,6 @@ import { nameFormatter } from "@/utils/stringUtils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import PushPinIcon from "@mui/icons-material/PushPin";
 import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
-import CloseIcon from "@mui/icons-material/Close";
 import {
   Accordion,
   AccordionDetails,
@@ -24,9 +23,9 @@ import {
   FormGroup,
   IconButton,
   List,
-  Snackbar,
   Typography,
 } from "@mui/material";
+import NotificationErrorSnackbar from "@/components/NotificationErrorSnackbar";
 import { useCallback, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -137,17 +136,10 @@ const SubscriptionAccordion = ({
       }}
       aria-disabled={disabled ? true : undefined}
     >
-      <Snackbar
+      <NotificationErrorSnackbar
         open={updateError}
-        autoHideDuration={6000}
         onClose={clearUpdateError}
         message={subscriptionUpdateErrorMessage}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        action={
-          <IconButton size="small" color="inherit" onClick={clearUpdateError}>
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        }
       />
       <Accordion
         aria-label={`accordion-${fireCentreInfo.fire_centre_name}`}
