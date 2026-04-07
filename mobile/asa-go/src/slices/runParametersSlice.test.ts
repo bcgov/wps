@@ -4,10 +4,11 @@ import reducer, {
   getRunParametersStart,
   getRunParametersSuccess,
   initialState,
+  selectRunParameterByForDate,
   selectRunParameters,
 } from "@/slices/runParametersSlice";
 import { createTestStore } from "@/testUtils";
-import { describe, expect, it, Mock, vi } from "vitest";
+import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
 // Mocks
 vi.mock(import("api/fbaAPI"), async (importOriginal) => {
@@ -45,6 +46,17 @@ const mockRunParameters: { [key: string]: RunParameter } = {
   },
 };
 
+const mockTodayOnlyRunParameters: { [key: string]: RunParameter } = {
+  [todayKey]: {
+    ...mockRunParameters[todayKey],
+    run_type: RunType.ACTUAL,
+  },
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
 describe("runParameters reducer", () => {
   it("should handle getRunParametersStart", () => {
     const nextState = reducer(initialState, getRunParametersStart());
@@ -62,7 +74,7 @@ describe("runParameters reducer", () => {
   it("should handle getRunParametersSuccess", () => {
     const nextState = reducer(
       initialState,
-      getRunParametersSuccess({ runParameters: mockRunParameters })
+      getRunParametersSuccess({ runParameters: mockRunParameters }),
     );
     expect(nextState.loading).toBe(false);
     expect(nextState.error).toBeNull();
@@ -82,7 +94,7 @@ describe("fetchSFMSRunParameters thunk", () => {
     });
     await store.dispatch(fetchSFMSRunParameters());
     expect(store.getState().runParameters.runParameters).toBe(
-      mockRunParameters
+      mockRunParameters,
     );
     expect(writeToFileSystem).toBeCalled();
   });
@@ -98,15 +110,50 @@ describe("fetchSFMSRunParameters thunk", () => {
     });
     await store.dispatch(fetchSFMSRunParameters());
     expect(store.getState().runParameters.runParameters).toBe(
-      mockRunParameters
+      mockRunParameters,
     );
+    expect(store.getState().runParameters.error).toBeNull();
     expect(writeToFileSystem).toBeCalled();
+  });
+
+  it("dispatches success when online and API returns only today's run parameters", async () => {
+    (getMostRecentRunParameters as Mock).mockResolvedValue(
+      mockTodayOnlyRunParameters,
+    );
+    (writeToFileSystem as Mock).mockResolvedValue(undefined);
+    const store = createTestStore({
+      runParameters: { ...initialState },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+    await store.dispatch(fetchSFMSRunParameters());
+    expect(store.getState().runParameters.runParameters).toEqual(
+      mockTodayOnlyRunParameters,
+    );
+    expect(store.getState().runParameters.error).toBeNull();
+    expect(writeToFileSystem).toBeCalled();
+  });
+
+  it("dispatches failure when online and API returns no run parameters", async () => {
+    (getMostRecentRunParameters as Mock).mockResolvedValue({});
+    const store = createTestStore({
+      runParameters: { ...initialState },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+    await store.dispatch(fetchSFMSRunParameters());
+    expect(store.getState().runParameters.error).toBe(
+      "Unable to update runParameters from the API.",
+    );
+    expect(writeToFileSystem).not.toBeCalled();
   });
 
   it("dispatches failure when API throws", async () => {
     const errorMessage = "API error";
     (getMostRecentRunParameters as Mock).mockRejectedValue(
-      new Error(errorMessage)
+      new Error(errorMessage),
     );
     const store = createTestStore({
       runParameters: { ...initialState },
@@ -128,8 +175,25 @@ describe("fetchSFMSRunParameters thunk", () => {
     });
     await store.dispatch(fetchSFMSRunParameters());
     expect(store.getState().runParameters.runParameters).toBe(
-      mockRunParameters
+      mockRunParameters,
     );
+  });
+
+  it("dispatches success from cache when offline and cache has only today's run parameters", async () => {
+    (readFromFilesystem as Mock).mockResolvedValue({
+      data: mockTodayOnlyRunParameters,
+    });
+    const store = createTestStore({
+      runParameters: { ...initialState },
+      networkStatus: {
+        networkStatus: { connected: false, connectionType: "none" },
+      },
+    });
+    await store.dispatch(fetchSFMSRunParameters());
+    expect(store.getState().runParameters.runParameters).toEqual(
+      mockTodayOnlyRunParameters,
+    );
+    expect(store.getState().runParameters.error).toBeNull();
   });
 
   it("dispatches failure when offline and no cache", async () => {
@@ -142,7 +206,7 @@ describe("fetchSFMSRunParameters thunk", () => {
     });
     await store.dispatch(fetchSFMSRunParameters());
     expect(store.getState().runParameters.error).toBe(
-      "No run parameters available."
+      "No run parameters available.",
     );
   });
 });
@@ -157,5 +221,17 @@ describe("selectRunParameters", () => {
     };
     const result = selectRunParameters(state as RootState);
     expect(result).toEqual(mockRunParameters);
+  });
+
+  it("should return the run parameter for a given date", () => {
+    const state = {
+      runParameters: {
+        ...initialState,
+        runParameters: mockRunParameters,
+      },
+    };
+    const selector = selectRunParameterByForDate(todayKey);
+    const result = selector(state as RootState);
+    expect(result).toEqual(mockRunParameters[todayKey]);
   });
 });
