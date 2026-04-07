@@ -15,7 +15,6 @@ interface SubscriptionOptionProps {
   onToggle: (fireZoneUnitId: number) => void;
   disabled: boolean;
   loading?: boolean;
-  error?: string;
 }
 
 const SubscriptionOption = ({
@@ -23,7 +22,6 @@ const SubscriptionOption = ({
   onToggle,
   disabled,
   loading,
-  error,
 }: SubscriptionOptionProps) => {
   const { subscriptions } = useSelector(selectSettings);
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,7 +50,6 @@ const SubscriptionOption = ({
             edge="end"
             disabled={disabled}
             loading={loading}
-            error={error}
             checked={subscriptions.includes(fireZoneUnit.id)}
             onChange={handleSwitchChange}
             aria-label={`Toggle subscription for ${fireZoneUnit.name}`}

@@ -13,6 +13,7 @@ import { nameFormatter } from "@/utils/stringUtils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import PushPinIcon from "@mui/icons-material/PushPin";
 import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import {
   Accordion,
   AccordionDetails,
@@ -54,7 +55,6 @@ const SubscriptionAccordion = ({
 
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [pendingZoneId, setPendingZoneId] = useState<number | null>(null);
-  const [errorZoneId, setErrorZoneId] = useState<number | null>(null);
 
   // All fire zone unit ids in this fire centre.
   const allFireZoneUnitIds = useMemo(() => {
@@ -103,11 +103,7 @@ const SubscriptionAccordion = ({
   // Add/remove subscription to all fire zone units in this fire centre.
   const handleToggle = async (id: number) => {
     setPendingZoneId(id);
-    setErrorZoneId(null);
-    const success = await toggleSubscription(id);
-    if (!success) {
-      setErrorZoneId(id);
-    }
+    await toggleSubscription(id);
     setPendingZoneId(null);
   };
 
@@ -146,7 +142,12 @@ const SubscriptionAccordion = ({
         autoHideDuration={6000}
         onClose={clearUpdateError}
         message={subscriptionUpdateErrorMessage}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        action={
+          <IconButton size="small" color="inherit" onClick={clearUpdateError}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        }
       />
       <Accordion
         aria-label={`accordion-${fireCentreInfo.fire_centre_name}`}
@@ -219,11 +220,6 @@ const SubscriptionAccordion = ({
                   onToggle={handleToggle}
                   disabled={notificationSettingsDisabled}
                   loading={pendingZoneId === fireZoneUnit.id}
-                  error={
-                    errorZoneId === fireZoneUnit.id
-                      ? subscriptionUpdateErrorMessage
-                      : undefined
-                  }
                 />
               );
             })}

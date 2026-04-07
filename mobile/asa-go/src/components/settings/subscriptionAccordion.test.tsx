@@ -271,7 +271,7 @@ describe("SubscriptionAccordion", () => {
     });
   });
 
-  it("shows an error only for the option that fails", async () => {
+  it("shows a snackbar error when a subscription toggle fails", async () => {
     vi.mocked(updateNotificationSettings).mockRejectedValue(
       new Error("server error"),
     );
@@ -316,23 +316,8 @@ describe("SubscriptionAccordion", () => {
     });
 
     expect(updateNotificationSettings).toHaveBeenCalled();
-    expect(screen.getByTestId("loading-switch-error")).toBeInTheDocument();
-
-    // Error appears only once — only the first zone failed
-    expect(screen.getAllByTestId("loading-switch-error")).toHaveLength(1);
-    // The other zones have no error
-    for (const zone of mockFireCentreInfo.fire_zone_units.slice(1)) {
-      expect(
-        screen
-          .queryByLabelText(`Toggle subscription for ${zone.name}`)
-          ?.closest("li")
-          ?.querySelector("[data-testid='loading-switch-error']"),
-      ).toBeNull();
-    }
-
-    expect(
-      screen.getAllByText(subscriptionUpdateErrorMessage).length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(subscriptionUpdateErrorMessage)).toBeInTheDocument();
+    expect(screen.queryAllByTestId("loading-switch-error")).toHaveLength(0);
   });
 
   it("displays filled push pin icon when fire centre is pinned", () => {
