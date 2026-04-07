@@ -62,15 +62,3 @@ export const selectNotificationSettingsDisabled = createSelector(
     setupState !== "ready" || !networkStatus.connected || !subscriptionsInitialized,
 );
 
-export const selectNotificationSettingsDisabledReason = createSelector(
-  selectNotificationSetupState,
-  selectNetworkStatus,
-  selectPushNotification,
-  (setupState, { networkStatus }, { deviceIdError }): string | undefined => {
-    if (!networkStatus.connected) return "Unavailable offline";
-    if (deviceIdError) return "Unable to identify device";
-    if (setupState === "permissionDenied") return "Enable notifications in device settings";
-    if (setupState === "registrationFailed") return "Unable to register for notifications";
-    return undefined;
-  },
-);

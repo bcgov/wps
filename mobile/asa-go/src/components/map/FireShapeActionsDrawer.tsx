@@ -9,7 +9,6 @@ import {
   selectNetworkStatus,
   selectNotificationSetupState,
   selectNotificationSettingsDisabled,
-  selectNotificationSettingsDisabledReason,
   selectPushNotification,
   selectSettings,
 } from "@/store";
@@ -66,9 +65,6 @@ const FireShapeActionsDrawer = ({
   const setupState = useSelector(selectNotificationSetupState);
   const notificationSettingsDisabled = useSelector(
     selectNotificationSettingsDisabled,
-  );
-  const subscribeDisabledReason = useSelector(
-    selectNotificationSettingsDisabledReason,
   );
 
   const selectedFireShapeId = selectedFireShape?.fire_shape_id;
@@ -191,15 +187,6 @@ const FireShapeActionsDrawer = ({
                 )}
                 {isSubscribed ? "Unsubscribe" : "Subscribe"}
               </Button>
-              {subscribeDisabledReason && (
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ textAlign: "center" }}
-                >
-                  {subscribeDisabledReason}
-                </Typography>
-              )}
             </Box>
             <Button
               disableElevation

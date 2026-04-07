@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   selectNotificationSetupState,
   selectNotificationSettingsDisabled,
-  selectNotificationSettingsDisabledReason,
 } from "@/store";
 import type { RootState } from "@/store";
 
@@ -107,59 +106,3 @@ describe("selectNotificationSettingsDisabled", () => {
   });
 });
 
-describe("selectNotificationSettingsDisabledReason", () => {
-  it("returns undefined when ready and online", () => {
-    expect(
-      selectNotificationSettingsDisabledReason(makeState({})),
-    ).toBeUndefined();
-  });
-
-  it("returns offline message when not connected", () => {
-    expect(selectNotificationSettingsDisabledReason(makeState({}, false))).toBe(
-      "Unavailable offline",
-    );
-  });
-
-  it("returns device ID error message when deviceIdError is true", () => {
-    expect(
-      selectNotificationSettingsDisabledReason(
-        makeState({ registeredFcmToken: undefined, deviceIdError: true }),
-      ),
-    ).toBe("Unable to identify device");
-  });
-
-  it("returns permission message when permission denied", () => {
-    expect(
-      selectNotificationSettingsDisabledReason(
-        makeState({ pushNotificationPermission: "denied" }),
-      ),
-    ).toBe("Enable notifications in device settings");
-  });
-
-  it("prioritises offline over permission denied", () => {
-    expect(
-      selectNotificationSettingsDisabledReason(
-        makeState({ pushNotificationPermission: "denied" }, false),
-      ),
-    ).toBe("Unavailable offline");
-  });
-
-  it("returns registration failed message when registration failed", () => {
-    expect(
-      selectNotificationSettingsDisabledReason(
-        makeState({ registeredFcmToken: null, registrationError: true }),
-      ),
-    ).toBe("Unable to register for notifications");
-  });
-
-  it("prioritises device ID error over permission denied", () => {
-    expect(
-      selectNotificationSettingsDisabledReason(
-        makeState({
-          pushNotificationPermission: "denied",
-          deviceIdError: true,
-        }),
-      ),
-    ).toBe("Unable to identify device");
-  });
-});

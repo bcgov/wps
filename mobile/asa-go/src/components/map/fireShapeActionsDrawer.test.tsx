@@ -416,19 +416,31 @@ describe("FireShapeActionsDrawer", () => {
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
 
-  it("shows a message when permission is denied", () => {
+  it("disables the subscribe button when permission is denied", () => {
     renderWithProviders({ pushNotificationPermission: "denied" });
-    expect(screen.getByText(/enable notifications/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
   });
 
-  it("shows a message when offline", () => {
+  it("disables the subscribe button when offline", () => {
     renderWithProviders({ connected: false });
-    expect(screen.getByText(/offline/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
   });
 
-  it("shows a message when device ID error", () => {
+  it("disables the subscribe button when device ID error", () => {
     renderWithProviders({ deviceIdError: true, registeredFcmToken: null });
-    expect(screen.getByText(/unable to identify device/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
   });
 
   it("does not call updateNotificationSettings when offline", async () => {
