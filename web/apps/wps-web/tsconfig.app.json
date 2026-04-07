@@ -10,7 +10,6 @@
     ],
     "noUnusedLocals": false,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
       "@wps/api/*": [
         "../../packages/api/src/*"
