@@ -8,7 +8,7 @@ interface RetryOptions {
 
 export async function retryWithBackoff<T>(
   op: () => Promise<T>,
-  { maxRetries = 3, baseDelayMs = 1000 }: RetryOptions = {},
+  { maxRetries = 3, baseDelayMs = 250 }: RetryOptions = {},
 ): Promise<T> {
   let lastError: unknown;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
