@@ -47,7 +47,10 @@ const mockRunParameters: { [key: string]: RunParameter } = {
 };
 
 const mockTodayOnlyRunParameters: { [key: string]: RunParameter } = {
-  [todayKey]: mockRunParameters[todayKey],
+  [todayKey]: {
+    ...mockRunParameters[todayKey],
+    run_type: RunType.ACTUAL,
+  },
 };
 
 beforeEach(() => {
