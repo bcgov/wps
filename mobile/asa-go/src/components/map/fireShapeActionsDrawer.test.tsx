@@ -47,6 +47,7 @@ vi.mock("@capacitor/preferences", () => ({
 vi.mock("@capacitor-firebase/messaging", () => ({
   FirebaseMessaging: {
     checkPermissions: vi.fn().mockResolvedValue({ receive: "granted" }),
+    getToken: vi.fn().mockResolvedValue({ token: "test-token" }),
   },
 }));
 

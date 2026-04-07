@@ -2,7 +2,7 @@ import { FireShape } from "@/api/fbaAPI";
 import { SwipeableBottomDrawer } from "@/components/SwipeableBottomDrawer";
 import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { useIsTablet } from "@/hooks/useIsTablet";
-import { checkPushNotificationPermission } from "@/slices/pushNotificationSlice";
+import { checkPushNotificationPermission, registerDevice } from "@/slices/pushNotificationSlice";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import {
   AppDispatch,
@@ -58,7 +58,7 @@ const FireShapeActionsDrawer = ({
   const useSideSheet = !isPortrait && isSmallScreen;
 
   const { subscriptions } = useSelector(selectSettings);
-  const { pushNotificationPermission, deviceIdError } = useSelector(
+  const { pushNotificationPermission, deviceIdError, registeredFcmToken } = useSelector(
     selectPushNotification,
   );
   const { networkStatus } = useSelector(selectNetworkStatus);
@@ -93,6 +93,12 @@ const FireShapeActionsDrawer = ({
       dispatch(checkPushNotificationPermission());
     }
   }, [dispatch, open, pushNotificationPermission]);
+
+  useEffect(() => {
+    if (open) {
+      dispatch(registerDevice(registeredFcmToken));
+    }
+  }, [dispatch, open, registeredFcmToken]);
 
   const handleSubscriptionUpdate = () => {
     if (selectedFireShapeId === undefined || notificationSettingsDisabled) {
