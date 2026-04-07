@@ -1,5 +1,4 @@
 import {
-  FireCenter,
   FireCentreInfo,
   FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
@@ -7,6 +6,7 @@ import {
   FireZoneTPIStats,
   RunParameter,
 } from "@/api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 import { Directory, Encoding, FilesystemPlugin } from "@capacitor/filesystem";
 import { DateTime } from "luxon";
 
@@ -25,7 +25,7 @@ export type CacheableData<T extends CacheableDataType> = {
 };
 
 type Cacheable =
-  | FireCenter[]
+  | FireCentre[]
   | FireCentreInfo[]
   | { [key: string]: RunParameter };
 
@@ -37,14 +37,14 @@ export type CachedData<T extends CacheableData<CacheableDataType> | Cacheable> =
   };
 
 const CACHE_KEY = "_asa_go";
-export const FIRE_CENTERS_KEY = "fireCenters";
-export const FIRE_CENTER_INFO_KEY = "fireCentreInfo";
+export const FIRE_CENTRES_KEY = "fireCentres";
+export const FIRE_CENTRE_INFO_KEY = "fireCentreInfo";
 export const HFI_STATS_KEY = "hfiStats";
 export const PROVINCIAL_SUMMARY_KEY = "provincialSummary";
 export const RUN_PARAMETERS_CACHE_KEY = "runParameters";
 export const TPI_STATS_KEY = "tpiStats";
-export const FIRE_CENTERS_CACHE_EXPIRATION = 12;
-export const FIRE_CENTER_INFO_CACHE_EXPIRATION = 12;
+export const FIRE_CENTRES_CACHE_EXPIRATION = 12;
+export const FIRE_CENTRE_INFO_CACHE_EXPIRATION = 12;
 
 export const getPath = (key: string, date?: DateTime): string => {
   if (date) {

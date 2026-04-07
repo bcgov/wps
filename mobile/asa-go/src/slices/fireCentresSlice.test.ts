@@ -1,69 +1,66 @@
 vi.mock("@/utils/storage", () => ({
   writeToFileSystem: vi.fn(),
   readFromFilesystem: vi.fn(),
-  FIRE_CENTERS_KEY: "fireCenters",
-  FIRE_CENTERS_CACHE_EXPIRATION: 12,
+  FIRE_CENTRES_KEY: "fireCentres",
+  FIRE_CENTRES_CACHE_EXPIRATION: 12,
 }));
 
-vi.mock("api/fbaAPI", () => ({
-  getFBAFireCenters: vi.fn(),
+vi.mock("api/psuAPI", () => ({
+  getFireCentres: vi.fn(),
 }));
 
 import { createTestStore } from "@/testUtils";
-import { FIRE_CENTERS_KEY, readFromFilesystem } from "@/utils/storage";
-import { FireCenter, getFBAFireCenters } from "api/fbaAPI";
+import { FIRE_CENTRES_KEY, readFromFilesystem } from "@/utils/storage";
+import { getFireCentres } from "api/psuAPI";
+import type { FireCentre } from "@/types/fireCentre";
 import { DateTime } from "luxon";
 import { describe, expect, it, Mock, vi } from "vitest";
 import reducer, {
-  fetchFireCenters,
-  getFireCentersFailed,
-  getFireCentersStart,
-  getFireCentersSuccess,
+  fetchFireCentres,
+  getFireCentresFailed,
+  getFireCentresStart,
+  getFireCentresSuccess,
   initialState,
-} from "./fireCentersSlice";
+} from "./fireCentresSlice";
 
 describe("fireCentersSlice reducers", () => {
-  it("should handle getFireCentersStart", () => {
-    const nextState = reducer(initialState, getFireCentersStart());
+  it("should handle getFireCentresStart", () => {
+    const nextState = reducer(initialState, getFireCentresStart());
     expect(nextState.loading).toBe(true);
     expect(nextState.error).toBeNull();
-    expect(nextState.fireCenters).toEqual([]);
+    expect(nextState.fireCentres).toEqual([]);
   });
 
-  it("should handle getFireCentersFailed", () => {
+  it("should handle getFireCentresFailed", () => {
     const errorMsg = "Network error";
-    const nextState = reducer(initialState, getFireCentersFailed(errorMsg));
+    const nextState = reducer(initialState, getFireCentresFailed(errorMsg));
     expect(nextState.loading).toBe(false);
     expect(nextState.error).toBe(errorMsg);
   });
 
-  it("should handle getFireCentersSuccess", () => {
-    const mockData: FireCenter[] = [
-      { id: 1, name: "Center A", stations: [] } as FireCenter,
-    ];
-    const nextState = reducer(initialState, getFireCentersSuccess(mockData));
+  it("should handle getFireCentresSuccess", () => {
+    const mockData: FireCentre[] = [{ id: 1, name: "Center A" }];
+    const nextState = reducer(initialState, getFireCentresSuccess(mockData));
     expect(nextState.loading).toBe(false);
     expect(nextState.error).toBeNull();
-    expect(nextState.fireCenters).toEqual(mockData);
+    expect(nextState.fireCentres).toEqual(mockData);
   });
 });
 
-describe("fetchFireCenters thunk", () => {
+describe("fetchFireCentres thunk", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
   });
   const today = DateTime.now().toISO();
   const yesterday = DateTime.now().plus({ days: -1 }).toISO();
-  const mockFireCenterA: FireCenter = {
+  const mockFireCentreA: FireCentre = {
     id: 1,
     name: "test",
-    stations: [],
   };
-  const mockFireCenterB: FireCenter = {
+  const mockFireCentreB: FireCentre = {
     id: 2,
     name: "foo",
-    stations: [],
   };
   const mockCacheWithNoData = () => {
     (readFromFilesystem as Mock).mockImplementation(() => {
@@ -72,10 +69,10 @@ describe("fetchFireCenters thunk", () => {
   };
   const mockCacheWithData = (isStale: boolean) => {
     (readFromFilesystem as Mock).mockImplementation((_filesystem, key) => {
-      if (key === FIRE_CENTERS_KEY) {
+      if (key === FIRE_CENTRES_KEY) {
         return {
           lastUpdated: isStale ? yesterday : today,
-          data: isStale ? [mockFireCenterA] : [mockFireCenterB],
+          data: isStale ? [mockFireCentreA] : [mockFireCentreB],
         };
       } else {
         return null;
@@ -85,80 +82,80 @@ describe("fetchFireCenters thunk", () => {
 
   it("should call API and dispatch success when cache is empty", async () => {
     mockCacheWithNoData();
-    (getFBAFireCenters as Mock).mockResolvedValue({
-      fire_centers: [mockFireCenterA],
+    (getFireCentres as Mock).mockResolvedValue({
+      fire_centres: [mockFireCentreA],
     });
     const store = createTestStore({
-      fireCenters: { ...initialState },
+      fireCentres: { ...initialState },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
       },
     });
-    await store.dispatch(fetchFireCenters());
-    const state = store.getState().fireCenters;
-    expect(state.fireCenters).toEqual([mockFireCenterA]);
+    await store.dispatch(fetchFireCentres());
+    const state = store.getState().fireCentres;
+    expect(state.fireCentres).toEqual([mockFireCentreA]);
     expect(state.loading).toBe(false);
-    expect(getFBAFireCenters).toHaveBeenCalledOnce();
+    expect(getFireCentres).toHaveBeenCalledOnce();
   });
 
   it("should call API and dispatch success when cache is stale", async () => {
     mockCacheWithData(true);
-    (getFBAFireCenters as Mock).mockResolvedValue({
-      fire_centers: [mockFireCenterB],
+    (getFireCentres as Mock).mockResolvedValue({
+      fire_centres: [mockFireCentreB],
     });
     const store = createTestStore({
-      fireCenters: { ...initialState },
+      fireCentres: { ...initialState },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
       },
     });
-    await store.dispatch(fetchFireCenters());
-    const state = store.getState().fireCenters;
-    expect(state.fireCenters).toEqual([mockFireCenterB]);
+    await store.dispatch(fetchFireCentres());
+    const state = store.getState().fireCentres;
+    expect(state.fireCentres).toEqual([mockFireCentreB]);
     expect(state.loading).toBe(false);
-    expect(getFBAFireCenters).toHaveBeenCalledOnce();
+    expect(getFireCentres).toHaveBeenCalledOnce();
   });
 
   it("should not call API when cache is fresh", async () => {
     mockCacheWithData(false);
     const store = createTestStore({
-      fireCenters: { ...initialState },
+      fireCentres: { ...initialState },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
       },
     });
-    await store.dispatch(fetchFireCenters());
-    const state = store.getState().fireCenters;
-    expect(state.fireCenters).toEqual([mockFireCenterB]);
+    await store.dispatch(fetchFireCentres());
+    const state = store.getState().fireCentres;
+    expect(state.fireCentres).toEqual([mockFireCentreB]);
     expect(state.loading).toBe(false);
-    expect(getFBAFireCenters).not.toBeCalled();
+    expect(getFireCentres).not.toBeCalled();
   });
 
   it("should dispatch error when cache is empty and app is offline", async () => {
     mockCacheWithNoData();
     const store = createTestStore({
-      fireCenters: { ...initialState },
+      fireCentres: { ...initialState },
       networkStatus: {
         networkStatus: { connected: false, connectionType: "none" },
       },
     });
-    await store.dispatch(fetchFireCenters());
-    const state = store.getState().fireCenters;
+    await store.dispatch(fetchFireCentres());
+    const state = store.getState().fireCentres;
     expect(state.loading).toBe(false);
-    expect(state.error).toMatch(/Unable to refresh fire center data/);
+    expect(state.error).toMatch(/Unable to refresh fire centre data/);
   });
 
   it("should dispatch success when cache is stale and app is offline", async () => {
     mockCacheWithData(true);
     const store = createTestStore({
-      fireCenters: { ...initialState },
+      fireCentres: { ...initialState },
       networkStatus: {
         networkStatus: { connected: false, connectionType: "none" },
       },
     });
-    await store.dispatch(fetchFireCenters());
-    const state = store.getState().fireCenters;
+    await store.dispatch(fetchFireCentres());
+    const state = store.getState().fireCentres;
     expect(state.loading).toBe(false);
-    expect(state.fireCenters).toEqual([mockFireCenterA]);
+    expect(state.fireCentres).toEqual([mockFireCentreA]);
   });
 });

@@ -44,7 +44,8 @@ import GpsOffIcon from "@mui/icons-material/GpsOff";
 import LayersIcon from "@mui/icons-material/Layers";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { Box } from "@mui/material";
-import { FireCenter, FireShape } from "api/fbaAPI";
+import { FireShape } from "api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
 import { DateTime } from "luxon";
 import { Map, MapBrowserEvent, View } from "ol";
@@ -77,8 +78,8 @@ export interface ASAGoMapProps {
   setSelectedFireShape: React.Dispatch<
     React.SetStateAction<FireShape | undefined>
   >;
-  setSelectedFireCenter: React.Dispatch<
-    React.SetStateAction<FireCenter | undefined>
+  setSelectedFireCentre: React.Dispatch<
+    React.SetStateAction<FireCentre | undefined>
   >;
   date: DateTime;
   setDate: React.Dispatch<React.SetStateAction<DateTime>>;
@@ -89,7 +90,7 @@ const ASAGoMap = ({
   testId,
   selectedFireShape,
   setSelectedFireShape,
-  setSelectedFireCenter,
+  setSelectedFireCentre,
   date,
   setDate,
   setTab,
@@ -108,13 +109,13 @@ const ASAGoMap = ({
   const [map, setMap] = useState<Map | null>(null);
   const [scaleVisible, setScaleVisible] = useState<boolean>(true);
   const [basemapLayer, setBasemapLayer] = useState<VectorTileLayer | null>(
-    null
+    null,
   );
   const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
     useState<VectorTileLayer | null>(null);
   const [centerOnLocation, setCenterOnLocation] = useState<boolean>(false);
   const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>(
-    defaultLayerVisibility
+    defaultLayerVisibility,
   );
   const [legendAnchorEl, setLegendAnchorEl] =
     useState<HTMLButtonElement | null>(null);
@@ -125,31 +126,31 @@ const ASAGoMap = ({
     new VectorTileLayer({
       style: fireShapeStyler(
         cloneDeep(fireShapeStatusDetails),
-        layerVisibility[ZONE_STATUS_LAYER_NAME]
+        layerVisibility[ZONE_STATUS_LAYER_NAME],
       ),
       zIndex: 53,
       properties: { name: ZONE_STATUS_LAYER_NAME },
-    })
+    }),
   );
 
   const [fireZoneHighlightFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
       style: fireShapeLineStyler(
         cloneDeep(fireShapeStatusDetails),
-        selectedFireShape
+        selectedFireShape,
       ),
       zIndex: 54,
       properties: { name: "fireZoneHighlightVector" },
-    })
+    }),
   );
 
   const toggleLayersRef = useRef<Record<string, VectorTileLayer | null>>({});
 
   const mapRef = useRef<HTMLDivElement | null>(
-    null
+    null,
   ) as React.MutableRefObject<HTMLElement>;
   const scaleRef = useRef<HTMLDivElement | null>(
-    null
+    null,
   ) as React.MutableRefObject<HTMLElement>;
   const clickSourceRef = useRef<boolean>(false);
 
@@ -174,7 +175,7 @@ const ASAGoMap = ({
       }
       toggleLayersRef.current[layerName] = layer;
     },
-    [map]
+    [map],
   );
 
   /**
@@ -204,7 +205,7 @@ const ASAGoMap = ({
   };
 
   const handleLegendButtonClick = (
-    event: React.MouseEvent<HTMLButtonElement>
+    event: React.MouseEvent<HTMLButtonElement>,
   ) => {
     setLegendAnchorEl(event.currentTarget);
   };
@@ -245,11 +246,11 @@ const ASAGoMap = ({
     fireZoneFileLayer.setStyle(
       fireShapeStyler(
         cloneDeep(fireShapeStatusDetails),
-        layerVisibility[ZONE_STATUS_LAYER_NAME]
-      )
+        layerVisibility[ZONE_STATUS_LAYER_NAME],
+      ),
     );
     fireZoneHighlightFileLayer.setStyle(
-      fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape)
+      fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape),
     );
     fireZoneFileLayer.changed();
     fireZoneHighlightFileLayer.changed();
@@ -260,7 +261,7 @@ const ASAGoMap = ({
     if (!map) return;
 
     fireZoneHighlightFileLayer.setStyle(
-      fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape)
+      fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape),
     );
 
     // Only center if the change didn't come from a click
@@ -357,7 +358,7 @@ const ASAGoMap = ({
         clickSourceRef.current = true; // Mark as click source
         if (!features.length) {
           setIsFireShapeDrawerOpen(false);
-          setSelectedFireCenter(undefined);
+          setSelectedFireCentre(undefined);
           setSelectedFireShape(undefined);
           return;
         }
@@ -386,7 +387,7 @@ const ASAGoMap = ({
         new PMTilesCache(Filesystem),
         {
           filename: "fireCentres.pmtiles",
-        }
+        },
       );
 
       const fireCentreLabelVectorSource =
@@ -394,14 +395,14 @@ const ASAGoMap = ({
           new PMTilesCache(Filesystem),
           {
             filename: "fireCentreLabels.pmtiles",
-          }
+          },
         );
 
       const fireZoneSource = await PMTilesFileVectorSource.createStaticLayer(
         new PMTilesCache(Filesystem),
         {
           filename: "fireZoneUnits.pmtiles",
-        }
+        },
       );
 
       fireZoneFileLayer.setSource(fireZoneSource);
@@ -412,7 +413,7 @@ const ASAGoMap = ({
           new PMTilesCache(Filesystem),
           {
             filename: "fireZoneUnitLabels.pmtiles",
-          }
+          },
         );
       if (mapObject) {
         const fireCentreFileLayer = new VectorTileLayer({
@@ -507,7 +508,7 @@ const ASAGoMap = ({
             run_type: runParameter.run_type,
             run_date: DateTime.fromISO(runParameter.run_datetime),
           },
-          layerVisibility[HFI_LAYER_NAME]
+          layerVisibility[HFI_LAYER_NAME],
         );
       }
       replaceMapLayer(HFI_LAYER_NAME, hfiLayer);
@@ -520,7 +521,7 @@ const ASAGoMap = ({
 
   const handleLayerVisibilityChange = (
     layerName: string,
-    visible: boolean
+    visible: boolean,
   ): void => {
     setLayerVisibility((prev) => ({
       ...prev,
@@ -533,7 +534,7 @@ const ASAGoMap = ({
       setZoneStatusLayerVisibility(
         fireZoneFileLayer,
         fireShapeStatusDetails,
-        visible
+        visible,
       );
     } else {
       setDefaultLayerVisibility(toggleLayersRef.current, layerName, visible);

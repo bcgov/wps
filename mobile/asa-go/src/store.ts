@@ -12,7 +12,7 @@ export type AppDispatch = typeof store.dispatch;
 
 export type AppThunk = ThunkAction<void, RootState, undefined, Action>;
 
-export const selectFireCenters = (state: RootState) => state.fireCenters;
+export const selectFireCentres = (state: RootState) => state.fireCentres;
 export const selectGeolocation = (state: RootState) => state.geolocation;
 export const selectAuthentication = (state: RootState) => state.authentication;
 export const selectNetworkStatus = (state: RootState) => state.networkStatus;
