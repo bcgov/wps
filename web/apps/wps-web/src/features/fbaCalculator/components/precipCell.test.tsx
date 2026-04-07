@@ -87,8 +87,10 @@ describe('PrecipCell', () => {
     const row = buildTableRow(undefined)
     const props = buildProps(row)
     render(<PrecipCell {...props} />)
-    expect(screen.getByTestId('precipInput-fba-0').firstChild).toHaveStyle({
-      border: ''
+    expect(screen.getByTestId('precipInput-fba-0').firstChild).not.toHaveStyle({
+      borderWidth: '2px',
+      borderStyle: 'solid',
+      borderColor: '#460270'
     })
   })
 })
