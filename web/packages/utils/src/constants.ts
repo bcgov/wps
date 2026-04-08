@@ -50,7 +50,7 @@ export const MORE_CAST_NAME = 'MoreCast'
 export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
 export const SFMS_INSIGHTS_NAME = 'SFMS Insights'
 export const FIRE_WATCH_NAME = 'Fire Watch'
-export const WEATHER_TOOLKIT_NAME = 'Weather Forecast Toolkit'
+export const WEATHER_TOOLKIT_NAME = 'Weather Toolkit'
 
 // UI constants
 export const HEADER_HEIGHT = 56
