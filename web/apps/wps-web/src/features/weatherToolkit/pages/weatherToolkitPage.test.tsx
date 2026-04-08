@@ -92,21 +92,21 @@ describe('WeatherToolkitPage', () => {
 
     it('increments currentHour by the model interval on ArrowRight', () => {
       render(<WeatherToolkitPage />)
-      fireEvent.keyDown(window, { key: 'ArrowRight' })
+      fireEvent.keyDown(document, { key: 'ArrowRight' })
       expect(currentHour()).toBe(gdpsInterval)
     })
 
     it('decrements currentHour by the model interval on ArrowLeft', () => {
       render(<WeatherToolkitPage />)
-      fireEvent.keyDown(window, { key: 'ArrowRight' })
-      fireEvent.keyDown(window, { key: 'ArrowRight' })
-      fireEvent.keyDown(window, { key: 'ArrowLeft' })
+      fireEvent.keyDown(document, { key: 'ArrowRight' })
+      fireEvent.keyDown(document, { key: 'ArrowRight' })
+      fireEvent.keyDown(document, { key: 'ArrowLeft' })
       expect(currentHour()).toBe(gdpsInterval)
     })
 
     it('does not decrement below 0', () => {
       render(<WeatherToolkitPage />)
-      fireEvent.keyDown(window, { key: 'ArrowLeft' })
+      fireEvent.keyDown(document, { key: 'ArrowLeft' })
       expect(currentHour()).toBe(0)
     })
 
@@ -114,15 +114,15 @@ describe('WeatherToolkitPage', () => {
       render(<WeatherToolkitPage />)
       const steps = gdpsMaxHour / gdpsInterval + 5
       for (let i = 0; i < steps; i++) {
-        fireEvent.keyDown(window, { key: 'ArrowRight' })
+        fireEvent.keyDown(document, { key: 'ArrowRight' })
       }
       expect(currentHour()).toBe(gdpsMaxHour)
     })
 
     it('does not respond to other keys', () => {
       render(<WeatherToolkitPage />)
-      fireEvent.keyDown(window, { key: 'ArrowUp' })
-      fireEvent.keyDown(window, { key: 'ArrowDown' })
+      fireEvent.keyDown(document, { key: 'ArrowUp' })
+      fireEvent.keyDown(document, { key: 'ArrowDown' })
       expect(currentHour()).toBe(0)
     })
 
@@ -131,7 +131,7 @@ describe('WeatherToolkitPage', () => {
       const input = document.createElement('input')
       document.body.appendChild(input)
       input.focus()
-      fireEvent.keyDown(window, { key: 'ArrowRight' })
+      fireEvent.keyDown(document, { key: 'ArrowRight' })
       expect(currentHour()).toBe(0)
       input.remove()
     })
@@ -141,7 +141,7 @@ describe('WeatherToolkitPage', () => {
       const select = document.createElement('select')
       document.body.appendChild(select)
       select.focus()
-      fireEvent.keyDown(window, { key: 'ArrowRight' })
+      fireEvent.keyDown(document, { key: 'ArrowRight' })
       expect(currentHour()).toBe(0)
       select.remove()
     })
@@ -151,7 +151,7 @@ describe('WeatherToolkitPage', () => {
       const textarea = document.createElement('textarea')
       document.body.appendChild(textarea)
       textarea.focus()
-      fireEvent.keyDown(window, { key: 'ArrowRight' })
+      fireEvent.keyDown(document, { key: 'ArrowRight' })
       expect(currentHour()).toBe(0)
       textarea.remove()
     })
@@ -163,7 +163,7 @@ describe('WeatherToolkitPage', () => {
       slider.setAttribute('tabindex', '0')
       document.body.appendChild(slider)
       slider.focus()
-      fireEvent.keyDown(window, { key: 'ArrowRight' })
+      fireEvent.keyDown(document, { key: 'ArrowRight' })
       expect(currentHour()).toBe(0)
       slider.remove()
     })
@@ -171,7 +171,7 @@ describe('WeatherToolkitPage', () => {
     it('removes the event listener on unmount', () => {
       const { unmount } = render(<WeatherToolkitPage />)
       unmount()
-      fireEvent.keyDown(window, { key: 'ArrowRight' })
+      fireEvent.keyDown(document, { key: 'ArrowRight' })
       // No error thrown and no stale state update — the handler was cleaned up
     })
   })
