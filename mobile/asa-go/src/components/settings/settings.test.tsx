@@ -26,14 +26,18 @@ vi.mock("@capacitor-firebase/messaging", () => {
   return {
     FirebaseMessaging: {
       checkPermissions: mockCheckPermissions,
+      getToken: vi.fn().mockResolvedValue({ token: "test-token" }),
     },
   };
 });
 
+vi.mock("@/api/pushNotificationsAPI", () => ({
+  registerToken: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@/utils/storage", async () => {
-  const actual = await vi.importActual<typeof import("@/utils/storage")>(
-    "@/utils/storage",
-  );
+  const actual =
+    await vi.importActual<typeof import("@/utils/storage")>("@/utils/storage");
   return {
     ...actual,
     readFromFilesystem: vi.fn(),
@@ -325,7 +329,9 @@ describe("Settings", () => {
   });
   it("disables accordions when awaiting FCM token", async () => {
     const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({ receive: "granted" });
+    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
+      receive: "granted",
+    });
 
     const store = createTestStore({
       settings: {
@@ -349,7 +355,9 @@ describe("Settings", () => {
     );
 
     await waitFor(() => {
-      const accordion = screen.getAllByRole("heading")[0].closest(".MuiAccordion-root");
+      const accordion = screen
+        .getAllByRole("heading")[0]
+        .closest(".MuiAccordion-root");
       expect(accordion).toHaveStyle({ opacity: "0.5" });
     });
   });

@@ -7,11 +7,13 @@ import type { RootState } from "@/store";
 
 const base: {
   pushNotificationPermission: "granted" | "denied";
+  currentFcmToken: string | null;
   registeredFcmToken: string | null;
   deviceIdError: boolean;
   registrationError: boolean;
 } = {
   pushNotificationPermission: "granted" as const,
+  currentFcmToken: "some-token",
   registeredFcmToken: "some-token",
   deviceIdError: false,
   registrationError: false,
@@ -37,7 +39,7 @@ const makeState = (
     networkStatus: {
       networkStatus: { connected, connectionType: connected ? "wifi" : "none" },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 describe("selectNotificationSetupState", () => {
   it("returns permissionDenied when permission is denied", () => {
@@ -101,8 +103,10 @@ describe("selectNotificationSettingsDisabled", () => {
   });
 
   it("returns true when subscriptions are not yet initialized", () => {
-    const state = { ...makeState({}), settings: { ...makeState({}).settings, subscriptionsInitialized: false } };
+    const state = {
+      ...makeState({}),
+      settings: { ...makeState({}).settings, subscriptionsInitialized: false },
+    };
     expect(selectNotificationSettingsDisabled(state as RootState)).toBe(true);
   });
 });
-

@@ -116,6 +116,12 @@ vi.mock("@capacitor/core", () => ({
   Capacitor: { getPlatform: () => "ios" },
 }));
 
+vi.mock("@capacitor-firebase/messaging", () => ({
+  FirebaseMessaging: {
+    getToken: vi.fn().mockResolvedValue({ token: "new-fcm-token" }),
+  },
+}));
+
 vi.mock("@/api/pushNotificationsAPI", () => ({
   registerToken: vi.fn(),
   Platform: {},

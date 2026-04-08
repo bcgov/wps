@@ -3,6 +3,23 @@ import { renderHook, act } from "@testing-library/react";
 import { usePushNotifications } from "./usePushNotifications";
 import { PushNotificationService } from "@/services/pushNotificationService";
 import type { PushInitOptions } from "@/services/pushNotificationService";
+import {
+  registerDevice,
+  setCurrentFcmToken,
+} from "@/slices/pushNotificationSlice";
+
+const dispatchMock = vi.hoisted(() => vi.fn());
+const registerDeviceMock = vi.hoisted(() =>
+  vi.fn(() => ({
+    type: "pushNotification/registerDevice",
+  })),
+);
+const setCurrentFcmTokenMock = vi.hoisted(() =>
+  vi.fn((token: string) => ({
+    type: "pushNotification/setCurrentFcmToken",
+    payload: token,
+  })),
+);
 
 // Define an interface for the PushNotificationService methods we use
 interface IPushNotificationService {
@@ -12,6 +29,13 @@ interface IPushNotificationService {
 
 // Mock the PushNotificationService
 vi.mock("@/services/pushNotificationService");
+vi.mock("react-redux", () => ({
+  useDispatch: () => dispatchMock,
+}));
+vi.mock("@/slices/pushNotificationSlice", () => ({
+  registerDevice: registerDeviceMock,
+  setCurrentFcmToken: setCurrentFcmTokenMock,
+}));
 
 describe("usePushNotifications", () => {
   // Reset all mocks before each test
@@ -19,9 +43,8 @@ describe("usePushNotifications", () => {
     vi.clearAllMocks();
   });
 
-  it("should initialize with token null", () => {
+  it("should initialize without a token in hook state", () => {
     const { result } = renderHook(() => usePushNotifications());
-    expect(result.current.token).toBeNull();
     expect(result.current.initPushNotifications).toBeInstanceOf(Function);
   });
 
@@ -45,7 +68,7 @@ describe("usePushNotifications", () => {
     expect(mockInit).toHaveBeenCalledTimes(1);
   });
 
-  it("should set token when onRegister callback is triggered", async () => {
+  it("should store the token in Redux and trigger registration when onRegister callback is triggered", async () => {
     const testToken = "test-fcm-token";
     (PushNotificationService as Mock).mockImplementation(function (
       this: IPushNotificationService,
@@ -63,7 +86,15 @@ describe("usePushNotifications", () => {
       await result.current.initPushNotifications();
     });
 
-    expect(result.current.token).toEqual(testToken);
+    expect(setCurrentFcmToken).toHaveBeenCalledWith(testToken);
+    expect(registerDevice).toHaveBeenCalledWith();
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: "pushNotification/setCurrentFcmToken",
+      payload: testToken,
+    });
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: "pushNotification/registerDevice",
+    });
   });
 
   it("should prevent multiple initializations of PushNotificationService", async () => {

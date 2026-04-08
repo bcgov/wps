@@ -1,8 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { PushNotificationService } from "@/services/pushNotificationService";
+import {
+  registerDevice,
+  setCurrentFcmToken,
+} from "@/slices/pushNotificationSlice";
+import { type AppDispatch } from "@/store";
+import { useDispatch } from "react-redux";
 
 export function usePushNotifications() {
-  const [token, setToken] = useState<string | null>(null);
+  const dispatch: AppDispatch = useDispatch();
   const serviceRef = useRef<PushNotificationService | null>(null);
 
   const initPushNotifications = useCallback(async () => {
@@ -13,7 +19,8 @@ export function usePushNotifications() {
 
     const service = new PushNotificationService({
       onRegister: (t) => {
-        setToken(t);
+        dispatch(setCurrentFcmToken(t));
+        dispatch(registerDevice());
       },
       onNotificationReceived: (_evt) => {
         if (_evt) console.log(_evt.notification.body);
@@ -35,7 +42,7 @@ export function usePushNotifications() {
 
     serviceRef.current = service;
     await service.initPushNotificationService();
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     return () => {
@@ -43,5 +50,5 @@ export function usePushNotifications() {
     };
   }, []);
 
-  return { initPushNotifications, token };
+  return { initPushNotifications };
 }

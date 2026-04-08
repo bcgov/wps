@@ -102,10 +102,10 @@ const App = () => {
   }, [initPushNotifications, isAuthenticated]);
 
   useEffect(() => {
-    if (networkStatus.connected) {
-      dispatch(registerDevice(registeredFcmToken));
+    if (networkStatus.connected && isActive) {
+      dispatch(registerDevice());
     }
-  }, [registeredFcmToken, networkStatus.connected, isActive, dispatch]);
+  }, [networkStatus.connected, isActive, dispatch]);
 
   useEffect(() => {
     if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;

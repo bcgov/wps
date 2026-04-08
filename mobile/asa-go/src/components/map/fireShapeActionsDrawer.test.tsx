@@ -13,14 +13,14 @@ import {
   updateNotificationSettings,
 } from "api/pushNotificationsAPI";
 import { useDeviceId } from "@/hooks/useDeviceId";
+import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 vi.mock("@/hooks/useDeviceId", () => ({
   useDeviceId: vi.fn().mockReturnValue("test-device-id"),
 }));
 
 vi.mock("@mui/material", async () => {
-  const actual = await vi.importActual<typeof import("@mui/material")>(
-    "@mui/material",
-  );
+  const actual =
+    await vi.importActual<typeof import("@mui/material")>("@mui/material");
 
   return {
     ...actual,
@@ -30,6 +30,7 @@ vi.mock("@mui/material", async () => {
 
 vi.mock("api/pushNotificationsAPI", () => ({
   getNotificationSettings: vi.fn().mockResolvedValue([]),
+  registerToken: vi.fn().mockResolvedValue(undefined),
   updateNotificationSettings: vi.fn().mockResolvedValue([]),
 }));
 
@@ -122,6 +123,9 @@ const renderWithProviders = ({
 describe("FireShapeActionsDrawer", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(FirebaseMessaging.getToken).mockResolvedValue({
+      token: "test-token",
+    });
     vi.mocked(useDeviceId).mockReturnValue("test-device-id");
     vi.mocked(getNotificationSettings).mockResolvedValue([]);
     vi.mocked(updateNotificationSettings).mockImplementation((_, subs) =>

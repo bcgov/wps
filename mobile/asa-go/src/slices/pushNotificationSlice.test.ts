@@ -5,6 +5,7 @@ import pushNotificationReducer, {
   initialState,
   PushNotificationState,
   registerDevice,
+  setCurrentFcmToken,
   setDeviceIdError,
   setPushNotificationPermission,
   setRegisteredFcmToken,
@@ -13,7 +14,6 @@ import pushNotificationReducer, {
 vi.mock("@capacitor-firebase/messaging", () => ({
   FirebaseMessaging: {
     checkPermissions: vi.fn().mockResolvedValue({ receive: "granted" }),
-    getToken: vi.fn().mockResolvedValue({ token: "fcm-token" }),
   },
 }));
 
@@ -56,6 +56,10 @@ describe("pushNotificationSlice", () => {
       expect(initialState.registeredFcmToken).toBeNull();
     });
 
+    it("initial state has currentFcmToken null", () => {
+      expect(initialState.currentFcmToken).toBeNull();
+    });
+
     it("initial state has deviceIdError false", () => {
       expect(initialState.deviceIdError).toBe(false);
     });
@@ -74,6 +78,14 @@ describe("pushNotificationSlice", () => {
         setRegisteredFcmToken("my-token"),
       );
       expect(next.registeredFcmToken).toBe("my-token");
+    });
+
+    it("handles setCurrentFcmToken to a value", () => {
+      const next = pushNotificationReducer(
+        makeState(),
+        setCurrentFcmToken("my-current-token"),
+      );
+      expect(next.currentFcmToken).toBe("my-current-token");
     });
 
     it("handles setRegisteredFcmToken to null", () => {
@@ -105,9 +117,8 @@ describe("pushNotificationSlice", () => {
 
     describe("checkPushNotificationPermission", () => {
       it("dispatches granted when Firebase returns granted", async () => {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
+        const { FirebaseMessaging } =
+          await import("@capacitor-firebase/messaging");
         (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
           receive: "granted",
         });
@@ -124,9 +135,8 @@ describe("pushNotificationSlice", () => {
         const consoleSpy = vi
           .spyOn(console, "error")
           .mockImplementation(() => {});
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
+        const { FirebaseMessaging } =
+          await import("@capacitor-firebase/messaging");
         (FirebaseMessaging.checkPermissions as Mock).mockRejectedValue(
           new Error("permission error"),
         );
@@ -142,16 +152,10 @@ describe("pushNotificationSlice", () => {
     });
 
     describe("registerDevice", () => {
-      it("registers and sets registeredFcmToken when not yet registered", async () => {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
+      it("registers and sets registeredFcmToken when a current token exists", async () => {
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "fcm-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockResolvedValue(undefined);
@@ -166,9 +170,13 @@ describe("pushNotificationSlice", () => {
             token: undefined,
             idToken: undefined,
           },
+          pushNotification: {
+            ...initialState,
+            currentFcmToken: "fcm-token",
+          },
         });
 
-        await store.dispatch(registerDevice(null));
+        await store.dispatch(registerDevice());
 
         expect(registerToken).toHaveBeenCalledWith(
           "ios",
@@ -181,39 +189,48 @@ describe("pushNotificationSlice", () => {
         );
       });
 
-      it("is a no-op when already registered with the same token", async () => {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
+      it("is a no-op when there is no current token yet", async () => {
         const { registerToken } = await import("api/pushNotificationsAPI");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "existing-token",
-        });
 
         const store = createTestStore();
 
-        await store.dispatch(registerDevice("existing-token"));
+        await store.dispatch(registerDevice());
+
+        expect(registerToken).not.toHaveBeenCalled();
+      });
+
+      it("is a no-op when already registered with the same token", async () => {
+        const { registerToken } = await import("api/pushNotificationsAPI");
+
+        const store = createTestStore({
+          pushNotification: {
+            ...initialState,
+            currentFcmToken: "existing-token",
+            registeredFcmToken: "existing-token",
+          },
+        });
+
+        await store.dispatch(registerDevice());
 
         expect(registerToken).not.toHaveBeenCalled();
       });
 
       it("re-registers when token has rotated", async () => {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "new-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockResolvedValue(undefined);
 
-        const store = createTestStore();
+        const store = createTestStore({
+          pushNotification: {
+            ...initialState,
+            currentFcmToken: "new-token",
+          },
+        });
 
-        await store.dispatch(registerDevice("old-token"));
+        await store.dispatch(registerDevice());
 
         expect(registerToken).toHaveBeenCalledWith(
           "ios",
@@ -230,38 +247,31 @@ describe("pushNotificationSlice", () => {
         const consoleSpy = vi
           .spyOn(console, "error")
           .mockImplementation(() => {});
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "fcm-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockRejectedValue(new Error("backend error"));
 
-        const store = createTestStore();
+        const store = createTestStore({
+          pushNotification: {
+            ...initialState,
+            currentFcmToken: "fcm-token",
+          },
+        });
 
-        await store.dispatch(registerDevice(null));
+        await store.dispatch(registerDevice());
 
         expect(store.getState().pushNotification.registeredFcmToken).toBeNull();
         consoleSpy.mockRestore();
       });
 
       it("uses retryWithBackoff to register and sets token on success", async () => {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
         const { retryWithBackoff } = await import("@/utils/retryWithBackoff");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "fcm-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockResolvedValue(undefined);
@@ -276,9 +286,13 @@ describe("pushNotificationSlice", () => {
             token: undefined,
             idToken: undefined,
           },
+          pushNotification: {
+            ...initialState,
+            currentFcmToken: "fcm-token",
+          },
         });
 
-        await store.dispatch(registerDevice(null));
+        await store.dispatch(registerDevice());
 
         expect(retryWithBackoff).toHaveBeenCalledTimes(1);
         expect(store.getState().pushNotification.registeredFcmToken).toBe(
@@ -290,16 +304,10 @@ describe("pushNotificationSlice", () => {
         const consoleSpy = vi
           .spyOn(console, "error")
           .mockImplementation(() => {});
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
         const { retryWithBackoff } = await import("@/utils/retryWithBackoff");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "fcm-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockRejectedValue(
@@ -309,8 +317,13 @@ describe("pushNotificationSlice", () => {
           new Error("persistent error"),
         );
 
-        const store = createTestStore();
-        await store.dispatch(registerDevice(null));
+        const store = createTestStore({
+          pushNotification: {
+            ...initialState,
+            currentFcmToken: "fcm-token",
+          },
+        });
+        await store.dispatch(registerDevice());
 
         expect(store.getState().pushNotification.registeredFcmToken).toBeNull();
         expect(consoleSpy).toHaveBeenCalled();

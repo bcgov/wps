@@ -8,6 +8,7 @@ import { Platform, registerToken } from "api/pushNotificationsAPI";
 
 export interface PushNotificationState {
   pushNotificationPermission: PermissionState | "unknown";
+  currentFcmToken: string | null;
   registeredFcmToken: string | null;
   deviceIdError: boolean;
   registrationError: boolean;
@@ -15,6 +16,7 @@ export interface PushNotificationState {
 
 export const initialState: PushNotificationState = {
   pushNotificationPermission: "unknown",
+  currentFcmToken: null,
   registeredFcmToken: null,
   deviceIdError: false,
   registrationError: false,
@@ -30,22 +32,35 @@ const pushNotificationSlice = createSlice({
     ) {
       state.pushNotificationPermission = action.payload;
     },
+    setCurrentFcmToken(
+      state: PushNotificationState,
+      action: PayloadAction<string | null>,
+    ) {
+      state.currentFcmToken = action.payload;
+    },
     setRegisteredFcmToken(
       state: PushNotificationState,
       action: PayloadAction<string | null>,
     ) {
       state.registeredFcmToken = action.payload;
     },
-    setDeviceIdError(state: PushNotificationState, action: PayloadAction<boolean>) {
+    setDeviceIdError(
+      state: PushNotificationState,
+      action: PayloadAction<boolean>,
+    ) {
       state.deviceIdError = action.payload;
     },
-    setRegistrationError(state: PushNotificationState, action: PayloadAction<boolean>) {
+    setRegistrationError(
+      state: PushNotificationState,
+      action: PayloadAction<boolean>,
+    ) {
       state.registrationError = action.payload;
     },
   },
 });
 
 export const {
+  setCurrentFcmToken,
   setDeviceIdError,
   setRegistrationError,
   setPushNotificationPermission,
@@ -65,22 +80,25 @@ export const checkPushNotificationPermission =
     }
   };
 
-export const registerDevice =
-  (registeredFcmToken: string | null): AppThunk =>
-  async (dispatch, getState) => {
-    try {
-      const { token } = await FirebaseMessaging.getToken();
-      if (!token) return; // no token available yet
-      if (token === registeredFcmToken) return; // already registered, nothing to do
-      const { idir } = getState().authentication;
-      const { identifier } = await Device.getId();
-      await retryWithBackoff(() =>
-        registerToken(Capacitor.getPlatform() as Platform, token, identifier, idir || null),
-      );
-      dispatch(setRegistrationError(false));
-      dispatch(setRegisteredFcmToken(token));
-    } catch (e) {
-      console.error("Failed to register device:", e);
-      dispatch(setRegistrationError(true));
-    }
-  };
+export const registerDevice = (): AppThunk => async (dispatch, getState) => {
+  try {
+    const { currentFcmToken, registeredFcmToken } = getState().pushNotification;
+    if (!currentFcmToken) return; // no token available yet
+    if (currentFcmToken === registeredFcmToken) return; // already registered, nothing to do
+    const { idir } = getState().authentication;
+    const { identifier } = await Device.getId();
+    await retryWithBackoff(() =>
+      registerToken(
+        Capacitor.getPlatform() as Platform,
+        currentFcmToken,
+        identifier,
+        idir || null,
+      ),
+    );
+    dispatch(setRegistrationError(false));
+    dispatch(setRegisteredFcmToken(currentFcmToken));
+  } catch (e) {
+    console.error("Failed to register device:", e);
+    dispatch(setRegistrationError(true));
+  }
+};

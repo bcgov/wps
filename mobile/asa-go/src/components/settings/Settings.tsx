@@ -42,9 +42,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const { networkStatus } = useSelector(selectNetworkStatus);
   const { fireCentreInfos, loading, error, pinnedFireCentre } =
     useSelector(selectSettings);
-  const { deviceIdError, registeredFcmToken } = useSelector(
-    selectPushNotification,
-  );
+  const { deviceIdError } = useSelector(selectPushNotification);
   const setupState = useSelector(selectNotificationSetupState);
   const notificationSettingsDisabled = useSelector(
     selectNotificationSettingsDisabled,
@@ -61,9 +59,9 @@ const Settings = ({ activeTab }: SettingsProps) => {
     if (isVisible) {
       dispatch(fetchFireCentreInfo());
       dispatch(checkPushNotificationPermission());
-      dispatch(registerDevice(registeredFcmToken));
+      dispatch(registerDevice());
     }
-  }, [isActive, isVisible, registeredFcmToken, dispatch]);
+  }, [isActive, isVisible, dispatch]);
 
   // Derived ordered list of centres for display (memoized)
   const orderedFireCentres = useMemo<FireCentreInfo[]>(() => {
