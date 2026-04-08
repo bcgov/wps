@@ -5,7 +5,7 @@ object store.
 """
 
 import logging
-from typing import AsyncIterator
+from typing import Annotated, AsyncIterator
 
 from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, HTTPException, Path, Request
@@ -145,7 +145,7 @@ wx_router = APIRouter(
 @wx_router.get("/{path:path}")
 async def proxy_wx_s3_object(
     request: Request,
-    path: str = Path(..., description="Path to the PNG file in the WX object store"),
+    path: Annotated[str, Path(description="Path to the PNG file in the WX object store")],
 ):
     """
     Proxy PNG files from the WX object store (WX_OBJECT_STORE_* config).
