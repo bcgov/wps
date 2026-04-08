@@ -1,27 +1,68 @@
 import Footer from '@/features/landingPage/components/Footer'
+import ChartPanel from '@/features/weatherToolkit/components/ChartPanel'
+import SidePanel from '@/features/weatherToolkit/components/SidePanel'
 import TimelineController from '@/features/weatherToolkit/components/TimelineController'
-import { Box, Typography } from '@mui/material'
+import { buildChartKey, useWxChartCache } from '@/features/weatherToolkit/hooks/useWxChartCache'
+import { modelRegistry, ModelRunHour, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
+import { Box } from '@mui/material'
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { WEATHER_TOOLKIT_NAME } from '@wps/utils/constants'
-import { useState } from 'react'
+import { DateTime } from 'luxon'
+import { useEffect, useMemo, useState } from 'react'
 
 const WeatherToolkitPage = () => {
   const [currentHour, setCurrentHour] = useState<number>(0)
+  const [model, setModel] = useState<ModelType>(ModelType.GDPS)
+  const [modelRunDate, setModelRunDate] = useState<DateTime>(DateTime.utc())
+  const [modelRunHour, setModelRunHour] = useState<ModelRunHour>(ModelRunHour.ZERO)
+  const [isChartExpanded, setIsChartExpanded] = useState<boolean>(false)
+  const currentModel = useMemo(() => {
+    return modelRegistry[model]
+  }, [model])
+  const chartKey = useMemo(() => {
+    return buildChartKey(model, modelRunDate, modelRunHour, currentHour)
+  }, [currentHour, model, modelRunDate, modelRunHour])
+
+  const { cache: chartCache, failed: chartFailed } = useWxChartCache(model, modelRunDate, modelRunHour, currentHour)
+
+  useEffect(() => {
+    // Reset current hour back to zero as hourly intervals for models don't overlap
+    setCurrentHour(0)
+  }, [model, modelRunDate, modelRunHour])
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', overflow: 'hidden' }}>
-      <GeneralHeader isBeta={false} spacing={0.985} title={WEATHER_TOOLKIT_NAME} />
-      <Box sx={{ display: 'flex', flexGrow: 1 }}>
-        <Box sx={{ width: '320px' }}>
-          <Typography variant="h4"></Typography>
+    <LocalizationProvider dateAdapter={AdapterLuxon}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', overflow: 'hidden' }}>
+        {!isChartExpanded && <GeneralHeader isBeta={false} spacing={0.985} title={WEATHER_TOOLKIT_NAME} />}
+        <Box sx={{ display: 'flex', flexGrow: 1 }}>
+          <SidePanel
+            model={model}
+            setModel={setModel}
+            modelRunDate={modelRunDate}
+            setModelRunDate={setModelRunDate}
+            modelRunHour={modelRunHour}
+            setModelRunHour={setModelRunHour}
+          />
+          <ChartPanel
+            imageSrc={chartCache.get(chartKey) ?? null}
+            chartKey={chartKey}
+            isFailed={chartFailed.has(chartKey)}
+            isExpanded={isChartExpanded}
+            onToggleExpand={() => setIsChartExpanded(prev => !prev)}
+          />
         </Box>
-        <Box sx={{ display: 'flex', flexGrow: 1, bgcolor: '#B9B9B9', justifyContent: 'center' }}>
-          <Box sx={{ display: 'flex', height: '100%', width: '50%', bgcolor: 'orange' }}></Box>
-        </Box>
+        <TimelineController
+          currentHour={currentHour}
+          setCurrentHour={setCurrentHour}
+          start={0}
+          end={currentModel.maxHour}
+          step={currentModel.interval}
+        />
+        {!isChartExpanded && <Footer />}
       </Box>
-      <TimelineController currentHour={currentHour} setCurrentHour={setCurrentHour} start={0} end={84} step={3} />
-      <Footer />
-    </Box>
+    </LocalizationProvider>
   )
 }
 

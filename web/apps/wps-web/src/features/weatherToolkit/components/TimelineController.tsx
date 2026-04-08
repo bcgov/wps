@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { IconButton, Slider, Paper, Box } from '@mui/material'
-import { FirstPage, LastPage } from '@mui/icons-material'
+import { ChevronLeft, ChevronRight } from '@mui/icons-material'
 
 interface TimelineControllerProps {
   currentHour: number
@@ -10,6 +10,7 @@ interface TimelineControllerProps {
   step: number
 }
 
+// Label and value of slider steps
 interface SliderMark {
   label: string | undefined
   value: number
@@ -18,6 +19,7 @@ interface SliderMark {
 const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: TimelineControllerProps) => {
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     if (Array.isArray(newValue)) {
+      // MUI slider allows array values for range sliders so guard against this (more for Typescript sake)
       throw new TypeError('Slider value cannot be an array.')
     }
     setCurrentHour(newValue)
@@ -28,9 +30,10 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
   }
 
   const handleNext = () => {
-    setCurrentHour(prev => Math.min(prev + 3, end))
+    setCurrentHour(prev => Math.min(prev + step, end))
   }
 
+  // Create the marks/steps for the slider
   const marks = useMemo(() => {
     const result: SliderMark[] = []
     for (let i = start; i <= end; i += step) {
@@ -38,7 +41,8 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
       if (i === 0) {
         label = '0h'
       } else {
-        label = i % 4 === 0 ? `+${i}h` : undefined
+        // Show every second step on the slider (undefined 'hides' the label)
+        label = i % (2 * step) === 0 ? `+${i}h` : undefined
       }
       result.push({
         label,
@@ -66,7 +70,6 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
         boxShadow: '0 -4px 24px rgba(0,0,0,0.03)'
       }}
     >
-      {/* VCR Controls */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <IconButton
           size="large"
@@ -85,7 +88,7 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}
         >
-          <FirstPage color="primary" />
+          <ChevronLeft color="primary" />
         </IconButton>
 
         <IconButton
@@ -105,14 +108,14 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}
         >
-          <LastPage color="primary" />
+          <ChevronRight color="primary" />
         </IconButton>
       </Box>
 
       <Slider
         value={currentHour}
         onChange={handleSliderChange}
-        step={3}
+        step={step}
         marks={marks}
         min={0}
         max={end}
