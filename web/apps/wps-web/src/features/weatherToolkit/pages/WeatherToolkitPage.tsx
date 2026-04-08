@@ -32,6 +32,24 @@ const WeatherToolkitPage = () => {
     setCurrentHour(0)
   }, [model, modelRunDate, modelRunHour])
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      const tag = (document.activeElement?.tagName ?? '').toLowerCase()
+      const role = document.activeElement?.getAttribute('role') ?? ''
+      // Don't intercept when focus is in an input, select, or the slider itself
+      if (['input', 'select', 'textarea'].includes(tag) || role === 'slider') return
+      e.preventDefault()
+      if (e.key === 'ArrowRight') {
+        setCurrentHour(prev => Math.min(prev + currentModel.interval, currentModel.maxHour))
+      } else {
+        setCurrentHour(prev => Math.max(prev - currentModel.interval, 0))
+      }
+    }
+    globalThis.addEventListener('keydown', handleKeyDown)
+    return () => globalThis.removeEventListener('keydown', handleKeyDown)
+  }, [currentModel])
+
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', overflow: 'hidden' }}>
