@@ -47,8 +47,9 @@ const SidePanel = ({
         maxDate={DateTime.utc()}
       />
       <FormControl fullWidth sx={{ mb: 4 }}>
-        <InputLabel>Model Run Hour</InputLabel>
+        <InputLabel id="model-run-hour-label">Model Run Hour</InputLabel>
         <Select
+          labelId="model-run-hour-label"
           value={modelRunHour}
           label="Model Run Hour"
           onChange={e => setModelRunHour(e.target.value as ModelRunHour)}
@@ -65,8 +66,9 @@ const SidePanel = ({
         </Typography>
       </Box>
       <FormControl fullWidth>
-        <InputLabel>Weather Model</InputLabel>
+        <InputLabel id="weather-model-label">Weather Model</InputLabel>
         <Select
+          labelId="weather-model-label"
           value={model}
           label="Weather Model"
           onChange={e => setModel(e.target.value as ModelType)}
