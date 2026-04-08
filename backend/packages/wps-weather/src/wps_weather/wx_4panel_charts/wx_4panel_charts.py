@@ -131,85 +131,87 @@ class FourPanelChartRunner:
         ax500, axmslp = axes[0, 0], axes[0, 1]
         ax700, axpcpn = axes[1, 0], axes[1, 1]
 
-        async with (
-            self._dataset(cfg500["z500_grib"]) as ds_z500,
-            self._dataset(cfg500["vort_grib"]) as ds_vort,
-        ):
-            logger.info(f"Creating 500hpa panel for {output_key}")
-            plotter_500hpa = plotter_factory.get_500hpa_plotter()
-            plotter_500hpa(cfg500, ax=ax500, ds_z500=ds_z500, ds_vort=ds_vort)
-            add_panel_title(ax500, "500 hPa Height + Abs Vorticity", loc="bl")
-
-        async with (
-            self._dataset(cfgmslp["mslp_grib"]) as ds_msl,
-            self._dataset(cfgmslp["thk_grib"]) as ds_thk,
-        ):
-            logger.info(f"Creating mslp panel for {output_key}")
-            plotter_mslp_thickness = plotter_factory.get_mslp_thickness_plotter()
-            plotter_mslp_thickness(cfgmslp, ax=axmslp, ds_msl=ds_msl, ds_thk=ds_thk)
-            add_panel_title(axmslp, "MSLP + 1000–500 Thickness", loc="bl")
-
-        async with (
-            self._dataset(cfg700["z700_grib"]) as ds_z700,
-            self._dataset(cfg700["rh850_grib"]) as ds_rh850,
-            self._dataset(cfg700["rh700_grib"]) as ds_rh700,
-            self._dataset(cfg700["rh500_grib"]) as ds_rh500,
-        ):
-            logger.info(f"Creating 700hpa panel for {output_key}")
-            plotter_700hpa = plotter_factory.get_700hpa_plotter()
-            plotter_700hpa(
-                cfg700,
-                ax=ax700,
-                ds_z700=ds_z700,
-                ds_rh850=ds_rh850,
-                ds_rh700=ds_rh700,
-                ds_rh500=ds_rh500,
-            )
-            add_panel_title(ax700, "700 hPa Height + 850-500 Relative Humidity", loc="bl")
-
-        ds_p: Optional[xr.Dataset] = None
-        ds_js: Optional[xr.Dataset] = None
-
         try:
-            logger.info(f"Creating precip panel for {output_key}")
-            if cfgpcpn["show_precip"]:
-                ds_p = await self._open_dataset_s3(cfgpcpn["pcpn_grib"])
+            async with (
+                self._dataset(cfg500["z500_grib"]) as ds_z500,
+                self._dataset(cfg500["vort_grib"]) as ds_vort,
+            ):
+                logger.info(f"Creating 500hpa panel for {output_key}")
+                plotter_500hpa = plotter_factory.get_500hpa_plotter()
+                plotter_500hpa(cfg500, ax=ax500, ds_z500=ds_z500, ds_vort=ds_vort)
+                add_panel_title(ax500, "500 hPa Height + Abs Vorticity", loc="bl")
 
-            if cfgpcpn.get("show_jet_core", True):
-                ds_js = await self._open_dataset_s3(cfgpcpn["jet_spd_grib"])
+            async with (
+                self._dataset(cfgmslp["mslp_grib"]) as ds_msl,
+                self._dataset(cfgmslp["thk_grib"]) as ds_thk,
+            ):
+                logger.info(f"Creating mslp panel for {output_key}")
+                plotter_mslp_thickness = plotter_factory.get_mslp_thickness_plotter()
+                plotter_mslp_thickness(cfgmslp, ax=axmslp, ds_msl=ds_msl, ds_thk=ds_thk)
+                add_panel_title(axmslp, "MSLP + 1000–500 Thickness", loc="bl")
 
-            plotter_pcpn = plotter_factory.get_pcpn_plotter()
-            plotter_pcpn(cfgpcpn, ax=axpcpn, ds_p=ds_p, ds_js=ds_js)
+            async with (
+                self._dataset(cfg700["z700_grib"]) as ds_z700,
+                self._dataset(cfg700["rh850_grib"]) as ds_rh850,
+                self._dataset(cfg700["rh700_grib"]) as ds_rh700,
+                self._dataset(cfg700["rh500_grib"]) as ds_rh500,
+            ):
+                logger.info(f"Creating 700hpa panel for {output_key}")
+                plotter_700hpa = plotter_factory.get_700hpa_plotter()
+                plotter_700hpa(
+                    cfg700,
+                    ax=ax700,
+                    ds_z700=ds_z700,
+                    ds_rh850=ds_rh850,
+                    ds_rh700=ds_rh700,
+                    ds_rh500=ds_rh500,
+                )
+                add_panel_title(ax700, "700 hPa Height + 850-500 Relative Humidity", loc="bl")
 
-            add_panel_title(
-                axpcpn,
-                f"{step}H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H",
-                loc="bl",
-            )
-        except Exception as e:
-            logger.error(f"Unable to generate 4-panel chart for: {output_key}")
-            logger.error(e)
-            return
+            ds_p: Optional[xr.Dataset] = None
+            ds_js: Optional[xr.Dataset] = None
+
+            try:
+                logger.info(f"Creating precip panel for {output_key}")
+                if cfgpcpn["show_precip"]:
+                    ds_p = await self._open_dataset_s3(cfgpcpn["pcpn_grib"])
+
+                if cfgpcpn.get("show_jet_core", True):
+                    ds_js = await self._open_dataset_s3(cfgpcpn["jet_spd_grib"])
+
+                plotter_pcpn = plotter_factory.get_pcpn_plotter()
+                plotter_pcpn(cfgpcpn, ax=axpcpn, ds_p=ds_p, ds_js=ds_js)
+
+                add_panel_title(
+                    axpcpn,
+                    f"{step}H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H",
+                    loc="bl",
+                )
+            except Exception as e:
+                logger.error(f"Unable to generate 4-panel chart for: {output_key}")
+                logger.error(e)
+                return
+            finally:
+                if ds_p is not None:
+                    ds_p.close()
+                if ds_js is not None:
+                    ds_js.close()
+
+            apply_4panel_frames(fig, axes, add_outer_border=True)
+
+            valid_text = cfg500.get("valid_time_str", "")
+            if valid_text:
+                add_valid_time_stamp(fig, valid_text, height=0.04, fontsize=14)
+
+            # Save the 4panel chart to S3. First save to a local temp file then write to S3.
+            async with aiofiles.tempfile.NamedTemporaryFile(suffix=".png", mode="w+b") as f:
+                fig.savefig(f.name, dpi=dpi, bbox_inches=None, pad_inches=0.0, facecolor="white")
+                await f.seek(0)
+                body = await f.read()
+                await self._s3_client.put_object(output_key, body)
+                logger.info(f"Saved: {output_key}")
         finally:
-            if ds_p is not None:
-                ds_p.close()
-            if ds_js is not None:
-                ds_js.close()
-
-        apply_4panel_frames(fig, axes, add_outer_border=True)
-
-        valid_text = cfg500.get("valid_time_str", "")
-        if valid_text:
-            add_valid_time_stamp(fig, valid_text, height=0.04, fontsize=14)
-
-        # Save the 4panel chart to S3. First save to a local temp file then write to S3.
-        async with aiofiles.tempfile.NamedTemporaryFile(suffix=".png", mode="w+b") as f:
-            fig.savefig(f.name, dpi=dpi, bbox_inches=None, pad_inches=0.0, facecolor="white")
             plt.close(fig)
-            await f.seek(0)
-            body = await f.read()
-            await self._s3_client.put_object(output_key, body)
-            logger.info(f"Saved: {output_key}")
 
     async def _make_4panel_charts(
         self, model: ECCCModel, init_ymd: str, init_hh: str, start_hour: int, end_hour: int, step: int
