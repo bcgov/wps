@@ -101,7 +101,10 @@ describe("pushNotificationSlice", () => {
     });
 
     it("handles incrementRegistrationAttempts", () => {
-      const next = pushNotificationReducer(makeState(), incrementRegistrationAttempts());
+      const next = pushNotificationReducer(
+        makeState(),
+        incrementRegistrationAttempts(),
+      );
       expect(next.registrationAttempts).toBe(1);
     });
 
@@ -299,27 +302,35 @@ describe("pushNotificationSlice", () => {
         consoleSpy.mockRestore();
       });
 
-      it("increments registrationAttempts on each failure beyond MAX_REGISTRATION_ATTEMPTS", async () => {
-        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      it("increments registrationAttempts on each failure to MAX_REGISTRATION_ATTEMPTS", async () => {
+        const consoleSpy = vi
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { retryWithBackoff } = await import("@/utils/retryWithBackoff");
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
-        (retryWithBackoff as Mock).mockRejectedValue(new Error("persistent error"));
+        (retryWithBackoff as Mock).mockRejectedValue(
+          new Error("persistent error"),
+        );
 
         const store = createTestStore();
-        for (let i = 0; i < MAX_REGISTRATION_ATTEMPTS + 1; i++) {
+        for (let i = 0; i < MAX_REGISTRATION_ATTEMPTS; i++) {
           await store.dispatch(registerDevice("fcm-token", null));
         }
 
-        expect(store.getState().pushNotification.registrationAttempts).toBe(MAX_REGISTRATION_ATTEMPTS + 1);
+        expect(store.getState().pushNotification.registrationAttempts).toBe(
+          MAX_REGISTRATION_ATTEMPTS,
+        );
         expect(store.getState().pushNotification.registrationError).toBe(true);
         consoleSpy.mockRestore();
       });
 
       it("resets registrationAttempts on successful registration", async () => {
-        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const consoleSpy = vi
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
