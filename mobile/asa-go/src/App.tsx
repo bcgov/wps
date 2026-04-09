@@ -27,7 +27,6 @@ import {
   selectSettings,
   selectPushNotification,
 } from "@/store";
-import { registerDevice } from "@/slices/pushNotificationSlice";
 import { theme } from "@/theme";
 import { NavPanel } from "@/utils/constants";
 import { today } from "@/utils/dataSliceUtils";
@@ -73,7 +72,7 @@ const App = () => {
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
-  const { initPushNotifications, currentFcmToken } = usePushNotifications();
+  const { initPushNotifications } = usePushNotifications();
   const deviceId = useDeviceId();
 
   const selectedFireCenterName = selectedFireShape?.mof_fire_centre_name;
@@ -100,18 +99,6 @@ const App = () => {
       initPushNotifications();
     }
   }, [initPushNotifications, isAuthenticated]);
-
-  useEffect(() => {
-    if (networkStatus.connected && currentFcmToken) {
-      dispatch(registerDevice(currentFcmToken, registeredFcmToken));
-    }
-  }, [
-    currentFcmToken,
-    registeredFcmToken,
-    networkStatus.connected,
-    isActive,
-    dispatch,
-  ]);
 
   useEffect(() => {
     if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;

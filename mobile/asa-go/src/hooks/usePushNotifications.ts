@@ -9,11 +9,12 @@ import {
 } from "@capacitor-firebase/messaging";
 import { Capacitor, PluginListenerHandle } from "@capacitor/core";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, selectPushNotification } from "@/store";
+import { AppDispatch, selectNetworkStatus, selectPushNotification } from "@/store";
 import {
   registerDevice,
   setRegistrationError,
 } from "@/slices/pushNotificationSlice";
+import { useAppIsActive } from "@/hooks/useAppIsActive";
 
 const ANDROID_CHANNEL = {
   id: "general",
@@ -24,23 +25,21 @@ const ANDROID_CHANNEL = {
 };
 
 export function usePushNotifications() {
-  const [currentFcmToken, setCurrentToken] = useState<string | null>(null);
+  const [currentFcmToken, setCurrentFcmToken] = useState<string | null>(null);
   const handles = useRef<PluginListenerHandle[]>([]);
   const initialized = useRef(false);
   const dispatch = useDispatch<AppDispatch>();
-  const { registrationError, registeredFcmToken } = useSelector(
-    selectPushNotification,
-  );
+  const { registrationError, registeredFcmToken } = useSelector(selectPushNotification);
+  const { networkStatus } = useSelector(selectNetworkStatus);
+  const isActive = useAppIsActive();
 
   const initPushNotifications = useCallback(async () => {
     if (initialized.current) return;
     try {
-      const check: PermissionStatus =
-        await FirebaseMessaging.checkPermissions();
+      const check: PermissionStatus = await FirebaseMessaging.checkPermissions();
       if (check.receive !== "granted") {
         const req = await FirebaseMessaging.requestPermissions();
-        if (req.receive !== "granted")
-          throw new Error("Push permission not granted");
+        if (req.receive !== "granted") throw new Error("Push permission not granted");
       }
 
       if (Capacitor.getPlatform() === "android") {
@@ -48,11 +47,11 @@ export function usePushNotifications() {
       }
 
       const { token } = await FirebaseMessaging.getToken();
-      setCurrentToken(token);
+      setCurrentFcmToken(token);
 
       const tokenHandle = await FirebaseMessaging.addListener(
         "tokenReceived",
-        (e: TokenReceivedEvent) => setCurrentToken(e.token),
+        (e: TokenReceivedEvent) => setCurrentFcmToken(e.token),
       );
 
       const receivedHandle = await FirebaseMessaging.addListener(
@@ -76,19 +75,23 @@ export function usePushNotifications() {
     }
   }, []);
 
+  useEffect(() => {
+    if (networkStatus.connected && currentFcmToken) {
+      dispatch(registerDevice(currentFcmToken, registeredFcmToken));
+    }
+  }, [currentFcmToken, registeredFcmToken, networkStatus.connected, isActive, dispatch]);
+
   const retryRegistration = useCallback(async () => {
     if (!registrationError) return;
     dispatch(setRegistrationError(false));
     try {
-      const tokenToRegister =
-        currentFcmToken ?? (await FirebaseMessaging.getToken()).token;
-      if (tokenToRegister)
-        dispatch(registerDevice(tokenToRegister, registeredFcmToken));
+      const { token } = await FirebaseMessaging.getToken();
+      if (token) dispatch(registerDevice(token, registeredFcmToken));
     } catch (e) {
       console.error("Failed to get token for retry:", e);
       dispatch(setRegistrationError(true));
     }
-  }, [registrationError, currentFcmToken, registeredFcmToken, dispatch]);
+  }, [registrationError, registeredFcmToken, dispatch]);
 
   useEffect(() => {
     return () => {
@@ -101,5 +104,5 @@ export function usePushNotifications() {
     };
   }, []);
 
-  return { initPushNotifications, retryRegistration, currentFcmToken };
+  return { initPushNotifications, retryRegistration };
 }
