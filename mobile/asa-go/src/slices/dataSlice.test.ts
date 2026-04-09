@@ -1,6 +1,6 @@
 vi.mock("api/fbaAPI", async () => {
   const actual = await vi.importActual<typeof import("api/fbaAPI")>(
-    "api/fbaAPI"
+    "api/fbaAPI",
   );
   return {
     ...actual,
@@ -11,7 +11,7 @@ vi.mock("api/fbaAPI", async () => {
 vi.mock("@/utils/storage", () => ({
   writeToFileSystem: vi.fn(),
   readFromFilesystem: vi.fn(),
-  FIRE_CENTERS_KEY: "fireCenters",
+  FIRE_CENTRES_KEY: "fireCentres",
   HFI_STATS_KEY: "hfiStats",
   PROVINCIAL_SUMMARY_KEY: "provincialSummary",
   RUN_PARAMETERS_CACHE_KEY: "runParameters",
@@ -20,7 +20,7 @@ vi.mock("@/utils/storage", () => ({
 
 vi.mock("@/utils/dataSliceUtils", async () => {
   const actual = await vi.importActual<typeof import("@/utils/dataSliceUtils")>(
-    "@/utils/dataSliceUtils"
+    "@/utils/dataSliceUtils",
   );
   return {
     ...actual,
@@ -279,7 +279,7 @@ describe("data reducer", () => {
     expect(nextState.error).toBeNull();
     expect(nextState.lastUpdated).toEqual(today);
     expect(nextState.provincialSummaries).toEqual(
-      mockCacheableProvincialSummaries
+      mockCacheableProvincialSummaries,
     );
     expect(nextState.tpiStats).toEqual(mockCacheableFireZoneTPIStats);
     expect(nextState.hfiStats).toEqual(mockCacheableHFIStats);
@@ -313,14 +313,14 @@ describe("fetchAndCacheData thunk", () => {
   const mockAPIData = () => {
     vi.mocked(fetchHFIStats).mockResolvedValue(mockCacheableHFIStats);
     vi.mocked(fetchProvincialSummaries).mockResolvedValue(
-      mockCacheableProvincialSummaries
+      mockCacheableProvincialSummaries,
     );
     vi.mocked(fetchTpiStats).mockResolvedValue(mockCacheableFireZoneTPIStats);
   };
   const testExpectedDataState = (dataState: DataState) => {
     expect(dataState.error).toBeNull();
     expect(dataState.provincialSummaries).toEqual(
-      mockCacheableProvincialSummaries
+      mockCacheableProvincialSummaries,
     );
     expect(dataState.tpiStats).toEqual(mockCacheableFireZoneTPIStats);
     expect(dataState.hfiStats).toEqual(mockCacheableHFIStats);

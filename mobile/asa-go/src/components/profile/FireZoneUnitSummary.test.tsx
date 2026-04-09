@@ -4,7 +4,8 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
-import { FireCenter, FireShape, FireZoneTPIStats } from "@/api/fbaAPI";
+import { FireShape, FireZoneTPIStats } from "@/api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 import { DateTime } from "luxon";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "@/theme";
@@ -49,10 +50,9 @@ vi.mock("react-redux", async () => {
 
 describe("FireZoneUnitSummary", () => {
   const testDate = DateTime.fromISO("2025-08-25");
-  const mockFireCenter: FireCenter = {
+  const mockFireCentre: FireCentre = {
     id: 1,
-    name: "Test Fire Center",
-    stations: [],
+    name: "Test Fire Centre",
   };
 
   const mockFireZoneUnit: FireShape = {
@@ -102,7 +102,7 @@ describe("FireZoneUnitSummary", () => {
   it("should render empty div when selectedFireZoneUnit is undefined", () => {
     renderWithProvider(
       <FireZoneUnitSummary
-        selectedFireCenter={mockFireCenter}
+        selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={undefined}
         date={testDate}
       />,
@@ -115,7 +115,7 @@ describe("FireZoneUnitSummary", () => {
   it("should render fire zone unit summary when selectedFireZoneUnit is provided", () => {
     renderWithProvider(
       <FireZoneUnitSummary
-        selectedFireCenter={mockFireCenter}
+        selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
       />,
@@ -128,7 +128,7 @@ describe("FireZoneUnitSummary", () => {
   it("should display the fire zone name as title", () => {
     renderWithProvider(
       <FireZoneUnitSummary
-        selectedFireCenter={mockFireCenter}
+        selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
       />,
@@ -142,7 +142,7 @@ describe("FireZoneUnitSummary", () => {
   it("should render FuelSummary component", () => {
     renderWithProvider(
       <FireZoneUnitSummary
-        selectedFireCenter={mockFireCenter}
+        selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
       />,
@@ -156,7 +156,7 @@ describe("FireZoneUnitSummary", () => {
   it("should show no elevation information message when TPI stats are incomplete", () => {
     renderWithProvider(
       <FireZoneUnitSummary
-        selectedFireCenter={mockFireCenter}
+        selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
       />,
@@ -170,7 +170,7 @@ describe("FireZoneUnitSummary", () => {
   it("should have correct styling", () => {
     renderWithProvider(
       <FireZoneUnitSummary
-        selectedFireCenter={mockFireCenter}
+        selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
       />,
@@ -188,7 +188,7 @@ describe("FireZoneUnitSummary", () => {
   it("should render Grid container with correct props", () => {
     const { container } = renderWithProvider(
       <FireZoneUnitSummary
-        selectedFireCenter={mockFireCenter}
+        selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
       />,
@@ -201,7 +201,7 @@ describe("FireZoneUnitSummary", () => {
   it("should handle missing fire center", () => {
     renderWithProvider(
       <FireZoneUnitSummary
-        selectedFireCenter={undefined}
+        selectedFireCentre={undefined}
         selectedFireZoneUnit={undefined}
         date={testDate}
       />,

@@ -1,6 +1,6 @@
 import { FireCentreInfo, getFireCentreInfo } from "@/api/fbaAPI";
 import { createTestStore } from "@/testUtils";
-import { FIRE_CENTER_INFO_KEY, readFromFilesystem } from "@/utils/storage";
+import { FIRE_CENTRE_INFO_KEY, readFromFilesystem } from "@/utils/storage";
 import { Preferences } from "@capacitor/preferences";
 import { act } from "@testing-library/react";
 import { DateTime } from "luxon";
@@ -8,9 +8,9 @@ import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import { getNotificationSettings } from "api/pushNotificationsAPI";
 import settingsSlice, {
   fetchFireCentreInfo,
-  getFireCenterInfoFailed,
-  getFireCenterInfoStart,
-  getFireCenterInfoSuccess,
+  getFireCentreInfoFailed,
+  getFireCentreInfoStart,
+  getFireCentreInfoSuccess,
   getUpdatedSubscriptions,
   initialState,
   initPinnedFireCentre,
@@ -34,8 +34,8 @@ vi.mock("@capacitor/preferences", () => ({
 vi.mock("@/utils/storage", () => ({
   readFromFilesystem: vi.fn(),
   writeToFileSystem: vi.fn(),
-  FIRE_CENTER_INFO_CACHE_EXPIRATION: 24,
-  FIRE_CENTER_INFO_KEY: "fireCentreInfo",
+  FIRE_CENTRE_INFO_CACHE_EXPIRATION: 24,
+  FIRE_CENTRE_INFO_KEY: "fireCentreInfo",
 }));
 
 // Mock the API
@@ -88,7 +88,7 @@ describe("settingsSlice", () => {
       );
     });
 
-    it("should handle getFireCenterInfoStart", () => {
+    it("should handle getFireCentreInfoStart", () => {
       const previousState = createSettingsState({
         loading: false,
         error: "Previous error",
@@ -97,7 +97,7 @@ describe("settingsSlice", () => {
         ],
       });
 
-      const nextState = settingsSlice(previousState, getFireCenterInfoStart());
+      const nextState = settingsSlice(previousState, getFireCentreInfoStart());
 
       expectSettingsState(nextState, {
         loading: true,
@@ -106,7 +106,7 @@ describe("settingsSlice", () => {
       });
     });
 
-    it("should handle getFireCenterInfoFailed", () => {
+    it("should handle getFireCentreInfoFailed", () => {
       const previousState = createSettingsState({
         loading: true,
       });
@@ -114,7 +114,7 @@ describe("settingsSlice", () => {
 
       const nextState = settingsSlice(
         previousState,
-        getFireCenterInfoFailed(errorMessage),
+        getFireCentreInfoFailed(errorMessage),
       );
 
       expectSettingsState(nextState, {
@@ -123,7 +123,7 @@ describe("settingsSlice", () => {
       });
     });
 
-    it("should handle getFireCenterInfoSuccess", () => {
+    it("should handle getFireCentreInfoSuccess", () => {
       const previousState = createSettingsState({
         loading: true,
         error: "Previous error",
@@ -135,7 +135,7 @@ describe("settingsSlice", () => {
 
       const nextState = settingsSlice(
         previousState,
-        getFireCenterInfoSuccess(fireCentreInfos),
+        getFireCentreInfoSuccess(fireCentreInfos),
       );
 
       expectSettingsState(nextState, {
@@ -353,7 +353,7 @@ describe("settingsSlice", () => {
       };
       const mockCacheWithData = (isStale: boolean) => {
         (readFromFilesystem as Mock).mockImplementation((_filesystem, key) => {
-          if (key === FIRE_CENTER_INFO_KEY) {
+          if (key === FIRE_CENTRE_INFO_KEY) {
             return {
               lastUpdated: isStale ? yesterday : today,
               data: isStale ? [mockFireCentreInfoA] : [mockFireCentreInfoB],
@@ -426,7 +426,7 @@ describe("settingsSlice", () => {
         await store.dispatch(fetchFireCentreInfo());
         const state = store.getState().settings;
         expect(state.loading).toBe(false);
-        expect(state.error).toMatch(/Unable to refresh fire center info data/);
+        expect(state.error).toMatch(/Unable to refresh fire centre info data/);
       });
 
       it("should dispatch success when cache is stale and app is offline", async () => {

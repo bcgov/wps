@@ -2,32 +2,33 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import FireCenterDropdown from "./FireCenterDropdown";
-import { FireCenter, FireShape } from "api/fbaAPI";
+import { FireShape } from "api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 
 describe("FireCenterDropdown", () => {
-  let fireCenters: FireCenter[];
-  let setSelectedFireCenter: React.Dispatch<
-    React.SetStateAction<FireCenter | undefined>
+  let fireCentres: FireCentre[];
+  let setSelectedFireCentre: React.Dispatch<
+    React.SetStateAction<FireCentre | undefined>
   >;
   let setSelectedFireShape: React.Dispatch<
     React.SetStateAction<FireShape | undefined>
   >;
 
   beforeEach(() => {
-    fireCenters = [
-      { id: 1, name: "Center A", stations: [] },
-      { id: 2, name: "Center B", stations: [] },
+    fireCentres = [
+      { id: 1, name: "Center A" },
+      { id: 2, name: "Center B" },
     ];
-    setSelectedFireCenter = vi.fn();
+    setSelectedFireCentre = vi.fn();
     setSelectedFireShape = vi.fn();
   });
 
   it("renders dropdown with options", () => {
     const { queryByTestId } = render(
       <FireCenterDropdown
-        fireCenterOptions={fireCenters}
-        selectedFireCenter={fireCenters[0]}
-        setSelectedFireCenter={setSelectedFireCenter}
+        fireCentreOptions={fireCentres}
+        selectedFireCentre={fireCentres[0]}
+        setSelectedFireCentre={setSelectedFireCentre}
         setSelectedFireShape={setSelectedFireShape}
       />,
     );
@@ -35,25 +36,25 @@ describe("FireCenterDropdown", () => {
     expect(element).toHaveTextContent("Center A");
   });
 
-  it("does not call setSelectedFireCenter if no option is selected", () => {
+  it("does not call setSelectedFireCentre if no option is selected", () => {
     render(
       <FireCenterDropdown
-        fireCenterOptions={fireCenters}
-        selectedFireCenter={undefined}
-        setSelectedFireCenter={setSelectedFireCenter}
+        fireCentreOptions={fireCentres}
+        selectedFireCentre={undefined}
+        setSelectedFireCentre={setSelectedFireCentre}
         setSelectedFireShape={setSelectedFireShape}
       />,
     );
 
-    expect(setSelectedFireCenter).not.toHaveBeenCalled();
+    expect(setSelectedFireCentre).not.toHaveBeenCalled();
   });
 
   it("changes selection and resets fire shape", async () => {
     render(
       <FireCenterDropdown
-        fireCenterOptions={fireCenters}
-        selectedFireCenter={fireCenters[0]}
-        setSelectedFireCenter={setSelectedFireCenter}
+        fireCentreOptions={fireCentres}
+        selectedFireCentre={fireCentres[0]}
+        setSelectedFireCentre={setSelectedFireCentre}
         setSelectedFireShape={setSelectedFireShape}
       />,
     );
@@ -66,15 +67,15 @@ describe("FireCenterDropdown", () => {
     await user.click(option);
 
     expect(setSelectedFireShape).toHaveBeenCalledWith(undefined);
-    expect(setSelectedFireCenter).toHaveBeenCalledWith(fireCenters[1]);
+    expect(setSelectedFireCentre).toHaveBeenCalledWith(fireCentres[1]);
   });
 
   it("has instructional default text if no fire centre is selected", () => {
     render(
       <FireCenterDropdown
-        fireCenterOptions={[]}
-        selectedFireCenter={undefined}
-        setSelectedFireCenter={setSelectedFireCenter}
+        fireCentreOptions={[]}
+        selectedFireCentre={undefined}
+        setSelectedFireCentre={setSelectedFireCentre}
         setSelectedFireShape={setSelectedFireShape}
       />,
     );
@@ -84,17 +85,16 @@ describe("FireCenterDropdown", () => {
   });
 
   it("does not show 'Fire Centre' in the selected value", () => {
-    const selectedFireCenter: FireCenter = {
+    const selectedFireCentre: FireCentre = {
       id: 3,
       name: "Kamloops Fire Centre",
-      stations: [],
     };
 
     render(
       <FireCenterDropdown
-        fireCenterOptions={[selectedFireCenter]}
-        selectedFireCenter={selectedFireCenter}
-        setSelectedFireCenter={setSelectedFireCenter}
+        fireCentreOptions={[selectedFireCentre]}
+        selectedFireCentre={selectedFireCentre}
+        setSelectedFireCentre={setSelectedFireCentre}
         setSelectedFireShape={setSelectedFireShape}
       />,
     );

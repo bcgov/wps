@@ -6,14 +6,15 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
-import { FireCenter, FireShape } from "api/fbaAPI";
+import { FireShape } from "api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 import React from "react";
 
 export interface FireCenterDropdownProps {
-  selectedFireCenter?: FireCenter;
-  fireCenterOptions: FireCenter[];
-  setSelectedFireCenter: React.Dispatch<
-    React.SetStateAction<FireCenter | undefined>
+  selectedFireCentre?: FireCentre;
+  fireCentreOptions: FireCentre[];
+  setSelectedFireCentre: React.Dispatch<
+    React.SetStateAction<FireCentre | undefined>
   >;
   setSelectedFireShape: React.Dispatch<
     React.SetStateAction<FireShape | undefined>
@@ -21,9 +22,9 @@ export interface FireCenterDropdownProps {
 }
 
 const FireCenterDropdown = ({
-  fireCenterOptions,
-  selectedFireCenter,
-  setSelectedFireCenter,
+  fireCentreOptions,
+  selectedFireCentre,
+  setSelectedFireCentre,
   setSelectedFireShape,
 }: FireCenterDropdownProps) => {
   const getDisplayName = (name: string): string =>
@@ -31,9 +32,9 @@ const FireCenterDropdown = ({
 
   const handleChange = (event: SelectChangeEvent<string>): void => {
     const selectedName = event.target.value;
-    const selected = fireCenterOptions.find((fc) => fc.name === selectedName);
+    const selected = fireCentreOptions.find((fc) => fc.name === selectedName);
     setSelectedFireShape(undefined);
-    setSelectedFireCenter(selected ?? undefined);
+    setSelectedFireCentre(selected ?? undefined);
   };
 
   return (
@@ -46,14 +47,14 @@ const FireCenterDropdown = ({
         data-testid="fire-center-dropdown"
         labelId="fire-center-label"
         id="fire-center-select"
-        value={selectedFireCenter?.name ?? ""}
+        value={selectedFireCentre?.name ?? ""}
         onChange={handleChange}
         label="Centre"
         displayEmpty
         renderValue={(value) => (value ? getDisplayName(value) : "")}
         sx={{ fontWeight: "bold", color: MAP_BUTTON_GREY }}
       >
-        {fireCenterOptions.map((option) => {
+        {fireCentreOptions.map((option) => {
           const displayName = getDisplayName(option.name);
 
           return (

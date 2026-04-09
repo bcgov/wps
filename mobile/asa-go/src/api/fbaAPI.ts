@@ -6,27 +6,11 @@ export enum RunType {
   ACTUAL = "ACTUAL",
 }
 
-export interface FireCenterStation {
-  code: number;
-  name: string;
-  zone?: string;
-}
-
-export interface FireCenter {
-  id: number;
-  name: string;
-  stations: FireCenterStation[];
-}
-
 export interface FireShape {
   fire_shape_id: number;
   mof_fire_zone_name: string;
   mof_fire_centre_name: string;
   area_sqm?: number;
-}
-
-export interface FBAResponse {
-  fire_centers: FireCenter[];
 }
 
 export interface AdvisoryCriticalHours {
@@ -160,13 +144,6 @@ export interface FireCentreInfoResponse {
 }
 
 const ASA_GO_API_PREFIX = "fba";
-
-export async function getFBAFireCenters(): Promise<FBAResponse> {
-  const url = `${ASA_GO_API_PREFIX}/fire-centers`;
-
-  const { data } = await axios.get(url);
-  return data;
-}
 
 // Gets a summary of info about all fire zone units in the province
 export async function getProvincialSummary(
