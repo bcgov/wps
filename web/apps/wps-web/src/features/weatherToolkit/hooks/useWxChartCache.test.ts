@@ -73,6 +73,26 @@ describe('useWxChartCache', () => {
     }
   })
 
+  it('clamps prefetch window to maxHour', async () => {
+    const { interval, maxHour } = modelRegistry[MODEL] // GDPS: interval=6, maxHour=240
+    // 228 + 5*6 = 258 > 240, so the window should be clamped to 240
+    const currentHour = 228
+    const expectedHours: number[] = []
+    for (let h = currentHour; h <= maxHour; h += interval) {
+      expectedHours.push(h)
+    }
+
+    const { result } = renderHook(() => useWxChartCache(MODEL, MODEL_RUN_DATE, MODEL_RUN_HOUR, currentHour))
+    await waitFor(() => expect(result.current.cache.size).toBe(expectedHours.length))
+
+    for (const h of expectedHours) {
+      const key = buildChartKey(MODEL, MODEL_RUN_DATE, MODEL_RUN_HOUR, h)
+      expect(weatherToolkitAPI.getWxChart).toHaveBeenCalledWith(key)
+    }
+    const beyondKey = buildChartKey(MODEL, MODEL_RUN_DATE, MODEL_RUN_HOUR, maxHour + interval)
+    expect(weatherToolkitAPI.getWxChart).not.toHaveBeenCalledWith(beyondKey)
+  })
+
   it('adds failed keys to the failed set on fetch error', async () => {
     vi.mocked(weatherToolkitAPI.getWxChart).mockRejectedValue(new Error('network error'))
     const { result } = renderHook(() => useWxChartCache(MODEL, MODEL_RUN_DATE, MODEL_RUN_HOUR, 0))
@@ -80,6 +100,33 @@ describe('useWxChartCache', () => {
     const key = buildChartKey(MODEL, MODEL_RUN_DATE, MODEL_RUN_HOUR, 0)
     expect(result.current.failed.has(key)).toBe(true)
     expect(result.current.cache.size).toBe(0)
+  })
+
+  it('re-fetches a failed key when the effect re-runs and moves it from failed to cache on success', async () => {
+    const { interval } = modelRegistry[MODEL] // GDPS: interval=6
+    // Start at currentHour=interval (hour 6) and fail only that key; the rest succeed.
+    // Then move to currentHour=0 so the effect re-runs with hour 6 still in the window.
+    const failedHour = interval
+    const failedKey = buildChartKey(MODEL, MODEL_RUN_DATE, MODEL_RUN_HOUR, failedHour)
+
+    vi.mocked(weatherToolkitAPI.getWxChart).mockImplementation(key =>
+      key === failedKey ? Promise.reject(new Error('network error')) : Promise.resolve(mockBlob)
+    )
+
+    const { result, rerender } = renderHook(
+      ({ currentHour }: { currentHour: number }) => useWxChartCache(MODEL, MODEL_RUN_DATE, MODEL_RUN_HOUR, currentHour),
+      { initialProps: { currentHour: failedHour } }
+    )
+
+    await waitFor(() => expect(result.current.failed.has(failedKey)).toBe(true))
+    expect(result.current.cache.has(failedKey)).toBe(false)
+
+    // All fetches now succeed; move currentHour so the effect re-runs with failedHour still in window
+    vi.mocked(weatherToolkitAPI.getWxChart).mockResolvedValue(mockBlob)
+    act(() => rerender({ currentHour: 0 }))
+
+    await waitFor(() => expect(result.current.cache.has(failedKey)).toBe(true))
+    expect(result.current.failed.has(failedKey)).toBe(false)
   })
 
   it('removes a key from the fetching set after a successful fetch so it can be re-fetched if needed', async () => {

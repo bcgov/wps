@@ -59,7 +59,7 @@ export function useWxChartCache(
 
     for (let hour = currentHour; hour <= targetHour; hour += interval) {
       const key = buildChartKey(model, modelRunDate, modelRunHour, hour)
-      if (state.cache.has(key) || state.fetching.has(key) || state.failed.has(key)) continue
+      if (state.cache.has(key) || state.fetching.has(key)) continue
 
       state.fetching.add(key)
       getWxChart(key)
@@ -68,7 +68,9 @@ export function useWxChartCache(
           const url = URL.createObjectURL(blob)
           state.fetching.delete(key)
           state.cache.set(key, url)
+          const wasInFailed = state.failed.delete(key)
           setCache(new Map(state.cache))
+          if (wasInFailed) setFailed(new Set(state.failed))
         })
         .catch(() => {
           if (stateRef.current.generation !== gen) return
