@@ -2,14 +2,16 @@ import { FireShape } from "@/api/fbaAPI";
 import { SwipeableBottomDrawer } from "@/components/SwipeableBottomDrawer";
 import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { useIsTablet } from "@/hooks/useIsTablet";
-import { checkPushNotificationPermission, registerDevice } from "@/slices/pushNotificationSlice";
+import { checkPushNotificationPermission } from "@/slices/pushNotificationSlice";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import {
   AppDispatch,
   selectNetworkStatus,
   selectNotificationSetupState,
   selectNotificationSettingsDisabled,
   selectPushNotification,
+  selectRegistrationFailed,
   selectSettings,
 } from "@/store";
 import { fireZoneUnitNameFormatter } from "@/utils/stringUtils";
@@ -17,6 +19,7 @@ import AnalyticsIcon from "@mui/icons-material/Analytics";
 import CloseIcon from "@mui/icons-material/Close";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import NotificationsOffIcon from "@mui/icons-material/NotificationsOff";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import {
   Box,
@@ -28,7 +31,7 @@ import {
   useTheme,
 } from "@mui/material";
 import NotificationErrorSnackbar from "@/components/NotificationErrorSnackbar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { subscriptionUpdateErrorMessage } from "@/utils/constants";
 
@@ -50,6 +53,7 @@ const FireShapeActionsDrawer = ({
   const dispatch: AppDispatch = useDispatch();
   const { toggleSubscription, updateError, clearUpdateError } =
     useNotificationSettings();
+  const { retryRegistration } = usePushNotifications();
   const theme = useTheme();
 
   const isPortrait = useIsPortrait();
@@ -58,14 +62,17 @@ const FireShapeActionsDrawer = ({
   const useSideSheet = !isPortrait && isSmallScreen;
 
   const { subscriptions } = useSelector(selectSettings);
-  const { pushNotificationPermission, deviceIdError, registeredFcmToken } = useSelector(
+  const { pushNotificationPermission, deviceIdError } = useSelector(
     selectPushNotification,
   );
+  const [registrationErrorDismissed, setRegistrationErrorDismissed] =
+    useState(false);
   const { networkStatus } = useSelector(selectNetworkStatus);
   const setupState = useSelector(selectNotificationSetupState);
   const notificationSettingsDisabled = useSelector(
     selectNotificationSettingsDisabled,
   );
+  const isRegistrationFailed = useSelector(selectRegistrationFailed);
 
   const selectedFireShapeId = selectedFireShape?.fire_shape_id;
   const isSubscribed =
@@ -96,9 +103,9 @@ const FireShapeActionsDrawer = ({
 
   useEffect(() => {
     if (open) {
-      dispatch(registerDevice(registeredFcmToken));
+      void retryRegistration();
     }
-  }, [dispatch, open, registeredFcmToken]);
+  }, [open, retryRegistration]);
 
   const handleSubscriptionUpdate = () => {
     if (selectedFireShapeId === undefined || notificationSettingsDisabled) {
@@ -114,6 +121,17 @@ const FireShapeActionsDrawer = ({
         open={updateError}
         onClose={clearUpdateError}
         message={subscriptionUpdateErrorMessage}
+      />
+      <NotificationErrorSnackbar
+        open={
+          isRegistrationFailed &&
+          networkStatus.connected &&
+          !registrationErrorDismissed
+        }
+        onClose={() => setRegistrationErrorDismissed(true)}
+        message="Unable to register this device for notifications. Retrying automatically."
+        severity="warning"
+        autoHideDuration={null}
       />
       <SwipeableBottomDrawer open={open} onClose={onClose}>
         <Box
@@ -184,12 +202,18 @@ const FireShapeActionsDrawer = ({
               >
                 {isAwaitingToken ? (
                   <CircularProgress size={actionIconSize} color="inherit" />
+                ) : isRegistrationFailed ? (
+                  <NotificationsOffIcon sx={actionIconSx} />
                 ) : isSubscribed ? (
                   <NotificationsActiveIcon sx={actionIconSx} />
                 ) : (
                   <NotificationsNoneOutlinedIcon sx={actionIconSx} />
                 )}
-                {isSubscribed ? "Unsubscribe" : "Subscribe"}
+                {isRegistrationFailed
+                  ? "Unavailable"
+                  : isSubscribed
+                  ? "Unsubscribe"
+                  : "Subscribe"}
               </Button>
             </Box>
             <Button

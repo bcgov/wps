@@ -143,15 +143,9 @@ describe("pushNotificationSlice", () => {
 
     describe("registerDevice", () => {
       it("registers and sets registeredFcmToken when not yet registered", async () => {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "fcm-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockResolvedValue(undefined);
@@ -168,7 +162,7 @@ describe("pushNotificationSlice", () => {
           },
         });
 
-        await store.dispatch(registerDevice(null));
+        await store.dispatch(registerDevice("fcm-token", null));
 
         expect(registerToken).toHaveBeenCalledWith(
           "ios",
@@ -182,38 +176,28 @@ describe("pushNotificationSlice", () => {
       });
 
       it("is a no-op when already registered with the same token", async () => {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { registerToken } = await import("api/pushNotificationsAPI");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "existing-token",
-        });
 
         const store = createTestStore();
 
-        await store.dispatch(registerDevice("existing-token"));
+        await store.dispatch(
+          registerDevice("existing-token", "existing-token"),
+        );
 
         expect(registerToken).not.toHaveBeenCalled();
       });
 
       it("re-registers when token has rotated", async () => {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "new-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockResolvedValue(undefined);
 
         const store = createTestStore();
 
-        await store.dispatch(registerDevice("old-token"));
+        await store.dispatch(registerDevice("new-token", "old-token"));
 
         expect(registerToken).toHaveBeenCalledWith(
           "ios",
@@ -230,38 +214,26 @@ describe("pushNotificationSlice", () => {
         const consoleSpy = vi
           .spyOn(console, "error")
           .mockImplementation(() => {});
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "fcm-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockRejectedValue(new Error("backend error"));
 
         const store = createTestStore();
 
-        await store.dispatch(registerDevice(null));
+        await store.dispatch(registerDevice("fcm-token", null));
 
         expect(store.getState().pushNotification.registeredFcmToken).toBeNull();
         consoleSpy.mockRestore();
       });
 
       it("uses retryWithBackoff to register and sets token on success", async () => {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
         const { retryWithBackoff } = await import("@/utils/retryWithBackoff");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "fcm-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockResolvedValue(undefined);
@@ -278,7 +250,7 @@ describe("pushNotificationSlice", () => {
           },
         });
 
-        await store.dispatch(registerDevice(null));
+        await store.dispatch(registerDevice("fcm-token", null));
 
         expect(retryWithBackoff).toHaveBeenCalledTimes(1);
         expect(store.getState().pushNotification.registeredFcmToken).toBe(
@@ -290,16 +262,10 @@ describe("pushNotificationSlice", () => {
         const consoleSpy = vi
           .spyOn(console, "error")
           .mockImplementation(() => {});
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
         const { Device } = await import("@capacitor/device");
         const { Capacitor } = await import("@capacitor/core");
         const { registerToken } = await import("api/pushNotificationsAPI");
         const { retryWithBackoff } = await import("@/utils/retryWithBackoff");
-        (FirebaseMessaging.getToken as Mock).mockResolvedValue({
-          token: "fcm-token",
-        });
         (Device.getId as Mock).mockResolvedValue({ identifier: "device-id" });
         (Capacitor.getPlatform as Mock).mockReturnValue("ios");
         (registerToken as Mock).mockRejectedValue(
@@ -310,7 +276,7 @@ describe("pushNotificationSlice", () => {
         );
 
         const store = createTestStore();
-        await store.dispatch(registerDevice(null));
+        await store.dispatch(registerDevice("fcm-token", null));
 
         expect(store.getState().pushNotification.registeredFcmToken).toBeNull();
         expect(consoleSpy).toHaveBeenCalled();

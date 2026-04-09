@@ -45,9 +45,12 @@ vi.mock("@capacitor/preferences", () => ({
 }));
 
 vi.mock("@capacitor-firebase/messaging", () => ({
+  Importance: { High: 4 },
   FirebaseMessaging: {
     checkPermissions: vi.fn().mockResolvedValue({ receive: "granted" }),
     getToken: vi.fn().mockResolvedValue({ token: "test-token" }),
+    addListener: vi.fn().mockResolvedValue({ remove: vi.fn() }),
+    removeAllListeners: vi.fn(),
   },
 }));
 

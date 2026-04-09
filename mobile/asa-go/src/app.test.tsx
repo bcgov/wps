@@ -104,7 +104,8 @@ vi.mock("@/hooks/useRunParameterForDate", () => ({
 vi.mock("@/hooks/usePushNotifications", () => ({
   usePushNotifications: vi.fn().mockReturnValue({
     initPushNotifications: vi.fn().mockResolvedValue(undefined),
-    token: null,
+    retryRegistration: vi.fn().mockResolvedValue(undefined),
+    currentFcmToken: null,
   }),
 }));
 
@@ -122,6 +123,15 @@ vi.mock("@/api/pushNotificationsAPI", () => ({
 }));
 
 describe("App", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(usePushNotifications).mockReturnValue({
+      initPushNotifications: vi.fn().mockResolvedValue(undefined),
+      retryRegistration: vi.fn().mockResolvedValue(undefined),
+      currentFcmToken: null,
+    });
+  });
+
   it("renders all main components in initial state", () => {
     const store = createTestStore();
 
@@ -323,7 +333,8 @@ describe("App", () => {
     (registerToken as Mock).mockRejectedValue(new Error("backend error"));
     vi.mocked(usePushNotifications).mockReturnValue({
       initPushNotifications: vi.fn().mockResolvedValue(undefined),
-      token: "new-fcm-token",
+      retryRegistration: vi.fn().mockResolvedValue(undefined),
+      currentFcmToken: "new-fcm-token",
     });
 
     const store = createTestStore({
@@ -347,6 +358,131 @@ describe("App", () => {
     expect(store.getState().pushNotification.registeredFcmToken).toBe(
       "old-fcm-token",
     );
+  });
+
+  it("calls initPushNotifications when authenticated", async () => {
+    const initPushNotifications = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(usePushNotifications).mockReturnValue({
+      initPushNotifications,
+      retryRegistration: vi.fn().mockResolvedValue(undefined),
+      currentFcmToken: null,
+    });
+
+    const store = createTestStore({
+      authentication: {
+        isAuthenticated: true,
+        authenticating: false,
+        tokenRefreshed: false,
+        token: undefined,
+        idToken: undefined,
+        idir: undefined,
+        error: null,
+      },
+    });
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+      );
+    });
+
+    expect(initPushNotifications).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call initPushNotifications when not authenticated", async () => {
+    const initPushNotifications = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(usePushNotifications).mockReturnValue({
+      initPushNotifications,
+      retryRegistration: vi.fn().mockResolvedValue(undefined),
+      currentFcmToken: null,
+    });
+
+    const store = createTestStore();
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+      );
+    });
+
+    expect(initPushNotifications).not.toHaveBeenCalled();
+  });
+
+  it("dispatches registerDevice when connected and FCM token is available", async () => {
+    (registerToken as Mock).mockResolvedValue(undefined);
+    vi.mocked(usePushNotifications).mockReturnValue({
+      initPushNotifications: vi.fn().mockResolvedValue(undefined),
+      retryRegistration: vi.fn().mockResolvedValue(undefined),
+      currentFcmToken: "test-fcm-token",
+    });
+
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+      );
+    });
+
+    expect(registerToken).toHaveBeenCalledWith(
+      "ios",
+      "test-fcm-token",
+      "device-id",
+      null,
+    );
+    expect(store.getState().pushNotification.registeredFcmToken).toBe(
+      "test-fcm-token",
+    );
+  });
+
+  it("does not dispatch registerDevice when offline", async () => {
+    const { Network } = await import("@capacitor/network");
+    (Network.getStatus as Mock).mockResolvedValue({
+      connected: false,
+      connectionType: "none",
+    });
+
+    vi.mocked(usePushNotifications).mockReturnValue({
+      initPushNotifications: vi.fn().mockResolvedValue(undefined),
+      retryRegistration: vi.fn().mockResolvedValue(undefined),
+      currentFcmToken: "test-fcm-token",
+    });
+
+    const store = createTestStore();
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+      );
+    });
+
+    expect(registerToken).not.toHaveBeenCalled();
+  });
+
+  it("does not dispatch registerDevice when FCM token is null", async () => {
+    const store = createTestStore();
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+      );
+    });
+
+    expect(registerToken).not.toHaveBeenCalled();
   });
 
   it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {

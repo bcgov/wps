@@ -36,10 +36,16 @@ const pushNotificationSlice = createSlice({
     ) {
       state.registeredFcmToken = action.payload;
     },
-    setDeviceIdError(state: PushNotificationState, action: PayloadAction<boolean>) {
+    setDeviceIdError(
+      state: PushNotificationState,
+      action: PayloadAction<boolean>,
+    ) {
       state.deviceIdError = action.payload;
     },
-    setRegistrationError(state: PushNotificationState, action: PayloadAction<boolean>) {
+    setRegistrationError(
+      state: PushNotificationState,
+      action: PayloadAction<boolean>,
+    ) {
       state.registrationError = action.payload;
     },
   },
@@ -66,16 +72,19 @@ export const checkPushNotificationPermission =
   };
 
 export const registerDevice =
-  (registeredFcmToken: string | null): AppThunk =>
+  (token: string, registeredFcmToken: string | null): AppThunk =>
   async (dispatch, getState) => {
+    if (token === registeredFcmToken) return;
     try {
-      const { token } = await FirebaseMessaging.getToken();
-      if (!token) return; // no token available yet
-      if (token === registeredFcmToken) return; // already registered, nothing to do
       const { idir } = getState().authentication;
       const { identifier } = await Device.getId();
       await retryWithBackoff(() =>
-        registerToken(Capacitor.getPlatform() as Platform, token, identifier, idir || null),
+        registerToken(
+          Capacitor.getPlatform() as Platform,
+          token,
+          identifier,
+          idir || null,
+        ),
       );
       dispatch(setRegistrationError(false));
       dispatch(setRegisteredFcmToken(token));

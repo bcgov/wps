@@ -1,47 +1,105 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PushNotificationService } from "@/services/pushNotificationService";
+import {
+  FirebaseMessaging,
+  Importance,
+  NotificationActionPerformedEvent,
+  NotificationReceivedEvent,
+  PermissionStatus,
+  TokenReceivedEvent,
+} from "@capacitor-firebase/messaging";
+import { Capacitor, PluginListenerHandle } from "@capacitor/core";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, selectPushNotification } from "@/store";
+import {
+  registerDevice,
+  setRegistrationError,
+} from "@/slices/pushNotificationSlice";
+
+const ANDROID_CHANNEL = {
+  id: "general",
+  name: "General",
+  description: "General notifications",
+  importance: Importance.High,
+  sound: "default",
+};
 
 export function usePushNotifications() {
-  const [token, setToken] = useState<string | null>(null);
-  const serviceRef = useRef<PushNotificationService | null>(null);
+  const [currentFcmToken, setCurrentToken] = useState<string | null>(null);
+  const handles = useRef<PluginListenerHandle[]>([]);
+  const initialized = useRef(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { registrationError, registeredFcmToken } = useSelector(
+    selectPushNotification,
+  );
 
   const initPushNotifications = useCallback(async () => {
-    // Prevent multiple initializations of the same service
-    if (serviceRef.current) {
-      return;
+    if (initialized.current) return;
+    try {
+      const check: PermissionStatus =
+        await FirebaseMessaging.checkPermissions();
+      if (check.receive !== "granted") {
+        const req = await FirebaseMessaging.requestPermissions();
+        if (req.receive !== "granted")
+          throw new Error("Push permission not granted");
+      }
+
+      if (Capacitor.getPlatform() === "android") {
+        await FirebaseMessaging.createChannel(ANDROID_CHANNEL);
+      }
+
+      const { token } = await FirebaseMessaging.getToken();
+      setCurrentToken(token);
+
+      const tokenHandle = await FirebaseMessaging.addListener(
+        "tokenReceived",
+        (e: TokenReceivedEvent) => setCurrentToken(e.token),
+      );
+
+      const receivedHandle = await FirebaseMessaging.addListener(
+        "notificationReceived",
+        (evt: NotificationReceivedEvent) => {
+          if (evt) console.log(evt.notification.body);
+        },
+      );
+
+      const actionHandle = await FirebaseMessaging.addListener(
+        "notificationActionPerformed",
+        (evt: NotificationActionPerformedEvent) => {
+          if (evt) console.log(evt.notification.body);
+        },
+      );
+
+      handles.current.push(tokenHandle, receivedHandle, actionHandle);
+      initialized.current = true;
+    } catch (e) {
+      console.error("Push notification error:", e);
     }
-
-    const service = new PushNotificationService({
-      onRegister: (t) => {
-        setToken(t);
-      },
-      onNotificationReceived: (_evt) => {
-        if (_evt) console.log(_evt.notification.body);
-      },
-      onNotificationAction: (_evt) => {
-        if (_evt) console.log(_evt.notification.body);
-      },
-      onError: (err) => {
-        console.error("Push notification error:", err);
-      },
-      androidChannel: {
-        id: "general",
-        name: "General",
-        description: "General notifications",
-        importance: 4, // Importance.High
-        sound: "default",
-      },
-    });
-
-    serviceRef.current = service;
-    await service.initPushNotificationService();
   }, []);
+
+  const retryRegistration = useCallback(async () => {
+    if (!registrationError) return;
+    dispatch(setRegistrationError(false));
+    try {
+      const tokenToRegister =
+        currentFcmToken ?? (await FirebaseMessaging.getToken()).token;
+      if (tokenToRegister)
+        dispatch(registerDevice(tokenToRegister, registeredFcmToken));
+    } catch (e) {
+      console.error("Failed to get token for retry:", e);
+      dispatch(setRegistrationError(true));
+    }
+  }, [registrationError, currentFcmToken, registeredFcmToken, dispatch]);
 
   useEffect(() => {
     return () => {
-      serviceRef.current?.unregister();
+      if (initialized.current) {
+        void FirebaseMessaging.removeAllListeners();
+      }
+      handles.current.forEach((h) => void h.remove());
+      handles.current = [];
+      initialized.current = false;
     };
   }, []);
 
-  return { initPushNotifications, token };
+  return { initPushNotifications, retryRegistration, currentFcmToken };
 }

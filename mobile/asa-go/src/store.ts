@@ -54,6 +54,11 @@ export const selectNotificationSetupState = createSelector(
   },
 );
 
+export const selectRegistrationFailed = createSelector(
+  selectNotificationSetupState,
+  (setupState) => setupState === "registrationFailed",
+);
+
 export const selectNotificationSettingsDisabled = createSelector(
   selectNotificationSetupState,
   selectNetworkStatus,

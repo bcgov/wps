@@ -73,7 +73,7 @@ const App = () => {
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
-  const { initPushNotifications } = usePushNotifications();
+  const { initPushNotifications, currentFcmToken } = usePushNotifications();
   const deviceId = useDeviceId();
 
   const selectedFireCenterName = selectedFireShape?.mof_fire_centre_name;
@@ -102,10 +102,16 @@ const App = () => {
   }, [initPushNotifications, isAuthenticated]);
 
   useEffect(() => {
-    if (networkStatus.connected) {
-      dispatch(registerDevice(registeredFcmToken));
+    if (networkStatus.connected && currentFcmToken) {
+      dispatch(registerDevice(currentFcmToken, registeredFcmToken));
     }
-  }, [registeredFcmToken, networkStatus.connected, isActive, dispatch]);
+  }, [
+    currentFcmToken,
+    registeredFcmToken,
+    networkStatus.connected,
+    isActive,
+    dispatch,
+  ]);
 
   useEffect(() => {
     if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;

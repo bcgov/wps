@@ -24,8 +24,12 @@ vi.mock("@/api/fbaAPI", async () => {
 vi.mock("@capacitor-firebase/messaging", () => {
   const mockCheckPermissions = vi.fn().mockResolvedValue({ receive: "denied" });
   return {
+    Importance: { High: 4 },
     FirebaseMessaging: {
       checkPermissions: mockCheckPermissions,
+      getToken: vi.fn().mockResolvedValue({ token: "test-token" }),
+      addListener: vi.fn().mockResolvedValue({ remove: vi.fn() }),
+      removeAllListeners: vi.fn(),
     },
   };
 });

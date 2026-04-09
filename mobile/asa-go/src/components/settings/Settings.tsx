@@ -1,9 +1,6 @@
 import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
-import {
-  checkPushNotificationPermission,
-  registerDevice,
-} from "@/slices/pushNotificationSlice";
+import { checkPushNotificationPermission } from "@/slices/pushNotificationSlice";
 import {
   fetchFireCentreInfo,
   initPinnedFireCentre,
@@ -14,6 +11,7 @@ import {
   selectNotificationSettingsDisabled,
   selectNotificationSetupState,
   selectPushNotification,
+  selectRegistrationFailed,
   selectSettings,
 } from "@/store";
 import { theme } from "@/theme";
@@ -24,11 +22,13 @@ import {
   LinearProgress,
   Typography,
 } from "@mui/material";
+import NotificationErrorSnackbar from "@/components/NotificationErrorSnackbar";
 import { isNil } from "lodash";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useAppIsActive } from "@/hooks/useAppIsActive";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { NavPanel } from "@/utils/constants";
 
 interface SettingsProps {
@@ -39,13 +39,14 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const dispatch: AppDispatch = useDispatch();
   const isActive = useAppIsActive();
   const isVisible = activeTab === NavPanel.SETTINGS;
+  const { retryRegistration } = usePushNotifications();
   const { networkStatus } = useSelector(selectNetworkStatus);
   const { fireCentreInfos, loading, error, pinnedFireCentre } =
     useSelector(selectSettings);
-  const { deviceIdError, registeredFcmToken } = useSelector(
-    selectPushNotification,
-  );
+  const { deviceIdError } = useSelector(selectPushNotification);
+  const [registrationErrorDismissed, setRegistrationErrorDismissed] = useState(false);
   const setupState = useSelector(selectNotificationSetupState);
+  const isRegistrationFailed = useSelector(selectRegistrationFailed);
   const notificationSettingsDisabled = useSelector(
     selectNotificationSettingsDisabled,
   );
@@ -61,9 +62,9 @@ const Settings = ({ activeTab }: SettingsProps) => {
     if (isVisible) {
       dispatch(fetchFireCentreInfo());
       dispatch(checkPushNotificationPermission());
-      dispatch(registerDevice(registeredFcmToken));
+      void retryRegistration();
     }
-  }, [isActive, isVisible, registeredFcmToken, dispatch]);
+  }, [isActive, isVisible, dispatch, retryRegistration]);
 
   // Derived ordered list of centres for display (memoized)
   const orderedFireCentres = useMemo<FireCentreInfo[]>(() => {
@@ -144,6 +145,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
       </Alert>
     );
   };
+
 
   const renderPermissionBanner = () => {
     // Show a banner if permission is not explicitly granted in system settings and we're online.
@@ -258,6 +260,13 @@ const Settings = ({ activeTab }: SettingsProps) => {
           </Typography>
         </Box>
       </Box>
+      <NotificationErrorSnackbar
+        open={isRegistrationFailed && networkStatus.connected && !registrationErrorDismissed}
+        onClose={() => setRegistrationErrorDismissed(true)}
+        message="Unable to register this device for notifications. Retrying automatically."
+        severity="warning"
+        autoHideDuration={null}
+      />
       {renderDeviceIdErrorBanner()}
       {renderPermissionBanner()}
       {renderOfflineMessage()}
