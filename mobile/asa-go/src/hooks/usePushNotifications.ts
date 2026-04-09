@@ -40,15 +40,21 @@ export function usePushNotifications() {
       const check: PermissionStatus = await FirebaseMessaging.checkPermissions();
       if (check.receive !== "granted") {
         const req = await FirebaseMessaging.requestPermissions();
-        if (req.receive !== "granted") throw new Error("Push permission not granted");
+        if (req.receive !== "granted") return;
       }
 
       if (Capacitor.getPlatform() === "android") {
         await FirebaseMessaging.createChannel(ANDROID_CHANNEL);
       }
 
-      const { token } = await FirebaseMessaging.getToken();
-      setCurrentFcmToken(token);
+      try {
+        const { token } = await FirebaseMessaging.getToken();
+        setCurrentFcmToken(token);
+      } catch (e) {
+        console.error("Failed to get FCM token during init:", e);
+        dispatch(setRegistrationError(true));
+        return;
+      }
 
       const tokenHandle = await FirebaseMessaging.addListener(
         "tokenReceived",
@@ -74,7 +80,7 @@ export function usePushNotifications() {
     } catch (e) {
       console.error("Push notification error:", e);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     if (networkStatus.connected && currentFcmToken) {

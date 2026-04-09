@@ -192,6 +192,67 @@ describe("usePushNotifications", () => {
     await expect(act(async () => { await result.current.initPushNotifications(); })).resolves.not.toThrow();
   });
 
+  it("dispatches setRegistrationError when getToken fails during init", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { setRegistrationError } = await import("@/slices/pushNotificationSlice");
+    vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({ receive: "granted" } as PermissionStatus);
+    vi.mocked(FirebaseMessaging.getToken).mockRejectedValue(new Error("token error"));
+
+    const { result } = renderHook(() => usePushNotifications());
+    await act(async () => { await result.current.initPushNotifications(); });
+
+    expect(mockDispatch).toHaveBeenCalledWith(setRegistrationError(true));
+    consoleSpy.mockRestore();
+  });
+
+  it("does not dispatch setRegistrationError when permissions are denied", async () => {
+    const { setRegistrationError } = await import("@/slices/pushNotificationSlice");
+    vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({ receive: "denied" } as PermissionStatus);
+    vi.mocked(FirebaseMessaging.requestPermissions).mockResolvedValue({ receive: "denied" } as PermissionStatus);
+
+    const { result } = renderHook(() => usePushNotifications());
+    await act(async () => { await result.current.initPushNotifications(); });
+
+    expect(mockDispatch).not.toHaveBeenCalledWith(setRegistrationError(true));
+  });
+
+  it("retries registration after getToken fails during init", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { useSelector } = await import("react-redux");
+    const { setRegistrationError, registerDevice } = await import("@/slices/pushNotificationSlice");
+
+    vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({ receive: "granted" } as PermissionStatus);
+    vi.mocked(FirebaseMessaging.getToken).mockRejectedValue(new Error("token error"));
+
+    const { result, rerender } = renderHook(() => usePushNotifications());
+    await act(async () => { await result.current.initPushNotifications(); });
+    expect(mockDispatch).toHaveBeenCalledWith(setRegistrationError(true));
+
+    // Simulate opening Settings: selector now reflects registrationError: true
+    vi.mocked(useSelector).mockImplementation(
+      (selector: (s: unknown) => unknown) =>
+        selector({
+          pushNotification: {
+            registrationError: true,
+            registeredFcmToken: null,
+            pushNotificationPermission: "unknown",
+            deviceIdError: false,
+            registrationAttempts: 0,
+          },
+          networkStatus: {
+            networkStatus: { connected: true, connectionType: "wifi" },
+          },
+        }),
+    );
+    vi.mocked(FirebaseMessaging.getToken).mockResolvedValue({ token: "retry-token" });
+    rerender();
+
+    await act(async () => { await result.current.retryRegistration(); });
+
+    expect(mockDispatch).toHaveBeenCalledWith(registerDevice("retry-token", null));
+    consoleSpy.mockRestore();
+  });
+
   it("does not create Android channel on iOS", async () => {
     vi.mocked(Capacitor.getPlatform).mockReturnValue("ios");
     setupFirebaseMocks();
