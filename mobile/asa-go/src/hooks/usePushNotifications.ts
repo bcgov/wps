@@ -9,10 +9,15 @@ import {
 } from "@capacitor-firebase/messaging";
 import { Capacitor, PluginListenerHandle } from "@capacitor/core";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, selectNetworkStatus, selectPushNotification } from "@/store";
+import {
+  AppDispatch,
+  selectNetworkStatus,
+  selectPushNotification,
+} from "@/store";
 import {
   MAX_REGISTRATION_ATTEMPTS,
   registerDevice,
+  resetRegistrationAttempts,
   setRegistrationError,
 } from "@/slices/pushNotificationSlice";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
@@ -30,14 +35,16 @@ export function usePushNotifications() {
   const handles = useRef<PluginListenerHandle[]>([]);
   const initialized = useRef(false);
   const dispatch = useDispatch<AppDispatch>();
-  const { registrationError, registeredFcmToken, registrationAttempts } = useSelector(selectPushNotification);
+  const { registrationError, registeredFcmToken, registrationAttempts } =
+    useSelector(selectPushNotification);
   const { networkStatus } = useSelector(selectNetworkStatus);
   const isActive = useAppIsActive();
 
   const initPushNotifications = useCallback(async () => {
     if (initialized.current) return;
     try {
-      const check: PermissionStatus = await FirebaseMessaging.checkPermissions();
+      const check: PermissionStatus =
+        await FirebaseMessaging.checkPermissions();
       if (check.receive !== "granted") {
         const req = await FirebaseMessaging.requestPermissions();
         if (req.receive !== "granted") return;
@@ -86,11 +93,20 @@ export function usePushNotifications() {
     if (networkStatus.connected && currentFcmToken) {
       dispatch(registerDevice(currentFcmToken, registeredFcmToken));
     }
-  }, [currentFcmToken, registeredFcmToken, networkStatus.connected, isActive, dispatch]);
+  }, [
+    currentFcmToken,
+    registeredFcmToken,
+    networkStatus.connected,
+    isActive,
+    dispatch,
+  ]);
 
   const retryRegistration = useCallback(async () => {
     if (!registrationError) return;
-    if (registrationAttempts >= MAX_REGISTRATION_ATTEMPTS) return;
+    if (registrationAttempts >= MAX_REGISTRATION_ATTEMPTS) {
+      // Caller is deliberately retrying, e.g. in settings and context drawer menu
+      dispatch(resetRegistrationAttempts());
+    }
     dispatch(setRegistrationError(false));
     try {
       const { token } = await FirebaseMessaging.getToken();

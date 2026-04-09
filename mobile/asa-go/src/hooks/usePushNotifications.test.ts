@@ -405,9 +405,9 @@ describe("usePushNotifications", () => {
       consoleSpy.mockRestore();
     });
 
-    it("is a no-op when registrationAttempts has reached MAX_REGISTRATION_ATTEMPTS", async () => {
+    it("resets attempt counter but does not register when MAX_REGISTRATION_ATTEMPTS is reached", async () => {
       const { useSelector } = await import("react-redux");
-      const { MAX_REGISTRATION_ATTEMPTS } = await import("@/slices/pushNotificationSlice");
+      const { MAX_REGISTRATION_ATTEMPTS, resetRegistrationAttempts, registerDevice } = await import("@/slices/pushNotificationSlice");
       vi.mocked(useSelector).mockImplementation(
         (selector: (s: unknown) => unknown) =>
           selector({
@@ -427,7 +427,34 @@ describe("usePushNotifications", () => {
       const { result } = renderHook(() => usePushNotifications());
       await act(async () => { await result.current.retryRegistration(); });
 
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(resetRegistrationAttempts());
+      expect(mockDispatch).not.toHaveBeenCalledWith(registerDevice(expect.anything(), expect.anything()));
+    });
+
+    it("retries registration on next open after counter has been reset", async () => {
+      const { useSelector } = await import("react-redux");
+      const { registerDevice } = await import("@/slices/pushNotificationSlice");
+      vi.mocked(useSelector).mockImplementation(
+        (selector: (s: unknown) => unknown) =>
+          selector({
+            pushNotification: {
+              registrationError: true,
+              registeredFcmToken: null,
+              pushNotificationPermission: "unknown",
+              deviceIdError: false,
+              registrationAttempts: 0,
+            },
+            networkStatus: {
+              networkStatus: { connected: false, connectionType: "none" },
+            },
+          }),
+      );
+      vi.mocked(FirebaseMessaging.getToken).mockResolvedValue({ token: "retry-token" });
+
+      const { result } = renderHook(() => usePushNotifications());
+      await act(async () => { await result.current.retryRegistration(); });
+
+      expect(mockDispatch).toHaveBeenCalledWith(registerDevice("retry-token", null));
     });
   });
 });
