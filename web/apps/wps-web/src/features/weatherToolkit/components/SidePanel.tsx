@@ -1,9 +1,8 @@
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
 import { CONTROL_BACKGROUND_COLOUR, ModelRunHour, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
 import { CalendarMonthOutlined, LayersOutlined, ShowChart } from '@mui/icons-material'
-import { FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material'
+import { FormControl, InputLabel, MenuItem, Select, Typography, useTheme } from '@mui/material'
 import { Box } from '@mui/system'
-import { theme } from '@wps/ui/theme'
 import { DateTime } from 'luxon'
 
 interface SidePanelProps {
@@ -25,6 +24,7 @@ const SidePanel = ({
   modelRunHour,
   setModelRunHour
 }: SidePanelProps) => {
+  const theme = useTheme()
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '320px', p: 3, bgcolor: CONTROL_BACKGROUND_COLOUR }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>

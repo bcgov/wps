@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
-import { IconButton, Slider, Paper, Box } from '@mui/material'
+import { IconButton, Slider, Paper, Box, useTheme } from '@mui/material'
 import { ChevronLeft, ChevronRight } from '@mui/icons-material'
-import { theme } from '@wps/ui/theme'
 import {
   BORDER_AND_SHADOW_COLOUR,
   BOX_SHADOW_COLOUR,
@@ -25,6 +24,7 @@ interface SliderMark {
 }
 
 const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: TimelineControllerProps) => {
+  const theme = useTheme()
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
     if (Array.isArray(newValue)) {
       // MUI slider allows array values for range sliders so guard against this (more for Typescript sake)

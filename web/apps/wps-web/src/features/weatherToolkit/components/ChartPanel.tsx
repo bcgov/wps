@@ -1,6 +1,5 @@
 import { Fullscreen, FullscreenExit } from '@mui/icons-material'
-import { Box, CircularProgress, IconButton, Typography } from '@mui/material'
-import { theme } from '@wps/ui/theme'
+import { Box, CircularProgress, IconButton, Typography, useTheme } from '@mui/material'
 
 interface ChartPanelProps {
   imageSrc: string | null
@@ -11,6 +10,7 @@ interface ChartPanelProps {
 }
 
 const ChartPanel = ({ imageSrc, chartKey, isFailed, isExpanded, onToggleExpand }: ChartPanelProps) => {
+  const theme = useTheme()
   return (
     <Box sx={{ flexGrow: 1, overflow: 'hidden', bgcolor: '#B9B9B9', position: 'relative' }}>
       {imageSrc && !isFailed && (
