@@ -447,6 +447,127 @@ async def test_object_exists_returns_false_on_404(code: str):
 
 
 @pytest.mark.anyio
+async def test_stream_wx_object(mocker: MockerFixture):
+    """Test that stream_wx_object uses WX_OBJECT_STORE_* config and streams correctly."""
+    wx_bucket = "wx-test-bucket"
+    wx_user = "wx-user"
+    wx_secret = "wx-secret"
+    wx_server = "nrs.objectstore.gov.bc.ca"
+    test_key = "wx/path/chart.png"
+
+    def mock_config_get(key, default=None):
+        return {
+            "OBJECT_STORE_SERVER": wx_server,
+            "WX_OBJECT_STORE_BUCKET": wx_bucket,
+            "WX_OBJECT_STORE_USER_ID": wx_user,
+            "WX_OBJECT_STORE_SECRET": wx_secret,
+        }.get(key, default)
+
+    mocker.patch("wps_shared.utils.s3_client.config.get", side_effect=mock_config_get)
+
+    mock_stream = AsyncMock()
+    mock_stream.read.side_effect = [b"chart data", b""]
+    mock_stream.close = MagicMock()
+
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {
+        "Body": mock_stream,
+        "ContentLength": 10,
+        "ContentType": "image/png",
+    }
+
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    generator, response = await S3Client.stream_wx_object(test_key)
+
+    # Verify WX bucket and credentials were used
+    mock_s3_client.get_object.assert_called_once_with(Bucket=wx_bucket, Key=test_key)
+    mock_session.create_client.assert_called_once_with(
+        "s3",
+        endpoint_url=f"https://{wx_server}",
+        aws_secret_access_key=wx_secret,
+        aws_access_key_id=wx_user,
+    )
+
+    assert response["ContentType"] == "image/png"
+    assert response["ContentLength"] == 10
+
+    chunks = []
+    async for chunk in generator:
+        chunks.append(chunk)
+    assert chunks == [b"chart data"]
+    mock_stream.close.assert_called_once()
+    mock_client_context.__aexit__.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_stream_wx_object_with_byte_range(mocker: MockerFixture):
+    """Test that stream_wx_object forwards byte range to S3."""
+    test_key = "wx/path/chart.png"
+    byte_range = "bytes=0-511"
+
+    mocker.patch("wps_shared.utils.s3_client.config.get", return_value="test-value")
+
+    mock_stream = AsyncMock()
+    mock_stream.read.side_effect = [b"partial", b""]
+    mock_stream.close = MagicMock()
+
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {
+        "Body": mock_stream,
+        "ContentLength": 7,
+        "ContentRange": "bytes 0-511/2048",
+        "ContentType": "image/png",
+    }
+
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    generator, response = await S3Client.stream_wx_object(test_key, byte_range=byte_range)
+
+    mock_s3_client.get_object.assert_called_once_with(
+        Bucket=mocker.ANY, Key=test_key, Range=byte_range
+    )
+    assert response["ContentRange"] == "bytes 0-511/2048"
+
+    chunks = [chunk async for chunk in generator]
+    assert chunks == [b"partial"]
+
+
+@pytest.mark.anyio
+async def test_stream_wx_object_error_handling(mocker: MockerFixture):
+    """Test that stream_wx_object cleans up the client on error."""
+    mocker.patch("wps_shared.utils.s3_client.config.get", return_value="test-value")
+
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.side_effect = Exception("WX S3 error")
+
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    with pytest.raises(Exception, match="WX S3 error"):
+        await S3Client.stream_wx_object("wx/path/chart.png")
+
+    mock_client_context.__aexit__.assert_called_once()
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize("code", ["403", "500"], ids=["403", "500"])
 async def test_object_exists_raises_on_non_404_client_error(code: str):
     """Non-404 ClientErrors (auth failures, server errors) must propagate so they are not silently ignored."""

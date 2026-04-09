@@ -19,6 +19,20 @@ vi.mock('pmtiles', () => ({
   }
 }))
 
+// Mock ol/source/GeoTIFF to prevent background network fetches that cause unhandled rejections
+vi.mock('ol/source/GeoTIFF', () => ({
+  default: class MockGeoTIFF {
+    getState() {
+      return 'ready'
+    }
+    getView() {
+      return Promise.resolve({ center: [0, 0], zoom: 0 })
+    }
+    addEventListener() {}
+    removeEventListener() {}
+  }
+}))
+
 // Mock ol-pmtiles to prevent it from using real PMTiles
 vi.mock('ol-pmtiles', () => ({
   PMTilesVectorSource: class MockPMTilesVectorSource {
