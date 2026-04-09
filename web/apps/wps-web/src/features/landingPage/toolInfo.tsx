@@ -1,36 +1,39 @@
-import React from 'react'
 import AirOutlinedIcon from '@mui/icons-material/AirOutlined'
+import BorderAllIcon from '@mui/icons-material/BorderAll'
 import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
+import InsightsIcon from '@mui/icons-material/Insights'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
 import PublicIcon from '@mui/icons-material/Public'
-import InsightsIcon from '@mui/icons-material/Insights'
-import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
 import WatchIcon from '@mui/icons-material/Watch'
+import WhatshotIcon from '@mui/icons-material/Whatshot'
+import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
+import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
-import WhatshotIcon from '@mui/icons-material/Whatshot'
-import Box from '@mui/material/Box'
+import React from 'react'
 
 import {
   C_HAINES_NAME,
   C_HAINES_ROUTE,
   FBP_GO_NAME,
   FBP_GO_ROUTE,
+  FIRE_BEHAVIOR_CALC_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_NAME,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
   FIRE_BEHAVIOUR_CALC_NAME,
-  FIRE_BEHAVIOR_CALC_ROUTE,
+  FIRE_WATCH_NAME,
+  FIRE_WATCH_ROUTE,
   HFI_CALC_NAME,
   HFI_CALC_ROUTE,
-  PERCENTILE_CALC_NAME,
-  PERCENTILE_CALC_ROUTE,
   MORE_CAST_NAME,
   MORECAST_ROUTE,
+  PERCENTILE_CALC_NAME,
+  PERCENTILE_CALC_ROUTE,
   SFMS_INSIGHTS_NAME,
   SFMS_INSIGHTS_ROUTE,
-  FIRE_WATCH_NAME,
-  FIRE_WATCH_ROUTE
+  WEATHER_TOOLKIT_NAME,
+  WEATHER_TOOLKIT_ROUTE
 } from '@wps/utils/constants'
 
 const ICON_FONT_SIZE = 'large'
@@ -196,6 +199,14 @@ export const fireWatchInfo: ToolInfo = {
   isBeta: true
 }
 
+export const weatherToolkitInfo: ToolInfo = {
+  name: WEATHER_TOOLKIT_NAME,
+  route: WEATHER_TOOLKIT_ROUTE,
+  description: <Typography>A tool for visualizing GDPS and RDPS 4-Panel Charts.</Typography>,
+  icon: <BorderAllIcon color="primary" fontSize={ICON_FONT_SIZE} />,
+  isBeta: true
+}
+
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of tiles.
 export const toolInfos = [
@@ -207,5 +218,6 @@ export const toolInfos = [
   fireWatchInfo,
   sfmsInsightsInfo,
   percentileCalcInfo,
-  cHainesInfo
+  cHainesInfo,
+  weatherToolkitInfo
 ]

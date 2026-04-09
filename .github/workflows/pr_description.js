@@ -13,7 +13,7 @@ module.exports = async ({ github, context }) => {
     // If the body doesn't already contain some test links, we create a few.
     let body = pr.data.body === null ? "" : pr.data.body;
     body += "\n# Test Links:\n";
-    body += `[Landing Page](${prBaseUrl}/)\n`
+    body += `[Landing Page](${prBaseUrl}/)\n`;
     body += `[MoreCast](${prBaseUrl}/morecast)\n`;
     body += `[Percentile Calculator](${prBaseUrl}/percentile-calculator)\n`;
     body += `[C-Haines](${prBaseUrl}/c-haines)\n`;
@@ -23,6 +23,7 @@ module.exports = async ({ github, context }) => {
     body += `[HFI Calculator](${prBaseUrl}/hfi-calculator)\n`;
     body += `[SFMS Insights](${prBaseUrl}/insights)\n`;
     body += `[Fire Watch](${prBaseUrl}/fire-watch)\n`;
+    body += `[Weather Toolkit](${prBaseUrl}/weather-toolkit)\n`;
     github.rest.pulls.update({
       owner: context.repo.owner,
       repo: context.repo.repo,
