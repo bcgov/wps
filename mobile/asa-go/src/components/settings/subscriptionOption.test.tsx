@@ -4,10 +4,8 @@ import { vi } from "vitest";
 import { createTestStore } from "@/testUtils";
 import SubscriptionOption from "./SubscriptionOption";
 import { FireZoneUnit } from "@/api/fbaAPI";
-import {
-  getUpdatedSubscriptions,
-  setSubscriptions,
-} from "@/slices/settingsSlice";
+import { setSubscriptions } from "@/slices/settingsSlice";
+import { getUpdatedSubscriptions } from "@/utils/subscriptionUtils";
 
 const KAMLOOPS_SWITCH_LABEL =
   "Toggle subscription for K2-Kamloops Zone (Kamloops)";

@@ -11,7 +11,6 @@ import settingsSlice, {
   getFireCentreInfoFailed,
   getFireCentreInfoStart,
   getFireCentreInfoSuccess,
-  getUpdatedSubscriptions,
   initialState,
   initPinnedFireCentre,
   initSubscriptions,
@@ -20,6 +19,7 @@ import settingsSlice, {
   setSubscriptions,
   SettingsState,
 } from "./settingsSlice";
+import { getUpdatedSubscriptions } from "@/utils/subscriptionUtils";
 
 // Mock the @capacitor/preferences module
 vi.mock("@capacitor/preferences", () => ({

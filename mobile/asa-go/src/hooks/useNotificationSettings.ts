@@ -1,10 +1,8 @@
 import { updateNotificationSettings } from "api/pushNotificationsAPI";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  getUpdatedSubscriptions,
-  setSubscriptions,
-} from "@/slices/settingsSlice";
+import { setSubscriptions } from "@/slices/settingsSlice";
+import { getUpdatedSubscriptions } from "@/utils/subscriptionUtils";
 import {
   AppDispatch,
   selectNetworkStatus,

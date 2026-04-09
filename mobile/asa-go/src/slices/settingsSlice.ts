@@ -105,17 +105,6 @@ export const initSubscriptions =
     }
   };
 
-export const getUpdatedSubscriptions = (
-  subscriptions: number[],
-  fireZoneUnitId: number,
-) => {
-  if (subscriptions.includes(fireZoneUnitId)) {
-    return subscriptions.filter((sub) => sub !== fireZoneUnitId);
-  }
-
-  return [...subscriptions, fireZoneUnitId];
-};
-
 // Update @capacitor/preferences and redux state with pinned fire centre
 export const savePinnedFireCentre =
   (fireCentre: string | null): AppThunk =>
