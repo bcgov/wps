@@ -146,9 +146,7 @@ async def proxy_s3_object(
     return await _proxy(path, request.headers.get("range"), S3Client.stream_object)
 
 
-wx_router = APIRouter(
-    prefix="/wx-object-store-proxy", dependencies=[Depends(authentication_required)]
-)
+wx_router = APIRouter(prefix="/wx-object-store-proxy")
 
 
 @wx_router.get("/{path:path}")
