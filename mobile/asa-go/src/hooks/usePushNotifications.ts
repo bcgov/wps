@@ -11,6 +11,7 @@ import { Capacitor, PluginListenerHandle } from "@capacitor/core";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, selectNetworkStatus, selectPushNotification } from "@/store";
 import {
+  MAX_REGISTRATION_ATTEMPTS,
   registerDevice,
   setRegistrationError,
 } from "@/slices/pushNotificationSlice";
@@ -29,7 +30,7 @@ export function usePushNotifications() {
   const handles = useRef<PluginListenerHandle[]>([]);
   const initialized = useRef(false);
   const dispatch = useDispatch<AppDispatch>();
-  const { registrationError, registeredFcmToken } = useSelector(selectPushNotification);
+  const { registrationError, registeredFcmToken, registrationAttempts } = useSelector(selectPushNotification);
   const { networkStatus } = useSelector(selectNetworkStatus);
   const isActive = useAppIsActive();
 
@@ -83,6 +84,7 @@ export function usePushNotifications() {
 
   const retryRegistration = useCallback(async () => {
     if (!registrationError) return;
+    if (registrationAttempts >= MAX_REGISTRATION_ATTEMPTS) return;
     dispatch(setRegistrationError(false));
     try {
       const { token } = await FirebaseMessaging.getToken();
@@ -91,7 +93,7 @@ export function usePushNotifications() {
       console.error("Failed to get token for retry:", e);
       dispatch(setRegistrationError(true));
     }
-  }, [registrationError, registeredFcmToken, dispatch]);
+  }, [registrationError, registrationAttempts, registeredFcmToken, dispatch]);
 
   useEffect(() => {
     return () => {

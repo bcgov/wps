@@ -2,9 +2,11 @@ import { createTestStore } from "@/testUtils";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import pushNotificationReducer, {
   checkPushNotificationPermission,
+  incrementRegistrationAttempts,
   initialState,
   PushNotificationState,
   registerDevice,
+  resetRegistrationAttempts,
   setDeviceIdError,
   setPushNotificationPermission,
   setRegisteredFcmToken,
@@ -95,6 +97,19 @@ describe("pushNotificationSlice", () => {
         setDeviceIdError(false),
       );
       expect(next.deviceIdError).toBe(false);
+    });
+
+    it("handles incrementRegistrationAttempts", () => {
+      const next = pushNotificationReducer(makeState(), incrementRegistrationAttempts());
+      expect(next.registrationAttempts).toBe(1);
+    });
+
+    it("handles resetRegistrationAttempts", () => {
+      const next = pushNotificationReducer(
+        makeState({ registrationAttempts: 3 }),
+        resetRegistrationAttempts(),
+      );
+      expect(next.registrationAttempts).toBe(0);
     });
   });
 

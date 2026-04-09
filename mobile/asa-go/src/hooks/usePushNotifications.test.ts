@@ -89,6 +89,7 @@ const defaultSelectorState = {
     registeredFcmToken: null,
     pushNotificationPermission: "unknown",
     deviceIdError: false,
+    registrationAttempts: 0,
   },
   networkStatus: {
     networkStatus: { connected: false, connectionType: "none" },
@@ -142,6 +143,7 @@ describe("usePushNotifications", () => {
             registeredFcmToken: null,
             pushNotificationPermission: "unknown",
             deviceIdError: false,
+            registrationAttempts: 0,
           },
           networkStatus: {
             networkStatus: { connected: true, connectionType: "wifi" },
@@ -287,6 +289,7 @@ describe("usePushNotifications", () => {
               registeredFcmToken: null,
               pushNotificationPermission: "unknown",
               deviceIdError: false,
+              registrationAttempts: 0,
             },
             networkStatus: {
               networkStatus: { connected: false, connectionType: "none" },
@@ -318,6 +321,7 @@ describe("usePushNotifications", () => {
               registeredFcmToken: null,
               pushNotificationPermission: "unknown",
               deviceIdError: false,
+              registrationAttempts: 0,
             },
             networkStatus: {
               networkStatus: { connected: false, connectionType: "none" },
@@ -338,6 +342,31 @@ describe("usePushNotifications", () => {
       );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
+    });
+
+    it("is a no-op when registrationAttempts has reached MAX_REGISTRATION_ATTEMPTS", async () => {
+      const { useSelector } = await import("react-redux");
+      const { MAX_REGISTRATION_ATTEMPTS } = await import("@/slices/pushNotificationSlice");
+      vi.mocked(useSelector).mockImplementation(
+        (selector: (s: unknown) => unknown) =>
+          selector({
+            pushNotification: {
+              registrationError: true,
+              registeredFcmToken: null,
+              pushNotificationPermission: "unknown",
+              deviceIdError: false,
+              registrationAttempts: MAX_REGISTRATION_ATTEMPTS,
+            },
+            networkStatus: {
+              networkStatus: { connected: false, connectionType: "none" },
+            },
+          }),
+      );
+
+      const { result } = renderHook(() => usePushNotifications());
+      await act(async () => { await result.current.retryRegistration(); });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 });

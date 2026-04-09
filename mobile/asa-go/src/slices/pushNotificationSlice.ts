@@ -6,11 +6,14 @@ import { Device } from "@capacitor/device";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Platform, registerToken } from "api/pushNotificationsAPI";
 
+export const MAX_REGISTRATION_ATTEMPTS = 5;
+
 export interface PushNotificationState {
   pushNotificationPermission: PermissionState | "unknown";
   registeredFcmToken: string | null;
   deviceIdError: boolean;
   registrationError: boolean;
+  registrationAttempts: number;
 }
 
 export const initialState: PushNotificationState = {
@@ -18,6 +21,7 @@ export const initialState: PushNotificationState = {
   registeredFcmToken: null,
   deviceIdError: false,
   registrationError: false,
+  registrationAttempts: 0,
 };
 
 const pushNotificationSlice = createSlice({
@@ -48,6 +52,12 @@ const pushNotificationSlice = createSlice({
     ) {
       state.registrationError = action.payload;
     },
+    incrementRegistrationAttempts(state: PushNotificationState) {
+      state.registrationAttempts += 1;
+    },
+    resetRegistrationAttempts(state: PushNotificationState) {
+      state.registrationAttempts = 0;
+    },
   },
 });
 
@@ -56,6 +66,8 @@ export const {
   setRegistrationError,
   setPushNotificationPermission,
   setRegisteredFcmToken,
+  incrementRegistrationAttempts,
+  resetRegistrationAttempts,
 } = pushNotificationSlice.actions;
 
 export default pushNotificationSlice.reducer;
@@ -87,9 +99,11 @@ export const registerDevice =
         ),
       );
       dispatch(setRegistrationError(false));
+      dispatch(resetRegistrationAttempts());
       dispatch(setRegisteredFcmToken(token));
     } catch (e) {
       console.error("Failed to register device:", e);
+      dispatch(incrementRegistrationAttempts());
       dispatch(setRegistrationError(true));
     }
   };
