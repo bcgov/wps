@@ -23,6 +23,21 @@ const NotificationErrorSnackbar = ({
     autoHideDuration={autoHideDuration}
     onClose={onClose}
     anchorOrigin={anchorOrigin}
+    sx={{
+      ...(anchorOrigin.vertical === "top"
+        ? {
+            top: {
+              xs: "calc(env(safe-area-inset-top) + 8px)",
+              sm: "calc(env(safe-area-inset-top) + 24px)",
+            },
+          }
+        : {}),
+      width: {
+        xs: "calc(100% - 16px)",
+        sm: "min(420px, calc(100% - 48px))",
+      },
+      maxWidth: "100%",
+    }}
   >
     <Alert onClose={onClose} severity={severity} variant="filled">
       {message}
