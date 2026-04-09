@@ -1,8 +1,8 @@
-import { ModelRunHour, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
+import ASADatePicker from '@/features/fba/components/ASADatePicker'
+import { CONTROL_BACKGROUND_COLOUR, ModelRunHour, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
 import { CalendarMonthOutlined, LayersOutlined, ShowChart } from '@mui/icons-material'
 import { FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { DatePicker } from '@mui/x-date-pickers'
 import { theme } from '@wps/ui/theme'
 import { DateTime } from 'luxon'
 
@@ -15,6 +15,8 @@ interface SidePanelProps {
   setModelRunHour: React.Dispatch<React.SetStateAction<ModelRunHour>>
 }
 
+const WX_WEATHER_TOOLKIT_STARTUP_DATE = DateTime.fromISO('2026-04-01')
+
 const SidePanel = ({
   model,
   setModel,
@@ -24,7 +26,7 @@ const SidePanel = ({
   setModelRunHour
 }: SidePanelProps) => {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '320px', p: 3, bgcolor: '#FCFDFE' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', width: '320px', p: 3, bgcolor: CONTROL_BACKGROUND_COLOUR }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
         <ShowChart sx={{ color: theme.palette.primary.main, fontSize: 28 }} />
         <Typography variant="h5" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
@@ -37,14 +39,14 @@ const SidePanel = ({
           Time
         </Typography>
       </Box>
-      <DatePicker
-        label="Model Run Date (UTC)"
-        value={modelRunDate}
-        onChange={newValue => {
-          if (newValue) setModelRunDate(newValue)
-        }}
+      <ASADatePicker
+        date={modelRunDate}
+        updateDate={setModelRunDate}
+        currentYearMinDate={WX_WEATHER_TOOLKIT_STARTUP_DATE}
+        currentYearMaxDate={DateTime.utc()}
+        historicalMinDate={WX_WEATHER_TOOLKIT_STARTUP_DATE}
+        historicalMaxDate={DateTime.utc()}
         sx={{ mb: 2, width: '100%' }}
-        maxDate={DateTime.utc()}
       />
       <FormControl fullWidth sx={{ mb: 4 }}>
         <InputLabel id="model-run-hour-label">Model Run Hour</InputLabel>

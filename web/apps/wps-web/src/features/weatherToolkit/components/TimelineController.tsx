@@ -1,6 +1,14 @@
 import React, { useMemo } from 'react'
 import { IconButton, Slider, Paper, Box } from '@mui/material'
 import { ChevronLeft, ChevronRight } from '@mui/icons-material'
+import { theme } from '@wps/ui/theme'
+import {
+  BORDER_AND_SHADOW_COLOUR,
+  BOX_SHADOW_COLOUR,
+  BUTTON_BORDER_COLOUR,
+  BUTTON_HOVER_BACKGROUND_COLOUR,
+  CONTROL_BACKGROUND_COLOUR
+} from '@/features/weatherToolkit/weatherToolkitTypes'
 
 interface TimelineControllerProps {
   currentHour: number
@@ -64,7 +72,7 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
         px: 5,
         gap: 6,
         zIndex: 30,
-        bgcolor: '#fcfdfe',
+        bgcolor: CONTROL_BACKGROUND_COLOUR,
         borderTop: '1px solid',
         borderColor: 'rgba(0,0,0,0.06)',
         boxShadow: '0 -4px 24px rgba(0,0,0,0.03)'
@@ -80,12 +88,16 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
             width: 44,
             height: 44,
             border: '1px solid',
-            borderColor: 'rgba(0,51,102,0.15)',
+            borderColor: BUTTON_BORDER_COLOUR,
             bgcolor: 'white',
             transition: 'all 0.2s',
-            '&:hover:not(:disabled)': { bgcolor: '#f0f4f8', borderColor: '#003366', transform: 'scale(1.05)' },
-            '&:disabled': { opacity: 0.5, borderColor: 'rgba(0,0,0,0.1)' },
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+            '&:hover:not(:disabled)': {
+              bgcolor: BUTTON_HOVER_BACKGROUND_COLOUR,
+              borderColor: theme.palette.primary.main,
+              transform: 'scale(1.05)'
+            },
+            '&:disabled': { opacity: 0.5, borderColor: BORDER_AND_SHADOW_COLOUR },
+            boxShadow: `0 2px 8px ${BOX_SHADOW_COLOUR}`
           }}
         >
           <ChevronLeft color="primary" />
@@ -100,12 +112,16 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
             width: 44,
             height: 44,
             border: '1px solid',
-            borderColor: 'rgba(0,51,102,0.15)',
+            borderColor: BUTTON_BORDER_COLOUR,
             bgcolor: 'white',
             transition: 'all 0.2s',
-            '&:hover:not(:disabled)': { bgcolor: '#f0f4f8', borderColor: '#003366', transform: 'scale(1.05)' },
-            '&:disabled': { opacity: 0.5, borderColor: 'rgba(0,0,0,0.1)' },
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+            '&:hover:not(:disabled)': {
+              bgcolor: BUTTON_HOVER_BACKGROUND_COLOUR,
+              borderColor: theme.palette.primary.main,
+              transform: 'scale(1.05)'
+            },
+            '&:disabled': { opacity: 0.5, borderColor: BORDER_AND_SHADOW_COLOUR },
+            boxShadow: `0 2px 8px ${BOX_SHADOW_COLOUR}`
           }}
         >
           <ChevronRight color="primary" />
@@ -122,7 +138,7 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
         valueLabelDisplay="auto"
         aria-label={`Timeline slider 0 to ${end} hours`}
         sx={{
-          color: '#003366',
+          color: theme.palette.primary.main,
           height: 8,
           '& .MuiSlider-thumb': {
             width: 26,
@@ -135,7 +151,7 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
             }
           },
           '& .MuiSlider-rail': {
-            backgroundColor: 'rgba(0,51,102,0.1)',
+            backgroundColor: BUTTON_BORDER_COLOUR,
             opacity: 1,
             height: 8,
             borderRadius: 4
@@ -143,7 +159,7 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
           '& .MuiSlider-track': {
             height: 8,
             borderRadius: 4,
-            background: 'linear-gradient(90deg, #003366 0%, #005599 100%)',
+            background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, #005599 100%)`,
             border: 'none'
           },
           '& .MuiSlider-mark': {

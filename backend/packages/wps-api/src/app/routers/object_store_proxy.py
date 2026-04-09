@@ -132,6 +132,15 @@ async def proxy_s3_object(
     Args:
         path: The path/key to the object file in the bucket
               Example: "sfms/calculated/forecast/2025-11-02/fwi20251102.tif"
+
+    Returns:
+        StreamingResponse containing the GeoTIFF file
+
+    Example:
+        GET /api/object-store-proxy/sfms/calculated/forecast/2025-11-02/fwi20251102.tif
+
+        This fetches from:
+        s3://{bucket}/sfms/calculated/forecast/2025-11-02/fwi20251102.tif
     """
     logger.info(f"Proxying {path}")
     return await _proxy(path, request.headers.get("range"), S3Client.stream_object)
@@ -153,6 +162,15 @@ async def proxy_wx_s3_object(
     Args:
         path: The path/key to the PNG file in the WX bucket
               Example: "wx_4panel_charts/20260407/model_gdps/15km/00/000/chart.png"
+
+    Returns:
+        StreamingResponse containing the PNG file
+
+    Example:
+        GET /api/wx-object-store-proxy/wx_4panel_charts/20260407/model_gdps/15km/00/000/chart.png
+
+        This fetches from:
+        s3://{bucket}/wx_4panel_charts/20260407/model_gdps/15km/00/000/chart.png
     """
     logger.info(f"Proxying WX object {path}")
     return await _proxy(path, None, S3Client.stream_wx_object)

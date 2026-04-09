@@ -18,7 +18,8 @@ import { DateTime } from 'luxon'
 import React from 'react'
 
 interface CustomDateTextFieldProps
-  extends UseDateFieldProps<DateTime, false>,
+  extends
+    UseDateFieldProps<DateTime, false>,
     BaseSingleInputFieldProps<DateTime | null, DateTime, FieldSection, false, DateValidationError> {
   date: DateTime | null
   updateDate: React.Dispatch<React.SetStateAction<DateTime>>
@@ -143,6 +144,7 @@ const ASADatePicker = ({
             disabled: disabled ?? false
           } as any
         }}
+        sx={{ ...other.sx }}
         value={date}
       />
     </LocalizationProvider>
