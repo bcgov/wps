@@ -101,8 +101,8 @@ async def trigger_notifications(
 
 
 async def handle_fcm_response(
-    session,
-    for_date,
+    session: AsyncSession,
+    for_date: date,
     placename_label: str,
     device_tokens: list[str],
     response: messaging.BatchResponse,
