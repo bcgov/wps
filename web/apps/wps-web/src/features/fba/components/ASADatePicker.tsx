@@ -122,7 +122,7 @@ const ASADatePicker = ({
       <DatePicker
         loading={isNil(date)}
         renderLoading={() => <CircularProgress />}
-        label="Date of Interest"
+        label={other.label ?? 'Date of Interest'}
         format="yyyy/MM/dd"
         maxDate={historicalMaxDate}
         minDate={historicalMinDate}

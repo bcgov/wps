@@ -7,7 +7,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import SidePanel from './SidePanel'
 import { ModelRunHour, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
 
-const MODEL_RUN_DATE = DateTime.fromISO('2024-06-01', { zone: 'utc' })
+vi.mock('@/features/fba/components/ASADatePicker', () => ({
+  default: ({ date, label }: { date: DateTime | null; label?: string }) => (
+    <input aria-label={label ?? 'Date of Interest'} defaultValue={date?.toISODate() ?? ''} readOnly />
+  )
+}))
+
+const MODEL_RUN_DATE = DateTime.fromISO('2026-04-15', { zone: 'utc' })
 
 const defaultProps = {
   model: ModelType.GDPS,
@@ -48,11 +54,15 @@ describe('SidePanel', () => {
   })
 
   describe('Model Run Date picker', () => {
-    it('renders the date picker with the current model run date', () => {
+    it('renders the date picker with label "Model Run Date (UTC)"', () => {
+      renderSidePanel()
+      expect(screen.getByLabelText(/model run date/i)).toBeInTheDocument()
+    })
+
+    it('passes the current modelRunDate to the date picker', () => {
       renderSidePanel()
       const input = screen.getByLabelText(/model run date/i) as HTMLInputElement
-      expect(input).toBeInTheDocument()
-      expect(input.value).toContain('2024')
+      expect(input.value).toContain('2026-04-15')
     })
   })
 

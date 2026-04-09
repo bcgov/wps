@@ -46,6 +46,7 @@ const SidePanel = ({
         currentYearMaxDate={DateTime.utc()}
         historicalMinDate={WX_WEATHER_TOOLKIT_STARTUP_DATE}
         historicalMaxDate={DateTime.utc()}
+        label="Model Run Date (UTC)"
         sx={{ mb: 2, width: '100%' }}
       />
       <FormControl fullWidth sx={{ mb: 4 }}>
