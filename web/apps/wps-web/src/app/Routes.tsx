@@ -111,14 +111,7 @@ const WPSRoutes: React.FunctionComponent = () => {
               </AuthWrapper>
             }
           />
-          <Route
-            path={WEATHER_TOOLKIT_ROUTE}
-            element={
-              <AuthWrapper>
-                <WeatherToolkitPage />
-              </AuthWrapper>
-            }
-          />
+          <Route path={WEATHER_TOOLKIT_ROUTE} element={<WeatherToolkitPage />} />
           <Route path="*" element={<NoMatchPage />} />
         </Routes>
       </Suspense>
