@@ -107,12 +107,13 @@ async def _proxy(path: str, byte_range: str | None, stream_fn) -> RangeStreaming
         return RangeStreamingResponse(generator, s3_resp, filename)
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
-        logger.error(f"S3 ClientError: {error_code} for {path}")
         if error_code == "NoSuchKey":
+            logger.info(f"S3 ClientError: {error_code} for {path}")
             raise HTTPException(status_code=404, detail=f"object not found: {path}")
         elif error_code in ("AccessDenied", "Forbidden", "403 Forbidden"):
             raise HTTPException(status_code=403, detail=f"Access denied to object: {path}")
         else:
+            logger.error(f"S3 ClientError: {error_code} for {path}")
             raise HTTPException(
                 status_code=502, detail=f"Error fetching object from object store: {error_code}"
             )
