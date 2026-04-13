@@ -39,7 +39,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.0",
     "@mui/material": "^6.4.0",
-    "@mui/system": "^6.4.0",
+    "@mui/system": "^9.0.0",
     "@mui/x-data-grid-pro": "^8.9.1",
     "@mui/x-date-pickers": "^7.26.0",
     "@mui/x-license-pro": "^6.10.2",
