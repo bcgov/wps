@@ -28,7 +28,7 @@ def test_public_psu_fire_centres_endpoint(mock_fetch_fire_centres, client: TestC
         FireCentre(id=2, name="Northwest Fire Centre"),
     ]
 
-    response = client.get("/api/asa-go/psu/fire-centres")
+    response = client.get("/api/asa-go/fire-centres")
 
     assert response.status_code == 200
     assert response.json() == {
