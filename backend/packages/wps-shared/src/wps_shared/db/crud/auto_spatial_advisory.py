@@ -35,6 +35,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.psu import FireCentre
 from wps_shared.run_type import RunType
+from wps_shared.schemas.auto_spatial_advisory import ZoneAdvisoryStatus
 from wps_shared.schemas.fba import FireShapeStatusDetail, HfiArea, HfiThreshold
 
 logger = logging.getLogger(__name__)
@@ -883,6 +884,26 @@ async def get_provincial_rollup(
     )
     result = await session.execute(stmt)
     return [FireShapeStatusDetail.model_validate(row) for row in result.mappings().all()]
+
+
+async def get_zones_with_advisories(
+    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
+) -> list[ZoneAdvisoryStatus]:
+    logger.info("gathering zones with advisories/warnings")
+    run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+    stmt = (
+        select(
+            AdvisoryZoneStatus.advisory_shape_id,
+            Shape.source_identifier,
+            Shape.placename_label,
+            advisory_status_case.label("status"),
+        )
+        .where(AdvisoryZoneStatus.run_parameters == run_parameter_id)
+        .where(advisory_status_case.isnot(None))
+        .join(Shape, Shape.id == AdvisoryZoneStatus.advisory_shape_id)
+    )
+    result = await session.execute(stmt)
+    return [ZoneAdvisoryStatus.model_validate(row) for row in result.mappings().all()]
 
 
 async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):

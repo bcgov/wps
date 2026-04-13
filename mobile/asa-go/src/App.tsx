@@ -25,6 +25,8 @@ import {
   selectNetworkStatus,
   selectRunParameters,
   selectAuthentication,
+  selectSettings,
+  selectPushNotification,
 } from "@/store";
 import { theme } from "@/theme";
 import { NavPanel } from "@/utils/constants";
@@ -41,9 +43,8 @@ import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { Capacitor } from "@capacitor/core";
-import { Platform, registerToken } from "@/api/pushNotificationsAPI";
-import { Device } from "@capacitor/device";
+import { useDeviceId } from "@/hooks/useDeviceId";
+import { initSubscriptions } from "@/slices/settingsSlice";
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
@@ -51,7 +52,7 @@ const App = () => {
   const isPortrait = useIsPortrait();
   const dispatch: AppDispatch = useDispatch();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
-  const { idir, isAuthenticated } = useSelector(selectAuthentication);
+  const { isAuthenticated } = useSelector(selectAuthentication);
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -67,10 +68,13 @@ const App = () => {
   const { fireCentres } = useSelector(selectFireCentres);
   const { networkStatus } = useSelector(selectNetworkStatus);
   const runParameters = useSelector(selectRunParameters);
+  const { registeredFcmToken } = useSelector(selectPushNotification);
+  const { subscriptionsInitialized } = useSelector(selectSettings);
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
-  const { initPushNotifications, token } = usePushNotifications();
+  const { initPushNotifications } = usePushNotifications();
+  const deviceId = useDeviceId();
 
   const selectedFireCentreName = selectedFireShape?.mof_fire_centre_name;
   const matchingFireCentre = selectedFireCentreName
@@ -98,23 +102,16 @@ const App = () => {
   }, [initPushNotifications, isAuthenticated]);
 
   useEffect(() => {
-    async function handleTokenChange(t: string) {
-      const deviceId = await Device.getId();
-      try {
-        await registerToken(
-          Capacitor.getPlatform() as Platform,
-          t,
-          deviceId?.identifier,
-          idir || null,
-        );
-      } catch (e) {
-        console.error("Failed to register push token", e);
-      }
-    }
-    if (!isNil(token)) {
-      handleTokenChange(token);
-    }
-  }, [token, idir]);
+    if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;
+    if (subscriptionsInitialized) return;
+    dispatch(initSubscriptions(deviceId));
+  }, [
+    deviceId,
+    networkStatus.connected,
+    registeredFcmToken,
+    subscriptionsInitialized,
+    dispatch,
+  ]);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status

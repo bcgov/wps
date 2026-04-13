@@ -419,6 +419,26 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.fuel_raster_name
+                - name: FCM_CREDS
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: fcm-creds
+                - name: WX_OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wx-object-store-user-id
+                - name: WX_OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wx-object-store-secret
+                - name: WX_OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wx-object-store-bucket
               ports:
                 - containerPort: 8080
                   protocol: TCP

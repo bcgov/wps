@@ -5,6 +5,7 @@ import { Preferences } from "@capacitor/preferences";
 import { act } from "@testing-library/react";
 import { DateTime } from "luxon";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
+import { getNotificationSettings } from "api/pushNotificationsAPI";
 import settingsSlice, {
   fetchFireCentreInfo,
   getFireCentreInfoFailed,
@@ -14,11 +15,11 @@ import settingsSlice, {
   initPinnedFireCentre,
   initSubscriptions,
   savePinnedFireCentre,
-  saveSubscriptions,
   setPinnedFireCentre,
   setSubscriptions,
   SettingsState,
 } from "./settingsSlice";
+import { getUpdatedSubscriptions } from "@/utils/subscriptionUtils";
 
 // Mock the @capacitor/preferences module
 vi.mock("@capacitor/preferences", () => ({
@@ -40,6 +41,14 @@ vi.mock("@/utils/storage", () => ({
 // Mock the API
 vi.mock("@/api/fbaAPI", () => ({
   getFireCentreInfo: vi.fn(),
+}));
+
+vi.mock("api/pushNotificationsAPI", () => ({
+  getNotificationSettings: vi.fn(),
+}));
+
+vi.mock("@/utils/retryWithBackoff", () => ({
+  retryWithBackoff: vi.fn((op: () => Promise<unknown>) => op()),
 }));
 
 describe("settingsSlice", () => {
@@ -191,6 +200,34 @@ describe("settingsSlice", () => {
         subscriptions: [],
       });
     });
+
+    it("setSubscriptions marks subscriptionsInitialized as true", () => {
+      const previousState = createSettingsState({
+        subscriptionsInitialized: false,
+      });
+
+      const nextState = settingsSlice(previousState, setSubscriptions([1, 2]));
+
+      expect(nextState.subscriptionsInitialized).toBe(true);
+    });
+  });
+
+  describe("getUpdatedSubscriptions", () => {
+    it("adds a zone ID that is not yet subscribed", () => {
+      expect(getUpdatedSubscriptions([1, 2], 3)).toEqual([1, 2, 3]);
+    });
+
+    it("removes a zone ID that is already subscribed", () => {
+      expect(getUpdatedSubscriptions([1, 2, 3], 2)).toEqual([1, 3]);
+    });
+
+    it("adds to an empty subscription list", () => {
+      expect(getUpdatedSubscriptions([], 5)).toEqual([5]);
+    });
+
+    it("removes the only subscription", () => {
+      expect(getUpdatedSubscriptions([5], 5)).toEqual([]);
+    });
   });
 
   describe("thunks", () => {
@@ -226,82 +263,6 @@ describe("settingsSlice", () => {
       });
     });
 
-    describe("initSubscriptions", () => {
-      it("should dispatch setSubscriptions when stored value exists", async () => {
-        const store = createTestStore();
-        (Preferences.get as Mock).mockResolvedValue({
-          value: JSON.stringify([1, 2, 3]),
-        });
-
-        await store.dispatch(initSubscriptions());
-
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [1, 2, 3],
-        });
-      });
-
-      it("should not dispatch setSubscriptions when no stored value", async () => {
-        const store = createTestStore();
-        (Preferences.get as Mock).mockResolvedValue({ value: null });
-
-        await store.dispatch(initSubscriptions());
-
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [],
-        });
-      });
-
-      it("should handle invalid JSON gracefully", async () => {
-        const store = createTestStore();
-        const consoleSpy = vi
-          .spyOn(console, "error")
-          .mockImplementation(() => {});
-        (Preferences.get as Mock).mockResolvedValue({
-          value: "invalid-json",
-        });
-
-        await store.dispatch(initSubscriptions());
-
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [],
-        });
-        expect(consoleSpy).toHaveBeenCalled();
-        consoleSpy.mockRestore();
-      });
-    });
-
-    describe("saveSubscriptions", () => {
-      it("should save subscriptions to preferences and update state", async () => {
-        const store = createTestStore();
-        (Preferences.set as Mock).mockResolvedValue(undefined);
-
-        await store.dispatch(saveSubscriptions([1, 2, 3]));
-
-        expect(Preferences.set).toHaveBeenCalledWith({
-          key: "asaGoSubscriptions",
-          value: "[1,2,3]",
-        });
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [1, 2, 3],
-        });
-      });
-
-      it("should save empty subscriptions array", async () => {
-        const store = createTestStore();
-        (Preferences.set as Mock).mockResolvedValue(undefined);
-
-        await store.dispatch(saveSubscriptions([]));
-
-        expect(Preferences.set).toHaveBeenCalledWith({
-          key: "asaGoSubscriptions",
-          value: "[]",
-        });
-        expectSettingsState(store.getState().settings, {
-          subscriptions: [],
-        });
-      });
-    });
-
     describe("savePinnedFireCentre", () => {
       it("should save fire centre to preferences and update state", async () => {
         const store = createTestStore();
@@ -332,6 +293,31 @@ describe("settingsSlice", () => {
         });
       });
     });
+    describe("initSubscriptions", () => {
+      it("dispatches setSubscriptions with parsed numbers on success", async () => {
+        (getNotificationSettings as Mock).mockResolvedValue(["1", "2", "3"]);
+        const store = createTestStore();
+
+        await store.dispatch(initSubscriptions("test-device-id"));
+
+        expect(store.getState().settings.subscriptions).toEqual([1, 2, 3]);
+        expect(store.getState().settings.subscriptionsInitialized).toBe(true);
+      });
+
+      it("does not update state when fetch fails", async () => {
+        (getNotificationSettings as Mock).mockRejectedValue(
+          new Error("network error"),
+        );
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        const store = createTestStore();
+
+        await store.dispatch(initSubscriptions("test-device-id"));
+
+        expect(store.getState().settings.subscriptions).toEqual([]);
+        expect(store.getState().settings.subscriptionsInitialized).toBe(false);
+      });
+    });
+
     describe("fetchFireCentreInfo", () => {
       beforeEach(() => {
         // Reset all mocks before each test
@@ -455,6 +441,25 @@ describe("settingsSlice", () => {
         const state = store.getState().settings;
         expect(state.loading).toBe(false);
         expect(state.fireCentreInfos).toEqual([mockFireCentreInfoA]);
+      });
+
+      it("should dispatch error when API call fails", async () => {
+        mockCacheWithNoData();
+        (getFireCentreInfo as Mock).mockRejectedValue(
+          new Error("server error"),
+        );
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        const store = createTestStore({
+          settings: { ...initialState },
+          networkStatus: {
+            networkStatus: { connected: true, connectionType: "wifi" },
+          },
+        });
+        await store.dispatch(fetchFireCentreInfo());
+        const state = store.getState().settings;
+        expect(state.loading).toBe(false);
+        expect(state.error).toMatch(/Error: server error/);
+        expect(state.fireCentreInfos).toEqual([]);
       });
     });
   });

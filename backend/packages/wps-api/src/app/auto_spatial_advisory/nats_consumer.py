@@ -4,25 +4,28 @@ Nats consumer setup for consuming processing messages
 
 import asyncio
 import json
-from datetime import datetime
 import logging
+from datetime import datetime
 from typing import List
-from starlette.background import BackgroundTasks
+
 import nats
-from nats.js.api import StreamConfig, RetentionPolicy
 from nats.aio.msg import Msg
+from nats.js.api import RetentionPolicy, StreamConfig
+from starlette.background import BackgroundTasks
+from wps_shared import config
+from wps_shared.utils.time import get_utc_datetime
+from wps_shared.wps_logging import configure_logging
+
 from app.auto_spatial_advisory.nats_config import (
-    server,
-    stream_name,
-    sfms_file_subject,
-    subjects,
     hfi_classify_durable_group,
+    server,
+    sfms_file_subject,
+    stream_name,
+    subjects,
 )
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.process_stats import process_sfms_hfi_stats
 from app.nats_publish import publish
-from wps_shared.wps_logging import configure_logging
-from wps_shared.utils.time import get_utc_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +105,13 @@ async def run():
 
 if __name__ == "__main__":
     configure_logging()
+    creds_json = config.get("FCM_CREDS")
+    if creds_json:
+        from firebase_admin import credentials, initialize_app
+
+        initialize_app(credentials.Certificate(json.loads(creds_json)))
+    else:
+        raise ValueError("FCM_CREDS is not set — Firebase cannot be initialized.")
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     asyncio.run(run())

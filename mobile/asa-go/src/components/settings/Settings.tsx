@@ -1,12 +1,19 @@
 import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
+import { checkPushNotificationPermission } from "@/slices/pushNotificationSlice";
 import {
-  checkPushNotificationPermission,
   fetchFireCentreInfo,
   initPinnedFireCentre,
-  initSubscriptions,
 } from "@/slices/settingsSlice";
-import { AppDispatch, selectNetworkStatus, selectSettings } from "@/store";
+import {
+  AppDispatch,
+  selectNetworkStatus,
+  selectNotificationSettingsDisabled,
+  selectNotificationSetupState,
+  selectPushNotification,
+  selectRegistrationFailed,
+  selectSettings,
+} from "@/store";
 import { theme } from "@/theme";
 import {
   Alert,
@@ -15,11 +22,13 @@ import {
   LinearProgress,
   Typography,
 } from "@mui/material";
+import NotificationErrorSnackbar from "@/components/NotificationErrorSnackbar";
 import { isNil } from "lodash";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useAppIsActive } from "@/hooks/useAppIsActive";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { NavPanel } from "@/utils/constants";
 
 interface SettingsProps {
@@ -30,32 +39,32 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const dispatch: AppDispatch = useDispatch();
   const isActive = useAppIsActive();
   const isVisible = activeTab === NavPanel.SETTINGS;
-
+  const { retryRegistration } = usePushNotifications();
   const { networkStatus } = useSelector(selectNetworkStatus);
-  const {
-    fireCentreInfos,
-    loading,
-    error,
-    pinnedFireCentre,
-    pushNotificationPermission,
-  } = useSelector(selectSettings);
+  const { fireCentreInfos, loading, error, pinnedFireCentre } =
+    useSelector(selectSettings);
+  const { deviceIdError } = useSelector(selectPushNotification);
+  const [registrationErrorDismissed, setRegistrationErrorDismissed] = useState(false);
+  const setupState = useSelector(selectNotificationSetupState);
+  const isRegistrationFailed = useSelector(selectRegistrationFailed);
+  const notificationSettingsDisabled = useSelector(
+    selectNotificationSettingsDisabled,
+  );
 
-  const notificationSettingsDisabled =
-    pushNotificationPermission !== "granted" || !networkStatus.connected;
-
-  // Load subscriptions and pinned fire centre from locally cached user preferences
+  // Load pinned fire centre from locally cached user preferences
   useEffect(() => {
     dispatch(initPinnedFireCentre());
-    dispatch(initSubscriptions());
   }, [dispatch]);
 
-  // Check push notification settings and fetch fire centre info on mount and when app is foregrounded
+  // Check push notification settings and fetch fire centre info on mount and when app is foregrounded.
+  // Also retry device registration in case the initial attempt failed (e.g. offline at startup).
   useEffect(() => {
     if (isVisible) {
       dispatch(fetchFireCentreInfo());
       dispatch(checkPushNotificationPermission());
+      void retryRegistration();
     }
-  }, [isActive, isVisible, dispatch]);
+  }, [isActive, isVisible, dispatch, retryRegistration]);
 
   // Derived ordered list of centres for display (memoized)
   const orderedFireCentres = useMemo<FireCentreInfo[]>(() => {
@@ -90,11 +99,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
   }, [fireCentreInfos, pinnedFireCentre]);
 
   const renderNotificationMessage = () => {
-    if (
-      !networkStatus.connected ||
-      pushNotificationPermission !== "granted" ||
-      error
-    ) {
+    if (notificationSettingsDisabled || error) {
       return;
     }
     return (
@@ -127,10 +132,25 @@ const Settings = ({ activeTab }: SettingsProps) => {
     );
   };
 
+  const renderDeviceIdErrorBanner = () => {
+    if (!deviceIdError) return;
+    return (
+      <Alert
+        severity="warning"
+        sx={{ mx: 1, my: 1 }}
+        data-testid="device-id-error-banner"
+      >
+        <AlertTitle>Device identification error</AlertTitle>
+        Unable to identify this device. Notification settings are unavailable.
+      </Alert>
+    );
+  };
+
+
   const renderPermissionBanner = () => {
     // Show a banner if permission is not explicitly granted in system settings and we're online.
     const shouldShow =
-      pushNotificationPermission !== "granted" && networkStatus.connected;
+      setupState === "permissionDenied" && networkStatus.connected;
     if (shouldShow) {
       return (
         <Alert
@@ -240,6 +260,14 @@ const Settings = ({ activeTab }: SettingsProps) => {
           </Typography>
         </Box>
       </Box>
+      <NotificationErrorSnackbar
+        open={isRegistrationFailed && networkStatus.connected && !registrationErrorDismissed}
+        onClose={() => setRegistrationErrorDismissed(true)}
+        message="Unable to register this device for notifications. Retrying automatically."
+        severity="warning"
+        autoHideDuration={null}
+      />
+      {renderDeviceIdErrorBanner()}
       {renderPermissionBanner()}
       {renderOfflineMessage()}
       {renderNotificationMessage()}

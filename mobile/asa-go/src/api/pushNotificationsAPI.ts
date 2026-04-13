@@ -29,3 +29,16 @@ export async function unregisterToken(
   const { data } = await axios.post(url, { token });
   return data;
 }
+
+export async function getNotificationSettings(deviceId: string): Promise<string[]> {
+  const { data } = await axios.get("device/notification-settings", { params: { device_id: deviceId } });
+  return data.fire_zone_source_ids;
+}
+
+export async function updateNotificationSettings(deviceId: string, fireZoneSourceIds: string[]): Promise<string[]> {
+  const { data } = await axios.post("device/notification-settings", {
+    device_id: deviceId,
+    fire_zone_source_ids: fireZoneSourceIds,
+  });
+  return data.fire_zone_source_ids;
+}

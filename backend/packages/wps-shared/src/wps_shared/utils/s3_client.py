@@ -210,19 +210,8 @@ class S3Client:
         return temp_geotiff
 
     @staticmethod
-    async def stream_object(key: str, byte_range: str = None, chunk_size: int = 65536):
-        """
-        Stream an object from S3 with automatic client lifecycle management.
-
-        This function manages the S3Client lifecycle internally - the client will be
-        closed when the generator is exhausted or an error occurs.
-
-        :param key: s3 key to stream
-        :param byte_range: Optional byte range string (e.g., "bytes=0-1023")
-        :param chunk_size: size of chunks to yield (default: 64KB)
-        :return: tuple of (async generator, response dict) - generator yields chunks, response contains metadata
-        """
-        s3_client = S3Client()
+    async def _stream(s3_client: "S3Client", key: str, byte_range: str = None, chunk_size: int = 65536):
+        """Internal streaming implementation. Manages s3_client lifecycle."""
         await s3_client.__aenter__()
 
         try:
@@ -249,3 +238,35 @@ class S3Client:
         except Exception:
             await s3_client.__aexit__(None, None, None)
             raise
+
+    @staticmethod
+    async def stream_object(key: str, byte_range: str = None, chunk_size: int = 65536):
+        """
+        Stream an object from S3 with automatic client lifecycle management.
+
+        :param key: s3 key to stream
+        :param byte_range: Optional byte range string (e.g., "bytes=0-1023")
+        :param chunk_size: size of chunks to yield (default: 64KB)
+        :return: tuple of (async generator, response dict)
+        """
+        return await S3Client._stream(S3Client(), key, byte_range, chunk_size)
+
+    @staticmethod
+    async def stream_wx_object(key: str, byte_range: str = None, chunk_size: int = 65536):
+        """
+        Stream an object from the WX object store (WX_OBJECT_STORE_* config).
+
+        :param key: s3 key to stream
+        :param byte_range: Optional byte range string (e.g., "bytes=0-1023")
+        :param chunk_size: size of chunks to yield (default: 64KB)
+        :return: tuple of (async generator, response dict)
+        """
+        client = S3Client(
+            server=config.get("OBJECT_STORE_SERVER"),
+            user_id=config.get("WX_OBJECT_STORE_USER_ID"),
+            secret_key=config.get("WX_OBJECT_STORE_SECRET"),
+            bucket=config.get("WX_OBJECT_STORE_BUCKET"),
+        )
+        return await S3Client._stream(client, key, byte_range, chunk_size)
+
+    

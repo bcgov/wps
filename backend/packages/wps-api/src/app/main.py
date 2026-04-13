@@ -88,7 +88,6 @@ if config.get("ENVIRONMENT") == "production":
         # We recommend adjusting this value in production.
         profiles_sample_rate=0.5,
     )
-
 # This is the api app.
 api = FastAPI(title="Predictive Services API", description=API_INFO, version="0.0.0")
 
@@ -140,6 +139,7 @@ api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
 api.include_router(psu.router, tags=["PSU"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
+api.include_router(object_store_proxy.wx_router, tags=["Object Store Proxy"])
 api.include_router(fcm.router, tags=["Firebase Cloud Messaging"])
 
 

@@ -9,9 +9,37 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+
 import { Provider } from "react-redux";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import SubscriptionAccordion from "@/components/settings/SubscriptionAccordion";
+vi.mock("@/hooks/useDeviceId", () => ({
+  useDeviceId: vi.fn().mockReturnValue("test-device-id"),
+}));
+
+vi.mock("api/pushNotificationsAPI", () => ({
+  getNotificationSettings: vi.fn(),
+  updateNotificationSettings: vi.fn(),
+  registerToken: vi.fn(),
+}));
+
+vi.mock("@/utils/retryWithBackoff", () => ({
+  retryWithBackoff: vi.fn((op: () => Promise<unknown>) => op()),
+}));
+
+import {
+  getNotificationSettings,
+  updateNotificationSettings,
+} from "api/pushNotificationsAPI";
+import { subscriptionUpdateErrorMessage } from "@/utils/constants";
+
+vi.mock("@capacitor/preferences", () => ({
+  Preferences: {
+    get: vi.fn().mockResolvedValue({ value: null }),
+    set: vi.fn().mockResolvedValue(undefined),
+    remove: vi.fn().mockResolvedValue(undefined),
+  },
+}));
 
 const FIRE_CENTRE_LABEL = "KAMLOOPS";
 const VERNON_ZONE_LABEL = "K4-Vernon";
@@ -78,6 +106,13 @@ const mockFireCentreInfos: FireCentreInfo[] = [
 ];
 
 describe("SubscriptionAccordion", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getNotificationSettings).mockResolvedValue([]);
+    vi.mocked(updateNotificationSettings).mockImplementation((_, subs) =>
+      Promise.resolve(subs),
+    );
+  });
   it("renders correctly with fire centre name", () => {
     const store = createTestStore();
 
@@ -150,7 +185,25 @@ describe("SubscriptionAccordion", () => {
   });
 
   it("expands and collapses when clicked", async () => {
-    const store = createTestStore();
+    const store = createTestStore({
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+      settings: {
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptions: [],
+        subscriptionsInitialized: true,
+      },
+    });
 
     render(
       <Provider store={store}>
@@ -198,10 +251,73 @@ describe("SubscriptionAccordion", () => {
     const accordion = getAccordionButton()?.closest(".MuiAccordion-root");
     expect(accordion).toHaveStyle({ opacity: "0.5", filter: "grayscale(1)" });
 
+    // Check that checkbox is disabled
+    const checkbox = within(accordion as HTMLElement).getByRole("checkbox");
+    expect(checkbox).toBeDisabled();
+
     // Check if the accordion is not interactive
     fireEvent.click(getAccordionButton() as HTMLElement);
     expect(getZoneLabel(LILLOOET_ZONE_LABEL)).not.toBeVisible();
     expect(getZoneLabel(VERNON_ZONE_LABEL)).not.toBeVisible();
+
+    // Check all toggle switches are disabled
+    const toggleSwitches = within(accordion as HTMLElement).getAllByTestId(
+      "loading-switch",
+    );
+
+    toggleSwitches.forEach((toggleSwitch) => {
+      // MUI switches are spans, so we gotta check for the class
+      expect(toggleSwitch).toHaveClass("Mui-disabled");
+    });
+  });
+
+  it("shows a snackbar error when a subscription toggle fails", async () => {
+    vi.mocked(updateNotificationSettings).mockRejectedValue(
+      new Error("server error"),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      settings: {
+        subscriptionsInitialized: true,
+        subscriptions: [],
+        pinnedFireCentre: null,
+        loading: false,
+        error: null,
+        fireCentreInfos: [mockFireCentreInfo],
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <SubscriptionAccordion
+          defaultExpanded={true}
+          disabled={false}
+          fireCentreInfo={mockFireCentreInfo}
+        />
+      </Provider>,
+    );
+
+    const firstZone = mockFireCentreInfo.fire_zone_units[0];
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByLabelText(`Toggle subscription for ${firstZone.name}`),
+      );
+    });
+
+    expect(updateNotificationSettings).toHaveBeenCalled();
+    expect(screen.getByText(subscriptionUpdateErrorMessage)).toBeInTheDocument();
+    expect(screen.queryAllByTestId("loading-switch-error")).toHaveLength(0);
   });
 
   it("displays filled push pin icon when fire centre is pinned", () => {
@@ -294,23 +410,41 @@ describe("SubscriptionAccordion", () => {
   });
 
   it("selects all fire zone units when 'All' checkbox is checked", async () => {
-    const store = createTestStore();
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptions: [],
+        subscriptionsInitialized: true,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
 
-    render(
-      <Provider store={store}>
-        <SubscriptionAccordion
-          disabled={false}
-          fireCentreInfo={mockFireCentreInfo}
-          defaultExpanded={true}
-        />
-      </Provider>,
+    await act(async () =>
+      render(
+        <Provider store={store}>
+          <SubscriptionAccordion
+            disabled={false}
+            fireCentreInfo={mockFireCentreInfo}
+            defaultExpanded={true}
+          />
+        </Provider>,
+      ),
     );
 
-    // Click the "All" checkbox to select all
-    const allCheckbox = getAllCheckbox("Kamloops Fire Centre");
-    fireEvent.click(allCheckbox);
+    fireEvent.click(getAllCheckbox("Kamloops Fire Centre"));
 
-    // Check that all fire zone units are now subscribed
     await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual(
         KAMLOOPS_FIRE_ZONE_IDS,
@@ -323,24 +457,37 @@ describe("SubscriptionAccordion", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         subscriptions: KAMLOOPS_FIRE_ZONE_IDS,
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptionsInitialized: true,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
       },
     });
 
-    render(
-      <Provider store={store}>
-        <SubscriptionAccordion
-          disabled={false}
-          fireCentreInfo={mockFireCentreInfo}
-          defaultExpanded={true}
-        />
-      </Provider>,
+    await act(async () =>
+      render(
+        <Provider store={store}>
+          <SubscriptionAccordion
+            disabled={false}
+            fireCentreInfo={mockFireCentreInfo}
+            defaultExpanded={true}
+          />
+        </Provider>,
+      ),
     );
 
-    // Click the "All" checkbox to deselect all
-    const allCheckbox = getAllCheckbox("Kamloops Fire Centre");
-    fireEvent.click(allCheckbox);
+    fireEvent.click(getAllCheckbox("Kamloops Fire Centre"));
 
-    // Check that all fire zone units are now unsubscribed
     await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([]);
     });
@@ -351,6 +498,11 @@ describe("SubscriptionAccordion", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         subscriptions: [mockFireCentreInfo.fire_zone_units[0].id],
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptionsInitialized: true,
       },
     });
 
@@ -424,14 +576,24 @@ describe("SubscriptionAccordion", () => {
 
   it("checkbox does not impact fire zone unit ids that are not related to the current fire centre", async () => {
     const initialSubscriptions = [100, 200];
+
     const store = createTestStore({
       settings: {
         loading: false,
         error: null,
         fireCentreInfos: [],
         pinnedFireCentre: null,
-        pushNotificationPermission: "unknown",
         subscriptions: initialSubscriptions,
+        subscriptionsInitialized: true,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
       },
     });
 
@@ -475,6 +637,54 @@ describe("SubscriptionAccordion", () => {
     expect(subs4).not.toContain(mockFireCentreInfo.fire_zone_units[1].id);
   });
 
+  it("shows error snackbar when subscription update fails", async () => {
+    vi.mocked(updateNotificationSettings).mockRejectedValue(
+      new Error("server error"),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        loading: false,
+        error: null,
+        fireCentreInfos: [],
+        pinnedFireCentre: null,
+        subscriptions: [],
+        subscriptionsInitialized: true,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    await act(async () =>
+      render(
+        <Provider store={store}>
+          <SubscriptionAccordion
+            disabled={false}
+            fireCentreInfo={mockFireCentreInfo}
+            defaultExpanded={true}
+          />
+        </Provider>,
+      ),
+    );
+
+    fireEvent.click(
+      screen.getByLabelText("Toggle subscription for K4-Vernon Zone (Vernon)"),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to update/i)).toBeInTheDocument();
+    });
+  });
+
   it("All checkbox on accordion works independently", async () => {
     const store = createTestStore({
       settings: {
@@ -482,6 +692,15 @@ describe("SubscriptionAccordion", () => {
         fireCentreInfos: mockFireCentreInfos,
         pinnedFireCentre: null,
         subscriptions: [3, 4],
+        loading: false,
+        error: null,
+        subscriptionsInitialized: true,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted" as const,
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
