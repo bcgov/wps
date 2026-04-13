@@ -30,8 +30,6 @@ export const selectTPIStats = (state: RootState) => state.data.tpiStats;
 export const selectHFIStats = (state: RootState) => state.data.hfiStats;
 export const selectSettings = (state: RootState) => state.settings;
 export const selectPushNotification = (state: RootState) => state.pushNotification;
-export const selectPendingNotificationData = (state: RootState) =>
-  state.pushNotification.pendingNotificationData;
 
 export type NotificationSetupState =
   | "permissionDenied"

@@ -1,5 +1,4 @@
 import { AppThunk } from "@/store";
-import { PushNotificationData } from "@/types/asaGoTypes";
 import { retryWithBackoff } from "@/utils/retryWithBackoff";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { Capacitor, PermissionState } from "@capacitor/core";
@@ -15,7 +14,6 @@ export interface PushNotificationState {
   deviceIdError: boolean;
   registrationError: boolean;
   registrationAttempts: number;
-  pendingNotificationData: PushNotificationData | null;
 }
 
 export const initialState: PushNotificationState = {
@@ -24,7 +22,6 @@ export const initialState: PushNotificationState = {
   deviceIdError: false,
   registrationError: false,
   registrationAttempts: 0,
-  pendingNotificationData: null,
 };
 
 const pushNotificationSlice = createSlice({
@@ -61,15 +58,6 @@ const pushNotificationSlice = createSlice({
     resetRegistrationAttempts(state: PushNotificationState) {
       state.registrationAttempts = 0;
     },
-    setPendingNotificationData(
-      state: PushNotificationState,
-      action: PayloadAction<PushNotificationData>,
-    ) {
-      state.pendingNotificationData = action.payload;
-    },
-    clearPendingNotificationData(state: PushNotificationState) {
-      state.pendingNotificationData = null;
-    },
   },
 });
 
@@ -80,8 +68,6 @@ export const {
   setRegisteredFcmToken,
   incrementRegistrationAttempts,
   resetRegistrationAttempts,
-  setPendingNotificationData,
-  clearPendingNotificationData,
 } = pushNotificationSlice.actions;
 
 export default pushNotificationSlice.reducer;

@@ -19,9 +19,7 @@ import {
   registerDevice,
   resetRegistrationAttempts,
   setRegistrationError,
-  setPendingNotificationData,
 } from "@/slices/pushNotificationSlice";
-import { PushNotificationData } from "@/types/asaGoTypes";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
 
 const ANDROID_CHANNEL = {
@@ -80,12 +78,7 @@ export function usePushNotifications() {
       const actionHandle = await FirebaseMessaging.addListener(
         "notificationActionPerformed",
         (evt: NotificationActionPerformedEvent) => {
-          const data = evt?.notification?.data as
-            | PushNotificationData
-            | undefined;
-          if (data) {
-            dispatch(setPendingNotificationData(data));
-          }
+          if (evt) console.log(evt.notification.body);
         },
       );
 

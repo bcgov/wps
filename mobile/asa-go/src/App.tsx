@@ -27,8 +27,6 @@ import {
   selectAuthentication,
   selectSettings,
   selectPushNotification,
-  selectProvincialSummaries,
-  selectPendingNotificationData,
 } from "@/store";
 import { theme } from "@/theme";
 import { NavPanel } from "@/utils/constants";
@@ -47,7 +45,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useDeviceId } from "@/hooks/useDeviceId";
 import { initSubscriptions } from "@/slices/settingsSlice";
-import { clearPendingNotificationData } from "@/slices/pushNotificationSlice";
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
@@ -73,8 +70,6 @@ const App = () => {
   const runParameters = useSelector(selectRunParameters);
   const { registeredFcmToken } = useSelector(selectPushNotification);
   const { subscriptionsInitialized } = useSelector(selectSettings);
-  const provincialSummaries = useSelector(selectProvincialSummaries);
-  const pendingNotificationData = useSelector(selectPendingNotificationData);
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
@@ -188,48 +183,6 @@ const App = () => {
       dispatch(fetchAndCacheData());
     }
   }, [runParameter, dispatch]);
-
-  useEffect(() => {
-    if (
-      !pendingNotificationData?.advisory_date ||
-      !pendingNotificationData?.fire_centre_id ||
-      !pendingNotificationData?.fire_zone_unit
-    )
-      return;
-
-    // Reacting to an external system event (push notification tap); setState calls here are intentional.
-    const advisoryDate = DateTime.fromISO(
-      pendingNotificationData.advisory_date,
-    );
-    const notificationDateKey = advisoryDate.toISODate();
-    const todayKey = today.toISODate();
-
-    // Only process notifications whose date matches today
-    if (!notificationDateKey || notificationDateKey !== todayKey) return;
-
-    const matchingCentre = fireCentres.find(
-      (fc) => fc.id === Number(pendingNotificationData.fire_centre_id),
-    );
-
-    const summaries = provincialSummaries?.[notificationDateKey]?.data;
-    const matchingShape = summaries?.find(
-      (s) => s.fire_shape_id === Number(pendingNotificationData.fire_zone_unit),
-    );
-
-    // Only update state when all three values are resolved
-    if (!matchingCentre || !matchingShape) return;
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDateOfInterest(advisoryDate);
-    setFireCentre(matchingCentre);
-    setSelectedFireShape({
-      fire_shape_id: matchingShape.fire_shape_id,
-      mof_fire_zone_name: matchingShape.fire_shape_name,
-      mof_fire_centre_name: matchingShape.fire_centre_name,
-    });
-    setTab(NavPanel.ADVISORY);
-    dispatch(clearPendingNotificationData());
-  }, [pendingNotificationData, fireCentres, provincialSummaries, dispatch]);
 
   // start/stop watching location based on tab and app state
   useEffect(() => {
