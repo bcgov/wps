@@ -32,7 +32,6 @@ class ManualSFMS(BaseModel):
 
 class ZoneAdvisoryStatus(BaseModel):
     advisory_shape_id: int
-    fire_centre_id: int
     source_identifier: str
     placename_label: str | None
     status: str

@@ -25,20 +25,11 @@ def build_notification_title(zone_with_advisory: ZoneAdvisoryStatus):
     return f"Fire Behaviour Advisory, {zone}"
 
 
-def build_notification_data(zone_with_advisory: ZoneAdvisoryStatus, for_date: date) -> dict:
-    return {
-        "advisory_date": for_date.isoformat(),
-        "fire_centre_id": str(zone_with_advisory.fire_centre_id),
-        "fire_zone_unit": str(zone_with_advisory.source_identifier),
-    }
-
-
 def build_fcm_message(
     for_date: date, zone_with_advisory: ZoneAdvisoryStatus, device_tokens: list[str]
 ):
     title = build_notification_title(zone_with_advisory)
     content = build_notification_content(zone_with_advisory, for_date)
-    data = build_notification_data(zone_with_advisory, for_date)
     tag = f"advisory-{zone_with_advisory.source_identifier}"
     ttl = timedelta(days=2)
     apns_expiration = str(int((datetime.now(timezone.utc) + ttl).timestamp()))
@@ -51,7 +42,6 @@ def build_fcm_message(
             headers={"apns-expiration": apns_expiration},
             payload=messaging.APNSPayload(aps=messaging.Aps(thread_id=tag)),
         ),
-        data=data,
         tokens=device_tokens,
     )
 
