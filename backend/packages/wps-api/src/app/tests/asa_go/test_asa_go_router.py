@@ -55,7 +55,7 @@ def test_public_latest_sfms_run_datetime_endpoint(mock_latest_run_parameter, cli
         "app.routers.asa_go.get_vancouver_now",
         return_value=datetime(2025, 8, 26, 12, tzinfo=timezone.utc),
     ):
-        response = client.get("/api/asa-go/fba/latest-sfms-run-datetime/2025-08-26")
+        response = client.get("/api/asa-go/latest-sfms-run-datetime/2025-08-26")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -75,7 +75,7 @@ def test_public_latest_sfms_run_datetime_rejects_past_dates(
         "app.routers.asa_go.get_vancouver_now",
         return_value=datetime(2025, 8, 26, 12, tzinfo=timezone.utc),
     ):
-        response = client.get("/api/asa-go/fba/latest-sfms-run-datetime/2025-08-25")
+        response = client.get("/api/asa-go/latest-sfms-run-datetime/2025-08-25")
 
     assert response.status_code == 422
     assert response.json()["detail"] == (
@@ -92,7 +92,7 @@ def test_public_latest_sfms_run_datetime_range_rejects_past_dates(
         "app.routers.asa_go.get_vancouver_now",
         return_value=datetime(2025, 8, 26, 12, tzinfo=timezone.utc),
     ):
-        response = client.get("/api/asa-go/fba/latest-sfms-run-parameters/2025-08-25/2025-08-26")
+        response = client.get("/api/asa-go/latest-sfms-run-parameters/2025-08-25/2025-08-26")
 
     assert response.status_code == 422
     assert response.json()["detail"] == (
