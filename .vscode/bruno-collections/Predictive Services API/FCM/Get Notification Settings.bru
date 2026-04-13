@@ -1,0 +1,19 @@
+meta {
+  name: Get Notification Settings
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/device/notification-settings?device_id=9242842270074025
+  body: none
+  auth: bearer
+}
+
+params:query {
+  device_id: 9242842270074025
+}
+
+auth:bearer {
+  token: {{AUTH_TOKEN}}
+}

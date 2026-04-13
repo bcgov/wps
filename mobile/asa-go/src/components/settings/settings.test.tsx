@@ -5,6 +5,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import Settings from "./Settings";
 import settingsReducer from "@/slices/settingsSlice";
 import networkStatusReducer from "@/slices/networkStatusSlice";
+import authenticationReducer from "@/slices/authenticationSlice";
+import pushNotificationReducer from "@/slices/pushNotificationSlice";
 import { FireCentreInfo, getFireCentreInfo } from "@/api/fbaAPI";
 import * as Storage from "@/utils/storage";
 import { NavPanel } from "@/utils/constants";
@@ -22,8 +24,12 @@ vi.mock("@/api/fbaAPI", async () => {
 vi.mock("@capacitor-firebase/messaging", () => {
   const mockCheckPermissions = vi.fn().mockResolvedValue({ receive: "denied" });
   return {
+    Importance: { High: 4 },
     FirebaseMessaging: {
       checkPermissions: mockCheckPermissions,
+      getToken: vi.fn().mockResolvedValue({ token: "test-token" }),
+      addListener: vi.fn().mockResolvedValue({ remove: vi.fn() }),
+      removeAllListeners: vi.fn(),
     },
   };
 });
@@ -63,6 +69,8 @@ const createTestStore = (initialState = {}) => {
     reducer: {
       settings: settingsReducer,
       networkStatus: networkStatusReducer,
+      authentication: authenticationReducer,
+      pushNotification: pushNotificationReducer,
     },
     preloadedState: initialState,
   });
@@ -183,6 +191,13 @@ describe("Settings", () => {
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
         fireCentreInfos: mockFireCentreInfos,
+        subscriptionsInitialized: true,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: "test-token",
+        deviceIdError: false,
+        registrationError: false,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -312,6 +327,91 @@ describe("Settings", () => {
       expect(fireCentreElements[1]).toHaveTextContent(/PRINCE GEORGE/i);
     });
   });
+  it("disables accordions when awaiting FCM token", async () => {
+    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({ receive: "granted" });
+
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+        fireCentreInfos: mockFireCentreInfos,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: null,
+        deviceIdError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      const accordion = screen.getAllByRole("heading")[0].closest(".MuiAccordion-root");
+      expect(accordion).toHaveStyle({ opacity: "0.5" });
+    });
+  });
+
+  it("shows device ID error banner when deviceIdError is true", async () => {
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+      },
+      pushNotification: {
+        pushNotificationPermission: "unknown",
+        registeredFcmToken: null,
+        deviceIdError: true,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("device-id-error-banner")).toBeInTheDocument();
+    });
+  });
+
+  it("does not show device ID error banner when deviceIdError is false", async () => {
+    const store = createTestStore({
+      settings: {
+        ...settingsReducer(undefined, { type: "unknown" }),
+      },
+      pushNotification: {
+        pushNotificationPermission: "unknown",
+        registeredFcmToken: null,
+        deviceIdError: false,
+      },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: "wifi" },
+      },
+    });
+
+    render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("device-id-error-banner"),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   it("sorts fire zone units alphabetically", async () => {
     // Mock permission check to return granted immediately
     const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");

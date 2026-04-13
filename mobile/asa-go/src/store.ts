@@ -1,5 +1,10 @@
 import { rootReducer } from "@/rootReducer";
-import { Action, configureStore, ThunkAction } from "@reduxjs/toolkit";
+import {
+  Action,
+  configureStore,
+  createSelector,
+  ThunkAction,
+} from "@reduxjs/toolkit";
 
 export const store = configureStore({
   reducer: rootReducer,
@@ -24,3 +29,41 @@ export const selectProvincialSummaries = (state: RootState) =>
 export const selectTPIStats = (state: RootState) => state.data.tpiStats;
 export const selectHFIStats = (state: RootState) => state.data.hfiStats;
 export const selectSettings = (state: RootState) => state.settings;
+export const selectPushNotification = (state: RootState) => state.pushNotification;
+
+export type NotificationSetupState =
+  | "permissionDenied"
+  | "unregistered"
+  | "registrationFailed"
+  | "ready";
+
+export const selectNotificationSetupState = createSelector(
+  selectPushNotification,
+  ({
+    pushNotificationPermission,
+    registeredFcmToken,
+    registrationError,
+  }): NotificationSetupState => {
+    if (pushNotificationPermission !== "granted") {
+      return "permissionDenied";
+    }
+    if (!registeredFcmToken) {
+      return registrationError ? "registrationFailed" : "unregistered";
+    }
+    return "ready";
+  },
+);
+
+export const selectRegistrationFailed = createSelector(
+  selectNotificationSetupState,
+  (setupState) => setupState === "registrationFailed",
+);
+
+export const selectNotificationSettingsDisabled = createSelector(
+  selectNotificationSetupState,
+  selectNetworkStatus,
+  selectSettings,
+  (setupState, { networkStatus }, { subscriptionsInitialized }) =>
+    setupState !== "ready" || !networkStatus.connected || !subscriptionsInitialized,
+);
+

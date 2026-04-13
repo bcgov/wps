@@ -6,12 +6,12 @@ import {
   readFromFilesystem,
   writeToFileSystem,
 } from "@/utils/storage";
-import { FirebaseMessaging } from "@capacitor-firebase/messaging";
-import { PermissionState } from "@capacitor/core";
+import { retryWithBackoff } from "@/utils/retryWithBackoff";
 import { Filesystem } from "@capacitor/filesystem";
 import { Preferences } from "@capacitor/preferences";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { FireCentreInfo, getFireCentreInfo } from "api/fbaAPI";
+import { getNotificationSettings } from "api/pushNotificationsAPI";
 import { isNil, isNull } from "lodash";
 import { DateTime } from "luxon";
 
@@ -20,8 +20,8 @@ export interface SettingsState {
   error: string | null;
   fireCentreInfos: FireCentreInfo[];
   pinnedFireCentre: string | null;
-  pushNotificationPermission: PermissionState | "unknown";
   subscriptions: number[];
+  subscriptionsInitialized: boolean;
 }
 
 export const initialState: SettingsState = {
@@ -29,12 +29,11 @@ export const initialState: SettingsState = {
   error: null,
   fireCentreInfos: [],
   pinnedFireCentre: null,
-  pushNotificationPermission: "unknown",
   subscriptions: [],
+  subscriptionsInitialized: false,
 };
 
 const PINNED_FIRE_CENTRE_KEY = "asaGoPinnedFireCentre";
-const SUBSCRIPTIONS_KEY = "asaGoSubscriptions";
 
 const settingsSlice = createSlice({
   name: "settings",
@@ -66,14 +65,9 @@ const settingsSlice = createSlice({
     ) {
       state.pinnedFireCentre = action.payload;
     },
-    setPushNotificationPermission(
-      state: SettingsState,
-      action: PayloadAction<PermissionState | "unknown">,
-    ) {
-      state.pushNotificationPermission = action.payload;
-    },
     setSubscriptions(state: SettingsState, action: PayloadAction<number[]>) {
       state.subscriptions = action.payload;
+      state.subscriptionsInitialized = true;
     },
   },
 });
@@ -83,7 +77,6 @@ export const {
   getFireCentreInfoFailed,
   getFireCentreInfoSuccess,
   setPinnedFireCentre,
-  setPushNotificationPermission,
   setSubscriptions,
 } = settingsSlice.actions;
 
@@ -99,52 +92,17 @@ export const initPinnedFireCentre = (): AppThunk => async (dispatch) => {
   }
 };
 
-export const initSubscriptions = (): AppThunk => async (dispatch) => {
-  const result = await Preferences.get({
-    key: SUBSCRIPTIONS_KEY,
-  });
-  try {
-    if (result.value) {
-      const subs = JSON.parse(result.value);
-      if (subs && Array.isArray(subs)) {
-        dispatch(setSubscriptions(subs));
-      }
-    }
-  } catch (e) {
-    console.error(
-      `An error occurred when populating notification subscriptions: ${e}`,
-    );
-  }
-};
-
-export const saveSubscriptions =
-  (subs: number[]): AppThunk =>
+export const initSubscriptions =
+  (deviceId: string): AppThunk =>
   async (dispatch) => {
-    await Preferences.set({
-      key: SUBSCRIPTIONS_KEY,
-      value: JSON.stringify(subs),
-    });
-    dispatch(setSubscriptions(subs));
-  };
-
-export const getUpdatedSubscriptions = (
-  subscriptions: number[],
-  fireZoneUnitId: number,
-) => {
-  if (subscriptions.includes(fireZoneUnitId)) {
-    return subscriptions.filter((sub) => sub !== fireZoneUnitId);
-  }
-
-  return [...subscriptions, fireZoneUnitId];
-};
-
-export const toggleSubscription =
-  (fireZoneUnitId: number): AppThunk =>
-  async (dispatch, getState) => {
-    const { subscriptions } = getState().settings;
-    dispatch(
-      saveSubscriptions(getUpdatedSubscriptions(subscriptions, fireZoneUnitId)),
-    );
+    try {
+      const ids = await retryWithBackoff(() =>
+        getNotificationSettings(deviceId),
+      );
+      dispatch(setSubscriptions(ids.map(Number)));
+    } catch (e) {
+      console.error(`Failed to fetch notification settings: ${e}`);
+    }
   };
 
 // Update @capacitor/preferences and redux state with pinned fire centre
@@ -209,16 +167,5 @@ export const fetchFireCentreInfo =
           "Unable to refresh fire centre info data. Data may be stale.",
         ),
       );
-    }
-  };
-
-export const checkPushNotificationPermission =
-  (): AppThunk => async (dispatch) => {
-    try {
-      const permissions = await FirebaseMessaging.checkPermissions();
-      dispatch(setPushNotificationPermission(permissions.receive ?? "unknown"));
-    } catch (e) {
-      console.error(e);
-      dispatch(setPushNotificationPermission("unknown"));
     }
   };

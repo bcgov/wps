@@ -28,6 +28,25 @@ async def update_device_token_is_active(session: AsyncSession, token: str, is_ac
     return True
 
 
+async def update_device_tokens_are_active(
+    session: AsyncSession, tokens: list[str], is_active: bool
+) -> int:
+    if not tokens:
+        return 0
+    stmt = (
+        update(DeviceToken)
+        .where(DeviceToken.token.in_(tokens))
+        .values(
+            is_active=is_active,
+            updated_at=get_utc_now(),
+        )
+        # No need to synchronize the session: set-based UPDATE + no ORM objects loaded.
+        .execution_options(synchronize_session=False)
+    )
+    result = await session.execute(stmt)
+    return result.rowcount or 0
+
+
 async def deactivate_device_tokens(session: AsyncSession, tokens: list[str]) -> int:
     if not tokens:
         return 0

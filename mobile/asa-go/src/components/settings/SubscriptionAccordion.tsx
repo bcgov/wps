@@ -1,11 +1,14 @@
 import { FireCentreInfo } from "@/api/fbaAPI";
 import SubscriptionOption from "@/components/settings/SubscriptionOption";
+import { useNotificationSettings } from "@/hooks/useNotificationSettings";
+import { savePinnedFireCentre } from "@/slices/settingsSlice";
 import {
-  savePinnedFireCentre,
-  saveSubscriptions,
-} from "@/slices/settingsSlice";
-import { AppDispatch, selectSettings } from "@/store";
+  AppDispatch,
+  selectNotificationSettingsDisabled,
+  selectSettings,
+} from "@/store";
 import { theme } from "@/theme";
+import { subscriptionUpdateErrorMessage } from "@/utils/constants";
 import { nameFormatter } from "@/utils/stringUtils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import PushPinIcon from "@mui/icons-material/PushPin";
@@ -22,6 +25,7 @@ import {
   List,
   Typography,
 } from "@mui/material";
+import NotificationErrorSnackbar from "@/components/NotificationErrorSnackbar";
 import { useCallback, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -37,8 +41,19 @@ const SubscriptionAccordion = ({
   fireCentreInfo,
 }: SubscriptionAccordionProps) => {
   const dispatch: AppDispatch = useDispatch();
+  const {
+    updateSubscriptions,
+    toggleSubscription,
+    updateError,
+    clearUpdateError,
+  } = useNotificationSettings();
   const { pinnedFireCentre, subscriptions } = useSelector(selectSettings);
+  const notificationSettingsDisabled = useSelector(
+    selectNotificationSettingsDisabled,
+  );
+
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const [pendingZoneId, setPendingZoneId] = useState<number | null>(null);
 
   // All fire zone unit ids in this fire centre.
   const allFireZoneUnitIds = useMemo(() => {
@@ -56,7 +71,9 @@ const SubscriptionAccordion = ({
   // Handle expanding/collapsing the accordion.
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newExpanded: boolean) => {
-      if (disabled) return; // block expansion when disabled
+      if (disabled) {
+        return; // block expansion when disabled
+      }
       setExpanded(newExpanded);
     },
     [disabled],
@@ -83,6 +100,12 @@ const SubscriptionAccordion = ({
   };
 
   // Add/remove subscription to all fire zone units in this fire centre.
+  const handleToggle = async (id: number) => {
+    setPendingZoneId(id);
+    await toggleSubscription(id);
+    setPendingZoneId(null);
+  };
+
   const toggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
     // Remove all of this fire centre's fire zone unit ids to avoid adding duplicates in the following if block.
@@ -94,7 +117,7 @@ const SubscriptionAccordion = ({
       newSubs.push(...allFireZoneUnitIds);
     }
 
-    dispatch(saveSubscriptions(newSubs));
+    updateSubscriptions(newSubs);
   };
 
   const disabledStyles = disabled
@@ -113,9 +136,15 @@ const SubscriptionAccordion = ({
       }}
       aria-disabled={disabled ? true : undefined}
     >
+      <NotificationErrorSnackbar
+        open={updateError}
+        onClose={clearUpdateError}
+        message={subscriptionUpdateErrorMessage}
+      />
       <Accordion
         aria-label={`accordion-${fireCentreInfo.fire_centre_name}`}
         defaultExpanded={defaultExpanded}
+        disabled={notificationSettingsDisabled}
         disableGutters
         expanded={expanded}
         onChange={handleChange}
@@ -157,6 +186,7 @@ const SubscriptionAccordion = ({
               <FormControlLabel
                 control={
                   <Checkbox
+                    disabled={disabled}
                     aria-label={`checkbox-${fireCentreInfo.fire_centre_name}`}
                     checked={allSelected()}
                     indeterminate={
@@ -173,12 +203,15 @@ const SubscriptionAccordion = ({
           </Box>
         </AccordionSummary>
         <AccordionDetails>
-          <List>
+          <List data-testid="switch-options">
             {fireCentreInfo.fire_zone_units.map((fireZoneUnit) => {
               return (
                 <SubscriptionOption
                   key={fireZoneUnit.id}
                   fireZoneUnit={fireZoneUnit}
+                  onToggle={handleToggle}
+                  disabled={notificationSettingsDisabled}
+                  loading={pendingZoneId === fireZoneUnit.id}
                 />
               );
             })}

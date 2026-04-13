@@ -1,10 +1,11 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import App from "./App";
 import { Provider } from "react-redux";
 import { createTestStore } from "./testUtils";
 import { NavPanel } from "@/utils/constants";
 import { useMediaQuery } from "@mui/material";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 // Mock MUI useMediaQuery to control screen size detection
 vi.mock("@mui/material", async () => {
@@ -98,7 +99,36 @@ vi.mock("@/hooks/useRunParameterForDate", () => ({
   useRunParameterForDate: () => undefined,
 }));
 
+vi.mock("@/hooks/usePushNotifications", () => ({
+  usePushNotifications: vi.fn().mockReturnValue({
+    initPushNotifications: vi.fn().mockResolvedValue(undefined),
+    retryRegistration: vi.fn().mockResolvedValue(undefined),
+    currentFcmToken: null,
+  }),
+}));
+
+vi.mock("@capacitor/device", () => ({
+  Device: { getId: vi.fn().mockResolvedValue({ identifier: "device-id" }) },
+}));
+
+vi.mock("@capacitor/core", () => ({
+  Capacitor: { getPlatform: () => "ios" },
+}));
+
+vi.mock("@/api/pushNotificationsAPI", () => ({
+  registerToken: vi.fn(),
+  Platform: {},
+}));
+
 describe("App", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(usePushNotifications).mockReturnValue({
+      initPushNotifications: vi.fn().mockResolvedValue(undefined),
+      retryRegistration: vi.fn().mockResolvedValue(undefined),
+    });
+  });
+
   it("renders all main components in initial state", () => {
     const store = createTestStore();
 
@@ -294,6 +324,57 @@ describe("App", () => {
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
     expect(screen.queryByTestId("side-navigation")).not.toBeInTheDocument();
+  });
+
+
+  it("calls initPushNotifications when authenticated", async () => {
+    const initPushNotifications = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(usePushNotifications).mockReturnValue({
+      initPushNotifications,
+      retryRegistration: vi.fn().mockResolvedValue(undefined),
+    });
+
+    const store = createTestStore({
+      authentication: {
+        isAuthenticated: true,
+        authenticating: false,
+        tokenRefreshed: false,
+        token: undefined,
+        idToken: undefined,
+        idir: undefined,
+        error: null,
+      },
+    });
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+      );
+    });
+
+    expect(initPushNotifications).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call initPushNotifications when not authenticated", async () => {
+    const initPushNotifications = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(usePushNotifications).mockReturnValue({
+      initPushNotifications,
+      retryRegistration: vi.fn().mockResolvedValue(undefined),
+    });
+
+    const store = createTestStore();
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+      );
+    });
+
+    expect(initPushNotifications).not.toHaveBeenCalled();
   });
 
   it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {

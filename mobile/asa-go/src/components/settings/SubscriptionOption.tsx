@@ -1,31 +1,36 @@
 import { FireZoneUnit } from "@/api/fbaAPI";
-import { toggleSubscription } from "@/slices/settingsSlice";
-import { AppDispatch, selectSettings } from "@/store";
+import LoadingSwitch from "@/components/LoadingSwitch";
+import { selectSettings } from "@/store";
 import { fireZoneUnitNameFormatter } from "@/utils/stringUtils";
 import {
   ListItem,
   ListItemButton,
   ListItemText,
-  Switch,
   Typography,
 } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 interface SubscriptionOptionProps {
   fireZoneUnit: FireZoneUnit;
+  onToggle: (fireZoneUnitId: number) => void;
+  disabled: boolean;
+  loading?: boolean;
 }
 
-const SubscriptionOption = ({ fireZoneUnit }: SubscriptionOptionProps) => {
-  const dispatch: AppDispatch = useDispatch();
+const SubscriptionOption = ({
+  fireZoneUnit,
+  onToggle,
+  disabled,
+  loading,
+}: SubscriptionOptionProps) => {
   const { subscriptions } = useSelector(selectSettings);
-
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
-    handleSubscriptionUpdate();
+    onToggle(fireZoneUnit.id);
   };
 
   const handleSubscriptionUpdate = () => {
-    dispatch(toggleSubscription(fireZoneUnit.id));
+    onToggle(fireZoneUnit.id);
   };
 
   return (
@@ -40,16 +45,16 @@ const SubscriptionOption = ({ fireZoneUnit }: SubscriptionOptionProps) => {
             {fireZoneUnitNameFormatter(fireZoneUnit.name)}
           </Typography>
         </ListItemText>
-        <Switch
-          edge="end"
-          checked={subscriptions.includes(fireZoneUnit.id)}
-          onChange={handleSwitchChange}
-          slotProps={{
-            input: {
-              "aria-label": `Toggle subscription for ${fireZoneUnit.name}`,
-            },
-          }}
-        />
+        <span onClick={(e) => e.stopPropagation()}>
+          <LoadingSwitch
+            edge="end"
+            disabled={disabled}
+            loading={loading}
+            checked={subscriptions.includes(fireZoneUnit.id)}
+            onChange={handleSwitchChange}
+            aria-label={`Toggle subscription for ${fireZoneUnit.name}`}
+          />
+        </span>
       </ListItemButton>
     </ListItem>
   );

@@ -88,7 +88,6 @@ if config.get("ENVIRONMENT") == "production":
         # We recommend adjusting this value in production.
         profiles_sample_rate=0.5,
     )
-
 # This is the api app.
 api = FastAPI(title="Predictive Services API", description=API_INFO, version="0.0.0")
 

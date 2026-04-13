@@ -3,12 +3,19 @@ import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { useIsTablet } from "@/hooks/useIsTablet";
 import FireShapeActionsDrawer from "@/components/map/FireShapeActionsDrawer";
 import { createTestStore } from "@/testUtils";
-import { Preferences } from "@capacitor/preferences";
 import { useMediaQuery } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, Mock } from "vitest";
+import {
+  getNotificationSettings,
+  updateNotificationSettings,
+} from "api/pushNotificationsAPI";
+import { useDeviceId } from "@/hooks/useDeviceId";
+vi.mock("@/hooks/useDeviceId", () => ({
+  useDeviceId: vi.fn().mockReturnValue("test-device-id"),
+}));
 
 vi.mock("@mui/material", async () => {
   const actual = await vi.importActual<typeof import("@mui/material")>(
@@ -21,6 +28,15 @@ vi.mock("@mui/material", async () => {
   };
 });
 
+vi.mock("api/pushNotificationsAPI", () => ({
+  getNotificationSettings: vi.fn().mockResolvedValue([]),
+  updateNotificationSettings: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/utils/retryWithBackoff", () => ({
+  retryWithBackoff: vi.fn((op: () => Promise<unknown>) => op()),
+}));
+
 vi.mock("@capacitor/preferences", () => ({
   Preferences: {
     get: vi.fn().mockResolvedValue({ value: null }),
@@ -29,8 +45,12 @@ vi.mock("@capacitor/preferences", () => ({
 }));
 
 vi.mock("@capacitor-firebase/messaging", () => ({
+  Importance: { High: 4 },
   FirebaseMessaging: {
     checkPermissions: vi.fn().mockResolvedValue({ receive: "granted" }),
+    getToken: vi.fn().mockResolvedValue({ token: "test-token" }),
+    addListener: vi.fn().mockResolvedValue({ remove: vi.fn() }),
+    removeAllListeners: vi.fn(),
   },
 }));
 
@@ -54,10 +74,14 @@ const renderWithProviders = ({
   subscriptions = [],
   pushNotificationPermission = "granted",
   connected = true,
+  registeredFcmToken = "test-token",
+  deviceIdError = false,
 }: {
   subscriptions?: number[];
   pushNotificationPermission?: "granted" | "denied" | "prompt" | "unknown";
   connected?: boolean;
+  registeredFcmToken?: string | null;
+  deviceIdError?: boolean;
 } = {}) => {
   const store = createTestStore({
     networkStatus: {
@@ -71,32 +95,41 @@ const renderWithProviders = ({
       error: null,
       fireCentreInfos: [],
       pinnedFireCentre: null,
-      pushNotificationPermission,
       subscriptions,
+      subscriptionsInitialized: true,
+    },
+    pushNotification: {
+      pushNotificationPermission,
+      registeredFcmToken,
+      deviceIdError,
+      registrationError: false,
     },
   });
 
-  return {
-    ...render(
-      <Provider store={store}>
-        <ThemeProvider theme={theme}>
-          <FireShapeActionsDrawer
-            open
-            selectedFireShape={mockFireShape}
-            onClose={vi.fn()}
-            onSelectProfile={vi.fn()}
-            onSelectAdvisory={vi.fn()}
-          />
-        </ThemeProvider>
-      </Provider>,
-    ),
-    store,
-  };
+  render(
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
+        <FireShapeActionsDrawer
+          open
+          selectedFireShape={mockFireShape}
+          onClose={vi.fn()}
+          onSelectProfile={vi.fn()}
+          onSelectAdvisory={vi.fn()}
+        />
+      </ThemeProvider>
+    </Provider>,
+  );
+  return { store };
 };
 
 describe("FireShapeActionsDrawer", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(useDeviceId).mockReturnValue("test-device-id");
+    vi.mocked(getNotificationSettings).mockResolvedValue([]);
+    vi.mocked(updateNotificationSettings).mockImplementation((_, subs) =>
+      Promise.resolve(subs),
+    );
     vi.mocked(useIsPortrait).mockReturnValue(true);
     vi.mocked(useIsTablet).mockReturnValue(false);
     vi.mocked(useMediaQuery).mockReturnValue(false);
@@ -132,8 +165,14 @@ describe("FireShapeActionsDrawer", () => {
         error: null,
         fireCentreInfos: [],
         pinnedFireCentre: null,
-        pushNotificationPermission: "granted",
         subscriptions: [],
+        subscriptionsInitialized: false,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: null,
+        deviceIdError: false,
+        registrationError: false,
       },
     });
     const theme = createTheme();
@@ -172,8 +211,14 @@ describe("FireShapeActionsDrawer", () => {
         error: null,
         fireCentreInfos: [],
         pinnedFireCentre: null,
-        pushNotificationPermission: "granted",
         subscriptions: [],
+        subscriptionsInitialized: false,
+      },
+      pushNotification: {
+        pushNotificationPermission: "granted",
+        registeredFcmToken: null,
+        deviceIdError: false,
+        registrationError: false,
       },
     });
     const theme = createTheme();
@@ -201,7 +246,6 @@ describe("FireShapeActionsDrawer", () => {
 
   it("toggles the subscription for the selected fire shape", async () => {
     const { store } = renderWithProviders();
-
     fireEvent.click(
       screen.getByRole("button", {
         name: /Toggle subscription for Test Fire Zone/i,
@@ -210,10 +254,6 @@ describe("FireShapeActionsDrawer", () => {
 
     await waitFor(() => {
       expect(store.getState().settings.subscriptions).toEqual([1]);
-    });
-    expect(Preferences.set).toHaveBeenCalledWith({
-      key: "asaGoSubscriptions",
-      value: JSON.stringify([1]),
     });
     expect(
       screen.getByRole("button", {
@@ -243,6 +283,16 @@ describe("FireShapeActionsDrawer", () => {
     ).toBeDisabled();
   });
 
+  it("disables subscription when awaiting FCM token", () => {
+    renderWithProviders({ registeredFcmToken: null });
+
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
+  });
+
   it("uses the side-sheet layout on landscape small screens", async () => {
     vi.mocked(useIsPortrait).mockReturnValue(false);
     vi.mocked(useMediaQuery).mockReturnValue(true);
@@ -251,7 +301,7 @@ describe("FireShapeActionsDrawer", () => {
 
     const actionGrid = screen.getByRole("button", {
       name: /Toggle subscription for Test Fire Zone/i,
-    }).parentElement;
+    }).parentElement?.parentElement;
 
     expect(actionGrid).toHaveStyle({
       gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
@@ -272,7 +322,7 @@ describe("FireShapeActionsDrawer", () => {
 
     const actionGrid = screen.getByRole("button", {
       name: /Toggle subscription for Test Fire Zone/i,
-    }).parentElement;
+    }).parentElement?.parentElement;
 
     expect(actionGrid).toHaveStyle({
       gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
@@ -295,5 +345,120 @@ describe("FireShapeActionsDrawer", () => {
     expect(screen.getByTestId("AnalyticsIcon")).toHaveStyle({
       fontSize: "40px",
     });
+  });
+
+  it("calls updateNotificationSettings when toggling subscription", async () => {
+    renderWithProviders();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(updateNotificationSettings).toHaveBeenCalledWith(
+        "test-device-id",
+        ["1"],
+      );
+    });
+  });
+
+  it("updates store from server response after toggling", async () => {
+    // Server returns a corrected list (e.g. deduped or reordered)
+    (updateNotificationSettings as Mock).mockResolvedValue(["1", "99"]);
+
+    const { store } = renderWithProviders();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([1, 99]);
+    });
+  });
+
+  it("reverts local state when the server call fails", async () => {
+    (updateNotificationSettings as Mock).mockRejectedValue(
+      new Error("server error"),
+    );
+    (getNotificationSettings as Mock).mockResolvedValue(["42"]);
+
+    const { store } = renderWithProviders({ subscriptions: [42] });
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(store.getState().settings.subscriptions).toEqual([42]);
+    });
+  });
+
+  it("shows error snackbar when subscription toggle fails", async () => {
+    vi.mocked(updateNotificationSettings).mockRejectedValue(
+      new Error("server error"),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    renderWithProviders();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to update/i)).toBeInTheDocument();
+    });
+  });
+
+  it("shows a loading spinner on the subscribe button when awaiting FCM token", () => {
+    renderWithProviders({ registeredFcmToken: null });
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+  });
+
+  it("disables the subscribe button when permission is denied", () => {
+    renderWithProviders({ pushNotificationPermission: "denied" });
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
+  });
+
+  it("disables the subscribe button when offline", () => {
+    renderWithProviders({ connected: false });
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
+  });
+
+  it("disables the subscribe button when device ID error", () => {
+    renderWithProviders({ deviceIdError: true, registeredFcmToken: null });
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
+  });
+
+  it("does not call updateNotificationSettings when offline", async () => {
+    renderWithProviders({
+      connected: false,
+      pushNotificationPermission: "granted",
+    });
+
+    // Button is disabled when offline, so no click possible — just verify the API is never called
+    expect(
+      screen.getByRole("button", {
+        name: /Toggle subscription for Test Fire Zone/i,
+      }),
+    ).toBeDisabled();
+    expect(updateNotificationSettings).not.toHaveBeenCalled();
   });
 });

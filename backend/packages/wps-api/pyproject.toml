@@ -49,6 +49,7 @@ dependencies = [
     "gdal==3.12.3",
     "wps-wf1",
     "earthaccess>=0.15.1",
+    "firebase-admin>=7.3.0",
 ]
 
 [project.optional-dependencies]
