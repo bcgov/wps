@@ -12,7 +12,7 @@ export async function registerToken(
   deviceId: string,
   userId: string | null,
 ): Promise<DeviceRequestResponse> {
-  const url = "device/register";
+  const url = "asa-go/device/register";
   const { data } = await axios.post(url, {
     platform,
     token,
@@ -25,7 +25,7 @@ export async function registerToken(
 export async function unregisterToken(
   token: string,
 ): Promise<DeviceRequestResponse> {
-  const url = "device/unregister";
+  const url = "asa-go/device/unregister";
   const { data } = await axios.post(url, { token });
   return data;
 }

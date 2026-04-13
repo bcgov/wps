@@ -140,6 +140,16 @@ jobs:
         run: |
           MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
+      - name: Deploy ASA Go API to Dev
+        shell: bash
+        run: |
+          ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
+
+      - name: Allow APS to reach ASA Go API
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_asa_go_gateway_networkpolicy.sh ${SUFFIX} apply
+
       - name: Provision dev cronjobs and jobs
         shell: bash
         run: |
