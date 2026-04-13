@@ -68,6 +68,37 @@ def test_build_notification_title(placename_label, expected):
     assert build_notification_title(zone) == expected
 
 
+ENVIRONMENT = "app.fcm.notifications.config"
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "environment, vancouver_hour, expect_skipped",
+    [
+        ("production", 15, True),   # afternoon >= 12 in prod → skip
+        ("production", 12, True),   # noon == 12 in prod → skip (boundary)
+        ("production", 8, False),   # morning < 12 in prod → proceed
+        ("development", 15, False), # afternoon outside prod → proceed
+        ("development", 8, False),  # morning outside prod → proceed
+    ],
+)
+async def test_trigger_notifications_afternoon_filter(environment, vancouver_hour, expect_skipped):
+    """Afternoon Vancouver time (hour >= 12) is skipped only in production."""
+    session = AsyncMock()
+    with (
+        patch(GET_ZONES, return_value=[]) as mock_get_zones,
+        patch(GET_VANCOUVER_NOW) as mock_now,
+        patch(ENVIRONMENT) as mock_config,
+    ):
+        mock_now.return_value.date.return_value = FOR_DATE
+        mock_now.return_value.hour = vancouver_hour
+        mock_config.get.return_value = environment
+        await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
+        if expect_skipped:
+            mock_get_zones.assert_not_called()
+        else:
+            mock_get_zones.assert_called_once()
+
+
 @pytest.mark.anyio
 async def test_trigger_notifications_skips_actual():
     """Actual run type should return immediately without querying anything."""

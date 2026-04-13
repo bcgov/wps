@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta, timezone
 from firebase_admin import exceptions as firebase_exceptions
 from firebase_admin import messaging
 from sqlalchemy.ext.asyncio import AsyncSession
+from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import ZoneAdvisoryStatus, get_zones_with_advisories
 from wps_shared.db.crud.fcm import get_device_tokens_for_zone, update_device_tokens_are_active
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
@@ -53,9 +54,19 @@ async def trigger_notifications(
     if run_type == RunTypeEnum.actual:
         return
 
-    if for_date != get_vancouver_now().date():
+    vancouver_now = get_vancouver_now()
+
+    if for_date != vancouver_now.date():
         logger.info("Skipping FCM notifications: for_date=%s is not today", for_date)
         return
+
+    if config.get("ENVIRONMENT") == "production":
+        if vancouver_now.hour >= 12:
+            logger.info(
+                "Skipping FCM notifications: current Vancouver time hour=%d is at or after noon",
+                vancouver_now.hour,
+            )
+            return
 
     logger.info("Checking for warnings/advisories to send FCM notifications for")
     zones_with_advisories = await get_zones_with_advisories(
