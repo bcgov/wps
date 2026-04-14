@@ -197,7 +197,6 @@ const App = () => {
     )
       return;
 
-    // Reacting to an external system event (push notification tap); setState calls here are intentional.
     const advisoryDate = DateTime.fromISO(
       pendingNotificationData.advisory_date,
     );
@@ -219,6 +218,7 @@ const App = () => {
     // Only update state when all three values are resolved
     if (!matchingCentre || !matchingShape) return;
 
+    // Reacting to an external system event (push notification tap); setState calls here are intentional.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDateOfInterest(advisoryDate);
     setFireCentre(matchingCentre);
@@ -228,6 +228,11 @@ const App = () => {
       mof_fire_centre_name: matchingShape.fire_centre_name,
     });
     setTab(NavPanel.ADVISORY);
+    // mui button base does not remove active styling when toggling a button programmatically, so
+    // call blur on the new active button to force appropriate styling
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     dispatch(clearPendingNotificationData());
   }, [pendingNotificationData, fireCentres, provincialSummaries, dispatch]);
 

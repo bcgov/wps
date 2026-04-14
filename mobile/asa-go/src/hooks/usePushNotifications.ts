@@ -1,4 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useAppIsActive } from "@/hooks/useAppIsActive";
+import {
+  MAX_REGISTRATION_ATTEMPTS,
+  registerDevice,
+  resetRegistrationAttempts,
+  setPendingNotificationData,
+  setRegistrationError,
+} from "@/slices/pushNotificationSlice";
+import {
+  AppDispatch,
+  selectNetworkStatus,
+  selectPushNotification,
+} from "@/store";
+import { PushNotificationData } from "@/types/asaGoTypes";
 import {
   FirebaseMessaging,
   Importance,
@@ -8,21 +21,12 @@ import {
   TokenReceivedEvent,
 } from "@capacitor-firebase/messaging";
 import { Capacitor, PluginListenerHandle } from "@capacitor/core";
+import {
+  ActionPerformed,
+  LocalNotifications,
+} from "@capacitor/local-notifications";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  AppDispatch,
-  selectNetworkStatus,
-  selectPushNotification,
-} from "@/store";
-import {
-  MAX_REGISTRATION_ATTEMPTS,
-  registerDevice,
-  resetRegistrationAttempts,
-  setRegistrationError,
-  setPendingNotificationData,
-} from "@/slices/pushNotificationSlice";
-import { PushNotificationData } from "@/types/asaGoTypes";
-import { useAppIsActive } from "@/hooks/useAppIsActive";
 
 const ANDROID_CHANNEL = {
   id: "general",
@@ -72,8 +76,22 @@ export function usePushNotifications() {
 
       const receivedHandle = await FirebaseMessaging.addListener(
         "notificationReceived",
-        (evt: NotificationReceivedEvent) => {
-          if (evt) console.log(evt.notification.body);
+        async (evt: NotificationReceivedEvent) => {
+          if (Capacitor.getPlatform() === "android") {
+            await LocalNotifications.schedule({
+              notifications: [
+                {
+                  id: Math.floor(Math.random() * 0x80000000), // id needs to be a 32-bit int
+                  title: evt.notification.title ?? "",
+                  body: evt.notification.body ?? "",
+                  channelId: ANDROID_CHANNEL.id,
+                  extra: evt.notification.data,
+                  group: "asa_go_alerts", // groups notifications together to mimic system notification grouping behaviour
+                  groupSummary: false, // don't display a summary when > 3 notifications arrive, just group them
+                },
+              ],
+            });
+          }
         },
       );
 
@@ -89,7 +107,24 @@ export function usePushNotifications() {
         },
       );
 
-      handles.current.push(tokenHandle, receivedHandle, actionHandle);
+      const localActionHandle = await LocalNotifications.addListener(
+        "localNotificationActionPerformed",
+        (evt: ActionPerformed) => {
+          const data = evt?.notification?.extra as
+            | PushNotificationData
+            | undefined;
+          if (data) {
+            dispatch(setPendingNotificationData(data));
+          }
+        },
+      );
+
+      handles.current.push(
+        tokenHandle,
+        receivedHandle,
+        actionHandle,
+        localActionHandle,
+      );
       initialized.current = true;
     } catch (e) {
       console.error("Push notification error:", e);

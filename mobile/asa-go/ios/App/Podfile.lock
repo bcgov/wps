@@ -165,21 +165,21 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
-  Capacitor: bceb785fb78f5e81e4a9e37843bc1c24bd9c7194
-  CapacitorApp: 9cb31064a6c6bb2b1438583733a7bf45557fc1da
+  Capacitor: 68ff8eabbcce387e69767c13b5fbcc1c5399eabc
+  CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
-  CapacitorDevice: ff033fa0c4ec19f5e059a073769a9b2347e69f57
-  CapacitorEmailComposer: 47e488b85f3a4400e3b616fe56b5b9f65a4aa2f3
-  CapacitorFilesystem: c63fc54df41e5a6761785a7f3c49dc696c22e296
-  CapacitorFirebaseMessaging: 000e9eb39f2cebcf89afeff5c9e056980ed0014e
-  CapacitorGeolocation: ab54d708e2fcf99a7bafe0219eaa6f7a932f001a
-  CapacitorHaptics: 7be406a91e4eb87287f321c6c68e1709d6837b3a
-  CapacitorKeyboard: 4db71e694e7afb5d7c0be09b05495c19f7d6c914
-  CapacitorNetwork: b719d692a8d1310da8d26d6648d3aa1ef1e100e1
-  CapacitorPreferences: 69d9991307507aeab8ef8019c10b9babfda0e9ca
-  CapacitorScreenOrientation: 6c3c84223ea1dd44aaa7184e2b416dd1192270d0
-  CapacitorSplashScreen: 409eeaaeac603d264f209c0fcb718aa22fe1f7bb
-  CapacitorStatusBar: a8c4c83ed2e973bdafb979e80e4b00d027832cb7
+  CapacitorDevice: ebd210e29ae690225291b8616e6cfaf419d2e866
+  CapacitorEmailComposer: 6e06f75898334036cc95ada2238b3dcbb78932c0
+  CapacitorFilesystem: f54cd6b76be06fa7ceb219cf313d32e0d626ea87
+  CapacitorFirebaseMessaging: 798b7f8af4318b97b11eb9b84c8ebe9920237c17
+  CapacitorGeolocation: de4b0ccf90140528184e31676dd5e3a328eb589a
+  CapacitorHaptics: 1fba3e460e7614349c6d5f868b1fccdc5c87b66d
+  CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
+  CapacitorNetwork: 3d56050f929a8c86427a5b28558ce605e7cf61b3
+  CapacitorPreferences: d82a7e3b95fcab43a553268b803356522910d153
+  CapacitorScreenOrientation: 07503c9d633377427f1e122449b06b1dbc992d10
+  CapacitorSplashScreen: b3d12b4324d93ce605fe57f05a199ade7f26189e
+  CapacitorStatusBar: 438e90beeeefa8276b24e6c5991cb02dd13e51bf
   FirebaseCore: c7b57863ce0859281a66d16ca36d665c45d332b5
   FirebaseCoreInternal: 571a2dd8c975410966199623351db3a3265c874d
   FirebaseInstallations: 6d05424a046b68ca146b4de4376f05b4e9262fc3
@@ -188,10 +188,10 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   IONFilesystemLib: dfa8706539ac9ab77ccfd6e5b3830ce9b5e57f6c
   IONGeolocationLib: 20f9d0248a0b5264511fb57a37e25dd2badf797a
-  Keycloak: ed7f0a99e83d402ed7bb91a5f5d15fa0249b6928
+  Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
 
-PODFILE CHECKSUM: f85f8dbcd8b6731ed82c650c697ec343a8619f28
+PODFILE CHECKSUM: 71681944b941bef965a0937c3eff32b8419f6c54
 
 COCOAPODS: 1.16.2
