@@ -76,7 +76,7 @@ const AuthWrapper = ({ children }: Props) => {
           flexGrow: 1,
           alignItems: "center",
           justifyContent: "space-between",
-          pb: theme.spacing(6),
+          pb: `calc(env(safe-area-inset-bottom) + ${theme.spacing(6)})`,
         }}
       >
         <Typography
