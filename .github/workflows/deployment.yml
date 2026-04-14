@@ -151,6 +151,11 @@ jobs:
         run: |
           bash openshift/scripts/oc_provision_asa_go_gateway_networkpolicy.sh ${SUFFIX} apply
 
+      - name: Set ASA Go APS config path
+        shell: bash
+        run: |
+          echo "ASA_GO_APS_CONFIG_PATH=${RUNNER_TEMP}/asa-go-gw-config-pr-${{ github.event.number }}.yaml" >> "${GITHUB_ENV}"
+
       - name: Render ASA Go APS gateway config
         shell: bash
         run: |
@@ -159,7 +164,7 @@ jobs:
           ASA_GO_HOST="psu-${SUFFIX}.api.gov.bc.ca" \
           bash openshift/scripts/render_asa_go_gateway_config.sh \
             "${SUFFIX}" \
-            "${RUNNER_TEMP}/asa-go-gw-config-${SUFFIX}.yaml"
+            "${ASA_GO_APS_CONFIG_PATH}"
 
       - name: Publish ASA Go APS gateway config
         uses: ./.github/actions/gwa-publish
@@ -167,14 +172,14 @@ jobs:
           gateway-id: ${{ env.APS_GATEWAY_ID_DEV }}
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
-          config-path: ${{ runner.temp }}/asa-go-gw-config-pr-${{ github.event.number }}.yaml
+          config-path: ${{ env.ASA_GO_APS_CONFIG_PATH }}
           qualifier: pr-${{ github.event.number }}
 
       - name: Upload ASA Go APS gateway config
         uses: actions/upload-artifact@v7
         with:
           name: asa-go-aps-gateway-config-pr-${{ github.event.number }}
-          path: ${{ runner.temp }}/asa-go-gw-config-pr-${{ github.event.number }}.yaml
+          path: ${{ env.ASA_GO_APS_CONFIG_PATH }}
 
       - name: Summarize ASA Go APS gateway config
         shell: bash
