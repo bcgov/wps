@@ -155,11 +155,12 @@ jobs:
         id: asa_go_aps_config
         shell: bash
         run: |
-          echo "config_path=${RUNNER_TEMP}/asa-go-gw-config-pr-${{ github.event.number }}.yaml" >> "${GITHUB_OUTPUT}"
+          echo "config_path=.github/tmp/asa-go-gw-config-pr-${{ github.event.number }}.yaml" >> "${GITHUB_OUTPUT}"
 
       - name: Render ASA Go APS gateway config
         shell: bash
         run: |
+          mkdir -p "$(dirname "${{ steps.asa_go_aps_config.outputs.config_path }}")"
           APS_NAMESPACE="${{ env.APS_GATEWAY_ID_DEV }}" \
           PROJECT_NAMESPACE="${PROJ_DEV}" \
           ASA_GO_HOST="psu-${SUFFIX}.api.gov.bc.ca" \
