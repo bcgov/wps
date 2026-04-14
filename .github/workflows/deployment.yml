@@ -183,18 +183,6 @@ jobs:
           name: asa-go-aps-gateway-config-pr-${{ github.event.number }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
-      - name: Summarize ASA Go APS gateway config
-        shell: bash
-        run: |
-          {
-            echo "### ASA Go APS gateway config"
-            echo
-            echo "- Host: \`asa-go-${SUFFIX}.api.gov.bc.ca\`"
-            echo "- Upstream: \`wps-asa-go-api-${SUFFIX}.${PROJ_DEV}.svc\`"
-            echo "- Tag scope: \`ns.${{ env.APS_GATEWAY_ID_DEV }}.${SUFFIX}\`"
-            echo "- Artifact: \`asa-go-aps-gateway-config-pr-${{ github.event.number }}\`"
-          } >> "${GITHUB_STEP_SUMMARY}"
-
       - name: Provision dev cronjobs and jobs
         shell: bash
         run: |
