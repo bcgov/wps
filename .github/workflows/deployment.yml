@@ -12,6 +12,7 @@ on:
 
 env:
   PROJ_DEV: e1e498-dev
+  APS_GATEWAY_ID_DEV: gw-313f6
 
 jobs:
   prepare-dev-database:
@@ -149,6 +150,43 @@ jobs:
         shell: bash
         run: |
           bash openshift/scripts/oc_provision_asa_go_gateway_networkpolicy.sh ${SUFFIX} apply
+
+      - name: Render ASA Go APS gateway config
+        shell: bash
+        run: |
+          APS_NAMESPACE="${{ env.APS_GATEWAY_ID_DEV }}" \
+          PROJECT_NAMESPACE="${PROJ_DEV}" \
+          ASA_GO_HOST="psu-${SUFFIX}.api.gov.bc.ca" \
+          bash openshift/scripts/render_asa_go_gateway_config.sh \
+            "${SUFFIX}" \
+            "${RUNNER_TEMP}/asa-go-gw-config-${SUFFIX}.yaml"
+
+      - name: Publish ASA Go APS gateway config
+        uses: ./.github/actions/gwa-publish
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID_DEV }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          config-path: ${{ runner.temp }}/asa-go-gw-config-pr-${{ github.event.number }}.yaml
+          qualifier: pr-${{ github.event.number }}
+
+      - name: Upload ASA Go APS gateway config
+        uses: actions/upload-artifact@v7
+        with:
+          name: asa-go-aps-gateway-config-pr-${{ github.event.number }}
+          path: ${{ runner.temp }}/asa-go-gw-config-pr-${{ github.event.number }}.yaml
+
+      - name: Summarize ASA Go APS gateway config
+        shell: bash
+        run: |
+          {
+            echo "### ASA Go APS gateway config"
+            echo
+            echo "- Host: \`asa-go-${SUFFIX}.api.gov.bc.ca\`"
+            echo "- Upstream: \`wps-asa-go-api-${SUFFIX}.${PROJ_DEV}.svc\`"
+            echo "- Tag scope: \`ns.${{ env.APS_GATEWAY_ID_DEV }}.${SUFFIX}\`"
+            echo "- Artifact: \`asa-go-aps-gateway-config-pr-${{ github.event.number }}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Provision dev cronjobs and jobs
         shell: bash

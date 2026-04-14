@@ -1,0 +1,25 @@
+services:
+  # keep this to raw Kong entities so it can be published with `gwa publish-gateway --qualifier`.
+  - name: ${ASA_GO_SERVICE_NAME}
+    tags: [ns.${APS_TAG_NAMESPACE}]
+    host: wps-asa-go-api-${SUFFIX}.${PROJECT_NAMESPACE}.svc
+    port: 80
+    protocol: http
+    routes:
+      - name: ${ASA_GO_SERVICE_NAME}
+        tags: [ns.${APS_TAG_NAMESPACE}]
+        hosts:
+          - ${ASA_GO_HOST}
+        paths:
+          - /api/asa-go
+        strip_path: false
+    plugins:
+      # keep the limit at the gateway so anonymous mobile requests cannot hammer the API.
+      - name: rate-limiting
+        tags: [ns.${APS_TAG_NAMESPACE}]
+        config:
+          policy: local
+          limit_by: ip
+          minute: 300
+          fault_tolerant: true
+          hide_client_headers: false
