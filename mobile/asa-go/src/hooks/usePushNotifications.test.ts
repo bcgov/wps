@@ -6,6 +6,7 @@ import {
   PermissionStatus,
 } from "@capacitor-firebase/messaging";
 import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
 
 vi.mock("@capacitor-firebase/messaging", () => ({
   FirebaseMessaging: {
@@ -29,6 +30,13 @@ vi.mock(import("@capacitor/core"), async (importOriginal) => {
     },
   };
 });
+
+vi.mock("@capacitor/local-notifications", () => ({
+  LocalNotifications: {
+    schedule: vi.fn().mockResolvedValue(undefined),
+    addListener: vi.fn().mockResolvedValue({ remove: vi.fn() }),
+  },
+}));
 
 vi.mock("@/hooks/useAppIsActive", () => ({
   useAppIsActive: vi.fn().mockReturnValue(true),
@@ -95,6 +103,28 @@ const defaultSelectorState = {
     networkStatus: { connected: false, connectionType: "none" },
   },
 };
+
+function setupListenerCapture() {
+  const fbListeners: Record<string, (...args: unknown[]) => unknown> = {};
+  const localListeners: Record<string, (...args: unknown[]) => unknown> = {};
+
+  vi.mocked(FirebaseMessaging.addListener).mockImplementation(
+    async (event, handler) => {
+      fbListeners[event as string] = handler as (...args: unknown[]) => unknown;
+      return { remove: vi.fn() };
+    },
+  );
+  vi.mocked(LocalNotifications.addListener).mockImplementation(
+    async (event, handler) => {
+      localListeners[event as string] = handler as (
+        ...args: unknown[]
+      ) => unknown;
+      return { remove: vi.fn() };
+    },
+  );
+
+  return { fbListeners, localListeners };
+}
 
 describe("usePushNotifications", () => {
   beforeEach(async () => {
@@ -549,6 +579,199 @@ describe("usePushNotifications", () => {
 
       expect(mockDispatch).toHaveBeenCalledWith(
         registerDevice("retry-token", null),
+      );
+    });
+
+    it("resets attempt counter and proceeds when at MAX_REGISTRATION_ATTEMPTS", async () => {
+      const { useSelector } = await import("react-redux");
+      const {
+        MAX_REGISTRATION_ATTEMPTS,
+        resetRegistrationAttempts,
+        registerDevice,
+      } = await import("@/slices/pushNotificationSlice");
+      vi.mocked(useSelector).mockImplementation(
+        (selector: (s: unknown) => unknown) =>
+          selector({
+            pushNotification: {
+              registrationError: true,
+              registeredFcmToken: null,
+              pushNotificationPermission: "unknown",
+              deviceIdError: false,
+              registrationAttempts: MAX_REGISTRATION_ATTEMPTS,
+            },
+            networkStatus: {
+              networkStatus: { connected: false, connectionType: "none" },
+            },
+          }),
+      );
+      vi.mocked(FirebaseMessaging.getToken).mockResolvedValue({
+        token: "retry-token",
+      });
+
+      const { result } = renderHook(() => usePushNotifications());
+      await act(async () => {
+        await result.current.retryRegistration();
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(resetRegistrationAttempts());
+      expect(mockDispatch).toHaveBeenCalledWith(
+        registerDevice("retry-token", null),
+      );
+    });
+  });
+
+  describe("notification listeners", () => {
+    it("schedules a local notification when notificationReceived fires on Android", async () => {
+      vi.mocked(Capacitor.getPlatform).mockReturnValue("android");
+      setupFirebaseMocks();
+      const { fbListeners } = setupListenerCapture();
+
+      const { result } = renderHook(() => usePushNotifications());
+      await act(async () => {
+        await result.current.initPushNotifications();
+      });
+
+      await act(async () => {
+        await fbListeners["notificationReceived"]?.({
+          notification: {
+            title: "Test Alert",
+            body: "Zone 1 is at high risk",
+            data: { advisory_date: "2025-07-02", fire_centre_id: "1", fire_zone_unit: "42" },
+          },
+        });
+      });
+
+      expect(LocalNotifications.schedule).toHaveBeenCalledWith({
+        notifications: [
+          expect.objectContaining({
+            title: "Test Alert",
+            body: "Zone 1 is at high risk",
+            channelId: "general",
+            group: "asa_go_alerts",
+            groupSummary: false,
+          }),
+        ],
+      });
+    });
+
+    it("does not schedule a local notification when notificationReceived fires on iOS", async () => {
+      vi.mocked(Capacitor.getPlatform).mockReturnValue("ios");
+      setupFirebaseMocks();
+      const { fbListeners } = setupListenerCapture();
+
+      const { result } = renderHook(() => usePushNotifications());
+      await act(async () => {
+        await result.current.initPushNotifications();
+      });
+
+      await act(async () => {
+        await fbListeners["notificationReceived"]?.({
+          notification: { title: "Test", body: "Body", data: {} },
+        });
+      });
+
+      expect(LocalNotifications.schedule).not.toHaveBeenCalled();
+    });
+
+    it("dispatches setPendingNotificationData when notificationActionPerformed fires with data", async () => {
+      setupFirebaseMocks();
+      const { fbListeners } = setupListenerCapture();
+      const { setPendingNotificationData } = await import(
+        "@/slices/pushNotificationSlice"
+      );
+      const notificationData = {
+        advisory_date: "2025-07-02",
+        fire_centre_id: "1",
+        fire_zone_unit: "42",
+      };
+
+      const { result } = renderHook(() => usePushNotifications());
+      await act(async () => {
+        await result.current.initPushNotifications();
+      });
+
+      act(() => {
+        fbListeners["notificationActionPerformed"]?.({
+          notification: { data: notificationData },
+        });
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingNotificationData(notificationData),
+      );
+    });
+
+    it("does not dispatch when notificationActionPerformed fires without data", async () => {
+      setupFirebaseMocks();
+      const { fbListeners } = setupListenerCapture();
+      const { setPendingNotificationData } = await import(
+        "@/slices/pushNotificationSlice"
+      );
+
+      const { result } = renderHook(() => usePushNotifications());
+      await act(async () => {
+        await result.current.initPushNotifications();
+      });
+
+      act(() => {
+        fbListeners["notificationActionPerformed"]?.({
+          notification: { data: undefined },
+        });
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setPendingNotificationData(expect.anything()),
+      );
+    });
+
+    it("dispatches setPendingNotificationData when localNotificationActionPerformed fires with extra", async () => {
+      setupFirebaseMocks();
+      const { localListeners } = setupListenerCapture();
+      const { setPendingNotificationData } = await import(
+        "@/slices/pushNotificationSlice"
+      );
+      const notificationData = {
+        advisory_date: "2025-07-02",
+        fire_centre_id: "2",
+        fire_zone_unit: "99",
+      };
+
+      const { result } = renderHook(() => usePushNotifications());
+      await act(async () => {
+        await result.current.initPushNotifications();
+      });
+
+      act(() => {
+        localListeners["localNotificationActionPerformed"]?.({
+          notification: { extra: notificationData },
+        });
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingNotificationData(notificationData),
+      );
+    });
+
+    it("does not dispatch when localNotificationActionPerformed fires without extra", async () => {
+      setupFirebaseMocks();
+      const { localListeners } = setupListenerCapture();
+      const { setPendingNotificationData } = await import(
+        "@/slices/pushNotificationSlice"
+      );
+
+      const { result } = renderHook(() => usePushNotifications());
+      await act(async () => {
+        await result.current.initPushNotifications();
+      });
+
+      act(() => {
+        localListeners["localNotificationActionPerformed"]?.({
+          notification: { extra: undefined },
+        });
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setPendingNotificationData(expect.anything()),
       );
     });
   });

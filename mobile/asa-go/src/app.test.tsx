@@ -6,6 +6,8 @@ import { createTestStore } from "./testUtils";
 import { NavPanel } from "@/utils/constants";
 import { useMediaQuery } from "@mui/material";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { initialState as pushNotificationInitialState } from "@/slices/pushNotificationSlice";
+import { RunType } from "@/api/fbaAPI";
 
 // Mock MUI useMediaQuery to control screen size detection
 vi.mock("@mui/material", async () => {
@@ -119,6 +121,15 @@ vi.mock("@/api/pushNotificationsAPI", () => ({
   registerToken: vi.fn(),
   Platform: {},
 }));
+
+vi.mock("@/utils/dataSliceUtils", async () => {
+  const actual = await vi.importActual("@/utils/dataSliceUtils");
+  const { DateTime } = await vi.importActual<typeof import("luxon")>("luxon");
+  return {
+    ...actual,
+    today: DateTime.fromISO("2025-07-02"),
+  };
+});
 
 describe("App", () => {
   beforeEach(() => {
@@ -326,7 +337,6 @@ describe("App", () => {
     expect(screen.queryByTestId("side-navigation")).not.toBeInTheDocument();
   });
 
-
   it("calls initPushNotifications when authenticated", async () => {
     const initPushNotifications = vi.fn().mockResolvedValue(undefined);
     vi.mocked(usePushNotifications).mockReturnValue({
@@ -404,5 +414,143 @@ describe("App", () => {
     // Check if AppHeader and BottomNavigation are displayed
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
+  });
+
+  describe("pendingNotificationData effect", () => {
+    const TODAY_ISO = "2025-07-02";
+    const mockRunParameter = {
+      for_date: TODAY_ISO,
+      run_datetime: `${TODAY_ISO}T12:00:00`,
+      run_type: RunType.FORECAST,
+    };
+    const mockFireCentre = { id: 1, name: "Cariboo" };
+    const mockFireShape = {
+      fire_shape_id: 42,
+      fire_shape_name: "Zone 1",
+      fire_centre_name: "Cariboo",
+      status: null,
+    };
+
+    const buildStore = (
+      overrides: {
+        advisory_date?: string;
+        fire_centre_id?: string;
+        fire_zone_unit?: string;
+        fireCentreId?: number;
+        fireShapeId?: number;
+      } = {},
+    ) => {
+      const {
+        advisory_date = TODAY_ISO,
+        fire_centre_id = "1",
+        fire_zone_unit = "42",
+        fireCentreId = 1,
+        fireShapeId = 42,
+      } = overrides;
+
+      return createTestStore({
+        pushNotification: {
+          ...pushNotificationInitialState,
+          pendingNotificationData: {
+            advisory_date,
+            fire_centre_id,
+            fire_zone_unit,
+          },
+        },
+        fireCentres: {
+          loading: false,
+          error: null,
+          fireCentres: [{ id: fireCentreId, name: mockFireCentre.name }],
+        },
+        data: {
+          loading: false,
+          error: null,
+          lastUpdated: null,
+          provincialSummaries: {
+            [TODAY_ISO]: {
+              runParameter: mockRunParameter,
+              data: [{ ...mockFireShape, fire_shape_id: fireShapeId }],
+            },
+          },
+          tpiStats: null,
+          hfiStats: null,
+        },
+      });
+    };
+
+    it("does not navigate when advisory_date does not match today", async () => {
+      const store = buildStore({ advisory_date: "2024-01-01" });
+
+      await act(async () => {
+        render(
+          <Provider store={store}>
+            <App />
+          </Provider>,
+        );
+      });
+
+      expect(screen.getByTestId("asa-go-map")).toBeInTheDocument();
+      expect(screen.queryByTestId("advisory")).not.toBeInTheDocument();
+      expect(
+        store.getState().pushNotification.pendingNotificationData,
+      ).not.toBeNull();
+    });
+
+    it("does not navigate when fire centre is not found", async () => {
+      const store = buildStore({ fire_centre_id: "999" });
+
+      await act(async () => {
+        render(
+          <Provider store={store}>
+            <App />
+          </Provider>,
+        );
+      });
+
+      expect(screen.getByTestId("asa-go-map")).toBeInTheDocument();
+      expect(screen.queryByTestId("advisory")).not.toBeInTheDocument();
+      expect(
+        store.getState().pushNotification.pendingNotificationData,
+      ).not.toBeNull();
+    });
+
+    it("does not navigate when fire shape is not found in provincialSummaries", async () => {
+      const store = buildStore({ fire_zone_unit: "999" });
+
+      await act(async () => {
+        render(
+          <Provider store={store}>
+            <App />
+          </Provider>,
+        );
+      });
+
+      expect(screen.getByTestId("asa-go-map")).toBeInTheDocument();
+      expect(screen.queryByTestId("advisory")).not.toBeInTheDocument();
+      expect(
+        store.getState().pushNotification.pendingNotificationData,
+      ).not.toBeNull();
+    });
+
+    it("navigates to Advisory tab and clears pendingNotificationData when all data resolves", async () => {
+      const store = buildStore();
+
+      await act(async () => {
+        render(
+          <Provider store={store}>
+            <App />
+          </Provider>,
+        );
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId("advisory")).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTestId("asa-go-map")).not.toBeInTheDocument();
+      expect(
+        store.getState().pushNotification.pendingNotificationData,
+      ).toBeNull();
+    });
   });
 });
