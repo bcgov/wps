@@ -493,7 +493,7 @@ describe("App", () => {
       expect(screen.queryByTestId("advisory")).not.toBeInTheDocument();
       expect(
         store.getState().pushNotification.pendingNotificationData,
-      ).not.toBeNull();
+      ).toBeNull(); 
     });
 
     it("does not navigate when fire centre is not found", async () => {
