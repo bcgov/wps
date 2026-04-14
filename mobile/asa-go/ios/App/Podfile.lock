@@ -27,6 +27,8 @@ PODS:
     - Capacitor
   - CapacitorKeyboard (7.0.0):
     - Capacitor
+  - CapacitorLocalNotifications (8.0.2):
+    - Capacitor
   - CapacitorNetwork (7.0.4):
     - Capacitor
   - CapacitorPreferences (7.0.4):
@@ -107,6 +109,7 @@ DEPENDENCIES:
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
+  - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
   - "CapacitorScreenOrientation (from `../../node_modules/@capacitor/screen-orientation`)"
@@ -150,6 +153,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/haptics"
   CapacitorKeyboard:
     :path: "../../node_modules/@capacitor/keyboard"
+  CapacitorLocalNotifications:
+    :path: "../../node_modules/@capacitor/local-notifications"
   CapacitorNetwork:
     :path: "../../node_modules/@capacitor/network"
   CapacitorPreferences:
@@ -175,6 +180,7 @@ SPEC CHECKSUMS:
   CapacitorGeolocation: de4b0ccf90140528184e31676dd5e3a328eb589a
   CapacitorHaptics: 1fba3e460e7614349c6d5f868b1fccdc5c87b66d
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
+  CapacitorLocalNotifications: adb0776e74524387e48b9b683690fdf79f274753
   CapacitorNetwork: 3d56050f929a8c86427a5b28558ce605e7cf61b3
   CapacitorPreferences: d82a7e3b95fcab43a553268b803356522910d153
   CapacitorScreenOrientation: 07503c9d633377427f1e122449b06b1dbc992d10
@@ -192,6 +198,6 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
 
-PODFILE CHECKSUM: 71681944b941bef965a0937c3eff32b8419f6c54
+PODFILE CHECKSUM: f5b028d1e883af9d1d102a73ce5ea20c054a340e
 
 COCOAPODS: 1.16.2
