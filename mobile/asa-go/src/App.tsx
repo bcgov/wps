@@ -204,7 +204,10 @@ const App = () => {
     const todayKey = today.toISODate();
 
     // Only process notifications whose date matches today
-    if (!notificationDateKey || notificationDateKey !== todayKey) return;
+    if (!notificationDateKey || notificationDateKey !== todayKey) {
+      dispatch(clearPendingNotificationData());
+      return;
+    }
 
     const matchingCentre = fireCentres.find(
       (fc) => fc.id === Number(pendingNotificationData.fire_centre_id),
