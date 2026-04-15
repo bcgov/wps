@@ -1,26 +1,30 @@
 """Unit tests for app/env_canada.py"""
 
+import logging
 import os
 import sys
-import logging
+from typing import Optional
+
 import pytest
 import requests
-from aiohttp import ClientSession
-from typing import Optional
-from sqlalchemy.orm import Session
-from wps_shared.weather_models.job_utils import GRIB_LAYERS, get_regional_model_run_download_urls
-import wps_shared.utils.time as time_utils
-import weather_model_jobs.utils.process_grib
-import weather_model_jobs.env_canada
 import weather_model_jobs.common_model_fetchers
+import weather_model_jobs.env_canada
+import weather_model_jobs.utils.process_grib
 import wps_shared.db.crud.weather_models
+import wps_shared.utils.time as time_utils
+from aiohttp import ClientSession
+from sqlalchemy.orm import Session
+from tests.weather_models.test_env_canada_gdps import MockResponse
 from wps_shared.db.models.weather_models import (
     PredictionModel,
-    ProcessedModelRunUrl,
     PredictionModelRunTimestamp,
+    ProcessedModelRunUrl,
 )
 from wps_shared.tests.common import default_mock_client_get
-from tests.weather_models.test_env_canada_gdps import MockResponse
+from wps_shared.weather_models.job_utils import (
+    RDPS_GRIB_LAYERS,
+    get_regional_model_run_download_urls,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +33,7 @@ logger = logging.getLogger(__name__)
 def mock_database(monkeypatch):
     """Mocked out database queries"""
     from wps_shared.weather_models import get_file_date_part
+
     _now = time_utils.get_utc_now()
     _date = get_file_date_part(_now, 0)
     rdps_url = (
@@ -133,7 +138,7 @@ def mock_download_fail(monkeypatch):
 def test_get_rdps_download_urls():
     """test to see if get_download_urls methods give the correct number of urls"""
     # -1 because 000 hour has no APCP_Sfc
-    total_num_of_urls = 85 * len(GRIB_LAYERS) - 1
+    total_num_of_urls = 85 * len(RDPS_GRIB_LAYERS) - 1
     assert (
         len(list(get_regional_model_run_download_urls(time_utils.get_utc_now(), 0)))
         == total_num_of_urls

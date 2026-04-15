@@ -26,8 +26,8 @@ from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.weather_models import CompletedWithSomeExceptions, ModelEnum, download
-from wps_shared.weather_models.rdps import SFMS_GRIB_LAYERS as GRIB_LAYERS
-from wps_shared.weather_models.rdps import get_regional_model_run_download_urls, model_run_for_hour
+from wps_shared.weather_models.job_utils import get_regional_model_run_download_urls
+from wps_shared.weather_models.rdps import RDPS_VARIABLE_NAMES, model_run_for_hour
 from wps_shared.wps_logging import configure_logging
 
 from app.weather_models.precip_rdps_model import compute_and_store_precip_rasters
@@ -121,7 +121,7 @@ class RDPSGrib:
     async def _process_model_run(self, model_run_hour: int):
         """Process a particular RDPS model run"""
         logger.info(f"Processing RDPS model run {model_run_hour}Z")
-        for key, value in GRIB_LAYERS.items():
+        for key, value in RDPS_VARIABLE_NAMES.items():
             urls = list(
                 get_regional_model_run_download_urls(
                     self.now, model_run_hour, [value], MAX_MODEL_RUN_HOUR

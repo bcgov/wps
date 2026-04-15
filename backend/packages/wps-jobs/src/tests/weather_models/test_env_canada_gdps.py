@@ -1,29 +1,32 @@
 """Unit tests for app/env_canada.py"""
 
+import logging
 import os
 import sys
-import logging
-from datetime import datetime
+from datetime import datetime, timezone
+
 import pytest
 import requests
+import wps_shared.db.crud.weather_models
+import wps_shared.utils.time as time_utils
 from aiohttp import ClientSession
 from sqlalchemy.orm import Session
-from weather_model_jobs import env_canada
-from wps_shared.weather_models.job_utils import GRIB_LAYERS, get_global_model_run_download_urls
-from weather_model_jobs import machine_learning
-from weather_model_jobs import common_model_fetchers
-import wps_shared.utils.time as time_utils
-import wps_shared.db.crud.weather_models
-from wps_shared.db.models.weather_models import (
-    PredictionModel,
-    ProcessedModelRunUrl,
-    PredictionModelRunTimestamp,
-)
-from wps_shared.tests.common import default_mock_client_get
 from tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 from tests.weather_models.test_models_common import (
     MockResponse,
     mock_get_stations,
+)
+from weather_model_jobs import common_model_fetchers, env_canada, machine_learning
+from wps_shared.db.models.weather_models import (
+    PredictionModel,
+    PredictionModelRunTimestamp,
+    ProcessedModelRunUrl,
+)
+from wps_shared.tests.common import default_mock_client_get
+from wps_shared.weather_models.job_utils import (
+    GDPS_GRIB_LAYERS,
+    get_global_model_run_download_urls,
+    get_regional_model_run_download_urls,
 )
 
 logger = logging.getLogger(__name__)
@@ -130,11 +133,33 @@ def mock_download_fail(monkeypatch):
 def test_get_gdps_download_urls():
     """test to see if get_download_urls methods give the correct number of urls"""
     # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 81 * len(GRIB_LAYERS) - 1
+    total_num_of_urls = 81 * len(GDPS_GRIB_LAYERS) - 1
     assert (
         len(list(get_global_model_run_download_urls(time_utils.get_utc_now(), 0)))
         == total_num_of_urls
     )
+
+
+def test_get_regional_model_run_download_urls_uses_new_path():
+    now = datetime(2026, 5, 1, 12, tzinfo=timezone.utc)
+    urls = list(get_regional_model_run_download_urls(now, 12))
+    assert all("model_rdps" in u for u in urls)
+    assert all("model_gem_regional" not in u for u in urls)
+    assert all("MSC_RDPS" in u for u in urls)
+    assert all("RLatLon0.09" in u for u in urls)
+
+
+def test_get_regional_model_run_download_urls_skips_precip_at_hour_zero():
+    now = datetime(2026, 5, 1, 12, tzinfo=timezone.utc)
+    urls = list(get_regional_model_run_download_urls(now, 12))
+    hour_zero_urls = [u for u in urls if "PT000H" in u]
+    assert all("APCP_Sfc" not in u for u in hour_zero_urls)
+
+
+def test_get_regional_model_run_download_urls_count():
+    now = datetime(2026, 5, 1, 12, tzinfo=timezone.utc)
+    # 85 hours * 5 layers - 1 (no precip at hour 0) = 424
+    assert len(list(get_regional_model_run_download_urls(now, 12))) == 424
 
 
 @pytest.fixture()

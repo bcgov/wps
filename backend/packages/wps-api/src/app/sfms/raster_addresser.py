@@ -13,13 +13,7 @@ from wps_shared.sfms.raster_addresser import (
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import assert_all_utc, convert_to_sfms_timezone, convert_utc_to_pdt
 from wps_shared.weather_models import ModelEnum
-from wps_shared.weather_models.rdps import (
-    compose_computed_precip_rdps_key,
-    compose_rdps_key,
-    compose_rdps_key_hffmc,
-    compose_rdps_key_hffmc_legacy,
-    compose_rdps_key_legacy,
-)
+from wps_shared.weather_models.rdps import RDPSKeyAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +31,7 @@ class RasterKeyAddresser(BaseRasterAddresser):
 
     def __init__(self):
         super().__init__()
+        self.rdps = RDPSKeyAddresser()
         self.sfms_calculated_prefix = "sfms/calculated"
         self.sfms_hourly_upload_prefix = "sfms/uploads/hourlies"
         self.sfms_daily_upload_prefix = "sfms/uploads/actual"
@@ -77,7 +72,7 @@ class RasterKeyAddresser(BaseRasterAddresser):
         )
         return os.path.join(
             weather_model_date_prefix,
-            compose_rdps_key(
+            self.rdps.compose_rdps_key(
                 start_time_utc, start_time_utc.hour, prediction_hour, weather_param.value
             ),
         )
@@ -95,7 +90,7 @@ class RasterKeyAddresser(BaseRasterAddresser):
             f"{self.weather_model_prefix}/{datetime_to_calculate_utc.date().isoformat()}/"
         )
         return os.path.join(
-            calculated_weather_prefix, compose_computed_precip_rdps_key(datetime_to_calculate_utc)
+            calculated_weather_prefix, self.rdps.compose_computed_precip_rdps_key(datetime_to_calculate_utc)
         )
 
     def get_weather_data_keys(
@@ -130,7 +125,7 @@ class RasterKeyAddresser(BaseRasterAddresser):
         return tuple(
             os.path.join(
                 weather_model_date_prefix,
-                compose_rdps_key_legacy(
+                self.rdps.compose_rdps_key_legacy(
                     start_time_utc, start_time_utc.hour, prediction_hour, param.value
                 ),
             )
@@ -180,7 +175,7 @@ class RasterKeyAddresser(BaseRasterAddresser):
         return tuple(
             os.path.join(
                 weather_model_date_prefix,
-                compose_rdps_key_hffmc_legacy(rdps_model_run_start, offset_hour, param.value),
+                self.rdps.compose_rdps_key_hffmc_legacy(rdps_model_run_start, offset_hour, param.value),
             )
             for param in WeatherParameter
         )
@@ -202,7 +197,7 @@ class RasterKeyAddresser(BaseRasterAddresser):
         )
         return os.path.join(
             weather_model_date_prefix,
-            compose_rdps_key_hffmc(rdps_model_run_start, offset_hour, weather_param.value),
+            self.rdps.compose_rdps_key_hffmc(rdps_model_run_start, offset_hour, weather_param.value),
         )
 
     def get_calculated_hffmc_index_key(self, datetime_utc: datetime):

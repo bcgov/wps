@@ -133,13 +133,15 @@ def make_model_run_filename(
 
 
 def make_model_levels(model: ModelEnum):
-    """Return list of layers. (The layers are named slightly differently for HRDPS)
+    """Return list of layers. (The layers are named slightly differently for HRDPS and RDPS)
     TMP_ISBL_0700 : Temperature at 700mb.
     TMP_ISBL_0850 : Temperature at 850mb.
     DEPR_ISBL_0850 : Dew point depression at 850mb.
     """
     if model == ModelEnum.HRDPS:
         return ["TMP_ISBL_0700", "TMP_ISBL_0850", "DEPR_ISBL_0850"]
+    if model == ModelEnum.RDPS:
+        return ["AirTemp_IsbL-0700", "AirTemp_IsbL-0850", "DewPointDepression_IsbL-0850"]
     return ["TMP_ISBL_700", "TMP_ISBL_850", "DEPR_ISBL_850"]
 
 

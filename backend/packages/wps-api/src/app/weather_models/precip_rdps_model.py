@@ -10,12 +10,9 @@ from osgeo import gdal
 from wps_shared import config
 from wps_shared.utils.s3 import get_client, read_into_memory
 from wps_shared.weather_models import ModelEnum
-from wps_shared.weather_models.rdps import (
-    adjust_forecast_hour,
-    compose_computed_precip_rdps_key,
-    compose_rdps_key,
-    compose_rdps_key_legacy,
-)
+from wps_shared.weather_models.rdps import RDPSKeyAddresser, adjust_forecast_hour
+
+_rdps = RDPSKeyAddresser()
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +51,7 @@ async def compute_and_store_precip_rasters(model_run_timestamp: datetime):
                 break
             key = (
                 f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/"
-                + compose_computed_precip_rdps_key(accumulation_end_datetime=accumulation_timestamp)
+                + _rdps.compose_computed_precip_rdps_key(accumulation_end_datetime=accumulation_timestamp)
             )
 
             res = await client.list_objects_v2(Bucket=bucket, Prefix=key, MaxKeys=1)
@@ -146,12 +143,12 @@ def get_raster_keys_to_diff(timestamp: datetime):
     # From earlier model run, get the keys for 24 hours before timestamp and the timestamp to perform the diff
     earlier_key = f"{key_prefix}/"
     later_key = f"{key_prefix}/"
-    later_key = later_key + compose_rdps_key(
+    later_key = later_key + _rdps.compose_rdps_key(
         target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, "precip"
     )
     if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
         # not a model run hour, return earlier and later keys to take difference
-        earlier_key = earlier_key + compose_rdps_key(
+        earlier_key = earlier_key + _rdps.compose_rdps_key(
             target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, "precip"
         )
         return (earlier_key, later_key)
@@ -166,11 +163,11 @@ def get_raster_keys_to_diff_legacy(timestamp: datetime):
     key_prefix = (
         f"weather_models/{ModelEnum.RDPS.lower()}/{target_model_run_date.date().isoformat()}"
     )
-    later_key = f"{key_prefix}/" + compose_rdps_key_legacy(
+    later_key = f"{key_prefix}/" + _rdps.compose_rdps_key_legacy(
         target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, "precip"
     )
     if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
-        earlier_key = f"{key_prefix}/" + compose_rdps_key_legacy(
+        earlier_key = f"{key_prefix}/" + _rdps.compose_rdps_key_legacy(
             target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, "precip"
         )
         return (earlier_key, later_key)

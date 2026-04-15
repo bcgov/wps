@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from wps_shared.weather_models.rdps import compose_computed_precip_rdps_key
+from wps_shared.weather_models.rdps import RDPSKeyAddresser
 
 
 @pytest.mark.parametrize(
@@ -19,5 +19,5 @@ from wps_shared.weather_models.rdps import compose_computed_precip_rdps_key
     ],
 )
 def test_compose_computed_precip_rdps_key(timestamp, expected_output_key):
-    output_precip_key = compose_computed_precip_rdps_key(timestamp)
+    output_precip_key = RDPSKeyAddresser().compose_computed_precip_rdps_key(timestamp)
     assert output_precip_key == expected_output_key
