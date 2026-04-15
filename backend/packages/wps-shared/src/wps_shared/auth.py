@@ -1,11 +1,13 @@
 """Dependency functions used for authenticating and auditing requests"""
 
 import logging
-from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import OAuth2PasswordBearer
+
 import jwt
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
 from sentry_sdk import set_user
+
 from wps_shared import config
 from wps_shared.db.crud.api_access_audits import create_api_access_audit_log
 
@@ -90,6 +92,8 @@ async def audit(request: Request, token=Depends(permissive_oauth2_scheme)):
 async def audit_asa(request: Request, token=Depends(permissive_oauth2_scheme)):
     """Audits attempted requests based on bearer token."""
     # Use the same authentication logic but without test IDIR check (like asa_authentication_required)
+    if not token:
+        decoded_token = {}
     try:
         decoded_token = await authenticate(token)
     except Exception:
