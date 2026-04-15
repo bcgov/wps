@@ -46,7 +46,7 @@ jobs:
         run: |
           echo Login
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
-          PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
 
   set_deployment_status_success:
     name: Set production deployment successful

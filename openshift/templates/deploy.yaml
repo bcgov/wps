@@ -71,6 +71,9 @@ parameters:
   - name: GUNICORN_WORKERS
     description: "Number of gunicorn workers"
     value: "4"
+  - name: DEPLOY_VERSION
+    description: Changes to force a single rollout after image builds complete
+    required: true
 objects:
   - apiVersion: apps/v1
     kind: Deployment
@@ -78,27 +81,6 @@ objects:
       labels:
         app: ${APP_NAME}-${SUFFIX}
       name: ${APP_NAME}-${SUFFIX}
-      annotations:
-        # These annotations trigger a new rollout if either the web or api images change
-        image.openshift.io/triggers: |-
-          [
-            {
-              "from": {
-                "kind": "ImageStreamTag",
-                "name": "${APP_NAME}-web-${SUFFIX}:${SUFFIX}",
-                "namespace": "${PROJ_TOOLS}"
-              },
-              "fieldPath": "spec.template.spec.containers[0].image"
-            },
-            {
-              "from": {
-                "kind": "ImageStreamTag",
-                "name": "${APP_NAME}-api-${SUFFIX}:${SUFFIX}",
-                "namespace": "${PROJ_TOOLS}"
-              },
-              "fieldPath": "spec.template.spec.containers[1].image"
-            }
-          ]
     spec:
       replicas: ${{REPLICAS}}
       selector:
@@ -110,6 +92,9 @@ objects:
         metadata:
           labels:
             name: ${APP_NAME}-${SUFFIX}
+          annotations:
+            # change this once per deploy so the pod template rolls exactly once
+            wps/deploy-version: ${DEPLOY_VERSION}
         spec:
           automountServiceAccountToken: false
           volumes:
@@ -458,7 +443,7 @@ objects:
                   scheme: HTTP
                 initialDelaySeconds: 10
                 periodSeconds: 5
-                failureThreshold: 30
+                failureThreshold: 50
                 timeoutSeconds: 2
               readinessProbe:
                 httpGet:
