@@ -456,9 +456,9 @@ objects:
                   path: /api/ready
                   port: 8080
                   scheme: HTTP
-                initialDelaySeconds: 5
+                initialDelaySeconds: 10
                 periodSeconds: 5
-                failureThreshold: 20
+                failureThreshold: 30
                 timeoutSeconds: 2
               readinessProbe:
                 httpGet:
