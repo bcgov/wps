@@ -310,6 +310,11 @@
   resolved "https://registry.yarnpkg.com/@capacitor/keyboard/-/keyboard-7.0.0.tgz#c31dcda3faa4158dc63da07e17e8c1ec31382e6d"
   integrity sha512-Tqwy8wG+sx4UqiFCX4Q+bFw6uKgG7BiHKAPpeefoIgoEB8H8Jf3xZNZoVPnJIMuPsCdSvuyHXZbJXH9IEEirGA==
 
+"@capacitor/local-notifications@^8.0.2":
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/@capacitor/local-notifications/-/local-notifications-8.0.2.tgz#3c78fed1357e02457cb2649d32fa24d942613bc6"
+  integrity sha512-X7KE/I4ZutMTGVHNUyTjIugYcQEcHJRLks+TsPnOriuS+lo0geSTuaRln6zAZlJSSXSoVMSSzHexdSbIjR/8iw==
+
 "@capacitor/network@^7.0.0":
   version "7.0.4"
   resolved "https://registry.yarnpkg.com/@capacitor/network/-/network-7.0.4.tgz#5b2b51fad872b4b45546e24b0606441b58d01551"

@@ -17,6 +17,9 @@ const config: CapacitorConfig = {
     FirebaseMessaging: {
       presentationOptions: ["alert", "badge", "sound"], // iOS only
     },
+    LocalNotifications: {
+      smallIcon: "ic_notification",
+    },
     SplashScreen: {
       launchAutoHide: true,
       launchShowDuration: 500,
