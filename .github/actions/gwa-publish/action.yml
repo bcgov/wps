@@ -3,7 +3,7 @@ description: Install gwa, authenticate, and publish APS gateway configuration
 
 inputs:
   gateway-id:
-    description: APS gateway id, for example gw-313f6
+    description: APS gateway id
     required: true
   client-id:
     description: APS service account client id
@@ -15,7 +15,9 @@ inputs:
     description: Path to the gateway config file to publish
     required: true
   qualifier:
-    description: Optional qualifier used with publish-gateway
+    description:
+      Optional qualifier used with publish-gateway. Qualifiers allow one gateway to hold
+      multiple independent config sets without publishes pruning sibling configs in other scopes.
     required: false
     default: ""
 
