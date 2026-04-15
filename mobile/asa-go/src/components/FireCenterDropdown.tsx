@@ -9,6 +9,7 @@ import {
 import { FireShape } from "api/fbaAPI";
 import type { FireCentre } from "@/types/fireCentre";
 import React from "react";
+import { BUTTON_HEIGHT } from "@/utils/constants";
 
 export interface FireCenterDropdownProps {
   selectedFireCentre?: FireCentre;
@@ -38,7 +39,11 @@ const FireCenterDropdown = ({
   };
 
   return (
-    <FormControl variant="outlined" size="small" sx={{ minWidth: 175 }}>
+    <FormControl
+      variant="outlined"
+      size="small"
+      sx={{ minWidth: 175, height: BUTTON_HEIGHT - 2 }}
+    >
       <InputLabel id="fire-center-label" shrink>
         Centre
       </InputLabel>
@@ -52,7 +57,11 @@ const FireCenterDropdown = ({
         label="Centre"
         displayEmpty
         renderValue={(value) => (value ? getDisplayName(value) : "")}
-        sx={{ fontWeight: "bold", color: MAP_BUTTON_GREY }}
+        sx={{
+          fontWeight: "bold",
+          color: MAP_BUTTON_GREY,
+          height: BUTTON_HEIGHT - 2,
+        }}
       >
         {fireCentreOptions.map((option) => {
           const displayName = getDisplayName(option.name);

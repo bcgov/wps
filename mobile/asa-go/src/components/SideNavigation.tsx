@@ -8,13 +8,14 @@ import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import { Drawer, List, styled } from "@mui/material";
 
 const StyledDrawer = styled(Drawer)({
-  width: 100,
+  width: "calc(100px + env(safe-area-inset-left))",
   flexShrink: 0,
   "& .MuiDrawer-paper": {
-    width: 100,
+    width: "calc(100px + env(safe-area-inset-left))",
     boxSizing: "border-box",
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText,
+    paddingLeft: "env(safe-area-inset-left)",
   },
 });
 

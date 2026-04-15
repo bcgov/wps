@@ -1,8 +1,8 @@
 import { Box, Button, styled } from "@mui/material";
 import { DateTime } from "luxon";
 import { MAP_BUTTON_GREY } from "@/theme";
-import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/components/MapIconButton";
 import { today } from "@/utils/dataSliceUtils";
+import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/utils/constants";
 
 interface TodayTomorrowSwitchProps {
   border?: boolean;
