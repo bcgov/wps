@@ -23,8 +23,10 @@ async def permissive_oauth2_scheme(request: Request):
     """Returns parsed auth token if authorized, None otherwise."""
     try:
         return await oauth2_scheme.__call__(request)
-    except HTTPException as exception:
-        logger.error("Could not validate the credential %s", exception)
+    except HTTPException:
+        # public audited routes intentionally allow anonymous access, so a missing bearer token
+        # should not be treated as an application error here. Error logs will be generated later if
+        # the token is required for a specific route and is missing/invalid.
         return None
 
 
