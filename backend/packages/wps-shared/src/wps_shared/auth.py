@@ -94,10 +94,11 @@ async def audit_asa(request: Request, token=Depends(permissive_oauth2_scheme)):
     # Use the same authentication logic but without test IDIR check (like asa_authentication_required)
     if not token:
         decoded_token = {}
-    try:
-        decoded_token = await authenticate(token)
-    except Exception:
-        decoded_token = {}
+    else:
+        try:
+            decoded_token = await authenticate(token)
+        except Exception:
+            decoded_token = {}
 
     return await _audit_with_token(request, decoded_token)
 
