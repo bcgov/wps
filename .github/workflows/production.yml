@@ -75,6 +75,7 @@ jobs:
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
           config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+          qualifier: prod
 
       - name: Upload ASA Go APS gateway config
         uses: actions/upload-artifact@v7
