@@ -31,31 +31,37 @@ Uses the existing RDPS plotters (UNCHANGED):
 from __future__ import annotations
 
 import re
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
+
 import matplotlib
+
 matplotlib.use("Agg")
 import argparse
 
-import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
+
+# Panel layout helpers (unchanged)
+from panel_layout import (
+    add_panel_title,
+    add_valid_time_stamp,
+    apply_4panel_frames,
+    get_project_root,
+)
+from plot_500mb_rdps import CFG_500 as CFG_500_RDPS
 
 # -----------------------------
 # Import RDPS plotters (UNCHANGED)
 # -----------------------------
+from plot_500mb_rdps import plot_500hpa
+from plot_700mb_rdps import CFG_700_RDPS as CFG_700_RDPS
+from plot_700mb_rdps import plot_700hpa_rdps
+from plot_mslp_rdps import CFG_MSLP_RDPS as CFG_MSLP_RDPS
+from plot_mslp_rdps import plot_mslp_thickness_rdps
+from plot_precip_rdps import PLOT_CONFIG_PCPN3_RDPS as CFG_PCPN_RDPS
+from plot_precip_rdps import plot_pcpn3_rdps
 
-from plot_500mb_rdps import plot_500hpa, CFG_500 as CFG_500_RDPS
-from plot_mslp_rdps import plot_mslp_thickness_rdps, CFG_MSLP_RDPS as CFG_MSLP_RDPS
-from plot_700mb_rdps import plot_700hpa_rdps, CFG_700_RDPS as CFG_700_RDPS
-from plot_precip_rdps import plot_pcpn3_rdps, PLOT_CONFIG_PCPN3_RDPS  as CFG_PCPN_RDPS
-
-# Panel layout helpers (unchanged)
-from panel_layout import (
-    get_project_root,
-    add_panel_title,
-    add_valid_time_stamp,
-    apply_4panel_frames,
-)
 
 # -----------------------------
 # Time string
@@ -92,7 +98,7 @@ def _find_one(folder: Path, patterns: list[str], *, required: bool = True) -> Pa
     hits = []
     for f in files:
         name = f.name
-        if any(r.search(name) for r in rx):   # IMPORTANT: search, not match
+        if any(r.search(name) for r in rx):  # IMPORTANT: search, not match
             hits.append(f)
 
     if not hits:
@@ -115,66 +121,42 @@ def _find_one(folder: Path, patterns: list[str], *, required: bool = True) -> Pa
 PAT = {
     # 500 hPa height
     "z500": [
-        # experiment MSC-style
         r"_GeopotentialHeight_IsbL-0500_.*\.grib2$",
-        # operational GEM regional
-        r"CMC_reg_HGT_ISBL_500_.*\.grib2$",
     ],
-
     # 500 hPa vorticity (prefer ABSV; fall back RELV)
     "vort500": [
-        # experiment MSC-style
-     #   r"_AbsoluteVorticity_IsbL-0500_.*\.grib2$",
-      #  r"_RelativeVorticity_IsbL-0500_.*\.grib2$",
-        # operational GEM naming variants
-        r"CMC_reg_ABSV_?ISBL_500_.*\.grib2$",
-        r"CMC_reg_RELV_?ISBL_500_.*\.grib2$",
+        r"_AbsoluteVorticity_IsbL-0500_.*\.grib2$",
+        r"_RelativeVorticity_IsbL-0500_.*\.grib2$",
     ],
-
     # MSLP
     "mslp": [
         r"_Pressure_MSL_.*\.grib2$",
-        r"CMC_reg_PRMSL_MSL_0_.*\.grib2$",
     ],
-
     # thickness (1000–500)
     "thk1000_500": [
         r"_Thickness_IsbL-1000to0500_.*\.grib2$",
-        r"CMC_reg_HGT_ISBY_1000-500_.*\.grib2$",
     ],
-
     # 700 hPa height
     "z700": [
         r"_GeopotentialHeight_IsbL-0700_.*\.grib2$",
-        r"CMC_reg_HGT_ISBL_700_.*\.grib2$",
     ],
-
     # RH levels
     "rh500": [
         r"_RelativeHumidity_IsbL-0500_.*\.grib2$",
-        r"CMC_reg_RH_ISBL_500_.*\.grib2$",
     ],
     "rh700": [
         r"_RelativeHumidity_IsbL-0700_.*\.grib2$",
-        r"CMC_reg_RH_ISBL_700_.*\.grib2$",
     ],
     "rh850": [
         r"_RelativeHumidity_IsbL-0850_.*\.grib2$",
-        r"CMC_reg_RH_ISBL_850_.*\.grib2$",
     ],
-
     # 3h precip
     "pcpn3": [
-        r"_Precip-Accum3h_Sfc_.*\.grib2$",
-       # r"CMC_reg_.*_APCP_SFC_0_.*\.grib2$",
-        # sometimes the accumulation naming includes "APCP-Accum03h" etc
-        r"CMC_reg_APCP-Accum3h_SFC_0_.*\.grib2$",
+        r"_Precip-Accum3h_.*\.grib2$",
     ],
-
     # 250 hPa wind speed for jet (only if the precip plotter requests it)
     "wspd250": [
         r"_WindSpeed_IsbL-0250_.*\.grib2$",
-        r"CMC_reg_(UGRD|VGRD)_ISBL_250_.*\.grib2$",
     ],
 }
 
@@ -197,13 +179,13 @@ def build_cfgs_for_fh(init_ymd: str, init_hh: str, fh: int, data_root="data_hpx"
 
     cfgmslp = CFG_MSLP_RDPS.copy()
     cfgmslp["mslp_grib"] = str(_find_one(base_dir, PAT["mslp"]))
-    cfgmslp["thk_grib"]  = str(_find_one(base_dir, PAT["thk1000_500"]))
+    cfgmslp["thk_grib"] = str(_find_one(base_dir, PAT["thk1000_500"]))
 
     cfg700 = CFG_700_RDPS.copy()
-    cfg700["z700_grib"]   = str(_find_one(base_dir, PAT["z700"]))
-    cfg700["rh500_grib"]  = str(_find_one(base_dir, PAT["rh500"]))
-    cfg700["rh700_grib"]  = str(_find_one(base_dir, PAT["rh700"]))
-    cfg700["rh850_grib"]  = str(_find_one(base_dir, PAT["rh850"]))
+    cfg700["z700_grib"] = str(_find_one(base_dir, PAT["z700"]))
+    cfg700["rh500_grib"] = str(_find_one(base_dir, PAT["rh500"]))
+    cfg700["rh700_grib"] = str(_find_one(base_dir, PAT["rh700"]))
+    cfg700["rh850_grib"] = str(_find_one(base_dir, PAT["rh850"]))
 
     cfgpcpn = CFG_PCPN_RDPS.copy()
     if fh == 0:
@@ -242,7 +224,8 @@ def make_4panel(
     )
 
     fig, axes = plt.subplots(
-        2, 2,
+        2,
+        2,
         figsize=figsize,
         dpi=dpi,
         subplot_kw={"projection": proj},
@@ -261,7 +244,9 @@ def make_4panel(
     add_panel_title(ax700, "700 hPa Height + 850–500 Relative Humidity", loc="bl")
 
     plot_pcpn3_rdps(cfgpcpn, ax=axpcpn)
-    add_panel_title(axpcpn, "3H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H", loc="bl")
+    add_panel_title(
+        axpcpn, "3H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H", loc="bl"
+    )
 
     apply_4panel_frames(fig, axes, add_outer_border=True)
 
@@ -309,7 +294,10 @@ def batch_make_4panel_gem_regional(
 
         outname = f"GEMREG_{init_ymd}T{init_hh}Z_F{fh:03d}_4panel.png"
         make_4panel(
-            cfg500, cfgmslp, cfg700, cfgpcpn,
+            cfg500,
+            cfgmslp,
+            cfg700,
+            cfgpcpn,
             figsize=figsize,
             dpi=dpi,
             outname=outname,
@@ -319,10 +307,12 @@ def batch_make_4panel_gem_regional(
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--init", default="", help='init time like 20260120T00Z (UTC)')
-    ap.add_argument("--date", default="", help='UTC date YYYYMMDD (alternative to --init)')
-    ap.add_argument("--cycle", default="", help='cycle HH (00 or 12) (alternative to --init)')
-    ap.add_argument("--auto", action="store_true", help="auto-pick latest available init in data_dir")
+    ap.add_argument("--init", default="", help="init time like 20260120T00Z (UTC)")
+    ap.add_argument("--date", default="", help="UTC date YYYYMMDD (alternative to --init)")
+    ap.add_argument("--cycle", default="", help="cycle HH (00 or 12) (alternative to --init)")
+    ap.add_argument(
+        "--auto", action="store_true", help="auto-pick latest available init in data_dir"
+    )
     ap.add_argument("--lookback_days", type=int, default=2, help="for --auto, search back N days")
     ap.add_argument("--data_dir", default="data_hpx")
     ap.add_argument("--out_base", default="outputs")  # base output folder

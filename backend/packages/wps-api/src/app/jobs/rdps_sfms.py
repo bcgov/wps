@@ -4,32 +4,33 @@ Data is stored in S3 storage for a maximum of 7 days
 """
 
 import asyncio
+import logging
 import os
 import sys
-from datetime import timedelta, datetime, timezone
-from collections.abc import Generator
-import logging
 import tempfile
+from collections.abc import Generator
+from datetime import datetime, timedelta, timezone
+
 import aiofiles
+import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
-from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.crud.weather_models import (
     create_model_run_for_sfms,
     create_saved_model_run_for_sfms_url,
-    get_saved_model_run_for_sfms,
-    get_rdps_sfms_urls_for_deletion,
     delete_rdps_sfms_urls,
+    get_rdps_sfms_urls_for_deletion,
+    get_saved_model_run_for_sfms,
 )
-from wps_shared.utils.s3_client import S3Client
-from wps_shared.weather_models import CompletedWithSomeExceptions, download
-from wps_shared.weather_models import ModelEnum
-from wps_shared.wps_logging import configure_logging
-import wps_shared.utils.time as time_utils
-from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
+from wps_shared.db.database import get_write_session_scope
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from wps_shared.weather_models.job_utils import get_regional_model_run_download_urls
+from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
+from wps_shared.utils.s3_client import S3Client
+from wps_shared.weather_models import CompletedWithSomeExceptions, ModelEnum, download
+from wps_shared.weather_models.rdps import SFMS_GRIB_LAYERS as GRIB_LAYERS
+from wps_shared.weather_models.rdps import get_regional_model_run_download_urls, model_run_for_hour
+from wps_shared.wps_logging import configure_logging
+
 from app.weather_models.precip_rdps_model import compute_and_store_precip_rasters
-from wps_shared.sfms.rdps_filename_marshaller import model_run_for_hour
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -40,12 +41,6 @@ logger = logging.getLogger(__name__)
 
 DAYS_TO_RETAIN = 7
 MAX_MODEL_RUN_HOUR = 45
-GRIB_LAYERS = {
-    "temp": "TMP_TGL_2",
-    "rh": "RH_TGL_2",
-    "precip": "APCP_SFC_0",
-    "wind_speed": "WIND_TGL_10",
-}
 
 
 def get_model_run_hours_to_process() -> Generator[int, None, None]:
@@ -68,7 +63,7 @@ class RDPSGrib:
 
     def _get_file_name_from_url(self, url: str) -> str:
         """Parses the grib file name from the URL. URLs have the form:
-        https://dd.weather.gc.ca/model_gem_regional/10km/grib2/00/000/CMC_reg_TMP_TGL_2_ps10km_2024061700_P000.grib2
+        https://dd.weather.gc.ca/today/model_rdps/10km/00/000/20260501T00Z_MSC_RDPS_TMP_AGL-2m_RLatLon0.09_PT000H.grib2
         """
         parts = url.split("/")
         name = parts[-1]

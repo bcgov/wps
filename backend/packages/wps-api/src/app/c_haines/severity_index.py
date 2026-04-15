@@ -1,42 +1,40 @@
 """Logic pertaining to the generation of c_haines severity index from GDAL datasets."""
 
-import os
-import io
 import asyncio
-from datetime import datetime, timezone, timedelta
-from typing import Final, Tuple, Generator, Optional, List
-from contextlib import contextmanager
-import tempfile
-import logging
+import io
 import json
-from osgeo import gdal, ogr
-import numpy
-from pyproj import Transformer, Proj
-from shapely.ops import transform
-from shapely.geometry import shape, mapping
-from aiobotocore.client import AioBaseClient
-from affine import Affine
-from wps_shared.utils.s3 import object_exists, object_exists_v2
-import wps_shared.utils.time as time_utils
-from wps_shared.weather_models import ModelEnum, ProjectionEnum
-from wps_shared.geospatial.geospatial import WGS84
+import logging
+import os
+import tempfile
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+from typing import Final, Generator, List, Optional, Tuple
 
-from wps_shared.utils.s3 import get_client
-from app.c_haines import get_severity_string
-from app.c_haines.c_haines_index import CHainesGenerator
-from app.c_haines import GDALData
-from app.c_haines.object_store import ObjectTypeEnum, generate_full_object_store_path
-from app.c_haines.kml import save_as_kml_to_s3
+import numpy
+import wps_shared.utils.time as time_utils
+from affine import Affine
+from aiobotocore.client import AioBaseClient
+from osgeo import gdal, ogr
+from pyproj import Proj, Transformer
+from shapely.geometry import mapping, shape
+from shapely.ops import transform
 from wps_shared import config
-from wps_shared.geospatial.geospatial import get_dataset_transform
+from wps_shared.geospatial.geospatial import WGS84, get_dataset_transform
+from wps_shared.utils.s3 import get_client, object_exists, object_exists_v2
 from wps_shared.weather_models import (
+    ModelEnum,
+    ProjectionEnum,
+    UnhandledPredictionModelType,
     adjust_model_day,
     download,
     get_env_canada_model_run_hours,
     get_file_date_part,
-    UnhandledPredictionModelType,
 )
 
+from app.c_haines import GDALData, get_severity_string
+from app.c_haines.c_haines_index import CHainesGenerator
+from app.c_haines.kml import save_as_kml_to_s3
+from app.c_haines.object_store import ObjectTypeEnum, generate_full_object_store_path
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +112,7 @@ def make_model_run_base_url(model: ModelEnum, model_run_start: str, forecast_hou
             f"{model_run_start}/{forecast_hour}/"
         )
     if model == ModelEnum.RDPS:
-        return f"https://dd.weather.gc.ca/today/model_gem_regional/10km/grib2/{model_run_start}/{forecast_hour}/"
+        return f"https://dd.weather.gc.ca/today/model_rdps/10km/{model_run_start}/{forecast_hour}/"
     if model == ModelEnum.HRDPS:
         return f"https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/{model_run_start}/{forecast_hour}/"
     raise UnhandledPredictionModelType()
@@ -128,7 +126,7 @@ def make_model_run_filename(
     if model == ModelEnum.GDPS:
         return f"CMC_glb_{level}_latlon.15x.15_{date}{model_run_start}_P{forecast_hour}.grib2"
     if model == ModelEnum.RDPS:
-        return f"CMC_reg_{level}_ps10km_{date}{model_run_start}_P{forecast_hour}.grib2"
+        return f"{date}T{model_run_start}Z_MSC_RDPS_{level}_RLatLon0.09_PT{forecast_hour}H.grib2"
     if model == ModelEnum.HRDPS:
         return f"CMC_hrdps_continental_{level}_ps2.5km_{date}{model_run_start}_P{forecast_hour}-00.grib2"
     raise UnhandledPredictionModelType()

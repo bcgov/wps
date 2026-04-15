@@ -37,6 +37,7 @@ class ProjectionEnum(str, Enum):
     REGIONAL_PS = "ps10km"
     GFS_LONLAT = "lonlat.0.25deg"
     HRDPS_LATLON = "RLatLon0.0225"
+    RDPS_LATLON = "RLatLon0.09"
     NAM_POLAR_STEREO = "ps32km"
     ECMWF_LATLON = "latlon.0.25deg"
 

@@ -2,47 +2,47 @@
 https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1601
 """
 
+import datetime
+import logging
 import os
 import sys
-import datetime
-from urllib.parse import urlparse
-import logging
 import tempfile
+from urllib.parse import urlparse
+
+import wps_shared.db.database
+import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
-from wps_shared.db.crud.weather_models import (
-    get_processed_file_record,
-    get_prediction_model,
-    get_prediction_run,
-    update_prediction_run,
-)
-from wps_shared.weather_models.job_utils import (
-    get_model_run_urls,
-)
 from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
     apply_data_retention_policy,
     check_if_model_run_complete,
     flag_file_as_processed,
 )
-from wps_shared.weather_models import (
-    ModelEnum,
-    ProjectionEnum,
-    get_env_canada_model_run_hours,
-    UnhandledPredictionModelType,
-)
-from wps_shared.wps_logging import configure_logging
-import wps_shared.utils.time as time_utils
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
-import wps_shared.db.database
+from wps_shared.db.crud.weather_models import (
+    get_prediction_model,
+    get_prediction_run,
+    get_processed_file_record,
+    update_prediction_run,
+)
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.weather_models import (
-    adjust_model_day,
     CompletedWithSomeExceptions,
+    ModelEnum,
+    ProjectionEnum,
+    UnhandledPredictionModelType,
+    adjust_model_day,
     download,
+    get_env_canada_model_run_hours,
 )
+from wps_shared.weather_models.job_utils import (
+    get_model_run_urls,
+)
+from wps_shared.weather_models.rdps import parse_rdps_msc_filename
+from wps_shared.wps_logging import configure_logging
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -119,6 +119,11 @@ def parse_env_canada_filename(url):
             parse_high_res_model_url(url)
         )
         model_enum = ModelEnum.HRDPS
+    elif "RDPS" in parts:
+        variable_name, projection, model_run_timestamp, prediction_timestamp = (
+            parse_rdps_msc_filename(url)
+        )
+        model_enum = ModelEnum.RDPS
     elif "reg" in parts:
         variable_name, projection, model_run_timestamp, prediction_timestamp = (
             parse_gdps_rdps_filename(filename)

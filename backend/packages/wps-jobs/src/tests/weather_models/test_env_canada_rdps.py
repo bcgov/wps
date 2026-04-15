@@ -28,15 +28,18 @@ logger = logging.getLogger(__name__)
 @pytest.fixture()
 def mock_database(monkeypatch):
     """Mocked out database queries"""
+    from wps_shared.weather_models import get_file_date_part
+    _now = time_utils.get_utc_now()
+    _date = get_file_date_part(_now, 0)
     rdps_url = (
-        "https://dd.weather.gc.ca/today/model_gem_regional/10km/grib2/00/034/"
-        "CMC_reg_RH_TGL_2_ps10km_2020052100_P034.grib2"
+        f"https://dd.weather.gc.ca/today/model_rdps/10km/00/034/"
+        f"{_date}T00Z_MSC_RDPS_RH_AGL-2m_RLatLon0.09_PT034H.grib2"
     )
     rdps_processed_model_run = ProcessedModelRunUrl(url=rdps_url)
     rdps_prediction_model = PredictionModel(
         id=2,
         abbreviation="RDPS",
-        projection="ps10km",
+        projection="RLatLon0.09",
         name="Regional Deterministic Prediction System",
     )
     rdps_prediction_model_run = PredictionModelRunTimestamp(
@@ -129,7 +132,7 @@ def mock_download_fail(monkeypatch):
 
 def test_get_rdps_download_urls():
     """test to see if get_download_urls methods give the correct number of urls"""
-    # -1 because 000 hour has no APCP_SFC_0
+    # -1 because 000 hour has no APCP_Sfc
     total_num_of_urls = 85 * len(GRIB_LAYERS) - 1
     assert (
         len(list(get_regional_model_run_download_urls(time_utils.get_utc_now(), 0)))

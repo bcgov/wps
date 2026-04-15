@@ -63,15 +63,15 @@ def test_get_weather_data_keys_hffmc(addresser: RasterKeyAddresser):
     assert len(result) == 4
     assert (
         result[0]
-        == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P003.grib2"
+        == "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_TMP_AGL-2m_RLatLon0.09_PT003H.grib2"
     )
     assert (
         result[1]
-        == "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P003.grib2"
+        == "weather_models/rdps/2024-10-10/00/rh/20241010T00Z_MSC_RDPS_RH_AGL-2m_RLatLon0.09_PT003H.grib2"
     )
     assert (
         result[2]
-        == "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P003.grib2"
+        == "weather_models/rdps/2024-10-10/00/wind_speed/20241010T00Z_MSC_RDPS_WIND_AGL-10m_RLatLon0.09_PT003H.grib2"
     )
     assert (
         result[3]
@@ -83,7 +83,7 @@ def test_get_model_data_key_hffmc(addresser: RasterKeyAddresser):
     result = addresser.get_model_data_key_hffmc(RDPS_MODEL_RUN_00_START, HOUR_OFFSET, WeatherParameter.TEMP)
     assert (
         result
-        == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P003.grib2"
+        == "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_TMP_AGL-2m_RLatLon0.09_PT003H.grib2"
     )
 
 
