@@ -9,6 +9,7 @@ import App from "@/App.tsx";
 import AuthWrapper from "@/components/AuthWrapper";
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
+import { ErrorBoundary } from "@sentry/react";
 
 Sentry.init(
   {
@@ -35,16 +36,25 @@ const render = () => {
   const root = createRoot(container);
   root.render(
     <StrictMode>
-      <Provider store={store}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <StyledEngineProvider injectFirst>
-            <AuthWrapper>
-              <App />
-            </AuthWrapper>
-          </StyledEngineProvider>
-        </ThemeProvider>
-      </Provider>
+      <ErrorBoundary
+        fallback={
+          <p>
+            An unexpected error occurred. Please contact
+            BCWS.PredictiveServices@gov.bc.ca if this persists.
+          </p>
+        }
+      >
+        <Provider store={store}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <StyledEngineProvider injectFirst>
+              <AuthWrapper>
+                <App />
+              </AuthWrapper>
+            </StyledEngineProvider>
+          </ThemeProvider>
+        </Provider>
+      </ErrorBoundary>
     </StrictMode>,
   );
 };
