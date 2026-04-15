@@ -72,9 +72,12 @@ describe("pushNotificationsAPI", () => {
 
       const result = await getNotificationSettings("device-1");
 
-      expect(axios.get).toHaveBeenCalledWith("device/notification-settings", {
-        params: { device_id: "device-1" },
-      });
+      expect(axios.get).toHaveBeenCalledWith(
+        "asa-go/device/notification-settings",
+        {
+          params: { device_id: "device-1" },
+        },
+      );
       expect(result).toEqual(["1", "2", "3"]);
     });
 
@@ -97,10 +100,13 @@ describe("pushNotificationsAPI", () => {
 
       const result = await updateNotificationSettings("device-1", ["5", "10"]);
 
-      expect(axios.post).toHaveBeenCalledWith("device/notification-settings", {
-        device_id: "device-1",
-        fire_zone_source_ids: ["5", "10"],
-      });
+      expect(axios.post).toHaveBeenCalledWith(
+        "asa-go/device/notification-settings",
+        {
+          device_id: "device-1",
+          fire_zone_source_ids: ["5", "10"],
+        },
+      );
       expect(result).toEqual(["5", "10"]);
     });
 
@@ -111,10 +117,13 @@ describe("pushNotificationsAPI", () => {
 
       const result = await updateNotificationSettings("device-1", []);
 
-      expect(axios.post).toHaveBeenCalledWith("device/notification-settings", {
-        device_id: "device-1",
-        fire_zone_source_ids: [],
-      });
+      expect(axios.post).toHaveBeenCalledWith(
+        "asa-go/device/notification-settings",
+        {
+          device_id: "device-1",
+          fire_zone_source_ids: [],
+        },
+      );
       expect(result).toEqual([]);
     });
   });
