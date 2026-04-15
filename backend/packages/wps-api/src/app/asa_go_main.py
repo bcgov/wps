@@ -69,8 +69,6 @@ app = Starlette()
 app.mount("/api", app=api)
 
 ORIGINS = config.get("ORIGINS")
-if isinstance(ORIGINS, str):
-    ORIGINS = [ORIGINS]
 
 
 async def catch_exception_middleware(request: Request, call_next):
@@ -90,7 +88,7 @@ api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "HEAD", "POST", "PATCH", "DELETE"],
+    allow_methods=["GET", "HEAD", "POST"],
     allow_headers=["*"],
 )
 api.middleware("http")(catch_exception_middleware)
