@@ -5,7 +5,6 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from wps_shared.auth import audit_asa
 from wps_shared.schemas.fba import (
-    FireCenterListResponse,
     FireCentreInfoResponse,
     HFIStatsResponse,
     LatestSFMSRunParameterRangeResponse,
@@ -42,16 +41,9 @@ def _validate_not_before_today(*dates: date) -> None:
         )
 
 
-@router.get(
-    "/fire-centers", response_model=FireCenterListResponse, response_model_exclude_none=True
-)
-async def get_all_fire_centers():
-    return await fba.get_all_fire_centers(_=None)
-
-
 @router.get("/fire-centre-info", response_model=FireCentreInfoResponse)
 async def get_fire_centres_and_fire_zone_units():
-    return await fba.get_fire_centres_and_fire_zone_units(_=None)
+    return await fba.get_fire_centres_and_fire_zone_units()
 
 
 @router.get(
@@ -64,7 +56,7 @@ async def get_provincial_summary(
     for_date: date,
 ):
     _validate_not_before_today(for_date)
-    return await fba.get_provincial_summary(run_type, run_datetime, for_date, _=None)
+    return await fba.get_provincial_summary(run_type, run_datetime, for_date)
 
 
 @router.get("/latest-sfms-run-datetime/{for_date}", response_model=LatestSFMSRunParameterResponse)
@@ -72,7 +64,7 @@ async def get_latest_sfms_run_datetime_for_date(
     for_date: date,
 ):
     _validate_not_before_today(for_date)
-    return await fba.get_latest_sfms_run_datetime_for_date(for_date, _=None)
+    return await fba.get_latest_sfms_run_datetime_for_date(for_date)
 
 
 @router.get("/sfms-run-bounds", response_model=SFMSBoundsResponse)
@@ -86,7 +78,7 @@ async def get_run_datetimes_for_date_and_runtype(
     for_date: date,
 ):
     _validate_not_before_today(for_date)
-    return await fba.get_run_datetimes_for_date_and_runtype(run_type, for_date, _=None)
+    return await fba.get_run_datetimes_for_date_and_runtype(run_type, for_date)
 
 
 @router.get(
@@ -98,7 +90,7 @@ async def get_latest_sfms_run_datetime_for_date_range(
     end_date: date,
 ):
     _validate_not_before_today(start_date, end_date)
-    return await fba.get_latest_sfms_run_datetime_for_date_range(start_date, end_date, _=None)
+    return await fba.get_latest_sfms_run_datetime_for_date_range(start_date, end_date)
 
 
 @router.get(
@@ -111,7 +103,7 @@ async def get_hfi_fuels_data_for_run_parameter(
     for_date: date,
 ):
     _validate_not_before_today(for_date)
-    return await fba.get_hfi_fuels_data_for_run_parameter(run_type, run_datetime, for_date, _=None)
+    return await fba.get_hfi_fuels_data_for_run_parameter(run_type, run_datetime, for_date)
 
 
 @router.get(
@@ -124,7 +116,7 @@ async def get_tpi_stats_for_run_parameter(
     for_date: date,
 ):
     _validate_not_before_today(for_date)
-    return await fba.get_tpi_stats_for_run_parameter(run_type, run_datetime, for_date, _=None)
+    return await fba.get_tpi_stats_for_run_parameter(run_type, run_datetime, for_date)
 
 
 @router.get("/fire-centres", response_model=FireCentresResponse)
