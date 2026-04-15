@@ -1,3 +1,4 @@
+import os
 from datetime import date, datetime, timezone
 from unittest.mock import patch
 
@@ -22,6 +23,11 @@ def client():
 
     with TestClient(test_app) as test_client:
         yield test_client
+
+
+@pytest.fixture(autouse=True)
+def before_each():
+    os.environ["DISABLE_ASA_GO_DATE_VALIDATION"] = "False"
 
 
 @patch("app.routers.psu.fetch_fire_centres")
