@@ -1,3 +1,5 @@
+# https://developer.gov.bc.ca/docs/default/component/aps-infra-platform-docs/concepts/gateway-config/
+# https://developer.konghq.com/gateway/entities/service/
 services:
   # keep this to raw Kong entities so it can be published with `gwa publish-gateway --qualifier`.
   - name: ${ASA_GO_SERVICE_NAME}

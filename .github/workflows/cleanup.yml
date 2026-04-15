@@ -9,6 +9,9 @@ on:
     branches:
       - main
 
+env:
+  APS_GATEWAY_ID: gw-313f6
+
 jobs:
   cleanup-non-db:
     name: Delete non-DB resources associated with pr
@@ -18,6 +21,33 @@ jobs:
       - uses: ./.github/actions/oc-setup
         with:
           pr-number: ${{ github.event.number }}
+
+      - name: Set ASA Go APS config path
+        id: asa_go_aps_config
+        shell: bash
+        run: |
+          echo "config_path=.github/tmp/asa-go-gw-config-pr-${{ github.event.number }}.yaml" >> "${GITHUB_OUTPUT}"
+
+      - name: Render ASA Go APS gateway config for cleanup
+        shell: bash
+        run: |
+          mkdir -p "$(dirname "${{ steps.asa_go_aps_config.outputs.config_path }}")"
+          cp openshift/aps/empty-gw-config.yaml "${{ steps.asa_go_aps_config.outputs.config_path }}"
+
+      - name: Publish ASA Go APS cleanup config
+        uses: ./.github/actions/gwa-publish
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+          qualifier: pr-${{ github.event.number }}
+
+      - name: Upload ASA Go APS cleanup config
+        uses: actions/upload-artifact@v7
+        with:
+          name: asa-go-aps-gateway-config-cleanup-pr-${{ github.event.number }}
+          path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
       - uses: ./.github/actions/oc-login
         with:

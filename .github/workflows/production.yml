@@ -11,6 +11,9 @@ permissions:
 # https://docs.github.com/en/actions/reference/events-that-trigger-workflows#deployment
 on: deployment
 
+env:
+  APS_GATEWAY_ID: gw-313f6
+
 jobs:
   deploy_to_production:
     name: Deploy to production
@@ -47,6 +50,29 @@ jobs:
           echo Login
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
           PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
+
+      - name: Set ASA Go APS config path
+        id: asa_go_aps_config
+        shell: bash
+        run: |
+          echo "config_path=.github/tmp/asa-go-gw-config-prod.yaml" >> "${GITHUB_OUTPUT}"
+
+      - name: Render ASA Go APS gateway config
+        shell: bash
+        run: |
+          mkdir -p "$(dirname "${{ steps.asa_go_aps_config.outputs.config_path }}")"
+          APS_NAMESPACE="${{ env.APS_GATEWAY_ID }}" \
+          PROJECT_NAMESPACE="e1e498-prod" \
+          ASA_GO_HOST="psu.api.gov.bc.ca" \
+          bash openshift/scripts/render_asa_go_gateway_config.sh \
+            "prod" \
+            "${{ steps.asa_go_aps_config.outputs.config_path }}"
+
+      - name: Upload ASA Go APS gateway config
+        uses: actions/upload-artifact@v7
+        with:
+          name: asa-go-aps-gateway-config-prod
+          path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
   set_deployment_status_success:
     name: Set production deployment successful

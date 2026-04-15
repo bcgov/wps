@@ -12,7 +12,7 @@ on:
 
 env:
   PROJ_DEV: e1e498-dev
-  APS_GATEWAY_ID_DEV: gw-313f6
+  APS_GATEWAY_ID: gw-313f6
 
 jobs:
   prepare-dev-database:
@@ -161,7 +161,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$(dirname "${{ steps.asa_go_aps_config.outputs.config_path }}")"
-          APS_NAMESPACE="${{ env.APS_GATEWAY_ID_DEV }}" \
+          APS_NAMESPACE="${{ env.APS_GATEWAY_ID }}" \
           PROJECT_NAMESPACE="${PROJ_DEV}" \
           ASA_GO_HOST="psu-${SUFFIX}.api.gov.bc.ca" \
           bash openshift/scripts/render_asa_go_gateway_config.sh \
@@ -171,7 +171,7 @@ jobs:
       - name: Publish ASA Go APS gateway config
         uses: ./.github/actions/gwa-publish
         with:
-          gateway-id: ${{ env.APS_GATEWAY_ID_DEV }}
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
           config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
