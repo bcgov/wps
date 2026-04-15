@@ -19,7 +19,7 @@ source "$(dirname ${0})/common/common"
 #
 
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
-OBJ_NAME="${APP_NAME}-asa-go-${SUFFIX}"
+OBJ_NAME="${APP_NAME}-${SUFFIX}-asa-go"
 
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/asa_go_api.yaml \
  -p APP_NAME=${APP_NAME} \

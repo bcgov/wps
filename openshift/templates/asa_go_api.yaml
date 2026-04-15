@@ -13,7 +13,7 @@ metadata:
     openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
   app.kubernetes.io/part-of: "${APP_NAME}-asa-go-api"
-  app: ${APP_NAME}-asa-go-${SUFFIX}
+  app: ${APP_NAME}-${SUFFIX}-asa-go
 parameters:
   - name: APP_NAME
     description: Application name
@@ -64,8 +64,8 @@ objects:
     kind: Deployment
     metadata:
       labels:
-        app: ${APP_NAME}-asa-go-${SUFFIX}
-      name: ${APP_NAME}-asa-go-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}-asa-go
+      name: ${APP_NAME}-${SUFFIX}-asa-go
       annotations:
         image.openshift.io/triggers: |-
           [
@@ -82,13 +82,13 @@ objects:
       replicas: ${{REPLICAS}}
       selector:
         matchLabels:
-          name: ${APP_NAME}-asa-go-${SUFFIX}
+          name: ${APP_NAME}-${SUFFIX}-asa-go
       strategy:
         type: RollingUpdate
       template:
         metadata:
           labels:
-            name: ${APP_NAME}-asa-go-${SUFFIX}
+            name: ${APP_NAME}-${SUFFIX}-asa-go
         spec:
           automountServiceAccountToken: false
           containers:
@@ -203,7 +203,7 @@ objects:
     kind: Service
     metadata:
       labels:
-        app: ${APP_NAME}-asa-go-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}-asa-go
       name: ${APP_NAME}-asa-go-api-${SUFFIX}
     spec:
       ports:
@@ -212,4 +212,4 @@ objects:
           port: 80
           targetPort: 8080
       selector:
-        name: ${APP_NAME}-asa-go-${SUFFIX}
+        name: ${APP_NAME}-${SUFFIX}-asa-go
