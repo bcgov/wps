@@ -68,6 +68,14 @@ jobs:
             "prod" \
             "${{ steps.asa_go_aps_config.outputs.config_path }}"
 
+      - name: Publish ASA Go APS gateway config
+        uses: ./.github/actions/gwa-publish
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+
       - name: Upload ASA Go APS gateway config
         uses: actions/upload-artifact@v7
         with:
