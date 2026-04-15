@@ -4,6 +4,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from wps_shared.auth import audit_asa
+from wps_shared.run_type import RunType
 from wps_shared.schemas.fba import (
     FireCentreInfoResponse,
     HFIStatsResponse,
@@ -16,7 +17,6 @@ from wps_shared.schemas.fba import (
 from wps_shared.schemas.psu import FireCentresResponse
 from wps_shared.utils.time import get_vancouver_now
 
-from app.auto_spatial_advisory.process_hfi import RunType
 from app.fcm.schema import DeviceRequestResponse, RegisterDeviceRequest, UnregisterDeviceRequest
 from app.routers import fba, fcm, psu
 
