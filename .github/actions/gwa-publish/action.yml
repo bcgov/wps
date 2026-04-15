@@ -17,7 +17,7 @@ inputs:
   qualifier:
     description:
       Optional qualifier used with publish-gateway. Qualifiers allow one gateway to hold
-      multiple independent config sets without publishes pruning sibling configs in other scopes.
+      multiple independent config sets without pruning other service configs.
     required: false
     default: ""
 

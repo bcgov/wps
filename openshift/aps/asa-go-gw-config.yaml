@@ -1,7 +1,9 @@
 # https://developer.gov.bc.ca/docs/default/component/aps-infra-platform-docs/concepts/gateway-config/
 # https://developer.konghq.com/gateway/entities/service/
 services:
-  # keep this to raw Kong entities so it can be published with `gwa publish-gateway --qualifier`.
+  # Uses kong format so it can be published with `gwa publish-gateway --qualifier`.
+  # Qualifiers allow one gateway to hold multiple independent config sets without pruning 
+  # other service configs.
   - name: ${ASA_GO_SERVICE_NAME}
     tags: [ns.${APS_NAMESPACE}.${SUFFIX}]
     host: wps-asa-go-api-${SUFFIX}.${PROJECT_NAMESPACE}.svc
