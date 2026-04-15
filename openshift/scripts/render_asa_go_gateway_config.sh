@@ -56,7 +56,6 @@ TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/asa-go-gw-config.yaml}"
 }
 
 # keep the defaults here so the template can be rendered with only the required inputs.
-APS_TAG_NAMESPACE="${APS_TAG_NAMESPACE:-${APS_NAMESPACE}.${SUFFIX}}"
 ASA_GO_SERVICE_NAME="${ASA_GO_SERVICE_NAME:-psu-asa-${SUFFIX}}"
 
 mkdir -p "$(dirname "${OUTPUT_PATH}")"
@@ -64,13 +63,12 @@ mkdir -p "$(dirname "${OUTPUT_PATH}")"
 export SUFFIX
 export PROJECT_NAMESPACE
 export APS_NAMESPACE
-export APS_TAG_NAMESPACE
 export ASA_GO_HOST
 export ASA_GO_SERVICE_NAME
 
 # only substitute the placeholders this template owns, so unrelated ${...} text is left alone.
 envsubst \
-	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${APS_TAG_NAMESPACE} ${ASA_GO_HOST} ${ASA_GO_SERVICE_NAME}' \
+	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${ASA_GO_HOST} ${ASA_GO_SERVICE_NAME}' \
 	<"${TEMPLATE_PATH}" >"${OUTPUT_PATH}"
 
 echo "${OUTPUT_PATH}"
