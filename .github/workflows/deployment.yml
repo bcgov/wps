@@ -144,7 +144,7 @@ jobs:
       - name: Deploy ASA Go API to Dev
         shell: bash
         run: |
-          ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
+          MEMORY_REQUEST=700Mi MEMORY_LIMIT=1Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
 
       - name: Allow APS to reach ASA Go API
         shell: bash
