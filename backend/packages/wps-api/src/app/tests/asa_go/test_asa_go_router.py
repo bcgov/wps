@@ -8,9 +8,12 @@ from wps_shared.db.models.psu import FireCentre
 from wps_shared.run_type import RunType
 
 DB_SESSION = "app.routers.fcm.get_async_write_session_scope"
+READ_DB_SESSION = "app.routers.fcm.get_async_read_session_scope"
 GET_DEVICE_TOKEN = "app.routers.fcm.get_device_by_device_id"
 SAVE_DEVICE_TOKEN = "app.routers.fcm.save_device_token"
 UPDATE_DEVICE_TOKEN = "app.routers.fcm.update_device_token_is_active"
+GET_NOTIFICATION_SETTINGS = "app.routers.fcm.get_notification_settings_for_device"
+UPSERT_NOTIFICATION_SETTINGS = "app.routers.fcm.upsert_notification_settings"
 
 
 @pytest.fixture()
@@ -132,3 +135,37 @@ def test_public_unregister_device_endpoint(client: TestClient):
 
             assert response.status_code == 200
             assert response.json() == {"success": True}
+
+
+def test_public_get_notification_settings_endpoint(client: TestClient):
+    with patch(READ_DB_SESSION) as mock_session_scope:
+        mock_session_scope.return_value.__aenter__.return_value
+        with patch(GET_NOTIFICATION_SETTINGS, return_value=["zone-1", "zone-2"]):
+            response = client.get(
+                "/api/asa-go/device/notification-settings",
+                params={"device_id": "test_device_id"},
+            )
+
+            assert response.status_code == 200
+            assert response.json() == {"fire_zone_source_ids": ["zone-1", "zone-2"]}
+
+
+def test_public_update_notification_settings_endpoint(client: TestClient):
+    request_data = {
+        "device_id": "test_device_id",
+        "fire_zone_source_ids": ["zone-1", "zone-2"],
+    }
+
+    with patch(DB_SESSION) as mock_session_scope:
+        mock_session_scope.return_value.__aenter__.return_value
+        with (
+            patch(UPSERT_NOTIFICATION_SETTINGS, return_value=True),
+            patch(GET_NOTIFICATION_SETTINGS, return_value=["zone-1", "zone-2"]),
+        ):
+            response = client.post(
+                "/api/asa-go/device/notification-settings",
+                json=request_data,
+            )
+
+            assert response.status_code == 200
+            assert response.json() == {"fire_zone_source_ids": ["zone-1", "zone-2"]}

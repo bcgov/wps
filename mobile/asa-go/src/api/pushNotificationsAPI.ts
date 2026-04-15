@@ -30,13 +30,20 @@ export async function unregisterToken(
   return data;
 }
 
-export async function getNotificationSettings(deviceId: string): Promise<string[]> {
-  const { data } = await axios.get("device/notification-settings", { params: { device_id: deviceId } });
+export async function getNotificationSettings(
+  deviceId: string,
+): Promise<string[]> {
+  const { data } = await axios.get("asa-go/device/notification-settings", {
+    params: { device_id: deviceId },
+  });
   return data.fire_zone_source_ids;
 }
 
-export async function updateNotificationSettings(deviceId: string, fireZoneSourceIds: string[]): Promise<string[]> {
-  const { data } = await axios.post("device/notification-settings", {
+export async function updateNotificationSettings(
+  deviceId: string,
+  fireZoneSourceIds: string[],
+): Promise<string[]> {
+  const { data } = await axios.post("asa-go/device/notification-settings", {
     device_id: deviceId,
     fire_zone_source_ids: fireZoneSourceIds,
   });

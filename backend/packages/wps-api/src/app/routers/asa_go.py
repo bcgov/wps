@@ -3,6 +3,7 @@ from datetime import date, datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from wps_shared import config
 from wps_shared.auth import audit_asa
 from wps_shared.run_type import RunType
 from wps_shared.schemas.fba import (
@@ -17,7 +18,13 @@ from wps_shared.schemas.fba import (
 from wps_shared.schemas.psu import FireCentresResponse
 from wps_shared.utils.time import get_vancouver_now
 
-from app.fcm.schema import DeviceRequestResponse, RegisterDeviceRequest, UnregisterDeviceRequest
+from app.fcm.schema import (
+    DeviceRequestResponse,
+    NotificationSettingsRequest,
+    NotificationSettingsResponse,
+    RegisterDeviceRequest,
+    UnregisterDeviceRequest,
+)
 from app.routers import fba, fcm, psu
 
 logger = logging.getLogger(__name__)
@@ -29,6 +36,10 @@ router = APIRouter(
 
 
 def _validate_not_before_today(*dates: date) -> None:
+    # local config to disable date validation
+    if config.get("DISABLE_ASA_GO_DATE_VALIDATION") == "True":
+        return
+
     minimum_allowed_date = get_vancouver_now().date()
     past_dates = [value.isoformat() for value in dates if value < minimum_allowed_date]
     if past_dates:
@@ -132,3 +143,17 @@ async def register_device(request: RegisterDeviceRequest):
 @router.post("/device/unregister", response_model=DeviceRequestResponse)
 async def unregister_device(request: UnregisterDeviceRequest):
     return await fcm.unregister_device(request)
+
+
+@router.get("/device/notification-settings", response_model=NotificationSettingsResponse)
+async def get_notification_settings(device_id: str):
+    return await fcm.get_notification_settings(device_id)
+
+
+@router.post(
+    "/device/notification-settings",
+    response_model=NotificationSettingsResponse,
+    responses={404: {"description": "Device not found."}},
+)
+async def update_notification_settings(request: NotificationSettingsRequest):
+    return await fcm.update_notification_settings(request)
