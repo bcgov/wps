@@ -182,37 +182,37 @@ def test_model_run_for_hour_ok(hour: int, expected_model_run: int):
         (
             datetime(2024, 1, 1, 0, tzinfo=timezone.utc),
             None,
-            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT024H.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT024H.grib2",
         ),
         # 12 model run, 12:00 UTC hour grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 12, tzinfo=timezone.utc),
             None,
-            "weather_models/rdps/2023-12-31/12/precip/20231231T12Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT024H.grib2",
+            "weather_models/rdps/2023-12-31/12/precip/20231231T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT024H.grib2",
         ),
         # 0 model run, hour 1:00 UTC, grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 1, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT001H.grib2",
-            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT025H.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT001H.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT025H.grib2",
         ),
         # 0 model run, hour 2:00 UTC, grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 2, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT002H.grib2",
-            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT026H.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT002H.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT026H.grib2",
         ),
         # 12 model run, 13:00 UTC hour, grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 13, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/12/precip/20231231T12Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT001H.grib2",
-            "weather_models/rdps/2023-12-31/12/precip/20231231T12Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT025H.grib2",
+            "weather_models/rdps/2023-12-31/12/precip/20231231T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT001H.grib2",
+            "weather_models/rdps/2023-12-31/12/precip/20231231T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT025H.grib2",
         ),
         # Test prediction into the future from today. Today = 2024-01-01 01:00 UTC, predict for 2024-01-02 2:00 UTC
         (
             datetime(2024, 1, 2, 2, tzinfo=timezone.utc),
-            "weather_models/rdps/2024-01-01/00/precip/20240101T00Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT002H.grib2",
-            "weather_models/rdps/2024-01-01/00/precip/20240101T00Z_MSC_RDPS_APCP_Sfc_RLatLon0.09_PT026H.grib2",
+            "weather_models/rdps/2024-01-01/00/precip/20240101T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT002H.grib2",
+            "weather_models/rdps/2024-01-01/00/precip/20240101T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT026H.grib2",
         ),
     ],
 )

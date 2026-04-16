@@ -115,8 +115,8 @@ class RDPSKeyAddresser:
         adjusted_forecast_hour = adjust_forecast_hour(run_hour, forecast_hour)
         date_str = forecast_start_date.date().isoformat().replace("-", "")
         filename = (
-            f"{self.CMC.value}{self.DELIMITER}{self.REG}{self.DELIMITER}{key_params.variable}{self.DELIMITER}"
-            f"{key_params.level_type}{self.DELIMITER}{key_params.level}{self.DELIMITER}{ProjectionEnum.REGIONAL_PS}{self.DELIMITER}"
+            f"{self.CMC}{self.DELIMITER}{self.REG}{self.DELIMITER}{key_params.variable}{self.DELIMITER}"
+            f"{key_params.level_type}{self.DELIMITER}{key_params.level}{self.DELIMITER}{ProjectionEnum.REGIONAL_PS.value}{self.DELIMITER}"
             f"{date_str}{model_hour:02d}{self.DELIMITER}P{adjusted_forecast_hour:03d}.grib2"
         )
         return f"{model_hour:02d}/{weather_parameter}/{filename}"
@@ -129,8 +129,8 @@ class RDPSKeyAddresser:
         model_hour = model_run_for_hour(model_run_start.hour)
         date_str = model_run_start.date().isoformat().replace("-", "")
         filename = (
-            f"{self.CMC.value}{self.DELIMITER}{self.REG}{self.DELIMITER}{key_params.variable}{self.DELIMITER}"
-            f"{key_params.level_type}{self.DELIMITER}{key_params.level}{self.DELIMITER}{ProjectionEnum.REGIONAL_PS}{self.DELIMITER}"
+            f"{self.CMC}{self.DELIMITER}{self.REG}{self.DELIMITER}{key_params.variable}{self.DELIMITER}"
+            f"{key_params.level_type}{self.DELIMITER}{key_params.level}{self.DELIMITER}{ProjectionEnum.REGIONAL_PS.value}{self.DELIMITER}"
             f"{date_str}{model_run_start.hour:02d}{self.DELIMITER}P{offset_hour:03d}.grib2"
         )
         return f"{model_hour:02d}/{weather_parameter}/{filename}"
@@ -171,6 +171,6 @@ class RDPSKeyAddresser:
         key_params = self.weather_key_parameters["precip"]
         file_ext = ".tif"
         return (
-            f"{self.COMPUTED.value}{self.DELIMITER}{self.REG}{self.DELIMITER}{key_params.variable}{self.DELIMITER}{key_params.level_type}{self.DELIMITER}{key_params.level}{self.DELIMITER}{ProjectionEnum.REGIONAL_PS}{self.DELIMITER}"
+            f"{self.COMPUTED}{self.DELIMITER}{self.REG}{self.DELIMITER}{key_params.variable}{self.DELIMITER}{key_params.level_type}{self.DELIMITER}{key_params.level}{self.DELIMITER}{ProjectionEnum.REGIONAL_PS.value}{self.DELIMITER}"
             f"{accumulation_end_datetime.strftime(f'%Y%m%d{self.DELIMITER}%Hz')}{file_ext}"
         )
