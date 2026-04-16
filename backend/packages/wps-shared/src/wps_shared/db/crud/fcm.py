@@ -15,8 +15,12 @@ def save_device_token(session: AsyncSession, device_token: DeviceToken):
     session.add(device_token)
 
 
-async def get_device_by_device_id(session: AsyncSession, device_id: str):
+async def get_device_by_device_id(session: AsyncSession, device_id: str) -> DeviceToken | None:
     return await session.scalar(select(DeviceToken).where(DeviceToken.device_id == device_id))
+
+
+async def get_device_by_token(session: AsyncSession, token: str) -> DeviceToken | None:
+    return await session.scalar(select(DeviceToken).where(DeviceToken.token == token))
 
 
 async def update_device_token_is_active(session: AsyncSession, token: str, is_active: bool) -> bool:
