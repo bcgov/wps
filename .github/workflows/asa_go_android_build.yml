@@ -40,8 +40,6 @@ jobs:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           VITE_BASEMAP_TILE_URL: ${{ secrets.VITE_BASEMAP_TILE_URL }}
           VITE_BASEMAP_STYLE_URL: ${{ secrets.VITE_BASEMAP_STYLE_URL }}
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.ASA_GO_SENTRY_AUTH_TOKEN }}
 
   build-and-publish:
     name: Build and deploy
