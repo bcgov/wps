@@ -153,7 +153,7 @@ def test_get_regional_model_run_download_urls_skips_precip_at_hour_zero():
     now = datetime(2026, 5, 1, 12, tzinfo=timezone.utc)
     urls = list(get_regional_model_run_download_urls(now, 12))
     hour_zero_urls = [u for u in urls if "PT000H" in u]
-    assert all("APCP_Sfc" not in u for u in hour_zero_urls)
+    assert all("Precip-Accum_Sfc" not in u for u in hour_zero_urls)
 
 
 def test_get_regional_model_run_download_urls_count():
