@@ -48,6 +48,29 @@ def test_get_calculated_index_key(addresser: RasterKeyAddresser):
 def test_get_weather_data_keys(addresser: RasterKeyAddresser):
     result = addresser.get_weather_data_keys(TEST_DATETIME_1, TEST_DATETIME_TO_CALC, 20)
     assert len(result) == 4
+    temp_key, rh_key, wind_speed_key, precip_key = result
+    assert temp_key == "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT020H.grib2"
+    assert rh_key == "weather_models/rdps/2024-10-10/00/rh/20241010T00Z_MSC_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT020H.grib2"
+    assert wind_speed_key == "weather_models/rdps/2024-10-10/00/wind_speed/20241010T00Z_MSC_RDPS_WindSpeed_AGL-10m_RLatLon0.09_PT020H.grib2"
+    assert precip_key == "weather_models/rdps/2024-10-10/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_20z.tif"
+
+
+def test_get_weather_data_keys_legacy(addresser: RasterKeyAddresser):
+    result = addresser.get_weather_data_keys_legacy(TEST_DATETIME_1, 20)
+    assert len(result) == 3
+    temp_key, rh_key, wind_speed_key = result
+    assert temp_key == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P020.grib2"
+    assert rh_key == "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P020.grib2"
+    assert wind_speed_key == "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P020.grib2"
+
+
+def test_get_weather_data_keys_hffmc_legacy(addresser: RasterKeyAddresser):
+    result = addresser.get_weather_data_keys_hffmc_legacy(RDPS_MODEL_RUN_00_START, HOUR_OFFSET)
+    assert len(result) == 3
+    temp_key, rh_key, wind_speed_key = result
+    assert temp_key == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P003.grib2"
+    assert rh_key == "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P003.grib2"
+    assert wind_speed_key == "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P003.grib2"
 
 
 def test_get_uploaded_hffmc_key_00_hour(addresser: RasterKeyAddresser):

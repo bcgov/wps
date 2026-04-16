@@ -77,3 +77,56 @@ def test_compose_rdps_key_legacy(forecast_start_date, run_hour, forecast_hour, w
 def test_compose_rdps_key_hffmc_legacy(model_run_start, offset_hour, weather_parameter, expected_key):
     result = RDPSKeyAddresser().compose_rdps_key_hffmc_legacy(model_run_start, offset_hour, weather_parameter)
     assert result == expected_key
+
+
+@pytest.mark.parametrize(
+    "forecast_start_date,run_hour,forecast_hour,weather_parameter,expected_key",
+    [
+        (
+            datetime(2024, 10, 10, 0, tzinfo=timezone.utc),
+            0,
+            3,
+            "temp",
+            "00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT003H.grib2",
+        ),
+        (
+            datetime(2024, 10, 10, 12, tzinfo=timezone.utc),
+            12,
+            15,
+            "wind_speed",
+            "12/wind_speed/20241010T12Z_MSC_RDPS_WindSpeed_AGL-10m_RLatLon0.09_PT003H.grib2",
+        ),
+        (
+            datetime(2024, 10, 10, 0, tzinfo=timezone.utc),
+            0,
+            24,
+            "precip",
+            "00/precip/20241010T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT024H.grib2",
+        ),
+    ],
+)
+def test_compose_rdps_key(forecast_start_date, run_hour, forecast_hour, weather_parameter, expected_key):
+    result = RDPSKeyAddresser().compose_rdps_key(forecast_start_date, run_hour, forecast_hour, weather_parameter)
+    assert result == expected_key
+
+
+@pytest.mark.parametrize(
+    "model_run_start,offset_hour,weather_parameter,expected_key",
+    [
+        (
+            datetime(2024, 10, 10, 0, tzinfo=timezone.utc),
+            3,
+            "temp",
+            "00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT003H.grib2",
+        ),
+        (
+            datetime(2024, 10, 10, 12, tzinfo=timezone.utc),
+            6,
+            "rh",
+            "12/rh/20241010T12Z_MSC_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT006H.grib2",
+        ),
+    ],
+)
+def test_compose_rdps_key_hffmc(model_run_start, offset_hour, weather_parameter, expected_key):
+    result = RDPSKeyAddresser().compose_rdps_key_hffmc(model_run_start, offset_hour, weather_parameter)
+    assert result == expected_key
