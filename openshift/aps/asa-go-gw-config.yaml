@@ -24,6 +24,11 @@ services:
         config:
           policy: local
           limit_by: ip
-          minute: 300
+          minute: 100 # 100 requests per minute per IP address
+          second: null
+          hour: null
+          day: null
+          month: null
+          year: null
           fault_tolerant: true
           hide_client_headers: false
