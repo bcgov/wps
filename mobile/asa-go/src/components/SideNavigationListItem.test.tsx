@@ -40,7 +40,6 @@ describe("SideNavigationListItem", () => {
     // Check if selected styles are applied
     const button = screen.getByRole("button");
     expect(button).toHaveClass("Mui-selected");
-    expect(button).toHaveStyle({ backgroundColor: theme.palette.primary.dark });
     expect(button).toHaveStyle({ color: theme.palette.secondary.main });
   });
 

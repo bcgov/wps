@@ -13,14 +13,7 @@ const StyledListItemButton = styled(ListItemButton)({
   color: theme.palette.primary.contrastText,
   padding: theme.spacing(1),
   "&.Mui-selected": {
-    backgroundColor: theme.palette.primary.dark,
     color: theme.palette.secondary.main,
-    "&:hover": {
-      backgroundColor: theme.palette.primary.dark,
-    },
-  },
-  "&:hover": {
-    backgroundColor: theme.palette.primary.dark,
   },
   height: "auto",
   display: "flex",

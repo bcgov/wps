@@ -71,6 +71,9 @@ parameters:
   - name: GUNICORN_WORKERS
     description: "Number of gunicorn workers"
     value: "4"
+  - name: DEPLOY_VERSION
+    description: Changes to force a single rollout after image builds complete
+    required: true
 objects:
   - apiVersion: apps/v1
     kind: Deployment
@@ -78,27 +81,6 @@ objects:
       labels:
         app: ${APP_NAME}-${SUFFIX}
       name: ${APP_NAME}-${SUFFIX}
-      annotations:
-        # These annotations trigger a new rollout if either the web or api images change
-        image.openshift.io/triggers: |-
-          [
-            {
-              "from": {
-                "kind": "ImageStreamTag",
-                "name": "${APP_NAME}-web-${SUFFIX}:${SUFFIX}",
-                "namespace": "${PROJ_TOOLS}"
-              },
-              "fieldPath": "spec.template.spec.containers[0].image"
-            },
-            {
-              "from": {
-                "kind": "ImageStreamTag",
-                "name": "${APP_NAME}-api-${SUFFIX}:${SUFFIX}",
-                "namespace": "${PROJ_TOOLS}"
-              },
-              "fieldPath": "spec.template.spec.containers[1].image"
-            }
-          ]
     spec:
       replicas: ${{REPLICAS}}
       selector:
@@ -110,6 +92,9 @@ objects:
         metadata:
           labels:
             name: ${APP_NAME}-${SUFFIX}
+          annotations:
+            # changes once per deploy so the pod template rolls one time
+            wps/deploy-version: ${DEPLOY_VERSION}
         spec:
           automountServiceAccountToken: false
           volumes:
@@ -137,16 +122,18 @@ objects:
                   path: /ready
                   port: 3000
                   scheme: HTTP
-                initialDelaySeconds: 10
-                periodSeconds: 120
+                initialDelaySeconds: 5
+                periodSeconds: 5
+                failureThreshold: 3
                 timeoutSeconds: 1
               livenessProbe:
                 httpGet:
                   path: /health
                   port: 3000
                   scheme: HTTP
-                initialDelaySeconds: 10
-                periodSeconds: 120
+                initialDelaySeconds: 30
+                periodSeconds: 30
+                failureThreshold: 3
                 timeoutSeconds: 1
               volumeMounts:
                 - name: config-env
@@ -448,28 +435,35 @@ objects:
                 requests:
                   cpu: ${CPU_REQUEST}
                   memory: ${MEMORY_REQUEST}
+              # give alembic and gunicorn startup time before readiness/liveness kick in
+              startupProbe:
+                httpGet:
+                  path: /api/ready
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 5
+                failureThreshold: 50
+                timeoutSeconds: 2
               readinessProbe:
                 httpGet:
                   path: /api/ready
                   port: 8080
                   scheme: HTTP
-                # first probe will fire some time between:
-                # initialDelaySeconds and initialDelaySeconds + periodSeconds
-                initialDelaySeconds: 30
-                periodSeconds: 120
-                timeoutSeconds: 1
+                initialDelaySeconds: 5
+                periodSeconds: 2
+                failureThreshold: 20
+                timeoutSeconds: 2
               livenessProbe:
                 successThreshold: 1
-                failureThreshold: 5
+                failureThreshold: 3
                 httpGet:
                   path: /api/health
                   port: 8080
                   scheme: HTTP
-                # first probe will fire some time between:
-                # initialDelaySeconds and initialDelaySeconds + periodSeconds
-                initialDelaySeconds: 30
-                periodSeconds: 120
-                timeoutSeconds: 20
+                initialDelaySeconds: 15
+                periodSeconds: 30
+                timeoutSeconds: 5
       targetRef:
         apiVersion: "apps/v1"
         kind: Deployment

@@ -28,6 +28,7 @@ source "$(dirname ${0})/common/common"
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 OBJ_NAME="${APP_NAME}-${SUFFIX}"
+DEPLOY_VERSION="${DEPLOY_VERSION:-$(date +%s)}"
 
 # Process a template (mostly variable substition)
 #
@@ -46,7 +47,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DEPLOY} \
  ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
  ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"} \
  ${ENVIRONMENT:+ "-p ENVIRONMENT=${ENVIRONMENT}"} \
- ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"}"
+ ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"} \
+ -p DEPLOY_VERSION=${DEPLOY_VERSION}"
 
 # Apply a template (apply or use --dry-run=client)
 #

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/capacitor";
 import { centerOnFireShape } from "@/components/map/fireShapeCentering";
 import {
   defaultLayerVisibility,
@@ -451,7 +452,7 @@ const ASAGoMap = ({
         mapObject.addLayer(fireZoneLabelFileLayer);
       }
     };
-    loadPMTiles();
+    loadPMTiles().catch(Sentry.captureException);
 
     return () => {
       mapObject.removeControl(scaleBar);
@@ -472,7 +473,7 @@ const ASAGoMap = ({
       } else {
         map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
       }
-    })();
+    })().catch(Sentry.captureException);
 
     const saveStateHandler = () => {
       const view = map.getView();
@@ -512,7 +513,7 @@ const ASAGoMap = ({
         );
       }
       replaceMapLayer(HFI_LAYER_NAME, hfiLayer);
-    })();
+    })().catch(Sentry.captureException);
   }, [map, runParameter, date, layerVisibility, replaceMapLayer]);
 
   const handleDrawerClose = () => {
