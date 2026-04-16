@@ -42,7 +42,7 @@ const FireCenterDropdown = ({
     <FormControl
       variant="outlined"
       size="small"
-      sx={{ minWidth: 175, height: BUTTON_HEIGHT - 2 }}
+      sx={{ minWidth: 175, height: BUTTON_HEIGHT }}
     >
       <InputLabel id="fire-center-label" shrink>
         Centre
@@ -60,7 +60,7 @@ const FireCenterDropdown = ({
         sx={{
           fontWeight: "bold",
           color: MAP_BUTTON_GREY,
-          height: BUTTON_HEIGHT - 2,
+          height: BUTTON_HEIGHT,
         }}
       >
         {fireCentreOptions.map((option) => {

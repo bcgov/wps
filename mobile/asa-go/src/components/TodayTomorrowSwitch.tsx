@@ -62,7 +62,7 @@ const TodayTomorrowSwitch = ({
         background: "white",
         borderRadius: `${BORDER_RADIUS}px`,
         display: "flex",
-        height: `${BUTTON_HEIGHT - 2}px`,
+        height: `${BUTTON_HEIGHT}px`,
       }}
     >
       <StyledButton disabled={isToday} onClick={() => handleDayChange(0)}>
