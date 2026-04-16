@@ -93,7 +93,7 @@ objects:
           labels:
             name: ${APP_NAME}-${SUFFIX}
           annotations:
-            # change this once per deploy so the pod template rolls exactly once
+            # changes once per deploy so the pod template rolls one time
             wps/deploy-version: ${DEPLOY_VERSION}
         spec:
           automountServiceAccountToken: false
