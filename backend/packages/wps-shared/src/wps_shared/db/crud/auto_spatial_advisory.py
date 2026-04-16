@@ -894,6 +894,7 @@ async def get_zones_with_advisories(
     stmt = (
         select(
             AdvisoryZoneStatus.advisory_shape_id,
+            Shape.fire_centre.label("fire_centre_id"),
             Shape.source_identifier,
             Shape.placename_label,
             advisory_status_case.label("status"),

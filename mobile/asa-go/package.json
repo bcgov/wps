@@ -30,6 +30,7 @@
     "@capacitor/haptics": "7.0.0",
     "@capacitor/ios": "7.1.0",
     "@capacitor/keyboard": "7.0.0",
+    "@capacitor/local-notifications": "^8.0.2",
     "@capacitor/network": "^7.0.0",
     "@capacitor/preferences": "^7.0.2",
     "@capacitor/screen-orientation": "^8.0.0",
