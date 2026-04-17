@@ -9,7 +9,8 @@ from fastapi.testclient import TestClient
 from wps_shared.db.models.fcm import PlatformEnum
 
 DB_SESSION = "app.routers.fcm.get_async_write_session_scope"
-GET_DEVICE_TOKEN = "app.routers.fcm.get_device_by_device_id"
+GET_DEVICE_BY_TOKEN = "app.routers.fcm.get_device_by_token"
+GET_DEVICE_BY_DEVICE_ID = "app.routers.fcm.get_device_by_device_id"
 SAVE_DEVICE_TOKEN = "app.routers.fcm.save_device_token"
 GET_NOTIFICATION_SETTINGS = "app.routers.fcm.get_notification_settings_for_device"
 UPSERT_NOTIFICATION_SETTINGS = "app.routers.fcm.upsert_notification_settings"
@@ -54,67 +55,69 @@ def test_endpoints_unauthorized(method, endpoint, kwargs, client: TestClient):
     assert response.status_code == 401
 
 
-@pytest.mark.usefixtures("mock_jwt_decode")
-def test_register_device_success():
-    """Test that device registration returns 200/OK."""
-    client = TestClient(app.main.app)
+def _make_device(**kwargs):
+    defaults = {"is_active": False, "device_id": "test_device_id", "token": "existing-fcm-token", "updated_at": datetime(2026, 1, 1), "user_id": None}
+    return type("", (object,), {**defaults, **kwargs})()
 
-    request_data = {
-        "user_id": "test-user-123",
-        "device_id": "test_device_id",
-        "token": "test-fcm-token-456",
-        "platform": "android",
-    }
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_register_device_new_token_and_device_id():
+    """Neither token nor device_id found — inserts a new row."""
+    client = TestClient(app.main.app)
 
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_TOKEN, return_value=None),
-            patch(SAVE_DEVICE_TOKEN),
-        ):
-            response = client.post(API_DEVICE_REGISTER, json=request_data)
-
-            assert response.status_code == 200
-            assert response.json()["success"] == True
-            assert response.headers["content-type"] == "application/json"
-
-
-@pytest.mark.usefixtures("mock_jwt_decode")
-def test_register_device_already_exists():
-    """Test that existing device registration updates successfully."""
-    client = TestClient(app.main.app)
-
-    request_data = {
-        "user_id": "test-user-123",
-        "device_id": "test_device_id",
-        "token": "existing-fcm-token",
-        "platform": "ios",
-    }
-
-    with patch(DB_SESSION) as mock_session_scope:
-        mock_session_scope.return_value.__aenter__.return_value
-
-        existing_device = type(
-            "",
-            (object,),
-            {
-                "is_active": False,
-                "device_id": "test_device_id",
-                "token": "existing-fcm-token",
-                "updated_at": datetime(2026, 1, 1),
-            },
-        )()
-
-        with (
-            patch(GET_DEVICE_TOKEN, return_value=existing_device),
+            patch(GET_DEVICE_BY_TOKEN, return_value=None),
+            patch(GET_DEVICE_BY_DEVICE_ID, return_value=None),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
-            response = client.post(API_DEVICE_REGISTER, json=request_data)
+            response = client.post(API_DEVICE_REGISTER, json={"user_id": "test-user-123", "device_id": "test_device_id", "token": "test-fcm-token-456", "platform": "android"})
 
             assert response.status_code == 200
             assert response.json()["success"] == True
-            assert existing_device.is_active == True  # Should be updated
-            mock_save.assert_not_called()  # Should not call save for existing device
+            mock_save.assert_called_once()
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_register_device_token_found_updates_row():
+    """Token already registered — updates that row without inserting."""
+    client = TestClient(app.main.app)
+    existing = _make_device(token="existing-fcm-token", device_id="old_device_id")
+
+    with patch(DB_SESSION) as mock_session_scope:
+        mock_session_scope.return_value.__aenter__.return_value
+        with (
+            patch(GET_DEVICE_BY_TOKEN, return_value=existing),
+            patch(SAVE_DEVICE_TOKEN) as mock_save,
+        ):
+            response = client.post(API_DEVICE_REGISTER, json={"user_id": "test-user-123", "device_id": "new_device_id", "token": "existing-fcm-token", "platform": "android"})
+
+            assert response.status_code == 200
+            assert existing.is_active == True
+            assert existing.device_id == "new_device_id"
+            mock_save.assert_not_called()
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_register_device_device_id_found_updates_token():
+    """Token not found but device_id matches — updates the token on that row."""
+    client = TestClient(app.main.app)
+    existing = _make_device(token="old-token", device_id="test_device_id")
+
+    with patch(DB_SESSION) as mock_session_scope:
+        mock_session_scope.return_value.__aenter__.return_value
+        with (
+            patch(GET_DEVICE_BY_TOKEN, return_value=None),
+            patch(GET_DEVICE_BY_DEVICE_ID, return_value=existing),
+            patch(SAVE_DEVICE_TOKEN) as mock_save,
+        ):
+            response = client.post(API_DEVICE_REGISTER, json={"user_id": "test-user-123", "device_id": "test_device_id", "token": "new-rotated-token-xyz", "platform": "android"})
+
+            assert response.status_code == 200
+            assert existing.token == "new-rotated-token-xyz"
+            assert existing.is_active == True
+            mock_save.assert_not_called()
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
@@ -164,7 +167,8 @@ def test_register_device_without_user_id():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_TOKEN, return_value=None),
+            patch(GET_DEVICE_BY_TOKEN, return_value=None),
+            patch(GET_DEVICE_BY_DEVICE_ID, return_value=None),
             patch(SAVE_DEVICE_TOKEN),
         ):
             response = client.post(API_DEVICE_REGISTER, json=request_data)

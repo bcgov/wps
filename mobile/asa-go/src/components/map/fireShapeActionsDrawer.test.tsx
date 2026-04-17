@@ -103,6 +103,8 @@ const renderWithProviders = ({
       registeredFcmToken,
       deviceIdError,
       registrationError: false,
+      registrationAttempts: 0,
+      pendingNotificationData: null,
     },
   });
 
@@ -173,6 +175,8 @@ describe("FireShapeActionsDrawer", () => {
         registeredFcmToken: null,
         deviceIdError: false,
         registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
       },
     });
     const theme = createTheme();
@@ -219,6 +223,8 @@ describe("FireShapeActionsDrawer", () => {
         registeredFcmToken: null,
         deviceIdError: false,
         registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
       },
     });
     const theme = createTheme();

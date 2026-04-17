@@ -48,12 +48,23 @@ describe("useDeviceId", () => {
     await act(async () => {});
     expect(result.current).toBeNull();
     expect(store.getState().pushNotification.deviceIdError).toBe(true);
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to get device ID"));
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to get device ID"),
+    );
     consoleSpy.mockRestore();
   });
 
   it("clears deviceIdError in the store when Device.getId succeeds", async () => {
-    const store = createTestStore({ pushNotification: { pushNotificationPermission: "unknown", registeredFcmToken: null, deviceIdError: true, registrationError: false } });
+    const store = createTestStore({
+      pushNotification: {
+        pushNotificationPermission: "unknown",
+        registeredFcmToken: null,
+        deviceIdError: true,
+        registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
+      },
+    });
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(Provider, { store, children });
     const { result } = renderHook(() => useDeviceId(), { wrapper });

@@ -191,6 +191,8 @@ describe("SubscriptionAccordion", () => {
         registeredFcmToken: "test-token",
         deviceIdError: false,
         registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -286,6 +288,8 @@ describe("SubscriptionAccordion", () => {
         registeredFcmToken: "test-token",
         deviceIdError: false,
         registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
       },
       settings: {
         subscriptionsInitialized: true,
@@ -316,7 +320,9 @@ describe("SubscriptionAccordion", () => {
     });
 
     expect(updateNotificationSettings).toHaveBeenCalled();
-    expect(screen.getByText(subscriptionUpdateErrorMessage)).toBeInTheDocument();
+    expect(
+      screen.getByText(subscriptionUpdateErrorMessage),
+    ).toBeInTheDocument();
     expect(screen.queryAllByTestId("loading-switch-error")).toHaveLength(0);
   });
 
@@ -425,6 +431,8 @@ describe("SubscriptionAccordion", () => {
         registeredFcmToken: "test-token",
         deviceIdError: false,
         registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -468,6 +476,8 @@ describe("SubscriptionAccordion", () => {
         registeredFcmToken: "test-token",
         deviceIdError: false,
         registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -591,6 +601,8 @@ describe("SubscriptionAccordion", () => {
         registeredFcmToken: "test-token",
         deviceIdError: false,
         registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -658,6 +670,8 @@ describe("SubscriptionAccordion", () => {
         registeredFcmToken: "test-token",
         deviceIdError: false,
         registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },
@@ -701,6 +715,8 @@ describe("SubscriptionAccordion", () => {
         registeredFcmToken: "test-token",
         deviceIdError: false,
         registrationError: false,
+        registrationAttempts: 0,
+        pendingNotificationData: null,
       },
       networkStatus: {
         networkStatus: { connected: true, connectionType: "wifi" },

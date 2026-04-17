@@ -1,7 +1,7 @@
 name: Build ASA Go Android
 
 env:
-  appBuildVersion: "1.0.3"
+  appBuildVersion: "1.1.0"
 
 on:
   workflow_dispatch:
@@ -23,6 +23,8 @@ jobs:
             "GOOGLE_SERVICES_JSON"
             "VITE_BASEMAP_TILE_URL"
             "VITE_BASEMAP_STYLE_URL"
+            "VITE_SENTRY_DSN"
+            "SENTRY_AUTH_TOKEN"
           )
           for var in "${required_env_vars[@]}"; do
             if [ -z "${!var}" ]; then
@@ -38,6 +40,8 @@ jobs:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           VITE_BASEMAP_TILE_URL: ${{ secrets.VITE_BASEMAP_TILE_URL }}
           VITE_BASEMAP_STYLE_URL: ${{ secrets.VITE_BASEMAP_STYLE_URL }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.ASA_GO_SENTRY_AUTH_TOKEN }}
 
   build-and-publish:
     name: Build and deploy
@@ -63,6 +67,8 @@ jobs:
           VITE_MUI_LICENSE_KEY: ${{ secrets.VITE_MUI_LICENSE_KEY }}
           VITE_BASEMAP_TILE_URL: ${{ secrets.VITE_BASEMAP_TILE_URL }}
           VITE_BASEMAP_STYLE_URL: ${{ secrets.VITE_BASEMAP_STYLE_URL }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.ASA_GO_SENTRY_AUTH_TOKEN }}
         run: |
           echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" > .env.production
           echo "VITE_KEYCLOAK_AUTH_URL=${VITE_KEYCLOAK_AUTH_URL}" >> .env.production
@@ -72,6 +78,8 @@ jobs:
           echo "VITE_MUI_LICENSE_KEY=${VITE_MUI_LICENSE_KEY}" >> .env.production
           echo "VITE_BASEMAP_TILE_URL=${VITE_BASEMAP_TILE_URL}" >> .env.production
           echo "VITE_BASEMAP_STYLE_URL=${VITE_BASEMAP_STYLE_URL}" >> .env.production
+          echo "VITE_SENTRY_DSN=${VITE_SENTRY_DSN}" >> .env.production
+          echo "SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}" >> .env.production
 
       - name: Create google-services.json
         env:

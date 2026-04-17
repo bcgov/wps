@@ -97,6 +97,12 @@ PODS:
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
   - PromisesObjC (2.4.0)
+  - Sentry (9.8.0):
+    - Sentry/Core (= 9.8.0)
+  - Sentry/Core (9.8.0)
+  - SentryCapacitor (3.2.1):
+    - Capacitor
+    - Sentry (= 9.8.0)
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -117,6 +123,7 @@ DEPENDENCIES:
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - FirebaseMessaging
   - Keycloak (from `../../node_modules/keycloak`)
+  - "SentryCapacitor (from `../../node_modules/@sentry/capacitor`)"
 
 SPEC REPOS:
   trunk:
@@ -131,6 +138,7 @@ SPEC REPOS:
     - IONGeolocationLib
     - nanopb
     - PromisesObjC
+    - Sentry
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -167,6 +175,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/status-bar"
   Keycloak:
     :path: "../../node_modules/keycloak"
+  SentryCapacitor:
+    :path: "../../node_modules/@sentry/capacitor"
 
 SPEC CHECKSUMS:
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
@@ -197,7 +207,9 @@ SPEC CHECKSUMS:
   Keycloak: c39abe3ec71f672fbf306a7f37b85d3858ae7f00
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  Sentry: 88746bf877eff714bc45315a39ad1d1efea2cdda
+  SentryCapacitor: e6cb6345f4d606f25d8a9c317c5e6a07d1896ecf
 
-PODFILE CHECKSUM: f5b028d1e883af9d1d102a73ce5ea20c054a340e
+PODFILE CHECKSUM: 7288acfbcdf029a89d63df602e3b151698fd576a
 
 COCOAPODS: 1.16.2
