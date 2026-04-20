@@ -57,6 +57,9 @@ jobs:
 
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
+
+      - name: Validate MUI License
+        uses: ./.github/actions/asa-go-validate-mui-license
         with:
           mui-license-key: ${{ secrets.VITE_MUI_LICENSE_KEY }}
 
