@@ -16,10 +16,9 @@ inputs:
     required: true
   qualifier:
     description:
-      Optional qualifier used with publish-gateway. Qualifiers allow one gateway to hold
+      Qualifier used with publish-gateway. Qualifiers allow one gateway to hold
       multiple independent config sets without pruning other service configs.
-    required: false
-    default: ""
+    required: true
 
 runs:
   using: composite
@@ -50,8 +49,4 @@ runs:
           --client-id="${GWA_CLIENT_ID}" \
           --client-secret="${GWA_CLIENT_SECRET}"
 
-        if [ -n "${QUALIFIER}" ]; then
-          gwa publish-gateway "${CONFIG_PATH}" --qualifier "${QUALIFIER}"
-        else
-          gwa publish-gateway "${CONFIG_PATH}"
-        fi
+        gwa publish-gateway "${CONFIG_PATH}" --qualifier "${QUALIFIER}"
