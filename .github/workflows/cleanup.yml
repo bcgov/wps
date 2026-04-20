@@ -11,6 +11,7 @@ on:
 
 env:
   APS_GATEWAY_ID: gw-313f6
+  SUFFIX: pr-${{ github.event.number }}
 
 jobs:
   cleanup-non-db:
@@ -19,8 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
 
       - name: Set ASA Go APS config path
         id: asa_go_aps_config
@@ -41,7 +40,7 @@ jobs:
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
           config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
-          qualifier: pr-${{ github.event.number }}
+          qualifier: ${{ env.SUFFIX }}
 
       - name: Upload ASA Go APS cleanup config
         uses: actions/upload-artifact@v7
@@ -83,8 +82,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
 
       - uses: ./.github/actions/oc-login
         with:

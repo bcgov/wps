@@ -13,6 +13,7 @@ on:
 env:
   PROJ_DEV: e1e498-dev
   APS_GATEWAY_ID: gw-313f6
+  SUFFIX: pr-${{ github.event.number }}
 
 jobs:
   prepare-dev-database:
@@ -21,8 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -56,8 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -81,8 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -101,8 +99,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -128,8 +125,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -151,37 +147,15 @@ jobs:
         run: |
           bash openshift/scripts/oc_provision_asa_go_gateway_networkpolicy.sh ${SUFFIX} apply
 
-      - name: Set ASA Go APS config path
-        id: asa_go_aps_config
-        shell: bash
-        run: |
-          echo "config_path=.github/tmp/asa-go-gw-config-pr-${{ github.event.number }}.yaml" >> "${GITHUB_OUTPUT}"
-
-      - name: Render ASA Go APS gateway config
-        shell: bash
-        run: |
-          mkdir -p "$(dirname "${{ steps.asa_go_aps_config.outputs.config_path }}")"
-          APS_NAMESPACE="${{ env.APS_GATEWAY_ID }}" \
-          PROJECT_NAMESPACE="${PROJ_DEV}" \
-          ASA_GO_HOST="psu-${SUFFIX}.api.gov.bc.ca" \
-          bash openshift/scripts/render_asa_go_gateway_config.sh \
-            "${SUFFIX}" \
-            "${{ steps.asa_go_aps_config.outputs.config_path }}"
-
-      - name: Publish ASA Go APS gateway config
-        uses: ./.github/actions/gwa-publish
+      - name: Render and publish ASA Go APS gateway config
+        uses: ./.github/actions/aps-publish
         with:
           gateway-id: ${{ env.APS_GATEWAY_ID }}
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
-          config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
-          qualifier: pr-${{ github.event.number }}
-
-      - name: Upload ASA Go APS gateway config
-        uses: actions/upload-artifact@v7
-        with:
-          name: asa-go-aps-gateway-config-pr-${{ github.event.number }}
-          path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+          project-namespace: ${{ env.PROJ_DEV }}
+          host: psu-${{ env.SUFFIX }}.api.gov.bc.ca
+          suffix: ${{ env.SUFFIX }}
 
       - name: Provision dev cronjobs and jobs
         shell: bash
@@ -229,8 +203,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
