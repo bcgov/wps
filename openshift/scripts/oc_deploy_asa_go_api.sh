@@ -20,6 +20,7 @@ source "$(dirname ${0})/common/common"
 
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 OBJ_NAME="${APP_NAME}-${SUFFIX}-asa-go"
+DEPLOY_VERSION="${DEPLOY_VERSION:-$(date +%s)}"
 
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/asa_go_api.yaml \
  -p APP_NAME=${APP_NAME} \
@@ -35,7 +36,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/asa_go_api.yaml \
  ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"} \
  ${ENVIRONMENT:+ "-p ENVIRONMENT=${ENVIRONMENT}"} \
  ${ALLOWED_ORIGINS:+ "-p ALLOWED_ORIGINS=${ALLOWED_ORIGINS}"} \
- ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"}"
+ ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"} \
+ -p DEPLOY_VERSION=${DEPLOY_VERSION}"
 
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 [ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"

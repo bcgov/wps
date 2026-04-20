@@ -59,6 +59,9 @@ parameters:
   - name: GUNICORN_WORKERS
     description: Number of gunicorn workers
     value: "4"
+  - name: DEPLOY_VERSION
+    description: Changes to force a single rollout after image builds complete
+    required: true
 objects:
   - apiVersion: apps/v1
     kind: Deployment
@@ -66,18 +69,6 @@ objects:
       labels:
         app: ${APP_NAME}-${SUFFIX}-asa-go
       name: ${APP_NAME}-${SUFFIX}-asa-go
-      annotations:
-        image.openshift.io/triggers: |-
-          [
-            {
-              "from": {
-                "kind": "ImageStreamTag",
-                "name": "${APP_NAME}-api-${SUFFIX}:${SUFFIX}",
-                "namespace": "${PROJ_TOOLS}"
-              },
-              "fieldPath": "spec.template.spec.containers[0].image"
-            }
-          ]
     spec:
       replicas: ${{REPLICAS}}
       selector:
@@ -89,6 +80,9 @@ objects:
         metadata:
           labels:
             name: ${APP_NAME}-${SUFFIX}-asa-go
+          annotations:
+            # changes once per deploy so the pod template rolls one time
+            wps/deploy-version: ${DEPLOY_VERSION}
         spec:
           automountServiceAccountToken: false
           containers:
