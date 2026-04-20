@@ -1,0 +1,209 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: ${APP_NAME}-asa-go-api
+  annotations:
+    openshift.io/display-name: "wps asa-go api"
+    description: "Wildfire Predictive Services - ASA Go API"
+    openshift.io/long-description: "Wildfire Predictive Services - ASA Go API"
+    tags: "wps,asa-go"
+    iconClass: icon-js
+    openshift.io/provider-display-name: "Government of British Columbia"
+    openshift.io/documentation-url: "https://github.com/bcgov/wps"
+    openshift.io/support-url: "https://github.com/bcgov/wps"
+labels:
+  app.kubernetes.io/part-of: "${APP_NAME}-asa-go-api"
+  app: ${APP_NAME}-${SUFFIX}-asa-go
+parameters:
+  - name: APP_NAME
+    description: Application name
+    value: wps
+  - name: GLOBAL_NAME
+    description: Name of global module
+    value: wps-global
+  - name: CRUNCHYDB_USER
+    description: Name of crunchydb user details key
+    required: true
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-### or prod
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: CPU_REQUEST
+    description: Requested CPU
+    value: 100m
+  - name: MEMORY_REQUEST
+    description: Requested memory
+    value: 2Gi
+  - name: MEMORY_LIMIT
+    description: Memory upper limit
+    value: 3Gi
+  - name: REPLICAS
+    description: Number of replicas
+    value: "2"
+  - name: ALLOWED_ORIGINS
+    value: wps-*.apps.silver.devops.gov.bc.ca
+  - name: PROJECT_NAMESPACE
+    description: OpenShift project namespace
+    required: true
+  - name: IMAGE_REGISTRY
+    description: Location where images are pulled from
+    value: image-registry.openshift-image-registry.svc:5000
+    required: true
+  - name: POSTGRES_DATABASE
+    description: Postgres DB name
+    required: true
+  - name: ENVIRONMENT
+    description: Used for specifying which environment sentry is running in
+    value: ""
+  - name: GUNICORN_WORKERS
+    description: Number of gunicorn workers
+    value: "4"
+  - name: DEPLOY_VERSION
+    description: Changes to force a single rollout after image builds complete
+    required: true
+objects:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}-asa-go
+      name: ${APP_NAME}-${SUFFIX}-asa-go
+    spec:
+      replicas: ${{REPLICAS}}
+      selector:
+        matchLabels:
+          name: ${APP_NAME}-${SUFFIX}-asa-go
+      strategy:
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            name: ${APP_NAME}-${SUFFIX}-asa-go
+          annotations:
+            # changes once per deploy so the pod template rolls one time
+            wps/deploy-version: ${DEPLOY_VERSION}
+        spec:
+          automountServiceAccountToken: false
+          containers:
+            - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
+              imagePullPolicy: Always
+              name: ${APP_NAME}-asa-go-api
+              env:
+                - name: ORIGINS
+                  value: ${ALLOWED_ORIGINS}
+                - name: APP_MODULE
+                  value: app.asa_go_main:app
+                - name: PORT
+                  value: "8080"
+                - name: ENVIRONMENT
+                  value: ${ENVIRONMENT}
+                - name: GUNICORN_WORKERS
+                  value: ${GUNICORN_WORKERS}
+                - name: KEYCLOAK_PUBLIC_KEY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.gold.keycloak-public-key
+                - name: KEYCLOAK_CLIENT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.gold.keycloak-client
+                - name: POSTGRES_READ_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: POSTGRES_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: password
+                - name: POSTGRES_WRITE_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: POSTGRES_READ_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: POSTGRES_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-port
+                - name: POSTGRES_DATABASE
+                  value: ${POSTGRES_DATABASE}
+                - name: STATUS_CHECKER_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: status-checker-sa-secret
+                - name: OPENSHIFT_BASE_URI
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.openshift-base-uri
+                - name: OPENSHIFT_NAMESPACE_API
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.openshift-namespace-api
+                - name: PATRONI_CLUSTER_NAME
+                  value: wps-crunchydb-16-${SUFFIX}
+                - name: PROJECT_NAMESPACE
+                  value: ${PROJECT_NAMESPACE}
+                - name: SENTRY_DSN
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: sentry-dsn
+              ports:
+                - containerPort: 8080
+                  protocol: TCP
+              resources:
+                limits:
+                  memory: ${MEMORY_LIMIT}
+                requests:
+                  cpu: ${CPU_REQUEST}
+                  memory: ${MEMORY_REQUEST}
+              readinessProbe:
+                httpGet:
+                  path: /api/ready
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 30
+                periodSeconds: 120
+                timeoutSeconds: 1
+              livenessProbe:
+                successThreshold: 1
+                failureThreshold: 5
+                httpGet:
+                  path: /api/health
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 30
+                periodSeconds: 120
+                timeoutSeconds: 20
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}-asa-go
+      name: ${APP_NAME}-asa-go-api-${SUFFIX}
+    spec:
+      ports:
+        - name: 8080-tcp
+          protocol: TCP
+          port: 80
+          targetPort: 8080
+      selector:
+        name: ${APP_NAME}-${SUFFIX}-asa-go

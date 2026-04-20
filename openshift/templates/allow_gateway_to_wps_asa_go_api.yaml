@@ -1,0 +1,41 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: allow-gateway-to-wps-asa-go-api
+objects:
+  - apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: allow-gateway-to-${APP_NAME}-${SUFFIX}-asa-go
+      labels:
+        app: ${APP_NAME}-${SUFFIX}-asa-go
+    spec:
+      policyTypes:
+        - Ingress
+      podSelector:
+        matchLabels:
+          name: ${APP_NAME}-${SUFFIX}-asa-go
+      ingress:
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  environment: test
+                  name: 264e6f
+                  # Silver APS gateway namespace
+                  # https://developer.gov.bc.ca/docs/default/component/aps-infra-platform-docs/how-to/upstream-services/#network-policies
+          ports:
+            - protocol: TCP
+              port: 8080
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  environment: prod
+                  name: 264e6f
+          ports:
+            - protocol: TCP
+              port: 8080
+parameters:
+  - name: APP_NAME
+    required: true
+  - name: SUFFIX
+    required: true

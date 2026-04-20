@@ -1,0 +1,3 @@
+# publish this with the matching qualifier to prune all qualifier-scoped services.
+# https://developer.gov.bc.ca/docs/default/component/aps-infra-platform-docs/concepts/gateway-config/
+services: []
