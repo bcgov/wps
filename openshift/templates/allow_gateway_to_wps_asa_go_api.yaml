@@ -21,6 +21,8 @@ objects:
                 matchLabels:
                   environment: test
                   name: 264e6f
+                  # Silver APS gateway namespace
+                  # https://developer.gov.bc.ca/docs/default/component/aps-infra-platform-docs/how-to/upstream-services/#network-policies
           ports:
             - protocol: TCP
               port: 8080
