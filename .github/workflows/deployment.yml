@@ -139,7 +139,7 @@ jobs:
       - name: Deploy API to Dev
         shell: bash
         run: |
-          MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
       - name: Deploy ASA Go API to Dev
         shell: bash
