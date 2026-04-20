@@ -2,9 +2,8 @@ import logging
 from datetime import date, datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from wps_shared import config
-from wps_shared.auth import audit_asa
 from wps_shared.run_type import RunType
 from wps_shared.schemas.fba import (
     FireCentreInfoResponse,
