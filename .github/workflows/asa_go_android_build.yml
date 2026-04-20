@@ -1,7 +1,7 @@
 name: Build ASA Go Android
 
 env:
-  appBuildVersion: "1.1.0"
+  appBuildVersion: "1.1.1"
 
 on:
   workflow_dispatch:
