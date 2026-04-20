@@ -56,8 +56,12 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
+
+      - name: Validate MUI License
+        uses: ./.github/actions/asa-go-validate-mui-license
         with:
           mui-license-key: ${{ secrets.VITE_MUI_LICENSE_KEY }}
+
       - name: Create environment settings
         working-directory: ./mobile/asa-go
         env:
