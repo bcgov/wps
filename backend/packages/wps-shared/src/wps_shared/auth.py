@@ -23,10 +23,8 @@ async def permissive_oauth2_scheme(request: Request):
     """Returns parsed auth token if authorized, None otherwise."""
     try:
         return await oauth2_scheme.__call__(request)
-    except HTTPException:
-        # public audited routes intentionally allow anonymous access, so a missing bearer token
-        # should not be treated as an application error here. Error logs will be generated later if
-        # the token is required for a specific route and is missing/invalid.
+    except HTTPException as exception:
+        logger.error("Could not validate the credential %s", exception)
         return None
 
 
@@ -94,13 +92,10 @@ async def audit(request: Request, token=Depends(permissive_oauth2_scheme)):
 async def audit_asa(request: Request, token=Depends(permissive_oauth2_scheme)):
     """Audits attempted requests based on bearer token."""
     # Use the same authentication logic but without test IDIR check (like asa_authentication_required)
-    if not token:
+    try:
+        decoded_token = await authenticate(token)
+    except Exception:
         decoded_token = {}
-    else:
-        try:
-            decoded_token = await authenticate(token)
-        except Exception:
-            decoded_token = {}
 
     return await _audit_with_token(request, decoded_token)
 

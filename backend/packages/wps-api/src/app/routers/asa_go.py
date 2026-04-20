@@ -29,10 +29,7 @@ from app.routers import fba, fcm, psu
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/asa-go",
-    dependencies=[Depends(audit_asa)],
-)
+router = APIRouter(prefix="/asa-go")
 
 
 def _validate_not_before_today(*dates: date) -> None:
