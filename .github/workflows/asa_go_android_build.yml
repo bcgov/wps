@@ -55,6 +55,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Debug MUI secret
+        run: echo "key length = ${#VITE_MUI_LICENSE_KEY}"
+        env:
+          VITE_MUI_LICENSE_KEY: ${{ secrets.VITE_MUI_LICENSE_KEY }}
+
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
         with:

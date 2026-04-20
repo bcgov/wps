@@ -1,6 +1,6 @@
 # ASA Go
 
-Capacitor app using react/vite.
+Capacitor app using react/vite. Test
 
 For iOS & Android Firebase push notification setup details, see [Notifications.md](Notifications.md).
 
