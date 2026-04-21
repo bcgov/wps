@@ -31,12 +31,12 @@ const InfoBar = ({
   const statusMap: Record<StatusEnum.INFO | StatusEnum.WARNING, StatusStyle> = {
     [StatusEnum.INFO]: {
       backgroundColor: theme.palette.info.main,
-      fontColor: theme.palette.info.contrastText,
+      fontColor: "black",
       border: theme.palette.info.dark,
     },
     [StatusEnum.WARNING]: {
       backgroundColor: theme.palette.warning.main,
-      fontColor: theme.palette.warning.contrastText,
+      fontColor: "black",
       border: theme.palette.warning.dark,
     },
   };
