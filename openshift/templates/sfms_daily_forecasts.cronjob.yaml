@@ -26,6 +26,8 @@ objects:
     apiVersion: batch/v1
     metadata:
       name: ${JOB_NAME}
+      labels:
+        app: ${APP_LABEL}
     spec:
       schedule: ${SCHEDULE}
       concurrencyPolicy: "Replace"
