@@ -175,7 +175,6 @@ objects:
                 requests:
                   cpu: ${CPU_REQUEST}
                   memory: ${MEMORY_REQUEST}
-              # give alembic and gunicorn startup time before readiness/liveness kick in
               startupProbe:
                 httpGet:
                   path: /api/ready
