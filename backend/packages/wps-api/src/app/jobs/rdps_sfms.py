@@ -26,7 +26,7 @@ from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.weather_models import CompletedWithSomeExceptions, ModelEnum, download
-from wps_shared.weather_models.job_utils import get_regional_model_run_download_urls
+from wps_shared.weather_models.model_run_urls import get_regional_model_run_download_urls
 from wps_shared.weather_models.rdps import RDPS_VARIABLE_NAMES, model_run_for_hour
 from wps_shared.wps_logging import configure_logging
 

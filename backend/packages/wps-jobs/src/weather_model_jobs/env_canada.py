@@ -38,7 +38,7 @@ from wps_shared.weather_models import (
     download,
     get_env_canada_model_run_hours,
 )
-from wps_shared.weather_models.job_utils import (
+from wps_shared.weather_models.model_run_urls import (
     get_model_run_urls,
 )
 from wps_shared.wps_logging import configure_logging

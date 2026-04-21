@@ -21,7 +21,7 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
 )
 from wps_shared.tests.common import default_mock_client_get
-from wps_shared.weather_models.job_utils import (
+from wps_shared.weather_models.model_run_urls import (
     RDPS_GRIB_LAYERS,
     get_regional_model_run_download_urls,
 )
