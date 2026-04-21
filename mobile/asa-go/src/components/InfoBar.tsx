@@ -52,7 +52,7 @@ const InfoBar = ({
         alignItems: "center",
         borderLeftColor: statusMap[status].border,
         borderLeftStyle: "solid",
-        borderLeftWidth: "2px",
+        borderLeftWidth: "4px",
       }}
     >
       <Box
