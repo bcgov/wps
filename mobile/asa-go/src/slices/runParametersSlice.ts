@@ -1,5 +1,5 @@
 import { getTodayKey, getTomorrowKey, today } from "@/utils/dataSliceUtils";
-import { AppThunk, RootState } from "@/store";
+import { AppDispatch, AppThunk, RootState } from "@/store";
 import {
   readFromFilesystem,
   RUN_PARAMETERS_CACHE_KEY,
@@ -60,6 +60,56 @@ export const {
 
 export default runParameterSlice.reducer;
 
+const handleOnlineRunParameters = async (
+  dispatch: AppDispatch,
+  todayKey: string,
+  tomorrowKey: string,
+  reduxRunParameters: { [key: string]: RunParameter } | null,
+) => {
+  try {
+    dispatch(getRunParametersStart());
+    const latestRunParameters: { [key: string]: RunParameter } =
+      await getMostRecentRunParameters(todayKey, tomorrowKey);
+
+    if (isNil(latestRunParameters) || Object.keys(latestRunParameters).length === 0) {
+      dispatch(getRunParametersFailed("Unable to update runParameters from the API."));
+      return;
+    }
+
+    await writeToFileSystem(Filesystem, RUN_PARAMETERS_CACHE_KEY, latestRunParameters, today);
+
+    if (isNil(reduxRunParameters) || stateUpdateRequired(todayKey, tomorrowKey, reduxRunParameters, latestRunParameters)) {
+      dispatch(getRunParametersSuccess({ runParameters: latestRunParameters }));
+    } else {
+      dispatch(setLastUpdated({ lastUpdated: DateTime.now().toISO() }));
+    }
+  } catch (err) {
+    dispatch(getRunParametersFailed((err as Error).toString()));
+    console.log(err);
+  }
+};
+
+const handleOfflineRunParameters = async (
+  dispatch: AppDispatch,
+  todayKey: string,
+  tomorrowKey: string,
+  reduxRunParameters: { [key: string]: RunParameter } | null,
+) => {
+  const cachedData = await readFromFilesystem(Filesystem, RUN_PARAMETERS_CACHE_KEY);
+  const cachedRunParameters: { [key: string]: RunParameter } | null = isNil(cachedData)
+    ? null
+    : (cachedData.data as { [key: string]: RunParameter });
+
+  if (isNil(cachedRunParameters)) {
+    dispatch(getRunParametersFailed("No run parameters available."));
+    return;
+  }
+
+  if (isNil(reduxRunParameters) || stateUpdateRequired(todayKey, tomorrowKey, reduxRunParameters, cachedRunParameters)) {
+    dispatch(getRunParametersSuccess({ runParameters: cachedRunParameters }));
+  }
+};
+
 export const fetchSFMSRunParameters =
   (): AppThunk => async (dispatch, getState) => {
     const todayKey = getTodayKey();
@@ -67,102 +117,11 @@ export const fetchSFMSRunParameters =
     const state = getState();
     const connected = state.networkStatus.networkStatus.connected;
     const reduxRunParameters = state.runParameters.runParameters;
+
     if (connected) {
-      // We're online so fetch SFMS run times from the API for today and tomorrow.
-      try {
-        dispatch(getRunParametersStart());
-        const latestRunParameters: { [key: string]: RunParameter } =
-          await getMostRecentRunParameters(todayKey, tomorrowKey);
-        if (
-          !isNil(latestRunParameters) &&
-          Object.keys(latestRunParameters).length > 0
-        ) {
-          // Cache the run parameters for today and tomorrow
-          await writeToFileSystem(
-            Filesystem,
-            RUN_PARAMETERS_CACHE_KEY,
-            latestRunParameters,
-            today,
-          );
-
-          if (
-            isNil(reduxRunParameters) ||
-            stateUpdateRequired(
-              todayKey,
-              tomorrowKey,
-              reduxRunParameters,
-              latestRunParameters,
-            )
-          ) {
-            // Retrieved run parameters differ from redux state so update
-            dispatch(
-              getRunParametersSuccess({
-                runParameters: latestRunParameters,
-              }),
-            );
-          } else {
-            // State update not required, runParameters are up to date so dataSlice state is considered up to date.
-            dispatch(setLastUpdated({ lastUpdated: DateTime.now().toISO() }));
-          }
-
-          return;
-        }
-        dispatch(
-          getRunParametersFailed(
-            "Unable to update runParameters from the API.",
-          ),
-        );
-        return;
-      } catch (err) {
-        dispatch(getRunParametersFailed((err as Error).toString()));
-        console.log(err);
-        return;
-      }
+      await handleOnlineRunParameters(dispatch, todayKey, tomorrowKey, reduxRunParameters);
     } else {
-      // We're offline, so check the cache for existing run parameters and update state with the
-      // values read from the cache if they differ from the values currently in state.
-      const cachedData = await readFromFilesystem(
-        Filesystem,
-        RUN_PARAMETERS_CACHE_KEY,
-      );
-      const cachedRunParameters: { [key: string]: RunParameter } | null = isNil(
-        cachedData,
-      )
-        ? null
-        : (cachedData.data as { [key: string]: RunParameter });
-      if (
-        !isNil(cachedRunParameters) &&
-        (isNil(reduxRunParameters) ||
-          stateUpdateRequired(
-            todayKey,
-            tomorrowKey,
-            reduxRunParameters,
-            cachedRunParameters,
-          ))
-      ) {
-        // Retrieved run parameters for the specified date differ from redux state so update
-        dispatch(
-          getRunParametersSuccess({
-            runParameters: cachedRunParameters,
-          }),
-        );
-        return;
-      }
-      if (
-        !isNil(cachedRunParameters) &&
-        !isNil(reduxRunParameters) &&
-        !stateUpdateRequired(
-          todayKey,
-          tomorrowKey,
-          reduxRunParameters,
-          cachedRunParameters,
-        )
-      ) {
-        // State and cache match, no action necessary.
-        return;
-      }
-      // We're offline and there are no cached run parameters for today
-      dispatch(getRunParametersFailed("No run parameters available."));
+      await handleOfflineRunParameters(dispatch, todayKey, tomorrowKey, reduxRunParameters);
     }
   };
 
