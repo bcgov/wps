@@ -70,8 +70,8 @@ class HourlyFFMCProcessor:
                     s3_client, rdps_model_run_start, hour
                 )
                 if resolved is None:
-                    logging.warning(
-                        f"Missing weather keys for model run: {rdps_model_run_start} and hour {hour}"
+                    logger.warning(
+                        "Missing weather keys for model run: %s and hour %d", rdps_model_run_start, hour
                     )
                     break
                 temp_key, rh_key, wind_speed_key, precip_key = resolved

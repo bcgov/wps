@@ -141,8 +141,7 @@ class RDPSGrib:
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
                 logger.error(
-                    "unexpected exception processing %s model run %d",
-                    self.model_type,
+                    "unexpected exception processing RDPS model run %d",
                     hour,
                     exc_info=exception,
                 )

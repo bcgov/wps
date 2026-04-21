@@ -17,6 +17,10 @@ depends_on = None
 
 
 def upgrade():
+    # Adds the new MSC RLatLon0.09 RDPS row alongside the legacy ps10km row.
+    # Both rows coexist during the S3 retention window (DAYS_TO_RETAIN = 7 in rdps_sfms.py)
+    # while legacy-format keys age out. The legacy ps10km row should be retired in a
+    # follow-up migration once old-format data is fully purged.
     op.execute(
         "INSERT INTO prediction_models (abbreviation, name, projection) "
         "VALUES ('RDPS', 'Regional Deterministic Prediction System', 'RLatLon0.09')"

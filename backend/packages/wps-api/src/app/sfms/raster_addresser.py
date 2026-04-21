@@ -255,7 +255,7 @@ class RasterKeyAddresser(BaseRasterAddresser):
             logger.info("All weather data keys exist from new RDPS service")
             return temp_key, rh_key, wind_speed_key, precip_key
 
-        logger.info("Falling back to legacy weather data keys")
+        logger.warning("New-format RDPS weather keys not found, falling back to legacy CMC_reg keys")
         legacy_keys = self.get_weather_data_keys_legacy(start_time_utc, prediction_hour)
         if await s3_client.all_objects_exist(*legacy_keys):
             temp_key, rh_key, wind_speed_key = legacy_keys
@@ -288,4 +288,5 @@ class RasterKeyAddresser(BaseRasterAddresser):
             temp_key, rh_key, wind_speed_key = legacy_keys
             return temp_key, rh_key, wind_speed_key, precip_key
 
+        logger.error("Weather data keys are missing for hffmc model_run=%s offset_hour=%d", rdps_model_run_start.isoformat(), offset_hour)
         return None
