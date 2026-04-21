@@ -11,7 +11,7 @@ interface StatusStyle {
 interface InfoBarProps {
   lastUpdated: string | null;
   viewingDate: DateTime;
-  status: StatusEnum.INFO | StatusEnum.WARNING;
+  status: StatusEnum;
   Icon: string;
   statusText?: string;
 }
@@ -28,7 +28,7 @@ const InfoBar = ({
     ? DateTime.fromISO(lastUpdated).toFormat("MMM d, T")
     : "n/a";
 
-  const statusMap: Record<StatusEnum.INFO | StatusEnum.WARNING, StatusStyle> = {
+  const statusMap: Record<StatusEnum, StatusStyle> = {
     [StatusEnum.INFO]: {
       backgroundColor: theme.palette.info.main,
       fontColor: "black",

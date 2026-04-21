@@ -50,7 +50,7 @@ import { useDeviceId } from "@/hooks/useDeviceId";
 import { initSubscriptions } from "@/slices/settingsSlice";
 import { clearPendingNotificationData } from "@/slices/pushNotificationSlice";
 import InfoBar from "@/components/InfoBar";
-import AlertIcon from "@/assets/AlertIcon.svg";
+import InfoIcon from "@/assets/InfoIcon.svg";
 import NetworkIcon from "@/assets/NetworkIcon.svg";
 
 const App = () => {
@@ -253,23 +253,6 @@ const App = () => {
     }
   }, [isActive, tab, dispatch]);
 
-  const renderInfoBar = () => {
-    if (!isPortrait && isSmallScreen) {
-      // Hide the InfoBar if we're on a a small screen in landscape orientation
-      return;
-    }
-    const isConnected = networkStatus.connected;
-    return (
-      <InfoBar
-        status={isConnected ? StatusEnum.INFO : StatusEnum.WARNING}
-        statusText={isConnected ? "" : "Offline."}
-        viewingDate={dateOfInterest}
-        lastUpdated={lastUpdated}
-        Icon={isConnected ? AlertIcon : NetworkIcon}
-      />
-    );
-  };
-
   return (
     <Box
       id="asa-go-app"
@@ -302,7 +285,15 @@ const App = () => {
           overflow: "hidden",
         }}
       >
-        {renderInfoBar()}
+        <InfoBar
+          status={
+            networkStatus.connected ? StatusEnum.INFO : StatusEnum.WARNING
+          }
+          statusText={networkStatus.connected ? "" : "Offline."}
+          viewingDate={dateOfInterest}
+          lastUpdated={lastUpdated}
+          Icon={networkStatus.connected ? InfoIcon : NetworkIcon}
+        />
         <TabPanel value={tab} panel={NavPanel.MAP}>
           <ASAGoMap
             selectedFireShape={selectedFireShape}
