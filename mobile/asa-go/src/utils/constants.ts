@@ -50,6 +50,13 @@ export enum NavPanel {
   SETTINGS = "Settings",
 }
 
+export enum StatusEnum {
+  INFO = "info",
+  SUCCESS = "success",
+  WARNING = "warning",
+  ERROR = "error",
+}
+
 export const subscriptionUpdateErrorMessage =
   "Failed to update notification settings. Please try again later.";
 

@@ -92,6 +92,20 @@ vi.mock("@/components/SideNavigation", () => ({
   ),
 }));
 
+vi.mock("@/components/InfoBar", () => ({
+  default: ({
+    statusText,
+    status,
+  }: {
+    statusText?: string;
+    status: string;
+  }) => (
+    <div data-testid="info-bar" data-status={status}>
+      {statusText && <span>{statusText}</span>}
+    </div>
+  ),
+}));
+
 // Mock hooks
 vi.mock("@/hooks/useAppIsActive", () => ({
   useAppIsActive: () => true,
@@ -414,6 +428,117 @@ describe("App", () => {
     // Check if AppHeader and BottomNavigation are displayed
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
+  });
+
+  describe("InfoBar rendering", () => {
+    it("renders InfoBar in portrait orientation", async () => {
+      const { ScreenOrientation } = await import(
+        "@capacitor/screen-orientation"
+      );
+      ScreenOrientation.orientation = vi
+        .fn()
+        .mockResolvedValue({ type: "portrait-primary" });
+      vi.mocked(useMediaQuery).mockReturnValue(false);
+
+      const store = createTestStore();
+
+      await act(async () => {
+        render(
+          <Provider store={store}>
+            <App />
+          </Provider>,
+        );
+      });
+
+      expect(screen.getByTestId("info-bar")).toBeInTheDocument();
+    });
+
+    it("hides InfoBar in landscape on small screens", async () => {
+      const { ScreenOrientation } = await import(
+        "@capacitor/screen-orientation"
+      );
+      ScreenOrientation.orientation = vi
+        .fn()
+        .mockResolvedValue({ type: "landscape-primary" });
+      vi.mocked(useMediaQuery).mockReturnValue(true);
+
+      const store = createTestStore();
+
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+      );
+
+      await waitFor(() =>
+        expect(screen.queryByTestId("info-bar")).not.toBeInTheDocument(),
+      );
+    });
+
+    it("shows WARNING status and Offline. text when network is disconnected", async () => {
+      const { ScreenOrientation } = await import(
+        "@capacitor/screen-orientation"
+      );
+      ScreenOrientation.orientation = vi
+        .fn()
+        .mockResolvedValue({ type: "portrait-primary" });
+      vi.mocked(useMediaQuery).mockReturnValue(false);
+
+      const { Network } = await import("@capacitor/network");
+      vi.mocked(Network.getStatus).mockResolvedValue({
+        connected: false,
+        connectionType: "none",
+      });
+
+      const store = createTestStore();
+
+      await act(async () => {
+        render(
+          <Provider store={store}>
+            <App />
+          </Provider>,
+        );
+      });
+
+      await waitFor(() => {
+        const infoBar = screen.getByTestId("info-bar");
+        expect(infoBar).toHaveAttribute("data-status", "warning");
+        expect(screen.getByText("Offline.")).toBeInTheDocument();
+      });
+    });
+
+    it("shows INFO status when network is connected", async () => {
+      const { ScreenOrientation } = await import(
+        "@capacitor/screen-orientation"
+      );
+      ScreenOrientation.orientation = vi
+        .fn()
+        .mockResolvedValue({ type: "portrait-primary" });
+      vi.mocked(useMediaQuery).mockReturnValue(false);
+
+      const { Network } = await import("@capacitor/network");
+      vi.mocked(Network.getStatus).mockResolvedValue({
+        connected: true,
+        connectionType: "wifi",
+      });
+
+      const store = createTestStore();
+
+      await act(async () => {
+        render(
+          <Provider store={store}>
+            <App />
+          </Provider>,
+        );
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId("info-bar")).toHaveAttribute(
+          "data-status",
+          "info",
+        ),
+      );
+    });
   });
 
   describe("pendingNotificationData effect", () => {

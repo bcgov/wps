@@ -29,9 +29,10 @@ import {
   selectPushNotification,
   selectProvincialSummaries,
   selectPendingNotificationData,
+  selectLastUpdated,
 } from "@/store";
 import { theme } from "@/theme";
-import { NavPanel } from "@/utils/constants";
+import { NavPanel, StatusEnum } from "@/utils/constants";
 import { today } from "@/utils/dataSliceUtils";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { clearStaleHFIPMTiles } from "@/utils/storage";
@@ -48,6 +49,9 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useDeviceId } from "@/hooks/useDeviceId";
 import { initSubscriptions } from "@/slices/settingsSlice";
 import { clearPendingNotificationData } from "@/slices/pushNotificationSlice";
+import InfoBar from "@/components/InfoBar";
+import AlertIcon from "@/assets/AlertIcon.svg";
+import NetworkIcon from "@/assets/NetworkIcon.svg";
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
@@ -75,6 +79,7 @@ const App = () => {
   const { subscriptionsInitialized } = useSelector(selectSettings);
   const provincialSummaries = useSelector(selectProvincialSummaries);
   const pendingNotificationData = useSelector(selectPendingNotificationData);
+  const lastUpdated = useSelector(selectLastUpdated);
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
@@ -248,6 +253,23 @@ const App = () => {
     }
   }, [isActive, tab, dispatch]);
 
+  const renderInfoBar = () => {
+    if (!isPortrait && isSmallScreen) {
+      // Hide the InfoBar if we're on a a small screen in landscape orientation
+      return;
+    }
+    const isConnected = networkStatus.connected;
+    return (
+      <InfoBar
+        status={isConnected ? StatusEnum.INFO : StatusEnum.WARNING}
+        statusText={isConnected ? "" : "Offline."}
+        viewingDate={dateOfInterest}
+        lastUpdated={lastUpdated}
+        Icon={isConnected ? AlertIcon : NetworkIcon}
+      />
+    );
+  };
+
   return (
     <Box
       id="asa-go-app"
@@ -280,6 +302,7 @@ const App = () => {
           overflow: "hidden",
         }}
       >
+        {renderInfoBar()}
         <TabPanel value={tab} panel={NavPanel.MAP}>
           <ASAGoMap
             selectedFireShape={selectedFireShape}

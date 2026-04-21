@@ -114,6 +114,8 @@ describe("fetchSFMSRunParameters thunk", () => {
     );
     expect(store.getState().runParameters.error).toBeNull();
     expect(writeToFileSystem).toBeCalled();
+    // setLastUpdated should be dispatched to keep data.lastUpdated current
+    expect(store.getState().data.lastUpdated).not.toBeNull();
   });
 
   it("dispatches success when online and API returns only today's run parameters", async () => {
@@ -194,6 +196,19 @@ describe("fetchSFMSRunParameters thunk", () => {
       mockTodayOnlyRunParameters,
     );
     expect(store.getState().runParameters.error).toBeNull();
+  });
+
+  it("does nothing when offline and cache matches current state", async () => {
+    (readFromFilesystem as Mock).mockResolvedValue({ data: mockRunParameters });
+    const store = createTestStore({
+      runParameters: { ...initialState, runParameters: mockRunParameters },
+      networkStatus: {
+        networkStatus: { connected: false, connectionType: "none" },
+      },
+    });
+    store.dispatch(fetchSFMSRunParameters());
+    expect(store.getState().runParameters.error).toBeNull();
+    expect(store.getState().runParameters.runParameters).toBe(mockRunParameters);
   });
 
   it("dispatches failure when offline and no cache", async () => {

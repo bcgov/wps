@@ -9,6 +9,8 @@ import { Filesystem } from "@capacitor/filesystem";
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getMostRecentRunParameters, RunParameter } from "api/fbaAPI";
 import { isNil } from "lodash";
+import { setLastUpdated } from "@/slices/dataSlice";
+import { DateTime } from "luxon";
 
 export interface RunParametersState {
   loading: boolean;
@@ -32,7 +34,7 @@ const runParameterSlice = createSlice({
     },
     getRunParametersFailed(
       state: RunParametersState,
-      action: PayloadAction<string>
+      action: PayloadAction<string>,
     ) {
       state.error = action.payload;
       state.loading = false;
@@ -41,7 +43,7 @@ const runParameterSlice = createSlice({
       state: RunParametersState,
       action: PayloadAction<{
         runParameters: { [key: string]: RunParameter };
-      }>
+      }>,
     ) {
       state.error = null;
       state.runParameters = action.payload.runParameters;
@@ -80,7 +82,7 @@ export const fetchSFMSRunParameters =
             Filesystem,
             RUN_PARAMETERS_CACHE_KEY,
             latestRunParameters,
-            today
+            today,
           );
 
           if (
@@ -89,22 +91,26 @@ export const fetchSFMSRunParameters =
               todayKey,
               tomorrowKey,
               reduxRunParameters,
-              latestRunParameters
+              latestRunParameters,
             )
           ) {
             // Retrieved run parameters differ from redux state so update
             dispatch(
               getRunParametersSuccess({
                 runParameters: latestRunParameters,
-              })
+              }),
             );
-            return;
+          } else {
+            // State update not required, runParameters are up to date so dataSlice state is considered up to date.
+            dispatch(setLastUpdated({ lastUpdated: DateTime.now().toISO() }));
           }
 
           return;
         }
         dispatch(
-          getRunParametersFailed("Unable to update runParameters from the API.")
+          getRunParametersFailed(
+            "Unable to update runParameters from the API.",
+          ),
         );
         return;
       } catch (err) {
@@ -117,13 +123,13 @@ export const fetchSFMSRunParameters =
       // values read from the cache if they differ from the values currently in state.
       const cachedData = await readFromFilesystem(
         Filesystem,
-        RUN_PARAMETERS_CACHE_KEY
+        RUN_PARAMETERS_CACHE_KEY,
       );
       const cachedRunParameters: { [key: string]: RunParameter } | null = isNil(
-        cachedData
+        cachedData,
       )
         ? null
-        : cachedData.data as { [key: string]: RunParameter };
+        : (cachedData.data as { [key: string]: RunParameter });
       if (
         !isNil(cachedRunParameters) &&
         (isNil(reduxRunParameters) ||
@@ -131,15 +137,28 @@ export const fetchSFMSRunParameters =
             todayKey,
             tomorrowKey,
             reduxRunParameters,
-            cachedRunParameters
+            cachedRunParameters,
           ))
       ) {
         // Retrieved run parameters for the specified date differ from redux state so update
         dispatch(
           getRunParametersSuccess({
             runParameters: cachedRunParameters,
-          })
+          }),
         );
+        return;
+      }
+      if (
+        !isNil(cachedRunParameters) &&
+        !isNil(reduxRunParameters) &&
+        !stateUpdateRequired(
+          todayKey,
+          tomorrowKey,
+          reduxRunParameters,
+          cachedRunParameters,
+        )
+      ) {
+        // State and cache match, no action necessary.
         return;
       }
       // We're offline and there are no cached run parameters for today
@@ -159,7 +178,7 @@ const stateUpdateRequired = (
   todayKey: string,
   tomorrowKey: string,
   a: { [key: string]: RunParameter },
-  b: { [key: string]: RunParameter }
+  b: { [key: string]: RunParameter },
 ) => {
   return (
     !runParametersAreEqual(a[todayKey], b[todayKey]) ||
@@ -169,7 +188,7 @@ const stateUpdateRequired = (
 
 const runParametersAreEqual = (
   a: RunParameter | undefined,
-  b: RunParameter | undefined
+  b: RunParameter | undefined,
 ) => {
   if (isNil(a) || isNil(b)) {
     return isNil(a) && isNil(b);

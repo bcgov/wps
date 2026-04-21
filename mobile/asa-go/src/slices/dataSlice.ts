@@ -7,7 +7,6 @@ import {
   getTodayKey,
   getTomorrowKey,
   runParametersMatch,
-  today,
 } from "@/utils/dataSliceUtils";
 import {
   CacheableData,
@@ -65,7 +64,7 @@ const dataSlice = createSlice({
         provincialSummaries: CacheableData<FireShapeStatusDetail[]> | null;
         tpiStats: CacheableData<FireZoneTPIStats[]> | null;
         hfiStats: CacheableData<FireZoneHFIStatsDictionary> | null;
-      }>
+      }>,
     ) {
       state.error = null;
       state.lastUpdated = action.payload.lastUpdated;
@@ -74,10 +73,18 @@ const dataSlice = createSlice({
       state.hfiStats = action.payload.hfiStats;
       state.loading = false;
     },
+    setLastUpdated(
+      state: DataState,
+      action: PayloadAction<{
+        lastUpdated: string;
+      }>,
+    ) {
+      state.lastUpdated = action.payload.lastUpdated;
+    },
   },
 });
 
-export const { getDataStart, getDataFailed, getDataSuccess } =
+export const { getDataStart, getDataFailed, getDataSuccess, setLastUpdated } =
   dataSlice.actions;
 
 export default dataSlice.reducer;
@@ -91,8 +98,8 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
   if (isNil(runParameters)) {
     dispatch(
       getDataFailed(
-        "Unable to fetch and cache data; runParameters can't be null."
-      )
+        "Unable to fetch and cache data; runParameters can't be null.",
+      ),
     );
     return;
   }
@@ -100,7 +107,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
   // redux state with this data.
   const cachedProvincialSummaries = (await readFromFilesystem(
     Filesystem,
-    PROVINCIAL_SUMMARY_KEY
+    PROVINCIAL_SUMMARY_KEY,
   )) as CachedData<CacheableData<FireShapeStatusDetail[]>>;
   isCurrent =
     isCurrent &&
@@ -109,12 +116,12 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       todayKey,
       tomorrowKey,
       runParameters,
-      cachedProvincialSummaries.data
+      cachedProvincialSummaries.data,
     );
 
   const cachedTPIStats = (await readFromFilesystem(
     Filesystem,
-    TPI_STATS_KEY
+    TPI_STATS_KEY,
   )) as CachedData<CacheableData<FireZoneTPIStats[]>>;
   isCurrent =
     isCurrent &&
@@ -123,12 +130,12 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       todayKey,
       tomorrowKey,
       runParameters,
-      cachedTPIStats.data
+      cachedTPIStats.data,
     );
 
   const cachedHFIStats = (await readFromFilesystem(
     Filesystem,
-    HFI_STATS_KEY
+    HFI_STATS_KEY,
   )) as CachedData<CacheableData<FireZoneHFIStatsDictionary>>;
   isCurrent =
     isCurrent &&
@@ -137,7 +144,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       todayKey,
       tomorrowKey,
       runParameters,
-      cachedHFIStats.data
+      cachedHFIStats.data,
     );
 
   if (isCurrent) {
@@ -153,11 +160,11 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       // Update state from cached data if required
       dispatch(
         getDataSuccess({
-          lastUpdated: DateTime.now().toISO(),
+          lastUpdated: cachedProvincialSummaries.lastUpdated,
           provincialSummaries: cachedProvincialSummaries.data,
           tpiStats: cachedTPIStats.data,
           hfiStats: cachedHFIStats.data,
-        })
+        }),
       );
     }
     return;
@@ -171,38 +178,39 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
       const provincialSummaries = await fetchProvincialSummaries(
         todayKey,
         tomorrowKey,
-        runParameters
+        runParameters,
       );
       const tpiStats = await fetchTpiStats(
         todayKey,
         tomorrowKey,
-        runParameters
+        runParameters,
       );
       const hfiStats = await fetchHFIStats(
         todayKey,
         tomorrowKey,
-        runParameters
+        runParameters,
       );
 
-      // Should we validate the new data in some way or assume a happy path?
+      const now = DateTime.now();
+
       // Write all new data to cache
       await writeToFileSystem(
         Filesystem,
         PROVINCIAL_SUMMARY_KEY,
         provincialSummaries,
-        today
+        now,
       );
-      await writeToFileSystem(Filesystem, TPI_STATS_KEY, tpiStats, today);
-      await writeToFileSystem(Filesystem, HFI_STATS_KEY, hfiStats, today);
+      await writeToFileSystem(Filesystem, TPI_STATS_KEY, tpiStats, now);
+      await writeToFileSystem(Filesystem, HFI_STATS_KEY, hfiStats, now);
 
       // Update state
       dispatch(
         getDataSuccess({
-          lastUpdated: DateTime.now().toISO(),
+          lastUpdated: now.toISO(),
           provincialSummaries,
           tpiStats,
           hfiStats,
-        })
+        }),
       );
     } catch (err) {
       dispatch(getDataFailed((err as Error).toString()));
