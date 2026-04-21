@@ -106,7 +106,9 @@ const FireZoneUnitTabs = ({
                     height: '4px'
                   }
                 }}
-                TabIndicatorProps={{ style: { transition: 'none' } }}
+                slotProps={{
+                  indicator: { style: { transition: 'none' } }
+                }}
               >
                 {sortedFireZoneUnits.map((zone, index) => {
                   const isActive = tabNumber === index
@@ -160,7 +162,7 @@ const FireZoneUnitTabs = ({
         </Grid>
       </InfoAccordion>
     </div>
-  )
+  );
 }
 
 export default FireZoneUnitTabs

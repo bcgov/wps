@@ -63,9 +63,11 @@ const SidebarToolList: React.FunctionComponent = () => {
                 <ListItemText
                   primary={item.name}
                   secondary={isSmall && item.description}
-                  primaryTypographyProps={{
-                    className: classes.text,
-                    ...(isSmall ? { sx: { fontWeight: 'bold' } } : {})
+                  slotProps={{
+                    primary: {
+                      className: classes.text,
+                      ...(isSmall ? { sx: { fontWeight: 'bold' } } : {})
+                    }
                   }}
                 />
                 {item.isBeta && (
@@ -77,10 +79,10 @@ const SidebarToolList: React.FunctionComponent = () => {
             </ListItem>
             {isSmall && <Divider />}
           </div>
-        )
+        );
       })}
     </StyledList>
-  )
+  );
 }
 
 export default SidebarToolList

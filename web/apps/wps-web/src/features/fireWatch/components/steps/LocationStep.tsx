@@ -174,8 +174,10 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
               setEditingField(null)
               if (editingField !== 'lon') updateMarkerFromInputs()
             }}
-            inputProps={{ 'data-testid': 'lat-input' }}
             size="small"
+            slotProps={{
+              htmlInput: { 'data-testid': 'lat-input' }
+            }}
           />
           <TextField
             required
@@ -189,8 +191,10 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
               setEditingField(null)
               if (editingField !== 'lat') updateMarkerFromInputs()
             }}
-            inputProps={{ 'data-testid': 'lon-input' }}
             size="small"
+            slotProps={{
+              htmlInput: { 'data-testid': 'lon-input' }
+            }}
           />
         </Box>
         <MapContext.Provider value={map}>
@@ -202,7 +206,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
         </MapContext.Provider>
       </Box>
     </Step>
-  )
+  );
 }
 
 export default LocationStep

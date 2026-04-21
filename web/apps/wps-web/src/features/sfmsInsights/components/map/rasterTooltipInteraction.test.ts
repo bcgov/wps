@@ -31,7 +31,9 @@ describe('RasterTooltipInteraction', () => {
     beforeEach(() => {
       interaction = new RasterTooltipInteraction()
       mockMap = {
-        on: vi.fn(() => ({ type: 'mock-listener-key' }) as EventsKey),
+        on: vi.fn(() => (({
+          type: 'mock-listener-key'
+        }) as EventsKey)),
         getLayers: vi.fn(() => ({
           getArray: vi.fn(() => [])
         }))
@@ -55,7 +57,9 @@ describe('RasterTooltipInteraction', () => {
 
       // Change to a new map
       const mockMap2 = {
-        on: vi.fn(() => ({ type: 'mock-listener-key-2' }) as EventsKey),
+        on: vi.fn(() => (({
+          type: 'mock-listener-key-2'
+        }) as EventsKey)),
         getLayers: vi.fn(() => ({
           getArray: vi.fn(() => [])
         }))
@@ -239,7 +243,9 @@ describe('RasterTooltipInteraction', () => {
   describe('dispose', () => {
     it('should clean up listener when disposed', () => {
       const mockMap = {
-        on: vi.fn(() => ({ type: 'mock-listener-key' }) as EventsKey),
+        on: vi.fn(() => (({
+          type: 'mock-listener-key'
+        }) as EventsKey)),
         getLayers: vi.fn(() => ({
           getArray: vi.fn(() => [])
         }))

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material'
-import { theme } from "./theme"
+import { theme } from './theme'
 
 export interface ResetDialogProps {
   showResetDialog: boolean
@@ -9,12 +9,7 @@ export interface ResetDialogProps {
   message: string
 }
 
-const ResetDialog = ({
-  showResetDialog,
-  setShowResetDialog,
-  handleResetButtonConfirm,
-  message
-}: ResetDialogProps) => {
+const ResetDialog = ({ showResetDialog, setShowResetDialog, handleResetButtonConfirm, message }: ResetDialogProps) => {
   const handleResetDialogClose = () => {
     setShowResetDialog(false)
   }
@@ -23,7 +18,9 @@ const ResetDialog = ({
       open={showResetDialog}
       onClose={handleResetDialogClose}
       data-testid={'reset-dialog'}
-      PaperProps={{ sx: { border: 2, borderColor: '#808080' } }}
+      slotProps={{
+        paper: { sx: { border: 2, borderColor: '#808080' } }
+      }}
     >
       <DialogContent>
         <DialogContentText>{message}</DialogContentText>

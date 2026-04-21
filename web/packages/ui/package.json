@@ -19,8 +19,8 @@
     "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"
   },
   "dependencies": {
-    "@mui/icons-material": "^5.5.1",
-    "@mui/material": "5.15.20",
+    "@mui/icons-material": "^7",
+    "@mui/material": "^7",
     "@mui/x-data-grid-pro": "^6.0.0",
     "@mui/x-date-pickers": "^7.29.4",
     "@sentry/react": "^10.0.0",

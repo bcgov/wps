@@ -52,9 +52,6 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
         inputMode="numeric"
         inputRef={inputRef}
         size="small"
-        InputLabelProps={{
-          shrink: true
-        }}
         sx={{
           '& .MuiOutlinedInput-root': {
             '& fieldset': {
@@ -74,7 +71,12 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
         onChange={handleValueChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
+        slotProps={{
+          inputLabel: {
+            shrink: true
+          }
+        }}
       />
     </InvalidCellToolTip>
-  )
+  );
 }

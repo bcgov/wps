@@ -87,15 +87,17 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
           ? 'No data available'
           : value.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
       }
-      InputProps={{
-        ...InputProps,
-        readOnly: true,
-        startAdornment: renderStartAdornments(),
-        endAdornment: renderEndAdornments(),
-        sx: { cursor: disabled ? 'default' : 'pointer', '& *': { cursor: 'inherit' } }
+      slotProps={{
+        input: {
+          ...InputProps,
+          readOnly: true,
+          startAdornment: renderStartAdornments(),
+          endAdornment: renderEndAdornments(),
+          sx: { cursor: disabled ? 'default' : 'pointer', '& *': { cursor: 'inherit' } }
+        }
       }}
     />
-  )
+  );
 }
 
 interface ASADatePickerProps extends DatePickerProps<DateTime> {
