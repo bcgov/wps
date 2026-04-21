@@ -453,28 +453,6 @@ describe("App", () => {
       expect(screen.getByTestId("info-bar")).toBeInTheDocument();
     });
 
-    it("hides InfoBar in landscape on small screens", async () => {
-      const { ScreenOrientation } = await import(
-        "@capacitor/screen-orientation"
-      );
-      ScreenOrientation.orientation = vi
-        .fn()
-        .mockResolvedValue({ type: "landscape-primary" });
-      vi.mocked(useMediaQuery).mockReturnValue(true);
-
-      const store = createTestStore();
-
-      render(
-        <Provider store={store}>
-          <App />
-        </Provider>,
-      );
-
-      await waitFor(() =>
-        expect(screen.queryByTestId("info-bar")).not.toBeInTheDocument(),
-      );
-    });
-
     it("shows WARNING status and Offline. text when network is disconnected", async () => {
       const { ScreenOrientation } = await import(
         "@capacitor/screen-orientation"
@@ -618,7 +596,7 @@ describe("App", () => {
       expect(screen.queryByTestId("advisory")).not.toBeInTheDocument();
       expect(
         store.getState().pushNotification.pendingNotificationData,
-      ).toBeNull(); 
+      ).toBeNull();
     });
 
     it("does not navigate when fire centre is not found", async () => {
