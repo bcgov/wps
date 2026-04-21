@@ -143,7 +143,7 @@ export interface FireCentreInfoResponse {
   fire_centre_info: FireCentreInfo[];
 }
 
-const ASA_GO_API_PREFIX = "fba";
+const ASA_GO_API_PREFIX = "asa-go";
 
 // Gets a summary of info about all fire zone units in the province
 export async function getProvincialSummary(
@@ -175,17 +175,6 @@ export async function getMostRecentRunParameters(
   return data.run_parameters;
 }
 
-export async function getFireCentreHFIStats(
-  run_type: RunType,
-  for_date: string,
-  run_datetime: string,
-  fire_centre: string,
-): Promise<FireCentreHFIStats> {
-  const url = `${ASA_GO_API_PREFIX}/fire-centre-hfi-stats/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${fire_centre}`;
-  const { data } = await axios.get(url);
-  return data;
-}
-
 export async function getHFIStats(
   run_type: RunType,
   for_date: string,
@@ -203,17 +192,6 @@ export async function getFireZoneElevationInfo(
   for_date: string,
 ): Promise<FireZoneElevationInfoResponse> {
   const url = `${ASA_GO_API_PREFIX}/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`;
-  const { data } = await axios.get(url);
-  return data;
-}
-
-export async function getFireCentreTPIStats(
-  fire_centre_name: string,
-  run_type: RunType,
-  run_datetime: string,
-  for_date: string,
-): Promise<FireCentreTPIResponse> {
-  const url = `${ASA_GO_API_PREFIX}/fire-centre-tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_centre_name}`;
   const { data } = await axios.get(url);
   return data;
 }

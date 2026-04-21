@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.fcm import (
     get_device_by_device_id,
+    get_device_by_token,
     get_notification_settings_for_device,
     save_device_token,
     upsert_notification_settings,
@@ -36,13 +37,16 @@ async def register_device(request: RegisterDeviceRequest):
     """
     logger.info("/device/register")
     async with get_async_write_session_scope() as session:
-        existing = await get_device_by_device_id(session, request.device_id)
+        existing = await get_device_by_token(session, request.token)
+        if existing is None:
+            existing = await get_device_by_device_id(session, request.device_id)
         if existing:
             existing.is_active = True
             existing.token = request.token
+            existing.device_id = request.device_id
             existing.updated_at = get_utc_now()
             existing.user_id = request.user_id
-            logger.info(f"Updated existing DeviceInfo record for token: {request.token}")
+            logger.info(f"Updated existing DeviceToken record for token: {request.token}")
         else:
             device_token = DeviceToken(
                 user_id=request.user_id,

@@ -12,6 +12,8 @@ on:
 
 env:
   PROJ_DEV: e1e498-dev
+  APS_GATEWAY_ID: gw-313f6
+  SUFFIX: pr-${{ github.event.number }}
 
 jobs:
   prepare-dev-database:
@@ -20,8 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -55,8 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -80,8 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -100,8 +99,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -127,8 +125,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
@@ -139,6 +136,26 @@ jobs:
         shell: bash
         run: |
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
+
+      - name: Deploy ASA Go API to Dev
+        shell: bash
+        run: |
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" MEMORY_REQUEST=700Mi MEMORY_LIMIT=1Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
+
+      - name: Allow APS to reach ASA Go API
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_asa_go_gateway_networkpolicy.sh ${SUFFIX} apply
+
+      - name: Render and publish ASA Go APS gateway config
+        uses: ./.github/actions/aps-publish
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          project-namespace: ${{ env.PROJ_DEV }}
+          host: psu-${{ env.SUFFIX }}.api.gov.bc.ca
+          suffix: ${{ env.SUFFIX }}
 
       - name: Provision dev cronjobs and jobs
         shell: bash
@@ -186,8 +203,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
-        with:
-          pr-number: ${{ github.event.number }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}

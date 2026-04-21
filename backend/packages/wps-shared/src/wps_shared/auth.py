@@ -1,11 +1,13 @@
 """Dependency functions used for authenticating and auditing requests"""
 
 import logging
-from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import OAuth2PasswordBearer
+
 import jwt
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
 from sentry_sdk import set_user
+
 from wps_shared import config
 from wps_shared.db.crud.api_access_audits import create_api_access_audit_log
 
@@ -21,8 +23,7 @@ async def permissive_oauth2_scheme(request: Request):
     """Returns parsed auth token if authorized, None otherwise."""
     try:
         return await oauth2_scheme.__call__(request)
-    except HTTPException as exception:
-        logger.error("Could not validate the credential %s", exception)
+    except HTTPException:
         return None
 
 

@@ -97,10 +97,6 @@ vi.mock('@/features/sfmsInsights/components/RasterTypeDropdown', () => ({
   )
 }))
 
-// Create spies for local storage
-const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
-const getItemSpy = vi.spyOn(Storage.prototype, 'getItem')
-
 describe('SFMSInsightsPage', () => {
   const dateTimeNow = DateTime.fromISO('2025-11-02')
   const dateTimeNowPlusTen = dateTimeNow.plus({ days: 10 })
@@ -152,8 +148,7 @@ describe('SFMSInsightsPage', () => {
     }
   }
 
-  const renderWithStore = (hideModal: string, sfmsBounds?: any) => {
-    getItemSpy.mockReturnValue(hideModal)
+  const renderWithStore = (sfmsBounds?: any) => {
     const store = createTestStore({
       authentication: defaultAuthentication,
       runDates: {
@@ -187,7 +182,7 @@ describe('SFMSInsightsPage', () => {
     // Mock getDateTimeNowPST to return a date in 2025
     ;(getDateTimeNowPST as Mock).mockReturnValue(dateTimeNow)
     // Mock getSFMSBounds API call
-    ;(getSFMSBounds as Mock).mockResolvedValue({
+    ;;(getSFMSBounds as Mock).mockResolvedValue({
       sfms_bounds: {
         '2024': {
           forecast: {
@@ -203,13 +198,10 @@ describe('SFMSInsightsPage', () => {
         }
       }
     })
-    localStorage.clear()
-    getItemSpy.mockClear()
-    setItemSpy.mockClear()
   })
 
   it('should load rasterDate from SFMS bounds in store', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     // Verify that the rasterDate was set from the sfmsBounds in the store
@@ -219,7 +211,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should set date picker max date based on SFMS bounds', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     // The date picker should be rendered with max date from SFMS bounds (2025-11-02)
@@ -228,21 +220,21 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should render the snow checkbox', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
     const checkbox = screen.getByRole('checkbox', { name: /show latest snow/i })
     expect(checkbox).toBeInTheDocument()
   })
 
   it('should have the snow checkbox checked by default', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
     const checkbox = screen.getByRole('checkbox', { name: /show latest snow/i }) as HTMLInputElement
     expect(checkbox.checked).toBe(true)
   })
 
   it('should toggle snow checkbox when clicked', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const checkbox = screen.getByRole('checkbox', { name: /show latest snow/i }) as HTMLInputElement
@@ -256,7 +248,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should pass showSnow prop to SFMSMap when checkbox is checked', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const map = screen.getByTestId('sfms-map')
@@ -264,7 +256,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should pass showSnow=false to SFMSMap when checkbox is unchecked', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const checkbox = screen.getByRole('checkbox', { name: /show latest snow/i })
@@ -277,7 +269,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should render raster type dropdown next to snow checkbox', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const rasterDropdown = screen.getByTestId('raster-type-dropdown')
@@ -288,14 +280,14 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should fetch snow data on mount with initial rasterDate', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     expect(getMostRecentProcessedSnowByDate).toHaveBeenCalledWith(DateTime.fromISO('2025-11-02'))
   })
 
   it('should pass fetched snow date to SFMSMap', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const map = screen.getByTestId('sfms-map')
@@ -304,7 +296,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should display snow date in checkbox label when available', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const checkbox = screen.getByRole('checkbox', { name: /show latest snow: nov 2, 2025/i })
@@ -314,7 +306,7 @@ describe('SFMSInsightsPage', () => {
   it('should display "Show Latest Snow" without date when no snow data available', async () => {
     ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue(null)
 
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const checkbox = screen.getByRole('checkbox', { name: 'Show Latest Snow' })
@@ -334,7 +326,7 @@ describe('SFMSInsightsPage', () => {
         snowSource: 'viirs'
       })
 
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     // Wait for initial fetch
@@ -359,7 +351,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should set maxDate from latestSFMSBounds.maximum', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const maxDate = screen.getByTestId('historical-max-date')
@@ -367,7 +359,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should set minDate from earliestSFMSBounds.minimum', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const minDate = screen.getByTestId('historical-min-date')
@@ -375,7 +367,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should pass both min and max dates to ASADatePicker', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const minDate = screen.getByTestId('current-year-min-date')
@@ -386,7 +378,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should update min bounds when latestBounds changes', async () => {
-    renderWithStore('true', {
+    renderWithStore({
       '2025': {
         forecast: {
           minimum: '2025-05-01',
@@ -404,7 +396,7 @@ describe('SFMSInsightsPage', () => {
     // Mock getSFMSBounds to return null
     ;(getSFMSBounds as Mock).mockResolvedValueOnce({ sfms_bounds: null })
 
-    renderWithStore('true', null)
+    renderWithStore(null)
 
     // Wait for fetch to complete
     await waitFor(() => {
@@ -423,7 +415,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should set rasterDate to today when latestBounds.maximum is empty', async () => {
-    renderWithStore('true', {
+    renderWithStore({
       '2025': {
         forecast: {
           minimum: '2025-05-01',
@@ -445,7 +437,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should not set minDate when earliestBounds.minimum is empty', async () => {
-    renderWithStore('true', {
+    renderWithStore({
       '2025': {
         forecast: {
           minimum: '',
@@ -462,7 +454,7 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should set rasterDate to today when all years have empty maximum', async () => {
-    renderWithStore('true', {
+    renderWithStore({
       '2024': {
         forecast: {
           minimum: '2024-01-01',
@@ -490,134 +482,17 @@ describe('SFMSInsightsPage', () => {
   })
 
   it('should disable raster dropdown options when no SFMS bounds data available', async () => {
-    renderWithStore('true', null)
+    renderWithStore(null)
 
     const dropdown = screen.getByTestId('raster-type-dropdown')
     expect(dropdown).toHaveAttribute('data-raster-data-available', 'false')
   })
 
   it('should enable raster dropdown options when SFMS bounds data available', async () => {
-    renderWithStore('true')
+    renderWithStore()
     await waitForPageLoad()
 
     const dropdown = screen.getByTestId('raster-type-dropdown')
     expect(dropdown).toHaveAttribute('data-raster-data-available', 'true')
-  })
-
-  it('should display warning tooltip when rasterDate greater than March 8, 2026 and snowDate is March 8, 2026.', async () => {
-    ;(getDateTimeNowPST as Mock).mockReturnValue(DateTime.fromISO('2026-03-10'))
-    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue({
-      forDate: DateTime.fromISO('2026-03-08'),
-      processedDate: DateTime.fromISO('2025-03-09'),
-      snowSource: 'viirs'
-    })
-
-    renderWithStore('true')
-    await waitForPageLoad()
-
-    const warningIcon = screen.queryByTestId('WarningAmberIcon')
-    expect(warningIcon).toBeInTheDocument()
-  })
-
-  it('should not display warning tooltip when rasterDate equal to March 8, 2026 and snowDate is March 8, 2026.', async () => {
-    ;(getDateTimeNowPST as Mock).mockReturnValue(DateTime.fromISO('2026-03-08'))
-    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue({
-      forDate: DateTime.fromISO('2026-03-08'),
-      processedDate: DateTime.fromISO('2025-03-09'),
-      snowSource: 'viirs'
-    })
-
-    renderWithStore('true')
-    await waitForPageLoad()
-
-    const warningIcon = screen.queryByTestId('WarningAmberIcon')
-    expect(warningIcon).toBe(null)
-  })
-
-  it('should not display warning tooltip when rasterDate greater than March 8, 2026 and snowDate greater than March 8, 2026.', async () => {
-    ;(getDateTimeNowPST as Mock).mockReturnValue(DateTime.fromISO('2026-03-09'))
-    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue({
-      forDate: DateTime.fromISO('2026-03-10'),
-      processedDate: DateTime.fromISO('2025-03-09'),
-      snowSource: 'viirs'
-    })
-
-    renderWithStore('true')
-    await waitForPageLoad()
-
-    const warningIcon = screen.queryByTestId('WarningAmberIcon')
-    expect(warningIcon).toBe(null)
-  })
-
-  it('should not display warning tooltip when rasterDate less than March 8, 2026 and snowDate greater than March 8, 2026.', async () => {
-    ;(getDateTimeNowPST as Mock).mockReturnValue(DateTime.fromISO('2026-03-07'))
-    ;(getMostRecentProcessedSnowByDate as Mock).mockResolvedValue({
-      forDate: DateTime.fromISO('2026-03-10'),
-      processedDate: DateTime.fromISO('2025-03-09'),
-      snowSource: 'viirs'
-    })
-
-    renderWithStore('true')
-    await waitForPageLoad()
-
-    const warningIcon = screen.queryByTestId('WarningAmberIcon')
-    expect(warningIcon).toBe(null)
-  })
-
-  it("should display modal warning when user hasn't permanently dismissed", async () => {
-    renderWithStore('false')
-    await waitForPageLoad()
-    const modalHeading = screen.queryByText('Snow Coverage Imagery Warning')
-    expect(modalHeading).toBeInTheDocument()
-  })
-
-  it('should not display modal warning if user has permanently dismissed', async () => {
-    renderWithStore('true')
-    await waitForPageLoad()
-    const modalHeading = screen.queryByText('Snow Coverage Imagery Warning')
-    expect(modalHeading).not.toBeInTheDocument()
-  })
-
-  it('modal dismiss button should dismiss modal', async () => {
-    renderWithStore('false')
-    await waitForPageLoad()
-
-    const modalHeading = screen.queryByText('Snow Coverage Imagery Warning')
-    expect(modalHeading).toBeInTheDocument()
-
-    const dismissButton = screen.getByRole('button', { name: 'Dismiss' })
-    expect(dismissButton).toBeInTheDocument()
-
-    fireEvent.click(dismissButton)
-
-    await waitFor(() => {
-      const modalHeading = screen.queryByText('Snow Coverage Imagery Warning')
-      expect(modalHeading).not.toBeInTheDocument()
-    })
-  })
-
-  it("modal don't show again toggle should call localStorage.setItem", async () => {
-    renderWithStore('false')
-    await waitForPageLoad()
-
-    const checkbox = screen.getByRole('checkbox', { name: /don't show again/i })
-    expect(checkbox).toBeInTheDocument()
-    expect(checkbox).not.toBeChecked()
-
-    // Toggle checkbox on
-    fireEvent.click(checkbox)
-
-    await waitFor(() => {
-      expect(checkbox).toBeChecked()
-      expect(setItemSpy).toHaveBeenCalledWith('SFMSInsightsAlwaysHideSnowMessage', 'true')
-    })
-
-    // Toggle checkbox off
-    fireEvent.click(checkbox)
-
-    await waitFor(() => {
-      expect(checkbox).not.toBeChecked()
-      expect(setItemSpy).toHaveBeenCalledWith('SFMSInsightsAlwaysHideSnowMessage', 'false')
-    })
   })
 })

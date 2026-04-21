@@ -19,6 +19,48 @@
             }
         },
         {
+            "name": "api (main)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8080"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "env": {
+                "R_HOME": "/Library/Frameworks/R.framework/Resources",
+                "DYLD_LIBRARY_PATH": "/Library/Frameworks/R.framework/Resources/lib"
+            }
+        },
+        {
+            "name": "api (asa-go)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.asa_go_main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8081"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "env": {
+                "R_HOME": "/Library/Frameworks/R.framework/Resources",
+                "DYLD_LIBRARY_PATH": "/Library/Frameworks/R.framework/Resources/lib"
+            }
+        },
+        {
             "name": "nats",
             "type": "debugpy",
             "request": "launch",
@@ -387,6 +429,15 @@
             "request": "launch",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}/web"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "api (main & asa-go)",
+            "configurations": [
+                "api (main)",
+                "api (asa-go)"
+            ]
         }
     ]
 }

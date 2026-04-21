@@ -11,13 +11,16 @@ permissions:
 # https://docs.github.com/en/actions/reference/events-that-trigger-workflows#deployment
 on: deployment
 
+env:
+  APS_GATEWAY_ID: gw-313f6
+
 jobs:
   deploy_to_production:
     name: Deploy to production
     runs-on: ubuntu-24.04
     steps:
       - name: Find PR number
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           # reference used to figure out this part:
           # https://docs.github.com/en/rest/reference/pulls#list-pull-requests
@@ -48,13 +51,23 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
 
+      - name: Render and publish ASA Go APS gateway config
+        uses: ./.github/actions/aps-publish
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          project-namespace: e1e498-prod
+          host: psu.api.gov.bc.ca
+          suffix: prod
+
   set_deployment_status_success:
     name: Set production deployment successful
     needs: [deploy_to_production]
     runs-on: ubuntu-24.04
     steps:
       - name: Set status to deployed
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           # reference used to figure out how to set the deployment status:
           # https://docs.github.com/en/rest/reference/repos#deployments
