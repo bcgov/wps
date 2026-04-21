@@ -38,6 +38,8 @@ objects:
     apiVersion: batch/v1
     metadata:
       name: ${JOB_NAME}
+      labels:
+        app: ${APP_LABEL}
     spec:
       schedule: ${SCHEDULE}
       # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
