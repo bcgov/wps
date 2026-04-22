@@ -6,7 +6,6 @@ Create Date: 2026-04-14 16:16:51.902177
 
 """
 from alembic import op
-import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
@@ -21,6 +20,9 @@ def upgrade():
     # Both rows coexist during the S3 retention window (DAYS_TO_RETAIN = 7 in rdps_sfms.py)
     # while legacy-format keys age out. The legacy ps10km row should be retired in a
     # follow-up migration once old-format data is fully purged.
+    # The seed migration inserts prediction_models rows with explicit ids, which don't advance the
+    # sequence. Reset it so subsequent inserts without an explicit id don't collide.
+    op.execute("SELECT setval(pg_get_serial_sequence('prediction_models', 'id'), MAX(id)) FROM prediction_models")
     op.execute(
         "INSERT INTO prediction_models (abbreviation, name, projection) "
         "VALUES ('RDPS', 'Regional Deterministic Prediction System', 'RLatLon0.09')"
