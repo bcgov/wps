@@ -1,18 +1,9 @@
 name: OC Setup
 description: Common setup steps for OpenShift deployment jobs
 
-inputs:
-  pr-number:
-    description: Pull request number
-    required: true
-
 runs:
   using: composite
   steps:
-    - name: Set Variables
-      shell: bash
-      run: echo "SUFFIX=pr-${{ inputs.pr-number }}" >> $GITHUB_ENV
-
     - name: Log public IP address
       shell: bash
       run: |

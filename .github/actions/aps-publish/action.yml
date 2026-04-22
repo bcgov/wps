@@ -1,0 +1,55 @@
+name: APS Publish
+description: Render, publish, and upload the APS gateway configuration
+
+inputs:
+  gateway-id:
+    description: APS gateway id
+    required: true
+  client-id:
+    description: APS service account client id
+    required: true
+  client-secret:
+    description: APS service account client secret
+    required: true
+  project-namespace:
+    description: OpenShift namespace that contains the upstream ASA Go service
+    required: true
+  host:
+    description: Public APS hostname for the rendered route
+    required: true
+  suffix:
+    description: Config suffix used for service naming, tag scope, and gwa qualifier
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Render ASA Go APS gateway config
+      shell: bash
+      env:
+        APS_NAMESPACE: ${{ inputs.gateway-id }}
+        PROJECT_NAMESPACE: ${{ inputs.project-namespace }}
+        ASA_GO_HOST: ${{ inputs.host }}
+        SUFFIX: ${{ inputs.suffix }}
+      run: |
+        set -euo pipefail
+        CONFIG_PATH=".github/tmp/asa-go-gw-config-${SUFFIX}.yaml"
+        mkdir -p "$(dirname "${CONFIG_PATH}")"
+        bash "${{ github.workspace }}/openshift/scripts/render_asa_go_gateway_config.sh" \
+          "${SUFFIX}" \
+          "${CONFIG_PATH}"
+
+    - name: Publish ASA Go APS gateway config
+      uses: ./.github/actions/gwa-publish
+      with:
+        gateway-id: ${{ inputs.gateway-id }}
+        client-id: ${{ inputs.client-id }}
+        client-secret: ${{ inputs.client-secret }}
+        config-path: .github/tmp/asa-go-gw-config-${{ inputs.suffix }}.yaml
+        qualifier: ${{ inputs.suffix }}
+
+    - name: Upload ASA Go APS gateway config
+      uses: actions/upload-artifact@v7
+      with:
+        name: asa-go-aps-gateway-config-${{ inputs.suffix }}
+        path: .github/tmp/asa-go-gw-config-${{ inputs.suffix }}.yaml
