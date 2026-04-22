@@ -1,6 +1,6 @@
+import { StatusEnum } from "@/utils/constants";
 import { Box, Typography, useTheme } from "@mui/material";
 import { DateTime } from "luxon";
-import { StatusEnum } from "@/utils/constants";
 
 interface StatusStyle {
   backgroundColor: string;
@@ -27,6 +27,9 @@ const InfoBar = ({
   const lastCheckedString = lastUpdated
     ? DateTime.fromISO(lastUpdated).toFormat("MMM d, T")
     : "n/a";
+  const message = `Viewing: ${viewingDate.toFormat(
+    "EEE, MMM d",
+  )}. Upd: ${lastCheckedString}.`;
 
   const statusMap: Record<StatusEnum, StatusStyle> = {
     [StatusEnum.INFO]: {
@@ -69,14 +72,8 @@ const InfoBar = ({
           {`${statusText}\u00A0`}
         </Typography>
       )}
-      <Typography component="span" variant="body2">{`Viewing:`}</Typography>
-      <Typography
-        component="span"
-        variant="body2"
-        fontWeight="bold"
-      >{`\u00A0${viewingDate.toFormat("EEE, MMM d")}.`}</Typography>
       <Typography component="span" variant="body2">
-        {`\u00A0Updated: ${lastCheckedString}.`}
+        {message}
       </Typography>
     </Box>
   );
