@@ -75,6 +75,7 @@ import { AdvisoryStatus } from "@/utils/constants";
 const todayKey = getTodayKey();
 const tomorrowKey = getTomorrowKey();
 const yesterdayKey = DateTime.fromISO(todayKey).minus({ days: 1 }).toISODate()!;
+const lastUpdatedDate = "2026-04-22T16:30-07:00";
 
 const mockYesterdayRunParameter = {
   for_date: yesterdayKey,
@@ -301,17 +302,17 @@ describe("fetchAndCacheData thunk", () => {
       switch (key) {
         case PROVINCIAL_SUMMARY_KEY:
           return {
-            lastUpdated: todayKey,
+            lastUpdated: lastUpdatedDate,
             data: mockCacheableProvincialSummaries,
           };
         case TPI_STATS_KEY:
           return {
-            lastUpdated: todayKey,
+            lastUpdated: lastUpdatedDate,
             data: mockCacheableFireZoneTPIStats,
           };
         case HFI_STATS_KEY:
           return {
-            lastUpdated: todayKey,
+            lastUpdated: lastUpdatedDate,
             data: mockCacheableHFIStats,
           };
       }
@@ -375,6 +376,7 @@ describe("fetchAndCacheData thunk", () => {
     // redux store should be updated with the cached data
     const dataState = store.getState().data;
     testExpectedDataState(dataState);
+    expect(dataState.lastUpdated).toBe(lastUpdatedDate);
   });
   it("should update state from cache when cache is current and state is stale", async () => {
     mockCacheWithData();

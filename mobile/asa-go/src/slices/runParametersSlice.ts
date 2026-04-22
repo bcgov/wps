@@ -1,4 +1,4 @@
-import { getTodayKey, getTomorrowKey, today } from "@/utils/dataSliceUtils";
+import { getTodayKey, getTomorrowKey } from "@/utils/dataSliceUtils";
 import { AppDispatch, AppThunk, RootState } from "@/store";
 import {
   readFromFilesystem,
@@ -13,13 +13,11 @@ import { setLastUpdated } from "@/slices/dataSlice";
 import { DateTime } from "luxon";
 
 export interface RunParametersState {
-  loading: boolean;
   error: string | null;
   runParameters: { [key: string]: RunParameter } | null;
 }
 
 export const initialState: RunParametersState = {
-  loading: false,
   error: null,
   runParameters: null,
 };
@@ -30,14 +28,12 @@ const runParameterSlice = createSlice({
   reducers: {
     getRunParametersStart(state: RunParametersState) {
       state.error = null;
-      state.loading = true;
     },
     getRunParametersFailed(
       state: RunParametersState,
       action: PayloadAction<string>,
     ) {
       state.error = action.payload;
-      state.loading = false;
     },
     getRunParametersSuccess(
       state: RunParametersState,
@@ -47,7 +43,6 @@ const runParameterSlice = createSlice({
     ) {
       state.error = null;
       state.runParameters = action.payload.runParameters;
-      state.loading = false;
     },
   },
 });
@@ -66,22 +61,41 @@ const handleOnlineRunParameters = async (
   tomorrowKey: string,
   reduxRunParameters: { [key: string]: RunParameter } | null,
 ) => {
+  const now = DateTime.now();
   try {
     dispatch(getRunParametersStart());
     const latestRunParameters: { [key: string]: RunParameter } =
       await getMostRecentRunParameters(todayKey, tomorrowKey);
 
-    if (isNil(latestRunParameters) || Object.keys(latestRunParameters).length === 0) {
-      dispatch(getRunParametersFailed("Unable to update runParameters from the API."));
+    if (
+      isNil(latestRunParameters) ||
+      Object.keys(latestRunParameters).length === 0
+    ) {
+      dispatch(
+        getRunParametersFailed("Unable to update runParameters from the API."),
+      );
       return;
     }
 
-    await writeToFileSystem(Filesystem, RUN_PARAMETERS_CACHE_KEY, latestRunParameters, today);
+    await writeToFileSystem(
+      Filesystem,
+      RUN_PARAMETERS_CACHE_KEY,
+      latestRunParameters,
+      now,
+    );
 
-    if (isNil(reduxRunParameters) || stateUpdateRequired(todayKey, tomorrowKey, reduxRunParameters, latestRunParameters)) {
+    if (
+      isNil(reduxRunParameters) ||
+      stateUpdateRequired(
+        todayKey,
+        tomorrowKey,
+        reduxRunParameters,
+        latestRunParameters,
+      )
+    ) {
       dispatch(getRunParametersSuccess({ runParameters: latestRunParameters }));
     } else {
-      dispatch(setLastUpdated({ lastUpdated: DateTime.now().toISO() }));
+      dispatch(setLastUpdated({ lastUpdated: now.toISO() }));
     }
   } catch (err) {
     dispatch(getRunParametersFailed((err as Error).toString()));
@@ -95,8 +109,13 @@ const handleOfflineRunParameters = async (
   tomorrowKey: string,
   reduxRunParameters: { [key: string]: RunParameter } | null,
 ) => {
-  const cachedData = await readFromFilesystem(Filesystem, RUN_PARAMETERS_CACHE_KEY);
-  const cachedRunParameters: { [key: string]: RunParameter } | null = isNil(cachedData)
+  const cachedData = await readFromFilesystem(
+    Filesystem,
+    RUN_PARAMETERS_CACHE_KEY,
+  );
+  const cachedRunParameters: { [key: string]: RunParameter } | null = isNil(
+    cachedData,
+  )
     ? null
     : (cachedData.data as { [key: string]: RunParameter });
 
@@ -105,7 +124,15 @@ const handleOfflineRunParameters = async (
     return;
   }
 
-  if (isNil(reduxRunParameters) || stateUpdateRequired(todayKey, tomorrowKey, reduxRunParameters, cachedRunParameters)) {
+  if (
+    isNil(reduxRunParameters) ||
+    stateUpdateRequired(
+      todayKey,
+      tomorrowKey,
+      reduxRunParameters,
+      cachedRunParameters,
+    )
+  ) {
     dispatch(getRunParametersSuccess({ runParameters: cachedRunParameters }));
   }
 };
@@ -119,9 +146,19 @@ export const fetchSFMSRunParameters =
     const reduxRunParameters = state.runParameters.runParameters;
 
     if (connected) {
-      await handleOnlineRunParameters(dispatch, todayKey, tomorrowKey, reduxRunParameters);
+      await handleOnlineRunParameters(
+        dispatch,
+        todayKey,
+        tomorrowKey,
+        reduxRunParameters,
+      );
     } else {
-      await handleOfflineRunParameters(dispatch, todayKey, tomorrowKey, reduxRunParameters);
+      await handleOfflineRunParameters(
+        dispatch,
+        todayKey,
+        tomorrowKey,
+        reduxRunParameters,
+      );
     }
   };
 

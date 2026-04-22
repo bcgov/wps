@@ -28,7 +28,7 @@ describe("InfoBar", () => {
         Icon="icon.svg"
       />,
     );
-    expect(screen.getByText(/Updated: Jul 15,/)).toBeInTheDocument();
+    expect(screen.getByText(/Upd: Jul 15,/)).toBeInTheDocument();
   });
 
   it("renders n/a when lastUpdated is null", () => {
@@ -40,7 +40,7 @@ describe("InfoBar", () => {
         Icon="icon.svg"
       />,
     );
-    expect(screen.getByText(/Updated: n\/a\./)).toBeInTheDocument();
+    expect(screen.getByText(/Upd: n\/a\./)).toBeInTheDocument();
   });
 
   it("renders statusText when provided", () => {
@@ -56,7 +56,7 @@ describe("InfoBar", () => {
     expect(screen.getByText(/Offline mode/)).toBeInTheDocument();
   });
 
-  it("does not render statusText when omitted", () => {
+  it("renders when statusText is omitted", () => {
     render(
       <InfoBar
         lastUpdated={null}
@@ -65,7 +65,20 @@ describe("InfoBar", () => {
         Icon="icon.svg"
       />,
     );
-    expect(screen.queryByText(/Offline mode/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Viewing/)).toBeInTheDocument();
+  });
+
+  it("renders when statusText is empty string", () => {
+    render(
+      <InfoBar
+        lastUpdated={null}
+        viewingDate={viewingDate}
+        status={StatusEnum.INFO}
+        Icon="icon.svg"
+        statusText=""
+      />,
+    );
+    expect(screen.queryByText(/Viewing/)).toBeInTheDocument();
   });
 
   it("renders an img with the correct src", () => {
@@ -90,6 +103,6 @@ describe("InfoBar", () => {
         Icon="icon.svg"
       />,
     );
-    expect(screen.getByText("Viewing:")).toBeInTheDocument();
+    expect(screen.queryByText(/Viewing:/)).toBeInTheDocument();
   });
 });

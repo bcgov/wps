@@ -60,14 +60,12 @@ beforeEach(() => {
 describe("runParameters reducer", () => {
   it("should handle getRunParametersStart", () => {
     const nextState = reducer(initialState, getRunParametersStart());
-    expect(nextState.loading).toBe(true);
     expect(nextState.error).toBeNull();
   });
 
   it("should handle getRunParametersFailed", () => {
     const error = "Failed to fetch";
     const nextState = reducer(initialState, getRunParametersFailed(error));
-    expect(nextState.loading).toBe(false);
     expect(nextState.error).toBe(error);
   });
 
@@ -76,7 +74,6 @@ describe("runParameters reducer", () => {
       initialState,
       getRunParametersSuccess({ runParameters: mockRunParameters }),
     );
-    expect(nextState.loading).toBe(false);
     expect(nextState.error).toBeNull();
     expect(nextState.runParameters).toEqual(mockRunParameters);
   });
@@ -208,7 +205,9 @@ describe("fetchSFMSRunParameters thunk", () => {
     });
     store.dispatch(fetchSFMSRunParameters());
     expect(store.getState().runParameters.error).toBeNull();
-    expect(store.getState().runParameters.runParameters).toBe(mockRunParameters);
+    expect(store.getState().runParameters.runParameters).toBe(
+      mockRunParameters,
+    );
   });
 
   it("dispatches failure when offline and no cache", async () => {
