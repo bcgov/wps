@@ -108,7 +108,7 @@ const StationPanel = (props: StationPanelProps) => {
       {!loading ? (
         <>
           <Grid container spacing={1} direction="column">
-            <Grid item xs={2}>
+            <Grid size={2}>
               <FormControl className={classes.formControl}>
                 <StationGroupDropdown
                   idir={idir}
@@ -122,10 +122,10 @@ const StationPanel = (props: StationPanelProps) => {
           <div className={classes.stationContainer}>
             {selectedStationGroup && (
               <Grid container alignItems="center">
-                <Grid item>
+                <Grid>
                   <Checkbox checked={selectAll} onChange={handleSelectAll} indeterminate={selectAll} />
                 </Grid>
-                <Grid item>
+                <Grid>
                   <Typography>{selectAll ? 'Clear selection' : 'Select all'}</Typography>
                 </Grid>
               </Grid>

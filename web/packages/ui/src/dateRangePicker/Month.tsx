@@ -2,14 +2,7 @@ import * as React from 'react'
 import { styled } from '@mui/material/styles'
 import { Paper, Grid, Typography } from '@mui/material'
 import { getDate, isSameMonth, isToday, format, isWithinInterval } from 'date-fns'
-import {
-  chunks,
-  getDaysInMonth,
-  isStartOfRange,
-  isEndOfRange,
-  inDateRange,
-  isRangeSameDay
-} from './utils'
+import { chunks, getDaysInMonth, isStartOfRange, isEndOfRange, inDateRange, isRangeSameDay } from './utils'
 import { NavigationAction, DateRange } from './types'
 import Header from './Header'
 import Day from './Day'
@@ -80,7 +73,7 @@ const Month: React.FunctionComponent<MonthProps> = (props: MonthProps) => {
             onClickNext={() => handlers.onMonthNavigate(marker, NavigationAction.Next)}
           />
 
-          <Grid item container direction="row" justifyContent="space-between" className={classes.weekDaysContainer}>
+          <Grid container direction="row" justifyContent="space-between" className={classes.weekDaysContainer}>
             {WEEK_DAYS.map(day => (
               <Typography color="textSecondary" key={day} variant="caption">
                 {day}
@@ -88,7 +81,7 @@ const Month: React.FunctionComponent<MonthProps> = (props: MonthProps) => {
             ))}
           </Grid>
 
-          <Grid item container direction="column" justifyContent="space-between" className={classes.daysContainer}>
+          <Grid container direction="column" justifyContent="space-between" className={classes.daysContainer}>
             {chunks(getDaysInMonth(date), 7).map((week, idx) => (
               <Grid key={idx} container direction="row" justifyContent="center">
                 {week.map(day => {

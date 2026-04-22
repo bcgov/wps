@@ -517,10 +517,10 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   return (
     <Root>
       <Grid container justifyContent="space-between" alignItems={'center'}>
-        <Grid item>
+        <Grid>
           <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
         </Grid>
-        <Grid item sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
+        <Grid sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
           <Stack direction="row" spacing={theme.spacing(2)} alignItems={'center'}>
             {storedDraftForecast.getLastSavedDraftDateTime() && (
               <Typography sx={{ fontSize: 12 }}>
@@ -549,7 +549,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
         </Grid>
       </Grid>
       <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Grid item>
+        <Grid>
           <List component={Stack} direction="row">
             <SelectableButton
               dataTestId="temp-tab-button"
@@ -609,7 +609,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
             </SelectableButton>
           </List>
         </Grid>
-        <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
+        <Grid sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
           <AboutDataPopover content={MorecastAboutDataContent} maxWidth={450} testId={'morecast-about-data-popover'} />
         </Grid>
       </Grid>

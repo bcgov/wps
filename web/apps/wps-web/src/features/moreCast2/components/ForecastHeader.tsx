@@ -50,7 +50,7 @@ const ForecastHeader = ({ colDef, columnClickHandlerProps }: ForecastHeaderProps
         anchorEl={anchorEl}
         slotProps={{
           root: {
-            onContextMenu: e => {
+            onContextMenu: (e: React.MouseEvent<HTMLElement>) => {
               e.preventDefault()
               columnClickHandlerProps.handleClose()
             }
@@ -73,7 +73,7 @@ const ForecastHeader = ({ colDef, columnClickHandlerProps }: ForecastHeaderProps
         >
           <FormControl>
             <Grid container direction={'column'} alignContent="center" alignItems={'center'} spacing={1} rowSpacing={1}>
-              <Grid item>
+              <Grid>
                 <WeatherModelDropdown
                   label="Select model to apply to column"
                   weatherModelOptions={ModelOptions}
@@ -81,7 +81,7 @@ const ForecastHeader = ({ colDef, columnClickHandlerProps }: ForecastHeaderProps
                   setSelectedModelType={setSelectedColumnModel}
                 />
               </Grid>
-              <Grid item>
+              <Grid>
                 <Button
                   data-testid="apply-model-to-column-button"
                   variant="contained"

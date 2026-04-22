@@ -75,15 +75,15 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
       <Grid container direction="row" wrap="nowrap">
         <Grid>
           <Grid container className={classes.header} alignItems="center">
-            <Grid item className={classes.headerItem}>
+            <Grid className={classes.headerItem}>
               <Typography variant="subtitle1" data-testid="menu-start-date">
                 {startDate ? format(startDate, 'MMMM dd, yyyy') : 'Start Date'}
               </Typography>
             </Grid>
-            <Grid item className={classes.headerItem}>
+            <Grid className={classes.headerItem}>
               <ArrowRightAlt color="action" />
             </Grid>
-            <Grid item className={classes.headerItem}>
+            <Grid className={classes.headerItem}>
               <Typography variant="subtitle1" data-testid="menu-end-date">
                 {endDate ? format(endDate, 'MMMM dd, yyyy') : 'End Date'}
               </Typography>
@@ -111,12 +111,12 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         <div className={classes.divider} />
       </Grid>
       <Grid justifyContent="right" container spacing={1} className={classes.footer}>
-        <Grid item>
+        <Grid>
           <Button data-testid="date-range-reset-button" variant="outlined" onClick={handlers.resetDateRange}>
             Reset
           </Button>
         </Grid>
-        <Grid item>
+        <Grid>
           <Button data-testid="date-range-close-button" variant="outlined" onClick={handlers.toggle}>
             Close
           </Button>
