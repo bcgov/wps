@@ -6,5 +6,5 @@ export const GridContainer: React.FunctionComponent<GridProps> = (props: GridPro
 )
 
 export const GridItem: React.FunctionComponent<GridProps> = (props: GridProps) => (
-  <Grid item lg={4} md={6} sm={12} xs={12} {...props} />
+  <Grid size={{ lg: 4, md: 6, sm: 12, xs: 12 }} {...props} />
 )

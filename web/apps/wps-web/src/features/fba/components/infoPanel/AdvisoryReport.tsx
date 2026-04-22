@@ -30,7 +30,7 @@ const AdvisoryReport = ({ issueDate, forDate, selectedFireCentre, selectedFireZo
         advisoryStatus={fireZoneUnitDetails?.status}
       >
         <Grid container justifyContent="center">
-          <Grid item sx={{ width: '90%' }}>
+          <Grid sx={{ width: '90%' }}>
             <AdvisoryText
               issueDate={issueDate}
               forDate={forDate}

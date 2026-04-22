@@ -56,21 +56,21 @@ const LegendItem: React.FC<LegendItemProps> = ({
     <div>
       <Grid>
         <Grid container alignItems={'center'}>
-          <Grid item>
+          <Grid>
             <Checkbox
               data-testid={`${label.toLowerCase().split(' ')[0]}-checkbox`}
               checked={checked}
               onChange={onChange}
             />
           </Grid>
-          <Grid item>
+          <Grid>
             <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
               {label}
             </Typography>
           </Grid>
         </Grid>
         <Grid container alignItems={'center'}>
-          <Grid item sx={{ transform: 'translate(50%, -50%)' }}>
+          <Grid sx={{ transform: 'translate(50%, -50%)' }}>
             <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
               {description ?? (renderEmptyDescription && <span>&nbsp;</span>)}
             </Typography>
@@ -91,7 +91,7 @@ const LegendItem: React.FC<LegendItemProps> = ({
         )}
       </Grid>
     </div>
-  )
+  );
 }
 
 interface LegendProps {

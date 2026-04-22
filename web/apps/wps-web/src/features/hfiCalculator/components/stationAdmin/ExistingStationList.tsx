@@ -22,9 +22,9 @@ export const ExistingStationList = ({
 }: ExistingStationListProps): JSX.Element => {
   return (
     <Grid container spacing={1} sx={{ pt: 1 }} data-testid={`pa-admin-station-${planningAreaId}-${adminRow.rowId}`}>
-      <Grid item>
+      <Grid>
         <Grid container direction="row" spacing={1}>
-          <Grid item>
+          <Grid>
             <AdminStationDropdown
               adminRow={adminRow}
               planningAreaId={planningAreaId}
@@ -32,7 +32,7 @@ export const ExistingStationList = ({
               disabled={true}
             />
           </Grid>
-          <Grid item>
+          <Grid>
             <AdminFuelTypesDropdown
               adminRow={adminRow}
               planningAreaId={planningAreaId}
@@ -40,7 +40,7 @@ export const ExistingStationList = ({
               disabled={true}
             />
           </Grid>
-          <Grid item>
+          <Grid>
             <AdminRemoveButton
               adminRow={adminRow}
               planningAreaId={planningAreaId}
@@ -50,7 +50,7 @@ export const ExistingStationList = ({
         </Grid>
       </Grid>
     </Grid>
-  )
+  );
 }
 
 export default React.memo(ExistingStationList)

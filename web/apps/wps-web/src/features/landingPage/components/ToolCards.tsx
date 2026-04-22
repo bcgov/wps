@@ -33,7 +33,14 @@ const ToolCardsPage: React.FunctionComponent = () => {
       <Grid className={classes.grid} container spacing={2.5}>
         {toolInfos.map(item => {
           return (
-            <Grid style={{ display: 'flex' }} key={item.name} item sm={12} md={6} lg={4}>
+            <Grid
+              style={{ display: 'flex' }}
+              key={item.name}
+              size={{
+                sm: 12,
+                md: 6,
+                lg: 4
+              }}>
               <ToolCard
                 description={item.description}
                 icon={item.icon}
@@ -42,11 +49,11 @@ const ToolCardsPage: React.FunctionComponent = () => {
                 name={item.name}
               />
             </Grid>
-          )
+          );
         })}
       </Grid>
     </StyledContainer>
-  )
+  );
 }
 
 export default ToolCardsPage

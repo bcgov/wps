@@ -36,10 +36,10 @@ const FireZoneUnitSummary = ({
   return (
     <div data-testid="fire-zone-unit-summary">
       <Grid container alignItems={'center'} direction={'column'} sx={{ paddingBottom: theme.spacing(2) }}>
-        <Grid item sx={{ paddingBottom: theme.spacing(2), width: '95%' }}>
+        <Grid sx={{ paddingBottom: theme.spacing(2), width: '95%' }}>
           <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fireZoneFuelStats={fireZoneFuelStats} />
         </Grid>
-        <Grid item sx={{ width: '95%' }}>
+        <Grid sx={{ width: '95%' }}>
           {fireZoneTPIStats && hasRequiredFields(fireZoneTPIStats) ? (
             <ElevationStatus tpiStats={fireZoneTPIStats}></ElevationStatus>
           ) : (
@@ -48,7 +48,7 @@ const FireZoneUnitSummary = ({
         </Grid>
       </Grid>
     </div>
-  )
+  );
 }
 
 export default React.memo(FireZoneUnitSummary)

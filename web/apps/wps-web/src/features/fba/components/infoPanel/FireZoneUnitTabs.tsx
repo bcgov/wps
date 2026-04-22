@@ -96,7 +96,7 @@ const FireZoneUnitTabs = ({
           </Typography>
         )}
         <Grid container justifyContent="center" minHeight={500}>
-          <Grid item sx={{ width: '95%' }}>
+          <Grid sx={{ width: '95%' }}>
             <Box>
               <Tabs
                 value={tabNumber}

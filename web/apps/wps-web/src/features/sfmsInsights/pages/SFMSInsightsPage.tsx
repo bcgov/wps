@@ -79,7 +79,7 @@ export const SFMSInsightsPage = () => {
       >
         <Grid container spacing={1} alignItems={'center'}>
           {sfmsBoundsLoading ? (
-            <Grid item>
+            <Grid>
               <StyledFormControl>
                 <Box sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
                   <CircularProgress size={24} />
@@ -87,7 +87,7 @@ export const SFMSInsightsPage = () => {
               </StyledFormControl>
             </Grid>
           ) : (
-            <Grid item>
+            <Grid>
               <StyledFormControl>
                 <ASADatePicker
                   date={rasterDate}
@@ -100,7 +100,7 @@ export const SFMSInsightsPage = () => {
               </StyledFormControl>
             </Grid>
           )}
-          <Grid item>
+          <Grid>
             <StyledFormControl>
               <RasterTypeDropdown
                 selectedRasterType={rasterType}
@@ -109,7 +109,7 @@ export const SFMSInsightsPage = () => {
               />
             </StyledFormControl>
           </Grid>
-          <Grid item>
+          <Grid>
             <FormControlLabel
               control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
               label={snowDate ? `Show Latest Snow: ${snowDate.toLocaleString(DateTime.DATE_MED)}` : 'Show Latest Snow'}
@@ -122,5 +122,5 @@ export const SFMSInsightsPage = () => {
       </Box>
       <Footer />
     </Box>
-  )
+  );
 }
