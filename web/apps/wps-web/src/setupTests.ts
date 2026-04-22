@@ -4,24 +4,28 @@
 import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
-import crypto from 'crypto'
-import { fetch } from 'whatwg-fetch'
+
+let uuidCounter = 0
+
+const randomUUID = () => {
+  uuidCounter += 1
+  return `00000000-0000-4000-8000-${uuidCounter.toString().padStart(12, '0')}`
+}
 
 afterEach(() => {
   cleanup()
 })
 
-beforeAll(() => {
-  globalThis.fetch = fetch
-})
-
 Object.defineProperty(globalThis, 'crypto', {
   value: {
-    randomUUID: () => crypto.randomUUID()
+    randomUUID
   }
 })
 
-vi.mock('@mui/x-license-pro', () => ({
+vi.mock('@mui/x-license', () => ({
+  LicenseInfo: {
+    setLicenseKey: vi.fn()
+  },
   useLicenseVerifier: () => 'Valid',
   Watermark: () => null
 }))
