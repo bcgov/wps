@@ -37,11 +37,14 @@ import reducer, {
   getDataStart,
   getDataSuccess,
   initialState,
+  setLastUpdated,
 } from "@/slices/dataSlice";
 import {
   fetchHFIStats,
   fetchProvincialSummaries,
   fetchTpiStats,
+  getTodayKey,
+  getTomorrowKey,
 } from "@/utils/dataSliceUtils";
 import { initialState as runParametersInitialState } from "@/slices/runParametersSlice";
 import { createTestStore } from "@/testUtils";
@@ -69,36 +72,37 @@ import { DateTime } from "luxon";
 import { describe, expect, it, Mock, vi } from "vitest";
 import { AdvisoryStatus } from "@/utils/constants";
 
-const yesterday = DateTime.now().plus({ days: -1 }).toISODate();
-const today = DateTime.now().toISODate();
-const tomorrow = DateTime.now().plus({ days: 1 }).toISODate();
+const todayKey = getTodayKey();
+const tomorrowKey = getTomorrowKey();
+const yesterdayKey = DateTime.fromISO(todayKey).minus({ days: 1 }).toISODate()!;
+const lastUpdatedDate = "2026-04-22T16:30-07:00";
 
 const mockYesterdayRunParameter = {
-  for_date: yesterday,
+  for_date: yesterdayKey,
   run_datetime: "2025-08-27T08:00:00Z",
   run_type: RunType.FORECAST,
 };
 
 const mockTodayRunParameter = {
-  for_date: today,
+  for_date: todayKey,
   run_datetime: "2025-08-27T08:00:00Z",
   run_type: RunType.FORECAST,
 };
 
 const mockTomorrowRunParameter = {
-  for_date: tomorrow,
+  for_date: tomorrowKey,
   run_datetime: "2025-08-28T08:00:00Z",
   run_type: RunType.FORECAST,
 };
 
 const mockStaleRunParameters: { [key: string]: RunParameter } = {
-  [yesterday]: mockYesterdayRunParameter,
-  [today]: mockTodayRunParameter,
+  [yesterdayKey]: mockYesterdayRunParameter,
+  [todayKey]: mockTodayRunParameter,
 };
 
 const mockRunParameters: { [key: string]: RunParameter } = {
-  [today]: mockTodayRunParameter,
-  [tomorrow]: mockTomorrowRunParameter,
+  [todayKey]: mockTodayRunParameter,
+  [tomorrowKey]: mockTomorrowRunParameter,
 };
 
 const mockFireShapeStatus: FireZoneStatus = {
@@ -115,11 +119,11 @@ const mockFireShapeStatusDetail: FireShapeStatusDetail = {
 const mockStaleCacheableProvincialSummaries: CacheableData<
   FireShapeStatusDetail[]
 > = {
-  [yesterday]: {
+  [yesterdayKey]: {
     runParameter: mockYesterdayRunParameter,
     data: [mockFireShapeStatusDetail],
   },
-  [today]: {
+  [todayKey]: {
     runParameter: mockTodayRunParameter,
     data: [mockFireShapeStatusDetail],
   },
@@ -127,11 +131,11 @@ const mockStaleCacheableProvincialSummaries: CacheableData<
 
 const mockCacheableProvincialSummaries: CacheableData<FireShapeStatusDetail[]> =
   {
-    [today]: {
+    [todayKey]: {
       runParameter: mockTodayRunParameter,
       data: [mockFireShapeStatusDetail],
     },
-    [tomorrow]: {
+    [tomorrowKey]: {
       runParameter: mockTomorrowRunParameter,
       data: [mockFireShapeStatusDetail],
     },
@@ -148,22 +152,22 @@ const mockFireZoneTPIStats: FireZoneTPIStats = {
 };
 
 const mockStaleCacheableFireZoneTPIStats: CacheableData<FireZoneTPIStats[]> = {
-  [yesterday]: {
+  [yesterdayKey]: {
     runParameter: mockYesterdayRunParameter,
     data: [mockFireZoneTPIStats],
   },
-  [today]: {
+  [todayKey]: {
     runParameter: mockTodayRunParameter,
     data: [mockFireZoneTPIStats],
   },
 };
 
 const mockCacheableFireZoneTPIStats: CacheableData<FireZoneTPIStats[]> = {
-  [today]: {
+  [todayKey]: {
     runParameter: mockTodayRunParameter,
     data: [mockFireZoneTPIStats],
   },
-  [tomorrow]: {
+  [tomorrowKey]: {
     runParameter: mockTomorrowRunParameter,
     data: [mockFireZoneTPIStats],
   },
@@ -210,13 +214,13 @@ export interface FireZoneHFIStats {
 }
 
 const mockStaleCacheableHFIStats: CacheableData<FireZoneHFIStatsDictionary> = {
-  [yesterday]: {
+  [yesterdayKey]: {
     runParameter: mockYesterdayRunParameter,
     data: {
       1: mockFireZoneHFIStats,
     },
   },
-  [today]: {
+  [todayKey]: {
     runParameter: mockTodayRunParameter,
     data: {
       1: mockFireZoneHFIStats,
@@ -225,13 +229,13 @@ const mockStaleCacheableHFIStats: CacheableData<FireZoneHFIStatsDictionary> = {
 };
 
 const mockCacheableHFIStats: CacheableData<FireZoneHFIStatsDictionary> = {
-  [today]: {
+  [todayKey]: {
     runParameter: mockTodayRunParameter,
     data: {
       1: mockFireZoneHFIStats,
     },
   },
-  [tomorrow]: {
+  [tomorrowKey]: {
     runParameter: mockTomorrowRunParameter,
     data: {
       1: mockFireZoneHFIStats,
@@ -240,14 +244,14 @@ const mockCacheableHFIStats: CacheableData<FireZoneHFIStatsDictionary> = {
 };
 
 const mockStaleData = {
-  lastUpdated: yesterday,
+  lastUpdated: yesterdayKey,
   provincialSummaries: mockStaleCacheableProvincialSummaries,
   tpiStats: mockStaleCacheableFireZoneTPIStats,
   hfiStats: mockStaleCacheableHFIStats,
 };
 
 const mockData = {
-  lastUpdated: today,
+  lastUpdated: todayKey,
   provincialSummaries: mockCacheableProvincialSummaries,
   tpiStats: mockCacheableFireZoneTPIStats,
   hfiStats: mockCacheableHFIStats,
@@ -273,11 +277,17 @@ describe("data reducer", () => {
     expect(nextState.error).toBe(error);
   });
 
+  it("should handle setLastUpdated", () => {
+    const lastUpdated = "2025-09-02T10:00:00Z";
+    const nextState = reducer(initialState, setLastUpdated({ lastUpdated }));
+    expect(nextState.lastUpdated).toBe(lastUpdated);
+  });
+
   it("should handle getDataSuccess", () => {
     const nextState = reducer(initialState, getDataSuccess({ ...mockData }));
     expect(nextState.loading).toBe(false);
     expect(nextState.error).toBeNull();
-    expect(nextState.lastUpdated).toEqual(today);
+    expect(nextState.lastUpdated).toEqual(todayKey);
     expect(nextState.provincialSummaries).toEqual(
       mockCacheableProvincialSummaries,
     );
@@ -292,14 +302,17 @@ describe("fetchAndCacheData thunk", () => {
       switch (key) {
         case PROVINCIAL_SUMMARY_KEY:
           return {
+            lastUpdated: lastUpdatedDate,
             data: mockCacheableProvincialSummaries,
           };
         case TPI_STATS_KEY:
           return {
+            lastUpdated: lastUpdatedDate,
             data: mockCacheableFireZoneTPIStats,
           };
         case HFI_STATS_KEY:
           return {
+            lastUpdated: lastUpdatedDate,
             data: mockCacheableHFIStats,
           };
       }
@@ -363,6 +376,7 @@ describe("fetchAndCacheData thunk", () => {
     // redux store should be updated with the cached data
     const dataState = store.getState().data;
     testExpectedDataState(dataState);
+    expect(dataState.lastUpdated).toBe(lastUpdatedDate);
   });
   it("should update state from cache when cache is current and state is stale", async () => {
     mockCacheWithData();
