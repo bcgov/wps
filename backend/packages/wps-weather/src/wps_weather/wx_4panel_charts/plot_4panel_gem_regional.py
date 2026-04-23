@@ -157,6 +157,7 @@ PAT = {
     # 250 hPa wind speed for jet (only if the precip plotter requests it)
     "wspd250": [
         r"_WindSpeed_IsbL-0250_.*\.grib2$",
+        r"CMC_reg_(UGRD|VGRD)_ISBL_250_.*\.grib2$",
     ],
 }
 
