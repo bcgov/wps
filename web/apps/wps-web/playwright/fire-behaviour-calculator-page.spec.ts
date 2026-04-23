@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Page } from './fixtures'
 
 const FBA_ROUTE = '/fire-behaviour-calculator'
 const fixturesDir = path.join(import.meta.dirname, 'fixtures')

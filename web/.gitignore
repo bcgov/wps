@@ -9,9 +9,10 @@
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-apps/wps-web/cypress/downloads
 coverage/
-coverage-cypress/
+coverage-playwright/
+.nyc_output/
+.nyc_temp_playwright/
 finalCoverage/
 intermediateCoverage/
 

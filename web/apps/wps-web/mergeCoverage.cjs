@@ -6,7 +6,7 @@
  */
 const { execSync } = require('child_process')
 const fs = require('fs-extra')
-const CYPRESS_COVERAGE_FOLDER = 'coverage-cypress'
+const PLAYWRIGHT_COVERAGE_FOLDER = 'coverage-playwright'
 const JEST_COVERAGE_FOLDER = 'coverage'
 const INTERMEDIATE_FOLDER = 'intermediateCoverage'
 const FINAL_OUTPUT_FOLDER = 'finalCoverage'
@@ -15,10 +15,12 @@ const run = commands => {
 }
 const PACKAGES = ['api', 'ui', 'utils']
 
-// Create the intermediate folder and move the reports from cypress and jest inside it
+// Create the intermediate folder and move the reports from playwright and jest inside it
 fs.emptyDirSync(INTERMEDIATE_FOLDER)
-fs.copyFileSync(`${CYPRESS_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-cypress.json`)
 fs.copyFileSync(`${JEST_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-jest.json`)
+if (fs.existsSync(`${PLAYWRIGHT_COVERAGE_FOLDER}/coverage-final.json`)) {
+  fs.copyFileSync(`${PLAYWRIGHT_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-playwright.json`)
+}
 PACKAGES.forEach(pkg => {
   const src = `../../packages/${pkg}/coverage/coverage-final.json`
   if (fs.existsSync(src)) {
@@ -35,13 +37,8 @@ run([
   `nyc report --reporter lcov --report-dir ${FINAL_OUTPUT_FOLDER}`
 ])
 
-// Clean up
-fs.rmdirSync(CYPRESS_COVERAGE_FOLDER, { recursive: true })
-fs.rmdirSync(JEST_COVERAGE_FOLDER, { recursive: true })
-fs.rmdirSync(INTERMEDIATE_FOLDER, { recursive: true })
-PACKAGES.forEach(pkg => {
-  const dir = `../../packages/${pkg}/coverage`
-  if (fs.existsSync(dir)) {
-    fs.rmdirSync(dir, { recursive: true })
-  }
-})
+// Clean up — fs.removeSync (fs-extra) is a no-op if the path doesn't exist
+fs.removeSync(JEST_COVERAGE_FOLDER)
+fs.removeSync(PLAYWRIGHT_COVERAGE_FOLDER)
+fs.removeSync(INTERMEDIATE_FOLDER)
+PACKAGES.forEach(pkg => fs.removeSync(`../../packages/${pkg}/coverage`))
