@@ -57,7 +57,12 @@ export default defineConfig({
         'src/features/cHaines/**',
         'src/features/fireWeather/**',
         'src/features/landingPage/**',
-        'src/features/map/**'
+        'src/features/map/**',
+        'src/features/fireWatch/**',
+        'src/features/landingPage/**',
+        'src/features/sfmsInsights/**',
+        'src/features/stations/**',
+        'src/features/weatherToolkit/**'
       ],
       extension: ['.js', '.ts', '.tsx'],
       cypress: true
