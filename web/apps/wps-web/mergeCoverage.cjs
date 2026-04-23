@@ -1,5 +1,5 @@
 /**
- * This script merges the coverage reports from Cypress and Jest into a single one,
+ * This script merges the coverage reports from Playwright and Jest into a single one,
  * inside the "finalCoverage" folder
  *
  * Script adapted from: https://rafaelalmeidatk.com/blog/merging-coverage-reports-from-jest-and-cypress
