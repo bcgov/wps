@@ -29,9 +29,11 @@ export const selectProvincialSummaries = (state: RootState) =>
 export const selectTPIStats = (state: RootState) => state.data.tpiStats;
 export const selectHFIStats = (state: RootState) => state.data.hfiStats;
 export const selectSettings = (state: RootState) => state.settings;
-export const selectPushNotification = (state: RootState) => state.pushNotification;
+export const selectPushNotification = (state: RootState) =>
+  state.pushNotification;
 export const selectPendingNotificationData = (state: RootState) =>
   state.pushNotification.pendingNotificationData;
+export const selectLastUpdated = (state: RootState) => state.data.lastUpdated;
 
 export type NotificationSetupState =
   | "permissionDenied"
@@ -66,6 +68,7 @@ export const selectNotificationSettingsDisabled = createSelector(
   selectNetworkStatus,
   selectSettings,
   (setupState, { networkStatus }, { subscriptionsInitialized }) =>
-    setupState !== "ready" || !networkStatus.connected || !subscriptionsInitialized,
+    setupState !== "ready" ||
+    !networkStatus.connected ||
+    !subscriptionsInitialized,
 );
-

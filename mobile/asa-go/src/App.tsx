@@ -29,9 +29,10 @@ import {
   selectPushNotification,
   selectProvincialSummaries,
   selectPendingNotificationData,
+  selectLastUpdated,
 } from "@/store";
 import { theme } from "@/theme";
-import { NavPanel } from "@/utils/constants";
+import { NavPanel, StatusEnum } from "@/utils/constants";
 import { today } from "@/utils/dataSliceUtils";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { clearStaleHFIPMTiles } from "@/utils/storage";
@@ -48,6 +49,9 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useDeviceId } from "@/hooks/useDeviceId";
 import { initSubscriptions } from "@/slices/settingsSlice";
 import { clearPendingNotificationData } from "@/slices/pushNotificationSlice";
+import InfoBar from "@/components/InfoBar";
+import InfoIcon from "@/assets/InfoIcon.svg";
+import NetworkIcon from "@/assets/NetworkIcon.svg";
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
@@ -75,6 +79,7 @@ const App = () => {
   const { subscriptionsInitialized } = useSelector(selectSettings);
   const provincialSummaries = useSelector(selectProvincialSummaries);
   const pendingNotificationData = useSelector(selectPendingNotificationData);
+  const lastUpdated = useSelector(selectLastUpdated);
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
@@ -280,6 +285,15 @@ const App = () => {
           overflow: "hidden",
         }}
       >
+        <InfoBar
+          status={
+            networkStatus.connected ? StatusEnum.INFO : StatusEnum.WARNING
+          }
+          statusText={networkStatus.connected ? "" : "Offline."}
+          viewingDate={dateOfInterest}
+          lastUpdated={lastUpdated}
+          Icon={networkStatus.connected ? InfoIcon : NetworkIcon}
+        />
         <TabPanel value={tab} panel={NavPanel.MAP}>
           <ASAGoMap
             selectedFireShape={selectedFireShape}
