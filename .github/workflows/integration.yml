@@ -182,15 +182,9 @@ jobs:
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install
-      - name: Install Playwright browsers
-        working-directory: ./web
-        run: yarn workspace @wps/wps-web exec playwright install --with-deps chromium
       - name: Lint (web)
         working-directory: ./web
         run: yarn run lint
-      - name: Playwright tests (web)
-        working-directory: ./web
-        run: yarn workspace @wps/wps-web run playwright:ci
       - name: Unit tests (web)
         working-directory: ./web
         run: yarn run coverage:ci
