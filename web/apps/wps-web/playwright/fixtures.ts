@@ -8,13 +8,13 @@ export type { Page } from '@playwright/test'
 const coverageTempDir = path.join(import.meta.dirname, '..', '.nyc_temp_playwright')
 
 export const test = base.extend({
-  page: async ({ page }, use) => {
-    await use(page)
+  page: async ({ page }, runTest) => {
+    await runTest(page)
 
     // After each test, collect Istanbul coverage from the browser and write to a temp file.
     // vite-plugin-istanbul populates window.__coverage__ when window.Cypress is set.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const coverage = await page.evaluate(() => (window as any).__coverage__)
+    const coverage = await page.evaluate(() => (globalThis as any).__coverage__)
     if (coverage) {
       fs.mkdirSync(coverageTempDir, { recursive: true })
       const file = path.join(coverageTempDir, `${crypto.randomUUID()}.json`)
@@ -23,4 +23,4 @@ export const test = base.extend({
   }
 })
 
-export { expect }
+export { expect } from '@playwright/test'
