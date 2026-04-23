@@ -26,7 +26,7 @@ def test_difference_identity():
     """
     parent_dir = os.path.dirname(__file__)
     precip_raster = read_raster_array(
-        os.path.join(parent_dir, "CMC_reg_APCP_SFC_0_ps10km_2024061218_P001.grib2")
+        os.path.join(parent_dir, "20240612T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT001H.grib2")
     )
     later_precip = TemporalPrecip(datetime.fromisoformat("2024-06-10T18:42:49"), precip_raster)
     earlier_precip = TemporalPrecip(datetime.fromisoformat("2024-06-09T18:42:49"), precip_raster)
@@ -76,7 +76,7 @@ def test_temporal_assertion_failures(later_datetime, earlier_datetime):
     """
     parent_dir = os.path.dirname(__file__)
     precip_raster = read_raster_array(
-        os.path.join(parent_dir, "CMC_reg_APCP_SFC_0_ps10km_2024061218_P001.grib2")
+        os.path.join(parent_dir, "20240612T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT001H.grib2")
     )
     later_precip = TemporalPrecip(later_datetime, precip_raster)
     earlier_precip = TemporalPrecip(earlier_datetime, precip_raster)
