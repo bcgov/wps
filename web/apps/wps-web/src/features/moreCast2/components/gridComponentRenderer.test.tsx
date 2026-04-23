@@ -1,9 +1,14 @@
 import { buildTestStore } from '@/features/moreCast2/components/testHelper'
 import { initialState } from '@/features/moreCast2/slices/validInputSlice'
-import { GridColumnHeaderParams, GridValueSetterParams } from '@mui/x-data-grid-pro'
+import { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
 import { GridStateColDef } from '@mui/x-data-grid-pro/internals'
 import { render } from '@testing-library/react'
-import { ModelChoice, WeatherDeterminate, WeatherDeterminateChoices, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
+import {
+  ModelChoice,
+  WeatherDeterminate,
+  WeatherDeterminateChoices,
+  weatherModelsWithTooltips
+} from '@wps/api/moreCast2API'
 import { GC_HEADER } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   GridComponentRenderer,
@@ -29,9 +34,9 @@ describe('GridComponentRenderer', () => {
   // Mock factory for GridColumnHeaderParams
   const createMockGridColumnHeaderParams = (
     field = 'test',
-    colDefOverrides: Partial<GridStateColDef> = {}
-  ): GridColumnHeaderParams => {
-    const defaultColDef: GridStateColDef = {
+    colDefOverrides: Partial<GridStateColDef<MoreCast2Row>> = {}
+  ): GridColumnHeaderParams<MoreCast2Row> => {
+    const defaultColDef: GridStateColDef<MoreCast2Row> = {
       field: field,
       headerName: 'Test Header',
       width: 100,
@@ -43,7 +48,7 @@ describe('GridComponentRenderer', () => {
     return {
       field,
       colDef: defaultColDef
-    } as GridColumnHeaderParams
+    } as GridColumnHeaderParams<MoreCast2Row>
   }
 
   it('should render the header with the forecast button', () => {
@@ -65,7 +70,7 @@ describe('GridComponentRenderer', () => {
     const field = 'tempForecast'
     const fieldActual = 'tempActual'
     const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().plus({ days: 2 }) }
-    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Forecast')
     const { getByRole } = render(
       <Provider store={buildTestStore(initialState)}>
         {gridComponentRenderer.renderForecastCellWith(
@@ -86,7 +91,7 @@ describe('GridComponentRenderer', () => {
   it('should render N/A and be disabled if the cell is from a previous date', () => {
     const field = 'tempForecast'
     const row = { [field]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
-    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Forecast')
     const { getByRole } = render(
       <Provider store={buildTestStore(initialState)}>
         {gridComponentRenderer.renderForecastCellWith(
@@ -108,7 +113,7 @@ describe('GridComponentRenderer', () => {
     const field = 'tempForecast'
     const fieldActual = 'tempActual'
     const row = { [field]: NaN, [fieldActual]: 2, forDate: DateTime.now() }
-    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Forecast')
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Forecast')
     const { getByRole } = render(
       <Provider store={buildTestStore(initialState)}>
         {gridComponentRenderer.renderForecastCellWith(
@@ -130,7 +135,7 @@ describe('GridComponentRenderer', () => {
     const field = 'tempForecast'
     const fieldActual = 'tempActual'
     const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
-    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Actual')
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Actual')
     const { getByRole } = render(
       <Provider store={buildTestStore(initialState)}>
         {gridComponentRenderer.renderForecastCellWith(
@@ -151,7 +156,7 @@ describe('GridComponentRenderer', () => {
   it('should render N/R as ActualCell and have red border if no actual for row with forDate earlier than today', () => {
     const field = 'tempActual'
     const row = { [field]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
-    const formattedValue = gridComponentRenderer.valueGetter({ row: row, value: NaN }, 1, field, 'Actual')
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Actual')
     const { getByTestId } = render(
       <Provider store={buildTestStore(initialState)}>
         {gridComponentRenderer.renderCellWith({
@@ -245,37 +250,68 @@ describe('GridComponentRenderer', () => {
   })
 
   it('should set the row correctly', () => {
-    const mockValueSetterParams: GridValueSetterParams = {
-      value: 2,
-      row: {
-        temp: {
-          value: 2,
-          choice: ModelChoice.GDPS
-        }
+    const mockRow = {
+      temp: {
+        value: 2,
+        choice: ModelChoice.GDPS
       }
-    }
+    } as unknown as MoreCast2Row
 
-    const updatedRow = gridComponentRenderer.predictionItemValueSetter(mockValueSetterParams, 'temp', 1)
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(2, mockRow, 'temp', 1)
 
     expect(updatedRow).toEqual({ temp: { choice: ModelChoice.GDPS, value: 2 } })
   })
 
+  it('should return a new row and leave the original prediction item unchanged when edited', () => {
+    const mockRow = {
+      tempForecast: {
+        value: 1,
+        choice: ModelChoice.GDPS
+      }
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(2, mockRow, 'tempForecast', 0)
+
+    expect(updatedRow).toEqual({
+      tempForecast: {
+        value: 2,
+        choice: ModelChoice.MANUAL
+      }
+    })
+    expect(updatedRow).not.toBe(mockRow)
+    expect(mockRow.tempForecast).toEqual({
+      value: 1,
+      choice: ModelChoice.GDPS
+    })
+  })
+
+  it('should return the original row when the edited value is unchanged at the configured precision', () => {
+    const mockRow = {
+      tempForecast: {
+        value: 1.04,
+        choice: ModelChoice.GDPS
+      }
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(1.0, mockRow, 'tempForecast', 0)
+
+    expect(updatedRow).toBe(mockRow)
+  })
+
   it('should format the row correctly with a value', () => {
-    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter({ value: 1.11 }, 1)
+    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter(1.11, 1)
     expect(formattedItemValue).toEqual('1.1')
   })
 
   it('should format the row correctly without a value', () => {
-    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter({ value: NOT_REPORTING }, 1)
+    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter(NOT_REPORTING, 1)
     expect(formattedItemValue).toEqual(NOT_REPORTING)
   })
 
   it('should return an existent prediction item value correctly', () => {
     const itemValue = gridComponentRenderer.valueGetter(
-      {
-        row: { testField: { choice: ModelChoice.GDPS, value: 1.11 } },
-        value: { choice: ModelChoice.GDPS, value: 1.11 }
-      },
+      { choice: ModelChoice.GDPS, value: 1.11 },
+      { testField: { choice: ModelChoice.GDPS, value: 1.11 } } as unknown as MoreCast2Row,
       1,
       'testField',
       'testHeader'
@@ -290,13 +326,11 @@ describe('GridComponentRenderer', () => {
 
   it('should return an actual over a prediction if it exists for grass curing', () => {
     const itemValue = gridComponentRenderer.valueGetter(
+      { choice: ModelChoice.NULL, value: 10.0 },
       {
-        row: {
-          grassCuringForecast: { choice: ModelChoice.GDPS, value: 10.0 },
-          grassCuringActual: 20.0
-        },
-        value: { choice: ModelChoice.NULL, value: 10.0 }
-      },
+        grassCuringForecast: { choice: ModelChoice.GDPS, value: 10.0 },
+        grassCuringActual: 20.0
+      } as unknown as MoreCast2Row,
       1,
       'grassCuringForecast',
       GC_HEADER

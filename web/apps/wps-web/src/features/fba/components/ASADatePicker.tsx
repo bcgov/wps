@@ -31,7 +31,7 @@ interface CustomDateTextFieldProps
 function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   const { internalProps, forwardedProps } = useSplitFieldProps(props, 'date')
   const { value } = internalProps
-  const { date, updateDate, minimumDate, maximumDate, slotProps, InputProps, ...other } = forwardedProps
+  const { date, updateDate, minimumDate, maximumDate, slots, slotProps, InputProps, ...other } = forwardedProps
   const disabled = props.disabled
   const pickersContext = usePickersContext()
   const handleTogglePicker = (event: React.UIEvent) => {
@@ -97,7 +97,7 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
         }
       }}
     />
-  );
+  )
 }
 
 interface ASADatePickerProps extends DatePickerProps<DateTime> {

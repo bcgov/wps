@@ -78,5 +78,5 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
         }}
       />
     </InvalidCellToolTip>
-  );
+  )
 }

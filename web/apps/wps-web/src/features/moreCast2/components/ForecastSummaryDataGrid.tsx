@@ -61,6 +61,8 @@ const ForecastSummaryDataGrid = ({
   handleColumnHeaderClick,
   processRowUpdate
 }: ForecastSummaryDataGridProps) => {
+  const LoadingOverlay = () => <LinearProgress />
+
   const isCellEditable = (params: GridCellParams) => {
     // Actual fields and FWI fields (containing the 'Calc' substring) are not editable.
     return params.row[params.field] !== ModelChoice.ACTUAL && !params.field.includes('Calc')
@@ -73,7 +75,7 @@ const ForecastSummaryDataGrid = ({
           return params.field.endsWith('Forecast') || params.field.endsWith('Actual') ? 'forecastCell' : ''
         }}
         slots={{
-          loadingOverlay: LinearProgress
+          loadingOverlay: LoadingOverlay
         }}
         initialState={{
           sorting: {
@@ -81,7 +83,6 @@ const ForecastSummaryDataGrid = ({
           },
           pinnedColumns: { left: PINNED_COLUMNS }
         }}
-        experimentalFeatures={{ columnGrouping: true }}
         columnGroupingModel={getSummaryColumnGroupModel()}
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}

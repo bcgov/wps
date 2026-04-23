@@ -1,7 +1,7 @@
 import { theme } from '@wps/ui/theme'
 import { BurnForecast, BurnWatchRow } from '@/features/fireWatch/interfaces'
 import { Box, Typography } from '@mui/material'
-import { DataGridPro, GridColDef, GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 
@@ -39,27 +39,27 @@ const DetailPanelContent = ({ row }: DetailPanelContentProps) => {
       field: 'date',
       headerName: 'Date',
       width: 150,
-      valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-        return isNull(params.value) ? '' : params.value.toISODate()
+      valueFormatter: (value: DateTime) => {
+        return isNull(value) ? '' : value.toISODate()
       }
     },
     {
       field: 'temp',
       headerName: 'Temp',
       width: 80,
-      valueFormatter: (params: GridValueFormatterParams<number>) => numberFormatter(params.value, 1)
+      valueFormatter: (value: number) => numberFormatter(value, 1)
     },
     {
       field: 'rh',
       headerName: 'RH',
       width: 80,
-      valueFormatter: (params: GridValueFormatterParams<number>) => numberFormatter(params.value, 0)
+      valueFormatter: (value: number) => numberFormatter(value, 0)
     },
     {
       field: 'windSpeed',
       headerName: 'Wind Spd',
       width: 100,
-      valueFormatter: (params: GridValueFormatterParams<number>) => numberFormatter(params.value, 0)
+      valueFormatter: (value: number) => numberFormatter(value, 0)
     },
     {
       field: 'ffmc',

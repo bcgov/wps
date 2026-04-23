@@ -22,7 +22,14 @@ const InvalidCellToolTip = ({ invalid, children }: InvalidCellToolTipProps) => {
         }
       }}
     >
-      <span>{children}</span>
+      <span
+        style={{
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >
+        {children}
+      </span>
     </Tooltip>
   )
 }

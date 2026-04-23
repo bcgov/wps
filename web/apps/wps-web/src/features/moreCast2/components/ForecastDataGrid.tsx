@@ -92,6 +92,8 @@ const ForecastDataGrid = ({
   allMoreCast2Rows,
   processRowUpdate
 }: ForecastDataGridProps) => {
+  const LoadingOverlay = () => <LinearProgress />
+
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGridPro
@@ -101,9 +103,8 @@ const ForecastDataGrid = ({
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={newModel => setColumnVisibilityModel(newModel)}
         columnGroupingModel={columnGroupingModel}
-        experimentalFeatures={{ columnGrouping: true }}
         slots={{
-          loadingOverlay: LinearProgress
+          loadingOverlay: LoadingOverlay
         }}
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellDoubleClick={onCellDoubleClickHandler}

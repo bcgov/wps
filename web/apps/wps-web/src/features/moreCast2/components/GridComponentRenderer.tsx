@@ -1,11 +1,5 @@
 import { TextField, Typography } from '@mui/material'
-import {
-  GridColumnHeaderParams,
-  GridRenderCellParams,
-  GridValueFormatterParams,
-  GridValueGetterParams,
-  GridValueSetterParams
-} from '@mui/x-data-grid-pro'
+import { GridColumnHeaderParams, GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { ModelChoice, WeatherDeterminate } from '@wps/api/moreCast2API'
 import { createWeatherModelLabel, isBeforeToday, isForecastRow, rowContainsActual } from 'features/moreCast2/util'
 import {
@@ -19,27 +13,52 @@ import {
 import { theme } from '@wps/ui/theme'
 import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
-import { cloneDeep, isNumber } from 'lodash'
+import { isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
 import ValidatedGrassCureForecastCell from '@/features/moreCast2/components/ValidatedGrassCureForecastCell'
 import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
 import ActualCell from 'features/moreCast2/components/ActualCell'
-import { MoreCast2Row } from '@/features/moreCast2/interfaces'
+import { MoreCast2Row, PredictionItem } from '@/features/moreCast2/interfaces'
 import ModelHeader from '@/features/moreCast2/components/ModelHeader'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
 
+export type GridRendererValue = number | string | PredictionItem | null | undefined
+export type GridRendererEditableValue = number | string | null | undefined
+
 export class GridComponentRenderer {
+  private getRowValue = (row: MoreCast2Row, field: string) => row[field as keyof MoreCast2Row]
+
+  private isPredictionItem = (value: unknown): value is PredictionItem => {
+    return value != null && typeof value === 'object' && 'choice' in value && 'value' in value
+  }
+
+  private getPredictionItem = (row: MoreCast2Row, field: string): PredictionItem | undefined => {
+    const fieldValue = this.getRowValue(row, field)
+
+    return this.isPredictionItem(fieldValue) ? fieldValue : undefined
+  }
+
+  private getNumericValue = (row: MoreCast2Row, field: string): number | undefined => {
+    const fieldValue = this.getRowValue(row, field)
+
+    return typeof fieldValue === 'number' ? fieldValue : undefined
+  }
+
+  private unwrapPredictionValue = (value: GridRendererValue): number | string | null | undefined => {
+    return this.isPredictionItem(value) ? value.value : value
+  }
+
   public renderForecastHeaderWith = (
-    params: GridColumnHeaderParams,
+    params: GridColumnHeaderParams<MoreCast2Row>,
     columnClickHandlerProps: ColumnClickHandlerProps
   ) => {
     return <ForecastHeader colDef={params.colDef} columnClickHandlerProps={columnClickHandlerProps} />
   }
   public renderHeaderWith = (
-    params: Pick<GridColumnHeaderParams, 'field'> & {
-      colDef: Pick<GridColumnHeaderParams['colDef'], 'field' | 'headerName'>
+    params: Pick<GridColumnHeaderParams<MoreCast2Row>, 'field'> & {
+      colDef: Pick<GridColumnHeaderParams<MoreCast2Row>['colDef'], 'field' | 'headerName'>
     },
     allRows?: MoreCast2Row[]
   ) => {
@@ -80,7 +99,8 @@ export class GridComponentRenderer {
   }
 
   public valueGetter = (
-    params: Pick<GridValueGetterParams, 'row' | 'value'>,
+    value: GridRendererValue,
+    row: MoreCast2Row,
     precision: number,
     field: string,
     headerName: string
@@ -88,26 +108,37 @@ export class GridComponentRenderer {
     // The grass curing and calculated fwi indices show both actuals and forecasts in the same column
     if (field.includes('grass') || field.includes('Calc')) {
       const actualField = this.getActualField(field)
-      const actual = params.row[actualField]
+      const actual = this.getNumericValue(row, actualField)
 
-      if (!isNaN(actual)) {
-        return Number(actual).toFixed(precision)
+      if (actual !== undefined && !isNaN(actual)) {
+        return actual.toFixed(precision)
       }
     }
 
-    const value = params?.value?.value ?? params.value
+    const resolvedValue = this.unwrapPredictionValue(value)
     // The 'Actual' column will show N/R for Not Reporting, instead of N/A
     const noDataField = headerName === WeatherDeterminate.ACTUAL ? NOT_REPORTING : NOT_AVAILABLE
 
-    const isPreviousDate = isBeforeToday(params.row['forDate'])
+    const isPreviousDate = isBeforeToday(row.forDate)
     const isForecastColumn = this.isForecastColumn(headerName)
-    const containsActual = rowContainsActual(params.row)
+    const containsActual = rowContainsActual(row)
+
+    const isBlankForecastCell = !isPreviousDate && isForecastColumn && !containsActual
+
+    // Treat null as missing data, not as 0
+    if (resolvedValue == null) {
+      return isBlankForecastCell ? '' : noDataField
+    }
+
+    const numericValue = Number(resolvedValue)
 
     // If a cell has no value, belongs to a Forecast column, is a future forDate, and the row doesn't contain any Actuals from today,
     // we can leave it blank, so it's obvious that it can have a value entered into it.
-    if (isNaN(value) && !isPreviousDate && isForecastColumn && !containsActual) {
+    if (Number.isNaN(numericValue) && isBlankForecastCell) {
       return ''
-    } else return isNaN(value) ? noDataField : Number(value).toFixed(precision)
+    }
+
+    return Number.isNaN(numericValue) ? noDataField : numericValue.toFixed(precision)
   }
 
   public renderForecastCellWith = (
@@ -119,17 +150,25 @@ export class GridComponentRenderer {
     const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
-    const isPreviousDate = isBeforeToday(params.row['forDate'])
+    const isPreviousDate = isBeforeToday(params.row.forDate)
     const isGrassField = field.includes('grass')
-    const label = isGrassField || isPreviousDate ? '' : createWeatherModelLabel(params.row[field].choice)
+    const forecastValue = this.getPredictionItem(params.row, field)
+    const label =
+      isGrassField || isPreviousDate ? '' : createWeatherModelLabel(forecastValue?.choice ?? ModelChoice.NULL)
     const formattedValue = parseFloat(params.formattedValue)
     const actualField = this.getActualField(field)
-    const actualValue = params.row[actualField]
+    const actualValue = this.getNumericValue(params.row, actualField)
     let showLessThan = false
     let showGreaterThan = false
     // Only show + and - icons if an actual value exists, a forecast value exists and this is not a windDirection
     // field.
-    if (!isNaN(actualValue) && isNumber(actualValue) && isNumber(formattedValue) && !field.includes('windDirection')) {
+    if (
+      actualValue !== undefined &&
+      !isNaN(actualValue) &&
+      isNumber(actualValue) &&
+      isNumber(formattedValue) &&
+      !field.includes('windDirection')
+    ) {
       showLessThan = formattedValue < actualValue
       showGreaterThan = formattedValue > actualValue
     }
@@ -174,32 +213,45 @@ export class GridComponentRenderer {
     const isActual = rowContainsActual(params.row)
     // We can disable a cell if an Actual exists or the forDate is before today.
     // Both forDate and today are currently in the system's time zone
-    const isPreviousDate = isBeforeToday(params.row['forDate'])
+    const isPreviousDate = isBeforeToday(params.row.forDate)
 
     // The grass curing 'forecast' field and other weather parameter forecasts fields are rendered differently
     return <TextField disabled={isActual || isPreviousDate} size="small" value={params.formattedValue}></TextField>
   }
 
   public predictionItemValueSetter = (
-    params: Pick<GridValueSetterParams, 'row' | 'value'>,
+    value: GridRendererEditableValue,
+    row: MoreCast2Row,
     field: string,
     precision: number
-  ) => {
-    const oldValue = params.row[field].value
-    const newValue = isNaN(params.value) ? NaN : Number(params.value)
+  ): MoreCast2Row => {
+    const predictionItem = this.getPredictionItem(row, field)
+
+    if (!predictionItem) {
+      return row
+    }
+
+    const oldValue = predictionItem.value
+    const newValue = isNaN(Number(value)) ? NaN : Number(value)
 
     if (isNaN(oldValue) && isNaN(newValue)) {
-      return { ...params.row }
-    }
-    // Check if the user has edited the value. If so, update the value and choice to reflect the Manual edit.
-    if (newValue.toFixed(precision) !== Number(params.row[field].value).toFixed(precision)) {
-      params.row[field].choice = ModelChoice.MANUAL
-      const fixedValue = newValue.toFixed(precision)
-
-      params.row[field].value = precision === 0 ? parseInt(fixedValue) : parseFloat(fixedValue)
+      return row
     }
 
-    return cloneDeep(params.row)
+    if (newValue.toFixed(precision) === oldValue.toFixed(precision)) {
+      return row
+    }
+
+    const fixedValue = newValue.toFixed(precision)
+
+    return {
+      ...row,
+      [field]: {
+        ...predictionItem,
+        choice: ModelChoice.MANUAL,
+        value: precision === 0 ? parseInt(fixedValue, 10) : parseFloat(fixedValue)
+      }
+    } as MoreCast2Row
   }
 
   public isForecastColumn = (headerName: string): boolean => {
@@ -216,9 +268,9 @@ export class GridComponentRenderer {
     return forecastColumns.some(column => column === headerName)
   }
 
-  public predictionItemValueFormatter = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) => {
-    const value = Number.parseFloat(params?.value)
+  public predictionItemValueFormatter = (value: GridRendererValue, precision: number) => {
+    const parsedValue = Number.parseFloat(String(value))
 
-    return isNaN(value) ? params.value : value.toFixed(precision)
+    return isNaN(parsedValue) ? value : parsedValue.toFixed(precision)
   }
 }

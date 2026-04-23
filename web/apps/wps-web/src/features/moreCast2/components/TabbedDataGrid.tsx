@@ -55,7 +55,11 @@ export interface ColumnClickHandlerProps {
 export const Root = styled('div')({
   display: 'flex',
   flexGrow: 1,
-  flexDirection: 'column'
+  flexDirection: 'column',
+  '& .MuiDataGrid-cell': {
+    display: 'flex',
+    alignItems: 'center'
+  }
 })
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
