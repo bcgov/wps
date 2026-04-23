@@ -3,7 +3,6 @@
 import logging
 import os
 import sys
-from datetime import datetime, timezone
 
 import pytest
 import requests
@@ -23,11 +22,6 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
 )
 from wps_shared.tests.common import default_mock_client_get
-from wps_shared.weather_models.model_run_urls import (
-    GDPS_GRIB_LAYERS,
-    get_global_model_run_download_urls,
-    get_regional_model_run_download_urls,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -130,38 +124,6 @@ def mock_download_fail(monkeypatch):
     monkeypatch.setattr(requests, "get", mock_requests_get)
 
 
-def test_get_gdps_download_urls():
-    """test to see if get_download_urls methods give the correct number of urls"""
-    # -1 because 000 hour has no APCP_SFC_0
-    total_num_of_urls = 81 * len(GDPS_GRIB_LAYERS) - 1
-    assert (
-        len(list(get_global_model_run_download_urls(time_utils.get_utc_now(), 0)))
-        == total_num_of_urls
-    )
-
-
-def test_get_regional_model_run_download_urls_uses_new_path():
-    now = datetime(2026, 5, 1, 12, tzinfo=timezone.utc)
-    urls = list(get_regional_model_run_download_urls(now, 12))
-    assert all("model_rdps" in u for u in urls)
-    assert all("model_gem_regional" not in u for u in urls)
-    assert all("MSC_RDPS" in u for u in urls)
-    assert all("RLatLon0.09" in u for u in urls)
-
-
-def test_get_regional_model_run_download_urls_skips_precip_at_hour_zero():
-    now = datetime(2026, 5, 1, 12, tzinfo=timezone.utc)
-    urls = list(get_regional_model_run_download_urls(now, 12))
-    hour_zero_urls = [u for u in urls if "PT000H" in u]
-    assert all("Precip-Accum_Sfc" not in u for u in hour_zero_urls)
-
-
-def test_get_regional_model_run_download_urls_count():
-    now = datetime(2026, 5, 1, 12, tzinfo=timezone.utc)
-    # 85 hours * 5 layers - 1 (no precip at hour 0) = 424
-    assert len(list(get_regional_model_run_download_urls(now, 12))) == 424
-
-
 @pytest.fixture()
 def mock_get_processed_file_count(monkeypatch):
     monkeypatch.setattr(
@@ -191,16 +153,3 @@ def test_process_gdps(
     assert env_canada.process_models() == 1
 
 
-def test_for_zero_day_bug(monkeypatch):
-    """There's a very specific case, where on the 1st day of the new month, before 12 UTC,
-    a url with a month day zero is construced.
-    This test ensures that if it's before 12 UTC, we look for the previous days 12 UTC model run"""
-    problem_date = datetime.fromisoformat("2020-09-01T00:13:58+00:00")
-    urls = get_global_model_run_download_urls(problem_date, 12)
-    url = next(urls)
-    expected_url = (
-        "https://dd.weather.gc.ca/today/model_gem_global/15km/"
-        "grib2/lat_lon/12/000/CMC_glb_TMP_TGL_2_latlon."
-        "15x.15_2020083112_P000.grib2"
-    )
-    assert url == expected_url

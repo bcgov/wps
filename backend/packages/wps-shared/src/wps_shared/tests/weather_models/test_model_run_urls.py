@@ -67,6 +67,16 @@ class TestGetGlobalModelRunDownloadUrls:
         assert urls[0].startswith("https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/000/")
         assert f"CMC_glb_{GDPS_GRIB_LAYERS[0]}_latlon.15x.15_{date}00_P000.grib2" in urls[0]
 
+    def test_zero_day_bug(self):
+        """On the 1st of the month before 12 UTC, the previous day's 12 UTC run should be used."""
+        problem_date = datetime.fromisoformat("2020-09-01T00:13:58+00:00")
+        url = next(get_global_model_run_download_urls(problem_date, 12))
+        assert url == (
+            "https://dd.weather.gc.ca/today/model_gem_global/15km/"
+            "grib2/lat_lon/12/000/CMC_glb_TMP_TGL_2_latlon."
+            "15x.15_2020083112_P000.grib2"
+        )
+
 
 class TestGetHighResModelRunDownloadUrls:
     def test_total_url_count(self):
