@@ -12,7 +12,7 @@ export const test = base.extend({
     await runTest(page)
 
     // After each test, collect Istanbul coverage from the browser and write to a temp file.
-    // vite-plugin-istanbul populates window.__coverage__ when window.Cypress is set.
+    // vite-plugin-istanbul populates window.__coverage__ when window.Playwright is set.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const coverage = await page.evaluate(() => (globalThis as any).__coverage__)
     if (coverage) {

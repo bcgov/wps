@@ -64,8 +64,7 @@ export default defineConfig({
         'src/features/stations/**',
         'src/features/weatherToolkit/**'
       ],
-      extension: ['.js', '.ts', '.tsx'],
-      cypress: true
+      extension: ['.js', '.ts', '.tsx']
     })
   ],
   server: {

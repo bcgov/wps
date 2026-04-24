@@ -68,11 +68,11 @@ async function expectFuelTypeForRow(page: Page, fuelType: string, rowId: number)
 
 test.describe('FireCalc Page', () => {
   test.beforeEach(async ({ page }) => {
-    // Mimic window.Cypress so AuthWrapper calls testAuthenticate() instead of
+    // Mimic window.Playwright so AuthWrapper calls testAuthenticate() instead of
     // triggering a real Keycloak login-required redirect.
     await page.addInitScript(() => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(globalThis as any).Cypress = {}
+      ;(globalThis as any).Playwright = {}
     })
 
     await page.route(

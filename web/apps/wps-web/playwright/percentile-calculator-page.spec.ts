@@ -29,7 +29,7 @@ test.describe('Percentile Calculator Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(globalThis as any).Cypress = {}
+      ;(globalThis as any).Playwright = {}
     })
   })
 
