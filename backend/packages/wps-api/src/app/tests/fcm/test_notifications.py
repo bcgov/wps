@@ -20,7 +20,7 @@ from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 GET_ZONES = "app.fcm.notifications.get_zones_with_advisories"
 GET_TOKENS = "app.fcm.notifications.get_device_tokens_for_zone"
 UPDATE_TOKENS = "app.fcm.notifications.update_device_tokens_are_active"
-SEND_MULTICAST = "app.fcm.notifications.messaging.send_each_for_multicast"
+SEND_MULTICAST = "app.fcm.notifications.messaging.send_each_for_multicast_async"
 GET_VANCOUVER_NOW = "app.fcm.notifications.get_vancouver_now"
 
 FOR_DATE = date(2026, 4, 1)
@@ -168,7 +168,7 @@ async def test_trigger_notifications_sends_multicast():
     with (
         patch(GET_ZONES, return_value=[zone]),
         patch(GET_TOKENS, return_value=tokens),
-        patch(SEND_MULTICAST, return_value=mock_response) as mock_send,
+        patch(SEND_MULTICAST, new_callable=AsyncMock, return_value=mock_response) as mock_send,
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock),
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
@@ -195,7 +195,7 @@ async def test_trigger_notifications_batches_tokens_over_limit():
     with (
         patch(GET_ZONES, return_value=[zone]),
         patch(GET_TOKENS, return_value=tokens),
-        patch(SEND_MULTICAST, return_value=mock_response) as mock_send,
+        patch(SEND_MULTICAST, new_callable=AsyncMock, return_value=mock_response) as mock_send,
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock),
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
@@ -223,7 +223,7 @@ async def test_trigger_notifications_calls_handle_response():
     with (
         patch(GET_ZONES, return_value=[zone]),
         patch(GET_TOKENS, return_value=tokens),
-        patch(SEND_MULTICAST, return_value=mock_response),
+        patch(SEND_MULTICAST, new_callable=AsyncMock, return_value=mock_response),
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock) as mock_handle,
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
@@ -250,6 +250,7 @@ async def test_trigger_notifications_continues_on_send_failure():
         patch(GET_TOKENS, return_value=["token"]),
         patch(
             SEND_MULTICAST,
+            new_callable=AsyncMock,
             side_effect=[firebase_exceptions.UnavailableError("FCM error", None), mock_response],
         ) as mock_send,
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock) as mock_handle,
