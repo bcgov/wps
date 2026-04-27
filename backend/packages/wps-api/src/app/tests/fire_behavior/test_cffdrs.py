@@ -209,3 +209,44 @@ def test_calculate_cfb_c6_missing_isi_bui_raises():
 def test_calculate_cfb_returns_zero_for_no_crown_fuel_types(fuel_type):
     """Fuel types without crowns return 0 regardless of inputs."""
     assert calculate_cfb(fuel_type, fmc=100.0, sfc=0.5, ros=15.0, cbh=7.0) == 0
+
+
+# NaN-to-None guard tests
+# cbh=0 makes CSI=0; sfc=0 makes RSO=safe_div(0,0)=NaN inside the cffdrs library.
+# These combinations exercise the math.isnan guard added to each wrapper.
+
+
+def test_rate_of_spread_returns_none_not_nan():
+    """rate_of_spread returns None (not NaN) when the library produces NaN for C6 with cbh=0, sfc=0."""
+    result = cffdrs.rate_of_spread(FuelTypeEnum.C6, isi=20.0, bui=80.0, fmc=100.0, sfc=0.0, pc=100, cc=None, pdf=None, cbh=0.0)
+    assert result is None
+
+
+def test_crown_fraction_burned_c6_returns_none_not_nan():
+    """crown_fraction_burned returns None (not NaN) for C6 when rso is NaN (cbh=0, sfc=0)."""
+    result = cffdrs.crown_fraction_burned(FuelTypeEnum.C6, fmc=100.0, sfc=0.0, ros=15.0, cbh=0.0, isi=20.0, bui=80.0)
+    assert result is None
+
+
+def test_crown_fraction_burned_non_c6_returns_none_not_nan():
+    """crown_fraction_burned returns None (not NaN) for non-C6 when rso is NaN (cbh=0, sfc=0)."""
+    result = cffdrs.crown_fraction_burned(FuelTypeEnum.C7, fmc=100.0, sfc=0.0, ros=15.0, cbh=0.0)
+    assert result is None
+
+
+def test_fire_distance_returns_none_not_nan():
+    """fire_distance returns None (not NaN) when cfb<0 causes alpha=NaN inside distance_at_time."""
+    result = cffdrs.fire_distance(FuelTypeEnum.C7, ros_eq=10.0, hr=60, cfb=-1.0)
+    assert result is None
+
+
+def test_length_to_breadth_ratio_returns_none_not_nan():
+    """length_to_breadth_ratio returns None (not NaN) when negative wind speed makes base<0."""
+    result = cffdrs.length_to_breadth_ratio(FuelTypeEnum.C7, wind_speed=-10.0)
+    assert result is None
+
+
+def test_length_to_breadth_ratio_t_returns_none_not_nan():
+    """length_to_breadth_ratio_t returns None (not NaN) when cfb<0 causes alpha=NaN."""
+    result = cffdrs.length_to_breadth_ratio_t(FuelTypeEnum.C7, lb=2.0, time_since_ignition=60.0, cfb=-1.0)
+    assert result is None
