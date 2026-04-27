@@ -26,13 +26,6 @@ async function selectStation(page: Page, code: number | string) {
 }
 
 test.describe('Percentile Calculator Page', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(globalThis as any).Playwright = {}
-    })
-  })
-
   test.describe('Weather station dropdown', () => {
     test('Renders error message when fetching stations failed', async ({ page }) => {
       await page.route(

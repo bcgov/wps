@@ -38,13 +38,6 @@ test.describe('HFI Calculator Page', () => {
   const start_date = '2021-08-02'
   const end_date = '2021-08-06'
 
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(globalThis as any).Playwright = {}
-    })
-  })
-
   test.describe('first visit - no selected fire centre', () => {
     test('should show the select fire centre instructions', async ({ page }) => {
       await page.route('**/api/hfi-calc/fire-centres', route =>

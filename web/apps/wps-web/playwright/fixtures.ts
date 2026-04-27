@@ -9,6 +9,12 @@ const coverageTempDir = path.join(import.meta.dirname, '..', '.nyc_temp_playwrig
 
 export const test = base.extend({
   page: async ({ page }, runTest) => {
+    // Mimic window.Playwright so AuthWrapper calls testAuthenticate() instead of
+    // triggering a real Keycloak login-required redirect.
+    await page.addInitScript(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(globalThis as any).Playwright = {}
+    })
     await runTest(page)
 
     // After each test, collect Istanbul coverage from the browser and write to a temp file.

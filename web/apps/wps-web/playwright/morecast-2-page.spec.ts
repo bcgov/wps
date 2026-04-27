@@ -6,13 +6,6 @@ const fixturesDir = path.join(import.meta.dirname, 'fixtures')
 
 test.describe('More Cast 2 Page', () => {
   test.beforeEach(async ({ page }) => {
-    // Mimic window.Playwright so AuthWrapper calls testAuthenticate() instead of
-    // triggering a real Keycloak login-required redirect.
-    await page.addInitScript(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(globalThis as any).Playwright = {}
-    })
-
     await page.route('**/api/fba/fire-centers', route =>
       route.fulfill({ path: path.join(fixturesDir, 'fba/fire-centers.json') })
     )
