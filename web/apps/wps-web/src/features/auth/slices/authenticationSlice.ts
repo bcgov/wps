@@ -111,7 +111,7 @@ export const decodeRoles = (token: string | undefined) => {
   if (isUndefined(token)) {
     return []
   }
-  if (TEST_AUTH || window.Cypress) {
+  if (TEST_AUTH || window.Playwright) {
     return Object.values(ROLES.HFI)
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,7 +131,7 @@ export const decodeUserDetails = (token: string | undefined) => {
   if (isUndefined(token)) {
     return undefined
   }
-  if (TEST_AUTH || window.Cypress) {
+  if (TEST_AUTH || window.Playwright) {
     return { idir: 'test@idir', email: 'test@example.com' }
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -51,8 +51,7 @@ export default defineConfig({
     istanbul({
       include: ['src/**/*'],
       exclude: ['node_modules', 'test/'],
-      extension: ['.js', '.ts', '.tsx'],
-      cypress: true
+      extension: ['.js', '.ts', '.tsx']
     })
   ],
   server: {
@@ -62,8 +61,8 @@ export default defineConfig({
     },
     watch: {
       ignored: [
-        path.join(__dirname, 'coverage-cypress/**'),
-        path.join(__dirname, 'cypress/**'),
+        path.join(__dirname, 'coverage-playwright/**'),
+        path.join(__dirname, 'playwright/**'),
         path.join(__dirname, 'finalCoverage/**')
       ]
     }
