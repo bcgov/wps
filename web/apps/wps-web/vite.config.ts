@@ -50,20 +50,7 @@ export default defineConfig({
     }),
     istanbul({
       include: ['src/**/*'],
-      exclude: [
-        'node_modules',
-        'test/',
-        'src/features/fba/**',
-        'src/features/cHaines/**',
-        'src/features/fireWeather/**',
-        'src/features/landingPage/**',
-        'src/features/map/**',
-        'src/features/fireWatch/**',
-        'src/features/landingPage/**',
-        'src/features/sfmsInsights/**',
-        'src/features/stations/**',
-        'src/features/weatherToolkit/**'
-      ],
+      exclude: ['node_modules', 'test/'],
       extension: ['.js', '.ts', '.tsx']
     })
   ],
