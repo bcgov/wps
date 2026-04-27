@@ -34,9 +34,9 @@ Runs the app in development mode. The page will reload on edits and lint errors 
 
 Launches the Vitest test runner across all packages, including unit tests and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) component tests.
 
-#### `yarn workspace @wps/wps-web run cy:open`
+#### `yarn workspace @wps/wps-web run pw:open`
 
-Launches the Cypress test runner in interactive watch mode for end-to-end and integration tests.
+Launches the Playwright test runner in interactive watch mode for end-to-end and integration tests.
 
 #### `yarn turbo build`
 
