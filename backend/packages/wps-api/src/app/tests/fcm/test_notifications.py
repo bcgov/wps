@@ -73,14 +73,15 @@ def test_build_notification_title(placename_label, expected):
 
 ENVIRONMENT = "app.fcm.notifications.config"
 
+
 @pytest.mark.anyio
 @pytest.mark.parametrize(
     "environment, vancouver_hour, expect_skipped",
     [
-        ("production", 15, True),   # afternoon >= 12 in prod → skip
-        ("production", 12, True),   # noon == 12 in prod → skip (boundary)
-        ("production", 8, False),   # morning < 12 in prod → proceed
-        ("development", 15, False), # afternoon outside prod → proceed
+        ("production", 15, True),  # afternoon >= 12 in prod → skip
+        ("production", 12, True),  # noon == 12 in prod → skip (boundary)
+        ("production", 8, False),  # morning < 12 in prod → proceed
+        ("development", 15, False),  # afternoon outside prod → proceed
         ("development", 8, False),  # morning outside prod → proceed
     ],
 )
@@ -141,7 +142,11 @@ async def test_trigger_notifications_no_subscribers():
     """Zones with advisories but no subscribed devices send no notifications."""
     session = AsyncMock()
     zone = ZoneAdvisoryStatus(
-        advisory_shape_id=1, fire_centre_id=1, source_identifier="42", placename_label="Kamloops", status="advisory"
+        advisory_shape_id=1,
+        fire_centre_id=1,
+        source_identifier="42",
+        placename_label="Kamloops",
+        status="advisory",
     )
     with (
         patch(GET_ZONES, return_value=[zone]),
@@ -159,7 +164,11 @@ async def test_trigger_notifications_sends_multicast():
     """Zones with advisories and subscribers triggers a multicast send."""
     session = AsyncMock()
     zone = ZoneAdvisoryStatus(
-        advisory_shape_id=1, fire_centre_id=1, source_identifier="42", placename_label="K2-Kamloops Zone (Kamloops)", status="advisory"
+        advisory_shape_id=1,
+        fire_centre_id=1,
+        source_identifier="42",
+        placename_label="K2-Kamloops Zone (Kamloops)",
+        status="advisory",
     )
     tokens = ["token_a", "token_b"]
     mock_response = MagicMock(spec=messaging.BatchResponse)
@@ -186,7 +195,11 @@ async def test_trigger_notifications_batches_tokens_over_limit():
     """Token lists larger than FCM_BATCH_SIZE are split into multiple sends."""
     session = AsyncMock()
     zone = ZoneAdvisoryStatus(
-        advisory_shape_id=1, fire_centre_id=1, source_identifier="42", placename_label="Kamloops", status="advisory"
+        advisory_shape_id=1,
+        fire_centre_id=1,
+        source_identifier="42",
+        placename_label="Kamloops",
+        status="advisory",
     )
     tokens = [f"token_{i}" for i in range(501)]
     mock_response = MagicMock(spec=messaging.BatchResponse)
@@ -214,7 +227,11 @@ async def test_trigger_notifications_calls_handle_response():
     """handle_fcm_response is called with the correct arguments after send."""
     session = AsyncMock()
     zone = ZoneAdvisoryStatus(
-        advisory_shape_id=1, fire_centre_id=1, source_identifier="42", placename_label="Kamloops", status="advisory"
+        advisory_shape_id=1,
+        fire_centre_id=1,
+        source_identifier="42",
+        placename_label="Kamloops",
+        status="advisory",
     )
     tokens = ["token_a"]
     mock_response = MagicMock(spec=messaging.BatchResponse)
@@ -237,10 +254,18 @@ async def test_trigger_notifications_continues_on_send_failure():
     """A send failure for one zone does not abort remaining zones."""
     session = AsyncMock()
     zone_a = ZoneAdvisoryStatus(
-        advisory_shape_id=1, fire_centre_id=1, source_identifier="1", placename_label="Zone A", status="advisory"
+        advisory_shape_id=1,
+        fire_centre_id=1,
+        source_identifier="1",
+        placename_label="Zone A",
+        status="advisory",
     )
     zone_b = ZoneAdvisoryStatus(
-        advisory_shape_id=2, fire_centre_id=1, source_identifier="2", placename_label="Zone B", status="advisory"
+        advisory_shape_id=2,
+        fire_centre_id=1,
+        source_identifier="2",
+        placename_label="Zone B",
+        status="advisory",
     )
     mock_response = MagicMock(spec=messaging.BatchResponse)
     mock_response.failure_count = 0
@@ -267,7 +292,11 @@ async def test_trigger_notifications_skips_zone_with_missing_placename():
     """Zones with no placename_label are skipped — no tokens fetched, no notification sent."""
     session = AsyncMock()
     zone = ZoneAdvisoryStatus(
-        advisory_shape_id=1, fire_centre_id=1, source_identifier="42", placename_label=None, status="advisory"
+        advisory_shape_id=1,
+        fire_centre_id=1,
+        source_identifier="42",
+        placename_label=None,
+        status="advisory",
     )
     with (
         patch(GET_ZONES, return_value=[zone]),
@@ -385,4 +414,4 @@ def test_build_fcm_message_android_high_priority():
 def test_build_fcm_message_apns_high_priority():
     """APNS config uses priority 10 (immediate delivery) for time-sensitive advisories."""
     msg = build_fcm_message(MSG_DATE, ZONE, TOKENS)
-    assert msg.apns.headers["apns-priority"] == 10
+    assert msg.apns.headers["apns-priority"] == "10"
