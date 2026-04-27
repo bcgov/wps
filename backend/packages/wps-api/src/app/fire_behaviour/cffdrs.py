@@ -213,7 +213,7 @@ def back_rate_of_spread(
         raise CFFDRSException(message)
     _validate_fuel_type_params(fuel_type, pc, pdf, cc, cbh)
 
-    return _back_rate_of_spread(
+    result = _back_rate_of_spread(
         fuel_type=fuel_type.value,
         ffmc=ffmc,
         bui=bui,
@@ -225,6 +225,7 @@ def back_rate_of_spread(
         cc=cc,
         cbh=cbh,
     )
+    return None if isinstance(result, float) and math.isnan(result) else result
 
 
 def bui_calc(dmc: float, dc: float):
@@ -272,7 +273,7 @@ def rate_of_spread(
         raise CFFDRSException(message)
     _validate_fuel_type_params(fuel_type, pc, pdf, cc, cbh)
 
-    return _rate_of_spread(
+    result = _rate_of_spread(
         fuel_type=fuel_type.value,
         isi=isi,
         bui=bui,
@@ -283,6 +284,7 @@ def rate_of_spread(
         cc=cc,
         cbh=cbh,
     )
+    return None if isinstance(result, float) and math.isnan(result) else result
 
 
 def surface_fuel_consumption(fuel_type: FuelTypeEnum, bui: float, ffmc: float, pc: float):
@@ -313,7 +315,8 @@ def fire_distance(fuel_type: FuelTypeEnum, ros_eq: float, hr: int, cfb: float):
             PARAMS_ERROR_MESSAGE
             + f"fire_distance; fuel_type: {fuel_type}, ros_eq: {ros_eq}, hr: {hr}, cfb: {cfb}"
         )
-    return distance_at_time(fuel_type.value, ros_eq, hr, cfb)
+    result = distance_at_time(fuel_type.value, ros_eq, hr, cfb)
+    return None if isinstance(result, float) and math.isnan(result) else result
 
 
 def foliar_moisture_content(
@@ -352,7 +355,8 @@ def length_to_breadth_ratio(fuel_type: FuelTypeEnum, wind_speed: float):
             PARAMS_ERROR_MESSAGE
             + f"length_to_breadth_ratio; fuel_type: {fuel_type}, wind_speed: {wind_speed}"
         )
-    return length_to_breadth(fuel_type.value, wind_speed)
+    result = length_to_breadth(fuel_type.value, wind_speed)
+    return None if isinstance(result, float) and math.isnan(result) else result
 
 
 def length_to_breadth_ratio_t(
@@ -364,7 +368,8 @@ def length_to_breadth_ratio_t(
             PARAMS_ERROR_MESSAGE
             + f"length_to_breadth_ratio_t; fuel_type: {fuel_type}, lb: {lb}, time_since_ignition: {time_since_ignition}, cfb: {cfb}"
         )
-    return length_to_breadth_at_time(fuel_type.value, lb, time_since_ignition, cfb)
+    result = length_to_breadth_at_time(fuel_type.value, lb, time_since_ignition, cfb)
+    return None if isinstance(result, float) and math.isnan(result) else result
 
 
 def fine_fuel_moisture_code(
@@ -506,8 +511,10 @@ def crown_fraction_burned(
         rsi = intermediate_surface_rate_of_spread_c6(isi)
         rss = surface_rate_of_spread_c6(rsi, bui)
         rsc = crown_rate_of_spread_c6(isi, fmc)
-        return crown_fraction_burned_c6(rsc, rss, rso)
-    return _crown_fraction_burned(ros, rso)
+        result = crown_fraction_burned_c6(rsc, rss, rso)
+    else:
+        result = _crown_fraction_burned(ros, rso)
+    return None if isinstance(result, float) and math.isnan(result) else result
 
 
 def total_fuel_consumption(

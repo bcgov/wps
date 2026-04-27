@@ -373,3 +373,15 @@ def test_build_fcm_message_platform_tags():
     assert msg.apns.payload.aps.thread_id == msg.android.notification.tag
     assert msg.android.ttl == timedelta(days=2)
     assert msg.apns.headers["apns-expiration"] == EXPECTED_APNS_EXPIRATION
+
+
+def test_build_fcm_message_android_high_priority():
+    """Android config uses high priority so messages deliver immediately."""
+    msg = build_fcm_message(MSG_DATE, ZONE, TOKENS)
+    assert msg.android.priority == "high"
+
+
+def test_build_fcm_message_apns_high_priority():
+    """APNS config uses priority 10 (immediate delivery) for time-sensitive advisories."""
+    msg = build_fcm_message(MSG_DATE, ZONE, TOKENS)
+    assert msg.apns.headers["apns-priority"] == 10

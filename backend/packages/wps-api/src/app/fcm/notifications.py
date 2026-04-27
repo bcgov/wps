@@ -45,10 +45,10 @@ def build_fcm_message(
     message = messaging.MulticastMessage(
         notification=messaging.Notification(title=title, body=content),
         android=messaging.AndroidConfig(
-            ttl=ttl, notification=messaging.AndroidNotification(tag=tag)
+            ttl=ttl, notification=messaging.AndroidNotification(tag=tag), priority="high"
         ),
         apns=messaging.APNSConfig(
-            headers={"apns-expiration": apns_expiration},
+            headers={"apns-expiration": apns_expiration, "apns-priority": 10},
             payload=messaging.APNSPayload(aps=messaging.Aps(thread_id=tag)),
         ),
         data=data,
