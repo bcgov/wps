@@ -6,7 +6,7 @@ import {
   ListItemButton,
 } from "@mui/material";
 import { EmailComposer } from "capacitor-email-composer";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
 import { useState } from "react";
 

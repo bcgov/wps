@@ -194,7 +194,7 @@ describe("FireZoneUnitSummary", () => {
       />,
     );
 
-    const gridContainer = container.querySelector(".MuiGrid2-root");
+    const gridContainer = container.querySelector(".MuiGrid-root");
     expect(gridContainer).toBeInTheDocument();
   });
 

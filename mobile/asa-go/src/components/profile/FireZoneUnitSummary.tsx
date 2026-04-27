@@ -7,13 +7,14 @@ import {
   useTPIStatsForDate,
 } from "@/hooks/dataHooks";
 import { hasRequiredFields } from "@/utils/profileUtils";
-import { Box, Grid2 as Grid, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { FireShape } from "api/fbaAPI";
 import type { FireCentre } from "@/types/fireCentre";
 import { isNil } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
+import Grid from "@mui/system/Grid";
 
 interface FireZoneUnitSummaryProps {
   date: DateTime;

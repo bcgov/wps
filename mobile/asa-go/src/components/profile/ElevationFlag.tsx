@@ -1,5 +1,6 @@
 import Flag from "@/components/profile/FillableFlag";
-import { Grid2 as Grid, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
+import Grid from "@mui/system/Grid";
 import React from "react";
 
 interface ElevationFlagProps {
@@ -31,10 +32,7 @@ const ElevationFlag = ({ percent, testId }: ElevationFlagProps) => {
       >
         {percent}%
       </Typography>
-      <Flag
-        maskId={`elevation-flag-${uniqueId}`}
-        percent={percent}
-      />
+      <Flag maskId={`elevation-flag-${uniqueId}`} percent={percent} />
     </Grid>
   );
 };

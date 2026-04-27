@@ -90,7 +90,7 @@ const LegendItem = ({
         />
       </Grid>
       <Grid container alignItems={"center"}>
-        <Grid item sx={{ transform: "translate(50%, -50%)" }}>
+        <Grid sx={{ transform: "translate(50%, -50%)" }}>
           <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
             {description ?? (renderEmptyDescription && <span>&nbsp;</span>)}
           </Typography>

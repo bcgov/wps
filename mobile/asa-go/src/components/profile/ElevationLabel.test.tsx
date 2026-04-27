@@ -36,7 +36,7 @@ describe("ElevationLabel", () => {
     const { container } = render(<ElevationLabel label="Test Label" />);
 
     const gridElement = container.firstChild;
-    expect(gridElement).toHaveClass("MuiGrid2-root");
+    expect(gridElement).toHaveClass("MuiGrid-root");
   });
 
   it("should handle empty string label", () => {
