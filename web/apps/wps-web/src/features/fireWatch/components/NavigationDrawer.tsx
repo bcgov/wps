@@ -94,7 +94,7 @@ const navigationItems = [
 
 const NavigationDrawer = ({ setFireWatchView, open, selectedView }: NavigationDrawerProps) => {
   return (
-    <Drawer open={open} PaperProps={{ sx: { backgroundColor: '#eaeaea' } }} variant="permanent">
+    <Drawer open={open} slotProps={{ paper: { sx: { backgroundColor: '#eaeaea' } } }} variant="permanent">
       <DrawerHeader />
       <List>
         {navigationItems.map(item => (

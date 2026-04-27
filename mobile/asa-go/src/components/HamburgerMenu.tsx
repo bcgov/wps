@@ -45,13 +45,15 @@ export const HamburgerMenu = ({
         anchor="right"
         open={open}
         onClose={() => setOpen(false)}
-        PaperProps={{
-          sx: {
-            top: `${drawerTop}px`,
-            height: `${drawerHeight}px`,
-            backgroundColor: "lightGrey",
-            borderTopLeftRadius: 16,
-            borderBottomLeftRadius: 16,
+        slotProps={{
+          paper: {
+            sx: {
+              top: `${drawerTop}px`,
+              height: `${drawerHeight}px`,
+              backgroundColor: "lightGrey",
+              borderTopLeftRadius: 16,
+              borderBottomLeftRadius: 16,
+            },
           },
         }}
       >
