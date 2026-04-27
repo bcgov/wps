@@ -441,10 +441,14 @@ const ASAGoMap = ({
         const localBasemapLayer = await createLocalBasemapVectorLayer();
         setLocalBasemapVectorLayer(localBasemapLayer);
 
-        const basemapLayer = await createBasemapLayer();
-        setBasemapLayer(basemapLayer);
-
-        mapObject.addLayer(basemapLayer);
+        try {
+          const basemapLayer = await createBasemapLayer();
+          setBasemapLayer(basemapLayer);
+          mapObject.addLayer(basemapLayer);
+        } catch (e) {
+          // offline or endpoint unreachable — local basemap will be used
+          console.warn(e);
+        }
         mapObject.addLayer(fireCentreFileLayer);
         mapObject.addLayer(fireCentreLabelsFileLayer);
         mapObject.addLayer(fireZoneFileLayer);
