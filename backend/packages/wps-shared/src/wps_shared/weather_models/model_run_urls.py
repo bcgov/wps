@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Generator
+from typing import Generator, Iterable
 
 from wps_shared.weather_models import ModelEnum, UnhandledPredictionModelType, get_file_date_part
 from wps_shared.weather_models.rdps import RDPS_VARIABLE_NAMES
@@ -51,7 +51,7 @@ def get_high_res_model_run_download_urls(now: datetime, hour: int) -> Generator[
 
 
 def get_regional_model_run_download_urls(
-    now: datetime, hour: int, grib_layers: tuple = RDPS_GRIB_LAYERS, limit: int = 85
+    now: datetime, hour: int, grib_layers: Iterable[str] = RDPS_GRIB_LAYERS, limit: int = 85
 ) -> Generator[str, None, None]:
     """Yield urls to download RDPS model runs from the new model_rdps path."""
     hh = f"{hour:02d}"
