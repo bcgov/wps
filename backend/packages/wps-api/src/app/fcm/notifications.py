@@ -132,11 +132,11 @@ async def handle_fcm_response(
     # Only deactivate permanently invalid tokens (UnregisteredError — token is no longer registered).
     # Transient failures (quota, server errors) are not deactivated; the token remains valid.
     # Deactivated tokens are re-activated when the app re-registers on open.
-    permanently_failed = [
-        device_tokens[idx]
+    permanently_failed: dict[str, Exception] = {
+        device_tokens[idx]: resp.exception
         for idx, resp in enumerate(response.responses)
         if not resp.success and isinstance(resp.exception, messaging.UnregisteredError)
-    ]
+    }
     transient_failed_count = response.failure_count - len(permanently_failed)
 
     if response.failure_count > 0:
@@ -150,4 +150,11 @@ async def handle_fcm_response(
         )
 
     if permanently_failed:
-        await update_device_tokens_are_active(session, permanently_failed, False)
+        for token, exc in permanently_failed.items():
+            logger.warning(
+                "FCM permanent failure: zone=%s token=%s reason=%s",
+                placename_label,
+                token,
+                exc,
+            )
+        await update_device_tokens_are_active(session, list(permanently_failed.keys()), False)

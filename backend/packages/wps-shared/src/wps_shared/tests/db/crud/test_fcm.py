@@ -281,3 +281,5 @@ async def test_get_device_tokens_for_zone_no_subscribers(async_session: AsyncSes
     """get_device_tokens_for_zone returns empty list when no device subscribes to the zone."""
     result = await get_device_tokens_for_zone(async_session, mock_fire_shape_source_identifier)
     assert result == []
+
+
