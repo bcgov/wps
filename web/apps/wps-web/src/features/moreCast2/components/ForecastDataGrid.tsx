@@ -34,20 +34,20 @@ const Root = styled('div')(() => {
   }
 
   Object.keys(MORECAST_WEATHER_PARAMS).forEach(key => {
-    styles[`& .${key}`] = {
+    styles[`& .MuiDataGrid-columnHeader.${key}`] = {
       backgroundColor: MORECAST_WEATHER_PARAMS[key as keyof MoreCastParams].active
     }
   })
 
   Object.keys(MORECAST_MODEL_COLORS).forEach(key => {
-    styles[`& .${key}`] = {
+    styles[`& .MuiDataGrid-cell.${key}`] = {
       backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
       borderRight: 'solid',
       borderWidth: '1px',
       // Ugly override, tried to avoid, but MUI overwrites border with it's own otherwise
       borderRightColor: `${MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].border} !important`
     }
-    styles[`& .${key}-header`] = {
+    styles[`& .MuiDataGrid-columnHeader.${key}-header`] = {
       backgroundColor: MORECAST_MODEL_COLORS[key as keyof MoreCastModelColors].bg,
       borderBottom: 'solid',
       borderRight: 'solid',
