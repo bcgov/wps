@@ -105,6 +105,7 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
               variant="outlined"
               disabled={true}
               label={'Set prep period'}
+              sx={{ pointerEvents: 'none' }}
               value={
                 isUndefined(dateRange) || isUndefined(dateRange.start_date) || isUndefined(dateRange.end_date)
                   ? ''

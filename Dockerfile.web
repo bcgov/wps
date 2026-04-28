@@ -23,7 +23,7 @@ COPY web/apps/wps-web/package.json       apps/wps-web/
 
 # do install first so it will be cached
 RUN corepack enable \
-    && CYPRESS_INSTALL_BINARY=0 yarn install --immutable
+    && yarn install --immutable
 
 # Copy all source
 COPY web/packages/ packages/

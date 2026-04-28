@@ -103,13 +103,14 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
             mocker.call(TEST_DATETIME, EXPECTED_SECOND_DAY, 44),
         ]
 
-        # Verify the arguments for each call for gdal_prefix_keys
+        # Verify the arguments for each call for gdal_prefix_keys.
+        # all_objects_exist=True so resolve_weather_data_keys returns new MSC format keys.
         assert gdal_prefix_keys_spy.call_args_list == [
             # first day weather models
             mocker.call(
-                "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P020.grib2",
-                "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P020.grib2",
-                "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P020.grib2",
+                "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT020H.grib2",
+                "weather_models/rdps/2024-10-10/00/rh/20241010T00Z_MSC_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT020H.grib2",
+                "weather_models/rdps/2024-10-10/00/wind_speed/20241010T00Z_MSC_RDPS_WindSpeed_AGL-10m_RLatLon0.09_PT020H.grib2",
                 "weather_models/rdps/2024-10-10/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_20z.tif",
                 "sfms/uploads/actual/2024-10-09/ffmc20241009.tif",
             ),
@@ -120,9 +121,9 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
             ),
             # second day weather models
             mocker.call(
-                "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P044.grib2",
-                "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P044.grib2",
-                "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P044.grib2",
+                "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT044H.grib2",
+                "weather_models/rdps/2024-10-10/00/rh/20241010T00Z_MSC_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT044H.grib2",
+                "weather_models/rdps/2024-10-10/00/wind_speed/20241010T00Z_MSC_RDPS_WindSpeed_AGL-10m_RLatLon0.09_PT044H.grib2",
                 "weather_models/rdps/2024-10-11/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241011_20z.tif",
                 "sfms/calculated/forecast/2024-10-10/ffmc20241010.tif",
             ),
@@ -292,21 +293,21 @@ async def test_daily_fwi_processor(mocker: MockerFixture):
 
 
 @pytest.mark.parametrize(
-    "side_effect_1, side_effect_2",
+    "side_effects",
     [
-        (False, False),
-        (True, False),
-        (False, True),
+        [False, False],       # new weather absent, legacy absent → None → break
+        [True, False],        # new weather exists → keys found, FWI keys absent → break
+        [False, True, False], # new weather absent, legacy exists → keys found, FWI keys absent → break
     ],
 )
 @pytest.mark.anyio
 async def test_no_weather_keys_exist(
-    side_effect_1: bool, side_effect_2: bool, mocker: MockerFixture
+    side_effects: list, mocker: MockerFixture
 ):
     mock_s3_client = S3Client()
 
     mocker.patch.object(
-        mock_s3_client, "all_objects_exist", side_effect=[side_effect_1, side_effect_2]
+        mock_s3_client, "all_objects_exist", side_effect=side_effects
     )
 
     _, mock_input_dataset_context = create_mock_input_dataset_context(7)
@@ -340,3 +341,43 @@ async def test_no_weather_keys_exist(
     calculate_ffmc_spy.assert_not_called()
     calculate_isi_spy.assert_not_called()
     calculate_fwi_spy.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_daily_fwi_processor_uses_legacy_keys_when_new_absent(mocker: MockerFixture):
+    """When new-format S3 keys are absent but legacy CMC_reg keys exist, the processor uses legacy keys."""
+    mock_key_addresser = RasterKeyAddresser()
+    gdal_prefix_keys_spy = mocker.spy(mock_key_addresser, "gdal_prefix_keys")
+
+    fwi_processor = DailyFWIProcessor(TEST_DATETIME, 1, mock_key_addresser)
+
+    _, mock_input_dataset_context = create_mock_input_dataset_context(7)
+    _, mock_new_dmc_dc_datasets_context = create_mock_new_ds_context(2)
+    _, mock_new_ffmc_datasets_context = create_mock_new_ds_context(1)
+    _, mock_new_isi_bui_datasets_context = create_mock_new_ds_context(2)
+
+    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
+    mocker.patch("app.sfms.daily_fwi_processor.generate_and_store_cog")
+
+    async with S3Client() as mock_s3_client:
+        # new format absent, legacy present, FWI keys present for day 1
+        mocker.patch.object(mock_s3_client, "all_objects_exist", side_effect=[False, True, True])
+        mocker.patch.object(mock_s3_client, "persist_raster_data", return_value="test_key.tif")
+
+        await fwi_processor.process(
+            mock_s3_client,
+            mock_input_dataset_context,
+            mock_new_dmc_dc_datasets_context,
+            mock_new_ffmc_datasets_context,
+            mock_new_isi_bui_datasets_context,
+            mock_new_ffmc_datasets_context,
+        )
+
+    # Verify the processor used legacy CMC_reg keys for weather data
+    weather_call = gdal_prefix_keys_spy.call_args_list[0]
+    temp_key = weather_call.args[0]
+    rh_key = weather_call.args[1]
+    wind_speed_key = weather_call.args[2]
+    assert "CMC_reg_TMP" in temp_key
+    assert "CMC_reg_RH" in rh_key
+    assert "CMC_reg_WIND" in wind_speed_key

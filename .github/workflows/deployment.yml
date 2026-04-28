@@ -165,6 +165,7 @@ jobs:
           bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_ecmwf_cronjob.sh ${SUFFIX} apply

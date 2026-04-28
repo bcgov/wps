@@ -28,7 +28,7 @@ const AuthWrapper = ({ children }: Props) => {
   const { isAuthenticated, authenticating, error, email } = useSelector(selectAuthentication)
 
   useEffect(() => {
-    if (TEST_AUTH || window.Cypress) {
+    if (TEST_AUTH || window.Playwright) {
       dispatch(testAuthenticate(true, 'test token', 'test id token'))
     } else {
       dispatch(authenticate())

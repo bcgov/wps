@@ -34,7 +34,7 @@ async def test_source_hffmc_key_not_exist(mocker: MockerFixture):
 @pytest.mark.anyio
 async def test_no_weather_keys_exist(mocker: MockerFixture):
     mock_s3_client = S3Client()
-    mocker.patch.object(mock_s3_client, "all_objects_exist", side_effect=[True, False])
+    mocker.patch.object(mock_s3_client, "all_objects_exist", side_effect=[True, False, False])
     _, mock_input_dataset_context = create_mock_new_ds_context(2)
 
     # calculation spy
@@ -95,20 +95,21 @@ async def test_hourly_ffmc_processor(mocker: MockerFixture):
             mocker.call(RDPS_MODEL_RUN_DATETIME, 1),
         ]
 
-        # Verify the arguments for each call for gdal_prefix_keys
+        # Verify the arguments for each call for gdal_prefix_keys.
+        # all_objects_exist=True so resolve_weather_data_keys_hffmc returns new MSC format keys.
         assert gdal_prefix_keys_spy.call_args_list == [
             # first hour weather models and source hffmc
             mocker.call(
-                "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P000.grib2",
-                "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P000.grib2",
-                "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P000.grib2",
+                "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT000H.grib2",
+                "weather_models/rdps/2024-10-10/00/rh/20241010T00Z_MSC_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT000H.grib2",
+                "weather_models/rdps/2024-10-10/00/wind_speed/20241010T00Z_MSC_RDPS_WindSpeed_AGL-10m_RLatLon0.09_PT000H.grib2",
                 "weather_models/rdps/2024-10-10/00/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_00z.tif",
                 "sfms/uploads/hourlies/2024-10-09/fine_fuel_moisture_code2024100916.tif",
             ),
             mocker.call(
-                "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P001.grib2",
-                "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P001.grib2",
-                "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P001.grib2",
+                "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT001H.grib2",
+                "weather_models/rdps/2024-10-10/00/rh/20241010T00Z_MSC_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT001H.grib2",
+                "weather_models/rdps/2024-10-10/00/wind_speed/20241010T00Z_MSC_RDPS_WindSpeed_AGL-10m_RLatLon0.09_PT001H.grib2",
                 "weather_models/rdps/2024-10-10/00/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_01z.tif",
                 "sfms/calculated/hourlies/2024-10-10/fine_fuel_moisture_code2024101000.tif",
             ),
@@ -150,3 +151,32 @@ async def test_hourly_ffmc_processor(mocker: MockerFixture):
 
         # 1 hffmc per day
         assert persist_raster_spy.call_count == 2
+
+
+@pytest.mark.anyio
+async def test_hourly_ffmc_processor_uses_legacy_keys_when_new_absent(mocker: MockerFixture):
+    """When new-format S3 keys are absent but legacy CMC_reg keys exist, the processor uses legacy keys."""
+    mock_key_addresser = RasterKeyAddresser()
+    gdal_prefix_keys_spy = mocker.spy(mock_key_addresser, "gdal_prefix_keys")
+
+    hffmc_processor = HourlyFFMCProcessor(TEST_DATETIME, mock_key_addresser)
+
+    _, mock_input_dataset_context = create_mock_input_dataset_context(5)
+
+    mocker.patch("osgeo.gdal.Open", return_value=create_mock_gdal_dataset())
+
+    async with S3Client() as mock_s3_client:
+        # hffmc key exists, then for hour 0: new format absent, legacy present
+        mocker.patch.object(mock_s3_client, "all_objects_exist", side_effect=[True, False, True])
+        mocker.patch.object(mock_s3_client, "persist_raster_data", return_value="test_key.tif")
+
+        await hffmc_processor.process(mock_s3_client, mock_input_dataset_context, hours_to_process=1)
+
+    # Verify the processor used legacy CMC_reg keys for weather data
+    weather_call = gdal_prefix_keys_spy.call_args_list[0]
+    temp_key = weather_call.args[0]
+    rh_key = weather_call.args[1]
+    wind_speed_key = weather_call.args[2]
+    assert "CMC_reg_TMP" in temp_key
+    assert "CMC_reg_RH" in rh_key
+    assert "CMC_reg_WIND" in wind_speed_key

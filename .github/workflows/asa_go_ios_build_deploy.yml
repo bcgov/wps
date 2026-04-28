@@ -11,71 +11,53 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-secrets:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Check secrets
-        shell: bash
-        run: |
-          required_env_vars=(
-          "CERTIFICATE"
-          "KEYCHAIN_PASSWD"
-          "PROVISIONING_PROFILE"
-          "GOOGLE_SERVICES_PLIST"
-          "VITE_MUI_LICENSE_KEY"
-          "VITE_BASEMAP_TILE_URL"
-          "VITE_BASEMAP_STYLE_URL"
-          "VITE_SENTRY_DSN"
-          "SENTRY_AUTH_TOKEN"
-          )
-          for var in "${required_env_vars[@]}"; do
-          if [ -z "${!var}" ]; then
-              echo "error: $var is not set."
-              exit 1
-          fi
-          done
-        env:
-          CERTIFICATE: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_BASE64 }}
-          KEYCHAIN_PASSWD: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_PASSWD }}
-          PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
-          GOOGLE_SERVICES_PLIST: ${{ secrets.GOOGLE_SERVICES_PLIST }}
-          VITE_MUI_LICENSE_KEY: ${{ secrets.VITE_MUI_LICENSE_KEY }}
-          VITE_BASEMAP_TILE_URL: ${{ secrets.VITE_BASEMAP_TILE_URL }}
-          VITE_BASEMAP_STYLE_URL: ${{ secrets.VITE_BASEMAP_STYLE_URL }}
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.ASA_GO_SENTRY_AUTH_TOKEN }}
   build-and-publish:
     name: Build and deploy
-    needs: [check-secrets]
     runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: XCode select 26.3
-        run: |
-          sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
-      - name: Setup ASA Go
-        uses: ./.github/actions/asa-go-setup
-
-      - name: Validate MUI License
-        uses: ./.github/actions/asa-go-validate-mui-license
-        with:
-          mui-license-key: ${{ secrets.VITE_MUI_LICENSE_KEY }}
 
       - name: Create environment settings
         working-directory: ./mobile/asa-go
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_KEYCLOAK_AUTH_URL: ${{ secrets.VITE_KEYCLOAK_AUTH_URL }}
-          VITE_KEYCLOAK_REALM: ${{ secrets.VITE_KEYCLOAK_REALM }}
-          VITE_KEYCLOAK_CLIENT: ${{ secrets.VITE_KEYCLOAK_CLIENT }}
+          VITE_KEYCLOAK_AUTH_URL: ${{ secrets.VITE_ASAGO_KEYCLOAK_AUTH_URL }}
+          VITE_KEYCLOAK_REALM: ${{ secrets.VITE_ASAGO_KEYCLOAK_REALM }}
+          VITE_KEYCLOAK_CLIENT: ${{ secrets.VITE_ASAGO_KEYCLOAK_CLIENT }}
           VITE_PMTILES_BUCKET: ${{ secrets.VITE_PMTILES_BUCKET }}
           VITE_MUI_LICENSE_KEY: ${{ secrets.VITE_MUI_LICENSE_KEY }}
           VITE_BASEMAP_TILE_URL: ${{ secrets.VITE_BASEMAP_TILE_URL }}
           VITE_BASEMAP_STYLE_URL: ${{ secrets.VITE_BASEMAP_STYLE_URL }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.ASA_GO_SENTRY_AUTH_TOKEN }}
+          CERTIFICATE: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_BASE64 }}
+          KEYCHAIN_PASSWD: ${{ secrets.APPLE_APP_STORE_BUILD_CERTIFICATE_PASSWD }}
+          PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+          GOOGLE_SERVICES_PLIST: ${{ secrets.GOOGLE_SERVICES_PLIST }}
         run: |
+          required_env_vars=(
+            "VITE_API_BASE_URL"
+            "VITE_KEYCLOAK_AUTH_URL"
+            "VITE_KEYCLOAK_REALM"
+            "VITE_KEYCLOAK_CLIENT"
+            "VITE_PMTILES_BUCKET"
+            "VITE_MUI_LICENSE_KEY"
+            "VITE_BASEMAP_TILE_URL"
+            "VITE_BASEMAP_STYLE_URL"
+            "VITE_SENTRY_DSN"
+            "SENTRY_AUTH_TOKEN"
+            "CERTIFICATE"
+            "KEYCHAIN_PASSWD"
+            "PROVISIONING_PROFILE"
+            "GOOGLE_SERVICES_PLIST"
+          )
+          for var in "${required_env_vars[@]}"; do
+            if [ -z "${!var}" ]; then
+              echo "error: $var is not set."
+              exit 1
+            fi
+          done
           echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" >.env.production
           echo "VITE_KEYCLOAK_AUTH_URL=${VITE_KEYCLOAK_AUTH_URL}" >>.env.production
           echo "VITE_KEYCLOAK_REALM=${VITE_KEYCLOAK_REALM}" >>.env.production
@@ -86,6 +68,17 @@ jobs:
           echo "VITE_BASEMAP_STYLE_URL=${VITE_BASEMAP_STYLE_URL}" >>.env.production
           echo "VITE_SENTRY_DSN=${VITE_SENTRY_DSN}" >>.env.production
           echo "SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}" >>.env.production
+
+      - name: XCode select 26.3
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
+
+      - name: Validate MUI License
+        uses: ./.github/actions/asa-go-validate-mui-license
+        with:
+          mui-license-key: ${{ secrets.VITE_MUI_LICENSE_KEY }}
 
       - name: Copy GoogleService-Info.plist
         env:

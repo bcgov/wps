@@ -71,8 +71,6 @@ const TableHeader = (props: TableHeaderProps) => {
       clone.style.visibility = 'hidden'
       clone.style.position = 'absolute'
       e.currentTarget.appendChild(clone)
-      // NOTE: The text width is not calculated correctly from within cypress, because the hover style doesn't
-      // get applied to the span from within cypress.
       const textWidth = clone.getBoundingClientRect().width
       clone.remove()
       // now we know how wide the text is, we can move it left if it exceeds the container.

@@ -18,7 +18,13 @@ module.export = [
     files: './src/**/*.{ts,tsx}'
   },
   {
-    ignores: ['src/serviceWorker.ts', 'src/**/__tests__/**/*', 'src/**/*.stories.tsx', 'src/types/**/*', '**/cypress/']
+    ignores: [
+      'src/serviceWorker.ts',
+      'src/**/__tests__/**/*',
+      'src/**/*.stories.tsx',
+      'src/types/**/*',
+      '**/playwright/'
+    ]
   },
   ...fixupConfigRules(
     compat.extends(

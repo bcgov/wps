@@ -50,7 +50,7 @@ vi.mock("@/layerDefinitions", async () => {
   };
 });
 
-import { HFI_LAYER_NAME } from "@/layerDefinitions";
+import { createBasemapLayer, HFI_LAYER_NAME } from "@/layerDefinitions";
 
 describe("ASAGoMap", () => {
   beforeAll(() => {
@@ -235,6 +235,27 @@ describe("ASAGoMap", () => {
       false,
     );
     await waitFor(() => expect(hfiCheckbox).not.toBeChecked());
+  });
+
+  it("handles createBasemapLayer failure gracefully when offline", async () => {
+    const error = new Error("Network unavailable");
+    vi.mocked(createBasemapLayer).mockRejectedValueOnce(error);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const store = createTestStore();
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>,
+    );
+
+    expect(screen.getByTestId(defaultProps.testId)).toBeVisible();
+
+    await waitFor(() => {
+      expect(warnSpy).toHaveBeenCalledWith(error);
+    });
+
+    warnSpy.mockRestore();
   });
 
   it("calls save and load map view state", async () => {

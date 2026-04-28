@@ -2,47 +2,46 @@
 https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1601
 """
 
+import datetime
+import logging
 import os
 import sys
-import datetime
-from urllib.parse import urlparse
-import logging
 import tempfile
+from urllib.parse import urlparse
+
+import wps_shared.db.database
+import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
-from wps_shared.db.crud.weather_models import (
-    get_processed_file_record,
-    get_prediction_model,
-    get_prediction_run,
-    update_prediction_run,
-)
-from wps_shared.weather_models.job_utils import (
-    get_model_run_urls,
-)
 from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
     apply_data_retention_policy,
     check_if_model_run_complete,
     flag_file_as_processed,
 )
-from wps_shared.weather_models import (
-    ModelEnum,
-    ProjectionEnum,
-    get_env_canada_model_run_hours,
-    UnhandledPredictionModelType,
-)
-from wps_shared.wps_logging import configure_logging
-import wps_shared.utils.time as time_utils
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
-import wps_shared.db.database
+from wps_shared.db.crud.weather_models import (
+    get_prediction_model,
+    get_prediction_run,
+    get_processed_file_record,
+    update_prediction_run,
+)
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.weather_models import (
-    adjust_model_day,
     CompletedWithSomeExceptions,
+    ModelEnum,
+    ProjectionEnum,
+    UnhandledPredictionModelType,
+    adjust_model_day,
     download,
+    get_env_canada_model_run_hours,
 )
+from wps_shared.weather_models.model_run_urls import (
+    get_model_run_urls,
+)
+from wps_shared.wps_logging import configure_logging
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -75,6 +74,49 @@ def parse_gdps_rdps_filename(filename):
     return variable_name, projection, model_run_timestamp, prediction_timestamp
 
 
+def parse_rdps_msc_filename(url: str):
+    """Parse the new MSC RDPS filename format.
+
+    Expected filename: {YYYYMMDD}T{HH}Z_MSC_RDPS_{VAR_LEVEL}_RLatLon0.09_PT{hhh}H.grib2
+    Example: 20260501T12Z_MSC_RDPS_TMP_AGL-2m_RLatLon0.09_PT003H.grib2
+    Returns: (variable_name, ProjectionEnum.RDPS_LATLON, model_run_timestamp, prediction_timestamp)
+    """
+
+    basename = os.path.basename(url)
+    parts = basename.split("_")
+    # parts[0] = "20260501T12Z", parts[1] = "MSC", parts[2] = "RDPS"
+    if len(parts) < 6 or parts[1] != "MSC" or parts[2] != "RDPS":
+        raise ValueError(f"Not a valid MSC RDPS filename: {basename}")
+
+    date_run = parts[0]  # e.g. "20260501T12Z"
+    if len(date_run) != 12 or "T" not in date_run:
+        raise ValueError(f"Cannot parse date/run from: {date_run}")
+
+    date_str = date_run[:8]  # "20260501"
+    run_hour = int(date_run[9:11])  # 12
+
+    model_run_timestamp = datetime.datetime(
+        year=int(date_str[:4]),
+        month=int(date_str[4:6]),
+        day=int(date_str[6:8]),
+        hour=run_hour,
+        tzinfo=datetime.timezone.utc,
+    )
+
+    # Variable name: everything between "_RDPS_" and "_RLatLon"
+    after_rdps = basename[basename.index("_RDPS_") + 6 :]
+    variable_name = after_rdps[: after_rdps.index("_RLatLon")]
+
+    # Forecast hour from last part: "PT003H.grib2" -> 3
+    pt_part = parts[-1].split(".")[0]  # "PT003H"
+    if not pt_part.startswith("PT") or not pt_part.endswith("H"):
+        raise ValueError(f"Cannot parse forecast hour from: {pt_part}")
+    forecast_hours = int(pt_part[2:-1])
+    prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=forecast_hours)
+
+    return variable_name, ProjectionEnum.RDPS_LATLON, model_run_timestamp, prediction_timestamp
+
+
 def parse_high_res_model_url(url):
     """Parse filename for HRDPS grib file to extract metadata"""
     base = os.path.basename(url)
@@ -104,7 +146,7 @@ def parse_high_res_model_url(url):
 
 def parse_env_canada_filename(url):
     """Take a grib url, as per file name nomenclature defined at
-    https://weather.gc.ca/grib/grib2_glb_25km_e.html, and parse into a meaningful object.
+    https://eccc-msc.github.io/open-data/readme_en/, and parse into a meaningful object.
     """
     filename = os.path.basename(urlparse(url).path)
     base = os.path.basename(filename)
@@ -119,6 +161,11 @@ def parse_env_canada_filename(url):
             parse_high_res_model_url(url)
         )
         model_enum = ModelEnum.HRDPS
+    elif "RDPS" in parts:
+        variable_name, projection, model_run_timestamp, prediction_timestamp = (
+            parse_rdps_msc_filename(url)
+        )
+        model_enum = ModelEnum.RDPS
     elif "reg" in parts:
         variable_name, projection, model_run_timestamp, prediction_timestamp = (
             parse_gdps_rdps_filename(filename)
@@ -183,7 +230,7 @@ class EnvCanada:
         elif self.model_type == ModelEnum.HRDPS:
             self.projection = ProjectionEnum.HIGH_RES_CONTINENTAL
         elif self.model_type == ModelEnum.RDPS:
-            self.projection = ProjectionEnum.REGIONAL_PS
+            self.projection = ProjectionEnum.RDPS_LATLON
         else:
             raise UnhandledPredictionModelType(f"Unknown model type: {self.model_type}")
 
