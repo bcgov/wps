@@ -11,23 +11,23 @@ FROM docker.io/library/node:24-alpine AS static
 USER 0
 WORKDIR /app
 
-COPY web/package.json web/yarn.lock web/.yarnrc.yml web/turbo.json ./
+COPY frontend/package.json frontend/yarn.lock frontend/.yarnrc.yml frontend/turbo.json ./
 
 # Copy package manifests before source for better layer caching
-COPY web/packages/tsconfig/package.json packages/tsconfig/
-COPY web/packages/types/package.json     packages/types/
-COPY web/packages/utils/package.json     packages/utils/
-COPY web/packages/api/package.json       packages/api/
-COPY web/packages/ui/package.json        packages/ui/
-COPY web/apps/wps-web/package.json       apps/wps-web/
+COPY frontend/packages/tsconfig/package.json packages/tsconfig/
+COPY frontend/packages/types/package.json     packages/types/
+COPY frontend/packages/utils/package.json     packages/utils/
+COPY frontend/packages/api/package.json       packages/api/
+COPY frontend/packages/ui/package.json        packages/ui/
+COPY frontend/apps/wps-web/package.json       apps/wps-web/
 
 # do install first so it will be cached
 RUN corepack enable \
     && yarn install --immutable
 
 # Copy all source
-COPY web/packages/ packages/
-COPY web/apps/wps-web/ apps/wps-web/
+COPY frontend/packages/ packages/
+COPY frontend/apps/wps-web/ apps/wps-web/
 
 RUN yarn turbo build
 

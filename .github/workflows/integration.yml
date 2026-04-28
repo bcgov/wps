@@ -179,26 +179,26 @@ jobs:
       - name: use new yarn
         run: yarn set version berry
       - name: Install node dependencies (web)
-        working-directory: ./web
+        working-directory: ./frontend
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install
       - name: Lint (web)
-        working-directory: ./web
+        working-directory: ./frontend
         run: yarn run lint
       - name: Playwright tests (web)
-        working-directory: ./web
+        working-directory: ./frontend
         run: yarn workspace @wps/wps-web run playwright:ci
       - name: Unit tests (web)
-        working-directory: ./web
+        working-directory: ./frontend
         run: yarn run coverage:ci
       - name: Merge and finalize test coverage (web)
-        working-directory: ./web
+        working-directory: ./frontend
         run: yarn run finalizeCoverage
       - name: Archive coverage report (web)
         uses: actions/upload-artifact@v7
         with:
           name: web-coverage-report
-          path: ./web/apps/wps-web/finalCoverage
+          path: ./frontend/apps/wps-web/finalCoverage
 
   upload-code-coverage:
     name: Coverage with CodeCov
