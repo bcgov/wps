@@ -50,7 +50,7 @@ MODEL_CONFIGS: dict[ModelName, ModelConfig] = {
         "variables": HRDPS_VARIABLES,
     },
     "GDPS_GEM": {
-        "routing_key": "v02.post.#.WXO-DD.model_gem_global.15km.grib2.lat_lon.#",
+        "routing_key": "v02.post.#.WXO-DD.model_gem_global.15km.#",
         "description": "Global Environmental Multiscale Model (15km)",
         "variables": GDPS_GEM_VARIABLES,
     },
