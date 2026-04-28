@@ -1,15 +1,18 @@
+import logging
 import os
+import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import logging
+
 import numpy
-import tempfile
+from numba import vectorize
 from osgeo import gdal
 from wps_shared import config
-from numba import vectorize
 from wps_shared.utils.s3 import get_client, read_into_memory
 from wps_shared.weather_models import ModelEnum
-from wps_shared.sfms.rdps_filename_marshaller import adjust_forecast_hour, compose_rdps_key, compose_computed_precip_rdps_key
+from wps_shared.weather_models.rdps import RDPSKeyAddresser, adjust_forecast_hour
+
+_rdps = RDPSKeyAddresser()
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +38,20 @@ async def compute_and_store_precip_rasters(model_run_timestamp: datetime):
     async with get_client() as (client, bucket):
         for hour in range(0, 36):
             accumulation_timestamp = model_run_timestamp + timedelta(hours=hour)
-            (precip_diff_raster, geotransform, projection) = await generate_24_hour_accumulating_precip_raster(accumulation_timestamp)
+            (
+                precip_diff_raster,
+                geotransform,
+                projection,
+            ) = await generate_24_hour_accumulating_precip_raster(accumulation_timestamp)
             if precip_diff_raster is None:
                 # If there is no precip_diff_raster, RDPS precip data is not available. We'll retry the cron job in one hour.
-                logger.warning(f"No precip raster data for hour: {hour} and model run timestamp: {model_run_timestamp.strftime('%Y-%m-%d_%H:%M:%S')}")
+                logger.warning(
+                    f"No precip raster data for hour: {hour} and model run timestamp: {model_run_timestamp.strftime('%Y-%m-%d_%H:%M:%S')}"
+                )
                 break
-            key = f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/" + compose_computed_precip_rdps_key(
-                accumulation_end_datetime=accumulation_timestamp
+            key = (
+                f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/"
+                + _rdps.compose_computed_precip_rdps_key(accumulation_end_datetime=accumulation_timestamp)
             )
 
             res = await client.list_objects_v2(Bucket=bucket, Prefix=key, MaxKeys=1)
@@ -59,7 +69,9 @@ async def compute_and_store_precip_rasters(model_run_timestamp: datetime):
                 key,
             )
             with tempfile.TemporaryDirectory() as temp_dir:
-                temp_filename = os.path.join(temp_dir, model_run_timestamp.date().isoformat() + "precip" + str(hour) + ".tif")
+                temp_filename = os.path.join(
+                    temp_dir, model_run_timestamp.date().isoformat() + "precip" + str(hour) + ".tif"
+                )
                 # Create temp file
                 driver = gdal.GetDriverByName("GTiff")
                 rows, cols = precip_diff_raster.shape
@@ -96,6 +108,11 @@ async def generate_24_hour_accumulating_precip_raster(timestamp: datetime):
     (yesterday_key, today_key) = get_raster_keys_to_diff(timestamp)
     (day_data, day_geotransform, day_projection) = await read_into_memory(today_key)
     if day_data is None:
+        # Fall back to legacy CMC_reg keys for files stored before path migration
+        logger.info("Falling back to legacy precip raster lookup for diff")
+        (yesterday_key, today_key) = get_raster_keys_to_diff_legacy(timestamp)
+        (day_data, day_geotransform, day_projection) = await read_into_memory(today_key)
+    if day_data is None:
         return (day_data, day_geotransform, day_projection)
     if yesterday_key is None:
         return (day_data, day_geotransform, day_projection)
@@ -107,7 +124,11 @@ async def generate_24_hour_accumulating_precip_raster(timestamp: datetime):
 
     later_precip = TemporalPrecip(timestamp=timestamp, precip_amount=day_data)
     earlier_precip = TemporalPrecip(timestamp=yesterday_time, precip_amount=yesterday_data)
-    return (compute_precip_difference(later_precip, earlier_precip), day_geotransform, day_projection)
+    return (
+        compute_precip_difference(later_precip, earlier_precip),
+        day_geotransform,
+        day_projection,
+    )
 
 
 def get_raster_keys_to_diff(timestamp: datetime):
@@ -116,17 +137,40 @@ def get_raster_keys_to_diff(timestamp: datetime):
     model run that has data greater than 24 hours ago, but less than 36 hours ago.
     """
     target_model_run_date = timestamp - timedelta(hours=24)
-    key_prefix = f"weather_models/{ModelEnum.RDPS.lower()}/{target_model_run_date.date().isoformat()}"
+    key_prefix = (
+        f"weather_models/{ModelEnum.RDPS.lower()}/{target_model_run_date.date().isoformat()}"
+    )
     # From earlier model run, get the keys for 24 hours before timestamp and the timestamp to perform the diff
     earlier_key = f"{key_prefix}/"
     later_key = f"{key_prefix}/"
-    later_key = later_key + compose_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, "precip")
+    later_key = later_key + _rdps.compose_rdps_key(
+        target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, "precip"
+    )
     if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
         # not a model run hour, return earlier and later keys to take difference
-        earlier_key = earlier_key + compose_rdps_key(target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, "precip")
+        earlier_key = earlier_key + _rdps.compose_rdps_key(
+            target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, "precip"
+        )
         return (earlier_key, later_key)
 
     # model run hour, just return the model value from 24 hours ago
+    return (None, later_key)
+
+
+def get_raster_keys_to_diff_legacy(timestamp: datetime):
+    """Legacy CMC_reg format fallback for get_raster_keys_to_diff, used during 7-day transition window."""
+    target_model_run_date = timestamp - timedelta(hours=24)
+    key_prefix = (
+        f"weather_models/{ModelEnum.RDPS.lower()}/{target_model_run_date.date().isoformat()}"
+    )
+    later_key = f"{key_prefix}/" + _rdps.compose_rdps_key_legacy(
+        target_model_run_date, target_model_run_date.hour, target_model_run_date.hour + 24, "precip"
+    )
+    if target_model_run_date.hour != 0 and target_model_run_date.hour != 12:
+        earlier_key = f"{key_prefix}/" + _rdps.compose_rdps_key_legacy(
+            target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, "precip"
+        )
+        return (earlier_key, later_key)
     return (None, later_key)
 
 
