@@ -42,7 +42,6 @@
     "@mui/material": "^9.0.0",
     "@mui/system": "^9.0.0",
     "@mui/x-data-grid-pro": "^9.0.0",
-    "@mui/x-date-pickers": "^7.26.0",
     "@mui/x-license-pro": "^6.10.2",
     "@reduxjs/toolkit": "^2.5.1",
     "@sentry/capacitor": "^3.2.1",
