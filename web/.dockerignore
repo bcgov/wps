@@ -5,4 +5,6 @@
 **/dist
 **/.turbo
 **/coverage
-**/coverage-cypress
+**/coverage-playwright
+**/.nyc_output
+**/.nyc_temp_playwright

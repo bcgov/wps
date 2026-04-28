@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from datetime import date, datetime, timedelta, timezone
 
@@ -48,7 +47,7 @@ def build_fcm_message(
             ttl=ttl, notification=messaging.AndroidNotification(tag=tag), priority="high"
         ),
         apns=messaging.APNSConfig(
-            headers={"apns-expiration": apns_expiration, "apns-priority": 10},
+            headers={"apns-expiration": apns_expiration, "apns-priority": "10"},
             payload=messaging.APNSPayload(aps=messaging.Aps(thread_id=tag)),
         ),
         data=data,
@@ -106,8 +105,7 @@ async def trigger_notifications(
             message = build_fcm_message(for_date, zone_with_advisory, batch)
             try:
                 logger.info(f"Notifiying {len(batch)} devices")
-                # messaging.send_each_for_multicast is a synchronous blocking call
-                response = await asyncio.to_thread(messaging.send_each_for_multicast, message)
+                response = await messaging.send_each_for_multicast_async(message)
             except firebase_exceptions.FirebaseError:
                 logger.exception(
                     "FCM send failed for zone=%s date=%s token_count=%d",
