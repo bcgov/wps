@@ -3402,13 +3402,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/format-util@npm:^1.0.3":
-  version: 1.0.4
-  resolution: "@types/format-util@npm:1.0.4"
-  checksum: 10c0/173d1f67155c82311aaa5e90467351a18db17253c7d10174dc5a54d942415f1aa1f693f33ac4b15855e6f90363becb925651337692b3817271037f3d86b6e9f5
-  languageName: node
-  linkType: hard
-
 "@types/fs-extra@npm:^11.0.4":
   version: 11.0.4
   resolution: "@types/fs-extra@npm:11.0.4"
@@ -4906,7 +4899,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ci-info@npm:^4.1.0, ci-info@npm:^4.2.0, ci-info@npm:^4.4.0":
+"ci-info@npm:^4.2.0, ci-info@npm:^4.4.0":
   version: 4.4.0
   resolution: "ci-info@npm:4.4.0"
   checksum: 10c0/44156201545b8dde01aa8a09ee2fe9fc7a73b1bef9adbd4606c9f61c8caeeb73fb7a575c88b0443f7b4edb5ee45debaa59ed54ba5f99698339393ca01349eb3a
@@ -9971,13 +9964,6 @@ __metadata:
     "@types/sinon-chai": "npm:^3.2.4"
     sinon: "npm:^9.0.3"
   checksum: 10c0/d595440a95e9f3f5f051f0798cad08ba500594613d0811e1662b9e868e0224e499f3d36016cac36181d7a335220e030536e15d8bb779e2105c703f40507d381b
-  languageName: node
-  linkType: hard
-
-"tslib@npm:1.14.1":
-  version: 1.14.1
-  resolution: "tslib@npm:1.14.1"
-  checksum: 10c0/69ae09c49eea644bc5ebe1bca4fa4cc2c82b7b3e02f43b84bd891504edf66dbc6b2ec0eef31a957042de2269139e4acff911e6d186a258fb14069cd7f6febce2
   languageName: node
   linkType: hard
 
