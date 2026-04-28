@@ -1,15 +1,12 @@
 import { PlayArrow } from '@mui/icons-material'
 import { CircularProgress, IconButton, TextField } from '@mui/material'
 import {
-  BaseSingleInputFieldProps,
   CalendarIcon,
   DatePicker,
+  DatePickerFieldProps,
   DatePickerProps,
-  DateValidationError,
-  FieldSection,
   LocalizationProvider,
-  UseDateFieldProps,
-  usePickersContext,
+  usePickerContext,
   useSplitFieldProps
 } from '@mui/x-date-pickers'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
@@ -17,29 +14,21 @@ import { isNil, isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import React from 'react'
 
-interface CustomDateTextFieldProps
-  extends
-    UseDateFieldProps<DateTime, false>,
-    BaseSingleInputFieldProps<DateTime | null, DateTime, FieldSection, false, DateValidationError> {
+interface CustomDateTextFieldProps extends DatePickerFieldProps {
   date: DateTime | null
   updateDate: React.Dispatch<React.SetStateAction<DateTime>>
   minimumDate: DateTime
   maximumDate: DateTime
-  disabled?: boolean
 }
 
 function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
-  const { internalProps, forwardedProps } = useSplitFieldProps(props, 'date')
-  const { value } = internalProps
-  const { date, updateDate, minimumDate, maximumDate, slots, slotProps, InputProps, ...other } = forwardedProps
-  const disabled = props.disabled
-  const pickersContext = usePickersContext()
-  const handleTogglePicker = (event: React.UIEvent) => {
-    if (pickersContext.open) {
-      pickersContext.onClose(event)
-    } else {
-      pickersContext.onOpen(event)
-    }
+  const { forwardedProps } = useSplitFieldProps(props, 'date')
+  const { date, updateDate, minimumDate, maximumDate, ...other } = forwardedProps
+  const pickerContext = usePickerContext<DateTime | null>()
+  const disabled = pickerContext.disabled
+
+  const handleTogglePicker = () => {
+    pickerContext.setOpen(prev => !prev)
   }
 
   const handleArrowButton = (value: number) => {
@@ -82,14 +71,15 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
     <TextField
       {...other}
       disabled={disabled}
+      label={pickerContext.label}
       value={
-        isNil(value)
+        isNil(pickerContext.value)
           ? 'No data available'
-          : value.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+          : pickerContext.value.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
       }
       slotProps={{
         input: {
-          ...InputProps,
+          ref: pickerContext.triggerRef,
           readOnly: true,
           startAdornment: renderStartAdornments(),
           endAdornment: renderEndAdornments(),
@@ -100,7 +90,7 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   )
 }
 
-interface ASADatePickerProps extends DatePickerProps<DateTime> {
+interface ASADatePickerProps extends DatePickerProps {
   date: DateTime | null
   updateDate: (d: DateTime) => void
   currentYearMinDate?: DateTime
@@ -142,8 +132,7 @@ const ASADatePicker = ({
             date,
             updateDate,
             minimumDate: currentYearMinDate,
-            maximumDate: currentYearMaxDate,
-            disabled: disabled ?? false
+            maximumDate: currentYearMaxDate
           } as any
         }}
         sx={{ ...other.sx }}
