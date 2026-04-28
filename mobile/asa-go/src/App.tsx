@@ -39,7 +39,7 @@ import { Filesystem } from "@capacitor/filesystem";
 import { ConnectionStatus, Network } from "@capacitor/network";
 import { StatusBar } from "@capacitor/status-bar";
 import { Box, useMediaQuery } from "@mui/material";
-import { LicenseInfo } from "@mui/x-license-pro";
+import { LicenseInfo } from "@mui/x-license";
 import { isNil, isNull } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";

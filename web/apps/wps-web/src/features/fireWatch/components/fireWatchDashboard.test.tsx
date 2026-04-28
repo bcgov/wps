@@ -4,7 +4,7 @@ import { BurnStatusEnum, FireWatch, FuelTypeEnum, PrescriptionEnum } from '@/fea
 import burnForecastSlice, { initialState } from '@/features/fireWatch/slices/burnForecastSlice'
 import { createTestStore } from '@/test/testUtils'
 import { MUI_LICENSE } from '@wps/utils/env'
-import { LicenseInfo } from '@mui/x-data-grid-pro'
+import { LicenseInfo } from '@mui/x-license'
 import { combineReducers } from '@reduxjs/toolkit'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'

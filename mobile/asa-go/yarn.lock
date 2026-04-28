@@ -1507,28 +1507,28 @@
     prop-types "^15.8.1"
     react-is "^19.2.4"
 
-"@mui/x-data-grid-pro@^8.9.1":
-  version "8.27.5"
-  resolved "https://registry.yarnpkg.com/@mui/x-data-grid-pro/-/x-data-grid-pro-8.27.5.tgz#70610a306706b704d0de9cbbabb5b844d8aefe68"
-  integrity sha512-7n+mfUbsACyEOkng2nsL5OLCMcgkXNljDeBXlTFK6MQpAwlSYJ/NJHoYsA+N6OlcxD5gFoXqIEmK1GJpDVa1pQ==
+"@mui/x-data-grid-pro@^8.0.0":
+  version "8.28.3"
+  resolved "https://registry.yarnpkg.com/@mui/x-data-grid-pro/-/x-data-grid-pro-8.28.3.tgz#833816ab58bab1fed1a3b897a52ae6c057730ac8"
+  integrity sha512-5gny5WQCnApHHuxQoF+lHBgyp0VQwUyQBKH7qOKl9Xo96m6OTD+ToFTEbU0Ply8lYqTKTMvQ+Z9ii9qNLvIqyg==
   dependencies:
     "@babel/runtime" "^7.28.4"
     "@mui/utils" "^7.3.5"
-    "@mui/x-data-grid" "8.27.5"
+    "@mui/x-data-grid" "8.28.2"
     "@mui/x-internals" "8.26.0"
     "@mui/x-license" "8.26.0"
     clsx "^2.1.1"
     prop-types "^15.8.1"
 
-"@mui/x-data-grid@8.27.5":
-  version "8.27.5"
-  resolved "https://registry.yarnpkg.com/@mui/x-data-grid/-/x-data-grid-8.27.5.tgz#bf9afa8ea9e158fc997ae4df0dc3b1223921ad7e"
-  integrity sha512-jlm/ldbPtw3i0rQGXUSXPjNlvjaMz9PVYFHq7n2ZyR8kUDVAdPE1m5mP1k/wuwiAznR74drihKjx8AUgbRSdQQ==
+"@mui/x-data-grid@8.28.2":
+  version "8.28.2"
+  resolved "https://registry.yarnpkg.com/@mui/x-data-grid/-/x-data-grid-8.28.2.tgz#dcee3ca86e3054550fe7178b80e182cb3349fa06"
+  integrity sha512-nqVhOtXOfPcKtoULuZuUp9Hdgzcn4xzqjYwqxZkTPnzKGZqkXPGaupy6n+9ssyYg7jg9ot+zNUJB0sbsvlDY/g==
   dependencies:
     "@babel/runtime" "^7.28.4"
     "@mui/utils" "^7.3.5"
     "@mui/x-internals" "8.26.0"
-    "@mui/x-virtualizer" "0.3.3"
+    "@mui/x-virtualizer" "0.3.4"
     clsx "^2.1.1"
     prop-types "^15.8.1"
     use-sync-external-store "^1.6.0"
@@ -1594,10 +1594,10 @@
     is-docker "^4.0.0"
     node-machine-id "^1.1.12"
 
-"@mui/x-virtualizer@0.3.3":
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/@mui/x-virtualizer/-/x-virtualizer-0.3.3.tgz#f788e791564d7fea4706556a614cc23b623bdbe7"
-  integrity sha512-6ugUh7UAhQYdgPgHLu181zqufh3Y8IqEU9Pe6Huzj0xkRi3NwMx/ZzvrHf2WazNOh2uLhQ5ZM2wFqDu3mxBWZA==
+"@mui/x-virtualizer@0.3.4":
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/@mui/x-virtualizer/-/x-virtualizer-0.3.4.tgz#87995a852a56910e58cad5726f2ea1b3a88086e8"
+  integrity sha512-b80Wt08bT+KVDunurdd4es76PdYaazoNGpGde3Ki7jGVaSpoljMYSRVlCtifei+4cOUD3NKJhG4e3av/czTekg==
   dependencies:
     "@babel/runtime" "^7.28.4"
     "@mui/utils" "^7.3.5"
