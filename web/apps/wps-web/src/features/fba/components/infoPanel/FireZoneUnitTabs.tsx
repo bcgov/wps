@@ -95,7 +95,12 @@ const FireZoneUnitTabs = ({
             No advisory data available for the selected date.
           </Typography>
         )}
-        <Grid container justifyContent="center" minHeight={500}>
+        <Grid
+          container
+          sx={{
+            justifyContent: "center",
+            minHeight: 500
+          }}>
           <Grid sx={{ width: '95%' }}>
             <Box>
               <Tabs

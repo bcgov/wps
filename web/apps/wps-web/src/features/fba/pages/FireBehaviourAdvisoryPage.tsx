@@ -178,7 +178,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader isBeta={false} spacing={1} title={FIRE_BEHAVIOUR_ADVISORY_NAME} />
       <Box sx={{ paddingTop: '0.5em' }}>
-        <Grid container spacing={1} alignItems={'center'}>
+        <Grid container spacing={1} sx={{
+          alignItems: 'center'
+        }}>
           <Grid>
             <StyledFormControl>
               <ASADatePicker

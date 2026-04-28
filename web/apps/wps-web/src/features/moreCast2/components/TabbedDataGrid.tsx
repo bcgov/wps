@@ -520,12 +520,19 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   return (
     <Root>
-      <Grid container justifyContent="space-between" alignItems={'center'}>
+      <Grid
+        container
+        sx={{
+          justifyContent: "space-between",
+          alignItems: 'center'
+        }}>
         <Grid>
           <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
         </Grid>
         <Grid sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
-          <Stack direction="row" spacing={theme.spacing(2)} alignItems={'center'}>
+          <Stack direction="row" spacing={theme.spacing(2)} sx={{
+            alignItems: 'center'
+          }}>
             {storedDraftForecast.getLastSavedDraftDateTime() && (
               <Typography sx={{ fontSize: 12 }}>
                 Draft saved {storedDraftForecast.getLastSavedDraftDateTime()}
@@ -552,7 +559,13 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
           </Stack>
         </Grid>
       </Grid>
-      <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Grid
+        container
+        sx={{
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 2
+        }}>
         <Grid>
           <List component={Stack} direction="row">
             <SelectableButton
@@ -656,7 +669,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
         severity={snackbarSeverity}
       />
     </Root>
-  )
+  );
 }
 
 export default React.memo(TabbedDataGrid)

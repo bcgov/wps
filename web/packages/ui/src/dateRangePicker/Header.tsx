@@ -64,7 +64,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
   }
 
   return (
-    <StyledGrid container justifyContent="space-between" alignItems="center">
+    <StyledGrid container sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
       <Grid className={classes.iconContainer}>
         <IconButton className={classes.icon} disabled={prevDisabled} onClick={onClickPrevious} size="large">
           <ChevronLeft color={prevDisabled ? 'disabled' : 'action'} />

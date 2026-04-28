@@ -77,7 +77,9 @@ export const SFMSInsightsPage = () => {
           borderBottomColor: 'secondary.main'
         }}
       >
-        <Grid container spacing={1} alignItems={'center'}>
+        <Grid container spacing={1} sx={{
+          alignItems: 'center'
+        }}>
           {sfmsBoundsLoading ? (
             <Grid>
               <StyledFormControl>

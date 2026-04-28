@@ -602,12 +602,15 @@ const FBATable = (props: FBATableProps) => {
         <Grid
           container
           spacing={2}
-          alignItems="top"
-          justifyContent="center"
-          paddingTop={theme.spacing(1)}
-          paddingBottom={theme.spacing(1)}
-        >
-          <Grid container spacing={2} justifyContent="flex-start" size={4}>
+          sx={{
+            alignItems: "top",
+            justifyContent: "center",
+            paddingTop: theme.spacing(1),
+            paddingBottom: theme.spacing(1)
+          }}>
+          <Grid container spacing={2} size={4} sx={{
+            justifyContent: "flex-start"
+          }}>
             <Grid>
               <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
             </Grid>
@@ -636,7 +639,9 @@ const FBATable = (props: FBATableProps) => {
             </Grid>
           </Grid>
 
-          <Grid container spacing={2} justifyContent="center" size={4}>
+          <Grid container spacing={2} size={4} sx={{
+            justifyContent: "center"
+          }}>
             <Grid>
               <Button
                 data-testid="export"
@@ -661,7 +666,9 @@ const FBATable = (props: FBATableProps) => {
               </Button>
             </Grid>
           </Grid>
-          <Grid container spacing={2} justifyContent="flex-end" size={4}>
+          <Grid container spacing={2} size={4} sx={{
+            justifyContent: "flex-end"
+          }}>
             <Grid>
               <Button
                 data-testid="reset-selected-btn"

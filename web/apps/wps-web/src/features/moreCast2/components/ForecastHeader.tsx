@@ -1,4 +1,4 @@
-import { Button, FormControl, Grid, Menu, MenuItem } from '@mui/material'
+import { Box, Button, FormControl, Menu, MenuItem, Stack } from '@mui/material'
 import { ExpandMore } from '@mui/icons-material'
 import SaveIcon from '@mui/icons-material/Save'
 import React, { MouseEvent, useState } from 'react'
@@ -72,16 +72,22 @@ const ForecastHeader = ({ colDef, columnClickHandlerProps }: ForecastHeaderProps
           }}
         >
           <FormControl>
-            <Grid container direction={'column'} alignContent="center" alignItems={'center'} spacing={1} rowSpacing={1}>
-              <Grid>
+            <Stack
+              spacing={1}
+              sx={{
+                alignContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <Box>
                 <WeatherModelDropdown
                   label="Select model to apply to column"
                   weatherModelOptions={ModelOptions}
                   selectedModelType={selectedColumnModel}
                   setSelectedModelType={setSelectedColumnModel}
                 />
-              </Grid>
-              <Grid>
+              </Box>
+              <Box>
                 <Button
                   data-testid="apply-model-to-column-button"
                   variant="contained"
@@ -95,8 +101,8 @@ const ForecastHeader = ({ colDef, columnClickHandlerProps }: ForecastHeaderProps
                 >
                   Apply {selectedColumnModel} to {title}
                 </Button>
-              </Grid>
-            </Grid>
+              </Box>
+            </Stack>
           </FormControl>
         </MenuItem>
       </Menu>

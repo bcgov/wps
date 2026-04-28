@@ -26,7 +26,11 @@ const MorecastAboutDataContent = () => (
     <List disablePadding>
       <ListItem disableGutters>
         <Box>
-          <Typography fontSize="inherit" fontWeight="bold">
+          <Typography
+            sx={{
+              fontSize: "inherit",
+              fontWeight: "bold"
+            }}>
             Temp, RH, Wind Speed/Direction
           </Typography>
           <StyledListItemText
@@ -43,7 +47,11 @@ const MorecastAboutDataContent = () => (
       </ListItem>
       <ListItem disableGutters>
         <Box>
-          <Typography fontSize="inherit" fontWeight="bold">
+          <Typography
+            sx={{
+              fontSize: "inherit",
+              fontWeight: "bold"
+            }}>
             Precipitation
           </Typography>
           <StyledListItemText
@@ -55,7 +63,11 @@ const MorecastAboutDataContent = () => (
       </ListItem>
       <ListItem disableGutters>
         <Box>
-          <Typography fontSize="inherit" fontWeight="bold">
+          <Typography
+            sx={{
+              fontSize: "inherit",
+              fontWeight: "bold"
+            }}>
             Bias-adjusted Values
           </Typography>
           <StyledListItemText
@@ -67,7 +79,11 @@ const MorecastAboutDataContent = () => (
       </ListItem>
       <ListItem disableGutters>
         <Box>
-          <Typography fontSize="inherit" fontWeight="bold">
+          <Typography
+            sx={{
+              fontSize: "inherit",
+              fontWeight: "bold"
+            }}>
             Grass Curing
           </Typography>
           <StyledListItemText
@@ -78,8 +94,14 @@ const MorecastAboutDataContent = () => (
       </ListItem>
     </List>
 
-    <Box mt={3}>
-      <Typography fontWeight="bold" fontSize={'inherit'}>
+    <Box sx={{
+      mt: 3
+    }}>
+      <Typography
+        sx={{
+          fontWeight: "bold",
+          fontSize: 'inherit'
+        }}>
         Model Run Hours
       </Typography>
 

@@ -115,14 +115,16 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
                       .trim()}
                             `
               }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Icon>
-                      <materialIcons.DateRange />
-                    </Icon>
-                  </InputAdornment>
-                )
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Icon>
+                        <materialIcons.DateRange />
+                      </Icon>
+                    </InputAdornment>
+                  )
+                }
               }}
             />
           </Button>

@@ -10,7 +10,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import PauseCircleIcon from '@mui/icons-material/PauseCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle'
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined'
 import { Alert, Backdrop, Box, CircularProgress, Snackbar, Tooltip, Typography, useTheme } from '@mui/material'
 import { DataGridPro, DataGridProProps, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
 import { FireWatchPrescriptionColors } from '@wps/ui/theme'
@@ -87,7 +87,7 @@ const FireWatchDashboard = () => {
         if (!params.row.fireWatch.station) {
           return (
             <Tooltip placement="right" title="Station unavailable">
-              <ErrorOutlineIcon sx={{ color: 'red' }} />
+              <ErrorOutlineOutlinedIcon sx={{ color: 'red' }} />
             </Tooltip>
           )
         }

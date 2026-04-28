@@ -109,7 +109,13 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
 
   return (
     <StyledCard className={classes.card}>
-      <Box display="flex" alignItems="center" justifyContent="center" position="relative">
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative"
+        }}>
         <CardHeader className={classes.cardHeader} title={renderLink()} />
         <Box sx={{ position: 'absolute', right: theme.spacing(2) }}>{props.isBeta && <BetaTag />}</Box>
       </Box>
@@ -129,7 +135,7 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
         </Button>
       </CardActions>
     </StyledCard>
-  )
+  );
 }
 
 export default ToolCard

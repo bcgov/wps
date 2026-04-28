@@ -29,7 +29,9 @@ const AdvisoryReport = ({ issueDate, forDate, selectedFireCentre, selectedFireZo
         showAdvisoryStatusBar={true}
         advisoryStatus={fireZoneUnitDetails?.status}
       >
-        <Grid container justifyContent="center">
+        <Grid container sx={{
+          justifyContent: "center"
+        }}>
           <Grid sx={{ width: '90%' }}>
             <AdvisoryText
               issueDate={issueDate}
@@ -41,7 +43,7 @@ const AdvisoryReport = ({ issueDate, forDate, selectedFireCentre, selectedFireZo
         </Grid>
       </InfoAccordion>
     </div>
-  )
+  );
 }
 
 export default AdvisoryReport
