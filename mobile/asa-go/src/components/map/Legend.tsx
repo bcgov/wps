@@ -52,7 +52,7 @@ interface LegendItemProps {
   checked: boolean;
   onChange: (
     event: React.ChangeEvent<HTMLInputElement>,
-    checked: boolean
+    checked: boolean,
   ) => void;
   subItems?: SubItem[];
   description?: string | null;
@@ -69,7 +69,12 @@ const LegendItem = ({
 }: LegendItemProps) => (
   <div>
     <Grid>
-      <Grid container alignItems="center">
+      <Grid
+        container
+        sx={{
+          alignItems: "center",
+        }}
+      >
         <FormControlLabel
           control={
             <Checkbox
@@ -89,7 +94,12 @@ const LegendItem = ({
           sx={{ paddingLeft: 2 }}
         />
       </Grid>
-      <Grid container alignItems={"center"}>
+      <Grid
+        container
+        sx={{
+          alignItems: "center",
+        }}
+      >
         <Grid sx={{ transform: "translate(50%, -50%)" }}>
           <Typography variant="body1" sx={{ fontSize: "0.75rem" }}>
             {description ?? (renderEmptyDescription && <span>&nbsp;</span>)}
@@ -128,7 +138,7 @@ const Legend = ({ layerVisibility, onLayerVisibilityChange }: LegendProps) => {
   ];
 
   return (
-    <LegendGrid padding={"0 0.5rem"} data-testid={`asa-go-map-legend`}>
+    <LegendGrid sx={{ padding: "0 0.5rem" }} data-testid={`asa-go-map-legend`}>
       <LegendTitle align="center" gutterBottom>
         Layers
       </LegendTitle>

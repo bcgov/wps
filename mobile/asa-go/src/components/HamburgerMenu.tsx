@@ -1,12 +1,13 @@
 import {
+  Box,
   Drawer,
   IconButton,
   List,
-  Typography,
   ListItemButton,
+  Stack,
+  Typography,
 } from "@mui/material";
 import { EmailComposer } from "capacitor-email-composer";
-import Grid from "@mui/material/Grid";
 import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
 import { useState } from "react";
 
@@ -57,13 +58,17 @@ export const HamburgerMenu = ({
           },
         }}
       >
-        <Grid
-          container
+        <Stack
           spacing={1}
-          direction={"column"}
           sx={{ width: 250, padding: "16px" }}
         >
-          <Grid container alignItems="center" justifyContent="space-between">
+          <Box
+            sx={{
+              alignItems: "center",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
             <IconButton
               onClick={() => setOpen(false)}
               sx={{
@@ -80,7 +85,7 @@ export const HamburgerMenu = ({
             >
               <CloseIcon />
             </IconButton>
-          </Grid>
+          </Box>
           <List
             sx={{
               width: "100%",
@@ -122,7 +127,7 @@ export const HamburgerMenu = ({
               </ListItemButton>
             ))}
           </List>
-        </Grid>
+        </Stack>
       </Drawer>
     </div>
   );

@@ -39,9 +39,10 @@ const SubscriptionOption = ({
         <ListItemText>
           <Typography
             variant="body2"
-            fontWeight="bold"
-            sx={{ whiteSpace: "pre-line" }}
-          >
+            sx={{
+              fontWeight: "bold",
+              whiteSpace: "pre-line"
+            }}>
             {fireZoneUnitNameFormatter(fireZoneUnit.name)}
           </Typography>
         </ListItemText>

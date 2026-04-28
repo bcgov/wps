@@ -7,14 +7,13 @@ import {
   useTPIStatsForDate,
 } from "@/hooks/dataHooks";
 import { hasRequiredFields } from "@/utils/profileUtils";
-import { Box, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { FireShape } from "api/fbaAPI";
 import type { FireCentre } from "@/types/fireCentre";
 import { isNil } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
-import Grid from "@mui/system/Grid";
 
 interface FireZoneUnitSummaryProps {
   date: DateTime;
@@ -110,26 +109,26 @@ const FireZoneUnitSummary = ({
           >
             {selectedFireZoneUnit.mof_fire_zone_name}
           </Typography>
-          <Grid
-            container
-            alignItems={"center"}
-            direction={"column"}
-            sx={{ width: "100%" }}
+          <Stack
+            sx={{
+              alignItems: "center",
+              width: "100%",
+            }}
           >
-            <Grid sx={{ pb: theme.spacing(4), width: "100%" }}>
+            <Box sx={{ pb: theme.spacing(4), width: "100%" }}>
               <FuelSummary
                 selectedFireZoneUnit={selectedFireZoneUnit}
                 fireZoneFuelStats={fireZoneFuelStats}
               />
-            </Grid>
-            <Grid sx={{ width: "100%" }}>
+            </Box>
+            <Box sx={{ width: "100%" }}>
               {fireZoneTPIStats && hasRequiredFields(fireZoneTPIStats) ? (
                 <ElevationStatus tpiStats={fireZoneTPIStats}></ElevationStatus>
               ) : (
                 <Typography>No elevation information available.</Typography>
               )}
-            </Grid>
-          </Grid>
+            </Box>
+          </Stack>
         </>
       )}
     </Box>
