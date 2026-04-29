@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_date: date):
+    raise ValueError("test error")
     await process_hfi(run_type, run_datetime, for_date)
     await process_hfi_elevation(run_type, run_datetime, for_date)
     await process_high_hfi_area(run_type, run_datetime, for_date)
