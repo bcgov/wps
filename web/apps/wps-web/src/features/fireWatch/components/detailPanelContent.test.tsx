@@ -5,17 +5,16 @@ import { DateTime } from 'luxon'
 import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
 import { BurnStatusEnum, FuelTypeEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
 import { MUI_LICENSE } from '@wps/utils/env'
-import { LicenseInfo } from '@mui/x-data-grid-pro'
-
+import { LicenseInfo } from '@mui/x-license'
 
 const now = DateTime.now()
 const mockFireWatch = {
   burnWindowEnd: now,
   burnWindowStart: now,
   contactEmail: ['test@gov.bc.ca'],
-  fireCentre: {id: 1, name: 'test'},
-  geometry: [123,123],
-  station: {code: 1, name: 'test'},
+  fireCentre: { id: 1, name: 'test' },
+  geometry: [123, 123],
+  station: { code: 1, name: 'test' },
   status: BurnStatusEnum.ACTIVE,
   title: 'test',
   // Fuel parameters
@@ -107,7 +106,7 @@ describe('DetailPanelContent', () => {
   beforeEach(() => LicenseInfo.setLicenseKey(MUI_LICENSE))
   it('renders DataGridPro with data', () => {
     render(<DetailPanelContent row={mockRowWithData} />)
-    
+
     const grid = screen.getByTestId('detail-panel-content-1')
     expect(grid).toBeInTheDocument()
     expect(screen.queryByText('No data available.')).not.toBeInTheDocument()

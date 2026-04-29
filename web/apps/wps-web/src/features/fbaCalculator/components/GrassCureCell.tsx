@@ -60,16 +60,18 @@ const GrassCureProps = (props: GrassCureCellProps) => {
         inputMode="numeric"
         size="small"
         variant="outlined"
-        inputProps={{ min: 0, max: 100 }}
         onChange={changeHandler}
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
         value={grassCurePercentage ? grassCurePercentage : ''}
         disabled={props.disabled}
         error={hasError}
+        slotProps={{
+          htmlInput: { min: 0, max: 100 }
+        }}
       />
     </Tooltip>
-  )
+  );
 }
 
 export default React.memo(GrassCureProps)

@@ -95,8 +95,13 @@ const FireZoneUnitTabs = ({
             No advisory data available for the selected date.
           </Typography>
         )}
-        <Grid container justifyContent="center" minHeight={500}>
-          <Grid item sx={{ width: '95%' }}>
+        <Grid
+          container
+          sx={{
+            justifyContent: "center",
+            minHeight: 500
+          }}>
+          <Grid sx={{ width: '95%' }}>
             <Box>
               <Tabs
                 value={tabNumber}
@@ -106,7 +111,9 @@ const FireZoneUnitTabs = ({
                     height: '4px'
                   }
                 }}
-                TabIndicatorProps={{ style: { transition: 'none' } }}
+                slotProps={{
+                  indicator: { style: { transition: 'none' } }
+                }}
               >
                 {sortedFireZoneUnits.map((zone, index) => {
                   const isActive = tabNumber === index
@@ -160,7 +167,7 @@ const FireZoneUnitTabs = ({
         </Grid>
       </InfoAccordion>
     </div>
-  )
+  );
 }
 
 export default FireZoneUnitTabs

@@ -1,6 +1,6 @@
 import { createTheme, StyledEngineProvider, ThemeProvider, Tooltip } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined'
 import { BACKGROUND_COLOR, PLANNING_AREA } from '@wps/ui/theme'
 import { isUndefined } from 'lodash'
 import React from 'react'
@@ -47,11 +47,11 @@ const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
   const icon =
     !props.isDataCell || isUndefined(props.isDataCell) ? (
       <PlanningAreaIcon>
-        <ErrorOutlineIcon data-testid={props.testId}></ErrorOutlineIcon>
+        <ErrorOutlineOutlinedIcon data-testid={props.testId}></ErrorOutlineOutlinedIcon>
       </PlanningAreaIcon>
     ) : (
       <DataCellIcon>
-        <ErrorOutlineIcon data-testid={props.testId}></ErrorOutlineIcon>
+        <ErrorOutlineOutlinedIcon data-testid={props.testId}></ErrorOutlineOutlinedIcon>
       </DataCellIcon>
     )
   return (

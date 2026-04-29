@@ -35,7 +35,13 @@ const SidePanel = ({
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <CalendarMonthOutlined sx={{ color: 'text.secondary', fontSize: 20 }} />
-        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 1.5 }}>
+        <Typography
+          variant="overline"
+          sx={{
+            color: "text.secondary",
+            fontWeight: 600,
+            letterSpacing: 1.5
+          }}>
           Time
         </Typography>
       </Box>
@@ -64,7 +70,13 @@ const SidePanel = ({
       </FormControl>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <LayersOutlined sx={{ color: 'text.secondary', fontSize: 20 }} />
-        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 1.5 }}>
+        <Typography
+          variant="overline"
+          sx={{
+            color: "text.secondary",
+            fontWeight: 600,
+            letterSpacing: 1.5
+          }}>
           Data Configuration
         </Typography>
       </Box>
@@ -82,7 +94,7 @@ const SidePanel = ({
         </Select>
       </FormControl>
     </Box>
-  )
+  );
 }
 
 export default SidePanel

@@ -65,7 +65,6 @@ const PrecipCell = (props: PrecipCellProps) => {
         inputMode="numeric"
         size="small"
         variant="outlined"
-        inputProps={{ min: 0, max: 200, step: '1' }}
         onChange={changeHandler}
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
@@ -73,6 +72,9 @@ const PrecipCell = (props: PrecipCellProps) => {
         disabled={props.disabled}
         error={hasError}
         sx={{ width: 80 }}
+        slotProps={{
+          htmlInput: { min: 0, max: 200, step: '1' }
+        }}
       />
     </Tooltip>
   )

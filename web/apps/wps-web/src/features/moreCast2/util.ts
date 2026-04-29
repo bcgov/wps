@@ -7,7 +7,6 @@ import { getDateTimeNowPST } from '@wps/utils/date'
 import { bui, dc, dmc, ffmc, fwi, isi } from '@psu/cffdrs_ts'
 import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
 
-
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
   stations: StationGroupMember[]
@@ -241,15 +240,29 @@ export const fillGrassCuringForecast = (rows: MoreCast2Row[]): MoreCast2Row[] =>
 export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: MoreCast2Row[]) => {
   const editedStationCode = editedRow.stationCode
   const editedDate = editedRow.forDate
-  const newGrassCuringValue = editedRow.grassCuringForecast!.value
-  const stationRows = allRows.filter(row => row.stationCode === editedStationCode)
+  const stationRows = allRows
+    .filter(row => row.stationCode === editedStationCode)
+    .map(row => (row.id === editedRow.id ? editedRow : row))
 
-  for (const row of stationRows) {
-    if (row.forDate > editedDate) {
-      row.grassCuringForecast!.value = newGrassCuringValue
-    }
+  if (!editedRow.grassCuringForecast) {
+    return stationRows
   }
-  return stationRows
+
+  const newGrassCuringValue = editedRow.grassCuringForecast.value
+
+  return stationRows.map(row => {
+    if (row.forDate <= editedDate || !row.grassCuringForecast) {
+      return row
+    }
+
+    return {
+      ...row,
+      grassCuringForecast: {
+        ...row.grassCuringForecast,
+        value: newGrassCuringValue
+      }
+    }
+  })
 }
 
 /**

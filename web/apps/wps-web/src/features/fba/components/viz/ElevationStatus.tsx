@@ -1,6 +1,6 @@
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
-import Grid from '@mui/material/Unstable_Grid2'
+import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 import ElevationLabel from 'features/fba/components/viz/ElevationLabel'
@@ -27,9 +27,9 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
   const bottom_percent =
     tpiStats.valley_bottom_tpi === 0 ? 0 : Math.round((tpiStats.valley_bottom_hfi / tpiStats.valley_bottom_tpi) * 100)
   return (
-    <Grid container xs={12} data-testid="elevation-status">
-      <Grid container sx={{ height: theme.spacing(6) }} xs={12}>
-        <Grid sx={{ paddingLeft: theme.spacing(0.5), paddingRight: theme.spacing(0.5) }} xs={6}>
+    <Grid container data-testid="elevation-status" size={12}>
+      <Grid container sx={{ height: theme.spacing(6) }} size={12}>
+        <Grid sx={{ paddingLeft: theme.spacing(0.5), paddingRight: theme.spacing(0.5) }} size={6}>
           <Typography
             sx={{
               color: '#003366',
@@ -41,7 +41,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
             Topographic Position:
           </Typography>
         </Grid>
-        <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }} xs={6}>
+        <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }} size={6}>
           <Typography
             sx={{
               color: '#003366',
@@ -54,7 +54,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
           </Typography>
         </Grid>
       </Grid>
-      <Grid xs={12}>
+      <Grid size={12}>
         <Box
           sx={{
             background: `url(${Mountain})`,
@@ -64,16 +64,16 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
           }}
           data-testid="tpi-mountain"
         >
-          <Grid sx={{ paddingLeft: theme.spacing(0.5), paddingRight: theme.spacing(0.5) }} container xs={12}>
-            <Grid container sx={{ height: theme.spacing(8) }} xs={12}>
+          <Grid sx={{ paddingLeft: theme.spacing(0.5), paddingRight: theme.spacing(0.5) }} container size={12}>
+            <Grid container sx={{ height: theme.spacing(8) }} size={12}>
               <ElevationLabel label={ElevationOption.UPPER} />
               <ElevationFlag id="upper" percent={upper_percent} testId="upper-slope" />
             </Grid>
-            <Grid container sx={{ height: theme.spacing(8) }} xs={12}>
+            <Grid container sx={{ height: theme.spacing(8) }} size={12}>
               <ElevationLabel label={ElevationOption.MID} />
               <ElevationFlag id="mid" percent={mid_percent} testId="mid-slope" />
             </Grid>
-            <Grid container sx={{ height: theme.spacing(8) }} xs={12}>
+            <Grid container sx={{ height: theme.spacing(8) }} size={12}>
               <ElevationLabel label={ElevationOption.BOTTOM} />
               <ElevationFlag id="lower" percent={bottom_percent} testId="valley-bottom" />
             </Grid>

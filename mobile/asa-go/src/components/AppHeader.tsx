@@ -1,7 +1,7 @@
 import { HamburgerMenu } from "@/components/HamburgerMenu";
 import { theme } from "@/theme";
 import { AppBar, Box, Toolbar, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { useLayoutEffect, useRef, useState } from "react";
 
 export const AppHeader = () => {

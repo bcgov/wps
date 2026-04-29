@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { styled } from '@mui/material/styles'
 import { useDispatch, useSelector } from 'react-redux'
 import {
+  Box,
   Checkbox,
   FormControl,
   Grid,
@@ -10,6 +11,7 @@ import {
   ListItemButton,
   ListItemText,
   ListItemIcon,
+  Stack,
   Typography,
   CircularProgress
 } from '@mui/material'
@@ -107,8 +109,8 @@ const StationPanel = (props: StationPanelProps) => {
       </div>
       {!loading ? (
         <>
-          <Grid container spacing={1} direction="column">
-            <Grid item xs={2}>
+          <Stack spacing={1}>
+            <Box>
               <FormControl className={classes.formControl}>
                 <StationGroupDropdown
                   idir={idir}
@@ -117,15 +119,20 @@ const StationPanel = (props: StationPanelProps) => {
                   setSelectedStationGroup={setSelectedStationGroup}
                 />
               </FormControl>
-            </Grid>
-          </Grid>
+            </Box>
+          </Stack>
           <div className={classes.stationContainer}>
             {selectedStationGroup && (
-              <Grid container alignItems="center">
-                <Grid item>
+              <Grid
+                container
+                sx={{
+                  alignItems: 'center'
+                }}
+              >
+                <Grid>
                   <Checkbox checked={selectAll} onChange={handleSelectAll} indeterminate={selectAll} />
                 </Grid>
-                <Grid item>
+                <Grid>
                   <Typography>{selectAll ? 'Clear selection' : 'Select all'}</Typography>
                 </Grid>
               </Grid>

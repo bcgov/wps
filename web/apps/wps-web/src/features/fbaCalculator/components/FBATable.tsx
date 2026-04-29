@@ -602,16 +602,19 @@ const FBATable = (props: FBATableProps) => {
         <Grid
           container
           spacing={2}
-          alignItems="top"
-          justifyContent="center"
-          paddingTop={theme.spacing(1)}
-          paddingBottom={theme.spacing(1)}
-        >
-          <Grid item xs={4} container spacing={2} justifyContent="flex-start">
-            <Grid item>
+          sx={{
+            alignItems: "top",
+            justifyContent: "center",
+            paddingTop: theme.spacing(1),
+            paddingBottom: theme.spacing(1)
+          }}>
+          <Grid container spacing={2} size={4} sx={{
+            justifyContent: "flex-start"
+          }}>
+            <Grid>
               <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
             </Grid>
-            <Grid item>
+            <Grid>
               <Button
                 data-testid="add-row"
                 variant="contained"
@@ -622,7 +625,7 @@ const FBATable = (props: FBATableProps) => {
                 Add Row
               </Button>
             </Grid>
-            <Grid item>
+            <Grid>
               <Button
                 data-testid="remove-rows"
                 disabled={rows.length === 0}
@@ -636,8 +639,10 @@ const FBATable = (props: FBATableProps) => {
             </Grid>
           </Grid>
 
-          <Grid item xs={4} container spacing={2} justifyContent="center">
-            <Grid item>
+          <Grid container spacing={2} size={4} sx={{
+            justifyContent: "center"
+          }}>
+            <Grid>
               <Button
                 data-testid="export"
                 variant="outlined"
@@ -649,7 +654,7 @@ const FBATable = (props: FBATableProps) => {
                 Export Selection
               </Button>
             </Grid>
-            <Grid item>
+            <Grid>
               <Button
                 data-testid="filter-columns-btn"
                 disabled={fireBehaviourResultStations.length === 0}
@@ -661,8 +666,10 @@ const FBATable = (props: FBATableProps) => {
               </Button>
             </Grid>
           </Grid>
-          <Grid item xs={4} container spacing={2} justifyContent="flex-end">
-            <Grid item>
+          <Grid container spacing={2} size={4} sx={{
+            justifyContent: "flex-end"
+          }}>
+            <Grid>
               <Button
                 data-testid="reset-selected-btn"
                 disabled={selected.length === 0}
@@ -672,7 +679,7 @@ const FBATable = (props: FBATableProps) => {
                 Reset Selected
               </Button>
             </Grid>
-            <Grid item>
+            <Grid>
               <AboutDataPopover content={FBAAboutDataContent} />
             </Grid>
           </Grid>
@@ -735,7 +742,7 @@ const FBATable = (props: FBATableProps) => {
         </FireTable>
       </ErrorBoundary>
     </React.Fragment>
-  )
+  );
 }
 
 export default React.memo(FBATable)

@@ -17,7 +17,16 @@ export interface DateRangeSelectorProps {
   setDateRange: (newDateRange: DateRange) => void
 }
 
-const DateRangeSelector = ({ dateRange, minDate, maxDate, maxDayOffset, dateDisplayFormat, size, label, setDateRange }: DateRangeSelectorProps) => {
+const DateRangeSelector = ({
+  dateRange,
+  minDate,
+  maxDate,
+  maxDayOffset,
+  dateDisplayFormat,
+  size,
+  label,
+  setDateRange
+}: DateRangeSelectorProps) => {
   const startDate = dateRange && dateRange.startDate ? dateRange.startDate : undefined
   const endDate = dateRange && dateRange.endDate ? dateRange.endDate : undefined
 
@@ -47,14 +56,16 @@ const DateRangeSelector = ({ dateRange, minDate, maxDate, maxDayOffset, dateDisp
                 ).toFormat(dateDisplayFormat)}
                         `
           }
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Icon>
-                  <materialIcons.DateRange />
-                </Icon>
-              </InputAdornment>
-            )
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Icon>
+                    <materialIcons.DateRange />
+                  </Icon>
+                </InputAdornment>
+              )
+            }
           }}
         />
       </Button>

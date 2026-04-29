@@ -55,7 +55,11 @@ export interface ColumnClickHandlerProps {
 export const Root = styled('div')({
   display: 'flex',
   flexGrow: 1,
-  flexDirection: 'column'
+  flexDirection: 'column',
+  '& .MuiDataGrid-cell': {
+    display: 'flex',
+    alignItems: 'center'
+  }
 })
 
 const FORECAST_ERROR_MESSAGE = 'The forecast was not saved; an unexpected error occurred.'
@@ -516,12 +520,19 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   return (
     <Root>
-      <Grid container justifyContent="space-between" alignItems={'center'}>
-        <Grid item>
+      <Grid
+        container
+        sx={{
+          justifyContent: "space-between",
+          alignItems: 'center'
+        }}>
+        <Grid>
           <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
         </Grid>
-        <Grid item sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
-          <Stack direction="row" spacing={theme.spacing(2)} alignItems={'center'}>
+        <Grid sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
+          <Stack direction="row" spacing={theme.spacing(2)} sx={{
+            alignItems: 'center'
+          }}>
             {storedDraftForecast.getLastSavedDraftDateTime() && (
               <Typography sx={{ fontSize: 12 }}>
                 Draft saved {storedDraftForecast.getLastSavedDraftDateTime()}
@@ -548,8 +559,14 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
           </Stack>
         </Grid>
       </Grid>
-      <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Grid item>
+      <Grid
+        container
+        sx={{
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 2
+        }}>
+        <Grid>
           <List component={Stack} direction="row">
             <SelectableButton
               dataTestId="temp-tab-button"
@@ -609,7 +626,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
             </SelectableButton>
           </List>
         </Grid>
-        <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
+        <Grid sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
           <AboutDataPopover content={MorecastAboutDataContent} maxWidth={450} testId={'morecast-about-data-popover'} />
         </Grid>
       </Grid>
@@ -652,7 +669,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
         severity={snackbarSeverity}
       />
     </Root>
-  )
+  );
 }
 
 export default React.memo(TabbedDataGrid)

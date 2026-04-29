@@ -55,22 +55,32 @@ const LegendItem: React.FC<LegendItemProps> = ({
   return (
     <div>
       <Grid>
-        <Grid container alignItems={'center'}>
-          <Grid item>
+        <Grid
+          container
+          sx={{
+            alignItems: 'center'
+          }}
+        >
+          <Grid>
             <Checkbox
               data-testid={`${label.toLowerCase().split(' ')[0]}-checkbox`}
               checked={checked}
               onChange={onChange}
             />
           </Grid>
-          <Grid item>
+          <Grid>
             <Typography variant="h2" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
               {label}
             </Typography>
           </Grid>
         </Grid>
-        <Grid container alignItems={'center'}>
-          <Grid item sx={{ transform: 'translate(50%, -50%)' }}>
+        <Grid
+          container
+          sx={{
+            alignItems: 'center'
+          }}
+        >
+          <Grid sx={{ transform: 'translate(50%, -50%)' }}>
             <Typography variant="body1" sx={{ fontSize: '0.75rem' }}>
               {description ?? (renderEmptyDescription && <span>&nbsp;</span>)}
             </Typography>
@@ -125,7 +135,7 @@ const Legend = ({ onToggleLayer, showShapeStatus, setShowShapeStatus, showHFI, s
   ]
 
   return (
-    <LegendGrid padding={'0 0.5rem'} data-testid={`asa-map-legend`}>
+    <LegendGrid sx={{ padding: '0 0.5rem' }} data-testid={`asa-map-legend`}>
       <LegendTitle align="center" gutterBottom>
         BC Fire Advisories
       </LegendTitle>

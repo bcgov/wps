@@ -46,13 +46,13 @@ describe('StationGroupsDropdown', () => {
     const autocomplete = getByTestId('station-group-dropdown')
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
-    autocomplete.focus()
-    await userEvent.type(autocomplete, '1')
+    input.focus()
+    await userEvent.type(input, '1')
 
     await waitFor(() => expect(input.value).toBe('1'))
 
-    await userEvent.type(autocomplete, '{arrowdown}')
-    await userEvent.type(autocomplete, '{enter}')
+    await userEvent.type(input, '{arrowdown}')
+    await userEvent.type(input, '{enter}')
     await waitFor(() => expect(setSelectedStationGroup).toHaveBeenCalledTimes(1))
     await waitFor(() => expect(setSelectedStationGroup).toHaveBeenCalledWith(stationGroups[0]))
   })

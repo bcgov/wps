@@ -185,7 +185,7 @@ describe("FireZoneUnitSummary", () => {
     expect(summary).toBeInTheDocument();
   });
 
-  it("should render Grid container with correct props", () => {
+  it("should render Stack container with correct props", () => {
     const { container } = renderWithProvider(
       <FireZoneUnitSummary
         selectedFireCentre={mockFireCentre}
@@ -194,8 +194,8 @@ describe("FireZoneUnitSummary", () => {
       />,
     );
 
-    const gridContainer = container.querySelector(".MuiGrid2-root");
-    expect(gridContainer).toBeInTheDocument();
+    const stackContainer = container.querySelector(".MuiStack-root");
+    expect(stackContainer).toBeInTheDocument();
   });
 
   it("should handle missing fire center", () => {
