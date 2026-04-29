@@ -71,6 +71,7 @@ objects:
                 - --models
                 - GDPS
                 - RDPS
+                - GDPS_GEM
                 - --run-hours
                 - "00"
                 - "12"

@@ -23,8 +23,8 @@ def parse_args():
     parser.add_argument(
         "--models",
         nargs="+",
-        choices=["RDPS", "GDPS", "HRDPS"],
-        default=["RDPS", "GDPS", "HRDPS"],
+        choices=["RDPS", "GDPS", "HRDPS", "GDPS_GEM"],
+        default=["RDPS", "GDPS", "HRDPS", "GDPS_GEM"],
         help="Models to download",
     )
 
