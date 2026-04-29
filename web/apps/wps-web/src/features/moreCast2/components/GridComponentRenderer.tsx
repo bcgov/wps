@@ -155,7 +155,7 @@ export class GridComponentRenderer {
     const forecastValue = this.getPredictionItem(params.row, field)
     const label =
       isGrassField || isPreviousDate ? '' : createWeatherModelLabel(forecastValue?.choice ?? ModelChoice.NULL)
-    const formattedValue = parseFloat(params.formattedValue)
+    const formattedValue = Number.parseFloat(String(params.formattedValue))
     const actualField = this.getActualField(field)
     const actualValue = this.getNumericValue(params.row, actualField)
     let showLessThan = false
@@ -251,7 +251,7 @@ export class GridComponentRenderer {
       [field]: {
         ...predictionItem,
         choice: ModelChoice.MANUAL,
-        value: precision === 0 ? parseInt(fixedValue, 10) : parseFloat(fixedValue)
+        value: precision === 0 ? Number.parseInt(fixedValue, 10) : Number.parseFloat(fixedValue)
       }
     } as MoreCast2Row
   }
