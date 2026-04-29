@@ -107,30 +107,31 @@ const DetailPanelContent = ({ row }: DetailPanelContentProps) => {
   return (
     <Box sx={{ pb: theme.spacing(2), pl: theme.spacing(4) }}>
       {row.burnForecasts.length > 0 && (
-        <DataGridPro
-          disableVirtualization
-          data-testid={`detail-panel-content-${row.id}`}
-          density="compact"
-          disableRowSelectionOnClick
-          hideFooter
-          columns={columns}
-          rows={row.burnForecasts}
-          getRowClassName={params => `in-prescription-${params.row.inPrescription}`}
-          sx={{
-            '.in-prescription-all': {
-              bgcolor: '#e1f1df',
-              '&:hover': { bgcolor: '#cddfc9' }
-            },
-            '.in-prescription-hfi': {
-              bgcolor: '#fef4cf',
-              '&:hover': { bgcolor: '#fce9b3' }
-            },
-            '&.MuiDataGrid-root .in-prescription-no': {
-              bgcolor: '#ffffff',
-              '&:hover': { bgcolor: '#ffffff' }
-            }
-          }}
-        />
+        <Box data-testid={`detail-panel-content-${row.id}`}>
+          <DataGridPro
+            disableVirtualization
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            columns={columns}
+            rows={row.burnForecasts}
+            getRowClassName={params => `in-prescription-${params.row.inPrescription}`}
+            sx={{
+              '.in-prescription-all': {
+                bgcolor: '#e1f1df',
+                '&:hover': { bgcolor: '#cddfc9' }
+              },
+              '.in-prescription-hfi': {
+                bgcolor: '#fef4cf',
+                '&:hover': { bgcolor: '#fce9b3' }
+              },
+              '&.MuiDataGrid-root .in-prescription-no': {
+                bgcolor: '#ffffff',
+                '&:hover': { bgcolor: '#ffffff' }
+              }
+            }}
+          />
+        </Box>
       )}
       {row.burnForecasts.length === 0 && (
         <Typography variant="body1" sx={{ padding: theme.spacing(1) }}>
