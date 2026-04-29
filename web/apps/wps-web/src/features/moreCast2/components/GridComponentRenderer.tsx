@@ -28,25 +28,25 @@ export type GridRendererValue = number | string | PredictionItem | null | undefi
 export type GridRendererEditableValue = number | string | null | undefined
 
 export class GridComponentRenderer {
-  private getRowValue = (row: MoreCast2Row, field: string) => row[field as keyof MoreCast2Row]
+  private readonly getRowValue = (row: MoreCast2Row, field: string) => row[field as keyof MoreCast2Row]
 
-  private isPredictionItem = (value: unknown): value is PredictionItem => {
+  private readonly isPredictionItem = (value: unknown): value is PredictionItem => {
     return value != null && typeof value === 'object' && 'choice' in value && 'value' in value
   }
 
-  private getPredictionItem = (row: MoreCast2Row, field: string): PredictionItem | undefined => {
+  private readonly getPredictionItem = (row: MoreCast2Row, field: string): PredictionItem | undefined => {
     const fieldValue = this.getRowValue(row, field)
 
     return this.isPredictionItem(fieldValue) ? fieldValue : undefined
   }
 
-  private getNumericValue = (row: MoreCast2Row, field: string): number | undefined => {
+  private readonly getNumericValue = (row: MoreCast2Row, field: string): number | undefined => {
     const fieldValue = this.getRowValue(row, field)
 
     return typeof fieldValue === 'number' ? fieldValue : undefined
   }
 
-  private unwrapPredictionValue = (value: GridRendererValue): number | string | null | undefined => {
+  private readonly unwrapPredictionValue = (value: GridRendererValue): number | string | null | undefined => {
     return this.isPredictionItem(value) ? value.value : value
   }
 
@@ -110,7 +110,7 @@ export class GridComponentRenderer {
       const actualField = this.getActualField(field)
       const actual = this.getNumericValue(row, actualField)
 
-      if (actual !== undefined && !isNaN(actual)) {
+      if (actual !== undefined && !Number.isNaN(actual)) {
         return actual.toFixed(precision)
       }
     }
@@ -164,7 +164,7 @@ export class GridComponentRenderer {
     // field.
     if (
       actualValue !== undefined &&
-      !isNaN(actualValue) &&
+      !Number.isNaN(actualValue) &&
       isNumber(actualValue) &&
       isNumber(formattedValue) &&
       !field.includes('windDirection')
@@ -232,9 +232,11 @@ export class GridComponentRenderer {
     }
 
     const oldValue = predictionItem.value
-    const newValue = isNaN(Number(value)) ? NaN : Number(value)
 
-    if (isNaN(oldValue) && isNaN(newValue)) {
+    const parsedValue = Number(value)
+    const newValue = Number.isNaN(parsedValue) ? NaN : parsedValue
+
+    if (Number.isNaN(oldValue) && Number.isNaN(newValue)) {
       return row
     }
 
@@ -271,6 +273,6 @@ export class GridComponentRenderer {
   public predictionItemValueFormatter = (value: GridRendererValue, precision: number) => {
     const parsedValue = Number.parseFloat(String(value))
 
-    return isNaN(parsedValue) ? value : parsedValue.toFixed(precision)
+    return Number.isNaN(parsedValue) ? value : parsedValue.toFixed(precision)
   }
 }

@@ -54,6 +54,8 @@ interface ForecastSummaryDataGridProps {
   processRowUpdate: (newRow: MoreCast2Row) => MoreCast2Row
 }
 
+const LoadingOverlay = () => <LinearProgress />
+
 const ForecastSummaryDataGrid = ({
   loading,
   rows,
@@ -61,8 +63,6 @@ const ForecastSummaryDataGrid = ({
   handleColumnHeaderClick,
   processRowUpdate
 }: ForecastSummaryDataGridProps) => {
-  const LoadingOverlay = () => <LinearProgress />
-
   const isCellEditable = (params: GridCellParams) => {
     // Actual fields and FWI fields (containing the 'Calc' substring) are not editable.
     return params.row[params.field] !== ModelChoice.ACTUAL && !params.field.includes('Calc')

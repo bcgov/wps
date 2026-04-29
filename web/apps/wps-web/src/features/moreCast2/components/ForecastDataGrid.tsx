@@ -81,6 +81,8 @@ export interface ForecastDataGridProps {
   processRowUpdate: (newRow: MoreCast2Row) => MoreCast2Row
 }
 
+const LoadingOverlay = () => <LinearProgress />
+
 const ForecastDataGrid = ({
   loading,
   columnClickHandlerProps,
@@ -92,8 +94,6 @@ const ForecastDataGrid = ({
   allMoreCast2Rows,
   processRowUpdate
 }: ForecastDataGridProps) => {
-  const LoadingOverlay = () => <LinearProgress />
-
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGridPro
