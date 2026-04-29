@@ -10,7 +10,7 @@ from typing import List
 
 import nats
 from nats.aio.msg import Msg
-from nats.js.api import RetentionPolicy, StreamConfig
+from nats.js.api import AckPolicy, ConsumerConfig, RetentionPolicy, StreamConfig
 from wps_shared import config
 from wps_shared.utils.time import get_utc_datetime
 from wps_shared.wps_logging import configure_logging
@@ -63,7 +63,7 @@ async def process_message(msg: Msg):
             exc_info=exc,
         )
         try:
-            await msg.nak()
+            await msg.nak(delay=60)  # Request redelivery after 60 seconds
         except Exception:
             logger.exception("Failed to negatively acknowledge message: %s", msg.data)
 
@@ -98,8 +98,19 @@ async def run():
         config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
         subjects=subjects,
     )
+
+    consumer_config = ConsumerConfig(
+        durable_name=hfi_classify_durable_group,
+        ack_policy=AckPolicy.EXPLICIT,
+        ack_wait=300,  # 5 minutes
+        max_deliver=6,  # initial try + 5 retries
+    )
+
     sfms_sub = await jetstream.pull_subscribe(
-        stream=stream_name, subject=sfms_file_subject, durable=hfi_classify_durable_group
+        stream=stream_name,
+        subject=sfms_file_subject,
+        durable=hfi_classify_durable_group,
+        config=consumer_config,
     )
     while True:
         msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
