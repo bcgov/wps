@@ -234,7 +234,7 @@ export class GridComponentRenderer {
     const oldValue = predictionItem.value
 
     const parsedValue = Number(value)
-    const newValue = Number.isNaN(parsedValue) ? NaN : parsedValue
+    const newValue = Number.isNaN(parsedValue) ? Number.NaN : parsedValue
 
     if (Number.isNaN(oldValue) && Number.isNaN(newValue)) {
       return row
