@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import RasterErrorNotification from './RasterErrorNotification'
+import RasterErrorNotification, { getAlertSeverity } from './RasterErrorNotification'
 import { RasterError } from './layerManager'
 
 describe('RasterErrorNotification', () => {
@@ -10,52 +10,20 @@ describe('RasterErrorNotification', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('should render warning severity for not_found error', () => {
-    const error: RasterError = {
-      type: 'not_found',
-      message: 'Test message'
-    }
-    render(<RasterErrorNotification error={error} onClose={vi.fn()} />)
-
-    const alert = screen.getByRole('alert')
-    expect(alert).toBeInTheDocument()
-    expect(alert).toHaveClass('MuiAlert-filledWarning')
+  it('should return warning severity for not_found error', () => {
+    expect(getAlertSeverity('not_found')).toBe('warning')
   })
 
-  it('should render error severity for forbidden error', () => {
-    const error: RasterError = {
-      type: 'forbidden',
-      message: 'Test message'
-    }
-    render(<RasterErrorNotification error={error} onClose={vi.fn()} />)
-
-    const alert = screen.getByRole('alert')
-    expect(alert).toBeInTheDocument()
-    expect(alert).toHaveClass('MuiAlert-filledError')
+  it('should return error severity for forbidden error', () => {
+    expect(getAlertSeverity('forbidden')).toBe('error')
   })
 
-  it('should render warning severity for network error', () => {
-    const error: RasterError = {
-      type: 'network',
-      message: 'Test message'
-    }
-    render(<RasterErrorNotification error={error} onClose={vi.fn()} />)
-
-    const alert = screen.getByRole('alert')
-    expect(alert).toBeInTheDocument()
-    expect(alert).toHaveClass('MuiAlert-filledWarning')
+  it('should return warning severity for network error', () => {
+    expect(getAlertSeverity('network')).toBe('warning')
   })
 
-  it('should render warning severity for unknown error', () => {
-    const error: RasterError = {
-      type: 'unknown',
-      message: 'Test message'
-    }
-    render(<RasterErrorNotification error={error} onClose={vi.fn()} />)
-
-    const alert = screen.getByRole('alert')
-    expect(alert).toBeInTheDocument()
-    expect(alert).toHaveClass('MuiAlert-filledWarning')
+  it('should return warning severity for unknown error', () => {
+    expect(getAlertSeverity('unknown')).toBe('warning')
   })
 
   it('should display correct message for not_found error', () => {
