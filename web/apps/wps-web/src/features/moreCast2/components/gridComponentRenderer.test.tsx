@@ -24,6 +24,7 @@ import { MoreCast2Row } from '@/features/moreCast2/interfaces'
 
 describe('GridComponentRenderer', () => {
   const gridComponentRenderer = new GridComponentRenderer()
+  const privateGridComponentRenderer = gridComponentRenderer as any
   const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
     colDef: null,
     contextMenu: null,
@@ -249,6 +250,131 @@ describe('GridComponentRenderer', () => {
     expect(renderedCell).toBeInTheDocument()
   })
 
+  describe('private helpers', () => {
+    describe('getRowValue', () => {
+      it('should return the raw field value from the row', () => {
+        const row = {
+          tempForecast: {
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          }
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getRowValue(row, 'tempForecast')).toEqual({
+          choice: ModelChoice.GDPS,
+          value: 12.3
+        })
+      })
+
+      it('should return undefined when the field does not exist', () => {
+        const row = {} as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getRowValue(row, 'tempForecast')).toBeUndefined()
+      })
+    })
+
+    describe('isPredictionItem', () => {
+      it('should return true for a prediction item shape', () => {
+        expect(
+          privateGridComponentRenderer.isPredictionItem({
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          })
+        ).toBe(true)
+      })
+
+      it('should return false for null and primitive values', () => {
+        expect(privateGridComponentRenderer.isPredictionItem(null)).toBe(false)
+        expect(privateGridComponentRenderer.isPredictionItem(5)).toBe(false)
+        expect(privateGridComponentRenderer.isPredictionItem('5')).toBe(false)
+      })
+
+      it('should return false when choice is missing', () => {
+        expect(
+          privateGridComponentRenderer.isPredictionItem({
+            value: 12.3
+          })
+        ).toBe(false)
+      })
+
+      it('should return false when value is missing', () => {
+        expect(
+          privateGridComponentRenderer.isPredictionItem({
+            choice: ModelChoice.GDPS
+          })
+        ).toBe(false)
+      })
+    })
+
+    describe('getPredictionItem', () => {
+      it('should return the prediction item for a matching field', () => {
+        const row = {
+          tempForecast: {
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          }
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getPredictionItem(row, 'tempForecast')).toEqual({
+          choice: ModelChoice.GDPS,
+          value: 12.3
+        })
+      })
+
+      it('should return undefined when the field is not a prediction item', () => {
+        const row = {
+          tempForecast: 12.3
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getPredictionItem(row, 'tempForecast')).toBeUndefined()
+      })
+
+      it('should return undefined when the field does not exist', () => {
+        const row = {} as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getPredictionItem(row, 'tempForecast')).toBeUndefined()
+      })
+    })
+
+    describe('getNumericValue', () => {
+      it('should return the number when the field value is numeric', () => {
+        const row = {
+          tempActual: 12.3
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getNumericValue(row, 'tempActual')).toBe(12.3)
+      })
+
+      it('should return undefined when the field value is not numeric', () => {
+        const row = {
+          tempForecast: {
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          }
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getNumericValue(row, 'tempForecast')).toBeUndefined()
+      })
+    })
+
+    describe('unwrapPredictionValue', () => {
+      it('should unwrap the value from a prediction item', () => {
+        expect(
+          privateGridComponentRenderer.unwrapPredictionValue({
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          })
+        ).toBe(12.3)
+      })
+
+      it('should return a raw primitive value unchanged', () => {
+        expect(privateGridComponentRenderer.unwrapPredictionValue('12.3')).toBe('12.3')
+        expect(privateGridComponentRenderer.unwrapPredictionValue(12.3)).toBe(12.3)
+        expect(privateGridComponentRenderer.unwrapPredictionValue(null)).toBeNull()
+      })
+    })
+  })
+
   it('should set the row correctly', () => {
     const mockRow = {
       temp: {
@@ -382,6 +508,21 @@ describe('GridComponentRenderer', () => {
     )
 
     expect(itemValue).toEqual(NOT_AVAILABLE)
+  })
+
+  it('should return N/R for a null value in the Actual column', () => {
+    const itemValue = gridComponentRenderer.valueGetter(
+      null,
+      {
+        tempActual: null,
+        forDate: DateTime.now().plus({ days: 1 })
+      } as unknown as MoreCast2Row,
+      1,
+      'tempActual',
+      WeatherDeterminate.ACTUAL
+    )
+
+    expect(itemValue).toEqual(NOT_REPORTING)
   })
 
   it('should return the original row when the target field is not a prediction item', () => {
