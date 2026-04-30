@@ -2,43 +2,27 @@
 
 import logging
 import os
-import tempfile
 from datetime import date, datetime, timedelta
 from time import perf_counter
-
-from osgeo import ogr, osr
+import tempfile
 from shapely import wkb, wkt
 from shapely.validation import make_valid
-from wps_shared.db.crud.auto_spatial_advisory import (
-    HfiClassificationThresholdEnum,
-    get_hfi_classification_threshold,
-    get_run_parameters_id,
-    save_hfi,
-    save_run_parameters,
-)
-from wps_shared.db.crud.snow import get_most_recent_processed_snow_by_date
+from osgeo import ogr, osr
+from app.auto_spatial_advisory.common import get_hfi_s3_key
+from wps_shared.db.models.auto_spatial_advisory import ClassifiedHfi, HfiClassificationThreshold, RunTypeEnum
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
-from wps_shared.db.models.auto_spatial_advisory import (
-    ClassifiedHfi,
-    HfiClassificationThreshold,
-    RunTypeEnum,
-)
+from wps_shared.db.crud.auto_spatial_advisory import save_hfi, get_hfi_classification_threshold, HfiClassificationThresholdEnum, save_run_parameters, get_run_parameters_id
+from wps_shared.db.crud.snow import get_most_recent_processed_snow_by_date
 from wps_shared.db.models.snow import SnowSourceEnum
-from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
+from app.auto_spatial_advisory.classify_hfi import classify_hfi
 from wps_shared.run_type import RunType
+from app.auto_spatial_advisory.snow import apply_snow_mask
+from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
+from app.auto_spatial_advisory.hfi_filepath import get_pmtiles_filename, get_pmtiles_filepath, get_snow_masked_hfi_filepath, get_raster_tif_filename
 from wps_shared.utils.polygonize import polygonize_in_memory
+from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 from wps_shared.utils.s3 import get_client
 
-from app.auto_spatial_advisory.classify_hfi import classify_hfi
-from app.auto_spatial_advisory.common import get_hfi_s3_key
-from app.auto_spatial_advisory.hfi_filepath import (
-    get_pmtiles_filename,
-    get_pmtiles_filepath,
-    get_raster_tif_filename,
-    get_snow_masked_hfi_filepath,
-)
-from app.auto_spatial_advisory.snow import apply_snow_mask
-from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +35,7 @@ class UnknownHFiClassification(Exception):
     """Raised when the hfi classification is not one of the expected values."""
 
 
-def get_threshold_from_hfi(
-    feature: ogr.Feature, advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold
-):
+def get_threshold_from_hfi(feature: ogr.Feature, advisory: HfiClassificationThreshold, warning: HfiClassificationThreshold):
     """
     Parses the HFI id value (1 or 2) attributed to an ogr.Feature, and returns the id of the
     appropriate HfiClassificationThreshold record in the database.
@@ -91,11 +73,7 @@ def create_model_object(
     polygon = wkt.loads(geometry.ExportToIsoWkt())
     polygon = make_valid(polygon)
     return ClassifiedHfi(
-        threshold=threshold.id,
-        run_type=RunTypeEnum(run_type.value),
-        run_datetime=run_datetime,
-        for_date=for_date,
-        geom=wkb.dumps(polygon, hex=True, srid=NAD83_BC_ALBERS),
+        threshold=threshold.id, run_type=RunTypeEnum(run_type.value), run_datetime=run_datetime, for_date=for_date, geom=wkb.dumps(polygon, hex=True, srid=NAD83_BC_ALBERS)
     )
 
 
@@ -111,21 +89,11 @@ async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date)
     async with get_async_read_session_scope() as session:
         existing_run = await get_run_parameters_id(session, run_type, run_datetime, for_date)
         if existing_run is not None:
-            logger.info(
-                (
-                    f"Skipping run, already processed for run_type:{run_type}"
-                    f"run_datetime:{run_datetime},"
-                    f"for_date:{for_date}"
-                )
-            )
+            logger.info((f"Skipping run, already processed for run_type:{run_type}" f"run_datetime:{run_datetime}," f"for_date:{for_date}"))
             return
-        last_processed_snow = await get_most_recent_processed_snow_by_date(
-            session, run_datetime, SnowSourceEnum.viirs
-        )
+        last_processed_snow = await get_most_recent_processed_snow_by_date(session, run_datetime, SnowSourceEnum.viirs)
 
-    logger.info(
-        "Processing HFI %s for run date: %s, for date: %s", run_type, run_datetime, for_date
-    )
+    logger.info("Processing HFI %s for run date: %s, for date: %s", run_type, run_datetime, for_date)
     perf_start = perf_counter()
 
     hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
@@ -136,30 +104,22 @@ async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date)
             classify_hfi(hfi_key, temp_filename)
             # If something has gone wrong with the collection of snow coverage data and it has not been collected
             # within 7 days of the SFMS run datetime, don't apply an old snow mask, work with the classified hfi data as is
-            if (
-                last_processed_snow is None
-                or last_processed_snow[0].for_date + timedelta(days=7) < run_datetime
-            ):
-                logger.info(
-                    "No recently processed snow data found. Proceeding with non-masked hfi data."
-                )
+            if last_processed_snow is None or last_processed_snow[0].for_date + timedelta(days=7) < run_datetime:
+                logger.info("No recently processed snow data found. Proceeding with non-masked hfi data.")
                 working_hfi_path = temp_filename
             else:
                 # Create a snow coverage mask from previously downloaded snow data.
-                working_hfi_path = await apply_snow_mask(
-                    temp_filename, last_processed_snow[0], temp_dir
-                )
+                working_hfi_path = await apply_snow_mask(temp_filename, last_processed_snow[0], temp_dir)
 
             raster_filename = get_raster_tif_filename(for_date)
             raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, raster_filename)
             logger.info(f"Uploading file {raster_filename} to {raster_key}")
-            with open(working_hfi_path, "rb") as raster_file:
-                await client.put_object(
-                    Bucket=bucket,
-                    Key=raster_key,
-                    ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
-                    Body=raster_file,
-                )
+            await client.put_object(
+                Bucket=bucket,
+                Key=raster_key,
+                ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
+                Body=open(working_hfi_path, "rb"),
+            )
             logger.info("Done uploading %s", raster_key)
             with polygonize_in_memory(working_hfi_path, "hfi", "hfi") as layer:
                 # We need a geojson file to pass to tippecanoe
@@ -168,23 +128,17 @@ async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date)
                 pmtiles_filename = get_pmtiles_filename(for_date)
                 temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
                 logger.info(f"Writing pmtiles -- {pmtiles_filename}")
-                tippecanoe_wrapper(
-                    temp_geojson,
-                    temp_pmtiles_filepath,
-                    min_zoom=HFI_PMTILES_MIN_ZOOM,
-                    max_zoom=HFI_PMTILES_MAX_ZOOM,
-                )
+                tippecanoe_wrapper(temp_geojson, temp_pmtiles_filepath, min_zoom=HFI_PMTILES_MIN_ZOOM, max_zoom=HFI_PMTILES_MAX_ZOOM)
 
                 key = get_pmtiles_filepath(run_datetime, run_type, pmtiles_filename)
                 logger.info(f"Uploading file {pmtiles_filename} to {key}")
 
-                with open(temp_pmtiles_filepath, "rb") as pmtiles_file:
-                    await client.put_object(
-                        Bucket=bucket,
-                        Key=key,
-                        ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
-                        Body=pmtiles_file,
-                    )
+                await client.put_object(
+                    Bucket=bucket,
+                    Key=key,
+                    ACL=HFI_GEOSPATIAL_PERMISSIONS,  # We need these to be accessible to everyone
+                    Body=open(temp_pmtiles_filepath, "rb"),
+                )
                 logger.info("Done uploading %s", key)
 
                 spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
@@ -194,26 +148,14 @@ async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date)
                 coordinate_transform = osr.CoordinateTransformation(spatial_reference, target_srs)
 
                 async with get_async_write_session_scope() as session:
-                    advisory = await get_hfi_classification_threshold(
-                        session, HfiClassificationThresholdEnum.ADVISORY
-                    )
-                    warning = await get_hfi_classification_threshold(
-                        session, HfiClassificationThresholdEnum.WARNING
-                    )
+                    advisory = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.ADVISORY)
+                    warning = await get_hfi_classification_threshold(session, HfiClassificationThresholdEnum.WARNING)
 
                     logger.info("Writing HFI advisory zones to API database...")
                     for i in range(layer.GetFeatureCount()):
                         # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.Feature
                         feature: ogr.Feature = layer.GetFeature(i)
-                        obj = create_model_object(
-                            feature,
-                            advisory,
-                            warning,
-                            coordinate_transform,
-                            run_type,
-                            run_datetime,
-                            for_date,
-                        )
+                        obj = create_model_object(feature, advisory, warning, coordinate_transform, run_type, run_datetime, for_date)
                         await save_hfi(session, obj)
 
                     # Store the unique combination of run type, run datetime and for date in the run_parameters table
