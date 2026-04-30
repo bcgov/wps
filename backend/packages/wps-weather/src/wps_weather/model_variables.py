@@ -33,3 +33,18 @@ RDPS_VARIABLES = GDPS_RDPS_COMMON + RDPS_ONLY
 
 
 HRDPS_VARIABLES = []
+
+# Current operational GDPS model variables as of Apr 2026
+GDPS_GEM_VARIABLES = [
+    "HGT_ISBL_500",
+    "RELV_ISBL_500",
+    "PRMSL_MSL_0",
+    "HGT_ISBY_1000-500",
+    "HGT_ISBL_700",
+    "RH_ISBL_700",
+    "RH_ISBL_850",
+    "RH_ISBL_500",
+    "APCP-Accum6h_SFC_0",
+    "UGRD_ISBL_250",
+    "VGRD_ISBL_250",
+]

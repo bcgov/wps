@@ -12,7 +12,12 @@ from wps_shared import config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
-from wps_weather.model_variables import GDPS_VARIABLES, HRDPS_VARIABLES, RDPS_VARIABLES
+from wps_weather.model_variables import (
+    GDPS_GEM_VARIABLES,
+    GDPS_VARIABLES,
+    HRDPS_VARIABLES,
+    RDPS_VARIABLES,
+)
 from wps_weather.utils import parse_date_and_run, s3_key_from_eccc_path
 
 logger = logging.getLogger(__name__)
@@ -43,6 +48,11 @@ MODEL_CONFIGS: dict[ModelName, ModelConfig] = {
         "routing_key": "v02.post.#.WXO-DD.model_hrdps.continental.#",
         "description": "High Resolution Deterministic Prediction System (2.5km)",
         "variables": HRDPS_VARIABLES,
+    },
+    "GDPS_GEM": {
+        "routing_key": "v02.post.#.WXO-DD.model_gem_global.15km.#",
+        "description": "Global Environmental Multiscale Model (15km)",
+        "variables": GDPS_GEM_VARIABLES,
     },
 }
 
@@ -381,7 +391,7 @@ class ECCCGribConsumer:
 
             # must match pattern specified by: https://eccc-msc.github.io/open-data/msc-datamart/amqp_en/
             # q_anonymous.subscribe.{config_name}.{company_name}
-            queue_name = f"q_anonymous.subscribe.{model}.bcgov-{NAMESPACE}"
+            queue_name = f"q_anonymous.subscribe.{model}.bcgov-{NAMESPACE}-5352"
             logger.info(f"Subscribing with queue: {queue_name}")
 
             # don't set exclusive queue, so we can have multiple consumers if needed
