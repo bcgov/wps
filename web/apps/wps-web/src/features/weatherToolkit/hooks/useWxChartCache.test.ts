@@ -35,6 +35,13 @@ describe('buildChartKey', () => {
     expect(key).toBe('wx_4panel_charts/20240601/model_rdps/10km/12/003/RDPS_20240601T12Z_F003_4panel.png')
   })
 
+  it('builds the correct S3 key for GDPS_GEM', () => {
+    const key = buildChartKey(ModelType.GDPS_GEM, MODEL_RUN_DATE, ModelRunHour.ZERO, 6)
+    expect(key).toBe(
+      'wx_4panel_charts/20240601/model_gem_global/15km/grib2/lat_lon/00/006/GDPS_GEM_20240601T00Z_F006_4panel.png'
+    )
+  })
+
   it('pads the hour to 3 digits', () => {
     const key = buildChartKey(ModelType.GDPS, MODEL_RUN_DATE, ModelRunHour.ZERO, 0)
     expect(key).toContain('/000/')

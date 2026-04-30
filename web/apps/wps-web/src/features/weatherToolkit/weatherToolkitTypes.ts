@@ -1,20 +1,24 @@
 export enum ModelType {
   GDPS = 'GDPS',
-  RDPS = 'RDPS'
+  RDPS = 'RDPS',
+  GDPS_GEM = 'GDPS_GEM'
 }
 
 export const modelRegistry = {
   [ModelType.GDPS]: {
-    ecccPath: 'model_gdps',
-    resolution: '15km',
+    ecccPath: 'model_gdps/15km',
     interval: 6,
     maxHour: 240
   },
   [ModelType.RDPS]: {
-    ecccPath: 'model_rdps',
-    resolution: '10km',
+    ecccPath: 'model_rdps/10km',
     interval: 3,
     maxHour: 84
+  },
+  [ModelType.GDPS_GEM]: {
+    ecccPath: 'model_gem_global/15km/grib2/lat_lon',
+    interval: 6,
+    maxHour: 240
   }
 }
 

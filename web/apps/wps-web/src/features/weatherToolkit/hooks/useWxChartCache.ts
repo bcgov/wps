@@ -12,10 +12,10 @@ export const buildChartKey = (
   modelRunHour: ModelRunHour,
   hour: number
 ): string => {
-  const { ecccPath, resolution } = modelRegistry[model]
+  const { ecccPath } = modelRegistry[model]
   const dateStr = modelRunDate.toFormat('yyyyMMdd')
   const hourStr = hour.toString().padStart(3, '0')
-  return `wx_4panel_charts/${dateStr}/${ecccPath}/${resolution}/${modelRunHour}/${hourStr}/${model}_${dateStr}T${modelRunHour}Z_F${hourStr}_4panel.png`
+  return `wx_4panel_charts/${dateStr}/${ecccPath}/${modelRunHour}/${hourStr}/${model}_${dateStr}T${modelRunHour}Z_F${hourStr}_4panel.png`
 }
 
 export interface WxChartCacheResult {

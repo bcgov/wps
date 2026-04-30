@@ -95,14 +95,19 @@ describe('SidePanel', () => {
   })
 
   describe('Weather Model select', () => {
-    it('displays the current weather model', () => {
+    it('displays GDPS (Exp.) when model is GDPS', () => {
       renderSidePanel({ model: ModelType.GDPS })
-      expect(screen.getByRole('combobox', { name: /weather model/i })).toHaveTextContent('GDPS')
+      expect(screen.getByRole('combobox', { name: /weather model/i })).toHaveTextContent('GDPS (Exp.)')
     })
 
     it('displays RDPS when model is RDPS', () => {
       renderSidePanel({ model: ModelType.RDPS })
       expect(screen.getByRole('combobox', { name: /weather model/i })).toHaveTextContent('RDPS')
+    })
+
+    it('displays GDPS when model is GDPS_GEM', () => {
+      renderSidePanel({ model: ModelType.GDPS_GEM })
+      expect(screen.getByRole('combobox', { name: /weather model/i })).toHaveTextContent('GDPS')
     })
 
     it('calls setModel with RDPS when RDPS is selected', async () => {
@@ -113,12 +118,20 @@ describe('SidePanel', () => {
       expect(setModel).toHaveBeenCalledWith(ModelType.RDPS)
     })
 
-    it('calls setModel with GDPS when GDPS is selected', async () => {
+    it('calls setModel with GDPS when GDPS (Exp.) is selected', async () => {
+      const setModel = vi.fn()
+      renderSidePanel({ model: ModelType.RDPS, setModel })
+      await userEvent.click(screen.getByRole('combobox', { name: /weather model/i }))
+      await userEvent.click(screen.getByRole('option', { name: 'GDPS (Exp.)' }))
+      expect(setModel).toHaveBeenCalledWith(ModelType.GDPS)
+    })
+
+    it('calls setModel with GDPS_GEM when GDPS is selected', async () => {
       const setModel = vi.fn()
       renderSidePanel({ model: ModelType.RDPS, setModel })
       await userEvent.click(screen.getByRole('combobox', { name: /weather model/i }))
       await userEvent.click(screen.getByRole('option', { name: 'GDPS' }))
-      expect(setModel).toHaveBeenCalledWith(ModelType.GDPS)
+      expect(setModel).toHaveBeenCalledWith(ModelType.GDPS_GEM)
     })
   })
 })

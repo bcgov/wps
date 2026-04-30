@@ -135,7 +135,6 @@ const ASADatePicker = ({
             maximumDate: currentYearMaxDate
           } as any
         }}
-        sx={{ ...other.sx }}
         value={date}
       />
     </LocalizationProvider>

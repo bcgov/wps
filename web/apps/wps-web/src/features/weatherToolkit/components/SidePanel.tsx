@@ -38,23 +38,25 @@ const SidePanel = ({
         <Typography
           variant="overline"
           sx={{
-            color: "text.secondary",
+            color: 'text.secondary',
             fontWeight: 600,
             letterSpacing: 1.5
-          }}>
+          }}
+        >
           Time
         </Typography>
       </Box>
-      <ASADatePicker
-        date={modelRunDate}
-        updateDate={setModelRunDate}
-        currentYearMinDate={WX_WEATHER_TOOLKIT_STARTUP_DATE}
-        currentYearMaxDate={DateTime.utc()}
-        historicalMinDate={WX_WEATHER_TOOLKIT_STARTUP_DATE}
-        historicalMaxDate={DateTime.utc()}
-        label="Model Run Date (UTC)"
-        sx={{ mb: 2, width: '100%' }}
-      />
+      <Box sx={{ mb: 2 }}>
+        <ASADatePicker
+          date={modelRunDate}
+          updateDate={setModelRunDate}
+          currentYearMinDate={WX_WEATHER_TOOLKIT_STARTUP_DATE}
+          currentYearMaxDate={DateTime.utc()}
+          historicalMinDate={WX_WEATHER_TOOLKIT_STARTUP_DATE}
+          historicalMaxDate={DateTime.utc()}
+          label="Model Run Date (UTC)"
+        />
+      </Box>
       <FormControl fullWidth sx={{ mb: 4 }}>
         <InputLabel id="model-run-hour-label">Model Run Hour</InputLabel>
         <Select
@@ -73,10 +75,11 @@ const SidePanel = ({
         <Typography
           variant="overline"
           sx={{
-            color: "text.secondary",
+            color: 'text.secondary',
             fontWeight: 600,
             letterSpacing: 1.5
-          }}>
+          }}
+        >
           Data Configuration
         </Typography>
       </Box>
@@ -89,12 +92,13 @@ const SidePanel = ({
           onChange={e => setModel(e.target.value as ModelType)}
           sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}
         >
-          <MenuItem value={ModelType.GDPS}>GDPS</MenuItem>
+          <MenuItem value={ModelType.GDPS}>GDPS (Exp.)</MenuItem>
           <MenuItem value={ModelType.RDPS}>RDPS</MenuItem>
+          <MenuItem value={ModelType.GDPS_GEM}>GDPS</MenuItem>
         </Select>
       </FormControl>
     </Box>
-  );
+  )
 }
 
 export default SidePanel
