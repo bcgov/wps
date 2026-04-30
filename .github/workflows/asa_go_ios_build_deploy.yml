@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Create environment settings
-        working-directory: ./mobile/asa-go
+        working-directory: ./frontend/apps/asa-go
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           VITE_KEYCLOAK_AUTH_URL: ${{ secrets.VITE_ASAGO_KEYCLOAK_AUTH_URL }}
@@ -83,12 +83,16 @@ jobs:
       - name: Copy GoogleService-Info.plist
         env:
           GOOGLE_SERVICES_PLIST: ${{ secrets.GOOGLE_SERVICES_PLIST }}
-        working-directory: ./mobile/asa-go
+        working-directory: ./frontend/apps/asa-go
         run: |
           echo "$GOOGLE_SERVICES_PLIST" | base64 --decode > ./ios/App/App/Firebase/Prod/GoogleService-Info.plist
 
+      - name: Build ASA Go
+        working-directory: ./frontend
+        run: yarn turbo build:prod --filter=asa-go
+
       - name: Build Capacitor and Sync
-        working-directory: ./mobile/asa-go
+        working-directory: ./frontend/apps/asa-go
         run: yarn cap:sync:ios:prod
       - name: Setup iOS Signing
         env:
@@ -119,13 +123,13 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
       - name: Bump Build Number
-        working-directory: mobile/asa-go/ios/App
+        working-directory: frontend/apps/asa-go/ios/App
         run: |
           # Update version and build number
           agvtool new-version ${{ env.appBuildNumber }}
           agvtool new-marketing-version ${{ env.appBuildVersion }}
       - name: Build and Archive
-        working-directory: mobile/asa-go/ios/App
+        working-directory: frontend/apps/asa-go/ios/App
         run: |
           # Archive the app
           xcodebuild \
@@ -136,7 +140,7 @@ jobs:
             -archivePath ${{ runner.temp }}/ASA-Go.xcarchive \
             archive
       - name: Export IPA
-        working-directory: mobile/asa-go/ios/App
+        working-directory: frontend/apps/asa-go/ios/App
         run: |
           xcodebuild \
             -exportArchive \
@@ -155,7 +159,7 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER_95 }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_95 }}
-        working-directory: mobile/asa-go/ios/App
+        working-directory: frontend/apps/asa-go/ios/App
         run: |
           mkdir $HOME/.private_keys/
           echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > $HOME/.private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8

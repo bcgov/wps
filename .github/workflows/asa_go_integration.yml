@@ -5,7 +5,8 @@ on:
     branches:
       - main
     paths:
-      - "mobile/**"
+      - "frontend/apps/asa-go/**"
+      - "frontend/packages/keycloak/**"
 
 jobs:
   js_test:
@@ -22,13 +23,13 @@ jobs:
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
       - name: Test with Coverage
-        working-directory: ./mobile/asa-go
-        run: yarn run test:ci
+        working-directory: ./frontend
+        run: yarn workspace asa-go run coverage:ci
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          files: ./mobile/asa-go/coverage/lcov.info
+          files: ./frontend/apps/asa-go/coverage/lcov.info
           flags: asa_go
           name: asa-go-coverage
           # we want to ensure code coverage is good, so we fail on error. (default is false)
@@ -44,15 +45,18 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
+      - name: Build ASA Go
+        working-directory: ./frontend
+        run: yarn turbo build:prod --filter=asa-go
       - name: Sync Capacitor iOS
-        working-directory: ./mobile/asa-go
+        working-directory: ./frontend/apps/asa-go
         run: yarn cap:sync:ios:prod
       - name: Use Xcode latest stable
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90
         with:
           xcode-version: latest-stable
       - name: Test Keycloak Swift Plugin
-        working-directory: ./mobile/keycloak
+        working-directory: ./frontend/packages/keycloak
         run: |
           xcodebuild test \
             -scheme "Keycloak" \
@@ -80,9 +84,12 @@ jobs:
       - name: Create google-services.json
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: echo "$GOOGLE_SERVICES_JSON" | base64 -d > ./mobile/asa-go/android/app/src/prod/google-services.json
+        run: echo "$GOOGLE_SERVICES_JSON" | base64 -d > ./frontend/apps/asa-go/android/app/src/prod/google-services.json
+      - name: Build ASA Go
+        working-directory: ./frontend
+        run: yarn turbo build:prod --filter=asa-go
       - name: Sync Capacitor Android
-        working-directory: ./mobile/asa-go
+        working-directory: ./frontend/apps/asa-go
         run: yarn cap:sync:android:prod
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -92,17 +99,17 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
       - name: Test ASA Go Android
-        working-directory: ./mobile/asa-go/android
+        working-directory: ./frontend/apps/asa-go/android
         run: ./gradlew jacocoTestReport
       - name: Test Keycloak Android plugin
-        working-directory: ./mobile/keycloak/android
+        working-directory: ./frontend/packages/keycloak/android
         run: ./gradlew jacocoTestReport
       - name: Upload Android coverage to Codecov
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |
-            ./mobile/asa-go/android/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
-            ./mobile/keycloak/android/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+            ./frontend/apps/asa-go/android/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+            ./frontend/packages/keycloak/android/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
           flags: android
           fail_ci_if_error: true

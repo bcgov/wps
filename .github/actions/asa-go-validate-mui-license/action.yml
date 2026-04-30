@@ -10,7 +10,7 @@ runs:
   using: composite
   steps:
     - name: Validate MUI License
-      working-directory: ./mobile/asa-go
+      working-directory: ./frontend/apps/asa-go
       shell: bash
       env:
         VITE_MUI_LICENSE_KEY: ${{ inputs.mui-license-key }}
