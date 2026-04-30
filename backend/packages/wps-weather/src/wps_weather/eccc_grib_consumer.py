@@ -391,7 +391,7 @@ class ECCCGribConsumer:
 
             # must match pattern specified by: https://eccc-msc.github.io/open-data/msc-datamart/amqp_en/
             # q_anonymous.subscribe.{config_name}.{company_name}
-            queue_name = f"q_anonymous.subscribe.{model}.bcgov-{NAMESPACE}"
+            queue_name = f"q_anonymous.subscribe.{model}.bcgov-{NAMESPACE}-5352"
             logger.info(f"Subscribing with queue: {queue_name}")
 
             # don't set exclusive queue, so we can have multiple consumers if needed
