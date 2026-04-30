@@ -10,8 +10,7 @@ from typing import List
 
 import nats
 from nats.aio.msg import Msg
-from nats.js.api import RetentionPolicy, StreamConfig
-from starlette.background import BackgroundTasks
+from nats.js.api import AckPolicy, ConsumerConfig, RetentionPolicy, StreamConfig
 from wps_shared import config
 from wps_shared.utils.time import get_utc_datetime
 from wps_shared.wps_logging import configure_logging
@@ -25,7 +24,6 @@ from app.auto_spatial_advisory.nats_config import (
 )
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.process_stats import process_sfms_hfi_stats
-from app.nats_publish import publish
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +44,28 @@ def parse_nats_message(msg: Msg):
         # so we localize it as such then convert it to UTC
         run_datetime = get_utc_datetime(datetime.fromisoformat(decoded_msg["create_time"]))
         return (run_type, run_datetime, for_date)
+
+
+async def process_message(msg: Msg):
+    """Process a single JetStream message and only ack after successful processing."""
+    try:
+        logger.info("Msg received - %s\n", msg)
+        run_type, run_datetime, for_date = parse_nats_message(msg)
+        logger.info(
+            "Awaiting process_sfms_hfi_stats({}, {}, {})\n".format(run_type, run_datetime, for_date)
+        )
+        await process_sfms_hfi_stats(run_type, run_datetime, for_date)
+        await msg.ack()
+    except Exception as exc:
+        logger.error(
+            "Error processing HFI message: %s, requesting JetStream redelivery",
+            msg.data,
+            exc_info=exc,
+        )
+        try:
+            await msg.nak(delay=60)  # Request redelivery after 60 seconds
+        except Exception:
+            logger.exception("Failed to negatively acknowledge message: %s", msg.data)
 
 
 async def run():
@@ -78,29 +98,24 @@ async def run():
         config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
         subjects=subjects,
     )
+
+    consumer_config = ConsumerConfig(
+        durable_name=hfi_classify_durable_group,
+        ack_policy=AckPolicy.EXPLICIT,
+        ack_wait=300,  # 5 minutes
+        max_deliver=6,  # initial try + 5 retries
+    )
+
     sfms_sub = await jetstream.pull_subscribe(
-        stream=stream_name, subject=sfms_file_subject, durable=hfi_classify_durable_group
+        stream=stream_name,
+        subject=sfms_file_subject,
+        durable=hfi_classify_durable_group,
+        config=consumer_config,
     )
     while True:
         msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
         for msg in msgs:
-            try:
-                logger.info("Msg received - {}\n".format(msg))
-                await msg.ack()
-                run_type, run_datetime, for_date = parse_nats_message(msg)
-                logger.info(
-                    "Awaiting process_sfms_hfi_stats({}, {}, {})\n".format(
-                        run_type, run_datetime, for_date
-                    )
-                )
-                await process_sfms_hfi_stats(run_type, run_datetime, for_date)
-
-            except Exception as e:
-                logger.error(
-                    "Error processing HFI message: %s, adding back to queue", msg.data, exc_info=e
-                )
-                background_tasks = BackgroundTasks()
-                background_tasks.add_task(publish, stream_name, sfms_file_subject, msg, subjects)
+            await process_message(msg)
 
 
 if __name__ == "__main__":
