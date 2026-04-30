@@ -371,23 +371,7 @@
             ]
         },
         {
-            "name": "Weather - RDPS 4Panel Charts",
-            "type": "debugpy",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python",
-            "module": "wps_weather.wx_4panel_charts.wx_4panel_charts",
-            "args": [
-                "--model_runs",
-                "12",
-                "--end_hour",
-                "6",
-                "--model",
-                "RDPS"
-            ]
-        },
-        {
-            "name": "Weather - GDPS 4Panel Charts",
+            "name": "Weather - 4Panel Charts",
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}/backend",
@@ -395,15 +379,15 @@
             "module": "wps_weather.wx_4panel_charts.wx_4panel_charts",
             "args": [
                 "--init_ym",
-                "20260326",
+                "20260429",
                 "--model_runs",
                 "00",
                 "--end_hour",
-                "18",
+                "12",
                 "--step",
                 "6",
                 "--model",
-                "GDPS"
+                "GDPS_GEM"
             ]
         },
         {
