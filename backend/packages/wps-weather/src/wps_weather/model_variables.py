@@ -45,6 +45,5 @@ GDPS_GEM_VARIABLES = [
     "RH_ISBL_850",
     "RH_ISBL_500",
     "APCP-Accum6h_SFC_0",
-    "UGRD_ISBL_250",
-    "VGRD_ISBL_250",
+    "WIND_ISBL_250",
 ]
