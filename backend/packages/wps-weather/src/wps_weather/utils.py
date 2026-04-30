@@ -1,4 +1,5 @@
 import os
+import re
 
 
 def s3_key_from_eccc_path(s3_prefix: str, path: str) -> str:
@@ -27,14 +28,16 @@ def s3_key_from_eccc_path(s3_prefix: str, path: str) -> str:
 
 def parse_date_and_run(filename: str) -> tuple[str, str]:
     """
-    Extract YYYYMMDD and run hour (HH) from MSC grib2 filenames.
-    This work for RDPS, GDPS, and HRDPS from the MSC.
+    Extract YYYYMMDD and run hour (HH) from MSC/CMC grib2 filenames.
 
+    Handles two formats:
+    - MSC format: YYYYMMDDTHHZ_MSC_... (RDPS, GDPS, HRDPS)
+    - CMC format: CMC_glb_..._YYYYMMDDHH_P... (GEM global)
     """
     name = filename.rsplit(".", 1)[0]
     first_token = name.split("_", 1)[0]
 
-    # Expected: YYYYMMDDTHHZ
+    # MSC format: filename starts with YYYYMMDDTHHZ
     if (
         len(first_token) == 12
         and first_token[8] == "T"
@@ -43,5 +46,10 @@ def parse_date_and_run(filename: str) -> tuple[str, str]:
         and first_token[9:11].isdigit()
     ):
         return first_token[:8], first_token[9:11]
+
+    # CMC format: date/run appears mid-filename as _YYYYMMDDHH_
+    m = re.search(r"_(\d{8})(\d{2})_", filename)
+    if m:
+        return m.group(1), m.group(2)
 
     raise ValueError(f"Unexpected filename format: {filename}")

@@ -1,5 +1,5 @@
-from wps_weather.utils import s3_key_from_eccc_path, parse_date_and_run
 import pytest
+from wps_weather.utils import parse_date_and_run, s3_key_from_eccc_path
 
 test_prefix = "test_prefix"
 
@@ -32,8 +32,20 @@ def test_parse_date_and_run():
     assert run == "00"
 
 
+def test_parse_date_and_run_cmc_format_00z():
+    date, run = parse_date_and_run("CMC_glb_HGT_ISBL_500_latlon.15x.15_2026042100_P000.grib2")
+    assert date == "20260421"
+    assert run == "00"
+
+
+def test_parse_date_and_run_cmc_format_12z():
+    date, run = parse_date_and_run(
+        "CMC_glb_APCP-Accum12h_SFC_0_latlon.15x.15_2026042112_P012.grib2"
+    )
+    assert date == "20260421"
+    assert run == "12"
+
+
 def test_parse_date_and_run_raises():
     with pytest.raises(ValueError):
-        parse_date_and_run(
-            "2026020500_MSC_RDPS_AbsoluteVorticity_IsbL-0500_RLatLon0.09_PT002H.grib2"
-        )
+        parse_date_and_run("CMC_glb_HGT_ISBL_500_latlon.15x.15_baddate_P000.grib2")
