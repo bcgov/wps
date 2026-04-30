@@ -1,5 +1,5 @@
 import { Typography } from "@mui/material";
-import Grid from "@mui/system/Grid";
+import { Grid } from "@mui/material";
 import React from "react";
 
 interface ElevationLabelProps {
