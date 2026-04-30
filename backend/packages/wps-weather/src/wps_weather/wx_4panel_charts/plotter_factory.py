@@ -35,6 +35,12 @@ PLOTTER_REGISTRY: Mapping[ECCCModel, Plotters] = {
         "plot_mslp_thickness": plot_mslp_thickness_rdps,
         "plot_pcpn": plot_pcpn3_rdps,
     },
+    ECCCModel.GDPS_GEM: {
+        "plot_500hpa": plot_500hpa_gdps,
+        "plot_700hpa": plot_700hpa_gdps,
+        "plot_mslp_thickness": plot_mslp_thickness_gdps,
+        "plot_pcpn": plot_pcpn12_gdps,
+    },
 }
 
 

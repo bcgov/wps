@@ -3,6 +3,36 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import ECCCModel, WX4PanelChartAddresser
 
+_GDPS_VARS = {
+    "z500": ("GeopotentialHeight", "IsbL-0500"),
+    "vort": ("AbsoluteVorticity", "IsbL-0500"),
+    "mslp": ("Pressure_MSL", None),
+    "thk": ("Thickness", "IsbL-1000to0500"),
+    "z700": ("GeopotentialHeight", "IsbL-0700"),
+    "rh500": ("RelativeHumidity", "IsbL-0500"),
+    "rh700": ("RelativeHumidity", "IsbL-0700"),
+    "rh850": ("RelativeHumidity", "IsbL-0850"),
+    "precip": ("Precip-Accum6h", "Sfc"),
+    "jet_spd": ("WindSpeed", "IsbL-0250"),
+}
+
+_VAR_MAP = {
+    ECCCModel.GDPS: _GDPS_VARS,
+    ECCCModel.RDPS: {**_GDPS_VARS, "precip": ("Precip-Accum3h", "Sfc")},
+    ECCCModel.GDPS_GEM: {
+        "z500": ("HGT", "ISBL_500"),
+        "vort": ("RELV", "ISBL_500"),
+        "mslp": ("PRMSL", "MSL_0"),
+        "thk": ("HGT", "ISBY_1000-500"),
+        "z700": ("HGT", "ISBL_700"),
+        "rh500": ("RH", "ISBL_500"),
+        "rh700": ("RH", "ISBL_700"),
+        "rh850": ("RH", "ISBL_850"),
+        "precip": ("APCP-Accum6h", "SFC_0"),
+        "jet_spd": ("WIND", "ISBL_250"),
+    },
+}
+
 
 class ConfigBuilder:
     def __init__(
@@ -31,9 +61,10 @@ class ConfigBuilder:
         :param model: The numerical weather model.
         :raises ValueError: Raises a ValueError if the numerical weather model is not recognized.
         """
-        if model not in [ECCCModel.GDPS, ECCCModel.RDPS]:
-            raise ValueError(f"Model must be one of GDPS or RDPS, received {model}")
+        if model not in _VAR_MAP:
+            raise ValueError(f"Model must be one of {list(_VAR_MAP)}, received {model}")
         self.model = model
+        self._vars = _VAR_MAP[model]
         self.init_ymd = init_ymd
         self.init_hh = init_hh
         self.raster_addresser = raster_addresser
@@ -60,34 +91,34 @@ class ConfigBuilder:
         Build cfg dicts using weather model grib2 S3 storage structure:
         eg: {bucket}/weather_models/20260217/model_rdps}/10km/{HH}/{FFF}/*.grib2
         """
+        model_vars = self._vars
+
         # ---- 500 hPa ----
         cfg500 = self.cfg500.copy()
-        cfg500["z500_grib"] = self._grib_key(fh, "GeopotentialHeight", "IsbL-0500")
-        cfg500["vort_grib"] = self._grib_key(fh, "AbsoluteVorticity", "IsbL-0500")
+        cfg500["z500_grib"] = self._grib_key(fh, *model_vars["z500"])
+        cfg500["vort_grib"] = self._grib_key(fh, *model_vars["vort"])
         cfg500["valid_time_str"] = self._valid_time_str(fh)
 
         # ---- MSLP + thickness ----
         cfgmslp = self.cfgmslp.copy()
-        cfgmslp["mslp_grib"] = self._grib_key(fh, "Pressure_MSL", None)
-        cfgmslp["thk_grib"] = self._grib_key(fh, "Thickness", "IsbL-1000to0500")
+        cfgmslp["mslp_grib"] = self._grib_key(fh, *model_vars["mslp"])
+        cfgmslp["thk_grib"] = self._grib_key(fh, *model_vars["thk"])
 
         # ---- 700 hPa + RH layer mean ----
         cfg700 = self.cfg700.copy()
-        cfg700["z700_grib"] = self._grib_key(fh, "GeopotentialHeight", "IsbL-0700")
-        cfg700["rh500_grib"] = self._grib_key(fh, "RelativeHumidity", "IsbL-0500")
-        cfg700["rh700_grib"] = self._grib_key(fh, "RelativeHumidity", "IsbL-0700")
-        cfg700["rh850_grib"] = self._grib_key(fh, "RelativeHumidity", "IsbL-0850")
+        cfg700["z700_grib"] = self._grib_key(fh, *model_vars["z700"])
+        cfg700["rh500_grib"] = self._grib_key(fh, *model_vars["rh500"])
+        cfg700["rh700_grib"] = self._grib_key(fh, *model_vars["rh700"])
+        cfg700["rh850_grib"] = self._grib_key(fh, *model_vars["rh850"])
 
-        # ---- 3h precip + jet ----
+        # ---- precip + jet ----
         cfgpcpn = self.cfgpcpn.copy()
-        cfgpcpn["jet_spd_grib"] = self._grib_key(fh, "WindSpeed", "IsbL-0250")
+        cfgpcpn["jet_spd_grib"] = self._grib_key(fh, *model_vars["jet_spd"])
 
         if fh == 0:
-            cfgpcpn["show_precip"] = False  # jet-only at analysis time
+            cfgpcpn["show_precip"] = False
         else:
-            precip_string = "Precip-Accum6h" if self.model == ECCCModel.GDPS else "Precip-Accum3h"
             cfgpcpn["show_precip"] = True
-            cfgpcpn["pcpn_grib"] = self._grib_key(fh, precip_string, "Sfc")
-
+            cfgpcpn["pcpn_grib"] = self._grib_key(fh, *model_vars["precip"])
 
         return cfg500, cfgmslp, cfg700, cfgpcpn

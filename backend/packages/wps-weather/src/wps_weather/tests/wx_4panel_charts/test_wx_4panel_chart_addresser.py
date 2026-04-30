@@ -18,6 +18,14 @@ def test_get_4panel_key_rdps():
     result = ra.get_4panel_key(fh=FH, fname=FNAME)
     assert result == f"wx_4panel_charts/{INIT_YMD}/model_rdps/10km/00/{FH:03d}/{FNAME}"
 
+def test_get_4panel_key_gdps_gem():
+    ra = WX4PanelChartAddresser(init_ymd=INIT_YMD, init_hh=INIT_HH, model=ECCCModel.GDPS_GEM)
+    result = ra.get_4panel_key(fh=FH, fname=FNAME)
+    assert (
+        result
+        == f"wx_4panel_charts/{INIT_YMD}/model_gem_global/15km/grib2/lat_lon/00/{FH:03d}/{FNAME}"
+    )
+
 
 def test_get_grib_key_gdps():
     ra = WX4PanelChartAddresser(init_ymd=INIT_YMD, init_hh=INIT_HH, model=ECCCModel.GDPS)
@@ -29,3 +37,11 @@ def test_get_grib_key_rdps():
     ra = WX4PanelChartAddresser(init_ymd=INIT_YMD, init_hh=INIT_HH, model=ECCCModel.RDPS)
     result = ra.get_grib_key(fh=FH, fname=GRIB_NAME)
     assert result == f"weather_models/{INIT_YMD}/model_rdps/10km/{INIT_HH}/{FH:03d}/{GRIB_NAME}"
+
+def test_get_grib_key_gdps_gem():
+    ra = WX4PanelChartAddresser(init_ymd=INIT_YMD, init_hh=INIT_HH, model=ECCCModel.GDPS_GEM)
+    result = ra.get_grib_key(fh=FH, fname=GRIB_NAME)
+    assert (
+        result
+        == f"weather_models/{INIT_YMD}/model_gem_global/15km/grib2/lat_lon/{INIT_HH}/{FH:03d}/{GRIB_NAME}"
+    )

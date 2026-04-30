@@ -58,6 +58,7 @@ class TestConfigBuilderInit:
         [
             ("GDPS", ECCCModel.GDPS),
             ("RDPS", ECCCModel.RDPS),
+            ("GDPS_GEM", ECCCModel.GDPS_GEM),
         ],
     )
     def test_initialises_successfully(
@@ -71,7 +72,7 @@ class TestConfigBuilderInit:
     ):
         from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
 
-        with pytest.raises(ValueError, match="Model must be one of GDPS or RDPS"):
+        with pytest.raises(ValueError, match="Model must be one of"):
             ConfigBuilder(
                 init_ymd="20260217",
                 init_hh="00",
@@ -368,3 +369,84 @@ class TestBuildConfigForHourReturnShape:
         builder.build_config_for_hour(0)
         # pcpn_grib is skipped at fh==0, so 9 calls instead of 10
         assert mock_raster_addresser.get_grib_key.call_count == 9
+
+
+# ---------------------------------------------------------------------------
+# build_config_for_hour — GDPS_GEM variable names
+# ---------------------------------------------------------------------------
+
+
+class TestBuildConfigForHourGdpsGem:
+    @pytest.fixture()
+    def builder(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
+        return make_builder(ECCCModel.GDPS_GEM, mock_raster_addresser, mock_file_name_builder, base_cfg)
+
+    def test_z500_uses_hgt_isbl_500(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("HGT" in c and "ISBL_500" in c for c in calls)
+
+    def test_vort_uses_relv_isbl_500(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("RELV" in c and "ISBL_500" in c for c in calls)
+
+    def test_mslp_uses_prmsl_msl_0(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("PRMSL" in c and "MSL_0" in c for c in calls)
+
+    def test_thk_uses_hgt_isby_1000_500(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("HGT" in c and "ISBY_1000-500" in c for c in calls)
+
+    def test_z700_uses_hgt_isbl_700(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("HGT" in c and "ISBL_700" in c for c in calls)
+
+    def test_rh_levels_use_rh_variable(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        rh_calls = [c for c in calls if "'RH'" in c]
+        assert any("ISBL_500" in c for c in rh_calls)
+        assert any("ISBL_700" in c for c in rh_calls)
+        assert any("ISBL_850" in c for c in rh_calls)
+
+    def test_precip_uses_apcp_accum6h_sfc_0(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("APCP-Accum6h" in c and "SFC_0" in c for c in calls)
+
+    def test_jet_uses_wind_isbl_250(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert any("'WIND'" in c and "ISBL_250" in c for c in calls)
+
+    def test_jet_spd_grib_is_set(self, builder):
+        *_, cfgpcpn = builder.build_config_for_hour(12)
+        assert "jet_spd_grib" in cfgpcpn
+
+    def test_fh0_show_precip_is_false(self, builder):
+        *_, cfgpcpn = builder.build_config_for_hour(0)
+        assert cfgpcpn["show_precip"] is False
+
+    def test_fh0_pcpn_grib_not_set(self, builder):
+        *_, cfgpcpn = builder.build_config_for_hour(0)
+        assert "pcpn_grib" not in cfgpcpn
+
+    def test_fh_nonzero_show_precip_is_true(self, builder):
+        *_, cfgpcpn = builder.build_config_for_hour(6)
+        assert cfgpcpn["show_precip"] is True
+
+    def test_fh_nonzero_pcpn_grib_is_set(self, builder):
+        *_, cfgpcpn = builder.build_config_for_hour(6)
+        assert "pcpn_grib" in cfgpcpn
+
+    def test_does_not_use_gdps_long_form_var_names(self, builder, mock_file_name_builder):
+        builder.build_config_for_hour(12)
+        calls = [str(c) for c in mock_file_name_builder.call_args_list]
+        assert not any("GeopotentialHeight" in c for c in calls)
+        assert not any("AbsoluteVorticity" in c for c in calls)
+        assert not any("RelativeHumidity" in c for c in calls)

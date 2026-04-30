@@ -32,6 +32,7 @@ from wps_weather.wx_4panel_charts.panel_layout import (
     apply_4panel_frames,
 )
 from wps_weather.wx_4panel_charts.plot_4panel_gdps import gdps_fname
+from wps_weather.wx_4panel_charts.plot_4panel_gem_global import gem_global_fname
 from wps_weather.wx_4panel_charts.plot_4panel_rdps import rdps_fname
 from wps_weather.wx_4panel_charts.plot_500mb import CFG_500 as CFG_500_GDPS
 from wps_weather.wx_4panel_charts.plot_500mb_rdps import CFG_500 as CFG_500_RDPS
@@ -219,6 +220,13 @@ class FourPanelChartRunner:
         _model_cfgs = {
             ECCCModel.GDPS: (CFG_500_GDPS, CFG_MSLP_GDPS, CFG_700_GDPS, CFG_PCPN_GDPS, gdps_fname),
             ECCCModel.RDPS: (CFG_500_RDPS, CFG_MSLP_RDPS, CFG_700_RDPS, CFG_PCPN_RDPS, rdps_fname),
+            ECCCModel.GDPS_GEM: (
+                CFG_500_GDPS,
+                CFG_MSLP_GDPS,
+                CFG_700_GDPS,
+                CFG_PCPN_GDPS,
+                gem_global_fname,
+            ),
         }
         cfg500_base, cfgmslp_base, cfg700_base, cfgpcpn_base, fname_builder = _model_cfgs[model]
         raster_addresser = WX4PanelChartAddresser(init_ymd, init_hh, model)
@@ -389,7 +397,10 @@ def parse_args():
         "--step", type=int, default=3, help="The hourly step increment between charts."
     )
     parser.add_argument(
-        "--model", choices=["GDPS", "RDPS"], default="RDPS", help="The ECCC NWM (GDPS or RDPS)"
+        "--model",
+        choices=["GDPS", "RDPS", "GDPS_GEM"],
+        default="RDPS",
+        help="The ECCC NWM (GDPS, RDPS or GDPS_GEM)",
     )
 
     return parser.parse_args()

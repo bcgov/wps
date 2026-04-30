@@ -9,36 +9,49 @@ Key idea:
 """
 
 import os
-from pathlib import Path
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Optional
+
 import matplotlib
+
 matplotlib.use("Agg")
 import argparse
+import re
 
-import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-
-# -----------------------------
-# Import GDPS plotters (UNCHANGED)
-# -----------------------------
-from plot_500mb import plot_500hpa, CFG_500 as CFG_500
-from plot_mslp import plot_mslp_thickness, CFG_MSLP as CFG_MSLP
-from plot_700mb import plot_700hpa, CFG_700 as CFG_700
-from plot_precip import plot_pcpn12, PLOT_CONFIG_PCPN12 as CFG_PCPN
-
+import matplotlib.pyplot as plt
 
 # -----------------------------
 # Import the panel settings
 # -----------------------------
-from panel_layout import (
-    get_project_root,
+from wps_weather.wx_4panel_charts.panel_layout import (
     add_panel_title,
     add_valid_time_stamp,
     apply_4panel_frames,
+    get_project_root,
 )
+from wps_weather.wx_4panel_charts.plot_500mb import CFG_500 as CFG_500
 
-import re
+# -----------------------------
+# Import GDPS plotters (UNCHANGED)
+# -----------------------------
+from wps_weather.wx_4panel_charts.plot_500mb import plot_500hpa
+from wps_weather.wx_4panel_charts.plot_700mb import CFG_700 as CFG_700
+from wps_weather.wx_4panel_charts.plot_700mb import plot_700hpa
+from wps_weather.wx_4panel_charts.plot_mslp import CFG_MSLP as CFG_MSLP
+from wps_weather.wx_4panel_charts.plot_mslp import plot_mslp_thickness
+from wps_weather.wx_4panel_charts.plot_precip import PLOT_CONFIG_PCPN12 as CFG_PCPN
+from wps_weather.wx_4panel_charts.plot_precip import plot_pcpn12
+
+
+# -----------------------------
+# File naming
+# -----------------------------
+def gem_global_fname(init_ymd: str, init_hh: str, var: str, level: Optional[str], fh: int) -> str:
+    level_part = f"_{level}" if level else ""
+    return f"CMC_glb_{var}{level_part}_latlon.15x.15_{init_ymd}{init_hh}_P{fh:03d}.grib2"
 
 
 # -----------------------------
@@ -108,7 +121,6 @@ PAT = {
         r"_RelativeVorticity_IsbL-0500_.*\.grib2$",
         r"^CMC_glb_RELV_ISBL_500_.*\.grib2$",
     ],
-
     # MSLP + thickness
     "mslp": [
         r"_Pressure_MSL_.*\.grib2$",
@@ -118,7 +130,6 @@ PAT = {
         r"_Thickness_IsbL-1000to0500_.*\.grib2$",
         r"^CMC_glb_HGT_ISBY_1000-500_.*\.grib2$",
     ],
-
     # 700 hPa + RH (your plot_700mb expects rh500/rh700/rh850 as separate files)
     "z700": [
         r"_GeopotentialHeight_IsbL-0700_.*\.grib2$",
@@ -136,19 +147,17 @@ PAT = {
         r"_RelativeHumidity_IsbL-0850_.*\.grib2$",
         r"^CMC_glb_RH_ISBL_850_.*\.grib2$",
     ],
-
     # precip (your plot_precip uses "pcpn_grib")
     # This catches both old "Precip-Accum12h" and operational "APCP-Accum12h_SFC_0_"
     "pcpn": [
         r"_Precip-Accum12h_Sfc_.*\.grib2$",
-        r"^CMC_glb_APCP-Accum12h_SFC_0_.*\.grib2$",
+        r"^CMC_glb_APCP-Accum6h_SFC_0_.*\.grib2$",
     ],
-
     # jet speed (ONLY needed if cfgpcpn["show_jet_core"] == True in plot_precip)
     # Keep as-is: if you later need jet again and you have windspeed product, this will find it.
     "wspd250": [
         r"_WindSpeed_IsbL-0250_.*\.grib2$",
-        r"^CMC_glb_WIND_ISBL_250_.*\.grib2$",   # if it exists in some deliveries
+        r"^CMC_glb_WIND_ISBL_250_.*\.grib2$",  # if it exists in some deliveries
     ],
 }
 

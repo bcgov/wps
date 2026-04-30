@@ -48,12 +48,22 @@ def rdps_factory():
     return PlotterFactory(ECCCModel.RDPS)
 
 
+@pytest.fixture()
+def gdps_gem_factory():
+    from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
+
+    return PlotterFactory(ECCCModel.GDPS_GEM)
+
+
 class TestPlotterFactoryInit:
     def test_gdps_initialises_successfully(self, gdps_factory):
         assert gdps_factory is not None
 
     def test_rdps_initialises_successfully(self, rdps_factory):
         assert rdps_factory is not None
+
+    def test_gdps_gem_initialises_successfully(self, gdps_gem_factory):
+        assert gdps_gem_factory is not None
 
     def test_unsupported_model_raises_value_error(self, mock_plotters):
         from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
@@ -100,6 +110,40 @@ class TestGdpsPlotters:
         from wps_weather.wx_4panel_charts import plot_precip
 
         assert gdps_factory.get_pcpn_plotter() is plot_precip.plot_pcpn12
+
+
+class TestGdpsGemPlotters:
+    def test_get_500hpa_plotter_returns_callable(self, gdps_gem_factory):
+        assert callable(gdps_gem_factory.get_500hpa_plotter())
+
+    def test_get_700hpa_plotter_returns_callable(self, gdps_gem_factory):
+        assert callable(gdps_gem_factory.get_700hpa_plotter())
+
+    def test_get_mslp_thickness_plotter_returns_callable(self, gdps_gem_factory):
+        assert callable(gdps_gem_factory.get_mslp_thickness_plotter())
+
+    def test_get_pcpn_plotter_returns_callable(self, gdps_gem_factory):
+        assert callable(gdps_gem_factory.get_pcpn_plotter())
+
+    def test_get_500hpa_plotter_is_gdps_implementation(self, gdps_gem_factory):
+        from wps_weather.wx_4panel_charts import plot_500mb
+
+        assert gdps_gem_factory.get_500hpa_plotter() is plot_500mb.plot_500hpa
+
+    def test_get_700hpa_plotter_is_gdps_implementation(self, gdps_gem_factory):
+        from wps_weather.wx_4panel_charts import plot_700mb
+
+        assert gdps_gem_factory.get_700hpa_plotter() is plot_700mb.plot_700hpa
+
+    def test_get_mslp_thickness_plotter_is_gdps_implementation(self, gdps_gem_factory):
+        from wps_weather.wx_4panel_charts import plot_mslp
+
+        assert gdps_gem_factory.get_mslp_thickness_plotter() is plot_mslp.plot_mslp_thickness
+
+    def test_get_pcpn_plotter_is_gdps_implementation(self, gdps_gem_factory):
+        from wps_weather.wx_4panel_charts import plot_precip
+
+        assert gdps_gem_factory.get_pcpn_plotter() is plot_precip.plot_pcpn12
 
 
 class TestRdpsPlotters:
@@ -151,6 +195,30 @@ class TestPlotterRegistryIsolation:
 
     def test_gdps_and_rdps_pcpn_plotters_are_distinct(self, gdps_factory, rdps_factory):
         assert gdps_factory.get_pcpn_plotter() is not rdps_factory.get_pcpn_plotter()
+
+    def test_gdps_gem_and_rdps_500hpa_plotters_are_distinct(self, gdps_gem_factory, rdps_factory):
+        assert gdps_gem_factory.get_500hpa_plotter() is not rdps_factory.get_500hpa_plotter()
+
+    def test_gdps_gem_and_rdps_700hpa_plotters_are_distinct(self, gdps_gem_factory, rdps_factory):
+        assert gdps_gem_factory.get_700hpa_plotter() is not rdps_factory.get_700hpa_plotter()
+
+    def test_gdps_gem_and_rdps_mslp_plotters_are_distinct(self, gdps_gem_factory, rdps_factory):
+        assert (
+            gdps_gem_factory.get_mslp_thickness_plotter()
+            is not rdps_factory.get_mslp_thickness_plotter()
+        )
+
+    def test_gdps_gem_and_rdps_pcpn_plotters_are_distinct(self, gdps_gem_factory, rdps_factory):
+        assert gdps_gem_factory.get_pcpn_plotter() is not rdps_factory.get_pcpn_plotter()
+
+    def test_gdps_gem_shares_plotters_with_gdps(self, gdps_factory, gdps_gem_factory):
+        assert gdps_gem_factory.get_500hpa_plotter() is gdps_factory.get_500hpa_plotter()
+        assert gdps_gem_factory.get_700hpa_plotter() is gdps_factory.get_700hpa_plotter()
+        assert (
+            gdps_gem_factory.get_mslp_thickness_plotter()
+            is gdps_factory.get_mslp_thickness_plotter()
+        )
+        assert gdps_gem_factory.get_pcpn_plotter() is gdps_factory.get_pcpn_plotter()
 
     def test_same_model_returns_same_plotter_instance(self):
         from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory

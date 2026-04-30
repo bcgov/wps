@@ -12,6 +12,7 @@ class ECCCModel(str, enum.Enum):
 
     GDPS = "GDPS"
     RDPS = "RDPS"
+    GDPS_GEM = "GDPS_GEM"
 
 
 class ChartStatusEnum(str, enum.Enum):
@@ -23,7 +24,7 @@ class ChartStatusEnum(str, enum.Enum):
 
 
 # Used for limiting the model field in the ProcessedFourPanelChart table instead of an enum as the valid models will be updated over time.
-ModelNames = (ECCCModel.GDPS.value, ECCCModel.RDPS.value)
+ModelNames = (ECCCModel.GDPS.value, ECCCModel.RDPS.value, ECCCModel.GDPS_GEM.value)
 
 
 class ProcessedFourPanelChart(Base):
