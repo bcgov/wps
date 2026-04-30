@@ -16,9 +16,11 @@ const TabPanel = ({ children, index, value }: TabPanelProps) => {
       data-testid={`tabpanel-${index}`}
       style={{ backgroundColor: theme.palette.common.white }}
     >
-      {value === index && <Box border={'1px solid #ccc'}>{children}</Box>}
+      {value === index && <Box sx={{
+        border: '1px solid #ccc'
+      }}>{children}</Box>}
     </div>
-  )
+  );
 }
 
 export default TabPanel

@@ -5,7 +5,6 @@ import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/
 import { AdminFuelTypesDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminFuelTypesDropdown'
 import { vi } from 'vitest'
 
-
 describe('AdminFuelTypesDropdown', () => {
   it('should call edit handler callback with fuel type option when submitted', async () => {
     const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1 }
@@ -26,10 +25,10 @@ describe('AdminFuelTypesDropdown', () => {
     const autocomplete = getByTestId('enabled-ft-dropdown')
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
-    autocomplete.focus()
-    userEvent.type(autocomplete, fuelTypes[0].abbrev)
-    userEvent.type(autocomplete, '{arrowdown}')
-    userEvent.type(autocomplete, '{enter}')
+    await userEvent.click(input)
+    await userEvent.type(input, fuelTypes[0].abbrev)
+    await userEvent.type(input, '{arrowdown}')
+    await userEvent.type(input, '{enter}')
 
     await waitFor(() => expect(input.value).toBe(fuelTypes[0].abbrev))
     await waitFor(() => expect(handleEditStationMock).toHaveBeenCalledTimes(1))

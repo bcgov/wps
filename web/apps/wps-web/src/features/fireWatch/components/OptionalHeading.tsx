@@ -9,7 +9,9 @@ const OptionalHeading = ({ children }: OptionalHeadingProps) => (
     <Typography variant="body1" sx={{ mr: 1 }}>
       {children}
     </Typography>
-    <Typography variant="body2" color="text.secondary">
+    <Typography variant="body2" sx={{
+      color: "text.secondary"
+    }}>
       [Optional]
     </Typography>
   </Box>

@@ -5,6 +5,7 @@ import { Provider } from "react-redux";
 import { createTestStore } from "./testUtils";
 import { NavPanel } from "@/utils/constants";
 import { useMediaQuery } from "@mui/material";
+import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { initialState as pushNotificationInitialState } from "@/slices/pushNotificationSlice";
 import { RunType } from "@/api/fbaAPI";
@@ -123,6 +124,10 @@ vi.mock("@/hooks/usePushNotifications", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useIsPortrait", () => ({
+  useIsPortrait: vi.fn(),
+}));
+
 vi.mock("@capacitor/device", () => ({
   Device: { getId: vi.fn().mockResolvedValue({ identifier: "device-id" }) },
 }));
@@ -148,6 +153,8 @@ vi.mock("@/utils/dataSliceUtils", async () => {
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useIsPortrait).mockReturnValue(true);
+    vi.mocked(useMediaQuery).mockReturnValue(false);
     vi.mocked(usePushNotifications).mockReturnValue({
       initPushNotifications: vi.fn().mockResolvedValue(undefined),
       retryRegistration: vi.fn().mockResolvedValue(undefined),
@@ -209,67 +216,7 @@ describe("App", () => {
 
   it("hides AppHeader and calls StatusBar.hide() when device is in landscape orientation", async () => {
     const { StatusBar } = await import("@capacitor/status-bar");
-    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
-
-    // Mock landscape orientation
-    const mockOrientation = vi
-      .fn()
-      .mockResolvedValue({ type: "landscape-primary" });
-    ScreenOrientation.orientation = mockOrientation;
-
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
-
-    // Wait for async orientation check to complete
-    await waitFor(() => {
-      expect(mockOrientation).toHaveBeenCalled();
-    });
-
-    // Check if StatusBar.hide() is called
-    expect(StatusBar.hide).toHaveBeenCalled();
-  });
-
-  it("shows AppHeader and calls StatusBar.show() when device is in portrait orientation", async () => {
-    const { StatusBar } = await import("@capacitor/status-bar");
-    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
-
-    // Mock portrait orientation
-    const mockOrientation = vi
-      .fn()
-      .mockResolvedValue({ type: "portrait-primary" });
-    ScreenOrientation.orientation = mockOrientation;
-
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
-
-    // Wait for async orientation check to complete
-    await waitFor(() => {
-      expect(mockOrientation).toHaveBeenCalled();
-    });
-
-    // Check if StatusBar.show() is called
-    expect(StatusBar.show).toHaveBeenCalled();
-  });
-
-  it("displays SideNavigation and hides BottomNavigation in landscape on small screens", async () => {
-    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
-
-    // Mock landscape orientation
-    ScreenOrientation.orientation = vi
-      .fn()
-      .mockResolvedValue({ type: "landscape-primary" });
-
-    // Mock small screen
+    vi.mocked(useIsPortrait).mockReturnValue(false);
     vi.mocked(useMediaQuery).mockReturnValue(true);
 
     const store = createTestStore();
@@ -280,12 +227,44 @@ describe("App", () => {
       </Provider>,
     );
 
-    // Wait for async orientation check to complete
     await waitFor(() => {
-      expect(ScreenOrientation.orientation).toHaveBeenCalled();
+      expect(StatusBar.hide).toHaveBeenCalled();
     });
 
-    // Check if SideNavigation is displayed and BottomNavigation is hidden on small screens
+    expect(screen.queryByTestId("app-header")).not.toBeInTheDocument();
+  });
+
+  it("shows AppHeader and calls StatusBar.show() when device is in portrait orientation", async () => {
+    const { StatusBar } = await import("@capacitor/status-bar");
+    vi.mocked(useIsPortrait).mockReturnValue(true);
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(StatusBar.show).toHaveBeenCalled();
+    });
+
+    expect(screen.getByTestId("app-header")).toBeInTheDocument();
+  });
+
+  it("displays SideNavigation and hides BottomNavigation in landscape on small screens", async () => {
+    vi.mocked(useIsPortrait).mockReturnValue(false);
+    vi.mocked(useMediaQuery).mockReturnValue(true);
+
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    );
+
     await waitFor(() =>
       expect(screen.getByTestId("side-navigation")).toBeInTheDocument(),
     );
@@ -293,14 +272,7 @@ describe("App", () => {
   });
 
   it("displays AppHeader and BottomNavigation in portrait on small screens", async () => {
-    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
-
-    // Mock portrait orientation
-    ScreenOrientation.orientation = vi
-      .fn()
-      .mockResolvedValue({ type: "portrait-primary" });
-
-    // Mock small screen
+    vi.mocked(useIsPortrait).mockReturnValue(true);
     vi.mocked(useMediaQuery).mockReturnValue(true);
 
     const store = createTestStore();
@@ -311,25 +283,12 @@ describe("App", () => {
       </Provider>,
     );
 
-    // Wait for async orientation check to complete
-    await waitFor(() => {
-      expect(ScreenOrientation.orientation).toHaveBeenCalled();
-    });
-
-    // Check if AppHeader and BottomNavigation are displayed
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
   });
 
   it("displays AppHeader and BottomNavigation in landscape on medium or larger screens", async () => {
-    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
-
-    // Mock landscape orientation
-    ScreenOrientation.orientation = vi
-      .fn()
-      .mockResolvedValue({ type: "landscape-primary" });
-
-    // Mock medium/large screen
+    vi.mocked(useIsPortrait).mockReturnValue(false);
     vi.mocked(useMediaQuery).mockReturnValue(false);
 
     const store = createTestStore();
@@ -340,12 +299,6 @@ describe("App", () => {
       </Provider>,
     );
 
-    // Wait for async orientation check to complete
-    await waitFor(() => {
-      expect(ScreenOrientation.orientation).toHaveBeenCalled();
-    });
-
-    // Check if AppHeader and BottomNavigation are displayed
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
     expect(screen.queryByTestId("side-navigation")).not.toBeInTheDocument();
@@ -402,14 +355,7 @@ describe("App", () => {
   });
 
   it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {
-    const { ScreenOrientation } = await import("@capacitor/screen-orientation");
-
-    // Mock portrait orientation
-    ScreenOrientation.orientation = vi
-      .fn()
-      .mockResolvedValue({ type: "portrait-primary" });
-
-    // Mock medium/large screen
+    vi.mocked(useIsPortrait).mockReturnValue(true);
     vi.mocked(useMediaQuery).mockReturnValue(false);
 
     const store = createTestStore();
@@ -420,24 +366,13 @@ describe("App", () => {
       </Provider>,
     );
 
-    // Wait for async orientation check to complete
-    await waitFor(() => {
-      expect(ScreenOrientation.orientation).toHaveBeenCalled();
-    });
-
-    // Check if AppHeader and BottomNavigation are displayed
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
   });
 
   describe("InfoBar rendering", () => {
     it("renders InfoBar in portrait orientation", async () => {
-      const { ScreenOrientation } = await import(
-        "@capacitor/screen-orientation"
-      );
-      ScreenOrientation.orientation = vi
-        .fn()
-        .mockResolvedValue({ type: "portrait-primary" });
+      vi.mocked(useIsPortrait).mockReturnValue(true);
       vi.mocked(useMediaQuery).mockReturnValue(false);
 
       const store = createTestStore();
@@ -454,12 +389,7 @@ describe("App", () => {
     });
 
     it("shows WARNING status and Offline. text when network is disconnected", async () => {
-      const { ScreenOrientation } = await import(
-        "@capacitor/screen-orientation"
-      );
-      ScreenOrientation.orientation = vi
-        .fn()
-        .mockResolvedValue({ type: "portrait-primary" });
+      vi.mocked(useIsPortrait).mockReturnValue(true);
       vi.mocked(useMediaQuery).mockReturnValue(false);
 
       const { Network } = await import("@capacitor/network");
@@ -486,12 +416,7 @@ describe("App", () => {
     });
 
     it("shows INFO status when network is connected", async () => {
-      const { ScreenOrientation } = await import(
-        "@capacitor/screen-orientation"
-      );
-      ScreenOrientation.orientation = vi
-        .fn()
-        .mockResolvedValue({ type: "portrait-primary" });
+      vi.mocked(useIsPortrait).mockReturnValue(true);
       vi.mocked(useMediaQuery).mockReturnValue(false);
 
       const { Network } = await import("@capacitor/network");

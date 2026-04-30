@@ -22,7 +22,7 @@ const ForecastCell = ({ disabled, label, showGreaterThan, showLessThan, value, v
 
   return (
     <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-      <Grid item xs={2}>
+      <Grid size={2}>
         {showLessThan && (
           <Tooltip placement="bottom-end" title="Lower than actual">
             <RemoveCircleIcon
@@ -32,10 +32,10 @@ const ForecastCell = ({ disabled, label, showGreaterThan, showLessThan, value, v
           </Tooltip>
         )}
       </Grid>
-      <Grid item xs={8}>
+      <Grid size={8}>
         <ValidatedForecastCell disabled={disabled} label={label} value={value} validator={validator} />
       </Grid>
-      <Grid item xs={2} sx={{ marginLeft: 'auto' }}>
+      <Grid size={2} sx={{ marginLeft: 'auto' }}>
         {showGreaterThan && (
           <Tooltip placement="bottom-start" title="Higher than actual">
             <AddBoxIcon

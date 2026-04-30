@@ -8,8 +8,8 @@ import { weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { isEmpty, isNil } from 'lodash'
 
 interface ModelHeaderProps {
-  params: Pick<GridColumnHeaderParams, 'field'> & {
-    colDef: Pick<GridColumnHeaderParams['colDef'], 'field' | 'headerName'>
+  params: Pick<GridColumnHeaderParams<MoreCast2Row>, 'field'> & {
+    colDef: Pick<GridColumnHeaderParams<MoreCast2Row>['colDef'], 'field' | 'headerName'>
   }
   allRows?: MoreCast2Row[]
 }
