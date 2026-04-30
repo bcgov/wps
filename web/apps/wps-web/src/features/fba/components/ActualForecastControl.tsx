@@ -42,20 +42,24 @@ const ActualForecastControl = ({ runType, setRunType }: ActualForecastControlPro
         <FormControlLabel
           value={RunType.ACTUAL}
           control={
-            <Radio inputProps={{ 'data-testid': 'actual-radio' } as React.InputHTMLAttributes<HTMLInputElement>} />
+            <Radio slotProps={{
+              input: { 'data-testid': 'actual-radio' } as React.InputHTMLAttributes<HTMLInputElement>
+            }} />
           }
           label="Actual"
         />
         <FormControlLabel
           value={RunType.FORECAST}
           control={
-            <Radio inputProps={{ 'data-testid': 'forecast-radio' } as React.InputHTMLAttributes<HTMLInputElement>} />
+            <Radio slotProps={{
+              input: { 'data-testid': 'forecast-radio' } as React.InputHTMLAttributes<HTMLInputElement>
+            }} />
           }
           label="Forecast"
         />
       </RadioGroup>
     </FormControl>
-  )
+  );
 }
 
 export default React.memo(ActualForecastControl)

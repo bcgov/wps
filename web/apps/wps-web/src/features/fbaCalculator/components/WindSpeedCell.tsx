@@ -78,13 +78,15 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
         className={classes.windSpeed}
         size="small"
         variant="outlined"
-        inputProps={{ min: 0, max: 120, step: 'any' }}
         onChange={changeHandler}
         onBlur={handlePossibleUpdate}
         onKeyDown={enterHandler}
         value={valueForRendering()}
         disabled={props.disabled}
         error={hasError}
+        slotProps={{
+          htmlInput: { min: 0, max: 120, step: 'any' }
+        }}
       />
     </Tooltip>
   )

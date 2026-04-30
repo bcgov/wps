@@ -4,13 +4,7 @@ import ElevationFlag from "@/components/profile/ElevationFlag";
 
 // Mock the FillableFlag component to test integration
 vi.mock("@/components/profile/FillableFlag", () => ({
-  default: ({
-    maskId,
-    percent,
-  }: {
-    maskId: string;
-    percent: number;
-  }) => (
+  default: ({ maskId, percent }: { maskId: string; percent: number }) => (
     <div data-testid={`mock-flag-${maskId}`} data-percent={percent}>
       Mock Flag: {percent}%
     </div>
@@ -20,7 +14,7 @@ vi.mock("@/components/profile/FillableFlag", () => ({
 describe("ElevationFlag", () => {
   it("should render the flag component", () => {
     const { container } = render(
-      <ElevationFlag percent={75} testId="upper-slope" />
+      <ElevationFlag percent={75} testId="upper-slope" />,
     );
 
     const mockFlag = container.querySelector('[data-percent="75"]');
@@ -41,10 +35,10 @@ describe("ElevationFlag", () => {
 
     // Both should have mock flags with different maskIds since they're random
     const mockFlag1 = container1.querySelector(
-      '[data-testid^="mock-flag-elevation-flag-"]'
+      '[data-testid^="mock-flag-elevation-flag-"]',
     );
     const mockFlag2 = container2.querySelector(
-      '[data-testid^="mock-flag-elevation-flag-"]'
+      '[data-testid^="mock-flag-elevation-flag-"]',
     );
 
     expect(mockFlag1).toBeInTheDocument();
@@ -61,7 +55,7 @@ describe("ElevationFlag", () => {
 
     // The Grid should have specific styling
     const gridElement = container.firstChild;
-    expect(gridElement).toHaveClass("MuiGrid2-root");
+    expect(gridElement).toHaveClass("MuiGrid-root");
   });
 
   it("should handle different percentage values", () => {
@@ -69,11 +63,11 @@ describe("ElevationFlag", () => {
 
     percentages.forEach((percent) => {
       const { container } = render(
-        <ElevationFlag testId="test" percent={percent} />
+        <ElevationFlag testId="test" percent={percent} />,
       );
       // Since maskId is now random, we need to find the element differently
       const mockFlag = container.querySelector(
-        '[data-testid^="mock-flag-elevation-flag-"]'
+        '[data-testid^="mock-flag-elevation-flag-"]',
       );
       expect(mockFlag).toBeInTheDocument();
       expect(mockFlag).toHaveAttribute("data-percent", percent.toString());

@@ -1,4 +1,3 @@
-import { GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { DEFAULT_COLUMN_WIDTH } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   StationForecastField,
@@ -24,8 +23,8 @@ describe('MoreCast2Column', () => {
           maxWidth: 200,
           minWidth: 200,
           width: 200,
-          valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-            return params.value.toLocaleString(DateTime.DATE_MED)
+          valueFormatter: (value: DateTime) => {
+            return value.toLocaleString(DateTime.DATE_MED)
           }
         })
       )
@@ -45,8 +44,8 @@ describe('MoreCast2Column', () => {
           minWidth: 150,
           width: 150,
           sortable: false,
-          valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-            return params.value.toLocaleString(DateTime.DATE_MED)
+          valueFormatter: (value: DateTime) => {
+            return value.toLocaleString(DateTime.DATE_MED)
           }
         })
       )

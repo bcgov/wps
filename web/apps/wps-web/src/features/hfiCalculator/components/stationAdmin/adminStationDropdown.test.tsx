@@ -4,7 +4,6 @@ import { BasicWFWXStation, StationAdminRow } from 'features/hfiCalculator/compon
 import { AdminStationDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminStationDropdown'
 import { vi } from 'vitest'
 
-
 describe('AdminStationDropdown', () => {
   it('should call edit handler callback with station option when submitted', async () => {
     const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1 }
@@ -25,10 +24,10 @@ describe('AdminStationDropdown', () => {
     const autocomplete = getByTestId('enabled-station-dropdown')
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
-    autocomplete.focus()
-    userEvent.type(autocomplete, stationOptions[0].name)
-    userEvent.type(autocomplete, '{arrowdown}')
-    userEvent.type(autocomplete, '{enter}')
+    await userEvent.click(input)
+    await userEvent.type(input, stationOptions[0].name)
+    await userEvent.keyboard('{ArrowDown}')
+    await userEvent.keyboard('{Enter}')
 
     await waitFor(() => expect(input.value).toBe(stationOptions[0].name))
     await waitFor(() => expect(handleEditStationMock).toHaveBeenCalledTimes(1))

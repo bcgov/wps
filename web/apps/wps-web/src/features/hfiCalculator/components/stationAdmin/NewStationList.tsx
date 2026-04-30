@@ -28,9 +28,9 @@ export const NewStationList = ({
       sx={{ pt: 1 }}
       data-testid={`new-pa-admin-station-${planningAreaId}-${newStation.rowId}`}
     >
-      <Grid item>
+      <Grid>
         <Grid container direction="row" spacing={1}>
-          <Grid item>
+          <Grid>
             <AdminStationDropdown
               testId={`added-station-dropdown-${planningAreaId}-${newStation.rowId}`}
               adminRow={newStation}
@@ -40,7 +40,7 @@ export const NewStationList = ({
               handleEditStation={handleEditStation}
             />
           </Grid>
-          <Grid item>
+          <Grid>
             <AdminFuelTypesDropdown
               testId={`added-ft-dropdown-${planningAreaId}-${newStation.rowId}`}
               adminRow={newStation}
@@ -50,7 +50,7 @@ export const NewStationList = ({
               handleEditStation={handleEditStation}
             />
           </Grid>
-          <Grid item>
+          <Grid>
             <AdminRemoveButton
               adminRow={newStation}
               planningAreaId={planningAreaId}
@@ -60,7 +60,7 @@ export const NewStationList = ({
         </Grid>
       </Grid>
     </Grid>
-  )
+  );
 }
 
 export default React.memo(NewStationList)

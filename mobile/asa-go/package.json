@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "resolutions": {
+    "react-is": "18.3.1"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -38,12 +41,10 @@
     "@capacitor/status-bar": "7.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^6.4.0",
-    "@mui/material": "^6.4.0",
-    "@mui/system": "^6.4.0",
-    "@mui/x-data-grid-pro": "^8.9.1",
-    "@mui/x-date-pickers": "^7.26.0",
-    "@mui/x-license-pro": "^6.10.2",
+    "@mui/icons-material": "^9.0.0",
+    "@mui/material": "^9.0.0",
+    "@mui/system": "^9.0.0",
+    "@mui/x-data-grid-pro": "^9.0.0",
     "@reduxjs/toolkit": "^2.5.1",
     "@sentry/capacitor": "^3.2.1",
     "@sentry/react": "10.43.0",
@@ -60,6 +61,7 @@
     "pmtiles": "^4.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-is": "18.3.1",
     "react-redux": "^9.2.0",
     "vitest": "^4.0.0"
   },

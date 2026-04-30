@@ -1,7 +1,7 @@
 import React from 'react'
 import { PlanningArea } from '@wps/api/hfiCalculatorAPI'
 import { Typography, Box, IconButton } from '@mui/material'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined'
 import ExistingStationList from 'features/hfiCalculator/components/stationAdmin/ExistingStationList'
 import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
@@ -46,7 +46,7 @@ const PlanningAreaAdmin = ({
             adminHandlers.handleAddStation(planningArea.id)
           }}
         >
-          <AddCircleOutlineIcon />
+          <AddCircleOutlineOutlinedIcon />
         </IconButton>
       </Typography>
 

@@ -54,6 +54,8 @@ interface ForecastSummaryDataGridProps {
   processRowUpdate: (newRow: MoreCast2Row) => MoreCast2Row
 }
 
+const LoadingOverlay = () => <LinearProgress />
+
 const ForecastSummaryDataGrid = ({
   loading,
   rows,
@@ -73,7 +75,7 @@ const ForecastSummaryDataGrid = ({
           return params.field.endsWith('Forecast') || params.field.endsWith('Actual') ? 'forecastCell' : ''
         }}
         slots={{
-          loadingOverlay: LinearProgress
+          loadingOverlay: LoadingOverlay
         }}
         initialState={{
           sorting: {
@@ -81,7 +83,6 @@ const ForecastSummaryDataGrid = ({
           },
           pinnedColumns: { left: PINNED_COLUMNS }
         }}
-        experimentalFeatures={{ columnGrouping: true }}
         columnGroupingModel={getSummaryColumnGroupModel()}
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}

@@ -5,15 +5,16 @@ import {
   GridColumnHeaderParams,
   GridPreProcessEditCellProps,
   GridRenderCellParams,
-  GridRenderEditCellParams,
-  GridValueFormatterParams,
-  GridValueGetterParams,
-  GridValueSetterParams
+  GridRenderEditCellParams
 } from '@mui/x-data-grid-pro'
 import { WeatherDeterminate, WeatherDeterminateType } from '@wps/api/moreCast2API'
 import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { modelColorClass, modelHeaderColorClass } from '@wps/ui/theme'
-import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
+import {
+  GridComponentRenderer,
+  GridRendererEditableValue,
+  GridRendererValue
+} from 'features/moreCast2/components/GridComponentRenderer'
 import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { EditInputCell } from '@/features/moreCast2/components/EditInputCell'
 
@@ -46,17 +47,19 @@ export const WIND_DIR_HEADER = 'Wind Dir'
 export const PRECIP_HEADER = 'Precip'
 export const GC_HEADER = 'GC'
 
+export type MoreCast2GridColDef = GridColDef<MoreCast2Row>
+
 export interface ForecastColDefGenerator {
   getField: () => string
   generateForecastColDef: (
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     validator?: (value: string) => string
-  ) => GridColDef
+  ) => MoreCast2GridColDef
   generateForecastSummaryColDef: (
     columnClickHandlerProps: ColumnClickHandlerProps,
     validator?: (value: string) => string
-  ) => GridColDef
+  ) => MoreCast2GridColDef
 }
 
 export interface ColDefGenerator {
@@ -65,14 +68,14 @@ export interface ColDefGenerator {
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     validator?: (value: string) => string
-  ) => GridColDef
+  ) => MoreCast2GridColDef
   generateColDefs: (
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     includeBiasFields?: boolean,
     validator?: (value: string) => string,
     allRows?: MoreCast2Row[]
-  ) => GridColDef[]
+  ) => MoreCast2GridColDef[]
 }
 
 export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerator {
@@ -86,7 +89,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
   public getField = () => {
     return this.field
   }
-  public generateColDef = () => {
+  public generateColDef = (): MoreCast2GridColDef => {
     return this.generateColDefWith(this.field, this.headerName, this.precision, DEFAULT_COLUMN_WIDTH)
   }
 
@@ -98,7 +101,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
     validator?: (value: string) => string
-  ) => {
+  ): MoreCast2GridColDef => {
     return this.generateForecastColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
       headerName ?? this.headerName,
@@ -112,7 +115,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
   public generateForecastSummaryColDef = (
     columnClickHandlerProps: ColumnClickHandlerProps,
     validator?: (value: string) => string
-  ) => {
+  ): MoreCast2GridColDef => {
     return this.generateForecastSummaryColDefWith(
       `${this.field}${WeatherDeterminate.FORECAST}`,
       this.headerName,
@@ -129,8 +132,8 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     includeBiasFields = true,
     validator?: (value: string) => string,
     allRows?: MoreCast2Row[]
-  ) => {
-    const gridColDefs: GridColDef[] = []
+  ): MoreCast2GridColDef[] => {
+    const gridColDefs: MoreCast2GridColDef[] = []
     // Forecast columns have unique requirement (eg. column header menu, editable, etc.)
     const forecastColDef = this.generateForecastColDef(columnClickHandlerProps, headerName, validator)
     gridColDefs.push(forecastColDef)
@@ -142,7 +145,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     return gridColDefs
   }
 
-  public generateNonForecastColDefs = (includeBiasFields: boolean, allRows?: MoreCast2Row[]) => {
+  public generateNonForecastColDefs = (includeBiasFields: boolean, allRows?: MoreCast2Row[]): MoreCast2GridColDef[] => {
     const fields = includeBiasFields
       ? ORDERED_COLUMN_HEADERS
       : ORDERED_COLUMN_HEADERS.filter(header => !header.endsWith('_BIAS'))
@@ -165,7 +168,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     width?: number,
     validator?: (value: string) => string,
     allRows?: MoreCast2Row[]
-  ) => {
+  ): MoreCast2GridColDef => {
     return {
       field,
       disableColumnMenu: true,
@@ -188,13 +191,13 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       renderCell: (params: Pick<GridRenderCellParams, 'formattedValue' | 'field' | 'row'>) => {
         return this.gridComponentRenderer.renderCellWith(params)
       },
-      renderHeader: (params: GridColumnHeaderParams) => {
+      renderHeader: (params: GridColumnHeaderParams<MoreCast2Row>) => {
         return this.gridComponentRenderer.renderHeaderWith(params, allRows)
       },
-      valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
-        this.gridComponentRenderer.valueGetter(params, precision, field, headerName),
-      valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
-        return this.valueFormatterWith(params, precision)
+      valueGetter: (value: GridRendererValue, row: MoreCast2Row) =>
+        this.gridComponentRenderer.valueGetter(value, row, precision, field, headerName),
+      valueFormatter: (value: GridRendererValue) => {
+        return this.valueFormatterWith(value, precision)
       }
     }
   }
@@ -206,7 +209,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     columnClickHandlerProps: ColumnClickHandlerProps,
     width?: number,
     validator?: (value: string) => string
-  ) => {
+  ): MoreCast2GridColDef => {
     const isGrassField = field.includes('grass')
     const isCalcField = field.includes('Calc')
     if (isGrassField || isCalcField) {
@@ -226,7 +229,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
       preProcessEditCellProps: (params: GridPreProcessEditCellProps) => {
         return { ...params.props, error: validator ? validator(params.props.value) : '' }
       },
-      renderHeader: (params: GridColumnHeaderParams) => {
+      renderHeader: (params: GridColumnHeaderParams<MoreCast2Row>) => {
         return isCalcField || isGrassField
           ? this.gridComponentRenderer.renderHeaderWith(params)
           : this.gridComponentRenderer.renderForecastHeaderWith(params, columnClickHandlerProps)
@@ -236,13 +239,13 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
           ? this.gridComponentRenderer.renderCellWith(params)
           : this.gridComponentRenderer.renderForecastCellWith(params, field, validator)
       },
-      valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
-        return this.valueFormatterWith(params, precision)
+      valueFormatter: (value: GridRendererValue) => {
+        return this.valueFormatterWith(value, precision)
       },
-      valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
-        this.gridComponentRenderer.valueGetter(params, precision, field, headerName),
-      valueSetter: (params: Pick<GridValueSetterParams, 'row' | 'value'>) =>
-        this.valueSetterWith(params, field, precision)
+      valueGetter: (value: GridRendererValue, row: MoreCast2Row) =>
+        this.gridComponentRenderer.valueGetter(value, row, precision, field, headerName),
+      valueSetter: (value: GridRendererEditableValue, row: MoreCast2Row) =>
+        this.valueSetterWith(value, row, field, precision)
     }
   }
 
@@ -253,7 +256,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
     columnClickHandlerProps: ColumnClickHandlerProps,
     width?: number,
     validator?: (value: string) => string
-  ) => {
+  ): MoreCast2GridColDef => {
     const isGrassField = field.includes('grass')
     const isCalcField = field.includes('Calc')
     if (isGrassField || isCalcField) {
@@ -273,7 +276,7 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
         return { ...params.props, error: validator ? validator(params.props.value) : '' }
       },
       renderEditCell: this.renderEditCell,
-      renderHeader: (params: GridColumnHeaderParams) => {
+      renderHeader: (params: GridColumnHeaderParams<MoreCast2Row>) => {
         return isCalcField || isGrassField
           ? this.gridComponentRenderer.renderHeaderWith(params)
           : this.gridComponentRenderer.renderForecastHeaderWith(params, columnClickHandlerProps)
@@ -283,24 +286,25 @@ export class ColumnDefBuilder implements ColDefGenerator, ForecastColDefGenerato
           ? this.gridComponentRenderer.renderCellWith(params)
           : this.gridComponentRenderer.renderForecastSummaryCellWith(params)
       },
-      valueFormatter: (params: Pick<GridValueFormatterParams, 'value'>) => {
-        return this.valueFormatterWith(params, precision)
+      valueFormatter: (value: GridRendererValue) => {
+        return this.valueFormatterWith(value, precision)
       },
-      valueGetter: (params: Pick<GridValueGetterParams, 'row' | 'value'>) =>
-        this.gridComponentRenderer.valueGetter(params, precision, field, headerName),
-      valueSetter: (params: Pick<GridValueSetterParams, 'row' | 'value'>) =>
-        this.valueSetterWith(params, field, precision)
+      valueGetter: (value: GridRendererValue, row: MoreCast2Row) =>
+        this.gridComponentRenderer.valueGetter(value, row, precision, field, headerName),
+      valueSetter: (value: GridRendererEditableValue, row: MoreCast2Row) =>
+        this.valueSetterWith(value, row, field, precision)
     }
   }
 
-  public valueFormatterWith = (params: Pick<GridValueFormatterParams, 'value'>, precision: number) =>
-    this.gridComponentRenderer.predictionItemValueFormatter(params, precision)
+  public valueFormatterWith = (value: GridRendererValue, precision: number) =>
+    this.gridComponentRenderer.predictionItemValueFormatter(value, precision)
   public valueGetter = (
-    params: Pick<GridValueGetterParams, 'row' | 'value'>,
+    value: GridRendererValue,
+    row: MoreCast2Row,
     field: string,
     precision: number,
     headerName: string
-  ) => this.gridComponentRenderer.valueGetter(params, precision, field, headerName)
-  public valueSetterWith = (params: Pick<GridValueSetterParams, 'row' | 'value'>, field: string, precision: number) =>
-    this.gridComponentRenderer.predictionItemValueSetter(params, field, precision)
+  ) => this.gridComponentRenderer.valueGetter(value, row, precision, field, headerName)
+  public valueSetterWith = (value: GridRendererEditableValue, row: MoreCast2Row, field: string, precision: number) =>
+    this.gridComponentRenderer.predictionItemValueSetter(value, row, field, precision)
 }

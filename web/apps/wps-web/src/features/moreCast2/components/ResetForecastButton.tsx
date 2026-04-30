@@ -38,7 +38,9 @@ const ResetForecastButton = ({
         open={showResetDialog}
         onClose={handleResetDialogClose}
         data-testid={'reset-dialog'}
-        PaperProps={{ sx: { border: 2, borderColor: '#808080' } }}
+        slotProps={{
+          paper: { sx: { border: 2, borderColor: '#808080' } }
+        }}
       >
         <DialogContent>
           <DialogContentText>
@@ -56,7 +58,7 @@ const ResetForecastButton = ({
         </DialogActions>
       </Dialog>
     </>
-  )
+  );
 }
 
 export default React.memo(ResetForecastButton)

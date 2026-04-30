@@ -21,9 +21,6 @@ const ValidatedCell = ({ disabled, label, value, invalid, error }: ValidatedCell
         disabled={disabled}
         size="small"
         label={label}
-        InputLabelProps={{
-          shrink: true
-        }}
         sx={{
           '& .MuiOutlinedInput-root': {
             backgroundColor: `${theme.palette.common.white}`,
@@ -46,9 +43,14 @@ const ValidatedCell = ({ disabled, label, value, invalid, error }: ValidatedCell
           }
         }}
         value={value}
+        slotProps={{
+          inputLabel: {
+            shrink: true
+          }
+        }}
       ></TextField>
     </InvalidCellToolTip>
-  )
+  );
 }
 
 export default React.memo(ValidatedCell)

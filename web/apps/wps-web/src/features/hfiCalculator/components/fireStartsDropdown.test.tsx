@@ -1,4 +1,4 @@
-import { render, within, waitFor } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 import { vi } from 'vitest'
@@ -43,12 +43,10 @@ describe('FireStartsDropdown', () => {
     const autocomplete = getByTestId('fire-starts-dropdown')
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
-    autocomplete.focus()
-    await userEvent.type(autocomplete, '2')
+    await userEvent.click(input)
+    await userEvent.click(screen.getByRole('option', { name: highestFireStarts.label }))
 
     await waitFor(() => expect(input.value).toBe('2'))
-
-    await userEvent.type(autocomplete, '{enter}')
     await waitFor(() => expect(setFireStartsMock).toHaveBeenCalledTimes(1))
     await waitFor(() => expect(setFireStartsMock).toHaveBeenCalledWith(testAreaId, dayOffset, highestFireStarts))
   })

@@ -1,4 +1,3 @@
-import { GridValueFormatterParams } from '@mui/x-data-grid-pro'
 import { DateTime } from 'luxon'
 import {
   ColDefGenerator,
@@ -73,8 +72,8 @@ export class DateForecastField implements ColDefGenerator {
       minWidth: 150,
       width: 150,
       sortable: false,
-      valueFormatter: (params: GridValueFormatterParams<DateTime>) => {
-        return params.value.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)
+      valueFormatter: (value: DateTime) => {
+        return value.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)
       }
     }
   }

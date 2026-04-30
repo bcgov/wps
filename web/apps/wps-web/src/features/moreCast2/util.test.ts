@@ -27,9 +27,9 @@ const TEST_DATETIME = DateTime.fromISO(TEST_DATE)
 const YESTERDAY = DateTime.fromISO(TEST_DATE).plus({ days: -1 })
 const TODAY = DateTime.fromISO(TEST_DATE)
 const TOMORROW = DateTime.fromISO(TEST_DATE).plus({ days: 1 })
-const REAL_YESTERDAY = DateTime.now().minus({day: 1})
+const REAL_YESTERDAY = DateTime.now().minus({ day: 1 })
 const REAL_TODAY = DateTime.now()
-const REAL_TOMORROW = DateTime.now().plus({day: 1})
+const REAL_TOMORROW = DateTime.now().plus({ day: 1 })
 
 describe('createDateInterval', () => {
   it('should return array with single date when fromDate and toDate are the same', () => {
@@ -314,10 +314,12 @@ describe('fillGrassCuringForecast', () => {
 describe('fillStationGrassCuringForward', () => {
   it('should fill grass curing forward for each station if a row is edited', () => {
     forecast1B.grassCuringForecast!.value = 43
-    fillStationGrassCuringForward(forecast1B, rows)
-    expect(forecast1C.grassCuringForecast!.value).toBe(43)
-    expect(forecast1A.grassCuringForecast!.value).toBe(60)
-    expect(forecast2A.grassCuringForecast!.value).toBe(70)
+    const filledRows = fillStationGrassCuringForward(forecast1B, rows)
+
+    expect(filledRows.find(row => row.id === forecast1C.id)?.grassCuringForecast!.value).toBe(43)
+    expect(filledRows.find(row => row.id === forecast1A.id)?.grassCuringForecast!.value).toBe(60)
+    expect(filledRows.find(row => row.id === forecast1B.id)?.grassCuringForecast!.value).toBe(43)
+    expect(rows.find(row => row.id === forecast1C.id)?.grassCuringForecast!.value).toBe(50)
   })
 })
 describe('fillRowsFromSavedDraft', () => {
