@@ -1,28 +1,40 @@
 """Takes a classified HFI image and calculates basic elevation statistics associated with advisory areas per fire zone."""
 
+import logging
+import os
+import tempfile
 from dataclasses import dataclass
 from datetime import date, datetime
 from time import perf_counter
-import logging
-import os
-from osgeo import gdal, osr
-import tempfile
 from typing import Dict
-import numpy as np
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import text
-from sqlalchemy.future import select
-from wps_shared import config
-from app.auto_spatial_advisory.classify_hfi import classify_hfi
-from app.auto_spatial_advisory.process_fuel_type_area import get_advisory_shape
-from wps_shared.run_type import RunType
-from wps_shared.db.crud.auto_spatial_advisory import get_run_parameters_id, save_advisory_elevation_stats, save_advisory_elevation_tpi_stats
-from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope, DB_READ_STRING
-from wps_shared.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
-from app.auto_spatial_advisory.hfi_filepath import get_snow_masked_hfi_filepath, get_raster_tif_filename
-from wps_shared.utils.s3 import get_client
-from wps_shared.geospatial.geospatial import raster_mul, warp_to_match_raster
 
+import numpy as np
+from osgeo import gdal, osr
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.sql import text
+from wps_shared import config
+from wps_shared.db.crud.auto_spatial_advisory import (
+    get_run_parameters_id,
+    save_advisory_elevation_stats,
+    save_advisory_elevation_tpi_stats,
+)
+from wps_shared.db.database import (
+    DB_READ_STRING,
+    get_async_read_session_scope,
+    get_async_write_session_scope,
+)
+from wps_shared.db.models.auto_spatial_advisory import AdvisoryElevationStats, AdvisoryTPIStats
+from wps_shared.geospatial.geospatial import raster_mul, warp_to_match_raster
+from wps_shared.run_type import RunType
+from wps_shared.utils.s3 import get_client
+
+from app.auto_spatial_advisory.classify_hfi import classify_hfi
+from app.auto_spatial_advisory.hfi_filepath import (
+    get_raster_tif_filename,
+    get_snow_masked_hfi_filepath,
+)
+from app.auto_spatial_advisory.process_fuel_type_area import get_advisory_shape
 
 logger = logging.getLogger(__name__)
 DEM_GDAL_SOURCE = None
@@ -36,7 +48,12 @@ async def process_elevation_tpi(run_type: RunType, run_datetime: datetime, for_d
     :param run_datetime: The date and time of the run to process. (when was the hfi file created?)
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
-    logger.info("Processing elevation stats %s for run date: %s, for date: %s", run_type, run_datetime, for_date)
+    logger.info(
+        "Processing elevation stats %s for run date: %s, for date: %s",
+        run_type,
+        run_datetime,
+        for_date,
+    )
     perf_start = perf_counter()
     # Get the id from run_parameters associated with the provided run_type, for_date and for_datetime
     async with get_async_write_session_scope() as session:
@@ -56,7 +73,9 @@ async def process_elevation_tpi(run_type: RunType, run_datetime: datetime, for_d
     logger.info("%f delta count before and after processing elevation stats", delta)
 
 
-async def process_elevation(source_path: str, run_type: RunType, run_datetime: datetime, for_date: date):
+async def process_elevation(
+    source_path: str, run_type: RunType, run_datetime: datetime, for_date: date
+):
     """Create new elevation statistics records for the given parameters.
 
     :param run_type: The type of run to process. (is it a forecast or actual run?)
@@ -64,7 +83,12 @@ async def process_elevation(source_path: str, run_type: RunType, run_datetime: d
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
 
-    logger.info("Processing elevation stats %s for run date: %s, for date: %s", run_type, run_datetime, for_date)
+    logger.info(
+        "Processing elevation stats %s for run date: %s, for date: %s",
+        run_type,
+        run_datetime,
+        for_date,
+    )
     perf_start = perf_counter()
     await prepare_dem()
 
@@ -72,7 +96,9 @@ async def process_elevation(source_path: str, run_type: RunType, run_datetime: d
     async with get_async_read_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
 
-        stmt = select(AdvisoryElevationStats).where(AdvisoryElevationStats.run_parameters == run_parameters_id)
+        stmt = select(AdvisoryElevationStats).where(
+            AdvisoryElevationStats.run_parameters == run_parameters_id
+        )
 
         exists = (await session.execute(stmt)).scalars().first() is not None
         if not exists:
@@ -103,7 +129,7 @@ async def prepare_dem():
     object storage once because it is a slow process.
     """
     async with get_client() as (client, bucket):
-        dem = await client.get_object(Bucket=bucket, Key=f'dem/mosaics/{config.get("DEM_NAME")}')
+        dem = await client.get_object(Bucket=bucket, Key=f"dem/mosaics/{config.get('DEM_NAME')}")
         mem_path = "/vsimem/dem.tif"
         data = await dem["Body"].read()
         gdal.FileFromMemBuffer(mem_path, data)
@@ -112,7 +138,9 @@ async def prepare_dem():
         gdal.Unlink(mem_path)
 
 
-async def process_threshold(threshold: int, source_path: str, temp_dir: str, run_parameters_id: int):
+async def process_threshold(
+    threshold: int, source_path: str, temp_dir: str, run_parameters_id: int
+):
     """
     Step-by-step processing to extract elevation stats per advisory type per fire zone.
 
@@ -122,8 +150,12 @@ async def process_threshold(threshold: int, source_path: str, temp_dir: str, run
     :param run_parameters_id: The RunParameter object id associated with this run_type, for_date and run_datetime
     """
     threshold_mask_path = create_hfi_threshold_mask(threshold, source_path, temp_dir)
-    upsampled_threshold_mask_path = upsample_threshold_mask(threshold, threshold_mask_path, temp_dir)
-    masked_dem_path = apply_threshold_mask_to_dem(threshold, upsampled_threshold_mask_path, temp_dir)
+    upsampled_threshold_mask_path = upsample_threshold_mask(
+        threshold, threshold_mask_path, temp_dir
+    )
+    masked_dem_path = apply_threshold_mask_to_dem(
+        threshold, upsampled_threshold_mask_path, temp_dir
+    )
     await process_elevation_by_firezone(threshold, masked_dem_path, run_parameters_id)
 
 
@@ -149,7 +181,9 @@ def create_hfi_threshold_mask(threshold: int, classified_hfi: str, temp_dir: str
         os.remove(target_path)
     output_driver = gdal.GetDriverByName("GTiff")
     # Create an object with the same dimensions as the input, but with 8 bit unsigned values.
-    target_tiff = output_driver.Create(target_path, xsize=source_band.XSize, ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte)
+    target_tiff = output_driver.Create(
+        target_path, xsize=source_band.XSize, ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte
+    )
     # Set the geotransform and projection to the same as the input.
     target_tiff.SetGeoTransform(source_tiff.GetGeoTransform())
     target_tiff.SetProjection(source_tiff.GetProjection())
@@ -171,7 +205,9 @@ def upsample_threshold_mask(threshold: int, source_path: str, temp_dir: str):
     :param source_path: The path to the mask tif that needs to be upsampled
     :param temp_dir: A temporary location for storing intermediate files
     """
-    upsampled_threshold_mask_path = os.path.join(temp_dir, f"upsampled_threshold_{threshold}_mask.tif")
+    upsampled_threshold_mask_path = os.path.join(
+        temp_dir, f"upsampled_threshold_{threshold}_mask.tif"
+    )
     geo_transform = DEM_GDAL_SOURCE.GetGeoTransform()
     x_res = geo_transform[1]
     y_res = -geo_transform[5]
@@ -180,7 +216,14 @@ def upsample_threshold_mask(threshold: int, source_path: str, temp_dir: str):
     maxx = minx + geo_transform[1] * DEM_GDAL_SOURCE.RasterXSize
     miny = maxy + geo_transform[5] * DEM_GDAL_SOURCE.RasterYSize
     extent = [minx, miny, maxx, maxy]
-    gdal.Warp(upsampled_threshold_mask_path, source_path, outputBounds=extent, xRes=x_res, yRes=y_res, resampleAlg=gdal.GRA_NearestNeighbour)
+    gdal.Warp(
+        upsampled_threshold_mask_path,
+        source_path,
+        outputBounds=extent,
+        xRes=x_res,
+        yRes=y_res,
+        resampleAlg=gdal.GRA_NearestNeighbour,
+    )
     return upsampled_threshold_mask_path
 
 
@@ -200,7 +243,9 @@ def apply_threshold_mask_to_dem(threshold: int, mask_path: str, temp_dir: str):
     mask_data = mask.GetRasterBand(1).ReadAsArray()
     masked_dem_data = np.multiply(dem_data, mask_data)
     output_driver = gdal.GetDriverByName("GTiff")
-    masked_dem = output_driver.Create(masked_dem_path, xsize=dem_band.XSize, ysize=dem_band.YSize, bands=1, eType=gdal.GDT_Int16)
+    masked_dem = output_driver.Create(
+        masked_dem_path, xsize=dem_band.XSize, ysize=dem_band.YSize, bands=1, eType=gdal.GDT_Int16
+    )
     masked_dem.SetGeoTransform(DEM_GDAL_SOURCE.GetGeoTransform())
     masked_dem.SetProjection(DEM_GDAL_SOURCE.GetProjection())
     masked_dem_band = masked_dem.GetRasterBand(1)
@@ -244,49 +289,71 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
     bucket = config.get("OBJECT_STORE_BUCKET")
     dem_file = config.get("CLASSIFIED_TPI_DEM_NAME")
     key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
-    tpi_source: gdal.Dataset = gdal.Open(key, gdal.GA_ReadOnly)
-    pixel_size_metres = int(tpi_source.GetGeoTransform()[1])
-
     hfi_raster_filename = get_raster_tif_filename(for_date)
     hfi_raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, hfi_raster_filename)
     hfi_key = f"/vsis3/{bucket}/{hfi_raster_key}"
-    hfi_source: gdal.Dataset = gdal.Open(hfi_key, gdal.GA_ReadOnly)
-
     warped_mem_path = f"/vsimem/warp_{hfi_raster_filename}"
-    resized_hfi_source: gdal.Dataset = warp_to_match_raster(hfi_source, tpi_source, warped_mem_path)
-    hfi_masked_tpi = raster_mul(tpi_source, resized_hfi_source)
-    resized_hfi_source = None
-    hfi_source = None
     tpi_source = None
-    gdal.Unlink(warped_mem_path)
+    hfi_source = None
+    resized_hfi_source = None
+    hfi_masked_tpi = None
+    try:
+        tpi_source = gdal.Open(key, gdal.GA_ReadOnly)
+        pixel_size_metres = int(tpi_source.GetGeoTransform()[1])
+
+        hfi_source = gdal.Open(hfi_key, gdal.GA_ReadOnly)
+        resized_hfi_source = warp_to_match_raster(hfi_source, tpi_source, warped_mem_path)
+        hfi_masked_tpi = raster_mul(tpi_source, resized_hfi_source)
+    finally:
+        resized_hfi_source = None
+        hfi_source = None
+        tpi_source = None
+        gdal.Unlink(warped_mem_path)
 
     fire_zone_stats: Dict[int, Dict[int, int]] = {}
-    async with get_async_write_session_scope() as session:
-        stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
-        result = await session.execute(stmt)
+    try:
+        async with get_async_write_session_scope() as session:
+            stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
+            result = await session.execute(stmt)
 
-        for row in result:
-            output_path = f"/vsimem/firezone_{row[1]}.tif"
+            for row in result:
+                output_path = f"/vsimem/firezone_{row[1]}.tif"
+                cut_hfi_masked_tpi = None
+                try:
+                    advisory_shape_geom = await get_advisory_shape(
+                        session, row[0], hfi_masked_tpi.GetSpatialRef()
+                    )
 
-            advisory_shape_geom = await get_advisory_shape(session, row[0], hfi_masked_tpi.GetSpatialRef())
+                    warp_options = gdal.WarpOptions(
+                        format="GTiff",
+                        cutlineWKT=advisory_shape_geom,
+                        cutlineSRS=advisory_shape_geom.GetSpatialReference(),
+                        cropToCutline=True,
+                    )
+                    cut_hfi_masked_tpi = gdal.Warp(
+                        output_path, hfi_masked_tpi, options=warp_options
+                    )
+                    # Get unique values and their counts
+                    tpi_classes, counts = np.unique(
+                        cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True
+                    )
+                    tpi_class_freq_dist = dict(zip(tpi_classes, counts))
 
-            warp_options = gdal.WarpOptions(format="GTiff", cutlineWKT=advisory_shape_geom, cutlineSRS=advisory_shape_geom.GetSpatialReference(), cropToCutline=True)
-            cut_hfi_masked_tpi: gdal.Dataset = gdal.Warp(output_path, hfi_masked_tpi, options=warp_options)
-            # Get unique values and their counts
-            tpi_classes, counts = np.unique(cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True)
-            cut_hfi_masked_tpi = None
-            gdal.Unlink(output_path)
-            tpi_class_freq_dist = dict(zip(tpi_classes, counts))
-
-            # Drop TPI class 4, this is the no data value from the TPI raster
-            tpi_class_freq_dist.pop(4, None)
-            fire_zone_stats[row[0]] = tpi_class_freq_dist
-
+                    # Drop TPI class 4, this is the no data value from the TPI raster
+                    tpi_class_freq_dist.pop(4, None)
+                    fire_zone_stats[row[0]] = tpi_class_freq_dist
+                finally:
+                    cut_hfi_masked_tpi = None
+                    gdal.Unlink(output_path)
+    finally:
         hfi_masked_tpi = None
-        return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)
+
+    return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)
 
 
-async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, run_parameters_id: int):
+async def process_elevation_by_firezone(
+    threshold: int, masked_dem_path: str, run_parameters_id: int
+):
     """
     Given a tif that only contains elevations values at pixels where HFI exceeds the threshold, calculate statistics
     and store them in the API database.
@@ -302,12 +369,16 @@ async def process_elevation_by_firezone(threshold: int, masked_dem_path: str, ru
         for row in rows:
             # using a temp dir here to prevent accumulation of large rasters as we run through this loop
             with tempfile.TemporaryDirectory() as temp_dir:
-                firezone_elevation_threshold_path = intersect_raster_by_firezone(threshold, row[0], row[1], masked_dem_path, temp_dir)
+                firezone_elevation_threshold_path = intersect_raster_by_firezone(
+                    threshold, row[0], row[1], masked_dem_path, temp_dir
+                )
                 stats = get_elevation_stats(firezone_elevation_threshold_path)
                 await store_elevation_stats(session, threshold, row[0], stats, run_parameters_id)
 
 
-def intersect_raster_by_firezone(threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str, temp_dir: str):
+def intersect_raster_by_firezone(
+    threshold: int, advisory_shape_id: int, source_identifier: str, raster_path: str, temp_dir: str
+):
     """
     Given a raster and a fire zone id, use gdal.Warp to clip out a fire zone from which we can retrieve stats.
 
@@ -350,10 +421,18 @@ def get_elevation_stats(source_path: str):
         maximum = np.max(source_data[source_data != 0])
         quartile_25 = np.percentile(source_data[source_data != 0], 25)
         quartile_75 = np.percentile(source_data[source_data != 0], 75)
-    return {"minimum": minimum, "maximum": maximum, "median": median, "quartile_25": quartile_25, "quartile_75": quartile_75}
+    return {
+        "minimum": minimum,
+        "maximum": maximum,
+        "median": median,
+        "quartile_25": quartile_25,
+        "quartile_75": quartile_75,
+    }
 
 
-async def store_elevation_stats(session: AsyncSession, threshold: int, shape_id: int, stats, run_parameters_id):
+async def store_elevation_stats(
+    session: AsyncSession, threshold: int, shape_id: int, stats, run_parameters_id
+):
     """
     Writes elevation statistics to the API database.
     TODO - We should probably save up a list of objects to add to the database and only call this function once
@@ -376,7 +455,9 @@ async def store_elevation_stats(session: AsyncSession, threshold: int, shape_id:
     await save_advisory_elevation_stats(session, advisory_elevation_stats)
 
 
-async def store_elevation_tpi_stats(session: AsyncSession, run_parameters_id: int, fire_zone_tpi_stats: FireZoneTPIStats):
+async def store_elevation_tpi_stats(
+    session: AsyncSession, run_parameters_id: int, fire_zone_tpi_stats: FireZoneTPIStats
+):
     """
     Writes elevation TPI statistics to the database.
 
