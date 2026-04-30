@@ -10,17 +10,17 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "test": "vitest",
-    "test:ci": "vitest --coverage",
+    "coverage:ci": "vitest --coverage",
     "lint": "eslint .",
     "preview": "vite preview",
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
-    "cap:sync:dev": "yarn build:dev && APP_ENV=dev yarn cap sync",
-    "cap:sync:prod": "yarn build:prod && APP_ENV=prod yarn cap sync",
-    "cap:sync:android:dev": "yarn build:dev && APP_ENV=dev yarn cap sync android",
-    "cap:sync:android:prod": "yarn build:prod && APP_ENV=prod yarn cap sync android",
-    "cap:sync:ios:dev": "yarn build:dev && APP_ENV=dev yarn cap sync ios",
-    "cap:sync:ios:prod": "yarn build:prod && APP_ENV=prod yarn cap sync ios"
+    "cap:sync:dev": "APP_ENV=dev cap sync",
+    "cap:sync:prod": "APP_ENV=prod cap sync",
+    "cap:sync:android:dev": "APP_ENV=dev cap sync android",
+    "cap:sync:android:prod": "APP_ENV=prod cap sync android",
+    "cap:sync:ios:dev": "APP_ENV=dev cap sync ios",
+    "cap:sync:ios:prod": "APP_ENV=prod cap sync ios"
   },
   "dependencies": {
     "@capacitor-firebase/messaging": "^8.1.0",
@@ -49,11 +49,15 @@
     "@sentry/capacitor": "^3.2.1",
     "@sentry/react": "10.43.0",
     "@sentry/vite-plugin": "^5.2.0",
+    "@wps/api": "workspace:*",
+    "@wps/keycloak": "workspace:*",
+    "@wps/types": "workspace:*",
+    "@wps/ui": "workspace:*",
+    "@wps/utils": "workspace:*",
     "axios": "^1.7.9",
     "capacitor-email-composer": "^7.0.0",
     "firebase": "^12.9.0",
     "jwt-decode": "^4.0.0",
-    "keycloak": "../keycloak",
     "lodash": "^4.17.21",
     "luxon": "^3.5.0",
     "ol": "^10.4.0",
@@ -92,6 +96,5 @@
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^7.0.0"
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  }
 }

@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AppThunk } from "@/store";
 import { jwtDecode } from "jwt-decode";
 import { isUndefined } from "lodash";
-import { Keycloak } from "../../../keycloak/src";
+import { Keycloak } from "@wps/keycloak";
 
 export interface AuthState {
   authenticating: boolean;

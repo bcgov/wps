@@ -59,6 +59,20 @@
     },
     "clean": {
       "cache": false
-    }
+    },
+    "build:dev": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "build:prod": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "cap:sync:dev":          { "dependsOn": ["build:dev"],  "cache": false },
+    "cap:sync:prod":         { "dependsOn": ["build:prod"], "cache": false },
+    "cap:sync:android:dev":  { "dependsOn": ["build:dev"],  "cache": false },
+    "cap:sync:android:prod": { "dependsOn": ["build:prod"], "cache": false },
+    "cap:sync:ios:dev":      { "dependsOn": ["build:dev"],  "cache": false },
+    "cap:sync:ios:prod":     { "dependsOn": ["build:prod"], "cache": false }
   }
 }

@@ -9,7 +9,7 @@ import authenticationSlice, {
   AuthState,
 } from "@/slices/authenticationSlice";
 import { createTestStore } from "@/testUtils";
-import { Keycloak } from "../../../keycloak/src";
+import { Keycloak } from "@wps/keycloak";
 
 interface TokenResponse {
   accessToken: string;
@@ -24,7 +24,7 @@ const mockValidToken =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGlyX3VzZXJuYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG4uZG9lQGNvbnRhY3QuY29tIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
 // Mock the Keycloak module
-vi.mock("../../../keycloak/src", () => ({
+vi.mock("@wps/keycloak", () => ({
   Keycloak: {
     authenticate: vi.fn(),
     addListener: vi.fn(),

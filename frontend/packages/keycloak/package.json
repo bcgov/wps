@@ -1,7 +1,14 @@
 {
-  "name": "keycloak",
+  "name": "@wps/keycloak",
   "version": "0.0.1",
+  "private": true,
   "description": "Capacitor plugin for keycloak auth",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -30,20 +37,20 @@
     "native"
   ],
   "scripts": {
-    "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
+    "verify": "yarn verify:ios && yarn verify:android && yarn verify:web",
     "verify:ios": "xcodebuild -scheme Keycloak -destination generic/platform=iOS",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
-    "verify:web": "npm run build",
-    "lint": "npm run eslint && npm run prettier -- --check && npm run swiftlint -- lint",
-    "fmt": "npm run eslint -- --fix && npm run prettier -- --write && npm run swiftlint -- --fix --format",
+    "verify:web": "yarn build",
+    "lint": "yarn eslint && yarn prettier -- --check && yarn swiftlint -- lint",
+    "fmt": "yarn eslint -- --fix && yarn prettier -- --write && yarn swiftlint -- --fix --format",
     "eslint": "eslint . --ext ts",
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\" --plugin=prettier-plugin-java",
     "swiftlint": "node-swiftlint",
     "docgen": "docgen --api KeycloakPlugin --output-readme README.md --output-json dist/docs.json",
-    "build": "npm run clean && npm run docgen && tsc && rollup -c rollup.config.mjs",
+    "build": "rimraf ./dist && docgen --api KeycloakPlugin --output-readme README.md --output-json dist/docs.json && tsc && rollup -c rollup.config.mjs",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "yarn build"
   },
   "devDependencies": {
     "@capacitor/android": "^7.0.0",
@@ -61,9 +68,6 @@
     "swiftlint": "^2.0.0",
     "typescript": "~5.9.0"
   },
-  "peerDependencies": {
-    "@capacitor/core": ">=7.0.0"
-  },
   "prettier": "@ionic/prettier-config",
   "swiftlint": "@ionic/swiftlint-config",
   "eslintConfig": {
@@ -76,6 +80,5 @@
     "android": {
       "src": "android"
     }
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  }
 }
