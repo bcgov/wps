@@ -6581,7 +6581,6 @@ __metadata:
     "@vitest/coverage-v8": "npm:^4.0.8"
     "@wps/api": "workspace:*"
     "@wps/keycloak": "workspace:*"
-    "@wps/tsconfig": "workspace:*"
     "@wps/types": "workspace:*"
     "@wps/ui": "workspace:*"
     "@wps/utils": "workspace:*"
