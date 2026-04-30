@@ -40,17 +40,17 @@
     "verify": "yarn verify:ios && yarn verify:android && yarn verify:web",
     "verify:ios": "xcodebuild -scheme Keycloak -destination generic/platform=iOS",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
-    "verify:web": "yarn build",
+    "verify:web": "yarn build:dist",
     "lint": "yarn eslint && yarn prettier -- --check && yarn swiftlint -- lint",
     "fmt": "yarn eslint -- --fix && yarn prettier -- --write && yarn swiftlint -- --fix --format",
     "eslint": "eslint . --ext ts",
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\" --plugin=prettier-plugin-java",
     "swiftlint": "node-swiftlint",
     "docgen": "docgen --api KeycloakPlugin --output-readme README.md --output-json dist/docs.json",
-    "build": "rimraf ./dist && docgen --api KeycloakPlugin --output-readme README.md --output-json dist/docs.json && tsc && rollup -c rollup.config.mjs",
+    "build:dist": "rimraf ./dist && docgen --api KeycloakPlugin --output-readme README.md --output-json dist/docs.json && tsc && rollup -c rollup.config.mjs",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build:dist"
   },
   "devDependencies": {
     "@capacitor/android": "^7.0.0",
