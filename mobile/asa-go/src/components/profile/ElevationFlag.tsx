@@ -1,6 +1,5 @@
 import Flag from "@/components/profile/FillableFlag";
-import { Typography } from "@mui/material";
-import { Grid } from "@mui/material";
+import { Grid, Typography } from "@mui/material";
 import React from "react";
 
 interface ElevationFlagProps {
