@@ -292,61 +292,67 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
     hfi_raster_filename = get_raster_tif_filename(for_date)
     hfi_raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, hfi_raster_filename)
     hfi_key = f"/vsis3/{bucket}/{hfi_raster_key}"
-    warped_mem_path = f"/vsimem/warp_{hfi_raster_filename}"
-    tpi_source = None
-    hfi_source = None
-    resized_hfi_source = None
-    hfi_masked_tpi = None
-    try:
-        tpi_source = gdal.Open(key, gdal.GA_ReadOnly)
-        pixel_size_metres = int(tpi_source.GetGeoTransform()[1])
-
-        hfi_source = gdal.Open(hfi_key, gdal.GA_ReadOnly)
-        resized_hfi_source = warp_to_match_raster(hfi_source, tpi_source, warped_mem_path)
-        hfi_masked_tpi = raster_mul(tpi_source, resized_hfi_source)
-    finally:
-        resized_hfi_source = None
-        hfi_source = None
-        tpi_source = None
-        gdal.Unlink(warped_mem_path)
-
     fire_zone_stats: Dict[int, Dict[int, int]] = {}
-    try:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # keep these large intermediate rasters on disk so the worker is not left
+        # holding a province-sized GDAL MEM dataset after processing completes.
+        warped_hfi_path = os.path.join(temp_dir, f"warp_{hfi_raster_filename}")
+        masked_tpi_path = os.path.join(temp_dir, "masked_hfi_tpi.tif")
+        pixel_size_metres = 0
+
+        with (
+            gdal.Open(key, gdal.GA_ReadOnly) as tpi_source,
+            gdal.Open(hfi_key, gdal.GA_ReadOnly) as hfi_source,
+        ):
+            pixel_size_metres = int(tpi_source.GetGeoTransform()[1])
+            resized_hfi_source = warp_to_match_raster(hfi_source, tpi_source, warped_hfi_path)
+            masked_tpi_source = None
+            try:
+                masked_tpi_source = raster_mul(
+                    tpi_source, resized_hfi_source, output_path=masked_tpi_path
+                )
+                masked_tpi_source.FlushCache()
+            finally:
+                masked_tpi_source = None
+                resized_hfi_source = None
+
         async with get_async_write_session_scope() as session:
             stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
             result = await session.execute(stmt)
 
-            for row in result:
-                output_path = f"/vsimem/firezone_{row[1]}.tif"
-                cut_hfi_masked_tpi = None
-                try:
-                    advisory_shape_geom = await get_advisory_shape(
-                        session, row[0], hfi_masked_tpi.GetSpatialRef()
-                    )
+            with gdal.Open(masked_tpi_path, gdal.GA_ReadOnly) as hfi_masked_tpi:
+                hfi_masked_tpi_srs = hfi_masked_tpi.GetSpatialRef()
 
-                    warp_options = gdal.WarpOptions(
-                        format="GTiff",
-                        cutlineWKT=advisory_shape_geom,
-                        cutlineSRS=advisory_shape_geom.GetSpatialReference(),
-                        cropToCutline=True,
-                    )
-                    cut_hfi_masked_tpi = gdal.Warp(
-                        output_path, hfi_masked_tpi, options=warp_options
-                    )
-                    # Get unique values and their counts
-                    tpi_classes, counts = np.unique(
-                        cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray(), return_counts=True
-                    )
-                    tpi_class_freq_dist = dict(zip(tpi_classes, counts))
-
-                    # Drop TPI class 4, this is the no data value from the TPI raster
-                    tpi_class_freq_dist.pop(4, None)
-                    fire_zone_stats[row[0]] = tpi_class_freq_dist
-                finally:
+                for row in result:
+                    output_path = os.path.join(temp_dir, f"firezone_{row[1]}.tif")
                     cut_hfi_masked_tpi = None
-                    gdal.Unlink(output_path)
-    finally:
-        hfi_masked_tpi = None
+                    advisory_shape_geom = None
+                    zone_tpi_classes = None
+                    try:
+                        advisory_shape_geom = await get_advisory_shape(
+                            session, row[0], hfi_masked_tpi_srs
+                        )
+
+                        warp_options = gdal.WarpOptions(
+                            format="GTiff",
+                            cutlineWKT=advisory_shape_geom,
+                            cutlineSRS=advisory_shape_geom.GetSpatialReference(),
+                            cropToCutline=True,
+                        )
+                        cut_hfi_masked_tpi = gdal.Warp(
+                            output_path, hfi_masked_tpi, options=warp_options
+                        )
+                        zone_tpi_classes = cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray()
+                        tpi_classes, counts = np.unique(zone_tpi_classes, return_counts=True)
+                        tpi_class_freq_dist = dict(zip(tpi_classes, counts))
+
+                        # Drop TPI class 4, this is the no data value from the TPI raster
+                        tpi_class_freq_dist.pop(4, None)
+                        fire_zone_stats[row[0]] = tpi_class_freq_dist
+                    finally:
+                        zone_tpi_classes = None
+                        advisory_shape_geom = None
+                        cut_hfi_masked_tpi = None
 
     return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)
 

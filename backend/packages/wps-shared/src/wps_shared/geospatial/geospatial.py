@@ -63,7 +63,10 @@ class GDALResamplingMethod(Enum):
 
 
 def warp_to_match_raster(
-    source_ds: gdal.Dataset, ds_to_match: gdal.Dataset, output_path: str, resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR
+    source_ds: gdal.Dataset,
+    ds_to_match: gdal.Dataset,
+    output_path: str,
+    resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR,
 ) -> gdal.Dataset:
     """
     Warp the source dataset to match the extent, pixel size, and projection of the other dataset.
@@ -84,16 +87,30 @@ def warp_to_match_raster(
     extent = [minx, miny, maxx, maxy]
 
     # Warp to match input option parameters
-    return gdal.Warp(output_path, source_ds, dstSRS=ds_to_match.GetProjection(), outputBounds=extent, xRes=x_res, yRes=y_res, resampleAlg=resample_method.value)
+    return gdal.Warp(
+        output_path,
+        source_ds,
+        dstSRS=ds_to_match.GetProjection(),
+        outputBounds=extent,
+        xRes=x_res,
+        yRes=y_res,
+        resampleAlg=resample_method.value,
+    )
 
 
-def raster_mul(tpi_ds: gdal.Dataset, hfi_ds: gdal.Dataset, chunk_size=256) -> gdal.Dataset:
+def raster_mul(
+    tpi_ds: gdal.Dataset,
+    hfi_ds: gdal.Dataset,
+    chunk_size=256,
+    output_path: str | None = None,
+) -> gdal.Dataset:
     """
     Multiply rasters together by reading in chunks of pixels at a time to avoid loading
     the rasters into memory all at once.
 
     :param tpi_ds: Classified TPI dataset raster to multiply against the classified HFI dataset raster
     :param hfi_ds: Classified HFI dataset raster to multiply against the classified TPI dataset raster
+    :param output_path: Optional output raster path. When omitted, the result uses GDAL's MEM driver.
     :raises ValueError: Raised if the dimensions of the rasters don't match
     :return: Multiplied raster result as a raster dataset
     """
@@ -109,9 +126,16 @@ def raster_mul(tpi_ds: gdal.Dataset, hfi_ds: gdal.Dataset, chunk_size=256) -> gd
     geotransform = tpi_ds.GetGeoTransform()
     projection = tpi_ds.GetProjection()
 
-    # Create the output raster
-    driver = gdal.GetDriverByName("MEM")
-    out_ds: gdal.Dataset = driver.Create("memory", x_size, y_size, 1, gdal.GDT_Byte)
+    # keep large intermediates file-backed when the caller provides a path so the
+    # worker does not retain a province-sized MEM raster for the whole loop.
+    if output_path is None:
+        driver = gdal.GetDriverByName("MEM")
+        dataset_name = "memory"
+    else:
+        driver = gdal.GetDriverByName("GTiff")
+        dataset_name = output_path
+
+    out_ds: gdal.Dataset = driver.Create(dataset_name, x_size, y_size, 1, gdal.GDT_Byte)
 
     # Set the geotransform and projection
     out_ds.SetGeoTransform(geotransform)
@@ -119,6 +143,7 @@ def raster_mul(tpi_ds: gdal.Dataset, hfi_ds: gdal.Dataset, chunk_size=256) -> gd
 
     tpi_raster_band = tpi_ds.GetRasterBand(1)
     hfi_raster_band = hfi_ds.GetRasterBand(1)
+    out_band = out_ds.GetRasterBand(1)
 
     # Process in chunks
     for y in range(0, y_size, chunk_size):
@@ -138,10 +163,11 @@ def raster_mul(tpi_ds: gdal.Dataset, hfi_ds: gdal.Dataset, chunk_size=256) -> gd
             tpi_chunk *= hfi_chunk
 
             # Write the result to the output raster
-            out_ds.GetRasterBand(1).WriteArray(tpi_chunk, x, y)
+            out_band.WriteArray(tpi_chunk, x, y)
             tpi_chunk = None
             hfi_chunk = None
 
+    out_band.FlushCache()
     return out_ds
 
 
@@ -163,7 +189,9 @@ class PointTransformer:
         return (point.GetX(), point.GetY())
 
 
-def prepare_wkt_geom_for_gdal(wkt_geom: str, source_srs: osr.SpatialReference, target_srs_wkt: osr.SpatialReference = None):
+def prepare_wkt_geom_for_gdal(
+    wkt_geom: str, source_srs: osr.SpatialReference, target_srs_wkt: osr.SpatialReference = None
+):
     """
     Given a wkt geometry as a string, convert it to an ogr.Geometry that can be used by gdal. Reproject if desired
     :param wkt_geom: The wky geometry string.
@@ -218,9 +246,12 @@ def rasters_match(raster1: gdal.Dataset, raster2: gdal.Dataset) -> bool:
     srs1.ImportFromWkt(projection1)
     srs2.ImportFromWkt(projection2)
 
-    projection_match = srs1.IsSame(srs2) == 1  # `IsSame()` returns 1 if the projections are equivalent
+    projection_match = (
+        srs1.IsSame(srs2) == 1
+    )  # `IsSame()` returns 1 if the projections are equivalent
 
     return pixel_size_match and extent_match and projection_match
+
 
 def calculate_geographic_coordinate(point: Tuple[int], transform: Affine, transformer: Transformer):
     """Calculate the geographic coordinates for a given points"""
