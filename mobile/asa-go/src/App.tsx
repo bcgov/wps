@@ -32,6 +32,7 @@ import {
   selectLastUpdated,
 } from "@/store";
 import { theme } from "@/theme";
+import { setApiMode } from "@/api/axios";
 import { NavPanel, StatusEnum } from "@/utils/constants";
 import { today } from "@/utils/dataSliceUtils";
 import { PMTilesCache } from "@/utils/pmtilesCache";
@@ -93,6 +94,10 @@ const App = () => {
   const selectedFireCentre = matchingFireCentre ?? fireCentre;
 
   useEffect(() => {
+    setApiMode(isAuthenticated ? "authenticated" : "public");
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     // Effect to manage status bar visibility
     const syncStatusBar = async () => {
       if (isPortrait) {
@@ -106,10 +111,8 @@ const App = () => {
   }, [isPortrait]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      initPushNotifications();
-    }
-  }, [initPushNotifications, isAuthenticated]);
+    initPushNotifications();
+  }, [initPushNotifications]);
 
   useEffect(() => {
     if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;

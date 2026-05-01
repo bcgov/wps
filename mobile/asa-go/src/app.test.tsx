@@ -9,6 +9,7 @@ import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { initialState as pushNotificationInitialState } from "@/slices/pushNotificationSlice";
 import { RunType } from "@/api/fbaAPI";
+import { setApiMode } from "@/api/axios";
 
 // Mock MUI useMediaQuery to control screen size detection
 vi.mock("@mui/material", async () => {
@@ -126,6 +127,22 @@ vi.mock("@/hooks/usePushNotifications", () => ({
 
 vi.mock("@/hooks/useIsPortrait", () => ({
   useIsPortrait: vi.fn(),
+}));
+
+vi.mock("@/api/axios", () => ({
+  getApiClient: vi.fn(() => ({
+    get: vi.fn((url: string) => {
+      if (url === "psu/fire-centres") {
+        return Promise.resolve({ data: { fire_centres: [] } });
+      }
+      if (url.startsWith("fba/latest-sfms-run-parameters/")) {
+        return Promise.resolve({ data: { run_parameters: {} } });
+      }
+      return Promise.resolve({ data: {} });
+    }),
+    post: vi.fn(),
+  })),
+  setApiMode: vi.fn(),
 }));
 
 vi.mock("@capacitor/device", () => ({
@@ -332,9 +349,10 @@ describe("App", () => {
     });
 
     expect(initPushNotifications).toHaveBeenCalledTimes(1);
+    expect(setApiMode).toHaveBeenCalledWith("authenticated");
   });
 
-  it("does not call initPushNotifications when not authenticated", async () => {
+  it("calls initPushNotifications when not authenticated", async () => {
     const initPushNotifications = vi.fn().mockResolvedValue(undefined);
     vi.mocked(usePushNotifications).mockReturnValue({
       initPushNotifications,
@@ -351,7 +369,8 @@ describe("App", () => {
       );
     });
 
-    expect(initPushNotifications).not.toHaveBeenCalled();
+    expect(initPushNotifications).toHaveBeenCalledTimes(1);
+    expect(setApiMode).toHaveBeenCalledWith("public");
   });
 
   it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {

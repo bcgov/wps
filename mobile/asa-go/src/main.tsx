@@ -7,6 +7,7 @@ import { store } from "@/store";
 import { theme } from "@/theme.ts";
 import App from "@/App.tsx";
 import AuthWrapper from "@/components/AuthWrapper";
+import { configureAxiosInterceptors } from "@/utils/axiosInterceptor";
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
 import { ErrorBoundary } from "@sentry/react";
@@ -25,6 +26,8 @@ Sentry.init(
   },
   SentryReact.init,
 );
+
+configureAxiosInterceptors();
 
 const render = () => {
   const container = document.getElementById("root");

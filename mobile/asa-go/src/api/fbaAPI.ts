@@ -1,5 +1,5 @@
 import { AdvisoryStatus } from "@/utils/constants";
-import axios from "api/axios";
+import { getApiClient } from "api/axios";
 
 export enum RunType {
   FORECAST = "FORECAST",
@@ -143,7 +143,7 @@ export interface FireCentreInfoResponse {
   fire_centre_info: FireCentreInfo[];
 }
 
-const ASA_GO_API_PREFIX = "asa-go";
+const FBA_API_PREFIX = "fba";
 
 // Gets a summary of info about all fire zone units in the province
 export async function getProvincialSummary(
@@ -151,18 +151,18 @@ export async function getProvincialSummary(
   run_datetime: string,
   for_date: string,
 ): Promise<ProvincialSummaryResponse> {
-  const url = `${ASA_GO_API_PREFIX}/provincial-summary/${run_type.toLowerCase()}/${encodeURI(
+  const url = `${FBA_API_PREFIX}/provincial-summary/${run_type.toLowerCase()}/${encodeURI(
     run_datetime,
   )}/${for_date}`;
-  const { data } = await axios.get(url);
+  const { data } = await getApiClient().get(url);
   return data;
 }
 
 export async function getMostRecentRunParameter(
   forDate: string,
 ): Promise<RunParameter> {
-  const url = `${ASA_GO_API_PREFIX}/latest-sfms-run-datetime/${forDate}`;
-  const { data } = await axios.get(url);
+  const url = `${FBA_API_PREFIX}/latest-sfms-run-datetime/${forDate}`;
+  const { data } = await getApiClient().get(url);
   return data.run_parameter;
 }
 
@@ -170,18 +170,18 @@ export async function getMostRecentRunParameters(
   startDate: string,
   endDate: string,
 ): Promise<RunParametersResponse> {
-  const url = `${ASA_GO_API_PREFIX}/latest-sfms-run-parameters/${startDate}/${endDate}`;
-  const { data } = await axios.get(url);
+  const url = `${FBA_API_PREFIX}/latest-sfms-run-parameters/${startDate}/${endDate}`;
+  const { data } = await getApiClient().get(url);
   return data.run_parameters;
 }
 
 export async function getHFIStats(
   run_type: RunType,
-  for_date: string,
   run_datetime: string,
+  for_date: string,
 ): Promise<HFIStatsResponse> {
-  const url = `${ASA_GO_API_PREFIX}/hfi-stats/${run_type.toLowerCase()}/${for_date}/${run_datetime}`;
-  const { data } = await axios.get(url);
+  const url = `${FBA_API_PREFIX}/hfi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`;
+  const { data } = await getApiClient().get(url);
   return data;
 }
 
@@ -191,8 +191,8 @@ export async function getFireZoneElevationInfo(
   run_datetime: string,
   for_date: string,
 ): Promise<FireZoneElevationInfoResponse> {
-  const url = `${ASA_GO_API_PREFIX}/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`;
-  const { data } = await axios.get(url);
+  const url = `${FBA_API_PREFIX}/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`;
+  const { data } = await getApiClient().get(url);
   return data;
 }
 
@@ -201,13 +201,13 @@ export async function getTPIStats(
   run_datetime: string,
   for_date: string,
 ): Promise<TPIResponse> {
-  const url = `${ASA_GO_API_PREFIX}/tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`;
-  const { data } = await axios.get(url);
+  const url = `${FBA_API_PREFIX}/tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`;
+  const { data } = await getApiClient().get(url);
   return data;
 }
 
 export async function getFireCentreInfo(): Promise<FireCentreInfoResponse> {
-  const url = `${ASA_GO_API_PREFIX}/fire-centre-info`;
-  const { data } = await axios.get(url);
+  const url = `${FBA_API_PREFIX}/fire-centre-info`;
+  const { data } = await getApiClient().get(url);
   return data;
 }
