@@ -13,6 +13,7 @@ from enum import Enum
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
+from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import ECCCModel
 
 # ---------------------------------------------------------------------------
 # Build lightweight stand-ins for the enums used by the module under test.
@@ -20,11 +21,6 @@ import pytest
 # checks inside wx_4panel_charts.py (e.g.  `chart.status == ChartStatusEnum.INPROGRESS`)
 # still work correctly.
 # ---------------------------------------------------------------------------
-
-
-class ECCCModel(str, Enum):
-    GDPS = "GDPS"
-    RDPS = "RDPS"
 
 
 class ChartStatusEnum(str, Enum):
