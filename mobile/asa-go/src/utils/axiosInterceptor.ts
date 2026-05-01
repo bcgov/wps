@@ -12,7 +12,7 @@ export const configureAxiosInterceptors = () => {
 
   interceptorsConfigured = true;
 
-  // keep auth headers on the authenticated client so public requests stay anonymous
+  // add auth headers on the authenticated client
   authenticatedApi.interceptors.request.use((config) => {
     const token = selectToken(store.getState());
     if (!isNil(token)) {
@@ -23,7 +23,10 @@ export const configureAxiosInterceptors = () => {
   });
 
   authenticatedApi.interceptors.response.use(
+    // If there is a response we simply return it
     (response) => response,
+
+    // If there is a 401 error we force re-authentication; otherwise we forward the error.
     (error) => {
       if (error?.response?.status === 401) {
         store.dispatch(resetAuthentication());
