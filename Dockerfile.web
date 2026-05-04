@@ -19,7 +19,9 @@ COPY frontend/packages/types/package.json     packages/types/
 COPY frontend/packages/utils/package.json     packages/utils/
 COPY frontend/packages/api/package.json       packages/api/
 COPY frontend/packages/ui/package.json        packages/ui/
+COPY frontend/packages/keycloak/package.json  packages/keycloak/
 COPY frontend/apps/wps-web/package.json       apps/wps-web/
+COPY frontend/apps/asa-go/package.json        apps/asa-go/
 
 # do install first so it will be cached
 RUN corepack enable \
