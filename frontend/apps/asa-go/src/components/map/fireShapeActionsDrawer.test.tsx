@@ -318,7 +318,6 @@ describe("FireShapeActionsDrawer", () => {
         left: theme.spacing(1),
         right: "auto",
         bottom: 0,
-        width: "min(320px, 78vw)",
       });
     });
   });

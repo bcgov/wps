@@ -24,7 +24,7 @@ const mockValidToken =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGlyX3VzZXJuYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG4uZG9lQGNvbnRhY3QuY29tIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 
 // Mock the Keycloak module
-vi.mock('@wps/keycloak', () => ({
+vi.mock('keycloak', () => ({
   Keycloak: {
     authenticate: vi.fn(),
     addListener: vi.fn()
