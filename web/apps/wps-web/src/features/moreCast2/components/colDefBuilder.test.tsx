@@ -95,7 +95,9 @@ describe('ColDefBuilder', () => {
           width: testWidth
         })
       )
-      expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
+      const valueFormatter = forecastColDef.valueFormatter as (value: number) => string
+
+      expect(valueFormatter(1.11)).toEqual('1.1')
     })
   })
 
@@ -160,16 +162,17 @@ describe('ColDefBuilder', () => {
           width: testWidth
         })
       )
-      expect(forecastColDef.valueFormatter({ value: 1.11 })).toEqual('1.1')
+      const valueFormatter = forecastColDef.valueFormatter as (value: number) => string
+      const valueGetter = forecastColDef.valueGetter as (value: unknown, row: unknown) => string
+      const valueSetter = forecastColDef.valueSetter as (value: number, row: unknown) => unknown
+
+      expect(valueFormatter(1.11)).toEqual('1.1')
       expect(
-        forecastColDef.valueGetter({
-          row: { testField: { choice: ModelChoice.GDPS, value: 1 } },
-          value: { choice: ModelChoice.GDPS, value: 1.11 }
-        })
+        valueGetter({ choice: ModelChoice.GDPS, value: 1.11 }, { testField: { choice: ModelChoice.GDPS, value: 1 } })
       ).toEqual('1.1')
-      expect(
-        forecastColDef.valueSetter({ row: { testField: { choice: ModelChoice.GDPS, value: 1 } }, value: 2 })
-      ).toEqual({ testField: { choice: ModelChoice.MANUAL, value: 2 } })
+      expect(valueSetter(2, { testField: { choice: ModelChoice.GDPS, value: 1 } })).toEqual({
+        testField: { choice: ModelChoice.MANUAL, value: 2 }
+      })
     })
 
     it('should generate forecast col def with parameters correctly with a default width', () => {
@@ -196,13 +199,11 @@ describe('ColDefBuilder', () => {
     })
 
     it('should delegate to GridComponentRenderer', () => {
-      expect(colDefBuilder.valueFormatterWith({ value: 1.11 }, 1)).toEqual('1.1')
+      expect(colDefBuilder.valueFormatterWith(1.11, 1)).toEqual('1.1')
       expect(
         colDefBuilder.valueGetter(
-          {
-            row: { testField: { choice: ModelChoice.GDPS, value: 1.11 } },
-            value: { choice: ModelChoice.GDPS, value: 1.11 }
-          },
+          { choice: ModelChoice.GDPS, value: 1.11 },
+          { testField: { choice: ModelChoice.GDPS, value: 1.11 } } as any,
           'testField',
           1,
           'testHeader'
@@ -210,7 +211,8 @@ describe('ColDefBuilder', () => {
       ).toEqual('1.1')
       expect(
         colDefBuilder.valueSetterWith(
-          { row: { testField: { choice: ModelChoice.GDPS, value: 1 } }, value: 2 },
+          2,
+          { testField: { choice: ModelChoice.GDPS, value: 1 } } as any,
           testField,
           testPrecision
         )

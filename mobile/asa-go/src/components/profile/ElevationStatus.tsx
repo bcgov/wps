@@ -1,6 +1,6 @@
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import { Box, Grid2 as Grid } from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import { FireZoneTPIStats } from "@/api/fbaAPI";
 import Mountain from "@/images/mountain.png";
 import ElevationLabel from "@/components/profile/ElevationLabel";

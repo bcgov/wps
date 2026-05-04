@@ -34,10 +34,13 @@ const AboutDataPopover = <T,>({
     <Box data-testid={testId}>
       <Typography
         data-testid="about-data-trigger"
-        fontSize={'0.75rem'}
         onClick={handlePopoverOpen}
-        sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-      >
+        sx={{
+          fontSize: '0.75rem',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
         <InfoIcon sx={{ marginRight: theme.spacing(1), color: '#5686E1' }} />
         About this data
       </Typography>
@@ -74,7 +77,7 @@ const AboutDataPopover = <T,>({
         </Box>
       </Popover>
     </Box>
-  )
+  );
 }
 
 export default AboutDataPopover

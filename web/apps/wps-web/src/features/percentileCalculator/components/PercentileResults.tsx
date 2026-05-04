@@ -26,7 +26,7 @@ export const PercentileResults = React.memo(function _(props: PercentileResultsP
   // Object.entries(result.stations) is an array of station code & station response key value pairs
   const stationResults = Object.entries(props.result.stations).map(([stationCode, stationResponse]) => {
     return (
-      <GridItem key={stationCode} md lg>
+      <GridItem key={stationCode} size={12}>
         <PercentileStationResultTable stationResponse={stationResponse} timeRange={props.timeRange} />
       </GridItem>
     )
@@ -37,14 +37,14 @@ export const PercentileResults = React.memo(function _(props: PercentileResultsP
     <StyledResultTableContainer data-testid="percentile-result-tables" className={classes.root}>
       <GridContainer className={classes.gridContainer}>
         {isMoreThanOneResult && (
-          <GridItem lg={12} md={12}>
+          <GridItem size={12}>
             <PercentileMeanResultTable meanValues={props.result.mean_values} />
           </GridItem>
         )}
         {stationResults}
       </GridContainer>
       <StyledGridContainer className={classes.gridContainer}>
-        <GridItem lg={12} md={12}>
+        <GridItem size={12}>
           <PercentileCalcDocumentation />
         </GridItem>
       </StyledGridContainer>

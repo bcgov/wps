@@ -74,23 +74,27 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
     <StyledPaper elevation={5} square data-testid="date-range-picker-menu">
       <Grid container direction="row" wrap="nowrap">
         <Grid>
-          <Grid container className={classes.header} alignItems="center">
-            <Grid item className={classes.headerItem}>
+          <Grid container className={classes.header} sx={{
+            alignItems: "center"
+          }}>
+            <Grid className={classes.headerItem}>
               <Typography variant="subtitle1" data-testid="menu-start-date">
                 {startDate ? format(startDate, 'MMMM dd, yyyy') : 'Start Date'}
               </Typography>
             </Grid>
-            <Grid item className={classes.headerItem}>
+            <Grid className={classes.headerItem}>
               <ArrowRightAlt color="action" />
             </Grid>
-            <Grid item className={classes.headerItem}>
+            <Grid className={classes.headerItem}>
               <Typography variant="subtitle1" data-testid="menu-end-date">
                 {endDate ? format(endDate, 'MMMM dd, yyyy') : 'End Date'}
               </Typography>
             </Grid>
           </Grid>
           <Divider />
-          <Grid container direction="row" justifyContent="center" wrap="nowrap">
+          <Grid container direction="row" wrap="nowrap" sx={{
+            justifyContent: "center"
+          }}>
             <Month
               {...commonProps}
               value={firstMonth}
@@ -110,20 +114,22 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         </Grid>
         <div className={classes.divider} />
       </Grid>
-      <Grid justifyContent="right" container spacing={1} className={classes.footer}>
-        <Grid item>
+      <Grid container spacing={1} className={classes.footer} sx={{
+        justifyContent: "right"
+      }}>
+        <Grid>
           <Button data-testid="date-range-reset-button" variant="outlined" onClick={handlers.resetDateRange}>
             Reset
           </Button>
         </Grid>
-        <Grid item>
+        <Grid>
           <Button data-testid="date-range-close-button" variant="outlined" onClick={handlers.toggle}>
             Close
           </Button>
         </Grid>
       </Grid>
     </StyledPaper>
-  )
+  );
 }
 
 export default Menu

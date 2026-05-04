@@ -10,7 +10,7 @@ import datetime
 from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from pytest_mock import MockerFixture
-from wps_shared.weather_models.job_utils import (
+from wps_shared.weather_models.model_run_urls import (
     HRDPS_GRIB_LAYERS,
     get_high_res_model_run_download_urls,
 )

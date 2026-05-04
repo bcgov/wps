@@ -170,6 +170,15 @@ class GribFileProcessor:
                 variable_name = "wind_tgl_10"
             elif grib_info.variable_name == "APCP_Sfc":
                 variable_name = "apcp_sfc_0"
+        elif grib_info.model_enum == ModelEnum.RDPS:
+            _rdps_variable_map = {
+                "AirTemp_AGL-2m": "tmp_tgl_2",
+                "RelativeHumidity_AGL-2m": "rh_tgl_2",
+                "Precip-Accum_Sfc": "apcp_sfc_0",
+                "WindSpeed_AGL-10m": "wind_tgl_10",
+                "WindDir_AGL-10m": "wdir_tgl_10",
+            }
+            variable_name = _rdps_variable_map.get(grib_info.variable_name, "")
         else:
             variable_name = grib_info.variable_name.lower()
 
@@ -205,7 +214,7 @@ class GribFileProcessor:
         for station, value in self.yield_value_for_stations(raster_band):
             # Convert wind speed from metres per second to kilometres per hour for Environment Canada
             # models (NOAA models handled elswhere)
-            if grib_info.variable_name.lower().startswith("wind_agl") or grib_info.variable_name.lower().startswith("wind_tgl"):
+            if grib_info.variable_name.lower().startswith("wind_agl") or grib_info.variable_name.lower().startswith("wind_tgl") or grib_info.variable_name.lower().startswith("windspeed_agl"):
                 value = convert_mps_to_kph(value)
 
             self.store_prediction_value(station.code, value, prediction_run, grib_info, session)

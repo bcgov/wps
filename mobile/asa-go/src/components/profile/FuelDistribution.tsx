@@ -23,13 +23,12 @@ const FuelDistribution = ({ code, percent }: FuelDistributionProps) => {
     >
       <Box sx={{ width: "4ch", flexShrink: 0, mr: theme.spacing(1) }}>
         <Typography
-          fontWeight="bold"
           sx={{
+            fontWeight: "bold",
             fontSize: "0.75rem",
             textAlign: "right",
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
+            fontVariantNumeric: "tabular-nums"
+          }}>
           {`${percent.toFixed(0)}%`}
         </Typography>
       </Box>

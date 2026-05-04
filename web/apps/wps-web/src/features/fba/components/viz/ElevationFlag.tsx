@@ -1,6 +1,6 @@
 import React from 'react'
 import { Typography } from '@mui/material'
-import Grid from '@mui/material/Unstable_Grid2'
+import Grid from '@mui/material/Grid'
 import Flag from '@/features/fba/components/viz/FillableFlag'
 
 interface ElevationFlagProps {
@@ -11,7 +11,7 @@ interface ElevationFlagProps {
 
 const ElevationFlag = ({ id, percent, testId }: ElevationFlagProps) => {
   return (
-    <Grid sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-end' }} xs={6}>
+    <Grid sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-end' }} size={6}>
       <Flag maskId={id} percent={percent} />
       <Typography
         sx={{

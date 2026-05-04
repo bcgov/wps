@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import { isNil, isUndefined } from 'lodash'
 import { FireShape, FireZoneTPIStats, FireZoneFuelStats } from '@wps/api/fbaAPI'
 import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
@@ -35,20 +35,25 @@ const FireZoneUnitSummary = ({
   }
   return (
     <div data-testid="fire-zone-unit-summary">
-      <Grid container alignItems={'center'} direction={'column'} sx={{ paddingBottom: theme.spacing(2) }}>
-        <Grid item sx={{ paddingBottom: theme.spacing(2), width: '95%' }}>
+      <Stack
+        sx={{
+          alignItems: 'center',
+          paddingBottom: theme.spacing(2)
+        }}
+      >
+        <Box sx={{ paddingBottom: theme.spacing(2), width: '95%' }}>
           <FuelSummary selectedFireZoneUnit={selectedFireZoneUnit} fireZoneFuelStats={fireZoneFuelStats} />
-        </Grid>
-        <Grid item sx={{ width: '95%' }}>
+        </Box>
+        <Box sx={{ width: '95%' }}>
           {fireZoneTPIStats && hasRequiredFields(fireZoneTPIStats) ? (
             <ElevationStatus tpiStats={fireZoneTPIStats}></ElevationStatus>
           ) : (
             <Typography>No elevation information available.</Typography>
           )}
-        </Grid>
-      </Grid>
+        </Box>
+      </Stack>
     </div>
-  )
+  );
 }
 
 export default React.memo(FireZoneUnitSummary)

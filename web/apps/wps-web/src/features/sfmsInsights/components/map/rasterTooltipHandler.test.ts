@@ -121,9 +121,9 @@ describe('findRasterLayer', () => {
 })
 
 describe('getRasterType', () => {
-  const createMockLayer = (rasterType?: string) => ({
+  const createMockLayer = (rasterType?: string) => (({
     getProperties: () => ({ rasterType })
-  }) as any
+  }) as any)
 
   it.each([
     ['fwi', 'fwi'],
@@ -146,9 +146,9 @@ describe('getRasterType', () => {
 })
 
 describe('getRasterData', () => {
-  const createMockLayer = (data: Float32Array | Uint8Array | null) => ({
+  const createMockLayer = (data: Float32Array | Uint8Array | null) => (({
     getData: vi.fn(() => data)
-  }) as any
+  }) as any)
 
   it('should get data from layer at pixel coordinate', () => {
     const data = new Float32Array([42])
@@ -182,10 +182,10 @@ describe('getRasterData', () => {
 })
 
 describe('getDataAtPixel', () => {
-  const createMockLayer = (data: Float32Array | Uint8Array | null, rasterType?: string) => ({
+  const createMockLayer = (data: Float32Array | Uint8Array | null, rasterType?: string) => (({
     getData: vi.fn(() => data),
     getProperties: () => ({ rasterType })
-  }) as any
+  }) as any)
 
   it('should get tooltip data from layer with valid data', () => {
     const data = new Float32Array([42.7])

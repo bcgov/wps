@@ -187,13 +187,15 @@ describe("ElevationStatus", () => {
     render(<ElevationStatus tpiStats={mockTpiStats} />);
 
     const elevationStatus = screen.getByTestId("elevation-status");
-    expect(elevationStatus).toHaveClass("MuiGrid2-root");
+    expect(elevationStatus).toHaveClass("MuiGrid-root");
 
     const mountainElement = screen.getByTestId("tpi-mountain");
     expect(mountainElement).toBeInTheDocument();
     // jsdom v29 drops `background-repeat` from CSSOM when `background` shorthand is in the
     // same rule, so getComputedStyle cannot be used here. Check the raw emotion CSS instead.
-    const cls = mountainElement.className.split(" ").find((c) => c.startsWith("css-"));
+    const cls = mountainElement.className
+      .split(" ")
+      .find((c) => c.startsWith("css-"));
     const allStyleText = Array.from(document.querySelectorAll("style"))
       .map((el) => el.textContent ?? "")
       .join("\n");

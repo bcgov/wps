@@ -64,13 +64,13 @@ const Header: React.FunctionComponent<HeaderProps> = ({
   }
 
   return (
-    <StyledGrid container justifyContent="space-between" alignItems="center">
-      <Grid item className={classes.iconContainer}>
+    <StyledGrid container sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+      <Grid className={classes.iconContainer}>
         <IconButton className={classes.icon} disabled={prevDisabled} onClick={onClickPrevious} size="large">
           <ChevronLeft color={prevDisabled ? 'disabled' : 'action'} />
         </IconButton>
       </Grid>
-      <Grid item>
+      <Grid>
         <Select
           variant="standard"
           value={getMonth(date)}
@@ -85,7 +85,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
         </Select>
       </Grid>
 
-      <Grid item>
+      <Grid>
         <Select
           variant="standard"
           value={getYear(date)}
@@ -99,7 +99,7 @@ const Header: React.FunctionComponent<HeaderProps> = ({
           ))}
         </Select>
       </Grid>
-      <Grid item className={classes.iconContainer}>
+      <Grid className={classes.iconContainer}>
         <IconButton className={classes.icon} disabled={nextDisabled} onClick={onClickNext} size="large">
           <ChevronRight color={nextDisabled ? 'disabled' : 'action'} />
         </IconButton>

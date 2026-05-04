@@ -1,6 +1,6 @@
 import React from 'react'
 import { Alert, AlertColor, Snackbar } from '@mui/material'
-import { RasterError } from './layerManager'
+import { RasterError } from '@/features/sfmsInsights/components/map/layerManager'
 
 interface RasterErrorNotificationProps {
   error: RasterError | null
@@ -8,7 +8,7 @@ interface RasterErrorNotificationProps {
   rasterLabel?: string
 }
 
-const getAlertSeverity = (errorType: RasterError['type']): AlertColor => {
+export const getAlertSeverity = (errorType: RasterError['type']): AlertColor => {
   switch (errorType) {
     case 'not_found':
       return 'warning'

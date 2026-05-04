@@ -178,8 +178,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader isBeta={false} spacing={1} title={FIRE_BEHAVIOUR_ADVISORY_NAME} />
       <Box sx={{ paddingTop: '0.5em' }}>
-        <Grid container spacing={1} alignItems={'center'}>
-          <Grid item>
+        <Grid container spacing={1} sx={{
+          alignItems: 'center'
+        }}>
+          <Grid>
             <StyledFormControl>
               <ASADatePicker
                 date={dateOfInterest}
@@ -192,11 +194,11 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             </StyledFormControl>
           </Grid>
           <ErrorBoundary>
-            <Grid item>
+            <Grid>
               <ActualForecastControl runType={runType} setRunType={setRunType} />
             </Grid>
           </ErrorBoundary>
-          <Grid item>
+          <Grid>
             <FireCentreFormControl>
               <FireCentreDropdown
                 fireCentreOptions={fireCentres}
@@ -207,7 +209,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
               />
             </FireCentreFormControl>
           </Grid>
-          <Grid item sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
+          <Grid sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
             <AboutDataPopover content={ASAAboutDataContent} />
           </Grid>
         </Grid>
@@ -227,7 +229,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
             setSelectedFireShape={setSelectedFireShape}
           />
         </Box>
-        <Grid sx={{ display: 'flex', flex: 1 }} item>
+        <Grid sx={{ display: 'flex', flex: 1 }}>
           <FBAMap
             forDate={dateOfInterest}
             runType={runType}
@@ -241,7 +243,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Box>
       <Footer />
     </Box>
-  )
+  );
 }
 
 export default React.memo(FireBehaviourAdvisoryPage)

@@ -5,8 +5,14 @@ from datetime import datetime, timedelta
 from typing import Callable, Iterator, List, Tuple, cast
 
 import numpy as np
-
+from wps_shared.geospatial.cog import generate_and_store_cog
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.sfms.raster_addresser import FWIParameter
+from wps_shared.utils.s3 import set_s3_gdal_config
+from wps_shared.utils.s3_client import S3Client
+from wps_shared.weather_models.rdps import model_run_for_hour
+
 from app.sfms.fwi_processor import (
     calculate_bui,
     calculate_dc,
@@ -15,13 +21,7 @@ from app.sfms.fwi_processor import (
     calculate_fwi,
     calculate_isi,
 )
-from wps_shared.geospatial.cog import generate_and_store_cog
 from app.sfms.raster_addresser import RasterKeyAddresser
-from wps_shared.sfms.raster_addresser import FWIParameter
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
-from wps_shared.utils.s3 import set_s3_gdal_config
-from wps_shared.utils.s3_client import S3Client
-from wps_shared.sfms.rdps_filename_marshaller import model_run_for_hour
 
 logger = logging.getLogger(__name__)
 
@@ -59,17 +59,15 @@ class DailyFWIProcessor:
             )
 
             # Get and check existence of weather s3 keys
-            temp_key, rh_key, wind_speed_key, precip_key = self.addresser.get_weather_data_keys(
-                self.start_datetime, datetime_to_calculate_utc, prediction_hour
+            resolved = await self.addresser.resolve_weather_data_keys(
+                s3_client, self.start_datetime, datetime_to_calculate_utc, prediction_hour
             )
-            weather_keys_exist = await s3_client.all_objects_exist(
-                temp_key, rh_key, wind_speed_key, precip_key
-            )
-            if not weather_keys_exist:
+            if resolved is None:
                 logging.warning(
                     f"Missing weather keys for {model_run_for_hour(self.start_datetime.hour):02} model run"
                 )
                 break
+            temp_key, rh_key, wind_speed_key, precip_key = resolved
             logger.info(
                 f"Found weather keys: {'\n'.join([temp_key, rh_key, wind_speed_key, precip_key])}"
             )
