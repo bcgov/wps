@@ -42,7 +42,6 @@
     "verify:ios": "xcodebuild -scheme Keycloak -destination generic/platform=iOS",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
     "verify:web": "yarn build:dist",
-    "lint": "echo 'no-op'",
     "fmt": "yarn eslint -- --fix && yarn prettier -- --write && yarn swiftlint -- --fix --format",
     "eslint": "echo 'no-op'",
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\" --plugin=prettier-plugin-java",

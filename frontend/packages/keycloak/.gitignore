@@ -1,6 +1,7 @@
 # node files
 dist
 node_modules
+.yarn/install-state.gz
 
 # iOS files
 Pods
