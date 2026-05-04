@@ -16,7 +16,6 @@ from app.auto_spatial_advisory.process_high_hfi_area import process_high_hfi_are
 from app.auto_spatial_advisory.process_zone_status import process_zone_statuses
 from app.fcm.notifications import trigger_notifications
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -31,7 +30,6 @@ async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_
     await process_zone_statuses(run_type, run_datetime, for_date)
 
     clear_gdal_runtime_cache()
-
 
     async with get_async_write_session_scope() as session:
         await mark_run_parameter_complete(session, run_type, run_datetime, for_date)

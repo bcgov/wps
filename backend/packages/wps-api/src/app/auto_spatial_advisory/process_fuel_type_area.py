@@ -33,11 +33,6 @@ def get_intersected_raster_path(source_identifier: str, threshold: int) -> str:
     return f"/vsimem/intersect_{source_identifier}_{threshold}.tif"
 
 
-def unlink_gdal_path(path: str | None = None) -> None:
-    if path is not None:
-        gdal.Unlink(path)
-
-
 def get_fuel_type_s3_key(bucket):
     """
     Returns the key to the fuel type layer that has been reprojected to the Lambert Conformal Conic spatial reference and
@@ -94,7 +89,7 @@ async def calculate_fuel_type_area_by_shape(
     rows = result.all()
     for row in rows:
         intersect_path = get_intersected_raster_path(row[1], threshold)
-        intersected_ds: gdal.Dataset | None = await intersect_raster_by_advisory_shape(
+        intersected_ds: gdal.Dataset = await intersect_raster_by_advisory_shape(
             session, threshold, row[0], row[1], masked_fuel_type_ds
         )
         try:
@@ -104,7 +99,7 @@ async def calculate_fuel_type_area_by_shape(
             )
         finally:
             intersected_ds = None
-            unlink_gdal_path(intersect_path)
+            gdal.Unlink(intersect_path)
 
 
 def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelType]):
