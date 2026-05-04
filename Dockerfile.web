@@ -31,7 +31,7 @@ RUN corepack enable \
 COPY frontend/packages/ packages/
 COPY frontend/apps/wps-web/ apps/wps-web/
 
-RUN yarn turbo build
+RUN yarn turbo build --filter=@wps/wps-web
 
 # PHASE 2 - prepare hosting.
 FROM docker.io/library/nginx:stable-alpine
