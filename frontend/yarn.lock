@@ -5977,27 +5977,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@wps/keycloak@workspace:*, @wps/keycloak@workspace:packages/keycloak":
-  version: 0.0.0-use.local
-  resolution: "@wps/keycloak@workspace:packages/keycloak"
-  dependencies:
-    "@capacitor/android": "npm:^7.0.0"
-    "@capacitor/core": "npm:^7.4.2"
-    "@capacitor/docgen": "npm:^0.3.0"
-    "@capacitor/ios": "npm:^7.0.0"
-    "@ionic/eslint-config": "npm:^0.4.0"
-    "@ionic/prettier-config": "npm:^4.0.0"
-    "@ionic/swiftlint-config": "npm:^2.0.0"
-    eslint: "npm:^8.57.0"
-    prettier: "npm:^3.4.2"
-    prettier-plugin-java: "npm:^2.6.6"
-    rimraf: "npm:^6.0.1"
-    rollup: "npm:^4.30.1"
-    swiftlint: "npm:^2.0.0"
-    typescript: "npm:~5.9.0"
-  languageName: unknown
-  linkType: soft
-
 "@wps/tsconfig@workspace:*, @wps/tsconfig@workspace:packages/tsconfig":
   version: 0.0.0-use.local
   resolution: "@wps/tsconfig@workspace:packages/tsconfig"
@@ -6580,7 +6559,6 @@ __metadata:
     "@vitejs/plugin-react-swc": "npm:^4.0.0"
     "@vitest/coverage-v8": "npm:^4.0.8"
     "@wps/api": "workspace:*"
-    "@wps/keycloak": "workspace:*"
     "@wps/types": "workspace:*"
     "@wps/ui": "workspace:*"
     "@wps/utils": "workspace:*"
@@ -6593,6 +6571,7 @@ __metadata:
     globals: "npm:^17.0.0"
     jsdom: "npm:^29.0.0"
     jwt-decode: "npm:^4.0.0"
+    keycloak: "workspace:*"
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.5.0"
     ol: "npm:^10.4.0"
@@ -10958,6 +10937,27 @@ __metadata:
   checksum: 10c0/56d4cc7b463096da20da3389af60b5dd889dad260fd8474d4ed912c25070fcb43559bd6a335b23462075a2e59e36a8a104f2a200317d3ff46ded4d801391bab2
   languageName: node
   linkType: hard
+
+"keycloak@workspace:*, keycloak@workspace:packages/keycloak":
+  version: 0.0.0-use.local
+  resolution: "keycloak@workspace:packages/keycloak"
+  dependencies:
+    "@capacitor/android": "npm:^7.0.0"
+    "@capacitor/core": "npm:^7.4.2"
+    "@capacitor/docgen": "npm:^0.3.0"
+    "@capacitor/ios": "npm:^7.0.0"
+    "@ionic/eslint-config": "npm:^0.4.0"
+    "@ionic/prettier-config": "npm:^4.0.0"
+    "@ionic/swiftlint-config": "npm:^2.0.0"
+    eslint: "npm:^8.57.0"
+    prettier: "npm:^3.4.2"
+    prettier-plugin-java: "npm:^2.6.6"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.30.1"
+    swiftlint: "npm:^2.0.0"
+    typescript: "npm:~5.9.0"
+  languageName: unknown
+  linkType: soft
 
 "keyv@npm:^4.5.3, keyv@npm:^4.5.4":
   version: 4.5.4

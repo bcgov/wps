@@ -1,4 +1,4 @@
-require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
+require_relative '../../../../node_modules/@capacitor/ios/scripts/pods_helpers'
 
 platform :ios, '15.0'
 use_frameworks!
@@ -9,24 +9,24 @@ use_frameworks!
 install! 'cocoapods', :disable_input_output_paths => true
 
 def capacitor_pods
-  pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
-  pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
-  pod 'CapacitorFirebaseMessaging', :path => '../../node_modules/@capacitor-firebase/messaging'
-  pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
-  pod 'CapacitorDevice', :path => '../../node_modules/@capacitor/device'
-  pod 'CapacitorFilesystem', :path => '../../node_modules/@capacitor/filesystem'
-  pod 'CapacitorGeolocation', :path => '../../node_modules/@capacitor/geolocation'
-  pod 'CapacitorHaptics', :path => '../../node_modules/@capacitor/haptics'
-  pod 'CapacitorKeyboard', :path => '../../node_modules/@capacitor/keyboard'
-  pod 'CapacitorLocalNotifications', :path => '../../node_modules/@capacitor/local-notifications'
-  pod 'CapacitorNetwork', :path => '../../node_modules/@capacitor/network'
-  pod 'CapacitorPreferences', :path => '../../node_modules/@capacitor/preferences'
-  pod 'CapacitorScreenOrientation', :path => '../../node_modules/@capacitor/screen-orientation'
-  pod 'CapacitorSplashScreen', :path => '../../node_modules/@capacitor/splash-screen'
-  pod 'CapacitorStatusBar', :path => '../../node_modules/@capacitor/status-bar'
+  pod 'Capacitor', :path => '../../../../node_modules/@capacitor/ios'
+  pod 'CapacitorCordova', :path => '../../../../node_modules/@capacitor/ios'
+  pod 'CapacitorFirebaseMessaging', :path => '../../../../node_modules/@capacitor-firebase/messaging'
+  pod 'CapacitorApp', :path => '../../../../node_modules/@capacitor/app'
+  pod 'CapacitorDevice', :path => '../../../../node_modules/@capacitor/device'
+  pod 'CapacitorFilesystem', :path => '../../../../node_modules/@capacitor/filesystem'
+  pod 'CapacitorGeolocation', :path => '../../../../node_modules/@capacitor/geolocation'
+  pod 'CapacitorHaptics', :path => '../../../../node_modules/@capacitor/haptics'
+  pod 'CapacitorKeyboard', :path => '../../../../node_modules/@capacitor/keyboard'
+  pod 'CapacitorLocalNotifications', :path => '../../../../node_modules/@capacitor/local-notifications'
+  pod 'CapacitorNetwork', :path => '../../../../node_modules/@capacitor/network'
+  pod 'CapacitorPreferences', :path => '../../../../node_modules/@capacitor/preferences'
+  pod 'CapacitorScreenOrientation', :path => '../../../../node_modules/@capacitor/screen-orientation'
+  pod 'CapacitorSplashScreen', :path => '../../../../node_modules/@capacitor/splash-screen'
+  pod 'CapacitorStatusBar', :path => '../../../../node_modules/@capacitor/status-bar'
   pod 'SentryCapacitor', :path => '../../node_modules/@sentry/capacitor'
-  pod 'CapacitorEmailComposer', :path => '../../node_modules/capacitor-email-composer'
-  pod 'Keycloak', :path => '../../node_modules/keycloak'
+  pod 'CapacitorEmailComposer', :path => '../../../../node_modules/capacitor-email-composer'
+  pod 'Keycloak', :path => '../../../../packages/keycloak'
 end
 
 target 'ASA Go' do
