@@ -691,27 +691,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wps/keycloak@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@wps/keycloak@workspace:."
-  dependencies:
-    "@capacitor/android": "npm:^7.0.0"
-    "@capacitor/core": "npm:^7.4.2"
-    "@capacitor/docgen": "npm:^0.3.0"
-    "@capacitor/ios": "npm:^7.0.0"
-    "@ionic/eslint-config": "npm:^0.4.0"
-    "@ionic/prettier-config": "npm:^4.0.0"
-    "@ionic/swiftlint-config": "npm:^2.0.0"
-    eslint: "npm:^8.57.0"
-    prettier: "npm:^3.4.2"
-    prettier-plugin-java: "npm:^2.6.6"
-    rimraf: "npm:^6.0.1"
-    rollup: "npm:^4.30.1"
-    swiftlint: "npm:^2.0.0"
-    typescript: "npm:~5.9.0"
-  languageName: unknown
-  linkType: soft
-
 "abbrev@npm:^4.0.0":
   version: 4.0.0
   resolution: "abbrev@npm:4.0.0"
@@ -2323,6 +2302,27 @@ __metadata:
   checksum: 10c0/7f4f43b08d1869ded8a6822213d13ae3b99d651151d77efd1557ced0889c466296a7d9684e397bd126acf5eb2cfcb605808c3e681d0fdccd2fe5a04b47e76c0d
   languageName: node
   linkType: hard
+
+"keycloak@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "keycloak@workspace:."
+  dependencies:
+    "@capacitor/android": "npm:^7.0.0"
+    "@capacitor/core": "npm:^7.4.2"
+    "@capacitor/docgen": "npm:^0.3.0"
+    "@capacitor/ios": "npm:^7.0.0"
+    "@ionic/eslint-config": "npm:^0.4.0"
+    "@ionic/prettier-config": "npm:^4.0.0"
+    "@ionic/swiftlint-config": "npm:^2.0.0"
+    eslint: "npm:^8.57.0"
+    prettier: "npm:^3.4.2"
+    prettier-plugin-java: "npm:^2.6.6"
+    rimraf: "npm:^6.0.1"
+    rollup: "npm:^4.30.1"
+    swiftlint: "npm:^2.0.0"
+    typescript: "npm:~5.9.0"
+  languageName: unknown
+  linkType: soft
 
 "keyv@npm:^4.5.3":
   version: 4.5.4
