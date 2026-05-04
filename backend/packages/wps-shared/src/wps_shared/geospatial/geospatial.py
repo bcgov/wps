@@ -268,3 +268,7 @@ def get_transformer(crs_from, crs_to):
     """Get an appropriate transformer - it's super important that always_xy=True
     is specified, otherwise the order in the CRS definition is honoured."""
     return Transformer.from_crs(crs_from, crs_to, always_xy=True)
+
+def clear_gdal_runtime_cache():
+    """Clear the GDAL cache to free up memory after processing large rasters."""
+    gdal.VSICurlClearCache()
