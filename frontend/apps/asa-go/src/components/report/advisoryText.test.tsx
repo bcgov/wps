@@ -143,40 +143,9 @@ const mockFireZoneHFIStatsDictionary: FireZoneHFIStatsDictionary = {
   },
 };
 
-const missingCriticalHoursStartDataState: Partial<DataState> = {
-  hfiStats: {
-    [TEST_FOR_DATE]: {
-      runParameter: testRunParameter,
-      data: {
-        25: {
-          fuel_area_stats: [
-            {
-              fuel_type: {
-                fuel_type_id: 2,
-                fuel_type_code: "C-2",
-                description: "Boreal Spruce",
-              },
-              threshold: {
-                id: 1,
-                name: "advisory",
-                description: "4000 < hfi < 10000",
-              },
-              critical_hours: {
-                start_time: undefined,
-                end_time: 13,
-              },
-              area: 4000,
-              fuel_area: 8000,
-            },
-          ],
-          min_wind_stats: [],
-        },
-      },
-    },
-  },
-};
-
-const missingCriticalHoursEndDataState: Partial<DataState> = {
+const buildMissingCriticalHoursDataState = (
+  missingField: "start_time" | "end_time",
+): Partial<DataState> => ({
   hfiStats: {
     [TEST_FOR_DATE]: {
       runParameter: testRunParameter,
@@ -195,8 +164,8 @@ const missingCriticalHoursEndDataState: Partial<DataState> = {
                 description: "4000 < hfi < 10000",
               },
               critical_hours: {
-                start_time: 9,
-                end_time: undefined,
+                start_time: missingField === "start_time" ? undefined : 9,
+                end_time: missingField === "end_time" ? undefined : 13,
               },
               area: 4000,
               fuel_area: 8000,
@@ -207,7 +176,7 @@ const missingCriticalHoursEndDataState: Partial<DataState> = {
       },
     },
   },
-};
+});
 
 const runParametersTestState = {
   ...runParametersInitialState,
@@ -251,6 +220,21 @@ const buildTestStore = (
   });
   return testStore;
 };
+
+const renderAdvisoryText = (
+  store: ReturnType<typeof buildTestStore>,
+  fireCentre: FireCentre | undefined,
+  fireZoneUnit: FireShape | undefined,
+) =>
+  render(
+    <Provider store={store}>
+      <AdvisoryText
+        selectedFireCentre={fireCentre}
+        selectedFireZoneUnit={fireZoneUnit}
+        date={TEST_FOR_DATE_LUXON}
+      />
+    </Provider>,
+  );
 
 describe("AdvisoryText", () => {
   const testStore = buildTestStore(
@@ -305,28 +289,16 @@ describe("AdvisoryText", () => {
   };
 
   it("should render the advisory text container", () => {
-    const { getByTestId } = render(
-      <Provider store={testStore}>
-        <AdvisoryText
-          selectedFireCentre={undefined}
-          selectedFireZoneUnit={undefined}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    const { getByTestId } = renderAdvisoryText(testStore, undefined, undefined);
     const advisoryText = getByTestId("advisory-text");
     expect(advisoryText).toBeInTheDocument();
   });
 
   it("should render default message when no fire centre is selected", () => {
-    const { getByTestId, queryByTestId } = render(
-      <Provider store={testStore}>
-        <AdvisoryText
-          selectedFireCentre={undefined}
-          selectedFireZoneUnit={undefined}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
+    const { getByTestId, queryByTestId } = renderAdvisoryText(
+      testStore,
+      undefined,
+      undefined,
     );
     const message = getByTestId("default-message");
     expect(message).toBeInTheDocument();
@@ -335,14 +307,10 @@ describe("AdvisoryText", () => {
   });
 
   it("should render a no data message when no fire zone unit is selected", () => {
-    const { getByTestId, queryByTestId } = render(
-      <Provider store={testStore}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={undefined}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
+    const { getByTestId, queryByTestId } = renderAdvisoryText(
+      testStore,
+      mockFireCentre,
+      undefined,
     );
     const message = getByTestId("no-data-message");
     expect(message).toBeInTheDocument();
@@ -363,14 +331,10 @@ describe("AdvisoryText", () => {
       },
       runParametersTestStateNoRunDateTimeState,
     );
-    const { getByTestId, queryByTestId } = render(
-      <Provider store={testStore}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={undefined}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
+    const { getByTestId, queryByTestId } = renderAdvisoryText(
+      testStore,
+      mockFireCentre,
+      undefined,
     );
     const message = getByTestId("no-data-message");
     expect(message).toBeInTheDocument();
@@ -391,14 +355,10 @@ describe("AdvisoryText", () => {
       },
       runParametersTestStateNoForDateState,
     );
-    const { getByTestId, queryByTestId } = render(
-      <Provider store={testStore}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={undefined}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
+    const { getByTestId, queryByTestId } = renderAdvisoryText(
+      testStore,
+      mockFireCentre,
+      undefined,
     );
     const message = getByTestId("no-data-message");
     expect(message).toBeInTheDocument();
@@ -412,15 +372,7 @@ describe("AdvisoryText", () => {
       mockFireZoneHFIStatsDictionary,
     );
     const store = getInitialStore();
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    renderAdvisoryText(store, mockFireCentre, mockFireZoneUnit);
     screen.debug();
     assertInitialState();
     await waitFor(() =>
@@ -443,15 +395,7 @@ describe("AdvisoryText", () => {
     (useRunParameterForDate as Mock).mockReturnValue(testRunParameter);
     (useFilteredHFIStatsForDate as Mock).mockReturnValue({});
     const store = getInitialStore();
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    renderAdvisoryText(store, mockFireCentre, mockFireZoneUnit);
 
     await waitFor(() =>
       expect(
@@ -469,15 +413,7 @@ describe("AdvisoryText", () => {
   });
 
   it("should render forDate as mmm/dd when different than issue date", () => {
-    const { queryByTestId } = render(
-      <Provider store={getInitialStore()}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    const { queryByTestId } = renderAdvisoryText(getInitialStore(), mockFireCentre, mockFireZoneUnit);
     const bulletinIssueDate = queryByTestId("bulletin-issue-date");
     expect(bulletinIssueDate).toBeInTheDocument();
     expect(bulletinIssueDate).toHaveTextContent(
@@ -504,15 +440,7 @@ describe("AdvisoryText", () => {
       },
       runParametersTestStateNoForDateState,
     );
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    const { queryByTestId } = renderAdvisoryText(store, mockFireCentre, mockFireZoneUnit);
     const bulletinIssueDate = queryByTestId("bulletin-issue-date");
     expect(bulletinIssueDate).toBeInTheDocument();
     expect(bulletinIssueDate).toHaveTextContent(
@@ -535,15 +463,7 @@ describe("AdvisoryText", () => {
       },
       runParametersTestState,
     );
-    const { queryByTestId } = render(
-      <Provider store={noAdvisoryStore}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    const { queryByTestId } = renderAdvisoryText(noAdvisoryStore, mockFireCentre, mockFireZoneUnit);
     const warningMessage = queryByTestId("advisory-message-warning");
     const advisoryMessage = queryByTestId("advisory-message-advisory");
     const proportionMessage = queryByTestId("advisory-message-proportion");
@@ -566,15 +486,7 @@ describe("AdvisoryText", () => {
 
   it("should render warning status", () => {
     const warningStore = getInitialStore();
-    const { queryByTestId } = render(
-      <Provider store={warningStore}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    const { queryByTestId } = renderAdvisoryText(warningStore, mockFireCentre, mockFireZoneUnit);
     const advisoryMessage = queryByTestId("advisory-message-advisory");
     const warningMessage = queryByTestId("advisory-message-warning");
     const proportionMessage = queryByTestId("advisory-message-proportion");
@@ -597,14 +509,10 @@ describe("AdvisoryText", () => {
   });
 
   it("should render advisory status", () => {
-    const { queryByTestId } = render(
-      <Provider store={testStore}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
+    const { queryByTestId } = renderAdvisoryText(
+      testStore,
+      mockFireCentre,
+      mockAdvisoryFireZoneUnit,
     );
     const advisoryMessage = queryByTestId("advisory-message-advisory");
     const warningMessage = queryByTestId("advisory-message-warning");
@@ -633,15 +541,7 @@ describe("AdvisoryText", () => {
       mockFireZoneHFIStatsDictionary,
     );
     const store = getInitialStore();
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    renderAdvisoryText(store, mockFireCentre, mockFireZoneUnit);
     await waitFor(() =>
       expect(
         screen.queryByTestId("advisory-message-wind-speed"),
@@ -660,15 +560,7 @@ describe("AdvisoryText", () => {
     filteredStatsNextDay[20].fuel_area_stats[0].critical_hours.end_time = 5;
     (useFilteredHFIStatsForDate as Mock).mockReturnValue(filteredStatsNextDay);
     const store = getInitialStore();
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    renderAdvisoryText(store, mockFireCentre, mockFireZoneUnit);
     await waitFor(() =>
       expect(screen.queryByTestId("early-advisory-text")).toBeInTheDocument(),
     );
@@ -691,15 +583,7 @@ describe("AdvisoryText", () => {
     filteredStatsNextDay[20].fuel_area_stats[0].critical_hours.start_time = 13;
     (useFilteredHFIStatsForDate as Mock).mockReturnValue(filteredStatsNextDay);
     const store = getInitialStore();
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    renderAdvisoryText(store, mockFireCentre, mockFireZoneUnit);
     await waitFor(async () =>
       expect(
         screen.queryByTestId("early-advisory-text"),
@@ -717,77 +601,38 @@ describe("AdvisoryText", () => {
     );
   });
 
-  it("should render critical hours missing message when critical hours start time is missing", () => {
-    const store = buildTestStore(
-      {
-        ...dataInitialState,
-        hfiStats: {
-          [TEST_FOR_DATE]: {
-            runParameter: testRunParameter,
-            data: missingCriticalHoursStartDataState,
+  it.each(["start_time", "end_time"] as const)(
+    "should render critical hours missing message when critical hours %s is missing",
+    (missingField) => {
+      const store = buildTestStore(
+        {
+          ...dataInitialState,
+          hfiStats: {
+            [TEST_FOR_DATE]: {
+              runParameter: testRunParameter,
+              data: buildMissingCriticalHoursDataState(missingField),
+            },
+          },
+          provincialSummaries: {
+            [TEST_FOR_DATE]: {
+              runParameter: testRunParameter,
+              data: advisoryDetails,
+            },
           },
         },
-        provincialSummaries: {
-          [TEST_FOR_DATE]: {
-            runParameter: testRunParameter,
-            data: advisoryDetails,
-          },
-        },
-      },
-      runParametersTestState,
-    );
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
-    const advisoryMessage = queryByTestId("advisory-message-advisory");
-    const criticalHoursMessage = queryByTestId(
-      "advisory-message-no-critical-hours",
-    );
-    expect(advisoryMessage).toBeInTheDocument();
-    expect(criticalHoursMessage).toBeInTheDocument();
-  });
-
-  it("should render critical hours missing message when critical hours end time is missing", () => {
-    const store = buildTestStore(
-      {
-        ...dataInitialState,
-        hfiStats: {
-          [TEST_FOR_DATE]: {
-            runParameter: testRunParameter,
-            data: missingCriticalHoursEndDataState,
-          },
-        },
-        provincialSummaries: {
-          [TEST_FOR_DATE]: {
-            runParameter: testRunParameter,
-            data: advisoryDetails,
-          },
-        },
-      },
-      runParametersTestState,
-    );
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockAdvisoryFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
-    const advisoryMessage = queryByTestId("advisory-message-advisory");
-    const criticalHoursMessage = queryByTestId(
-      "advisory-message-no-critical-hours",
-    );
-    expect(advisoryMessage).toBeInTheDocument();
-    expect(criticalHoursMessage).toBeInTheDocument();
-  });
+        runParametersTestState,
+      );
+      const { queryByTestId } = renderAdvisoryText(
+        store,
+        mockFireCentre,
+        mockAdvisoryFireZoneUnit,
+      );
+      expect(queryByTestId("advisory-message-advisory")).toBeInTheDocument();
+      expect(
+        queryByTestId("advisory-message-no-critical-hours"),
+      ).toBeInTheDocument();
+    },
+  );
 
   it("should not render slash warning when critical hours duration is less than 12 hours", async () => {
     (useRunParameterForDate as Mock).mockReturnValue(testRunParameter);
@@ -795,15 +640,7 @@ describe("AdvisoryText", () => {
       mockFireZoneHFIStatsDictionary,
     );
     const store = getInitialStore();
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    renderAdvisoryText(store, mockFireCentre, mockFireZoneUnit);
     await waitFor(() =>
       expect(
         screen.queryByTestId("advisory-message-slash"),
@@ -821,15 +658,7 @@ describe("AdvisoryText", () => {
       filteredCriticalHoursStats,
     );
     const store = getInitialStore();
-    render(
-      <Provider store={store}>
-        <AdvisoryText
-          selectedFireCentre={mockFireCentre}
-          selectedFireZoneUnit={mockFireZoneUnit}
-          date={TEST_FOR_DATE_LUXON}
-        />
-      </Provider>,
-    );
+    renderAdvisoryText(store, mockFireCentre, mockFireZoneUnit);
     await waitFor(() =>
       expect(
         screen.queryByTestId("advisory-message-slash"),
