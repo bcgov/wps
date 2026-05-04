@@ -48,8 +48,8 @@ def parse_date_and_run(filename: str) -> tuple[str, str]:
         return first_token[:8], first_token[9:11]
 
     # CMC format: date/run appears mid-filename as _YYYYMMDDHH_
-    matches = re.search(r"_(\d{8})(\d{2})_", filename)
-    if matches:
-        return matches.group(1), matches.group(2)
+    match = re.search(r"_(\d{8})(\d{2})_", filename)
+    if match:
+        return match.group(1), match.group(2)
 
     raise ValueError(f"Unexpected filename format: {filename}")
