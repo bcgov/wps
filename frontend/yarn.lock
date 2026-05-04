@@ -6105,6 +6105,7 @@ __metadata:
     rollup: "npm:^4.59.0"
     start-server-and-test: "npm:^3.0.0"
     ts-sinon: "npm:^2.0.2"
+    typescript: "npm:^5.2.2"
     vite: "npm:^7.0.0"
     vite-plugin-istanbul: "npm:^8.0.0"
     vite-plugin-svgr: "npm:^5.0.0"

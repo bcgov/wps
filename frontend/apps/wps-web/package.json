@@ -113,6 +113,7 @@
     "rollup": "^4.59.0",
     "start-server-and-test": "^3.0.0",
     "ts-sinon": "^2.0.2",
+    "typescript": "^5.2.2",
     "vite": "^7.0.0",
     "vite-plugin-istanbul": "^8.0.0",
     "vite-plugin-svgr": "^5.0.0",
