@@ -126,8 +126,6 @@ def raster_mul(
     geotransform = tpi_ds.GetGeoTransform()
     projection = tpi_ds.GetProjection()
 
-    # keep large intermediates file-backed when the caller provides a path so the
-    # worker does not retain a province-sized MEM raster for the whole loop.
     if output_path is None:
         driver = gdal.GetDriverByName("MEM")
         dataset_name = "memory"
