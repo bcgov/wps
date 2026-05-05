@@ -1,18 +1,19 @@
 import { render } from '@testing-library/react'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
+import { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { vi } from 'vitest'
 import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { Provider } from 'react-redux'
 import { buildTestStore } from '@/features/moreCast2/components/testHelper'
 
-const defaultValue = '1'
+const defaultValue: GridRenderCellParams['formattedValue'] = '1'
 
 type CellProps = {
   disabled?: boolean
   label?: string
   showGreaterThan?: boolean
   showLessThan?: boolean
-  value?: string
+  value?: GridRenderCellParams['formattedValue']
 }
 
 const renderCell = ({ disabled = false, label = 'foo', showGreaterThan = false, showLessThan = false, value = defaultValue }: CellProps = {}) =>
