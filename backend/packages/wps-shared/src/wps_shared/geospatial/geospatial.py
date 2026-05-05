@@ -1,8 +1,8 @@
-from affine import Affine
 from enum import Enum
-from typing import Tuple
+from typing import Final, Tuple
+
+from affine import Affine
 from osgeo import gdal, ogr, osr
-from typing import Final
 from pyproj import CRS, Transformer
 
 # Some constants that are frequently used when transforming coordinates.
@@ -107,6 +107,8 @@ def raster_mul(
     """
     Multiply rasters together by reading in chunks of pixels at a time to avoid loading
     the rasters into memory all at once.
+    If the output_path is a /vsimem/ path, the caller should call gdal.Unlink on the path when
+    finished with the resulting dataset to free up memory.
 
     :param tpi_ds: Classified TPI dataset raster to multiply against the classified HFI dataset raster
     :param hfi_ds: Classified HFI dataset raster to multiply against the classified TPI dataset raster
@@ -268,6 +270,7 @@ def get_transformer(crs_from, crs_to):
     """Get an appropriate transformer - it's super important that always_xy=True
     is specified, otherwise the order in the CRS definition is honoured."""
     return Transformer.from_crs(crs_from, crs_to, always_xy=True)
+
 
 def clear_gdal_runtime_cache():
     """Clear the GDAL cache to free up memory after processing large rasters."""
