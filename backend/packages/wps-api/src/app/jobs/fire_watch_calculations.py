@@ -9,6 +9,7 @@ from wps_shared.wps_logging import configure_logging
 from app.fire_watch.calculate_weather import process_all_fire_watch_weather
 
 logger = logging.getLogger(__name__)
+#
 
 
 async def main():
