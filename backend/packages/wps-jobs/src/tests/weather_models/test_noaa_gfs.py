@@ -3,6 +3,7 @@
 import os
 import logging
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
 from tests.weather_models.test_models_common import (
     MockResponse,
     shape,
@@ -10,6 +11,7 @@ from tests.weather_models.test_models_common import (
 )
 import pytest
 import requests
+from requests import HTTPError
 from geoalchemy2.shape import from_shape
 from weather_model_jobs import common_model_fetchers
 import wps_shared.db.crud.weather_models
@@ -20,6 +22,7 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
 )
 from weather_model_jobs import noaa
+from wps_shared.weather_models import ModelEnum
 import wps_shared.utils.time as time_utils
 
 
@@ -234,3 +237,98 @@ def test_get_year_mo_date_string_from_datetime():
     for test in test_cases:
         actual_string = noaa.get_year_mo_date_string_from_datetime(test.get("date"))
         assert test.get("expected_year_mo_date") == actual_string
+
+
+@pytest.fixture()
+def mock_grib_processor(monkeypatch):
+    monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock)
+
+
+def _make_noaa(monkeypatch, model_type=ModelEnum.GFS):
+    monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock)
+    return noaa.NOAA(MagicMock(), model_type)
+
+
+def test_process_model_run_urls_403_is_warned_not_raised(monkeypatch):
+    """403 HTTPError should be logged as a warning and not increment exception_count."""
+    noaa_instance = _make_noaa(monkeypatch)
+    mock_response = MagicMock()
+    mock_response.status_code = 403
+    http_error = HTTPError(response=mock_response)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+
+    noaa_instance.process_model_run_urls(["http://example.com/grib1"])
+
+    assert noaa_instance.exception_count == 0
+
+
+def test_process_model_run_urls_404_is_warned_not_raised(monkeypatch):
+    """404 HTTPError should be logged as a warning and not increment exception_count."""
+    noaa_instance = _make_noaa(monkeypatch)
+    mock_response = MagicMock()
+    mock_response.status_code = 404
+    http_error = HTTPError(response=mock_response)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+
+    noaa_instance.process_model_run_urls(["http://example.com/grib1"])
+
+    assert noaa_instance.exception_count == 0
+
+
+def test_process_model_run_urls_500_http_error_is_reraised(monkeypatch):
+    """Non-403/404 HTTPError should propagate out of process_model_run_urls."""
+    noaa_instance = _make_noaa(monkeypatch)
+    mock_response = MagicMock()
+    mock_response.status_code = 500
+    http_error = HTTPError(response=mock_response)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+
+    with pytest.raises(HTTPError):
+        noaa_instance.process_model_run_urls(["http://example.com/grib1"])
+
+
+def test_process_model_run_urls_http_error_without_response_is_reraised(monkeypatch):
+    """HTTPError with response=None should propagate out of process_model_run_urls."""
+    noaa_instance = _make_noaa(monkeypatch)
+    http_error = HTTPError(response=None)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+
+    with pytest.raises(HTTPError):
+        noaa_instance.process_model_run_urls(["http://example.com/grib1"])
+
+
+def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
+    """Non-HTTP exceptions should increment exception_count for each URL and not raise."""
+    noaa_instance = _make_noaa(monkeypatch)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(ValueError("boom")))
+
+    noaa_instance.process_model_run_urls(["http://example.com/grib1", "http://example.com/grib2"])
+
+    assert noaa_instance.exception_count == 2
+
+
+def test_process_model_run_urls_403_does_not_stop_remaining_urls(monkeypatch):
+    """A 403 on one URL should not prevent subsequent URLs from being processed."""
+    noaa_instance = _make_noaa(monkeypatch)
+    mock_response = MagicMock()
+    mock_response.status_code = 403
+    http_error = HTTPError(response=mock_response)
+
+    processed = []
+
+    def mock_process_url(url):
+        if url == "http://example.com/grib1":
+            raise http_error
+        processed.append(url)
+
+    monkeypatch.setattr(noaa_instance, "process_url", mock_process_url)
+
+    noaa_instance.process_model_run_urls(["http://example.com/grib1", "http://example.com/grib2"])
+
+    assert processed == ["http://example.com/grib2"]
+    assert noaa_instance.exception_count == 0
