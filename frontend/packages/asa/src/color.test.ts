@@ -1,4 +1,4 @@
-import { getColorByFuelTypeCode } from "@/components/profile/color"
+import { getColorByFuelTypeCode } from "@wps/asa/color"
 
 
 const colorByFuelTypeCodeTestMap = new Map()

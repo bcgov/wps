@@ -1,0 +1,17 @@
+{
+  "extends": "@wps/tsconfig/react-app.json",
+  "compilerOptions": {
+    "customConditions": [
+      "development"
+    ],
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "@wps/types"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
+}

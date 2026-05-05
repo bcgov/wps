@@ -37,6 +37,7 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@wps/api": "workspace:*",
+    "@wps/asa": "workspace:*",
     "@wps/types": "workspace:*",
     "@wps/ui": "workspace:*",
     "@wps/utils": "workspace:*",

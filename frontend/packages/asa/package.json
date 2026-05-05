@@ -1,0 +1,30 @@
+{
+  "name": "@wps/asa",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./*": {
+      "development": [
+        "./src/*.ts",
+        "./src/*.tsx"
+      ],
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "coverage:ci": "vitest run --coverage",
+    "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@types/react": "18.3.3",
+    "ol": "10.0.0",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@wps/types": "workspace:*"
+  }
+}

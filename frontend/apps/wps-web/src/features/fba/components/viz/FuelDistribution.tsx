@@ -1,6 +1,6 @@
 import { Box, Tooltip } from '@mui/material'
 import React from 'react'
-import { getColorByFuelTypeCode } from 'features/fba/components/viz/color'
+import { getColorByFuelTypeCode } from '@wps/asa/color'
 
 interface FuelDistributionProps {
   code: string

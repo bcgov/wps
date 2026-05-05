@@ -30,6 +30,10 @@
       "dependsOn": [],
       "outputs": ["coverage/**"]
     },
+    "@wps/asa#test": {
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
+    },
     "@wps/utils#test": {
       "dependsOn": [],
       "outputs": ["coverage/**"]

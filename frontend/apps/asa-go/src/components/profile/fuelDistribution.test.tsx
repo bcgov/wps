@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import FuelDistribution from "./FuelDistribution";
-import * as colorModule from "@/components/profile/color";
+import * as colorModule from "@wps/asa/color";
 import { vi } from "vitest";
 
 // Mock getColorByFuelTypeCode
-vi.mock("@/components/profile/color", () => ({
+vi.mock("@wps/asa/color", () => ({
   getColorByFuelTypeCode: vi.fn(),
 }));
 

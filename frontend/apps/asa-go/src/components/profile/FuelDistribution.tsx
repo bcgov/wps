@@ -1,6 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import React from "react";
-import { getColorByFuelTypeCode } from "@/components/profile/color";
+import { getColorByFuelTypeCode } from "@wps/asa/color";
 
 interface FuelDistributionProps {
   code: string;

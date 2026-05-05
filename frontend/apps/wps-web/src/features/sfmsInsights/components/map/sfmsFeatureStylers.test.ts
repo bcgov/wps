@@ -10,7 +10,7 @@ import {
   NODATA_THRESHOLD,
   isNodataValue
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
-import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
+import { getColorByFuelTypeCode } from '@wps/asa/color'
 import { FUEL_TYPE_COLORS } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 describe('getColorForRasterValue', () => {

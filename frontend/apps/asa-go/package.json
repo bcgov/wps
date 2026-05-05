@@ -50,6 +50,7 @@
     "@sentry/react": "10.43.0",
     "@sentry/vite-plugin": "^5.2.0",
     "@wps/api": "workspace:*",
+    "@wps/asa": "workspace:*",
     "@wps/types": "workspace:*",
     "@wps/ui": "workspace:*",
     "@wps/utils": "workspace:*",

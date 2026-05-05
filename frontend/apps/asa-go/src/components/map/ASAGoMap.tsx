@@ -15,7 +15,7 @@ import { loadMapViewState, saveMapViewState } from "@/components/map/mapView";
 import ScaleContainer from "@/components/map/ScaleContainer";
 import MapIconButton from "@/components/MapIconButton";
 import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
-import { MapContext } from "@/context/MapContext";
+import { MapContext } from "@wps/asa/MapContext";
 import {
   fireCentreLabelStyler,
   fireCentreLineStyler,
@@ -23,7 +23,7 @@ import {
   fireShapeLineStyler,
   fireShapeStyler,
 } from "@/featureStylers";
-import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
+import { fireZoneExtentsMap } from "@wps/asa/fireZoneUnitExtents";
 import { useProvincialSummaryZonesForDate } from "@/hooks/dataHooks";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import {

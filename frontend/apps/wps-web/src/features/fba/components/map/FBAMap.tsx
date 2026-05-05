@@ -18,7 +18,7 @@ import {
 import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 import { extentsMap } from 'features/fba/fireCentreExtents'
-import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
+import { fireZoneExtentsMap } from '@wps/asa/fireZoneUnitExtents'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { cloneDeep, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
@@ -43,7 +43,7 @@ import {
   HILLSHADE_TILE_URL,
   PMTILES_BUCKET
 } from '@wps/utils/env'
-import { MapContext } from '@/features/fba/context/MapContext'
+import { MapContext } from '@wps/asa/MapContext'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 

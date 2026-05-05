@@ -5977,6 +5977,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@wps/asa@workspace:*, @wps/asa@workspace:packages/asa":
+  version: 0.0.0-use.local
+  resolution: "@wps/asa@workspace:packages/asa"
+  dependencies:
+    "@types/react": "npm:18.3.3"
+    "@wps/types": "workspace:*"
+    ol: "npm:10.0.0"
+    react: "npm:^18.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@wps/tsconfig@workspace:*, @wps/tsconfig@workspace:packages/tsconfig":
   version: 0.0.0-use.local
   resolution: "@wps/tsconfig@workspace:packages/tsconfig"
@@ -6067,6 +6078,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.0.0"
     "@vitejs/plugin-react": "npm:^4.3.1"
     "@wps/api": "workspace:*"
+    "@wps/asa": "workspace:*"
     "@wps/tsconfig": "workspace:*"
     "@wps/types": "workspace:*"
     "@wps/ui": "workspace:*"
@@ -6560,6 +6572,7 @@ __metadata:
     "@vitejs/plugin-react-swc": "npm:^4.0.0"
     "@vitest/coverage-v8": "npm:^4.0.8"
     "@wps/api": "workspace:*"
+    "@wps/asa": "workspace:*"
     "@wps/types": "workspace:*"
     "@wps/ui": "workspace:*"
     "@wps/utils": "workspace:*"
