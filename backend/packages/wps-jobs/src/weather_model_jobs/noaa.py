@@ -135,10 +135,7 @@ def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycl
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
 
-    # download_date has UTC timezone. Need to convert to EDT (-4h) timezone, which is what
-    # nomads.ncep.noaa server uses
-    download_date_to_est = download_date.astimezone(ZoneInfo('US/Eastern'))
-    year_mo_date = get_year_mo_date_string_from_datetime(download_date_to_est)
+    year_mo_date = get_year_mo_date_string_from_datetime(download_date)
 
     for fcst_hour in all_hours:
         hh = format(fcst_hour, '02d')
@@ -175,10 +172,7 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
 
-    # download_date has UTC timezone. Need to convert to EDT (-4h) timezone, which is what
-    # nomads.ncep.noaa server uses
-    download_date_to_est = download_date.astimezone(ZoneInfo('US/Eastern'))
-    year_mo_date = get_year_mo_date_string_from_datetime(download_date_to_est)
+    year_mo_date = get_year_mo_date_string_from_datetime(download_date)
 
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')

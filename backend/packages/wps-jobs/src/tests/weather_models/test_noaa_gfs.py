@@ -1,30 +1,29 @@
 """Unit tests for app/jobs/noaa.py"""
 
-import os
 import logging
+import os
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
-from tests.weather_models.test_models_common import (
-    MockResponse,
-    shape,
-    mock_get_model_run_predictions,
-)
+
 import pytest
 import requests
-from requests import HTTPError
-from geoalchemy2.shape import from_shape
-from weather_model_jobs import common_model_fetchers
 import wps_shared.db.crud.weather_models
+import wps_shared.utils.time as time_utils
+from geoalchemy2.shape import from_shape
+from requests import HTTPError
+from tests.weather_models.test_models_common import (
+    MockResponse,
+    mock_get_model_run_predictions,
+    shape,
+)
+from weather_model_jobs import common_model_fetchers, noaa
 from wps_shared.db.models.weather_models import (
     PredictionModel,
     PredictionModelGridSubset,
     PredictionModelRunTimestamp,
     ProcessedModelRunUrl,
 )
-from weather_model_jobs import noaa
 from wps_shared.weather_models import ModelEnum
-import wps_shared.utils.time as time_utils
-
 
 logger = logging.getLogger(__name__)
 
@@ -106,8 +105,6 @@ def mock_download(monkeypatch):
 
 
 def test_get_gfs_model_run_download_urls_for_00_utc():
-    # March 2 at 00:00 UTC is equivalent to March 1 in Eastern timezone - should return URL for previous day
-    # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total)
     expected_num_of_urls = 2 * 11
     actual_urls = list(
         noaa.get_gfs_model_run_download_urls(datetime(2023, 3, 2, 00, tzinfo=timezone.utc), "00")
@@ -116,12 +113,12 @@ def test_get_gfs_model_run_download_urls_for_00_utc():
     assert (
         actual_urls[0]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230301%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + "dir=%2Fgfs.20230302%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
     )
     assert (
         actual_urls[-1]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230301%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f261&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + "dir=%2Fgfs.20230302%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f261&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
     )
 
 
