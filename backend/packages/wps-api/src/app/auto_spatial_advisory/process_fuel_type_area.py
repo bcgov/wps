@@ -88,7 +88,6 @@ async def calculate_fuel_type_area_by_shape(
     result = await session.execute(stmt)
     rows = result.all()
     for row in rows:
-        intersect_path = get_intersected_raster_path(row[1], threshold)
         intersected_ds: gdal.Dataset = await intersect_raster_by_advisory_shape(
             session, threshold, row[0], row[1], masked_fuel_type_ds
         )
@@ -99,7 +98,6 @@ async def calculate_fuel_type_area_by_shape(
             )
         finally:
             intersected_ds = None
-            gdal.Unlink(intersect_path)
 
 
 def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelType]):
