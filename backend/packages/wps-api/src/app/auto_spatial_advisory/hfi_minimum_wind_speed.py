@@ -20,15 +20,15 @@ from wps_shared.db.crud.auto_spatial_advisory import (
 )
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import (
-    HfiClassificationThresholdEnum,
     AdvisoryHFIWindSpeed,
+    HfiClassificationThresholdEnum,
     Shape,
 )
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
-from wps_shared.wps_logging import configure_logging
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.time import convert_to_sfms_timezone
+from wps_shared.wps_logging import configure_logging
 
 from app.auto_spatial_advisory.common import get_hfi_s3_key
 
@@ -126,29 +126,33 @@ async def process_min_wind_speed_by_zone(
             )
 
             wind_path = "/vsimem/zone_wind.tif"
-            intersected_ds: gdal.Dataset = gdal.Warp(wind_path, wind_ds, options=warp_options)
-            wind_band = intersected_ds.GetRasterBand(1)
-            wind_array_clip = wind_band.ReadAsArray()
-            wind_nodata = wind_band.GetNoDataValue()
-
             hfi_path = "/vsimem/zone_hfi.tif"
-            intersected_ds: gdal.Dataset = gdal.Warp(hfi_path, hfi_ds, options=warp_options)
-            hfi_array_clip = intersected_ds.GetRasterBand(1).ReadAsArray()
+            wind_intersected_ds = None
+            hfi_intersected_ds = None
+            try:
+                wind_intersected_ds = gdal.Warp(wind_path, wind_ds, options=warp_options)
+                wind_band = wind_intersected_ds.GetRasterBand(1)
+                wind_array_clip = wind_band.ReadAsArray()
+                wind_nodata = wind_band.GetNoDataValue()
 
-            # make sure the previous in-memory files are deleted before the next loop
-            gdal.Unlink(wind_path)
-            gdal.Unlink(hfi_path)
+                hfi_intersected_ds = gdal.Warp(hfi_path, hfi_ds, options=warp_options)
+                hfi_array_clip = hfi_intersected_ds.GetRasterBand(1).ReadAsArray()
 
-            # Compute minimum wind speed for each HFI range
-            hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(
-                wind_array_clip, hfi_array_clip, advisory_id_lut, wind_nodata
-            )
+                # Compute minimum wind speed for each HFI range
+                hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(
+                    wind_array_clip, hfi_array_clip, advisory_id_lut, wind_nodata
+                )
 
-            records_to_save = create_hfi_wind_speed_record(
-                zone.id, hfi_min_wind_speeds, run_parameters_id
-            )
+                records_to_save = create_hfi_wind_speed_record(
+                    zone.id, hfi_min_wind_speeds, run_parameters_id
+                )
 
-            all_hfi_min_wind_speeds_to_save.extend(records_to_save)
+                all_hfi_min_wind_speeds_to_save.extend(records_to_save)
+            finally:
+                wind_intersected_ds = None
+                hfi_intersected_ds = None
+                gdal.Unlink(wind_path)
+                gdal.Unlink(hfi_path)
 
     save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
 
@@ -203,9 +207,7 @@ def create_hfi_wind_speed_record(
     ]
 
 
-def save_all_hfi_wind_speeds(
-    session: AsyncSession, hfi_wind_speeds: list[AdvisoryHFIWindSpeed]
-):
+def save_all_hfi_wind_speeds(session: AsyncSession, hfi_wind_speeds: list[AdvisoryHFIWindSpeed]):
     logger.info("Writing HFI Advisory Minimum Wind Speeds")
     session.add_all(hfi_wind_speeds)
 
