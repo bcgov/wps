@@ -37,6 +37,12 @@
       "api/*": [
         "./src/api/*"
       ],
+      "ol": [
+        "./node_modules/ol"
+      ],
+      "ol/*": [
+        "./node_modules/ol/*"
+      ]
     }
   },
   "include": [

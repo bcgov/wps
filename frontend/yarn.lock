@@ -5983,8 +5983,9 @@ __metadata:
   dependencies:
     "@types/react": "npm:18.3.3"
     "@wps/types": "workspace:*"
-    ol: "npm:10.0.0"
     react: "npm:^18.3.1"
+  peerDependencies:
+    ol: ">=10.0.0"
   languageName: unknown
   linkType: soft
 
