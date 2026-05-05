@@ -95,7 +95,12 @@ describe('ForecastCell', () => {
   })
 
   it('should not display a value when none provided', () => {
-    const { container } = renderCell({ value: undefined })
+    const noValue: Pick<GridRenderCellParams, 'formattedValue'> = { formattedValue: undefined }
+    const { container } = render(
+      <Provider store={buildTestStore(initialState)}>
+        <ForecastCell disabled={false} label="foo" showGreaterThan={false} showLessThan={false} value={noValue} />
+      </Provider>
+    )
     const inputElement = container.querySelector('input')
     expect(inputElement).toBeInTheDocument()
     expect(inputElement!.value).toBe('')
