@@ -6,18 +6,14 @@ For iOS & Android Firebase push notification setup details, see [Notifications.m
 
 ## Building
 
-The keycloak plugin must be built before installing asa-go dependencies, as asa-go resolves it as a local path dependency.
+This app is part of the `frontend/` Turborepo monorepo. All commands below are run from the **`frontend/`** root unless otherwise noted.
 
 ```bash
-# 1. Build the keycloak plugin
-cd mobile/keycloak
+# Install all workspace dependencies (includes keycloak plugin)
 yarn install
-yarn build
 
-# 2. Install and build asa-go
-cd mobile/asa-go
-yarn install
-yarn build
+# Build asa-go and all its workspace dependencies
+yarn turbo run build --filter=asa-go
 ```
 
 ## Setup live reload
@@ -26,15 +22,22 @@ yarn build
 
 ### Building/Running iOS
 
-1. Make sure xcode is installed with `xcode-select --install`
-2. Go to `mobile/asa-go`
-3. Run `APP_ENV=dev yarn cap:sync:ios:dev` or `APP_ENV=prod yarn cap:sync:ios:prod`
-4. List available devices/simulators with `ionic capacitor run ios --list`
-5. Build and run with live reload:
+1. Make sure Xcode is installed with `xcode-select --install`
+2. From the `frontend/` root, sync the web build to the iOS project:
+   ```bash
+   yarn turbo run cap:sync:ios:dev --filter=asa-go
+   # or
+   yarn turbo run cap:sync:ios:prod --filter=asa-go
+   ```
+   Turbo ensures the app bundle is up to date (cached if unchanged) before running `cap sync ios`.
+3. List available devices/simulators with `ionic capacitor run ios --list`
+4. Build and run with live reload:
    - `APP_ENV=dev ionic capacitor run ios -l --external`
    - `APP_ENV=prod ionic capacitor run ios -l --external`
 
 `APP_ENV=dev` selects the `ASA Go Dev` iOS scheme and `APP_ENV=prod` selects `ASA Go`.
+
+> **Note:** Always open `frontend/apps/asa-go/ios/App/App.xcworkspace` in Xcode (not `.xcodeproj`) after a sync.
 
 ### Building/Running Android
 
@@ -42,28 +45,35 @@ yarn build
 2. Find where the Android SDK is installed
    - With Jetbrains Toolbox it should be `/Users/<user>/Library/Android/sdk/`
    - Set `$ANDROID_HOME` to the path of the Android SDK
-3. Go to `mobile/asa-go`
-4. Run `APP_ENV=dev yarn cap:sync:android:dev` or `APP_ENV=prod yarn cap:sync:android:prod`
-5. If you are building from Android Studio, open the [`android`](/Users/breedwar/projects/other/wps/mobile/asa-go/android) project and choose the matching build variant in the `Build Variants` tool window:
+3. From the `frontend/` root, sync the web build to the Android project:
+   ```bash
+   yarn turbo run cap:sync:android:dev --filter=asa-go
+   # or
+   yarn turbo run cap:sync:android:prod --filter=asa-go
+   ```
+   Turbo ensures the app bundle is up to date (cached if unchanged) before running `cap sync android`.
+4. If building from Android Studio, open the `frontend/apps/asa-go/android` project and choose the matching build variant in the `Build Variants` tool window:
    - `devDebug` or `devRelease` after a dev sync
    - `prodDebug` or `prodRelease` after a prod sync
-6. Build and run with live reload: `APP_ENV=dev ionic capacitor run android -l --external` or `APP_ENV=prod ionic capacitor run android -l --external`
+5. Build and run with live reload: `APP_ENV=dev ionic capacitor run android -l --external` or `APP_ENV=prod ionic capacitor run android -l --external`
 
 If the selected Android Studio build variant does not match the last `cap sync` flavor, you can end up with mismatched native config and web assets.
 
 To build a debug APK directly:
 
 ```bash
-cd mobile/asa-go/android
+cd frontend/apps/asa-go/android
 ./gradlew assembleDevDebug
 ./gradlew assembleProdDebug
 ```
+
+The APK will be at `app/build/outputs/apk/<variant>/debug/app-debug.apk`.
 
 #### Running on a physical Android device against your local API
 
 Get your local machine IP: `ipconfig getifaddr en0`
 
-1. Set `VITE_API_BASE_URL=http://{local_machine_ip}:8080/api` in `.env.development`
+1. Set `VITE_API_BASE_URL=http://{local_machine_ip}:8080/api` in `frontend/apps/asa-go/.env.development`
 2. Set `ORIGINS="http://localhost/ http://{local_machine_ip}:8080"` in `backend/packages/wps-api/src/app/.env`
 3. Add `server: { androidScheme: "http" }` to the root of the config in `capacitor.config.ts`
 4. Add `<domain includeSubdomains="true">{local_machine_ip}</domain>` to the `domain-config` list in `network_security_config.xml`

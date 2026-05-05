@@ -66,11 +66,13 @@
     },
     "build:dev": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "env": ["APP_ENV"]
     },
     "build:prod": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "env": ["APP_ENV"]
     },
     "cap:sync:dev":          { "dependsOn": ["build:dev"],  "cache": false },
     "cap:sync:prod":         { "dependsOn": ["build:prod"], "cache": false },
