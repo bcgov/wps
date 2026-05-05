@@ -8,32 +8,41 @@ from typing import Optional
 import numpy as np
 from geoalchemy2.shape import to_shape
 from osgeo import gdal, osr
-
+from sqlalchemy.dialects.postgresql import insert
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_zone_unit_shape_type_id,
     get_fire_zone_units,
     get_fuel_types_id_dict,
 )
-from wps_shared.db.crud.fuel_layer import get_processed_fuel_raster_details
+from wps_shared.db.crud.fuel_layer import (
+    get_fuel_type_raster_by_year,
+)
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryShapeFuels
 from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from app.sfms.raster_addresser import RasterKeyAddresser
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
+
+from app.sfms.raster_addresser import RasterKeyAddresser
 
 logger = logging.getLogger(__name__)
 
 
 class FuelTypeAreasJob:
-    def _save_fuel_type_area(self, session, advisory_shape_id, fuel_type_id, fuel_area):
-        fuel_type_area = AdvisoryShapeFuels(
-            advisory_shape_id=advisory_shape_id, fuel_type=fuel_type_id, fuel_area=fuel_area
+    async def _save_fuel_type_area(
+        self, session, advisory_shape_id, fuel_type_id, fuel_area, fuel_type_raster_id
+    ):
+        insert_stmt = insert(AdvisoryShapeFuels).values(
+            advisory_shape_id=advisory_shape_id,
+            fuel_type=fuel_type_id,
+            fuel_area=fuel_area,
+            fuel_type_raster_id=fuel_type_raster_id,
         )
-        session.add(fuel_type_area)
+        insert_stmt = insert_stmt.on_conflict_do_nothing()
+        await session.execute(insert_stmt)
 
     def _calculate_fuel_type_area_for_zone(
         self, advisory_shape_id: int, data: np.ndarray, pixel_size: int
@@ -57,7 +66,7 @@ class FuelTypeAreasJob:
         """
         set_s3_gdal_config()
         async with get_async_write_session_scope() as session:
-            fuel_type_raster = await get_processed_fuel_raster_details(session, year, version)
+            fuel_type_raster = await get_fuel_type_raster_by_year(session, year)
             fuel_raster_key = get_versioned_fuel_raster_key(
                 RasterKeyAddresser(), fuel_type_raster.object_store_path
             )
@@ -94,8 +103,12 @@ class FuelTypeAreasJob:
                     zone.id, intersected_data, pixel_size
                 )
                 for advisory_shape_id, fuel_type_id, fuel_area in fuel_type_area_data:
-                    self._save_fuel_type_area(
-                        session, advisory_shape_id, sfms_fuel_types_dict[fuel_type_id], fuel_area
+                    await self._save_fuel_type_area(
+                        session,
+                        advisory_shape_id,
+                        sfms_fuel_types_dict[fuel_type_id],
+                        fuel_area,
+                        fuel_type_raster.id,
                     )
         fuel_raster_ds = None
 
