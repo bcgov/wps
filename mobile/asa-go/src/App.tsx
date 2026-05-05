@@ -24,6 +24,7 @@ import {
   selectFireCentres,
   selectNetworkStatus,
   selectRunParameters,
+  selectAuthentication,
   selectSettings,
   selectPushNotification,
   selectProvincialSummaries,
@@ -31,6 +32,7 @@ import {
   selectLastUpdated,
 } from "@/store";
 import { theme } from "@/theme";
+import { setApiMode } from "@/api/axios";
 import { NavPanel, StatusEnum } from "@/utils/constants";
 import { today } from "@/utils/dataSliceUtils";
 import { PMTilesCache } from "@/utils/pmtilesCache";
@@ -58,6 +60,7 @@ const App = () => {
   const isPortrait = useIsPortrait();
   const dispatch: AppDispatch = useDispatch();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
+  const { isAuthenticated } = useSelector(selectAuthentication);
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -89,6 +92,10 @@ const App = () => {
     ? fireCentres.find((center) => center.name === selectedFireCentreName)
     : undefined;
   const selectedFireCentre = matchingFireCentre ?? fireCentre;
+
+  useEffect(() => {
+    setApiMode(isAuthenticated ? "authenticated" : "public");
+  }, [isAuthenticated]);
 
   useEffect(() => {
     // Effect to manage status bar visibility

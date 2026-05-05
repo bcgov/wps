@@ -9,6 +9,7 @@ import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { initialState as pushNotificationInitialState } from "@/slices/pushNotificationSlice";
 import { RunType } from "@/api/fbaAPI";
+import { setApiMode } from "@/api/axios";
 
 // Mock MUI useMediaQuery to control screen size detection
 vi.mock("@mui/material", async () => {
@@ -141,6 +142,7 @@ vi.mock("@/api/axios", () => ({
     }),
     post: vi.fn(),
   })),
+  setApiMode: vi.fn(),
 }));
 
 vi.mock("@capacitor/device", () => ({
@@ -347,6 +349,7 @@ describe("App", () => {
     });
 
     expect(initPushNotifications).toHaveBeenCalledTimes(1);
+    expect(setApiMode).toHaveBeenCalledWith("authenticated");
   });
 
   it("calls initPushNotifications when not authenticated", async () => {
@@ -367,6 +370,7 @@ describe("App", () => {
     });
 
     expect(initPushNotifications).toHaveBeenCalledTimes(1);
+    expect(setApiMode).toHaveBeenCalledWith("public");
   });
 
   it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {
