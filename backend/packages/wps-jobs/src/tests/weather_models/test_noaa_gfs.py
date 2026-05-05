@@ -369,3 +369,36 @@ def test_process_model_run_marks_complete_when_all_urls_processed(monkeypatch):
         noaa_instance.now,
         "00",
     )
+
+
+@pytest.mark.parametrize("status_code", [403, 404])
+def test_process_model_run_does_not_mark_complete_on_403_or_404_error(monkeypatch, status_code):
+    """mark_prediction_model_run_processed should not be called when 403/404 errors prevent URLs from being processed.
+
+    403/404 responses are swallowed by process_model_run_urls, so processing continues but the
+    affected files are never flagged as done, leaving check_if_model_run_complete returning False.
+    """
+    noaa_instance = _make_noaa(monkeypatch)
+
+    urls = ["https://example.com/grib1", "https://example.com/grib2"]
+    monkeypatch.setattr(noaa, "get_gfs_model_run_download_urls", lambda *_: iter(urls))
+
+    mock_response = MagicMock()
+    mock_response.status_code = status_code
+    http_error = HTTPError(response=mock_response)
+
+    def raise_http_error(_):
+        raise http_error
+
+    monkeypatch.setattr(noaa_instance, "process_url", raise_http_error)
+
+    monkeypatch.setattr(
+        common_model_fetchers, "get_processed_file_count", lambda session, urls: len(urls) - 1
+    )
+
+    mock_mark = MagicMock()
+    monkeypatch.setattr(noaa, "mark_prediction_model_run_processed", mock_mark)
+
+    noaa_instance.process_model_run("00")
+
+    mock_mark.assert_not_called()
