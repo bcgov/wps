@@ -255,7 +255,7 @@ def test_process_model_run_urls_403_is_warned_not_raised(monkeypatch):
 
     monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
 
-    noaa_instance.process_model_run_urls(["http://example.com/grib1"])
+    noaa_instance.process_model_run_urls(["https://example.com/grib1"])
 
     assert noaa_instance.exception_count == 0
 
@@ -269,7 +269,7 @@ def test_process_model_run_urls_404_is_warned_not_raised(monkeypatch):
 
     monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
 
-    noaa_instance.process_model_run_urls(["http://example.com/grib1"])
+    noaa_instance.process_model_run_urls(["https://example.com/grib1"])
 
     assert noaa_instance.exception_count == 0
 
@@ -284,7 +284,7 @@ def test_process_model_run_urls_500_http_error_is_reraised(monkeypatch):
     monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
 
     with pytest.raises(HTTPError):
-        noaa_instance.process_model_run_urls(["http://example.com/grib1"])
+        noaa_instance.process_model_run_urls(["https://example.com/grib1"])
 
 
 def test_process_model_run_urls_http_error_without_response_is_reraised(monkeypatch):
@@ -295,7 +295,7 @@ def test_process_model_run_urls_http_error_without_response_is_reraised(monkeypa
     monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
 
     with pytest.raises(HTTPError):
-        noaa_instance.process_model_run_urls(["http://example.com/grib1"])
+        noaa_instance.process_model_run_urls(["https://example.com/grib1"])
 
 
 def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
@@ -304,7 +304,7 @@ def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
 
     monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(ValueError("boom")))
 
-    noaa_instance.process_model_run_urls(["http://example.com/grib1", "http://example.com/grib2"])
+    noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
 
     assert noaa_instance.exception_count == 2
 
@@ -319,13 +319,13 @@ def test_process_model_run_urls_403_does_not_stop_remaining_urls(monkeypatch):
     processed = []
 
     def mock_process_url(url):
-        if url == "http://example.com/grib1":
+        if url == "https://example.com/grib1":
             raise http_error
         processed.append(url)
 
     monkeypatch.setattr(noaa_instance, "process_url", mock_process_url)
 
-    noaa_instance.process_model_run_urls(["http://example.com/grib1", "http://example.com/grib2"])
+    noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
 
-    assert processed == ["http://example.com/grib2"]
+    assert processed == ["https://example.com/grib2"]
     assert noaa_instance.exception_count == 0
