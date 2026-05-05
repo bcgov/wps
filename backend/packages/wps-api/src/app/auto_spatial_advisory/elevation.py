@@ -287,7 +287,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
     gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
     bucket = config.get("OBJECT_STORE_BUCKET")
-    dem_file = "bc_dem_50m_tpi_win100_classified.tif"
+    dem_file = config.get("CLASSIFIED_TPI_DEM_NAME")
     key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
     hfi_raster_filename = get_raster_tif_filename(for_date)
     hfi_raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, hfi_raster_filename)
