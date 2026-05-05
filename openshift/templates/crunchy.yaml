@@ -45,7 +45,7 @@ parameters:
   - name: REPLICAS
     description: Number of database replicas
     displayName: Replicas
-    value: 3
+    value: "3"
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
@@ -90,7 +90,7 @@ objects:
             - wps
       instances:
         - name: crunchy
-          replicas: ${REPLICAS}
+          replicas: ${{REPLICAS}}
           resources:
             requests:
               cpu: ${CPU_REQUEST}
