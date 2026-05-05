@@ -45,7 +45,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy.yaml \
  ${PVC_SIZE:+ " -p PVC_SIZE=${PVC_SIZE}"} \
  ${CPU_REQUEST:+ "-p CPU_REQUEST=${CPU_REQUEST}"} \
  ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
- ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"}"
+ ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
+ ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"}"
 
 
 # In order to avoid running out of storage quota in our development environment, use

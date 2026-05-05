@@ -35,7 +35,7 @@ MODULE_NAME=jobs bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 MODULE_NAME=weather bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 
 echo Provision database
-PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=2 MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=15Gi bash $(dirname ${0})/oc_provision_crunchy.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=2 MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=15Gi REPLICAS=3 bash $(dirname ${0})/oc_provision_crunchy.sh prod ${RUN_TYPE}
 
 echo Provision NATS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats.sh prod ${RUN_TYPE}
