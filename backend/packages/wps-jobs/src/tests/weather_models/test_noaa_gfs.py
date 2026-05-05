@@ -329,3 +329,43 @@ def test_process_model_run_urls_403_does_not_stop_remaining_urls(monkeypatch):
 
     assert processed == ["https://example.com/grib2"]
     assert noaa_instance.exception_count == 0
+
+
+def test_process_model_run_does_not_mark_complete_when_urls_incomplete(monkeypatch):
+    """mark_prediction_model_run_processed should not be called when check_if_model_run_complete returns False."""
+    noaa_instance = _make_noaa(monkeypatch)
+
+    urls = ["https://example.com/grib1", "https://example.com/grib2"]
+    monkeypatch.setattr(noaa, "get_gfs_model_run_download_urls", lambda *_: iter(urls))
+    monkeypatch.setattr(noaa_instance, "process_model_run_urls", lambda _: None)
+    monkeypatch.setattr(noaa, "check_if_model_run_complete", lambda *_: False)
+
+    mock_mark = MagicMock()
+    monkeypatch.setattr(noaa, "mark_prediction_model_run_processed", mock_mark)
+
+    noaa_instance.process_model_run("00")
+
+    mock_mark.assert_not_called()
+
+
+def test_process_model_run_marks_complete_when_all_urls_processed(monkeypatch):
+    """mark_prediction_model_run_processed should be called when check_if_model_run_complete returns True."""
+    noaa_instance = _make_noaa(monkeypatch)
+
+    urls = ["https://example.com/grib1", "https://example.com/grib2"]
+    monkeypatch.setattr(noaa, "get_gfs_model_run_download_urls", lambda *_: iter(urls))
+    monkeypatch.setattr(noaa_instance, "process_model_run_urls", lambda _: None)
+    monkeypatch.setattr(noaa, "check_if_model_run_complete", lambda *_: True)
+
+    mock_mark = MagicMock()
+    monkeypatch.setattr(noaa, "mark_prediction_model_run_processed", mock_mark)
+
+    noaa_instance.process_model_run("00")
+
+    mock_mark.assert_called_once_with(
+        noaa_instance.session,
+        noaa_instance.model_type,
+        noaa_instance.projection,
+        noaa_instance.now,
+        "00",
+    )
