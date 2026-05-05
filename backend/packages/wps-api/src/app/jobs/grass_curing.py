@@ -86,7 +86,17 @@ class GrassCuringJob():
             px, py = reverse_transform * (longitude, latitude)
             px = math.floor(px)
             py = math.floor(py)
-            yield (station.code, data_np_array[py][px])
+            try:
+                yield (station.code, data_np_array[py][px])
+            except IndexError:
+                # A station with bad coordinates shouldn't terminate the entire job but this should
+                # be picked up by Sentry so log an error.
+                logger.error(
+                    "Station %s at pixel (%s, %s) is out of raster bounds, skipping",
+                    station.code,
+                    px,
+                    py,
+                )
 
 
     async def _get_last_for_date(self):
