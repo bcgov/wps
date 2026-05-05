@@ -10,7 +10,6 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { initialState as pushNotificationInitialState } from "@/slices/pushNotificationSlice";
 import { RunType } from "@/api/fbaAPI";
 
-// Mock MUI useMediaQuery to control screen size detection
 vi.mock("@mui/material", async () => {
   const actual = await vi.importActual("@mui/material");
   return {
@@ -19,7 +18,6 @@ vi.mock("@mui/material", async () => {
   };
 });
 
-// Mock Capacitor plugins
 vi.mock("@capacitor/screen-orientation", () => ({
   ScreenOrientation: {
     addListener: vi.fn(),
@@ -49,7 +47,6 @@ vi.mock("@capacitor/filesystem", () => ({
   Filesystem: {},
 }));
 
-// Mock components
 vi.mock("@/components/AppHeader", () => ({
   AppHeader: () => <div data-testid="app-header">App Header</div>,
 }));
@@ -107,7 +104,6 @@ vi.mock("@/components/InfoBar", () => ({
   ),
 }));
 
-// Mock hooks
 vi.mock("@/hooks/useAppIsActive", () => ({
   useAppIsActive: () => true,
 }));
@@ -150,6 +146,13 @@ vi.mock("@/utils/dataSliceUtils", async () => {
   };
 });
 
+const renderApp = (store = createTestStore()) =>
+  render(
+    <Provider store={store}>
+      <App />
+    </Provider>,
+  );
+
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -162,49 +165,20 @@ describe("App", () => {
   });
 
   it("renders all main components in initial state", () => {
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
-
-    // Check if AppHeader is rendered
+    renderApp();
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
-
-    // Check if BottomNavigationBar is rendered
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
-
-    // Check if ASAGoMap is rendered (initial tab is MAP)
     expect(screen.getByTestId("asa-go-map")).toBeInTheDocument();
   });
 
   it("renders App component with Redux store integration", () => {
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
-
-    // Verify the app container is present
-    const appContainer = document.getElementById("asa-go-app");
-    expect(appContainer).toBeInTheDocument();
+    renderApp();
+    expect(document.getElementById("asa-go-app")).toBeInTheDocument();
   });
 
   it("initializes with correct styling", () => {
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
-
-    const appContainer = document.getElementById("asa-go-app");
-    expect(appContainer).toHaveStyle({
+    renderApp();
+    expect(document.getElementById("asa-go-app")).toHaveStyle({
       height: "100vh",
       padding: "0",
       margin: "0",
@@ -219,13 +193,7 @@ describe("App", () => {
     vi.mocked(useIsPortrait).mockReturnValue(false);
     vi.mocked(useMediaQuery).mockReturnValue(true);
 
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
+    renderApp();
 
     await waitFor(() => {
       expect(StatusBar.hide).toHaveBeenCalled();
@@ -236,15 +204,8 @@ describe("App", () => {
 
   it("shows AppHeader and calls StatusBar.show() when device is in portrait orientation", async () => {
     const { StatusBar } = await import("@capacitor/status-bar");
-    vi.mocked(useIsPortrait).mockReturnValue(true);
 
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
+    renderApp();
 
     await waitFor(() => {
       expect(StatusBar.show).toHaveBeenCalled();
@@ -257,13 +218,7 @@ describe("App", () => {
     vi.mocked(useIsPortrait).mockReturnValue(false);
     vi.mocked(useMediaQuery).mockReturnValue(true);
 
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
+    renderApp();
 
     await waitFor(() =>
       expect(screen.getByTestId("side-navigation")).toBeInTheDocument(),
@@ -272,16 +227,9 @@ describe("App", () => {
   });
 
   it("displays AppHeader and BottomNavigation in portrait on small screens", async () => {
-    vi.mocked(useIsPortrait).mockReturnValue(true);
     vi.mocked(useMediaQuery).mockReturnValue(true);
 
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
+    renderApp();
 
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
@@ -289,15 +237,8 @@ describe("App", () => {
 
   it("displays AppHeader and BottomNavigation in landscape on medium or larger screens", async () => {
     vi.mocked(useIsPortrait).mockReturnValue(false);
-    vi.mocked(useMediaQuery).mockReturnValue(false);
 
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
+    renderApp();
 
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
@@ -324,11 +265,7 @@ describe("App", () => {
     });
 
     await act(async () => {
-      render(
-        <Provider store={store}>
-          <App />
-        </Provider>,
-      );
+      renderApp(store);
     });
 
     expect(initPushNotifications).toHaveBeenCalledTimes(1);
@@ -341,71 +278,37 @@ describe("App", () => {
       retryRegistration: vi.fn().mockResolvedValue(undefined),
     });
 
-    const store = createTestStore();
-
     await act(async () => {
-      render(
-        <Provider store={store}>
-          <App />
-        </Provider>,
-      );
+      renderApp();
     });
 
     expect(initPushNotifications).not.toHaveBeenCalled();
   });
 
   it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {
-    vi.mocked(useIsPortrait).mockReturnValue(true);
-    vi.mocked(useMediaQuery).mockReturnValue(false);
-
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-    );
-
+    renderApp();
     expect(screen.getByTestId("app-header")).toBeInTheDocument();
     expect(screen.getByTestId("bottom-nav")).toBeInTheDocument();
   });
 
   describe("InfoBar rendering", () => {
     it("renders InfoBar in portrait orientation", async () => {
-      vi.mocked(useIsPortrait).mockReturnValue(true);
-      vi.mocked(useMediaQuery).mockReturnValue(false);
-
-      const store = createTestStore();
-
       await act(async () => {
-        render(
-          <Provider store={store}>
-            <App />
-          </Provider>,
-        );
+        renderApp();
       });
 
       expect(screen.getByTestId("info-bar")).toBeInTheDocument();
     });
 
     it("shows WARNING status and Offline. text when network is disconnected", async () => {
-      vi.mocked(useIsPortrait).mockReturnValue(true);
-      vi.mocked(useMediaQuery).mockReturnValue(false);
-
       const { Network } = await import("@capacitor/network");
       vi.mocked(Network.getStatus).mockResolvedValue({
         connected: false,
         connectionType: "none",
       });
 
-      const store = createTestStore();
-
       await act(async () => {
-        render(
-          <Provider store={store}>
-            <App />
-          </Provider>,
-        );
+        renderApp();
       });
 
       await waitFor(() => {
@@ -416,23 +319,14 @@ describe("App", () => {
     });
 
     it("shows INFO status when network is connected", async () => {
-      vi.mocked(useIsPortrait).mockReturnValue(true);
-      vi.mocked(useMediaQuery).mockReturnValue(false);
-
       const { Network } = await import("@capacitor/network");
       vi.mocked(Network.getStatus).mockResolvedValue({
         connected: true,
         connectionType: "wifi",
       });
 
-      const store = createTestStore();
-
       await act(async () => {
-        render(
-          <Provider store={store}>
-            <App />
-          </Provider>,
-        );
+        renderApp();
       });
 
       await waitFor(() =>
@@ -510,11 +404,7 @@ describe("App", () => {
       const store = buildStore({ advisory_date: "2024-01-01" });
 
       await act(async () => {
-        render(
-          <Provider store={store}>
-            <App />
-          </Provider>,
-        );
+        renderApp(store);
       });
 
       expect(screen.getByTestId("asa-go-map")).toBeInTheDocument();
@@ -528,11 +418,7 @@ describe("App", () => {
       const store = buildStore({ fire_centre_id: "999" });
 
       await act(async () => {
-        render(
-          <Provider store={store}>
-            <App />
-          </Provider>,
-        );
+        renderApp(store);
       });
 
       expect(screen.getByTestId("asa-go-map")).toBeInTheDocument();
@@ -546,11 +432,7 @@ describe("App", () => {
       const store = buildStore({ fire_zone_unit: "999" });
 
       await act(async () => {
-        render(
-          <Provider store={store}>
-            <App />
-          </Provider>,
-        );
+        renderApp(store);
       });
 
       expect(screen.getByTestId("asa-go-map")).toBeInTheDocument();
@@ -564,11 +446,7 @@ describe("App", () => {
       const store = buildStore();
 
       await act(async () => {
-        render(
-          <Provider store={store}>
-            <App />
-          </Provider>,
-        );
+        renderApp(store);
       });
 
       await waitFor(() => {

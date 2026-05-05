@@ -11,7 +11,6 @@ import { FireCentreInfo, getFireCentreInfo } from "@/api/fbaAPI";
 import * as Storage from "@/utils/storage";
 import { NavPanel } from "@/utils/constants";
 
-// Mock the API call
 vi.mock("@/api/fbaAPI", async () => {
   const actual = await vi.importActual("@/api/fbaAPI");
   return {
@@ -20,7 +19,6 @@ vi.mock("@/api/fbaAPI", async () => {
   };
 });
 
-// Mock the @capacitor-firebase/messaging plugin
 vi.mock("@capacitor-firebase/messaging", () => {
   const mockCheckPermissions = vi.fn().mockResolvedValue({ receive: "denied" });
   return {
@@ -45,7 +43,6 @@ vi.mock("@/utils/storage", async () => {
   };
 });
 
-// Mock data
 const mockFireCentreInfos: FireCentreInfo[] = [
   {
     fire_centre_name: "Prince George",
@@ -63,7 +60,6 @@ const mockFireCentreInfos: FireCentreInfo[] = [
   },
 ];
 
-// Create a mock store with the settings and network status slices
 const createTestStore = (initialState = {}) => {
   return configureStore({
     reducer: {
@@ -76,8 +72,21 @@ const createTestStore = (initialState = {}) => {
   });
 };
 
+const renderSettings = (store: ReturnType<typeof createTestStore>) =>
+  render(
+    <Provider store={store}>
+      <Settings activeTab={NavPanel.SETTINGS} />
+    </Provider>,
+  );
+
+const grantPermission = async () => {
+  const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+  (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
+    receive: "granted",
+  });
+};
+
 describe("Settings", () => {
-  // Mock the API call before each test
   beforeEach(() => {
     (getFireCentreInfo as Mock).mockResolvedValue({
       fire_centre_info: mockFireCentreInfos,
@@ -92,11 +101,7 @@ describe("Settings", () => {
       },
     });
 
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
 
     await waitFor(() => {
       expect(screen.getByTestId("asa-go-settings")).toBeInTheDocument();
@@ -104,6 +109,8 @@ describe("Settings", () => {
   });
 
   it("renders fire centre accordions when data is loaded", async () => {
+    await grantPermission();
+
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
@@ -114,17 +121,7 @@ describe("Settings", () => {
       },
     });
 
-    // Mock permission check to return granted immediately
-    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
-      receive: "granted",
-    });
-
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
 
     await waitFor(async () => {
       const fireCentreElements = await screen.findAllByRole("heading");
@@ -144,11 +141,7 @@ describe("Settings", () => {
       },
     });
 
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
     expect(
       await screen.findByText(
         /Notification settings are not available while offline/i,
@@ -157,6 +150,11 @@ describe("Settings", () => {
   });
 
   it("renders notification permission warning when permission is denied", async () => {
+    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
+      receive: "denied",
+    });
+
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
@@ -167,17 +165,7 @@ describe("Settings", () => {
       },
     });
 
-    // Mock permission check to return denied
-    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
-      receive: "denied",
-    });
-
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
     expect(
       await screen.findByTestId("notifications-permission-warning"),
     ).toBeInTheDocument();
@@ -187,6 +175,8 @@ describe("Settings", () => {
   });
 
   it("renders notification prompt when permission is granted and online", async () => {
+    await grantPermission();
+
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
@@ -204,23 +194,15 @@ describe("Settings", () => {
       },
     });
 
-    // Mock permission check to return granted
-    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
-      receive: "granted",
-    });
-
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
     expect(
       await screen.findByText(/Set your notification subscriptions/i),
     ).toBeInTheDocument();
   });
 
   it("renders accordions in sorted order with pinned fire centre first", async () => {
+    await grantPermission();
+
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
@@ -232,18 +214,7 @@ describe("Settings", () => {
       },
     });
 
-    // Mock permission check to return granted
-    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
-      receive: "granted",
-    });
-
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
-    // Check if pinned fire centre is first
+    renderSettings(store);
     const fireCentreElements = await screen.findAllByRole("heading");
     expect(fireCentreElements[0]).toHaveTextContent(/PRINCE GEORGE/i);
   });
@@ -260,11 +231,7 @@ describe("Settings", () => {
       },
     });
 
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
 
     await waitFor(() => {
       expect(
@@ -287,11 +254,7 @@ describe("Settings", () => {
       },
     });
 
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
 
     expect(screen.getByTestId("settings-error-alert")).toBeInTheDocument();
     expect(
@@ -300,12 +263,10 @@ describe("Settings", () => {
       ),
     ).toBeInTheDocument();
   });
+
   it("sorts fire centres alphabetically", async () => {
-    // Mock permission check to return granted immediately
-    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
-      receive: "granted",
-    });
+    await grantPermission();
+
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
@@ -315,11 +276,8 @@ describe("Settings", () => {
         networkStatus: { connected: true, connectionType: "wifi" },
       },
     });
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+
+    renderSettings(store);
 
     await waitFor(async () => {
       const fireCentreElements = await screen.findAllByRole("heading");
@@ -327,9 +285,9 @@ describe("Settings", () => {
       expect(fireCentreElements[1]).toHaveTextContent(/PRINCE GEORGE/i);
     });
   });
+
   it("disables accordions when awaiting FCM token", async () => {
-    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({ receive: "granted" });
+    await grantPermission();
 
     const store = createTestStore({
       settings: {
@@ -346,11 +304,7 @@ describe("Settings", () => {
       },
     });
 
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
 
     await waitFor(() => {
       const accordion = screen.getAllByRole("heading")[0].closest(".MuiAccordion-root");
@@ -373,11 +327,7 @@ describe("Settings", () => {
       },
     });
 
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
 
     await waitFor(() => {
       expect(screen.getByTestId("device-id-error-banner")).toBeInTheDocument();
@@ -399,11 +349,7 @@ describe("Settings", () => {
       },
     });
 
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+    renderSettings(store);
 
     await waitFor(() => {
       expect(
@@ -413,11 +359,8 @@ describe("Settings", () => {
   });
 
   it("sorts fire zone units alphabetically", async () => {
-    // Mock permission check to return granted immediately
-    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
-    (FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({
-      receive: "granted",
-    });
+    await grantPermission();
+
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: "unknown" }),
@@ -427,11 +370,8 @@ describe("Settings", () => {
         networkStatus: { connected: true, connectionType: "wifi" },
       },
     });
-    render(
-      <Provider store={store}>
-        <Settings activeTab={NavPanel.SETTINGS} />
-      </Provider>,
-    );
+
+    renderSettings(store);
     screen.debug(undefined, 30000);
     await waitFor(async () => {
       const panel = screen.getByRole("region", { name: /kamloops/i });
