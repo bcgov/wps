@@ -69,7 +69,7 @@ SUBREGION_RIGHT_LON = -114
 def get_gfs_and_nam_model_run_hours():
     """ Yield GFS and/or NAM model run hours (they're both on the same schedule)
      ("00", "06", "12", "18") """
-    for hour in range(12, 19, 6):
+    for hour in range(0, 19, 6):
         hour_str = format(hour, '02d')
         yield hour_str
 
