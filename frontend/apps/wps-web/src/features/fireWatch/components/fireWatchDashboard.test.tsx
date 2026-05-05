@@ -1,17 +1,17 @@
 import FireWatchDashboard from '@/features/fireWatch/components/FireWatchDashboard'
 import { FireWatchDetailsModalProps } from '@/features/fireWatch/components/FireWatchDetailsModal'
-import { BurnStatusEnum, FireWatch, FuelTypeEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
+import { PrescriptionEnum } from '@/features/fireWatch/interfaces'
 import burnForecastSlice, { initialState } from '@/features/fireWatch/slices/burnForecastSlice'
 import { createTestStore } from '@/test/testUtils'
 import { MUI_LICENSE } from '@wps/utils/env'
 import { LicenseInfo } from '@mui/x-license'
 import { combineReducers } from '@reduxjs/toolkit'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as burnForecastSliceModule from '@/features/fireWatch/slices/burnForecastSlice'
 import userEvent from '@testing-library/user-event'
+import { createMockBurnForecast, createMockFireWatch } from './fireWatchTestUtils'
 
 const burnForecastsReducer = combineReducers({ burnForecasts: burnForecastSlice })
 
@@ -166,89 +166,17 @@ describe('FireWatchDashboard', async () => {
   })
 })
 
-const getMockFireWatch = (id: number, title: string): FireWatch => {
-  const now = DateTime.now()
-  return {
-    id,
-    title,
-    burnWindowEnd: now,
-    burnWindowStart: now,
-    contactEmail: ['test@example.com'],
-    fireCentre: {
-      id: 1,
-      name: 'fire-centre-test'
-    },
-    geometry: [1, 2],
-    station: {
-      code: 1,
-      name: 'test'
-    },
-    status: BurnStatusEnum.ACTIVE,
-    fuelType: FuelTypeEnum.C2,
-    tempMin: 1,
-    tempPreferred: 2,
-    tempMax: 3,
-    rhMin: 1,
-    rhPreferred: 2,
-    rhMax: 3,
-    windSpeedMin: 1,
-    windSpeedPreferred: 2,
-    windSpeedMax: 3,
-    ffmcMin: 1,
-    ffmcPreferred: 2,
-    ffmcMax: 3,
-    dmcMin: 1,
-    dmcPreferred: 2,
-    dmcMax: 3,
-    dcMin: 1,
-    dcPreferred: 2,
-    dcMax: 3,
-    isiMin: 1,
-    isiPreferred: 2,
-    isiMax: 3,
-    buiMin: 1,
-    buiPreferred: 2,
-    buiMax: 3,
-    hfiMin: 1,
-    hfiPreferred: 2,
-    hfiMax: 3,
-    createTimestamp: now,
-    createUser: 'test',
-    updateTimestamp: now,
-    updateUser: 'test'
-  }
-}
-
-const getMockBurnForecast = (id: number, inPrescription: PrescriptionEnum) => {
-  return {
-    id,
-    inPrescription,
-    fireWatchId: 1,
-    date: DateTime.now(),
-    temp: 2,
-    rh: 2,
-    windSpeed: 2,
-    ffmc: 2,
-    dmc: 2,
-    dc: 2,
-    isi: 2,
-    bui: 2,
-    hfi: 2,
-    status: BurnStatusEnum.ACTIVE
-  }
-}
-
 const mockFireWatchBurnForecasts = [
   {
-    fireWatch: getMockFireWatch(1, 'test-1'),
-    burnForecasts: [getMockBurnForecast(1, PrescriptionEnum.ALL)]
+    fireWatch: createMockFireWatch({ id: 1, title: 'test-1' }),
+    burnForecasts: [createMockBurnForecast({ inPrescription: PrescriptionEnum.ALL })]
   },
   {
-    fireWatch: getMockFireWatch(2, 'test-2'),
-    burnForecasts: [getMockBurnForecast(1, PrescriptionEnum.HFI)]
+    fireWatch: createMockFireWatch({ id: 2, title: 'test-2' }),
+    burnForecasts: [createMockBurnForecast({ inPrescription: PrescriptionEnum.HFI })]
   },
   {
-    fireWatch: getMockFireWatch(3, 'test-3'),
-    burnForecasts: [getMockBurnForecast(1, PrescriptionEnum.NO)]
+    fireWatch: createMockFireWatch({ id: 3, title: 'test-3' }),
+    burnForecasts: [createMockBurnForecast({ inPrescription: PrescriptionEnum.NO })]
   }
 ]

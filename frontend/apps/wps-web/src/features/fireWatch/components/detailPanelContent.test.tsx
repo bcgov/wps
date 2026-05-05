@@ -3,60 +3,12 @@ import '@testing-library/jest-dom'
 
 import { DateTime } from 'luxon'
 import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
-import { BurnStatusEnum, FuelTypeEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
+import { FuelTypeEnum, BurnStatusEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
 import { MUI_LICENSE } from '@wps/utils/env'
 import { LicenseInfo } from '@mui/x-license'
+import { createMockBurnForecast, createMockFireWatch } from './fireWatchTestUtils'
 
-const now = DateTime.now()
-const mockFireWatch = {
-  burnWindowEnd: now,
-  burnWindowStart: now,
-  contactEmail: ['test@gov.bc.ca'],
-  fireCentre: { id: 1, name: 'test' },
-  geometry: [123, 123],
-  station: { code: 1, name: 'test' },
-  status: BurnStatusEnum.ACTIVE,
-  title: 'test',
-  // Fuel parameters
-  fuelType: FuelTypeEnum.C1,
-  percentConifer: undefined,
-  percentDeadFir: undefined,
-  percentGrassCuring: undefined,
-  // Weather parameters
-  tempMin: 1,
-  tempPreferred: 2,
-  tempMax: 3,
-  rhMin: 1,
-  rhPreferred: 2,
-  rhMax: 3,
-  windSpeedMin: 1,
-  windSpeedPreferred: 2,
-  windSpeedMax: 3,
-  // FWI and FBP parameters
-  ffmcMin: 1,
-  ffmcPreferred: 2,
-  ffmcMax: 3,
-  dmcMin: 1,
-  dmcPreferred: 2,
-  dmcMax: 3,
-  dcMin: 1,
-  dcPreferred: 2,
-  dcMax: 3,
-  isiMin: 1,
-  isiPreferred: 2,
-  isiMax: 3,
-  buiMin: 1,
-  buiPreferred: 2,
-  buiMax: 3,
-  hfiMin: 1,
-  hfiPreferred: 2,
-  hfiMax: 3,
-  id: 1,
-  createTimestamp: now,
-  createUser: 'test',
-  updateTimestamp: now,
-  updateUser: 'test'
-}
+const mockFireWatch = createMockFireWatch()
 
 const mockRowWithData = {
   id: 1,
@@ -69,23 +21,7 @@ const mockRowWithData = {
   burnWindowEnd: DateTime.now(),
   inPrescription: PrescriptionEnum.ALL,
   fireWatch: mockFireWatch,
-  burnForecasts: [
-    {
-      id: 1,
-      fireWatchId: 1,
-      date: DateTime.fromISO('2024-05-01'),
-      temp: 18.5,
-      rh: 45,
-      windSpeed: 10,
-      ffmc: 85,
-      dmc: 12,
-      dc: 200,
-      isi: 3,
-      bui: 40,
-      hfi: 100,
-      inPrescription: PrescriptionEnum.ALL
-    }
-  ]
+  burnForecasts: [createMockBurnForecast()]
 }
 
 const mockRowWithoutData = {

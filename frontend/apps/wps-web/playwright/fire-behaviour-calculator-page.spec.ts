@@ -64,7 +64,22 @@ async function expectFuelTypeForRow(page: Page, fuelType: string, rowId: number)
   }
 }
 
-// ---- tests ----
+const STATION_CODE = 322
+const GRASS_CURE = '1'
+const WIND_SPEED = '2'
+
+async function setupSingleRowRequest(page: Page) {
+  await page.route('**/api/fba-calc/stations', route => route.fulfill({ json: { date: '', stations: [] } }))
+  const calcRequest = page.waitForRequest(r => r.url().includes('/api/fba-calc/stations') && r.method() === 'POST')
+  await page.goto(FBA_ROUTE)
+  await addRow(page)
+  await setGrassCure(page, GRASS_CURE, 1)
+  await setWindSpeed(page, WIND_SPEED, 1)
+  await selectStation(page, STATION_CODE, 1)
+  await selectFuelType(page, C1.friendlyName, 1)
+  const body = (await calcRequest).postDataJSON() as { stations: Record<string, unknown>[] }
+  return body
+}
 
 test.describe('FireCalc Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -75,58 +90,30 @@ test.describe('FireCalc Page', () => {
   })
 
   test('Sets all input fields and sends correct data to backend', async ({ page }) => {
-    const stationCode = 322
-    const grassCure = '1'
-    const windSpeed = '2'
-
-    await page.route('**/api/fba-calc/stations', route => route.fulfill({ json: { date: '', stations: [] } }))
-    const calcRequest = page.waitForRequest(r => r.url().includes('/api/fba-calc/stations') && r.method() === 'POST')
-
-    await page.goto(FBA_ROUTE)
-    await addRow(page)
-    await setGrassCure(page, grassCure, 1)
-    await setWindSpeed(page, windSpeed, 1)
-    await selectStation(page, stationCode, 1)
-    await selectFuelType(page, C1.friendlyName, 1)
-
-    const body = (await calcRequest).postDataJSON() as { stations: Record<string, unknown>[] }
+    const body = await setupSingleRowRequest(page)
     expect(body.stations[0]).toMatchObject({
-      station_code: stationCode,
+      station_code: STATION_CODE,
       fuel_type: C1.name,
       percentage_conifer: C1.percentage_conifer,
       crown_base_height: C1.crown_base_height,
-      grass_cure: Number.parseInt(grassCure)
+      grass_cure: Number.parseInt(GRASS_CURE)
     })
     await expectRowCount(page, 1)
-    await expect(page).toHaveURL(new RegExp(`s=${stationCode}&f=${C1.name.toLowerCase()}&c=${grassCure}`))
+    await expect(page).toHaveURL(new RegExp(`s=${STATION_CODE}&f=${C1.name.toLowerCase()}&c=${GRASS_CURE}`))
   })
 
   test('Sends wind speed to backend but does not persist it to URL', async ({ page }) => {
-    const stationCode = 322
-    const grassCure = '1'
-    const windSpeed = '2'
-
-    await page.route('**/api/fba-calc/stations', route => route.fulfill({ json: { date: '', stations: [] } }))
-    const calcRequest = page.waitForRequest(r => r.url().includes('/api/fba-calc/stations') && r.method() === 'POST')
-
-    await page.goto(FBA_ROUTE)
-    await addRow(page)
-    await setGrassCure(page, grassCure, 1)
-    await setWindSpeed(page, windSpeed, 1)
-    await selectStation(page, stationCode, 1)
-    await selectFuelType(page, C1.friendlyName, 1)
-
-    const body = (await calcRequest).postDataJSON() as { stations: Record<string, unknown>[] }
+    const body = await setupSingleRowRequest(page)
     expect(body.stations[0]).toMatchObject({
-      station_code: stationCode,
+      station_code: STATION_CODE,
       fuel_type: C1.name,
       percentage_conifer: C1.percentage_conifer,
       crown_base_height: C1.crown_base_height,
-      grass_cure: Number.parseInt(grassCure),
-      wind_speed: Number.parseFloat(windSpeed)
+      grass_cure: Number.parseInt(GRASS_CURE),
+      wind_speed: Number.parseFloat(WIND_SPEED)
     })
     await expectRowCount(page, 1)
-    await expect(page).toHaveURL(new RegExp(`s=${stationCode}&f=${C1.name.toLowerCase()}&c=${grassCure}`))
+    await expect(page).toHaveURL(new RegExp(`s=${STATION_CODE}&f=${C1.name.toLowerCase()}&c=${GRASS_CURE}`))
     await expect(page).not.toHaveURL(/w=/)
   })
 
