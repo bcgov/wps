@@ -16,8 +16,13 @@ runs:
         VITE_MUI_LICENSE_KEY: ${{ inputs.mui-license-key }}
       run: |
         node -e "
-          const { verifyLicense, generateReleaseInfo } = require('../../node_modules/@mui/x-license-pro/node/verifyLicense/verifyLicense.js');
-          const result = verifyLicense({ releaseInfo: generateReleaseInfo(), licenseKey: process.env.VITE_MUI_LICENSE_KEY, acceptedScopes: ['pro', 'premium'] });
+          const fs = require('fs');
+          const { verifyLicense } = require('../../node_modules/@mui/x-license/verifyLicense/verifyLicense.js');
+          const src = fs.readFileSync('../../node_modules/@mui/x-data-grid-pro/DataGridPro/DataGridPro.js', 'utf8');
+          const releaseDate = src.match(/releaseDate:\s*\"([^\"]+)\"/)[1];
+          const version = src.match(/version:\s*\"([^\"]+)\"/)[1];
+          const packageInfo = { name: 'x-data-grid-pro', releaseDate, version };
+          const result = verifyLicense({ packageInfo, licenseKey: process.env.VITE_MUI_LICENSE_KEY });
           if (result.meta?.expiryTimestamp) console.log('MUI license expiry:', new Date(result.meta.expiryTimestamp).toISOString().split('T')[0]);
           console.log('MUI license status:', result.status);
           if (result.status !== 'Valid') { console.error('MUI license check failed'); process.exit(1); }
