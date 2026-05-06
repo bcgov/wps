@@ -22,7 +22,6 @@ runs:
       run: corepack enable
 
     - name: Install dependencies
-      if: steps.yarn-cache.outputs.cache-hit != 'true'
       working-directory: ./frontend
       shell: bash
       run: yarn install
