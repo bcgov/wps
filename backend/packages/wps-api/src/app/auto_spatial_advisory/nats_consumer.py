@@ -102,7 +102,7 @@ async def run():
     consumer_config = ConsumerConfig(
         durable_name=hfi_classify_durable_group,
         ack_policy=AckPolicy.EXPLICIT,
-        ack_wait=300,  # 5 minutes
+        ack_wait=600,  # 10 minutes
         max_deliver=6,  # initial try + 5 retries
     )
 
