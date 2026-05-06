@@ -47,81 +47,59 @@ def make_session():
     return MagicMock()
 
 
-@pytest.mark.anyio
-@patch("app.routers.fba.get_all_sfms_fuel_type_records", new_callable=AsyncMock, return_value=mock_fuel_types)
-@patch("app.routers.fba.get_fuel_type_raster_by_year", new_callable=AsyncMock, return_value=mock_fuel_type_raster)
-@patch("app.routers.fba.get_all_hfi_thresholds_by_id", new_callable=AsyncMock, return_value=mock_hfi_thresholds)
-@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", new_callable=AsyncMock, return_value={})
-@patch("app.routers.fba.get_precomputed_stats_for_shape", new_callable=AsyncMock, return_value=[SAMPLE_ROW])
-async def test_basic_returns_zone_with_fuel_area_stats(*_):
-    """Returns a FireZoneHFIStats with one fuel_area_stats entry for a single valid row."""
-    result = await get_all_zone_data_for_source_ids(
-        make_session(), [ZONE_SOURCE_ID], RunType.FORECAST, FOR_DATE, RUN_DATETIME
-    )
-    assert 1 in result
-    assert len(result[1].fuel_area_stats) == 1
+def patch_common_deps(mocker):
+    mocker.patch("app.routers.fba.get_all_sfms_fuel_type_records", return_value=mock_fuel_types)
+    mocker.patch("app.routers.fba.get_all_hfi_thresholds_by_id", return_value=mock_hfi_thresholds)
+    mocker.patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", return_value={})
+    mocker.patch("app.routers.fba.get_fuel_type_raster_by_year", return_value=mock_fuel_type_raster)
 
 
 @pytest.mark.anyio
-@patch("app.routers.fba.get_all_sfms_fuel_type_records", new_callable=AsyncMock, return_value=mock_fuel_types)
-@patch("app.routers.fba.get_fuel_type_raster_by_year", new_callable=AsyncMock, return_value=mock_fuel_type_raster)
-@patch("app.routers.fba.get_all_hfi_thresholds_by_id", new_callable=AsyncMock, return_value=mock_hfi_thresholds)
-@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", new_callable=AsyncMock, return_value={})
-@patch(
-    "app.routers.fba.get_precomputed_stats_for_shape",
-    new_callable=AsyncMock,
-    return_value=[SAMPLE_ROW, SAMPLE_ROW, SAMPLE_ROW],
+@pytest.mark.parametrize(
+    "precomputed_rows",
+    [
+        pytest.param([SAMPLE_ROW], id="single_row"),
+        pytest.param([SAMPLE_ROW, SAMPLE_ROW, SAMPLE_ROW], id="duplicate_rows"),
+    ],
 )
-async def test_duplicate_rows_are_deduplicated(*_):
-    """Duplicate rows from get_precomputed_stats_for_shape produce only one fuel_area_stats entry."""
+async def test_precomputed_rows_deduplicated_to_one_fuel_stat(mocker, precomputed_rows):
+    """Duplicate rows from get_precomputed_stats_for_shape are deduplicated to one fuel_area_stats entry."""
+    patch_common_deps(mocker)
+    mocker.patch("app.routers.fba.get_precomputed_stats_for_shape", return_value=precomputed_rows)
+
     result = await get_all_zone_data_for_source_ids(
         make_session(), [ZONE_SOURCE_ID], RunType.FORECAST, FOR_DATE, RUN_DATETIME
     )
-    assert 1 in result
-    assert len(result[1].fuel_area_stats) == 1
-
-
-@pytest.mark.anyio
-@patch("app.routers.fba.get_all_sfms_fuel_type_records", new_callable=AsyncMock, return_value=mock_fuel_types)
-@patch("app.routers.fba.get_all_hfi_thresholds_by_id", new_callable=AsyncMock, return_value=mock_hfi_thresholds)
-@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", new_callable=AsyncMock, return_value={})
-async def test_empty_current_year_falls_back_to_prev_year(*_):
-    """Falls back to previous year's fuel raster when current year returns no rows."""
-    raster_side_effects = [mock_fuel_type_raster, mock_prev_fuel_type_raster]
-    precomputed_side_effects = [[], [SAMPLE_ROW]]
-
-    with patch("app.routers.fba.get_fuel_type_raster_by_year", new_callable=AsyncMock, side_effect=raster_side_effects):
-        with patch(
-            "app.routers.fba.get_precomputed_stats_for_shape",
-            new_callable=AsyncMock,
-            side_effect=precomputed_side_effects,
-        ):
-            result = await get_all_zone_data_for_source_ids(
-                make_session(), [ZONE_SOURCE_ID], RunType.FORECAST, FOR_DATE, RUN_DATETIME
-            )
 
     assert 1 in result
     assert len(result[1].fuel_area_stats) == 1
 
 
 @pytest.mark.anyio
-@patch("app.routers.fba.get_all_sfms_fuel_type_records", new_callable=AsyncMock, return_value=mock_fuel_types)
-@patch("app.routers.fba.get_all_hfi_thresholds_by_id", new_callable=AsyncMock, return_value=mock_hfi_thresholds)
-@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", new_callable=AsyncMock, return_value={})
-async def test_none_current_year_falls_back_to_prev_year(*_):
-    """Falls back to previous year's fuel raster when current year returns None."""
-    raster_side_effects = [mock_fuel_type_raster, mock_prev_fuel_type_raster]
-    precomputed_side_effects = [None, [SAMPLE_ROW]]
+@pytest.mark.parametrize(
+    "first_precomputed_result",
+    [
+        pytest.param([], id="empty_list"),
+        pytest.param(None, id="none_result"),
+    ],
+)
+async def test_falls_back_to_prev_year_raster(mocker, first_precomputed_result):
+    """Falls back to previous year's fuel raster when current year returns empty or None."""
+    mocker.patch("app.routers.fba.get_all_sfms_fuel_type_records", return_value=mock_fuel_types)
+    mocker.patch("app.routers.fba.get_all_hfi_thresholds_by_id", return_value=mock_hfi_thresholds)
+    mocker.patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", return_value={})
+    mocker.patch(
+        "app.routers.fba.get_fuel_type_raster_by_year",
+        side_effect=[mock_fuel_type_raster, mock_prev_fuel_type_raster],
+    )
+    mocker.patch(
+        "app.routers.fba.get_precomputed_stats_for_shape",
+        side_effect=[first_precomputed_result, [SAMPLE_ROW]],
+    )
 
-    with patch("app.routers.fba.get_fuel_type_raster_by_year", new_callable=AsyncMock, side_effect=raster_side_effects):
-        with patch(
-            "app.routers.fba.get_precomputed_stats_for_shape",
-            new_callable=AsyncMock,
-            side_effect=precomputed_side_effects,
-        ):
-            result = await get_all_zone_data_for_source_ids(
-                make_session(), [ZONE_SOURCE_ID], RunType.FORECAST, FOR_DATE, RUN_DATETIME
-            )
+    result = await get_all_zone_data_for_source_ids(
+        make_session(), [ZONE_SOURCE_ID], RunType.FORECAST, FOR_DATE, RUN_DATETIME
+    )
 
     assert 1 in result
     assert len(result[1].fuel_area_stats) == 1
@@ -133,15 +111,8 @@ async def test_none_current_year_falls_back_to_prev_year(*_):
 @patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", new_callable=AsyncMock, return_value={})
 async def test_no_data_for_either_year_returns_empty_fuel_stats(*_):
     """Returns an empty fuel_area_stats list when neither year has precomputed stats."""
-    raster_side_effects = [mock_fuel_type_raster, mock_prev_fuel_type_raster]
-    precomputed_side_effects = [[], []]
-
-    with patch("app.routers.fba.get_fuel_type_raster_by_year", new_callable=AsyncMock, side_effect=raster_side_effects):
-        with patch(
-            "app.routers.fba.get_precomputed_stats_for_shape",
-            new_callable=AsyncMock,
-            side_effect=precomputed_side_effects,
-        ):
+    with patch("app.routers.fba.get_fuel_type_raster_by_year", new_callable=AsyncMock, side_effect=[mock_fuel_type_raster, mock_prev_fuel_type_raster]):
+        with patch("app.routers.fba.get_precomputed_stats_for_shape", new_callable=AsyncMock, side_effect=[[], []]):
             result = await get_all_zone_data_for_source_ids(
                 make_session(), [ZONE_SOURCE_ID], RunType.FORECAST, FOR_DATE, RUN_DATETIME
             )
