@@ -21,10 +21,6 @@ runs:
       shell: bash
       run: corepack enable
 
-    - name: Use Yarn Berry
-      shell: bash
-      run: yarn set version berry
-
     - name: Install dependencies
       if: steps.yarn-cache.outputs.cache-hit != 'true'
       working-directory: ./frontend
