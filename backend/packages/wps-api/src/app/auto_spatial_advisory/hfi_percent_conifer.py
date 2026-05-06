@@ -10,9 +10,6 @@ from geoalchemy2.shape import to_shape
 from osgeo import gdal, osr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.auto_spatial_advisory.common import get_hfi_s3_key
-from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_zone_unit_shape_type_id,
     get_fire_zone_units,
@@ -21,6 +18,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_sfms_mixed_fuel_type,
     get_table_srid,
 )
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryHFIPercentConifer, Shape
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
@@ -28,6 +26,8 @@ from wps_shared.run_type import RunType
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
+
+from app.auto_spatial_advisory.common import get_hfi_s3_key
 
 osr.UseExceptions()
 gdal.UseExceptions()
@@ -134,28 +134,34 @@ async def process_min_percent_conifer_by_zone(
             )
 
             conifer_path = "/vsimem/percent_conifer.tif"
-            intersected_ds: gdal.Dataset = gdal.Warp(conifer_path, conifer_ds, options=warp_options)
-            pct_conifer_clip = intersected_ds.GetRasterBand(1).ReadAsArray()
-
             hfi_path = "/vsimem/zone_hfi.tif"
-            intersected_ds: gdal.Dataset = gdal.Warp(hfi_path, hfi_ds, options=warp_options)
-            hfi_array_clip = intersected_ds.GetRasterBand(1).ReadAsArray()
+            conifer_intersected_ds = None
+            hfi_intersected_ds = None
+            try:
+                conifer_intersected_ds = gdal.Warp(conifer_path, conifer_ds, options=warp_options)
+                pct_conifer_clip = conifer_intersected_ds.GetRasterBand(1).ReadAsArray()
 
-            # make sure the previous in-memory files are deleted before the next loop
-            gdal.Unlink(conifer_path)
-            gdal.Unlink(hfi_path)
+                hfi_intersected_ds = gdal.Warp(hfi_path, hfi_ds, options=warp_options)
+                hfi_array_clip = hfi_intersected_ds.GetRasterBand(1).ReadAsArray()
 
-            min_pct_conifer = get_minimum_percent_conifer_for_hfi(pct_conifer_clip, hfi_array_clip)
-
-            if min_pct_conifer:
-                record = AdvisoryHFIPercentConifer(
-                    advisory_shape_id=zone.id,
-                    fuel_type=mixed_fuel_record.id,
-                    run_parameters=run_parameters_id,
-                    min_percent_conifer=int(min_pct_conifer),
-                    fuel_type_raster_id=fuel_type_raster_id,
+                min_pct_conifer = get_minimum_percent_conifer_for_hfi(
+                    pct_conifer_clip, hfi_array_clip
                 )
-                all_hfi_conifer_percent_to_save.append(record)
+
+                if min_pct_conifer:
+                    record = AdvisoryHFIPercentConifer(
+                        advisory_shape_id=zone.id,
+                        fuel_type=mixed_fuel_record.id,
+                        run_parameters=run_parameters_id,
+                        min_percent_conifer=int(min_pct_conifer),
+                        fuel_type_raster_id=fuel_type_raster_id,
+                    )
+                    all_hfi_conifer_percent_to_save.append(record)
+            finally:
+                conifer_intersected_ds = None
+                hfi_intersected_ds = None
+                gdal.Unlink(conifer_path)
+                gdal.Unlink(hfi_path)
 
     await save_all_percent_conifer(session, all_hfi_conifer_percent_to_save)
 

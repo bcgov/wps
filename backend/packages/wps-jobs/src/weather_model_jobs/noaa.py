@@ -1,40 +1,41 @@
-""" A script that downloads weather models from NCEI NOAA HTTPS data server
-"""
+"""A script that downloads weather models from NCEI NOAA HTTPS data server"""
+import datetime
+import logging
 import os
 import sys
-import datetime
-from zoneinfo import ZoneInfo
-from typing import Generator
-import logging
 import tempfile
-from sqlalchemy.orm import Session
+from typing import Generator
 from urllib.parse import parse_qs, urlsplit
-from wps_shared.db.crud.weather_models import (
-    get_processed_file_record,
-    get_prediction_model,
-    get_prediction_run,
-    update_prediction_run,
-)
+from zoneinfo import ZoneInfo
+
+import wps_shared.db.database
+import wps_shared.utils.time as time_utils
+from requests import HTTPError
+from sqlalchemy.orm import Session
 from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
     apply_data_retention_policy,
     check_if_model_run_complete,
     flag_file_as_processed,
 )
-from wps_shared.wps_logging import configure_logging
-import wps_shared.utils.time as time_utils
-from wps_shared.weather_models import (
-    CompletedWithSomeExceptions,
-    download,
-    ModelEnum,
-    ProjectionEnum,
-)
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
-import wps_shared.db.database
+from wps_shared.db.crud.weather_models import (
+    get_prediction_model,
+    get_prediction_run,
+    get_processed_file_record,
+    update_prediction_run,
+)
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.weather_models import (
+    CompletedWithSomeExceptions,
+    ModelEnum,
+    ProjectionEnum,
+    download,
+)
+from wps_shared.wps_logging import configure_logging
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -134,10 +135,7 @@ def get_nam_model_run_download_urls(download_date: datetime.datetime, model_cycl
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
 
-    # download_date has UTC timezone. Need to convert to EDT (-4h) timezone, which is what
-    # nomads.ncep.noaa server uses
-    download_date_to_est = download_date.astimezone(ZoneInfo('US/Eastern'))
-    year_mo_date = get_year_mo_date_string_from_datetime(download_date_to_est)
+    year_mo_date = get_year_mo_date_string_from_datetime(download_date)
 
     for fcst_hour in all_hours:
         hh = format(fcst_hour, '02d')
@@ -174,10 +172,7 @@ def get_gfs_model_run_download_urls(download_date: datetime.datetime, model_cycl
     # sort list purely for human convenience when debugging. Functionally it doesn't matter
     all_hours.sort()
 
-    # download_date has UTC timezone. Need to convert to EDT (-4h) timezone, which is what
-    # nomads.ncep.noaa server uses
-    download_date_to_est = download_date.astimezone(ZoneInfo('US/Eastern'))
-    year_mo_date = get_year_mo_date_string_from_datetime(download_date_to_est)
+    year_mo_date = get_year_mo_date_string_from_datetime(download_date)
 
     for fcst_hour in all_hours:
         hhh = format(fcst_hour, '03d')
@@ -287,34 +282,57 @@ class NOAA():
         elif self.model_type == ModelEnum.NAM:
             self.projection = ProjectionEnum.NAM_POLAR_STEREO
 
+    def process_url(self, url):
+        """Download and process a single grib file URL, skipping if already processed."""
+        if get_processed_file_record(self.session, url):
+            # NOTE: changing this to logger.debug causes too much noise in unit tests.
+            logger.debug("file already processed %s", url)
+            return
+
+        model_run_timestamp, prediction_timestamp = parse_url_for_timestamps(url, self.model_type)
+        model_info = ModelRunInfo(
+            self.model_type, self.projection, model_run_timestamp, prediction_timestamp
+        )
+
+        with tempfile.TemporaryDirectory() as temporary_path:
+            downloaded = download(
+                url,
+                temporary_path,
+                "REDIS_CACHE_NOAA",
+                self.model_type.value,
+                "REDIS_NOAA_CACHE_EXPIRY",
+            )
+            if downloaded:
+                self.files_downloaded += 1
+                try:
+                    self.grib_processor.process_grib_file(downloaded, model_info, self.session)
+                    flag_file_as_processed(url, self.session)
+                    self.files_processed += 1
+                finally:
+                    os.remove(downloaded)
+
     def process_model_run_urls(self, urls):
-        """ Process the urls for a model run.
-        """
+        """Process the urls for a model run."""
         for url in urls:
             try:
-                # check the database for a record of this file:
-                processed_file_record = get_processed_file_record(self.session, url)
-                if processed_file_record:
-                    # This file has already been processed - so we skip it.
-                    # NOTE: changing this to logger.debug causes too much noise in unit tests.
-                    logger.debug("file already processed %s", url)
+                self.process_url(url)
+            except HTTPError as http_error:
+                if http_error.response is not None and http_error.response.status_code in (
+                    403,
+                    404,
+                ):
+                    # NOAA/NOMADS responds with a 403 when the model run of interest (eg. 00Z) is currently being processed
+                    # but the hour of interest is not yet available. If a model run has not started the NOAA/NOMADS API will
+                    # respond with a 404 for the requested file. This is not an error and is expected behaviour.
+                    # Our logic will re-attempt the download and processing later.
+                    logger.warning(
+                        "Grib file not available at %s for url %s",
+                        time_utils.get_utc_now(),
+                        url,
+                        exc_info=http_error,
+                    )
                 else:
-                    model_run_timestamp, prediction_timestamp = parse_url_for_timestamps(url, self.model_type)
-                    model_info = ModelRunInfo(self.model_type, self.projection, model_run_timestamp, prediction_timestamp)
-                    # download the file:
-                    with tempfile.TemporaryDirectory() as temporary_path:
-                        downloaded = download(url, temporary_path, "REDIS_CACHE_NOAA", self.model_type.value, "REDIS_NOAA_CACHE_EXPIRY")
-                        if downloaded:
-                            self.files_downloaded += 1
-                            # If we've downloaded the file ok, we can now process it.
-                            try:
-                                self.grib_processor.process_grib_file(downloaded, model_info, self.session)
-                                # Flag the file as processed
-                                flag_file_as_processed(url, self.session)
-                                self.files_processed += 1
-                            finally:
-                                # delete the file when done.
-                                os.remove(downloaded)
+                    raise http_error
             except Exception as exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
