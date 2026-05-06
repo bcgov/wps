@@ -76,7 +76,7 @@ class GrassCuringJob():
         target_srs.ImportFromWkt(data_source.GetProjection())
 
         # CoordinateTransformation.TransformPoint used below requires coords to be in lon, lat order
-        # so we ned to explicitly define the order
+        # so we need to explicitly define the order
         source_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
         target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
