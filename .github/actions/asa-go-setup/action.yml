@@ -15,13 +15,15 @@ runs:
         path: |
           **/node_modules
           **/.yarn/install-state.gz
-        key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+        key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/yarn.lock') }}
 
     - name: Enable corepack
       shell: bash
       run: corepack enable
 
     - name: Install dependencies
+      if: steps.yarn-cache.outputs.cache-hit != 'true'
       working-directory: ./frontend
       shell: bash
       run: yarn install
+
