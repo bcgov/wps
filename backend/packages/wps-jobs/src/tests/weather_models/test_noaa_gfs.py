@@ -1,27 +1,29 @@
 """Unit tests for app/jobs/noaa.py"""
 
-import os
 import logging
+import os
 from datetime import datetime, timezone
-from tests.weather_models.test_models_common import (
-    MockResponse,
-    shape,
-    mock_get_model_run_predictions,
-)
+from unittest.mock import MagicMock
+
 import pytest
 import requests
-from geoalchemy2.shape import from_shape
-from weather_model_jobs import common_model_fetchers
 import wps_shared.db.crud.weather_models
+import wps_shared.utils.time as time_utils
+from geoalchemy2.shape import from_shape
+from requests import HTTPError
+from tests.weather_models.test_models_common import (
+    MockResponse,
+    mock_get_model_run_predictions,
+    shape,
+)
+from weather_model_jobs import common_model_fetchers, noaa
 from wps_shared.db.models.weather_models import (
     PredictionModel,
     PredictionModelGridSubset,
     PredictionModelRunTimestamp,
     ProcessedModelRunUrl,
 )
-from weather_model_jobs import noaa
-import wps_shared.utils.time as time_utils
-
+from wps_shared.weather_models import ModelEnum
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +105,6 @@ def mock_download(monkeypatch):
 
 
 def test_get_gfs_model_run_download_urls_for_00_utc():
-    # March 2 at 00:00 UTC is equivalent to March 1 in Eastern timezone - should return URL for previous day
-    # for a given date and model run cycle, there should be 2 time intervals * 10 days into future (11 days total)
     expected_num_of_urls = 2 * 11
     actual_urls = list(
         noaa.get_gfs_model_run_download_urls(datetime(2023, 3, 2, 00, tzinfo=timezone.utc), "00")
@@ -113,12 +113,12 @@ def test_get_gfs_model_run_download_urls_for_00_utc():
     assert (
         actual_urls[0]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230301%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + "dir=%2Fgfs.20230302%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
     )
     assert (
         actual_urls[-1]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230301%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f261&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + "dir=%2Fgfs.20230302%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f261&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
     )
 
 
@@ -234,3 +234,171 @@ def test_get_year_mo_date_string_from_datetime():
     for test in test_cases:
         actual_string = noaa.get_year_mo_date_string_from_datetime(test.get("date"))
         assert test.get("expected_year_mo_date") == actual_string
+
+
+@pytest.fixture()
+def mock_grib_processor(monkeypatch):
+    monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock)
+
+
+def _make_noaa(monkeypatch, model_type=ModelEnum.GFS):
+    monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock)
+    return noaa.NOAA(MagicMock(), model_type)
+
+
+def test_process_model_run_urls_403_is_warned_not_raised(monkeypatch):
+    """403 HTTPError should be logged as a warning and not increment exception_count."""
+    noaa_instance = _make_noaa(monkeypatch)
+    mock_response = MagicMock()
+    mock_response.status_code = 403
+    http_error = HTTPError(response=mock_response)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+
+    noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+
+    assert noaa_instance.exception_count == 0
+
+
+def test_process_model_run_urls_404_is_warned_not_raised(monkeypatch):
+    """404 HTTPError should be logged as a warning and not increment exception_count."""
+    noaa_instance = _make_noaa(monkeypatch)
+    mock_response = MagicMock()
+    mock_response.status_code = 404
+    http_error = HTTPError(response=mock_response)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+
+    noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+
+    assert noaa_instance.exception_count == 0
+
+
+def test_process_model_run_urls_500_http_error_is_reraised(monkeypatch):
+    """Non-403/404 HTTPError should propagate out of process_model_run_urls."""
+    noaa_instance = _make_noaa(monkeypatch)
+    mock_response = MagicMock()
+    mock_response.status_code = 500
+    http_error = HTTPError(response=mock_response)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+
+    with pytest.raises(HTTPError):
+        noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+
+
+def test_process_model_run_urls_http_error_without_response_is_reraised(monkeypatch):
+    """HTTPError with response=None should propagate out of process_model_run_urls."""
+    noaa_instance = _make_noaa(monkeypatch)
+    http_error = HTTPError(response=None)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+
+    with pytest.raises(HTTPError):
+        noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+
+
+def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
+    """Non-HTTP exceptions should increment exception_count for each URL and not raise."""
+    noaa_instance = _make_noaa(monkeypatch)
+
+    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(ValueError("boom")))
+
+    noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
+
+    assert noaa_instance.exception_count == 2
+
+
+def test_process_model_run_urls_403_does_not_stop_remaining_urls(monkeypatch):
+    """A 403 on one URL should not prevent subsequent URLs from being processed."""
+    noaa_instance = _make_noaa(monkeypatch)
+    mock_response = MagicMock()
+    mock_response.status_code = 403
+    http_error = HTTPError(response=mock_response)
+
+    processed = []
+
+    def mock_process_url(url):
+        if url == "https://example.com/grib1":
+            raise http_error
+        processed.append(url)
+
+    monkeypatch.setattr(noaa_instance, "process_url", mock_process_url)
+
+    noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
+
+    assert processed == ["https://example.com/grib2"]
+    assert noaa_instance.exception_count == 0
+
+
+def test_process_model_run_does_not_mark_complete_when_urls_incomplete(monkeypatch):
+    """mark_prediction_model_run_processed should not be called when check_if_model_run_complete returns False."""
+    noaa_instance = _make_noaa(monkeypatch)
+
+    urls = ["https://example.com/grib1", "https://example.com/grib2"]
+    monkeypatch.setattr(noaa, "get_gfs_model_run_download_urls", lambda *_: iter(urls))
+    monkeypatch.setattr(noaa_instance, "process_model_run_urls", lambda _: None)
+    monkeypatch.setattr(noaa, "check_if_model_run_complete", lambda *_: False)
+
+    mock_mark = MagicMock()
+    monkeypatch.setattr(noaa, "mark_prediction_model_run_processed", mock_mark)
+
+    noaa_instance.process_model_run("00")
+
+    mock_mark.assert_not_called()
+
+
+def test_process_model_run_marks_complete_when_all_urls_processed(monkeypatch):
+    """mark_prediction_model_run_processed should be called when check_if_model_run_complete returns True."""
+    noaa_instance = _make_noaa(monkeypatch)
+
+    urls = ["https://example.com/grib1", "https://example.com/grib2"]
+    monkeypatch.setattr(noaa, "get_gfs_model_run_download_urls", lambda *_: iter(urls))
+    monkeypatch.setattr(noaa_instance, "process_model_run_urls", lambda _: None)
+    monkeypatch.setattr(noaa, "check_if_model_run_complete", lambda *_: True)
+
+    mock_mark = MagicMock()
+    monkeypatch.setattr(noaa, "mark_prediction_model_run_processed", mock_mark)
+
+    noaa_instance.process_model_run("00")
+
+    mock_mark.assert_called_once_with(
+        noaa_instance.session,
+        noaa_instance.model_type,
+        noaa_instance.projection,
+        noaa_instance.now,
+        "00",
+    )
+
+
+@pytest.mark.parametrize("status_code", [403, 404])
+def test_process_model_run_does_not_mark_complete_on_403_or_404_error(monkeypatch, status_code):
+    """mark_prediction_model_run_processed should not be called when 403/404 errors prevent URLs from being processed.
+
+    403/404 responses are swallowed by process_model_run_urls, so processing continues but the
+    affected files are never flagged as done, leaving check_if_model_run_complete returning False.
+    """
+    noaa_instance = _make_noaa(monkeypatch)
+
+    urls = ["https://example.com/grib1", "https://example.com/grib2"]
+    monkeypatch.setattr(noaa, "get_gfs_model_run_download_urls", lambda *_: iter(urls))
+
+    mock_response = MagicMock()
+    mock_response.status_code = status_code
+    http_error = HTTPError(response=mock_response)
+
+    def raise_http_error(_):
+        raise http_error
+
+    monkeypatch.setattr(noaa_instance, "process_url", raise_http_error)
+
+    monkeypatch.setattr(
+        common_model_fetchers, "get_processed_file_count", lambda session, urls: len(urls) - 1
+    )
+
+    mock_mark = MagicMock()
+    monkeypatch.setattr(noaa, "mark_prediction_model_run_processed", mock_mark)
+
+    noaa_instance.process_model_run("00")
+
+    mock_mark.assert_not_called()
