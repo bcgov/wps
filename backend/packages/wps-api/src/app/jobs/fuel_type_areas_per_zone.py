@@ -60,7 +60,7 @@ class FuelTypeAreasJob:
                 fuel_area = count * pixel_size * pixel_size
                 yield (advisory_shape_id, value, fuel_area)
 
-    async def calculate_fuel_type_areas_per_zone(self, year: int, version: Optional[int]):
+    async def calculate_fuel_type_areas_per_zone(self, year: int):
         """
         Entry point for calculating the area of each fuel type in each fire zone unit.
         """
@@ -121,26 +121,19 @@ def main():
         logger.debug("Begin processing fuel types area per zone.")
 
         parser = argparse.ArgumentParser(
-            description="Retrieve the latest processed fuel raster by year and version"
+            description="Retrieve the latest processed fuel raster by year"
         )
         parser.add_argument(
             "-y", "--year", default=None, help="The year to use for looking up the fuel raster."
         )
-        parser.add_argument(
-            "-v",
-            "--version",
-            default=None,
-            help="The version to use for looking up the fuel raster.",
-        )
 
         args, _ = parser.parse_known_args()
         year = int(args.year) if args.year else get_utc_now().year
-        version = int(args.version) if args.version else None
 
         job = FuelTypeAreasJob()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(job.calculate_fuel_type_areas_per_zone(year, version))
+        loop.run_until_complete(job.calculate_fuel_type_areas_per_zone(year))
 
         # Exit with 0 - success.
         sys.exit(os.EX_OK)
