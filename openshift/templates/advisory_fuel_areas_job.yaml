@@ -116,7 +116,6 @@ objects:
                       key: env.fuel_raster_name
               resources:
                 limits:
-                  cpu: 500m
                   memory: 512Mi
                 requests:
                   cpu: 250m
