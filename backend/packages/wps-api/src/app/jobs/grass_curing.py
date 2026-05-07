@@ -82,22 +82,21 @@ class GrassCuringJob():
 
         coord_transform = osr.CoordinateTransformation(source_srs, target_srs)
 
+        rows, cols = data_np_array.shape
         for station in stations:
             x, y, _ = coord_transform.TransformPoint(station.long, station.lat)
             px, py = reverse_transform * (x, y)
             px = math.floor(px)
             py = math.floor(py)
-            try:
-                yield (station.code, data_np_array[py][px])
-            except IndexError:
-                # A station with bad coordinates shouldn't terminate the entire job but this should
-                # be picked up by Sentry so log an error.
+            if px < 0 or py < 0 or px >= cols or py >= rows:
                 logger.error(
                     "Station %s at pixel (%s, %s) is out of raster bounds, skipping",
                     station.code,
                     px,
                     py,
                 )
+                continue
+            yield (station.code, data_np_array[py][px])
 
 
     async def _get_last_for_date(self):

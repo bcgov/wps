@@ -227,6 +227,94 @@ def test_yield_value_for_stations_floors_fractional_pixel_coordinates():
     assert results == [(1, 42)]  # floored to pixel (col=0, row=0)
 
 
+def test_yield_value_for_stations_skips_station_west_of_raster():
+    """Test that a station west of the raster (px < 0) is skipped rather than wrapping around."""
+    lon, lat = -120.3, 50.7  # Kamloops
+    x, y, _ = _wgs84_to_bc_albers.TransformPoint(lon, lat)
+
+    pixel_size = 100_000
+    # Place origin east of the station so px = floor(-1.0) = -1
+    origin_x = x + pixel_size
+    origin_y = y + pixel_size
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    data = np.array([[42, 99], [77, 33]])
+    mock_ds = _make_mock_data_source(data, geo_transform)
+
+    results = list(
+        GrassCuringJob()._yield_value_for_stations(
+            mock_ds, [SimpleNamespace(code=1, long=lon, lat=lat)]
+        )
+    )
+    assert results == []
+
+
+def test_yield_value_for_stations_skips_station_north_of_raster():
+    """Test that a station north of the raster (py < 0) is skipped rather than wrapping around."""
+    lon, lat = -120.3, 50.7  # Kamloops
+    x, y, _ = _wgs84_to_bc_albers.TransformPoint(lon, lat)
+
+    pixel_size = 100_000
+    # Place origin south of the station so py = floor(-1.0) = -1
+    origin_x = x - pixel_size
+    origin_y = y - pixel_size
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    data = np.array([[42, 99], [77, 33]])
+    mock_ds = _make_mock_data_source(data, geo_transform)
+
+    results = list(
+        GrassCuringJob()._yield_value_for_stations(
+            mock_ds, [SimpleNamespace(code=1, long=lon, lat=lat)]
+        )
+    )
+    assert results == []
+
+
+def test_yield_value_for_stations_skips_station_east_of_raster():
+    """Test that a station east of the raster (px >= cols) is skipped."""
+    lon, lat = -120.3, 50.7  # Kamloops
+    x, y, _ = _wgs84_to_bc_albers.TransformPoint(lon, lat)
+
+    pixel_size = 100_000
+    # origin_x = x - pixel_size puts station at px=1; raster is 1 column wide so px >= cols
+    origin_x = x - pixel_size
+    origin_y = y + 0.5 * pixel_size  # py=0, inside the single row
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    data = np.array([[42]])  # 1 row, 1 col
+    mock_ds = _make_mock_data_source(data, geo_transform)
+
+    results = list(
+        GrassCuringJob()._yield_value_for_stations(
+            mock_ds, [SimpleNamespace(code=1, long=lon, lat=lat)]
+        )
+    )
+    assert results == []
+
+
+def test_yield_value_for_stations_skips_station_south_of_raster():
+    """Test that a station south of the raster (py >= rows) is skipped."""
+    lon, lat = -120.3, 50.7  # Kamloops
+    x, y, _ = _wgs84_to_bc_albers.TransformPoint(lon, lat)
+
+    pixel_size = 100_000
+    # origin_y = y + pixel_size puts station at py=1; raster is 1 row tall so py >= rows
+    origin_x = x - 0.5 * pixel_size  # px=0, inside the single column
+    origin_y = y + pixel_size
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    data = np.array([[42]])  # 1 row, 1 col
+    mock_ds = _make_mock_data_source(data, geo_transform)
+
+    results = list(
+        GrassCuringJob()._yield_value_for_stations(
+            mock_ds, [SimpleNamespace(code=1, long=lon, lat=lat)]
+        )
+    )
+    assert results == []
+
+
 def test_process_grass_curing_saves_value_per_station(mocker: MockerFixture, monkeypatch):
     """Test that _process_grass_curing saves one record per station returned by the API."""
 
