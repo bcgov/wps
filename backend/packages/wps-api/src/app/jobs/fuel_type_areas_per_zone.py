@@ -70,6 +70,7 @@ class FuelTypeAreasJob:
             fuel_raster_key = get_versioned_fuel_raster_key(
                 RasterKeyAddresser(), fuel_type_raster.object_store_path
             )
+            logger.info(f"Calculating fuel type areas per zone using fuel raster {fuel_raster_key}")
             fuel_raster_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)
             pixel_size = fuel_raster_ds.GetGeoTransform()[1]
             # We're using fire zone units from the advisory_shapes table to clip out shapes from the fuel raster.
@@ -103,6 +104,8 @@ class FuelTypeAreasJob:
                     zone.id, intersected_data, pixel_size
                 )
                 for advisory_shape_id, fuel_type_id, fuel_area in fuel_type_area_data:
+                    logger.info(
+                        f"Calculated fuel area for advisory_shape_id {advisory_shape_id}, "f"fuel_type_id {fuel_type_id}, fuel_area {fuel_area}")
                     await self._save_fuel_type_area(
                         session,
                         advisory_shape_id,
@@ -118,7 +121,7 @@ def main():
     try:
         # We don't want gdal to silently swallow errors.
         gdal.UseExceptions()
-        logger.debug("Begin processing fuel types area per zone.")
+        logger.info("Begin processing fuel types area per zone.")
 
         parser = argparse.ArgumentParser(
             description="Retrieve the latest processed fuel raster by year"
