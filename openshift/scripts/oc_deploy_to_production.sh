@@ -51,8 +51,6 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.
 echo S3 Data Retention
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_s3_data_retention.sh prod ${RUN_TYPE}
 
-echo Advisory Fuel Area
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_advisory_fuel_areas_job.sh prod ${RUN_TYPE}
 echo Fuel Raster
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_fuel_raster_processor_job.sh prod ${RUN_TYPE}
 echo Env Canada Subscriber
