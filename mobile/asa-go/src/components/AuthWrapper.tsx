@@ -2,9 +2,9 @@ import AsaIcon from "@/assets/asa-go-transparent.png";
 import AppDescription from "@/components/AppDescription";
 import LoginButton from "@/components/LoginButton";
 import { selectAuthentication, selectNetworkStatus } from "@/store";
-import { Box, Button, CircularProgress, Typography, useTheme } from "@mui/material";
+import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 import { isNull } from "lodash";
-import React, { useState } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
 
 interface Props {
@@ -13,12 +13,11 @@ interface Props {
 
 const AuthWrapper = ({ children }: Props) => {
   const theme = useTheme();
-  const [continueAsGuest, setContinueAsGuest] = useState(false);
   const { isAuthenticated, authenticating, error } =
     useSelector(selectAuthentication);
   const { networkStatus } = useSelector(selectNetworkStatus);
 
-  if (continueAsGuest || isAuthenticated || !networkStatus.connected) {
+  if (isAuthenticated || !networkStatus.connected) {
     return <React.StrictMode>{children}</React.StrictMode>;
   }
 
@@ -94,18 +93,6 @@ const AuthWrapper = ({ children }: Props) => {
         {!authenticating && (
           <>
             <LoginButton label="Login" />
-            <Button
-              onClick={() => setContinueAsGuest(true)}
-              sx={{
-                color: "white",
-                mt: theme.spacing(2),
-                textDecoration: "underline",
-                textTransform: "none",
-              }}
-              variant="text"
-            >
-              Continue as guest
-            </Button>
           </>
         )}
         {authenticating && (
