@@ -32,7 +32,7 @@ jobs:
       - name: Deploy CrunchyDB cluster
         shell: bash
         run: |
-          EPHEMERAL_STORAGE=True BUCKET=gpdqha DATA_SIZE=5Gi WAL_SIZE=5Gi bash openshift/scripts/oc_provision_crunchy.sh ${SUFFIX} apply
+          EPHEMERAL_STORAGE=True BUCKET=gpdqha DATA_SIZE=5Gi WAL_SIZE=5Gi REPLICAS="2" bash openshift/scripts/oc_provision_crunchy.sh ${SUFFIX} apply
 
   build-image:
     name: Build ${{ matrix.name }} Image

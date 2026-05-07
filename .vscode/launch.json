@@ -85,6 +85,14 @@
             "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
+            "name": "Grass Curing",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.grass_curing",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
+        },
+        {
             "name": "app.jobs.hourly_actuals",
             "type": "debugpy",
             "request": "launch",

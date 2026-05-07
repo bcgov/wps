@@ -111,6 +111,7 @@ async def get_all_zone_data_for_source_ids(
             )
 
         zone_fuel_stats = []
+        hfi_fuel_type_ids_for_zone_set = list(set(hfi_fuel_type_ids_for_zone))
         for (
             critical_hour_start,
             critical_hour_end,
@@ -119,7 +120,7 @@ async def get_all_zone_data_for_source_ids(
             area,
             fuel_area,
             percent_conifer,
-        ) in hfi_fuel_type_ids_for_zone:
+        ) in hfi_fuel_type_ids_for_zone_set:
             hfi_threshold = hfi_thresholds_by_id.get(threshold_id)
             if hfi_threshold is None:
                 logger.error(f"No hfi threshold for id: {threshold_id}")
