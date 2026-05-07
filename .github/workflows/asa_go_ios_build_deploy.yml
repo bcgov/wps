@@ -2,7 +2,7 @@ name: Publish ASA Go iOS
 
 env:
   appBuildNumber: ${{ github.run_number }}
-  appBuildVersion: "1.1.1"
+  appBuildVersion: ${{ vars.ASA_GO_VERSION }}
 
 permissions:
   contents: read
