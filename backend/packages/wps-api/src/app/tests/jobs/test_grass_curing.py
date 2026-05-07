@@ -1,6 +1,7 @@
 """ Unit testing for CWFIS grass curing data processing """
 
 import asyncio
+import math
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -9,17 +10,28 @@ from unittest.mock import AsyncMock, MagicMock
 
 import numpy as np
 import pytest
+from osgeo import osr
 from pytest_mock import MockerFixture
-from wps_shared.geospatial.geospatial import WGS84
+from wps_shared.geospatial.geospatial import SpatialReferenceSystem
 
 from app.jobs import grass_curing
 from app.jobs.grass_curing import (
     CWFIS_BASE_URL,
     GRASS_CURING_FILE_NAME_3978,
-    GRASS_CURING_FILE_NAME_4326,
     GrassCuringFileNotFoundException,
     GrassCuringJob,
 )
+
+_bc_albers_srs = osr.SpatialReference()
+_bc_albers_srs.ImportFromEPSG(SpatialReferenceSystem.NAD83_BC_ALBERS.code)
+_bc_albers_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+BC_ALBERS_WKT = _bc_albers_srs.ExportToWkt()
+
+_wgs84_srs = osr.SpatialReference()
+_wgs84_srs.ImportFromEPSG(SpatialReferenceSystem.WGS84.code)
+_wgs84_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+_wgs84_to_bc_albers = osr.CoordinateTransformation(_wgs84_srs, _bc_albers_srs)
 
 
 def _make_mock_client_session(mocker: MockerFixture, content: bytes = b"fake tiff bytes"):
@@ -45,12 +57,13 @@ def _make_mock_data_source(data: np.ndarray, geo_transform: tuple):
     mock_ds = MagicMock()
     mock_ds.GetRasterBand.return_value = mock_band
     mock_ds.GetGeoTransform.return_value = geo_transform
+    mock_ds.GetProjection.return_value = BC_ALBERS_WKT
     return mock_ds
 
 
 def test_grass_curing_job_fail(mocker: MockerFixture, monkeypatch):
     """
-    Test that when the bot fails, a message is sent to rocket-chat, and our exit code is 1.
+    Test that when the job fails, a message is sent to rocket-chat, and our exit code is 1.
     """
 
     async def mock__run_grass_curing(self):
@@ -151,25 +164,40 @@ def test_main_exits_cleanly_when_file_not_found(mocker: MockerFixture, monkeypat
 
 
 def test_yield_value_for_stations_returns_correct_pixel_values():
-    """Test that station coordinates are mapped to the correct raster pixel values."""
-    # 3x3 grid, origin (-130, 60), 1-degree pixels north-up.
-    # forward: x = col - 130, y = -row + 60
-    # inverse: col = lon + 130, row = 60 - lat
-    data = np.array(
-        [
-            [10, 20, 30],
-            [40, 50, 60],
-            [70, 80, 90],
-        ]
-    )
-    geo_transform = (-130.0, 1.0, 0.0, 60.0, 0.0, -1.0)
-    mock_ds = _make_mock_data_source(data, geo_transform)
+    """Test that WGS84 station coordinates are projected to BC Albers and mapped to correct pixels."""
 
+    # Setup some stations at actual locations in BC. Stations are geographically far apart so no
+    # two end up in the same grid cell when making a mock raster.
     stations = [
-        SimpleNamespace(code=1, long=-130.0, lat=60.0),  # col=0, row=0 → 10
-        SimpleNamespace(code=2, long=-129.0, lat=59.0),  # col=1, row=1 → 50
-        SimpleNamespace(code=3, long=-128.0, lat=58.0),  # col=2, row=2 → 90
+        SimpleNamespace(code=1, long=-122.7, lat=53.9),  # Prince George area
+        SimpleNamespace(code=2, long=-120.3, lat=50.7),  # Kamloops area
+        SimpleNamespace(code=3, long=-115.0, lat=49.0),  # Cranbrook area
     ]
+
+    # Using BC Albers as a proxy for the srs of the grass curing tif which is also based on metres.
+    bc_albers_coords = [_wgs84_to_bc_albers.TransformPoint(s.long, s.lat)[:2] for s in stations]
+
+    ##################### Start setup a test grid of data
+    pixel_size = 100000  # 100 km — stations are well over 100 km apart
+    origin_x = min(x for x, _ in bc_albers_coords) - pixel_size
+    origin_y = max(y for _, y in bc_albers_coords) + pixel_size
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    pixel_indices = [
+        (math.floor((x - origin_x) / pixel_size), math.floor((origin_y - y) / pixel_size))
+        for x, y in bc_albers_coords
+    ]
+    assert len(set(pixel_indices)) == len(stations), "test setup error: stations share a pixel"
+
+    n_cols = max(col for col, _ in pixel_indices) + 2
+    n_rows = max(row for _, row in pixel_indices) + 2
+    data = np.zeros((n_rows, n_cols), dtype=np.int32)
+    expected_values = [10, 50, 90]
+    for (col, row), val in zip(pixel_indices, expected_values):
+        data[row][col] = val
+
+    mock_ds = _make_mock_data_source(data, geo_transform)
+    ##################### End setup a test grid of data
 
     results = list(GrassCuringJob()._yield_value_for_stations(mock_ds, stations))
 
@@ -177,38 +205,114 @@ def test_yield_value_for_stations_returns_correct_pixel_values():
 
 
 def test_yield_value_for_stations_floors_fractional_pixel_coordinates():
-    """Test that sub-pixel coordinates are floored to the containing pixel."""
-    data = np.array(
-        [
-            [10, 20],
-            [30, 40],
-        ]
-    )
-    geo_transform = (-130.0, 1.0, 0.0, 60.0, 0.0, -1.0)
+    """Test that sub-pixel BC Albers coordinates are floored to the containing pixel."""
+    lon, lat = -120.3, 50.7  # Kamloops area
+    x, y, _ = _wgs84_to_bc_albers.TransformPoint(lon, lat)
+
+    # Place origin so the station lands 30% into pixel (col=0, row=0)
+    pixel_size = 100_000
+    origin_x = x - 0.3 * pixel_size
+    origin_y = y + 0.3 * pixel_size
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    data = np.array([[42, 99], [77, 33]])
     mock_ds = _make_mock_data_source(data, geo_transform)
 
-    # col = floor(-129.9 + 130) = floor(0.1) = 0, row = floor(60 - 59.9) = floor(0.1) = 0
-    stations = [SimpleNamespace(code=1, long=-129.9, lat=59.9)]
-
-    results = list(GrassCuringJob()._yield_value_for_stations(mock_ds, stations))
-
-    assert results == [(1, 10)]
-
-
-def test_reproject_to_epsg_4326_calls_gdal_with_correct_paths(mocker: MockerFixture):
-    """Test that _reproject_to_epsg_4326 opens the 3978 source and warps to a 4326 destination."""
-    mock_ds = MagicMock()
-    mock_gdal_open = mocker.patch("app.jobs.grass_curing.gdal.Open", return_value=mock_ds)
-    mock_gdal_warp = mocker.patch("app.jobs.grass_curing.gdal.Warp")
-
-    GrassCuringJob()._reproject_to_epsg_4326("/tmp")
-
-    mock_gdal_open.assert_called_once_with(
-        f"/tmp/{GRASS_CURING_FILE_NAME_3978}", grass_curing.gdal.GA_ReadOnly
+    results = list(
+        GrassCuringJob()._yield_value_for_stations(
+            mock_ds, [SimpleNamespace(code=1, long=lon, lat=lat)]
+        )
     )
-    mock_gdal_warp.assert_called_once_with(
-        f"/tmp/{GRASS_CURING_FILE_NAME_4326}", mock_ds, dstSRS=WGS84
+
+    assert results == [(1, 42)]  # floored to pixel (col=0, row=0)
+
+
+def test_yield_value_for_stations_skips_station_west_of_raster():
+    """Test that a station west of the raster (px < 0) is skipped rather than wrapping around."""
+    lon, lat = -120.3, 50.7  # Kamloops
+    x, y, _ = _wgs84_to_bc_albers.TransformPoint(lon, lat)
+
+    pixel_size = 100_000
+    # Place origin east of the station so px = floor(-1.0) = -1
+    origin_x = x + pixel_size
+    origin_y = y + pixel_size
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    data = np.array([[42, 99], [77, 33]])
+    mock_ds = _make_mock_data_source(data, geo_transform)
+
+    results = list(
+        GrassCuringJob()._yield_value_for_stations(
+            mock_ds, [SimpleNamespace(code=1, long=lon, lat=lat)]
+        )
     )
+    assert results == []
+
+
+def test_yield_value_for_stations_skips_station_north_of_raster():
+    """Test that a station north of the raster (py < 0) is skipped rather than wrapping around."""
+    lon, lat = -120.3, 50.7  # Kamloops
+    x, y, _ = _wgs84_to_bc_albers.TransformPoint(lon, lat)
+
+    pixel_size = 100_000
+    # Place origin south of the station so py = floor(-1.0) = -1
+    origin_x = x - pixel_size
+    origin_y = y - pixel_size
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    data = np.array([[42, 99], [77, 33]])
+    mock_ds = _make_mock_data_source(data, geo_transform)
+
+    results = list(
+        GrassCuringJob()._yield_value_for_stations(
+            mock_ds, [SimpleNamespace(code=1, long=lon, lat=lat)]
+        )
+    )
+    assert results == []
+
+
+def test_yield_value_for_stations_skips_station_east_of_raster():
+    """Test that a station east of the raster (px >= cols) is skipped."""
+    lon, lat = -120.3, 50.7  # Kamloops
+    x, y, _ = _wgs84_to_bc_albers.TransformPoint(lon, lat)
+
+    pixel_size = 100_000
+    # origin_x = x - pixel_size puts station at px=1; raster is 1 column wide so px >= cols
+    origin_x = x - pixel_size
+    origin_y = y + 0.5 * pixel_size  # py=0, inside the single row
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    data = np.array([[42]])  # 1 row, 1 col
+    mock_ds = _make_mock_data_source(data, geo_transform)
+
+    results = list(
+        GrassCuringJob()._yield_value_for_stations(
+            mock_ds, [SimpleNamespace(code=1, long=lon, lat=lat)]
+        )
+    )
+    assert results == []
+
+
+def test_yield_value_for_stations_skips_station_south_of_raster():
+    """Test that a station south of the raster (py >= rows) is skipped."""
+    lon, lat = -120.3, 50.7  # Kamloops
+    x, y, _ = _wgs84_to_bc_albers.TransformPoint(lon, lat)
+
+    pixel_size = 100_000
+    # origin_y = y + pixel_size puts station at py=1; raster is 1 row tall so py >= rows
+    origin_x = x - 0.5 * pixel_size  # px=0, inside the single column
+    origin_y = y + pixel_size
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+
+    data = np.array([[42]])  # 1 row, 1 col
+    mock_ds = _make_mock_data_source(data, geo_transform)
+
+    results = list(
+        GrassCuringJob()._yield_value_for_stations(
+            mock_ds, [SimpleNamespace(code=1, long=lon, lat=lat)]
+        )
+    )
+    assert results == []
 
 
 def test_process_grass_curing_saves_value_per_station(mocker: MockerFixture, monkeypatch):
@@ -217,11 +321,7 @@ def test_process_grass_curing_saves_value_per_station(mocker: MockerFixture, mon
     async def mock_get_raster(self, path):
         pass
 
-    def mock_reproject(self, path):
-        pass
-
     monkeypatch.setattr(GrassCuringJob, "_get_grass_curing_raster", mock_get_raster)
-    monkeypatch.setattr(GrassCuringJob, "_reproject_to_epsg_4326", mock_reproject)
 
     stations = [
         SimpleNamespace(code=1, long=-130.0, lat=60.0, name="Station A"),
@@ -232,8 +332,15 @@ def test_process_grass_curing_saves_value_per_station(mocker: MockerFixture, mon
     mock_wfwx_api.get_station_data = AsyncMock(return_value=stations)
     mocker.patch("app.jobs.grass_curing.WfwxApi", return_value=mock_wfwx_api)
 
-    data = np.array([[10, 20], [30, 40]])
-    mock_raster = _make_mock_data_source(data, (-130.0, 1.0, 0.0, 60.0, 0.0, -1.0))
+    bc_albers_coords = [_wgs84_to_bc_albers.TransformPoint(s.long, s.lat)[:2] for s in stations]
+    pixel_size = 100_000
+    origin_x = min(x for x, _ in bc_albers_coords) - pixel_size
+    origin_y = max(y for _, y in bc_albers_coords) + pixel_size
+    geo_transform = (origin_x, pixel_size, 0.0, origin_y, 0.0, -pixel_size)
+    n_cols = max(math.floor((x - origin_x) / pixel_size) for x, _ in bc_albers_coords) + 2
+    n_rows = max(math.floor((origin_y - y) / pixel_size) for _, y in bc_albers_coords) + 2
+    data = np.ones((n_rows, n_cols), dtype=np.int32) * 50
+    mock_raster = _make_mock_data_source(data, geo_transform)
     mocker.patch("app.jobs.grass_curing.gdal.Open", return_value=mock_raster)
 
     mock_db_session = MagicMock()

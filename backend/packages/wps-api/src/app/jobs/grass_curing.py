@@ -9,14 +9,14 @@ import aiofiles
 import numpy as np
 from affine import Affine
 from aiohttp import ClientSession
-from osgeo import gdal
+from osgeo import gdal, osr
 from wps_shared.db.crud.grass_curing import (
     get_last_percent_grass_curing_for_date,
     save_percent_grass_curing,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.grass_curing import PercentGrassCuring
-from wps_shared.geospatial.geospatial import WGS84
+from wps_shared.geospatial.geospatial import SpatialReferenceSystem
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
@@ -25,7 +25,6 @@ from wps_wf1.wfwx_api import WfwxApi
 logger = logging.getLogger(__name__)
 
 GRASS_CURING_FILE_NAME_3978 = "grass_curing_epsg_3978.tif"
-GRASS_CURING_FILE_NAME_4326 = "grass_curing_epsg_4326.tif"
 CWFIS_BASE_URL = "https://cwfis.cfs.nrcan.gc.ca/downloads/pcuring"
 
 
@@ -55,19 +54,6 @@ class GrassCuringJob():
         async with aiofiles.open(file_path, "wb") as file:
             await file.write(content)
 
-    def _reproject_to_epsg_4326(self, path: str):
-        """ Transforms coordinates in source_file geotiff to EPSG:3005 (BC Albers),
-        writes to newly created geotiff called <new_filename>.tif
-
-        :param path: A path to a temporary directory containing the percent grass curing tif.
-        """
-        destination_path = f"{path}/{GRASS_CURING_FILE_NAME_4326}"
-        source_path = f"{path}/{GRASS_CURING_FILE_NAME_3978}"
-        source_data = gdal.Open(source_path, gdal.GA_ReadOnly)
-        gdal.Warp(destination_path, source_data, dstSRS=WGS84)
-        del source_data
-
-    
     def _yield_value_for_stations(self, data_source, stations):
         """ Given a list of stations, and a gdal dataset, yield the grass curing value for each station
 
@@ -76,27 +62,41 @@ class GrassCuringJob():
         :return: A tuple of a weather station code and the percent grass curing at its location.
         """
         raster_band = data_source.GetRasterBand(1)
-        data_np_array = raster_band.ReadAsArray()
-        data_np_array = np.array(data_np_array)
+        data_np_array = np.array(raster_band.ReadAsArray())
         forward_transform = Affine.from_gdal(*data_source.GetGeoTransform())
         reverse_transform = ~forward_transform
+
+        source_srs = osr.SpatialReference()
+
+        # station coords are in lat/lon aka WGS84/EPSG:4326 so we need a corresponding source srs
+        # in order to perform the reprojection
+        source_srs.ImportFromEPSG(SpatialReferenceSystem.WGS84.code)
+
+        target_srs = osr.SpatialReference()
+        target_srs.ImportFromWkt(data_source.GetProjection())
+
+        # CoordinateTransformation.TransformPoint used below requires coords to be in lon, lat order
+        # so we need to explicitly define the order
+        source_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+        coord_transform = osr.CoordinateTransformation(source_srs, target_srs)
+
+        rows, cols = data_np_array.shape
         for station in stations:
-            longitude = station.long
-            latitude = station.lat
-            px, py = reverse_transform * (longitude, latitude)
+            x, y, _ = coord_transform.TransformPoint(station.long, station.lat)
+            px, py = reverse_transform * (x, y)
             px = math.floor(px)
             py = math.floor(py)
-            try:
-                yield (station.code, data_np_array[py][px])
-            except IndexError:
-                # A station with bad coordinates shouldn't terminate the entire job but this should
-                # be picked up by Sentry so log an error.
+            if px < 0 or py < 0 or px >= cols or py >= rows:
                 logger.error(
                     "Station %s at pixel (%s, %s) is out of raster bounds, skipping",
                     station.code,
                     px,
                     py,
                 )
+                continue
+            yield (station.code, data_np_array[py][px])
 
 
     async def _get_last_for_date(self):
@@ -113,10 +113,7 @@ class GrassCuringJob():
         )
         with tempfile.TemporaryDirectory() as temp_dir:
             await self._get_grass_curing_raster(temp_dir)
-            self._reproject_to_epsg_4326(temp_dir)
-
-            # Open the reprojected grass curing data
-            raster = gdal.Open(f"{temp_dir}/{GRASS_CURING_FILE_NAME_4326}")
+            raster = gdal.Open(f"{temp_dir}/{GRASS_CURING_FILE_NAME_3978}")
             async with ClientSession() as http_session:
                 wfwx_api = WfwxApi(http_session)
                 stations = await wfwx_api.get_station_data()
