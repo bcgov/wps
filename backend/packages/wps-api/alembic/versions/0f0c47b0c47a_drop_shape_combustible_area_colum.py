@@ -1,4 +1,4 @@
-"""drop shape combustible_area colum
+"""drop shape combustible_area column
 
 Revision ID: 0f0c47b0c47a
 Revises: 7ac7f5600d81
