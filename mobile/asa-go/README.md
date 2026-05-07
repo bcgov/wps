@@ -125,7 +125,7 @@ All three jobs use the shared composite action `.github/actions/asa-go-setup`, w
 
 ### Android Release Build (`.github/workflows/asa_go_android_build.yml`)
 
-Builds a signed release APK. Requires these GitHub secrets:
+Builds a signed release APK. Requires these GitHub secrets/variables:
 
 - `VITE_AUTH_API_BASE_URL`, `VITE_PUBLIC_API_BASE_URL`, `VITE_KEYCLOAK_AUTH_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT`
 - `VITE_PMTILES_BUCKET`, `VITE_BASEMAP_TILE_URL`, `VITE_BASEMAP_STYLE_URL`
