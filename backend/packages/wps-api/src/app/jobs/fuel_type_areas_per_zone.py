@@ -105,7 +105,7 @@ class FuelTypeAreasJob:
                 )
                 for advisory_shape_id, fuel_type_id, fuel_area in fuel_type_area_data:
                     logger.info(
-                        f"Calculated fuel area for advisory_shape_id {advisory_shape_id}, "f"fuel_type_id {fuel_type_id}, fuel_area {fuel_area}")
+                        f"Calculated fuel area for advisory_shape_id {advisory_shape_id}, fuel_type_id {fuel_type_id}, fuel_area {fuel_area}")
                     await self._save_fuel_type_area(
                         session,
                         advisory_shape_id,
