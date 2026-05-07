@@ -20,6 +20,7 @@ from wps_shared.db.models.common import TZTimeStamp
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.psu import FireCentre
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
+from wps_shared.utils.time import get_utc_now
 
 
 class HfiClassificationThresholdEnum(enum.Enum):
@@ -297,12 +298,21 @@ class AdvisoryShapeFuels(Base):
     """
 
     __tablename__ = "advisory_shape_fuels"
-    __table_args__ = {"comment": "Fuel types and their areas in fire zone units."}
+    __table_args__ = (
+        UniqueConstraint(
+            "advisory_shape_id",
+            "fuel_type",
+            "fuel_type_raster_id",
+            name="uq_advisory_shape_fuels_shape_fuel_raster",
+        ),
+        {"comment": "Fuel types and their areas in fire zone units."},
+    )
     id = Column(Integer, primary_key=True, index=True)
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     fuel_area = Column(Float, nullable=False)
-    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
+    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=False, index=True)
+    created_at = Column(TZTimeStamp, default=get_utc_now, nullable=False)
 
 
 class AdvisoryHFIWindSpeed(Base):
