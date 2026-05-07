@@ -26,6 +26,8 @@ def upgrade():
         """
     )
 
+    # set the default time for server default to a fixed point in time to avoid issues with existing 
+    # records having a null created_at value
     op.add_column(
         "advisory_shape_fuels",
         sa.Column(
@@ -35,7 +37,10 @@ def upgrade():
             nullable=False,
         ),
     )
+    # remove the server default now that the column has been added and existing records have a value 
+    # to ensure future records get the correct timestamp
     op.alter_column("advisory_shape_fuels", "created_at", server_default=None)
+    
     op.alter_column(
         "advisory_shape_fuels", "fuel_type_raster_id", existing_type=sa.INTEGER(), nullable=False
     )
