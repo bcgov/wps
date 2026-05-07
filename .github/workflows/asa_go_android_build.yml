@@ -19,8 +19,8 @@ jobs:
       - name: Create environment settings
         working-directory: ./mobile/asa-go
         env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_PUBLIC_API_BASE_URL: ${{ secrets.VITE_PUBLIC_API_BASE_URL }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_PUBLIC_API_BASE_URL: ${{ vars.VITE_PUBLIC_API_BASE_URL }}
           VITE_KEYCLOAK_AUTH_URL: ${{ secrets.VITE_ASAGO_KEYCLOAK_AUTH_URL }}
           VITE_KEYCLOAK_REALM: ${{ secrets.VITE_ASAGO_KEYCLOAK_REALM }}
           VITE_KEYCLOAK_CLIENT: ${{ secrets.VITE_ASAGO_KEYCLOAK_CLIENT }}
