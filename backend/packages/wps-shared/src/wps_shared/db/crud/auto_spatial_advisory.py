@@ -94,53 +94,6 @@ async def get_table_srid(session: AsyncSession, model, geom_column: str = "geom"
     return result.scalar_one_or_none()
 
 
-async def get_combustible_area(session: AsyncSession, fuel_type_raster_id: int):
-    """Get the combustible area for each "shape". This is slow, and we don't expect it to run
-    in real time.
-
-    This method isn't being used right now, but you can calculate the combustible area for each
-    zone as follows:
-
-    ```python
-    from wps_shared.db.crud.auto_spatial_advisory import get_combustible_area
-    from wps_shared.db.database import get_async_read_session_scope
-
-    async with get_async_read_session_scope() as session:
-    result = await get_combustible_area(session)
-
-    for record in result:
-        print(record)
-        print(record['combustible_area']/record['zone_area'])
-    ```
-
-    """
-    logger.info("starting zone/combustible area intersection query")
-    perf_start = perf_counter()
-    stmt = (
-        select(
-            Shape.id,
-            Shape.source_identifier,
-            Shape.geom.ST_Area().label("zone_area"),
-            FuelType.geom.ST_Union()
-            .ST_Intersection(Shape.geom)
-            .ST_Area()
-            .label("combustible_area"),
-        )
-        .join(FuelType, FuelType.geom.ST_Intersects(Shape.geom))
-        .where(
-            FuelType.fuel_type_id.not_in((-10000, 99, 100, 102, 103)),
-            FuelType.fuel_type_raster_id == fuel_type_raster_id,
-        )
-        .group_by(Shape.id)
-    )
-    result = await session.execute(stmt)
-    all_combustible = result.all()
-    perf_end = perf_counter()
-    delta = perf_end - perf_start
-    logger.info("%f delta count before and after hfi area + zone/area intersection query", delta)
-    return all_combustible
-
-
 async def get_all_hfi_thresholds(session: AsyncSession) -> List[HfiClassificationThreshold]:
     """
     Retrieve all records from advisory_hfi_classification_threshold table.
