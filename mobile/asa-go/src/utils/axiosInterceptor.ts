@@ -5,7 +5,7 @@ import { isNil } from "lodash";
 
 let interceptorsConfigured = false;
 
-export const configureAxiosInterceptors = () => {
+export const configureAuthenticatedApiInterceptors = () => {
   if (interceptorsConfigured) {
     return;
   }
