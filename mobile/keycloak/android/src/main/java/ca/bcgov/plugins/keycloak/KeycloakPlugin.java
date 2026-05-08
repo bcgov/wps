@@ -109,6 +109,15 @@ public class KeycloakPlugin extends Plugin {
             return;
         }
 
+        if (implementation.authenticateWithStoredState(call, new Runnable() {
+            @Override
+            public void run() {
+                authenticate(call);
+            }
+        })) {
+            return;
+        }
+
         try {
             // Create service configuration
             AuthorizationServiceConfiguration serviceConfig = new AuthorizationServiceConfiguration(

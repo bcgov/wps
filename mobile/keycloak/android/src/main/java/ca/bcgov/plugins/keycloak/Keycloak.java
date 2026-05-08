@@ -67,8 +67,66 @@ public class Keycloak {
         Log.d(TAG, "Auth state persisted");
     }
 
+    private void clearAuthState() {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .remove(KEY_AUTH_STATE)
+            .apply();
+        authState = new AuthState();
+        Log.d(TAG, "Auth state cleared");
+    }
+
+    private JSObject createSuccessResponse(@Nullable String accessToken, @Nullable String idToken,
+                                           @Nullable String tokenType, @Nullable Long expiresAt,
+                                           @Nullable String scope) {
+        JSObject successResponse = new JSObject();
+        successResponse.put("isAuthenticated", true);
+        successResponse.put("accessToken", accessToken);
+        successResponse.put("refreshToken", authState.getRefreshToken());
+        successResponse.put("idToken", idToken);
+        successResponse.put("tokenType", tokenType != null ? tokenType : "Bearer");
+        successResponse.put("scope", scope);
+        if (expiresAt != null) {
+            successResponse.put("expiresAt", expiresAt);
+        }
+        return successResponse;
+    }
+
     public void setTokenRefreshCallback(TokenRefreshCallback callback) {
         this.tokenRefreshCallback = callback;
+    }
+
+    public boolean authenticateWithStoredState(PluginCall call, Runnable fallbackToBrowser) {
+        if (!authState.isAuthorized()) {
+            Log.d(TAG, "No authorized stored auth state available");
+            return false;
+        }
+
+        Log.d(TAG, "Refreshing stored auth state before launching browser");
+        authState.performActionWithFreshTokens(authService, new AuthState.AuthStateAction() {
+            @Override
+            public void execute(@Nullable String accessToken, @Nullable String idToken,
+                              @Nullable AuthorizationException exception) {
+                if (exception != null) {
+                    Log.e(TAG, "Stored auth state refresh failed: " + exception.getMessage());
+                    clearAuthState();
+                    fallbackToBrowser.run();
+                    return;
+                }
+
+                Log.d(TAG, "Stored auth state refresh successful");
+                persistAuthState();
+                call.resolve(createSuccessResponse(
+                    accessToken,
+                    idToken,
+                    "Bearer",
+                    authState.getAccessTokenExpirationTime(),
+                    authState.getScope()
+                ));
+            }
+        });
+
+        return true;
     }
 
     private void setupAutomaticRefresh() {
@@ -126,6 +184,7 @@ public class Keycloak {
                     tokens.put("idToken", idToken);
                     tokens.put("refreshToken", authState.getRefreshToken());
                     tokens.put("tokenType", "Bearer");
+                    tokens.put("scope", authState.getScope());
                     if (authState.getAccessTokenExpirationTime() != null) {
                         tokens.put("expiresAt", authState.getAccessTokenExpirationTime());
                     }
@@ -257,16 +316,13 @@ public class Keycloak {
                     persistAuthState();
 
                     Log.d(TAG, "Token exchange successful");
-                    JSObject successResponse = new JSObject();
-                    successResponse.put("isAuthenticated", true);
-                    successResponse.put("accessToken", tokenResponse.accessToken);
-                    successResponse.put("refreshToken", tokenResponse.refreshToken);
-                    successResponse.put("idToken", tokenResponse.idToken);
-                    successResponse.put("tokenType", tokenResponse.tokenType);
-                    successResponse.put("scope", tokenResponse.scope);
-                    if (tokenResponse.accessTokenExpirationTime != null) {
-                        successResponse.put("expiresAt", tokenResponse.accessTokenExpirationTime);
-                    }
+                    JSObject successResponse = createSuccessResponse(
+                        tokenResponse.accessToken,
+                        tokenResponse.idToken,
+                        tokenResponse.tokenType,
+                        tokenResponse.accessTokenExpirationTime,
+                        tokenResponse.scope
+                    );
 
                     if (currentCall != null) {
                         currentCall.resolve(successResponse);
