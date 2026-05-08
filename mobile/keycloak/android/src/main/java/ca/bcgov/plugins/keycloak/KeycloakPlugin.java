@@ -125,7 +125,7 @@ public class KeycloakPlugin extends Plugin {
             );
 
             authRequestBuilder
-                    .setScope("openid profile")
+                    .setScope("openid profile offline_access")
                     .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier());
 
             AuthorizationRequest authRequest = authRequestBuilder.build();
@@ -135,7 +135,7 @@ public class KeycloakPlugin extends Plugin {
             Log.d(TAG, "Authorization URL: " + authorizationBaseUrl);
             Log.d(TAG, "Token Endpoint: " + accessTokenEndpoint);
             Log.d(TAG, "Redirect URL: " + redirectUrl);
-            Log.d(TAG, "Scope: openid profile");
+            Log.d(TAG, "Scope: openid profile offline_access");
 
             // Store the call and request for later completion
             implementation.setCurrentCall(call);

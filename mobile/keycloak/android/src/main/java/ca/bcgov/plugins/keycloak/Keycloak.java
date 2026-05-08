@@ -263,6 +263,7 @@ public class Keycloak {
                     successResponse.put("refreshToken", tokenResponse.refreshToken);
                     successResponse.put("idToken", tokenResponse.idToken);
                     successResponse.put("tokenType", tokenResponse.tokenType);
+                    successResponse.put("scope", tokenResponse.scope);
                     if (tokenResponse.accessTokenExpirationTime != null) {
                         successResponse.put("expiresAt", tokenResponse.accessTokenExpirationTime);
                     }
