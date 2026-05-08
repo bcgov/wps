@@ -2,6 +2,7 @@ import AppAuth
 import Capacitor
 import Foundation
 import OSLog
+import Security
 
 #if canImport(UIKit)
     import UIKit
@@ -45,6 +46,13 @@ public protocol TokenRefreshServiceProtocol {
 /// Protocol for token response creation
 public protocol TokenResponseServiceProtocol {
     func createTokenResponse(from authState: OIDAuthState) -> [String: Any]
+}
+
+/// Protocol for persisting AppAuth state
+public protocol AuthStateStorageServiceProtocol {
+    func saveAuthState(_ authState: OIDAuthState)
+    func loadAuthState() -> OIDAuthState?
+    func clearAuthState()
 }
 
 /// Protocol for UI operations
@@ -290,6 +298,97 @@ public class DefaultTokenResponseService: TokenResponseServiceProtocol {
             "expiresIn": authState.lastTokenResponse?.accessTokenExpirationDate as Any,
             "scope": authState.lastTokenResponse?.scope as Any,
             "idToken": authState.lastTokenResponse?.idToken as Any,
+        ]
+    }
+}
+
+/// Keychain-backed implementation of AuthStateStorageServiceProtocol
+public class KeychainAuthStateStorageService: AuthStateStorageServiceProtocol {
+    private let service: String
+    private let account: String
+    private let logger = Logger(subsystem: "com.bcgov.wps.keycloak", category: "auth-state-storage")
+
+    public init(
+        service: String = "com.bcgov.wps.keycloak",
+        account: String = "oid-auth-state"
+    ) {
+        self.service = service
+        self.account = account
+    }
+
+    public func saveAuthState(_ authState: OIDAuthState) {
+        do {
+            let data = try NSKeyedArchiver.archivedData(
+                withRootObject: authState,
+                requiringSecureCoding: true
+            )
+
+            let query = baseQuery()
+            let attributes: [String: Any] = [
+                kSecValueData as String: data,
+                kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+            ]
+
+            let updateStatus = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+            if updateStatus == errSecItemNotFound {
+                var addQuery = query
+                addQuery[kSecValueData as String] = data
+                addQuery[kSecAttrAccessible as String] =
+                    kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+
+                let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+                if addStatus != errSecSuccess {
+                    logger.error("Failed to add auth state to keychain: \(addStatus)")
+                }
+            } else if updateStatus != errSecSuccess {
+                logger.error("Failed to update auth state in keychain: \(updateStatus)")
+            }
+        } catch {
+            logger.error("Failed to archive auth state: \(error.localizedDescription)")
+        }
+    }
+
+    public func loadAuthState() -> OIDAuthState? {
+        var query = baseQuery()
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        guard status == errSecSuccess else {
+            if status != errSecItemNotFound {
+                logger.error("Failed to load auth state from keychain: \(status)")
+            }
+            return nil
+        }
+
+        guard let data = result as? Data else {
+            logger.error("Stored auth state was not keychain data")
+            return nil
+        }
+
+        do {
+            return try NSKeyedUnarchiver.unarchivedObject(ofClass: OIDAuthState.self, from: data)
+        } catch {
+            logger.error("Failed to unarchive auth state: \(error.localizedDescription)")
+            clearAuthState()
+            return nil
+        }
+    }
+
+    public func clearAuthState() {
+        let status = SecItemDelete(baseQuery() as CFDictionary)
+        if status != errSecSuccess && status != errSecItemNotFound {
+            logger.error("Failed to clear auth state from keychain: \(status)")
+        }
+    }
+
+    private func baseQuery() -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
         ]
     }
 }
@@ -546,6 +645,7 @@ public struct KeycloakServices {
     public let tokenRefreshService: TokenRefreshServiceProtocol
     public let tokenRefreshManagerService: TokenRefreshManagerServiceProtocol
     public let tokenResponseService: TokenResponseServiceProtocol
+    public let authStateStorageService: AuthStateStorageServiceProtocol
     public let uiService: UIServiceProtocol
     public let parameterValidator: AuthenticationParameterValidatorProtocol
 
@@ -554,6 +654,8 @@ public struct KeycloakServices {
         tokenTimerService: TokenTimerServiceProtocol = DefaultTokenTimerService(),
         tokenRefreshService: TokenRefreshServiceProtocol = DefaultTokenRefreshService(),
         tokenResponseService: TokenResponseServiceProtocol = DefaultTokenResponseService(),
+        authStateStorageService: AuthStateStorageServiceProtocol =
+            KeychainAuthStateStorageService(),
         uiService: UIServiceProtocol = DefaultUIService(),
         parameterValidator: AuthenticationParameterValidatorProtocol =
             DefaultAuthenticationParameterValidator()
@@ -571,6 +673,7 @@ public struct KeycloakServices {
             tokenRefreshService: tokenRefreshService
         )
         self.tokenResponseService = tokenResponseService
+        self.authStateStorageService = authStateStorageService
         self.uiService = uiService
         self.parameterValidator = parameterValidator
     }

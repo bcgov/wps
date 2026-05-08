@@ -76,6 +76,7 @@ struct KeycloakPluginTests {
         #expect(services.tokenTimerService is DefaultTokenTimerService)
         #expect(services.tokenRefreshService is DefaultTokenRefreshService)
         #expect(services.tokenResponseService is DefaultTokenResponseService)
+        #expect(services.authStateStorageService is KeychainAuthStateStorageService)
         #expect(services.uiService is DefaultUIService)
     }
 
