@@ -8,8 +8,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import androidx.annotation.Nullable;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import net.openid.appauth.*;
 import org.json.JSONException;
 
@@ -18,6 +22,7 @@ public class Keycloak {
     private static final long TOKEN_REFRESH_CHECK_INTERVAL = 60000; // Check every 60 seconds
     private static final long TOKEN_EXPIRY_BUFFER = 60000; // Refresh 1 minute before expiry
     private static final String PREFS_NAME = "KeycloakAuthState";
+    private static final String ENCRYPTED_PREFS_NAME = "KeycloakEncryptedAuthState";
     private static final String KEY_AUTH_STATE = "auth_state";
 
     private Context context;
@@ -42,8 +47,7 @@ public class Keycloak {
     }
 
     private AuthState restoreAuthState() {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String stateJson = prefs.getString(KEY_AUTH_STATE, null);
+        String stateJson = readAuthStateJson();
 
         if (stateJson != null) {
             try {
@@ -60,20 +64,74 @@ public class Keycloak {
     }
 
     private void persistAuthState() {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit()
-            .putString(KEY_AUTH_STATE, authState.jsonSerializeString())
-            .apply();
-        Log.d(TAG, "Auth state persisted");
+        try {
+            getEncryptedPreferences()
+                .edit()
+                .putString(KEY_AUTH_STATE, authState.jsonSerializeString())
+                .apply();
+            Log.d(TAG, "Auth state persisted to encrypted storage");
+        } catch (GeneralSecurityException | IOException e) {
+            Log.e(TAG, "Failed to persist auth state to encrypted storage", e);
+        }
     }
 
     private void clearAuthState() {
+        try {
+            getEncryptedPreferences()
+                .edit()
+                .remove(KEY_AUTH_STATE)
+                .apply();
+        } catch (GeneralSecurityException | IOException e) {
+            Log.e(TAG, "Failed to clear encrypted auth state", e);
+        }
+        clearLegacyAuthState();
+        authState = new AuthState();
+        Log.d(TAG, "Auth state cleared");
+    }
+
+    private String readAuthStateJson() {
+        try {
+            SharedPreferences encryptedPrefs = getEncryptedPreferences();
+            String encryptedStateJson = encryptedPrefs.getString(KEY_AUTH_STATE, null);
+            if (encryptedStateJson != null) {
+                return encryptedStateJson;
+            }
+
+            String legacyStateJson = context
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_AUTH_STATE, null);
+            if (legacyStateJson != null) {
+                encryptedPrefs.edit().putString(KEY_AUTH_STATE, legacyStateJson).apply();
+                clearLegacyAuthState();
+                Log.d(TAG, "Migrated auth state to encrypted storage");
+            }
+            return legacyStateJson;
+        } catch (GeneralSecurityException | IOException e) {
+            Log.e(TAG, "Failed to read auth state from encrypted storage", e);
+            return null;
+        }
+    }
+
+    private SharedPreferences getEncryptedPreferences()
+        throws GeneralSecurityException, IOException {
+        MasterKey masterKey = new MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build();
+
+        return EncryptedSharedPreferences.create(
+            context,
+            ENCRYPTED_PREFS_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        );
+    }
+
+    private void clearLegacyAuthState() {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .remove(KEY_AUTH_STATE)
             .apply();
-        authState = new AuthState();
-        Log.d(TAG, "Auth state cleared");
     }
 
     private JSObject createSuccessResponse(@Nullable String accessToken, @Nullable String idToken,
