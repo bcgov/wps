@@ -24,7 +24,7 @@ describe("HamburgerMenu", () => {
     expect(screen.getByRole("button", { name: /open menu/i })).toBeInTheDocument();
   });
 
-  it('opens the Sentry feedback dialog when Contact Us is clicked', async () => {
+  it('opens the Sentry feedback dialog when Submit Feedback is clicked', async () => {
     const mockForm = { appendToDom: vi.fn(), open: vi.fn() };
     const mockCreateForm = vi.fn().mockResolvedValue(mockForm);
     mockGetFeedback.mockReturnValue({ createForm: mockCreateForm });
@@ -32,14 +32,14 @@ describe("HamburgerMenu", () => {
     render(<HamburgerMenu {...defaultProps} />);
     fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
 
-    const contactUs = await screen.findByText("Contact Us");
-    fireEvent.click(contactUs);
+    const submitFeedback = await screen.findByText("Submit Feedback");
+    fireEvent.click(submitFeedback);
 
     await vi.waitFor(() => {
       expect(mockCreateForm).toHaveBeenCalled();
       expect(mockForm.appendToDom).toHaveBeenCalled();
       expect(mockForm.open).toHaveBeenCalled();
-    });
+    }, { timeout: 1000 });
   });
 
   it('opens external links in a new tab', async () => {
@@ -56,13 +56,13 @@ describe("HamburgerMenu", () => {
     mockOpen.mockRestore();
   });
 
-  it('does not throw when getFeedback returns undefined and Contact Us is clicked', async () => {
+  it('does not throw when getFeedback returns undefined and Submit Feedback is clicked', async () => {
     mockGetFeedback.mockReturnValue(undefined);
 
     render(<HamburgerMenu {...defaultProps} />);
     fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
 
-    const contactUs = await screen.findByText("Contact Us");
-    expect(() => fireEvent.click(contactUs)).not.toThrow();
+    const submitFeedback = await screen.findByText("Submit Feedback");
+    expect(() => fireEvent.click(submitFeedback)).not.toThrow();
   });
 });

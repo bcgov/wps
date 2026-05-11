@@ -4,6 +4,7 @@ import { AppThunk } from "@/store";
 import { jwtDecode } from "jwt-decode";
 import { isUndefined } from "lodash";
 import { Keycloak } from "../../../keycloak/src";
+import * as Sentry from "@sentry/capacitor";
 
 export interface AuthState {
   authenticating: boolean;
@@ -115,6 +116,8 @@ export const authenticate = (): AppThunk => (dispatch) => {
             idToken: result.idToken,
           }),
         );
+        const userDetails = decodeUserDetails(result.accessToken);
+        Sentry.setUser(userDetails ? { email: userDetails.email } : null);
       } else {
         dispatch(authenticateError(JSON.stringify(result.error)));
       }
@@ -140,6 +143,8 @@ export const authenticate = (): AppThunk => (dispatch) => {
           idToken: tokenResponse.idToken,
         }),
       );
+      const userDetails = decodeUserDetails(tokenResponse.accessToken);
+      Sentry.setUser(userDetails ? { email: userDetails.email } : null);
     }
   };
 
