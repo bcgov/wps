@@ -276,6 +276,9 @@ public class DefaultTokenRefreshService: TokenRefreshServiceProtocol {
                 completion(false, nil, error.localizedDescription)
             } else {
                 self?.logger.debug("Token refresh successful")
+                self?.logger.debug(
+                    "Token refresh scope: \(authState.lastTokenResponse?.scope ?? "nil")"
+                )
 
                 let tokenResponse = DefaultTokenResponseService().createTokenResponse(
                     from: authState)
@@ -558,6 +561,7 @@ public class DefaultAuthenticationFlowService: AuthenticationFlowServiceProtocol
             logger.debug(
                 "Got authorization tokens. Access token: \(authState.lastTokenResponse?.accessToken ?? "nil", privacy: .private)"
             )
+            logger.debug("Authorization scope: \(authState.lastTokenResponse?.scope ?? "nil")")
 
             completion(authState)
         } else {
