@@ -1,7 +1,7 @@
 name: Build ASA Go Android
 
 env:
-  appBuildVersion: ${{ vars.ASA_GO_VERSION }}
+  appBuildVersion: "1.1.1"
 
 on:
   workflow_dispatch:
