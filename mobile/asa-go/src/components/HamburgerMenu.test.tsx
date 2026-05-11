@@ -25,8 +25,9 @@ describe("HamburgerMenu", () => {
   });
 
   it('opens the Sentry feedback dialog when Contact Us is clicked', async () => {
-    const mockOpenDialog = vi.fn();
-    mockGetFeedback.mockReturnValue({ openDialog: mockOpenDialog });
+    const mockForm = { appendToDom: vi.fn(), open: vi.fn() };
+    const mockCreateForm = vi.fn().mockResolvedValue(mockForm);
+    mockGetFeedback.mockReturnValue({ createForm: mockCreateForm });
 
     render(<HamburgerMenu {...defaultProps} />);
     fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
@@ -34,7 +35,11 @@ describe("HamburgerMenu", () => {
     const contactUs = await screen.findByText("Contact Us");
     fireEvent.click(contactUs);
 
-    expect(mockOpenDialog).toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(mockCreateForm).toHaveBeenCalled();
+      expect(mockForm.appendToDom).toHaveBeenCalled();
+      expect(mockForm.open).toHaveBeenCalled();
+    });
   });
 
   it('does not throw when getFeedback returns undefined and Contact Us is clicked', async () => {

@@ -24,9 +24,14 @@ export const HamburgerMenu = ({
 }: HamburgerMenuProps) => {
   const [open, setOpen] = useState(false);
 
-  const handleListButtonClick = (url: string) => {
+  const handleListButtonClick = async (url: string) => {
     if (url === "sentry:feedback") {
-      getFeedback()?.openDialog();
+      const feedback = getFeedback();
+      if (feedback) {
+        const form = await feedback.createForm({});
+        form.appendToDom();
+        form.open();
+      }
     } else {
       window.open(url, "_blank", "noopener,noreferrer");
     }

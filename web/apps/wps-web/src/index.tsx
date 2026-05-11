@@ -8,6 +8,7 @@ import './index.css'
 import store from 'app/store'
 import * as Sentry from '@sentry/react'
 import { feedbackIntegration } from '@sentry/react'
+import { theme } from '@wps/ui/theme'
 
 const render = () => {
   Sentry.init({
@@ -20,10 +21,10 @@ const render = () => {
         autoInject: false,
         enableScreenshot: true,
         themeLight: {
-          submitBackground: '#003366',
-          submitBorder: '#003366',
-          accentBackground: '#FBC02D',
-          accentForeground: '#000000',
+          submitBackground: theme.palette.primary.main,
+          submitBorder: theme.palette.primary.main,
+          accentBackground: theme.palette.secondary.main,
+          accentForeground: theme.palette.secondary.contrastText,
         },
       }),
     ],
