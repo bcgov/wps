@@ -3,7 +3,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const loadAxiosApi = async () => {
-  vi.resetModules();
   vi.doMock("@/utils/env", () => ({
     API_BASE_URL: "https://auth-api.example.com/api",
     API_PUBLIC_BASE_URL: "https://public-api.example.com/api",
