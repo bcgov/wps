@@ -28,7 +28,7 @@ export const HamburgerMenu = ({
     if (url === "sentry:feedback") {
       const feedback = getFeedback();
       if (feedback) {
-        const form = await feedback.createForm({});
+        const form = await feedback.createForm();
         form.appendToDom();
         form.open();
       }

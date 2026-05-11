@@ -12,6 +12,7 @@ export interface AuthState {
   token: string | undefined;
   idToken: string | undefined;
   idir: string | undefined;
+  email: string | undefined;
   error: string | null;
 }
 
@@ -22,6 +23,7 @@ export const initialState: AuthState = {
   token: undefined,
   idToken: undefined,
   idir: undefined,
+  email: undefined,
   error: null,
 };
 
@@ -42,6 +44,7 @@ const authSlice = createSlice({
     ) {
       const userDetails = decodeUserDetails(action.payload.token);
       state.idir = userDetails?.idir;
+      state.email = userDetails?.email;
       state.authenticating = false;
       state.isAuthenticated = action.payload.isAuthenticated;
       state.token = action.payload.token;
@@ -62,6 +65,7 @@ const authSlice = createSlice({
     ) {
       const userDetails = decodeUserDetails(action.payload.token);
       state.idir = userDetails?.idir;
+      state.email = userDetails?.email;
       state.token = action.payload.token;
       state.idToken = action.payload.idToken;
       state.tokenRefreshed = action.payload.tokenRefreshed;

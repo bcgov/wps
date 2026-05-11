@@ -19,10 +19,12 @@ const render = () => {
       Sentry.replayIntegration(),
       feedbackIntegration({
         autoInject: false,
+        colorScheme: 'light',
         enableScreenshot: true,
         themeLight: {
           submitBackground: theme.palette.primary.main,
           submitBorder: theme.palette.primary.main,
+          submitForeground: theme.palette.primary.contrastText,
           accentBackground: theme.palette.secondary.main,
           accentForeground: theme.palette.secondary.contrastText,
         },

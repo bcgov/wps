@@ -16,7 +16,7 @@ const FeedbackButton = ({ color }: { color: 'primary' | 'inherit' }) => {
       variant={'contained'}
       color={color}
       onClick={async () => {
-        const form = await feedback.createForm({})
+        const form = await feedback.createForm()
         form.appendToDom()
         form.open()
       }}
