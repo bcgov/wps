@@ -8,14 +8,14 @@ describe("LoadingSwitch", () => {
     render(
       <LoadingSwitch checked={false} onChange={vi.fn()} aria-label="test" />,
     );
-    expect(screen.getByRole("checkbox")).not.toBeChecked();
+    expect(screen.getByRole<HTMLInputElement>("switch").checked).toBe(false);
   });
 
   it("renders as checked", () => {
     render(
       <LoadingSwitch checked={true} onChange={vi.fn()} aria-label="test" />,
     );
-    expect(screen.getByRole("checkbox")).toBeChecked();
+    expect(screen.getByRole("switch")).toBeChecked();
   });
 
   it("calls onChange when clicked", () => {
@@ -23,7 +23,7 @@ describe("LoadingSwitch", () => {
     render(
       <LoadingSwitch checked={false} onChange={onChange} aria-label="test" />,
     );
-    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("switch"));
     expect(onChange).toHaveBeenCalled();
   });
 
@@ -36,7 +36,7 @@ describe("LoadingSwitch", () => {
         loading
       />,
     );
-    expect(screen.getByRole("checkbox")).toBeDisabled();
+    expect(screen.getByRole("switch")).toBeDisabled();
   });
 
   it("disables the switch when disabled", () => {
@@ -48,7 +48,7 @@ describe("LoadingSwitch", () => {
         disabled
       />,
     );
-    expect(screen.getByRole("checkbox")).toBeDisabled();
+    expect(screen.getByRole("switch")).toBeDisabled();
   });
 
   it("does not call onChange while loading", async () => {
@@ -62,7 +62,7 @@ describe("LoadingSwitch", () => {
         loading
       />,
     );
-    await user.click(screen.getByRole("checkbox"));
-    expect(onChange).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("switch"));
+    expect(onChange.mock.calls).toHaveLength(0);
   });
 });
