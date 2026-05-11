@@ -42,6 +42,20 @@ describe("HamburgerMenu", () => {
     });
   });
 
+  it('opens external links in a new tab', async () => {
+    const mockOpen = vi.spyOn(window, 'open').mockImplementation(() => null);
+    mockGetFeedback.mockReturnValue(undefined);
+
+    render(<HamburgerMenu {...defaultProps} />);
+    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
+
+    const homeLink = await screen.findByText("Home");
+    fireEvent.click(homeLink);
+
+    expect(mockOpen).toHaveBeenCalledWith("https://psu.nrs.gov.bc.ca/", "_blank", "noopener,noreferrer");
+    mockOpen.mockRestore();
+  });
+
   it('does not throw when getFeedback returns undefined and Contact Us is clicked', async () => {
     mockGetFeedback.mockReturnValue(undefined);
 
