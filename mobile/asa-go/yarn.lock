@@ -1842,10 +1842,10 @@
     glob "^13.0.6"
     magic-string "~0.30.8"
 
-"@sentry/capacitor@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@sentry/capacitor/-/capacitor-3.2.1.tgz#80ecd5cdc397cdafc03dcaf9d44454d1a26295a5"
-  integrity sha512-mBLw2RRfnlCDDfJ4IaeMJ+k0a+cCWV6OYVZFTseS8AgPMyO89pb7cP/Q1RB0uG37rdtZaEHY1o9GKkXU8vG0TA==
+"@sentry/capacitor@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@sentry/capacitor/-/capacitor-4.0.0.tgz#bef1fc4a3a6e54c021d66148ae51b1f6d53f0a44"
+  integrity sha512-p8fVa2mrRjzD41SOnYqfntHuE0OV8FjkWzoMyiPf3N3ayX4IF+IbcnNx0lO6JmkengTMdsSYLZZRDoM0hI1hsA==
   dependencies:
     "@sentry/browser" "10.43.0"
     "@sentry/core" "10.43.0"
