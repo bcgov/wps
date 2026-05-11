@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const loadAxiosApi = async () => {
   vi.doMock("@/utils/env", () => ({
-    API_BASE_URL: "https://auth-api.example.com/api",
-    API_PUBLIC_BASE_URL: "https://public-api.example.com/api",
+    API_BASE_URL: "https://psu-api.example.com/api",
+    API_PUBLIC_BASE_URL: "https://public-psu-api.example.com/api",
   }));
 
   return import("@/api/axios");
@@ -44,10 +44,10 @@ describe("api axios client mode", () => {
     const { authenticatedApi, publicApi } = await loadAxiosApi();
 
     expect(authenticatedApi.defaults.baseURL).toBe(
-      "https://auth-api.example.com/api",
+      "https://psu-api.example.com/api",
     );
     expect(publicApi.defaults.baseURL).toBe(
-      "https://public-api.example.com/api/asa-go",
+      "https://public-psu-api.example.com/api/asa-go",
     );
   });
 });
