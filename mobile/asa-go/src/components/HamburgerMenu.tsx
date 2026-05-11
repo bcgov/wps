@@ -7,9 +7,9 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { EmailComposer } from "capacitor-email-composer";
 import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
 import { useState } from "react";
+import { getFeedback } from "@sentry/react";
 
 export interface HamburgerMenuProps {
   drawerTop: number;
@@ -25,13 +25,8 @@ export const HamburgerMenu = ({
   const [open, setOpen] = useState(false);
 
   const handleListButtonClick = (url: string) => {
-    if (url.startsWith("mail:to")) {
-      EmailComposer.open({
-        to: ["bcws.predictiveservices@gov.bc.ca"],
-        subject: "ASA App Contact",
-        body: "",
-        isHtml: false,
-      });
+    if (url === "sentry:feedback") {
+      getFeedback()?.openDialog();
     } else {
       window.open(url, "_blank", "noopener,noreferrer");
     }
@@ -39,7 +34,7 @@ export const HamburgerMenu = ({
 
   return (
     <div data-testid={testId}>
-      <IconButton onClick={() => setOpen(true)}>
+      <IconButton aria-label="open menu" onClick={() => setOpen(true)}>
         <MenuIcon fontSize="large" sx={{ color: "white" }} />
       </IconButton>
       <Drawer
@@ -114,7 +109,7 @@ export const HamburgerMenu = ({
                 title: "Copyright",
               },
               {
-                url: "mailto:bcws.predictiveservices@gov.bc.ca",
+                url: "sentry:feedback",
                 title: "Contact Us",
               },
             ].map((item) => (

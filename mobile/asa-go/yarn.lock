@@ -2898,11 +2898,6 @@ caniuse-lite@^1.0.30001759:
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001777.tgz#028f21e4b2718d138b55e692583e6810ccf60691"
   integrity sha512-tmN+fJxroPndC74efCdp12j+0rk0RHwV5Jwa1zWaFVyw2ZxAuPeG8ZgWC3Wz7uSjT3qMRQ5XHZ4COgQmsCMJAQ==
 
-capacitor-email-composer@^7.0.0:
-  version "7.0.2"
-  resolved "https://registry.yarnpkg.com/capacitor-email-composer/-/capacitor-email-composer-7.0.2.tgz#e6009b0ea3cdbedcd87380a36cc8fe7d59f52d13"
-  integrity sha512-X2rTe7MykI16bqJWZ9KyoYbVq1KioFxEgGGk64It0rsL1ziV5Sdl8IBoMyVlpis6U4Hcke6CEkcaG1kQg+1mBg==
-
 chai@^6.2.1:
   version "6.2.2"
   resolved "https://registry.yarnpkg.com/chai/-/chai-6.2.2.tgz#ae41b52c9aca87734505362717f3255facda360e"

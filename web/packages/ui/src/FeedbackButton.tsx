@@ -1,10 +1,10 @@
 import React from 'react'
 import { Button } from '@mui/material'
 import CampaignIcon from '@mui/icons-material/Campaign'
-import { feedbackIntegration } from '@sentry/react'
+import { getFeedback } from '@sentry/react'
 
 const FeedbackButton = ({ color }: { color: 'primary' | 'inherit' }) => {
-  const feedback = feedbackIntegration({ colorScheme: 'system' })
+  const feedback = getFeedback()
 
   if (!feedback) {
     return null
