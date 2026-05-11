@@ -25,12 +25,15 @@ export const HamburgerMenu = ({
   const [open, setOpen] = useState(false);
 
   const handleListButtonClick = async (url: string) => {
+    setOpen(false);
     if (url === "sentry:feedback") {
       const feedback = getFeedback();
       if (feedback) {
         const form = await feedback.createForm();
-        form.appendToDom();
-        form.open();
+        setTimeout(() => {
+          form.appendToDom();
+          form.open();
+        }, 300);
       }
     } else {
       window.open(url, "_blank", "noopener,noreferrer");
@@ -115,7 +118,7 @@ export const HamburgerMenu = ({
               },
               {
                 url: "sentry:feedback",
-                title: "Contact Us",
+                title: "Submit Feedback",
               },
             ].map((item) => (
               <ListItemButton
