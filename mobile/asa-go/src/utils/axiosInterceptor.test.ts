@@ -2,6 +2,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AxiosHeaders, type InternalAxiosRequestConfig } from "axios";
+import { AuthSessionMode } from "@/slices/authenticationSlice";
 
 const API_BASE_URL = "https://psu-api.example.com/api";
 const API_PUBLIC_BASE_URL = "https://public-psu-api.example.com/api";
@@ -10,7 +11,7 @@ const setup = async ({
   sessionMode = "authenticated",
   token = "test-token",
 }: {
-  sessionMode?: "login" | "guest" | "authenticated";
+  sessionMode?: AuthSessionMode;
   token?: string | null;
 } = {}) => {
   vi.resetModules();
@@ -27,7 +28,7 @@ const setup = async ({
   const selectAuthentication = vi.fn(
     (state: {
       authentication: {
-        sessionMode: "login" | "guest" | "authenticated";
+        sessionMode: AuthSessionMode;
         token?: string | null;
       };
     }) => {
@@ -69,7 +70,7 @@ const setup = async ({
 };
 
 const configure = async (auth?: {
-  sessionMode?: "login" | "guest" | "authenticated";
+  sessionMode?: AuthSessionMode;
   token?: string | null;
 }) => {
   const context = await setup(auth);
