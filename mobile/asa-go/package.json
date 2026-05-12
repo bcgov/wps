@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "resolutions": {
-    "react-is": "18.3.1"
+    "react-is": "18.3.1",
+    "vite": "^7.0.0"
   },
   "scripts": {
     "dev": "vite",

@@ -82,22 +82,22 @@ describe("SubscriptionOption", () => {
     });
 
     expect(screen.getByText("K2-Kamloops")).toBeInTheDocument();
-    expect(screen.queryByText(/\(Kamloops\)/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\(Kamloops\)/)).toBeNull();
   });
 
   it("renders with switch unchecked when not subscribed", () => {
     renderWithProvider(mockFireZoneUnit, []);
 
-    const switchEl = screen.getByRole("checkbox", {
+    const switchEl = screen.getByRole<HTMLInputElement>("switch", {
       name: KAMLOOPS_SWITCH_LABEL,
     });
-    expect(switchEl).not.toBeChecked();
+    expect(switchEl.checked).toBe(false);
   });
 
   it("renders with switch checked when subscribed", () => {
     renderWithProvider(mockFireZoneUnit, [123]);
 
-    const switchEl = screen.getByRole("checkbox", {
+    const switchEl = screen.getByRole("switch", {
       name: KAMLOOPS_SWITCH_LABEL,
     });
     expect(switchEl).toBeChecked();
@@ -121,14 +121,14 @@ describe("SubscriptionOption", () => {
     fireEvent.click(listItemButton);
 
     await waitFor(() => {
-      expect(store.getState().settings.subscriptions).not.toContain(123);
+      expect(store.getState().settings.subscriptions.includes(123)).toBe(false);
     });
   });
 
   it("toggles subscription on when toggling the switch (turn on)", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, []);
 
-    const switchEl = screen.getByRole("checkbox", {
+    const switchEl = screen.getByRole("switch", {
       name: KAMLOOPS_SWITCH_LABEL,
     });
     fireEvent.click(switchEl);
@@ -141,13 +141,13 @@ describe("SubscriptionOption", () => {
   it("toggles subscription off when toggling the switch (turn off)", async () => {
     const { store } = renderWithProvider(mockFireZoneUnit, [123]);
 
-    const switchEl = screen.getByRole("checkbox", {
+    const switchEl = screen.getByRole("switch", {
       name: KAMLOOPS_SWITCH_LABEL,
     });
     fireEvent.click(switchEl);
 
     await waitFor(() => {
-      expect(store.getState().settings.subscriptions).not.toContain(123);
+      expect(store.getState().settings.subscriptions.includes(123)).toBe(false);
     });
   });
 
@@ -158,7 +158,7 @@ describe("SubscriptionOption", () => {
       expect(store.getState().settings.subscriptions).toEqual([100, 200]);
     });
 
-    const switchEl = screen.getByRole("checkbox", {
+    const switchEl = screen.getByRole("switch", {
       name: KAMLOOPS_SWITCH_LABEL,
     });
     fireEvent.click(switchEl);
