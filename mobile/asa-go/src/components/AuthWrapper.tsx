@@ -1,7 +1,9 @@
 import AsaIcon from "@/assets/asa-go-transparent.png";
 import AppDescription from "@/components/AppDescription";
 import LoginButton from "@/components/LoginButton";
+import { continueAsGuest } from "@/slices/authenticationSlice";
 import { selectAuthentication, selectNetworkStatus } from "@/store";
+import type { AppDispatch } from "@/store";
 import {
   Box,
   Button,
@@ -10,8 +12,8 @@ import {
   useTheme,
 } from "@mui/material";
 import { isNull } from "lodash";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 interface Props {
   children: React.ReactElement;
@@ -19,12 +21,13 @@ interface Props {
 
 const AuthWrapper = ({ children }: Props) => {
   const theme = useTheme();
-  const [continueAsGuest, setContinueAsGuest] = useState(false);
-  const { isAuthenticated, authenticating, error } =
-    useSelector(selectAuthentication);
+  const dispatch: AppDispatch = useDispatch();
+  const { sessionMode, authenticating, error } = useSelector(
+    selectAuthentication,
+  );
   const { networkStatus } = useSelector(selectNetworkStatus);
 
-  if (continueAsGuest || isAuthenticated || !networkStatus.connected) {
+  if (sessionMode !== "login" || !networkStatus.connected) {
     return <React.StrictMode>{children}</React.StrictMode>;
   }
 
@@ -101,7 +104,7 @@ const AuthWrapper = ({ children }: Props) => {
           <>
             <LoginButton label="Login" />
             <Button
-              onClick={() => setContinueAsGuest(true)}
+              onClick={() => dispatch(continueAsGuest())}
               sx={{
                 color: "white",
                 mt: theme.spacing(2),

@@ -1,28 +1,32 @@
-import { authenticatedApi } from "@/api/axios";
+import { api } from "@/api/axios";
 import { resetAuthentication } from "@/slices/authenticationSlice";
-import { selectToken, store } from "@/store";
+import { API_BASE_URL, API_PUBLIC_BASE_URL } from "@/utils/env";
+import { selectAuthentication, store } from "@/store";
 import { isNil } from "lodash";
 
 let interceptorsConfigured = false;
 
-export const configureAuthenticatedApiInterceptors = () => {
+export const configureApiInterceptors = () => {
   if (interceptorsConfigured) {
     return;
   }
 
   interceptorsConfigured = true;
 
-  // add auth headers on the authenticated client
-  authenticatedApi.interceptors.request.use((config) => {
-    const token = selectToken(store.getState());
-    if (!isNil(token)) {
-      config.headers.Authorization = `Bearer ${token}`;
+  api.interceptors.request.use((config) => {
+    const { sessionMode, token } = selectAuthentication(store.getState());
+    if (sessionMode === "authenticated" && !isNil(token)) {
+      config.baseURL = API_BASE_URL;
+      config.headers.set("Authorization", `Bearer ${token}`);
+    } else {
+      config.baseURL = `${API_PUBLIC_BASE_URL}/asa-go`;
+      config.headers.delete("Authorization");
     }
 
     return config;
   });
 
-  authenticatedApi.interceptors.response.use(
+  api.interceptors.response.use(
     // If there is a response we simply return it
     (response) => response,
 
