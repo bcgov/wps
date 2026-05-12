@@ -37,7 +37,7 @@ describe("AuthWrapper", () => {
   it("renders children when authenticated", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: true,
+      sessionMode: "authenticated",
       authenticating: false,
       error: null,
       tokenRefreshed: false,
@@ -54,7 +54,7 @@ describe("AuthWrapper", () => {
   it("renders children when not authenticated and offline", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: false,
       error: null,
       tokenRefreshed: false,
@@ -71,10 +71,10 @@ describe("AuthWrapper", () => {
     expect(screen.getByText("Protected")).toBeInTheDocument();
   });
 
-  it("renders login button when online, unauthenticated and not authenticating", () => {
+  it("renders login button when online, in login mode and not authenticating", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: false,
       error: null,
       tokenRefreshed: false,
@@ -94,7 +94,7 @@ describe("AuthWrapper", () => {
   it("renders app description and title when unauthenticated and not authenticating", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: false,
       error: null,
       tokenRefreshed: false,
@@ -116,7 +116,7 @@ describe("AuthWrapper", () => {
   it("renders loading spinner when authenticating", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: true,
       error: null,
       tokenRefreshed: false,
@@ -136,7 +136,7 @@ describe("AuthWrapper", () => {
   it("renders error message when login fails", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: false,
       error: "Invalid credentials",
       tokenRefreshed: false,
