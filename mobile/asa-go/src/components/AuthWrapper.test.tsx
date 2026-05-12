@@ -26,7 +26,7 @@ const renderWithProviders = (children = <div>Protected</div>) =>
       <ThemeProvider theme={theme}>
         <AuthWrapper>{children}</AuthWrapper>
       </ThemeProvider>
-    </Provider>
+    </Provider>,
   );
 
 describe("AuthWrapper", () => {
@@ -44,6 +44,7 @@ describe("AuthWrapper", () => {
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
 
     renderWithProviders();
@@ -61,6 +62,7 @@ describe("AuthWrapper", () => {
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: false, connectionType: "wifi" },
@@ -81,6 +83,7 @@ describe("AuthWrapper", () => {
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: true, connectionType: "wifi" },
@@ -101,6 +104,7 @@ describe("AuthWrapper", () => {
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: true, connectionType: "wifi" },
@@ -123,6 +127,7 @@ describe("AuthWrapper", () => {
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: true, connectionType: "wifi" },
@@ -143,6 +148,7 @@ describe("AuthWrapper", () => {
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: true, connectionType: "wifi" },
@@ -151,7 +157,7 @@ describe("AuthWrapper", () => {
     renderWithProviders();
 
     expect(
-      screen.getByText("Unable to login, please try again.")
+      screen.getByText("Unable to login, please try again."),
     ).toBeInTheDocument();
   });
 });
