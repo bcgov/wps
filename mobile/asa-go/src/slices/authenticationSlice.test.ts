@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { vi, Mock, describe, it, expect, beforeEach } from "vitest";
 import authenticationSlice, {
   initialState,
@@ -5,6 +7,8 @@ import authenticationSlice, {
   authenticateFinished,
   authenticateError,
   refreshTokenFinished,
+  continueAsGuest,
+  resetAuthentication,
   authenticate,
   AuthState,
 } from "@/slices/authenticationSlice";
@@ -105,12 +109,37 @@ describe("authenticationSlice", () => {
     });
 
     it("should handle authenticateStart", () => {
-      const previousState = createAuthState({ authenticating: false });
+      const previousState = createAuthState({
+        authenticating: false,
+        sessionMode: "guest",
+      });
       const nextState = authenticationSlice(previousState, authenticateStart());
 
       expectAuthState(nextState, {
+        sessionMode: "login",
         authenticating: true,
-        isAuthenticated: false,
+        error: null,
+      });
+    });
+
+    it("should handle continueAsGuest", () => {
+      const previousState = createAuthState({
+        authenticating: true,
+        error: "Authentication failed",
+        sessionMode: "authenticated",
+        token: "existing-token",
+        idToken: "existing-id-token",
+        idir: "test-user",
+      });
+
+      const nextState = authenticationSlice(previousState, continueAsGuest());
+
+      expectAuthState(nextState, {
+        sessionMode: "guest",
+        authenticating: false,
+        token: undefined,
+        idToken: undefined,
+        idir: undefined,
         error: null,
       });
     });
@@ -118,7 +147,6 @@ describe("authenticationSlice", () => {
     it("should handle authenticateFinished with successful authentication", () => {
       const previousState = createAuthState({ authenticating: true });
       const payload = {
-        isAuthenticated: true,
         token: mockValidToken,
         idToken: "id-token-456",
       };
@@ -129,38 +157,17 @@ describe("authenticationSlice", () => {
       );
 
       expectAuthState(nextState, {
+        sessionMode: "authenticated",
         authenticating: false,
-        isAuthenticated: true,
         token: mockValidToken,
         idToken: "id-token-456",
       });
-    });
-
-    it("should handle authenticateFinished with failed authentication", () => {
-      const previousState = createAuthState({ authenticating: true });
-      const payload = {
-        isAuthenticated: false,
-        token: undefined,
-        idToken: undefined,
-      };
-
-      const nextState = authenticationSlice(
-        previousState,
-        authenticateFinished(payload),
-      );
-
-      expectAuthState(nextState, {
-        authenticating: false,
-        isAuthenticated: false,
-      });
-      expect(nextState.token).toBeUndefined();
-      expect(nextState.idToken).toBeUndefined();
     });
 
     it("should handle authenticateError", () => {
       const previousState = createAuthState({
         authenticating: true,
-        isAuthenticated: true,
+        sessionMode: "authenticated",
       });
       const errorMessage = "Authentication failed";
 
@@ -170,8 +177,8 @@ describe("authenticationSlice", () => {
       );
 
       expectAuthState(nextState, {
+        sessionMode: "login",
         authenticating: false,
-        isAuthenticated: false,
         error: errorMessage,
       });
     });
@@ -194,6 +201,7 @@ describe("authenticationSlice", () => {
       );
 
       expectAuthState(nextState, {
+        sessionMode: "authenticated",
         token: mockValidToken,
         idToken: "new-id-token",
         tokenRefreshed: true,
@@ -220,6 +228,27 @@ describe("authenticationSlice", () => {
       expect(nextState.token).toBeUndefined();
       expect(nextState.idToken).toBeUndefined();
       expect(nextState.tokenRefreshed).toBe(false);
+    });
+
+    it("should handle resetAuthentication", () => {
+      const previousState = createAuthState({
+        sessionMode: "authenticated",
+        token: "existing-token",
+        idToken: "existing-id-token",
+        idir: "test-user",
+      });
+
+      const nextState = authenticationSlice(
+        previousState,
+        resetAuthentication(),
+      );
+
+      expectAuthState(nextState, {
+        sessionMode: "login",
+        token: undefined,
+        idToken: undefined,
+        idir: undefined,
+      });
     });
   });
 
@@ -248,7 +277,7 @@ describe("authenticationSlice", () => {
         await store.dispatch(authenticate());
 
         expectAuthState(store.getState().authentication, {
-          isAuthenticated: true,
+          sessionMode: "authenticated",
           token: mockValidToken,
           idToken: "test-id-token",
           authenticating: false,
@@ -264,7 +293,7 @@ describe("authenticationSlice", () => {
         await store.dispatch(authenticate());
 
         expectAuthState(store.getState().authentication, {
-          isAuthenticated: false,
+          sessionMode: "login",
           error: JSON.stringify(mockResult.error),
           authenticating: false,
         });
@@ -277,7 +306,7 @@ describe("authenticationSlice", () => {
         await store.dispatch(authenticate());
 
         expectAuthState(store.getState().authentication, {
-          isAuthenticated: false,
+          sessionMode: "login",
           error: JSON.stringify(mockResult.error),
           authenticating: false,
         });

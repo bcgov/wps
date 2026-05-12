@@ -24,7 +24,6 @@ import {
   selectFireCentres,
   selectNetworkStatus,
   selectRunParameters,
-  selectAuthentication,
   selectSettings,
   selectPushNotification,
   selectProvincialSummaries,
@@ -59,7 +58,6 @@ const App = () => {
   const isPortrait = useIsPortrait();
   const dispatch: AppDispatch = useDispatch();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
-  const { isAuthenticated } = useSelector(selectAuthentication);
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
@@ -106,10 +104,8 @@ const App = () => {
   }, [isPortrait]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      initPushNotifications();
-    }
-  }, [initPushNotifications, isAuthenticated]);
+    initPushNotifications();
+  }, [initPushNotifications]);
 
   useEffect(() => {
     if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;

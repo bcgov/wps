@@ -26,7 +26,7 @@ const renderWithProviders = (children = <div>Protected</div>) =>
       <ThemeProvider theme={theme}>
         <AuthWrapper>{children}</AuthWrapper>
       </ThemeProvider>
-    </Provider>
+    </Provider>,
   );
 
 describe("AuthWrapper", () => {
@@ -37,13 +37,14 @@ describe("AuthWrapper", () => {
   it("renders children when authenticated", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: true,
+      sessionMode: "authenticated",
       authenticating: false,
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
 
     renderWithProviders();
@@ -54,13 +55,14 @@ describe("AuthWrapper", () => {
   it("renders children when not authenticated and offline", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: false,
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: false, connectionType: "wifi" },
@@ -71,16 +73,17 @@ describe("AuthWrapper", () => {
     expect(screen.getByText("Protected")).toBeInTheDocument();
   });
 
-  it("renders login button when online, unauthenticated and not authenticating", () => {
+  it("renders login button when online, in login mode and not authenticating", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: false,
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: true, connectionType: "wifi" },
@@ -94,13 +97,14 @@ describe("AuthWrapper", () => {
   it("renders app description and title when unauthenticated and not authenticating", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: false,
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: true, connectionType: "wifi" },
@@ -116,13 +120,14 @@ describe("AuthWrapper", () => {
   it("renders loading spinner when authenticating", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: true,
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: true, connectionType: "wifi" },
@@ -136,13 +141,14 @@ describe("AuthWrapper", () => {
   it("renders error message when login fails", () => {
     vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      isAuthenticated: false,
+      sessionMode: "login",
       authenticating: false,
       error: "Invalid credentials",
       tokenRefreshed: false,
       idToken: undefined,
       idir: undefined,
       token: "test-token",
+      email: "test@email.com",
     });
     vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
       networkStatus: { connected: true, connectionType: "wifi" },
@@ -151,7 +157,7 @@ describe("AuthWrapper", () => {
     renderWithProviders();
 
     expect(
-      screen.getByText("Unable to login, please try again.")
+      screen.getByText("Unable to login, please try again."),
     ).toBeInTheDocument();
   });
 });

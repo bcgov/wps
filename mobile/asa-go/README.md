@@ -63,7 +63,9 @@ cd mobile/asa-go/android
 
 Get your local machine IP: `ipconfig getifaddr en0`
 
-1. Set `VITE_API_BASE_URL=http://{local_machine_ip}:8080/api` in `.env.development`
+1. Set these values in `.env.development`:
+   `VITE_API_BASE_URL=http://{local_machine_ip}:8080/api`
+   `VITE_PUBLIC_API_BASE_URL=http://{local_machine_ip}:8081/api/`
 2. Set `ORIGINS="http://localhost/ http://{local_machine_ip}:8080"` in `backend/packages/wps-api/src/app/.env`
 3. Add `server: { androidScheme: "http" }` to the root of the config in `capacitor.config.ts`
 4. Add `<domain includeSubdomains="true">{local_machine_ip}</domain>` to the `domain-config` list in `network_security_config.xml`
@@ -123,9 +125,9 @@ All three jobs use the shared composite action `.github/actions/asa-go-setup`, w
 
 ### Android Release Build (`.github/workflows/asa_go_android_build.yml`)
 
-Builds a signed release APK. Requires these GitHub secrets:
+Builds a signed release APK. Requires these GitHub secrets/variables:
 
-- `VITE_API_BASE_URL`, `VITE_KEYCLOAK_AUTH_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT`
+- `VITE_AUTH_API_BASE_URL`, `VITE_PUBLIC_API_BASE_URL`, `VITE_KEYCLOAK_AUTH_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT`
 - `VITE_PMTILES_BUCKET`, `VITE_BASEMAP_TILE_URL`, `VITE_BASEMAP_STYLE_URL`
 - `ANDROID_KEY_ALIAS`, `ANDROID_SIGNING_STORE_PASSWORD`, `ANDROID_SIGNING_KEY_PASSWORD`, `ANDROID_KEYSTORE_BASE64`
 

@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import axios from "@/api/axios";
 import {
   getNotificationSettings,
@@ -30,7 +32,7 @@ describe("pushNotificationsAPI", () => {
         "user-1",
       );
 
-      expect(axios.post).toHaveBeenCalledWith("asa-go/device/register", {
+      expect(axios.post).toHaveBeenCalledWith("device/register", {
         platform: "android",
         token: "my-token",
         device_id: "device-1",
@@ -45,7 +47,7 @@ describe("pushNotificationsAPI", () => {
       await registerToken("ios", "my-token", "device-1", null);
 
       expect(axios.post).toHaveBeenCalledWith(
-        "asa-go/device/register",
+        "device/register",
         expect.objectContaining({ user_id: null }),
       );
     });
@@ -57,7 +59,7 @@ describe("pushNotificationsAPI", () => {
 
       const result = await unregisterToken("my-token");
 
-      expect(axios.post).toHaveBeenCalledWith("asa-go/device/unregister", {
+      expect(axios.post).toHaveBeenCalledWith("device/unregister", {
         token: "my-token",
       });
       expect(result).toEqual({ success: true });
@@ -73,7 +75,7 @@ describe("pushNotificationsAPI", () => {
       const result = await getNotificationSettings("device-1");
 
       expect(axios.get).toHaveBeenCalledWith(
-        "asa-go/device/notification-settings",
+        "device/notification-settings",
         {
           params: { device_id: "device-1" },
         },
@@ -101,7 +103,7 @@ describe("pushNotificationsAPI", () => {
       const result = await updateNotificationSettings("device-1", ["5", "10"]);
 
       expect(axios.post).toHaveBeenCalledWith(
-        "asa-go/device/notification-settings",
+        "device/notification-settings",
         {
           device_id: "device-1",
           fire_zone_source_ids: ["5", "10"],
@@ -118,7 +120,7 @@ describe("pushNotificationsAPI", () => {
       const result = await updateNotificationSettings("device-1", []);
 
       expect(axios.post).toHaveBeenCalledWith(
-        "asa-go/device/notification-settings",
+        "device/notification-settings",
         {
           device_id: "device-1",
           fire_zone_source_ids: [],
