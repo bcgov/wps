@@ -38,7 +38,7 @@ const setup = async ({
   const resetAuthentication = vi.fn(() => resetAuthenticationAction);
 
   vi.doMock("@/api/axios", () => ({
-    api: {
+    default: {
       interceptors: {
         request: { use: requestUse },
         response: { use: responseUse },
