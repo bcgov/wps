@@ -63,6 +63,27 @@ describe("HamburgerMenu", () => {
     mockOpen.mockRestore();
   });
 
+  it("does not open the feedback form when the drawer closes without Submit Feedback being clicked", async () => {
+    const mockForm = { appendToDom: vi.fn(), open: vi.fn() };
+    const mockCreateForm = vi.fn().mockResolvedValue(mockForm);
+    mockGetFeedback.mockReturnValue({ createForm: mockCreateForm });
+
+    render(<HamburgerMenu {...defaultProps} />);
+    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
+
+    const closeButton = await screen.findByRole("button", { name: /close settings/i });
+    fireEvent.click(closeButton);
+
+    await vi.waitFor(
+      () => {
+        expect(mockCreateForm).not.toHaveBeenCalled();
+        expect(mockForm.appendToDom).not.toHaveBeenCalled();
+        expect(mockForm.open).not.toHaveBeenCalled();
+      },
+      { timeout: 1000 },
+    );
+  });
+
   it("does not throw when getFeedback returns undefined and Submit Feedback is clicked", async () => {
     mockGetFeedback.mockReturnValue(undefined);
 
