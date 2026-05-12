@@ -1,11 +1,10 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { Mock, vi } from "vitest";
 import LoginButton from "@/components/LoginButton";
-import { useDispatch } from "react-redux";
 import { authenticate } from "@/slices/authenticationSlice";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useDispatch } from "react-redux";
+import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mocks
 vi.mock("react-redux", async () => {
   const actual = await vi.importActual("react-redux");
   return {
@@ -27,24 +26,23 @@ describe("LoginButton", () => {
     mockDispatch.mockClear();
   });
 
-  it("renders the button with the correct label", () => {
+  const renderComponent = () =>
     render(
       <ThemeProvider theme={theme}>
-        <LoginButton label="Sign In" />
-      </ThemeProvider>
+        <LoginButton />
+      </ThemeProvider>,
     );
 
-    expect(screen.getByText("Sign In")).toBeInTheDocument();
+  it("renders the IDIR label", () => {
+    renderComponent();
+
+    expect(screen.getByRole("button", { name: /idir/i })).toBeInTheDocument();
   });
 
   it("dispatches authenticate on click", () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <LoginButton label="Sign In" />
-      </ThemeProvider>
-    );
+    renderComponent();
 
-    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    fireEvent.click(screen.getByRole("button", { name: /idir/i }));
 
     expect(mockDispatch).toHaveBeenCalledWith(authenticate());
   });

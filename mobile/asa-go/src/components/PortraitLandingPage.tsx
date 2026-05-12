@@ -1,24 +1,14 @@
 import AsaIcon from "@/assets/asa-go-transparent.png";
 import AppDescription from "@/components/AppDescription";
-import LoginButton from "@/components/LoginButton";
-import PublicLoginButton from "@/components/PublicLoginButton";
+import LoginActions from "@/components/LoginActions";
 import { useIsTablet } from "@/hooks/useIsTablet";
 import { useIsXSSmallScreen } from "@/hooks/useIsXSScreen";
-import { selectAuthentication } from "@/store";
-import {
-  Box,
-  CircularProgress,
-  Typography,
-  TypographyVariant,
-  useTheme,
-} from "@mui/material";
-import { useSelector } from "react-redux";
+import { Box, Typography, TypographyVariant, useTheme } from "@mui/material";
 
 const PortraitLandingPage = () => {
   const theme = useTheme();
   const isXSSmallScreen = useIsXSSmallScreen();
   const isTablet = useIsTablet();
-  const { authenticating } = useSelector(selectAuthentication);
 
   const getValueByScreenSize = (xs: string, sm: string, md: string) => {
     if (isXSSmallScreen) {
@@ -91,36 +81,11 @@ const PortraitLandingPage = () => {
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
+              pt: theme.spacing(4),
               width: "100%",
             }}
           >
-            {!authenticating && (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  width: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    pt: theme.spacing(4),
-                    pb: theme.spacing(4),
-                  }}
-                >
-                  <LoginButton />
-                </Box>
-                <PublicLoginButton />
-              </Box>
-            )}
-            {authenticating && (
-              <Box sx={{ pt: theme.spacing(4) }}>
-                <CircularProgress color="secondary" />
-              </Box>
-            )}
+            <LoginActions />
           </Box>
         </Box>
       </Box>

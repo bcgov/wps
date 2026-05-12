@@ -20,7 +20,7 @@ const AuthWrapper = ({ children }: Props) => {
     return <React.StrictMode>{children}</React.StrictMode>;
   }
 
-  // Phones in portrait orientation and all tablets have enough vertical real estate to render all the
+  // A phone in portrait orientation and all tablets have enough vertical real estate to render all the
   // landing page elements as a stack. Phones in landscape orientation need things re-organized.
   return isPortrait || isTablet ? (
     <PortraitLandingPage />

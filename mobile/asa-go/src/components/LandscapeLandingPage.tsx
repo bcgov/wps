@@ -1,18 +1,13 @@
 import AsaIcon from "@/assets/asa-go-transparent.png";
 import AppDescription from "@/components/AppDescription";
-import LoginButton from "@/components/LoginButton";
-import PublicLoginButton from "@/components/PublicLoginButton";
+import LoginActions from "@/components/LoginActions";
 import { useIsXSSmallScreen } from "@/hooks/useIsXSScreen";
-import { selectAuthentication } from "@/store";
-import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
-import { isNull } from "lodash";
-import { useSelector } from "react-redux";
+import { Box, Typography, useTheme } from "@mui/material";
 
 // Landscape orientation landing page for phones only, not to be used with tablets.
 const LandscapeLandingPage = () => {
   const theme = useTheme();
   const isXSSmallScreen = useIsXSSmallScreen();
-  const { authenticating, error } = useSelector(selectAuthentication);
 
   return (
     <Box
@@ -70,28 +65,11 @@ const LandscapeLandingPage = () => {
             sx={{
               alignItems: "center",
               display: "flex",
-              flexDirection: "row",
-              gap: theme.spacing(2),
               justifyContent: "center",
               pt: theme.spacing(8),
             }}
           >
-            {!authenticating && (
-              <>
-                <Box sx={{ pr: theme.spacing(4) }}>
-                  <LoginButton />
-                </Box>
-                <Box sx={{ pl: theme.spacing(4) }}>
-                  <PublicLoginButton />
-                </Box>
-              </>
-            )}
-            {authenticating && <CircularProgress color="secondary" />}
-            {!isNull(error) && (
-              <Typography sx={{ color: "white" }} variant="body1">
-                Unable to login, please try again.
-              </Typography>
-            )}
+            <LoginActions direction="row" />
           </Box>
         </Box>
       </Box>
