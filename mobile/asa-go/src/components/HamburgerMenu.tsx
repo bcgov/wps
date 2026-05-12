@@ -7,9 +7,9 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { EmailComposer } from "capacitor-email-composer";
 import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { getFeedback } from "@sentry/react";
 
 export interface HamburgerMenuProps {
   drawerTop: number;
@@ -23,15 +23,15 @@ export const HamburgerMenu = ({
   testId,
 }: HamburgerMenuProps) => {
   const [open, setOpen] = useState(false);
+  const pendingFeedbackForm = useRef<{ appendToDom: () => void; open: () => void } | null>(null);
 
-  const handleListButtonClick = (url: string) => {
-    if (url.startsWith("mail:to")) {
-      EmailComposer.open({
-        to: ["bcws.predictiveservices@gov.bc.ca"],
-        subject: "ASA App Contact",
-        body: "",
-        isHtml: false,
-      });
+  const handleListButtonClick = async (url: string) => {
+    setOpen(false);
+    if (url === "sentry:feedback") {
+      const feedback = getFeedback();
+      if (feedback) {
+        pendingFeedbackForm.current = await feedback.createForm();
+      }
     } else {
       window.open(url, "_blank", "noopener,noreferrer");
     }
@@ -39,7 +39,7 @@ export const HamburgerMenu = ({
 
   return (
     <div data-testid={testId}>
-      <IconButton onClick={() => setOpen(true)}>
+      <IconButton aria-label="open menu" onClick={() => setOpen(true)}>
         <MenuIcon fontSize="large" sx={{ color: "white" }} />
       </IconButton>
       <Drawer
@@ -47,6 +47,15 @@ export const HamburgerMenu = ({
         open={open}
         onClose={() => setOpen(false)}
         slotProps={{
+          transition: {
+            onExited: () => {
+              if (pendingFeedbackForm.current) {
+                pendingFeedbackForm.current.appendToDom();
+                pendingFeedbackForm.current.open();
+                pendingFeedbackForm.current = null;
+              }
+            },
+          },
           paper: {
             sx: {
               top: `${drawerTop}px`,
@@ -114,8 +123,8 @@ export const HamburgerMenu = ({
                 title: "Copyright",
               },
               {
-                url: "mailto:bcws.predictiveservices@gov.bc.ca",
-                title: "Contact Us",
+                url: "sentry:feedback",
+                title: "Submit Feedback",
               },
             ].map((item) => (
               <ListItemButton

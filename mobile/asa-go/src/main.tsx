@@ -9,13 +9,27 @@ import App from "@/App.tsx";
 import AuthWrapper from "@/components/AuthWrapper";
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
-import { ErrorBoundary } from "@sentry/react";
+import { ErrorBoundary, feedbackIntegration } from "@sentry/react";
 
 Sentry.init(
   {
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
-    integrations: [Sentry.browserTracingIntegration()],
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      feedbackIntegration({
+        autoInject: false,
+        colorScheme: "light",
+        enableScreenshot: true,
+        themeLight: {
+          submitBackground: theme.palette.primary.main,
+          submitBorder: theme.palette.primary.main,
+          submitForeground: theme.palette.primary.contrastText,
+          accentBackground: theme.palette.secondary.main,
+          accentForeground: theme.palette.secondary.contrastText,
+        },
+      }),
+    ],
     tracesSampleRate: 0.1,
   },
   SentryReact.init,

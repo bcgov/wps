@@ -7,12 +7,29 @@ import { SENTRY_DSN, SENTRY_ENV, API_BASE_URL } from '@wps/utils/env'
 import './index.css'
 import store from 'app/store'
 import * as Sentry from '@sentry/react'
+import { feedbackIntegration } from '@sentry/react'
+import { theme } from '@wps/ui/theme'
 
 const render = () => {
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: SENTRY_ENV,
-    integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration(),
+      feedbackIntegration({
+        autoInject: false,
+        colorScheme: 'light',
+        enableScreenshot: true,
+        themeLight: {
+          submitBackground: theme.palette.primary.main,
+          submitBorder: theme.palette.primary.main,
+          submitForeground: theme.palette.primary.contrastText,
+          accentBackground: theme.palette.secondary.main,
+          accentForeground: theme.palette.secondary.contrastText,
+        },
+      }),
+    ],
     // Performance Monitoring
     tracesSampleRate: 0.5, //  Capture 50% of the transactions
     // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled

@@ -1,10 +1,21 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <title>ASA Go</title>
+    <style>
+      /* --page-margin is a documented Sentry feedback CSS variable (shorthand top right bottom left).
+         top: safe area keeps the dialog below the native status bar.
+         bottom: auto lets the dialog size to its content, eliminating the space-between whitespace. */
+      #sentry-feedback {
+        --page-margin: env(safe-area-inset-top) 16px auto 16px;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

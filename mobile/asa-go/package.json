@@ -51,7 +51,6 @@
     "@sentry/react": "10.43.0",
     "@sentry/vite-plugin": "^5.2.0",
     "axios": "^1.7.9",
-    "capacitor-email-composer": "^7.0.0",
     "firebase": "^12.9.0",
     "jwt-decode": "^4.0.0",
     "keycloak": "../keycloak",

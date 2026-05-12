@@ -1,6 +1,7 @@
 import axios from "@/api/axios";
 import { resetAuthentication } from "@/slices/authenticationSlice";
 import { AppThunk, selectToken } from "@/store";
+import * as Sentry from "@sentry/capacitor";
 import { isNil } from "lodash";
 
 export const setAxiosRequestInterceptors =
@@ -23,6 +24,7 @@ export const setAxiosRequestInterceptors =
       (error) => {
         if (error?.response?.status === 401) {
           dispatch(resetAuthentication());
+          Sentry.setUser(null);
         }
         return Promise.reject(error);
       }
