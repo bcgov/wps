@@ -4,9 +4,9 @@ import { HamburgerMenu } from "@/components/HamburgerMenu";
 
 vi.mock("@sentry/react", () => ({
   getFeedback: vi.fn(),
-}))
+}));
 
-vi.mock("@sentry/capacitor", () => ({}))
+vi.mock("@sentry/capacitor", () => ({}));
 
 import { getFeedback } from "@sentry/react";
 const mockGetFeedback = getFeedback as ReturnType<typeof vi.fn>;
@@ -24,7 +24,7 @@ describe("HamburgerMenu", () => {
     expect(screen.getByRole("button", { name: /open menu/i })).toBeInTheDocument();
   });
 
-  it('opens the Sentry feedback dialog when Submit Feedback is clicked', async () => {
+  it("opens the Sentry feedback dialog when Submit Feedback is clicked", async () => {
     const mockForm = { appendToDom: vi.fn(), open: vi.fn() };
     const mockCreateForm = vi.fn().mockResolvedValue(mockForm);
     mockGetFeedback.mockReturnValue({ createForm: mockCreateForm });
@@ -35,15 +35,18 @@ describe("HamburgerMenu", () => {
     const submitFeedback = await screen.findByText("Submit Feedback");
     fireEvent.click(submitFeedback);
 
-    await vi.waitFor(() => {
-      expect(mockCreateForm).toHaveBeenCalled();
-      expect(mockForm.appendToDom).toHaveBeenCalled();
-      expect(mockForm.open).toHaveBeenCalled();
-    }, { timeout: 1000 });
+    await vi.waitFor(
+      () => {
+        expect(mockCreateForm).toHaveBeenCalled();
+        expect(mockForm.appendToDom).toHaveBeenCalled();
+        expect(mockForm.open).toHaveBeenCalled();
+      },
+      { timeout: 1000 },
+    );
   });
 
-  it('opens external links in a new tab', async () => {
-    const mockOpen = vi.spyOn(window, 'open').mockImplementation(() => null);
+  it("opens external links in a new tab", async () => {
+    const mockOpen = vi.spyOn(window, "open").mockImplementation(() => null);
     mockGetFeedback.mockReturnValue(undefined);
 
     render(<HamburgerMenu {...defaultProps} />);
@@ -52,11 +55,15 @@ describe("HamburgerMenu", () => {
     const homeLink = await screen.findByText("Home");
     fireEvent.click(homeLink);
 
-    expect(mockOpen).toHaveBeenCalledWith("https://psu.nrs.gov.bc.ca/", "_blank", "noopener,noreferrer");
+    expect(mockOpen).toHaveBeenCalledWith(
+      "https://psu.nrs.gov.bc.ca/",
+      "_blank",
+      "noopener,noreferrer",
+    );
     mockOpen.mockRestore();
   });
 
-  it('does not throw when getFeedback returns undefined and Submit Feedback is clicked', async () => {
+  it("does not throw when getFeedback returns undefined and Submit Feedback is clicked", async () => {
     mockGetFeedback.mockReturnValue(undefined);
 
     render(<HamburgerMenu {...defaultProps} />);
