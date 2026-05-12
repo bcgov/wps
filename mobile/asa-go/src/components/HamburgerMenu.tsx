@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getFeedback } from "@sentry/react";
 
 export interface HamburgerMenuProps {
@@ -23,17 +23,14 @@ export const HamburgerMenu = ({
   testId,
 }: HamburgerMenuProps) => {
   const [open, setOpen] = useState(false);
+  const pendingFeedbackForm = useRef<{ appendToDom: () => void; open: () => void } | null>(null);
 
   const handleListButtonClick = async (url: string) => {
     setOpen(false);
     if (url === "sentry:feedback") {
       const feedback = getFeedback();
       if (feedback) {
-        const form = await feedback.createForm();
-        setTimeout(() => {
-          form.appendToDom();
-          form.open();
-        }, 300);
+        pendingFeedbackForm.current = await feedback.createForm();
       }
     } else {
       window.open(url, "_blank", "noopener,noreferrer");
@@ -50,6 +47,15 @@ export const HamburgerMenu = ({
         open={open}
         onClose={() => setOpen(false)}
         slotProps={{
+          transition: {
+            onExited: () => {
+              if (pendingFeedbackForm.current) {
+                pendingFeedbackForm.current.appendToDom();
+                pendingFeedbackForm.current.open();
+                pendingFeedbackForm.current = null;
+              }
+            },
+          },
           paper: {
             sx: {
               top: `${drawerTop}px`,
