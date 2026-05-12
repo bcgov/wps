@@ -48,13 +48,13 @@ def _validate_not_before_today(*dates: date) -> None:
         )
 
 
-@router.get("/fire-centre-info", response_model=FireCentreInfoResponse)
+@router.get("/fba/fire-centre-info", response_model=FireCentreInfoResponse)
 async def get_fire_centres_and_fire_zone_units():
     return await fba.get_fire_centres_and_fire_zone_units()
 
 
 @router.get(
-    "/provincial-summary/{run_type}/{run_datetime}/{for_date}",
+    "/fba/provincial-summary/{run_type}/{run_datetime}/{for_date}",
     response_model=ProvincialSummaryResponse,
 )
 async def get_provincial_summary(
@@ -66,7 +66,9 @@ async def get_provincial_summary(
     return await fba.get_provincial_summary(run_type, run_datetime, for_date)
 
 
-@router.get("/latest-sfms-run-datetime/{for_date}", response_model=LatestSFMSRunParameterResponse)
+@router.get(
+    "/fba/latest-sfms-run-datetime/{for_date}", response_model=LatestSFMSRunParameterResponse
+)
 async def get_latest_sfms_run_datetime_for_date(
     for_date: date,
 ):
@@ -74,12 +76,12 @@ async def get_latest_sfms_run_datetime_for_date(
     return await fba.get_latest_sfms_run_datetime_for_date(for_date)
 
 
-@router.get("/sfms-run-bounds", response_model=SFMSBoundsResponse)
+@router.get("/fba/sfms-run-bounds", response_model=SFMSBoundsResponse)
 async def get_sfms_run_bounds():
     return await fba.get_sfms_run_bounds()
 
 
-@router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
+@router.get("/fba/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
 async def get_run_datetimes_for_date_and_runtype(
     run_type: RunType,
     for_date: date,
@@ -89,7 +91,7 @@ async def get_run_datetimes_for_date_and_runtype(
 
 
 @router.get(
-    "/latest-sfms-run-parameters/{start_date}/{end_date}",
+    "/fba/latest-sfms-run-parameters/{start_date}/{end_date}",
     response_model=LatestSFMSRunParameterRangeResponse,
 )
 async def get_latest_sfms_run_datetime_for_date_range(
@@ -101,7 +103,7 @@ async def get_latest_sfms_run_datetime_for_date_range(
 
 
 @router.get(
-    "/hfi-stats/{run_type}/{run_datetime}/{for_date}",
+    "/fba/hfi-stats/{run_type}/{run_datetime}/{for_date}",
     response_model=HFIStatsResponse,
 )
 async def get_hfi_fuels_data_for_run_parameter(
@@ -114,7 +116,7 @@ async def get_hfi_fuels_data_for_run_parameter(
 
 
 @router.get(
-    "/tpi-stats/{run_type}/{run_datetime}/{for_date}",
+    "/fba/tpi-stats/{run_type}/{run_datetime}/{for_date}",
     response_model=TPIResponse,
 )
 async def get_tpi_stats_for_run_parameter(
@@ -126,7 +128,7 @@ async def get_tpi_stats_for_run_parameter(
     return await fba.get_tpi_stats_for_run_parameter(run_type, run_datetime, for_date)
 
 
-@router.get("/fire-centres", response_model=FireCentresResponse)
+@router.get("/psu/fire-centres", response_model=FireCentresResponse)
 async def get_all_psu_fire_centres():
     return await psu.get_all_fire_centres()
 

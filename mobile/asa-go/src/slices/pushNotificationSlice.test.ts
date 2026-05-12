@@ -171,8 +171,8 @@ describe("pushNotificationSlice", () => {
 
         const store = createTestStore({
           authentication: {
+            sessionMode: "authenticated",
             error: null,
-            isAuthenticated: true,
             idir: "test-user",
             authenticating: false,
             tokenRefreshed: false,
@@ -259,8 +259,8 @@ describe("pushNotificationSlice", () => {
 
         const store = createTestStore({
           authentication: {
+            sessionMode: "authenticated",
             error: null,
-            isAuthenticated: true,
             idir: "test-user",
             authenticating: false,
             tokenRefreshed: false,

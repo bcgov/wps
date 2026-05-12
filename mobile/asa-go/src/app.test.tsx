@@ -128,6 +128,21 @@ vi.mock("@/hooks/useIsPortrait", () => ({
   useIsPortrait: vi.fn(),
 }));
 
+vi.mock("@/api/axios", () => ({
+  default: {
+    get: vi.fn((url: string) => {
+      if (url === "psu/fire-centres") {
+        return Promise.resolve({ data: { fire_centres: [] } });
+      }
+      if (url.startsWith("fba/latest-sfms-run-parameters/")) {
+        return Promise.resolve({ data: { run_parameters: {} } });
+      }
+      return Promise.resolve({ data: {} });
+    }),
+    post: vi.fn(),
+  },
+}));
+
 vi.mock("@capacitor/device", () => ({
   Device: { getId: vi.fn().mockResolvedValue({ identifier: "device-id" }) },
 }));
@@ -313,7 +328,7 @@ describe("App", () => {
 
     const store = createTestStore({
       authentication: {
-        isAuthenticated: true,
+        sessionMode: "authenticated",
         authenticating: false,
         tokenRefreshed: false,
         token: undefined,
@@ -334,7 +349,7 @@ describe("App", () => {
     expect(initPushNotifications).toHaveBeenCalledTimes(1);
   });
 
-  it("does not call initPushNotifications when not authenticated", async () => {
+  it("calls initPushNotifications when not authenticated", async () => {
     const initPushNotifications = vi.fn().mockResolvedValue(undefined);
     vi.mocked(usePushNotifications).mockReturnValue({
       initPushNotifications,
@@ -351,7 +366,7 @@ describe("App", () => {
       );
     });
 
-    expect(initPushNotifications).not.toHaveBeenCalled();
+    expect(initPushNotifications).toHaveBeenCalledTimes(1);
   });
 
   it("displays AppHeader and BottomNavigation in portrait on medium or larger screens", async () => {

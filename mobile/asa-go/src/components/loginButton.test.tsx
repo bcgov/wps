@@ -3,7 +3,6 @@ import { Mock, vi } from "vitest";
 import LoginButton from "@/components/LoginButton";
 import { useDispatch } from "react-redux";
 import { authenticate } from "@/slices/authenticationSlice";
-import { setAxiosRequestInterceptors } from "@/utils/axiosInterceptor";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 // Mocks
@@ -17,10 +16,6 @@ vi.mock("react-redux", async () => {
 
 vi.mock("@/slices/authenticationSlice", () => ({
   authenticate: vi.fn(() => ({ type: "AUTHENTICATE" })),
-}));
-
-vi.mock("@/utils/axiosInterceptor", () => ({
-  setAxiosRequestInterceptors: vi.fn(() => ({ type: "SET_INTERCEPTORS" })),
 }));
 
 describe("LoginButton", () => {
@@ -42,7 +37,7 @@ describe("LoginButton", () => {
     expect(screen.getByText("Sign In")).toBeInTheDocument();
   });
 
-  it("dispatches authenticate and setAxiosRequestInterceptors on click", () => {
+  it("dispatches authenticate on click", () => {
     render(
       <ThemeProvider theme={theme}>
         <LoginButton label="Sign In" />
@@ -52,6 +47,5 @@ describe("LoginButton", () => {
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
     expect(mockDispatch).toHaveBeenCalledWith(authenticate());
-    expect(mockDispatch).toHaveBeenCalledWith(setAxiosRequestInterceptors());
   });
 });

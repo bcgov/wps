@@ -7,9 +7,10 @@ import { store } from "@/store";
 import { theme } from "@/theme.ts";
 import App from "@/App.tsx";
 import AuthWrapper from "@/components/AuthWrapper";
+import { configureApiInterceptors } from "@/utils/axiosInterceptor";
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
-import { ErrorBoundary } from "@sentry/react";
+import { ErrorBoundary, feedbackIntegration } from "@sentry/react";
 
 Sentry.init(
   {
@@ -17,14 +18,25 @@ Sentry.init(
     environment: import.meta.env.MODE,
     integrations: [
       Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration(),
+      feedbackIntegration({
+        autoInject: false,
+        colorScheme: "light",
+        enableScreenshot: true,
+        themeLight: {
+          submitBackground: theme.palette.primary.main,
+          submitBorder: theme.palette.primary.main,
+          submitForeground: theme.palette.primary.contrastText,
+          accentBackground: theme.palette.secondary.main,
+          accentForeground: theme.palette.secondary.contrastText,
+        },
+      }),
     ],
     tracesSampleRate: 0.1,
-    replaysSessionSampleRate: 0.0,
-    replaysOnErrorSampleRate: 1.0,
   },
   SentryReact.init,
 );
+
+configureApiInterceptors();
 
 const render = () => {
   const container = document.getElementById("root");

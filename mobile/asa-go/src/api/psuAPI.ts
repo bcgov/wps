@@ -6,7 +6,7 @@ export interface FireCentresResponse {
 }
 
 export async function getFireCentres(): Promise<FireCentresResponse> {
-  const url = "asa-go/fire-centres";
+  const url = "psu/fire-centres";
   const { data } = await axios.get(url);
   return data;
 }

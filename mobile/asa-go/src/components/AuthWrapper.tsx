@@ -13,11 +13,11 @@ interface Props {
 
 const AuthWrapper = ({ children }: Props) => {
   const theme = useTheme();
-  const { isAuthenticated, authenticating, error } =
+  const { sessionMode, authenticating, error } =
     useSelector(selectAuthentication);
   const { networkStatus } = useSelector(selectNetworkStatus);
 
-  if (isAuthenticated || !networkStatus.connected) {
+  if (sessionMode === "authenticated" || !networkStatus.connected) {
     return <React.StrictMode>{children}</React.StrictMode>;
   }
 

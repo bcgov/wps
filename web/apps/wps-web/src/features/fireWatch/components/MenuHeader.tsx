@@ -1,7 +1,8 @@
 import { FIRE_WATCH_NAME } from "@wps/utils/constants";
-import { IconButton, AppBar, styled, Toolbar, Typography } from "@mui/material"
+import { Box, IconButton, AppBar, styled, Toolbar, Typography } from "@mui/material"
 import MenuIcon from '@mui/icons-material/Menu'
 import HeaderImage from "@wps/ui/HeaderImage";
+import FeedbackButton from "@wps/ui/FeedbackButton";
 
 interface MenuHeaderProps {
     open: boolean
@@ -30,7 +31,10 @@ const MenuHeader = ({open, setOpen}: MenuHeaderProps) => {
           <MenuIcon />
         </IconButton>
         <HeaderImage />
-        <Typography sx={{ fontSize: '1.7em' }}>{FIRE_WATCH_NAME}</Typography>
+        <Typography sx={{ fontSize: '1.7em', flexGrow: 1 }}>{FIRE_WATCH_NAME}</Typography>
+        <Box sx={{ color: 'text.primary' }}>
+          <FeedbackButton color="inherit" />
+        </Box>
       </Toolbar>
     </StyledAppBar>
   )
