@@ -10,14 +10,12 @@ PODS:
   - CapacitorApp (7.0.0):
     - Capacitor
   - CapacitorCordova (7.1.0)
-  - CapacitorDevice (8.0.1):
-    - Capacitor
-  - CapacitorEmailComposer (7.0.2):
+  - CapacitorDevice (8.0.2):
     - Capacitor
   - CapacitorFilesystem (7.1.8):
     - Capacitor
     - IONFilesystemLib (~> 1.1.1)
-  - CapacitorFirebaseMessaging (8.1.0):
+  - CapacitorFirebaseMessaging (8.2.0):
     - Capacitor
     - FirebaseMessaging (~> 12.7.0)
   - CapacitorGeolocation (7.1.8):
@@ -100,7 +98,7 @@ PODS:
   - Sentry (9.8.0):
     - Sentry/Core (= 9.8.0)
   - Sentry/Core (9.8.0)
-  - SentryCapacitor (3.2.1):
+  - SentryCapacitor (4.0.0):
     - Capacitor
     - Sentry (= 9.8.0)
 
@@ -109,7 +107,6 @@ DEPENDENCIES:
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorDevice (from `../../node_modules/@capacitor/device`)"
-  - CapacitorEmailComposer (from `../../node_modules/capacitor-email-composer`)
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorFirebaseMessaging (from `../../node_modules/@capacitor-firebase/messaging`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
@@ -149,8 +146,6 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorDevice:
     :path: "../../node_modules/@capacitor/device"
-  CapacitorEmailComposer:
-    :path: "../../node_modules/capacitor-email-composer"
   CapacitorFilesystem:
     :path: "../../node_modules/@capacitor/filesystem"
   CapacitorFirebaseMessaging:
@@ -183,10 +178,9 @@ SPEC CHECKSUMS:
   Capacitor: 68ff8eabbcce387e69767c13b5fbcc1c5399eabc
   CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
   CapacitorCordova: 866217f32c1d25b326c568a10ea3ed0c36b13e29
-  CapacitorDevice: ebd210e29ae690225291b8616e6cfaf419d2e866
-  CapacitorEmailComposer: 6e06f75898334036cc95ada2238b3dcbb78932c0
+  CapacitorDevice: b50f119138a2b69a1e9213f4468d1e75e4239cca
   CapacitorFilesystem: f54cd6b76be06fa7ceb219cf313d32e0d626ea87
-  CapacitorFirebaseMessaging: 798b7f8af4318b97b11eb9b84c8ebe9920237c17
+  CapacitorFirebaseMessaging: 2b1dba3f93496ae3bd2f87fc74deea2fc43d947a
   CapacitorGeolocation: de4b0ccf90140528184e31676dd5e3a328eb589a
   CapacitorHaptics: 1fba3e460e7614349c6d5f868b1fccdc5c87b66d
   CapacitorKeyboard: 2c26c6fccde35023c579fc37d4cae6326d5e6343
@@ -208,8 +202,8 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   Sentry: 88746bf877eff714bc45315a39ad1d1efea2cdda
-  SentryCapacitor: e6cb6345f4d606f25d8a9c317c5e6a07d1896ecf
+  SentryCapacitor: d4bd916ad481426b5e644f9a7655e8fe9b1e1221
 
-PODFILE CHECKSUM: 7288acfbcdf029a89d63df602e3b151698fd576a
+PODFILE CHECKSUM: eb41f8e46385dd50a4a10cc728a95b7644b9cb8f
 
 COCOAPODS: 1.16.2
