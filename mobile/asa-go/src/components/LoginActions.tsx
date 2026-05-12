@@ -1,5 +1,4 @@
 import LoginButton from "@/components/LoginButton";
-import PublicLoginButton from "@/components/PublicLoginButton";
 import { selectAuthentication } from "@/store";
 import { Box, CircularProgress, Typography, useTheme } from "@mui/material";
 import { isNull } from "lodash";
@@ -18,7 +17,14 @@ const LoginActions = ({ direction = "column" }: LoginActionsProps) => {
   }
 
   return (
-    <>
+    <Box
+      sx={{
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "column",
+        gap: theme.spacing(2),
+      }}
+    >
       <Box
         sx={{
           alignItems: "center",
@@ -29,14 +35,13 @@ const LoginActions = ({ direction = "column" }: LoginActionsProps) => {
         }}
       >
         <LoginButton />
-        <PublicLoginButton />
       </Box>
       {!isNull(error) && (
         <Typography sx={{ color: "white" }} variant="body1">
           Unable to login, please try again.
         </Typography>
       )}
-    </>
+    </Box>
   );
 };
 

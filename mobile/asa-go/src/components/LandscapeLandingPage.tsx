@@ -66,7 +66,7 @@ const LandscapeLandingPage = () => {
               alignItems: "center",
               display: "flex",
               justifyContent: "center",
-              pt: theme.spacing(8),
+              pt: theme.spacing(4),
             }}
           >
             <LoginActions direction="row" />

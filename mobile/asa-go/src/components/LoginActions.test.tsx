@@ -10,9 +10,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/components/LoginButton", () => ({
   default: () => <button>IDIR</button>,
 }));
-vi.mock("@/components/PublicLoginButton", () => ({
-  default: () => <button>Log-in as Guest</button>,
-}));
 
 const mockStore = createTestStore();
 
@@ -42,14 +39,11 @@ describe("LoginActions", () => {
   });
 
   describe("authentication state", () => {
-    it("renders login buttons when not authenticating", () => {
+    it("renders login button when not authenticating", () => {
       mockAuthState(false);
       renderComponent();
 
       expect(screen.getByRole("button", { name: /idir/i })).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /log-in as guest/i }),
-      ).toBeInTheDocument();
     });
 
     it("renders a spinner when authenticating", () => {
@@ -59,15 +53,12 @@ describe("LoginActions", () => {
       expect(screen.getByRole("progressbar")).toBeInTheDocument();
     });
 
-    it("hides login buttons when authenticating", () => {
+    it("hides login button when authenticating", () => {
       mockAuthState(true);
       renderComponent();
 
       expect(
         screen.queryByRole("button", { name: /idir/i }),
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: /log-in as guest/i }),
       ).not.toBeInTheDocument();
     });
   });
@@ -93,24 +84,18 @@ describe("LoginActions", () => {
   });
 
   describe("direction prop", () => {
-    it("renders buttons with column direction by default", () => {
+    it("renders button with column direction by default", () => {
       mockAuthState(false);
       renderComponent();
 
       expect(screen.getByRole("button", { name: /idir/i })).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /log-in as guest/i }),
-      ).toBeInTheDocument();
     });
 
-    it("renders buttons with row direction", () => {
+    it("renders button with row direction", () => {
       mockAuthState(false);
       renderComponent("row");
 
       expect(screen.getByRole("button", { name: /idir/i })).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /log-in as guest/i }),
-      ).toBeInTheDocument();
     });
   });
 });
