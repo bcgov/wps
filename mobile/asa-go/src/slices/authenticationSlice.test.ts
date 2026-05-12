@@ -35,6 +35,11 @@ vi.mock("../../../keycloak/src", () => ({
   },
 }));
 
+const mockSetUser = vi.hoisted(() => vi.fn());
+vi.mock("@sentry/capacitor", () => ({
+  setUser: mockSetUser,
+}));
+
 describe("authenticationSlice", () => {
   // Test data factories
   const createAuthState = (overrides: Partial<AuthState> = {}): AuthState => ({
@@ -278,6 +283,7 @@ describe("authenticationSlice", () => {
           authenticating: false,
           error: null,
         });
+        expect(mockSetUser).toHaveBeenCalledWith({ email: "john.doe@contact.com" });
       });
 
       it("should dispatch authenticateError on failed authentication with error message", async () => {
@@ -350,6 +356,7 @@ describe("authenticationSlice", () => {
           token: mockValidToken,
         });
         expect(store.getState().authentication.idToken).toBeUndefined();
+        expect(mockSetUser).toHaveBeenCalledWith({ email: "john.doe@contact.com" });
       });
 
       it("should not update state when token refresh has no refresh token", async () => {

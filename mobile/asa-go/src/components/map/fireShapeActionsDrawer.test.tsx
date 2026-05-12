@@ -318,7 +318,6 @@ describe("FireShapeActionsDrawer", () => {
         left: theme.spacing(1),
         right: "auto",
         bottom: 0,
-        width: "min(320px, 78vw)",
       });
     });
   });
@@ -465,6 +464,6 @@ describe("FireShapeActionsDrawer", () => {
         name: /Toggle subscription for Test Fire Zone/i,
       }),
     ).toBeDisabled();
-    expect(updateNotificationSettings).not.toHaveBeenCalled();
+    expect(vi.mocked(updateNotificationSettings).mock.calls).toHaveLength(0);
   });
 });

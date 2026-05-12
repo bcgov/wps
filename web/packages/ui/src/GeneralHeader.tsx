@@ -2,6 +2,7 @@ import React from 'react'
 import { styled } from '@mui/material/styles'
 import HeaderImage from './HeaderImage'
 import { OptionalContainer } from './Container'
+import FeedbackButton from './FeedbackButton'
 
 const PREFIX = 'GeneralHeader'
 
@@ -68,6 +69,7 @@ export const GeneralHeader = React.forwardRef<HTMLDivElement, Props>((props, ref
           {props.isBeta && <div className={classes.beta}>BETA</div>}
         </div>
         <div style={{ flexGrow: spacing }}></div>
+        <FeedbackButton color="inherit" />
       </OptionalContainer>
     </Root>
   )

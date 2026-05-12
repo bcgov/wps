@@ -2,6 +2,7 @@ import axios from "@/api/axios";
 import { resetAuthentication } from "@/slices/authenticationSlice";
 import { API_BASE_URL, API_PUBLIC_BASE_URL } from "@/utils/env";
 import { selectAuthentication, store } from "@/store";
+import * as Sentry from "@sentry/capacitor";
 import { isNil } from "lodash";
 
 let interceptorsConfigured = false;
@@ -34,6 +35,7 @@ export const configureApiInterceptors = () => {
     (error) => {
       if (error?.response?.status === 401) {
         store.dispatch(resetAuthentication());
+        Sentry.setUser(null);
       }
       return Promise.reject(error);
     },
