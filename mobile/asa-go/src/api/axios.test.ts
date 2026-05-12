@@ -8,9 +8,10 @@ describe("api axios client", () => {
     vi.resetModules();
   });
 
-  it("returns the shared API client", async () => {
-    const { api, getApiClient } = await import("@/api/axios");
+  it("exports the shared API client", async () => {
+    const { default: axios } = await import("@/api/axios");
 
-    expect(getApiClient()).toBe(api);
+    expect(axios.get).toBeDefined();
+    expect(axios.interceptors).toBeDefined();
   });
 });

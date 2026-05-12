@@ -129,7 +129,7 @@ vi.mock("@/hooks/useIsPortrait", () => ({
 }));
 
 vi.mock("@/api/axios", () => ({
-  getApiClient: vi.fn(() => ({
+  default: {
     get: vi.fn((url: string) => {
       if (url === "psu/fire-centres") {
         return Promise.resolve({ data: { fire_centres: [] } });
@@ -140,7 +140,7 @@ vi.mock("@/api/axios", () => ({
       return Promise.resolve({ data: {} });
     }),
     post: vi.fn(),
-  })),
+  },
 }));
 
 vi.mock("@capacitor/device", () => ({

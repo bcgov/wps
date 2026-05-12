@@ -1,4 +1,4 @@
-import { getApiClient } from "api/axios";
+import axios from "api/axios";
 import type { FireCentre } from "@/types/fireCentre";
 
 export interface FireCentresResponse {
@@ -7,6 +7,6 @@ export interface FireCentresResponse {
 
 export async function getFireCentres(): Promise<FireCentresResponse> {
   const url = "psu/fire-centres";
-  const { data } = await getApiClient().get(url);
+  const { data } = await axios.get(url);
   return data;
 }

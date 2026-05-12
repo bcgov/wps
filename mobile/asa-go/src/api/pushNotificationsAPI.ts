@@ -1,4 +1,4 @@
-import { getApiClient } from "api/axios";
+import axios from "api/axios";
 
 export type Platform = "android" | "ios";
 
@@ -13,7 +13,7 @@ export async function registerToken(
   userId: string | null,
 ): Promise<DeviceRequestResponse> {
   const url = "device/register";
-  const { data } = await getApiClient().post(url, {
+  const { data } = await axios.post(url, {
     platform,
     token,
     device_id: deviceId,
@@ -26,14 +26,14 @@ export async function unregisterToken(
   token: string,
 ): Promise<DeviceRequestResponse> {
   const url = "device/unregister";
-  const { data } = await getApiClient().post(url, { token });
+  const { data } = await axios.post(url, { token });
   return data;
 }
 
 export async function getNotificationSettings(
   deviceId: string,
 ): Promise<string[]> {
-  const { data } = await getApiClient().get("device/notification-settings", {
+  const { data } = await axios.get("device/notification-settings", {
     params: { device_id: deviceId },
   });
   return data.fire_zone_source_ids;
@@ -43,7 +43,7 @@ export async function updateNotificationSettings(
   deviceId: string,
   fireZoneSourceIds: string[],
 ): Promise<string[]> {
-  const { data } = await getApiClient().post("device/notification-settings", {
+  const { data } = await axios.post("device/notification-settings", {
     device_id: deviceId,
     fire_zone_source_ids: fireZoneSourceIds,
   });

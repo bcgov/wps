@@ -1,5 +1,5 @@
 import { AdvisoryStatus } from "@/utils/constants";
-import { getApiClient } from "api/axios";
+import axios from "api/axios";
 
 export enum RunType {
   FORECAST = "FORECAST",
@@ -152,7 +152,7 @@ export async function getProvincialSummary(
   const url = `fba/provincial-summary/${run_type.toLowerCase()}/${encodeURI(
     run_datetime,
   )}/${for_date}`;
-  const { data } = await getApiClient().get(url);
+  const { data } = await axios.get(url);
   return data;
 }
 
@@ -160,7 +160,7 @@ export async function getMostRecentRunParameter(
   forDate: string,
 ): Promise<RunParameter> {
   const url = `fba/latest-sfms-run-datetime/${forDate}`;
-  const { data } = await getApiClient().get(url);
+  const { data } = await axios.get(url);
   return data.run_parameter;
 }
 
@@ -169,7 +169,7 @@ export async function getMostRecentRunParameters(
   endDate: string,
 ): Promise<RunParametersResponse> {
   const url = `fba/latest-sfms-run-parameters/${startDate}/${endDate}`;
-  const { data } = await getApiClient().get(url);
+  const { data } = await axios.get(url);
   return data.run_parameters;
 }
 
@@ -179,7 +179,7 @@ export async function getHFIStats(
   for_date: string,
 ): Promise<HFIStatsResponse> {
   const url = `fba/hfi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`;
-  const { data } = await getApiClient().get(url);
+  const { data } = await axios.get(url);
   return data;
 }
 
@@ -190,7 +190,7 @@ export async function getFireZoneElevationInfo(
   for_date: string,
 ): Promise<FireZoneElevationInfoResponse> {
   const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`;
-  const { data } = await getApiClient().get(url);
+  const { data } = await axios.get(url);
   return data;
 }
 
@@ -200,12 +200,12 @@ export async function getTPIStats(
   for_date: string,
 ): Promise<TPIResponse> {
   const url = `fba/tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`;
-  const { data } = await getApiClient().get(url);
+  const { data } = await axios.get(url);
   return data;
 }
 
 export async function getFireCentreInfo(): Promise<FireCentreInfoResponse> {
   const url = `fba/fire-centre-info`;
-  const { data } = await getApiClient().get(url);
+  const { data } = await axios.get(url);
   return data;
 }

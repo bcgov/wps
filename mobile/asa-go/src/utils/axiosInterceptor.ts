@@ -1,4 +1,4 @@
-import { api } from "@/api/axios";
+import axios from "@/api/axios";
 import { resetAuthentication } from "@/slices/authenticationSlice";
 import { API_BASE_URL, API_PUBLIC_BASE_URL } from "@/utils/env";
 import { selectAuthentication, store } from "@/store";
@@ -13,7 +13,7 @@ export const configureApiInterceptors = () => {
 
   interceptorsConfigured = true;
 
-  api.interceptors.request.use((config) => {
+  axios.interceptors.request.use((config) => {
     const { sessionMode, token } = selectAuthentication(store.getState());
     if (sessionMode === "authenticated" && !isNil(token)) {
       config.baseURL = API_BASE_URL;
@@ -26,7 +26,7 @@ export const configureApiInterceptors = () => {
     return config;
   });
 
-  api.interceptors.response.use(
+  axios.interceptors.response.use(
     // If there is a response we simply return it
     (response) => response,
 
