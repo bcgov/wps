@@ -1,22 +1,22 @@
 import * as selectors from "@/store";
 import { createTestStore } from "@/testUtils";
-import * as capacitor from "@capacitor/core";
+import { useIsPortrait } from "@/hooks/useIsPortrait";
+import { useIsTablet } from "@/hooks/useIsTablet";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AuthWrapper from "./AuthWrapper";
 
-// Mock LoginButton and AsaIcon
-vi.mock("@/components/LoginButton", () => ({
-  default: ({ label }: { label: string }) => <button>{label}</button>,
+vi.mock("@/hooks/useIsPortrait", () => ({ useIsPortrait: vi.fn() }));
+vi.mock("@/hooks/useIsTablet", () => ({ useIsTablet: vi.fn() }));
+vi.mock("@/components/PortraitLandingPage", () => ({
+  default: () => <div data-testid="portrait-landing-page" />,
+}));
+vi.mock("@/components/LandscapeLandingPage", () => ({
+  default: () => <div data-testid="landscape-landing-page" />,
 }));
 
-vi.mock("@/assets/asa-go-transparent.png", () => ({
-  default: "mocked-image.png",
-}));
-
-// Create a typed mock store
 const mockStore = createTestStore();
 const theme = createTheme();
 
@@ -32,10 +32,11 @@ const renderWithProviders = (children = <div>Protected</div>) =>
 describe("AuthWrapper", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.mocked(useIsPortrait).mockReturnValue(true);
+    vi.mocked(useIsTablet).mockReturnValue(false);
   });
 
   it("renders children when authenticated", () => {
-    vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
       sessionMode: "authenticated",
       authenticating: false,
@@ -52,8 +53,7 @@ describe("AuthWrapper", () => {
     expect(screen.getByText("Protected")).toBeInTheDocument();
   });
 
-  it("renders children when not authenticated and offline", () => {
-    vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
+  it("renders children when unauthenticated and offline", () => {
     vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
       sessionMode: "login",
       authenticating: false,
@@ -73,91 +73,48 @@ describe("AuthWrapper", () => {
     expect(screen.getByText("Protected")).toBeInTheDocument();
   });
 
-  it("renders login button when online, in login mode and not authenticating", () => {
-    vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
-    vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      sessionMode: "login",
-      authenticating: false,
-      error: null,
-      tokenRefreshed: false,
-      idToken: undefined,
-      idir: undefined,
-      token: "test-token",
-      email: "test@email.com",
-    });
-    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
-      networkStatus: { connected: true, connectionType: "wifi" },
-    });
-
-    renderWithProviders();
-
-    expect(screen.getByText("Login")).toBeInTheDocument();
-  });
-
-  it("renders app description and title when unauthenticated and not authenticating", () => {
-    vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
-    vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      sessionMode: "login",
-      authenticating: false,
-      error: null,
-      tokenRefreshed: false,
-      idToken: undefined,
-      idir: undefined,
-      token: "test-token",
-      email: "test@email.com",
-    });
-    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
-      networkStatus: { connected: true, connectionType: "wifi" },
+  describe("landing page routing when online and unauthenticated", () => {
+    beforeEach(() => {
+      vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
+        sessionMode: "login",
+        authenticating: false,
+        error: null,
+        tokenRefreshed: false,
+        idToken: undefined,
+        idir: undefined,
+        token: undefined,
+        email: undefined,
+      });
+      vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
+        networkStatus: { connected: true, connectionType: "wifi" },
+      });
     });
 
-    renderWithProviders();
+    it("renders PortraitLandingPage in portrait orientation", () => {
+      vi.mocked(useIsPortrait).mockReturnValue(true);
+      vi.mocked(useIsTablet).mockReturnValue(false);
 
-    expect(screen.getByText("ASA Go")).toBeInTheDocument();
-    const description = screen.getByTestId("app-description");
-    expect(description).toBeInTheDocument();
-  });
+      renderWithProviders();
 
-  it("renders loading spinner when authenticating", () => {
-    vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
-    vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      sessionMode: "login",
-      authenticating: true,
-      error: null,
-      tokenRefreshed: false,
-      idToken: undefined,
-      idir: undefined,
-      token: "test-token",
-      email: "test@email.com",
-    });
-    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
-      networkStatus: { connected: true, connectionType: "wifi" },
+      expect(screen.getByTestId("portrait-landing-page")).toBeInTheDocument();
     });
 
-    renderWithProviders();
+    it("renders PortraitLandingPage on a tablet regardless of orientation", () => {
+      vi.mocked(useIsPortrait).mockReturnValue(false);
+      vi.mocked(useIsTablet).mockReturnValue(true);
 
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
-  });
+      renderWithProviders();
 
-  it("renders error message when login fails", () => {
-    vi.spyOn(capacitor.Capacitor, "getPlatform").mockReturnValue("web");
-    vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      sessionMode: "login",
-      authenticating: false,
-      error: "Invalid credentials",
-      tokenRefreshed: false,
-      idToken: undefined,
-      idir: undefined,
-      token: "test-token",
-      email: "test@email.com",
-    });
-    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
-      networkStatus: { connected: true, connectionType: "wifi" },
+      expect(screen.getByTestId("portrait-landing-page")).toBeInTheDocument();
     });
 
-    renderWithProviders();
+    it("renders LandscapeLandingPage on a phone in landscape orientation", () => {
+      vi.mocked(useIsPortrait).mockReturnValue(false);
+      vi.mocked(useIsTablet).mockReturnValue(false);
 
-    expect(
-      screen.getByText("Unable to login, please try again."),
-    ).toBeInTheDocument();
+      renderWithProviders();
+
+      expect(screen.getByTestId("landscape-landing-page")).toBeInTheDocument();
+    });
   });
 });

@@ -1,5 +1,5 @@
-import LoginButton from "@/components/LoginButton";
-import { authenticate } from "@/slices/authenticationSlice";
+import PublicLoginButton from "@/components/PublicLoginButton";
+import { continueAsGuest } from "@/slices/authenticationSlice";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useDispatch } from "react-redux";
@@ -14,10 +14,10 @@ vi.mock("react-redux", async () => {
 });
 
 vi.mock("@/slices/authenticationSlice", () => ({
-  authenticate: vi.fn(() => ({ type: "AUTHENTICATE" })),
+  continueAsGuest: vi.fn(() => ({ type: "CONTINUE_AS_GUEST" })),
 }));
 
-describe("LoginButton", () => {
+describe("PublicLoginButton", () => {
   const mockDispatch = vi.fn();
   const theme = createTheme();
 
@@ -29,21 +29,23 @@ describe("LoginButton", () => {
   const renderComponent = () =>
     render(
       <ThemeProvider theme={theme}>
-        <LoginButton />
+        <PublicLoginButton />
       </ThemeProvider>,
     );
 
-  it("renders the IDIR label", () => {
+  it("renders the continue as guest button", () => {
     renderComponent();
 
-    expect(screen.getByRole("button", { name: /idir/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /continue as guest/i }),
+    ).toBeInTheDocument();
   });
 
-  it("dispatches authenticate on click", () => {
+  it("dispatches continueAsGuest on click", () => {
     renderComponent();
 
-    fireEvent.click(screen.getByRole("button", { name: /idir/i }));
+    fireEvent.click(screen.getByRole("button", { name: /continue as guest/i }));
 
-    expect(mockDispatch).toHaveBeenCalledWith(authenticate());
+    expect(mockDispatch).toHaveBeenCalledWith(continueAsGuest());
   });
 });
