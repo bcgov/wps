@@ -1,0 +1,42 @@
+name: ASA Go Load Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  load_test:
+    runs-on: ubuntu-24.04
+    name: Run k6 load test against psu.api.gov.bc.ca
+    defaults:
+      run:
+        working-directory: backend/packages/wps-api/load-tests/asa-go
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: 2.0.0
+
+      - name: Set up IP aliases
+        run: ./setup_ips.sh
+
+      - name: Run load test
+        run: k6 run --local-ips 127.0.0.2-127.0.0.21 --out json=results.json load_test.js
+
+      - name: Tear down IP aliases
+        if: always()
+        run: ./teardown_ips.sh
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results
+          path: backend/packages/wps-api/load-tests/asa-go/results.json
+          retention-days: 30

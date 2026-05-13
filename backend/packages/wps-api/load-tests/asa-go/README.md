@@ -28,6 +28,16 @@ For belt-and-suspenders, IP aliases also vary the TCP source IP (Linux only for 
 # Note: k6's --local-ips flag is Linux-only. On macOS, X-Forwarded-For header handles IP simulation.
 ```
 
+## GitHub Actions
+
+The workflow `.github/workflows/asa_go_load_test.yml` runs the full test on a `ubuntu-24.04` runner. Trigger it manually from the Actions tab or via:
+
+```bash
+gh workflow run asa_go_load_test.yml
+```
+
+After the run, `results.json` is uploaded as a downloadable artifact (`k6-results`, retained 30 days). The workflow fails if Kong rate limiting is not observed.
+
 ## Running the full test
 
 **Linux** (both TCP source IP and X-Forwarded-For vary):
