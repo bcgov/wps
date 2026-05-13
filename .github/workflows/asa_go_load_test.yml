@@ -10,6 +10,7 @@ jobs:
   load_test:
     runs-on: ubuntu-24.04
     name: Run k6 load test against psu.api.gov.bc.ca
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: backend/packages/wps-api/load-tests/asa-go
