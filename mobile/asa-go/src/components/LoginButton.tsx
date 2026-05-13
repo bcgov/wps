@@ -3,11 +3,7 @@ import { AppDispatch } from "@/store";
 import { Button, Typography, useTheme } from "@mui/material";
 import { useDispatch } from "react-redux";
 
-interface LoginButonProps {
-  label: string;
-}
-
-const LoginButton = ({ label }: LoginButonProps) => {
+const LoginButton = () => {
   const dispatch: AppDispatch = useDispatch();
   const theme = useTheme();
 
@@ -19,12 +15,12 @@ const LoginButton = ({ label }: LoginButonProps) => {
       onClick={handleLogin}
       size="large"
       sx={{
-        border: "1px solid white",
-        color: "white",
+        bgcolor: theme.palette.secondary.main,
+        color: theme.palette.primary.main,
         display: "block",
-        mt: theme.spacing(5),
+        minWidth: "100px",
       }}
-      variant="outlined"
+      variant="contained"
     >
       <Typography
         sx={{
@@ -33,7 +29,7 @@ const LoginButton = ({ label }: LoginButonProps) => {
           fontWeight: "bold",
         }}
       >
-        {label}
+        IDIR
       </Typography>
     </Button>
   );
