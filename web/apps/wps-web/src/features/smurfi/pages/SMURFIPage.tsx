@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Tabs, Tab } from '@mui/material'
-import { ErrorBoundary, GeneralHeader } from 'components'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
+import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import SpotManagement from '@/features/smurfi/components/management/SpotManagement'
 import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
 import SpotRequest from '@/features/smurfi/components/SpotRequest'

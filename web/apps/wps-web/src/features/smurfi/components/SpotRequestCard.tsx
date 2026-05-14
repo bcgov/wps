@@ -1,9 +1,8 @@
-import { useState } from 'react'
-import { SpotAdminRow, SpotForecastStatusColorMap, SpotForecastStatus } from '@/features/smurfi/interfaces'
 import { Card, CardContent, Typography, Button, Grid, Box, Link } from '@mui/material'
 import DescriptionIcon from '@mui/icons-material/Description'
 import { DateTime } from 'luxon'
-import { getSpotPDF } from '@/api/SMURFIAPI'
+import { getSpotPDF, SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
+import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 
 interface SpotRequestCardProps {
   spot: SpotAdminRow
@@ -26,14 +25,14 @@ const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
     <Card sx={{ width: '400px', border: '1px solid lightgrey' }}>
       <CardContent>
         <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <Typography variant="body2" fontWeight="bold">
+          <Grid size={6}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
               {spot.fire_id}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={6}>
             <Grid container spacing={1}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <Button
                   variant="outlined"
                   color="primary"
@@ -42,7 +41,7 @@ const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
                   Subscribe
                 </Button>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <Box
                   sx={{
                     backgroundColor: SpotForecastStatusColorMap[spot.status].bgColor,
@@ -64,14 +63,14 @@ const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2" fontWeight="bold">
+          <Grid size={6}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
               {spot.fire_centre}
             </Typography>
           </Grid>
-          <Grid item xs={6} style={{ textAlign: 'right' }}>
+          <Grid size={6} style={{ textAlign: 'right' }}>
             <Link href="#" variant="body2">
-              <Box display="flex" justifyContent="flex-end">
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Typography variant="body2" style={{ marginRight: 4 }}>
                   {spot.latitude},
                 </Typography>
@@ -80,7 +79,7 @@ const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
             </Link>
           </Grid>
         </Grid>
-        <Box display="flex" justifyContent="center" mt={3}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Button variant="outlined" startIcon={<DescriptionIcon />} sx={{ width: '100%' }} onClick={handleViewPDF}>
             {spot.status === SpotForecastStatus.NEW
               ? 'New Spot Forecast'
@@ -89,7 +88,7 @@ const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
                 : 'Latest Spot Forecast'}
           </Button>
         </Box>
-        <Box display="flex" justifyContent="center" mt={2}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Link href="#" variant="body2">
             VIEW MORE
           </Link>

@@ -1,8 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { AppThunk } from 'app/store'
 import { RootState } from '@/app/rootReducer'
-import { SpotAdminRow, SpotForecastStatus } from '@/features/smurfi/interfaces'
-import { getSpotAdminRows } from '@/api/SMURFIAPI'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { getSpotAdminRows, SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
+import { AppThunk } from 'app/store'
 import { DateTime } from 'luxon'
 
 export interface SpotAdminState {

@@ -1,5 +1,5 @@
+import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { DateTime } from 'luxon'
-import type { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
 
 export const defaultDateTimes = [
   DateTime.now().setZone('America/Vancouver').set({ hour: 16, minute: 0 }),
@@ -13,7 +13,7 @@ export const defaultDateTimes = [
   DateTime.now().setZone('America/Vancouver').plus({ days: 2 }).set({ hour: 16, minute: 0 })
 ]
 
-export const defaultWeatherRows: FormData['weatherData'] = defaultDateTimes.map(dt => ({
+export const defaultWeatherRows: SpotFormData['weatherData'] = defaultDateTimes.map(dt => ({
   dateTime: dt.toFormat('yyyy-MM-dd HH:mm'),
   temp: '',
   rh: '',
@@ -24,7 +24,7 @@ export const defaultWeatherRows: FormData['weatherData'] = defaultDateTimes.map(
   chanceRain: ''
 }))
 
-export const getDefaultValues = (user: { name: string; email: string; phone: string }): Partial<FormData> => ({
+export const getDefaultValues = (user: { name: string; email: string; phone: string }): Partial<SpotFormData> => ({
   issuedDate: DateTime.now().setZone('America/Vancouver'),
   expiryDate: DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).endOf('day'),
   fireProj: 'K00000',

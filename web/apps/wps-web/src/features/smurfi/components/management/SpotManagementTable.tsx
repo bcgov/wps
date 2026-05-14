@@ -1,12 +1,13 @@
-import { SpotAdminRow, SpotForecastStatus, SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 import EditIcon from '@mui/icons-material/Edit'
 import CloseIcon from '@mui/icons-material/Close'
 import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
-import { DataGridPro, GridActionsCellItem, GridColDef, GridRowId } from '@mui/x-data-grid-pro'
+import { DataGridPro, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useState } from 'react'
 import SpotForecastForm from '@/features/smurfi/components/forecast_form/SpotForecastForm'
+import { SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
+import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 
 interface SpotManagementTableProps {
   spotAdminRows: SpotAdminRow[]
@@ -15,11 +16,6 @@ interface SpotManagementTableProps {
 }
 
 const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }: SpotManagementTableProps) => {
-  const [selectionModel, setSelectionModel] = useState<GridRowId[]>([])
-  // Provide ability to select a row in the table from an icon on the map.
-  const selectRow = (id: number) => {
-    setSelectionModel([id])
-  }
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const [selectedSpot, setSelectedSpot] = useState<SpotAdminRow | null>(null)
   const columns: GridColDef<SpotAdminRow>[] = [
@@ -106,9 +102,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
   }
 
   const handleRowSelection = (row: SpotAdminRow) => {
-    console.log(row)
     setSelectedRowId(row.id)
-    setSelectionModel([row.id])
   }
 
   const handleModalClose = () => {
@@ -122,8 +116,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
         disableMultipleRowSelection={true}
         columns={columns}
         rows={spotAdminRows}
-        rowSelectionModel={selectedRowId}
-        onRowSelectionModelChange={newModel => setSelectionModel(newModel)}
+        rowSelectionModel={{ type: 'include', ids: new Set(selectedRowId !== undefined ? [selectedRowId] : []) }}
         onRowClick={params => handleRowSelection(params.row)}
         sx={{ display: 'flex', flexGrow: 1 }}
       />
@@ -132,9 +125,11 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
         onClose={handleModalClose}
         maxWidth="lg"
         fullWidth
-        PaperProps={{
-          sx: {
-            maxHeight: '90vh'
+        slotProps={{
+          paper: {
+            sx: {
+              maxHeight: '90vh'
+            }
           }
         }}
       >

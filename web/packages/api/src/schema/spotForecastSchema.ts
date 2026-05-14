@@ -93,4 +93,4 @@ export const createSchema = (isMini: boolean) => {
   })
 }
 
-export type FormData = z.infer<ReturnType<typeof createSchema>>
+export type SpotFormData = z.infer<ReturnType<typeof createSchema>>

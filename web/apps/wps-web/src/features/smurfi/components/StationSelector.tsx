@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { Autocomplete, TextField } from '@mui/material'
-import { GeoJsonStation } from '@/api/stationAPI'
 import { selectFireWeatherStations } from '@/app/rootReducer'
-import { Option as StationOption } from 'utils/dropdown'
+import { Option as StationOption } from '@wps/utils/dropdown'
+import { GeoJsonStation } from '@wps/types/stationTypes'
 
 interface StationSelectorProps {
   value: number[]

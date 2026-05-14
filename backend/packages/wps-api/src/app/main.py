@@ -19,7 +19,6 @@ from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.wps_logging import configure_logging
 
 from app import health, hourlies
-from app.fire_behaviour.cffdrs import CFFDRS
 from app.percentile import get_precalculated_percentiles
 from app.routers import (
     c_haines,

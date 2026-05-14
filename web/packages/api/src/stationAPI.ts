@@ -11,18 +11,6 @@ export interface Station {
   core_season: FireSeason
 }
 
-export interface GeoJsonStation {
-  type: string
-  properties: StationProperties
-  geometry: StationGeometry
-}
-
-export interface DetailedGeoJsonStation {
-  type: string
-  properties: DetailedStationProperties
-  geometry: StationGeometry
-}
-
 export interface DetailedStationProperties extends StationProperties {
   observations: {
     temperature: number

@@ -4,19 +4,19 @@ import { Feature, Map, View } from 'ol'
 import { fromLonLat, toLonLat } from 'ol/proj'
 import Overlay from 'ol/Overlay'
 import 'ol/ol.css'
-import { createVectorTileLayer, getStyleJson } from '@/utils/vectorLayerUtils'
-import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@/utils/env'
 import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
-import { BC_EXTENT, CENTER_OF_BC } from '@/utils/constants'
 import { boundingExtent } from 'ol/extent'
 import VectorLayer from 'ol/layer/Vector'
 import { Circle as CircleStyle, Fill, Icon, Stroke, Style } from 'ol/style'
-import { Geometry, Point } from 'ol/geom'
+import { Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
 import SpotPopup, { statusToPath } from './SpotPopup'
 import { FeatureLike } from 'ol/Feature'
 import CloseIcon from '@mui/icons-material/Close'
 import SpotForecastForm from '@/features/smurfi/components/forecast_form/SpotForecastForm'
+import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
+import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
 
 export interface SelectedCoordinates {
   latitude: number
@@ -283,9 +283,11 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
         onClose={handleCloseForecastModal}
         maxWidth="lg"
         fullWidth
-        PaperProps={{
-          sx: {
-            maxHeight: '90vh'
+        slotProps={{
+          paper: {
+            sx: {
+              maxHeight: '90vh'
+            }
           }
         }}
       >

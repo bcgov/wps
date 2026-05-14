@@ -1,9 +1,9 @@
-import { runFetchChefsForms } from '@/api/SMURFIAPI'
 import { AppDispatch } from '@/app/store'
 import SpotAdmin from '@/features/smurfi/components/management/SpotManagementTable'
 import SMURFIMap, { SelectedCoordinates } from '@/features/smurfi/components/map/SMURFIMap'
 import { fetchSpotAdminRows, selectSpotAdminRows } from '@/features/smurfi/slices/spotAdminSlice'
 import { Box, Button } from '@mui/material'
+import { runFetchChefsForms } from '@wps/api/SMURFIAPI'
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 

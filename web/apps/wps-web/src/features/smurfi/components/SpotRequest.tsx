@@ -3,8 +3,8 @@ import { Box, Button, Grid, TextField, Autocomplete } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { selectSpotAdminRows } from '@/features/smurfi/slices/spotAdminSlice'
 import SpotRequestCard from '@/features/smurfi/components/SpotRequestCard'
-import DateRangeSelector from '@/components/DateRangeSelector'
-import { DateRange } from '@/components/dateRangePicker/types'
+import { DateRange } from '@wps/ui/dateRangePicker/types'
+import DateRangeSelector from '@wps/ui/DateRangeSelector'
 
 const SpotRequest: React.FC = () => {
   const spotAdminRows = useSelector(selectSpotAdminRows)
@@ -84,7 +84,7 @@ const SpotRequest: React.FC = () => {
       </Box>
       <Grid container spacing={2} sx={{ mt: 2 }}>
         {filteredSpots.map(spot => (
-          <Grid item xs={6} sm={4} md={3} key={spot.id}>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }} key={spot.id}>
             <SpotRequestCard spot={spot} />
           </Grid>
         ))}

@@ -20,14 +20,14 @@ import {
 import { DateTime } from 'luxon'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
+import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 
 interface WeatherDataTableProps {
-  control: Control<FormData>
-  errors: FieldErrors<FormData>
-  fields: UseFieldArrayReturn<FormData, 'weatherData'>['fields']
-  append: UseFieldArrayReturn<FormData, 'weatherData'>['append']
-  remove: UseFieldArrayReturn<FormData, 'weatherData'>['remove']
+  control: Control<SpotFormData>
+  errors: FieldErrors<SpotFormData>
+  fields: UseFieldArrayReturn<SpotFormData, 'weatherData'>['fields']
+  append: UseFieldArrayReturn<SpotFormData, 'weatherData'>['append']
+  remove: UseFieldArrayReturn<SpotFormData, 'weatherData'>['remove']
   readOnly?: boolean
 }
 
@@ -40,7 +40,7 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
   readOnly = false
 }) => {
   return (
-    <Grid item xs={12}>
+    <Grid size={12}>
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -94,7 +94,11 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                             {...field}
                             size="small"
                             fullWidth
-                            InputProps={{ readOnly }}
+                            slotProps={{
+                              input: {
+                                readOnly: true
+                              }
+                            }}
                             error={!!errors.weatherData?.[index]?.dateTime}
                             helperText={errors.weatherData?.[index]?.dateTime?.message}
                           />
@@ -111,7 +115,11 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                             type="number"
                             size="small"
                             fullWidth
-                            InputProps={{ readOnly }}
+                            slotProps={{
+                              input: {
+                                readOnly: true
+                              }
+                            }}
                             error={!!errors.weatherData?.[index]?.temp}
                             helperText={errors.weatherData?.[index]?.temp?.message}
                           />
@@ -128,7 +136,11 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                             type="number"
                             size="small"
                             fullWidth
-                            InputProps={{ readOnly }}
+                            slotProps={{
+                              input: {
+                                readOnly: true
+                              }
+                            }}
                             error={!!errors.weatherData?.[index]?.rh}
                             helperText={errors.weatherData?.[index]?.rh?.message}
                           />
@@ -140,7 +152,16 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                         name={`weatherData.${index}.windSpeed`}
                         control={control}
                         render={({ field }) => (
-                          <TextField {...field} size="small" fullWidth InputProps={{ readOnly }} />
+                          <TextField
+                            {...field}
+                            size="small"
+                            fullWidth
+                            slotProps={{
+                              input: {
+                                readOnly: true
+                              }
+                            }}
+                          />
                         )}
                       />
                     </TableCell>
@@ -149,7 +170,16 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                         name={`weatherData.${index}.windGust`}
                         control={control}
                         render={({ field }) => (
-                          <TextField {...field} size="small" fullWidth InputProps={{ readOnly }} />
+                          <TextField
+                            {...field}
+                            size="small"
+                            fullWidth
+                            slotProps={{
+                              input: {
+                                readOnly: true
+                              }
+                            }}
+                          />
                         )}
                       />
                     </TableCell>
@@ -162,7 +192,11 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                             {...field}
                             size="small"
                             fullWidth
-                            InputProps={{ readOnly }}
+                            slotProps={{
+                              input: {
+                                readOnly: true
+                              }
+                            }}
                             error={!!errors.weatherData?.[index]?.windDirection}
                             helperText={errors.weatherData?.[index]?.windDirection?.message}
                           />
@@ -174,7 +208,16 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                         name={`weatherData.${index}.rain`}
                         control={control}
                         render={({ field }) => (
-                          <TextField {...field} size="small" fullWidth InputProps={{ readOnly }} />
+                          <TextField
+                            {...field}
+                            size="small"
+                            fullWidth
+                            slotProps={{
+                              input: {
+                                readOnly: true
+                              }
+                            }}
+                          />
                         )}
                       />
                     </TableCell>
@@ -183,7 +226,16 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                         name={`weatherData.${index}.chanceRain`}
                         control={control}
                         render={({ field }) => (
-                          <TextField {...field} size="small" fullWidth InputProps={{ readOnly }} />
+                          <TextField
+                            {...field}
+                            size="small"
+                            fullWidth
+                            slotProps={{
+                              input: {
+                                readOnly: true
+                              }
+                            }}
+                          />
                         )}
                       />
                     </TableCell>

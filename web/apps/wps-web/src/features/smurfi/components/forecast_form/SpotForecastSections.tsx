@@ -1,11 +1,11 @@
 import React from 'react'
 import { Controller, Control, FieldErrors } from 'react-hook-form'
 import { Grid, Card, CardContent, Typography, TextField } from '@mui/material'
-import type { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
+import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 
 interface SpotForecastSectionsProps {
-  control: Control<FormData>
-  errors: FieldErrors<FormData>
+  control: Control<SpotFormData>
+  errors: FieldErrors<SpotFormData>
   isMini: boolean
   readOnly?: boolean
 }
@@ -14,7 +14,7 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
   return (
     <>
       {/* ─── Inversion & Venting ─────────────────────────── */}
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -29,7 +29,11 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
                   multiline
                   rows={4}
                   fullWidth
-                  InputProps={{ readOnly }}
+                  slotProps={{
+                    input: {
+                      readOnly: true
+                    }
+                  }}
                   error={!!errors.inversionVenting}
                   helperText={errors.inversionVenting?.message}
                 />
@@ -41,7 +45,7 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
 
       {/* ─── Outlook ─────────────────────────────────────── */}
       {!isMini && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -56,7 +60,11 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
                     multiline
                     rows={4}
                     fullWidth
-                    InputProps={{ readOnly }}
+                    slotProps={{
+                      input: {
+                        readOnly: true
+                      }
+                    }}
                     error={!!errors.outlook}
                     helperText={errors.outlook?.message}
                   />
@@ -68,7 +76,7 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
       )}
 
       {/* ─── Confidence/Discussion ───────────────────────── */}
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -83,7 +91,11 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
                   multiline
                   rows={4}
                   fullWidth
-                  InputProps={{ readOnly }}
+                  slotProps={{
+                    input: {
+                      readOnly: true
+                    }
+                  }}
                   error={!!errors.confidenceDiscussion}
                   helperText={errors.confidenceDiscussion?.message}
                 />

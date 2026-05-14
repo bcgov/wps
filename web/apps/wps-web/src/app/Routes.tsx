@@ -30,12 +30,9 @@ const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import { SFMSInsightsPage } from '@/features/sfmsInsights/pages/SFMSInsightsPage'
 import FireWatchPage from '@/features/fireWatch/pages/FireWatchPage'
-<<<<<<< HEAD:web/apps/wps-web/src/app/Routes.tsx
 import WeatherToolkitPage from '@/features/weatherToolkit/pages/WeatherToolkitPage'
 // const SMURFIPage = lazy(() => import('@/features/smurfi/pages/SMURFIPage'))
-=======
-const SMURFIPage = lazy(() => import('features/smurfi/pages/SMURFIPage'))
->>>>>>> 8de2d2f82 (tabs + page skeleton):web/src/app/Routes.tsx
+const SMURFIPage = lazy(() => import('@/features/smurfi/pages/SMURFIPage'))
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 

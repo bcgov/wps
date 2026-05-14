@@ -1,17 +1,17 @@
+import { Card, CardContent, Grid, TextField, Typography } from '@mui/material'
+import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import React from 'react'
-import { Controller, Control, FieldErrors } from 'react-hook-form'
-import { Grid, Card, CardContent, Typography, TextField } from '@mui/material'
-import type { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
+import { Control, Controller, FieldErrors } from 'react-hook-form'
 
 interface SpotForecastSynopsisProps {
-  control: Control<FormData>
-  errors: FieldErrors<FormData>
+  control: Control<SpotFormData>
+  errors: FieldErrors<SpotFormData>
   readOnly?: boolean
 }
 
 const SpotForecastSynopsis: React.FC<SpotForecastSynopsisProps> = ({ control, errors, readOnly = false }) => {
   return (
-    <Grid item xs={12}>
+    <Grid size={12}>
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>
@@ -28,7 +28,11 @@ const SpotForecastSynopsis: React.FC<SpotForecastSynopsisProps> = ({ control, er
                 fullWidth
                 error={!!errors.synopsis}
                 helperText={errors.synopsis?.message}
-                InputProps={{ readOnly }}
+                slotProps={{
+                  input: {
+                    readOnly: true
+                  }
+                }}
               />
             )}
           />

@@ -45,7 +45,7 @@ const ForecastHistoryList: React.FC<ForecastHistoryListProps> = ({ forecasts, se
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" fontWeight="medium">
+                      <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
                         {issuedDate.toFormat('MMM dd, yyyy HH:mm')}
                       </Typography>
                       {isMostRecent && (

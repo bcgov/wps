@@ -5,18 +5,19 @@ import { useDispatch } from 'react-redux'
 import { Grid, Typography, Button, Box, Switch, FormControlLabel } from '@mui/material'
 import { DateTime } from 'luxon'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
-import { getStations, StationSource } from '@/api/stationAPI'
 import { AppDispatch } from '@/app/store'
 import { UserContext } from '@/features/smurfi/contexts/UserContext'
-import { createSchema, FormData } from '@/features/smurfi/schemas/spotForecastSchema'
 import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
-import { SpotForecastHistoryItem, SpotForecastStatus } from '@/features/smurfi/interfaces'
+import { SpotForecastHistoryItem } from '@/features/smurfi/interfaces'
 import SpotForecastHeader from '@/features/smurfi/components/forecast_form/SpotForecastHeader'
 import SpotForecastSynopsis from '@/features/smurfi/components/forecast_form/SpotForecastSynopsis'
 import WeatherDataTable from '@/features/smurfi/components/forecast_form/WeatherDataTable'
 import SpotForecastSummaries from '@/features/smurfi/components/forecast_form/SpotForecastSummaries'
 import SpotForecastSections from '@/features/smurfi/components/forecast_form/SpotForecastSections'
 import ForecastHistoryList from '@/features/smurfi/components/forecast_form/ForecastHistoryList'
+import { SpotForecastStatus } from '@wps/api/SMURFIAPI'
+import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
+import { getStations, StationSource } from '@wps/api/stationAPI'
 
 // Mock data for all forecasts (including current) - in production this would come from an API
 const mockAllForecasts: SpotForecastHistoryItem[] = [
@@ -95,7 +96,7 @@ const mockAllForecasts: SpotForecastHistoryItem[] = [
 const getMockForecastData = (
   forecastId: number,
   user: { name: string; email: string; phone: string }
-): Partial<FormData> => {
+): Partial<SpotFormData> => {
   const forecast = mockAllForecasts.find(f => f.id === forecastId)
   if (!forecast) return getDefaultValues(user)
 
@@ -148,7 +149,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
     handleSubmit,
     reset,
     formState: { errors, isValid }
-  } = useForm<FormData>({
+  } = useForm<SpotFormData>({
     resolver: zodResolver(createSchema(isMini)),
     defaultValues: getDefaultValues(user),
     mode: 'onBlur',
@@ -160,7 +161,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
     name: 'weatherData'
   })
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: SpotFormData) => {
     // For mini forecasts, exclude forecast summary data
     const dataToSubmit = { ...data }
     if (isMini) {
@@ -186,7 +187,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
   const handleSelectForecast = (forecast: SpotForecastHistoryItem) => {
     setSelectedForecastId(forecast.id)
     const forecastData = getMockForecastData(forecast.id, user)
-    reset(forecastData as FormData)
+    reset(forecastData as SpotFormData)
   }
 
   // Auto-select the most recent forecast when the component loads in readOnly mode
@@ -195,7 +196,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
       const mostRecentForecast = allForecasts[0]
       setSelectedForecastId(mostRecentForecast.id)
       const forecastData = getMockForecastData(mostRecentForecast.id, user)
-      reset(forecastData as FormData)
+      reset(forecastData as SpotFormData)
       setIsInitialized(true)
     }
   }, [readOnly, allForecasts, isInitialized, user, reset])
@@ -251,7 +252,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
 
           {/* Submit */}
           {!readOnly && (
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Button type="submit" variant="contained" size="large" fullWidth disabled={!isValid}>
                 Submit Spot Forecast
               </Button>

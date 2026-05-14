@@ -1,6 +1,35 @@
-import axios from '@/api/axios'
-import { FetchChefsFormResponse, SpotAdminRowResponse } from '@/features/smurfi/interfaces'
-import { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
+import axios from './axios'
+import { SpotFormData } from './schema/spotForecastSchema'
+
+export enum SpotForecastStatus {
+  NEW = 'New',
+  ACTIVE = 'Active',
+  INACTIVE = 'Inactive',
+  PAUSED = 'Paused',
+  ARCHIVED = 'Archived'
+}
+
+export interface FetchChefsFormResponse {
+  success: boolean
+}
+
+export interface SpotAdminRow {
+  id: number
+  spot_id: number
+  fire_id: string
+  forecaster: string
+  fire_centre: string
+  status: SpotForecastStatus
+  last_updated: number | null
+  latitude: number
+  longitude: number
+  spot_start: number
+  spot_end: number
+}
+
+export interface SpotAdminRowResponse {
+  rows: SpotAdminRow[]
+}
 
 export interface SpotForecastInput {
   issued_date: string
@@ -49,7 +78,7 @@ export interface SpotForecastInput {
   confidence_discussion: string
 }
 
-const marshalFormDataToSpotForecastInput = (formData: FormData): SpotForecastInput => {
+const marshalFormDataToSpotForecastInput = (formData: SpotFormData): SpotForecastInput => {
   return {
     issued_date: formData.issuedDate.toISO()!,
     expiry_date: formData.expiryDate.toISO()!,
@@ -115,7 +144,7 @@ export interface SpotForecastResponse {
   spot_forecast: SpotForecastOutput
 }
 
-export const postSpotForecast = async (formData: FormData): Promise<SpotForecastResponse> => {
+export const postSpotForecast = async (formData: SpotFormData): Promise<SpotForecastResponse> => {
   const spotForecastInput = marshalFormDataToSpotForecastInput(formData)
   const url = '/smurfi/forecast'
   const { data } = await axios.post(url, {

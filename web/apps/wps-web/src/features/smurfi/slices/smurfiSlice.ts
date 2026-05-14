@@ -1,6 +1,6 @@
-import { postSpotForecast, SpotForecastOutput } from '@/api/SMURFIAPI'
-import { FormData } from '@/features/smurfi/schemas/spotForecastSchema'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
+import { postSpotForecast, SpotForecastOutput } from '@wps/api/SMURFIAPI'
 import { AppThunk } from 'app/store'
 
 export interface SmurfiState {
@@ -54,7 +54,7 @@ export const {
 export default smurfiSlice.reducer
 
 export const submitSpotForecast =
-  (payload: { formData: FormData; isMini: boolean }): AppThunk =>
+  (payload: { formData: SpotFormData; isMini: boolean }): AppThunk =>
   async dispatch => {
     try {
       dispatch(submitSpotForecastStart())
