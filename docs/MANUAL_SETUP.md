@@ -49,8 +49,22 @@ Ensure that the CLASSPATH environment variable points to the jar files in api/li
 
 ##### Gdal
 
+If you already have gdal installed above 3.12.3 you'll need to remove it and install a local version of the 3.12.3 version:
+
 ```bash
-brew install gdal
+brew uninstall postgis #depends on gdal
+brew uninstall gdal
+brew untap gdal/versions
+```
+
+Then:
+
+From: https://github.com/Homebrew/homebrew-core/commits/master/Formula/g/gdal.rb
+
+```bash
+brew tap-new $(whoami)/local-gdal
+curl -s https://raw.githubusercontent.com/Homebrew/homebrew-core/2761c8e5f5547753c8bebc39e95968006f5deb69/Formula/g/gdal.rb > $(brew --repository)/Library/Taps/$(whoami)/homebrew-local-gdal/Formula/gdal.rb
+brew install $(whoami)/local-gdal/gdal
 ```
 
 Note that there are other subsequent steps for gdal installation. See "Install project python requirements".
@@ -168,7 +182,7 @@ sudo apt install default-jdk
 
 ##### Fedora
 
-Install system dependancies:
+Install system dependencies:
 
 ```bash
 sudo dnf install unixODBC-devel

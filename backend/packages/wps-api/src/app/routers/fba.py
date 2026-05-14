@@ -6,24 +6,15 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import List
 
-from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.auto_spatial_advisory.fuel_type_layer import (
-    get_fuel_type_raster_by_year,
-)
-from app.auto_spatial_advisory.process_hfi import RunType
-from app.auto_spatial_advisory.zone_stats import (
-    get_fuel_type_area_stats,
-    get_zone_wind_stats_for_source_id,
-)
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds_by_id,
     get_all_sfms_fuel_type_records,
     get_all_zone_source_ids,
     get_centre_tpi_stats,
+    get_fire_centre_info,
     get_fire_centre_tpi_fuel_areas,
     get_min_wind_speed_hfi_thresholds,
     get_most_recent_run_datetime_for_date,
@@ -36,6 +27,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_tpi_stats,
     get_zone_source_ids_in_centre,
 )
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.db.models.auto_spatial_advisory import (
     RunTypeEnum,
@@ -43,9 +35,12 @@ from wps_shared.db.models.auto_spatial_advisory import (
 )
 from wps_shared.schemas.fba import (
     FireCenterListResponse,
+    FireCentreInfo,
+    FireCentreInfoResponse,
     FireCentreTPIResponse,
     FireZoneHFIStats,
     FireZoneTPIStats,
+    FireZoneUnit,
     HFIStatsResponse,
     LatestSFMSRunParameter,
     LatestSFMSRunParameterRangeResponse,
@@ -55,7 +50,13 @@ from wps_shared.schemas.fba import (
     SFMSRunParameter,
     TPIResponse,
 )
-from wps_shared.wildfire_one.wfwx_api import get_auth_header, get_fire_centers
+
+from app.auto_spatial_advisory.process_hfi import RunType
+from app.auto_spatial_advisory.zone_stats import (
+    get_fuel_type_area_stats,
+    get_zone_wind_stats_for_source_id,
+)
+from app.psu.fire_centres import build_fba_fire_centers_response, fetch_fire_centres
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +111,7 @@ async def get_all_zone_data_for_source_ids(
             )
 
         zone_fuel_stats = []
+        hfi_fuel_type_ids_for_zone_set = list(set(hfi_fuel_type_ids_for_zone))
         for (
             critical_hour_start,
             critical_hour_end,
@@ -118,7 +120,7 @@ async def get_all_zone_data_for_source_ids(
             area,
             fuel_area,
             percent_conifer,
-        ) in hfi_fuel_type_ids_for_zone:
+        ) in hfi_fuel_type_ids_for_zone_set:
             hfi_threshold = hfi_thresholds_by_id.get(threshold_id)
             if hfi_threshold is None:
                 logger.error(f"No hfi threshold for id: {threshold_id}")
@@ -143,14 +145,30 @@ async def get_all_zone_data_for_source_ids(
     return all_zone_data
 
 
-@router.get("/fire-centers", response_model=FireCenterListResponse)
-async def get_all_fire_centers(_=Depends(asa_authentication_required)):
-    """Returns fire centers for all active stations."""
+@router.get(
+    "/fire-centers", response_model=FireCenterListResponse, response_model_exclude_none=True
+)
+async def get_all_fire_centers():
+    """Returns fire centres from the wps database."""
     logger.info("/fba/fire-centers/")
-    async with ClientSession() as session:
-        header = await get_auth_header(session)
-        fire_centers = await get_fire_centers(session, header)
-    return FireCenterListResponse(fire_centers=fire_centers)
+    fire_centres = await fetch_fire_centres()
+    return build_fba_fire_centers_response(fire_centres)
+
+
+@router.get("/fire-centre-info", response_model=FireCentreInfoResponse)
+async def get_fire_centres_and_fire_zone_units():
+    """Returns a list of fire centres and the fire zone units they contain."""
+    logger.info("/fba/fire-centre-info/")
+    async with get_async_read_session_scope() as session:
+        result = await get_fire_centre_info(session)
+        result_dict = defaultdict(list)
+        for id, fire_zone_unit, fire_centre_name in result:
+            result_dict[fire_centre_name].append(FireZoneUnit(id=id, name=fire_zone_unit))
+        fire_centre_info_list = []
+        for key, values in result_dict.items():
+            item = FireCentreInfo(fire_centre_name=key, fire_zone_units=values)
+            fire_centre_info_list.append(item)
+    return FireCentreInfoResponse(fire_centre_info=fire_centre_info_list)
 
 
 @router.get(
@@ -161,7 +179,6 @@ async def get_provincial_summary(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
     logger.info("/fba/provincial_summary/")
@@ -182,7 +199,6 @@ async def get_hfi_fuels_data_for_fire_centre(
     for_date: date,
     run_datetime: datetime,
     fire_centre_name: str,
-    _=Depends(asa_authentication_required),
 ):
     """
     Fetch fuel type and critical hours data for all fire zones in a fire centre for a given date
@@ -208,7 +224,6 @@ async def get_hfi_fuels_data_for_fire_centre(
 @router.get("/latest-sfms-run-datetime/{for_date}", response_model=LatestSFMSRunParameterResponse)
 async def get_latest_sfms_run_datetime_for_date(
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     async with get_async_read_session_scope() as session:
         latest_run_parameter = await get_most_recent_run_datetime_for_date(session, for_date)
@@ -242,7 +257,6 @@ async def get_fire_centre_tpi_stats(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """Return the elevation TPI statistics for each advisory threshold for a fire centre"""
     logger.info("/fba/fire-centre-tpi-stats/")
@@ -294,7 +308,6 @@ async def get_fire_centre_tpi_stats(
 async def get_run_datetimes_for_date_and_runtype(
     run_type: RunType,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """Return list of datetimes for which SFMS has run, given a specific for_date and run_type.
     Datetimes should be ordered with most recent first."""
@@ -319,7 +332,6 @@ async def get_run_datetimes_for_date_and_runtype(
 async def get_latest_sfms_run_datetime_for_date_range(
     start_date: date,
     end_date: date,
-    _=Depends(asa_authentication_required),
 ):
     async with get_async_read_session_scope() as session:
         result = await get_most_recent_run_datetime_for_date_range(session, start_date, end_date)
@@ -340,7 +352,6 @@ async def get_hfi_fuels_data_for_run_parameter(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """
     Fetch fuel type and critical hours data for all fire zones units
@@ -370,7 +381,6 @@ async def get_tpi_stats_for_run_parameter(
     run_type: RunType,
     run_datetime: datetime,
     for_date: date,
-    _=Depends(asa_authentication_required),
 ):
     """Return the elevation TPI statistics for each advisory threshold for all fire shapes"""
     logger.info("/fba/tpi-stats/")

@@ -1,11 +1,12 @@
 import {
-  FireCenter,
+  FireCentreInfo,
   FireShapeStatusDetail,
   FireZoneHFIStatsDictionary,
   FireZoneStatus,
   FireZoneTPIStats,
   RunParameter,
 } from "@/api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 import { Directory, Encoding, FilesystemPlugin } from "@capacitor/filesystem";
 import { DateTime } from "luxon";
 
@@ -13,7 +14,8 @@ export type CacheableDataType =
   | FireShapeStatusDetail[]
   | FireZoneStatus[]
   | FireZoneTPIStats[]
-  | FireZoneHFIStatsDictionary;
+  | FireZoneHFIStatsDictionary
+  | FireCentreInfo[];
 
 export type CacheableData<T extends CacheableDataType> = {
   [key: string]: {
@@ -22,7 +24,10 @@ export type CacheableData<T extends CacheableDataType> = {
   };
 };
 
-type Cacheable = FireCenter[] | { [key: string]: RunParameter };
+type Cacheable =
+  | FireCentre[]
+  | FireCentreInfo[]
+  | { [key: string]: RunParameter };
 
 // Type returned by readFromFilesystem function
 export type CachedData<T extends CacheableData<CacheableDataType> | Cacheable> =
@@ -32,12 +37,14 @@ export type CachedData<T extends CacheableData<CacheableDataType> | Cacheable> =
   };
 
 const CACHE_KEY = "_asa_go";
-export const FIRE_CENTERS_KEY = "fireCenters";
+export const FIRE_CENTRES_KEY = "fireCentres";
+export const FIRE_CENTRE_INFO_KEY = "fireCentreInfo";
 export const HFI_STATS_KEY = "hfiStats";
 export const PROVINCIAL_SUMMARY_KEY = "provincialSummary";
 export const RUN_PARAMETERS_CACHE_KEY = "runParameters";
 export const TPI_STATS_KEY = "tpiStats";
-export const FIRE_CENTERS_CACHE_EXPIRATION = 12;
+export const FIRE_CENTRES_CACHE_EXPIRATION = 12;
+export const FIRE_CENTRE_INFO_CACHE_EXPIRATION = 12;
 
 export const getPath = (key: string, date?: DateTime): string => {
   if (date) {
@@ -50,7 +57,7 @@ export const writeToFileSystem = async (
   filesystem: FilesystemPlugin,
   key: string,
   data: CacheableData<CacheableDataType> | Cacheable,
-  lastUpdated: DateTime
+  lastUpdated: DateTime,
 ) => {
   await filesystem.writeFile({
     path: getPath(key),
@@ -62,7 +69,7 @@ export const writeToFileSystem = async (
 
 export const readFromFilesystem = async (
   filesystem: FilesystemPlugin,
-  key: string
+  key: string,
 ): Promise<CachedData<CacheableData<CacheableDataType> | Cacheable> | null> => {
   try {
     const result = await filesystem.readFile({
@@ -78,7 +85,7 @@ export const readFromFilesystem = async (
 
 export const clearStaleHFIPMTiles = async (
   filesystem: FilesystemPlugin,
-  hfiFilesToKeep: string[]
+  hfiFilesToKeep: string[],
 ) => {
   try {
     const { files } = await filesystem.readdir({

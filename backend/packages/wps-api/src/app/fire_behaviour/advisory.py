@@ -147,13 +147,13 @@ def calculate_fire_behaviour_advisory(
         pdf=station.percentage_dead_balsam_fir,
         cbh=station.crown_base_height,
     )
-    cfb = calculate_cfb(station.fuel_type, fmc, sfc, ros, station.crown_base_height)
+    cfb = calculate_cfb(station.fuel_type, fmc, sfc, ros, station.crown_base_height, isi=station.isi, bui=station.bui)
 
     # Calculate rate of spread assuming 60 minutes since ignition.
     ros_t = cffdrs.rate_of_spread_t(
         fuel_type=station.fuel_type, ros_eq=ros, minutes_since_ignition=60, cfb=cfb
     )
-    cfb_t = calculate_cfb(station.fuel_type, fmc, sfc, ros_t, station.crown_base_height)
+    cfb_t = calculate_cfb(station.fuel_type, fmc, sfc, ros_t, station.crown_base_height, isi=station.isi, bui=station.bui)
 
     # Get the default crown fuel load, if none specified.
     if station.crown_fuel_load is None:

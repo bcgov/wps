@@ -2,10 +2,19 @@
   "files": [],
   "references": [
     {
-      "path": "./tsconfig.app.json"
+      "path": "./apps/wps-web/tsconfig.json"
     },
     {
-      "path": "./tsconfig.node.json"
+      "path": "./packages/api/tsconfig.json"
+    },
+    {
+      "path": "./packages/types/tsconfig.json"
+    },
+    {
+      "path": "./packages/ui/tsconfig.json"
+    },
+    {
+      "path": "./packages/utils/tsconfig.json"
     }
-  ],
+  ]
 }

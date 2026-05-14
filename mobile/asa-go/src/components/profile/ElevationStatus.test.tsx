@@ -60,11 +60,11 @@ describe("ElevationStatus", () => {
 
     // Check for elevation labels
     expect(
-      screen.getByTestId("elevation-label-upper-slope")
+      screen.getByTestId("elevation-label-upper-slope"),
     ).toBeInTheDocument();
     expect(screen.getByTestId("elevation-label-mid-slope")).toBeInTheDocument();
     expect(
-      screen.getByTestId("elevation-label-valley-bottom")
+      screen.getByTestId("elevation-label-valley-bottom"),
     ).toBeInTheDocument();
 
     // Check for elevation flags
@@ -105,15 +105,15 @@ describe("ElevationStatus", () => {
     // All percentages should be 0 when TPI is 0
     expect(screen.getByTestId("upper-slope")).toHaveAttribute(
       "data-percent",
-      "0"
+      "0",
     );
     expect(screen.getByTestId("mid-slope")).toHaveAttribute(
       "data-percent",
-      "0"
+      "0",
     );
     expect(screen.getByTestId("valley-bottom")).toHaveAttribute(
       "data-percent",
-      "0"
+      "0",
     );
   });
 
@@ -133,19 +133,19 @@ describe("ElevationStatus", () => {
     // Valley bottom: TPI is 0, so percentage should be 0
     expect(screen.getByTestId("valley-bottom")).toHaveAttribute(
       "data-percent",
-      "0"
+      "0",
     );
 
     // Mid slope: 50/100 = 50%
     expect(screen.getByTestId("mid-slope")).toHaveAttribute(
       "data-percent",
-      "50"
+      "50",
     );
 
     // Upper slope: 0/200 = 0%
     expect(screen.getByTestId("upper-slope")).toHaveAttribute(
       "data-percent",
-      "0"
+      "0",
     );
   });
 
@@ -164,15 +164,15 @@ describe("ElevationStatus", () => {
 
     expect(screen.getByTestId("valley-bottom")).toHaveAttribute(
       "data-percent",
-      "33"
+      "33",
     );
     expect(screen.getByTestId("mid-slope")).toHaveAttribute(
       "data-percent",
-      "67"
+      "67",
     );
     expect(screen.getByTestId("upper-slope")).toHaveAttribute(
       "data-percent",
-      "71"
+      "71",
     );
   });
 
@@ -180,18 +180,27 @@ describe("ElevationStatus", () => {
     render(<ElevationStatus tpiStats={mockTpiStats} />);
 
     expect(screen.getByText("Topographic Position:")).toBeInTheDocument();
-    expect(screen.getByText("Portion under advisory:")).toBeInTheDocument();
+    expect(screen.getByText("Portion Under Advisory:")).toBeInTheDocument();
   });
 
   it("should have proper styling and layout", () => {
     render(<ElevationStatus tpiStats={mockTpiStats} />);
 
     const elevationStatus = screen.getByTestId("elevation-status");
-    expect(elevationStatus).toHaveClass("MuiGrid2-root");
+    expect(elevationStatus).toHaveClass("MuiGrid-root");
 
     const mountainElement = screen.getByTestId("tpi-mountain");
     expect(mountainElement).toBeInTheDocument();
-    // Mountain should have background image
-    expect(mountainElement).toHaveStyle({ backgroundRepeat: "round" });
+    // jsdom v29 drops `background-repeat` from CSSOM when `background` shorthand is in the
+    // same rule, so getComputedStyle cannot be used here. Check the raw emotion CSS instead.
+    const cls = mountainElement.className
+      .split(" ")
+      .find((c) => c.startsWith("css-"));
+    const allStyleText = Array.from(document.querySelectorAll("style"))
+      .map((el) => el.textContent ?? "")
+      .join("\n");
+    expect(allStyleText).toMatch(
+      new RegExp(`\\.${cls}[^}]*background-repeat\\s*:\\s*round`),
+    );
   });
 });

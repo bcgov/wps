@@ -47,7 +47,7 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("WFWX_BASE_URL", "https://wf1/wfwx")
     monkeypatch.setenv("WFWX_MAX_PAGE_SIZE", "1000")
     monkeypatch.setenv("KEYCLOAK_PUBLIC_KEY", "public_key")
-    monkeypatch.setenv("OPENSHIFT_BASE_URI", "https://console.pathfinder.gov.bc.ca:8443")
+    monkeypatch.setenv("OPENSHIFT_BASE_URI", "https://console.pathfinder.gov.bc.ca_8443")
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
@@ -196,3 +196,34 @@ def mock_client_session(monkeypatch):
 def spy_access_logging(mocker: MockerFixture):
     """Spies on access audting logging for tests"""
     return mocker.spy(auth, "create_api_access_audit_log")
+
+
+@pytest.fixture
+def mock_s3_client():
+    """Mock S3Client for testing."""
+    from unittest.mock import AsyncMock
+
+    from wps_shared.utils.s3_client import S3Client
+
+    client = AsyncMock(spec=S3Client)
+    client.__aenter__ = AsyncMock(return_value=client)
+    client.__aexit__ = AsyncMock(return_value=None)
+    client.put_object = AsyncMock()
+    client.get_object = AsyncMock()
+    client.copy_object = AsyncMock()
+    client.delete_object = AsyncMock()
+    client.all_objects_exist = AsyncMock(return_value=True)
+    client.persist_raster_data = AsyncMock(return_value="test_key.tif")
+    client.list_objects_v2 = AsyncMock(return_value={"Contents": []})
+    return client
+
+
+@pytest.fixture
+def mock_wfwx_api(mocker: MockerFixture):
+    """A mocked WfwxApi with async methods."""
+    mock = mocker.AsyncMock(name="WfwxApiMock")
+    # Async method
+    mock._get_auth_header = mocker.AsyncMock(return_value={})
+    mock._get_no_cache_auth_header = mocker.AsyncMock(return_value={"Cache-Control": "no-cache"})
+    mock.get_stations_by_group_id = mocker.AsyncMock(return_value=[])
+    return mock

@@ -1,4 +1,10 @@
+import logging
 from datetime import date, datetime
+
+from wps_shared.db.crud.auto_spatial_advisory import mark_run_parameter_complete
+from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+from wps_shared.geospatial.geospatial import clear_gdal_runtime_cache
 
 from app.auto_spatial_advisory.critical_hours import calculate_critical_hours
 from app.auto_spatial_advisory.hfi_minimum_wind_speed import process_hfi_min_wind_speed
@@ -8,8 +14,9 @@ from app.auto_spatial_advisory.process_fuel_type_area import process_fuel_type_h
 from app.auto_spatial_advisory.process_hfi import RunType, process_hfi
 from app.auto_spatial_advisory.process_high_hfi_area import process_high_hfi_area
 from app.auto_spatial_advisory.process_zone_status import process_zone_statuses
-from wps_shared.db.crud.auto_spatial_advisory import mark_run_parameter_complete
-from wps_shared.db.database import get_async_write_session_scope
+from app.fcm.notifications import trigger_notifications
+
+logger = logging.getLogger(__name__)
 
 
 async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_date: date):
@@ -22,5 +29,20 @@ async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_
     await calculate_critical_hours(run_type, run_datetime, for_date)
     await process_zone_statuses(run_type, run_datetime, for_date)
 
+    clear_gdal_runtime_cache()
+
     async with get_async_write_session_scope() as session:
         await mark_run_parameter_complete(session, run_type, run_datetime, for_date)
+
+    try:
+        async with get_async_write_session_scope() as session:
+            await trigger_notifications(
+                session, RunTypeEnum(run_type.value), run_datetime, for_date
+            )
+    except Exception:
+        logger.exception(
+            "Failed to send FCM notifications for run_type=%s run_datetime=%s for_date=%s.",
+            run_type,
+            run_datetime,
+            for_date,
+        )

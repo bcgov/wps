@@ -6,7 +6,16 @@ import uuid
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 
-def create_test_dataset(filename, width, height, extent, projection, data_type=gdal.GDT_Float32, fill_value=None, no_data_value=None) -> gdal.Dataset:
+def create_test_dataset(
+    filename,
+    width,
+    height,
+    extent,
+    projection,
+    data_type=gdal.GDT_Float32,
+    fill_value=None,
+    no_data_value=None,
+) -> gdal.Dataset:
     """
     Create a test GDAL dataset.
     """
@@ -42,7 +51,9 @@ def create_test_dataset(filename, width, height, extent, projection, data_type=g
 
 def create_mock_gdal_dataset():
     extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    return create_test_dataset(f"{str(uuid.uuid4())}.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1)
+    return create_test_dataset(
+        f"{str(uuid.uuid4())}.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1
+    )
 
 
 # Create a mock for the WPSDataset class
@@ -59,7 +70,10 @@ def create_mock_input_dataset_context(num: int):
     input_datasets = create_mock_wps_datasets(num)
 
     @contextmanager
-    def mock_input_dataset_context(_: List[str]):
+    def mock_input_dataset_context(dataset_keys: List[str]):
+        for ds, key in zip(input_datasets, dataset_keys, strict=True):
+            ds.ds_path = key
+
         try:
             # Enter each dataset's context and yield the list of instances
             with ExitStack() as stack:

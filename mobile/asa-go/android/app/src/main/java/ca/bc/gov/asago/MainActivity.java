@@ -14,6 +14,7 @@ import ca.bcgov.plugins.keycloak.KeycloakPlugin;
 
 public class MainActivity extends BridgeActivity {
     private static final String TAG = "MainActivity";
+    private static final String AUTH_REDIRECT_SCHEME = BuildConfig.APP_AUTH_REDIRECT_SCHEME;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -66,7 +67,7 @@ public class MainActivity extends BridgeActivity {
         // Fallback: check for custom scheme redirect in URI data
         // This handles the case where the redirect comes directly without RedirectUriReceiverActivity
         Uri data = intent.getData();
-        if (data != null && "ca.bc.gov.asago".equals(data.getScheme())) {
+        if (data != null && AUTH_REDIRECT_SCHEME.equals(data.getScheme())) {
             Log.d(TAG, "Found custom scheme redirect in URI: " + data.toString());
             KeycloakPlugin plugin = KeycloakPlugin.getInstance();
             if (plugin != null) {

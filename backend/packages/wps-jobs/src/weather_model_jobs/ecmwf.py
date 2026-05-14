@@ -1,33 +1,32 @@
+import asyncio
 import logging
 import os
-import sys
 import tempfile
 from datetime import datetime, timedelta
 from typing import List
 
 import pandas as pd
+from wps_wf1.wfwx_api import get_stations_asynchronously
+from wps_shared.schemas.stations import WeatherStation
+import wps_shared.utils.time as time_utils
 from herbie import Herbie
-import asyncio
 from osgeo import gdal
 from pyproj import CRS, Transformer
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
-import wps_shared.utils.time as time_utils
-from wps_shared.schemas.stations import WeatherStation
-from wps_shared.wps_logging import configure_logging
-from wps_shared.stations import get_stations_asynchronously
-from wps_shared.db.database import get_write_session_scope
-from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from weather_model_jobs import (
     ModelEnum,
     ModelRunInfo,
     ModelRunProcessResult,
     ProjectionEnum,
 )
-from weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor, TEMP
+from weather_model_jobs.ecmwf_model_processor import TEMP, ECMWFModelProcessor
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from weather_model_jobs.utils.process_grib import PredictionModelNotFound
+from wps_shared.db.crud.model_run_repository import ModelRunRepository
+from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
+from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.wps_logging import configure_logging
 
 gdal.UseExceptions()
 
@@ -177,6 +176,7 @@ class ECMWF:
                 except Exception as exception:
                     self.exception_count += 1
                     logger.error("unexpected exception processing %s", url, exc_info=exception)
+                    self.model_run_repository.session.rollback()
 
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
             if len(prediction_hours) == self.files_processed:
@@ -259,14 +259,14 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(process_models())
-        # Exit with 0 - success.
-        sys.exit(os.EX_OK)
+        # Use os._exit to skip Python interpreter cleanup which causes a segfault
+        # due to C extension teardown order (GDAL, PROJ, eccodes, etc.)
+        os._exit(os.EX_OK)
     except Exception as exception:
-        # Exit non 0 - failure.
         logger.error("An error occurred while processing ECMWF model.", exc_info=exception)
         rc_message = ":poop: Encountered error retrieving model data from ECMWF"
         send_rocketchat_notification(rc_message, exception)
-        sys.exit(os.EX_SOFTWARE)
+        os._exit(os.EX_SOFTWARE)
 
 
 if __name__ == "__main__":

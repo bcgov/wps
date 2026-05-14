@@ -8,17 +8,18 @@ export const theme = createTheme({
       light: "#3E5C93",
       main: "#003366",
       dark: "#000C3A",
-      contrastText: "#fff"
+      contrastText: "#fff",
     },
     secondary: {
       light: "#FFF263",
       main: "#FBC02D",
       dark: "#C49000",
-      contrastText: "#000"
+      contrastText: "#000",
     },
-    success: { main: "#2E8540" },
-    error: { main: "#FF3E34" },
-    warning: { main: "#FE7921" },
+    success: { main: "#DCFCE7", contrastText: "#00A63E", dark: "#00A63E" },
+    error: { main: "#FFE2E2", contrastText: "#82181A", dark: "#E7000B" },
+    warning: { main: "#FFEDD4", contrastText: "#404040", dark: "#F54900" },
+    info: { main: "#DBEAFE", contrastText: "#1C398E", dark: "#155DFC" },
     contrastThreshold: 3,
     tonalOffset: 0.1,
   },
@@ -26,14 +27,26 @@ export const theme = createTheme({
     button: {
       textTransform: "none",
     },
+    fontFamily: [
+      "-apple-system",
+      "BlinkMacSystemFont",
+      '"Segoe UI"',
+      "Roboto",
+      '"Helvetica Neue"',
+      "Arial",
+      "sans-serif",
+      '"Apple Color Emoji"',
+      '"Segoe UI Emoji"',
+      '"Segoe UI Symbol"',
+    ].join(","),
   },
   breakpoints: {
     values: {
-      xs: 0,
-      sm: 600,
-      md: 1080, // Default: 960
-      lg: 1280,
-      xl: 1920,
+      xs: 0, // smallest phones
+      sm: 380, // typical modern phones portrait
+      md: 600, // larger phones + small tablets / foldables
+      lg: 1080, // tablets portrait / foldables expanded
+      xl: 1280, // tablets landscape
     },
   },
   components: {
@@ -54,7 +67,7 @@ export const theme = createTheme({
   },
 });
 
-export const MAP_BUTTON_GREY = "#7F7F7F"
-export const LIGHT_GREY = '#DADADA'
-export const INFO_PANEL_CONTENT_BACKGROUND = '#EEEEEE'
-export const HEADER_GREY = "#BFBFBF"
+export const MAP_BUTTON_GREY = "#7F7F7F";
+export const LIGHT_GREY = "#DADADA";
+export const INFO_PANEL_CONTENT_BACKGROUND = "#EEEEEE";
+export const HEADER_GREY = "#BFBFBF";

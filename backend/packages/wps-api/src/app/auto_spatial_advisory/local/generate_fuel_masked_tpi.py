@@ -14,8 +14,6 @@ from wps_shared.geospatial.geospatial import GDALResamplingMethod, warp_to_match
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 
-from app.auto_spatial_advisory.fuel_type_layer import get_fuel_type_raster_by_year
-
 
 class MissingFuelTypeRasterError(Exception):
     """Exception thrown when a fuel type raster record can't be found."""

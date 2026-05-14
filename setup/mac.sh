@@ -15,7 +15,10 @@ sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVir
 brew install gh
 
 ### gdal
-brew install gdal
+brew tap-new $(whoami)/local-gdal
+# Grabs 3.12.3 formula -- https://github.com/Homebrew/homebrew-core/commits/master/Formula/g/gdal.rb
+curl -s https://raw.githubusercontent.com/Homebrew/homebrew-core/2761c8e5f5547753c8bebc39e95968006f5deb69/Formula/g/gdal.rb > $(brew --repository)/Library/Taps/$(whoami)/homebrew-local-gdal/Formula/gdal.rb
+brew install $(whoami)/local-gdal/gdal # if you have gdal/postgis already installed you'll have to uninstall them both, see MANUAL.md for more details
 
 ### For generated HFI Calculator PDFs
 brew install --cask wkhtmltopdf
@@ -27,16 +30,6 @@ pyenv global 3.12.3
 
 ### uv
 brew install uv
-
-### r
-brew install --cask r
-brew install udunits
-brew install proj
-
-echo "installing r packages, this takes awhile..."
-r -e 'install.packages(c("rgdal","sf", "units"),,"https://mac.R-project.org")'
-r -e "install.packages('cffdrs', repos = 'http://cran.us.r-project.org')"
-echo "finished installing r packages"
 
 ### postgres - Nov 2024 - Commenting out the postgres setup. See MANUAL.md for reasons and manual postgres setup.
 # echo "installing and configuring postgres"

@@ -35,7 +35,7 @@ jobs:
           fi
 
       - name: Run issue-metrics tool
-        uses: github/issue-metrics@v3
+        uses: github/issue-metrics@v4
         if: ${{ env.skip_run != 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

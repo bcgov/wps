@@ -1,7 +1,8 @@
 from datetime import datetime
+
 from app.fire_behaviour import cffdrs
-from wps_shared.wildfire_one.schema_parsers import WFWXWeatherStation
 from wps_shared.schemas.fba_calc import StationRequest, AdjustedFWIResult
+from wps_shared.schemas.stations import WFWXWeatherStation
 
 """
 If user has not specified wind speed and/or precipitation, use the values retrieved from WFWX, always re-calculate FFMC & ISI
@@ -60,6 +61,11 @@ def calculate_adjusted_fwi_result(
     )
     isi = cffdrs.initial_spread_index(ffmc, wind_speed)
     fwi = cffdrs.fire_weather_index(isi, bui)
+
+    missing = [name for name, val in (("ffmc", ffmc), ("bui", bui), ("isi", isi), ("fwi", fwi)) if val is None]
+    if missing:
+        raise ValueError(f"Insufficient weather data for station — could not compute: {', '.join(missing)}")
+
     return AdjustedFWIResult(
         ffmc=ffmc,
         isi=isi,

@@ -58,4 +58,5 @@ class NoonForecastSummary(BaseModel):
 
 class NoonForecastSummariesResponse(BaseModel):
     """ Response containing noon forecast summaries """
+
     summaries: List[NoonForecastSummary] = []

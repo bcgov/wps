@@ -1,11 +1,16 @@
 """CRUD operations relating to processing fuel rasters"""
 
+import logging
 from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from wps_shared import config
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
+from wps_shared.utils.time import get_utc_now
+
+logger = logging.getLogger(__name__)
 
 
 async def save_processed_fuel_raster(session: AsyncSession, processed_raster: FuelTypeRaster):
@@ -71,3 +76,23 @@ async def get_latest_fuel_type_raster_by_fuel_raster_name(session: AsyncSession,
     )
     result = await session.execute(stmt)
     return result.scalar()
+
+
+async def get_fuel_type_raster_by_year(
+    session: AsyncSession, year: int
+) -> Optional[FuelTypeRaster]:
+    """Get the latest fuel type raster for a given year, falling back to the previous year
+    if the current year's fuel grid hasn't been updated yet.
+
+    :param session: An async database session.
+    :param year: The year to look up.
+    :return: A FuelTypeRaster record, or None if not found.
+    """
+    fuel_raster_name = config.get("FUEL_RASTER_NAME")
+    now = get_utc_now()
+    if year >= now.year and str(year) not in fuel_raster_name:
+        # Covers the case where we have been using last year's fuel grid in the early part of the
+        # current fire season (ie. the fuel grid hasn't been updated yet).
+        logger.info("No fuel raster for %d in FUEL_RASTER_NAME, falling back to %d", year, year - 1)
+        return await get_processed_fuel_raster_details(session, year - 1, None)
+    return await get_processed_fuel_raster_details(session, year, None)

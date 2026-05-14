@@ -1,9 +1,10 @@
-import sys
 import asyncio
 import logging
+import sys
 from datetime import date
-import requests
+
 import pandas as pd
+import requests
 from decouple import config
 
 from wps_tools.s3 import get_tifs_for_date
@@ -34,6 +35,7 @@ async def push_tifs_to_api(start_date: date, end_date: date):
     processing each tif ordered by their last modified timestamp
     """
     daterange = pd.date_range(start_date, end_date, freq="D").date
+    logger.info(f"Pushing tifs to: {config('URL')}")
 
     for current_date in daterange:
         tif_objects = await get_tifs_for_date(current_date)
@@ -45,7 +47,7 @@ async def push_tifs_to_api(start_date: date, end_date: date):
                 json=post_body,
                 headers={"Secret": config("SECRET"), "Content-Type": "application/json"},
             )
-            logger.info(response)
+            logger.info(response.json())
 
 
 async def main(start_date: date, end_date: date):

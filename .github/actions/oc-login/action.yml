@@ -1,0 +1,34 @@
+name: OC Login
+description: Request a short-lived token via the TokenRequest API and log in
+
+inputs:
+  oc-server:
+    description: OpenShift server URL
+    required: true
+  oc-token:
+    description: Long-lived service account token
+    required: true
+  oc-namespace:
+    description: OpenShift namespace for the service account
+    required: true
+  oc-service-account:
+    description: Service account name
+    required: false
+    default: ghactions
+
+runs:
+  using: composite
+  steps:
+    - name: OC Login
+      shell: bash
+      env:
+        OC_SERVER: ${{ inputs.oc-server }}
+        OC_TOKEN: ${{ inputs.oc-token }}
+      run: |
+        OC_TEMP_TOKEN=$(curl -sk -X POST \
+          "${OC_SERVER}/api/v1/namespaces/${{ inputs.oc-namespace }}/serviceaccounts/${{ inputs.oc-service-account }}/token" \
+          -H "Authorization: Bearer ${OC_TOKEN}" \
+          -H "Content-Type: application/json" \
+          -d '{"spec": {"expirationSeconds": 600}}' \
+          | jq -r '.status.token')
+        oc login --token="${OC_TEMP_TOKEN}" --server="${OC_SERVER}"

@@ -1,0 +1,24 @@
+name: Validate ASA Go MUI License
+description: Verify the MUI X Pro license key is present and valid
+
+inputs:
+  mui-license-key:
+    description: MUI X Pro license key
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Validate MUI License
+      working-directory: ./mobile/asa-go
+      shell: bash
+      env:
+        VITE_MUI_LICENSE_KEY: ${{ inputs.mui-license-key }}
+      run: |
+        node -e "
+          const { verifyLicense, generateReleaseInfo } = require('./node_modules/@mui/x-license-pro/node/verifyLicense/verifyLicense.js');
+          const result = verifyLicense({ releaseInfo: generateReleaseInfo(), licenseKey: process.env.VITE_MUI_LICENSE_KEY, acceptedScopes: ['pro', 'premium'] });
+          if (result.meta?.expiryTimestamp) console.log('MUI license expiry:', new Date(result.meta.expiryTimestamp).toISOString().split('T')[0]);
+          console.log('MUI license status:', result.status);
+          if (result.status !== 'Valid') { console.error('MUI license check failed'); process.exit(1); }
+        "

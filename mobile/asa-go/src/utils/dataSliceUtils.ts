@@ -24,7 +24,7 @@ export const runParametersMatch = (
   todayKey: string,
   tomorrowKey: string,
   runParameters: { [key: string]: RunParameter },
-  data: CacheableData<CacheableDataType>
+  data: CacheableData<CacheableDataType>,
 ): boolean => {
   return (
     isEqual(runParameters[todayKey], data[todayKey]?.runParameter) &&
@@ -33,7 +33,7 @@ export const runParametersMatch = (
 };
 
 export const fetchHFIStatsForRunParameter = async (
-  runParameter: RunParameter
+  runParameter: RunParameter,
 ): Promise<FireZoneHFIStatsDictionary> => {
   if (isNil(runParameter)) {
     return [];
@@ -41,7 +41,7 @@ export const fetchHFIStatsForRunParameter = async (
   const hfiStatsForRunParameter = await getHFIStats(
     runParameter.run_type,
     runParameter.run_datetime,
-    runParameter.for_date
+    runParameter.for_date,
   );
   return hfiStatsForRunParameter?.zone_data;
 };
@@ -49,26 +49,26 @@ export const fetchHFIStatsForRunParameter = async (
 export const fetchHFIStats = async (
   todayKey: string,
   tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter }
+  runParameters: { [key: string]: RunParameter },
 ): Promise<CacheableData<FireZoneHFIStatsDictionary>> => {
   const hfiStatsForToday = await fetchHFIStatsForRunParameter(
-    runParameters[todayKey]
+    runParameters[todayKey],
   );
   const hfiStatsForTommorow = await fetchHFIStatsForRunParameter(
-    runParameters[tomorrowKey]
+    runParameters[tomorrowKey],
   );
   const hfiStats = shapeDataForCaching(
     todayKey,
     tomorrowKey,
     runParameters,
     hfiStatsForToday,
-    hfiStatsForTommorow
+    hfiStatsForTommorow,
   );
   return hfiStats as CacheableData<FireZoneHFIStatsDictionary>;
 };
 
 export const fetchTpiStatsForRunParameter = async (
-  runParameter: RunParameter
+  runParameter: RunParameter,
 ): Promise<FireZoneTPIStats[]> => {
   if (isNil(runParameter)) {
     return [];
@@ -76,7 +76,7 @@ export const fetchTpiStatsForRunParameter = async (
   const tpiStatsForRunParameter = await getTPIStats(
     runParameter.run_type,
     runParameter.run_datetime,
-    runParameter.for_date
+    runParameter.for_date,
   );
   return tpiStatsForRunParameter?.firezone_tpi_stats;
 };
@@ -84,26 +84,26 @@ export const fetchTpiStatsForRunParameter = async (
 export const fetchTpiStats = async (
   todayKey: string,
   tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter }
+  runParameters: { [key: string]: RunParameter },
 ): Promise<CacheableData<FireZoneTPIStats[]>> => {
   const tpiStatsForToday = await fetchTpiStatsForRunParameter(
-    runParameters[todayKey]
+    runParameters[todayKey],
   );
   const tpiStatsForTommorow = await fetchTpiStatsForRunParameter(
-    runParameters[tomorrowKey]
+    runParameters[tomorrowKey],
   );
   const tpiStats = shapeDataForCaching(
     todayKey,
     tomorrowKey,
     runParameters,
     tpiStatsForToday,
-    tpiStatsForTommorow
+    tpiStatsForTommorow,
   );
   return tpiStats as CacheableData<FireZoneTPIStats[]>;
 };
 
 export const fetchProvincialSummary = async (
-  runParameter: RunParameter
+  runParameter: RunParameter,
 ): Promise<FireShapeStatusDetail[]> => {
   if (isNil(runParameter)) {
     return [];
@@ -111,7 +111,7 @@ export const fetchProvincialSummary = async (
   const provincialSummary = await getProvincialSummary(
     runParameter.run_type,
     runParameter.run_datetime,
-    runParameter.for_date
+    runParameter.for_date,
   );
   return provincialSummary?.provincial_summary;
 };
@@ -119,14 +119,14 @@ export const fetchProvincialSummary = async (
 export const fetchProvincialSummaries = async (
   todayKey: string,
   tomorrowKey: string,
-  runParameters: { [key: string]: RunParameter }
+  runParameters: { [key: string]: RunParameter },
 ): Promise<CacheableData<FireShapeStatusDetail[]>> => {
   // API calls to get data for today and tomorrow
   const todayProvincialSummary = await fetchProvincialSummary(
-    runParameters[todayKey]
+    runParameters[todayKey],
   );
   const tomorrowProvincialSummary = await fetchProvincialSummary(
-    runParameters[tomorrowKey]
+    runParameters[tomorrowKey],
   );
   // Shape the data for caching and storing in state
   const provincialSummaries = {
@@ -148,7 +148,7 @@ export const shapeDataForCaching = (
   tomorrowKey: string,
   runParameters: { [key: string]: RunParameter },
   todayData: CacheableDataType,
-  tomorrowData: CacheableDataType
+  tomorrowData: CacheableDataType,
 ): CacheableData<CacheableDataType> => {
   return {
     [todayKey]: {
@@ -164,7 +164,7 @@ export const shapeDataForCaching = (
 
 export const dataAreEqual = (
   a: CacheableData<CacheableDataType> | null,
-  b: CacheableData<CacheableDataType> | null
+  b: CacheableData<CacheableDataType> | null,
 ): boolean => {
   return isEqual(a, b);
 };

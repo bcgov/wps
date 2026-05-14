@@ -1,9 +1,7 @@
 import { MAP_BUTTON_GREY } from "@/theme";
+import { BORDER_RADIUS, BUTTON_HEIGHT } from "@/utils/constants";
 import { IconButton, IconButtonProps, SxProps, Theme } from "@mui/material";
 import React from "react";
-
-export const BORDER_RADIUS = 8;
-export const BUTTON_HEIGHT = 42;
 
 interface MapIconButtonProps extends Omit<IconButtonProps, "sx" | "children"> {
   icon: React.ReactElement;

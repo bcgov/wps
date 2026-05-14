@@ -2,15 +2,13 @@
 
 import logging
 from datetime import datetime, timezone
-from weather_model_jobs import noaa
 
+from weather_model_jobs import noaa
 
 logger = logging.getLogger(__name__)
 
 
 def test_get_nam_model_run_download_urls_for_00_utc():
-    # March 2 at 00:00 UTC is equivalent to March 1 in Eastern timezone - should return URL for previous day
-    # for the 00 UTC run, there should be 13 urls (for hours 0, 12, 18, 20, 21, 24, 36, 42, 45, 48, 60, 66, 69)
     expected_num_of_urls = 13
     actual_urls = list(
         noaa.get_nam_model_run_download_urls(datetime(2023, 3, 2, 00, tzinfo=timezone.utc), "00")
@@ -19,12 +17,12 @@ def test_get_nam_model_run_download_urls_for_00_utc():
     assert (
         actual_urls[0]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230301&file=nam.t00z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + "dir=%2Fnam.20230302&file=nam.t00z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
     )
     assert (
         actual_urls[-1]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230301&file=nam.t00z.awphys69.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + "dir=%2Fnam.20230302&file=nam.t00z.awphys69.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
     )
 
 

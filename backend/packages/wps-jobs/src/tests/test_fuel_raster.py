@@ -7,7 +7,7 @@ from pytest_mock import MockerFixture
 import fuel_raster.__main__
 from fuel_raster.__main__ import start_job
 from wps_shared.db.models import FuelTypeRaster
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 
 START_TIMESTAMP = datetime(2024, 1, 1)
 CREATE_TIMESTAMP = datetime(2024, 4, 15, 12, 0)
@@ -85,7 +85,7 @@ def setup_mocks(monkeypatch):
 
     monkeypatch.setattr("fuel_raster.__main__.process_fuel_type_raster", mock_process_fuel_type_raster)
 
-    raster_addresser = RasterKeyAddresser()
+    raster_addresser = BaseRasterAddresser()
     monkeypatch.setattr(
         raster_addresser, "get_unprocessed_fuel_raster_key", mock_get_unprocessed_key
     )

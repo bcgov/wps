@@ -1,8 +1,10 @@
-from starlette.testclient import TestClient
+from unittest.mock import AsyncMock
+
 import pytest
+from starlette.testclient import TestClient
+
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.schemas.stations import WeatherStation
-from wps_shared.wildfire_one import wfwx_api
 
 
 @pytest.fixture()
@@ -14,57 +16,45 @@ def client():
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_multiple_stations(client: TestClient, monkeypatch):
-    """ Very simple test that checks that:
+def test_multiple_stations(client: TestClient, mocker, mock_wfwx_api):
+    """Very simple test that checks that:
     - the bot exits with a success code
     - the expected number of records are saved.
     """
     codes = [1, 2]
 
-    async def mock_get_auth_header(_):
-        return dict()
+    mock_hourly_readings = [
+        WeatherStationHourlyReadings(
+            values=[], station=WeatherStation(code=codes[0], name="one", lat=1.0, long=1.0)
+        ),
+        WeatherStationHourlyReadings(
+            values=[], station=WeatherStation(code=codes[1], name="two", lat=2.0, long=2.0)
+        ),
+    ]
 
-    async def mock_hourly_readings(*_, **__):
-        return [
-            WeatherStationHourlyReadings(values=[],
-                                         station=WeatherStation(code=codes[0],
-                                                                name='one',
-                                                                lat=1.0,
-                                                                long=1.0)),
-            WeatherStationHourlyReadings(values=[],
-                                         station=WeatherStation(code=codes[1],
-                                                                name='two',
-                                                                lat=2.0,
-                                                                long=2.0))]
+    mock_wfwx_api.get_hourly_readings = AsyncMock(return_value=mock_hourly_readings)
+    mocker.patch("app.hourlies.WfwxApi", return_value=mock_wfwx_api)
 
-    monkeypatch.setattr(wfwx_api, 'get_auth_header', mock_get_auth_header)
-    monkeypatch.setattr('app.hourlies.get_hourly_readings', mock_hourly_readings)
-
-    response = client.post('/api/observations/', json={"stations": codes})
-    assert len(response.json()['hourlies']) == 2
+    response = client.post("/api/observations/", json={"stations": codes})
+    assert len(response.json()["hourlies"]) == 2
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_single_station_single_value(client: TestClient, monkeypatch):
-    """ Very simple test that checks that:
+def test_single_station_single_value(client: TestClient, mocker, mock_wfwx_api):
+    """Very simple test that checks that:
     - the bot exits with a success code
     - the expected number of records are saved.
     """
     codes = [1]
 
-    async def mock_get_auth_header(_):
-        return dict()
+    mock_hourly_readings = [
+        WeatherStationHourlyReadings(
+            values=[], station=WeatherStation(code=codes[0], name="one", lat=1.0, long=1.0)
+        )
+    ]
 
-    async def mock_hourly_readings(*_, **__):
-        return [
-            WeatherStationHourlyReadings(values=[],
-                                         station=WeatherStation(code=codes[0],
-                                                                name='one',
-                                                                lat=1.0,
-                                                                long=1.0))]
+    mock_wfwx_api.get_hourly_readings = AsyncMock(return_value=mock_hourly_readings)
+    mocker.patch("app.hourlies.WfwxApi", return_value=mock_wfwx_api)
 
-    monkeypatch.setattr(wfwx_api, 'get_auth_header', mock_get_auth_header)
-    monkeypatch.setattr('app.hourlies.get_hourly_readings', mock_hourly_readings)
-
-    response = client.post('/api/observations/', json={"stations": codes})
-    assert len(response.json()['hourlies']) == 1
+    response = client.post("/api/observations/", json={"stations": codes})
+    assert len(response.json()["hourlies"]) == 1

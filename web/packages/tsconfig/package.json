@@ -1,0 +1,9 @@
+{
+  "name": "@wps/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./base.json": "./base.json",
+    "./react-app.json": "./react-app.json"
+  }
+}

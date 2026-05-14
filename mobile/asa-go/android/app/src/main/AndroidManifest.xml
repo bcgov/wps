@@ -33,7 +33,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="ca.bc.gov.asago" android:host="auth" />
+                <data android:scheme="${appAuthRedirectScheme}" android:host="auth" />
             </intent-filter>
             <meta-data
                 android:name="net.openid.appauth.RedirectUriReceiverActivity.EXTRA_MANAGEMENT_ACTIVITY_NAME"
@@ -47,5 +47,6 @@
             android:name="androidx.core.content.FileProvider">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@mipmap/ic_notification" />
     </application>
 </manifest>

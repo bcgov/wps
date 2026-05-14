@@ -1,5 +1,3 @@
-import asyncio
-import json
 import math
 from collections import namedtuple
 from datetime import date, datetime, timezone
@@ -7,32 +5,27 @@ from unittest.mock import patch
 
 import app.main
 import pytest
-from aiohttp import ClientSession
-from app.tests import get_complete_filename
 from fastapi.testclient import TestClient
-
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryHFIWindSpeed,
-    AdvisoryTPIStats,
     RunParameters,
     SFMSFuelType,
     TPIClassEnum,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
+from wps_shared.db.models.psu import FireCentre
 from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
 from wps_shared.schemas.fba import (
     FireZoneHFIStats,
     HFIStatsResponse,
     HfiThreshold,
-    LatestSFMSRunParameterRangeResponse,
     SFMSRunParameter,
 )
-from wps_shared.tests.common import default_mock_client_get
 
 mock_fire_centre_name = "PGFireCentre"
 
 get_fire_centres_url = "/api/fba/fire-centers"
-get_fire_centre_info_url = (
+get_fire_centre_hfi_stats_url = (
     "/api/fba/fire-centre-hfi-stats/forecast/2022-09-27/2022-09-27/Kamloops%20Fire%20Centre"
 )
 get_fire_centre_tpi_stats_url = (
@@ -41,6 +34,7 @@ get_fire_centre_tpi_stats_url = (
 get_sfms_run_datetimes_url = "/api/fba/sfms-run-datetimes/forecast/2022-09-27"
 get_sfms_run_bounds_url = "/api/fba/sfms-run-bounds"
 get_tpi_stats_url = "api/fba/tpi-stats/forecast/2022-09-27/2022-09-27"
+get_fire_centre_info_url = "api/fba/fire-centre-info"
 
 decode_fn = "jwt.decode"
 
@@ -79,6 +73,19 @@ CentreHFIFuelResponse = namedtuple(
         "pixel_size_metres",
     ],
 )
+
+chilcoltin_fire_zone = "C-5-Chilcoltin Fire Zone"
+quesnel_fire_zone = "C-1-Quesnel Fire Zone"
+vernon_fire_zone = "K-4-Vernon Fire Zone"
+cariboo_fire_centre = "Cariboo Fire Centre"
+kamloops_fire_centre = "Kamloops Fire Centre"
+
+
+mock_fire_centre_infos = [
+    ("1", chilcoltin_fire_zone, cariboo_fire_centre),
+    ("2", quesnel_fire_zone, cariboo_fire_centre),
+    ("3", vernon_fire_zone, kamloops_fire_centre),
+]
 
 
 def create_mock_centre_tpi_stats(
@@ -273,6 +280,10 @@ async def mock_get_hfi_fuels_data_for_run_parameter(*_, **__):
     return HFIStatsResponse(zone_data={1: mock_fire_zone_hfi_stats})
 
 
+async def mock_get_fire_centre_infos(*_, **__):
+    return mock_fire_centre_infos
+
+
 @pytest.fixture()
 def client():
     from app.main import app as test_app
@@ -282,23 +293,23 @@ def client():
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@pytest.mark.parametrize(
-    "status, expected_fire_centers", [(200, "test_fba_endpoint_fire_centers.json")]
-)
-def test_fba_endpoint_fire_centers(status, expected_fire_centers, monkeypatch):
-    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
-
+@patch("app.routers.fba.fetch_fire_centres")
+def test_fba_endpoint_fire_centers(mock_fetch_fire_centres):
+    mock_fetch_fire_centres.return_value = [
+        FireCentre(id=1, name="Coastal Fire Centre"),
+        FireCentre(id=2, name="Northwest Fire Centre"),
+    ]
     client = TestClient(app.main.app)
     headers = {"Content-Type": "application/json", "Authorization": "Bearer token"}
 
     response = client.get("/api/fba/fire-centers/", headers=headers)
-
-    response_filename = get_complete_filename(__file__, expected_fire_centers)
-    with open(response_filename) as res_file:
-        expected_response = json.load(res_file)
-
-    assert response.status_code == status
-    assert response.json() == expected_response
+    assert response.status_code == 200
+    assert response.json() == {
+        "fire_centers": [
+            {"id": 1, "name": "Coastal Fire Centre"},
+            {"id": 2, "name": "Northwest Fire Centre"},
+        ]
+    }
 
 
 @pytest.mark.usefixtures("mock_client_session")
@@ -306,10 +317,11 @@ def test_fba_endpoint_fire_centers(status, expected_fire_centers, monkeypatch):
     "endpoint",
     [
         get_fire_centres_url,
-        get_fire_centre_info_url,
+        get_fire_centre_hfi_stats_url,
         get_sfms_run_datetimes_url,
         get_sfms_run_bounds_url,
         get_tpi_stats_url,
+        get_fire_centre_info_url,
     ],
 )
 def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
@@ -319,11 +331,11 @@ def test_get_endpoints_unauthorized(client: TestClient, endpoint: str):
     assert response.status_code == 401
 
 
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
-@patch("app.routers.fba.get_fire_centers", mock_get_fire_centres)
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_get_fire_centres_authorized(client: TestClient):
+@patch("app.routers.fba.fetch_fire_centres")
+def test_get_fire_centres_authorized(mock_fetch_fire_centres, client: TestClient):
     """Allowed to get fire centres when authorized"""
+    mock_fetch_fire_centres.return_value = [FireCentre(id=1, name="Test Fire Centre")]
     response = client.get(get_fire_centres_url)
     assert response.status_code == 200
 
@@ -367,7 +379,6 @@ async def mock_zone_ids_in_centre(*_, **__):
     return [1]
 
 
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
 @patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
@@ -377,7 +388,7 @@ async def mock_zone_ids_in_centre(*_, **__):
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized(client: TestClient):
     """Allowed to get fire centre info when authorized"""
-    response = client.get(get_fire_centre_info_url)
+    response = client.get(get_fire_centre_hfi_stats_url)
     assert response.status_code == 200
     kfc_json = response.json()["Kamloops Fire Centre"]
     assert kfc_json["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 1
@@ -391,7 +402,6 @@ def test_get_fire_center_info_authorized(client: TestClient):
     assert math.isclose(kfc_json["1"]["min_wind_stats"][0]["min_wind_speed"], 1)
 
 
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
 @patch(
     "app.routers.fba.get_fuel_type_raster_by_year",
@@ -404,7 +414,7 @@ def test_get_fire_center_info_authorized(client: TestClient):
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized_no_min_wind_speeds(client: TestClient):
     """Allowed to get fire centre info when authorized"""
-    response = client.get(get_fire_centre_info_url)
+    response = client.get(get_fire_centre_hfi_stats_url)
     assert response.status_code == 200
     kfc_json = response.json()["Kamloops Fire Centre"]
     assert kfc_json["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 1
@@ -417,7 +427,6 @@ def test_get_fire_center_info_authorized_no_min_wind_speeds(client: TestClient):
     assert kfc_json["1"]["min_wind_stats"] == []
 
 
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info_with_grass)
 @patch(
     "app.routers.fba.get_fuel_type_raster_by_year",
@@ -430,7 +439,7 @@ def test_get_fire_center_info_authorized_no_min_wind_speeds(client: TestClient):
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized_grass_fuel(client: TestClient):
     """Allowed to get fire centre info when authorized with grass fuel type"""
-    response = client.get(get_fire_centre_info_url)
+    response = client.get(get_fire_centre_hfi_stats_url)
     assert response.status_code == 200
     kfc_json = response.json()["Kamloops Fire Centre"]
     assert kfc_json["1"]["fuel_area_stats"][0]["fuel_type"]["fuel_type_id"] == 12
@@ -444,7 +453,6 @@ def test_get_fire_center_info_authorized_grass_fuel(client: TestClient):
     assert math.isclose(kfc_json["1"]["min_wind_stats"][0]["min_wind_speed"], 1)
 
 
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_run_datetimes", mock_get_sfms_run_datetimes)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_sfms_run_datetimes_authorized(client: TestClient):
@@ -456,7 +464,6 @@ def test_get_sfms_run_datetimes_authorized(client: TestClient):
     ).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_centre_tpi_stats", mock_get_centre_tpi_stats)
 @patch("app.routers.fba.get_fire_centre_tpi_fuel_areas", mock_get_fire_centre_tpi_fuel_areas)
 @patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
@@ -513,7 +520,6 @@ def test_get_fire_centre_tpi_stats_authorized(client: TestClient):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
 @patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
 @patch("app.routers.fba.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
@@ -540,7 +546,6 @@ def test_get_tpi_stats_authorized(client: TestClient):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch("app.routers.fba.get_sfms_bounds", mock_get_sfms_bounds)
 def test_get_sfms_run_bounds(client: TestClient):
     response = client.get(get_sfms_run_bounds_url)
@@ -553,7 +558,6 @@ def test_get_sfms_run_bounds(client: TestClient):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
 @patch(
     "app.routers.fba.get_sfms_bounds",
     mock_get_sfms_bounds_no_data,
@@ -579,8 +583,6 @@ FBA_ENDPOINTS = [
 
 @pytest.mark.usefixtures("mock_test_idir_jwt_decode")
 @pytest.mark.parametrize("endpoint", FBA_ENDPOINTS)
-@patch("app.routers.fba.get_auth_header", mock_get_auth_header)
-@patch("app.routers.fba.get_fire_centers", mock_get_fire_centres)
 @patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
 @patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
 @patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
@@ -602,7 +604,35 @@ FBA_ENDPOINTS = [
 )
 @patch("app.routers.fba.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
 @patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
-def test_fba_endpoints_allowed_for_test_idir(client, endpoint):
+def test_fba_endpoints_allowed_for_test_idir(client, endpoint, mocker):
+    mocker.patch(
+        "app.routers.fba.fetch_fire_centres",
+        return_value=[FireCentre(id=1, name="Test Fire Centre")],
+    )
     headers = {"Authorization": "Bearer token"}
     response = client.get(endpoint, headers=headers)
+    assert response.status_code == 200
+
+
+@patch("app.routers.fba.get_fire_centre_info", mock_get_fire_centre_infos)
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_get_fire_centre_info_authorized(client: TestClient):
+    """Allowed to get fire centre info when authorized"""
+
+    response = client.get(get_fire_centre_info_url)
+    json_response = response.json()
+    fire_centre_infos = json_response["fire_centre_info"]
+    assert len(fire_centre_infos) == 2
+    assert fire_centre_infos[0]["fire_centre_name"] == cariboo_fire_centre
+    assert fire_centre_infos[1]["fire_centre_name"] == kamloops_fire_centre
+    cariboo_fire_zone_units = fire_centre_infos[0]["fire_zone_units"]
+    kamloops_fire_zone_units = fire_centre_infos[1]["fire_zone_units"]
+    assert len(cariboo_fire_zone_units) == 2
+    assert len(kamloops_fire_zone_units) == 1
+    assert cariboo_fire_zone_units[0]["id"] == 1
+    assert cariboo_fire_zone_units[0]["name"] == chilcoltin_fire_zone
+    assert cariboo_fire_zone_units[1]["id"] == 2
+    assert cariboo_fire_zone_units[1]["name"] == quesnel_fire_zone
+    assert kamloops_fire_zone_units[0]["id"] == 3
+    assert kamloops_fire_zone_units[0]["name"] == vernon_fire_zone
     assert response.status_code == 200

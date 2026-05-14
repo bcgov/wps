@@ -1,3 +1,10 @@
 **/.gitignore
 **/node_modules
 **/Dockerfile*
+**/build
+**/dist
+**/.turbo
+**/coverage
+**/coverage-playwright
+**/.nyc_output
+**/.nyc_temp_playwright

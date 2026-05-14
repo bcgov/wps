@@ -1,9 +1,13 @@
-import os
+import hashlib
 import io
 import logging
-import hashlib
+import os
 from typing import Any
+
+import aiofiles
 from aiobotocore.session import get_session
+from botocore.exceptions import ClientError
+
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
@@ -35,27 +39,28 @@ class S3Client:
         return self
 
     async def __aexit__(self, *args):
-        if hasattr(self, 'client_context') and self.client_context:
+        if hasattr(self, "client_context") and self.client_context:
             await self.client_context.__aexit__(*args)
         self.client = None
         self.client_context = None
 
     async def object_exists(self, target_path: str):
-        """Check if and object exists in the object store"""
-        # using list_objects, but could be using stat as well? don't know what's best.
-        result = await self.client.list_objects_v2(Bucket=self.bucket, Prefix=target_path)
-        contents = result.get("Contents", None)
-        if contents:
-            for content in contents:
-                key = content.get("Key")
-                if key == target_path:
-                    return True
-        return False
+        """Check if an object exists in the object store"""
+        try:
+            await self.client.head_object(Bucket=self.bucket, Key=target_path)
+            return True
+        except ClientError as e:
+            if e.response["Error"]["Code"] in ("404", "NoSuchKey"):
+                return False
+            logger.error("S3 error checking existence of %s: %s", target_path, e.response["Error"])
+            raise
 
     async def all_objects_exist(self, *s3_keys: str):
         for key in s3_keys:
-            key_exists = await self.object_exists(key)
+            raw_key = key.removeprefix(f"/vsis3/{self.bucket}/")
+            key_exists = await self.object_exists(raw_key)
             if not key_exists:
+                logger.error("Required S3 object does not exist: %s", raw_key)
                 return False
         return True
 
@@ -82,6 +87,9 @@ class S3Client:
                     )
                 return fuel_layer_bytes
 
+    async def get_object(self, key: str):
+        return await self.client.get_object(Bucket=self.bucket, Key=key)
+
     async def put_object(self, key: str, body: Any):
         await self.client.put_object(Bucket=self.bucket, Key=key, Body=body)
 
@@ -92,6 +100,90 @@ class S3Client:
 
     async def delete_object(self, key: str):
         await self.client.delete_object(Bucket=self.bucket, Key=key)
+
+    async def delete_all_objects(self, keys: list[str], quiet: bool = True):
+        """Delete up to 1000 keys in a single request."""
+        if not keys:
+            return
+
+        await self.client.delete_objects(
+            Bucket=self.bucket,
+            Delete={
+                "Objects": [{"Key": k} for k in keys],
+                "Quiet": quiet,
+            },
+        )
+
+    async def iter_common_prefixes(self, prefix: str):
+        """Paginated yield CommonPrefixes under a prefix (Delimiter='/')."""
+        continuation_token = None
+
+        while True:
+            kwargs = {
+                "Bucket": self.bucket,
+                "Prefix": prefix,
+                "Delimiter": "/",
+                "MaxKeys": 1000,
+            }
+            if continuation_token:
+                kwargs["ContinuationToken"] = continuation_token
+
+            res = await self.client.list_objects_v2(**kwargs)
+
+            for cp in res.get("CommonPrefixes", []):
+                yield cp["Prefix"]
+
+            if not res.get("IsTruncated"):
+                break
+
+            continuation_token = res.get("NextContinuationToken")
+
+    async def iter_keys(self, prefix: str):
+        """Yield all object keys under a prefix (paginated)."""
+        continuation_token = None
+
+        while True:
+            kwargs = {
+                "Bucket": self.bucket,
+                "Prefix": prefix,
+                "MaxKeys": 1000,
+            }
+            if continuation_token:
+                kwargs["ContinuationToken"] = continuation_token
+
+            res = await self.client.list_objects_v2(**kwargs)
+
+            for obj in res.get("Contents", []):
+                yield obj["Key"]
+
+            if not res.get("IsTruncated"):
+                break
+
+            continuation_token = res.get("NextContinuationToken")
+
+    async def delete_prefix(self, prefix: str, dry_run: bool = False) -> int:
+        """
+        Delete all objects under a prefix.
+        Returns number of objects deleted.
+        """
+        batch: list[str] = []
+        total = 0
+
+        async for key in self.iter_keys(prefix):
+            batch.append(key)
+
+            if len(batch) == 1000:
+                if not dry_run:
+                    await self.delete_all_objects(batch)
+                total += len(batch)
+                batch.clear()
+
+        if batch:
+            if not dry_run:
+                await self.delete_all_objects(batch)
+            total += len(batch)
+
+        return total
 
     async def persist_raster_data(
         self, temp_dir: str, key: str, transform, projection, values, no_data_value
@@ -111,24 +203,15 @@ class S3Client:
         with WPSDataset.from_array(values, transform, projection, no_data_value) as ds:
             ds.export_to_geotiff(temp_geotiff)
 
-        logger.info(f"Writing to s3 -- {key}")
-        await self.put_object(key=key, body=open(temp_geotiff, "rb"))
+        logger.info("Writing to S3: %s", key)
+        async with aiofiles.open(temp_geotiff, "rb") as f:
+            contents = await f.read()
+            await self.put_object(key=key, body=contents)
         return temp_geotiff
 
     @staticmethod
-    async def stream_object(key: str, byte_range: str = None, chunk_size: int = 65536):
-        """
-        Stream an object from S3 with automatic client lifecycle management.
-
-        This function manages the S3Client lifecycle internally - the client will be
-        closed when the generator is exhausted or an error occurs.
-
-        :param key: s3 key to stream
-        :param byte_range: Optional byte range string (e.g., "bytes=0-1023")
-        :param chunk_size: size of chunks to yield (default: 64KB)
-        :return: tuple of (async generator, response dict) - generator yields chunks, response contains metadata
-        """
-        s3_client = S3Client()
+    async def _stream(s3_client: "S3Client", key: str, byte_range: str = None, chunk_size: int = 65536):
+        """Internal streaming implementation. Manages s3_client lifecycle."""
         await s3_client.__aenter__()
 
         try:
@@ -155,3 +238,35 @@ class S3Client:
         except Exception:
             await s3_client.__aexit__(None, None, None)
             raise
+
+    @staticmethod
+    async def stream_object(key: str, byte_range: str = None, chunk_size: int = 65536):
+        """
+        Stream an object from S3 with automatic client lifecycle management.
+
+        :param key: s3 key to stream
+        :param byte_range: Optional byte range string (e.g., "bytes=0-1023")
+        :param chunk_size: size of chunks to yield (default: 64KB)
+        :return: tuple of (async generator, response dict)
+        """
+        return await S3Client._stream(S3Client(), key, byte_range, chunk_size)
+
+    @staticmethod
+    async def stream_wx_object(key: str, byte_range: str = None, chunk_size: int = 65536):
+        """
+        Stream an object from the WX object store (WX_OBJECT_STORE_* config).
+
+        :param key: s3 key to stream
+        :param byte_range: Optional byte range string (e.g., "bytes=0-1023")
+        :param chunk_size: size of chunks to yield (default: 64KB)
+        :return: tuple of (async generator, response dict)
+        """
+        client = S3Client(
+            server=config.get("OBJECT_STORE_SERVER"),
+            user_id=config.get("WX_OBJECT_STORE_USER_ID"),
+            secret_key=config.get("WX_OBJECT_STORE_SECRET"),
+            bucket=config.get("WX_OBJECT_STORE_BUCKET"),
+        )
+        return await S3Client._stream(client, key, byte_range, chunk_size)
+
+    

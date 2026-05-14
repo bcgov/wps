@@ -1,12 +1,11 @@
 import { FireShape } from "@/api/fbaAPI";
 import { isNull, isUndefined } from "lodash";
-import { Map, Overlay } from "ol";
+import { Map } from "ol";
 
 export const centerOnFireShape = (
   map: Map | null,
   selectedFireShape: FireShape | undefined,
-  fireZoneExtentsMap: globalThis.Map<string, number[]>,
-  popup: Overlay
+  fireZoneExtentsMap: globalThis.Map<string, number[]>
 ) => {
   if (isNull(map)) {
     return;
@@ -25,7 +24,5 @@ export const centerOnFireShape = (
         duration: 400,
       });
     }
-  } else {
-    popup.setPosition(undefined);
   }
 };

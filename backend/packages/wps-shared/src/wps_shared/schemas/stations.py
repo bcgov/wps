@@ -1,7 +1,8 @@
 """This module contains pydandict schemas relating to weather stations for the API."""
 
 from typing import List, Optional
-from pydantic import BaseModel
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FireZone(BaseModel):
@@ -144,3 +145,19 @@ class WeatherStationGroupsMemberRequest(BaseModel):
     """Request for all station members of all groups by group ids"""
 
     group_ids: List[str]
+
+
+class WFWXWeatherStation(BaseModel):
+    """A WFWX station includes a code and WFWX API-specific ID"""
+
+    model_config = ConfigDict(
+        populate_by_name=True, frozen=True
+    )  # allows populating by alias name, and frozen makes it hashable for collections
+
+    wfwx_id: str
+    code: int
+    name: str
+    lat: float = Field(alias="latitude")
+    long: float = Field(alias="longitude")
+    elevation: int
+    zone_code: Optional[str]

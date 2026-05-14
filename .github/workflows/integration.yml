@@ -1,77 +1,43 @@
 name: Integration
 
 permissions:
-  contents: read # Required for actions/checkout
-  actions: read # Allows downloading workflow artifacts
+  contents: read
+  actions: read
 
 on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
+
 jobs:
   lint-api:
     name: Python - Lint
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
+    # https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#yaml-anchors-and-aliases
+    container: &api-base-image
+      image: ghcr.io/bcgov/wps/wps-api-base:03-30-2026
       options: --user 0
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v6
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.9.26"
-      - name: Cache .venv
-        id: cache-venv
-        uses: actions/cache@v5
-        with:
-          path: ~/work/wps/wps/backend/.venv
-          key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
-      - name: Install python dependencies using uv
-        if: steps.cache-venv.outputs.cache-hit != 'true'
-        working-directory: ./backend
-        run: |
-          uv sync --all-extras
-          uv pip install setuptools
-          uv pip install --no-build-isolation gdal==$(gdal-config --version)
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/python-setup
       - name: Lint (api/wps_shared/wps_jobs)
         working-directory: ./backend
-        run: |
-          uv run ruff check packages/wps-api/src packages/wps-shared/src packages/wps-jobs/src
+        run: uv run ruff check packages/wps-api/src packages/wps-shared/src packages/wps-jobs/src
 
   test-api:
     name: Python - API Test with coverage
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
-      options: --user 0
+    container: *api-base-image
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
-          # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: ./.github/actions/python-setup
         with:
-          version: "0.9.26"
-      - name: Cache .venv
-        id: cache-venv
-        uses: actions/cache@v5
-        with:
-          path: ~/work/wps/wps/backend/.venv
-          key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
-      - name: Install python dependencies using uv
-        if: steps.cache-venv.outputs.cache-hit != 'true'
-        working-directory: ./backend
-        run: |
-          # Install JDK
-          apt-get update --fix-missing
-          apt-get -y install default-jdk
-          uv sync --all-extras
-          uv pip install setuptools
-          uv pip install --no-build-isolation gdal==$(gdal-config --version)
+          install-jdk: "true"
       - name: Unit Test with coverage (api)
         working-directory: ./backend
         run: |
@@ -81,42 +47,22 @@ jobs:
           export SFMS_SECRET=secret
           uv run pytest -n auto --cov=packages/wps-api/src/app --cov-branch --cov-report=xml:packages/wps-api/coverage-reports/api-coverage-report.xml packages/wps-api/src/app/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (api)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: api-coverage-report
           path: ./backend/packages/wps-api/coverage-reports/api-coverage-report.xml
+
   test-wps-shared:
     name: Python - WPS Shared Test with coverage
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
-      options: --user 0
+    container: *api-base-image
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
-          # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: ./.github/actions/python-setup
         with:
-          version: "0.9.26"
-      - name: Cache .venv
-        id: cache-venv
-        uses: actions/cache@v5
-        with:
-          path: ~/work/wps/wps/backend/.venv
-          key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
-      - name: Install python dependencies using uv
-        if: steps.cache-venv.outputs.cache-hit != 'true'
-        working-directory: ./backend
-        run: |
-          # Install JDK
-          apt-get update --fix-missing
-          apt-get -y install default-jdk
-          uv sync --all-extras
-          uv pip install setuptools
-          uv pip install --no-build-isolation gdal==$(gdal-config --version)
+          install-jdk: "true"
       - name: Unit Test with coverage (wps_shared)
         working-directory: ./backend
         run: |
@@ -124,42 +70,26 @@ jobs:
           export SFMS_SECRET=secret
           uv run pytest --cov=packages/wps-shared/src/wps_shared --cov-branch --cov-report=xml:packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml packages/wps-shared/src/wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_shared)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: wps-shared-coverage-report
           path: ./backend/packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml
+
   test-wps-jobs:
     name: Python - WPS Jobs Test with coverage
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/bcgov/wps/wps-api-base:10-30-2025
-      options: --user 0
+    container: *api-base-image
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
-          # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.9.26"
-      - name: Cache .venv
-        id: cache-venv
-        uses: actions/cache@v5
-        with:
-          path: ~/work/wps/wps/backend/.venv
-          key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
-      - name: Install python dependencies using uv
-        if: steps.cache-venv.outputs.cache-hit != 'true'
-        working-directory: ./backend
+      - name: Install ecCodes library
         run: |
-          # Install JDK
           apt-get update --fix-missing
-          apt-get -y install default-jdk
-          uv sync --all-extras
-          uv pip install setuptools
-          uv pip install --no-build-isolation gdal==$(gdal-config --version)
+          apt-get -y install libeccodes-tools
+      - uses: ./.github/actions/python-setup
+        with:
+          install-jdk: "true"
       - name: Unit Test with coverage (wps_jobs)
         working-directory: ./backend
         run: |
@@ -168,10 +98,60 @@ jobs:
           export SFMS_SECRET=secret
           uv run pytest --cov=packages/wps-jobs/src --cov-branch --cov-report=xml:packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml packages/wps-jobs/src/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_jobs)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: wps-jobs-coverage-report
           path: ./backend/packages/wps-jobs/coverage-reports/wps-jobs-coverage-report.xml
+
+  test-wps-weather:
+    name: Python - WPS Weather Test
+    runs-on: ubuntu-24.04
+    container: *api-base-image
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/python-setup
+      - name: Unit Test (wps_weather)
+        working-directory: ./backend
+        run: |
+          uv run pytest packages/wps-weather/src/wps_weather/tests -x -o log_cli=true --disable-warnings -vvv
+
+  test-wps-sfms:
+    name: Python - WPS SFMS Test
+    runs-on: ubuntu-24.04
+    container: *api-base-image
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/python-setup
+      - name: Unit Test (wps_sfms)
+        working-directory: ./backend
+        run: |
+          uv run pytest packages/wps-sfms/src/wps_sfms/tests -x -o log_cli=true --disable-warnings -vvv
+
+  test-wps-wf1:
+    name: Python - WF1 Test with coverage
+    runs-on: ubuntu-24.04
+    container: *api-base-image
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/python-setup
+        with:
+          install-jdk: "true"
+      - name: Unit Test with coverage (wps_wf1)
+        working-directory: ./backend
+        run: |
+          uv run pytest --cov=packages/wps-wf1/src/wps_wf1 --cov-branch --cov-report=xml:packages/wps-wf1/coverage-reports/wps-wf1-coverage-report.xml packages/wps-wf1/src/wps_wf1/tests -x -o log_cli=true --disable-warnings -vvv
+      - name: Archive coverage report (wps_wf1)
+        uses: actions/upload-artifact@v7
+        with:
+          name: wps-wf1-coverage-report
+          path: ./backend/packages/wps-wf1/coverage-reports/wps-wf1-coverage-report.xml
+
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-24.04
@@ -182,7 +162,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
-          # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
@@ -193,7 +172,7 @@ jobs:
         with:
           path: |
             **/node_modules
-            ~/.cache/Cypress
+            ~/.cache/ms-playwright
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: enable corepack
         run: corepack enable
@@ -206,40 +185,45 @@ jobs:
       - name: Lint (web)
         working-directory: ./web
         run: yarn run lint
-      - name: Cypress tests with coverage (web)
+      - name: Playwright tests (web)
         working-directory: ./web
-        run: yarn run cypress:ci
+        run: yarn workspace @wps/wps-web run playwright:ci
       - name: Unit tests (web)
         working-directory: ./web
         run: yarn run coverage:ci
       - name: Merge and finalize test coverage (web)
         working-directory: ./web
         run: yarn run finalizeCoverage
-      - name: Archive coverage report
-        uses: actions/upload-artifact@v6
+      - name: Archive coverage report (web)
+        uses: actions/upload-artifact@v7
         with:
           name: web-coverage-report
-          path: ./web/finalCoverage
+          path: ./web/apps/wps-web/finalCoverage
+
   upload-code-coverage:
     name: Coverage with CodeCov
     runs-on: ubuntu-24.04
-    needs: [lint-and-test-web, test-api, test-wps-shared, test-wps-jobs]
+    needs:
+      [
+        lint-and-test-web,
+        test-api,
+        test-wps-shared,
+        test-wps-jobs,
+        test-wps-wf1,
+      ]
     steps:
-      # we need to checkout, so that we have codecov.yml
       - name: Checkout repo
         uses: actions/checkout@v6
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
       - name: Upload test coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
         with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          # we want to ensure code coverage is good, so we fail on error. (default is false)
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
+
   lint-and-test-prune:
     name: Backup Prune - Lint and Test
-    # We have to use an older ubuntu version, because of the older version of python that the
-    # backup script uses.
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -248,7 +232,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
-          # For sonar-scanner to work properly we can't use a shallow fetch.
           fetch-depth: 0
       - name: Setup Python ${{ matrix.python-version }} (api)
         uses: actions/setup-python@v6
@@ -274,7 +257,6 @@ jobs:
           python install-poetry.py --version 1.8.3
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
-      # poetry cache folder: /home/runner/.cache/pypoetry
       - name: Cache poetry
         uses: actions/cache@v5
         env:
@@ -286,12 +268,10 @@ jobs:
             ${{ runner.os }}-poetry-prune-cache-
       - name: Install python dependencies using poetry (s3-backup)
         working-directory: ./openshift/s3-backup/docker
-        run: |
-          poetry install
+        run: poetry install
       - name: Lint (s3-backup)
         working-directory: ./openshift/s3-backup/docker
         run: poetry run ruff check *.py
       - name: Unit tests (s3-backup)
         working-directory: ./openshift/s3-backup/docker
-        run: |
-          poetry run pytest -v
+        run: poetry run pytest -v

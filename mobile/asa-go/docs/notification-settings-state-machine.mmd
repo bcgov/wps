@@ -1,0 +1,46 @@
+stateDiagram-v2
+    direction TB
+
+    [*] --> PermissionDenied : permission denied
+    [*] --> Unregistered : permission granted
+
+    PermissionDenied --> Unregistered : user enables in OS settings
+
+    Unregistered --> Ready : online + deviceId resolved + registerToken() succeeds\n(retried with exponential backoff)
+    Unregistered --> Unregistered : offline
+    Unregistered --> RegistrationFailed : online + deviceId resolved + registerToken() exhausts retries
+    Unregistered --> DeviceIdError : Device.getId() fails
+
+    RegistrationFailed --> Ready : app foreground + registerToken() succeeds
+    RegistrationFailed --> RegistrationFailed : app foreground + registerToken() fails again
+
+    DeviceIdError --> Unregistered : app restart / retry
+
+    Ready --> Unregistered : new FCM token received (token rotation)
+
+    state Ready {
+        [*] --> LoadingSubscriptions
+        LoadingSubscriptions --> Idle : initSubscriptions() succeeds
+        LoadingSubscriptions --> LoadingSubscriptions : initSubscriptions() fails\n(button stays disabled, no user feedback)
+        Idle --> Updating : user toggles subscription
+        Updating --> Idle : server confirms
+        Updating --> UpdateFailed : server rejects after retries
+        UpdateFailed --> Updating : user toggles again
+    }
+
+    note right of Ready
+        Subscribe button disabled in LoadingSubscriptions\n(selectNotificationSettingsDisabled checks subscriptionsInitialized)
+        Subscription toggle UI:
+        Updating → disabled + thumb pulse animation (LoadingSwitch)
+        UpdateFailed → reverted state + snackbar + inline error on the failed switch (LoadingSwitch)
+    end note
+
+    note right of Unregistered
+        Subscribe button UI:
+        Unregistered + online → spinner in subscribe button
+        Unregistered + offline → "Unavailable offline" caption
+        RegistrationFailed → "Unable to register for notifications" caption
+        PermissionDenied → "Enable notifications in device settings" caption
+        DeviceIdError → "Unable to identify device" caption
+        (driven by selectNotificationSettingsDisabledReason)
+    end note

@@ -1,0 +1,18 @@
+{
+  "groups": [
+    {
+      "id": "1",
+      "display_label": "My Test Group",
+      "group_description": "A group owned by the test user",
+      "group_owner_user_guid": "guid-1",
+      "group_owner_user_id": "test@idir"
+    },
+    {
+      "id": "2",
+      "display_label": "Another Users Group",
+      "group_description": "A group owned by someone else",
+      "group_owner_user_guid": "guid-2",
+      "group_owner_user_id": "other@idir"
+    }
+  ]
+}

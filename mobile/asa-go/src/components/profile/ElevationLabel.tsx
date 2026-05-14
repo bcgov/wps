@@ -1,4 +1,4 @@
-import { Grid2 as Grid, Typography } from "@mui/material";
+import { Grid, Typography } from "@mui/material";
 import React from "react";
 
 interface ElevationLabelProps {
@@ -15,7 +15,9 @@ const ElevationLabel = ({ label }: ElevationLabelProps) => {
       }}
       size={6}
     >
-      <Typography sx={{ fontWeight: "bold" }}>{label}</Typography>
+      <Typography sx={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+        {label}
+      </Typography>
     </Grid>
   );
 };

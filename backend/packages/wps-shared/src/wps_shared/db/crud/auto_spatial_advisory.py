@@ -4,15 +4,12 @@ from datetime import date, datetime
 from time import perf_counter
 from typing import List, Optional, Tuple
 
-from sqlalchemy import String, and_, case, cast, desc, extract, func, select, update
+from sqlalchemy import Integer, String, and_, case, cast, desc, extract, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
-from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
-from wps_shared.run_type import RunType
-from wps_shared.schemas.fba import FireShapeStatusDetail, HfiArea, HfiThreshold
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryElevationStats,
     AdvisoryFuelStats,
@@ -35,7 +32,11 @@ from wps_shared.db.models.auto_spatial_advisory import (
     ShapeType,
     TPIFuelArea,
 )
-from wps_shared.db.models.hfi_calc import FireCentre
+from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
+from wps_shared.db.models.psu import FireCentre
+from wps_shared.run_type import RunType
+from wps_shared.schemas.auto_spatial_advisory import ZoneAdvisoryStatus
+from wps_shared.schemas.fba import FireShapeStatusDetail, HfiArea, HfiThreshold
 
 logger = logging.getLogger(__name__)
 
@@ -91,53 +92,6 @@ async def get_table_srid(session: AsyncSession, model, geom_column: str = "geom"
 
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
-
-
-async def get_combustible_area(session: AsyncSession, fuel_type_raster_id: int):
-    """Get the combustible area for each "shape". This is slow, and we don't expect it to run
-    in real time.
-
-    This method isn't being used right now, but you can calculate the combustible area for each
-    zone as follows:
-
-    ```python
-    from wps_shared.db.crud.auto_spatial_advisory import get_combustible_area
-    from wps_shared.db.database import get_async_read_session_scope
-
-    async with get_async_read_session_scope() as session:
-    result = await get_combustible_area(session)
-
-    for record in result:
-        print(record)
-        print(record['combustible_area']/record['zone_area'])
-    ```
-
-    """
-    logger.info("starting zone/combustible area intersection query")
-    perf_start = perf_counter()
-    stmt = (
-        select(
-            Shape.id,
-            Shape.source_identifier,
-            Shape.geom.ST_Area().label("zone_area"),
-            FuelType.geom.ST_Union()
-            .ST_Intersection(Shape.geom)
-            .ST_Area()
-            .label("combustible_area"),
-        )
-        .join(FuelType, FuelType.geom.ST_Intersects(Shape.geom))
-        .where(
-            FuelType.fuel_type_id.not_in((-10000, 99, 100, 102, 103)),
-            FuelType.fuel_type_raster_id == fuel_type_raster_id,
-        )
-        .group_by(Shape.id)
-    )
-    result = await session.execute(stmt)
-    all_combustible = result.all()
-    perf_end = perf_counter()
-    delta = perf_end - perf_start
-    logger.info("%f delta count before and after hfi area + zone/area intersection query", delta)
-    return all_combustible
 
 
 async def get_all_hfi_thresholds(session: AsyncSession) -> List[HfiClassificationThreshold]:
@@ -853,16 +807,13 @@ async def get_provincial_rollup(
     # for AdvisoryZoneStatus records matching the run_parameters
     most_recent_raster_subquery = (
         select(FuelTypeRaster.id)
-        .where(
-            FuelTypeRaster.year
-            == select(func.max(FuelTypeRaster.year)).where(
-                FuelTypeRaster.id.in_(
-                    select(AdvisoryZoneStatus.fuel_type_raster_id).where(
-                        AdvisoryZoneStatus.run_parameters == run_parameter_id
-                    )
-                )
-            )
+        .join(
+            AdvisoryZoneStatus,
+            AdvisoryZoneStatus.fuel_type_raster_id == FuelTypeRaster.id,
         )
+        .where(AdvisoryZoneStatus.run_parameters == run_parameter_id)
+        .order_by(FuelTypeRaster.year.desc())
+        .limit(1)
         .scalar_subquery()
     )
 
@@ -879,13 +830,34 @@ async def get_provincial_rollup(
             and_(
                 AdvisoryZoneStatus.advisory_shape_id == Shape.id,
                 AdvisoryZoneStatus.run_parameters == run_parameter_id,
+                AdvisoryZoneStatus.fuel_type_raster_id == most_recent_raster_subquery,
             ),
             isouter=True,
         )
-        .where(AdvisoryZoneStatus.fuel_type_raster_id == most_recent_raster_subquery)
     )
     result = await session.execute(stmt)
     return [FireShapeStatusDetail.model_validate(row) for row in result.mappings().all()]
+
+
+async def get_zones_with_advisories(
+    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
+) -> list[ZoneAdvisoryStatus]:
+    logger.info("gathering zones with advisories/warnings")
+    run_parameter_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+    stmt = (
+        select(
+            AdvisoryZoneStatus.advisory_shape_id,
+            Shape.fire_centre.label("fire_centre_id"),
+            Shape.source_identifier,
+            Shape.placename_label,
+            advisory_status_case.label("status"),
+        )
+        .where(AdvisoryZoneStatus.run_parameters == run_parameter_id)
+        .where(advisory_status_case.isnot(None))
+        .join(Shape, Shape.id == AdvisoryZoneStatus.advisory_shape_id)
+    )
+    result = await session.execute(stmt)
+    return [ZoneAdvisoryStatus.model_validate(row) for row in result.mappings().all()]
 
 
 async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):
@@ -962,3 +934,14 @@ async def gather_zone_status_inputs(
     )
 
     return thresholds_lut, hfi_rows
+
+
+async def get_fire_centre_info(db_session: AsyncSession):
+    stmt = (
+        select(cast(Shape.source_identifier, Integer), Shape.placename_label, FireCentre.name)
+        .join(ShapeType, ShapeType.id == Shape.shape_type)
+        .join(FireCentre, FireCentre.id == Shape.fire_centre)
+        .where(ShapeType.name == "fire_zone_unit")
+    )
+    result = await db_session.execute(stmt)
+    return result.all()

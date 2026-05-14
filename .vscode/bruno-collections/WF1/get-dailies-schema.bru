@@ -1,0 +1,15 @@
+meta {
+  name: GET Dailies Schema
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{WFWX_BASE_URL}}/v1/dailies/schema/json
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{WFWX_TOKEN}}
+}

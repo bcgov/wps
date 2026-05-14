@@ -1,15 +1,18 @@
-import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { FireShape } from "@/api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 import { AppHeader } from "@/components/AppHeader";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
+import SideNavigation from "@/components/SideNavigation";
 import ASAGoMap from "@/components/map/ASAGoMap";
 import Profile from "@/components/profile/Profile";
 import Advisory from "@/components/report/Advisory";
+import Settings from "@/components/settings/Settings";
 import TabPanel from "@/components/TabPanel";
 import { useAppIsActive } from "@/hooks/useAppIsActive";
+import { useIsPortrait } from "@/hooks/useIsPortrait";
 import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
 import { fetchAndCacheData } from "@/slices/dataSlice";
-import { today } from "@/utils/dataSliceUtils";
-import { fetchFireCenters } from "@/slices/fireCentersSlice";
+import { fetchFireCentres } from "@/slices/fireCentresSlice";
 import {
   startWatchingLocation,
   stopWatchingLocation,
@@ -18,32 +21,48 @@ import { updateNetworkStatus } from "@/slices/networkStatusSlice";
 import { fetchSFMSRunParameters } from "@/slices/runParametersSlice";
 import {
   AppDispatch,
-  selectFireCenters,
+  selectFireCentres,
   selectNetworkStatus,
   selectRunParameters,
+  selectSettings,
+  selectPushNotification,
+  selectProvincialSummaries,
+  selectPendingNotificationData,
+  selectLastUpdated,
 } from "@/store";
 import { theme } from "@/theme";
-import { NavPanel } from "@/utils/constants";
+import { NavPanel, StatusEnum } from "@/utils/constants";
+import { today } from "@/utils/dataSliceUtils";
 import { PMTilesCache } from "@/utils/pmtilesCache";
 import { clearStaleHFIPMTiles } from "@/utils/storage";
 import { Filesystem } from "@capacitor/filesystem";
 import { ConnectionStatus, Network } from "@capacitor/network";
-import { Box } from "@mui/material";
-import { LicenseInfo } from "@mui/x-license-pro";
+import { StatusBar } from "@capacitor/status-bar";
+import { Box, useMediaQuery } from "@mui/material";
+import { LicenseInfo } from "@mui/x-license";
 import { isNil, isNull } from "lodash";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useDeviceId } from "@/hooks/useDeviceId";
+import { initSubscriptions } from "@/slices/settingsSlice";
+import { clearPendingNotificationData } from "@/slices/pushNotificationSlice";
+import InfoBar from "@/components/InfoBar";
+import InfoIcon from "@/assets/InfoIcon.svg";
+import NetworkIcon from "@/assets/NetworkIcon.svg";
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY);
   const isActive = useAppIsActive();
+  const isPortrait = useIsPortrait();
   const dispatch: AppDispatch = useDispatch();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
 
   // local state
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP);
-  const [fireCenter, setFireCenter] = useState<FireCenter | undefined>(
-    undefined
+  const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(
+    undefined,
   );
   const [selectedFireShape, setSelectedFireShape] = useState<
     FireShape | undefined
@@ -51,12 +70,54 @@ const App = () => {
   const [dateOfInterest, setDateOfInterest] = useState<DateTime>(today);
 
   // selected redux state
-  const { fireCenters } = useSelector(selectFireCenters);
+  const { fireCentres } = useSelector(selectFireCentres);
   const { networkStatus } = useSelector(selectNetworkStatus);
   const runParameters = useSelector(selectRunParameters);
+  const { registeredFcmToken } = useSelector(selectPushNotification);
+  const { subscriptionsInitialized } = useSelector(selectSettings);
+  const provincialSummaries = useSelector(selectProvincialSummaries);
+  const pendingNotificationData = useSelector(selectPendingNotificationData);
+  const lastUpdated = useSelector(selectLastUpdated);
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest);
+  const { initPushNotifications } = usePushNotifications();
+  const deviceId = useDeviceId();
+
+  const selectedFireCentreName = selectedFireShape?.mof_fire_centre_name;
+  const matchingFireCentre = selectedFireCentreName
+    ? fireCentres.find((center) => center.name === selectedFireCentreName)
+    : undefined;
+  const selectedFireCentre = matchingFireCentre ?? fireCentre;
+
+  useEffect(() => {
+    // Effect to manage status bar visibility
+    const syncStatusBar = async () => {
+      if (isPortrait) {
+        await StatusBar.show();
+      } else {
+        await StatusBar.hide();
+      }
+    };
+
+    void syncStatusBar();
+  }, [isPortrait]);
+
+  useEffect(() => {
+    initPushNotifications();
+  }, [initPushNotifications]);
+
+  useEffect(() => {
+    if (!deviceId || !networkStatus.connected || !registeredFcmToken) return;
+    if (subscriptionsInitialized) return;
+    dispatch(initSubscriptions(deviceId));
+  }, [
+    deviceId,
+    networkStatus.connected,
+    registeredFcmToken,
+    subscriptionsInitialized,
+    dispatch,
+  ]);
 
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status
@@ -69,7 +130,7 @@ const App = () => {
     getInitialNetworkStatus();
     Network.addListener("networkStatusChange", (status: ConnectionStatus) => {
       console.log(
-        `Network status changed: ${status.connected}, ${status.connectionType}`
+        `Network status changed: ${status.connected}, ${status.connectionType}`,
       );
       dispatch(updateNetworkStatus(status));
     });
@@ -79,37 +140,15 @@ const App = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (networkStatus.connected) {
-      dispatch(fetchSFMSRunParameters());
-    }
-  }, [networkStatus.connected, dispatch]);
-
-  useEffect(() => {
-    dispatch(fetchFireCenters());
     const doiISODate = dateOfInterest.toISODate();
-    if (!isNull(doiISODate)) {
+    if (isActive && !isNull(doiISODate)) {
       dispatch(fetchSFMSRunParameters());
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isActive, dateOfInterest, networkStatus.connected, dispatch]);
 
   useEffect(() => {
-    const doiISODate = dateOfInterest.toISODate();
-    if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunParameters());
-    }
-  }, [dateOfInterest, networkStatus.connected]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (selectedFireShape?.mof_fire_centre_name) {
-      const matchingFireCenter = fireCenters.find(
-        (center) => center.name === selectedFireShape.mof_fire_centre_name
-      );
-
-      if (matchingFireCenter) {
-        setFireCenter(matchingFireCenter);
-      }
-    }
-  }, [selectedFireShape, fireCenters]);
+    dispatch(fetchFireCentres());
+  }, [dispatch]);
 
   useEffect(() => {
     if (!isNil(runParameters)) {
@@ -120,15 +159,15 @@ const App = () => {
           DateTime.fromISO(value.for_date),
           value.run_type,
           DateTime.fromISO(value.run_datetime),
-          "hfi.pmtiles"
+          "hfi.pmtiles",
         );
         hfiFilesToKeep.push(
           pmtilesCache.getHFIFileName(
             value.for_date,
             value.run_type,
             value.run_datetime,
-            "hfi.pmtiles"
-          )
+            "hfi.pmtiles",
+          ),
         );
       }
       clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep);
@@ -140,6 +179,56 @@ const App = () => {
       dispatch(fetchAndCacheData());
     }
   }, [runParameter, dispatch]);
+
+  useEffect(() => {
+    if (
+      !pendingNotificationData?.advisory_date ||
+      !pendingNotificationData?.fire_centre_id ||
+      !pendingNotificationData?.fire_zone_unit
+    )
+      return;
+
+    const advisoryDate = DateTime.fromISO(
+      pendingNotificationData.advisory_date,
+    );
+    const notificationDateKey = advisoryDate.toISODate();
+    const todayKey = today.toISODate();
+
+    // Only process notifications whose date matches today
+    if (!notificationDateKey || notificationDateKey !== todayKey) {
+      dispatch(clearPendingNotificationData());
+      return;
+    }
+
+    const matchingCentre = fireCentres.find(
+      (fc) => fc.id === Number(pendingNotificationData.fire_centre_id),
+    );
+
+    const summaries = provincialSummaries?.[notificationDateKey]?.data;
+    const matchingShape = summaries?.find(
+      (s) => s.fire_shape_id === Number(pendingNotificationData.fire_zone_unit),
+    );
+
+    // Only update state when all three values are resolved
+    if (!matchingCentre || !matchingShape) return;
+
+    // Reacting to an external system event (push notification tap); setState calls here are intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDateOfInterest(advisoryDate);
+    setFireCentre(matchingCentre);
+    setSelectedFireShape({
+      fire_shape_id: matchingShape.fire_shape_id,
+      mof_fire_zone_name: matchingShape.fire_shape_name,
+      mof_fire_centre_name: matchingShape.fire_centre_name,
+    });
+    setTab(NavPanel.ADVISORY);
+    // mui button base does not remove active styling when toggling a button programmatically, so
+    // call blur on the new active button to force appropriate styling
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    dispatch(clearPendingNotificationData());
+  }, [pendingNotificationData, fireCentres, provincialSummaries, dispatch]);
 
   // start/stop watching location based on tab and app state
   useEffect(() => {
@@ -158,13 +247,22 @@ const App = () => {
         padding: 0,
         margin: 0,
         display: "flex",
-        flexDirection: "column",
+        flexDirection: isPortrait || !isSmallScreen ? "column" : "row",
         overflow: "hidden",
-        paddingBottom: "env(safe-area-inset-bottom)",
-        backgroundColor: theme.palette.primary.main,
+        paddingBottom:
+          isPortrait || !isSmallScreen ? "env(safe-area-inset-bottom)" : 0,
+        backgroundColor:
+          isPortrait || !isSmallScreen ? theme.palette.primary.main : "inherit",
       }}
     >
-      <AppHeader />
+      {/* Show SideNavigation only in landscape and small screen */}
+      {!isPortrait && isSmallScreen && (
+        <SideNavigation tab={tab} setTab={setTab} />
+      )}
+
+      {/* Show AppHeader in portrait OR landscape with medium or larger screen */}
+      {(isPortrait || !isSmallScreen) && <AppHeader />}
+
       <Box
         sx={{
           flexGrow: 1,
@@ -173,11 +271,20 @@ const App = () => {
           overflow: "hidden",
         }}
       >
+        <InfoBar
+          status={
+            networkStatus.connected ? StatusEnum.INFO : StatusEnum.WARNING
+          }
+          statusText={networkStatus.connected ? "" : "Offline."}
+          viewingDate={dateOfInterest}
+          lastUpdated={lastUpdated}
+          Icon={networkStatus.connected ? InfoIcon : NetworkIcon}
+        />
         <TabPanel value={tab} panel={NavPanel.MAP}>
           <ASAGoMap
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
-            setSelectedFireCenter={setFireCenter}
+            setSelectedFireCentre={setFireCentre}
             date={dateOfInterest}
             setDate={setDateOfInterest}
             setTab={setTab}
@@ -188,8 +295,8 @@ const App = () => {
           <Profile
             date={dateOfInterest}
             setDate={setDateOfInterest}
-            selectedFireCenter={fireCenter}
-            setSelectedFireCenter={setFireCenter}
+            selectedFireCentre={selectedFireCentre}
+            setSelectedFireCentre={setFireCentre}
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
@@ -198,14 +305,21 @@ const App = () => {
           <Advisory
             date={dateOfInterest}
             setDate={setDateOfInterest}
-            selectedFireCenter={fireCenter}
-            setSelectedFireCenter={setFireCenter}
+            selectedFireCentre={selectedFireCentre}
+            setSelectedFireCentre={setFireCentre}
             selectedFireZoneUnit={selectedFireShape}
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
         </TabPanel>
+        <TabPanel value={tab} panel={NavPanel.SETTINGS}>
+          <Settings activeTab={tab} />
+        </TabPanel>
       </Box>
-      <BottomNavigationBar tab={tab} setTab={setTab} />
+
+      {/* Show BottomNavigation in portrait OR landscape with medium or larger screen */}
+      {(isPortrait || !isSmallScreen) && (
+        <BottomNavigationBar tab={tab} setTab={setTab} />
+      )}
     </Box>
   );
 };

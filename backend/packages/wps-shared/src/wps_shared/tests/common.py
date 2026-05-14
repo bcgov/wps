@@ -1,14 +1,17 @@
 """Mock modules/classes"""
 
+import json
 import logging
 import os
-import json
-from typing import Optional
 from contextlib import asynccontextmanager
+from typing import Optional
+
 from wps_shared.auth import ASA_TEST_IDIR_GUID
 from wps_shared.tests.fixtures.loader import FixtureFinder
 
 logger = logging.getLogger(__name__)
+
+TESTCONTAINERS_POSTGRES_IMAGE = "postgis/postgis:16-3.4"
 
 
 class MockJWTDecode:
@@ -108,6 +111,11 @@ class MockAsyncResponse:
     async def json(self) -> dict:
         """Return json response"""
         return self._json
+
+    def raise_for_status(self) -> None:
+        """Mimic aiohttp.ClientResponse.raise_for_status()."""
+        if 400 <= self.status:
+            raise Exception(f"HTTP {self.status}")
 
 
 class DefaultMockAioSession:

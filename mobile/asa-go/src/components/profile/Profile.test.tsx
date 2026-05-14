@@ -4,17 +4,18 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { DateTime } from "luxon";
 import Profile, { ProfileProps } from "@/components/profile/Profile";
-import { FireCenter, FireShape } from "@/api/fbaAPI";
+import { FireShape } from "@/api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 
 // Mock child components
 vi.mock("@/components/FireCenterDropdown", () => ({
   default: ({
-    selectedFireCenter,
+    selectedFireCentre,
   }: {
-    selectedFireCenter: FireCenter | undefined;
+    selectedFireCentre: FireCentre | undefined;
   }) => (
     <div data-testid="fire-center-dropdown">
-      {selectedFireCenter ? selectedFireCenter.name : "No fire center selected"}
+      {selectedFireCentre ? selectedFireCentre.name : "No fire centre selected"}
     </div>
   ),
 }));
@@ -61,13 +62,12 @@ vi.mock("@mui/material/styles", () => ({
 describe("Profile", () => {
   const mockDate = DateTime.fromISO("2023-06-15");
   const mockSetDate = vi.fn();
-  const mockSetSelectedFireCenter = vi.fn();
+  const mockSetSelectedFireCentre = vi.fn();
   const mockSetSelectedFireZoneUnit = vi.fn();
 
-  const mockFireCenter: FireCenter = {
+  const mockFireCentre: FireCentre = {
     id: 1,
-    name: "Test Fire Center",
-    stations: [],
+    name: "Test Fire Centre",
   };
 
   const mockFireZoneUnit: FireShape = {
@@ -77,22 +77,22 @@ describe("Profile", () => {
     area_sqm: 1000,
   };
 
-  const mockFireCenters = [mockFireCenter];
+  const mockFireCentres = [mockFireCentre];
 
-  const createMockStore = (fireCenters = mockFireCenters) => {
+  const createMockStore = (fireCentres = mockFireCentres) => {
     return configureStore({
       reducer: {
-        fireCenters: (state = { fireCenters }) => state,
+        fireCentres: (state = { fireCentres }) => state,
       },
       preloadedState: {
-        fireCenters: { fireCenters },
+        fireCentres: { fireCentres },
       },
     });
   };
 
   const renderWithProvider = (
     component: React.ReactElement,
-    store = createMockStore()
+    store = createMockStore(),
   ) => {
     return render(<Provider store={store}>{component}</Provider>);
   };
@@ -100,12 +100,12 @@ describe("Profile", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Mock useSelector to return fire centers
+    // Mock useSelector to return fire centres
     vi.doMock("react-redux", async () => {
       const actual = await vi.importActual("react-redux");
       return {
         ...actual,
-        useSelector: vi.fn(() => ({ fireCenters: mockFireCenters })),
+        useSelector: vi.fn(() => ({ fireCentres: mockFireCentres })),
       };
     });
   });
@@ -113,8 +113,8 @@ describe("Profile", () => {
   const defaultProps: ProfileProps = {
     date: mockDate,
     setDate: mockSetDate,
-    selectedFireCenter: undefined,
-    setSelectedFireCenter: mockSetSelectedFireCenter,
+    selectedFireCentre: undefined,
+    setSelectedFireCentre: mockSetSelectedFireCentre,
     selectedFireZoneUnit: undefined,
     setSelectedFireZoneUnit: mockSetSelectedFireZoneUnit,
   };
@@ -123,12 +123,6 @@ describe("Profile", () => {
     renderWithProvider(<Profile {...defaultProps} />);
 
     expect(screen.getByTestId("asa-go-profile")).toBeInTheDocument();
-  });
-
-  it("should render the Profile title", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
-
-    expect(screen.getByText("Profile")).toBeInTheDocument();
   });
 
   it("should render TodayTomorrowSwitch with correct date", () => {
@@ -144,41 +138,34 @@ describe("Profile", () => {
 
     const dropdown = screen.getByTestId("fire-center-dropdown");
     expect(dropdown).toBeInTheDocument();
-    expect(dropdown).toHaveTextContent("No fire center selected");
+    expect(dropdown).toHaveTextContent("No fire centre selected");
   });
 
-  it("should render FireCenterDropdown with selected fire center", () => {
-    const propsWithFireCenter = {
+  it("should render FireCenterDropdown with selected fire centre", () => {
+    const propsWithFireCentre: ProfileProps = {
       ...defaultProps,
-      selectedFireCenter: mockFireCenter,
+      selectedFireCentre: mockFireCentre,
     };
 
-    renderWithProvider(<Profile {...propsWithFireCenter} />);
+    renderWithProvider(<Profile {...propsWithFireCentre} />);
 
     const dropdown = screen.getByTestId("fire-center-dropdown");
-    expect(dropdown).toHaveTextContent("Test Fire Center");
+    expect(dropdown).toHaveTextContent("Test Fire Centre");
   });
 
   it("should render FireZoneUnitTabs", () => {
     renderWithProvider(
-      <Profile {...defaultProps} selectedFireCenter={mockFireCenter} />
+      <Profile {...defaultProps} selectedFireCentre={mockFireCentre} />,
     );
 
     const tabs = screen.getByTestId("fire-zone-unit-tabs");
     expect(tabs).toBeInTheDocument();
   });
 
-  it("should render a default message if no fire centre is selected", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
-
-    const summary = screen.getByTestId("default-message");
-    expect(summary).toBeInTheDocument();
-  });
-
   it("should render FireZoneUnitSummary with selected fire zone", () => {
-    const propsWithFireZone = {
+    const propsWithFireZone: ProfileProps = {
       ...defaultProps,
-      selectedFireCenter: mockFireCenter,
+      selectedFireCentre: mockFireCentre,
       selectedFireZoneUnit: mockFireZoneUnit,
     };
 
@@ -204,18 +191,11 @@ describe("Profile", () => {
     expect(controlContainer).toBeInTheDocument();
   });
 
-  it("should render TextSnippet icon", () => {
-    const { container } = renderWithProvider(<Profile {...defaultProps} />);
-
-    const textSnippetIcon = container.querySelector(".MuiSvgIcon-root");
-    expect(textSnippetIcon).toBeInTheDocument();
-  });
-
   it("should have correct content container ID", () => {
     renderWithProvider(<Profile {...defaultProps} />);
 
     const contentContainer = document.getElementById(
-      "profile-content-container"
+      "profile-content-container",
     );
     expect(contentContainer).toBeInTheDocument();
   });
@@ -224,8 +204,8 @@ describe("Profile", () => {
     const propsWithAllValues: ProfileProps = {
       date: mockDate,
       setDate: mockSetDate,
-      selectedFireCenter: mockFireCenter,
-      setSelectedFireCenter: mockSetSelectedFireCenter,
+      selectedFireCentre: mockFireCentre,
+      setSelectedFireCentre: mockSetSelectedFireCentre,
       selectedFireZoneUnit: mockFireZoneUnit,
       setSelectedFireZoneUnit: mockSetSelectedFireZoneUnit,
     };
@@ -234,12 +214,12 @@ describe("Profile", () => {
 
     // Check that fire center is passed
     expect(screen.getByTestId("fire-center-dropdown")).toHaveTextContent(
-      "Test Fire Center"
+      "Test Fire Centre",
     );
 
     // Check that fire zone unit is passed
     expect(screen.getByTestId("fire-zone-unit-summary")).toHaveTextContent(
-      "Summary for Test Zone"
+      "Summary for Test Zone",
     );
   });
 });

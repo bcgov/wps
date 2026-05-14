@@ -1,19 +1,20 @@
 import os
-import numpy as np
-import pytest
-from pytest_mock import MockerFixture
 from datetime import datetime, timezone
 from unittest.mock import patch
-from app.tests.utils.raster_reader import read_raster_array
 
+import numpy as np
+import pytest
+from app.tests.utils.raster_reader import read_raster_array
 from app.weather_models.precip_rdps_model import (
     TemporalPrecip,
     compute_and_store_precip_rasters,
     compute_precip_difference,
-    get_raster_keys_to_diff,
     generate_24_hour_accumulating_precip_raster,
+    get_raster_keys_to_diff,
+    get_raster_keys_to_diff_legacy,
 )
-from wps_shared.sfms.rdps_filename_marshaller import model_run_for_hour
+from pytest_mock import MockerFixture
+from wps_shared.weather_models.rdps import model_run_for_hour
 
 geotransform = (-4556441.403315245, 10000.0, 0.0, 920682.1411659503, 0.0, -10000.0)
 projection = 'PROJCS["unnamed",GEOGCS["Coordinate System imported from GRIB file",DATUM["unnamed",SPHEROID["Sphere",6371229,0]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]]],PROJECTION["Polar_Stereographic"],PARAMETER["latitude_of_origin",60],PARAMETER["central_meridian",249],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Metre",1],AXIS["Easting",SOUTH],AXIS["Northing",SOUTH]]'
@@ -24,7 +25,9 @@ def test_difference_identity():
     Verify difference of accumulated precip is zero when diffing the same raster
     """
     parent_dir = os.path.dirname(__file__)
-    precip_raster = read_raster_array(os.path.join(parent_dir, "CMC_reg_APCP_SFC_0_ps10km_2024061218_P001.grib2"))
+    precip_raster = read_raster_array(
+        os.path.join(parent_dir, "20240612T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT001H.grib2")
+    )
     later_precip = TemporalPrecip(datetime.fromisoformat("2024-06-10T18:42:49"), precip_raster)
     earlier_precip = TemporalPrecip(datetime.fromisoformat("2024-06-09T18:42:49"), precip_raster)
 
@@ -57,8 +60,14 @@ def test_trivial_negative_precip_diff_returns_zero():
 @pytest.mark.parametrize(
     "later_datetime,earlier_datetime",
     [
-        (datetime.fromisoformat("2024-06-10T18:42:49"), datetime.fromisoformat("2024-06-10T18:42:49")),  # same datetime
-        (datetime.fromisoformat("2024-06-09T18:42:49"), datetime.fromisoformat("2024-06-10T18:42:49")),  # later earlier than earlier
+        (
+            datetime.fromisoformat("2024-06-10T18:42:49"),
+            datetime.fromisoformat("2024-06-10T18:42:49"),
+        ),  # same datetime
+        (
+            datetime.fromisoformat("2024-06-09T18:42:49"),
+            datetime.fromisoformat("2024-06-10T18:42:49"),
+        ),  # later earlier than earlier
     ],
 )
 def test_temporal_assertion_failures(later_datetime, earlier_datetime):
@@ -66,7 +75,9 @@ def test_temporal_assertion_failures(later_datetime, earlier_datetime):
     Verify ValueError raised for wrong datetime arguments
     """
     parent_dir = os.path.dirname(__file__)
-    precip_raster = read_raster_array(os.path.join(parent_dir, "CMC_reg_APCP_SFC_0_ps10km_2024061218_P001.grib2"))
+    precip_raster = read_raster_array(
+        os.path.join(parent_dir, "20240612T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT001H.grib2")
+    )
     later_precip = TemporalPrecip(later_datetime, precip_raster)
     earlier_precip = TemporalPrecip(earlier_datetime, precip_raster)
 
@@ -81,8 +92,16 @@ async def test_generate_24_hour_accumulating_precip_raster_ok(mocker: MockerFixt
     """
     Verify that the appropriate rasters are diffed correctly for non model hour.
     """
-    mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[(np.array([1, 1]), geotransform, projection), (np.array([1, 1]), geotransform, projection)])
-    (res, _, _) = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 1, tzinfo=timezone.utc))
+    mocker.patch(
+        "app.weather_models.precip_rdps_model.read_into_memory",
+        side_effect=[
+            (np.array([1, 1]), geotransform, projection),
+            (np.array([1, 1]), geotransform, projection),
+        ],
+    )
+    (res, _, _) = await generate_24_hour_accumulating_precip_raster(
+        datetime(2024, 1, 1, 1, tzinfo=timezone.utc)
+    )
     assert np.allclose(res, np.array([0, 0]))
 
 
@@ -91,25 +110,50 @@ async def test_generate_24_hour_accumulating_precip_raster_model_hour_ok(mocker:
     """
     Verify that the appropriate rasters are diffed correctly on a model hour -- just returns todays data.
     """
-    mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[(np.array([1, 1]), geotransform, projection), (np.array([1, 1]), geotransform, projection)])
-    (res, _, _) = await generate_24_hour_accumulating_precip_raster(datetime(2024, 1, 1, 0, tzinfo=timezone.utc))
+    mocker.patch(
+        "app.weather_models.precip_rdps_model.read_into_memory",
+        side_effect=[
+            (np.array([1, 1]), geotransform, projection),
+            (np.array([1, 1]), geotransform, projection),
+        ],
+    )
+    (res, _, _) = await generate_24_hour_accumulating_precip_raster(
+        datetime(2024, 1, 1, 0, tzinfo=timezone.utc)
+    )
     assert np.allclose(res, np.array([1, 1]))
 
 
 @pytest.mark.parametrize(
-    "current_time,today_raster,yesterday_raster",
+    "current_time,side_effects",
     [
-        (datetime(2024, 1, 1, 0, tzinfo=timezone.utc), (None, None, None), (np.array([1, 1]), geotransform, projection)),  # no today raster data
-        (datetime(2024, 1, 1, 0, tzinfo=timezone.utc), (None, None, None), (None, None, None)),  # no raster data
+        (
+            datetime(2024, 1, 1, 0, tzinfo=timezone.utc),
+            [(None, None, None), (None, None, None)],
+        ),  # new format missing, legacy also missing today raster
+        (
+            datetime(2024, 1, 1, 1, tzinfo=timezone.utc),
+            [(None, None, None), (None, None, None), (None, None, None)],
+        ),  # non-model-run hour: new format missing, legacy today and yesterday both missing
     ],
 )
 @pytest.mark.anyio
-async def test_generate_24_hour_accumulating_precip_raster_no_today_raster(current_time: datetime, today_raster: np.ndarray, yesterday_raster: np.ndarray, mocker: MockerFixture):
+async def test_generate_24_hour_accumulating_precip_raster_no_today_raster(
+    current_time: datetime,
+    side_effects: list,
+    mocker: MockerFixture,
+):
     """
-    Verify that the appropriate rasters are diffed correctly.
+    Verify that None is returned when neither new-format nor legacy rasters have today's data.
     """
-    mocker.patch("app.weather_models.precip_rdps_model.read_into_memory", side_effect=[today_raster, yesterday_raster])
-    (day_data, day_geotransform, day_projection) = await generate_24_hour_accumulating_precip_raster(current_time)
+    mocker.patch(
+        "app.weather_models.precip_rdps_model.read_into_memory",
+        side_effect=side_effects,
+    )
+    (
+        day_data,
+        day_geotransform,
+        day_projection,
+    ) = await generate_24_hour_accumulating_precip_raster(current_time)
     assert day_data is None
     assert day_geotransform is None
     assert day_projection is None
@@ -135,37 +179,37 @@ def test_model_run_for_hour_ok(hour: int, expected_model_run: int):
         (
             datetime(2024, 1, 1, 0, tzinfo=timezone.utc),
             None,
-            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P024.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT024H.grib2",
         ),
         # 12 model run, 12:00 UTC hour grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 12, tzinfo=timezone.utc),
             None,
-            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P024.grib2",
+            "weather_models/rdps/2023-12-31/12/precip/20231231T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT024H.grib2",
         ),
         # 0 model run, hour 1:00 UTC, grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 1, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P001.grib2",
-            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P025.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT001H.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT025H.grib2",
         ),
         # 0 model run, hour 2:00 UTC, grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 2, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P002.grib2",
-            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P026.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT002H.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/20231231T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT026H.grib2",
         ),
         # 12 model run, 13:00 UTC hour, grab data from stored RDPS model raster
         (
             datetime(2024, 1, 1, 13, tzinfo=timezone.utc),
-            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P001.grib2",
-            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P025.grib2",
+            "weather_models/rdps/2023-12-31/12/precip/20231231T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT001H.grib2",
+            "weather_models/rdps/2023-12-31/12/precip/20231231T12Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT025H.grib2",
         ),
         # Test prediction into the future from today. Today = 2024-01-01 01:00 UTC, predict for 2024-01-02 2:00 UTC
         (
             datetime(2024, 1, 2, 2, tzinfo=timezone.utc),
-            "weather_models/rdps/2024-01-01/00/precip/CMC_reg_APCP_SFC_0_ps10km_2024010100_P002.grib2",
-            "weather_models/rdps/2024-01-01/00/precip/CMC_reg_APCP_SFC_0_ps10km_2024010100_P026.grib2",
+            "weather_models/rdps/2024-01-01/00/precip/20240101T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT002H.grib2",
+            "weather_models/rdps/2024-01-01/00/precip/20240101T00Z_MSC_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT026H.grib2",
         ),
     ],
 )
@@ -178,11 +222,75 @@ def test_get_raster_keys_to_diff(timestamp: datetime, expected_yesterday_key, ex
     assert today_key == expected_today_key
 
 
+@pytest.mark.parametrize(
+    "timestamp,expected_yesterday_key,expected_today_key",
+    [
+        # 0 model run hour — returns (None, later_key)
+        (
+            datetime(2024, 1, 1, 0, tzinfo=timezone.utc),
+            None,
+            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P024.grib2",
+        ),
+        # non-model-run hour (00 model run) — returns (earlier_key, later_key)
+        (
+            datetime(2024, 1, 1, 1, tzinfo=timezone.utc),
+            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P001.grib2",
+            "weather_models/rdps/2023-12-31/00/precip/CMC_reg_APCP_SFC_0_ps10km_2023123100_P025.grib2",
+        ),
+        # 12 model run hour — returns (None, later_key)
+        (
+            datetime(2024, 1, 1, 12, tzinfo=timezone.utc),
+            None,
+            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P024.grib2",
+        ),
+        # non-model-run hour (12 model run) — returns (earlier_key, later_key)
+        (
+            datetime(2024, 1, 1, 13, tzinfo=timezone.utc),
+            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P001.grib2",
+            "weather_models/rdps/2023-12-31/12/precip/CMC_reg_APCP_SFC_0_ps10km_2023123112_P025.grib2",
+        ),
+        # prediction into the future from today
+        (
+            datetime(2024, 1, 2, 2, tzinfo=timezone.utc),
+            "weather_models/rdps/2024-01-01/00/precip/CMC_reg_APCP_SFC_0_ps10km_2024010100_P002.grib2",
+            "weather_models/rdps/2024-01-01/00/precip/CMC_reg_APCP_SFC_0_ps10km_2024010100_P026.grib2",
+        ),
+    ],
+)
+def test_get_raster_keys_to_diff_legacy(timestamp: datetime, expected_yesterday_key, expected_today_key):
+    """Verify that legacy CMC_reg format keys are generated correctly."""
+    (yesterday_key, today_key) = get_raster_keys_to_diff_legacy(timestamp)
+    assert yesterday_key == expected_yesterday_key
+    assert today_key == expected_today_key
+
+
+@pytest.mark.anyio
+async def test_generate_24_hour_accumulating_precip_raster_falls_back_to_legacy(mocker: MockerFixture):
+    """
+    Verify that if new-format keys return no data, legacy CMC_reg keys are tried.
+    """
+    mocker.patch(
+        "app.weather_models.precip_rdps_model.read_into_memory",
+        side_effect=[
+            (None, None, None),  # new-format today_key — not found
+            (np.array([2, 2]), geotransform, projection),  # legacy today_key — found
+            (np.array([1, 1]), geotransform, projection),  # legacy yesterday_key
+        ],
+    )
+    (res, _, _) = await generate_24_hour_accumulating_precip_raster(
+        datetime(2024, 1, 1, 1, tzinfo=timezone.utc)
+    )
+    assert np.allclose(res, np.array([1, 1]))
+
+
 async def return_none_tuple(timestamp: datetime):
     return (None, None, None)
 
 
-@patch("app.weather_models.precip_rdps_model.generate_24_hour_accumulating_precip_raster", return_none_tuple)
+@patch(
+    "app.weather_models.precip_rdps_model.generate_24_hour_accumulating_precip_raster",
+    return_none_tuple,
+)
 @pytest.mark.anyio
 async def test_compute_and_store_precip_rasters_no_today_data_does_not_throw():
     timestamp = datetime.fromisoformat("2024-06-10T18:42:49+00:00")

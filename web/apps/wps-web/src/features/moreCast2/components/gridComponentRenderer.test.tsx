@@ -1,0 +1,710 @@
+import { buildTestStore } from '@/features/moreCast2/components/testHelper'
+import { initialState } from '@/features/moreCast2/slices/validInputSlice'
+import { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
+import { GridStateColDef } from '@mui/x-data-grid-pro/internals'
+import { render } from '@testing-library/react'
+import {
+  ModelChoice,
+  WeatherDeterminate,
+  WeatherDeterminateChoices,
+  weatherModelsWithTooltips
+} from '@wps/api/moreCast2API'
+import { GC_HEADER } from 'features/moreCast2/components/ColumnDefBuilder'
+import {
+  GridComponentRenderer,
+  NOT_AVAILABLE,
+  NOT_REPORTING
+} from 'features/moreCast2/components/GridComponentRenderer'
+import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import { DateTime } from 'luxon'
+import { Provider } from 'react-redux'
+import { vi } from 'vitest'
+import { theme } from '@wps/ui/theme'
+import { MoreCast2Row } from '@/features/moreCast2/interfaces'
+
+describe('GridComponentRenderer', () => {
+  const gridComponentRenderer = new GridComponentRenderer()
+  const privateGridComponentRenderer = gridComponentRenderer as any
+  const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
+    colDef: null,
+    contextMenu: null,
+    updateColumnWithModel: vi.fn(),
+    handleClose: vi.fn()
+  }
+
+  // Mock factory for GridColumnHeaderParams
+  const createMockGridColumnHeaderParams = (
+    field = 'test',
+    colDefOverrides: Partial<GridStateColDef<MoreCast2Row>> = {}
+  ): GridColumnHeaderParams<MoreCast2Row> => {
+    const defaultColDef: GridStateColDef<MoreCast2Row> = {
+      field: field,
+      headerName: 'Test Header',
+      width: 100,
+      type: 'string',
+      computedWidth: 100,
+      ...colDefOverrides
+    }
+
+    return {
+      field,
+      colDef: defaultColDef
+    } as GridColumnHeaderParams<MoreCast2Row>
+  }
+
+  it('should render the header with the forecast button', () => {
+    const columnHeaderParams = createMockGridColumnHeaderParams('testID', {
+      field: 'testID',
+      headerName: 'Test ID'
+    })
+
+    const { getByTestId } = render(
+      gridComponentRenderer.renderForecastHeaderWith(columnHeaderParams, mockColumnClickHandlerProps)
+    )
+
+    const headerButton = getByTestId(`${columnHeaderParams.colDef.field}-column-header`)
+    expect(headerButton).toBeInTheDocument()
+    expect(headerButton).toBeEnabled()
+  })
+
+  it('should render an empty cell (no N/A) if the cell is enabled and can have a forecast entered', () => {
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().plus({ days: 2 }) }
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Forecast')
+    const { getByRole } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          {
+            row: row,
+            formattedValue: formattedValue
+          },
+          field
+        )}
+      </Provider>
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue('')
+    expect(renderedCell).toBeEnabled()
+  })
+
+  it('should render N/A and be disabled if the cell is from a previous date', () => {
+    const field = 'tempForecast'
+    const row = { [field]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Forecast')
+    const { getByRole } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          {
+            row: row,
+            formattedValue: formattedValue
+          },
+          field
+        )}
+      </Provider>
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue(NOT_AVAILABLE)
+    expect(renderedCell).toBeDisabled()
+  })
+
+  it('should render N/A and be disabled if the row has an actual', () => {
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: 2, forDate: DateTime.now() }
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Forecast')
+    const { getByRole } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          {
+            row: row,
+            formattedValue: formattedValue
+          },
+          field
+        )}
+      </Provider>
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue(NOT_AVAILABLE)
+    expect(renderedCell).toBeDisabled()
+  })
+
+  it('should render N/R and be disabled if the cell is from a previous date and has no actual in the actual column', () => {
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Actual')
+    const { getByRole } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          {
+            row: row,
+            formattedValue: formattedValue
+          },
+          field
+        )}
+      </Provider>
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue(NOT_REPORTING)
+    expect(renderedCell).toBeDisabled()
+  })
+
+  it('should render N/R as ActualCell and have red border if no actual for row with forDate earlier than today', () => {
+    const field = 'tempActual'
+    const row = { [field]: NaN, forDate: DateTime.now().minus({ days: 2 }) }
+    const formattedValue = gridComponentRenderer.valueGetter(NaN, row as unknown as MoreCast2Row, 1, field, 'Actual')
+    const { getByTestId } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderCellWith({
+          row: row,
+          formattedValue: formattedValue,
+          field
+        })}
+      </Provider>
+    )
+    const renderedCell = getByTestId('actual-cell')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveStyle(`borderColor: ${theme.palette.error.main}`)
+  })
+
+  it('should render the cell with the formatted value', () => {
+    const field = 'tempForecast'
+    const fieldActual = 'tempActual'
+    const row = { [field]: NaN, [fieldActual]: 2, forDate: DateTime.now() }
+    const { getByRole } = render(gridComponentRenderer.renderCellWith({ formattedValue: 1, field: fieldActual, row }))
+
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue('1')
+    expect(renderedCell).toBeDisabled()
+  })
+
+  it('should render the forecast cell as editable with no actual', () => {
+    const field = 'tempForecast'
+    const { getByRole } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)}
+      </Provider>
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue('1')
+    expect(renderedCell).not.toBeDisabled()
+  })
+
+  it('should render any cell as disabled if any other cell has an actual', () => {
+    const field = 'grassCuringForecast'
+    const actual = 'tempActual'
+    const { getByRole } = render(
+      gridComponentRenderer.renderForecastCellWith({ row: { [field]: 10, [actual]: 15 } }, field)
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toBeDisabled()
+  })
+
+  it('should render the forecast cell as uneditable with an actual', () => {
+    const field = 'tempForecast'
+    const actualField = `tempActual`
+
+    const { getByRole } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith(
+          { row: { [field]: 1, [actualField]: 2 }, formattedValue: 1 },
+          field
+        )}
+      </Provider>
+    )
+    const renderedCell = getByRole('textbox')
+    expect(renderedCell).toBeInTheDocument()
+    expect(renderedCell).toHaveValue('1')
+    expect(renderedCell).toBeDisabled()
+  })
+
+  it('should render the wind direction forecast cell', () => {
+    const field = 'windDirectionForecast'
+
+    const { getByTestId } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)}
+      </Provider>
+    )
+    const renderedCell = getByTestId('validated-winddir-forecast-cell')
+    expect(renderedCell).toBeInTheDocument()
+  })
+
+  it('should render the grass curing forecast cell', () => {
+    const field = 'grassCuringForecast'
+
+    const { getByTestId } = render(
+      <Provider store={buildTestStore(initialState)}>
+        {gridComponentRenderer.renderForecastCellWith({ row: { [field]: 1 }, formattedValue: 1 }, field)}
+      </Provider>
+    )
+    const renderedCell = getByTestId('validated-gc-forecast-cell')
+    expect(renderedCell).toBeInTheDocument()
+  })
+
+  describe('private helpers', () => {
+    describe('getRowValue', () => {
+      it('should return the raw field value from the row', () => {
+        const row = {
+          tempForecast: {
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          }
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getRowValue(row, 'tempForecast')).toEqual({
+          choice: ModelChoice.GDPS,
+          value: 12.3
+        })
+      })
+
+      it('should return undefined when the field does not exist', () => {
+        const row = {} as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getRowValue(row, 'tempForecast')).toBeUndefined()
+      })
+    })
+
+    describe('isPredictionItem', () => {
+      it('should return true for a prediction item shape', () => {
+        expect(
+          privateGridComponentRenderer.isPredictionItem({
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          })
+        ).toBe(true)
+      })
+
+      it('should return false for null and primitive values', () => {
+        expect(privateGridComponentRenderer.isPredictionItem(null)).toBe(false)
+        expect(privateGridComponentRenderer.isPredictionItem(5)).toBe(false)
+        expect(privateGridComponentRenderer.isPredictionItem('5')).toBe(false)
+      })
+
+      it('should return false when choice is missing', () => {
+        expect(
+          privateGridComponentRenderer.isPredictionItem({
+            value: 12.3
+          })
+        ).toBe(false)
+      })
+
+      it('should return false when value is missing', () => {
+        expect(
+          privateGridComponentRenderer.isPredictionItem({
+            choice: ModelChoice.GDPS
+          })
+        ).toBe(false)
+      })
+    })
+
+    describe('getPredictionItem', () => {
+      it('should return the prediction item for a matching field', () => {
+        const row = {
+          tempForecast: {
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          }
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getPredictionItem(row, 'tempForecast')).toEqual({
+          choice: ModelChoice.GDPS,
+          value: 12.3
+        })
+      })
+
+      it('should return undefined when the field is not a prediction item', () => {
+        const row = {
+          tempForecast: 12.3
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getPredictionItem(row, 'tempForecast')).toBeUndefined()
+      })
+
+      it('should return undefined when the field does not exist', () => {
+        const row = {} as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getPredictionItem(row, 'tempForecast')).toBeUndefined()
+      })
+    })
+
+    describe('getNumericValue', () => {
+      it('should return the number when the field value is numeric', () => {
+        const row = {
+          tempActual: 12.3
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getNumericValue(row, 'tempActual')).toBe(12.3)
+      })
+
+      it('should return undefined when the field value is not numeric', () => {
+        const row = {
+          tempForecast: {
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          }
+        } as unknown as MoreCast2Row
+
+        expect(privateGridComponentRenderer.getNumericValue(row, 'tempForecast')).toBeUndefined()
+      })
+    })
+
+    describe('unwrapPredictionValue', () => {
+      it('should unwrap the value from a prediction item', () => {
+        expect(
+          privateGridComponentRenderer.unwrapPredictionValue({
+            choice: ModelChoice.GDPS,
+            value: 12.3
+          })
+        ).toBe(12.3)
+      })
+
+      it('should return a raw primitive value unchanged', () => {
+        expect(privateGridComponentRenderer.unwrapPredictionValue('12.3')).toBe('12.3')
+        expect(privateGridComponentRenderer.unwrapPredictionValue(12.3)).toBe(12.3)
+        expect(privateGridComponentRenderer.unwrapPredictionValue(null)).toBeNull()
+      })
+    })
+  })
+
+  it('should set the row correctly', () => {
+    const mockRow = {
+      temp: {
+        value: 2,
+        choice: ModelChoice.GDPS
+      }
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(2, mockRow, 'temp', 1)
+
+    expect(updatedRow).toEqual({ temp: { choice: ModelChoice.GDPS, value: 2 } })
+  })
+
+  it('should return a new row and leave the original prediction item unchanged when edited', () => {
+    const mockRow = {
+      tempForecast: {
+        value: 1,
+        choice: ModelChoice.GDPS
+      }
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(2, mockRow, 'tempForecast', 0)
+
+    expect(updatedRow).toEqual({
+      tempForecast: {
+        value: 2,
+        choice: ModelChoice.MANUAL
+      }
+    })
+    expect(updatedRow).not.toBe(mockRow)
+    expect(mockRow.tempForecast).toEqual({
+      value: 1,
+      choice: ModelChoice.GDPS
+    })
+  })
+
+  it('should return the original row when the edited value is unchanged at the configured precision', () => {
+    const mockRow = {
+      tempForecast: {
+        value: 1.04,
+        choice: ModelChoice.GDPS
+      }
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(1.0, mockRow, 'tempForecast', 0)
+
+    expect(updatedRow).toBe(mockRow)
+  })
+
+  it('should format the row correctly with a value', () => {
+    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter(1.11, 1)
+    expect(formattedItemValue).toEqual('1.1')
+  })
+
+  it('should format the row correctly without a value', () => {
+    const formattedItemValue = gridComponentRenderer.predictionItemValueFormatter(NOT_REPORTING, 1)
+    expect(formattedItemValue).toEqual(NOT_REPORTING)
+  })
+
+  it('should return an existent prediction item value correctly', () => {
+    const itemValue = gridComponentRenderer.valueGetter(
+      { choice: ModelChoice.GDPS, value: 1.11 },
+      { testField: { choice: ModelChoice.GDPS, value: 1.11 } } as unknown as MoreCast2Row,
+      1,
+      'testField',
+      'testHeader'
+    )
+    expect(itemValue).toEqual('1.1')
+  })
+
+  it('should return an actual field', () => {
+    const actualField = gridComponentRenderer.getActualField('testForecast')
+    expect(actualField).toEqual('testActual')
+  })
+
+  it('should return an actual over a prediction if it exists for grass curing', () => {
+    const itemValue = gridComponentRenderer.valueGetter(
+      { choice: ModelChoice.NULL, value: 10.0 },
+      {
+        grassCuringForecast: { choice: ModelChoice.GDPS, value: 10.0 },
+        grassCuringActual: 20.0
+      } as unknown as MoreCast2Row,
+      1,
+      'grassCuringForecast',
+      GC_HEADER
+    )
+    expect(itemValue).toEqual('20.0')
+  })
+
+  it('should return an actual over a prediction if it exists for calculated indices', () => {
+    const itemValue = gridComponentRenderer.valueGetter(
+      { choice: ModelChoice.NULL, value: 10.0 },
+      {
+        ffmcCalcForecast: { choice: ModelChoice.GDPS, value: 10.0 },
+        ffmcCalcActual: 20.0
+      } as unknown as MoreCast2Row,
+      1,
+      'ffmcCalcForecast',
+      'FFMC Calc'
+    )
+
+    expect(itemValue).toEqual('20.0')
+  })
+
+  it('should render an empty string for a null forecast value in a future forecast column with no actuals', () => {
+    const itemValue = gridComponentRenderer.valueGetter(
+      null,
+      {
+        tempForecast: null,
+        tempActual: Number.NaN,
+        forDate: DateTime.now().plus({ days: 1 })
+      } as unknown as MoreCast2Row,
+      1,
+      'tempForecast',
+      WeatherDeterminate.FORECAST
+    )
+
+    expect(itemValue).toEqual('')
+  })
+
+  it('should return N/A for a null value in a non-forecast column', () => {
+    const itemValue = gridComponentRenderer.valueGetter(
+      null,
+      {
+        testField: null,
+        forDate: DateTime.now().plus({ days: 1 })
+      } as unknown as MoreCast2Row,
+      1,
+      'testField',
+      'Test Header'
+    )
+
+    expect(itemValue).toEqual(NOT_AVAILABLE)
+  })
+
+  it('should return N/R for a null value in the Actual column', () => {
+    const itemValue = gridComponentRenderer.valueGetter(
+      null,
+      {
+        tempActual: null,
+        forDate: DateTime.now().plus({ days: 1 })
+      } as unknown as MoreCast2Row,
+      1,
+      'tempActual',
+      WeatherDeterminate.ACTUAL
+    )
+
+    expect(itemValue).toEqual(NOT_REPORTING)
+  })
+
+  it('should return the original row when the target field is not a prediction item', () => {
+    const mockRow = {
+      tempForecast: 1
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(2, mockRow, 'tempForecast', 1)
+
+    expect(updatedRow).toBe(mockRow)
+  })
+
+  it('should return the original row when both old and new prediction values are NaN', () => {
+    const mockRow = {
+      tempForecast: {
+        value: Number.NaN,
+        choice: ModelChoice.GDPS
+      }
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(Number.NaN, mockRow, 'tempForecast', 1)
+
+    expect(updatedRow).toBe(mockRow)
+  })
+
+  it('should round decimal edits using the configured precision and mark the choice as manual', () => {
+    const mockRow = {
+      tempForecast: {
+        value: 1.1,
+        choice: ModelChoice.GDPS
+      }
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter('2.24', mockRow, 'tempForecast', 1)
+
+    expect(updatedRow).toEqual({
+      tempForecast: {
+        value: 2.2,
+        choice: ModelChoice.MANUAL
+      }
+    })
+  })
+
+  describe('renderHeader', () => {
+    const allRowsMock: MoreCast2Row[] = [
+      {
+        ffmcCalcActual: 0,
+        dmcCalcActual: 0,
+        dcCalcActual: 0,
+        isiCalcActual: 0,
+        buiCalcActual: 0,
+        fwiCalcActual: 0,
+        dgrCalcActual: 0,
+        grassCuringActual: 0,
+        precipActual: 0,
+        rhActual: 0,
+        tempActual: 0,
+        windDirectionActual: 0,
+        windSpeedActual: 0,
+        precipGDPS: 0,
+        rhGDPS: 0,
+        tempGDPS: 0,
+        windDirectionGDPS: 0,
+        windSpeedGDPS: 0,
+        precipGDPS_BIAS: 0,
+        rhGDPS_BIAS: 0,
+        tempGDPS_BIAS: 0,
+        windDirectionGDPS_BIAS: 0,
+        windSpeedGDPS_BIAS: 0,
+        precipGFS: 0,
+        rhGFS: 0,
+        tempGFS: 0,
+        windDirectionGFS: 0,
+        windSpeedGFS: 0,
+        precipGFS_BIAS: 0,
+        rhGFS_BIAS: 0,
+        tempGFS_BIAS: 0,
+        windDirectionGFS_BIAS: 0,
+        windSpeedGFS_BIAS: 0,
+        precipHRDPS: 0,
+        rhHRDPS: 0,
+        tempHRDPS: 0,
+        windDirectionHRDPS: 0,
+        windSpeedHRDPS: 0,
+        precipHRDPS_BIAS: 0,
+        rhHRDPS_BIAS: 0,
+        tempHRDPS_BIAS: 0,
+        windDirectionHRDPS_BIAS: 0,
+        windSpeedHRDPS_BIAS: 0,
+        precipNAM: 0,
+        rhNAM: 0,
+        tempNAM: 0,
+        windDirectionNAM: 0,
+        windSpeedNAM: 0,
+        precipNAM_BIAS: 0,
+        rhNAM_BIAS: 0,
+        tempNAM_BIAS: 0,
+        windDirectionNAM_BIAS: 0,
+        windSpeedNAM_BIAS: 0,
+        precipRDPS: 0,
+        rhRDPS: 0,
+        tempRDPS: 0,
+        windDirectionRDPS: 0,
+        windSpeedRDPS: 0,
+        precipRDPS_BIAS: 0,
+        rhRDPS_BIAS: 0,
+        tempRDPS_BIAS: 0,
+        windDirectionRDPS_BIAS: 0,
+        windSpeedRDPS_BIAS: 0,
+        id: '',
+        stationCode: 0,
+        stationName: '',
+        forDate: DateTime.fromISO('2016-05-25T09:08:34.123'),
+        latitude: 0,
+        longitude: 0,
+        predictionRunTimestampRDPS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
+        predictionRunTimestampGDPS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
+        predictionRunTimestampHRDPS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
+        predictionRunTimestampNAM: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
+        predictionRunTimestampGFS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO()
+      }
+    ]
+    const createMockParams = (determinate: WeatherDeterminate) => ({
+      field: determinate,
+      colDef: {
+        field: determinate,
+        headerName: determinate
+      }
+    })
+
+    it('should render header when no header name exists', () => {
+      const { getByRole } = render(
+        gridComponentRenderer.renderHeaderWith({
+          field: WeatherDeterminate.RDPS,
+          colDef: {
+            field: WeatherDeterminate.RDPS,
+            headerName: undefined
+          }
+        })
+      )
+      const headerText = getByRole('paragraph')
+      expect(headerText).toBeEmptyDOMElement()
+    })
+
+    it('should render bias headers with the split prefix and bias label', () => {
+      const { getAllByText, container } = render(
+        <div>
+          {gridComponentRenderer.renderHeaderWith({
+            field: 'tempGDPS_BIAS',
+            colDef: {
+              field: 'tempGDPS_BIAS',
+              headerName: 'Temp_GDPS_BIAS'
+            }
+          })}
+        </div>
+      )
+
+      expect(container).toHaveTextContent('Temp_GDPS')
+      expect(container).toHaveTextContent('bias')
+      expect(getAllByText('Temp_GDPS')[0]).toBeInTheDocument()
+      expect(getAllByText('bias')[0]).toBeInTheDocument()
+    })
+
+    describe.each(weatherModelsWithTooltips)('should render header with tooltip for determinate %s', determinate => {
+      const param = createMockParams(determinate)
+      it(`should render header with tooltip for ${determinate}`, () => {
+        const { getByText, getByTestId } = render(
+          <div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>
+        )
+        expect(getByText(param.colDef.headerName)).toBeInTheDocument()
+        expect(getByTestId(`${param.colDef.field}-model-run-tooltip`)).toBeVisible()
+      })
+    })
+    describe.each(WeatherDeterminateChoices.filter(determinate => !weatherModelsWithTooltips.includes(determinate)))(
+      'should not render header with tooltip for bias determinate %s',
+      determinate => {
+        const param = createMockParams(determinate)
+        it(`should not render header with tooltip for ${determinate}`, () => {
+          const { queryAllByTestId } = render(<div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>)
+          expect(queryAllByTestId(`${param.colDef.field}-model-run-tooltip`).length === 0)
+        })
+      }
+    )
+  })
+})

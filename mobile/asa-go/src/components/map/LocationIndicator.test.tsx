@@ -57,17 +57,15 @@ describe("UserLocationIndicator", () => {
         map={mockMap}
         position={mockPosition}
         error={null}
-      />
+      />,
     );
 
     const indicator = getByTestId("user-location-indicator");
     expect(indicator).toBeInTheDocument();
-    expect(indicator).toHaveStyle({
-      width: "20px",
-      height: "20px",
-      borderRadius: "50%",
-      backgroundColor: "rgba(51, 153, 204, 0.8)",
-    });
+    expect(indicator).toHaveStyle({ width: "20px", height: "20px" });
+    // jsdom 29 cannot compute percentage borderRadius via getComputedStyle — check inline style directly
+    expect(indicator.style.borderRadius).toBe("50%");
+    expect(indicator.style.backgroundColor).toBe("rgba(51, 153, 204, 0.8)");
   });
 
   it("adds overlay to map when map and position are provided", () => {
@@ -76,7 +74,7 @@ describe("UserLocationIndicator", () => {
         map={mockMap}
         position={mockPosition}
         error={null}
-      />
+      />,
     );
 
     expect(addOverlay).toHaveBeenCalledTimes(1);
@@ -84,10 +82,10 @@ describe("UserLocationIndicator", () => {
 
   it("does not add overlay when map is null", () => {
     render(
-      <UserLocationIndicator map={null} position={mockPosition} error={null} />
+      <UserLocationIndicator map={null} position={mockPosition} error={null} />,
     );
 
-    expect(addOverlay).not.toHaveBeenCalled();
+    expect(addOverlay).toHaveBeenCalledTimes(0);
   });
 
   it("removes overlay on cleanup", () => {
@@ -96,7 +94,7 @@ describe("UserLocationIndicator", () => {
         map={mockMap}
         position={mockPosition}
         error={null}
-      />
+      />,
     );
 
     unmount();
@@ -106,7 +104,7 @@ describe("UserLocationIndicator", () => {
 
   it("handles null position gracefully", () => {
     const { getByTestId } = render(
-      <UserLocationIndicator map={mockMap} position={null} error={null} />
+      <UserLocationIndicator map={mockMap} position={null} error={null} />,
     );
 
     const indicator = getByTestId("user-location-indicator");
@@ -120,12 +118,15 @@ describe("UserLocationIndicator", () => {
         map={mockMap}
         position={mockPosition}
         error={null}
-      />
+      />,
     );
 
     const indicator = getByTestId("user-location-indicator");
+    // Use borderTopColor to avoid jsdom v29 shorthand expansion issue with borderColor
     expect(indicator).toHaveStyle({
-      border: "3px solid white",
+      borderTopWidth: "3px",
+      borderTopStyle: "solid",
+      borderTopColor: "rgb(255, 255, 255)",
       boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
       pointerEvents: "none",
       zIndex: "1000",

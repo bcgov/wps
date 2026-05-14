@@ -16,14 +16,15 @@ def test_sfms_calc_job_fail_default(monkeypatch, mocker: MockerFixture):
 
     monkeypatch.setattr("sys.argv", ["sfms_calculations.py"])
 
-    rocket_chat_spy = mocker.spy(sfms_calculations, "send_rocketchat_notification")
+    mock_logger = mocker.patch(f"{SFMSCalcJob.__module__}.logger")
 
     with pytest.raises(SystemExit) as excinfo:
         sfms_calculations.main()
     # Assert that we exited with an error code
     assert excinfo.value.code == os.EX_SOFTWARE
 
-    assert rocket_chat_spy.call_count == 1
+    mock_logger.error.assert_called_once()
+    assert "SFMS raster calculations" in mock_logger.error.call_args[0][0]
 
 
 def test_sfms_calc_job_cli_arg(monkeypatch, mocker: MockerFixture):

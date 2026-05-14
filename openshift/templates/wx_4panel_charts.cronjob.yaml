@@ -1,0 +1,145 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Scheduled task to generate 4 panel charts."
+    tags: "cronjob,4panel"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: JOB_NAME
+    value: wx-4panel-chart
+  - name: IMAGE_REGISTRY
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000
+  - name: CRUNCHYDB_USER
+    required: true
+  - name: SCHEDULE
+    required: true
+  - name: APP_LABEL
+    required: true
+  - name: END_HOUR
+    required: true
+  - name: STEP
+    required: true
+  - name: MODEL
+    required: true
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1
+    metadata:
+      name: ${JOB_NAME}
+    spec:
+      schedule: ${SCHEDULE}
+      # We use the "Replace" policy, because we never want the cronjobs to run concurrently,
+      # and if for whatever reason a cronjob gets stuck, we want the next run to proceed.
+      # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
+      # noticed. We don't want that.
+      concurrencyPolicy: "Replace"
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+            app: ${APP_LABEL}
+        spec:
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-weather-${SUFFIX}:${SUFFIX}
+                  imagePullPolicy: "Always"
+                  command:
+                    [
+                      "uv",
+                      "run",
+                      "--package",
+                      "wps-weather",
+                      "--no-sync",
+                      "python",
+                      "-m",
+                      "wps_weather.wx_4panel_charts.wx_4panel_charts",
+                      "--end_hour",
+                      "${END_HOUR}",
+                      "--step",
+                      "${STEP}",
+                      "--model",
+                      "${MODEL}",
+                    ]
+                  env:
+                    - name: UV_NO_CACHE
+                      value: "1"
+                    - name: POSTGRES_READ_USER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
+                    - name: POSTGRES_WRITE_USER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: user
+                    - name: POSTGRES_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: password
+                    - name: POSTGRES_WRITE_HOST
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
+                    - name: POSTGRES_READ_HOST
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-host
+                    - name: POSTGRES_PORT
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${CRUNCHYDB_USER}
+                          key: pgbouncer-port
+                    - name: OBJECT_STORE_SERVER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-server
+                    - name: WX_OBJECT_STORE_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: wx-object-store-user-id
+                    - name: WX_OBJECT_STORE_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: wx-object-store-secret
+                    - name: WX_OBJECT_STORE_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: wx-object-store-bucket
+                    - name: WX_CARTOPY_DATA_DIR
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.wx-cartopy-data-dir
+                  resources:
+                    limits:
+                      memory: 4096Mi
+                    requests:
+                      cpu: "75m"
+                      memory: 512Mi
+              restartPolicy: OnFailure

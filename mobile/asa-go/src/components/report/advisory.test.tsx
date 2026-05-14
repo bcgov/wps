@@ -3,7 +3,7 @@ import { vi } from "vitest";
 import Advisory from "@/components/report/Advisory";
 import { DateTime } from "luxon";
 import { useSelector } from "react-redux";
-import { FireCenter } from "@/api/fbaAPI";
+import type { FireCentre } from "@/types/fireCentre";
 import { AdvisoryTextProps } from "@/components/report/AdvisoryText";
 import { FireZoneUnitTabsProps } from "@/components/report/FireZoneUnitTabs";
 import { FireCenterDropdownProps } from "@/components/FireCenterDropdown";
@@ -16,9 +16,9 @@ vi.mock("@/components/TodayTomorrowSwitch", () => ({
 }));
 
 vi.mock("@/components/FireCenterDropdown", () => ({
-  default: ({ fireCenterOptions }: FireCenterDropdownProps) => (
+  default: ({ fireCentreOptions }: FireCenterDropdownProps) => (
     <div data-testid="fire-center-dropdown">
-      Options: {fireCenterOptions.length}
+      Options: {fireCentreOptions.length}
     </div>
   ),
 }));
@@ -30,6 +30,9 @@ vi.mock("@/components/report/FireZoneUnitTabs", () => ({
 }));
 
 vi.mock("@/components/report/AdvisoryText", () => ({
+  AdvisoryTypography: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   default: (_: AdvisoryTextProps) => (
     <div data-testid="advisory-text">Advisory Text Content</div>
@@ -46,19 +49,19 @@ vi.mock("react-redux", async (importOriginal) => {
 });
 
 describe("Advisory Component", () => {
-  const mockFireCenters: FireCenter[] = [
-    { name: "Center 1", id: 1, stations: [] },
-    { name: "Center 2", id: 2, stations: [] },
+  const mockFireCentres: FireCentre[] = [
+    { name: "Center 1", id: 1 },
+    { name: "Center 2", id: 2 },
   ];
 
   const mockDate: DateTime = DateTime.fromISO("2025-07-15");
 
   const setDate = vi.fn();
-  const setSelectedFireCenter = vi.fn();
+  const setSelectedFireCentre = vi.fn();
   const setSelectedFireZoneUnit = vi.fn();
 
   beforeEach(() => {
-    vi.mocked(useSelector).mockReturnValue({ fireCenters: mockFireCenters });
+    vi.mocked(useSelector).mockReturnValue({ fireCentres: mockFireCentres });
   });
 
   it("renders all key sections and child components", () => {
@@ -66,27 +69,26 @@ describe("Advisory Component", () => {
       <Advisory
         date={mockDate}
         setDate={setDate}
-        selectedFireCenter={undefined}
-        setSelectedFireCenter={setSelectedFireCenter}
+        selectedFireCentre={mockFireCentres[0]}
+        setSelectedFireCentre={setSelectedFireCentre}
         selectedFireZoneUnit={undefined}
         setSelectedFireZoneUnit={setSelectedFireZoneUnit}
-      />
+      />,
     );
 
     expect(screen.getByTestId("asa-go-advisory")).toBeInTheDocument();
     expect(
-      screen.getByTestId("advisory-control-container")
+      screen.getByTestId("advisory-control-container"),
     ).toBeInTheDocument();
     expect(screen.getByTestId("today-tomorrow-switch")).toHaveTextContent(
-      "2025-07-15"
+      "2025-07-15",
     );
     expect(screen.getByTestId("fire-center-dropdown")).toHaveTextContent(
-      "Options: 2"
+      "Options: 2",
     );
-    expect(screen.getByText("Advisory Report")).toBeInTheDocument();
     expect(screen.getByTestId("fire-zone-tabs")).toBeInTheDocument();
     expect(screen.getByTestId("advisory-text")).toHaveTextContent(
-      "Advisory Text Content"
+      "Advisory Text Content",
     );
   });
 });

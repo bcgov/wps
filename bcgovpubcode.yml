@@ -45,7 +45,7 @@ product_technology_information:
       version: 5.5.4
   hosting_platforms:
     - Private-Cloud-Openshift
-  other_tools: Sentry, CapacitorJS, Pytest, Vitest, Cypress
+  other_tools: Sentry, CapacitorJS, Pytest, Vitest, Playwright
   spatial_mapping_technologies:
     - Openlayers
     - PMTiles

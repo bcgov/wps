@@ -1,0 +1,34 @@
+# https://developer.gov.bc.ca/docs/default/component/aps-infra-platform-docs/concepts/gateway-config/
+# https://developer.konghq.com/gateway/entities/service/
+services:
+  # Uses kong format so it can be published with `gwa publish-gateway --qualifier`.
+  # Qualifiers allow one gateway to hold multiple independent config sets without pruning 
+  # other service configs.
+  - name: ${ASA_GO_SERVICE_NAME}
+    tags: [ns.${APS_NAMESPACE}.${SUFFIX}]
+    host: wps-asa-go-api-${SUFFIX}.${PROJECT_NAMESPACE}.svc
+    port: 80
+    protocol: http
+    routes:
+      - name: ${ASA_GO_SERVICE_NAME}
+        tags: [ns.${APS_NAMESPACE}.${SUFFIX}]
+        hosts:
+          - ${ASA_GO_HOST}
+        paths:
+          - /api/asa-go
+        strip_path: false
+    plugins:
+      # keep the limit at the gateway so anonymous mobile requests cannot hammer the API.
+      - name: rate-limiting
+        tags: [ns.${APS_NAMESPACE}.${SUFFIX}]
+        config:
+          policy: local
+          limit_by: ip
+          minute: 100 # 100 requests per minute per IP address
+          second: null
+          hour: null
+          day: null
+          month: null
+          year: null
+          fault_tolerant: true
+          hide_client_headers: false

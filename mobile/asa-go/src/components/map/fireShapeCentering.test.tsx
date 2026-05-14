@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { centerOnFireShape } from "@/components/map/fireShapeCentering";
-import { Map, Overlay } from "ol";
+import { Map } from "ol";
 
 // Mock the fireZoneExtentsMap
 const mockFireZoneExtentsMap = new globalThis.Map([
@@ -23,7 +23,6 @@ const mockFireZoneExtentsMap = new globalThis.Map([
 describe("centerOnFireShape", () => {
   let mockMap: Map;
   let mockAnimate: ReturnType<typeof vi.fn>;
-  let mockPopup: Overlay;
 
   beforeEach(() => {
     mockAnimate = vi.fn();
@@ -32,9 +31,6 @@ describe("centerOnFireShape", () => {
         animate: mockAnimate,
       })),
     } as unknown as Map;
-    mockPopup = {
-      setPosition: vi.fn(),
-    } as unknown as Overlay;
   });
 
   const mockFireShape = {
@@ -52,12 +48,7 @@ describe("centerOnFireShape", () => {
   };
 
   it("centers map on selected fire shape when fire shape has extent", () => {
-    centerOnFireShape(
-      mockMap,
-      mockFireShape,
-      mockFireZoneExtentsMap,
-      mockPopup
-    );
+    centerOnFireShape(mockMap, mockFireShape, mockFireZoneExtentsMap);
 
     const expectedExtent = mockFireZoneExtentsMap.get("123")!;
     const expectedCenterX = (expectedExtent[0] + expectedExtent[2]) / 2;
@@ -67,35 +58,24 @@ describe("centerOnFireShape", () => {
       center: [expectedCenterX, expectedCenterY],
       duration: 400,
     });
-
-    expect(mockPopup.setPosition).not.toHaveBeenCalledWith(undefined);
   });
 
   it("does not animate when selected fire shape has no extent", () => {
-    centerOnFireShape(
-      mockMap,
-      mockFireShapeWithoutExtent,
-      mockFireZoneExtentsMap,
-      mockPopup
-    );
+    centerOnFireShape(mockMap, mockFireShapeWithoutExtent, mockFireZoneExtentsMap);
 
     expect(mockAnimate).not.toHaveBeenCalled();
-    expect(mockPopup.setPosition).not.toHaveBeenCalledWith(undefined);
   });
 
   it("does not animate when selectedFireShape is undefined", () => {
-    centerOnFireShape(mockMap, undefined, mockFireZoneExtentsMap, mockPopup);
+    centerOnFireShape(mockMap, undefined, mockFireZoneExtentsMap);
 
     expect(mockAnimate).not.toHaveBeenCalled();
-    expect(mockPopup.setPosition).toHaveBeenCalledWith(undefined);
   });
 
   it("does not animate when map is null", () => {
-    centerOnFireShape(null, mockFireShape, mockFireZoneExtentsMap, mockPopup);
+    centerOnFireShape(null, mockFireShape, mockFireZoneExtentsMap);
 
     expect(mockAnimate).not.toHaveBeenCalled();
-    // popup.setPosition should not be called when map is null
-    expect(mockPopup.setPosition).not.toHaveBeenCalled();
   });
 
   it("calculates correct center coordinates for different fire zone extents", () => {
@@ -106,12 +86,7 @@ describe("centerOnFireShape", () => {
       area_sqm: 2000000,
     };
 
-    centerOnFireShape(
-      mockMap,
-      fireShapeWithDifferentExtent,
-      mockFireZoneExtentsMap,
-      mockPopup
-    );
+    centerOnFireShape(mockMap, fireShapeWithDifferentExtent, mockFireZoneExtentsMap);
 
     const expectedExtent = mockFireZoneExtentsMap.get("456")!;
     const expectedCenterX = (expectedExtent[0] + expectedExtent[2]) / 2;
@@ -126,23 +101,13 @@ describe("centerOnFireShape", () => {
   it("converts fire_shape_id to string when looking up extent", () => {
     const getSpy = vi.spyOn(mockFireZoneExtentsMap, "get");
 
-    centerOnFireShape(
-      mockMap,
-      mockFireShape, // fire_shape_id is 123 (number)
-      mockFireZoneExtentsMap,
-      mockPopup
-    );
+    centerOnFireShape(mockMap, mockFireShape, mockFireZoneExtentsMap);
 
     expect(getSpy).toHaveBeenCalledWith("123");
   });
 
   it("preserves zoom level by only setting center coordinates", () => {
-    centerOnFireShape(
-      mockMap,
-      mockFireShape,
-      mockFireZoneExtentsMap,
-      mockPopup
-    );
+    centerOnFireShape(mockMap, mockFireShape, mockFireZoneExtentsMap);
 
     // Verify that animate was called with only center and duration
     // No zoom parameter should be passed to preserve current zoom level
@@ -172,12 +137,7 @@ describe("centerOnFireShape", () => {
       area_sqm: 1500000,
     };
 
-    centerOnFireShape(
-      mockMap,
-      testFireShape,
-      testFireZoneExtentsMap,
-      mockPopup
-    );
+    centerOnFireShape(mockMap, testFireShape, testFireZoneExtentsMap);
 
     const expectedCenterX = (testExtent[0] + testExtent[2]) / 2;
     const expectedCenterY = (testExtent[1] + testExtent[3]) / 2;

@@ -10,15 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import save_fuel_type
-from wps_shared.db.crud.fuel_layer import (
-    get_latest_fuel_type_raster_by_fuel_raster_name,
-    get_processed_fuel_raster_details,
-)
+from wps_shared.db.crud.fuel_layer import get_latest_fuel_type_raster_by_fuel_raster_name
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import FuelType
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
 from wps_shared.utils.polygonize import polygonize_in_memory
-from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -37,19 +33,6 @@ async def get_current_fuel_type_raster(session: AsyncSession):
         session, fuel_raster_name
     )
     return fuel_type_raster
-
-
-async def get_fuel_type_raster_by_year(session: AsyncSession, year: int):
-    fuel_raster_name = config.get("FUEL_RASTER_NAME")
-    now = get_utc_now()
-    if year >= now.year and str(year) not in fuel_raster_name:
-        # Covers the case where we have been using last year's fuel grid in the early part of the
-        # current fire season (ie. the fuel grid hasn't been updated yet).
-        # Note: This assumes we are never more than one year behind. If this assumption turns out
-        # to be invalid, we may need to use a regex to full the year out of the FUEL_RASTER_NAME
-        # env.
-        return await get_processed_fuel_raster_details(session, year - 1, None)
-    return await get_processed_fuel_raster_details(session, year, None)
 
 
 def fuel_type_iterator(fuel_grid_filename: str) -> Generator[Tuple[int, str], None, None]:

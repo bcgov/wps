@@ -20,7 +20,8 @@ from wps_shared.db.models.weather_models import (
     SavedModelRunForSFMSUrl,
     ModelRunForSFMS,
 )
-from wps_shared.db.models.hfi_calc import FireCentre, FuelType, PlanningArea, PlanningWeatherStation
+from wps_shared.db.models.psu import FireCentre
+from wps_shared.db.models.hfi_calc import FuelType, PlanningArea, PlanningWeatherStation
 from wps_shared.db.models.auto_spatial_advisory import (
     Shape,
     ShapeType,
@@ -39,4 +40,6 @@ from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
 from wps_shared.db.models.grass_curing import PercentGrassCuring
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather, PrescriptionStatus
+from wps_shared.db.models.sfms_run import SFMSRunLog
+from wps_shared.db.models.fcm import DeviceToken
 from wps_shared.db.models.smurfi import Spot, SpotVersion, SpotForecast, SpotGeneralForecast

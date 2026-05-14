@@ -154,8 +154,7 @@ async def test_process_zone_statuses_success(mocker):
     mock_store_all_advisory_zone_status.assert_called_once_with(mock_session, [zone_status])
 
 
-@pytest.mark.anyio
-async def test_calculate_zone_statuses():
+def test_calculate_zone_statuses():
     """Test calculate_zone_statuses computation."""
     thresholds_lut = {
         HfiClassificationThresholdEnum.ADVISORY.value: 1,
@@ -185,7 +184,7 @@ async def test_calculate_zone_statuses():
     run_parameters_id = 1
     fuel_type_raster_id = 10
 
-    result = await calculate_zone_statuses(
+    result = calculate_zone_statuses(
         thresholds_lut, hfi_rows, run_parameters_id, fuel_type_raster_id
     )
 
@@ -198,8 +197,7 @@ async def test_calculate_zone_statuses():
     assert status.fuel_type_raster_id == 10
 
 
-@pytest.mark.anyio
-async def test_calculate_zone_statuses_multiple_shapes():
+def test_calculate_zone_statuses_multiple_shapes():
     """Test calculate_zone_statuses with multiple shapes."""
     thresholds_lut = {
         HfiClassificationThresholdEnum.ADVISORY.value: 1,
@@ -244,7 +242,7 @@ async def test_calculate_zone_statuses_multiple_shapes():
     run_parameters_id = 1
     fuel_type_raster_id = 10
 
-    result = await calculate_zone_statuses(
+    result = calculate_zone_statuses(
         thresholds_lut, hfi_rows, run_parameters_id, fuel_type_raster_id
     )
 
@@ -263,8 +261,7 @@ async def test_calculate_zone_statuses_multiple_shapes():
     assert status2.warning_percentage == approx(5.0)  # 25 / 500 * 100
 
 
-@pytest.mark.anyio
-async def test_calculate_zone_statuses_zero_combustible_area():
+def test_calculate_zone_statuses_zero_combustible_area():
     """Test calculate_zone_statuses with zero combustible area."""
     thresholds_lut = {
         HfiClassificationThresholdEnum.ADVISORY.value: 1,
@@ -293,7 +290,7 @@ async def test_calculate_zone_statuses_zero_combustible_area():
     run_parameters_id = 1
     fuel_type_raster_id = 10
 
-    result = await calculate_zone_statuses(
+    result = calculate_zone_statuses(
         thresholds_lut, hfi_rows, run_parameters_id, fuel_type_raster_id
     )
 
@@ -303,12 +300,11 @@ async def test_calculate_zone_statuses_zero_combustible_area():
     assert status.warning_percentage == approx(0.0)
 
 
-@pytest.mark.anyio
-async def test_store_all_advisory_zone_status():
+def test_store_all_advisory_zone_status():
     """Test store_all_advisory_zone_status."""
     session = AsyncMock()
     zone_statuses = [MagicMock(spec=AdvisoryZoneStatus), MagicMock(spec=AdvisoryZoneStatus)]
 
-    await store_all_advisory_zone_status(session, zone_statuses)
+    store_all_advisory_zone_status(session, zone_statuses)
 
     session.add_all.assert_called_once_with(zone_statuses)

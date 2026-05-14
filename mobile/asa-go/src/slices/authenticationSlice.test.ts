@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { vi, Mock, describe, it, expect, beforeEach } from "vitest";
 import authenticationSlice, {
   initialState,
@@ -5,6 +7,8 @@ import authenticationSlice, {
   authenticateFinished,
   authenticateError,
   refreshTokenFinished,
+  continueAsGuest,
+  resetAuthentication,
   authenticate,
   AuthState,
 } from "@/slices/authenticationSlice";
@@ -19,12 +23,21 @@ interface TokenResponse {
   scope?: string;
 }
 
+// Mock valid JWT token with idir_username and email claims
+const mockValidToken =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGlyX3VzZXJuYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG4uZG9lQGNvbnRhY3QuY29tIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
 // Mock the Keycloak module
 vi.mock("../../../keycloak/src", () => ({
   Keycloak: {
     authenticate: vi.fn(),
     addListener: vi.fn(),
   },
+}));
+
+const mockSetUser = vi.hoisted(() => vi.fn());
+vi.mock("@sentry/capacitor", () => ({
+  setUser: mockSetUser,
 }));
 
 describe("authenticationSlice", () => {
@@ -36,7 +49,7 @@ describe("authenticationSlice", () => {
 
   const createSuccessfulAuthResult = (overrides = {}) => ({
     isAuthenticated: true,
-    accessToken: "test-token",
+    accessToken: mockValidToken,
     idToken: "test-id-token",
     ...overrides,
   });
@@ -47,9 +60,9 @@ describe("authenticationSlice", () => {
   });
 
   const createTokenResponse = (
-    overrides: Partial<TokenResponse> = {}
+    overrides: Partial<TokenResponse> = {},
   ): TokenResponse => ({
-    accessToken: "new-access-token",
+    accessToken: mockValidToken,
     refreshToken: "new-refresh-token",
     tokenType: "Bearer",
     expiresIn: 3600,
@@ -65,7 +78,7 @@ describe("authenticationSlice", () => {
   };
 
   const setupTokenRefreshListener = (
-    store: ReturnType<typeof createTestStore>
+    store: ReturnType<typeof createTestStore>,
   ) => {
     let tokenRefreshCallback: (tokenResponse: TokenResponse) => void = () => {};
 
@@ -91,17 +104,42 @@ describe("authenticationSlice", () => {
   describe("reducers", () => {
     it("should return the initial state", () => {
       expect(authenticationSlice(undefined, { type: "unknown" })).toEqual(
-        initialState
+        initialState,
       );
     });
 
     it("should handle authenticateStart", () => {
-      const previousState = createAuthState({ authenticating: false });
+      const previousState = createAuthState({
+        authenticating: false,
+        sessionMode: "guest",
+      });
       const nextState = authenticationSlice(previousState, authenticateStart());
 
       expectAuthState(nextState, {
+        sessionMode: "login",
         authenticating: true,
-        isAuthenticated: false,
+        error: null,
+      });
+    });
+
+    it("should handle continueAsGuest", () => {
+      const previousState = createAuthState({
+        authenticating: true,
+        error: "Authentication failed",
+        sessionMode: "authenticated",
+        token: "existing-token",
+        idToken: "existing-id-token",
+        idir: "test-user",
+      });
+
+      const nextState = authenticationSlice(previousState, continueAsGuest());
+
+      expectAuthState(nextState, {
+        sessionMode: "guest",
+        authenticating: false,
+        token: undefined,
+        idToken: undefined,
+        idir: undefined,
         error: null,
       });
     });
@@ -109,60 +147,38 @@ describe("authenticationSlice", () => {
     it("should handle authenticateFinished with successful authentication", () => {
       const previousState = createAuthState({ authenticating: true });
       const payload = {
-        isAuthenticated: true,
-        token: "access-token-123",
+        token: mockValidToken,
         idToken: "id-token-456",
       };
 
       const nextState = authenticationSlice(
         previousState,
-        authenticateFinished(payload)
+        authenticateFinished(payload),
       );
 
       expectAuthState(nextState, {
+        sessionMode: "authenticated",
         authenticating: false,
-        isAuthenticated: true,
-        token: "access-token-123",
+        token: mockValidToken,
         idToken: "id-token-456",
       });
-    });
-
-    it("should handle authenticateFinished with failed authentication", () => {
-      const previousState = createAuthState({ authenticating: true });
-      const payload = {
-        isAuthenticated: false,
-        token: undefined,
-        idToken: undefined,
-      };
-
-      const nextState = authenticationSlice(
-        previousState,
-        authenticateFinished(payload)
-      );
-
-      expectAuthState(nextState, {
-        authenticating: false,
-        isAuthenticated: false,
-      });
-      expect(nextState.token).toBeUndefined();
-      expect(nextState.idToken).toBeUndefined();
     });
 
     it("should handle authenticateError", () => {
       const previousState = createAuthState({
         authenticating: true,
-        isAuthenticated: true,
+        sessionMode: "authenticated",
       });
       const errorMessage = "Authentication failed";
 
       const nextState = authenticationSlice(
         previousState,
-        authenticateError(errorMessage)
+        authenticateError(errorMessage),
       );
 
       expectAuthState(nextState, {
+        sessionMode: "login",
         authenticating: false,
-        isAuthenticated: false,
         error: errorMessage,
       });
     });
@@ -175,17 +191,18 @@ describe("authenticationSlice", () => {
       });
       const payload = {
         tokenRefreshed: true,
-        token: "new-access-token",
+        token: mockValidToken,
         idToken: "new-id-token",
       };
 
       const nextState = authenticationSlice(
         previousState,
-        refreshTokenFinished(payload)
+        refreshTokenFinished(payload),
       );
 
       expectAuthState(nextState, {
-        token: "new-access-token",
+        sessionMode: "authenticated",
+        token: mockValidToken,
         idToken: "new-id-token",
         tokenRefreshed: true,
       });
@@ -205,12 +222,33 @@ describe("authenticationSlice", () => {
 
       const nextState = authenticationSlice(
         previousState,
-        refreshTokenFinished(payload)
+        refreshTokenFinished(payload),
       );
 
       expect(nextState.token).toBeUndefined();
       expect(nextState.idToken).toBeUndefined();
       expect(nextState.tokenRefreshed).toBe(false);
+    });
+
+    it("should handle resetAuthentication", () => {
+      const previousState = createAuthState({
+        sessionMode: "authenticated",
+        token: "existing-token",
+        idToken: "existing-id-token",
+        idir: "test-user",
+      });
+
+      const nextState = authenticationSlice(
+        previousState,
+        resetAuthentication(),
+      );
+
+      expectAuthState(nextState, {
+        sessionMode: "login",
+        token: undefined,
+        idToken: undefined,
+        idir: undefined,
+      });
     });
   });
 
@@ -232,19 +270,20 @@ describe("authenticationSlice", () => {
 
       it("should dispatch authenticateFinished on successful authentication", async () => {
         const mockResult = createSuccessfulAuthResult({
-          accessToken: "test-access-token",
+          accessToken: mockValidToken,
         });
         const store = setupStoreWithMockAuth(mockResult);
 
         await store.dispatch(authenticate());
 
         expectAuthState(store.getState().authentication, {
-          isAuthenticated: true,
-          token: "test-access-token",
+          sessionMode: "authenticated",
+          token: mockValidToken,
           idToken: "test-id-token",
           authenticating: false,
           error: null,
         });
+        expect(mockSetUser).toHaveBeenCalledWith({ email: "john.doe@contact.com" });
       });
 
       it("should dispatch authenticateError on failed authentication with error message", async () => {
@@ -254,7 +293,7 @@ describe("authenticationSlice", () => {
         await store.dispatch(authenticate());
 
         expectAuthState(store.getState().authentication, {
-          isAuthenticated: false,
+          sessionMode: "login",
           error: JSON.stringify(mockResult.error),
           authenticating: false,
         });
@@ -267,7 +306,7 @@ describe("authenticationSlice", () => {
         await store.dispatch(authenticate());
 
         expectAuthState(store.getState().authentication, {
-          isAuthenticated: false,
+          sessionMode: "login",
           error: JSON.stringify(mockResult.error),
           authenticating: false,
         });
@@ -298,7 +337,7 @@ describe("authenticationSlice", () => {
 
         expect(Keycloak.addListener).toHaveBeenCalledWith(
           "tokenRefresh",
-          expect.any(Function)
+          expect.any(Function),
         );
       });
 
@@ -314,9 +353,10 @@ describe("authenticationSlice", () => {
 
         expectAuthState(store.getState().authentication, {
           tokenRefreshed: true,
-          token: "new-access-token",
+          token: mockValidToken,
         });
         expect(store.getState().authentication.idToken).toBeUndefined();
+        expect(mockSetUser).toHaveBeenCalledWith({ email: "john.doe@contact.com" });
       });
 
       it("should not update state when token refresh has no refresh token", async () => {

@@ -1,0 +1,173 @@
+import { selectFireCentreTPIStats, selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
+import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
+import { Box, Grid, Tab, Tabs, Tooltip, Typography } from '@mui/material'
+import { FireShape } from '@wps/api/fbaAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
+import { INFO_PANEL_CONTENT_BACKGROUND, theme } from '@wps/ui/theme'
+import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
+import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
+import TabPanel from 'features/fba/components/infoPanel/TabPanel'
+import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
+import { isEmpty, isNil, isNull, isUndefined } from 'lodash'
+import React, { useCallback, useEffect, useMemo } from 'react'
+import { useSelector } from 'react-redux'
+
+interface FireZoneUnitTabs {
+  selectedFireZoneUnit: FireShape | undefined
+  setZoomSource: React.Dispatch<React.SetStateAction<'fireCentre' | 'fireShape' | undefined>>
+  selectedFireCentre: FireCentre | undefined
+  setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
+}
+
+const FireZoneUnitTabs = ({
+  selectedFireZoneUnit,
+  setZoomSource,
+  selectedFireCentre,
+  setSelectedFireShape
+}: FireZoneUnitTabs) => {
+  const { fireCentreTPIStats } = useSelector(selectFireCentreTPIStats)
+
+  const sortedFireZoneUnits = useFireCentreDetails(selectedFireCentre)
+  const filteredFireCentreHFIFuelStats = useSelector(selectFilteredFireCentreHFIFuelStats)
+
+  const tabNumber = useMemo(() => {
+    if (!selectedFireZoneUnit) return 0
+
+    const idx = sortedFireZoneUnits.findIndex(zone => zone.fire_shape_id === selectedFireZoneUnit.fire_shape_id)
+
+    return Math.max(idx, 0)
+  }, [selectedFireZoneUnit, sortedFireZoneUnits])
+
+  const getTabFireShape = useCallback(
+    (tabNumber: number): FireShape | undefined => {
+      if (sortedFireZoneUnits.length > 0) {
+        const selectedTabZone = sortedFireZoneUnits[tabNumber]
+
+        const fireShape: FireShape = {
+          fire_shape_id: selectedTabZone.fire_shape_id,
+          mof_fire_centre_name: selectedTabZone.fire_centre_name,
+          mof_fire_zone_name: selectedTabZone.fire_shape_name
+        }
+
+        return fireShape
+      }
+    },
+    [sortedFireZoneUnits]
+  )
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    const fireShape = getTabFireShape(newValue)
+    setSelectedFireShape(fireShape)
+    setZoomSource('fireShape')
+  }
+
+  const tpiStatsArray = useMemo(() => {
+    if (selectedFireCentre && !isNil(fireCentreTPIStats)) {
+      return fireCentreTPIStats?.firezone_tpi_stats
+    }
+  }, [fireCentreTPIStats, selectedFireCentre])
+
+  const hfiFuelStats = useMemo(() => {
+    if (selectedFireCentre) {
+      return filteredFireCentreHFIFuelStats?.[selectedFireCentre?.name]
+    }
+  }, [filteredFireCentreHFIFuelStats, selectedFireCentre])
+
+  useEffect(() => {
+    if (!selectedFireZoneUnit) {
+      setSelectedFireShape(getTabFireShape(0))
+    }
+  }, [getTabFireShape, selectedFireZoneUnit, setSelectedFireShape])
+
+  if (isUndefined(selectedFireCentre) || isNull(selectedFireCentre)) {
+    return <div data-testid="fire-zone-unit-tabs-empty"></div>
+  }
+
+  return (
+    <div data-testid="firezone-summary-tabs">
+      <InfoAccordion
+        defaultExpanded={true}
+        title={selectedFireCentre.name}
+        accordionDetailBackgroundColour={INFO_PANEL_CONTENT_BACKGROUND}
+      >
+        {isEmpty(sortedFireZoneUnits) && (
+          <Typography sx={{ paddingLeft: '1rem', paddingTop: '1rem' }}>
+            No advisory data available for the selected date.
+          </Typography>
+        )}
+        <Grid
+          container
+          sx={{
+            justifyContent: "center",
+            minHeight: 500
+          }}>
+          <Grid sx={{ width: '95%' }}>
+            <Box>
+              <Tabs
+                value={tabNumber}
+                onChange={handleTabChange}
+                sx={{
+                  '.MuiTabs-indicator': {
+                    height: '4px'
+                  }
+                }}
+                slotProps={{
+                  indicator: { style: { transition: 'none' } }
+                }}
+              >
+                {sortedFireZoneUnits.map((zone, index) => {
+                  const isActive = tabNumber === index
+                  const key = zone.fire_shape_id
+                  return (
+                    <Tooltip key={key} title={zone.fire_shape_name} placement="top-start" arrow>
+                      <Tab
+                        key={key}
+                        data-testid={`zone-${key}-tab`}
+                        sx={{
+                          backgroundColor: calculateStatusColour(zone, '#FFFFFF'),
+                          minWidth: 'auto',
+                          marginTop: theme.spacing(2),
+                          fontWeight: 'bold',
+                          color: isActive ? 'black' : 'grey',
+                          minHeight: '30px'
+                        }}
+                        label={zone.fire_shape_name.split('-')[0]}
+                        aria-label={`zone-${key}-tab`}
+                      />
+                    </Tooltip>
+                  )
+                })}
+              </Tabs>
+            </Box>
+            {sortedFireZoneUnits.map((zone, index) => (
+              <TabPanel key={zone.fire_shape_id} value={tabNumber} index={index}>
+                <Typography
+                  data-testid="fire-zone-title-tabs"
+                  sx={{
+                    color: '#003366',
+                    fontWeight: 'bold',
+                    textAlign: 'left',
+                    paddingLeft: theme.spacing(2)
+                  }}
+                >
+                  {zone.fire_shape_name}
+                </Typography>
+                <FireZoneUnitSummary
+                  fireZoneFuelStats={
+                    hfiFuelStats ? { [zone.fire_shape_id]: hfiFuelStats[zone.fire_shape_id].fuel_area_stats } : {}
+                  }
+                  fireZoneTPIStats={
+                    tpiStatsArray ? tpiStatsArray.find(stats => stats.fire_zone_id == zone.fire_shape_id) : undefined
+                  }
+                  selectedFireZoneUnit={selectedFireZoneUnit}
+                />
+              </TabPanel>
+            ))}
+          </Grid>
+        </Grid>
+      </InfoAccordion>
+    </div>
+  );
+}
+
+export default FireZoneUnitTabs

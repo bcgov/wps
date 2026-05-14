@@ -1,14 +1,15 @@
 import {
+  Box,
   Drawer,
   IconButton,
   List,
-  Typography,
   ListItemButton,
+  Stack,
+  Typography,
 } from "@mui/material";
-import { EmailComposer } from "capacitor-email-composer";
-import Grid from "@mui/material/Grid2";
 import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { getFeedback } from "@sentry/react";
 
 export interface HamburgerMenuProps {
   drawerTop: number;
@@ -22,15 +23,15 @@ export const HamburgerMenu = ({
   testId,
 }: HamburgerMenuProps) => {
   const [open, setOpen] = useState(false);
+  const pendingFeedbackForm = useRef<{ appendToDom: () => void; open: () => void } | null>(null);
 
-  const handleListButtonClick = (url: string) => {
-    if (url.startsWith("mail:to")) {
-      EmailComposer.open({
-        to: ["bcws.predictiveservices@gov.bc.ca"],
-        subject: "ASA App Contact",
-        body: "",
-        isHtml: false,
-      });
+  const handleListButtonClick = async (url: string) => {
+    setOpen(false);
+    if (url === "sentry:feedback") {
+      const feedback = getFeedback();
+      if (feedback) {
+        pendingFeedbackForm.current = await feedback.createForm();
+      }
     } else {
       window.open(url, "_blank", "noopener,noreferrer");
     }
@@ -38,30 +39,45 @@ export const HamburgerMenu = ({
 
   return (
     <div data-testid={testId}>
-      <IconButton onClick={() => setOpen(true)}>
+      <IconButton aria-label="open menu" onClick={() => setOpen(true)}>
         <MenuIcon fontSize="large" sx={{ color: "white" }} />
       </IconButton>
       <Drawer
         anchor="right"
         open={open}
         onClose={() => setOpen(false)}
-        PaperProps={{
-          sx: {
-            top: `${drawerTop}px`,
-            height: `${drawerHeight}px`,
-            backgroundColor: "lightGrey",
-            borderTopLeftRadius: 16,
-            borderBottomLeftRadius: 16,
+        slotProps={{
+          transition: {
+            onExited: () => {
+              if (pendingFeedbackForm.current) {
+                pendingFeedbackForm.current.appendToDom();
+                pendingFeedbackForm.current.open();
+                pendingFeedbackForm.current = null;
+              }
+            },
+          },
+          paper: {
+            sx: {
+              top: `${drawerTop}px`,
+              height: `${drawerHeight}px`,
+              backgroundColor: "lightGrey",
+              borderTopLeftRadius: 16,
+              borderBottomLeftRadius: 16,
+            },
           },
         }}
       >
-        <Grid
-          container
+        <Stack
           spacing={1}
-          direction={"column"}
           sx={{ width: 250, padding: "16px" }}
         >
-          <Grid container alignItems="center" justifyContent="space-between">
+          <Box
+            sx={{
+              alignItems: "center",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
             <IconButton
               onClick={() => setOpen(false)}
               sx={{
@@ -78,7 +94,7 @@ export const HamburgerMenu = ({
             >
               <CloseIcon />
             </IconButton>
-          </Grid>
+          </Box>
           <List
             sx={{
               width: "100%",
@@ -107,8 +123,8 @@ export const HamburgerMenu = ({
                 title: "Copyright",
               },
               {
-                url: "mailto:bcws.predictiveservices@gov.bc.ca",
-                title: "Contact Us",
+                url: "sentry:feedback",
+                title: "Submit Feedback",
               },
             ].map((item) => (
               <ListItemButton
@@ -120,7 +136,7 @@ export const HamburgerMenu = ({
               </ListItemButton>
             ))}
           </List>
-        </Grid>
+        </Stack>
       </Drawer>
     </div>
   );

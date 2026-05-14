@@ -1,13 +1,40 @@
-from io import BufferedReader
 import os
 import tempfile
 import pytest
+from botocore.exceptions import ClientError
 from osgeo import gdal
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset
 from wps_shared.utils.s3_client import S3Client
 from pytest_mock import MockerFixture
 from unittest.mock import AsyncMock, MagicMock
+
+
+def make_client_error(code: str) -> ClientError:
+    return ClientError({"Error": {"Code": code, "Message": "test"}}, "HeadObject")
+
+
+@pytest.fixture
+async def s3_client_mock(mocker):
+    """
+    Shared fixture that returns a mock S3Client with async methods mocked.
+    """
+    # Patch get_session so S3Client can be used as async context manager
+    mock_s3_client = AsyncMock()
+    mock_client_context = MagicMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    async with S3Client() as s3:
+        # Patch async methods we want to spy on
+        s3.delete_all_objects = AsyncMock()
+        s3.iter_keys = AsyncMock()
+        s3.iter_common_prefixes = AsyncMock()
+        yield s3
 
 
 @pytest.mark.anyio
@@ -20,14 +47,25 @@ async def test_put_object_called(mocker: MockerFixture):
         no_data_value = mock_band.GetNoDataValue()
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            with WPSDataset.from_array(values, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), no_data_value) as expected_ds:
+            with WPSDataset.from_array(
+                values, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), no_data_value
+            ) as expected_ds:
                 expected_key = "expected_key"
                 expected_filename = os.path.join(temp_dir, os.path.basename("expected_key"))
                 expected_ds.export_to_geotiff(expected_filename)
-                await s3_client.persist_raster_data(temp_dir, expected_key, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), values, no_data_value)
+                await s3_client.persist_raster_data(
+                    temp_dir,
+                    expected_key,
+                    mock_ds.GetGeoTransform(),
+                    mock_ds.GetProjection(),
+                    values,
+                    no_data_value,
+                )
 
-                assert persist_raster_spy.call_args_list == [mocker.call(key=expected_key, body=mocker.ANY)]
-                assert isinstance(persist_raster_spy.call_args.kwargs["body"], BufferedReader)
+                assert persist_raster_spy.call_args_list == [
+                    mocker.call(key=expected_key, body=mocker.ANY)
+                ]
+                assert isinstance(persist_raster_spy.call_args.kwargs["body"], bytes)
 
 
 @pytest.mark.anyio
@@ -242,3 +280,299 @@ async def test_stream_object_error_handling(mocker: MockerFixture):
 
     # Verify client context manager was properly exited even on error
     mock_client_context.__aexit__.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_delete_prefix(mocker: MockerFixture):
+    keys = ["fuel/2025/a.tif", "fuel/2025/b.tif", "fuel/2025/sub/c.tif"]
+
+    mock_iter_keys = AsyncMock()
+    mock_iter_keys.__aiter__.return_value = iter(keys)
+
+    mock_client = AsyncMock()
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+        mocker.patch.object(s3, "iter_keys", return_value=mock_iter_keys)
+
+        count = await s3.delete_prefix("fuel/2025/", dry_run=False)
+        assert count == 3
+
+        assert mock_client.delete_objects.call_count == 1
+        deleted_keys = [
+            o["Key"] for o in mock_client.delete_objects.call_args[1]["Delete"]["Objects"]
+        ]
+        assert sorted(deleted_keys) == sorted(keys)
+
+
+@pytest.mark.anyio
+async def test_delete_prefix_dry_run_does_not_delete(mocker: MockerFixture):
+    keys = ["x.tif", "y.tif"]
+
+    mock_iter_keys = AsyncMock()
+    mock_iter_keys.__aiter__.return_value = iter(keys)
+
+    mock_client = AsyncMock()
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+        mocker.patch.object(s3, "iter_keys", return_value=mock_iter_keys)
+
+        count = await s3.delete_prefix("fuel/", dry_run=True)
+        assert count == 2
+        mock_client.delete_objects.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_delete_all_objects_empty_list_does_nothing(mocker: MockerFixture):
+    mock_client = AsyncMock()
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+        await s3.delete_all_objects([])
+        mock_client.delete_objects.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_delete_all_objects_single_batch(mocker: MockerFixture):
+    keys = [f"file_{i}.tif" for i in range(300)]
+
+    mock_client = AsyncMock()
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+        await s3.delete_all_objects(keys)
+
+        assert mock_client.delete_objects.call_count == 1
+        call = mock_client.delete_objects.call_args[1]
+        assert len(call["Delete"]["Objects"]) == 300
+        assert call["Delete"]["Quiet"] is True
+
+
+@pytest.mark.anyio
+async def test_iter_keys_pagination_with_mock():
+    # Prepare paginated responses
+    page1 = {
+        "Contents": [{"Key": "a.tif"}, {"Key": "b.tif"}],
+        "IsTruncated": True,
+        "NextContinuationToken": "tok1",
+    }
+    page2 = {"Contents": [{"Key": "c.tif"}], "IsTruncated": False}
+
+    async with S3Client() as s3:
+        s3.client = AsyncMock()
+        s3.client.list_objects_v2.side_effect = [page1, page2]
+
+        keys = [k async for k in s3.iter_keys("fuel/")]
+
+        assert keys == ["a.tif", "b.tif", "c.tif"]
+        assert s3.client.list_objects_v2.call_count == 2
+
+        first_call_kwargs = s3.client.list_objects_v2.call_args_list[0][1]
+        second_call_kwargs = s3.client.list_objects_v2.call_args_list[1][1]
+        assert "ContinuationToken" not in first_call_kwargs
+        assert second_call_kwargs["ContinuationToken"] == "tok1"
+
+
+@pytest.mark.anyio
+async def test_iter_common_prefixes(mocker: MockerFixture):
+    page1 = {
+        "CommonPrefixes": [{"Prefix": "fuel/2024/"}, {"Prefix": "fuel/2025/"}],
+        "IsTruncated": False,
+    }
+
+    mock_client = AsyncMock()
+    mock_client.list_objects_v2.return_value = page1
+
+    async with S3Client() as s3:
+        mocker.patch.object(s3, "client", mock_client)
+
+        prefixes = [p async for p in s3.iter_common_prefixes("fuel/")]
+        assert prefixes == ["fuel/2024/", "fuel/2025/"]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "keys,side_effects,expected_result,expected_call_count",
+    [
+        (["key/a.tif", "key/b.tif", "key/c.tif"], [True, True, True], True, 3),  # all exist
+        (
+            ["key/a.tif", "key/b.tif", "key/c.tif"],
+            [True, False, True],
+            False,
+            2,
+        ),  # one missing, short-circuits
+        ([], [], True, 0),  # no keys
+    ],
+)
+async def test_all_objects_exist(
+    mocker: MockerFixture, keys, side_effects, expected_result, expected_call_count
+):
+    """Tests return value and short-circuit behaviour of all_objects_exist."""
+    async with S3Client() as s3:
+        object_exists_mock = mocker.patch.object(
+            s3, "object_exists", new=AsyncMock(side_effect=side_effects)
+        )
+        result = await s3.all_objects_exist(*keys)
+        assert result is expected_result
+        assert object_exists_mock.call_count == expected_call_count
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "use_vsis3_prefix",
+    [True, False],
+    ids=["gdal_prefixed", "raw_key"],
+)
+async def test_all_objects_exist_strips_vsis3_prefix(mocker: MockerFixture, use_vsis3_prefix):
+    """GDAL-prefixed keys have /vsis3/{bucket}/ stripped; unprefixed keys are passed through unchanged."""
+    raw_key = "sfms/calculated/actual/file.tif"
+    async with S3Client() as s3:
+        object_exists_mock = mocker.patch.object(
+            s3, "object_exists", new=AsyncMock(return_value=True)
+        )
+        input_key = f"/vsis3/{s3.bucket}/{raw_key}" if use_vsis3_prefix else raw_key
+        await s3.all_objects_exist(input_key)
+        object_exists_mock.assert_called_once_with(raw_key)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("code", ["404", "NoSuchKey"], ids=["404", "NoSuchKey"])
+async def test_object_exists_returns_false_on_404(code: str):
+    """A 404 ClientError means the object is absent — return False, don't raise."""
+    async with S3Client() as s3:
+        s3.client = AsyncMock()
+        s3.client.head_object.side_effect = make_client_error(code)
+        assert await s3.object_exists("some/key.tif") is False
+
+
+@pytest.mark.anyio
+async def test_stream_wx_object(mocker: MockerFixture):
+    """Test that stream_wx_object uses WX_OBJECT_STORE_* config and streams correctly."""
+    wx_bucket = "wx-test-bucket"
+    wx_user = "wx-user"
+    wx_secret = "wx-secret"
+    wx_server = "nrs.objectstore.gov.bc.ca"
+    test_key = "wx/path/chart.png"
+
+    def mock_config_get(key, default=None):
+        return {
+            "OBJECT_STORE_SERVER": wx_server,
+            "WX_OBJECT_STORE_BUCKET": wx_bucket,
+            "WX_OBJECT_STORE_USER_ID": wx_user,
+            "WX_OBJECT_STORE_SECRET": wx_secret,
+        }.get(key, default)
+
+    mocker.patch("wps_shared.utils.s3_client.config.get", side_effect=mock_config_get)
+
+    mock_stream = AsyncMock()
+    mock_stream.read.side_effect = [b"chart data", b""]
+    mock_stream.close = MagicMock()
+
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {
+        "Body": mock_stream,
+        "ContentLength": 10,
+        "ContentType": "image/png",
+    }
+
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    generator, response = await S3Client.stream_wx_object(test_key)
+
+    # Verify WX bucket and credentials were used
+    mock_s3_client.get_object.assert_called_once_with(Bucket=wx_bucket, Key=test_key)
+    mock_session.create_client.assert_called_once_with(
+        "s3",
+        endpoint_url=f"https://{wx_server}",
+        aws_secret_access_key=wx_secret,
+        aws_access_key_id=wx_user,
+    )
+
+    assert response["ContentType"] == "image/png"
+    assert response["ContentLength"] == 10
+
+    chunks = []
+    async for chunk in generator:
+        chunks.append(chunk)
+    assert chunks == [b"chart data"]
+    mock_stream.close.assert_called_once()
+    mock_client_context.__aexit__.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_stream_wx_object_with_byte_range(mocker: MockerFixture):
+    """Test that stream_wx_object forwards byte range to S3."""
+    test_key = "wx/path/chart.png"
+    byte_range = "bytes=0-511"
+
+    mocker.patch("wps_shared.utils.s3_client.config.get", return_value="test-value")
+
+    mock_stream = AsyncMock()
+    mock_stream.read.side_effect = [b"partial", b""]
+    mock_stream.close = MagicMock()
+
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {
+        "Body": mock_stream,
+        "ContentLength": 7,
+        "ContentRange": "bytes 0-511/2048",
+        "ContentType": "image/png",
+    }
+
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    generator, response = await S3Client.stream_wx_object(test_key, byte_range=byte_range)
+
+    mock_s3_client.get_object.assert_called_once_with(
+        Bucket=mocker.ANY, Key=test_key, Range=byte_range
+    )
+    assert response["ContentRange"] == "bytes 0-511/2048"
+
+    chunks = [chunk async for chunk in generator]
+    assert chunks == [b"partial"]
+
+
+@pytest.mark.anyio
+async def test_stream_wx_object_error_handling(mocker: MockerFixture):
+    """Test that stream_wx_object cleans up the client on error."""
+    mocker.patch("wps_shared.utils.s3_client.config.get", return_value="test-value")
+
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.side_effect = Exception("WX S3 error")
+
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_client_context.__aexit__ = AsyncMock()
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    with pytest.raises(Exception, match="WX S3 error"):
+        await S3Client.stream_wx_object("wx/path/chart.png")
+
+    mock_client_context.__aexit__.assert_called_once()
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("code", ["403", "500"], ids=["403", "500"])
+async def test_object_exists_raises_on_non_404_client_error(code: str):
+    """Non-404 ClientErrors (auth failures, server errors) must propagate so they are not silently ignored."""
+    async with S3Client() as s3:
+        s3.client = AsyncMock()
+        s3.client.head_object.side_effect = make_client_error(code)
+        with pytest.raises(ClientError):
+            await s3.object_exists("some/key.tif")

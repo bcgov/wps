@@ -3,6 +3,7 @@
 import logging
 from typing import List
 from shapely.geometry import Point, Polygon
+
 from wps_shared.schemas.stations import WeatherStation
 
 

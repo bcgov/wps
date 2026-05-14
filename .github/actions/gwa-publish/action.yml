@@ -1,0 +1,52 @@
+name: GWA Publish
+description: Install gwa, authenticate, and publish APS gateway configuration
+
+inputs:
+  gateway-id:
+    description: APS gateway id
+    required: true
+  client-id:
+    description: APS service account client id
+    required: true
+  client-secret:
+    description: APS service account client secret
+    required: true
+  config-path:
+    description: Path to the gateway config file to publish
+    required: true
+  qualifier:
+    description:
+      Qualifier used with publish-gateway. Qualifiers allow one gateway to hold
+      multiple independent config sets without pruning other service configs.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install GWA CLI
+      shell: bash
+      run: |
+        set -euo pipefail
+        GWA_BIN_DIR="${RUNNER_TEMP}/gwa-bin"
+        mkdir -p "${GWA_BIN_DIR}"
+        curl -L "https://github.com/bcgov/gwa-cli/releases/download/v3.0.7/gwa_Linux_x86_64.tgz" \
+          | tar -zxf - -C "${GWA_BIN_DIR}"
+        echo "${GWA_BIN_DIR}" >> "${GITHUB_PATH}"
+
+    - name: Login and publish gateway config
+      shell: bash
+      env:
+        GATEWAY_ID: ${{ inputs.gateway-id }}
+        GWA_CLIENT_ID: ${{ inputs.client-id }}
+        GWA_CLIENT_SECRET: ${{ inputs.client-secret }}
+        CONFIG_PATH: ${{ inputs.config-path }}
+        QUALIFIER: ${{ inputs.qualifier }}
+      run: |
+        set -euo pipefail
+
+        gwa config set --gateway "${GATEWAY_ID}"
+        gwa login \
+          --client-id="${GWA_CLIENT_ID}" \
+          --client-secret="${GWA_CLIENT_SECRET}"
+
+        gwa publish-gateway "${CONFIG_PATH}" --qualifier "${QUALIFIER}"

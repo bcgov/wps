@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from cffdrs import bui, dc, dmc, ffmc, fwi, isi
+from cffdrs import buildup_index, drought_code, duff_moisture_code, fine_fuel_moisture_code, fire_weather_index, initial_spread_index
 from osgeo import osr
 
 from wps_shared.geospatial.wps_dataset import WPSDataset
@@ -119,7 +119,7 @@ def test_calculate_dmc_values(input_datasets, latitude_month):
 
     dmc_values, _ = calculate_dmc(dmc_ds, temp_ds, rh_ds, precip_ds, latitude, month)
 
-    static_dmc = dmc(dmc_sample, temp_sample, rh_sample, precip_sample, lat_sample, month_sample)
+    static_dmc = duff_moisture_code(dmc_sample, temp_sample, rh_sample, precip_sample, lat_sample, month_sample)
 
     assert math.isclose(static_dmc, dmc_values[0, 0], abs_tol=0.01)
 
@@ -140,7 +140,7 @@ def test_calculate_dc_values(input_datasets, latitude_month):
 
     dc_values, _ = calculate_dc(dc_ds, temp_ds, rh_ds, precip_ds, latitude, month)
 
-    static_dmc = dc(dc_sample, temp_sample, rh_sample, precip_sample, lat_sample, month_sample)
+    static_dmc = drought_code(dc_sample, temp_sample, rh_sample, precip_sample, lat_sample, month_sample)
 
     assert math.isclose(static_dmc, dc_values[0, 0], abs_tol=0.01)
 
@@ -154,7 +154,7 @@ def test_calculate_bui_values(input_datasets):
 
     bui_values, _ = calculate_bui(dc_ds, dmc_ds)
 
-    static_bui = bui(dmc_sample, dc_sample)
+    static_bui = buildup_index(dmc_sample, dc_sample)
 
     assert math.isclose(static_bui, bui_values[0, 0], abs_tol=0.01)
 
@@ -182,7 +182,7 @@ def test_calculate_isi_values(input_datasets):
 
     isi_values, _ = calculate_isi(ffmc_ds, wind_speed_ds)
 
-    static_isi = isi(ffmc_sample, wind_sample)
+    static_isi = initial_spread_index(ffmc_sample, wind_sample)
 
     assert math.isclose(static_isi, isi_values[0, 0], abs_tol=0.01)
 
@@ -198,7 +198,7 @@ def test_calculate_ffmc_values(input_datasets):
 
     daily_ffmc_values, _ = calculate_ffmc(previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps)
 
-    static_ffmc = ffmc(previous_ffmc_sample, temp_sample, rh_sample, wind_speed_sample, precip_sample)
+    static_ffmc = fine_fuel_moisture_code(previous_ffmc_sample, temp_sample, rh_sample, wind_speed_sample, precip_sample)
 
     assert math.isclose(static_ffmc, daily_ffmc_values[0, 0], abs_tol=0.01)
 
@@ -243,7 +243,7 @@ def test_calculate_fwi_values(input_datasets):
 
     fwi_values, _ = calculate_fwi(isi_ds, bui_ds)
 
-    static_fwi = fwi(isi_sample, bui_sample)
+    static_fwi = fire_weather_index(isi_sample, bui_sample)
 
     assert math.isclose(static_fwi, fwi_values[0, 0], abs_tol=0.01)
 

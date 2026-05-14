@@ -45,12 +45,12 @@ vi.mock("@/layerDefinitions", async () => {
     createBasemapLayer: vi
       .fn()
       .mockImplementation(() =>
-        Promise.resolve(createLayerMock("vectorBasemapLayer"))
+        Promise.resolve(createLayerMock("vectorBasemapLayer")),
       ),
   };
 });
 
-import { HFI_LAYER_NAME } from "@/layerDefinitions";
+import { createBasemapLayer, HFI_LAYER_NAME } from "@/layerDefinitions";
 
 describe("ASAGoMap", () => {
   beforeAll(() => {
@@ -61,7 +61,7 @@ describe("ASAGoMap", () => {
     testId: "asa-go-map",
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
-    setSelectedFireCenter: vi.fn(),
+    setSelectedFireCentre: vi.fn(),
     date: DateTime.fromISO("2024-12-15"),
     setDate: vi.fn(),
     setTab: vi.fn(),
@@ -89,7 +89,7 @@ describe("ASAGoMap", () => {
     const { getByTestId } = render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>
+      </Provider>,
     );
 
     const mobileMap = getByTestId(defaultProps.testId);
@@ -107,7 +107,7 @@ describe("ASAGoMap", () => {
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>
+      </Provider>,
     );
 
     const locationButton = screen.getByTestId("location-button");
@@ -122,7 +122,7 @@ describe("ASAGoMap", () => {
     const { getByTestId } = render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>
+      </Provider>,
     );
 
     const legendButton = getByTestId("legend-toggle-button");
@@ -138,7 +138,7 @@ describe("ASAGoMap", () => {
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>
+      </Provider>,
     );
 
     // Open legend popover
@@ -165,13 +165,13 @@ describe("ASAGoMap", () => {
     const store = createTestStore();
     const setZoneStatusLayerVisibilityMock = vi.spyOn(
       await import("@/components/map/layerVisibility"),
-      "setZoneStatusLayerVisibility"
+      "setZoneStatusLayerVisibility",
     );
 
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>
+      </Provider>,
     );
 
     // Open legend popover
@@ -188,7 +188,7 @@ describe("ASAGoMap", () => {
     expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
       expect.any(Object), // layer instance
       undefined, // no provincialSummary data
-      false // visibility
+      false, // visibility
     );
     await waitFor(() => expect(zoneStatusCheckbox).not.toBeChecked());
 
@@ -196,7 +196,7 @@ describe("ASAGoMap", () => {
     expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
       expect.any(Object), // layer instance
       undefined, // no provincialSummary data
-      true // visibility
+      true, // visibility
     );
     await waitFor(() => expect(zoneStatusCheckbox).toBeChecked());
   });
@@ -204,7 +204,7 @@ describe("ASAGoMap", () => {
     const store = createTestStore();
     const setDefaultLayerVisibilityMock = vi.spyOn(
       await import("@/components/map/layerVisibility"),
-      "setDefaultLayerVisibility"
+      "setDefaultLayerVisibility",
     );
 
     const mockToggleLayersRef = {
@@ -214,7 +214,7 @@ describe("ASAGoMap", () => {
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>
+      </Provider>,
     );
 
     // Open legend popover
@@ -232,9 +232,30 @@ describe("ASAGoMap", () => {
     expect(setDefaultLayerVisibilityMock).toHaveBeenCalledWith(
       mockToggleLayersRef,
       HFI_LAYER_NAME,
-      false
+      false,
     );
     await waitFor(() => expect(hfiCheckbox).not.toBeChecked());
+  });
+
+  it("handles createBasemapLayer failure gracefully when offline", async () => {
+    const error = new Error("Network unavailable");
+    vi.mocked(createBasemapLayer).mockRejectedValueOnce(error);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const store = createTestStore();
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>,
+    );
+
+    expect(screen.getByTestId(defaultProps.testId)).toBeVisible();
+
+    await waitFor(() => {
+      expect(warnSpy).toHaveBeenCalledWith(error);
+    });
+
+    warnSpy.mockRestore();
   });
 
   it("calls save and load map view state", async () => {
@@ -249,7 +270,7 @@ describe("ASAGoMap", () => {
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>
+      </Provider>,
     );
 
     expect(loadMapViewStateMock).toHaveBeenCalled();

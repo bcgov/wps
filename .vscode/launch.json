@@ -19,6 +19,48 @@
             }
         },
         {
+            "name": "api (main)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8080"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "env": {
+                "R_HOME": "/Library/Frameworks/R.framework/Resources",
+                "DYLD_LIBRARY_PATH": "/Library/Frameworks/R.framework/Resources/lib"
+            }
+        },
+        {
+            "name": "api (asa-go)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.asa_go_main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8081"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "env": {
+                "R_HOME": "/Library/Frameworks/R.framework/Resources",
+                "DYLD_LIBRARY_PATH": "/Library/Frameworks/R.framework/Resources/lib"
+            }
+        },
+        {
             "name": "nats",
             "type": "debugpy",
             "request": "launch",
@@ -43,10 +85,26 @@
             "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
+            "name": "Grass Curing",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.grass_curing",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
+        },
+        {
             "name": "app.jobs.hourly_actuals",
             "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.hourly_actuals",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
+        },
+        {
+            "name": "VIIRS Snow Job",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.viirs_snow",
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
@@ -188,15 +246,6 @@
             "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
-            "name": "backfill_zone_statuses",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "app.jobs.backfill_zone_statuses",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/backend/packages/wps-api/src",
-            "python": "${workspaceFolder}/backend/.venv/bin/python"
-        },
-        {
             "name": "env_canada GDPS",
             "type": "debugpy",
             "justMyCode": false,
@@ -289,11 +338,114 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "SFMS Daily Actuals Interpolation",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.sfms_daily_actuals",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "2024-07-04"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Weather - ECCC Grib Consumer",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_weather.eccc_consumer_runner",
+            "args": [
+                "--models",
+                "GDPS",
+                "RDPS",
+                "--run-hours",
+                "00",
+                "12"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Weather - Grib Retention",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_weather.s3_data_retention",
+            "args": [
+                "--dry-run"
+            ]
+        },
+        {
+            "name": "Weather - RDPS 4Panel Charts",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_weather.wx_4panel_charts.wx_4panel_charts",
+            "args": [
+                "--model_runs",
+                "12",
+                "--end_hour",
+                "6",
+                "--model",
+                "RDPS"
+            ]
+        },
+        {
+            "name": "Weather - GDPS 4Panel Charts",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_weather.wx_4panel_charts.wx_4panel_charts",
+            "args": [
+                "--init_ym",
+                "20260326",
+                "--model_runs",
+                "00",
+                "--end_hour",
+                "18",
+                "--step",
+                "6",
+                "--model",
+                "GDPS"
+            ]
+        },
+        {
+            "name": "Interpolation Plotter",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_tools.interpolation_plotter",
+            "console": "integratedTerminal",
+            "args": [
+                "--out_dir",
+                "./temp",
+                "--start",
+                "2025-07-15",
+                "--end",
+                "2025-07-16",
+            ]
+        },
+        {
             "name": "Chrome",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}/web"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "api (main & asa-go)",
+            "configurations": [
+                "api (main)",
+                "api (asa-go)"
+            ]
         }
     ]
 }

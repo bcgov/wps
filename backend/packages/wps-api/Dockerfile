@@ -12,12 +12,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update
 RUN apt-get -y install unixodbc-dev libgdal-dev libudunits2-dev
 
-# Install R
-RUN apt-get update --fix-missing && apt-get -y install r-base
-
-# Install cffdrs
-RUN R -e "install.packages('cffdrs')"
-
 # Install other dependencies
 RUN apt-get -y install git build-essential python3 python3-dev python3-pip curl vim
 
@@ -43,7 +37,9 @@ COPY packages/wps-api/README.md /app/packages/wps-api/
 COPY packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY packages/wps-shared/README.md /app/packages/wps-shared/
 COPY packages/wps-shared/src /app/packages/wps-shared/src
-RUN chmod -R a-w /app/pyproject.toml /app/uv.lock /app/packages/wps-api /app/packages/wps-shared
+COPY packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
+COPY packages/wps-sfms/src /app/packages/wps-sfms/src
+RUN chmod -R a-w /app/pyproject.toml /app/uv.lock /app/packages/wps-api /app/packages/wps-shared /app/packages/wps-sfms
 
 # Install dependencies
 RUN uv sync --package wps-api

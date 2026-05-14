@@ -4,37 +4,39 @@ See README.md for details on how to run.
 """
 
 import logging
-from time import perf_counter
 from urllib.request import Request
-from fastapi import FastAPI, Depends, Response
-from fastapi.middleware.cors import CORSMiddleware
-import sentry_sdk
-from starlette.applications import Starlette
-from wps_shared import schemas
-from wps_shared.wps_logging import configure_logging
-from app.percentile import get_precalculated_percentiles
-from wps_shared.auth import authentication_required, audit
-from wps_shared import config
-from app import health
-from app import hourlies
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
-from app.routers import (
-    fba,
-    forecasts,
-    object_store_proxy,
-    weather_models,
-    c_haines,
-    stations,
-    hfi_calc,
-    fba_calc,
-    sfms,
-    morecast_v2,
-    snow,
-    fire_watch,
-    smurfi,
-)
-from app.fire_behaviour.cffdrs import CFFDRS
 
+import sentry_sdk
+from fastapi import Depends, FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.applications import Starlette
+from wps_shared import config
+from wps_shared.auth import audit, authentication_required
+from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.schemas.observations import WeatherStationHourlyReadingsResponse
+from wps_shared.schemas.percentiles import CalculatedResponse, PercentileRequest
+from wps_shared.schemas.shared import WeatherDataRequest
+from wps_shared.wps_logging import configure_logging
+
+from app import health, hourlies
+from app.percentile import get_precalculated_percentiles
+from app.routers import (
+    c_haines,
+    fba,
+    fba_calc,
+    fcm,
+    fire_watch,
+    forecasts,
+    hfi_calc,
+    morecast_v2,
+    object_store_proxy,
+    psu,
+    sfms,
+    smurfi,
+    snow,
+    stations,
+    weather_models,
+)
 
 configure_logging()
 
@@ -87,7 +89,6 @@ if config.get("ENVIRONMENT") == "production":
         # We recommend adjusting this value in production.
         profiles_sample_rate=0.5,
     )
-
 # This is the api app.
 api = FastAPI(title="Predictive Services API", description=API_INFO, version="0.0.0")
 
@@ -121,7 +122,7 @@ api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "HEAD", "POST", "PATCH"],
+    allow_methods=["GET", "HEAD", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 api.middleware("http")(catch_exception_middleware)
@@ -137,8 +138,11 @@ api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
+api.include_router(psu.router, tags=["PSU"])
 api.include_router(smurfi.router, tags=["SMURFI"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
+api.include_router(object_store_proxy.wx_router, tags=["Object Store Proxy"])
+api.include_router(fcm.router, tags=["Firebase Cloud Messaging"])
 
 
 @api.get("/ready")
@@ -158,26 +162,15 @@ async def get_health():
             "/health - healthy: %s. %s", health_check.get("healthy"), health_check.get("message")
         )
 
-        # Instantiate the CFFDRS singleton. Binding to R can take quite some time...
-        cffdrs_start = perf_counter()
-        CFFDRS.instance()
-        cffdrs_end = perf_counter()
-        delta = cffdrs_end - cffdrs_start
-        # Any delta below 100 milliseconds is just noise in the logs.
-        if delta > 0.1:
-            logger.info("%f seconds added by CFFDRS startup", delta)
-
         return health_check
     except Exception as exception:
         logger.error(exception, exc_info=True)
         raise
 
 
-@api.post(
-    "/observations/", response_model=schemas.observations.WeatherStationHourlyReadingsResponse
-)
+@api.post("/observations/", response_model=WeatherStationHourlyReadingsResponse)
 async def get_hourlies(
-    request: schemas.shared.WeatherDataRequest,
+    request: WeatherDataRequest,
     _=Depends(authentication_required),
     __=Depends(audit),
 ):
@@ -188,14 +181,14 @@ async def get_hourlies(
 
         readings = await hourlies.get_hourly_readings(request.stations, request.time_of_interest)
 
-        return schemas.observations.WeatherStationHourlyReadingsResponse(hourlies=readings)
+        return WeatherStationHourlyReadingsResponse(hourlies=readings)
     except Exception as exception:
         logger.critical(exception, exc_info=True)
         raise
 
 
-@api.post("/percentiles/", response_model=schemas.percentiles.CalculatedResponse)
-async def get_percentiles(request: schemas.percentiles.PercentileRequest):
+@api.post("/percentiles/", response_model=CalculatedResponse)
+async def get_percentiles(request: PercentileRequest):
     """Return 90% FFMC, 90% ISI, 90% BUI etc. for a given set of fire stations for a given period of time."""
     try:
         logger.info("/percentiles/")

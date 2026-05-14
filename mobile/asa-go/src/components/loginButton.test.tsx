@@ -1,12 +1,10 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { Mock, vi } from "vitest";
 import LoginButton from "@/components/LoginButton";
-import { useDispatch } from "react-redux";
 import { authenticate } from "@/slices/authenticationSlice";
-import { setAxiosRequestInterceptors } from "@/utils/axiosInterceptor";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useDispatch } from "react-redux";
+import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mocks
 vi.mock("react-redux", async () => {
   const actual = await vi.importActual("react-redux");
   return {
@@ -19,10 +17,6 @@ vi.mock("@/slices/authenticationSlice", () => ({
   authenticate: vi.fn(() => ({ type: "AUTHENTICATE" })),
 }));
 
-vi.mock("@/utils/axiosInterceptor", () => ({
-  setAxiosRequestInterceptors: vi.fn(() => ({ type: "SET_INTERCEPTORS" })),
-}));
-
 describe("LoginButton", () => {
   const mockDispatch = vi.fn();
   const theme = createTheme();
@@ -32,26 +26,24 @@ describe("LoginButton", () => {
     mockDispatch.mockClear();
   });
 
-  it("renders the button with the correct label", () => {
+  const renderComponent = () =>
     render(
       <ThemeProvider theme={theme}>
-        <LoginButton label="Sign In" />
-      </ThemeProvider>
+        <LoginButton />
+      </ThemeProvider>,
     );
 
-    expect(screen.getByText("Sign In")).toBeInTheDocument();
+  it("renders the IDIR label", () => {
+    renderComponent();
+
+    expect(screen.getByRole("button", { name: /idir/i })).toBeInTheDocument();
   });
 
-  it("dispatches authenticate and setAxiosRequestInterceptors on click", () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <LoginButton label="Sign In" />
-      </ThemeProvider>
-    );
+  it("dispatches authenticate on click", () => {
+    renderComponent();
 
-    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    fireEvent.click(screen.getByRole("button", { name: /idir/i }));
 
     expect(mockDispatch).toHaveBeenCalledWith(authenticate());
-    expect(mockDispatch).toHaveBeenCalledWith(setAxiosRequestInterceptors());
   });
 });
