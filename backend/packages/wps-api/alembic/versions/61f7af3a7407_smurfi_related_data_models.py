@@ -141,7 +141,6 @@ def upgrade():
 
 
 def downgrade():
-
     op.drop_table("spot_general_forecast")
     op.drop_table("spot_forecast")
     op.drop_table("spot_version")

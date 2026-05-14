@@ -10,7 +10,7 @@ import sentry_sdk
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
-from wps_shared import config, schemas
+from wps_shared import config
 from wps_shared.auth import audit, authentication_required
 from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.schemas.observations import WeatherStationHourlyReadingsResponse

@@ -1,4 +1,5 @@
 """This module contains pydandict schemas relating to weather stations for the API."""
+
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -33,6 +34,7 @@ class WeatherStationProperties(BaseModel):
     name: str
     ecodivision_name: Optional[str] = None
     core_season: Optional[Season] = None
+    elevation: Optional[int] = None
 
 
 class WeatherVariables(BaseModel):
@@ -88,18 +90,21 @@ class WeatherStation(BaseModel):
 
 class WeatherStationsResponse(BaseModel):
     """List of fire weather stations in geojson format."""
+
     type: str = "FeatureCollection"
     features: List[GeoJsonWeatherStation]
 
 
 class DetailedWeatherStationsResponse(BaseModel):
     """List of fire weather stations, with details, in geojson format."""
+
     type: str = "FeatureCollection"
     features: List[GeoJsonDetailedWeatherStation]
 
 
 class StationCodeList(BaseModel):
     """List of station codes."""
+
     stations: List[int]
 
 
@@ -116,6 +121,7 @@ class WeatherStationGroupMember(BaseModel):
 
 class WeatherStationGroupMembersResponse(BaseModel):
     """Response to a request for the stations in a group"""
+
     stations: List[WeatherStationGroupMember]
 
 
@@ -131,6 +137,7 @@ class WeatherStationGroup(BaseModel):
 
 class WeatherStationGroupsResponse(BaseModel):
     """Response to a request for all WFWX groups"""
+
     groups: List[WeatherStationGroup]
 
 
