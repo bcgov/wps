@@ -1,15 +1,11 @@
 import http from 'k6/http';
 import { check } from 'k6';
 import { Counter } from 'k6/metrics';
-import exec from 'k6/execution';
 
 const rateLimited = new Counter('rate_limited');
 const upstreamErrors = new Counter('upstream_errors');
 
 const BASE_URL = 'https://psu.api.gov.bc.ca/api/asa-go';
-
-// 20 alias IPs — matches setup_ips.sh / setup_ips_macos.sh range
-const ALIAS_IPS = Array.from({ length: 20 }, (_, i) => `127.0.0.${i + 2}`);
 
 export const options = {
   scenarios: {
@@ -85,8 +81,8 @@ function recordResponse(res) {
   });
 }
 
-function runRequests(data, ip) {
-  const headers = { 'X-Forwarded-For': ip, Accept: 'application/json' };
+function runRequests(data) {
+  const headers = { Accept: 'application/json' };
   const urls = [
     `${BASE_URL}/fire-centre-info`,
     `${BASE_URL}/sfms-run-bounds`,
@@ -101,9 +97,5 @@ function runRequests(data, ip) {
 }
 
 export default function (data) {
-  const ip =
-    exec.scenario.name === 'rate_limit_check'
-      ? '127.0.0.2' // single fixed IP — Kong sees one client, rate limit applies after 100 req/min
-      : ALIAS_IPS[(__VU - 1) % ALIAS_IPS.length]; // round-robin across 20 IPs
-  runRequests(data, ip);
+  runRequests(data);
 }

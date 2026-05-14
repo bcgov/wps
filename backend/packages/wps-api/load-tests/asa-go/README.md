@@ -9,59 +9,27 @@ Two scenarios run sequentially in a single script:
 ## Prerequisites
 
 - [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) installed
+- A [Grafana Cloud](https://grafana.com/auth/sign-up/create-user) account (free tier — 500 VU-hours/month, 50 VU max)
+- `K6_CLOUD_TOKEN` set to your Grafana Cloud k6 API token
 - Access to `psu.api.gov.bc.ca` (no auth required — public API)
 - An active SFMS run for today (the setup step will fail if no data is available yet)
 
-## IP alias setup
-
-Kong rate-limits by `X-Forwarded-For` IP. The script sets this header per VU to simulate 20 distinct clients.
-For belt-and-suspenders, IP aliases also vary the TCP source IP (Linux only for k6's `--local-ips`).
-
-**Linux:**
-```bash
-./setup_ips.sh        # adds 127.0.0.2-127.0.0.21 on lo (requires sudo)
-```
-
-**macOS:**
-```bash
-./setup_ips_macos.sh  # adds aliases on lo0 (requires sudo)
-# Note: k6's --local-ips flag is Linux-only. On macOS, X-Forwarded-For header handles IP simulation.
-```
-
-## GitHub Actions
-
-The workflow `.github/workflows/asa_go_load_test.yml` runs the full test on a `ubuntu-24.04` runner. Trigger it manually from the Actions tab or via:
-
-```bash
-gh workflow run asa_go_load_test.yml
-```
-
-After the run, `results.json` is uploaded as a downloadable artifact (`k6-results`, retained 30 days). The workflow fails if Kong rate limiting is not observed.
-
 ## Running the full test
 
-**Linux** (both TCP source IP and X-Forwarded-For vary):
 ```bash
-./setup_ips.sh
-k6 run --local-ips 127.0.0.2-127.0.0.21 --out json=results.json load_test.js
-./teardown_ips.sh
+K6_CLOUD_TOKEN=<your-token> k6 cloud run load_test.js
 ```
 
-**macOS** (X-Forwarded-For only — sufficient since Kong reads that header):
-```bash
-./setup_ips_macos.sh
-k6 run --out json=results.json load_test.js
-./teardown_ips_macos.sh
-```
+Results are stored in Grafana Cloud with a dashboard link printed at the end of the run.
 
 ## Running a single scenario
 
 ```bash
 # Rate limit check only
-k6 run --include-scenarios rate_limit_check load_test.js
+K6_CLOUD_TOKEN=<your-token> k6 cloud run --include-scenarios rate_limit_check load_test.js
 
 # Saturation only
-k6 run --local-ips 127.0.0.2-127.0.0.21 --include-scenarios upstream_saturation load_test.js
+K6_CLOUD_TOKEN=<your-token> k6 cloud run --include-scenarios upstream_saturation load_test.js
 ```
 
 ## Interpreting results
@@ -81,14 +49,3 @@ k6 exits non-zero if thresholds fail:
 - `rate_limit_check` fails if no 429s were observed (Kong rate limiting not working)
 - `upstream_saturation` fails only if p95 latency exceeds 10s (safety net — expect passes unless the service is severely degraded)
 
-## Security note
-
-Kong trusts `X-Forwarded-For` from the upstream caller. This means a caller who can set that header
-freely can bypass per-IP rate limiting by spoofing different IPs. The saturation scenario demonstrates
-this. Confirm with the team whether this is acceptable given the trust model of the upstream proxy.
-
-## Adjusting the number of IPs
-
-20 IPs gives ~2000 req/min headroom through Kong (20 × 100 req/min). If the upstream saturates
-before reaching that limit, no change is needed. If you want higher throughput, increase the IP range
-in `setup_ips.sh` and the `ALIAS_IPS` array in `load_test.js` to match.
