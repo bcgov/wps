@@ -140,25 +140,15 @@ const App = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (networkStatus.connected) {
+    const doiISODate = dateOfInterest.toISODate();
+    if (isActive && !isNull(doiISODate)) {
       dispatch(fetchSFMSRunParameters());
     }
-  }, [networkStatus.connected, dispatch]);
+  }, [isActive, dateOfInterest, networkStatus.connected, dispatch]);
 
   useEffect(() => {
     dispatch(fetchFireCentres());
-    const doiISODate = dateOfInterest.toISODate();
-    if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunParameters());
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const doiISODate = dateOfInterest.toISODate();
-    if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunParameters());
-    }
-  }, [dateOfInterest, networkStatus.connected]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dispatch]);
 
   useEffect(() => {
     if (!isNil(runParameters)) {
