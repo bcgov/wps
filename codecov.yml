@@ -6,6 +6,7 @@ ignore:
   - "web/apps/wps-web/src/features/cHaines"
   - "web/apps/wps-web/src/features/fwiCalculator"
   - "web/apps/wps-web/src/features/fireWatch"
+  - "web/apps/wps-web/src/features/smurfi"
   - "web/packages/api/src/fbaAPI.ts" # Unstable while we work on ASA prototype
   - "web/packages/utils/src/env.ts" # Just configuration
   - "backend/packages/wps-shared/src/wps_shared/db/crud" # We don't write tests for the crud layer, the crud layer is mocked out in tests.
