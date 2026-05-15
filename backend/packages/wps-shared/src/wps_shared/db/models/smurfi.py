@@ -70,7 +70,10 @@ class SpotRequest(Base):
     )  # nullable to allow spot forecasts for prescribed burns
     fire_centre = Column(Integer, ForeignKey(FireCentre.id), nullable=False)
     status = Column(
-        Enum(SpotRequestStatusEnum), nullable=False, default=SpotRequestStatusEnum.Requested
+        Enum(SpotRequestStatusEnum),
+        nullable=False,
+        default=SpotRequestStatusEnum.Requested,
+        index=True,
     )
     requestor_name = Column(String, nullable=False)
     requestor_idir = Column(String, nullable=False)
@@ -83,8 +86,8 @@ class SpotRequest(Base):
     geom = Column(Geometry("POINT", spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
     representative_station_codes = Column(ARRAY(Integer), nullable=True)
     requested_at = Column(TZTimeStamp, nullable=False)
-    start_at = Column(TZTimeStamp, nullable=False)
-    end_at = Column(TZTimeStamp, nullable=False)
+    start_at = Column(TZTimeStamp, nullable=False, index=True)
+    end_at = Column(TZTimeStamp, nullable=False, index=True)
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
     updated_at = Column(TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now)
 
@@ -109,6 +112,7 @@ class SpotSubscriber(Base):
     )
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
     updated_at = Column(TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now)
+
     # Relationships
     spot_request = relationship("SpotRequest", back_populates="spot_subscribers")
 
@@ -123,7 +127,7 @@ class SpotForecast(Base):
     spot_request_id = Column(Integer, ForeignKey("spot_request.id"), nullable=False, index=True)
 
     # forecaster info
-    forecaster = Column(String, nullable=False)
+    forecaster_name = Column(String, nullable=False, index=True)
     forecaster_email = Column(String, nullable=False)
     forecaster_phone = Column(String, nullable=True)
 
@@ -156,6 +160,7 @@ class SpotTabularWeather(Base):
     wind = Column(String, nullable=True)
     probability_of_precipitation = Column(Float, nullable=True)
     precipitation_amount = Column(Float, nullable=True)
+
     # Relationships
     spot_forecast = relationship("SpotForecast", back_populates="spot_tabular_weather")
 
@@ -178,5 +183,6 @@ class SpotDescriptiveWeather(Base):
     temperature = Column(Float, nullable=True)
     relative_humidity = Column(Float, nullable=True)
     conditions = Column(String, nullable=True)
+
     # Relationships
     spot_forecast = relationship("SpotForecast", back_populates="descriptive_weather")

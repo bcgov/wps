@@ -1,8 +1,8 @@
 """SMURFI models
 
-Revision ID: dd498fd0a1bc
+Revision ID: ea04bc333be1
 Revises: 0f0c47b0c47a
-Create Date: 2026-05-14 17:05:34.974511
+Create Date: 2026-05-14 17:22:47.367721
 
 """
 import sqlalchemy as sa
@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 from wps_shared.db.models.common import TZTimeStamp
 
 # revision identifiers, used by Alembic.
-revision = 'dd498fd0a1bc'
+revision = 'ea04bc333be1'
 down_revision = '0f0c47b0c47a'
 branch_labels = None
 depends_on = None
@@ -44,10 +44,13 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     comment='Tracks requests for spot weather forecasts.'
     )
+    op.create_index(op.f('ix_spot_request_end_at'), 'spot_request', ['end_at'], unique=False)
+    op.create_index(op.f('ix_spot_request_start_at'), 'spot_request', ['start_at'], unique=False)
+    op.create_index(op.f('ix_spot_request_status'), 'spot_request', ['status'], unique=False)
     op.create_table('spot_forecast',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('spot_request_id', sa.Integer(), nullable=False),
-    sa.Column('forecaster', sa.String(), nullable=False),
+    sa.Column('forecaster_name', sa.String(), nullable=False),
     sa.Column('forecaster_email', sa.String(), nullable=False),
     sa.Column('forecaster_phone', sa.String(), nullable=True),
     sa.Column('synopsis', sa.Text(), nullable=True),
@@ -61,6 +64,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     comment='Spot forecasts for spot requests.'
     )
+    op.create_index(op.f('ix_spot_forecast_forecaster_name'), 'spot_forecast', ['forecaster_name'], unique=False)
     op.create_index(op.f('ix_spot_forecast_spot_request_id'), 'spot_forecast', ['spot_request_id'], unique=False)
     op.create_table('spot_subscriber',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -112,5 +116,9 @@ def downgrade():
     op.drop_index(op.f('ix_spot_subscriber_email'), table_name='spot_subscriber')
     op.drop_table('spot_subscriber')
     op.drop_index(op.f('ix_spot_forecast_spot_request_id'), table_name='spot_forecast')
+    op.drop_index(op.f('ix_spot_forecast_forecaster_name'), table_name='spot_forecast')
     op.drop_table('spot_forecast')
+    op.drop_index(op.f('ix_spot_request_status'), table_name='spot_request')
+    op.drop_index(op.f('ix_spot_request_start_at'), table_name='spot_request')
+    op.drop_index(op.f('ix_spot_request_end_at'), table_name='spot_request')
     op.drop_table('spot_request')
