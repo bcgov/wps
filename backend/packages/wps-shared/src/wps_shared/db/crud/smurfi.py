@@ -109,7 +109,9 @@ async def update_spot_forecast(session: AsyncSession, updated: SpotForecast):
 
 
 async def update_spot_tabular_weather(session: AsyncSession, updated: SpotTabularWeather):
-    result = await session.execute(select(SpotTabularWeather).where(SpotTabularWeather.id == updated.id))
+    result = await session.execute(
+        select(SpotTabularWeather).where(SpotTabularWeather.id == updated.id, SpotTabularWeather.spot_forecast_id == updated.spot_forecast_id)
+    )
     existing = result.scalar_one_or_none()
     if existing is not None:
         existing.forecast_time = updated.forecast_time
@@ -123,7 +125,9 @@ async def update_spot_tabular_weather(session: AsyncSession, updated: SpotTabula
 
 
 async def update_spot_descriptive_weather(session: AsyncSession, updated: SpotDescriptiveWeather):
-    result = await session.execute(select(SpotDescriptiveWeather).where(SpotDescriptiveWeather.id == updated.id))
+    result = await session.execute(
+        select(SpotDescriptiveWeather).where(SpotDescriptiveWeather.id == updated.id, SpotDescriptiveWeather.spot_forecast_id == updated.spot_forecast_id)
+    )
     existing = result.scalar_one_or_none()
     if existing is not None:
         existing.period = updated.period
