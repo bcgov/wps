@@ -1,8 +1,8 @@
 """SMURFI models
 
-Revision ID: ea04bc333be1
+Revision ID: f5bb9e85fd0a
 Revises: 0f0c47b0c47a
-Create Date: 2026-05-14 17:22:47.367721
+Create Date: 2026-05-19 08:52:27.220394
 
 """
 import sqlalchemy as sa
@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 from wps_shared.db.models.common import TZTimeStamp
 
 # revision identifiers, used by Alembic.
-revision = 'ea04bc333be1'
+revision = 'f5bb9e85fd0a'
 down_revision = '0f0c47b0c47a'
 branch_labels = None
 depends_on = None
@@ -24,13 +24,13 @@ def upgrade():
     sa.Column('request_reference', sa.String(), nullable=False),
     sa.Column('fire_number', sa.ARRAY(sa.String()), nullable=True),
     sa.Column('fire_centre', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('Requested', 'Started', 'Suspended', 'Complete', 'Archived', name='spotrequeststatusenum'), nullable=False),
+    sa.Column('status', sa.String(), nullable=False),
     sa.Column('requestor_name', sa.String(), nullable=False),
     sa.Column('requestor_idir', sa.String(), nullable=False),
     sa.Column('requestor_email', sa.String(), nullable=False),
-    sa.Column('requested_frequency', sa.ARRAY(sa.Enum('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', name='frequencydayenum')), nullable=True),
-    sa.Column('requested_type', sa.Enum('Full', 'Mini', 'Ventilation', name='requesttypeenum'), nullable=False),
-    sa.Column('aspect', sa.Enum('N', 'NW', 'W', 'SW', 'S', 'SE', 'E', 'NE', name='cardinaldirectionenum'), nullable=True),
+    sa.Column('request_frequency', sa.ARRAY(sa.Enum('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', name='frequencydayenum')), nullable=True),
+    sa.Column('request_type', sa.String(), nullable=False),
+    sa.Column('aspect', sa.String(), nullable=True),
     sa.Column('elevation', sa.Integer(), nullable=True),
     sa.Column('geographic_description', sa.String(), nullable=False),
     sa.Column('geom', Geometry(geometry_type='POINT', srid=3005, dimension=2, spatial_index=False, from_text='ST_GeomFromEWKT', name='geometry', nullable=False), nullable=False),
@@ -40,6 +40,9 @@ def upgrade():
     sa.Column('end_at', TZTimeStamp(), nullable=False),
     sa.Column('created_at', TZTimeStamp(), nullable=False),
     sa.Column('updated_at', TZTimeStamp(), nullable=False),
+    sa.CheckConstraint("aspect IN ('North', 'Northwest', 'West', 'Southwest', 'South', 'Southeast', 'East', 'Northeast')", name='chk_aspect_spot_request'),
+    sa.CheckConstraint("request_type IN ('Full', 'Mini')", name='chk_request_type_spot_request'),
+    sa.CheckConstraint("status IN ('Requested', 'Started', 'Suspended', 'Complete', 'Archived')", name='chk_status_spot_request'),
     sa.ForeignKeyConstraint(['fire_centre'], ['fire_centres.id'], ),
     sa.PrimaryKeyConstraint('id'),
     comment='Tracks requests for spot weather forecasts.'
@@ -70,9 +73,10 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('spot_request_id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
-    sa.Column('status', sa.Enum('ACTIVE', 'INACTIVE', name='spotsubscriberstatusenum'), nullable=False),
+    sa.Column('subscriber_status', sa.String(), nullable=False),
     sa.Column('created_at', TZTimeStamp(), nullable=False),
     sa.Column('updated_at', TZTimeStamp(), nullable=False),
+    sa.CheckConstraint("subscriber_status IN ('active', 'inactive')", name='chk_subscriber_status_spot_subscriber'),
     sa.ForeignKeyConstraint(['spot_request_id'], ['spot_request.id'], ),
     sa.PrimaryKeyConstraint('id'),
     comment='Tracks email addresses subscribed to spot forecasts for a spot requests.'
@@ -82,10 +86,11 @@ def upgrade():
     op.create_table('spot_descriptive_weather',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('spot_forecast_id', sa.Integer(), nullable=False),
-    sa.Column('period', sa.Enum('Today', 'Tonight', 'Tomorrow', name='spotforecastperiodenum'), nullable=False),
+    sa.Column('period', sa.String(), nullable=False),
     sa.Column('temperature', sa.Float(), nullable=True),
     sa.Column('relative_humidity', sa.Float(), nullable=True),
     sa.Column('conditions', sa.String(), nullable=True),
+    sa.CheckConstraint("period IN ('Today', 'Tonight', 'Tomorrow')", name='chk_period_spot_descriptive_weather'),
     sa.ForeignKeyConstraint(['spot_forecast_id'], ['spot_forecast.id'], ),
     sa.PrimaryKeyConstraint('id'),
     comment='Represents a general text based forecast which includes a description of conditions, temperature and humidity. '

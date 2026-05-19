@@ -1,7 +1,17 @@
 import enum
 
 from geoalchemy2 import Geometry
-from sqlalchemy import ARRAY, Column, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    ARRAY,
+    CheckConstraint,
+    Column,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
 
 import wps_shared.utils.time as time_utils
@@ -22,23 +32,41 @@ class FrequencyDayEnum(enum.Enum):
 
 
 class RequestTypeEnum(enum.Enum):
-    Full = "Full"
-    Mini = "Mini"
-    Ventilation = "Ventilation"
+    FULL = "Full"
+    MINI = "Mini"
+
+
+request_type_values = (RequestTypeEnum.FULL.value, RequestTypeEnum.MINI.value)
 
 
 class SpotRequestStatusEnum(enum.Enum):
-    Requested = "Requested"
-    Started = "Started"
-    Suspended = "Suspended"
-    Complete = "Complete"
-    Archived = "Archived"
+    REQUESTED = "Requested"
+    STARTED = "Started"
+    SUSPENDED = "Suspended"
+    COMPLETE = "Complete"
+    ARCHIVED = "Archived"
+
+
+request_status_values = (
+    SpotRequestStatusEnum.REQUESTED.value,
+    SpotRequestStatusEnum.STARTED.value,
+    SpotRequestStatusEnum.SUSPENDED.value,
+    SpotRequestStatusEnum.COMPLETE.value,
+    SpotRequestStatusEnum.ARCHIVED.value,
+)
 
 
 class SpotForecastPeriodEnum(enum.Enum):
-    Today = "Today"
-    Tonight = "Tonight"
-    Tomorrow = "Tomorrow"
+    TODAY = "Today"
+    TONIGHT = "Tonight"
+    TOMORROW = "Tomorrow"
+
+
+forecast_period_values = (
+    SpotForecastPeriodEnum.TODAY.value,
+    SpotForecastPeriodEnum.TONIGHT.value,
+    SpotForecastPeriodEnum.TOMORROW.value,
+)
 
 
 class CardinalDirectionEnum(enum.Enum):
@@ -52,16 +80,31 @@ class CardinalDirectionEnum(enum.Enum):
     NE = "Northeast"
 
 
+cardinal_direction_values = (
+    CardinalDirectionEnum.N.value,
+    CardinalDirectionEnum.NW.value,
+    CardinalDirectionEnum.W.value,
+    CardinalDirectionEnum.SW.value,
+    CardinalDirectionEnum.S.value,
+    CardinalDirectionEnum.SE.value,
+    CardinalDirectionEnum.E.value,
+    CardinalDirectionEnum.NE.value,
+)
+
+
 class SpotSubscriberStatusEnum(enum.Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
 
 
+subscriber_status_values = (
+    SpotSubscriberStatusEnum.ACTIVE.value,
+    SpotSubscriberStatusEnum.INACTIVE.value,
+)
 class SpotRequest(Base):
     """A class representing requests for spot forecasts."""
 
     __tablename__ = "spot_request"
-    __table_args__ = {"comment": "Tracks requests for spot weather forecasts."}
 
     id = Column(Integer, primary_key=True)
     request_reference = Column(String, nullable=False)
@@ -70,17 +113,17 @@ class SpotRequest(Base):
     )  # nullable to allow spot forecasts for prescribed burns
     fire_centre = Column(Integer, ForeignKey(FireCentre.id), nullable=False)
     status = Column(
-        Enum(SpotRequestStatusEnum),
+        String,
         nullable=False,
-        default=SpotRequestStatusEnum.Requested,
+        default=SpotRequestStatusEnum.REQUESTED.value,
         index=True,
     )
     requestor_name = Column(String, nullable=False)
     requestor_idir = Column(String, nullable=False)
     requestor_email = Column(String, nullable=False)
-    requested_frequency = Column(ARRAY(Enum(FrequencyDayEnum)), nullable=True)
-    requested_type = Column(Enum(RequestTypeEnum), nullable=False, default=RequestTypeEnum.Full)
-    aspect = Column(Enum(CardinalDirectionEnum), nullable=True)
+    request_frequency = Column(ARRAY(Enum(FrequencyDayEnum)), nullable=True)
+    request_type = Column(String, nullable=False, default=RequestTypeEnum.FULL.value)
+    aspect = Column(String, nullable=True)
     elevation = Column(Integer, nullable=True)
     geographic_description = Column(String, nullable=False)
     geom = Column(Geometry("POINT", spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
@@ -95,26 +138,40 @@ class SpotRequest(Base):
     spot_forecasts = relationship("SpotForecast", back_populates="spot_request")
     spot_subscribers = relationship("SpotSubscriber", back_populates="spot_request")
 
+    __table_args__ = (
+        CheckConstraint(status.in_(request_status_values), name="chk_status_spot_request"),
+        CheckConstraint(
+            request_type.in_(request_type_values), name="chk_request_type_spot_request"
+        ),
+        CheckConstraint(aspect.in_(cardinal_direction_values), name="chk_aspect_spot_request"),
+        {"comment": "Tracks requests for spot weather forecasts."},
+    )
+
 
 class SpotSubscriber(Base):
     """A class representing emails addresses that will receive spot forecasts for a spot request."""
 
     __tablename__ = "spot_subscriber"
-    __table_args__ = {
-        "comment": "Tracks email addresses subscribed to spot forecasts for a spot requests."
-    }
 
     id = Column(Integer, primary_key=True)
     spot_request_id = Column(Integer, ForeignKey(SpotRequest.id), nullable=False, index=True)
     email = Column(String, nullable=False, index=True)
-    status = Column(
-        Enum(SpotSubscriberStatusEnum), nullable=False, default=SpotSubscriberStatusEnum.ACTIVE
+    subscriber_status = Column(
+        String, nullable=False, default=SpotSubscriberStatusEnum.ACTIVE.value
     )
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
     updated_at = Column(TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now)
 
     # Relationships
     spot_request = relationship("SpotRequest", back_populates="spot_subscribers")
+
+    __table_args__ = (
+        CheckConstraint(
+            subscriber_status.in_(subscriber_status_values),
+            name="chk_subscriber_status_spot_subscriber",
+        ),
+        {"comment": "Tracks email addresses subscribed to spot forecasts for a spot requests."},
+    )
 
 
 class SpotForecast(Base):
@@ -173,16 +230,22 @@ class SpotDescriptiveWeather(Base):
     """
 
     __tablename__ = "spot_descriptive_weather"
-    __table_args__ = {
-        "comment": "Represents a general text based forecast which includes a description of conditions, temperature and humidity. "
-    }
 
     id = Column(Integer, primary_key=True)
     spot_forecast_id = Column(Integer, ForeignKey("spot_forecast.id"), nullable=False, index=True)
-    period = Column(Enum(SpotForecastPeriodEnum), nullable=False)
+    period = Column(String, nullable=False)
     temperature = Column(Float, nullable=True)
     relative_humidity = Column(Float, nullable=True)
     conditions = Column(String, nullable=True)
 
     # Relationships
     spot_forecast = relationship("SpotForecast", back_populates="descriptive_weather")
+
+    __table_args__ = (
+        CheckConstraint(
+            period.in_(forecast_period_values), name="chk_period_spot_descriptive_weather"
+        ),
+        {
+            "comment": "Represents a general text based forecast which includes a description of conditions, temperature and humidity. "
+        },
+    )
