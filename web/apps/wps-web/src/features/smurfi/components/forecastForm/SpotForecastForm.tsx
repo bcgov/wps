@@ -9,12 +9,12 @@ import { AppDispatch } from '@/app/store'
 import { UserContext } from '@/features/smurfi/contexts/UserContext'
 import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
 import { SpotForecastHistoryItem } from '@/features/smurfi/interfaces'
-import SpotForecastHeader from '@/features/smurfi/components/forecast_form/SpotForecastHeader'
-import SpotForecastSynopsis from '@/features/smurfi/components/forecast_form/SpotForecastSynopsis'
-import WeatherDataTable from '@/features/smurfi/components/forecast_form/WeatherDataTable'
-import SpotForecastSummaries from '@/features/smurfi/components/forecast_form/SpotForecastSummaries'
-import SpotForecastSections from '@/features/smurfi/components/forecast_form/SpotForecastSections'
-import ForecastHistoryList from '@/features/smurfi/components/forecast_form/ForecastHistoryList'
+import SpotForecastHeader from '@/features/smurfi/components/forecastForm/SpotForecastHeader'
+import SpotForecastSynopsis from '@/features/smurfi/components/forecastForm/SpotForecastSynopsis'
+import WeatherDataTable from '@/features/smurfi/components/forecastForm/WeatherDataTable'
+import SpotForecastSummaries from '@/features/smurfi/components/forecastForm/SpotForecastSummaries'
+import SpotForecastSections from '@/features/smurfi/components/forecastForm/SpotForecastSections'
+import ForecastHistoryList from '@/features/smurfi/components/forecastForm/ForecastHistoryList'
 import { SpotForecastStatus } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { getStations, StationSource } from '@wps/api/stationAPI'
@@ -137,6 +137,8 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
   const [isMini, setIsMini] = useState(false)
   const [selectedForecastId, setSelectedForecastId] = useState<number | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
+  const schema = useMemo(() => createSchema(isMini), [isMini])
+  const resolver = useMemo(() => zodResolver(schema), [schema])
 
   // Filter and sort forecasts by fireId (most recent first)
   const allForecasts = useMemo(() => {
@@ -148,9 +150,10 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
     control,
     handleSubmit,
     reset,
+    trigger,
     formState: { errors, isValid }
   } = useForm<SpotFormData>({
-    resolver: zodResolver(createSchema(isMini)),
+    resolver,
     defaultValues: getDefaultValues(user),
     mode: 'onBlur',
     reValidateMode: 'onChange'
@@ -187,7 +190,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
   const handleSelectForecast = (forecast: SpotForecastHistoryItem) => {
     setSelectedForecastId(forecast.id)
     const forecastData = getMockForecastData(forecast.id, user)
-    reset(forecastData as SpotFormData)
+    reset(forecastData)
   }
 
   // Auto-select the most recent forecast when the component loads in readOnly mode
@@ -196,7 +199,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
       const mostRecentForecast = allForecasts[0]
       setSelectedForecastId(mostRecentForecast.id)
       const forecastData = getMockForecastData(mostRecentForecast.id, user)
-      reset(forecastData as SpotFormData)
+      reset(forecastData)
       setIsInitialized(true)
     }
   }, [readOnly, allForecasts, isInitialized, user, reset])
@@ -209,7 +212,16 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, [])
+  }, [dispatch])
+
+  useEffect(() => {
+    // re-check fields whose requirements change when switching between Mini and Full SPOT
+    const validateModeDependentFields = async () => {
+      await trigger(['outlook', 'weatherData'])
+    }
+
+    validateModeDependentFields()
+  }, [isMini, trigger])
 
   return (
     <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
@@ -239,7 +251,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
         <Grid container spacing={3}>
           <SpotForecastHeader control={control} errors={errors} readOnly={readOnly} />
           <SpotForecastSynopsis control={control} errors={errors} readOnly={readOnly} />
-          {!isMini && <SpotForecastSummaries control={control} readOnly={readOnly} />}
+          {!isMini && <SpotForecastSummaries control={control} errors={errors} readOnly={readOnly} />}
           <WeatherDataTable
             control={control}
             errors={errors}

@@ -1,7 +1,8 @@
-import { Card, CardContent, Grid, TextField, Typography } from '@mui/material'
+import { Card, CardContent, Grid, Typography } from '@mui/material'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import React from 'react'
-import { Control, Controller, FieldErrors } from 'react-hook-form'
+import { Control, FieldErrors } from 'react-hook-form'
+import ControlledForecastTextField from '@/features/smurfi/components/forecastForm/ControlledForecastTextField'
 
 interface SpotForecastSynopsisProps {
   control: Control<SpotFormData>
@@ -17,24 +18,14 @@ const SpotForecastSynopsis: React.FC<SpotForecastSynopsisProps> = ({ control, er
           <Typography variant="h6" gutterBottom>
             Synopsis
           </Typography>
-          <Controller
+          <ControlledForecastTextField
             name="synopsis"
             control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                multiline
-                rows={5}
-                fullWidth
-                error={!!errors.synopsis}
-                helperText={errors.synopsis?.message}
-                slotProps={{
-                  input: {
-                    readOnly: true
-                  }
-                }}
-              />
-            )}
+            multiline
+            rows={5}
+            fullWidth
+            errorMessage={errors.synopsis?.message}
+            readOnly={readOnly}
           />
         </CardContent>
       </Card>

@@ -9,10 +9,6 @@ export enum SpotForecastStatus {
   ARCHIVED = 'Archived'
 }
 
-export interface FetchChefsFormResponse {
-  success: boolean
-}
-
 export interface SpotAdminRow {
   id: number
   spot_id: number
@@ -155,12 +151,6 @@ export const postSpotForecast = async (formData: SpotFormData): Promise<SpotFore
 
 export async function getSpotAdminRows(): Promise<SpotAdminRowResponse> {
   const url = '/smurfi/admin/'
-  const { data } = await axios.get(url)
-  return data
-}
-
-export async function runFetchChefsForms(): Promise<FetchChefsFormResponse> {
-  const url = 'smurfi/pull_from_chefs'
   const { data } = await axios.get(url)
   return data
 }

@@ -5,7 +5,7 @@ import { DataGridPro, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-p
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useState } from 'react'
-import SpotForecastForm from '@/features/smurfi/components/forecast_form/SpotForecastForm'
+import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotForecastForm'
 import { SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
 import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 
