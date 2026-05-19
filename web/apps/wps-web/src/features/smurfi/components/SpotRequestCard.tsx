@@ -3,12 +3,24 @@ import DescriptionIcon from '@mui/icons-material/Description'
 import { DateTime } from 'luxon'
 import { getSpotPDF, SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
 import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
+import { useSelector, useDispatch } from 'react-redux'
+import { selectSubscribedIds, toggleSpotSubscription } from '@/features/smurfi/slices/subscriptionsSlice'
+import { AppDispatch } from 'app/store'
 
 interface SpotRequestCardProps {
   spot: SpotAdminRow
+  isAuthenticated: boolean
 }
 
-const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
+const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
+  const dispatch = useDispatch<AppDispatch>()
+  const subscribedIds = useSelector(selectSubscribedIds)
+  const isSubscribed = subscribedIds.includes(spot.id)
+
+  const handleToggleSubscription = () => {
+    dispatch(toggleSpotSubscription(spot.id))
+  }
+
   const handleViewPDF = async () => {
     try {
       const pdfBlob = await getSpotPDF(spot.id)
@@ -33,13 +45,16 @@ const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
           <Grid size={6}>
             <Grid container spacing={1}>
               <Grid size={6}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  sx={{ backgroundColor: '#e3f2fd', height: '36.5px', width: '100%' }}
-                >
-                  Subscribe
-                </Button>
+                {isAuthenticated && (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    sx={{ backgroundColor: '#e3f2fd', height: '36.5px', width: '100%' }}
+                    onClick={handleToggleSubscription}
+                  >
+                    {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+                  </Button>
+                )}
               </Grid>
               <Grid size={6}>
                 <Box
