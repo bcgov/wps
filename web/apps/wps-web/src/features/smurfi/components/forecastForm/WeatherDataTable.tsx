@@ -39,8 +39,8 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
   remove,
   readOnly = false
 }) => {
-  const weatherDataError =
-    errors.weatherData?.root?.message ?? (!Array.isArray(errors.weatherData) ? errors.weatherData?.message : undefined)
+  const weatherDataArrayError = Array.isArray(errors.weatherData) ? undefined : errors.weatherData?.message
+  const weatherDataError = errors.weatherData?.root?.message ?? weatherDataArrayError
 
   return (
     <Grid size={12}>

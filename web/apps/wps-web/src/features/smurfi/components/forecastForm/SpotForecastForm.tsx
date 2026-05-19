@@ -190,7 +190,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
   const handleSelectForecast = (forecast: SpotForecastHistoryItem) => {
     setSelectedForecastId(forecast.id)
     const forecastData = getMockForecastData(forecast.id, user)
-    reset(forecastData as SpotFormData)
+    reset(forecastData)
   }
 
   // Auto-select the most recent forecast when the component loads in readOnly mode
@@ -199,7 +199,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
       const mostRecentForecast = allForecasts[0]
       setSelectedForecastId(mostRecentForecast.id)
       const forecastData = getMockForecastData(mostRecentForecast.id, user)
-      reset(forecastData as SpotFormData)
+      reset(forecastData)
       setIsInitialized(true)
     }
   }, [readOnly, allForecasts, isInitialized, user, reset])
