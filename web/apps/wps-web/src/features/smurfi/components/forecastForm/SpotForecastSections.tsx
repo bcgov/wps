@@ -1,7 +1,8 @@
 import React from 'react'
-import { Controller, Control, FieldErrors } from 'react-hook-form'
-import { Grid, Card, CardContent, Typography, TextField } from '@mui/material'
+import { Control, FieldErrors } from 'react-hook-form'
+import { Grid, Card, CardContent, Typography } from '@mui/material'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
+import ControlledForecastTextField from '@/features/smurfi/components/forecastForm/ControlledForecastTextField'
 
 interface SpotForecastSectionsProps {
   control: Control<SpotFormData>
@@ -20,24 +21,14 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
             <Typography variant="h6" gutterBottom>
               Inversion & Venting
             </Typography>
-            <Controller
+            <ControlledForecastTextField
               name="inversionVenting"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  multiline
-                  rows={4}
-                  fullWidth
-                  slotProps={{
-                    input: {
-                      readOnly: true
-                    }
-                  }}
-                  error={!!errors.inversionVenting}
-                  helperText={errors.inversionVenting?.message}
-                />
-              )}
+              multiline
+              rows={4}
+              fullWidth
+              errorMessage={errors.inversionVenting?.message}
+              readOnly={readOnly}
             />
           </CardContent>
         </Card>
@@ -51,24 +42,14 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
               <Typography variant="h6" gutterBottom>
                 Outlook (3-5 Day)
               </Typography>
-              <Controller
+              <ControlledForecastTextField
                 name="outlook"
                 control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    multiline
-                    rows={4}
-                    fullWidth
-                    slotProps={{
-                      input: {
-                        readOnly: true
-                      }
-                    }}
-                    error={!!errors.outlook}
-                    helperText={errors.outlook?.message}
-                  />
-                )}
+                multiline
+                rows={4}
+                fullWidth
+                errorMessage={errors.outlook?.message}
+                readOnly={readOnly}
               />
             </CardContent>
           </Card>
@@ -82,24 +63,14 @@ const SpotForecastSections: React.FC<SpotForecastSectionsProps> = ({ control, er
             <Typography variant="h6" gutterBottom>
               Confidence / Discussion
             </Typography>
-            <Controller
+            <ControlledForecastTextField
               name="confidenceDiscussion"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  multiline
-                  rows={4}
-                  fullWidth
-                  slotProps={{
-                    input: {
-                      readOnly: true
-                    }
-                  }}
-                  error={!!errors.confidenceDiscussion}
-                  helperText={errors.confidenceDiscussion?.message}
-                />
-              )}
+              multiline
+              rows={4}
+              fullWidth
+              errorMessage={errors.confidenceDiscussion?.message}
+              readOnly={readOnly}
             />
           </CardContent>
         </Card>

@@ -1,31 +1,39 @@
 import { z } from 'zod'
 import { DateTime } from 'luxon'
 
+const requiredString = (message = 'Required') => z.string().trim().min(1, message)
+
+const isOptionalNumber = (val: string | undefined) => {
+  if (val === undefined || val.trim() === '') {
+    return true
+  }
+
+  return Number.isFinite(Number(val))
+}
+
+const optionalNumericString = (message: string, isInRange: (value: number) => boolean = () => true) =>
+  z
+    .string()
+    .optional()
+    .refine(val => isOptionalNumber(val) && (val === undefined || val.trim() === '' || isInRange(Number(val))), message)
+
+const requiredNumericString = (rangeMessage: string, isInRange: (value: number) => boolean) =>
+  requiredString().refine(val => {
+    const num = Number(val)
+    return Number.isFinite(num) && isInRange(num)
+  }, rangeMessage)
+
 export const createSchema = (isMini: boolean) => {
   const weatherRowSchema = z.object({
-    dateTime: z.string().min(1, 'Date/Time required'),
-    temp: z
-      .string()
-      .optional()
-      .refine(val => !val || !Number.isNaN(val), 'Must be a number'),
-    rh: z
-      .string()
-      .optional()
-      .refine(val => {
-        if (!val) return true
-        const num = Number(val)
-        return !Number.isNaN(num) && num >= 0 && num <= 100
-      }, 'RH must be a number between 0 and 100'),
+    dateTime: requiredString('Date/Time required'),
+    temp: optionalNumericString('Must be a number'),
+    rh: optionalNumericString('RH must be a number between 0 and 100', num => num >= 0 && num <= 100),
     windSpeed: z.string().optional(),
     windGust: z.string().optional(),
-    windDirection: z
-      .string()
-      .optional()
-      .refine(val => {
-        if (!val) return true
-        const num = Number(val)
-        return !Number.isNaN(num) && num >= 0 && num <= 359
-      }, 'Wind direction must be a number between 0 and 359'),
+    windDirection: optionalNumericString(
+      'Wind direction must be a number between 0 and 359',
+      num => num >= 0 && num <= 359
+    ),
     rain: z.string().optional(),
     chanceRain: z.string().optional()
   })
@@ -37,32 +45,23 @@ export const createSchema = (isMini: boolean) => {
     expiryDate: z.custom<DateTime>((val): val is DateTime => DateTime.isDateTime(val) && val.isValid, {
       message: 'Invalid date/time'
     }),
-    fireProj: z.string().min(1, 'Required'),
-    requestBy: z.string().refine(val => val.length > 0, 'Required'),
-    forecastBy: z.string().refine(val => val.length > 0, 'Required'),
+    fireProj: requiredString(),
+    requestBy: requiredString(),
+    forecastBy: requiredString(),
     email: z.string().email('Invalid email'),
-    phone: z.string().refine(val => val.length > 0, 'Required'),
-    city: z.string().refine(val => val.length > 0, 'Required'),
+    phone: requiredString(),
+    city: requiredString(),
     stns: z.array(z.number()).optional(),
-    latitude: z
-      .string()
-      .min(1, 'Required')
-      .refine(val => {
-        const num = Number(val)
-        return !isNaN(num) && num >= -90 && num <= 90
-      }, 'Latitude must be a number between -90 and 90'),
-    longitude: z
-      .string()
-      .min(1, 'Required')
-      .refine(val => {
-        const num = Number(val)
-        return !isNaN(num) && num >= -180 && num <= 0
-      }, 'Longitude must be a negative number between -180 and 0'),
-    slopeAspect: z.string().min(1, 'Required'),
+    latitude: requiredNumericString('Latitude must be a number between -90 and 90', num => num >= -90 && num <= 90),
+    longitude: requiredNumericString(
+      'Longitude must be a negative number between -180 and 0',
+      num => num >= -180 && num <= 0
+    ),
+    slopeAspect: requiredString(),
     valley: z.string().optional(),
     elevation: z.string().optional(),
     size: z.string().optional(),
-    synopsis: z.string().min(1, 'Required'),
+    synopsis: requiredString(),
     afternoonForecast: z
       .object({
         description: z.string().optional(),
@@ -87,9 +86,9 @@ export const createSchema = (isMini: boolean) => {
     weatherData: z
       .array(weatherRowSchema)
       .min(isMini ? 0 : 1, isMini ? undefined : 'At least one weather entry required'),
-    inversionVenting: z.string().min(1, 'Required'),
-    outlook: z.string().refine(val => isMini || val.length > 0, isMini ? undefined : 'Required'),
-    confidenceDiscussion: z.string().min(1, 'Required')
+    inversionVenting: requiredString(),
+    outlook: isMini ? z.string().optional() : requiredString(),
+    confidenceDiscussion: requiredString()
   })
 }
 
