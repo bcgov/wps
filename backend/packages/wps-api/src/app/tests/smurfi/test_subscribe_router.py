@@ -1,7 +1,8 @@
 """Unit tests for smurfi subscribe endpoints."""
-from unittest.mock import patch, AsyncMock
+from unittest.mock import ANY, AsyncMock, patch
 
 import app.main
+from app.smurfi.nats_config import smurfi_spot_update_subject, stream_name, subjects
 import pytest
 from fastapi.testclient import TestClient
 
@@ -88,9 +89,11 @@ def test_upsert_spot_forecast_publishes_nats_message():
         patch(UPSERT_TW, new_callable=AsyncMock, return_value=[]),
         patch(PUBLISH, new_callable=AsyncMock) as mock_publish,
     ):
-        mock_session_scope.return_value.__aenter__.return_value
         response = client.post("/api/smurfi/spot_forecast", json=FORECAST_PAYLOAD)
     assert response.status_code == 200
-    mock_publish.assert_called_once()
-    call_kwargs = mock_publish.call_args
-    assert call_kwargs.kwargs.get("subject") == "smurfi.spot.update" or call_kwargs.args[1] == "smurfi.spot.update"
+    mock_publish.assert_called_once_with(
+        stream=stream_name,
+        subject=smurfi_spot_update_subject,
+        payload=ANY,
+        subjects=subjects,
+    )
