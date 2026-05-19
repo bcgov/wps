@@ -89,8 +89,9 @@ async def upsert_spot_request(data: SpotRequestData):
                     status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotRequest {data.id} not found"
                 )
         logger.info("Syncing subscribers for SpotRequest id: %s", result.id)
-        await sync_spot_subscribers(session, result.id, [s.email for s in data.subscribers])
-    return SpotRequestResponse(spot_request=data.model_copy(update={"id": result.id}))
+        subscribers = await sync_spot_subscribers(session, result.id, [s.email for s in data.subscribers])
+    subscriber_data = [SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status) for s in subscribers]
+    return SpotRequestResponse(spot_request=data.model_copy(update={"id": result.id, "subscribers": subscriber_data}))
 
 
 async def _upsert_descriptive_weather(session, spot_forecast_id: int, data: SpotForecastData) -> list[SpotDescriptiveWeatherData]:
