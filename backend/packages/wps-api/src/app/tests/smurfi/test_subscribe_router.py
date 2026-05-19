@@ -83,7 +83,7 @@ def test_upsert_spot_forecast_publishes_nats_message():
     client = TestClient(app.main.app)
     mock_result = type("SpotForecast", (), {"id": 99})()
     with (
-        patch(DB_WRITE) as mock_session_scope,
+        patch(DB_WRITE),
         patch(CREATE_FORECAST, new_callable=AsyncMock, return_value=mock_result),
         patch(UPSERT_DW, new_callable=AsyncMock, return_value=[]),
         patch(UPSERT_TW, new_callable=AsyncMock, return_value=[]),
