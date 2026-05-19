@@ -6,9 +6,9 @@ from wps_shared.db.crud.smurfi import (
     create_spot_descriptive_weather,
     create_spot_forecast,
     create_spot_request,
-    create_spot_subscriber,
     create_spot_tabular_weather,
     get_spot_requests_for_current_year,
+    sync_spot_subscribers,
     update_spot_descriptive_weather,
     update_spot_forecast,
     update_spot_request,
@@ -16,7 +16,7 @@ from wps_shared.db.crud.smurfi import (
     update_spot_tabular_weather,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
-from wps_shared.db.models.smurfi import SpotDescriptiveWeather, SpotForecast, SpotRequest, SpotSubscriber, SpotSubscriberStatusEnum, SpotTabularWeather
+from wps_shared.db.models.smurfi import SpotDescriptiveWeather, SpotForecast, SpotRequest, SpotSubscriberStatusEnum, SpotTabularWeather
 from wps_shared.geospatial.geospatial import (
     NAD83_BC_ALBERS,
     PointTransformer,
@@ -78,14 +78,7 @@ async def upsert_spot_request(data: SpotRequestData):
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotRequest {data.id} not found"
                 )
-        for subscriber in data.subscribers:
-            await create_spot_subscriber(
-                session,
-                SpotSubscriber(
-                    spot_request_id=result.id,
-                    email=subscriber.email,
-                ),
-            )
+        await sync_spot_subscribers(session, result.id, [s.email for s in data.subscribers])
     return SpotRequestResponse(spot_request=data.model_copy(update={"id": result.id}))
 
 

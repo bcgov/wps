@@ -27,10 +27,31 @@ async def create_spot_forecast(session: AsyncSession, spot_forecast: SpotForecas
     return spot_forecast
 
 
-async def create_spot_subscriber(session: AsyncSession, spot_subscriber: SpotSubscriber):
-    session.add(spot_subscriber)
+async def sync_spot_subscribers(
+    session: AsyncSession, spot_request_id: int, emails: list[str]
+) -> None:
+    result = await session.execute(
+        select(SpotSubscriber).where(SpotSubscriber.spot_request_id == spot_request_id)
+    )
+    existing = result.scalars().all()
+
+    active_emails = set(emails)
+    existing_by_email = {s.email: s for s in existing}
+
+    for subscriber in existing:
+        target_status = (
+            SpotSubscriberStatusEnum.ACTIVE.value
+            if subscriber.email in active_emails
+            else SpotSubscriberStatusEnum.INACTIVE.value
+        )
+        if subscriber.subscriber_status != target_status:
+            subscriber.subscriber_status = target_status
+
+    for email in active_emails:
+        if email not in existing_by_email:
+            session.add(SpotSubscriber(spot_request_id=spot_request_id, email=email))
+
     await session.flush()
-    return spot_subscriber
 
 
 async def create_spot_tabular_weather(session: AsyncSession, spot_tabular_weather: SpotTabularWeather):
