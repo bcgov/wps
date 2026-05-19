@@ -27,9 +27,9 @@ class MockJWTDecode:
     def __getitem__(self, key):
         return self.decoded_token[key]
 
-    def get(self, key, _):
+    def get(self, key, default=None):
         "Returns the mock decoded token"
-        return self.decoded_token.get(key, {})
+        return self.decoded_token.get(key, default)
 
     def decode(self):
         "Returns the mock decoded token"
@@ -49,9 +49,9 @@ class MockTestIDIRJWTDecode:
     def __getitem__(self, key):
         return self.decoded_token[key]
 
-    def get(self, key, _):
+    def get(self, key, default=None):
         "Returns the mock decoded token"
-        return self.decoded_token.get(key, {})
+        return self.decoded_token.get(key, default)
 
     def decode(self):
         "Returns the mock decoded token"

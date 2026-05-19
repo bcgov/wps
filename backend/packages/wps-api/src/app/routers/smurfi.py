@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from geoalchemy2.shape import to_shape
+from wps_shared.auth import authentication_required
 from wps_shared.db.crud.smurfi import (
     create_spot_descriptive_weather,
     create_spot_forecast,
@@ -43,7 +44,6 @@ from wps_shared.schemas.smurfi import (
     SubscriptionsResponse,
     UpdateSubscriberStatusData,
 )
-from wps_shared.auth import authentication_required
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
@@ -271,7 +271,9 @@ async def get_spot_pdf(spot_id: int):
 
 @router.post("/spots/{spot_request_id}/subscribe", response_model=SubscribeResponse)
 async def subscribe_to_spot(spot_request_id: int, token=Depends(authentication_required)):
-    email = token.get("email", None)
+    email = token.get("email")
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim")
     async with get_async_write_session_scope() as session:
         subscriber = await toggle_subscription(session, spot_request_id, email)
     return SubscribeResponse(subscriber_status=subscriber.subscriber_status)
@@ -279,7 +281,9 @@ async def subscribe_to_spot(spot_request_id: int, token=Depends(authentication_r
 
 @router.get("/subscriptions", response_model=SubscriptionsResponse)
 async def get_subscriptions(token=Depends(authentication_required)):
-    email = token.get("email", None)
+    email = token.get("email")
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim")
     async with get_async_read_session_scope() as session:
         ids = await get_subscribed_spot_request_ids(session, email)
     return SubscriptionsResponse(spot_request_ids=ids)

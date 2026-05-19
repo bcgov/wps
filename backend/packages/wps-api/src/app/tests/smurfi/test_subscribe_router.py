@@ -19,8 +19,7 @@ def _make_subscriber(status: str):
 def test_subscribe_creates_active_subscription():
     """POST subscribe returns active status when user was not subscribed."""
     client = TestClient(app.main.app)
-    with patch(DB_WRITE) as mock_session_scope:
-        mock_session_scope.return_value.__aenter__.return_value
+    with patch(DB_WRITE):
         with patch(TOGGLE, new_callable=AsyncMock, return_value=_make_subscriber("active")):
             response = client.post("/api/smurfi/spots/42/subscribe")
     assert response.status_code == 200
@@ -31,8 +30,7 @@ def test_subscribe_creates_active_subscription():
 def test_subscribe_toggle_to_inactive():
     """POST subscribe returns inactive status when toggling off."""
     client = TestClient(app.main.app)
-    with patch(DB_WRITE) as mock_session_scope:
-        mock_session_scope.return_value.__aenter__.return_value
+    with patch(DB_WRITE):
         with patch(TOGGLE, new_callable=AsyncMock, return_value=_make_subscriber("inactive")):
             response = client.post("/api/smurfi/spots/42/subscribe")
     assert response.status_code == 200
@@ -50,8 +48,7 @@ def test_subscribe_requires_auth():
 def test_get_subscriptions_returns_ids():
     """GET subscriptions returns the list of subscribed spot_request_ids."""
     client = TestClient(app.main.app)
-    with patch(DB_READ) as mock_session_scope:
-        mock_session_scope.return_value.__aenter__.return_value
+    with patch(DB_READ):
         with patch(GET_IDS, new_callable=AsyncMock, return_value=[1, 5, 10]):
             response = client.get("/api/smurfi/subscriptions")
     assert response.status_code == 200
