@@ -356,3 +356,20 @@ async def get_spot_pdf(spot_id: int):
     except Exception as e:
         logger.error(f"Failed to get PDF for spot {spot_id}: {e}")
         return Response(status_code=404, content="PDF not found")
+
+
+
+@router.post("/spots/{spot_request_id}/subscribe", response_model=SubscribeResponse)
+async def subscribe_to_spot(spot_request_id: int, token=Depends(authentication_required)):
+    email = token.get("email", None)
+    async with get_async_write_session_scope() as session:
+        subscriber = await toggle_subscription(session, spot_request_id, email)
+    return SubscribeResponse(subscriber_status=subscriber.subscriber_status)
+
+
+@router.get("/subscriptions", response_model=SubscriptionsResponse)
+async def get_subscriptions(token=Depends(authentication_required)):
+    email = token.get("email", None)
+    async with get_async_read_session_scope() as session:
+        ids = await get_subscribed_spot_request_ids(session, email)
+    return SubscriptionsResponse(spot_request_ids=ids)
