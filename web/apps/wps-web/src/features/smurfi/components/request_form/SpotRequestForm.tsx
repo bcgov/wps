@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  Alert,
   Autocomplete,
   Box,
   Button,
@@ -10,14 +11,17 @@ import {
   FormLabel,
   FormGroup,
   Grid,
+  IconButton,
   InputAdornment,
   InputLabel,
   MenuItem,
   Radio,
   RadioGroup,
   Select,
-  TextField
+  TextField,
+  Tooltip
 } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { DateTime } from 'luxon'
 import { Controller, FieldErrors, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -105,6 +109,13 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <Box component="form" onSubmit={handleSubmit(handleValidSubmit)}>
         <Grid container spacing={2}>
+          <Grid size={12}>
+            <Alert severity="info">
+              Forecasts are scheduled based on forecaster capacity. Your forecast may not start on the requested date;
+              requests submitted for today will usually begin with tomorrow&apos;s forecast.
+            </Alert>
+          </Grid>
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <Controller
               name="fireNumber"
@@ -194,7 +205,20 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
               control={control}
               render={({ field }) => (
                 <FormControl error={!!errors.forecastType}>
-                  <FormLabel>Forecast Type</FormLabel>
+                  <FormLabel>
+                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                      Forecast Type
+                      <Tooltip
+                        placement="right-start"
+                        arrow
+                        title="Mini SPOT is for smaller, lower-complexity requests and does not include daily forecast summaries or a written 3-5 day outlook."
+                      >
+                        <IconButton aria-label="Forecast type information" size="small" sx={{ p: 0.25 }}>
+                          <InfoOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </FormLabel>
                   <RadioGroup {...field}>
                     {spotForecastTypes.map(type => (
                       <FormControlLabel key={type} value={type} control={<Radio />} label={forecastTypeOptions[type]} />
