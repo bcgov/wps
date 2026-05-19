@@ -6,7 +6,6 @@ import logging
 import nats
 from nats.aio.msg import Msg
 from nats.js.api import AckPolicy, ConsumerConfig, RetentionPolicy, StreamConfig
-from wps_shared import config
 from wps_shared.db.crud.smurfi import get_active_subscribers_for_spot, get_spot_forecast_with_weather
 from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.wps_logging import configure_logging
