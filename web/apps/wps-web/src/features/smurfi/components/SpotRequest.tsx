@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Button,
@@ -10,8 +10,11 @@ import {
   TextField,
   Autocomplete
 } from '@mui/material'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { selectSpotAdminRows } from '@/features/smurfi/slices/spotAdminSlice'
+import { selectAuthentication } from '@/app/rootReducer'
+import { fetchSubscriptions } from '@/features/smurfi/slices/subscriptionsSlice'
+import { AppDispatch } from 'app/store'
 import SpotRequestCard from '@/features/smurfi/components/SpotRequestCard'
 import { DateRange } from '@wps/ui/dateRangePicker/types'
 import DateRangeSelector from '@wps/ui/DateRangeSelector'
@@ -19,13 +22,21 @@ import CloseIcon from '@mui/icons-material/Close'
 import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
 
 const SpotRequest: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>()
   const spotAdminRows = useSelector(selectSpotAdminRows)
+  const { isAuthenticated } = useSelector(selectAuthentication)
   const [searchTerm, setSearchTerm] = useState('')
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
   const [fireCentreSearch, setFireCentreSearch] = useState('')
   const [forecasterSearch, setForecasterSearch] = useState('')
   const [statusSearch, setStatusSearch] = useState('')
   const [requestFormOpen, setRequestFormOpen] = useState(false)
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchSubscriptions())
+    }
+  }, [dispatch, isAuthenticated])
 
   const filteredSpots = spotAdminRows.filter(spot => {
     const matchesFireId = spot.fire_id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -113,7 +124,7 @@ const SpotRequest: React.FC = () => {
       <Grid container spacing={2} sx={{ mt: 2 }}>
         {filteredSpots.map(spot => (
           <Grid size={{ xs: 6, sm: 4, md: 3 }} key={spot.id}>
-            <SpotRequestCard spot={spot} />
+            <SpotRequestCard spot={spot} isAuthenticated={isAuthenticated} />
           </Grid>
         ))}
       </Grid>
