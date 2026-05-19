@@ -1,10 +1,22 @@
 import React, { useState } from 'react'
-import { Box, Button, Grid, TextField, Autocomplete } from '@mui/material'
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  TextField,
+  Autocomplete
+} from '@mui/material'
 import { useSelector } from 'react-redux'
 import { selectSpotAdminRows } from '@/features/smurfi/slices/spotAdminSlice'
 import SpotRequestCard from '@/features/smurfi/components/SpotRequestCard'
 import { DateRange } from '@wps/ui/dateRangePicker/types'
 import DateRangeSelector from '@wps/ui/DateRangeSelector'
+import CloseIcon from '@mui/icons-material/Close'
+import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
 
 const SpotRequest: React.FC = () => {
   const spotAdminRows = useSelector(selectSpotAdminRows)
@@ -13,6 +25,7 @@ const SpotRequest: React.FC = () => {
   const [fireCentreSearch, setFireCentreSearch] = useState('')
   const [forecasterSearch, setForecasterSearch] = useState('')
   const [statusSearch, setStatusSearch] = useState('')
+  const [requestFormOpen, setRequestFormOpen] = useState(false)
 
   const filteredSpots = spotAdminRows.filter(spot => {
     const matchesFireId = spot.fire_id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -36,15 +49,30 @@ const SpotRequest: React.FC = () => {
         flexDirection: 'column'
       }}
     >
-      <Button
-        variant="contained"
-        href="https://submit.digital.gov.bc.ca/app/form/submit?f=e5a6ec9b-ead7-4f5b-bdcb-88f53caae53d"
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={{ maxWidth: '200px' }}
-      >
+      <Button variant="contained" onClick={() => setRequestFormOpen(true)} sx={{ maxWidth: '200px' }}>
         Request a Spot Forecast
       </Button>
+      <Dialog
+        open={requestFormOpen}
+        onClose={() => setRequestFormOpen(false)}
+        maxWidth="md"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: { maxHeight: '90vh' }
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          Request a Spot Forecast
+          <IconButton aria-label="close" onClick={() => setRequestFormOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <SpotRequestForm onCancel={() => setRequestFormOpen(false)} onSubmit={() => setRequestFormOpen(false)} />
+        </DialogContent>
+      </Dialog>
       <Box sx={{ mt: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
         <TextField
           label="Search by Fire ID"
