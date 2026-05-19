@@ -246,3 +246,21 @@ export async function getSpotPDF(spotId: number): Promise<Blob> {
   const response = await axios.get(url, { responseType: 'blob' })
   return response.data
 }
+
+export interface SubscribeResponse {
+  subscriber_status: string
+}
+
+export interface SubscriptionsResponse {
+  spot_request_ids: number[]
+}
+
+export async function subscribeToSpot(spotRequestId: number): Promise<SubscribeResponse> {
+  const { data } = await axios.post(`/smurfi/spots/${spotRequestId}/subscribe`)
+  return data
+}
+
+export async function getSubscriptions(): Promise<SubscriptionsResponse> {
+  const { data } = await axios.get('/smurfi/subscriptions')
+  return data
+}
