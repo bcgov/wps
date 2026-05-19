@@ -29,12 +29,14 @@ from wps_shared.geospatial.geospatial import (
     SpatialReferenceSystem,
 )
 from wps_shared.schemas.smurfi import (
+    SpotDescriptiveWeatherData,
     SpotForecastData,
     SpotForecastResponse,
     SpotRequestData,
     SpotRequestListResponse,
     SpotRequestResponse,
     SpotSubscriberData,
+    SpotTabularWeatherData,
     UpdateSubscriberStatusData,
 )
 from wps_shared.utils.s3_client import S3Client
@@ -91,7 +93,8 @@ async def upsert_spot_request(data: SpotRequestData):
     return SpotRequestResponse(spot_request=data.model_copy(update={"id": result.id}))
 
 
-async def _upsert_descriptive_weather(session, spot_forecast_id: int, data: SpotForecastData):
+async def _upsert_descriptive_weather(session, spot_forecast_id: int, data: SpotForecastData) -> list[SpotDescriptiveWeatherData]:
+    records = []
     for dw in data.descriptive_weather:
         record = SpotDescriptiveWeather(
             id=dw.id,
@@ -102,24 +105,19 @@ async def _upsert_descriptive_weather(session, spot_forecast_id: int, data: Spot
             conditions=dw.conditions,
         )
         if dw.id is None:
-            logger.info(
-                "Creating a new SpotDescriptiveWeather for SpotForecast with id: %s.",
-                spot_forecast_id,
-            )
-            await create_spot_descriptive_weather(session, record)
+            logger.info("Creating a new SpotDescriptiveWeather for SpotForecast with id: %s.", spot_forecast_id)
+            saved = await create_spot_descriptive_weather(session, record)
         else:
-            logger.info(
-                "Updating existing SpotDescriptiveWeather for SpotForecast with id: %s.",
-                spot_forecast_id,
-            )
-            result = await update_spot_descriptive_weather(session, record)
-            if result is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotDescriptiveWeather {dw.id} not found"
-                )
+            logger.info("Updating existing SpotDescriptiveWeather for SpotForecast with id: %s.", spot_forecast_id)
+            saved = await update_spot_descriptive_weather(session, record)
+            if saved is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotDescriptiveWeather {dw.id} not found")
+        records.append(SpotDescriptiveWeatherData(id=saved.id, period=saved.period, temperature=saved.temperature, relative_humidity=saved.relative_humidity, conditions=saved.conditions))
+    return records
 
 
-async def _upsert_tabular_weather(session, spot_forecast_id: int, data: SpotForecastData):
+async def _upsert_tabular_weather(session, spot_forecast_id: int, data: SpotForecastData) -> list[SpotTabularWeatherData]:
+    records = []
     for tw in data.tabular_weather:
         record = SpotTabularWeather(
             id=tw.id,
@@ -132,21 +130,25 @@ async def _upsert_tabular_weather(session, spot_forecast_id: int, data: SpotFore
             precipitation_amount=tw.precipitation_amount,
         )
         if tw.id is None:
-            logger.info(
-                "Creating a new SpotTabularWeather for SpotForecast with id: %s.",
-                spot_forecast_id,
-            )
-            await create_spot_tabular_weather(session, record)
+            logger.info("Creating a new SpotTabularWeather for SpotForecast with id: %s.", spot_forecast_id)
+            saved = await create_spot_tabular_weather(session, record)
         else:
-            logger.info(
-                "Creating a new SpotTabularWeather for SpotForecast with id: %s.",
-                spot_forecast_id,
+            logger.info("Updating existing SpotTabularWeather for SpotForecast with id: %s.", spot_forecast_id)
+            saved = await update_spot_tabular_weather(session, record)
+            if saved is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotTabularWeather {tw.id} not found")
+        records.append(
+            SpotTabularWeatherData(
+                id=saved.id,
+                forecast_time=saved.forecast_time,
+                temperature=saved.temperature,
+                relative_humidity=saved.relative_humidity,
+                wind=saved.wind,
+                probability_of_precipitation=saved.probability_of_precipitation,
+                precipitation_amount=saved.precipitation_amount,
             )
-            result = await update_spot_tabular_weather(session, record)
-            if result is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotTabularWeather {tw.id} not found"
-                )
+        )
+    return records
 
 
 @router.post("/spot_forecast", response_model=SpotForecastResponse)
@@ -179,9 +181,9 @@ async def upsert_spot_forecast(data: SpotForecastData):
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotForecast {data.id} not found"
                 )
-        await _upsert_descriptive_weather(session, result.id, data)
-        await _upsert_tabular_weather(session, result.id, data)
-    return SpotForecastResponse(spot_forecast=data.model_copy(update={"id": result.id}))
+        descriptive_weather = await _upsert_descriptive_weather(session, result.id, data)
+        tabular_weather = await _upsert_tabular_weather(session, result.id, data)
+    return SpotForecastResponse(spot_forecast=data.model_copy(update={"id": result.id, "descriptive_weather": descriptive_weather, "tabular_weather": tabular_weather}))
 
 
 def _spot_request_to_schema(spot_request: SpotRequest) -> SpotRequestData:
