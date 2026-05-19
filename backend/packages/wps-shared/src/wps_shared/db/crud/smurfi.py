@@ -164,3 +164,56 @@ async def update_spot_subscriber_status(session: AsyncSession, subscriber_id: in
     return subscriber
 
 
+async def toggle_subscription(session: AsyncSession, spot_request_id: int, email: str) -> SpotSubscriber:
+    result = await session.execute(
+        select(SpotSubscriber).where(
+            SpotSubscriber.spot_request_id == spot_request_id,
+            SpotSubscriber.email == email,
+        )
+    )
+    subscriber = result.scalar_one_or_none()
+    if subscriber is None:
+        subscriber = SpotSubscriber(spot_request_id=spot_request_id, email=email, subscriber_status=SpotSubscriberStatusEnum.ACTIVE.value)
+        session.add(subscriber)
+    else:
+        subscriber.subscriber_status = (
+            SpotSubscriberStatusEnum.INACTIVE.value
+            if subscriber.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value
+            else SpotSubscriberStatusEnum.ACTIVE.value
+        )
+    await session.flush()
+    return subscriber
+
+
+async def get_subscribed_spot_request_ids(session: AsyncSession, email: str) -> list[int]:
+    result = await session.execute(
+        select(SpotSubscriber.spot_request_id).where(
+            SpotSubscriber.email == email,
+            SpotSubscriber.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value,
+        )
+    )
+    return list(result.scalars().all())
+
+
+async def get_active_subscribers_for_spot(session: AsyncSession, spot_request_id: int) -> list[SpotSubscriber]:
+    result = await session.execute(
+        select(SpotSubscriber).where(
+            SpotSubscriber.spot_request_id == spot_request_id,
+            SpotSubscriber.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value,
+        )
+    )
+    return list(result.scalars().all())
+
+
+async def get_spot_forecast_with_weather(session: AsyncSession, spot_forecast_id: int) -> SpotForecast | None:
+    result = await session.execute(
+        select(SpotForecast)
+        .where(SpotForecast.id == spot_forecast_id)
+        .options(
+            selectinload(SpotForecast.descriptive_weather),
+            selectinload(SpotForecast.tabular_weather),
+            selectinload(SpotForecast.spot_request),
+        )
+    )
+    return result.scalar_one_or_none()
+
