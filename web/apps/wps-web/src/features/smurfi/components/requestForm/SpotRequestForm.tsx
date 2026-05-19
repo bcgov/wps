@@ -34,7 +34,7 @@ import {
   SpotRequestFormData,
   SpotRequestFormValues
 } from '@wps/api/schema/spotRequestSchema'
-import SpotRequestLocationField from '@/features/smurfi/components/request_form/SpotRequestLocationField'
+import SpotRequestLocationField from '@/features/smurfi/components/requestForm/SpotRequestLocationField'
 
 interface SpotRequestFormProps {
   onCancel: () => void

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Box, FormHelperText, TextField, Typography } from '@mui/material'
-import SpotRequestLocationMap from '@/features/smurfi/components/request_form/SpotRequestLocationMap'
+import SpotRequestLocationMap from '@/features/smurfi/components/requestForm/SpotRequestLocationMap'
 
 interface SpotRequestLocation {
   latitude: number

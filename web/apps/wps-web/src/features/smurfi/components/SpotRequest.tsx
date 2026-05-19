@@ -16,7 +16,7 @@ import SpotRequestCard from '@/features/smurfi/components/SpotRequestCard'
 import { DateRange } from '@wps/ui/dateRangePicker/types'
 import DateRangeSelector from '@wps/ui/DateRangeSelector'
 import CloseIcon from '@mui/icons-material/Close'
-import SpotRequestForm from '@/features/smurfi/components/request_form/SpotRequestForm'
+import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
 
 const SpotRequest: React.FC = () => {
   const spotAdminRows = useSelector(selectSpotAdminRows)
