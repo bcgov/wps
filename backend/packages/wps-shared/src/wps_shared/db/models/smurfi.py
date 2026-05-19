@@ -219,7 +219,7 @@ class SpotTabularWeather(Base):
     precipitation_amount = Column(Float, nullable=True)
 
     # Relationships
-    spot_forecast = relationship("SpotForecast", back_populates="spot_tabular_weather")
+    spot_forecast = relationship("SpotForecast", back_populates="tabular_weather")
 
 
 class SpotDescriptiveWeather(Base):

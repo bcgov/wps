@@ -60,3 +60,37 @@ def test_get_subscriptions_requires_auth():
     client = TestClient(app.main.app)
     response = client.get("/api/smurfi/subscriptions")
     assert response.status_code == 401
+
+
+PUBLISH = "app.routers.smurfi.publish"
+CREATE_FORECAST = "app.routers.smurfi.create_spot_forecast"
+UPSERT_DW = "app.routers.smurfi._upsert_descriptive_weather"
+UPSERT_TW = "app.routers.smurfi._upsert_tabular_weather"
+
+FORECAST_PAYLOAD = {
+    "spot_request_id": 1,
+    "forecaster_name": "Test Forecaster",
+    "forecaster_email": "forecaster@example.com",
+    "descriptive_weather": [],
+    "tabular_weather": [],
+}
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_upsert_spot_forecast_publishes_nats_message():
+    """Saving a spot forecast publishes a smurfi.spot.update NATS message."""
+    client = TestClient(app.main.app)
+    mock_result = type("SpotForecast", (), {"id": 99})()
+    with (
+        patch(DB_WRITE) as mock_session_scope,
+        patch(CREATE_FORECAST, new_callable=AsyncMock, return_value=mock_result),
+        patch(UPSERT_DW, new_callable=AsyncMock, return_value=[]),
+        patch(UPSERT_TW, new_callable=AsyncMock, return_value=[]),
+        patch(PUBLISH, new_callable=AsyncMock) as mock_publish,
+    ):
+        mock_session_scope.return_value.__aenter__.return_value
+        response = client.post("/api/smurfi/spot_forecast", json=FORECAST_PAYLOAD)
+    assert response.status_code == 200
+    mock_publish.assert_called_once()
+    call_kwargs = mock_publish.call_args
+    assert call_kwargs.kwargs.get("subject") == "smurfi.spot.update" or call_kwargs.args[1] == "smurfi.spot.update"

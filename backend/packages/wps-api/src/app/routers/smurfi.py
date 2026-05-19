@@ -3,6 +3,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from geoalchemy2.shape import to_shape
 from wps_shared.auth import authentication_required
+from app.nats_publish import publish
+from app.smurfi.nats_config import smurfi_spot_update_subject, stream_name, subjects
 from wps_shared.db.crud.smurfi import (
     create_spot_descriptive_weather,
     create_spot_forecast,
@@ -40,6 +42,7 @@ from wps_shared.schemas.smurfi import (
     SpotRequestResponse,
     SpotSubscriberData,
     SpotTabularWeatherData,
+    SpotUpdatePayload,
     SubscribeResponse,
     SubscriptionsResponse,
     UpdateSubscriberStatusData,
@@ -189,6 +192,8 @@ async def upsert_spot_forecast(data: SpotForecastData):
                 )
         descriptive_weather = await _upsert_descriptive_weather(session, result.id, data)
         tabular_weather = await _upsert_tabular_weather(session, result.id, data)
+    payload = SpotUpdatePayload(spot_request_id=data.spot_request_id, spot_forecast_id=result.id)
+    await publish(stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects)
     return SpotForecastResponse(spot_forecast=data.model_copy(update={"id": result.id, "descriptive_weather": descriptive_weather, "tabular_weather": tabular_weather}))
 
 
