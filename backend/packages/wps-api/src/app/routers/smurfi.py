@@ -1,14 +1,46 @@
 import logging
-from io import BytesIO
 
-from fastapi import APIRouter, Response
-from wps_shared.db.models.smurfi import SpotRequestStatusEnum
-from wps_shared.schemas.smurfi import PullFromChefsResponse
+from fastapi import APIRouter, HTTPException, Response, status
+from geoalchemy2.shape import to_shape
+from wps_shared.db.crud.smurfi import (
+    create_spot_descriptive_weather,
+    create_spot_forecast,
+    create_spot_request,
+    create_spot_tabular_weather,
+    get_spot_requests_for_year,
+    sync_spot_subscribers,
+    update_spot_descriptive_weather,
+    update_spot_forecast,
+    update_spot_request,
+    update_spot_subscriber_status,
+    update_spot_tabular_weather,
+)
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
+from wps_shared.db.models.smurfi import (
+    SpotDescriptiveWeather,
+    SpotForecast,
+    SpotRequest,
+    SpotSubscriberStatusEnum,
+    SpotTabularWeather,
+)
+from wps_shared.geospatial.geospatial import (
+    NAD83_BC_ALBERS,
+    PointTransformer,
+    SpatialReferenceSystem,
+)
+from wps_shared.schemas.smurfi import (
+    SpotDescriptiveWeatherData,
+    SpotForecastData,
+    SpotForecastResponse,
+    SpotRequestData,
+    SpotRequestListResponse,
+    SpotRequestResponse,
+    SpotSubscriberData,
+    SpotTabularWeatherData,
+    UpdateSubscriberStatusData,
+)
 from wps_shared.utils.s3_client import S3Client
-
-from app.smurfi.download_chefs_data import get_chefs_submissions_json
-from app.smurfi.spot import SpotService
-from wps_shared.schemas.smurfi import SmurfiSpotVersionData
+from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -18,38 +50,193 @@ router = APIRouter(
 )
 
 
-@router.get("/pull_from_chefs", response_model=PullFromChefsResponse)
-async def pull_from_chefs():
-    processed_requests = get_chefs_submissions_json()
-    spot_service = SpotService()
+@router.post("/spot_request", response_model=SpotRequestResponse)
+async def upsert_spot_request(data: SpotRequestData):
+    x, y = PointTransformer(
+        SpatialReferenceSystem.WGS84.code, NAD83_BC_ALBERS
+    ).transform_coordinate(data.longitude, data.latitude)
+    now = get_utc_now()
+    spot_request = SpotRequest(
+        id=data.id,
+        request_reference=data.request_reference,
+        fire_number=data.fire_number,
+        fire_centre=data.fire_centre,
+        status=data.status,
+        requestor_name=data.requestor_name,
+        requestor_idir=data.requestor_idir,
+        requestor_email=data.requestor_email,
+        request_frequency=data.request_frequency,
+        request_type=data.request_type,
+        aspect=data.aspect,
+        elevation=data.elevation,
+        geographic_description=data.geographic_description,
+        geom=f"POINT({x} {y})",
+        requested_at=data.requested_at,
+        start_at=data.start_at,
+        end_at=data.end_at,
+        created_at=now,
+        updated_at=now,
+    )
+    async with get_async_write_session_scope() as session:
+        if data.id is None:
+            logger.info("Creating a new SpotRequest.")
+            result = await create_spot_request(session, spot_request)
+        else:
+            logger.info("Updating an existing SpotRequest with id: %s.", data.id)
+            result = await update_spot_request(session, spot_request)
+            if result is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotRequest {data.id} not found"
+                )
+        logger.info("Syncing subscribers for SpotRequest id: %s", result.id)
+        subscribers = await sync_spot_subscribers(session, result.id, [s.email for s in data.subscribers])
+    subscriber_data = [SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status) for s in subscribers]
+    return SpotRequestResponse(spot_request=data.model_copy(update={"id": result.id, "subscribers": subscriber_data}))
 
-    created_spots = []
-    for request_data in processed_requests:
-        spot = await spot_service.create_spot(request_data)
-        created_spots.append(spot)
 
-    logger.info(f"Created {len(created_spots)} spots from CHEFS data")
-    return PullFromChefsResponse(success=True)
+async def _upsert_descriptive_weather(session, spot_forecast_id: int, data: SpotForecastData) -> list[SpotDescriptiveWeatherData]:
+    records = []
+    for dw in data.descriptive_weather:
+        record = SpotDescriptiveWeather(
+            id=dw.id,
+            spot_forecast_id=spot_forecast_id,
+            period=dw.period,
+            temperature=dw.temperature,
+            relative_humidity=dw.relative_humidity,
+            conditions=dw.conditions,
+        )
+        if dw.id is None:
+            logger.info("Creating a new SpotDescriptiveWeather for SpotForecast with id: %s.", spot_forecast_id)
+            saved = await create_spot_descriptive_weather(session, record)
+        else:
+            logger.info("Updating existing SpotDescriptiveWeather for SpotForecast with id: %s.", spot_forecast_id)
+            saved = await update_spot_descriptive_weather(session, record)
+            if saved is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotDescriptiveWeather {dw.id} not found")
+        records.append(SpotDescriptiveWeatherData(id=saved.id, period=saved.period, temperature=saved.temperature, relative_humidity=saved.relative_humidity, conditions=saved.conditions))
+    return records
 
 
-@router.get("/smurfi_forecast/{spot_id}", response_model=SmurfiSpotVersionData)
-async def smurfi_forecast(spot_id: int):
-    spot_service = SpotService()
-    forecast_data = await spot_service.get_forecast_data(spot_id)
-    return forecast_data
+async def _upsert_tabular_weather(session, spot_forecast_id: int, data: SpotForecastData) -> list[SpotTabularWeatherData]:
+    records = []
+    for tw in data.tabular_weather:
+        record = SpotTabularWeather(
+            id=tw.id,
+            spot_forecast_id=spot_forecast_id,
+            forecast_time=tw.forecast_time,
+            temperature=tw.temperature,
+            relative_humidity=tw.relative_humidity,
+            wind=tw.wind,
+            probability_of_precipitation=tw.probability_of_precipitation,
+            precipitation_amount=tw.precipitation_amount,
+        )
+        if tw.id is None:
+            logger.info("Creating a new SpotTabularWeather for SpotForecast with id: %s.", spot_forecast_id)
+            saved = await create_spot_tabular_weather(session, record)
+        else:
+            logger.info("Updating existing SpotTabularWeather for SpotForecast with id: %s.", spot_forecast_id)
+            saved = await update_spot_tabular_weather(session, record)
+            if saved is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotTabularWeather {tw.id} not found")
+        records.append(
+            SpotTabularWeatherData(
+                id=saved.id,
+                forecast_time=saved.forecast_time,
+                temperature=saved.temperature,
+                relative_humidity=saved.relative_humidity,
+                wind=saved.wind,
+                probability_of_precipitation=saved.probability_of_precipitation,
+                precipitation_amount=saved.precipitation_amount,
+            )
+        )
+    return records
 
 
-@router.post("/create_spot_version/{spot_id}", response_model=int)
-async def create_spot_version(spot_id: int, data: SmurfiSpotVersionData):
-    spot_service = SpotService()
-    spot_version_id = await spot_service.create_spot_version(spot_id, data)
-    return spot_version_id
+@router.post("/spot_forecast", response_model=SpotForecastResponse)
+async def upsert_spot_forecast(data: SpotForecastData):
+    now = get_utc_now()
+    spot_forecast = SpotForecast(
+        id=data.id,
+        spot_request_id=data.spot_request_id,
+        forecaster_name=data.forecaster_name,
+        forecaster_email=data.forecaster_email,
+        forecaster_phone=data.forecaster_phone,
+        synopsis=data.synopsis,
+        inversion_and_venting=data.inversion_and_venting,
+        outlook=data.outlook,
+        confidence=data.confidence,
+        fire_size=data.fire_size,
+        representative_station_codes=data.representative_station_codes,
+        for_date=data.for_date,
+        created_at=now,
+        updated_at=now,
+    )
+    async with get_async_write_session_scope() as session:
+        if data.id is None:
+            logger.info("Creating a new SpotForecast.")
+            result = await create_spot_forecast(session, spot_forecast)
+        else:
+            logger.info("Updaing an existing SpotForecast with id: %s.", data.id)
+            result = await update_spot_forecast(session, spot_forecast)
+            if result is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotForecast {data.id} not found"
+                )
+        descriptive_weather = await _upsert_descriptive_weather(session, result.id, data)
+        tabular_weather = await _upsert_tabular_weather(session, result.id, data)
+    return SpotForecastResponse(spot_forecast=data.model_copy(update={"id": result.id, "descriptive_weather": descriptive_weather, "tabular_weather": tabular_weather}))
 
 
-@router.post("/change_spot_status/{spot_id}/{new_status}", response_model=None)
-async def change_spot_status(spot_id: int, new_status: SpotRequestStatusEnum):
-    spot_service = SpotService()
-    await spot_service.change_spot_status(spot_id, new_status)
+def _spot_request_to_schema(spot_request: SpotRequest) -> SpotRequestData:
+    shape = to_shape(spot_request.geom)
+    lon, lat = PointTransformer(NAD83_BC_ALBERS, SpatialReferenceSystem.WGS84.code).transform_coordinate(shape.x, shape.y)
+    return SpotRequestData(
+        id=spot_request.id,
+        request_reference=spot_request.request_reference,
+        fire_number=spot_request.fire_number,
+        fire_centre=spot_request.fire_centre,
+        status=spot_request.status,
+        requestor_name=spot_request.requestor_name,
+        requestor_idir=spot_request.requestor_idir,
+        requestor_email=spot_request.requestor_email,
+        request_frequency=spot_request.request_frequency,
+        request_type=spot_request.request_type,
+        aspect=spot_request.aspect,
+        elevation=spot_request.elevation,
+        geographic_description=spot_request.geographic_description,
+        latitude=lat,
+        longitude=lon,
+        requested_at=spot_request.requested_at,
+        start_at=spot_request.start_at,
+        end_at=spot_request.end_at,
+        subscribers=[
+            SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status)
+            for s in spot_request.spot_subscribers
+            if s.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value
+        ],
+    )
+
+
+@router.post("/update_subscriber", status_code=status.HTTP_204_NO_CONTENT)
+async def update_subscriber(data: UpdateSubscriberStatusData):
+    try:
+        status_enum = SpotSubscriberStatusEnum(data.status)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid status: {data.status}")
+    async with get_async_write_session_scope() as session:
+        result = await update_spot_subscriber_status(session, data.subscriber_id, status_enum)
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Subscriber {data.subscriber_id} not found")
+
+
+@router.get("/spot_requests", response_model=SpotRequestListResponse)
+async def get_spot_requests(year: int):
+    logger.info("Getting SpotRequests for year: %s", year)
+    async with get_async_read_session_scope() as session:
+        spot_requests = await get_spot_requests_for_year(session, year)
+    return SpotRequestListResponse(
+        spot_requests=[_spot_request_to_schema(sr) for sr in spot_requests]
+    )
 
 
 @router.get("/pdf/{spot_id}")
