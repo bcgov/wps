@@ -4,7 +4,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-import wps_shared.utils.time as time_utils
 from wps_shared.db.models.smurfi import (
     SpotDescriptiveWeather,
     SpotForecast,
