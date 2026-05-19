@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { Box, Tabs, Tab } from '@mui/material'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
+import { LocalizationProvider } from '@mui/x-date-pickers'
 import SpotManagement from '@/features/smurfi/components/management/SpotManagement'
 import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
 import SpotRequest from '@/features/smurfi/components/SpotRequest'
@@ -39,27 +41,29 @@ const SMURFIPage = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
-      <Tabs value={value} onChange={handleChange}>
-        <Tab label="Dashboard" />
-        <Tab label="Map" />
-        <Tab label="Spot Management" />
-      </Tabs>
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
-        <TabPanel value={value} index={0}>
-          <SpotRequest />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          <ErrorBoundary>
-            <SMURFIMap />
-          </ErrorBoundary>
-        </TabPanel>
-        <TabPanel value={value} index={2}>
-          <SpotManagement />
-        </TabPanel>
+    <LocalizationProvider dateAdapter={AdapterLuxon}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
+        <Tabs value={value} onChange={handleChange}>
+          <Tab label="Dashboard" />
+          <Tab label="Map" />
+          <Tab label="Spot Management" />
+        </Tabs>
+        <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
+          <TabPanel value={value} index={0}>
+            <SpotRequest />
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            <ErrorBoundary>
+              <SMURFIMap />
+            </ErrorBoundary>
+          </TabPanel>
+          <TabPanel value={value} index={2}>
+            <SpotManagement />
+          </TabPanel>
+        </Box>
       </Box>
-    </Box>
+    </LocalizationProvider>
   )
 }
 
