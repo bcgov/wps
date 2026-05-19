@@ -138,10 +138,9 @@ async def update_spot_descriptive_weather(session: AsyncSession, updated: SpotDe
     return existing
 
 
-async def get_spot_requests_for_current_year(session: AsyncSession):
-    now = time_utils.get_utc_now()
-    year_start = datetime(now.year, 1, 1, tzinfo=timezone.utc)
-    year_end = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc)
+async def get_spot_requests_for_year(session: AsyncSession, year: int):
+    year_start = datetime(year, 1, 1, tzinfo=timezone.utc)
+    year_end = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
     result = await session.execute(
         select(SpotRequest)
         .where(SpotRequest.start_at >= year_start, SpotRequest.start_at < year_end)

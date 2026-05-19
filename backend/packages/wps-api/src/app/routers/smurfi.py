@@ -7,7 +7,7 @@ from wps_shared.db.crud.smurfi import (
     create_spot_forecast,
     create_spot_request,
     create_spot_tabular_weather,
-    get_spot_requests_for_current_year,
+    get_spot_requests_for_year,
     sync_spot_subscribers,
     update_spot_descriptive_weather,
     update_spot_forecast,
@@ -16,7 +16,13 @@ from wps_shared.db.crud.smurfi import (
     update_spot_tabular_weather,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
-from wps_shared.db.models.smurfi import SpotDescriptiveWeather, SpotForecast, SpotRequest, SpotSubscriberStatusEnum, SpotTabularWeather
+from wps_shared.db.models.smurfi import (
+    SpotDescriptiveWeather,
+    SpotForecast,
+    SpotRequest,
+    SpotSubscriberStatusEnum,
+    SpotTabularWeather,
+)
 from wps_shared.geospatial.geospatial import (
     NAD83_BC_ALBERS,
     PointTransformer,
@@ -71,13 +77,16 @@ async def upsert_spot_request(data: SpotRequestData):
     )
     async with get_async_write_session_scope() as session:
         if data.id is None:
+            logger.info("Creating a new SpotRequest.")
             result = await create_spot_request(session, spot_request)
         else:
+            logger.info("Updating an existing SpotRequest with id: %s.", data.id)
             result = await update_spot_request(session, spot_request)
             if result is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotRequest {data.id} not found"
                 )
+        logger.info("Syncing subscribers for SpotRequest id: %s", result.id)
         await sync_spot_subscribers(session, result.id, [s.email for s in data.subscribers])
     return SpotRequestResponse(spot_request=data.model_copy(update={"id": result.id}))
 
@@ -93,8 +102,16 @@ async def _upsert_descriptive_weather(session, spot_forecast_id: int, data: Spot
             conditions=dw.conditions,
         )
         if dw.id is None:
+            logger.info(
+                "Creating a new SpotDescriptiveWeather for SpotForecast with id: %s.",
+                spot_forecast_id,
+            )
             await create_spot_descriptive_weather(session, record)
         else:
+            logger.info(
+                "Updating existing SpotDescriptiveWeather for SpotForecast with id: %s.",
+                spot_forecast_id,
+            )
             result = await update_spot_descriptive_weather(session, record)
             if result is None:
                 raise HTTPException(
@@ -115,8 +132,16 @@ async def _upsert_tabular_weather(session, spot_forecast_id: int, data: SpotFore
             precipitation_amount=tw.precipitation_amount,
         )
         if tw.id is None:
+            logger.info(
+                "Creating a new SpotTabularWeather for SpotForecast with id: %s.",
+                spot_forecast_id,
+            )
             await create_spot_tabular_weather(session, record)
         else:
+            logger.info(
+                "Creating a new SpotTabularWeather for SpotForecast with id: %s.",
+                spot_forecast_id,
+            )
             result = await update_spot_tabular_weather(session, record)
             if result is None:
                 raise HTTPException(
@@ -145,8 +170,10 @@ async def upsert_spot_forecast(data: SpotForecastData):
     )
     async with get_async_write_session_scope() as session:
         if data.id is None:
+            logger.info("Creating a new SpotForecast.")
             result = await create_spot_forecast(session, spot_forecast)
         else:
+            logger.info("Updaing an existing SpotForecast with id: %s.", data.id)
             result = await update_spot_forecast(session, spot_forecast)
             if result is None:
                 raise HTTPException(
@@ -200,9 +227,10 @@ async def update_subscriber(data: UpdateSubscriberStatusData):
 
 
 @router.get("/spot_requests", response_model=SpotRequestListResponse)
-async def get_spot_requests():
+async def get_spot_requests(year: int):
+    logger.info("Getting SpotRequests for year: %s", year)
     async with get_async_read_session_scope() as session:
-        spot_requests = await get_spot_requests_for_current_year(session)
+        spot_requests = await get_spot_requests_for_year(session, year)
     return SpotRequestListResponse(
         spot_requests=[_spot_request_to_schema(sr) for sr in spot_requests]
     )
