@@ -127,7 +127,6 @@ class SpotRequest(Base):
     elevation = Column(Integer, nullable=True)
     geographic_description = Column(String, nullable=False)
     geom = Column(Geometry("POINT", spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
-    representative_station_codes = Column(ARRAY(Integer), nullable=True)
     requested_at = Column(TZTimeStamp, nullable=False)
     start_at = Column(TZTimeStamp, nullable=False, index=True)
     end_at = Column(TZTimeStamp, nullable=False, index=True)
@@ -188,14 +187,15 @@ class SpotForecast(Base):
     forecaster_email = Column(String, nullable=False)
     forecaster_phone = Column(String, nullable=True)
 
-    # descriptive fields
     synopsis = Column(Text, nullable=True)
     inversion_and_venting = Column(Text, nullable=True)
     outlook = Column(Text, nullable=True)
     confidence = Column(Text, nullable=True)
     fire_size = Column(Float, nullable=True)
+    representative_station_codes = Column(ARRAY(Integer), nullable=True)
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
-    updated_at = Column(TZTimeStamp, nullable=True, onupdate=time_utils.get_utc_now())
+    updated_at = Column(TZTimeStamp, nullable=True, onupdate=time_utils.get_utc_now)
+    for_date = Column(TZTimeStamp, nullable=True, onupdate=time_utils.get_utc_now)
 
     # Relationships
     spot_request = relationship("SpotRequest", back_populates="spot_forecasts")

@@ -34,7 +34,6 @@ def upgrade():
     sa.Column('elevation', sa.Integer(), nullable=True),
     sa.Column('geographic_description', sa.String(), nullable=False),
     sa.Column('geom', Geometry(geometry_type='POINT', srid=3005, dimension=2, spatial_index=False, from_text='ST_GeomFromEWKT', name='geometry', nullable=False), nullable=False),
-    sa.Column('representative_station_codes', sa.ARRAY(sa.Integer()), nullable=True),
     sa.Column('requested_at', TZTimeStamp(), nullable=False),
     sa.Column('start_at', TZTimeStamp(), nullable=False),
     sa.Column('end_at', TZTimeStamp(), nullable=False),
@@ -61,8 +60,10 @@ def upgrade():
     sa.Column('outlook', sa.Text(), nullable=True),
     sa.Column('confidence', sa.Text(), nullable=True),
     sa.Column('fire_size', sa.Float(), nullable=True),
+    sa.Column('representative_station_codes', sa.ARRAY(sa.Integer()), nullable=True),
     sa.Column('created_at', TZTimeStamp(), nullable=False),
     sa.Column('updated_at', TZTimeStamp(), nullable=True),
+    sa.Column('for_date', TZTimeStamp(), nullable=True),
     sa.ForeignKeyConstraint(['spot_request_id'], ['spot_request.id'], ),
     sa.PrimaryKeyConstraint('id'),
     comment='Spot forecasts for spot requests.'
