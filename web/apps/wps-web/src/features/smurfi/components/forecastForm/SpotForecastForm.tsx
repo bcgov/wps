@@ -216,7 +216,11 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
 
   useEffect(() => {
     // re-check fields whose requirements change when switching between Mini and Full SPOT
-    void trigger(['outlook', 'weatherData'])
+    const validateModeDependentFields = async () => {
+      await trigger(['outlook', 'weatherData'])
+    }
+
+    validateModeDependentFields()
   }, [isMini, trigger])
 
   return (
