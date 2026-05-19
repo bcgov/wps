@@ -14,15 +14,14 @@ export const requestedFrequencyOptions = [
 ] as const
 
 export const slopeAspectOptions = [
+  'Northwest',
   'North',
   'Northeast',
   'East',
   'Southeast',
   'South',
   'Southwest',
-  'West',
-  'Northwest',
-  'Flat/Variable'
+  'West'
 ] as const
 
 const requiredString = (message = 'Required') => z.string().trim().min(1, message)
