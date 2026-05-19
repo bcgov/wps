@@ -68,7 +68,7 @@ const getEmailErrorMessage = (errors: FieldErrors<SpotRequestFormValues>) => {
 const defaultValues: SpotRequestFormValues = {
   fireNumber: '',
   forecastStartDate: DateTime.now().setZone('America/Vancouver'),
-  forecastEndDate: DateTime.now().setZone('America/Vancouver').plus({ days: 1 }),
+  forecastEndDate: DateTime.now().setZone('America/Vancouver').plus({ days: 5 }),
   forecastType: 'MINI_SPOT',
   emailDistributionList: [],
   requestedFrequency: [],
