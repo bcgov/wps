@@ -43,7 +43,7 @@ describe('SpotRequestCard subscribe toggle', () => {
   })
 
   it('shows Unsubscribe button when user is already subscribed', () => {
-    renderCard([42], true)
+    renderCard([1], true)
     expect(screen.getByRole('button', { name: /unsubscribe/i })).toBeInTheDocument()
   })
 

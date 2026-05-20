@@ -15,16 +15,16 @@ interface SpotRequestCardProps {
 const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
   const dispatch = useDispatch<AppDispatch>()
   const subscribedIds = useSelector(selectSubscribedIds)
-  const isSubscribed = subscribedIds.includes(spot.id)
+  const isSubscribed = subscribedIds.includes(spot.spot_id)
   const isLoading = useSelector(selectSubscriptionsLoading)
 
   const handleToggleSubscription = () => {
-    dispatch(toggleSpotSubscription(spot.id))
+    dispatch(toggleSpotSubscription(spot.spot_id))
   }
 
   const handleViewPDF = async () => {
     try {
-      const pdfBlob = await getSpotPDF(spot.id)
+      const pdfBlob = await getSpotPDF(spot.spot_id)
       const url = URL.createObjectURL(pdfBlob)
       // Open PDF in new tab instead of modal for better compatibility
       window.open(url, '_blank')
@@ -45,8 +45,8 @@ const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
           </Grid>
           <Grid size={6}>
             <Grid container spacing={1}>
-              <Grid size={6}>
-                {isAuthenticated && (
+              {isAuthenticated && (
+                <Grid size={6}>
                   <Button
                     variant="outlined"
                     color="primary"
@@ -56,9 +56,9 @@ const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
                   >
                     {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
                   </Button>
-                )}
-              </Grid>
-              <Grid size={6}>
+                </Grid>
+              )}
+              <Grid size={isAuthenticated ? 6 : 12}>
                 <Box
                   sx={{
                     backgroundColor: SpotForecastStatusColorMap[spot.status].bgColor,
