@@ -1,4 +1,5 @@
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from geoalchemy2.shape import to_shape
@@ -51,7 +52,9 @@ router = APIRouter(prefix="/smurfi", dependencies=[Depends(authentication_requir
 
 
 @router.post("/spot_request", response_model=SpotRequestResponse)
-async def upsert_spot_request(data: SpotRequestUpsertData, token=Depends(authentication_required)):
+async def upsert_spot_request(
+    data: SpotRequestUpsertData, token: Annotated[dict, Depends(authentication_required)]
+):
     requestor_idir = token.get("idir_username")
     requestor_email = token.get("email")
     first_name = token.get("given_name")
