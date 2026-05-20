@@ -2,7 +2,7 @@ import axios from './axios'
 import { SpotFormData } from './schema/spotForecastSchema'
 import { SpotRequestFormData } from './schema/spotRequestSchema'
 
-export enum SpotForecastStatus {
+export enum SpotRequestStatus {
   NEW = 'New',
   ACTIVE = 'Active',
   INACTIVE = 'Inactive',
@@ -16,7 +16,7 @@ export interface SpotAdminRow {
   fire_id: string
   forecaster: string
   fire_centre: string
-  status: SpotForecastStatus
+  status: SpotRequestStatus
   last_updated: number | null
   latitude: number
   longitude: number

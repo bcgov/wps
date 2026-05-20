@@ -1,3 +1,4 @@
+import { RootState } from '@/app/rootReducer'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { SpotRequestFormData } from '@wps/api/schema/spotRequestSchema'
@@ -12,7 +13,7 @@ export interface SmurfiState {
   submittedSpotForecast: SpotForecastOutput | null
   spotRequestSubmitting: boolean
   spotRequestSubmitError: string | null
-  submittedSpotRequest: SpotRequestOutput | null
+  spotRequests: SpotRequestOutput[]
 }
 
 const initialState: SmurfiState = {
@@ -23,7 +24,72 @@ const initialState: SmurfiState = {
   submittedSpotForecast: null,
   spotRequestSubmitting: false,
   spotRequestSubmitError: null,
-  submittedSpotRequest: null
+  spotRequests: []
+  // spotRequests: [
+  //   {
+  //     id: 1,
+  //     requestReference: 'foo',
+  //     fireNumber: 'V001234567',
+  //     fireCentre: 'Coastal',
+  //     status: SpotRequestStatus.NEW,
+  //     requestorName: 'Darren',
+  //     requestorIDIR: 'IDIR/DRN',
+  //     requestorEmail: 'drn.bos@gov.bc.ca',
+  //     requestFrequency: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  //     requestType: SpotRequestType.MINI_SPOT,
+  //     slopeAspect: 'Northwest',
+  //     elevation: 1101,
+  //     geographicDescription: 'Strathcona',
+  //     latitude: 49,
+  //     longitude: -121,
+  //     requestedAt: '2026-05-19T00:00-07:00',
+  //     forecastStartDate: '2026-05-20T00:00-07:00',
+  //     forecastEndDate: '2026-05-27T00:00-07:00',
+  //     emailDistributionList: ['drn.bos@gov.bc.ca']
+  //   },
+  //   {
+  //     id: 2,
+  //     requestReference: 'bar',
+  //     fireNumber: 'K001234567',
+  //     fireCentre: 'Kamloops',
+  //     status: SpotRequestStatus.ACTIVE,
+  //     requestorName: 'Aaron',
+  //     requestorIDIR: 'IDIR/ARN',
+  //     requestorEmail: 'arn@gov.bc.ca',
+  //     requestFrequency: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  //     requestType: SpotRequestType.FULL_SPOT,
+  //     slopeAspect: 'West',
+  //     elevation: 507,
+  //     geographicDescription: 'Grasslands',
+  //     latitude: 49.5,
+  //     longitude: -120,
+  //     requestedAt: '2026-05-19T00:00-07:00',
+  //     forecastStartDate: '2026-05-20T00:00-07:00',
+  //     forecastEndDate: '2026-05-30T00:00-07:00',
+  //     emailDistributionList: ['arn@gov.bc.ca']
+  //   },
+  //   {
+  //     id: 3,
+  //     requestReference: 'dog',
+  //     fireNumber: 'G001234567',
+  //     fireCentre: 'Prince George',
+  //     status: SpotRequestStatus.PAUSED,
+  //     requestorName: 'Jon',
+  //     requestorIDIR: 'IDIR/DRN',
+  //     requestorEmail: 'jon@gov.bc.ca',
+  //     requestFrequency: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  //     requestType: SpotRequestType.FULL_SPOT,
+  //     slopeAspect: 'East',
+  //     elevation: 603,
+  //     geographicDescription: 'Snow',
+  //     latitude: 50,
+  //     longitude: -123.5,
+  //     requestedAt: '2026-05-19T00:00-07:00',
+  //     forecastStartDate: '2026-05-20T00:00-07:00',
+  //     forecastEndDate: '2026-05-27T00:00-07:00',
+  //     emailDistributionList: ['jon@gov.bc.ca']
+  //   }
+  // ]
 }
 
 const smurfiSlice = createSlice({
@@ -64,7 +130,6 @@ const smurfiSlice = createSlice({
     clearSpotRequestSubmitState(state: SmurfiState) {
       state.spotRequestSubmitting = false
       state.spotRequestSubmitError = null
-      state.submittedSpotRequest = null
     }
   }
 })
@@ -117,3 +182,5 @@ export const submitSpotRequest =
       return undefined
     }
   }
+
+export const selectSpotForecasts = (state: RootState) => state.smurfi.spotRequests

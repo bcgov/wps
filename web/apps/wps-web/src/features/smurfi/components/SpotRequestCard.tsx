@@ -1,8 +1,6 @@
 import { Card, CardContent, Typography, Button, Grid, Box, Link } from '@mui/material'
 import DescriptionIcon from '@mui/icons-material/Description'
 import { DateTime } from 'luxon'
-import { getSpotPDF, SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
-import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   selectSubscribedIds,
@@ -10,6 +8,8 @@ import {
   toggleSpotSubscription
 } from '@/features/smurfi/slices/subscriptionsSlice'
 import { AppDispatch } from 'app/store'
+import { getSpotPDF, SpotAdminRow, SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 
 interface SpotRequestCardProps {
   spot: SpotAdminRow
@@ -63,7 +63,7 @@ const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
               <Grid size={6}>
                 <Box
                   sx={{
-                    backgroundColor: SpotForecastStatusColorMap[spot.status].bgColor,
+                    backgroundColor: SpotRequestStatusColorMap[spot.status].bgColor,
                     borderRadius: '4px',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -72,10 +72,10 @@ const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
                     width: '100%',
                     borderWidth: 1,
                     borderStyle: 'solid',
-                    borderColor: SpotForecastStatusColorMap[spot.status].borderColor
+                    borderColor: SpotRequestStatusColorMap[spot.status].borderColor
                   }}
                 >
-                  <Typography variant="body2" sx={{ color: SpotForecastStatusColorMap[spot.status].color }}>
+                  <Typography variant="body2" sx={{ color: SpotRequestStatusColorMap[spot.status].color }}>
                     {spot.status}
                   </Typography>
                 </Box>
@@ -100,7 +100,7 @@ const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
         </Grid>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Button variant="outlined" startIcon={<DescriptionIcon />} sx={{ width: '100%' }} onClick={handleViewPDF}>
-            {spot.status === SpotForecastStatus.NEW
+            {spot.status === SpotRequestStatus.NEW
               ? 'New Spot Forecast'
               : spot.last_updated
                 ? `Latest Spot Forecast - ${DateTime.fromMillis(spot.last_updated).toFormat('dd/MM/yy - HH:mm')}`

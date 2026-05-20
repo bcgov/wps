@@ -1,66 +1,85 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Box, Tabs, Tab } from '@mui/material'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { LocalizationProvider } from '@mui/x-date-pickers'
+import { SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE } from '@wps/utils/constants'
 import SpotManagement from '@/features/smurfi/components/management/SpotManagement'
 import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
-import SpotRequest from '@/features/smurfi/components/SpotRequest'
+import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
+import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
+import SpotForecasts from '@/features/smurfi/components/forecasts/SpotForecasts'
 
-interface TabPanelProps {
-  children?: React.ReactNode
-  index: number
-  value: number
-}
+const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE]
 
-const TabPanel = (props: TabPanelProps) => {
-  const { children, value, index, ...other } = props
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-      style={{ height: '100%', minHeight: 0, display: value === index ? 'flex' : 'none', flex: 1 }}
-    >
-      {value === index && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, p: 3 }}>{children}</Box>
-      )}
-    </div>
-  )
-}
+const RouteContent = ({ children }: { children: React.ReactNode }) => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, p: 3 }}>{children}</Box>
+)
 
 const SMURFIPage = () => {
-  const [value, setValue] = useState(0)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const activeTab = TAB_ROUTES.findIndex(route => location.pathname.startsWith(route))
+  const currentTab = activeTab === -1 ? 0 : activeTab
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue)
+    navigate(TAB_ROUTES[newValue])
   }
 
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
-        <Tabs value={value} onChange={handleChange}>
+        <Tabs value={currentTab} onChange={handleChange}>
           <Tab label="Dashboard" />
           <Tab label="Map" />
           <Tab label="Spot Management" />
         </Tabs>
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
-          <TabPanel value={value} index={0}>
-            <SpotRequest />
-          </TabPanel>
-          <TabPanel value={value} index={1}>
-            <ErrorBoundary>
-              <SMURFIMap />
-            </ErrorBoundary>
-          </TabPanel>
-          <TabPanel value={value} index={2}>
-            <SpotManagement />
-          </TabPanel>
+          <Routes>
+            <Route
+              path="requests/*"
+              element={
+                <RouteContent>
+                  <Routes>
+                    <Route index element={<SpotRequests />} />
+                    <Route path=":id" element={<SpotRequest />} />
+                  </Routes>
+                </RouteContent>
+              }
+            />
+            <Route
+              path="map"
+              element={
+                <RouteContent>
+                  <ErrorBoundary>
+                    <SMURFIMap />
+                  </ErrorBoundary>
+                </RouteContent>
+              }
+            />
+            <Route
+              path="management"
+              element={
+                <RouteContent>
+                  <SpotManagement />
+                </RouteContent>
+              }
+            />
+            <Route path="forecasts" element={<Navigate to={SMURFI_DASHBOARD_ROUTE} replace />} />
+            <Route
+              path="forecasts/:id"
+              element={
+                <RouteContent>
+                  <SpotForecasts />
+                </RouteContent>
+              }
+            />
+            <Route path="*" element={<Navigate to={SMURFI_DASHBOARD_ROUTE} replace />} />
+          </Routes>
         </Box>
       </Box>
     </LocalizationProvider>

@@ -1,6 +1,6 @@
 import { RootState } from '@/app/rootReducer'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getSpotAdminRows, SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
+import { getSpotAdminRows, SpotAdminRow, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { AppThunk } from 'app/store'
 import { DateTime } from 'luxon'
 
@@ -20,7 +20,7 @@ export const initialState: SpotAdminState = {
       fire_id: 'V0800168',
       forecaster: 'Matt',
       fire_centre: 'Coastal',
-      status: SpotForecastStatus.NEW,
+      status: SpotRequestStatus.NEW,
       last_updated: null,
       latitude: 49.6188,
       longitude: -125.0313,
@@ -33,7 +33,7 @@ export const initialState: SpotAdminState = {
       fire_id: 'G0700234',
       forecaster: 'Jessie',
       fire_centre: 'Prince George',
-      status: SpotForecastStatus.ACTIVE,
+      status: SpotRequestStatus.ACTIVE,
       last_updated: DateTime.now().toMillis(),
       latitude: 53.9171,
       longitude: -122.7497,
@@ -46,7 +46,7 @@ export const initialState: SpotAdminState = {
       fire_id: 'K0300789',
       forecaster: 'Brett',
       fire_centre: 'Kamloops',
-      status: SpotForecastStatus.PAUSED,
+      status: SpotRequestStatus.PAUSED,
       last_updated: DateTime.now().toMillis(),
       latitude: 50.9171,
       longitude: -122.7497,
@@ -59,7 +59,7 @@ export const initialState: SpotAdminState = {
       fire_id: 'C092346',
       forecaster: 'Liz',
       fire_centre: 'Cariboo',
-      status: SpotForecastStatus.INACTIVE,
+      status: SpotRequestStatus.INACTIVE,
       last_updated: DateTime.now().toMillis(),
       latitude: 54.9171,
       longitude: -125.7497,
@@ -72,7 +72,7 @@ export const initialState: SpotAdminState = {
       fire_id: 'C092347',
       forecaster: 'Matt',
       fire_centre: 'Southeast',
-      status: SpotForecastStatus.ARCHIVED,
+      status: SpotRequestStatus.ARCHIVED,
       last_updated: DateTime.now().toMillis(),
       latitude: 50.9171,
       longitude: -125.7497,

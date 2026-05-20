@@ -17,7 +17,7 @@ import {
   PERCENTILE_CALC_ROUTE,
   SFMS_INSIGHTS_ROUTE,
   SMURFI_ROUTE,
-  SMURFI_SPOT_DETAIL_ROUTE,
+  SMURFI_DASHBOARD_ROUTE,
   WEATHER_TOOLKIT_ROUTE
 } from '@wps/utils/constants'
 import { HIDE_DISCLAIMER } from '@wps/utils/env'
@@ -33,7 +33,6 @@ const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBeha
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
 const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'))
 const SMURFIPage = lazy(() => import('features/smurfi/pages/SMURFIPage'))
-const SpotDetailPage = lazy(() => import('features/smurfi/pages/SpotDetailPage'))
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
 
@@ -117,14 +116,14 @@ const WPSRoutes: React.FunctionComponent = () => {
           />
           <Route path={WEATHER_TOOLKIT_ROUTE} element={<WeatherToolkitPage />} />
           <Route
-            path={SMURFI_ROUTE}
+            path={`${SMURFI_ROUTE}/*`}
             element={
               <AuthWrapper>
                 <SMURFIPage />
               </AuthWrapper>
             }
           />
-          <Route path={SMURFI_SPOT_DETAIL_ROUTE} element={<SpotDetailPage />} />
+          <Route path={SMURFI_ROUTE} element={<Navigate to={SMURFI_DASHBOARD_ROUTE} />} />
           <Route path="*" element={<NoMatchPage />} />
         </Routes>
       </Suspense>
