@@ -35,9 +35,9 @@ from wps_shared.schemas.smurfi import (
     SpotForecastData,
     SpotForecastResponse,
     SpotRequestData,
+    SpotRequestInput,
     SpotRequestListResponse,
     SpotRequestResponse,
-    SpotRequestUpsertData,
     SpotSubscriberData,
     SpotTabularWeatherData,
     UpdateSubscriberStatusData,
@@ -77,7 +77,7 @@ def _get_bc_albers_point(latitude: float, longitude: float) -> str:
     return f"POINT({x} {y})"
 
 
-def _build_spot_request(data: SpotRequestUpsertData, requestor: SpotRequestor) -> SpotRequest:
+def _build_spot_request(data: SpotRequestInput, requestor: SpotRequestor) -> SpotRequest:
     now = get_utc_now()
     return SpotRequest(
         **data.model_dump(exclude={"latitude", "longitude", "subscribers"}),
@@ -91,7 +91,7 @@ def _build_spot_request(data: SpotRequestUpsertData, requestor: SpotRequestor) -
 
 
 def _build_spot_request_response(
-    data: SpotRequestUpsertData,
+    data: SpotRequestInput,
     requestor: SpotRequestor,
     spot_request_id: int,
     subscribers: list[SpotSubscriberData],
@@ -111,7 +111,7 @@ def _build_spot_request_response(
 
 @router.post("/spot_request", response_model=SpotRequestResponse)
 async def upsert_spot_request_endpoint(
-    data: SpotRequestUpsertData, token: Annotated[dict, Depends(authentication_required)]
+    data: SpotRequestInput, token: Annotated[dict, Depends(authentication_required)]
 ):
     requestor = _get_spot_requestor(token)
     spot_request = _build_spot_request(data, requestor)

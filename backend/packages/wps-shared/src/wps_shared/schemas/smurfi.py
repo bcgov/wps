@@ -18,7 +18,7 @@ class UpdateSubscriberStatusData(BaseModel):
     status: str
 
 
-class SpotRequestUpsertData(BaseModel):
+class SpotRequestInput(BaseModel):
     id: int | None = None
     request_reference: str
     fire_number: list[str] | None = None
@@ -38,7 +38,7 @@ class SpotRequestUpsertData(BaseModel):
     subscribers: list[SpotSubscriberData] = []
 
 
-class SpotRequestData(SpotRequestUpsertData):
+class SpotRequestData(SpotRequestInput):
     requestor_name: str
     requestor_idir: str
     requestor_email: str
