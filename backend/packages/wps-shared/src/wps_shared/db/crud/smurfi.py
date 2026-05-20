@@ -60,13 +60,17 @@ async def sync_spot_subscribers(
     return active_subscribers
 
 
-async def create_spot_tabular_weather(session: AsyncSession, spot_tabular_weather: SpotTabularWeather):
+async def create_spot_tabular_weather(
+    session: AsyncSession, spot_tabular_weather: SpotTabularWeather
+):
     session.add(spot_tabular_weather)
     await session.flush()
     return spot_tabular_weather
 
 
-async def create_spot_descriptive_weather(session: AsyncSession, spot_descriptive_weather: SpotDescriptiveWeather):
+async def create_spot_descriptive_weather(
+    session: AsyncSession, spot_descriptive_weather: SpotDescriptiveWeather
+):
     session.add(spot_descriptive_weather)
     await session.flush()
     return spot_descriptive_weather
@@ -88,6 +92,7 @@ async def update_spot_request(session: AsyncSession, updated: SpotRequest):
         existing.aspect = updated.aspect
         existing.elevation = updated.elevation
         existing.geographic_description = updated.geographic_description
+        existing.additional_information = updated.additional_information
         existing.geom = updated.geom
         existing.requested_at = updated.requested_at
         existing.start_at = updated.start_at
@@ -116,7 +121,10 @@ async def update_spot_forecast(session: AsyncSession, updated: SpotForecast):
 
 async def update_spot_tabular_weather(session: AsyncSession, updated: SpotTabularWeather):
     result = await session.execute(
-        select(SpotTabularWeather).where(SpotTabularWeather.id == updated.id, SpotTabularWeather.spot_forecast_id == updated.spot_forecast_id)
+        select(SpotTabularWeather).where(
+            SpotTabularWeather.id == updated.id,
+            SpotTabularWeather.spot_forecast_id == updated.spot_forecast_id,
+        )
     )
     existing = result.scalar_one_or_none()
     if existing is not None:
@@ -132,7 +140,10 @@ async def update_spot_tabular_weather(session: AsyncSession, updated: SpotTabula
 
 async def update_spot_descriptive_weather(session: AsyncSession, updated: SpotDescriptiveWeather):
     result = await session.execute(
-        select(SpotDescriptiveWeather).where(SpotDescriptiveWeather.id == updated.id, SpotDescriptiveWeather.spot_forecast_id == updated.spot_forecast_id)
+        select(SpotDescriptiveWeather).where(
+            SpotDescriptiveWeather.id == updated.id,
+            SpotDescriptiveWeather.spot_forecast_id == updated.spot_forecast_id,
+        )
     )
     existing = result.scalar_one_or_none()
     if existing is not None:
@@ -155,12 +166,12 @@ async def get_spot_requests_for_year(session: AsyncSession, year: int):
     return result.scalars().all()
 
 
-async def update_spot_subscriber_status(session: AsyncSession, subscriber_id: int, status: SpotSubscriberStatusEnum):
+async def update_spot_subscriber_status(
+    session: AsyncSession, subscriber_id: int, status: SpotSubscriberStatusEnum
+):
     result = await session.execute(select(SpotSubscriber).where(SpotSubscriber.id == subscriber_id))
     subscriber = result.scalar_one_or_none()
     if subscriber is not None:
         subscriber.subscriber_status = status.value
         await session.flush()
     return subscriber
-
-

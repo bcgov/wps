@@ -35,24 +35,31 @@ const requiredCoordinate = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180)
 })
+type SpotRequestCoordinate = z.infer<typeof requiredCoordinate>
 
 export const spotRequestSchema = z
   .object({
     fireNumber: requiredString(),
+    fireCentreId: z.number().int().positive('Required'),
     forecastStartDate: validDateTime(),
     forecastEndDate: validDateTime(),
     forecastType: z.enum(spotForecastTypes),
     emailDistributionList: z.array(z.string().email('Invalid email')).min(1, 'At least one email is required'),
     requestedFrequency: z.array(z.enum(requestedFrequencyOptions)).min(1, 'Select at least one day'),
-    location: requiredCoordinate.nullable().refine(value => value !== null, {
-      message: 'Select a location',
-      path: ['latitude']
-    }),
+    location: requiredCoordinate
+      .nullable()
+      .refine(value => value !== null, {
+        message: 'Select a location',
+        path: ['latitude']
+      })
+      .transform(value => value as SpotRequestCoordinate),
     geographicDescription: requiredString(),
     slopeAspect: z.enum(slopeAspectOptions, {
       errorMap: () => ({ message: 'Required' })
     }),
-    elevation: requiredString().refine(value => Number.isFinite(Number(value)), 'Elevation must be a number'),
+    elevation: requiredString()
+      .refine(value => Number.isFinite(Number(value)), 'Elevation must be a number')
+      .refine(value => Number.isInteger(Number(value)), 'Elevation must be a whole number'),
     additionalInformation: z.string().optional()
   })
   .refine(data => data.forecastEndDate.toMillis() >= data.forecastStartDate.toMillis(), {

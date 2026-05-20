@@ -101,6 +101,8 @@ subscriber_status_values = (
     SpotSubscriberStatusEnum.ACTIVE.value,
     SpotSubscriberStatusEnum.INACTIVE.value,
 )
+
+
 class SpotRequest(Base):
     """A class representing requests for spot forecasts."""
 
@@ -126,12 +128,15 @@ class SpotRequest(Base):
     aspect = Column(String, nullable=True)
     elevation = Column(Integer, nullable=True)
     geographic_description = Column(String, nullable=False)
+    additional_information = Column(Text, nullable=True)
     geom = Column(Geometry("POINT", spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
     requested_at = Column(TZTimeStamp, nullable=False)
     start_at = Column(TZTimeStamp, nullable=False, index=True)
     end_at = Column(TZTimeStamp, nullable=False, index=True)
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
-    updated_at = Column(TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now)
+    updated_at = Column(
+        TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now, default=time_utils.get_utc_now
+    )
 
     # Relationships
     spot_forecasts = relationship("SpotForecast", back_populates="spot_request")
@@ -159,7 +164,9 @@ class SpotSubscriber(Base):
         String, nullable=False, default=SpotSubscriberStatusEnum.ACTIVE.value
     )
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
-    updated_at = Column(TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now)
+    updated_at = Column(
+        TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now, default=time_utils.get_utc_now
+    )
 
     # Relationships
     spot_request = relationship("SpotRequest", back_populates="spot_subscribers")
@@ -219,7 +226,7 @@ class SpotTabularWeather(Base):
     precipitation_amount = Column(Float, nullable=True)
 
     # Relationships
-    spot_forecast = relationship("SpotForecast", back_populates="spot_tabular_weather")
+    spot_forecast = relationship("SpotForecast", back_populates="tabular_weather")
 
 
 class SpotDescriptiveWeather(Base):
