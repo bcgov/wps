@@ -3,6 +3,7 @@ import logging
 
 import httpx
 from wps_shared import config
+from wps_shared.utils.time import vancouver_tz
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ def build_spot_forecast_email(spot_forecast, spot_detail_url: str) -> tuple[str,
 
     tabular_rows = ""
     for tw in spot_forecast.tabular_weather:
-        time_str = tw.forecast_time.strftime("%Y-%m-%d %H:%M UTC") if tw.forecast_time else ""
+        time_str = tw.forecast_time.astimezone(vancouver_tz).strftime("%Y-%m-%d %H:%M %Z") if tw.forecast_time else ""
         tabular_rows += (
             f"<tr><td>{time_str}</td><td>{tw.temperature}°C</td>"
             f"<td>{tw.relative_humidity}%</td><td>{html.escape(tw.wind or '')}</td>"
