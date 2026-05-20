@@ -38,10 +38,11 @@ const SidePanel = ({
         <Typography
           variant="overline"
           sx={{
-            color: "text.secondary",
+            color: 'text.secondary',
             fontWeight: 600,
             letterSpacing: 1.5
-          }}>
+          }}
+        >
           Time
         </Typography>
       </Box>
@@ -54,6 +55,7 @@ const SidePanel = ({
         historicalMaxDate={DateTime.utc()}
         label="Model Run Date (UTC)"
         sx={{ mb: 2, width: '100%' }}
+        slotProps={{ input: { sx: { px: 1 } } }}
       />
       <FormControl fullWidth sx={{ mb: 4 }}>
         <InputLabel id="model-run-hour-label">Model Run Hour</InputLabel>
@@ -73,10 +75,11 @@ const SidePanel = ({
         <Typography
           variant="overline"
           sx={{
-            color: "text.secondary",
+            color: 'text.secondary',
             fontWeight: 600,
             letterSpacing: 1.5
-          }}>
+          }}
+        >
           Data Configuration
         </Typography>
       </Box>
@@ -94,7 +97,7 @@ const SidePanel = ({
         </Select>
       </FormControl>
     </Box>
-  );
+  )
 }
 
 export default SidePanel
