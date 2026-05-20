@@ -1,6 +1,6 @@
 import { RootState } from '@/app/rootReducer'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getSubscriptions, subscribeToSpot } from '@wps/api/SMURFIAPI'
+import { getSubscriptions, subscribeToSpot, unsubscribeFromSpot } from '@wps/api/SMURFIAPI'
 import { AppThunk } from 'app/store'
 
 export interface SubscriptionsState {
@@ -65,10 +65,16 @@ export const fetchSubscriptions = (): AppThunk => async dispatch => {
 
 export const toggleSpotSubscription =
   (spotRequestId: number): AppThunk =>
-  async dispatch => {
+  async (dispatch, getState) => {
+    const isSubscribed = getState().subscriptions.subscribedIds.includes(spotRequestId)
     try {
-      const { subscriber_status } = await subscribeToSpot(spotRequestId)
-      dispatch(toggleSubscribedId({ spotRequestId, status: subscriber_status }))
+      if (isSubscribed) {
+        await unsubscribeFromSpot(spotRequestId)
+        dispatch(toggleSubscribedId({ spotRequestId, status: 'inactive' }))
+      } else {
+        await subscribeToSpot(spotRequestId)
+        dispatch(toggleSubscribedId({ spotRequestId, status: 'active' }))
+      }
     } catch (err) {
       console.error('Failed to toggle subscription:', err)
       dispatch(fetchSubscriptionsFailed((err as Error).toString()))

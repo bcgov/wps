@@ -260,6 +260,10 @@ export async function subscribeToSpot(spotRequestId: number): Promise<SubscribeR
   return data
 }
 
+export async function unsubscribeFromSpot(spotRequestId: number): Promise<void> {
+  await axios.delete(`/smurfi/spots/${spotRequestId}/subscribe`)
+}
+
 export async function getSubscriptions(): Promise<SubscriptionsResponse> {
   const { data } = await axios.get('/smurfi/subscriptions')
   return data

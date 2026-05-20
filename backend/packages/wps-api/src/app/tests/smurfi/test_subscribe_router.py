@@ -10,7 +10,8 @@ from app.smurfi.nats_config import smurfi_spot_update_subject, stream_name, subj
 
 DB_READ = "app.routers.smurfi.get_async_read_session_scope"
 DB_WRITE = "app.routers.smurfi.get_async_write_session_scope"
-TOGGLE = "app.routers.smurfi.toggle_subscription"
+SUBSCRIBE = "app.routers.smurfi.subscribe_to_spot_request"
+UNSUBSCRIBE = "app.routers.smurfi.unsubscribe_from_spot_request"
 GET_IDS = "app.routers.smurfi.get_subscribed_spot_request_ids"
 
 
@@ -19,31 +20,47 @@ def _make_subscriber(status: str):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_subscribe_creates_active_subscription():
-    """POST subscribe returns active status when user was not subscribed."""
+def test_subscribe_returns_active_status():
+    """POST subscribe returns active status."""
     client = TestClient(app.main.app)
     with patch(DB_WRITE):
-        with patch(TOGGLE, new_callable=AsyncMock, return_value=_make_subscriber("active")):
+        with patch(SUBSCRIBE, new_callable=AsyncMock, return_value=_make_subscriber("active")):
             response = client.post("/api/smurfi/spots/42/subscribe")
     assert response.status_code == 200
     assert response.json()["subscriber_status"] == "active"
-
-
-@pytest.mark.usefixtures("mock_jwt_decode")
-def test_subscribe_toggle_to_inactive():
-    """POST subscribe returns inactive status when toggling off."""
-    client = TestClient(app.main.app)
-    with patch(DB_WRITE):
-        with patch(TOGGLE, new_callable=AsyncMock, return_value=_make_subscriber("inactive")):
-            response = client.post("/api/smurfi/spots/42/subscribe")
-    assert response.status_code == 200
-    assert response.json()["subscriber_status"] == "inactive"
 
 
 def test_subscribe_requires_auth():
     """POST subscribe returns 401 when not authenticated."""
     client = TestClient(app.main.app)
     response = client.post("/api/smurfi/spots/42/subscribe")
+    assert response.status_code == 401
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_unsubscribe_returns_204():
+    """DELETE subscribe returns 204 when subscription exists."""
+    client = TestClient(app.main.app)
+    with patch(DB_WRITE):
+        with patch(UNSUBSCRIBE, new_callable=AsyncMock, return_value=_make_subscriber("inactive")):
+            response = client.delete("/api/smurfi/spots/42/subscribe")
+    assert response.status_code == 204
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_unsubscribe_returns_404_when_not_subscribed():
+    """DELETE subscribe returns 404 when no subscription exists."""
+    client = TestClient(app.main.app)
+    with patch(DB_WRITE):
+        with patch(UNSUBSCRIBE, new_callable=AsyncMock, return_value=None):
+            response = client.delete("/api/smurfi/spots/42/subscribe")
+    assert response.status_code == 404
+
+
+def test_unsubscribe_requires_auth():
+    """DELETE subscribe returns 401 when not authenticated."""
+    client = TestClient(app.main.app)
+    response = client.delete("/api/smurfi/spots/42/subscribe")
     assert response.status_code == 401
 
 

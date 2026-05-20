@@ -182,7 +182,7 @@ async def update_spot_subscriber_status(
     return subscriber
 
 
-async def toggle_subscription(session: AsyncSession, spot_request_id: int, email: str) -> SpotSubscriber:
+async def subscribe_to_spot_request(session: AsyncSession, spot_request_id: int, email: str) -> SpotSubscriber:
     result = await session.execute(
         select(SpotSubscriber).where(
             SpotSubscriber.spot_request_id == spot_request_id,
@@ -198,12 +198,24 @@ async def toggle_subscription(session: AsyncSession, spot_request_id: int, email
         )
         session.add(subscriber)
     else:
-        subscriber.subscriber_status = (
-            SpotSubscriberStatusEnum.INACTIVE.value
-            if subscriber.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value
-            else SpotSubscriberStatusEnum.ACTIVE.value
-        )
+        subscriber.subscriber_status = SpotSubscriberStatusEnum.ACTIVE.value
     await session.flush()
+    return subscriber
+
+
+async def unsubscribe_from_spot_request(
+    session: AsyncSession, spot_request_id: int, email: str
+) -> SpotSubscriber | None:
+    result = await session.execute(
+        select(SpotSubscriber).where(
+            SpotSubscriber.spot_request_id == spot_request_id,
+            SpotSubscriber.email == email,
+        )
+    )
+    subscriber = result.scalar_one_or_none()
+    if subscriber is not None:
+        subscriber.subscriber_status = SpotSubscriberStatusEnum.INACTIVE.value
+        await session.flush()
     return subscriber
 
 

@@ -11,8 +11,9 @@ from wps_shared.db.crud.smurfi import (
     create_spot_tabular_weather,
     get_spot_requests_for_year,
     get_subscribed_spot_request_ids,
+    subscribe_to_spot_request,
     sync_spot_subscribers,
-    toggle_subscription,
+    unsubscribe_from_spot_request,
     update_spot_descriptive_weather,
     update_spot_forecast,
     update_spot_subscriber_status,
@@ -380,8 +381,24 @@ async def subscribe_to_spot(spot_request_id: int, token=Depends(authentication_r
             status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim"
         )
     async with get_async_write_session_scope() as session:
-        subscriber = await toggle_subscription(session, spot_request_id, email)
+        subscriber = await subscribe_to_spot_request(session, spot_request_id, email)
     return SubscribeResponse(subscriber_status=subscriber.subscriber_status)
+
+
+@router.delete("/spots/{spot_request_id}/subscribe", status_code=status.HTTP_204_NO_CONTENT)
+async def unsubscribe_from_spot(spot_request_id: int, token=Depends(authentication_required)):
+    email = token.get("email", None)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim"
+        )
+    async with get_async_write_session_scope() as session:
+        result = await unsubscribe_from_spot_request(session, spot_request_id, email)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Subscription for spot request {spot_request_id} not found",
+        )
 
 
 @router.get("/subscriptions", response_model=SubscriptionsResponse)
