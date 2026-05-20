@@ -1,13 +1,19 @@
 import EditIcon from '@mui/icons-material/Edit'
 import CloseIcon from '@mui/icons-material/Close'
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
 import { DataGridPro, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotForecastForm'
 import { SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
 import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
+import { selectSubscribedIds, selectSubscriptionsLoading, toggleSpotSubscription } from '@/features/smurfi/slices/subscriptionsSlice'
+import { selectAuthentication } from '@/app/rootReducer'
+import { AppDispatch } from '@/app/store'
 
 interface SpotManagementTableProps {
   spotAdminRows: SpotAdminRow[]
@@ -16,6 +22,10 @@ interface SpotManagementTableProps {
 }
 
 const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }: SpotManagementTableProps) => {
+  const dispatch = useDispatch<AppDispatch>()
+  const subscribedIds = useSelector(selectSubscribedIds)
+  const isLoading = useSelector(selectSubscriptionsLoading)
+  const { isAuthenticated } = useSelector(selectAuthentication)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const [selectedSpot, setSelectedSpot] = useState<SpotAdminRow | null>(null)
   const columns: GridColDef<SpotAdminRow>[] = [
@@ -83,16 +93,32 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      width: 80,
-      getActions: (params: { row: SpotAdminRow }) => [
-        <GridActionsCellItem
-          key={params.row.id}
-          icon={<EditIcon />}
-          label="View details"
-          onClick={() => handleEditButtonClick(params.row)}
-          showInMenu={false}
-        />
-      ]
+      width: 100,
+      getActions: (params: { row: SpotAdminRow }) => {
+        const isSubscribed = subscribedIds.includes(params.row.spot_id)
+        const actions = [
+          <GridActionsCellItem
+            key={`edit-${params.row.id}`}
+            icon={<EditIcon />}
+            label="View details"
+            onClick={() => handleEditButtonClick(params.row)}
+            showInMenu={false}
+          />
+        ]
+        if (isAuthenticated) {
+          actions.push(
+            <GridActionsCellItem
+              key={`subscribe-${params.row.id}`}
+              icon={isSubscribed ? <NotificationsActiveIcon color="primary" /> : <NotificationsNoneIcon />}
+              label={isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+              onClick={() => dispatch(toggleSpotSubscription(params.row.spot_id))}
+              disabled={isLoading}
+              showInMenu={false}
+            />
+          )
+        }
+        return actions
+      }
     }
   ]
 

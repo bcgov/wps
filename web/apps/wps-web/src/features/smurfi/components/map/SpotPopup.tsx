@@ -1,6 +1,10 @@
 import React from 'react'
 import { Box, Button, Typography } from '@mui/material'
-import NotificationsIcon from '@mui/icons-material/Notifications'
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectSubscribedIds, selectSubscriptionsLoading, toggleSpotSubscription } from '@/features/smurfi/slices/subscriptionsSlice'
+import { AppDispatch } from '@/app/store'
 import activeSpot from './styles/activeSpot.svg'
 import completeSpot from './styles/completeSpot.svg'
 import pendingSpot from './styles/newSpotRequest.svg'
@@ -39,10 +43,15 @@ interface SpotPopupProps {
   lng: number
   status: SpotRequestStatus
   fireNumber: string
+  spotId: number
   onOpenForecast: (fireNumber: string, lat?: number, lng?: number) => void
 }
 
-const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber, onOpenForecast }) => {
+const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber, spotId, onOpenForecast }) => {
+  const dispatch = useDispatch<AppDispatch>()
+  const subscribedIds = useSelector(selectSubscribedIds)
+  const isLoading = useSelector(selectSubscriptionsLoading)
+  const isSubscribed = subscribedIds.includes(spotId)
   const statusColors = getStatusBackgroundColor(status)
 
   const handleSpotForecastClick = (event: React.MouseEvent) => {
@@ -66,8 +75,15 @@ const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber, onO
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Typography variant="body2">{fireNumber}</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button startIcon={<NotificationsIcon />} size="small" variant="contained" color="primary">
-            Subscribe
+          <Button
+            startIcon={isSubscribed ? <NotificationsActiveIcon /> : <NotificationsNoneIcon />}
+            size="small"
+            variant="contained"
+            color="primary"
+            disabled={isLoading}
+            onClick={() => dispatch(toggleSpotSubscription(spotId))}
+          >
+            {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
           </Button>
           <Button
             startIcon={
