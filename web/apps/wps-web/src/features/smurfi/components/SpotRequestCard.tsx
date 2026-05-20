@@ -4,7 +4,7 @@ import { DateTime } from 'luxon'
 import { getSpotPDF, SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
 import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectSubscribedIds, toggleSpotSubscription } from '@/features/smurfi/slices/subscriptionsSlice'
+import { selectSubscribedIds, selectSubscriptionsLoading, toggleSpotSubscription } from '@/features/smurfi/slices/subscriptionsSlice'
 import { AppDispatch } from 'app/store'
 
 interface SpotRequestCardProps {
@@ -16,6 +16,7 @@ const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
   const dispatch = useDispatch<AppDispatch>()
   const subscribedIds = useSelector(selectSubscribedIds)
   const isSubscribed = subscribedIds.includes(spot.id)
+  const isLoading = useSelector(selectSubscriptionsLoading)
 
   const handleToggleSubscription = () => {
     dispatch(toggleSpotSubscription(spot.id))
@@ -49,6 +50,7 @@ const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
                   <Button
                     variant="outlined"
                     color="primary"
+                    disabled={isLoading}
                     sx={{ backgroundColor: '#e3f2fd', height: '36.5px', width: '100%' }}
                     onClick={handleToggleSubscription}
                   >

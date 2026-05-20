@@ -71,6 +71,7 @@ export const toggleSpotSubscription =
       dispatch(toggleSubscribedId({ spotRequestId, status: subscriber_status }))
     } catch (err) {
       console.error('Failed to toggle subscription:', err)
+      dispatch(fetchSubscriptionsFailed((err as Error).toString()))
     }
   }
 
