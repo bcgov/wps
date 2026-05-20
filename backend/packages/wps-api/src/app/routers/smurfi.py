@@ -67,10 +67,10 @@ class SpotRequestor:
 
 
 def _get_spot_requestor(token: dict) -> SpotRequestor:
-    requestor_idir = token.get("idir_username")
-    requestor_email = token.get("email")
-    first_name = token.get("given_name")
-    last_name = token.get("family_name")
+    requestor_idir = token.get("idir_username", None)
+    requestor_email = token.get("email", None)
+    first_name = token.get("given_name", None)
+    last_name = token.get("family_name", None)
 
     # if either first or last name is missing, use the idir as the name
     requestor_name = " ".join(name for name in [first_name, last_name] if name) or requestor_idir
@@ -374,7 +374,7 @@ async def get_spot_pdf(spot_id: int):
 
 @router.post("/spots/{spot_request_id}/subscribe", response_model=SubscribeResponse)
 async def subscribe_to_spot(spot_request_id: int, token=Depends(authentication_required)):
-    email = token.get("email")
+    email = token.get("email", None)
     if not email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim"
@@ -386,7 +386,7 @@ async def subscribe_to_spot(spot_request_id: int, token=Depends(authentication_r
 
 @router.get("/subscriptions", response_model=SubscriptionsResponse)
 async def get_subscriptions(token=Depends(authentication_required)):
-    email = token.get("email")
+    email = token.get("email", None)
     if not email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim"
