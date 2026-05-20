@@ -374,7 +374,7 @@ async def get_spot_pdf(spot_id: int):
 
 
 @router.post("/spots/{spot_request_id}/subscribe", response_model=SubscribeResponse)
-async def subscribe_to_spot(spot_request_id: int, token=Depends(authentication_required)):
+async def subscribe_to_spot(spot_request_id: int, token: Annotated[dict, Depends(authentication_required)]):
     email = token.get("email", None)
     if not email:
         raise HTTPException(
@@ -386,7 +386,7 @@ async def subscribe_to_spot(spot_request_id: int, token=Depends(authentication_r
 
 
 @router.delete("/spots/{spot_request_id}/subscribe", status_code=status.HTTP_204_NO_CONTENT)
-async def unsubscribe_from_spot(spot_request_id: int, token=Depends(authentication_required)):
+async def unsubscribe_from_spot(spot_request_id: int, token: Annotated[dict, Depends(authentication_required)]):
     email = token.get("email", None)
     if not email:
         raise HTTPException(
@@ -402,7 +402,7 @@ async def unsubscribe_from_spot(spot_request_id: int, token=Depends(authenticati
 
 
 @router.get("/subscriptions", response_model=SubscriptionsResponse)
-async def get_subscriptions(token=Depends(authentication_required)):
+async def get_subscriptions(token: Annotated[dict, Depends(authentication_required)]):
     email = token.get("email", None)
     if not email:
         raise HTTPException(
