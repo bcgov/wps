@@ -1,5 +1,6 @@
 import axios from './axios'
 import { SpotFormData } from './schema/spotForecastSchema'
+import { SpotRequestFormData } from './schema/spotRequestSchema'
 
 export enum SpotForecastStatus {
   NEW = 'New',
@@ -140,12 +141,97 @@ export interface SpotForecastResponse {
   spot_forecast: SpotForecastOutput
 }
 
+export interface SpotSubscriber {
+  id: number | null
+  email: string
+  subscriber_status: string
+}
+
+interface SpotRequestBase {
+  request_reference: string
+  fire_number: string[]
+  fire_centre: number
+  status: string
+  request_frequency: string[]
+  request_type: string
+  aspect: string
+  elevation: number
+  geographic_description: string
+  additional_information?: string
+  latitude: number
+  longitude: number
+  requested_at: string
+  start_at: string
+  end_at: string
+  subscribers: SpotSubscriber[]
+}
+
+export interface SpotRequestInput extends SpotRequestBase {
+  id: number | null
+}
+
+export interface SpotRequestOutput extends SpotRequestBase {
+  id: number
+  requestor_name: string
+  requestor_idir: string
+  requestor_email: string
+}
+
+export interface SpotRequestResponse {
+  spot_request: SpotRequestOutput
+}
+
+const spotRequestTypeMap: Record<SpotRequestFormData['forecastType'], string> = {
+  MINI_SPOT: 'Mini',
+  FULL_SPOT: 'Full'
+}
+
+const createSpotRequestReference = () => `WPS-${new Date().toISOString()}`
+
+const toStartOfDayISO = (dateTime: SpotRequestFormData['forecastStartDate']) => dateTime.startOf('day').toISO()!
+
+const toEndOfDayISO = (dateTime: SpotRequestFormData['forecastEndDate']) =>
+  dateTime.set({ hour: 23, minute: 59, second: 0, millisecond: 0 }).toISO()!
+
+const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotRequestInput => {
+  return {
+    id: null,
+    request_reference: createSpotRequestReference(),
+    fire_number: [formData.fireNumber],
+    fire_centre: formData.fireCentreId,
+    status: 'Requested',
+    request_frequency: formData.requestedFrequency,
+    request_type: spotRequestTypeMap[formData.forecastType],
+    aspect: formData.slopeAspect,
+    elevation: Number(formData.elevation),
+    geographic_description: formData.geographicDescription,
+    additional_information: formData.additionalInformation || undefined,
+    latitude: formData.location.latitude,
+    longitude: formData.location.longitude,
+    requested_at: new Date().toISOString(),
+    start_at: toStartOfDayISO(formData.forecastStartDate),
+    end_at: toEndOfDayISO(formData.forecastEndDate),
+    subscribers: formData.emailDistributionList.map(email => ({
+      id: null,
+      email,
+      subscriber_status: 'active'
+    }))
+  }
+}
+
 export const postSpotForecast = async (formData: SpotFormData): Promise<SpotForecastResponse> => {
   const spotForecastInput = marshalFormDataToSpotForecastInput(formData)
   const url = '/smurfi/forecast'
   const { data } = await axios.post(url, {
     spot_forecast: spotForecastInput
   })
+  return data
+}
+
+export const postSpotRequest = async (formData: SpotRequestFormData): Promise<SpotRequestResponse> => {
+  const spotRequestInput = marshalFormDataToSpotRequestInput(formData)
+  const url = '/smurfi/spot_request'
+  const { data } = await axios.post(url, spotRequestInput)
   return data
 }
 

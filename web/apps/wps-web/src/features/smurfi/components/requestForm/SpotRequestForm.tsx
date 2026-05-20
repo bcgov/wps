@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Alert,
   Autocomplete,
@@ -34,11 +34,17 @@ import {
   SpotRequestFormData,
   SpotRequestFormValues
 } from '@wps/api/schema/spotRequestSchema'
+import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
+import { AppDispatch } from '@/app/store'
+import { RootState, selectFireCentres } from '@/app/rootReducer'
+import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
+import { clearSpotRequestSubmitState, submitSpotRequest } from '@/features/smurfi/slices/smurfiSlice'
 import SpotRequestLocationField from '@/features/smurfi/components/requestForm/SpotRequestLocationField'
+import { useDispatch, useSelector } from 'react-redux'
 
 interface SpotRequestFormProps {
   onCancel: () => void
-  onSubmit?: (request: SpotRequestFormData) => void
+  onSubmit?: (request: SpotRequestOutput) => void
 }
 
 const forecastTypeOptions: Record<SpotRequestFormValues['forecastType'], string> = {
@@ -64,8 +70,27 @@ const getEmailErrorMessage = (errors: FieldErrors<SpotRequestFormValues>) => {
   return undefined
 }
 
+const splitEmailInput = (value: string) =>
+  value
+    .split(/\s+/)
+    .map(email => email.trim())
+    .filter(Boolean)
+
+const normalizeEmailValues = (values: string[]) => {
+  const seenEmails = new Set<string>()
+  return values.flatMap(splitEmailInput).filter(email => {
+    const normalizedEmail = email.toLowerCase()
+    if (seenEmails.has(normalizedEmail)) {
+      return false
+    }
+    seenEmails.add(normalizedEmail)
+    return true
+  })
+}
+
 const defaultValues: SpotRequestFormValues = {
   fireNumber: '',
+  fireCentreId: 0,
   forecastStartDate: DateTime.now().setZone('America/Vancouver'),
   forecastEndDate: DateTime.now().setZone('America/Vancouver').plus({ days: 5 }),
   forecastType: 'MINI_SPOT',
@@ -79,6 +104,10 @@ const defaultValues: SpotRequestFormValues = {
 }
 
 const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit }) => {
+  const dispatch: AppDispatch = useDispatch()
+  const { fireCentres, loading: fireCentresLoading } = useSelector(selectFireCentres)
+  const { spotRequestSubmitting, spotRequestSubmitError } = useSelector((state: RootState) => state.smurfi)
+  const [emailInputValue, setEmailInputValue] = useState('')
   const {
     control,
     handleSubmit,
@@ -90,14 +119,21 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
     reValidateMode: 'onChange'
   })
 
-  const handleValidSubmit = (data: SpotRequestFormData) => {
-    onSubmit?.(data)
-    console.log('Submitted Spot Request:', {
-      ...data,
-      forecastStartDate: data.forecastStartDate.toISO(),
-      forecastEndDate: data.forecastEndDate.toISO(),
-      elevation: Number(data.elevation)
-    })
+  useEffect(() => {
+    dispatch(fetchFireCentres())
+  }, [dispatch])
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearSpotRequestSubmitState())
+    }
+  }, [dispatch])
+
+  const handleValidSubmit = async (data: SpotRequestFormData) => {
+    const submittedSpotRequest = await dispatch(submitSpotRequest(data))
+    if (submittedSpotRequest) {
+      onSubmit?.(submittedSpotRequest)
+    }
   }
 
   const emailErrorMessage = getEmailErrorMessage(errors)
@@ -131,26 +167,84 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <Controller
-            name="emailDistributionList"
+            name="fireCentreId"
             control={control}
             render={({ field }) => (
-              <Autocomplete<string, true, false, true>
-                multiple
-                freeSolo
-                options={[]}
-                value={field.value}
-                onBlur={field.onBlur}
-                onChange={(_, value) => field.onChange(value)}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    label="Email Distribution List"
-                    error={!!emailErrorMessage}
-                    helperText={emailErrorMessage}
-                  />
-                )}
-              />
+              <FormControl fullWidth error={!!errors.fireCentreId}>
+                <InputLabel id="fire-centre-label">Fire Centre</InputLabel>
+                <Select
+                  {...field}
+                  labelId="fire-centre-label"
+                  label="Fire Centre"
+                  value={field.value || ''}
+                  disabled={fireCentresLoading}
+                  onChange={event => field.onChange(Number(event.target.value))}
+                >
+                  <MenuItem value={0} disabled>
+                    Select a fire centre
+                  </MenuItem>
+                  {fireCentres.map(fireCentre => (
+                    <MenuItem key={fireCentre.id} value={fireCentre.id}>
+                      {fireCentre.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>{errors.fireCentreId?.message}</FormHelperText>
+              </FormControl>
             )}
+          />
+        </Grid>
+
+        <Grid size={12}>
+          <Controller
+            name="emailDistributionList"
+            control={control}
+            render={({ field }) => {
+              const commitEmailInput = () => {
+                if (emailInputValue.trim()) {
+                  field.onChange(normalizeEmailValues([...field.value, emailInputValue]))
+                  setEmailInputValue('')
+                }
+              }
+
+              return (
+                <Autocomplete<string, true, false, true>
+                  multiple
+                  freeSolo
+                  options={[]}
+                  value={field.value}
+                  inputValue={emailInputValue}
+                  onBlur={() => {
+                    commitEmailInput()
+                    field.onBlur()
+                  }}
+                  onChange={(_, value) => {
+                    field.onChange(normalizeEmailValues(value))
+                    setEmailInputValue('')
+                  }}
+                  onInputChange={(_, value, reason) => {
+                    if (reason !== 'input') {
+                      setEmailInputValue(value)
+                      return
+                    }
+                    if (/\s/.test(value)) {
+                      field.onChange(normalizeEmailValues([...field.value, value]))
+                      setEmailInputValue('')
+                      return
+                    }
+                    setEmailInputValue(value)
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label="Email Distribution List"
+                      error={!!emailErrorMessage}
+                      helperText={emailErrorMessage}
+                    />
+                  )}
+                />
+              )
+            }}
           />
         </Grid>
 
@@ -350,11 +444,19 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
           />
         </Grid>
 
+        {spotRequestSubmitError && (
+          <Grid size={12}>
+            <Alert severity="error">{spotRequestSubmitError}</Alert>
+          </Grid>
+        )}
+
         <Grid size={12}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            <Button onClick={onCancel}>Cancel</Button>
-            <Button type="submit" variant="contained">
-              Submit Request
+            <Button onClick={onCancel} disabled={spotRequestSubmitting}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained" disabled={spotRequestSubmitting}>
+              {spotRequestSubmitting ? 'Submitting...' : 'Submit Request'}
             </Button>
           </Box>
         </Grid>

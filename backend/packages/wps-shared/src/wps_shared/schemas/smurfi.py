@@ -18,26 +18,30 @@ class UpdateSubscriberStatusData(BaseModel):
     status: str
 
 
-class SpotRequestData(BaseModel):
+class SpotRequestInput(BaseModel):
     id: int | None = None
     request_reference: str
     fire_number: list[str] | None = None
     fire_centre: int
     status: str = "Requested"
-    requestor_name: str
-    requestor_idir: str
-    requestor_email: str
     request_frequency: list[str] | None = None
     request_type: str = "Full"
     aspect: str | None = None
     elevation: int | None = None
     geographic_description: str
+    additional_information: str | None = None
     latitude: float
     longitude: float
     requested_at: datetime
     start_at: datetime
     end_at: datetime
     subscribers: list[SpotSubscriberData] = []
+
+
+class SpotRequestData(SpotRequestInput):
+    requestor_name: str
+    requestor_idir: str
+    requestor_email: str
 
 
 class SpotRequestResponse(BaseModel):
