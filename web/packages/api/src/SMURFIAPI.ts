@@ -147,8 +147,7 @@ export interface SpotSubscriber {
   subscriber_status: string
 }
 
-export interface SpotRequestInput {
-  id: number | null
+interface SpotRequestBase {
   request_reference: string
   fire_number: string[]
   fire_centre: number
@@ -167,7 +166,11 @@ export interface SpotRequestInput {
   subscribers: SpotSubscriber[]
 }
 
-export interface SpotRequestOutput extends SpotRequestInput {
+export interface SpotRequestInput extends SpotRequestBase {
+  id: number | null
+}
+
+export interface SpotRequestOutput extends SpotRequestBase {
   id: number
   requestor_name: string
   requestor_idir: string
@@ -185,6 +188,11 @@ const spotRequestTypeMap: Record<SpotRequestFormData['forecastType'], string> = 
 
 const createSpotRequestReference = () => `WPS-${new Date().toISOString()}`
 
+const toStartOfDayISO = (dateTime: SpotRequestFormData['forecastStartDate']) => dateTime.startOf('day').toISO()!
+
+const toEndOfDayISO = (dateTime: SpotRequestFormData['forecastEndDate']) =>
+  dateTime.set({ hour: 23, minute: 59, second: 0, millisecond: 0 }).toISO()!
+
 const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotRequestInput => {
   return {
     id: null,
@@ -201,8 +209,8 @@ const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotR
     latitude: formData.location.latitude,
     longitude: formData.location.longitude,
     requested_at: new Date().toISOString(),
-    start_at: formData.forecastStartDate.toISO()!,
-    end_at: formData.forecastEndDate.toISO()!,
+    start_at: toStartOfDayISO(formData.forecastStartDate),
+    end_at: toEndOfDayISO(formData.forecastEndDate),
     subscribers: formData.emailDistributionList.map(email => ({
       id: null,
       email,
