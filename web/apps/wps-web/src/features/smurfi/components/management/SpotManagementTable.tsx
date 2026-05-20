@@ -12,7 +12,6 @@ import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotFore
 import { SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
 import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 import { selectSubscribedIds, selectSubscriptionsLoading, toggleSpotSubscription } from '@/features/smurfi/slices/subscriptionsSlice'
-import { selectAuthentication } from '@/app/rootReducer'
 import { AppDispatch } from '@/app/store'
 
 interface SpotManagementTableProps {
@@ -25,7 +24,6 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
   const dispatch = useDispatch<AppDispatch>()
   const subscribedIds = useSelector(selectSubscribedIds)
   const isLoading = useSelector(selectSubscriptionsLoading)
-  const { isAuthenticated } = useSelector(selectAuthentication)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const [selectedSpot, setSelectedSpot] = useState<SpotAdminRow | null>(null)
   const columns: GridColDef<SpotAdminRow>[] = [
@@ -96,28 +94,23 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
       width: 100,
       getActions: (params: { row: SpotAdminRow }) => {
         const isSubscribed = subscribedIds.includes(params.row.spot_id)
-        const actions = [
+        return [
           <GridActionsCellItem
             key={`edit-${params.row.id}`}
             icon={<EditIcon />}
             label="View details"
             onClick={() => handleEditButtonClick(params.row)}
             showInMenu={false}
+          />,
+          <GridActionsCellItem
+            key={`subscribe-${params.row.id}`}
+            icon={isSubscribed ? <NotificationsActiveIcon color="primary" /> : <NotificationsNoneIcon />}
+            label={isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+            onClick={() => dispatch(toggleSpotSubscription(params.row.spot_id))}
+            disabled={isLoading}
+            showInMenu={false}
           />
         ]
-        if (isAuthenticated) {
-          actions.push(
-            <GridActionsCellItem
-              key={`subscribe-${params.row.id}`}
-              icon={isSubscribed ? <NotificationsActiveIcon color="primary" /> : <NotificationsNoneIcon />}
-              label={isSubscribed ? 'Unsubscribe' : 'Subscribe'}
-              onClick={() => dispatch(toggleSpotSubscription(params.row.spot_id))}
-              disabled={isLoading}
-              showInMenu={false}
-            />
-          )
-        }
-        return actions
       }
     }
   ]
