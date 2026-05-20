@@ -21,6 +21,12 @@ async def create_spot_request(session: AsyncSession, spot_request: SpotRequest):
     return spot_request
 
 
+async def upsert_spot_request(session: AsyncSession, spot_request: SpotRequest):
+    if spot_request.id is None:
+        return await create_spot_request(session, spot_request)
+    return await update_spot_request(session, spot_request)
+
+
 async def create_spot_forecast(session: AsyncSession, spot_forecast: SpotForecast):
     session.add(spot_forecast)
     await session.flush()

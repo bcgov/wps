@@ -1,4 +1,5 @@
 import logging
+from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -7,15 +8,14 @@ from wps_shared.auth import authentication_required
 from wps_shared.db.crud.smurfi import (
     create_spot_descriptive_weather,
     create_spot_forecast,
-    create_spot_request,
     create_spot_tabular_weather,
     get_spot_requests_for_year,
     sync_spot_subscribers,
     update_spot_descriptive_weather,
     update_spot_forecast,
-    update_spot_request,
     update_spot_subscriber_status,
     update_spot_tabular_weather,
+    upsert_spot_request,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.smurfi import (
@@ -51,54 +51,84 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/smurfi", dependencies=[Depends(authentication_required)])
 
 
-@router.post("/spot_request", response_model=SpotRequestResponse)
-async def upsert_spot_request(
-    data: SpotRequestUpsertData, token: Annotated[dict, Depends(authentication_required)]
-):
+@dataclass(frozen=True)
+class SpotRequestor:
+    name: str
+    idir: str
+    email: str
+
+
+def _get_spot_requestor(token: dict) -> SpotRequestor:
     requestor_idir = token.get("idir_username")
     requestor_email = token.get("email")
     first_name = token.get("given_name")
     last_name = token.get("family_name")
-    requestor_name = f"{first_name} {last_name}" if first_name and last_name else requestor_idir
 
+    # if either first or last name is missing, use the idir as the name
+    requestor_name = " ".join(name for name in [first_name, last_name] if name) or requestor_idir
+
+    return SpotRequestor(name=requestor_name, idir=requestor_idir, email=requestor_email)
+
+
+def _get_bc_albers_point(latitude: float, longitude: float) -> str:
     x, y = PointTransformer(
         SpatialReferenceSystem.WGS84.code, NAD83_BC_ALBERS
-    ).transform_coordinate(data.latitude, data.longitude)
-    now = get_utc_now()
+    ).transform_coordinate(latitude, longitude)
+    return f"POINT({x} {y})"
 
-    spot_request = SpotRequest(
-        id=data.id,
-        request_reference=data.request_reference,
-        fire_number=data.fire_number,
-        fire_centre=data.fire_centre,
-        status=data.status,
-        requestor_name=requestor_name,
-        requestor_idir=requestor_idir,
-        requestor_email=requestor_email,
-        request_frequency=data.request_frequency,
-        request_type=data.request_type,
-        aspect=data.aspect,
-        elevation=data.elevation,
-        geographic_description=data.geographic_description,
-        additional_information=data.additional_information,
-        geom=f"POINT({x} {y})",
-        requested_at=data.requested_at,
-        start_at=data.start_at,
-        end_at=data.end_at,
+
+def _build_spot_request(data: SpotRequestUpsertData, requestor: SpotRequestor) -> SpotRequest:
+    now = get_utc_now()
+    return SpotRequest(
+        **data.model_dump(exclude={"latitude", "longitude", "subscribers"}),
+        requestor_name=requestor.name,
+        requestor_idir=requestor.idir,
+        requestor_email=requestor.email,
+        geom=_get_bc_albers_point(data.latitude, data.longitude),
         created_at=now,
         updated_at=now,
     )
+
+
+def _build_spot_request_response(
+    data: SpotRequestUpsertData,
+    requestor: SpotRequestor,
+    spot_request_id: int,
+    subscribers: list[SpotSubscriberData],
+) -> SpotRequestResponse:
+    spot_request_response = SpotRequestData(
+        **data.model_dump(),
+        requestor_name=requestor.name,
+        requestor_idir=requestor.idir,
+        requestor_email=requestor.email,
+    )
+    return SpotRequestResponse(
+        spot_request=spot_request_response.model_copy(
+            update={"id": spot_request_id, "subscribers": subscribers}
+        )
+    )
+
+
+@router.post("/spot_request", response_model=SpotRequestResponse)
+async def upsert_spot_request_endpoint(
+    data: SpotRequestUpsertData, token: Annotated[dict, Depends(authentication_required)]
+):
+    requestor = _get_spot_requestor(token)
+    spot_request = _build_spot_request(data, requestor)
+
     async with get_async_write_session_scope() as session:
-        if data.id is None:
+        if spot_request.id is None:
             logger.info("Creating a new SpotRequest.")
-            result = await create_spot_request(session, spot_request)
         else:
-            logger.info("Updating an existing SpotRequest with id: %s.", data.id)
-            result = await update_spot_request(session, spot_request)
-            if result is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail=f"SpotRequest {data.id} not found"
-                )
+            logger.info("Updating an existing SpotRequest with id: %s.", spot_request.id)
+
+        result = await upsert_spot_request(session, spot_request)
+        if result is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SpotRequest {spot_request.id} not found",
+            )
+
         logger.info("Syncing subscribers for SpotRequest id: %s", result.id)
         subscribers = await sync_spot_subscribers(
             session, result.id, [s.email for s in data.subscribers]
@@ -108,17 +138,8 @@ async def upsert_spot_request(
             SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status)
             for s in subscribers
         ]
-    spot_request_response = SpotRequestData(
-        **data.model_dump(),
-        requestor_name=requestor_name,
-        requestor_idir=requestor_idir,
-        requestor_email=requestor_email,
-    )
-    return SpotRequestResponse(
-        spot_request=spot_request_response.model_copy(
-            update={"id": spot_request_id, "subscribers": subscriber_data}
-        )
-    )
+
+    return _build_spot_request_response(data, requestor, spot_request_id, subscriber_data)
 
 
 async def _upsert_descriptive_weather(
