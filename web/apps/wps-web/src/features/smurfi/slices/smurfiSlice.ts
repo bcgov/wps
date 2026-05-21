@@ -1,7 +1,14 @@
+import { RootState } from '@/app/rootReducer'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { SpotRequestFormData } from '@wps/api/schema/spotRequestSchema'
-import { postSpotForecast, postSpotRequest, SpotForecastOutput, SpotRequestOutput } from '@wps/api/SMURFIAPI'
+import {
+  getSpotRequests,
+  postSpotForecast,
+  postSpotRequest,
+  SpotForecastOutput,
+  SpotRequestOutput
+} from '@wps/api/SMURFIAPI'
 import { AppThunk } from 'app/store'
 
 export interface SmurfiState {
@@ -12,7 +19,9 @@ export interface SmurfiState {
   submittedSpotForecast: SpotForecastOutput | null
   spotRequestSubmitting: boolean
   spotRequestSubmitError: string | null
-  submittedSpotRequest: SpotRequestOutput | null
+  spotRequestsError: string | null
+  spotRequestsLoading: boolean
+  spotRequests: SpotRequestOutput[]
 }
 
 const initialState: SmurfiState = {
@@ -23,13 +32,28 @@ const initialState: SmurfiState = {
   submittedSpotForecast: null,
   spotRequestSubmitting: false,
   spotRequestSubmitError: null,
-  submittedSpotRequest: null
+  spotRequestsError: null,
+  spotRequestsLoading: false,
+  spotRequests: []
 }
 
 const smurfiSlice = createSlice({
   name: 'smurfi',
   initialState,
   reducers: {
+    getSpotRequestsStart(state: SmurfiState) {
+      state.spotRequestsError = null
+      state.spotRequestSubmitting = true
+    },
+    getSpotRequestsFailed(state: SmurfiState, action: PayloadAction<string>) {
+      state.spotRequestsError = action.payload
+      state.spotRequestSubmitting = false
+    },
+    getSpotRequestsSuccess(state: SmurfiState, action: PayloadAction<{ spotRequests: SpotRequestOutput[] }>) {
+      state.spotRequestSubmitting = false
+      state.spotRequestsError = null
+      state.spotRequests = action.payload.spotRequests
+    },
     submitSpotForecastStart(state: SmurfiState) {
       state.spotForecastSubmitError = null
       state.spotForecastSubmitting = true
@@ -59,17 +83,23 @@ const smurfiSlice = createSlice({
     submitSpotRequestSuccess(state: SmurfiState, action: PayloadAction<{ spotRequest: SpotRequestOutput }>) {
       state.spotRequestSubmitting = false
       state.spotRequestSubmitError = null
-      state.submittedSpotRequest = action.payload.spotRequest
+
+      // Filter out an existing spot request so it can be replaced with the updated one.
+      const filteredSpotRequests = state.spotRequests.filter(sr => sr.id !== action.payload.spotRequest.id)
+
+      state.spotRequests = [action.payload.spotRequest, ...filteredSpotRequests]
     },
     clearSpotRequestSubmitState(state: SmurfiState) {
       state.spotRequestSubmitting = false
       state.spotRequestSubmitError = null
-      state.submittedSpotRequest = null
     }
   }
 })
 
 export const {
+  getSpotRequestsStart,
+  getSpotRequestsFailed,
+  getSpotRequestsSuccess,
   submitSpotForecastStart,
   submitSpotForecastFailed,
   submitSpotForecastSuccess,
@@ -117,3 +147,16 @@ export const submitSpotRequest =
       return undefined
     }
   }
+
+export const fetchSpotRequests = (): AppThunk => async dispatch => {
+  try {
+    dispatch(getSpotRequestsStart())
+
+    const response = await getSpotRequests()
+    dispatch(getSpotRequestsSuccess({ spotRequests: response.spot_requests }))
+  } catch (err) {
+    dispatch(getSpotRequestsFailed((err as Error).toString()))
+  }
+}
+
+export const selectSmurfi = (state: RootState) => state.smurfi

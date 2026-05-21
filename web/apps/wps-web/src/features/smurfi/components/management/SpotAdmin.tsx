@@ -1,14 +1,7 @@
 import { Box } from '@mui/material'
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro'
+import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { DateTime } from 'luxon'
-
-enum SpotForecastStatus {
-  NEW = 'new',
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  PAUSED = 'paused',
-  ARCHIVED = 'archived'
-}
 
 interface SpotAdminRow {
   id: number
@@ -16,7 +9,7 @@ interface SpotAdminRow {
   fireId: string
   forecaster: string
   fireCentre: string
-  status: SpotForecastStatus
+  status: SpotRequestStatus
   lastUpdated: DateTime | null
 }
 
@@ -66,7 +59,7 @@ const SpotAdmin = () => {
       fireId: 'V0800168',
       forecaster: 'Matt MacDonald',
       fireCentre: 'Coastal',
-      status: SpotForecastStatus.NEW,
+      status: SpotRequestStatus.REQUESTED,
       lastUpdated: null
     }
   ]

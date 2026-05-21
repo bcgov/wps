@@ -9,10 +9,14 @@ import { DateTime } from 'luxon'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotForecastForm'
-import { SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
-import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
-import { selectSubscribedIds, selectSubscriptionsLoading, toggleSpotSubscription } from '@/features/smurfi/slices/subscriptionsSlice'
+import {
+  selectSubscribedIds,
+  selectSubscriptionsLoading,
+  toggleSpotSubscription
+} from '@/features/smurfi/slices/subscriptionsSlice'
 import { AppDispatch } from '@/app/store'
+import { SpotAdminRow, SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 
 interface SpotManagementTableProps {
   spotAdminRows: SpotAdminRow[]
@@ -65,7 +69,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
       renderCell: params => (
         <Box
           sx={{
-            backgroundColor: SpotForecastStatusColorMap[params.value as SpotForecastStatus].bgColor,
+            backgroundColor: SpotRequestStatusColorMap[params.value as SpotRequestStatus].bgColor,
             borderRadius: '4px',
             alignItems: 'center',
             justifyContent: 'center',
@@ -75,12 +79,12 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
             width: '100%',
             borderWidth: 1,
             borderStyle: 'solid',
-            borderColor: SpotForecastStatusColorMap[params.value as SpotForecastStatus].borderColor
+            borderColor: SpotRequestStatusColorMap[params.value as SpotRequestStatus].borderColor
           }}
         >
           <Typography
             variant="body2"
-            sx={{ color: SpotForecastStatusColorMap[params.value as SpotForecastStatus].color }}
+            sx={{ color: SpotRequestStatusColorMap[params.value as SpotRequestStatus].color }}
           >
             {params.value}
           </Typography>
@@ -154,7 +158,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">
-            {selectedSpot?.status === SpotForecastStatus.NEW ? 'New Spot Forecast' : 'Edit Spot Forecast'}
+            {selectedSpot?.status === SpotRequestStatus.REQUESTED ? 'New Spot Forecast' : 'Edit Spot Forecast'}
             {selectedSpot && ` - Spot ID: ${selectedSpot.spot_id}`}
           </Typography>
           <IconButton aria-label="close" onClick={handleModalClose} size="small">

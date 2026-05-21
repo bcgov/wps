@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Card, CardContent, Typography, List, ListItemButton, ListItemText, Chip, Divider } from '@mui/material'
 import { DateTime } from 'luxon'
-import { SpotForecastHistoryItem, SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
+import { SpotForecastHistoryItem, SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 
 interface ForecastHistoryListProps {
   forecasts: SpotForecastHistoryItem[]
@@ -24,7 +24,7 @@ const ForecastHistoryList: React.FC<ForecastHistoryListProps> = ({ forecasts, se
         <List dense disablePadding>
           {forecasts.map((forecast, index) => {
             const isSelected = selectedId === forecast.id
-            const statusColors = SpotForecastStatusColorMap[forecast.status]
+            const statusColors = SpotRequestStatusColorMap[forecast.status]
             const issuedDate = DateTime.fromMillis(forecast.issued_date)
             const isMostRecent = index === 0
 

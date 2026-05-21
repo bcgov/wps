@@ -2,11 +2,11 @@ import axios from './axios'
 import { SpotFormData } from './schema/spotForecastSchema'
 import { SpotRequestFormData } from './schema/spotRequestSchema'
 
-export enum SpotForecastStatus {
-  NEW = 'New',
-  ACTIVE = 'Active',
-  INACTIVE = 'Inactive',
-  PAUSED = 'Paused',
+export enum SpotRequestStatus {
+  REQUESTED = 'Requested',
+  STARTED = 'Started',
+  SUSPENDED = 'Suspended',
+  COMPLETE = 'Complete',
   ARCHIVED = 'Archived'
 }
 
@@ -16,7 +16,7 @@ export interface SpotAdminRow {
   fire_id: string
   forecaster: string
   fire_centre: string
-  status: SpotForecastStatus
+  status: SpotRequestStatus
   last_updated: number | null
   latitude: number
   longitude: number
@@ -181,6 +181,10 @@ export interface SpotRequestResponse {
   spot_request: SpotRequestOutput
 }
 
+export interface SpotRequestsResponse {
+  spot_requests: SpotRequestOutput[]
+}
+
 const spotRequestTypeMap: Record<SpotRequestFormData['forecastType'], string> = {
   MINI_SPOT: 'Mini',
   FULL_SPOT: 'Full'
@@ -266,5 +270,11 @@ export async function unsubscribeFromSpot(spotRequestId: number): Promise<void> 
 
 export async function getSubscriptions(): Promise<SubscriptionsResponse> {
   const { data } = await axios.get('/smurfi/subscriptions')
+  return data
+}
+
+export const getSpotRequests = async (): Promise<SpotRequestsResponse> => {
+  const url = '/smurfi/spot_requests'
+  const { data } = await axios.get(url)
   return data
 }
