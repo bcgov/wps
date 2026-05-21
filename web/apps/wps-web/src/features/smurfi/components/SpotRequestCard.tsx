@@ -3,15 +3,32 @@ import DescriptionIcon from '@mui/icons-material/Description'
 import { DateTime } from 'luxon'
 import { getSpotPDF, SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
 import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
+import { useSelector, useDispatch } from 'react-redux'
+import {
+  selectSubscribedIds,
+  selectSubscriptionsLoading,
+  toggleSpotSubscription
+} from '@/features/smurfi/slices/subscriptionsSlice'
+import { AppDispatch } from 'app/store'
 
 interface SpotRequestCardProps {
   spot: SpotAdminRow
+  isAuthenticated: boolean
 }
 
-const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
+const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
+  const dispatch = useDispatch<AppDispatch>()
+  const subscribedIds = useSelector(selectSubscribedIds)
+  const isSubscribed = subscribedIds.includes(spot.spot_id)
+  const isLoading = useSelector(selectSubscriptionsLoading)
+
+  const handleToggleSubscription = () => {
+    dispatch(toggleSpotSubscription(spot.spot_id))
+  }
+
   const handleViewPDF = async () => {
     try {
-      const pdfBlob = await getSpotPDF(spot.id)
+      const pdfBlob = await getSpotPDF(spot.spot_id)
       const url = URL.createObjectURL(pdfBlob)
       // Open PDF in new tab instead of modal for better compatibility
       window.open(url, '_blank')
@@ -36,9 +53,11 @@ const SpotRequestCard = ({ spot }: SpotRequestCardProps) => {
                 <Button
                   variant="outlined"
                   color="primary"
+                  disabled={isLoading}
                   sx={{ backgroundColor: '#e3f2fd', height: '36.5px', width: '100%' }}
+                  onClick={handleToggleSubscription}
                 >
-                  Subscribe
+                  {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
                 </Button>
               </Grid>
               <Grid size={6}>

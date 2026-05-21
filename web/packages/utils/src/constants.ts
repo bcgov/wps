@@ -53,6 +53,7 @@ export const FIRE_WATCH_NAME = 'Fire Watch'
 export const WEATHER_TOOLKIT_NAME = 'Weather Toolkit'
 export const SMURFI_NAME = 'SMURFI'
 export const SMURFI_ROUTE = '/smurfi'
+export const SMURFI_SPOT_DETAIL_ROUTE = '/smurfi/spots/:spotId'
 
 // UI constants
 export const HEADER_HEIGHT = 56

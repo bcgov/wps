@@ -30,6 +30,7 @@ type SpotFeature = {
   lat: number
   status: SpotRequestStatus
   id: string
+  spotId: number
   fireNumber: string
   fireCentre?: string
 }
@@ -42,7 +43,8 @@ const mockFeatures: SpotFeature[] = [
     lon: -125.0313,
     lat: 49.6188,
     status: 'PENDING' as SpotRequestStatus,
-    id: '1',
+    id: '123',
+    spotId: 123,
     fireNumber: 'V0800168',
     fireCentre: 'Coastal'
   },
@@ -50,7 +52,8 @@ const mockFeatures: SpotFeature[] = [
     lon: -122.7497,
     lat: 53.9171,
     status: 'ACTIVE' as SpotRequestStatus,
-    id: '2',
+    id: '124',
+    spotId: 124,
     fireNumber: 'G0700234',
     fireCentre: 'Prince George'
   },
@@ -59,6 +62,7 @@ const mockFeatures: SpotFeature[] = [
     lat: 50.9171,
     status: 'PAUSED' as SpotRequestStatus,
     id: '125',
+    spotId: 125,
     fireNumber: 'K0300789',
     fireCentre: 'Kamloops'
   },
@@ -67,6 +71,7 @@ const mockFeatures: SpotFeature[] = [
     lat: 54.9171,
     status: 'COMPLETE' as SpotRequestStatus,
     id: '126',
+    spotId: 126,
     fireNumber: 'C092346',
     fireCentre: 'Cariboo'
   },
@@ -75,6 +80,7 @@ const mockFeatures: SpotFeature[] = [
     lat: 50.9171,
     status: 'COMPLETE' as SpotRequestStatus,
     id: '127',
+    spotId: 127,
     fireNumber: 'C092347',
     fireCentre: 'Southeast'
   }
@@ -99,6 +105,7 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
     lng: number
     status: SpotRequestStatus
     fireNumber: string
+    spotId: number
   } | null>(null)
   const [forecastModalOpen, setForecastModalOpen] = useState(false)
   const [selectedFireNumber, setSelectedFireNumber] = useState<string>('')
@@ -164,6 +171,7 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
       return new Feature({
         geometry: new Point(fromLonLat([spotFeature.lon, spotFeature.lat])),
         id: spotFeature.id,
+        spotId: spotFeature.spotId,
         status: spotFeature.status,
         fireNumber: spotFeature.fireNumber,
         fireCentre: spotFeature.fireCentre,
@@ -218,7 +226,8 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
           lat,
           lng,
           status: feature.get('status') as SpotRequestStatus,
-          fireNumber: feature.get('fireNumber')
+          fireNumber: feature.get('fireNumber'),
+          spotId: feature.get('spotId') as number
         })
       } else {
         overlay.setPosition(undefined)
@@ -271,6 +280,7 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
               lng={popupData.lng}
               status={popupData.status}
               fireNumber={popupData.fireNumber}
+              spotId={popupData.spotId}
               onOpenForecast={handleOpenForecastModal}
             />
           )}

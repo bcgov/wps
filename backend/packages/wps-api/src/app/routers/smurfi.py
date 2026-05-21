@@ -10,7 +10,10 @@ from wps_shared.db.crud.smurfi import (
     create_spot_forecast,
     create_spot_tabular_weather,
     get_spot_requests_for_year,
+    get_subscribed_spot_request_ids,
+    subscribe_to_spot_request,
     sync_spot_subscribers,
+    unsubscribe_from_spot_request,
     update_spot_descriptive_weather,
     update_spot_forecast,
     update_spot_subscriber_status,
@@ -40,10 +43,16 @@ from wps_shared.schemas.smurfi import (
     SpotRequestResponse,
     SpotSubscriberData,
     SpotTabularWeatherData,
+    SpotUpdatePayload,
+    SubscribeResponse,
+    SubscriptionsResponse,
     UpdateSubscriberStatusData,
 )
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
+
+from app.nats_publish import publish
+from app.smurfi.nats_config import smurfi_spot_update_subject, stream_name, subjects
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +68,10 @@ class SpotRequestor:
 
 
 def _get_spot_requestor(token: dict) -> SpotRequestor:
-    requestor_idir = token.get("idir_username")
-    requestor_email = token.get("email")
-    first_name = token.get("given_name")
-    last_name = token.get("family_name")
+    requestor_idir = token.get("idir_username", None)
+    requestor_email = token.get("email", None)
+    first_name = token.get("given_name", None)
+    last_name = token.get("family_name", None)
 
     # if either first or last name is missing, use the idir as the name
     requestor_name = " ".join(name for name in [first_name, last_name] if name) or requestor_idir
@@ -262,6 +271,11 @@ async def upsert_spot_forecast(data: SpotForecastData):
                 )
         descriptive_weather = await _upsert_descriptive_weather(session, result.id, data)
         tabular_weather = await _upsert_tabular_weather(session, result.id, data)
+
+    payload = SpotUpdatePayload(spot_request_id=data.spot_request_id, spot_forecast_id=result.id)
+    await publish(
+        stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
+    )
     return SpotForecastResponse(
         spot_forecast=data.model_copy(
             update={
@@ -356,3 +370,44 @@ async def get_spot_pdf(spot_id: int):
     except Exception as e:
         logger.error(f"Failed to get PDF for spot {spot_id}: {e}")
         return Response(status_code=404, content="PDF not found")
+
+
+
+@router.post("/spots/{spot_request_id}/subscribe", response_model=SubscribeResponse)
+async def subscribe_to_spot(spot_request_id: int, token: Annotated[dict, Depends(authentication_required)]):
+    email = token.get("email", None)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim"
+        )
+    async with get_async_write_session_scope() as session:
+        subscriber = await subscribe_to_spot_request(session, spot_request_id, email)
+    return SubscribeResponse(subscriber_status=subscriber.subscriber_status)
+
+
+@router.delete("/spots/{spot_request_id}/subscribe", status_code=status.HTTP_204_NO_CONTENT)
+async def unsubscribe_from_spot(spot_request_id: int, token: Annotated[dict, Depends(authentication_required)]):
+    email = token.get("email", None)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim"
+        )
+    async with get_async_write_session_scope() as session:
+        result = await unsubscribe_from_spot_request(session, spot_request_id, email)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Subscription for spot request {spot_request_id} not found",
+        )
+
+
+@router.get("/subscriptions", response_model=SubscriptionsResponse)
+async def get_subscriptions(token: Annotated[dict, Depends(authentication_required)]):
+    email = token.get("email", None)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim"
+        )
+    async with get_async_read_session_scope() as session:
+        ids = await get_subscribed_spot_request_ids(session, email)
+    return SubscriptionsResponse(spot_request_ids=ids)
