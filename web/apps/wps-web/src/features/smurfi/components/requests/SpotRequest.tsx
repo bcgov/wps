@@ -173,9 +173,9 @@ const SpotRequest = () => {
             ))}
           </Box>
         </Box>
+        <Field label="Geographic Description" value={spotRequest.geographic_description} />
         <Field label="Elevation" value={`${spotRequest.elevation} m`} />
         <Field label="Slope / Aspect" value={spotRequest.aspect} />
-        <Field label="Geographic Description" value={spotRequest.geographic_description} />
         {spotRequest.additional_information && (
           <Field label="Additional Info" value={spotRequest.additional_information} />
         )}
