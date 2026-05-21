@@ -37,18 +37,13 @@ const renderCard = (subscribedIds: number[] = [], isAuthenticated = true) =>
   )
 
 describe('SpotRequestCard subscribe toggle', () => {
-  it('shows Subscribe button when user is authenticated and not subscribed', () => {
+  it('shows subscribe button when user is not subscribed', () => {
     renderCard([], true)
     expect(screen.getByRole('button', { name: /subscribe/i })).toBeInTheDocument()
   })
 
-  it('shows Unsubscribe button when user is already subscribed', () => {
+  it('shows unsubscribe button when user is already subscribed', () => {
     renderCard([1], true)
     expect(screen.getByRole('button', { name: /unsubscribe/i })).toBeInTheDocument()
-  })
-
-  it('does not show subscribe button when user is not authenticated', () => {
-    renderCard([], false)
-    expect(screen.queryByRole('button', { name: /subscribe/i })).not.toBeInTheDocument()
   })
 })

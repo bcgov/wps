@@ -4,7 +4,11 @@ import { DateTime } from 'luxon'
 import { getSpotPDF, SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
 import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectSubscribedIds, selectSubscriptionsLoading, toggleSpotSubscription } from '@/features/smurfi/slices/subscriptionsSlice'
+import {
+  selectSubscribedIds,
+  selectSubscriptionsLoading,
+  toggleSpotSubscription
+} from '@/features/smurfi/slices/subscriptionsSlice'
 import { AppDispatch } from 'app/store'
 
 interface SpotRequestCardProps {
@@ -45,20 +49,18 @@ const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
           </Grid>
           <Grid size={6}>
             <Grid container spacing={1}>
-              {isAuthenticated && (
-                <Grid size={6}>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    disabled={isLoading}
-                    sx={{ backgroundColor: '#e3f2fd', height: '36.5px', width: '100%' }}
-                    onClick={handleToggleSubscription}
-                  >
-                    {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
-                  </Button>
-                </Grid>
-              )}
-              <Grid size={isAuthenticated ? 6 : 12}>
+              <Grid size={6}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  disabled={isLoading}
+                  sx={{ backgroundColor: '#e3f2fd', height: '36.5px', width: '100%' }}
+                  onClick={handleToggleSubscription}
+                >
+                  {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+                </Button>
+              </Grid>
+              <Grid size={6}>
                 <Box
                   sx={{
                     backgroundColor: SpotForecastStatusColorMap[spot.status].bgColor,
