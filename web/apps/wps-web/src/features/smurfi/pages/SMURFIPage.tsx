@@ -1,10 +1,10 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Box, Tabs, Tab } from '@mui/material'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
-import { LocalizationProvider } from '@mui/x-date-pickers-pro'
+import { LocalizationProvider } from '@mui/x-date-pickers'
 import { SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE } from '@wps/utils/constants'
 import SpotManagement from '@/features/smurfi/components/management/SpotManagement'
 import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
@@ -12,6 +12,10 @@ import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
 import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
 import SpotForecasts from '@/features/smurfi/components/forecasts/SpotForecasts'
 import SpotForecast from '@/features/smurfi/components/forecasts/SpotForecast'
+import { AppDispatch } from '@/app/store'
+import { useDispatch } from 'react-redux'
+import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
+import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
 
 const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE]
 
@@ -20,6 +24,11 @@ const RouteContent = ({ children }: { children: React.ReactNode }) => (
 )
 
 const SMURFIPage = () => {
+  const dispatch: AppDispatch = useDispatch()
+  useEffect(() => {
+    dispatch(fetchSpotRequests())
+    dispatch(fetchFireCentres())
+  }, [])
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -72,7 +81,7 @@ const SMURFIPage = () => {
                 </RouteContent>
               }
             />
-<Route path="*" element={<Navigate to={SMURFI_DASHBOARD_ROUTE} replace />} />
+            <Route path="*" element={<Navigate to={SMURFI_DASHBOARD_ROUTE} replace />} />
           </Routes>
         </Box>
       </Box>
