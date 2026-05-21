@@ -94,7 +94,7 @@ const LegendItem: React.FC<LegendItemProps> = ({
                 <ListItemIcon>
                   <LegendSymbol sx={{ backgroundColor: subItem.symbol }} />
                 </ListItemIcon>
-                <ListItemText>{subItem.label}</ListItemText>
+                <ListItemText sx={{ pl: 1 }}>{subItem.label}</ListItemText>
               </ListItem>
             ))}
           </List>
