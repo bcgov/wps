@@ -16,7 +16,7 @@ import WeatherDataTable from '@/features/smurfi/components/forecastForm/WeatherD
 import SpotForecastSummaries from '@/features/smurfi/components/forecastForm/SpotForecastSummaries'
 import SpotForecastSections from '@/features/smurfi/components/forecastForm/SpotForecastSections'
 import ForecastHistoryList from '@/features/smurfi/components/forecastForm/ForecastHistoryList'
-import { SpotForecastStatus } from '@wps/api/SMURFIAPI'
+import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { getStations, StationSource } from '@wps/api/stationAPI'
 import { clearSpotForecastSubmitState, submitSpotForecast } from '@/features/smurfi/slices/smurfiSlice'
@@ -33,7 +33,7 @@ const mockAllForecasts: SpotForecastHistoryItem[] = [
     expiry_date: DateTime.now().plus({ days: 1 }).toMillis(),
     forecaster: 'Matt',
     synopsis: 'Current forecast: High pressure continues to dominate with warm and dry conditions expected.',
-    status: SpotForecastStatus.ACTIVE
+    status: SpotRequestStatus.STARTED
   },
   {
     id: 105,
@@ -44,7 +44,7 @@ const mockAllForecasts: SpotForecastHistoryItem[] = [
     expiry_date: DateTime.now().plus({ days: 1 }).toMillis(),
     forecaster: 'Jessie',
     synopsis: 'Current forecast: Unstable conditions with potential for afternoon thunderstorms.',
-    status: SpotForecastStatus.ACTIVE
+    status: SpotRequestStatus.STARTED
   },
   // Historical forecasts for V0800168
   {
@@ -56,7 +56,7 @@ const mockAllForecasts: SpotForecastHistoryItem[] = [
     expiry_date: DateTime.now().toMillis(),
     forecaster: 'Matt',
     synopsis: 'A ridge of high pressure will bring warm and dry conditions to the region.',
-    status: SpotForecastStatus.ARCHIVED
+    status: SpotRequestStatus.ARCHIVED
   },
   {
     id: 102,
@@ -67,7 +67,7 @@ const mockAllForecasts: SpotForecastHistoryItem[] = [
     expiry_date: DateTime.now().minus({ days: 1 }).toMillis(),
     forecaster: 'Jessie',
     synopsis: 'An approaching cold front will bring cooler temperatures and increased humidity.',
-    status: SpotForecastStatus.ARCHIVED
+    status: SpotRequestStatus.ARCHIVED
   },
   {
     id: 103,
@@ -78,7 +78,7 @@ const mockAllForecasts: SpotForecastHistoryItem[] = [
     expiry_date: DateTime.now().minus({ days: 2 }).toMillis(),
     forecaster: 'Brett',
     synopsis: 'Stable conditions expected with light winds and moderate temperatures.',
-    status: SpotForecastStatus.ARCHIVED
+    status: SpotRequestStatus.ARCHIVED
   },
   // Historical forecasts for G0700234
   {
@@ -90,7 +90,7 @@ const mockAllForecasts: SpotForecastHistoryItem[] = [
     expiry_date: DateTime.now().toMillis(),
     forecaster: 'Liz',
     synopsis: 'Thunderstorm activity possible in the afternoon with gusty winds.',
-    status: SpotForecastStatus.ARCHIVED
+    status: SpotRequestStatus.ARCHIVED
   }
 ]
 

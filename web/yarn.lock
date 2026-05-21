@@ -2914,6 +2914,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/utils@npm:9.0.1, @mui/utils@npm:^9.0.1":
+  version: 9.0.1
+  resolution: "@mui/utils@npm:9.0.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.2"
+    "@mui/types": "npm:^9.0.0"
+    "@types/prop-types": "npm:^15.7.15"
+    clsx: "npm:^2.1.1"
+    prop-types: "npm:^15.8.1"
+    react-is: "npm:^19.2.4"
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18.0.0 || ^19.0.0
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10c0/be6d3c6ce7e5767a7d01583ff8780222f1bafa2f5ee8c549e3a25e7e283ba9fb7cb8c95d39ddbd9a57820722f5cfb5f5322cd37c580290d44d0f6e3a464cf23d
+  languageName: node
+  linkType: hard
+
 "@mui/utils@npm:^5.13.7, @mui/utils@npm:^5.14.16, @mui/utils@npm:^5.15.14, @mui/utils@npm:^5.15.20, @mui/utils@npm:^5.16.6":
   version: 5.16.6
   resolution: "@mui/utils@npm:5.16.6"
@@ -2951,26 +2971,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10c0/d2563c4be785a94d55d32df7e51be530bb56a21ffbf4d1ca084c51a8b598ad7ee6d8bb30dd4171691c3b669eea6d8da07280aedd8d96fc539cfd0e0e5b9a48a1
-  languageName: node
-  linkType: hard
-
-"@mui/utils@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "@mui/utils@npm:9.0.1"
-  dependencies:
-    "@babel/runtime": "npm:^7.29.2"
-    "@mui/types": "npm:^9.0.0"
-    "@types/prop-types": "npm:^15.7.15"
-    clsx: "npm:^2.1.1"
-    prop-types: "npm:^15.8.1"
-    react-is: "npm:^19.2.4"
-  peerDependencies:
-    "@types/react": ^17.0.0 || ^18.0.0 || ^19.0.0
-    react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 10c0/be6d3c6ce7e5767a7d01583ff8780222f1bafa2f5ee8c549e3a25e7e283ba9fb7cb8c95d39ddbd9a57820722f5cfb5f5322cd37c580290d44d0f6e3a464cf23d
   languageName: node
   linkType: hard
 
@@ -3064,6 +3064,55 @@ __metadata:
     "@emotion/styled":
       optional: true
   checksum: 10c0/afdf894abaf1fc22c8a5507f24de7050e3fec6e3e20aed1649941937c4859f781adce500cdce9c0acdb5140e75451d101133a56e9c9c2e772d5992261bc77370
+  languageName: node
+  linkType: hard
+
+"@mui/x-date-pickers-pro@npm:^9.0.0":
+  version: 9.3.0
+  resolution: "@mui/x-date-pickers-pro@npm:9.3.0"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.2"
+    "@mui/utils": "npm:9.0.1"
+    "@mui/x-date-pickers": "npm:^9.3.0"
+    "@mui/x-internals": "npm:^9.1.0"
+    "@mui/x-license": "npm:^9.2.0"
+    clsx: "npm:^2.1.1"
+    prop-types: "npm:^15.8.1"
+    react-transition-group: "npm:^4.4.5"
+  peerDependencies:
+    "@emotion/react": ^11.9.0
+    "@emotion/styled": ^11.8.1
+    "@mui/material": ^7.3.0 || ^9.0.0
+    "@mui/system": ^7.3.0 || ^9.0.0
+    date-fns: ^2.25.0 || ^3.2.0 || ^4.0.0
+    date-fns-jalali: ^2.13.0-0 || ^3.2.0-0 || ^4.0.0-0
+    dayjs: ^1.10.7
+    luxon: ^3.0.2
+    moment: ^2.29.4
+    moment-hijri: ^2.1.2 || ^3.0.0
+    moment-jalaali: ^0.7.4 || ^0.8.0 || ^0.9.0 || ^0.10.0
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/react":
+      optional: true
+    "@emotion/styled":
+      optional: true
+    date-fns:
+      optional: true
+    date-fns-jalali:
+      optional: true
+    dayjs:
+      optional: true
+    luxon:
+      optional: true
+    moment:
+      optional: true
+    moment-hijri:
+      optional: true
+    moment-jalaali:
+      optional: true
+  checksum: 10c0/5f231d16019b310e61da0b3d8b070d948f681978240135a02870310cdf01a24505a8632dafd4440a5abaf56cfa535230f31381a9e1d0e98feee6707e28390c82
   languageName: node
   linkType: hard
 
@@ -3163,6 +3212,54 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/x-date-pickers@npm:^9.3.0":
+  version: 9.3.0
+  resolution: "@mui/x-date-pickers@npm:9.3.0"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.2"
+    "@mui/utils": "npm:9.0.1"
+    "@mui/x-internals": "npm:^9.1.0"
+    "@types/react-transition-group": "npm:^4.4.12"
+    clsx: "npm:^2.1.1"
+    prop-types: "npm:^15.8.1"
+    react-transition-group: "npm:^4.4.5"
+  peerDependencies:
+    "@emotion/react": ^11.9.0
+    "@emotion/styled": ^11.8.1
+    "@mui/material": ^7.3.0 || ^9.0.0
+    "@mui/system": ^7.3.0 || ^9.0.0
+    date-fns: ^2.25.0 || ^3.2.0 || ^4.0.0
+    date-fns-jalali: ^2.13.0-0 || ^3.2.0-0 || ^4.0.0-0
+    dayjs: ^1.10.7
+    luxon: ^3.0.2
+    moment: ^2.29.4
+    moment-hijri: ^2.1.2 || ^3.0.0
+    moment-jalaali: ^0.7.4 || ^0.8.0 || ^0.9.0 || ^0.10.0
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/react":
+      optional: true
+    "@emotion/styled":
+      optional: true
+    date-fns:
+      optional: true
+    date-fns-jalali:
+      optional: true
+    dayjs:
+      optional: true
+    luxon:
+      optional: true
+    moment:
+      optional: true
+    moment-hijri:
+      optional: true
+    moment-jalaali:
+      optional: true
+  checksum: 10c0/f181df4d778f151ee9b6ea21335b9e3d63c5cd6b504623e03f354c4f021931661f3ae65878e5b811aeb0a7b3e5c40091f04f66a12eb8770e5726eee2b6b35966
+  languageName: node
+  linkType: hard
+
 "@mui/x-internals@npm:7.29.0":
   version: 7.29.0
   resolution: "@mui/x-internals@npm:7.29.0"
@@ -3215,6 +3312,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/x-license@npm:^9.2.0":
+  version: 9.2.0
+  resolution: "@mui/x-license@npm:9.2.0"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.2"
+    "@mui/utils": "npm:9.0.1"
+    "@mui/x-internals": "npm:^9.1.0"
+    "@mui/x-telemetry": "npm:^9.2.0"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/7262a71bb284bded5b58ab9025d40f31d36df1fff3d26a7382e236ddc090c279df818694148366cfd65884e242e158e201e11422f87ee202ddc2479445bc702c
+  languageName: node
+  linkType: hard
+
 "@mui/x-telemetry@npm:^9.1.0":
   version: 9.1.0
   resolution: "@mui/x-telemetry@npm:9.1.0"
@@ -3225,6 +3336,19 @@ __metadata:
     is-docker: "npm:^4.0.0"
     node-machine-id: "npm:^1.1.12"
   checksum: 10c0/c04d560ef70db1528171669dea16922bcde21f5d9a4a8612c67f9b6b08e1d764e867ed8b487cc3b51401991b3e4426783f0b24ee5929384419b8f6381d77372c
+  languageName: node
+  linkType: hard
+
+"@mui/x-telemetry@npm:^9.2.0":
+  version: 9.2.0
+  resolution: "@mui/x-telemetry@npm:9.2.0"
+  dependencies:
+    "@babel/runtime": "npm:^7.29.2"
+    "@fingerprintjs/fingerprintjs": "npm:^3.4.2"
+    ci-info: "npm:^4.4.0"
+    is-docker: "npm:^4.0.0"
+    node-machine-id: "npm:^1.1.12"
+  checksum: 10c0/7ae8aa4e88160f0aa64e52851da7075b9e78fdfe334b2a5164e6e89d7562579b900da0f109f261d9a2ecc207604f3f97dfe4d06bdbc67f53dd422a8413bb6211
   languageName: node
   linkType: hard
 
@@ -5314,6 +5438,7 @@ __metadata:
     "@mui/system": "npm:^9.0.0"
     "@mui/x-data-grid-pro": "npm:^9.0.0"
     "@mui/x-date-pickers": "npm:^9.0.0"
+    "@mui/x-date-pickers-pro": "npm:^9.0.0"
     "@playwright/test": "npm:^1.59.1"
     "@psu/cffdrs_ts": "git+https://github.com/cffdrs/cffdrs_ts#b9afdabc89dd4bdf04ccf1e406a4a5d8d552ff51"
     "@reduxjs/toolkit": "npm:^2.2.7"

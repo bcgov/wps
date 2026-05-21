@@ -3,11 +3,11 @@ import { SpotFormData } from './schema/spotForecastSchema'
 import { SpotRequestFormData } from './schema/spotRequestSchema'
 import { DateTime } from 'luxon'
 
-export enum SpotForecastStatus {
-  NEW = 'New',
-  ACTIVE = 'Active',
-  INACTIVE = 'Inactive',
-  PAUSED = 'Paused',
+export enum SpotRequestStatus {
+  REQUESTED = 'Requested',
+  STARTED = 'Started',
+  SUSPENDED = 'Suspended',
+  COMPLETE = 'Complete',
   ARCHIVED = 'Archived'
 }
 
@@ -17,7 +17,7 @@ export interface SpotAdminRow {
   fire_id: string
   forecaster: string
   fire_centre: string
-  status: SpotForecastStatus
+  status: SpotRequestStatus
   last_updated: number | null
   latitude: number
   longitude: number
@@ -178,6 +178,10 @@ export interface SpotRequestResponse {
   spot_request: SpotRequestOutput
 }
 
+export interface SpotRequestsResponse {
+  spot_requests: SpotRequestOutput[]
+}
+
 const spotRequestTypeMap: Record<SpotRequestFormData['forecastType'], string> = {
   MINI_SPOT: 'Mini',
   FULL_SPOT: 'Full'
@@ -243,4 +247,32 @@ export async function getSpotPDF(spotId: number): Promise<Blob> {
   const url = `/smurfi/pdf/${spotId}`
   const response = await axios.get(url, { responseType: 'blob' })
   return response.data
+}
+
+export interface SubscribeResponse {
+  subscriber_status: string
+}
+
+export interface SubscriptionsResponse {
+  spot_request_ids: number[]
+}
+
+export async function subscribeToSpot(spotRequestId: number): Promise<SubscribeResponse> {
+  const { data } = await axios.post(`/smurfi/spots/${spotRequestId}/subscribe`)
+  return data
+}
+
+export async function unsubscribeFromSpot(spotRequestId: number): Promise<void> {
+  await axios.delete(`/smurfi/spots/${spotRequestId}/subscribe`)
+}
+
+export async function getSubscriptions(): Promise<SubscriptionsResponse> {
+  const { data } = await axios.get('/smurfi/subscriptions')
+  return data
+}
+
+export const getSpotRequests = async (): Promise<SpotRequestsResponse> => {
+  const url = '/smurfi/spot_requests'
+  const { data } = await axios.get(url)
+  return data
 }

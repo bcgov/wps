@@ -107,6 +107,19 @@ class SmurfiForecastData(BaseModel):
     precipitation_amount: float | None = None
 
 
+class SpotUpdatePayload(BaseModel):
+    spot_request_id: int
+    spot_forecast_id: int
+
+
+class SubscribeResponse(BaseModel):
+    subscriber_status: str
+
+
+class SubscriptionsResponse(BaseModel):
+    spot_request_ids: list[int]
+
+
 class SmurfiSpotVersionData(BaseModel):
     spot_id: int
     fire_number: str

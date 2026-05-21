@@ -1,13 +1,22 @@
 import EditIcon from '@mui/icons-material/Edit'
 import CloseIcon from '@mui/icons-material/Close'
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
 import { DataGridPro, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotForecastForm'
-import { SpotAdminRow, SpotForecastStatus } from '@wps/api/SMURFIAPI'
-import { SpotForecastStatusColorMap } from '@/features/smurfi/interfaces'
+import {
+  selectSubscribedIds,
+  selectSubscriptionsLoading,
+  toggleSpotSubscription
+} from '@/features/smurfi/slices/subscriptionsSlice'
+import { AppDispatch } from '@/app/store'
+import { SpotAdminRow, SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 
 interface SpotManagementTableProps {
   spotAdminRows: SpotAdminRow[]
@@ -16,6 +25,9 @@ interface SpotManagementTableProps {
 }
 
 const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }: SpotManagementTableProps) => {
+  const dispatch = useDispatch<AppDispatch>()
+  const subscribedIds = useSelector(selectSubscribedIds)
+  const isLoading = useSelector(selectSubscriptionsLoading)
   const [modalOpen, setModalOpen] = useState<boolean>(false)
   const [selectedSpot, setSelectedSpot] = useState<SpotAdminRow | null>(null)
   const columns: GridColDef<SpotAdminRow>[] = [
@@ -57,7 +69,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
       renderCell: params => (
         <Box
           sx={{
-            backgroundColor: SpotForecastStatusColorMap[params.value as SpotForecastStatus].bgColor,
+            backgroundColor: SpotRequestStatusColorMap[params.value as SpotRequestStatus].bgColor,
             borderRadius: '4px',
             alignItems: 'center',
             justifyContent: 'center',
@@ -67,12 +79,12 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
             width: '100%',
             borderWidth: 1,
             borderStyle: 'solid',
-            borderColor: SpotForecastStatusColorMap[params.value as SpotForecastStatus].borderColor
+            borderColor: SpotRequestStatusColorMap[params.value as SpotRequestStatus].borderColor
           }}
         >
           <Typography
             variant="body2"
-            sx={{ color: SpotForecastStatusColorMap[params.value as SpotForecastStatus].color }}
+            sx={{ color: SpotRequestStatusColorMap[params.value as SpotRequestStatus].color }}
           >
             {params.value}
           </Typography>
@@ -83,16 +95,27 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      width: 80,
-      getActions: (params: { row: SpotAdminRow }) => [
-        <GridActionsCellItem
-          key={params.row.id}
-          icon={<EditIcon />}
-          label="View details"
-          onClick={() => handleEditButtonClick(params.row)}
-          showInMenu={false}
-        />
-      ]
+      width: 100,
+      getActions: (params: { row: SpotAdminRow }) => {
+        const isSubscribed = subscribedIds.includes(params.row.spot_id)
+        return [
+          <GridActionsCellItem
+            key={`edit-${params.row.id}`}
+            icon={<EditIcon />}
+            label="View details"
+            onClick={() => handleEditButtonClick(params.row)}
+            showInMenu={false}
+          />,
+          <GridActionsCellItem
+            key={`subscribe-${params.row.id}`}
+            icon={isSubscribed ? <NotificationsActiveIcon color="primary" /> : <NotificationsNoneIcon />}
+            label={isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+            onClick={() => dispatch(toggleSpotSubscription(params.row.spot_id))}
+            disabled={isLoading}
+            showInMenu={false}
+          />
+        ]
+      }
     }
   ]
 
@@ -135,7 +158,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">
-            {selectedSpot?.status === SpotForecastStatus.NEW ? 'New Spot Forecast' : 'Edit Spot Forecast'}
+            {selectedSpot?.status === SpotRequestStatus.REQUESTED ? 'New Spot Forecast' : 'Edit Spot Forecast'}
             {selectedSpot && ` - Spot ID: ${selectedSpot.spot_id}`}
           </Typography>
           <IconButton aria-label="close" onClick={handleModalClose} size="small">
