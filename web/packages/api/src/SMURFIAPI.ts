@@ -1,6 +1,7 @@
 import axios from './axios'
 import { SpotFormData } from './schema/spotForecastSchema'
 import { SpotRequestFormData } from './schema/spotRequestSchema'
+import { DateTime } from 'luxon'
 
 export enum SpotForecastStatus {
   NEW = 'New',
@@ -29,112 +30,108 @@ export interface SpotAdminRowResponse {
 }
 
 export interface SpotForecastInput {
-  issued_date: string
-  expiry_date: string
-  fire_project: string
-  request_by: string
-  forecast_by: string
-  email: string
-  phone: string
-  city: string
-  stations?: number[]
-  latitude: number
-  longitude: number
-  slope_aspect: string
-  valley?: string
-  elevation?: string
-  size?: string
-  synopsis: string
-  afternoon_forecast?: {
-    description: string
-    max_temp: number
-    min_rh: number
-  }
-  tonight_forecast?: {
-    description: string
-    min_temp: number
-    max_rh: number
-  }
-  tomorrow_forecast?: {
-    description: string
-    max_temp: number
-    min_rh: number
-  }
-  weather_data: {
-    date_time: string
-    temp: number | null
-    rh: number | null
-    wind_speed: number | null
-    wind_gust: number | null
-    wind_direction: number | null
-    rain: number | null
-    chance_rain: number | null
-  }[]
-  inversion_venting: string
+  id: number | null
+  spot_request_id: number
+  forecaster_name: string
+  forecaster_email: string
+  forecaster_phone?: string
+  synopsis?: string
+  inversion_and_venting?: string
   outlook?: string
-  confidence_discussion: string
+  confidence?: string
+  fire_size?: number | null
+  representative_station_codes?: number[]
+  for_date?: string
+  descriptive_weather: {
+    id: number | null
+    period: 'Today' | 'Tonight' | 'Tomorrow'
+    temperature: number | null
+    relative_humidity: number | null
+    conditions: string | null
+  }[]
+  tabular_weather: {
+    id: number | null
+    forecast_time: string
+    temperature: number | null
+    relative_humidity: number | null
+    wind: string | null
+    probability_of_precipitation: number | null
+    precipitation_amount: number | null
+  }[]
 }
 
-const marshalFormDataToSpotForecastInput = (formData: SpotFormData): SpotForecastInput => {
+const toNullableNumber = (value: string | undefined): number | null => {
+  if (value === undefined || value.trim() === '' || value.trim() === '-') {
+    return null
+  }
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : null
+}
+
+const toForecastTimeISO = (dateTime: string) => {
+  const parsedDateTime = DateTime.fromFormat(dateTime, 'yyyy-MM-dd HH:mm', { zone: 'America/Vancouver' })
+  return parsedDateTime.isValid ? parsedDateTime.toISO()! : dateTime
+}
+
+const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestId: number): SpotForecastInput => {
+  const descriptiveWeather: SpotForecastInput['descriptive_weather'] = [
+    formData.afternoonForecast
+      ? {
+          id: null,
+          period: 'Today' as const,
+          temperature: formData.afternoonForecast.maxTemp ?? null,
+          relative_humidity: formData.afternoonForecast.minRh ?? null,
+          conditions: formData.afternoonForecast.description || null
+        }
+      : undefined,
+    formData.tonightForecast
+      ? {
+          id: null,
+          period: 'Tonight' as const,
+          temperature: formData.tonightForecast.minTemp ?? null,
+          relative_humidity: formData.tonightForecast.maxRh ?? null,
+          conditions: formData.tonightForecast.description || null
+        }
+      : undefined,
+    formData.tomorrowForecast
+      ? {
+          id: null,
+          period: 'Tomorrow' as const,
+          temperature: formData.tomorrowForecast.maxTemp ?? null,
+          relative_humidity: formData.tomorrowForecast.minRh ?? null,
+          conditions: formData.tomorrowForecast.description || null
+        }
+      : undefined
+  ].filter(weather => weather !== undefined)
+
   return {
-    issued_date: formData.issuedDate.toISO()!,
-    expiry_date: formData.expiryDate.toISO()!,
-    fire_project: formData.fireProj,
-    request_by: formData.requestBy,
-    forecast_by: formData.forecastBy,
-    email: formData.email,
-    phone: formData.phone,
-    city: formData.city,
-    stations: formData.stns,
-    latitude: Number(formData.latitude),
-    longitude: Number(formData.longitude),
-    slope_aspect: formData.slopeAspect,
-    valley: formData.valley,
-    elevation: formData.elevation,
-    size: formData.size,
+    id: null,
+    spot_request_id: spotRequestId,
+    forecaster_name: formData.forecastBy,
+    forecaster_email: formData.email,
+    forecaster_phone: formData.phone,
     synopsis: formData.synopsis,
-    afternoon_forecast: formData.afternoonForecast
-      ? {
-          description: formData.afternoonForecast.description || '',
-          max_temp: formData.afternoonForecast.maxTemp || 0,
-          min_rh: formData.afternoonForecast.minRh || 0
-        }
-      : undefined,
-    tonight_forecast: formData.tonightForecast
-      ? {
-          description: formData.tonightForecast.description || '',
-          min_temp: formData.tonightForecast.minTemp || 0,
-          max_rh: formData.tonightForecast.maxRh || 0
-        }
-      : undefined,
-    tomorrow_forecast: formData.tomorrowForecast
-      ? {
-          description: formData.tomorrowForecast.description || '',
-          max_temp: formData.tomorrowForecast.maxTemp || 0,
-          min_rh: formData.tomorrowForecast.minRh || 0
-        }
-      : undefined,
-    weather_data: formData.weatherData.map(row => ({
-      date_time: row.dateTime,
-      temp: row.temp ? Number(row.temp) : null,
-      rh: row.rh ? Number(row.rh) : null,
-      wind_speed: row.windSpeed ? Number(row.windSpeed) : null,
-      wind_gust: row.windGust ? Number(row.windGust) : null,
-      wind_direction: row.windDirection ? Number(row.windDirection) : null,
-      rain: row.rain ? Number(row.rain) : null,
-      chance_rain: row.chanceRain ? Number(row.chanceRain) : null
-    })),
-    inversion_venting: formData.inversionVenting,
+    inversion_and_venting: formData.inversionVenting,
     outlook: formData.outlook,
-    confidence_discussion: formData.confidenceDiscussion
+    confidence: formData.confidenceDiscussion,
+    fire_size: toNullableNumber(formData.size),
+    representative_station_codes: formData.stns,
+    for_date: formData.issuedDate.toISO()!,
+    descriptive_weather: descriptiveWeather,
+    tabular_weather: formData.weatherData.map(row => ({
+      id: null,
+      forecast_time: toForecastTimeISO(row.dateTime),
+      temperature: toNullableNumber(row.temp),
+      relative_humidity: toNullableNumber(row.rh),
+      wind: row.wind || null,
+      probability_of_precipitation: toNullableNumber(row.chanceRain),
+      precipitation_amount: toNullableNumber(row.rain)
+    }))
   }
 }
-export interface SpotForecastOutput extends SpotForecastInput {
+
+export interface SpotForecastOutput extends Omit<SpotForecastInput, 'id'> {
   id: number
-  create_timestamp: string
-  create_user: string
-  update_timestamp: string
-  update_user: string
 }
 
 export interface SpotForecastResponse {
@@ -219,12 +216,13 @@ const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotR
   }
 }
 
-export const postSpotForecast = async (formData: SpotFormData): Promise<SpotForecastResponse> => {
-  const spotForecastInput = marshalFormDataToSpotForecastInput(formData)
-  const url = '/smurfi/forecast'
-  const { data } = await axios.post(url, {
-    spot_forecast: spotForecastInput
-  })
+export const postSpotForecast = async (
+  formData: SpotFormData,
+  spotRequestId: number
+): Promise<SpotForecastResponse> => {
+  const spotForecastInput = marshalFormDataToSpotForecastInput(formData, spotRequestId)
+  const url = '/smurfi/spot_forecast'
+  const { data } = await axios.post(url, spotForecastInput)
   return data
 }
 

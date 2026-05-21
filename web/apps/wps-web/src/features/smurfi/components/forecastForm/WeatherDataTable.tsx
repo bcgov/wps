@@ -31,6 +31,10 @@ interface WeatherDataTableProps {
   readOnly?: boolean
 }
 
+const dateCellSx = { width: 175, minWidth: 175 }
+const compactWeatherCellSx = { width: 90, minWidth: 90 }
+const windCellSx = { width: 190, minWidth: 190 }
+
 const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
   control,
   errors,
@@ -57,9 +61,7 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                     dateTime: DateTime.now().toFormat('yyyy-MM-dd HH:mm'),
                     temp: '',
                     rh: '',
-                    windSpeed: '',
-                    windGust: '',
-                    windDirection: '',
+                    wind: '',
                     rain: '-',
                     chanceRain: '-'
                   })
@@ -71,17 +73,15 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
           </Box>
 
           <TableContainer component={Paper}>
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 850 }}>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ minWidth: 175 }}>Date/Time (PDT)</TableCell>
-                  <TableCell>Temp (C)</TableCell>
-                  <TableCell>RH (%)</TableCell>
-                  <TableCell>Wind Speed (km/h)</TableCell>
-                  <TableCell>Wind Gust (km/h)</TableCell>
-                  <TableCell>Wind Direction (°)</TableCell>
-                  <TableCell>Rain (mm)</TableCell>
-                  <TableCell>Chance Rain (%)</TableCell>
+                  <TableCell sx={dateCellSx}>Date/Time (PDT)</TableCell>
+                  <TableCell sx={compactWeatherCellSx}>Temp (C)</TableCell>
+                  <TableCell sx={compactWeatherCellSx}>RH (%)</TableCell>
+                  <TableCell sx={windCellSx}>Wind</TableCell>
+                  <TableCell sx={compactWeatherCellSx}>Rain (mm)</TableCell>
+                  <TableCell sx={compactWeatherCellSx}>Chance Rain (%)</TableCell>
                   {!readOnly && <TableCell width={60} />}
                 </TableRow>
               </TableHead>
@@ -93,6 +93,7 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                       control={control}
                       readOnly={readOnly}
                       errorMessage={errors.weatherData?.[index]?.dateTime?.message}
+                      sx={dateCellSx}
                     />
                     <WeatherDataCell
                       name={`weatherData.${index}.temp` as FieldPath<SpotFormData>}
@@ -100,6 +101,7 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                       type="number"
                       readOnly={readOnly}
                       errorMessage={errors.weatherData?.[index]?.temp?.message}
+                      sx={compactWeatherCellSx}
                     />
                     <WeatherDataCell
                       name={`weatherData.${index}.rh` as FieldPath<SpotFormData>}
@@ -107,32 +109,25 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                       type="number"
                       readOnly={readOnly}
                       errorMessage={errors.weatherData?.[index]?.rh?.message}
+                      sx={compactWeatherCellSx}
                     />
                     <WeatherDataCell
-                      name={`weatherData.${index}.windSpeed` as FieldPath<SpotFormData>}
+                      name={`weatherData.${index}.wind` as FieldPath<SpotFormData>}
                       control={control}
                       readOnly={readOnly}
-                    />
-                    <WeatherDataCell
-                      name={`weatherData.${index}.windGust` as FieldPath<SpotFormData>}
-                      control={control}
-                      readOnly={readOnly}
-                    />
-                    <WeatherDataCell
-                      name={`weatherData.${index}.windDirection` as FieldPath<SpotFormData>}
-                      control={control}
-                      readOnly={readOnly}
-                      errorMessage={errors.weatherData?.[index]?.windDirection?.message}
+                      sx={windCellSx}
                     />
                     <WeatherDataCell
                       name={`weatherData.${index}.rain` as FieldPath<SpotFormData>}
                       control={control}
                       readOnly={readOnly}
+                      sx={compactWeatherCellSx}
                     />
                     <WeatherDataCell
                       name={`weatherData.${index}.chanceRain` as FieldPath<SpotFormData>}
                       control={control}
                       readOnly={readOnly}
+                      sx={compactWeatherCellSx}
                     />
                     {!readOnly && (
                       <TableCell>

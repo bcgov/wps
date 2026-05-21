@@ -83,7 +83,11 @@ export const {
 export default smurfiSlice.reducer
 
 export const submitSpotForecast =
-  (payload: { formData: SpotFormData; isMini: boolean }): AppThunk =>
+  (payload: {
+    formData: SpotFormData
+    isMini: boolean
+    spotRequestId: number
+  }): AppThunk<Promise<SpotForecastOutput | undefined>> =>
   async dispatch => {
     try {
       dispatch(submitSpotForecastStart())
@@ -96,10 +100,12 @@ export const submitSpotForecast =
         delete dataToSubmit.tomorrowForecast
       }
 
-      const response = await postSpotForecast(dataToSubmit)
+      const response = await postSpotForecast(dataToSubmit, payload.spotRequestId)
       dispatch(submitSpotForecastSuccess({ spotForecast: response.spot_forecast }))
+      return response.spot_forecast
     } catch (err) {
       dispatch(submitSpotForecastFailed((err as Error).toString()))
+      return undefined
     }
   }
 

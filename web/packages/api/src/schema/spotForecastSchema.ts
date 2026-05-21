@@ -28,12 +28,7 @@ export const createSchema = (isMini: boolean) => {
     dateTime: requiredString('Date/Time required'),
     temp: optionalNumericString('Must be a number'),
     rh: optionalNumericString('RH must be a number between 0 and 100', num => num >= 0 && num <= 100),
-    windSpeed: z.string().optional(),
-    windGust: z.string().optional(),
-    windDirection: optionalNumericString(
-      'Wind direction must be a number between 0 and 359',
-      num => num >= 0 && num <= 359
-    ),
+    wind: z.string().optional(),
     rain: z.string().optional(),
     chanceRain: z.string().optional()
   })

@@ -1,11 +1,12 @@
 import React, { useContext, useEffect, useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useDispatch } from 'react-redux'
-import { Grid, Typography, Button, Box, Switch, FormControlLabel } from '@mui/material'
+import { useDispatch, useSelector } from 'react-redux'
+import { Alert, Grid, Typography, Button, Box, Switch, FormControlLabel } from '@mui/material'
 import { DateTime } from 'luxon'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { AppDispatch } from '@/app/store'
+import { RootState } from '@/app/rootReducer'
 import { UserContext } from '@/features/smurfi/contexts/UserContext'
 import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
 import { SpotForecastHistoryItem } from '@/features/smurfi/interfaces'
@@ -18,6 +19,7 @@ import ForecastHistoryList from '@/features/smurfi/components/forecastForm/Forec
 import { SpotForecastStatus } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { getStations, StationSource } from '@wps/api/stationAPI'
+import { clearSpotForecastSubmitState, submitSpotForecast } from '@/features/smurfi/slices/smurfiSlice'
 
 // Mock data for all forecasts (including current) - in production this would come from an API
 const mockAllForecasts: SpotForecastHistoryItem[] = [
@@ -118,8 +120,7 @@ const getMockForecastData = (
       ...row,
       temp: String(15 + idx + (forecastId % 10)),
       rh: String(45 + idx * 2),
-      windSpeed: String(10 + idx),
-      windDirection: String((idx * 45) % 360)
+      wind: `${(idx * 45) % 360} deg ${10 + idx} km/h`
     }))
   }
 }
@@ -129,11 +130,19 @@ interface SpotForecastFormProps {
   fireId?: string
   latitude?: number
   longitude?: number
+  spotRequestId?: number
 }
 
-const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, fireId, latitude, longitude }) => {
+const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
+  readOnly = false,
+  fireId,
+  latitude,
+  longitude,
+  spotRequestId
+}) => {
   const user = useContext(UserContext)
   const dispatch: AppDispatch = useDispatch()
+  const { spotForecastSubmitting, spotForecastSubmitError } = useSelector((state: RootState) => state.smurfi)
   const [isMini, setIsMini] = useState(false)
   const [selectedForecastId, setSelectedForecastId] = useState<number | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
@@ -164,27 +173,12 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
     name: 'weatherData'
   })
 
-  const onSubmit = (data: SpotFormData) => {
-    // For mini forecasts, exclude forecast summary data
-    const dataToSubmit = { ...data }
-    if (isMini) {
-      delete dataToSubmit.afternoonForecast
-      delete dataToSubmit.tonightForecast
-      delete dataToSubmit.tomorrowForecast
+  const onSubmit = async (data: SpotFormData) => {
+    if (spotRequestId === undefined) {
+      return
     }
 
-    console.log('Submitted Forecast:', {
-      ...dataToSubmit,
-      issuedDate: dataToSubmit.issuedDate.toISO(),
-      expiryDate: dataToSubmit.expiryDate.toISO(),
-      weatherData: dataToSubmit.weatherData.map(row => ({
-        ...row,
-        temp: row.temp ? Number(row.temp) : '-',
-        rh: row.rh ? Number(row.rh) : '-'
-      }))
-    })
-
-    alert('Forecast submitted! Check console for formatted data.')
+    await dispatch(submitSpotForecast({ formData: data, isMini, spotRequestId }))
   }
 
   const handleSelectForecast = (forecast: SpotForecastHistoryItem) => {
@@ -212,6 +206,12 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+  }, [dispatch])
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearSpotForecastSubmitState())
+    }
   }, [dispatch])
 
   useEffect(() => {
@@ -262,11 +262,23 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
           />
           <SpotForecastSections control={control} errors={errors} isMini={isMini} readOnly={readOnly} />
 
+          {spotForecastSubmitError && (
+            <Grid size={12}>
+              <Alert severity="error">{spotForecastSubmitError}</Alert>
+            </Grid>
+          )}
+
           {/* Submit */}
           {!readOnly && (
             <Grid size={12}>
-              <Button type="submit" variant="contained" size="large" fullWidth disabled={!isValid}>
-                Submit Spot Forecast
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                fullWidth
+                disabled={!isValid || spotForecastSubmitting || spotRequestId === undefined}
+              >
+                {spotForecastSubmitting ? 'Submitting Spot Forecast...' : 'Submit Spot Forecast'}
               </Button>
             </Grid>
           )}

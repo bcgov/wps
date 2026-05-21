@@ -143,7 +143,12 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          <SpotForecastForm />
+          <SpotForecastForm
+            spotRequestId={selectedSpot?.id}
+            fireId={selectedSpot?.fire_id}
+            latitude={selectedSpot?.latitude}
+            longitude={selectedSpot?.longitude}
+          />
         </DialogContent>
       </Dialog>
     </Box>

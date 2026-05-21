@@ -17,9 +17,7 @@ export const defaultWeatherRows: SpotFormData['weatherData'] = defaultDateTimes.
   dateTime: dt.toFormat('yyyy-MM-dd HH:mm'),
   temp: '',
   rh: '',
-  windSpeed: '',
-  windGust: '',
-  windDirection: '',
+  wind: '',
   rain: '',
   chanceRain: ''
 }))

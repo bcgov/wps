@@ -1,5 +1,5 @@
 import React from 'react'
-import { TableCell } from '@mui/material'
+import { SxProps, TableCell, Theme } from '@mui/material'
 import { Control, FieldPath } from 'react-hook-form'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import ControlledForecastTextField from '@/features/smurfi/components/forecastForm/ControlledForecastTextField'
@@ -10,10 +10,18 @@ interface WeatherDataCellProps {
   errorMessage?: string
   readOnly: boolean
   type?: 'text' | 'number'
+  sx?: SxProps<Theme>
 }
 
-const WeatherDataCell: React.FC<WeatherDataCellProps> = ({ control, name, errorMessage, readOnly, type = 'text' }) => (
-  <TableCell>
+const WeatherDataCell: React.FC<WeatherDataCellProps> = ({
+  control,
+  name,
+  errorMessage,
+  readOnly,
+  type = 'text',
+  sx
+}) => (
+  <TableCell sx={sx}>
     <ControlledForecastTextField
       name={name}
       control={control}

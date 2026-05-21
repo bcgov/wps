@@ -260,12 +260,13 @@ async def upsert_spot_forecast(data: SpotForecastData):
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"SpotForecast {data.id} not found",
                 )
-        descriptive_weather = await _upsert_descriptive_weather(session, result.id, data)
-        tabular_weather = await _upsert_tabular_weather(session, result.id, data)
+        spot_forecast_id = result.id
+        descriptive_weather = await _upsert_descriptive_weather(session, spot_forecast_id, data)
+        tabular_weather = await _upsert_tabular_weather(session, spot_forecast_id, data)
     return SpotForecastResponse(
         spot_forecast=data.model_copy(
             update={
-                "id": result.id,
+                "id": spot_forecast_id,
                 "descriptive_weather": descriptive_weather,
                 "tabular_weather": tabular_weather,
             }
