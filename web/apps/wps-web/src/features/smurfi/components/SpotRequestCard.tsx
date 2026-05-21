@@ -100,7 +100,7 @@ const SpotRequestCard = ({ spot, isAuthenticated }: SpotRequestCardProps) => {
         </Grid>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Button variant="outlined" startIcon={<DescriptionIcon />} sx={{ width: '100%' }} onClick={handleViewPDF}>
-            {spot.status === SpotRequestStatus.NEW
+            {spot.status === SpotRequestStatus.REQUESTED
               ? 'New Spot Forecast'
               : spot.last_updated
                 ? `Latest Spot Forecast - ${DateTime.fromMillis(spot.last_updated).toFormat('dd/MM/yy - HH:mm')}`

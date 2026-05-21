@@ -158,7 +158,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">
-            {selectedSpot?.status === SpotRequestStatus.NEW ? 'New Spot Forecast' : 'Edit Spot Forecast'}
+            {selectedSpot?.status === SpotRequestStatus.REQUESTED ? 'New Spot Forecast' : 'Edit Spot Forecast'}
             {selectedSpot && ` - Spot ID: ${selectedSpot.spot_id}`}
           </Typography>
           <IconButton aria-label="close" onClick={handleModalClose} size="small">

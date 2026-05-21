@@ -2,7 +2,13 @@ import { RootState } from '@/app/rootReducer'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { SpotRequestFormData } from '@wps/api/schema/spotRequestSchema'
-import { postSpotForecast, postSpotRequest, SpotForecastOutput, SpotRequestOutput } from '@wps/api/SMURFIAPI'
+import {
+  getSpotRequests,
+  postSpotForecast,
+  postSpotRequest,
+  SpotForecastOutput,
+  SpotRequestOutput
+} from '@wps/api/SMURFIAPI'
 import { AppThunk } from 'app/store'
 
 export interface SmurfiState {
@@ -13,6 +19,8 @@ export interface SmurfiState {
   submittedSpotForecast: SpotForecastOutput | null
   spotRequestSubmitting: boolean
   spotRequestSubmitError: string | null
+  spotRequestsError: string | null
+  spotRequestsLoading: boolean
   spotRequests: SpotRequestOutput[]
 }
 
@@ -24,78 +32,28 @@ const initialState: SmurfiState = {
   submittedSpotForecast: null,
   spotRequestSubmitting: false,
   spotRequestSubmitError: null,
+  spotRequestsError: null,
+  spotRequestsLoading: false,
   spotRequests: []
-  // spotRequests: [
-  //   {
-  //     id: 1,
-  //     requestReference: 'foo',
-  //     fireNumber: 'V001234567',
-  //     fireCentre: 'Coastal',
-  //     status: SpotRequestStatus.NEW,
-  //     requestorName: 'Darren',
-  //     requestorIDIR: 'IDIR/DRN',
-  //     requestorEmail: 'drn.bos@gov.bc.ca',
-  //     requestFrequency: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-  //     requestType: SpotRequestType.MINI_SPOT,
-  //     slopeAspect: 'Northwest',
-  //     elevation: 1101,
-  //     geographicDescription: 'Strathcona',
-  //     latitude: 49,
-  //     longitude: -121,
-  //     requestedAt: '2026-05-19T00:00-07:00',
-  //     forecastStartDate: '2026-05-20T00:00-07:00',
-  //     forecastEndDate: '2026-05-27T00:00-07:00',
-  //     emailDistributionList: ['drn.bos@gov.bc.ca']
-  //   },
-  //   {
-  //     id: 2,
-  //     requestReference: 'bar',
-  //     fireNumber: 'K001234567',
-  //     fireCentre: 'Kamloops',
-  //     status: SpotRequestStatus.ACTIVE,
-  //     requestorName: 'Aaron',
-  //     requestorIDIR: 'IDIR/ARN',
-  //     requestorEmail: 'arn@gov.bc.ca',
-  //     requestFrequency: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-  //     requestType: SpotRequestType.FULL_SPOT,
-  //     slopeAspect: 'West',
-  //     elevation: 507,
-  //     geographicDescription: 'Grasslands',
-  //     latitude: 49.5,
-  //     longitude: -120,
-  //     requestedAt: '2026-05-19T00:00-07:00',
-  //     forecastStartDate: '2026-05-20T00:00-07:00',
-  //     forecastEndDate: '2026-05-30T00:00-07:00',
-  //     emailDistributionList: ['arn@gov.bc.ca']
-  //   },
-  //   {
-  //     id: 3,
-  //     requestReference: 'dog',
-  //     fireNumber: 'G001234567',
-  //     fireCentre: 'Prince George',
-  //     status: SpotRequestStatus.PAUSED,
-  //     requestorName: 'Jon',
-  //     requestorIDIR: 'IDIR/DRN',
-  //     requestorEmail: 'jon@gov.bc.ca',
-  //     requestFrequency: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-  //     requestType: SpotRequestType.FULL_SPOT,
-  //     slopeAspect: 'East',
-  //     elevation: 603,
-  //     geographicDescription: 'Snow',
-  //     latitude: 50,
-  //     longitude: -123.5,
-  //     requestedAt: '2026-05-19T00:00-07:00',
-  //     forecastStartDate: '2026-05-20T00:00-07:00',
-  //     forecastEndDate: '2026-05-27T00:00-07:00',
-  //     emailDistributionList: ['jon@gov.bc.ca']
-  //   }
-  // ]
 }
 
 const smurfiSlice = createSlice({
   name: 'smurfi',
   initialState,
   reducers: {
+    getSpotRequestsStart(state: SmurfiState) {
+      state.spotRequestsError = null
+      state.spotRequestSubmitting = true
+    },
+    getSpotRequestsFailed(state: SmurfiState, action: PayloadAction<string>) {
+      state.spotRequestsError = action.payload
+      state.spotRequestSubmitting = false
+    },
+    getSpotRequestsSuccess(state: SmurfiState, action: PayloadAction<{ spotRequests: SpotRequestOutput[] }>) {
+      state.spotRequestSubmitting = false
+      state.spotRequestsError = null
+      state.spotRequests = action.payload.spotRequests
+    },
     submitSpotForecastStart(state: SmurfiState) {
       state.spotForecastSubmitError = null
       state.spotForecastSubmitting = true
@@ -125,7 +83,11 @@ const smurfiSlice = createSlice({
     submitSpotRequestSuccess(state: SmurfiState, action: PayloadAction<{ spotRequest: SpotRequestOutput }>) {
       state.spotRequestSubmitting = false
       state.spotRequestSubmitError = null
-      state.submittedSpotRequest = action.payload.spotRequest
+
+      // Filter out an existing spot request so it can be replaced with the updated one.
+      const filteredSpotRequests = state.spotRequests.filter(sr => sr.id !== action.payload.spotRequest.id)
+
+      state.spotRequests = [action.payload.spotRequest, ...filteredSpotRequests]
     },
     clearSpotRequestSubmitState(state: SmurfiState) {
       state.spotRequestSubmitting = false
@@ -135,6 +97,9 @@ const smurfiSlice = createSlice({
 })
 
 export const {
+  getSpotRequestsStart,
+  getSpotRequestsFailed,
+  getSpotRequestsSuccess,
   submitSpotForecastStart,
   submitSpotForecastFailed,
   submitSpotForecastSuccess,
@@ -183,4 +148,15 @@ export const submitSpotRequest =
     }
   }
 
-export const selectSpotForecasts = (state: RootState) => state.smurfi.spotRequests
+export const fetchSpotRequests = (): AppThunk => async dispatch => {
+  try {
+    dispatch(getSpotRequestsStart())
+
+    const response = await getSpotRequests()
+    dispatch(getSpotRequestsSuccess({ spotRequests: response.spot_requests }))
+  } catch (err) {
+    dispatch(getSpotRequestsFailed((err as Error).toString()))
+  }
+}
+
+export const selectSmurfi = (state: RootState) => state.smurfi

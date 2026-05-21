@@ -31,7 +31,7 @@ const mockAllForecasts: SpotForecastHistoryItem[] = [
     expiry_date: DateTime.now().plus({ days: 1 }).toMillis(),
     forecaster: 'Matt',
     synopsis: 'Current forecast: High pressure continues to dominate with warm and dry conditions expected.',
-    status: SpotRequestStatus.ACTIVE
+    status: SpotRequestStatus.STARTED
   },
   {
     id: 105,
@@ -42,7 +42,7 @@ const mockAllForecasts: SpotForecastHistoryItem[] = [
     expiry_date: DateTime.now().plus({ days: 1 }).toMillis(),
     forecaster: 'Jessie',
     synopsis: 'Current forecast: Unstable conditions with potential for afternoon thunderstorms.',
-    status: SpotRequestStatus.ACTIVE
+    status: SpotRequestStatus.STARTED
   },
   // Historical forecasts for V0800168
   {

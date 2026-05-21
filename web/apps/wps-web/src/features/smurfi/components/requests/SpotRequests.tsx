@@ -1,22 +1,43 @@
-import React, { useState } from 'react'
-import { Box, Button, Dialog, DialogContent, DialogTitle, IconButton, TextField, Autocomplete } from '@mui/material'
-import { useSelector } from 'react-redux'
-import { selectSpotAdminRows } from '@/features/smurfi/slices/spotAdminSlice'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  TextField,
+  Autocomplete,
+  CircularProgress,
+  Typography
+} from '@mui/material'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectFireCentres } from '@/app/rootReducer'
 import { DateRange } from '@wps/ui/dateRangePicker/types'
 import DateRangeSelector from '@wps/ui/DateRangeSelector'
 import CloseIcon from '@mui/icons-material/Close'
 import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
 import SpotRequestsTable from '@/features/smurfi/components/requests/SpotRequestsTable'
-import { selectSpotForecasts } from '@/features/smurfi/slices/smurfiSlice'
+import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { DateTime } from 'luxon'
+import { AppDispatch } from '@/app/store'
+import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
 
 const SpotRequests: React.FC = () => {
-  const spotForecasts = useSelector(selectSpotForecasts)
+  const { spotRequests, spotRequestsError, spotRequestsLoading } = useSelector(selectSmurfi)
+  const { fireCentres } = useSelector(selectFireCentres)
   const [searchTerm, setSearchTerm] = useState('')
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
-  const [fireCentreSearch, setFireCentreSearch] = useState('')
+  const [fireCentreSearch, setFireCentreSearch] = useState<number | null>(null)
   const [statusSearch, setStatusSearch] = useState('')
   const [requestFormOpen, setRequestFormOpen] = useState(false)
+
+  const dispatch: AppDispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(fetchSpotRequests())
+    dispatch(fetchFireCentres())
+  }, [])
 
   const dateInRange = (endDate: string) => {
     if (!dateRange?.startDate || !dateRange?.endDate) {
@@ -35,13 +56,31 @@ const SpotRequests: React.FC = () => {
     return requestEndMillis >= dateRangeStart && requestEndMillis <= dateRangeEnd
   }
 
-  const filteredSpotRequests = spotForecasts.filter(spot => {
-    const matchesFireId = spot.fireNumber.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFireCentre = spot.fireCentre.toLowerCase().includes(fireCentreSearch.toLowerCase())
-    const matchesStatus = statusSearch === '' || spot.status === statusSearch
-    const matchesDate = dateInRange(spot.forecastEndDate)
-    return matchesFireId && matchesDate && matchesFireCentre && matchesStatus
-  })
+  const getFilteredSpotRequests = () => {
+    if (!spotRequests || spotRequests.length === 0) {
+      return []
+    }
+    return spotRequests.filter(spot => {
+      const matchesFireId = spot.fire_number.some(fn => fn.toLowerCase().includes(searchTerm.toLowerCase()))
+      const matchesFireCentre = fireCentreSearch === null || spot.fire_centre === fireCentreSearch
+      const matchesStatus = statusSearch === '' || spot.status === statusSearch
+      const matchesDate = dateInRange(spot.end_at)
+      return matchesFireId && matchesDate && matchesFireCentre && matchesStatus
+    })
+  }
+
+  const filteredSpotRequests = useMemo(() => {
+    if (!spotRequests || spotRequests.length === 0) {
+      return []
+    }
+    return spotRequests.filter(spot => {
+      const matchesFireId = spot.fire_number.some(fn => fn.toLowerCase().includes(searchTerm.toLowerCase()))
+      const matchesFireCentre = fireCentreSearch === null || spot.fire_centre === fireCentreSearch
+      const matchesStatus = statusSearch === '' || spot.status === statusSearch
+      const matchesDate = dateInRange(spot.end_at)
+      return matchesFireId && matchesDate && matchesFireCentre && matchesStatus
+    })
+  }, [spotRequests])
 
   return (
     <Box
@@ -84,12 +123,13 @@ const SpotRequests: React.FC = () => {
           onChange={e => setSearchTerm(e.target.value)}
           sx={{ flex: 1 }}
         />
-        <TextField
-          label="Search by Fire Centre"
-          variant="outlined"
-          value={fireCentreSearch}
-          onChange={e => setFireCentreSearch(e.target.value)}
+        <Autocomplete
           sx={{ flex: 1 }}
+          options={fireCentres}
+          getOptionLabel={option => option.name}
+          value={fireCentres.find(fc => fc.id === fireCentreSearch) ?? null}
+          onChange={(_, newValue) => setFireCentreSearch(newValue?.id ?? null)}
+          renderInput={params => <TextField {...params} label="Search by Fire Centre" variant="outlined" />}
         />
         <DateRangeSelector
           dateRange={dateRange}
@@ -106,7 +146,13 @@ const SpotRequests: React.FC = () => {
           renderInput={params => <TextField {...params} label="Search by Status" variant="outlined" />}
         />
       </Box>
-      <SpotRequestsTable rows={filteredSpotRequests} />
+      {spotRequestsLoading && <CircularProgress aria-label="Loading…" />}
+      {spotRequestsError && (
+        <Typography variant="body1">
+          An error occurred while retrieving the list of Spot Requests. Please try again.
+        </Typography>
+      )}
+      {!spotRequestsLoading && !spotRequestsError && <SpotRequestsTable rows={filteredSpotRequests} />}
     </Box>
   )
 }

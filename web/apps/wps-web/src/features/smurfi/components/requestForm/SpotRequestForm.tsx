@@ -37,7 +37,6 @@ import {
 import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { AppDispatch } from '@/app/store'
 import { RootState, selectFireCentres } from '@/app/rootReducer'
-import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
 import { clearSpotRequestSubmitState, submitSpotRequest } from '@/features/smurfi/slices/smurfiSlice'
 import SpotRequestLocationField from '@/features/smurfi/components/requestForm/SpotRequestLocationField'
 import { useDispatch, useSelector } from 'react-redux'
@@ -118,10 +117,6 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
-
-  useEffect(() => {
-    dispatch(fetchFireCentres())
-  }, [dispatch])
 
   useEffect(() => {
     return () => {

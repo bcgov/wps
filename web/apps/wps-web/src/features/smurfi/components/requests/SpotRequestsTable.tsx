@@ -1,27 +1,32 @@
-import { SpotRequest, SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
+import { selectFireCentres } from '@/app/rootReducer'
+import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { Box, Button, Typography } from '@mui/material'
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro'
-import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
-import { SMURFI_DASHBOARD_ROUTE, SMURFI_FORECASTS_ROUTE } from '@wps/utils/constants'
+import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 import { DateTime } from 'luxon'
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 export interface SpotRequestsTableProps {
-  rows: SpotRequest[]
+  rows: SpotRequestOutput[]
 }
 
 const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
   const navigate = useNavigate()
+  const { fireCentres } = useSelector(selectFireCentres)
   const columns: GridColDef<(typeof rows)[number]>[] = [
     { field: 'id', headerName: 'ID', width: 90 },
-    { field: 'fireNumber', headerName: 'Fire Number', width: 110 },
+    { field: 'fire_number', headerName: 'Fire Number', width: 110 },
     {
-      field: 'fireCentre',
+      field: 'fire_centre',
       headerName: 'Fire Centre',
-      width: 150
+      width: 150,
+      renderCell: params =>
+        (fireCentres.find(fc => fc.id === params.value)?.name ?? String(params.value)).replace(/ Fire Centre$/, '')
     },
     {
-      field: 'forecastStartDate',
+      field: 'start_at',
       headerName: 'Start Date',
       width: 150,
       renderCell: params => {
@@ -32,7 +37,7 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       }
     },
     {
-      field: 'forecastEndDate',
+      field: 'end_at',
       headerName: 'End Date',
       width: 150,
       renderCell: params => {
@@ -88,7 +93,10 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       headerName: 'View Forecasts',
       width: 160,
       renderCell: params => (
-        <Button variant="text" onClick={() => navigate(`${SMURFI_FORECASTS_ROUTE}/${params.row.id}`)}>
+        <Button
+          variant="text"
+          onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}/forecasts`)}
+        >
           View Forecasts
         </Button>
       )
@@ -97,7 +105,15 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-      <DataGridPro columns={columns} rows={rows}></DataGridPro>
+      <DataGridPro
+        columns={columns}
+        rows={rows}
+        disableColumnFilter
+        disableColumnPinning
+        disableColumnReorder
+        disableColumnSelector
+        disableRowSelectionOnClick
+      ></DataGridPro>
     </Box>
   )
 }

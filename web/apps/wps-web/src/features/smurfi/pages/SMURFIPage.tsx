@@ -11,6 +11,7 @@ import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
 import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
 import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
 import SpotForecasts from '@/features/smurfi/components/forecasts/SpotForecasts'
+import SpotForecast from '@/features/smurfi/components/forecasts/SpotForecast'
 
 const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE]
 
@@ -47,6 +48,8 @@ const SMURFIPage = () => {
                   <Routes>
                     <Route index element={<SpotRequests />} />
                     <Route path=":id" element={<SpotRequest />} />
+                    <Route path=":id/forecasts" element={<SpotForecasts />} />
+                    <Route path=":id/forecasts/:forecastId" element={<SpotForecast />} />
                   </Routes>
                 </RouteContent>
               }
@@ -69,16 +72,7 @@ const SMURFIPage = () => {
                 </RouteContent>
               }
             />
-            <Route path="forecasts" element={<Navigate to={SMURFI_DASHBOARD_ROUTE} replace />} />
-            <Route
-              path="forecasts/:id"
-              element={
-                <RouteContent>
-                  <SpotForecasts />
-                </RouteContent>
-              }
-            />
-            <Route path="*" element={<Navigate to={SMURFI_DASHBOARD_ROUTE} replace />} />
+<Route path="*" element={<Navigate to={SMURFI_DASHBOARD_ROUTE} replace />} />
           </Routes>
         </Box>
       </Box>

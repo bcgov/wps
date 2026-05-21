@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -338,10 +339,11 @@ async def update_subscriber(data: UpdateSubscriberStatusData):
 
 
 @router.get("/spot_requests", response_model=SpotRequestListResponse)
-async def get_spot_requests(year: int):
-    logger.info("Getting SpotRequests for year: %s", year)
+async def get_spot_requests():
+    now = datetime.now()
+    logger.info("Getting SpotRequests for year: %s", now.year)
     async with get_async_read_session_scope() as session:
-        spot_requests = await get_spot_requests_for_year(session, year)
+        spot_requests = await get_spot_requests_for_year(session, now.year)
     return SpotRequestListResponse(
         spot_requests=[_spot_request_to_schema(sr) for sr in spot_requests]
     )
