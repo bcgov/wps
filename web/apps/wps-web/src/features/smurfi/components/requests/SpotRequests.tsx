@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  InputAdornment,
   TextField,
   Autocomplete,
   CircularProgress,
@@ -22,6 +23,7 @@ import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfi
 import { DateTime } from 'luxon'
 import { AppDispatch } from '@/app/store'
 import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
+import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 
 const SpotRequests: React.FC = () => {
   const { spotRequests, spotRequestsError, spotRequestsLoading } = useSelector(selectSmurfi)
@@ -29,7 +31,7 @@ const SpotRequests: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [dateRange, setDateRange] = useState<[DateTime | null, DateTime | null]>([null, null])
   const [fireCentreSearch, setFireCentreSearch] = useState<number | null>(null)
-  const [statusSearch, setStatusSearch] = useState('')
+  const [statusSearch, setStatusSearch] = useState<SpotRequestStatus | ''>('')
   const [requestFormOpen, setRequestFormOpen] = useState(false)
 
   const dispatch: AppDispatch = useDispatch()
@@ -100,6 +102,17 @@ const SpotRequests: React.FC = () => {
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           sx={{ flex: 1 }}
+          slotProps={{
+            input: {
+              endAdornment: searchTerm && (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={() => setSearchTerm('')}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }
+          }}
         />
         <Autocomplete
           sx={{ flex: 1 }}
@@ -118,7 +131,13 @@ const SpotRequests: React.FC = () => {
         />
         <Autocomplete
           sx={{ flex: 1 }}
-          options={['New', 'Active', 'Inactive', 'Paused', 'Archived']}
+          options={[
+            SpotRequestStatus.REQUESTED,
+            SpotRequestStatus.STARTED,
+            SpotRequestStatus.SUSPENDED,
+            SpotRequestStatus.COMPLETE,
+            SpotRequestStatus.ARCHIVED
+          ]}
           value={statusSearch || null}
           onChange={(event, newValue) => setStatusSearch(newValue || '')}
           renderInput={params => <TextField {...params} label="Search by Status" variant="outlined" />}
