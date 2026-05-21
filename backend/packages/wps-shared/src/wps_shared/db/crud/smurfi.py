@@ -182,7 +182,9 @@ async def update_spot_subscriber_status(
     return subscriber
 
 
-async def subscribe_to_spot_request(session: AsyncSession, spot_request_id: int, email: str) -> SpotSubscriber:
+async def subscribe_to_spot_request(
+    session: AsyncSession, spot_request_id: int, email: str
+) -> SpotSubscriber:
     result = await session.execute(
         select(SpotSubscriber).where(
             SpotSubscriber.spot_request_id == spot_request_id,
@@ -229,7 +231,9 @@ async def get_subscribed_spot_request_ids(session: AsyncSession, email: str) -> 
     return list(result.scalars().all())
 
 
-async def get_active_subscribers_for_spot(session: AsyncSession, spot_request_id: int) -> list[SpotSubscriber]:
+async def get_active_subscribers_for_spot(
+    session: AsyncSession, spot_request_id: int
+) -> list[SpotSubscriber]:
     result = await session.execute(
         select(SpotSubscriber).where(
             SpotSubscriber.spot_request_id == spot_request_id,
@@ -239,7 +243,9 @@ async def get_active_subscribers_for_spot(session: AsyncSession, spot_request_id
     return list(result.scalars().all())
 
 
-async def get_spot_forecast_with_weather(session: AsyncSession, spot_forecast_id: int) -> SpotForecast | None:
+async def get_spot_forecast_with_weather(
+    session: AsyncSession, spot_forecast_id: int
+) -> SpotForecast | None:
     result = await session.execute(
         select(SpotForecast)
         .where(SpotForecast.id == spot_forecast_id)
@@ -250,3 +256,18 @@ async def get_spot_forecast_with_weather(session: AsyncSession, spot_forecast_id
         )
     )
     return result.scalar_one_or_none()
+
+
+async def get_spot_forecasts_for_request(
+    session: AsyncSession, spot_request_id: int
+) -> list[SpotForecast]:
+    result = await session.execute(
+        select(SpotForecast)
+        .where(SpotForecast.spot_request_id == spot_request_id)
+        .options(
+            selectinload(SpotForecast.descriptive_weather),
+            selectinload(SpotForecast.tabular_weather),
+        )
+        .order_by(SpotForecast.created_at.desc())
+    )
+    return list(result.scalars().all())

@@ -10,7 +10,6 @@ interface ControlledForecastTextFieldProps extends Omit<
   control: Control<SpotFormData>
   name: FieldPath<SpotFormData>
   errorMessage?: string
-  readOnly?: boolean
   endAdornment?: React.ReactNode
   parseValue?: (value: string) => unknown
 }
@@ -19,7 +18,6 @@ const ControlledForecastTextField: React.FC<ControlledForecastTextFieldProps> = 
   control,
   name,
   errorMessage,
-  readOnly = false,
   endAdornment,
   parseValue,
   ...textFieldProps
@@ -37,7 +35,6 @@ const ControlledForecastTextField: React.FC<ControlledForecastTextFieldProps> = 
         onChange={event => field.onChange(parseValue ? parseValue(event.target.value) : event.target.value)}
         slotProps={{
           input: {
-            readOnly,
             endAdornment
           }
         }}

@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { SpotRequestFormData } from '@wps/api/schema/spotRequestSchema'
 import {
+  getSpotForecasts,
   getSpotRequests,
   postSpotForecast,
   postSpotRequest,
@@ -17,6 +18,9 @@ export interface SmurfiState {
   spotForecastSubmitting: boolean
   spotForecastSubmitError: string | null
   submittedSpotForecast: SpotForecastOutput | null
+  spotForecastsByRequestId: Record<number, SpotForecastOutput[]>
+  spotForecastsError: string | null
+  spotForecastsLoading: boolean
   spotRequestSubmitting: boolean
   spotRequestSubmitError: string | null
   spotRequestsError: string | null
@@ -30,6 +34,9 @@ const initialState: SmurfiState = {
   spotForecastSubmitting: false,
   spotForecastSubmitError: null,
   submittedSpotForecast: null,
+  spotForecastsByRequestId: {},
+  spotForecastsError: null,
+  spotForecastsLoading: false,
   spotRequestSubmitting: false,
   spotRequestSubmitError: null,
   spotRequestsError: null,
@@ -43,14 +50,14 @@ const smurfiSlice = createSlice({
   reducers: {
     getSpotRequestsStart(state: SmurfiState) {
       state.spotRequestsError = null
-      state.spotRequestSubmitting = true
+      state.spotRequestsLoading = true
     },
     getSpotRequestsFailed(state: SmurfiState, action: PayloadAction<string>) {
       state.spotRequestsError = action.payload
-      state.spotRequestSubmitting = false
+      state.spotRequestsLoading = false
     },
     getSpotRequestsSuccess(state: SmurfiState, action: PayloadAction<{ spotRequests: SpotRequestOutput[] }>) {
-      state.spotRequestSubmitting = false
+      state.spotRequestsLoading = false
       state.spotRequestsError = null
       state.spotRequests = action.payload.spotRequests
     },
@@ -66,11 +73,33 @@ const smurfiSlice = createSlice({
       state.spotForecastSubmitting = false
       state.spotForecastSubmitError = null
       state.submittedSpotForecast = action.payload.spotForecast
+      state.spotForecastsByRequestId[action.payload.spotForecast.spot_request_id] = [
+        action.payload.spotForecast,
+        ...(state.spotForecastsByRequestId[action.payload.spotForecast.spot_request_id] ?? []).filter(
+          forecast => forecast.id !== action.payload.spotForecast.id
+        )
+      ]
     },
     clearSpotForecastSubmitState(state: SmurfiState) {
       state.spotForecastSubmitting = false
       state.spotForecastSubmitError = null
       state.submittedSpotForecast = null
+    },
+    getSpotForecastsStart(state: SmurfiState) {
+      state.spotForecastsError = null
+      state.spotForecastsLoading = true
+    },
+    getSpotForecastsFailed(state: SmurfiState, action: PayloadAction<string>) {
+      state.spotForecastsError = action.payload
+      state.spotForecastsLoading = false
+    },
+    getSpotForecastsSuccess(
+      state: SmurfiState,
+      action: PayloadAction<{ spotRequestId: number; spotForecasts: SpotForecastOutput[] }>
+    ) {
+      state.spotForecastsError = null
+      state.spotForecastsLoading = false
+      state.spotForecastsByRequestId[action.payload.spotRequestId] = action.payload.spotForecasts
     },
     submitSpotRequestStart(state: SmurfiState) {
       state.spotRequestSubmitError = null
@@ -104,6 +133,9 @@ export const {
   submitSpotForecastFailed,
   submitSpotForecastSuccess,
   clearSpotForecastSubmitState,
+  getSpotForecastsStart,
+  getSpotForecastsFailed,
+  getSpotForecastsSuccess,
   submitSpotRequestStart,
   submitSpotRequestFailed,
   submitSpotRequestSuccess,
@@ -136,6 +168,21 @@ export const submitSpotForecast =
     } catch (err) {
       dispatch(submitSpotForecastFailed((err as Error).toString()))
       return undefined
+    }
+  }
+
+export const fetchSpotForecasts =
+  (spotRequestId: number): AppThunk<Promise<SpotForecastOutput[]>> =>
+  async dispatch => {
+    try {
+      dispatch(getSpotForecastsStart())
+
+      const response = await getSpotForecasts(spotRequestId)
+      dispatch(getSpotForecastsSuccess({ spotRequestId, spotForecasts: response.spot_forecasts }))
+      return response.spot_forecasts
+    } catch (err) {
+      dispatch(getSpotForecastsFailed((err as Error).toString()))
+      return []
     }
   }
 

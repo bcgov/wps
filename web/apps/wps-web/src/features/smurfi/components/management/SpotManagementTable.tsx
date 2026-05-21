@@ -168,6 +168,8 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
         <DialogContent dividers>
           <SpotForecastForm
             spotRequestId={selectedSpot?.id}
+            spotRequest={selectedSpot?.spot_request}
+            fireCentreName={selectedSpot?.fire_centre}
             fireId={selectedSpot?.fire_id}
             latitude={selectedSpot?.latitude}
             longitude={selectedSpot?.longitude}

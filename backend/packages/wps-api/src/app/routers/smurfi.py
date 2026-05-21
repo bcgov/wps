@@ -10,6 +10,7 @@ from wps_shared.db.crud.smurfi import (
     create_spot_descriptive_weather,
     create_spot_forecast,
     create_spot_tabular_weather,
+    get_spot_forecasts_for_request,
     get_spot_requests_for_year,
     get_subscribed_spot_request_ids,
     subscribe_to_spot_request,
@@ -37,6 +38,7 @@ from wps_shared.geospatial.geospatial import (
 from wps_shared.schemas.smurfi import (
     SpotDescriptiveWeatherData,
     SpotForecastData,
+    SpotForecastListResponse,
     SpotForecastResponse,
     SpotRequestData,
     SpotRequestInput,
@@ -240,14 +242,20 @@ async def _upsert_tabular_weather(
 
 
 @router.post("/spot_forecast", response_model=SpotForecastResponse)
-async def upsert_spot_forecast(data: SpotForecastData):
+async def upsert_spot_forecast(
+    data: SpotForecastData, token: Annotated[dict, Depends(authentication_required)]
+):
     now = get_utc_now()
+    forecaster = _get_spot_requestor(token)
+    if not forecaster.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim"
+        )
     spot_forecast = SpotForecast(
-        id=data.id,
         spot_request_id=data.spot_request_id,
-        forecaster_name=data.forecaster_name,
-        forecaster_email=data.forecaster_email,
-        forecaster_phone=data.forecaster_phone,
+        forecaster_name=forecaster.name,
+        forecaster_email=forecaster.email,
+        forecaster_phone=None,
         synopsis=data.synopsis,
         inversion_and_venting=data.inversion_and_venting,
         outlook=data.outlook,
@@ -259,22 +267,16 @@ async def upsert_spot_forecast(data: SpotForecastData):
         updated_at=now,
     )
     async with get_async_write_session_scope() as session:
-        if data.id is None:
-            logger.info("Creating a new SpotForecast.")
-            result = await create_spot_forecast(session, spot_forecast)
-        else:
-            logger.info("Updaing an existing SpotForecast with id: %s.", data.id)
-            result = await update_spot_forecast(session, spot_forecast)
-            if result is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"SpotForecast {data.id} not found",
-                )
+        logger.info("Creating a new SpotForecast.")
+        result = await create_spot_forecast(session, spot_forecast)
+
         spot_forecast_id = result.id
         descriptive_weather = await _upsert_descriptive_weather(session, spot_forecast_id, data)
         tabular_weather = await _upsert_tabular_weather(session, spot_forecast_id, data)
 
-    payload = SpotUpdatePayload(spot_request_id=data.spot_request_id, spot_forecast_id=result.id)
+    payload = SpotUpdatePayload(
+        spot_request_id=data.spot_request_id, spot_forecast_id=spot_forecast_id
+    )
     await publish(
         stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
     )
@@ -282,11 +284,71 @@ async def upsert_spot_forecast(data: SpotForecastData):
         spot_forecast=data.model_copy(
             update={
                 "id": spot_forecast_id,
+                "forecaster_name": forecaster.name,
+                "forecaster_email": forecaster.email,
+                "forecaster_phone": None,
                 "descriptive_weather": descriptive_weather,
                 "tabular_weather": tabular_weather,
             }
         )
     )
+
+
+def _spot_forecast_to_schema(spot_forecast: SpotForecast) -> SpotForecastData:
+    period_order = {"Today": 0, "Tonight": 1, "Tomorrow": 2}
+    descriptive_weather = sorted(
+        spot_forecast.descriptive_weather, key=lambda item: period_order.get(item.period, 99)
+    )
+    tabular_weather = sorted(spot_forecast.tabular_weather, key=lambda item: item.forecast_time)
+
+    return SpotForecastData(
+        id=spot_forecast.id,
+        spot_request_id=spot_forecast.spot_request_id,
+        forecaster_name=spot_forecast.forecaster_name,
+        forecaster_email=spot_forecast.forecaster_email,
+        forecaster_phone=spot_forecast.forecaster_phone,
+        synopsis=spot_forecast.synopsis,
+        inversion_and_venting=spot_forecast.inversion_and_venting,
+        outlook=spot_forecast.outlook,
+        confidence=spot_forecast.confidence,
+        fire_size=spot_forecast.fire_size,
+        representative_station_codes=spot_forecast.representative_station_codes,
+        for_date=spot_forecast.for_date,
+        descriptive_weather=[
+            SpotDescriptiveWeatherData(
+                id=item.id,
+                period=item.period,
+                temperature=item.temperature,
+                relative_humidity=item.relative_humidity,
+                conditions=item.conditions,
+            )
+            for item in descriptive_weather
+        ],
+        tabular_weather=[
+            SpotTabularWeatherData(
+                id=item.id,
+                forecast_time=item.forecast_time,
+                temperature=item.temperature,
+                relative_humidity=item.relative_humidity,
+                wind=item.wind,
+                probability_of_precipitation=item.probability_of_precipitation,
+                precipitation_amount=item.precipitation_amount,
+            )
+            for item in tabular_weather
+        ],
+    )
+
+
+@router.get(
+    "/spot_requests/{spot_request_id}/spot_forecasts",
+    response_model=SpotForecastListResponse,
+)
+async def get_spot_forecasts(spot_request_id: int):
+    async with get_async_read_session_scope() as session:
+        spot_forecasts = await get_spot_forecasts_for_request(session, spot_request_id)
+        return SpotForecastListResponse(
+            spot_forecasts=[_spot_forecast_to_schema(forecast) for forecast in spot_forecasts]
+        )
 
 
 def _spot_request_to_schema(spot_request: SpotRequest) -> SpotRequestData:

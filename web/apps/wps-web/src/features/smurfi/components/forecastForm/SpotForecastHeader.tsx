@@ -9,10 +9,9 @@ import ControlledForecastDateTimePicker from '@/features/smurfi/components/forec
 interface SpotForecastHeaderProps {
   control: Control<SpotFormData>
   errors: FieldErrors<SpotFormData>
-  readOnly?: boolean
 }
 
-const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors, readOnly = false }) => {
+const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors }) => {
   return (
     <Grid size={12}>
       <Card>
@@ -23,7 +22,6 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 name="issuedDate"
                 control={control}
                 label="Date/Time Issued"
-                disabled={readOnly}
                 errorMessage={errors.issuedDate?.message}
               />
             </Grid>
@@ -32,7 +30,6 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 name="expiryDate"
                 control={control}
                 label="Expiry"
-                disabled={readOnly}
                 errorMessage={errors.expiryDate?.message}
               />
             </Grid>
@@ -44,7 +41,6 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 label="Fire/Proj #"
                 fullWidth
                 errorMessage={errors.fireProj?.message}
-                readOnly={readOnly}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -54,58 +50,13 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 label="Request by"
                 fullWidth
                 errorMessage={errors.requestBy?.message}
-                readOnly={readOnly}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <ControlledForecastTextField
-                name="forecastBy"
-                control={control}
-                label="Forecast by"
-                fullWidth
-                errorMessage={errors.forecastBy?.message}
-                readOnly={readOnly}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <ControlledForecastTextField
-                name="email"
-                control={control}
-                label="Email"
-                fullWidth
-                errorMessage={errors.email?.message}
-                readOnly={readOnly}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <ControlledForecastTextField
-                name="phone"
-                control={control}
-                label="Phone"
-                fullWidth
-                errorMessage={errors.phone?.message}
-                readOnly={readOnly}
-              />
-            </Grid>
-
-            {/* Location / Geometry fields */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <ControlledForecastTextField
-                name="city"
-                control={control}
-                label="City"
-                fullWidth
-                errorMessage={errors.city?.message}
-                readOnly={readOnly}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Controller
                 name="stns"
                 control={control}
-                render={({ field }) => (
-                  <StationSelector value={field.value || []} onChange={readOnly ? () => {} : field.onChange} />
-                )}
+                render={({ field }) => <StationSelector value={field.value || []} onChange={field.onChange} />}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
@@ -115,7 +66,6 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 label="Latitude"
                 fullWidth
                 errorMessage={errors.latitude?.message}
-                readOnly={readOnly}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
@@ -125,7 +75,6 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 label="Longitude"
                 fullWidth
                 errorMessage={errors.longitude?.message}
-                readOnly={readOnly}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
@@ -135,17 +84,10 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 label="Slope/Aspect"
                 fullWidth
                 errorMessage={errors.slopeAspect?.message}
-                readOnly={readOnly}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <ControlledForecastTextField
-                name="valley"
-                control={control}
-                label="Valley"
-                fullWidth
-                readOnly={readOnly}
-              />
+              <ControlledForecastTextField name="valley" control={control} label="Valley" fullWidth />
             </Grid>
             <Grid size={6}>
               <ControlledForecastTextField
@@ -153,7 +95,6 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Elevation"
                 fullWidth
-                readOnly={readOnly}
                 endAdornment={<InputAdornment position="end">m</InputAdornment>}
               />
             </Grid>
@@ -163,7 +104,6 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Size (ha)"
                 fullWidth
-                readOnly={readOnly}
                 endAdornment={<InputAdornment position="end">ha</InputAdornment>}
               />
             </Grid>

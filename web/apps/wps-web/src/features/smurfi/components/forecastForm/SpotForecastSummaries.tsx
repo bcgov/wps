@@ -7,12 +7,11 @@ import ControlledForecastTextField from '@/features/smurfi/components/forecastFo
 interface SpotForecastSummariesProps {
   control: Control<SpotFormData>
   errors: FieldErrors<SpotFormData>
-  readOnly?: boolean
 }
 
 const parseOptionalNumber = (value: string) => (value === '' ? undefined : Number(value))
 
-const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, errors, readOnly = false }) => {
+const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, errors }) => {
   return (
     <Grid size={12}>
       <Card>
@@ -35,7 +34,6 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, 
                     fullWidth
                     multiline
                     rows={2}
-                    readOnly={readOnly}
                   />
                 </Grid>
                 <Grid size={12}>
@@ -48,7 +46,6 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, 
                         type="number"
                         fullWidth
                         errorMessage={errors.afternoonForecast?.maxTemp?.message}
-                        readOnly={readOnly}
                         parseValue={parseOptionalNumber}
                       />
                     </Grid>
@@ -60,7 +57,6 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, 
                         type="number"
                         fullWidth
                         errorMessage={errors.afternoonForecast?.minRh?.message}
-                        readOnly={readOnly}
                         parseValue={parseOptionalNumber}
                       />
                     </Grid>
@@ -82,7 +78,6 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, 
                     fullWidth
                     multiline
                     rows={2}
-                    readOnly={readOnly}
                   />
                 </Grid>
                 <Grid size={12}>
@@ -95,7 +90,6 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, 
                         type="number"
                         fullWidth
                         errorMessage={errors.tonightForecast?.minTemp?.message}
-                        readOnly={readOnly}
                         parseValue={parseOptionalNumber}
                       />
                     </Grid>
@@ -107,7 +101,6 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, 
                         type="number"
                         fullWidth
                         errorMessage={errors.tonightForecast?.maxRh?.message}
-                        readOnly={readOnly}
                         parseValue={parseOptionalNumber}
                       />
                     </Grid>
@@ -129,7 +122,6 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, 
                     fullWidth
                     multiline
                     rows={2}
-                    readOnly={readOnly}
                   />
                 </Grid>
                 <Grid size={12}>
@@ -142,7 +134,6 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, 
                         type="number"
                         fullWidth
                         errorMessage={errors.tomorrowForecast?.maxTemp?.message}
-                        readOnly={readOnly}
                         parseValue={parseOptionalNumber}
                       />
                     </Grid>
@@ -154,7 +145,6 @@ const SpotForecastSummaries: React.FC<SpotForecastSummariesProps> = ({ control, 
                         type="number"
                         fullWidth
                         errorMessage={errors.tomorrowForecast?.minRh?.message}
-                        readOnly={readOnly}
                         parseValue={parseOptionalNumber}
                       />
                     </Grid>

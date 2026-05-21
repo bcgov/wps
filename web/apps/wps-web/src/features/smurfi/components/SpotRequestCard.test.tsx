@@ -3,7 +3,7 @@ import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
 import SpotRequestCard from './SpotRequestCard'
 import subscriptionsReducer, { SubscriptionsState } from '@/features/smurfi/slices/subscriptionsSlice'
-import { SpotForecastStatus } from '@wps/api/SMURFIAPI'
+import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 
 const mockSpot = {
   id: 42,
@@ -11,7 +11,7 @@ const mockSpot = {
   fire_id: 'TEST-001',
   forecaster: 'Test Forecaster',
   fire_centre: 'Test Fire Centre',
-  status: SpotForecastStatus.ACTIVE,
+  status: SpotRequestStatus.STARTED,
   last_updated: null,
   latitude: 49.0,
   longitude: -120.0,

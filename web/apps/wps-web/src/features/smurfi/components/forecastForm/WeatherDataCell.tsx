@@ -8,19 +8,11 @@ interface WeatherDataCellProps {
   control: Control<SpotFormData>
   name: FieldPath<SpotFormData>
   errorMessage?: string
-  readOnly: boolean
   type?: 'text' | 'number'
   sx?: SxProps<Theme>
 }
 
-const WeatherDataCell: React.FC<WeatherDataCellProps> = ({
-  control,
-  name,
-  errorMessage,
-  readOnly,
-  type = 'text',
-  sx
-}) => (
+const WeatherDataCell: React.FC<WeatherDataCellProps> = ({ control, name, errorMessage, type = 'text', sx }) => (
   <TableCell sx={sx}>
     <ControlledForecastTextField
       name={name}
@@ -28,7 +20,6 @@ const WeatherDataCell: React.FC<WeatherDataCellProps> = ({
       type={type}
       size="small"
       fullWidth
-      readOnly={readOnly}
       errorMessage={errorMessage}
     />
   </TableCell>

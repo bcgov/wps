@@ -23,6 +23,7 @@ export interface SpotAdminRow {
   longitude: number
   spot_start: number
   spot_end: number
+  spot_request?: SpotRequestOutput
 }
 
 export interface SpotAdminRowResponse {
@@ -30,11 +31,7 @@ export interface SpotAdminRowResponse {
 }
 
 export interface SpotForecastInput {
-  id: number | null
   spot_request_id: number
-  forecaster_name: string
-  forecaster_email: string
-  forecaster_phone?: string
   synopsis?: string
   inversion_and_venting?: string
   outlook?: string
@@ -43,14 +40,14 @@ export interface SpotForecastInput {
   representative_station_codes?: number[]
   for_date?: string
   descriptive_weather: {
-    id: number | null
+    id?: number | null
     period: 'Today' | 'Tonight' | 'Tomorrow'
     temperature: number | null
     relative_humidity: number | null
     conditions: string | null
   }[]
   tabular_weather: {
-    id: number | null
+    id?: number | null
     forecast_time: string
     temperature: number | null
     relative_humidity: number | null
@@ -58,6 +55,13 @@ export interface SpotForecastInput {
     probability_of_precipitation: number | null
     precipitation_amount: number | null
   }[]
+}
+
+export interface SpotForecastOutput extends SpotForecastInput {
+  id: number
+  forecaster_name: string
+  forecaster_email: string
+  forecaster_phone?: string | null
 }
 
 const toNullableNumber = (value: string | undefined): number | null => {
@@ -77,7 +81,6 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
   const descriptiveWeather: SpotForecastInput['descriptive_weather'] = [
     formData.afternoonForecast
       ? {
-          id: null,
           period: 'Today' as const,
           temperature: formData.afternoonForecast.maxTemp ?? null,
           relative_humidity: formData.afternoonForecast.minRh ?? null,
@@ -86,7 +89,6 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
       : undefined,
     formData.tonightForecast
       ? {
-          id: null,
           period: 'Tonight' as const,
           temperature: formData.tonightForecast.minTemp ?? null,
           relative_humidity: formData.tonightForecast.maxRh ?? null,
@@ -95,7 +97,6 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
       : undefined,
     formData.tomorrowForecast
       ? {
-          id: null,
           period: 'Tomorrow' as const,
           temperature: formData.tomorrowForecast.maxTemp ?? null,
           relative_humidity: formData.tomorrowForecast.minRh ?? null,
@@ -105,11 +106,7 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
   ].filter(weather => weather !== undefined)
 
   return {
-    id: null,
     spot_request_id: spotRequestId,
-    forecaster_name: formData.forecastBy,
-    forecaster_email: formData.email,
-    forecaster_phone: formData.phone,
     synopsis: formData.synopsis,
     inversion_and_venting: formData.inversionVenting,
     outlook: formData.outlook,
@@ -119,7 +116,7 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
     for_date: formData.issuedDate.toISO()!,
     descriptive_weather: descriptiveWeather,
     tabular_weather: formData.weatherData.map(row => ({
-      id: null,
+      id: row.id ?? null,
       forecast_time: toForecastTimeISO(row.dateTime),
       temperature: toNullableNumber(row.temp),
       relative_humidity: toNullableNumber(row.rh),
@@ -130,12 +127,12 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
   }
 }
 
-export interface SpotForecastOutput extends Omit<SpotForecastInput, 'id'> {
-  id: number
-}
-
 export interface SpotForecastResponse {
   spot_forecast: SpotForecastOutput
+}
+
+export interface SpotForecastsResponse {
+  spot_forecasts: SpotForecastOutput[]
 }
 
 export interface SpotSubscriber {
@@ -148,7 +145,7 @@ interface SpotRequestBase {
   request_reference: string
   fire_number: string[]
   fire_centre: number
-  status: string
+  status: SpotRequestStatus
   request_frequency: string[]
   request_type: string
   aspect: string
@@ -200,7 +197,7 @@ const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotR
     request_reference: createSpotRequestReference(),
     fire_number: [formData.fireNumber],
     fire_centre: formData.fireCentreId,
-    status: 'Requested',
+    status: SpotRequestStatus.REQUESTED,
     request_frequency: formData.requestedFrequency,
     request_type: spotRequestTypeMap[formData.forecastType],
     aspect: formData.slopeAspect,
@@ -227,6 +224,12 @@ export const postSpotForecast = async (
   const spotForecastInput = marshalFormDataToSpotForecastInput(formData, spotRequestId)
   const url = '/smurfi/spot_forecast'
   const { data } = await axios.post(url, spotForecastInput)
+  return data
+}
+
+export const getSpotForecasts = async (spotRequestId: number): Promise<SpotForecastsResponse> => {
+  const url = `/smurfi/spot_requests/${spotRequestId}/spot_forecasts`
+  const { data } = await axios.get(url)
   return data
 }
 

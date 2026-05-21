@@ -73,8 +73,8 @@ class SpotTabularWeatherData(BaseModel):
 class SpotForecastData(BaseModel):
     id: int | None = None
     spot_request_id: int
-    forecaster_name: str
-    forecaster_email: str
+    forecaster_name: str | None = None
+    forecaster_email: str | None = None
     forecaster_phone: str | None = None
     synopsis: str | None = None
     inversion_and_venting: str | None = None
@@ -89,6 +89,10 @@ class SpotForecastData(BaseModel):
 
 class SpotForecastResponse(BaseModel):
     spot_forecast: SpotForecastData
+
+
+class SpotForecastListResponse(BaseModel):
+    spot_forecasts: list[SpotForecastData]
 
 
 class SmurfiGeneralForecastData(BaseModel):

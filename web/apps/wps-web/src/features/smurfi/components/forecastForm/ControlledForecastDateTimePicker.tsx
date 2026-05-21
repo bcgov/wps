@@ -1,5 +1,5 @@
 import React from 'react'
-import { DateTimePicker } from '@mui/x-date-pickers'
+import { DateTimePicker } from '@mui/x-date-pickers-pro'
 import { Control, Controller } from 'react-hook-form'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 
@@ -7,7 +7,6 @@ interface ControlledForecastDateTimePickerProps {
   control: Control<SpotFormData>
   name: 'issuedDate' | 'expiryDate'
   label: string
-  disabled?: boolean
   errorMessage?: string
 }
 
@@ -15,7 +14,6 @@ const ControlledForecastDateTimePicker: React.FC<ControlledForecastDateTimePicke
   control,
   name,
   label,
-  disabled = false,
   errorMessage
 }) => (
   <Controller
@@ -27,7 +25,6 @@ const ControlledForecastDateTimePicker: React.FC<ControlledForecastDateTimePicke
         value={field.value}
         onChange={field.onChange}
         timezone="America/Vancouver"
-        disabled={disabled}
         slotProps={{
           textField: {
             fullWidth: true,

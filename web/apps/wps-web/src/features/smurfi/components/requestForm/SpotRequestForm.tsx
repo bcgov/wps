@@ -25,7 +25,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { DateTime } from 'luxon'
 import { Controller, FieldErrors, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { DatePicker } from '@mui/x-date-pickers'
+import { DatePicker } from '@mui/x-date-pickers-pro'
 import {
   requestedFrequencyOptions,
   slopeAspectOptions,
