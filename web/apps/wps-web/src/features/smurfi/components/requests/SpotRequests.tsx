@@ -13,8 +13,8 @@ import {
 } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireCentres } from '@/app/rootReducer'
-import { DateRange } from '@wps/ui/dateRangePicker/types'
-import DateRangeSelector from '@wps/ui/DateRangeSelector'
+import { DateRangePicker } from '@mui/x-date-pickers-pro/DateRangePicker'
+import { SingleInputDateRangeField } from '@mui/x-date-pickers-pro/SingleInputDateRangeField'
 import CloseIcon from '@mui/icons-material/Close'
 import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
 import SpotRequestsTable from '@/features/smurfi/components/requests/SpotRequestsTable'
@@ -27,6 +27,7 @@ const SpotRequests: React.FC = () => {
   const { spotRequests, spotRequestsError, spotRequestsLoading } = useSelector(selectSmurfi)
   const { fireCentres } = useSelector(selectFireCentres)
   const [searchTerm, setSearchTerm] = useState('')
+  const [dateRange, setDateRange] = useState<[DateTime | null, DateTime | null]>([null, null])
   const [fireCentreSearch, setFireCentreSearch] = useState<number | null>(null)
   const [statusSearch, setStatusSearch] = useState('')
   const [requestFormOpen, setRequestFormOpen] = useState(false)
@@ -38,6 +39,14 @@ const SpotRequests: React.FC = () => {
     dispatch(fetchFireCentres())
   }, [])
 
+  const dateInRange = (endDate: string) => {
+    const [start, end] = dateRange
+    if (!start || !end) return true
+    const requestEnd = DateTime.fromISO(endDate)
+    if (!requestEnd.isValid) return true
+    return requestEnd >= start && requestEnd <= end
+  }
+
   const filteredSpotRequests = useMemo(() => {
     if (!spotRequests || spotRequests.length === 0) {
       return []
@@ -46,9 +55,10 @@ const SpotRequests: React.FC = () => {
       const matchesFireId = spot.fire_number.some(fn => fn.toLowerCase().includes(searchTerm.toLowerCase()))
       const matchesFireCentre = fireCentreSearch === null || spot.fire_centre === fireCentreSearch
       const matchesStatus = statusSearch === '' || spot.status === statusSearch
-      return matchesFireId && matchesFireCentre && matchesStatus
+      const matchesDate = dateInRange(spot.end_at)
+      return matchesFireId && matchesDate && matchesFireCentre && matchesStatus
     })
-  }, [spotRequests, searchTerm, fireCentreSearch, statusSearch])
+  }, [spotRequests, searchTerm, fireCentreSearch, statusSearch, dateRange])
 
   return (
     <Box
@@ -89,18 +99,25 @@ const SpotRequests: React.FC = () => {
           variant="outlined"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          sx={{ flex: 1, maxWidth: 350 }}
+          sx={{ flex: 1 }}
         />
         <Autocomplete
-          sx={{ flex: 1, maxWidth: 350 }}
+          sx={{ flex: 1 }}
           options={fireCentres}
           getOptionLabel={option => option.name}
           value={fireCentres.find(fc => fc.id === fireCentreSearch) ?? null}
           onChange={(_, newValue) => setFireCentreSearch(newValue?.id ?? null)}
           renderInput={params => <TextField {...params} label="Search by Fire Centre" variant="outlined" />}
         />
+        <DateRangePicker
+          value={dateRange}
+          onChange={setDateRange}
+          label="Spot End Date Range"
+          slots={{ field: SingleInputDateRangeField }}
+          slotProps={{ field: { clearable: true }, textField: { sx: { flex: 1 } } }}
+        />
         <Autocomplete
-          sx={{ flex: 1, maxWidth: 350 }}
+          sx={{ flex: 1 }}
           options={['New', 'Active', 'Inactive', 'Paused', 'Archived']}
           value={statusSearch || null}
           onChange={(event, newValue) => setStatusSearch(newValue || '')}
