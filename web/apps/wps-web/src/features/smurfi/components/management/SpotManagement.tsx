@@ -21,13 +21,15 @@ const toMillis = (dateTime: string | null | undefined) => {
 const getFireCentreName = (fireCentreId: number, fireCentres: { id: number; name: string }[]) =>
   fireCentres.find(fireCentre => fireCentre.id === fireCentreId)?.name ?? String(fireCentreId)
 
+const formatFireNumbers = (fireNumbers: string[] | null | undefined) => fireNumbers?.join(', ') ?? ''
+
 const buildSpotAdminRow = (
   spotRequest: SpotRequestOutput,
   fireCentres: { id: number; name: string }[]
 ): SpotAdminRow => ({
   id: spotRequest.id,
   spot_id: spotRequest.id,
-  fire_id: spotRequest.fire_number?.[0] ?? '',
+  fire_id: formatFireNumbers(spotRequest.fire_number),
   forecaster: 'Unassigned',
   fire_centre: getFireCentreName(spotRequest.fire_centre, fireCentres),
   status: spotRequest.status,

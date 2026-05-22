@@ -38,8 +38,8 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
     },
     {
       field: 'fire_id',
-      headerName: 'Fire ID',
-      width: 100
+      headerName: 'Fire ID(s)',
+      width: 150
     },
     {
       field: 'forecaster',

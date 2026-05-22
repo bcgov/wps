@@ -20,6 +20,8 @@ import { clearSpotForecastSubmitState, submitSpotForecast } from '@/features/smu
 const toFormString = (value: number | string | null | undefined) =>
   value === null || value === undefined ? '' : String(value)
 
+const formatFireNumbers = (fireNumbers: string[] | null | undefined) => fireNumbers?.join(', ') ?? ''
+
 interface SpotForecastFormProps {
   spotRequest: SpotRequestOutput
   onSubmitSuccess?: () => void
@@ -37,7 +39,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
 
     return {
       ...defaultValues,
-      fireProj: spotRequest.fire_number?.[0] ?? '',
+      fireProj: formatFireNumbers(spotRequest.fire_number),
       requestBy: spotRequest.requestor_name,
       latitude: toFormString(spotRequest.latitude),
       longitude: toFormString(spotRequest.longitude),

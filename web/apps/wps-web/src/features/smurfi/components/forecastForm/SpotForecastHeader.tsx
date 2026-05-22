@@ -38,7 +38,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
               <ControlledForecastTextField
                 name="fireProj"
                 control={control}
-                label="Fire/Proj #"
+                label="Fire/Proj #s"
                 fullWidth
                 disabled
                 errorMessage={errors.fireProj?.message}

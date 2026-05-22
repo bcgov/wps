@@ -39,7 +39,7 @@ type SpotRequestCoordinate = z.infer<typeof requiredCoordinate>
 
 export const spotRequestSchema = z
   .object({
-    fireNumber: requiredString(),
+    fireNumbers: z.array(requiredString()).min(1, 'At least one fire number is required'),
     fireCentreId: z.number().int().positive('Required'),
     forecastStartDate: validDateTime(),
     forecastEndDate: validDateTime(),

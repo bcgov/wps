@@ -40,6 +40,7 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 // Tolerance for coordinate matching (in degrees)
 const COORDINATE_TOLERANCE = 0.0001
+const formatFireNumbers = (fireNumbers: string[] | null | undefined) => fireNumbers?.join(', ') ?? ''
 
 const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature => ({
   lon: spotRequest.longitude,
@@ -47,7 +48,7 @@ const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature => ({
   status: spotRequest.status,
   id: String(spotRequest.id),
   spotId: spotRequest.id,
-  fireNumber: spotRequest.fire_number?.[0] ?? ''
+  fireNumber: formatFireNumbers(spotRequest.fire_number)
 })
 
 interface SMURFIMapProps {

@@ -206,7 +206,7 @@ const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotR
   return {
     id: null,
     request_reference: createSpotRequestReference(),
-    fire_number: [formData.fireNumber],
+    fire_number: formData.fireNumbers,
     fire_centre: formData.fireCentreId,
     status: SpotRequestStatus.REQUESTED,
     request_frequency: formData.requestedFrequency,
