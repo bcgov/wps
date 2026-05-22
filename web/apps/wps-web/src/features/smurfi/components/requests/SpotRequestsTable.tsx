@@ -1,5 +1,4 @@
 import { selectFireCentres } from '@/app/rootReducer'
-import SpotForecastDialog from '@/features/smurfi/components/forecastForm/SpotForecastDialog'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { Box, Button, Typography } from '@mui/material'
@@ -7,25 +6,11 @@ import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 import { DateTime } from 'luxon'
-import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 export interface SpotRequestsTableProps {
   rows: SpotRequestOutput[]
-}
-
-interface SubmitForecastActionProps {
-  spotRequest: SpotRequestOutput
-  onSubmitForecast: (spotRequest: SpotRequestOutput) => void
-}
-
-const SubmitForecastAction = ({ spotRequest, onSubmitForecast }: SubmitForecastActionProps) => {
-  return (
-    <Button size="small" variant="outlined" onClick={() => onSubmitForecast(spotRequest)}>
-      Submit
-    </Button>
-  )
 }
 
 const formatDate = (value: string | null | undefined) => {
@@ -48,7 +33,6 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
   const navigate = useNavigate()
   const { fireCentres } = useSelector(selectFireCentres)
   const { isForecaster } = useSpotPermissions(rows[0])
-  const [selectedForecastRequest, setSelectedForecastRequest] = useState<SpotRequestOutput | null>(null)
   const columns: GridColDef<(typeof rows)[number]>[] = [
     { field: 'id', headerName: 'ID', width: 90 },
     {
@@ -147,7 +131,13 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
             Forecasts
           </Button>
           {isForecaster && (
-            <SubmitForecastAction spotRequest={params.row} onSubmitForecast={setSelectedForecastRequest} />
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}/forecasts/new`)}
+            >
+              Submit
+            </Button>
           )}
         </Box>
       )
@@ -165,11 +155,6 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
         disableColumnSelector
         disableRowSelectionOnClick
       ></DataGridPro>
-      <SpotForecastDialog
-        open={selectedForecastRequest !== null}
-        spotRequest={selectedForecastRequest}
-        onClose={() => setSelectedForecastRequest(null)}
-      />
     </Box>
   )
 }

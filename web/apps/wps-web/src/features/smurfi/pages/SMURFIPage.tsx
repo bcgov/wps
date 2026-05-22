@@ -12,6 +12,8 @@ import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
 import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
 import SpotForecasts from '@/features/smurfi/components/forecasts/SpotForecasts'
 import SpotForecast from '@/features/smurfi/components/forecasts/SpotForecast'
+import SpotRequestFormPage from '@/features/smurfi/components/requestForm/SpotRequestFormPage'
+import SpotForecastFormPage from '@/features/smurfi/components/forecastForm/SpotForecastFormPage'
 import { AppDispatch } from '@/app/store'
 import { useDispatch } from 'react-redux'
 import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
@@ -56,8 +58,10 @@ const SMURFIPage = () => {
                 <RouteContent>
                   <Routes>
                     <Route index element={<SpotRequests />} />
+                    <Route path="new" element={<SpotRequestFormPage />} />
                     <Route path=":id" element={<SpotRequest />} />
                     <Route path=":id/forecasts" element={<SpotForecasts />} />
+                    <Route path=":id/forecasts/new" element={<SpotForecastFormPage />} />
                     <Route path=":id/forecasts/:forecastId" element={<SpotForecast />} />
                   </Routes>
                 </RouteContent>

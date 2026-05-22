@@ -20,7 +20,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '@/app/store'
 import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { useNavigate } from 'react-router-dom'
-import SpotForecastDialog from '@/features/smurfi/components/forecastForm/SpotForecastDialog'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 
 export interface SelectedCoordinates {
@@ -93,10 +92,13 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     spotId: number
     spotRequest: SpotRequestOutput
   } | null>(null)
-  const [selectedForecastRequest, setSelectedForecastRequest] = useState<SpotRequestOutput | null>(null)
 
   const handleOpenForecasts = (spotRequestId: number) => {
     navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`)
+  }
+
+  const handleSubmitForecast = (spotRequest: SpotRequestOutput) => {
+    navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequest.id}/forecasts/new`)
   }
 
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
@@ -341,15 +343,10 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
               spotRequest={popupData.spotRequest}
               canSubmitForecast={isForecaster}
               onOpenForecast={handleOpenForecasts}
-              onSubmitForecast={setSelectedForecastRequest}
+              onSubmitForecast={handleSubmitForecast}
             />
           )}
         </div>
-        <SpotForecastDialog
-          open={selectedForecastRequest !== null}
-          spotRequest={selectedForecastRequest}
-          onClose={() => setSelectedForecastRequest(null)}
-        />
       </Box>
     </MapContext.Provider>
   )

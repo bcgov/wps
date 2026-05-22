@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch, useSelector } from 'react-redux'
-import { Alert, Grid, Typography, Button, Box, Switch, FormControlLabel } from '@mui/material'
+import { Alert, Grid, Button, Box, Switch, FormControlLabel } from '@mui/material'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { AppDispatch } from '@/app/store'
 import { RootState } from '@/app/rootReducer'
@@ -99,11 +99,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
   }, [dispatch])
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>
-        Spot Forecast Form
-      </Typography>
-
+    <Box sx={{ p: 3, width: '100%' }}>
       <Box sx={{ mb: 2 }}>
         <FormControlLabel
           control={<Switch checked={isMini} onChange={e => setIsMini(e.target.checked)} />}

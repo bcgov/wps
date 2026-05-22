@@ -3,11 +3,11 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import { Box, Typography } from '@mui/material'
 import { DataGridPro, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
+import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import SpotForecastDialog from '@/features/smurfi/components/forecastForm/SpotForecastDialog'
+import { useNavigate } from 'react-router-dom'
 import {
   selectSubscribedIds,
   selectSubscriptionsLoading,
@@ -24,11 +24,10 @@ interface SpotManagementTableProps {
 }
 
 const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }: SpotManagementTableProps) => {
+  const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
   const subscribedIds = useSelector(selectSubscribedIds)
   const isLoading = useSelector(selectSubscriptionsLoading)
-  const [modalOpen, setModalOpen] = useState<boolean>(false)
-  const [selectedSpot, setSelectedSpot] = useState<SpotAdminRow | null>(null)
   const columns: GridColDef<SpotAdminRow>[] = [
     {
       field: 'spot_id',
@@ -119,17 +118,11 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
   ]
 
   const handleCreateForecastClick = (row: SpotAdminRow) => {
-    setSelectedSpot(row)
-    setModalOpen(true)
+    navigate(`${SMURFI_DASHBOARD_ROUTE}/${row.spot_id}/forecasts/new`)
   }
 
   const handleRowSelection = (row: SpotAdminRow) => {
     setSelectedRowId(row.id)
-  }
-
-  const handleModalClose = () => {
-    setModalOpen(false)
-    setSelectedSpot(null)
   }
 
   return (
@@ -141,11 +134,6 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
         rowSelectionModel={{ type: 'include', ids: new Set(selectedRowId !== undefined ? [selectedRowId] : []) }}
         onRowClick={params => handleRowSelection(params.row)}
         sx={{ display: 'flex', flexGrow: 1 }}
-      />
-      <SpotForecastDialog
-        open={modalOpen}
-        spotRequest={selectedSpot?.spot_request ?? null}
-        onClose={handleModalClose}
       />
     </Box>
   )
