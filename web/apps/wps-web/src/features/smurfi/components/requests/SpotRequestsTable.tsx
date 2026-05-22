@@ -99,7 +99,17 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
             </Typography>
           </Box>
         </Box>
-      )
+      ),
+      sortComparator: (a, b) => {
+        const order = [
+          SpotRequestStatus.STARTED,
+          SpotRequestStatus.REQUESTED,
+          SpotRequestStatus.SUSPENDED,
+          SpotRequestStatus.COMPLETE,
+          SpotRequestStatus.ARCHIVED
+        ]
+        return order.indexOf(a) - order.indexOf(b)
+      }
     },
     {
       field: 'latestForecastSubmittedAt',
@@ -154,6 +164,14 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
         disableColumnReorder
         disableColumnSelector
         disableRowSelectionOnClick
+        initialState={{
+          sorting: {
+            sortModel: [
+              { field: 'status', sort: 'asc' },
+              { field: 'id', sort: 'asc' }
+            ]
+          }
+        }}
       ></DataGridPro>
     </Box>
   )
