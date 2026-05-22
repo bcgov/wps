@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -8,6 +8,7 @@ from wps_shared.db.models.smurfi import (
     SpotDescriptiveWeather,
     SpotForecast,
     SpotRequest,
+    SpotRequestStatusEnum,
     SpotSubscriber,
     SpotSubscriberStatusEnum,
     SpotTabularWeather,
@@ -81,6 +82,19 @@ async def create_spot_descriptive_weather(
     return spot_descriptive_weather
 
 
+async def start_requested_spot_request(session: AsyncSession, spot_request_id: int) -> bool:
+    result = await session.execute(
+        update(SpotRequest)
+        .where(
+            SpotRequest.id == spot_request_id,
+            SpotRequest.status == SpotRequestStatusEnum.REQUESTED.value,
+        )
+        .values(status=SpotRequestStatusEnum.STARTED.value)
+    )
+    await session.flush()
+    return result.rowcount > 0
+
+
 async def update_spot_request(session: AsyncSession, updated: SpotRequest):
     result = await session.execute(select(SpotRequest).where(SpotRequest.id == updated.id))
     existing = result.scalar_one_or_none()
@@ -102,60 +116,6 @@ async def update_spot_request(session: AsyncSession, updated: SpotRequest):
         existing.requested_at = updated.requested_at
         existing.start_at = updated.start_at
         existing.end_at = updated.end_at
-        await session.flush()
-    return existing
-
-
-async def update_spot_forecast(session: AsyncSession, updated: SpotForecast):
-    result = await session.execute(select(SpotForecast).where(SpotForecast.id == updated.id))
-    existing = result.scalar_one_or_none()
-    if existing is not None:
-        existing.forecaster_name = updated.forecaster_name
-        existing.forecaster_email = updated.forecaster_email
-        existing.forecaster_phone = updated.forecaster_phone
-        existing.synopsis = updated.synopsis
-        existing.inversion_and_venting = updated.inversion_and_venting
-        existing.outlook = updated.outlook
-        existing.confidence = updated.confidence
-        existing.fire_size = updated.fire_size
-        existing.representative_station_codes = updated.representative_station_codes
-        existing.for_date = updated.for_date
-        await session.flush()
-    return existing
-
-
-async def update_spot_tabular_weather(session: AsyncSession, updated: SpotTabularWeather):
-    result = await session.execute(
-        select(SpotTabularWeather).where(
-            SpotTabularWeather.id == updated.id,
-            SpotTabularWeather.spot_forecast_id == updated.spot_forecast_id,
-        )
-    )
-    existing = result.scalar_one_or_none()
-    if existing is not None:
-        existing.forecast_time = updated.forecast_time
-        existing.temperature = updated.temperature
-        existing.relative_humidity = updated.relative_humidity
-        existing.wind = updated.wind
-        existing.probability_of_precipitation = updated.probability_of_precipitation
-        existing.precipitation_amount = updated.precipitation_amount
-        await session.flush()
-    return existing
-
-
-async def update_spot_descriptive_weather(session: AsyncSession, updated: SpotDescriptiveWeather):
-    result = await session.execute(
-        select(SpotDescriptiveWeather).where(
-            SpotDescriptiveWeather.id == updated.id,
-            SpotDescriptiveWeather.spot_forecast_id == updated.spot_forecast_id,
-        )
-    )
-    existing = result.scalar_one_or_none()
-    if existing is not None:
-        existing.period = updated.period
-        existing.temperature = updated.temperature
-        existing.relative_humidity = updated.relative_humidity
-        existing.conditions = updated.conditions
         await session.flush()
     return existing
 

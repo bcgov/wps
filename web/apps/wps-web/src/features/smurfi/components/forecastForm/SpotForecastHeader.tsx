@@ -40,6 +40,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Fire/Proj #"
                 fullWidth
+                disabled
                 errorMessage={errors.fireProj?.message}
               />
             </Grid>
@@ -49,6 +50,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Request by"
                 fullWidth
+                disabled
                 errorMessage={errors.requestBy?.message}
               />
             </Grid>
@@ -65,6 +67,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Latitude"
                 fullWidth
+                disabled
                 errorMessage={errors.latitude?.message}
               />
             </Grid>
@@ -74,6 +77,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Longitude"
                 fullWidth
+                disabled
                 errorMessage={errors.longitude?.message}
               />
             </Grid>
@@ -83,11 +87,12 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Slope/Aspect"
                 fullWidth
+                disabled
                 errorMessage={errors.slopeAspect?.message}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <ControlledForecastTextField name="valley" control={control} label="Valley" fullWidth />
+              <ControlledForecastTextField name="valley" control={control} label="Valley" fullWidth disabled />
             </Grid>
             <Grid size={6}>
               <ControlledForecastTextField
@@ -95,6 +100,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Elevation"
                 fullWidth
+                disabled
                 endAdornment={<InputAdornment position="end">m</InputAdornment>}
               />
             </Grid>
@@ -104,6 +110,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Size (ha)"
                 fullWidth
+                disabled
                 endAdornment={<InputAdornment position="end">ha</InputAdornment>}
               />
             </Grid>

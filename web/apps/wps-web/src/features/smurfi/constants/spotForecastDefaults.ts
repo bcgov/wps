@@ -14,7 +14,6 @@ export const defaultDateTimes = [
 ]
 
 export const defaultWeatherRows: SpotFormData['weatherData'] = defaultDateTimes.map(dt => ({
-  id: null,
   dateTime: dt.toFormat('yyyy-MM-dd HH:mm'),
   temp: '',
   rh: '',
@@ -25,7 +24,7 @@ export const defaultWeatherRows: SpotFormData['weatherData'] = defaultDateTimes.
 
 export const getDefaultValues = (): Partial<SpotFormData> => ({
   issuedDate: DateTime.now().setZone('America/Vancouver'),
-  expiryDate: DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).endOf('day'),
+  expiryDate: DateTime.now().setZone('America/Vancouver').plus({ days: 2 }).endOf('day'),
   fireProj: '',
   requestBy: '',
   stns: [],

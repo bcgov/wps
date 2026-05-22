@@ -151,8 +151,9 @@ def test_get_spot_forecasts_returns_saved_forecasts():
 
 PUBLISH = "app.routers.smurfi.publish"
 CREATE_FORECAST = "app.routers.smurfi.create_spot_forecast"
-UPSERT_DW = "app.routers.smurfi._upsert_descriptive_weather"
-UPSERT_TW = "app.routers.smurfi._upsert_tabular_weather"
+CREATE_DW = "app.routers.smurfi._create_descriptive_weather"
+CREATE_TW = "app.routers.smurfi._create_tabular_weather"
+START_REQUEST = "app.routers.smurfi.start_requested_spot_request"
 
 FORECAST_PAYLOAD = {
     "spot_request_id": 1,
@@ -162,8 +163,8 @@ FORECAST_PAYLOAD = {
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_upsert_spot_forecast_publishes_nats_message():
-    """Saving a spot forecast publishes a smurfi.spot.update NATS message."""
+def test_create_spot_forecast_publishes_nats_message():
+    """Creating a spot forecast publishes a smurfi.spot.update NATS message."""
     client = TestClient(app.main.app)
     mock_result = type("SpotForecast", (), {"id": 99})()
     with (
@@ -171,8 +172,9 @@ def test_upsert_spot_forecast_publishes_nats_message():
         patch(
             CREATE_FORECAST, new_callable=AsyncMock, return_value=mock_result
         ) as mock_create_forecast,
-        patch(UPSERT_DW, new_callable=AsyncMock, return_value=[]),
-        patch(UPSERT_TW, new_callable=AsyncMock, return_value=[]),
+        patch(CREATE_DW, new_callable=AsyncMock, return_value=[]),
+        patch(CREATE_TW, new_callable=AsyncMock, return_value=[]),
+        patch(START_REQUEST, new_callable=AsyncMock) as mock_start_request,
         patch(PUBLISH, new_callable=AsyncMock) as mock_publish,
     ):
         response = client.post("/api/smurfi/spot_forecast", json=FORECAST_PAYLOAD)
@@ -180,6 +182,7 @@ def test_upsert_spot_forecast_publishes_nats_message():
     saved_forecast = mock_create_forecast.call_args.args[1]
     assert saved_forecast.forecaster_name == "test_username"
     assert saved_forecast.forecaster_email == "test@email.com"
+    mock_start_request.assert_awaited_once_with(ANY, FORECAST_PAYLOAD["spot_request_id"])
     mock_publish.assert_called_once_with(
         stream=stream_name,
         subject=smurfi_spot_update_subject,

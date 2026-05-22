@@ -30,6 +30,22 @@ export interface SpotAdminRowResponse {
   rows: SpotAdminRow[]
 }
 
+interface SpotDescriptiveWeatherInput {
+  period: 'Today' | 'Tonight' | 'Tomorrow'
+  temperature: number | null
+  relative_humidity: number | null
+  conditions: string | null
+}
+
+interface SpotTabularWeatherInput {
+  forecast_time: string
+  temperature: number | null
+  relative_humidity: number | null
+  wind: string | null
+  probability_of_precipitation: number | null
+  precipitation_amount: number | null
+}
+
 export interface SpotForecastInput {
   spot_request_id: number
   synopsis?: string
@@ -39,29 +55,25 @@ export interface SpotForecastInput {
   fire_size?: number | null
   representative_station_codes?: number[]
   for_date?: string
-  descriptive_weather: {
-    id?: number | null
-    period: 'Today' | 'Tonight' | 'Tomorrow'
-    temperature: number | null
-    relative_humidity: number | null
-    conditions: string | null
-  }[]
-  tabular_weather: {
-    id?: number | null
-    forecast_time: string
-    temperature: number | null
-    relative_humidity: number | null
-    wind: string | null
-    probability_of_precipitation: number | null
-    precipitation_amount: number | null
-  }[]
+  descriptive_weather: SpotDescriptiveWeatherInput[]
+  tabular_weather: SpotTabularWeatherInput[]
 }
 
-export interface SpotForecastOutput extends SpotForecastInput {
+interface SpotDescriptiveWeatherOutput extends SpotDescriptiveWeatherInput {
+  id: number
+}
+
+interface SpotTabularWeatherOutput extends SpotTabularWeatherInput {
+  id: number
+}
+
+export interface SpotForecastOutput extends Omit<SpotForecastInput, 'descriptive_weather' | 'tabular_weather'> {
   id: number
   forecaster_name: string
   forecaster_email: string
   forecaster_phone?: string | null
+  descriptive_weather: SpotDescriptiveWeatherOutput[]
+  tabular_weather: SpotTabularWeatherOutput[]
 }
 
 const toNullableNumber = (value: string | undefined): number | null => {
@@ -116,7 +128,6 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
     for_date: formData.issuedDate.toISO()!,
     descriptive_weather: descriptiveWeather,
     tabular_weather: formData.weatherData.map(row => ({
-      id: row.id ?? null,
       forecast_time: toForecastTimeISO(row.dateTime),
       temperature: toNullableNumber(row.temp),
       relative_humidity: toNullableNumber(row.rh),

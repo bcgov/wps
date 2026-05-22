@@ -25,7 +25,6 @@ const requiredNumericString = (rangeMessage: string, isInRange: (value: number) 
 
 export const createSchema = (isMini: boolean) => {
   const weatherRowSchema = z.object({
-    id: z.number().nullable().optional(),
     dateTime: requiredString('Date/Time required'),
     temp: optionalNumericString('Must be a number'),
     rh: optionalNumericString('RH must be a number between 0 and 100', num => num >= 0 && num <= 100),
@@ -43,7 +42,6 @@ export const createSchema = (isMini: boolean) => {
     }),
     fireProj: requiredString(),
     requestBy: requiredString(),
-    city: requiredString(),
     stns: z.array(z.number()).optional(),
     latitude: requiredNumericString('Latitude must be a number between -90 and 90', num => num >= -90 && num <= 90),
     longitude: requiredNumericString(

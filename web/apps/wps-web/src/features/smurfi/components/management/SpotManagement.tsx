@@ -4,7 +4,7 @@ import SMURFIMap, { SelectedCoordinates } from '@/features/smurfi/components/map
 import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { selectFireCentres } from '@/app/rootReducer'
 import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
-import { Box, Button, CircularProgress, Typography } from '@mui/material'
+import { Box, CircularProgress, Typography } from '@mui/material'
 import { SpotAdminRow, SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { DateTime } from 'luxon'
 import { useEffect, useMemo, useState } from 'react'

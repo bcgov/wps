@@ -13,13 +13,11 @@ from wps_shared.db.crud.smurfi import (
     get_spot_forecasts_for_request,
     get_spot_requests_for_year,
     get_subscribed_spot_request_ids,
+    start_requested_spot_request,
     subscribe_to_spot_request,
     sync_spot_subscribers,
     unsubscribe_from_spot_request,
-    update_spot_descriptive_weather,
-    update_spot_forecast,
     update_spot_subscriber_status,
-    update_spot_tabular_weather,
     upsert_spot_request,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -38,6 +36,7 @@ from wps_shared.geospatial.geospatial import (
 from wps_shared.schemas.smurfi import (
     SpotDescriptiveWeatherData,
     SpotForecastData,
+    SpotForecastInput,
     SpotForecastListResponse,
     SpotForecastResponse,
     SpotRequestData,
@@ -154,36 +153,23 @@ async def upsert_spot_request_endpoint(
     return _build_spot_request_response(data, requestor, spot_request_id, subscriber_data)
 
 
-async def _upsert_descriptive_weather(
-    session, spot_forecast_id: int, data: SpotForecastData
+async def _create_descriptive_weather(
+    session, spot_forecast_id: int, data: SpotForecastInput
 ) -> list[SpotDescriptiveWeatherData]:
     records = []
     for dw in data.descriptive_weather:
         record = SpotDescriptiveWeather(
-            id=dw.id,
             spot_forecast_id=spot_forecast_id,
             period=dw.period,
             temperature=dw.temperature,
             relative_humidity=dw.relative_humidity,
             conditions=dw.conditions,
         )
-        if dw.id is None:
-            logger.info(
-                "Creating a new SpotDescriptiveWeather for SpotForecast with id: %s.",
-                spot_forecast_id,
-            )
-            saved = await create_spot_descriptive_weather(session, record)
-        else:
-            logger.info(
-                "Updating existing SpotDescriptiveWeather for SpotForecast with id: %s.",
-                spot_forecast_id,
-            )
-            saved = await update_spot_descriptive_weather(session, record)
-            if saved is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"SpotDescriptiveWeather {dw.id} not found",
-                )
+        logger.info(
+            "Creating a new SpotDescriptiveWeather for SpotForecast with id: %s.",
+            spot_forecast_id,
+        )
+        saved = await create_spot_descriptive_weather(session, record)
         records.append(
             SpotDescriptiveWeatherData(
                 id=saved.id,
@@ -196,13 +182,12 @@ async def _upsert_descriptive_weather(
     return records
 
 
-async def _upsert_tabular_weather(
-    session, spot_forecast_id: int, data: SpotForecastData
+async def _create_tabular_weather(
+    session, spot_forecast_id: int, data: SpotForecastInput
 ) -> list[SpotTabularWeatherData]:
     records = []
     for tw in data.tabular_weather:
         record = SpotTabularWeather(
-            id=tw.id,
             spot_forecast_id=spot_forecast_id,
             forecast_time=tw.forecast_time,
             temperature=tw.temperature,
@@ -211,22 +196,10 @@ async def _upsert_tabular_weather(
             probability_of_precipitation=tw.probability_of_precipitation,
             precipitation_amount=tw.precipitation_amount,
         )
-        if tw.id is None:
-            logger.info(
-                "Creating a new SpotTabularWeather for SpotForecast with id: %s.", spot_forecast_id
-            )
-            saved = await create_spot_tabular_weather(session, record)
-        else:
-            logger.info(
-                "Updating existing SpotTabularWeather for SpotForecast with id: %s.",
-                spot_forecast_id,
-            )
-            saved = await update_spot_tabular_weather(session, record)
-            if saved is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"SpotTabularWeather {tw.id} not found",
-                )
+        logger.info(
+            "Creating a new SpotTabularWeather for SpotForecast with id: %s.", spot_forecast_id
+        )
+        saved = await create_spot_tabular_weather(session, record)
         records.append(
             SpotTabularWeatherData(
                 id=saved.id,
@@ -242,8 +215,8 @@ async def _upsert_tabular_weather(
 
 
 @router.post("/spot_forecast", response_model=SpotForecastResponse)
-async def upsert_spot_forecast(
-    data: SpotForecastData, token: Annotated[dict, Depends(authentication_required)]
+async def create_spot_forecast_endpoint(
+    data: SpotForecastInput, token: Annotated[dict, Depends(authentication_required)]
 ):
     now = get_utc_now()
     forecaster = _get_spot_requestor(token)
@@ -271,8 +244,9 @@ async def upsert_spot_forecast(
         result = await create_spot_forecast(session, spot_forecast)
 
         spot_forecast_id = result.id
-        descriptive_weather = await _upsert_descriptive_weather(session, spot_forecast_id, data)
-        tabular_weather = await _upsert_tabular_weather(session, spot_forecast_id, data)
+        descriptive_weather = await _create_descriptive_weather(session, spot_forecast_id, data)
+        tabular_weather = await _create_tabular_weather(session, spot_forecast_id, data)
+        await start_requested_spot_request(session, data.spot_request_id)
 
     payload = SpotUpdatePayload(
         spot_request_id=data.spot_request_id, spot_forecast_id=spot_forecast_id
@@ -281,15 +255,14 @@ async def upsert_spot_forecast(
         stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
     )
     return SpotForecastResponse(
-        spot_forecast=data.model_copy(
-            update={
-                "id": spot_forecast_id,
-                "forecaster_name": forecaster.name,
-                "forecaster_email": forecaster.email,
-                "forecaster_phone": None,
-                "descriptive_weather": descriptive_weather,
-                "tabular_weather": tabular_weather,
-            }
+        spot_forecast=SpotForecastData(
+            **data.model_dump(exclude={"descriptive_weather", "tabular_weather"}),
+            id=spot_forecast_id,
+            forecaster_name=forecaster.name,
+            forecaster_email=forecaster.email,
+            forecaster_phone=None,
+            descriptive_weather=descriptive_weather,
+            tabular_weather=tabular_weather,
         )
     )
 

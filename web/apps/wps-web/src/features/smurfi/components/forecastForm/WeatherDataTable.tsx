@@ -49,7 +49,6 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
               startIcon={<AddIcon />}
               onClick={() =>
                 append({
-                  id: null,
                   dateTime: DateTime.now().toFormat('yyyy-MM-dd HH:mm'),
                   temp: '',
                   rh: '',

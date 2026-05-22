@@ -75,9 +75,7 @@ const smurfiSlice = createSlice({
       state.submittedSpotForecast = action.payload.spotForecast
       state.spotForecastsByRequestId[action.payload.spotForecast.spot_request_id] = [
         action.payload.spotForecast,
-        ...(state.spotForecastsByRequestId[action.payload.spotForecast.spot_request_id] ?? []).filter(
-          forecast => forecast.id !== action.payload.spotForecast.id
-        )
+        ...(state.spotForecastsByRequestId[action.payload.spotForecast.spot_request_id] ?? [])
       ]
     },
     clearSpotForecastSubmitState(state: SmurfiState) {
