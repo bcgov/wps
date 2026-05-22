@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, FormHelperText, TextField, Typography } from '@mui/material'
 import SpotRequestLocationMap from '@/features/smurfi/components/requestForm/SpotRequestLocationMap'
+import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 
 interface SpotRequestLocation {
   latitude: number
@@ -12,6 +13,7 @@ interface SpotRequestLocationFieldProps {
   onChange: (value: SpotRequestLocation | null) => void
   onBlur: () => void
   errorMessage?: string
+  existingSpotRequests: SpotRequestOutput[]
 }
 
 const isValidCoordinate = (latitude: number, longitude: number) =>
@@ -26,7 +28,8 @@ const SpotRequestLocationField: React.FC<SpotRequestLocationFieldProps> = ({
   value,
   onChange,
   onBlur,
-  errorMessage
+  errorMessage,
+  existingSpotRequests
 }) => {
   const [latitudeInput, setLatitudeInput] = useState('')
   const [longitudeInput, setLongitudeInput] = useState('')
@@ -91,7 +94,7 @@ const SpotRequestLocationField: React.FC<SpotRequestLocationFieldProps> = ({
           size="small"
         />
       </Box>
-      <SpotRequestLocationMap value={value} onChange={handleMapChange} />
+      <SpotRequestLocationMap value={value} onChange={handleMapChange} existingSpotRequests={existingSpotRequests} />
       {errorMessage && <FormHelperText error>{errorMessage}</FormHelperText>}
     </Box>
   )

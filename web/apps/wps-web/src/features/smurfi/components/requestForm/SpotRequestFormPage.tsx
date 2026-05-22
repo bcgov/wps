@@ -12,7 +12,7 @@ const SpotRequestFormPage = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 1440, mx: 'auto' }}>
+    <Box sx={{ width: '100%', maxWidth: 1440, mx: 'auto', pb: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">Request a Spot Forecast</Typography>
         <Button variant="outlined" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)}>
