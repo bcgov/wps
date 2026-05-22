@@ -1,29 +1,29 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { selectFireCentres } from '@/app/rootReducer'
+import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
+import SpotRequestsTable from '@/features/smurfi/components/requests/SpotRequestsTable'
+import { selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
+import CloseIcon from '@mui/icons-material/Close'
 import {
+  Autocomplete,
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
   IconButton,
   InputAdornment,
   TextField,
-  Autocomplete,
-  CircularProgress,
   Typography
 } from '@mui/material'
-import { useDispatch, useSelector } from 'react-redux'
-import { selectFireCentres } from '@/app/rootReducer'
 import { DateRangePicker } from '@mui/x-date-pickers-pro/DateRangePicker'
 import { SingleInputDateRangeField } from '@mui/x-date-pickers-pro/SingleInputDateRangeField'
-import CloseIcon from '@mui/icons-material/Close'
-import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
-import SpotRequestsTable from '@/features/smurfi/components/requests/SpotRequestsTable'
-import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
-import { DateTime } from 'luxon'
-import { AppDispatch } from '@/app/store'
-import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { DateTime } from 'luxon'
+import React, { useMemo, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { LocalizationProvider } from '@mui/x-date-pickers-pro'
+import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon'
 
 const SpotRequests: React.FC = () => {
   const { spotRequests, spotRequestsError, spotRequestsLoading } = useSelector(selectSmurfi)
@@ -33,13 +33,6 @@ const SpotRequests: React.FC = () => {
   const [fireCentreSearch, setFireCentreSearch] = useState<number | null>(null)
   const [statusSearch, setStatusSearch] = useState<SpotRequestStatus | ''>('')
   const [requestFormOpen, setRequestFormOpen] = useState(false)
-
-  const dispatch: AppDispatch = useDispatch()
-
-  useEffect(() => {
-    dispatch(fetchSpotRequests())
-    dispatch(fetchFireCentres())
-  }, [])
 
   const dateInRange = (endDate: string) => {
     const [start, end] = dateRange
@@ -122,13 +115,15 @@ const SpotRequests: React.FC = () => {
           onChange={(_, newValue) => setFireCentreSearch(newValue?.id ?? null)}
           renderInput={params => <TextField {...params} label="Search by Fire Centre" variant="outlined" />}
         />
-        <DateRangePicker
-          value={dateRange}
-          onChange={setDateRange}
-          label="Spot End Date Range"
-          slots={{ field: SingleInputDateRangeField }}
-          slotProps={{ field: { clearable: true }, textField: { sx: { flex: 1 } } }}
-        />
+        <LocalizationProvider dateAdapter={AdapterLuxon}>
+          <DateRangePicker
+            value={dateRange}
+            onChange={setDateRange}
+            label="Spot End Date Range"
+            slots={{ field: SingleInputDateRangeField }}
+            slotProps={{ field: { clearable: true }, textField: { sx: { flex: 1 } } }}
+          />
+        </LocalizationProvider>
         <Autocomplete
           sx={{ flex: 1 }}
           options={[
