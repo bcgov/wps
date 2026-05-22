@@ -21,6 +21,12 @@ import { AppDispatch } from '@/app/store'
 import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { useNavigate } from 'react-router-dom'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
+import {
+  CurrentFirePolygonAttributes,
+  createCurrentFirePolygonsLayer,
+  getCurrentFirePolygonAttributes
+} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 
 export interface SelectedCoordinates {
   latitude: number
@@ -35,6 +41,25 @@ type SpotFeature = {
   spotId: number
   fireNumber: string
   spotRequest: SpotRequestOutput
+}
+
+type SpotPopupData = {
+  type: 'spot'
+  open: boolean
+  position: number[]
+  lat: number
+  lng: number
+  status: SpotRequestStatus
+  fireNumber: string
+  spotId: number
+  spotRequest: SpotRequestOutput
+}
+
+type FirePopupData = {
+  type: 'fire'
+  open: boolean
+  position: number[]
+  attributes: CurrentFirePolygonAttributes
 }
 
 export const MapContext = React.createContext<Map | null>(null)
@@ -82,16 +107,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
   const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
-  const [popupData, setPopupData] = useState<{
-    open: boolean
-    position: number[]
-    lat: number
-    lng: number
-    status: SpotRequestStatus
-    fireNumber: string
-    spotId: number
-    spotRequest: SpotRequestOutput
-  } | null>(null)
+  const [popupData, setPopupData] = useState<SpotPopupData | FirePopupData | null>(null)
 
   const handleOpenForecasts = (spotRequestId: number) => {
     navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`)
@@ -167,11 +183,12 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       style: createMarkerStyle(null),
       zIndex: 50
     })
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
     featureLayerRef.current = featureLayer
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [featureLayer], // known-good baseline
+      layers: [currentFirePolygonsLayer, featureLayer],
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
@@ -198,6 +215,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
         const [lng, lat] = toLonLat(coord)
         overlay.setPosition(coord)
         setPopupData({
+          type: 'spot',
           open: true,
           position: coord,
           lat,
@@ -207,10 +225,25 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
           spotId: feature.get('spotId') as number,
           spotRequest: feature.get('spotRequest') as SpotRequestOutput
         })
-      } else {
-        overlay.setPosition(undefined)
-        setPopupData(null)
+        return
       }
+
+      const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
+        layer === currentFirePolygonsLayer ? f : undefined
+      )
+      if (fireFeature) {
+        overlay.setPosition(event.coordinate)
+        setPopupData({
+          type: 'fire',
+          open: true,
+          position: event.coordinate,
+          attributes: getCurrentFirePolygonAttributes(fireFeature)
+        })
+        return
+      }
+
+      overlay.setPosition(undefined)
+      setPopupData(null)
     })
 
     setMap(mapObject)
@@ -252,7 +285,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   }, [spotFeatures])
 
   useEffect(() => {
-    if (popupData && !selectedStatuses.includes(popupData.status)) {
+    if (popupData?.type === 'spot' && !selectedStatuses.includes(popupData.status)) {
       setPopupData(null)
     }
   }, [popupData, selectedStatuses])
@@ -333,7 +366,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
           className="ol-popup"
           style={{ display: popupData?.open ? 'block' : 'none', pointerEvents: 'auto' }}
         >
-          {popupData && (
+          {popupData?.type === 'spot' && (
             <SpotPopup
               lat={popupData.lat}
               lng={popupData.lng}
@@ -345,6 +378,9 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
               onOpenForecast={handleOpenForecasts}
               onSubmitForecast={handleSubmitForecast}
             />
+          )}
+          {popupData?.type === 'fire' && (
+            <CurrentFirePolygonPopup attributes={popupData.attributes} onClose={() => setPopupData(null)} />
           )}
         </div>
       </Box>

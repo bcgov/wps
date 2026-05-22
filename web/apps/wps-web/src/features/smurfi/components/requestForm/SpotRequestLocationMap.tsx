@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Box } from '@mui/material'
 import { Feature, Map, MapBrowserEvent, View } from 'ol'
 import { FeatureLike } from 'ol/Feature'
+import Overlay from 'ol/Overlay'
 import { boundingExtent } from 'ol/extent'
 import { Point } from 'ol/geom'
 import TileLayer from 'ol/layer/Tile'
@@ -16,6 +17,12 @@ import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import activeSpot from '@/features/smurfi/components/map/styles/activeSpot.svg'
 import pendingSpot from '@/features/smurfi/components/map/styles/newSpotRequest.svg'
 import pausedSpot from '@/features/smurfi/components/map/styles/onHoldSpot.svg'
+import {
+  CurrentFirePolygonAttributes,
+  createCurrentFirePolygonsLayer,
+  getCurrentFirePolygonAttributes
+} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 
 interface SpotRequestLocation {
   latitude: number
@@ -61,9 +68,11 @@ const existingSpotStyle = (feature: FeatureLike) => {
 
 const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, onChange, existingSpotRequests }) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
+  const popupRef = useRef<HTMLDivElement | null>(null)
   const featureSourceRef = useRef(new VectorSource<Feature<Point>>())
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
   const onChangeRef = useRef(onChange)
+  const [firePopupAttributes, setFirePopupAttributes] = useState<CurrentFirePolygonAttributes | null>(null)
 
   useEffect(() => {
     onChangeRef.current = onChange
@@ -84,6 +93,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
       style: existingSpotStyle,
       zIndex: 40
     })
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
 
     const mapObject = new Map({
       target: mapRef.current,
@@ -91,6 +101,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
         new TileLayer({
           source: baseMapSource
         }),
+        currentFirePolygonsLayer,
         existingSpotsLayer,
         featureLayer
       ],
@@ -102,7 +113,27 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
 
     mapObject.getView().fit(bcExtent, { padding: [30, 30, 30, 30] })
 
+    const overlay = new Overlay({
+      element: popupRef.current!,
+      positioning: 'bottom-center',
+      stopEvent: true,
+      offset: [0, -10]
+    })
+    mapObject.addOverlay(overlay)
+
     mapObject.on('singleclick', (event: MapBrowserEvent<UIEvent>) => {
+      const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (feature, layer) =>
+        layer === currentFirePolygonsLayer ? feature : undefined
+      )
+      if (fireFeature) {
+        overlay.setPosition(event.coordinate)
+        setFirePopupAttributes(getCurrentFirePolygonAttributes(fireFeature))
+        return
+      }
+
+      overlay.setPosition(undefined)
+      setFirePopupAttributes(null)
+
       const [longitude, latitude] = toLonLat(event.coordinate)
       onChangeRef.current({
         latitude: Number(latitude.toFixed(6)),
@@ -140,7 +171,20 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
     )
   }, [existingSpotRequests])
 
-  return <Box ref={mapRef} sx={{ width: '100%', height: 520, border: '1px solid', borderColor: 'divider' }} />
+  return (
+    <Box sx={{ position: 'relative', width: '100%', height: 520, border: '1px solid', borderColor: 'divider' }}>
+      <Box ref={mapRef} sx={{ width: '100%', height: '100%' }} />
+      <div
+        ref={popupRef}
+        className="ol-popup"
+        style={{ display: firePopupAttributes ? 'block' : 'none', pointerEvents: 'auto' }}
+      >
+        {firePopupAttributes && (
+          <CurrentFirePolygonPopup attributes={firePopupAttributes} onClose={() => setFirePopupAttributes(null)} />
+        )}
+      </div>
+    </Box>
+  )
 }
 
 export default SpotRequestLocationMap
