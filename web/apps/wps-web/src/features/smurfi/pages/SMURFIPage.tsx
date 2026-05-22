@@ -44,7 +44,7 @@ const SMURFIPage = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
         <Tabs value={currentTab} onChange={handleChange}>
-          <Tab label="Dashboard" />
+          <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
           <Tab label="Map" />
           <Tab label="Spot Management" />
         </Tabs>
