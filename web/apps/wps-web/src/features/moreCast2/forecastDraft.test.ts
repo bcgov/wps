@@ -4,6 +4,7 @@ import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/r
 import { DateTime } from 'luxon'
 import * as DateUtils from '@wps/utils/date'
 import { vi } from 'vitest'
+import { ModelChoice } from '@wps/api/moreCast2API'
 
 const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00')
 
@@ -47,6 +48,19 @@ describe('MorecastDraftForecast', () => {
     draftForecast.getStoredDraftForecasts()
 
     expect(getSpy).toHaveBeenCalledWith(draftForecast.STORAGE_KEY)
+  })
+  it('should restore null prediction values as NaN', () => {
+    const storedRow = buildValidForecastRow(111, TEST_DATE.plus({ days: 1 }))
+    storedRow.tempForecast!.value = null as unknown as number
+    storedRow.ffmcCalcForecast = { choice: ModelChoice.NULL, value: null as unknown as number }
+    const storedDraft: DraftMorecast2Rows = { rows: [storedRow], lastEdited: TEST_DATE }
+
+    vi.spyOn(localStorageMock, 'getItem').mockReturnValue(JSON.stringify(storedDraft))
+
+    const restoredDraft = draftForecast.getStoredDraftForecasts()
+
+    expect(Number.isNaN(restoredDraft?.rows[0].tempForecast?.value)).toBe(true)
+    expect(Number.isNaN(restoredDraft?.rows[0].ffmcCalcForecast?.value)).toBe(true)
   })
   it('should delete saved rows from storage', () => {
     const storedDraft: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE }
