@@ -52,7 +52,7 @@ const SpotForecastFormPage = () => {
           </Typography>
         </Box>
         <Button variant="outlined" onClick={() => navigate(forecastsRoute)}>
-          Back to Forecasts
+          View Forecasts
         </Button>
       </Box>
       <SpotForecastForm spotRequest={spotRequest} onSubmitSuccess={() => navigate(forecastsRoute)} />
