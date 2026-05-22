@@ -166,7 +166,9 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          {selectedSpot?.spot_request && <SpotForecastForm spotRequest={selectedSpot.spot_request} />}
+          {selectedSpot?.spot_request && (
+            <SpotForecastForm spotRequest={selectedSpot.spot_request} onSubmitSuccess={handleModalClose} />
+          )}
         </DialogContent>
       </Dialog>
     </Box>

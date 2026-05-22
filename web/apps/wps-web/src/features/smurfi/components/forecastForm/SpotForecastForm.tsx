@@ -22,9 +22,10 @@ const toFormString = (value: number | string | null | undefined) =>
 
 interface SpotForecastFormProps {
   spotRequest: SpotRequestOutput
+  onSubmitSuccess?: () => void
 }
 
-const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest }) => {
+const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubmitSuccess }) => {
   const dispatch: AppDispatch = useDispatch()
   const { spotForecastSubmitting, spotForecastSubmitError } = useSelector((state: RootState) => state.smurfi)
   const [isMini, setIsMini] = useState(false)
@@ -64,13 +65,17 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest }) => {
   })
 
   const onSubmit = async (data: SpotFormData) => {
-    await dispatch(
+    const submittedForecast = await dispatch(
       submitSpotForecast({
         formData: data,
         isMini,
         spotRequestId: spotRequest.id
       })
     )
+
+    if (submittedForecast) {
+      onSubmitSuccess?.()
+    }
   }
 
   useEffect(() => {

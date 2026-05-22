@@ -162,6 +162,7 @@ export const submitSpotForecast =
 
       const response = await postSpotForecast(dataToSubmit, payload.spotRequestId)
       dispatch(submitSpotForecastSuccess({ spotForecast: response.spot_forecast }))
+      dispatch(fetchSpotRequests())
       return response.spot_forecast
     } catch (err) {
       dispatch(submitSpotForecastFailed((err as Error).toString()))
