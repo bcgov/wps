@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { DateTime } from 'luxon'
 
 const requiredString = (message = 'Required') => z.string().trim().min(1, message)
+const tabularWeatherDateTimeFormat = 'yyyy-MM-dd HH:mm'
 
 const isOptionalNumber = (val: string | undefined) => {
   if (val === undefined || val.trim() === '') {
@@ -23,9 +24,15 @@ const requiredNumericString = (rangeMessage: string, isInRange: (value: number) 
     return Number.isFinite(num) && isInRange(num)
   }, rangeMessage)
 
+const requiredTabularWeatherDateTime = () =>
+  requiredString('Date/Time required').refine(value => {
+    const parsedDateTime = DateTime.fromFormat(value, tabularWeatherDateTimeFormat, { zone: 'America/Vancouver' })
+    return parsedDateTime.isValid && parsedDateTime.toFormat(tabularWeatherDateTimeFormat) === value
+  }, `Use format ${tabularWeatherDateTimeFormat}`)
+
 export const createSchema = (isMini: boolean) => {
   const weatherRowSchema = z.object({
-    dateTime: requiredString('Date/Time required'),
+    dateTime: requiredTabularWeatherDateTime(),
     temp: optionalNumericString('Must be a number'),
     rh: optionalNumericString('RH must be a number between 0 and 100', num => num >= 0 && num <= 100),
     wind: z.string().optional(),
