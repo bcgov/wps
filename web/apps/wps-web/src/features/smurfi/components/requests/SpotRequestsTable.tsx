@@ -168,7 +168,7 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
           sorting: {
             sortModel: [
               { field: 'status', sort: 'asc' },
-              { field: 'id', sort: 'asc' }
+              { field: 'latestForecastSubmittedAt', sort: 'asc' }
             ]
           }
         }}
