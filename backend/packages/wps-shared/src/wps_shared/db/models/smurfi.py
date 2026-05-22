@@ -201,8 +201,8 @@ class SpotForecast(Base):
     fire_size = Column(Float, nullable=True)
     representative_station_codes = Column(ARRAY(Integer), nullable=True)
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
-    updated_at = Column(TZTimeStamp, nullable=True, onupdate=time_utils.get_utc_now)
-    for_date = Column(TZTimeStamp, nullable=True, onupdate=time_utils.get_utc_now)
+    issued_at = Column(TZTimeStamp, nullable=False)
+    expires_at = Column(TZTimeStamp, nullable=True)
 
     # Relationships
     spot_request = relationship("SpotRequest", back_populates="spot_forecasts")

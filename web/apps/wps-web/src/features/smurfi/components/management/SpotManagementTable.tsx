@@ -1,14 +1,13 @@
 import AddCircleIcon from '@mui/icons-material/AddCircle'
-import CloseIcon from '@mui/icons-material/Close'
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
-import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { DataGridPro, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotForecastForm'
+import SpotForecastDialog from '@/features/smurfi/components/forecastForm/SpotForecastDialog'
 import {
   selectSubscribedIds,
   selectSubscriptionsLoading,
@@ -143,34 +142,11 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
         onRowClick={params => handleRowSelection(params.row)}
         sx={{ display: 'flex', flexGrow: 1 }}
       />
-      <Dialog
+      <SpotForecastDialog
         open={modalOpen}
+        spotRequest={selectedSpot?.spot_request ?? null}
         onClose={handleModalClose}
-        maxWidth="lg"
-        fullWidth
-        slotProps={{
-          paper: {
-            sx: {
-              maxHeight: '90vh'
-            }
-          }
-        }}
-      >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">
-            New Spot Forecast
-            {selectedSpot && ` - Spot ID: ${selectedSpot.spot_id}`}
-          </Typography>
-          <IconButton aria-label="close" onClick={handleModalClose} size="small">
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedSpot?.spot_request && (
-            <SpotForecastForm spotRequest={selectedSpot.spot_request} onSubmitSuccess={handleModalClose} />
-          )}
-        </DialogContent>
-      </Dialog>
+      />
     </Box>
   )
 }

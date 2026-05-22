@@ -132,7 +132,9 @@ def test_get_spot_forecasts_returns_saved_forecasts():
             "confidence": "High.",
             "fire_size": 12.5,
             "representative_station_codes": [1, 2],
-            "for_date": forecast_time,
+            "created_at": forecast_time,
+            "issued_at": forecast_time,
+            "expires_at": None,
             "descriptive_weather": descriptive_weather,
             "tabular_weather": tabular_weather,
         },
@@ -157,6 +159,8 @@ START_REQUEST = "app.routers.smurfi.start_requested_spot_request"
 
 FORECAST_PAYLOAD = {
     "spot_request_id": 1,
+    "issued_at": "2026-05-21T16:00:00Z",
+    "expires_at": None,
     "descriptive_weather": [],
     "tabular_weather": [],
 }

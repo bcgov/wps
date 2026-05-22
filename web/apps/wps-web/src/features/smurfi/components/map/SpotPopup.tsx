@@ -13,7 +13,7 @@ import activeSpot from './styles/activeSpot.svg'
 import completeSpot from './styles/completeSpot.svg'
 import pendingSpot from './styles/newSpotRequest.svg'
 import pausedSpot from './styles/onHoldSpot.svg'
-import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 
 export const statusToPath: Record<SpotRequestStatus, string> = {
@@ -30,10 +30,23 @@ interface SpotPopupProps {
   status: SpotRequestStatus
   fireNumber: string
   spotId: number
+  spotRequest: SpotRequestOutput
+  canSubmitForecast: boolean
   onOpenForecast: (spotId: number) => void
+  onSubmitForecast: (spotRequest: SpotRequestOutput) => void
 }
 
-const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber, spotId, onOpenForecast }) => {
+const SpotPopup: React.FC<SpotPopupProps> = ({
+  lat,
+  lng,
+  status,
+  fireNumber,
+  spotId,
+  spotRequest,
+  canSubmitForecast,
+  onOpenForecast,
+  onSubmitForecast
+}) => {
   const dispatch = useDispatch<AppDispatch>()
   const subscribedIds = useSelector(selectSubscribedIds)
   const isLoading = useSelector(selectSubscriptionsLoading)
@@ -44,6 +57,12 @@ const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber, spo
     event.stopPropagation()
     event.preventDefault()
     onOpenForecast(spotId)
+  }
+
+  const handleSubmitForecastClick = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    event.preventDefault()
+    onSubmitForecast(spotRequest)
   }
 
   return (
@@ -101,6 +120,18 @@ const SpotPopup: React.FC<SpotPopupProps> = ({ lat, lng, status, fireNumber, spo
       <Button variant="contained" color="primary" size="small" fullWidth onClick={handleSpotForecastClick}>
         View Forecasts
       </Button>
+      {canSubmitForecast && (
+        <Button
+          variant="outlined"
+          color="primary"
+          size="small"
+          fullWidth
+          onClick={handleSubmitForecastClick}
+          sx={{ mt: 1 }}
+        >
+          Submit Forecast
+        </Button>
+      )}
     </Box>
   )
 }

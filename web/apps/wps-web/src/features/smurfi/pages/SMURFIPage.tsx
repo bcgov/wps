@@ -19,8 +19,8 @@ import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
 
 const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE]
 
-const RouteContent = ({ children }: { children: React.ReactNode }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, p: 3 }}>{children}</Box>
+const RouteContent = ({ children, fullBleed = false }: { children: React.ReactNode; fullBleed?: boolean }) => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, p: fullBleed ? 0 : 3 }}>{children}</Box>
 )
 
 const SMURFIPage = () => {
@@ -66,7 +66,7 @@ const SMURFIPage = () => {
             <Route
               path="map"
               element={
-                <RouteContent>
+                <RouteContent fullBleed>
                   <ErrorBoundary>
                     <SMURFIMap />
                   </ErrorBoundary>

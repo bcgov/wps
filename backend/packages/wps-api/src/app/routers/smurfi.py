@@ -39,6 +39,7 @@ from wps_shared.schemas.smurfi import (
     SpotForecastInput,
     SpotForecastListResponse,
     SpotForecastResponse,
+    SpotLatestForecastData,
     SpotRequestData,
     SpotRequestInput,
     SpotRequestListResponse,
@@ -119,6 +120,29 @@ def _build_spot_request_response(
         spot_request=spot_request_response.model_copy(
             update={"id": spot_request_id, "subscribers": subscribers}
         )
+    )
+
+
+def _latest_forecast_to_schema(spot_request: SpotRequest) -> SpotLatestForecastData | None:
+    latest_forecast = max(
+        spot_request.spot_forecasts,
+        key=lambda forecast: forecast.created_at,
+        default=None,
+    )
+    if latest_forecast is None:
+        return None
+
+    forecast_end_at = max(
+        (weather.forecast_time for weather in latest_forecast.tabular_weather),
+        default=None,
+    )
+    return SpotLatestForecastData(
+        id=latest_forecast.id,
+        created_at=latest_forecast.created_at,
+        issued_at=latest_forecast.issued_at,
+        expires_at=latest_forecast.expires_at,
+        forecast_end_at=forecast_end_at,
+        forecaster_name=latest_forecast.forecaster_name,
     )
 
 
@@ -237,9 +261,9 @@ async def create_spot_forecast_endpoint(
         confidence=data.confidence,
         fire_size=data.fire_size,
         representative_station_codes=data.representative_station_codes,
-        for_date=data.for_date,
+        issued_at=data.issued_at,
+        expires_at=data.expires_at,
         created_at=now,
-        updated_at=now,
     )
     async with get_async_write_session_scope() as session:
         logger.info("Creating a new SpotForecast.")
@@ -253,13 +277,14 @@ async def create_spot_forecast_endpoint(
     payload = SpotUpdatePayload(
         spot_request_id=data.spot_request_id, spot_forecast_id=spot_forecast_id
     )
-    await publish(
-        stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
-    )
+    # await publish(
+    #     stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
+    # )
     return SpotForecastResponse(
         spot_forecast=SpotForecastData(
             **data.model_dump(exclude={"descriptive_weather", "tabular_weather"}),
             id=spot_forecast_id,
+            created_at=now,
             forecaster_name=forecaster.name,
             forecaster_email=forecaster.email,
             forecaster_phone=None,
@@ -288,7 +313,9 @@ def _spot_forecast_to_schema(spot_forecast: SpotForecast) -> SpotForecastData:
         confidence=spot_forecast.confidence,
         fire_size=spot_forecast.fire_size,
         representative_station_codes=spot_forecast.representative_station_codes,
-        for_date=spot_forecast.for_date,
+        created_at=spot_forecast.created_at,
+        issued_at=spot_forecast.issued_at,
+        expires_at=spot_forecast.expires_at,
         descriptive_weather=[
             SpotDescriptiveWeatherData(
                 id=item.id,
@@ -351,6 +378,7 @@ def _spot_request_to_schema(spot_request: SpotRequest) -> SpotRequestData:
         requested_at=spot_request.requested_at,
         start_at=spot_request.start_at,
         end_at=spot_request.end_at,
+        latest_forecast=_latest_forecast_to_schema(spot_request),
         subscribers=[
             SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status)
             for s in spot_request.spot_subscribers

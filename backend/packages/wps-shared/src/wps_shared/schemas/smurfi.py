@@ -18,6 +18,15 @@ class UpdateSubscriberStatusData(BaseModel):
     status: str
 
 
+class SpotLatestForecastData(BaseModel):
+    id: int
+    created_at: datetime
+    issued_at: datetime
+    expires_at: datetime | None = None
+    forecast_end_at: datetime | None = None
+    forecaster_name: str | None = None
+
+
 class SpotRequestInput(BaseModel):
     id: int | None = None
     request_reference: str
@@ -42,6 +51,7 @@ class SpotRequestData(SpotRequestInput):
     requestor_name: str
     requestor_idir: str
     requestor_email: str
+    latest_forecast: SpotLatestForecastData | None = None
 
 
 class SpotRequestResponse(BaseModel):
@@ -78,19 +88,21 @@ class SpotTabularWeatherData(SpotTabularWeatherInput):
 
 class SpotForecastInput(BaseModel):
     spot_request_id: int
+    issued_at: datetime
+    expires_at: datetime | None = None
     synopsis: str | None = None
     inversion_and_venting: str | None = None
     outlook: str | None = None
     confidence: str | None = None
     fire_size: float | None = None
     representative_station_codes: list[int] | None = None
-    for_date: datetime | None = None
     descriptive_weather: list[SpotDescriptiveWeatherInput] = []
     tabular_weather: list[SpotTabularWeatherInput] = []
 
 
 class SpotForecastData(SpotForecastInput):
     id: int | None = None
+    created_at: datetime | None = None
     forecaster_name: str | None = None
     forecaster_email: str | None = None
     forecaster_phone: str | None = None
