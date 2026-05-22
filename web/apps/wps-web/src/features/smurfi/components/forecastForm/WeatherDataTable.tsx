@@ -106,11 +106,13 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fi
                     <WeatherDataCell
                       name={`weatherData.${index}.rain` as FieldPath<SpotFormData>}
                       control={control}
+                      type="number"
                       sx={compactWeatherCellSx}
                     />
                     <WeatherDataCell
                       name={`weatherData.${index}.chanceRain` as FieldPath<SpotFormData>}
                       control={control}
+                      type="number"
                       sx={compactWeatherCellSx}
                     />
                     <TableCell>
