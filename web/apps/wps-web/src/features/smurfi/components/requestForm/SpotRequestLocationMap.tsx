@@ -9,13 +9,13 @@ import VectorLayer from 'ol/layer/Vector'
 import 'ol/ol.css'
 import { fromLonLat, toLonLat } from 'ol/proj'
 import VectorSource from 'ol/source/Vector'
-import { Circle as CircleStyle, Fill, Icon, Stroke, Style } from 'ol/style'
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import { source as baseMapSource } from '@/features/fireWeather/components/maps/constants'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { createCurrentFirePolygonsLayer } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
-import { statusToPath } from '@/features/smurfi/components/map/SpotPopup'
+import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
 
 interface SpotRequestLocation {
   latitude: number
@@ -43,10 +43,7 @@ const existingSpotStyle = (feature: FeatureLike) => {
   const status = feature.get('status') as SpotRequestStatus
 
   return new Style({
-    image: new Icon({
-      anchor: [0.5, 1],
-      src: statusToPath[status]
-    })
+    image: createSpotStatusIcon(status)
   })
 }
 

@@ -8,22 +8,19 @@ import { boundingExtent } from 'ol/extent'
 import { Feature, Map, View } from 'ol'
 import { fromLonLat } from 'ol/proj'
 import Overlay from 'ol/Overlay'
-import { Icon, Style } from 'ol/style'
+import { Style } from 'ol/style'
 import { Point } from 'ol/geom'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import 'ol/ol.css'
 import { useEffect, useRef, useState } from 'react'
-import startedSpot from './styles/activeSpot.svg'
-import completeSpot from './styles/completeSpot.svg'
-import requestedSpot from './styles/newSpotRequest.svg'
-import pausedSpot from './styles/onHoldSpot.svg'
 import {
   CurrentFirePolygonAttributes,
   createCurrentFirePolygonsLayer,
   getCurrentFirePolygonAttributes
 } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
+import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
 
 interface SmurfiRequestsMapProps {
   spotRequest: SpotRequestOutput
@@ -31,20 +28,9 @@ interface SmurfiRequestsMapProps {
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
-const statusToPath: Record<SpotRequestStatus, string> = {
-  [SpotRequestStatus.STARTED]: startedSpot,
-  [SpotRequestStatus.COMPLETE]: completeSpot,
-  [SpotRequestStatus.REQUESTED]: requestedSpot,
-  [SpotRequestStatus.SUSPENDED]: pausedSpot,
-  [SpotRequestStatus.ARCHIVED]: completeSpot
-}
-
 const getMarkerStyle = (status: SpotRequestStatus) =>
   new Style({
-    image: new Icon({
-      anchor: [0.5, 1],
-      src: statusToPath[status]
-    })
+    image: createSpotStatusIcon(status)
   })
 
 const SmurfiRequestsMap = ({ spotRequest }: SmurfiRequestsMapProps) => {

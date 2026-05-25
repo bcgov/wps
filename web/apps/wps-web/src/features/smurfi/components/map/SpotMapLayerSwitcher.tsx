@@ -1,6 +1,6 @@
 import { Box, Checkbox, FormControlLabel, FormGroup, Paper, Typography } from '@mui/material'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
-import { statusToPath } from '@/features/smurfi/components/map/SpotPopup'
+import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
 
 interface SpotMapLayerSwitcherProps {
   statusOptions: SpotRequestStatus[]
@@ -89,7 +89,7 @@ const SpotMapLayerSwitcher = ({
                 component="img"
                 src={statusToPath[status]}
                 alt=""
-                sx={{ width: 18, height: 18, objectFit: 'contain' }}
+                sx={{ width: 18, height: 24, objectFit: 'contain' }}
               />
               <Typography variant="body2">{status}</Typography>
             </Box>

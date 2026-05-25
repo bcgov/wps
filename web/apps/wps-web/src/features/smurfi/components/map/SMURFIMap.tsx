@@ -7,10 +7,10 @@ import 'ol/ol.css'
 import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import { boundingExtent } from 'ol/extent'
 import VectorLayer from 'ol/layer/Vector'
-import { Circle as CircleStyle, Fill, Icon, Stroke, Style } from 'ol/style'
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
-import SpotPopup, { statusToPath } from './SpotPopup'
+import SpotPopup from './SpotPopup'
 import { FeatureLike } from 'ol/Feature'
 import { BC_EXTENT, CENTER_OF_BC, SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
@@ -28,6 +28,7 @@ import {
 } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
+import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
 
 export interface SelectedCoordinates {
   latitude: number
@@ -162,10 +163,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       const featureLat = feature.get('lat') as number
 
       const baseStyle = new Style({
-        image: new Icon({
-          anchor: [0.5, 1],
-          src: statusToPath[status]
-        })
+        image: createSpotStatusIcon(status)
       })
 
       // check if this feature is selected
