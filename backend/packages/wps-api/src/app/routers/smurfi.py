@@ -71,7 +71,7 @@ class SpotRequestor:
     email: str
 
 
-def _get_spot_requestor(token: dict) -> SpotRequestor:
+def _get_spot_user(token: dict) -> SpotRequestor:
     requestor_idir = token.get("idir_username", None)
     requestor_email = token.get("email", None)
     first_name = token.get("given_name", None)
@@ -126,7 +126,7 @@ def _build_spot_request_response(
 async def upsert_spot_request_endpoint(
     data: SpotRequestInput, token: Annotated[dict, Depends(authentication_required)]
 ):
-    requestor = _get_spot_requestor(token)
+    requestor = _get_spot_user(token)
     spot_request = _build_spot_request(data, requestor)
 
     async with get_async_write_session_scope() as session:
@@ -221,7 +221,7 @@ async def create_spot_forecast_endpoint(
     data: SpotForecastInput, token: Annotated[dict, Depends(authentication_required)]
 ):
     now = get_utc_now()
-    forecaster = _get_spot_requestor(token)
+    forecaster = _get_spot_user(token)
     if not forecaster.email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=MISSING_TOKEN_MESSAGE
