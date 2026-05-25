@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Alert,
   Autocomplete,
@@ -34,7 +34,7 @@ import {
   SpotRequestFormData,
   SpotRequestFormValues
 } from '@wps/api/schema/spotRequestSchema'
-import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
+import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { AppDispatch } from '@/app/store'
 import { RootState, selectFireCentres } from '@/app/rootReducer'
 import { clearSpotRequestSubmitState, submitSpotRequest } from '@/features/smurfi/slices/smurfiSlice'
@@ -141,9 +141,19 @@ const defaultValues: SpotRequestFormValues = {
 const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit }) => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCentres, loading: fireCentresLoading } = useSelector(selectFireCentres)
-  const { spotRequestSubmitting, spotRequestSubmitError } = useSelector((state: RootState) => state.smurfi)
+  const { spotRequestSubmitting, spotRequestSubmitError, spotRequests } = useSelector(
+    (state: RootState) => state.smurfi
+  )
   const [fireNumberInputValue, setFireNumberInputValue] = useState('')
   const [emailInputValue, setEmailInputValue] = useState('')
+  const existingMapSpotRequests = useMemo(
+    () =>
+      spotRequests.filter(
+        spotRequest =>
+          spotRequest.status !== SpotRequestStatus.COMPLETE && spotRequest.status !== SpotRequestStatus.ARCHIVED
+      ),
+    [spotRequests]
+  )
   const {
     control,
     handleSubmit,
@@ -493,6 +503,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 errorMessage={locationErrorMessage}
+                existingSpotRequests={existingMapSpotRequests}
               />
             )}
           />

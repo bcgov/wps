@@ -1,5 +1,4 @@
 import { selectFireCentres } from '@/app/rootReducer'
-import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
 import SpotRequestsTable from '@/features/smurfi/components/requests/SpotRequestsTable'
 import { selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import CloseIcon from '@mui/icons-material/Close'
@@ -8,9 +7,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   IconButton,
   InputAdornment,
   TextField,
@@ -24,15 +20,17 @@ import React, { useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { LocalizationProvider } from '@mui/x-date-pickers-pro'
 import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon'
+import { useNavigate } from 'react-router-dom'
+import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 
 const SpotRequests: React.FC = () => {
+  const navigate = useNavigate()
   const { spotRequests, spotRequestsError, spotRequestsLoading } = useSelector(selectSmurfi)
   const { fireCentres } = useSelector(selectFireCentres)
   const [searchTerm, setSearchTerm] = useState('')
   const [dateRange, setDateRange] = useState<[DateTime | null, DateTime | null]>([null, null])
   const [fireCentreSearch, setFireCentreSearch] = useState<number | null>(null)
   const [statusSearch, setStatusSearch] = useState<SpotRequestStatus | ''>('')
-  const [requestFormOpen, setRequestFormOpen] = useState(false)
 
   const dateInRange = (endDate: string) => {
     const [start, end] = dateRange
@@ -64,30 +62,9 @@ const SpotRequests: React.FC = () => {
         flexDirection: 'column'
       }}
     >
-      <Button variant="contained" onClick={() => setRequestFormOpen(true)} sx={{ maxWidth: '200px' }}>
+      <Button variant="contained" onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/new`)} sx={{ maxWidth: '200px' }}>
         Request a Spot Forecast
       </Button>
-      <Dialog
-        open={requestFormOpen}
-        onClose={() => setRequestFormOpen(false)}
-        maxWidth="md"
-        fullWidth
-        slotProps={{
-          paper: {
-            sx: { maxHeight: '90vh' }
-          }
-        }}
-      >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          Request a Spot Forecast
-          <IconButton aria-label="close" onClick={() => setRequestFormOpen(false)} size="small">
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          <SpotRequestForm onCancel={() => setRequestFormOpen(false)} onSubmit={() => setRequestFormOpen(false)} />
-        </DialogContent>
-      </Dialog>
       <Box sx={{ pb: 2, mt: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
         <TextField
           label="Search by Fire ID"

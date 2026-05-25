@@ -1,4 +1,4 @@
-import { Box } from '@mui/material'
+import { Box, Checkbox, FormControlLabel, FormGroup, Paper, Typography } from '@mui/material'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Feature, Map, View } from 'ol'
 import { fromLonLat, toLonLat } from 'ol/proj'
@@ -20,6 +20,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '@/app/store'
 import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { useNavigate } from 'react-router-dom'
+import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 
 export interface SelectedCoordinates {
   latitude: number
@@ -33,10 +34,18 @@ type SpotFeature = {
   id: string
   spotId: number
   fireNumber: string
+  spotRequest: SpotRequestOutput
 }
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
+const STATUS_FILTER_OPTIONS = [
+  SpotRequestStatus.REQUESTED,
+  SpotRequestStatus.STARTED,
+  SpotRequestStatus.SUSPENDED,
+  SpotRequestStatus.COMPLETE,
+  SpotRequestStatus.ARCHIVED
+]
 
 // Tolerance for coordinate matching (in degrees)
 const COORDINATE_TOLERANCE = 0.0001
@@ -48,7 +57,8 @@ const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature => ({
   status: spotRequest.status,
   id: String(spotRequest.id),
   spotId: spotRequest.id,
-  fireNumber: formatFireNumbers(spotRequest.fire_number)
+  fireNumber: formatFireNumbers(spotRequest.fire_number),
+  spotRequest
 })
 
 interface SMURFIMapProps {
@@ -60,8 +70,14 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
   const { spotRequests } = useSelector(selectSmurfi)
+  const { isForecaster } = useSpotPermissions(undefined)
   const mapSpotRequests = propSpotRequests ?? spotRequests
-  const spotFeatures = useMemo(() => mapSpotRequests.map(buildSpotFeature), [mapSpotRequests])
+  const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
+  const filteredSpotRequests = useMemo(
+    () => mapSpotRequests.filter(spotRequest => selectedStatuses.includes(spotRequest.status)),
+    [mapSpotRequests, selectedStatuses]
+  )
+  const spotFeatures = useMemo(() => filteredSpotRequests.map(buildSpotFeature), [filteredSpotRequests])
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
@@ -74,10 +90,25 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     status: SpotRequestStatus
     fireNumber: string
     spotId: number
+    spotRequest: SpotRequestOutput
   } | null>(null)
 
   const handleOpenForecasts = (spotRequestId: number) => {
     navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`)
+  }
+
+  const handleSubmitForecast = (spotRequest: SpotRequestOutput) => {
+    navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequest.id}/forecasts/new`)
+  }
+
+  const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
+    setSelectedStatuses(current =>
+      checked ? [...current, status] : current.filter(selectedStatus => selectedStatus !== status)
+    )
+  }
+
+  const handleAllStatusesChange = (checked: boolean) => {
+    setSelectedStatuses(checked ? STATUS_FILTER_OPTIONS : [])
   }
 
   // Create highlight style for selected marker
@@ -118,6 +149,12 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       return baseStyle
     }
   }
+
+  useEffect(() => {
+    if (propSpotRequests === undefined) {
+      dispatch(fetchSpotRequests())
+    }
+  }, [dispatch, propSpotRequests])
 
   useEffect(() => {
     if (propSpotRequests === undefined) {
@@ -173,7 +210,8 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
           lng,
           status: feature.get('status') as SpotRequestStatus,
           fireNumber: feature.get('fireNumber'),
-          spotId: feature.get('spotId') as number
+          spotId: feature.get('spotId') as number,
+          spotRequest: feature.get('spotRequest') as SpotRequestOutput
         })
       } else {
         overlay.setPosition(undefined)
@@ -209,6 +247,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
           spotId: spotFeature.spotId,
           status: spotFeature.status,
           fireNumber: spotFeature.fireNumber,
+          spotRequest: spotFeature.spotRequest,
           lon: spotFeature.lon,
           lat: spotFeature.lat
         })
@@ -217,6 +256,12 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     featureSource.clear()
     featureSource.addFeatures(markers)
   }, [spotFeatures])
+
+  useEffect(() => {
+    if (popupData && !selectedStatuses.includes(popupData.status)) {
+      setPopupData(null)
+    }
+  }, [popupData, selectedStatuses])
 
   // Update marker styles when selectedCoordinates changes
   useEffect(() => {
@@ -238,6 +283,57 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     <MapContext.Provider value={map}>
       <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 0, flex: 1 }}>
         <Box ref={mapRef} data-testid={'smurfi-map'} sx={{ width: '100%', height: '100%' }} />
+        <Paper
+          elevation={3}
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            zIndex: 2,
+            p: 1.5,
+            maxWidth: 240
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+            Status
+          </Typography>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  size="small"
+                  checked={selectedStatuses.length === STATUS_FILTER_OPTIONS.length}
+                  indeterminate={selectedStatuses.length > 0 && selectedStatuses.length < STATUS_FILTER_OPTIONS.length}
+                  onChange={event => handleAllStatusesChange(event.target.checked)}
+                />
+              }
+              label="All"
+            />
+            {STATUS_FILTER_OPTIONS.map(status => (
+              <FormControlLabel
+                key={status}
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={selectedStatuses.includes(status)}
+                    onChange={event => handleStatusFilterChange(status, event.target.checked)}
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      component="img"
+                      src={statusToPath[status]}
+                      alt=""
+                      sx={{ width: 18, height: 18, objectFit: 'contain' }}
+                    />
+                    <Typography variant="body2">{status}</Typography>
+                  </Box>
+                }
+              />
+            ))}
+          </FormGroup>
+        </Paper>
         <div
           ref={popupRef}
           className="ol-popup"
@@ -250,7 +346,10 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
               status={popupData.status}
               fireNumber={popupData.fireNumber}
               spotId={popupData.spotId}
+              spotRequest={popupData.spotRequest}
+              canSubmitForecast={isForecaster}
               onOpenForecast={handleOpenForecasts}
+              onSubmitForecast={handleSubmitForecast}
             />
           )}
         </div>

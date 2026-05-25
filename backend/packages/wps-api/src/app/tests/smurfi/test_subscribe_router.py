@@ -1,6 +1,7 @@
 """Unit tests for smurfi subscribe endpoints."""
 
 from datetime import datetime, timezone
+from datetime import datetime, timezone
 from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
@@ -14,6 +15,7 @@ DB_WRITE = "app.routers.smurfi.get_async_write_session_scope"
 SUBSCRIBE = "app.routers.smurfi.subscribe_to_spot_request"
 UNSUBSCRIBE = "app.routers.smurfi.unsubscribe_from_spot_request"
 GET_IDS = "app.routers.smurfi.get_subscribed_spot_request_ids"
+GET_FORECASTS = "app.routers.smurfi.get_spot_forecasts_for_request"
 GET_FORECASTS = "app.routers.smurfi.get_spot_forecasts_for_request"
 
 
@@ -132,7 +134,9 @@ def test_get_spot_forecasts_returns_saved_forecasts():
             "confidence": "High.",
             "fire_size": 12.5,
             "representative_station_codes": [1, 2],
-            "for_date": forecast_time,
+            "created_at": forecast_time,
+            "issued_at": forecast_time,
+            "expires_at": None,
             "descriptive_weather": descriptive_weather,
             "tabular_weather": tabular_weather,
         },
@@ -157,6 +161,8 @@ START_REQUEST = "app.routers.smurfi.start_requested_spot_request"
 
 FORECAST_PAYLOAD = {
     "spot_request_id": 1,
+    "issued_at": "2026-05-21T16:00:00Z",
+    "expires_at": None,
     "descriptive_weather": [],
     "tabular_weather": [],
 }

@@ -1,4 +1,5 @@
 import { selectFireCentres } from '@/app/rootReducer'
+import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { Box, Button, Typography } from '@mui/material'
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro'
@@ -12,12 +13,34 @@ export interface SpotRequestsTableProps {
   rows: SpotRequestOutput[]
 }
 
+const formatDate = (value: string | null | undefined) => {
+  if (!value) {
+    return null
+  }
+  const dateTime = DateTime.fromISO(value)
+  return dateTime.isValid ? dateTime.toFormat('yyyy-MM-dd') : null
+}
+
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) {
+    return null
+  }
+  const dateTime = DateTime.fromISO(value)
+  return dateTime.isValid ? dateTime.toFormat('yyyy-MM-dd HH:mm') : null
+}
+
 const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
   const navigate = useNavigate()
   const { fireCentres } = useSelector(selectFireCentres)
+  const { isForecaster } = useSpotPermissions(rows[0])
   const columns: GridColDef<(typeof rows)[number]>[] = [
     { field: 'id', headerName: 'ID', width: 90 },
-    { field: 'fire_number', headerName: 'Fire Number', width: 110 },
+    {
+      field: 'fire_number',
+      headerName: 'Fire Number',
+      width: 160,
+      renderCell: params => params.row.fire_number.join(', ')
+    },
     {
       field: 'fire_centre',
       headerName: 'Fire Centre',
@@ -76,29 +99,57 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
             </Typography>
           </Box>
         </Box>
-      )
+      ),
+      sortComparator: (a, b) => {
+        const order = [
+          SpotRequestStatus.STARTED,
+          SpotRequestStatus.REQUESTED,
+          SpotRequestStatus.SUSPENDED,
+          SpotRequestStatus.COMPLETE,
+          SpotRequestStatus.ARCHIVED
+        ]
+        return order.indexOf(a) - order.indexOf(b)
+      }
     },
     {
-      field: 'requestAction',
-      headerName: 'View Request',
+      field: 'latestForecastSubmittedAt',
+      headerName: 'Last Forecast',
       width: 160,
-      renderCell: params => (
-        <Button variant="text" onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}`)}>
-          View Request
-        </Button>
-      )
+      renderCell: params => formatDateTime(params.row.latest_forecast?.created_at) ?? '-'
     },
     {
-      field: 'forecastAction',
-      headerName: 'View Forecasts',
+      field: 'latestForecastEndAt',
+      headerName: 'Forecast Through',
       width: 160,
+      renderCell: params => formatDate(params.row.latest_forecast?.forecast_end_at) ?? '-'
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: isForecaster ? 260 : 180,
+      sortable: false,
       renderCell: params => (
-        <Button
-          variant="text"
-          onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}/forecasts`)}
-        >
-          View Forecasts
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', height: '100%' }}>
+          <Button size="small" variant="text" onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}`)}>
+            Request
+          </Button>
+          <Button
+            size="small"
+            variant="text"
+            onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}/forecasts`)}
+          >
+            Forecasts
+          </Button>
+          {isForecaster && (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}/forecasts/new`)}
+            >
+              Submit
+            </Button>
+          )}
+        </Box>
       )
     }
   ]
@@ -113,6 +164,14 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
         disableColumnReorder
         disableColumnSelector
         disableRowSelectionOnClick
+        initialState={{
+          sorting: {
+            sortModel: [
+              { field: 'status', sort: 'asc' },
+              { field: 'latestForecastSubmittedAt', sort: 'asc' }
+            ]
+          }
+        }}
       ></DataGridPro>
     </Box>
   )

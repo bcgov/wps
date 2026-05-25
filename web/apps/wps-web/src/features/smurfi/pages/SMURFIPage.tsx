@@ -12,6 +12,8 @@ import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
 import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
 import SpotForecasts from '@/features/smurfi/components/forecasts/SpotForecasts'
 import SpotForecast from '@/features/smurfi/components/forecasts/SpotForecast'
+import SpotRequestFormPage from '@/features/smurfi/components/requestForm/SpotRequestFormPage'
+import SpotForecastFormPage from '@/features/smurfi/components/forecastForm/SpotForecastFormPage'
 import { AppDispatch } from '@/app/store'
 import { useDispatch } from 'react-redux'
 import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
@@ -19,8 +21,8 @@ import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
 
 const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE]
 
-const RouteContent = ({ children }: { children: React.ReactNode }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, p: 3 }}>{children}</Box>
+const RouteContent = ({ children, fullBleed = false }: { children: React.ReactNode; fullBleed?: boolean }) => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, p: fullBleed ? 0 : 3 }}>{children}</Box>
 )
 
 const SMURFIPage = () => {
@@ -56,8 +58,10 @@ const SMURFIPage = () => {
                 <RouteContent>
                   <Routes>
                     <Route index element={<SpotRequests />} />
+                    <Route path="new" element={<SpotRequestFormPage />} />
                     <Route path=":id" element={<SpotRequest />} />
                     <Route path=":id/forecasts" element={<SpotForecasts />} />
+                    <Route path=":id/forecasts/new" element={<SpotForecastFormPage />} />
                     <Route path=":id/forecasts/:forecastId" element={<SpotForecast />} />
                   </Routes>
                 </RouteContent>
@@ -66,7 +70,7 @@ const SMURFIPage = () => {
             <Route
               path="map"
               element={
-                <RouteContent>
+                <RouteContent fullBleed>
                   <ErrorBoundary>
                     <SMURFIMap />
                   </ErrorBoundary>

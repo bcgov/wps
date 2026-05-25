@@ -2,13 +2,13 @@ import AddCircleIcon from '@mui/icons-material/AddCircle'
 import CloseIcon from '@mui/icons-material/Close'
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
-import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { DataGridPro, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
+import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotForecastForm'
+import { useNavigate } from 'react-router-dom'
 import {
   selectSubscribedIds,
   selectSubscriptionsLoading,
@@ -25,11 +25,10 @@ interface SpotManagementTableProps {
 }
 
 const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }: SpotManagementTableProps) => {
+  const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
   const subscribedIds = useSelector(selectSubscribedIds)
   const isLoading = useSelector(selectSubscriptionsLoading)
-  const [modalOpen, setModalOpen] = useState<boolean>(false)
-  const [selectedSpot, setSelectedSpot] = useState<SpotAdminRow | null>(null)
   const columns: GridColDef<SpotAdminRow>[] = [
     {
       field: 'spot_id',
@@ -120,17 +119,11 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
   ]
 
   const handleCreateForecastClick = (row: SpotAdminRow) => {
-    setSelectedSpot(row)
-    setModalOpen(true)
+    navigate(`${SMURFI_DASHBOARD_ROUTE}/${row.spot_id}/forecasts/new`)
   }
 
   const handleRowSelection = (row: SpotAdminRow) => {
     setSelectedRowId(row.id)
-  }
-
-  const handleModalClose = () => {
-    setModalOpen(false)
-    setSelectedSpot(null)
   }
 
   return (
@@ -143,34 +136,6 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
         onRowClick={params => handleRowSelection(params.row)}
         sx={{ display: 'flex', flexGrow: 1 }}
       />
-      <Dialog
-        open={modalOpen}
-        onClose={handleModalClose}
-        maxWidth="lg"
-        fullWidth
-        slotProps={{
-          paper: {
-            sx: {
-              maxHeight: '90vh'
-            }
-          }
-        }}
-      >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">
-            New Spot Forecast
-            {selectedSpot && ` - Spot ID: ${selectedSpot.spot_id}`}
-          </Typography>
-          <IconButton aria-label="close" onClick={handleModalClose} size="small">
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedSpot?.spot_request && (
-            <SpotForecastForm spotRequest={selectedSpot.spot_request} onSubmitSuccess={handleModalClose} />
-          )}
-        </DialogContent>
-      </Dialog>
     </Box>
   )
 }

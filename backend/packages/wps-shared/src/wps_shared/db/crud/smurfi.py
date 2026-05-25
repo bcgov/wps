@@ -125,7 +125,10 @@ async def get_spot_requests_for_year(session: AsyncSession, year: int):
     result = await session.execute(
         select(SpotRequest)
         .where(SpotRequest.start_at >= year_start, SpotRequest.start_at < year_end)
-        .options(selectinload(SpotRequest.spot_subscribers))
+        .options(
+            selectinload(SpotRequest.spot_subscribers),
+            selectinload(SpotRequest.spot_forecasts).selectinload(SpotForecast.tabular_weather),
+        )
     )
     return result.scalars().all()
 

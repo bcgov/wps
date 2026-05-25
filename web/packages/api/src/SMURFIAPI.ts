@@ -48,13 +48,14 @@ interface SpotTabularWeatherInput {
 
 export interface SpotForecastInput {
   spot_request_id: number
+  issued_at: string
+  expires_at?: string | null
   synopsis?: string
   inversion_and_venting?: string
   outlook?: string
   confidence?: string
   fire_size?: number | null
   representative_station_codes?: number[]
-  for_date?: string
   descriptive_weather: SpotDescriptiveWeatherInput[]
   tabular_weather: SpotTabularWeatherInput[]
 }
@@ -69,6 +70,7 @@ interface SpotTabularWeatherOutput extends SpotTabularWeatherInput {
 
 export interface SpotForecastOutput extends Omit<SpotForecastInput, 'descriptive_weather' | 'tabular_weather'> {
   id: number
+  created_at: string
   forecaster_name: string
   forecaster_email: string
   forecaster_phone?: string | null
@@ -125,7 +127,8 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
     confidence: formData.confidenceDiscussion,
     fire_size: toNullableNumber(formData.size),
     representative_station_codes: formData.stns,
-    for_date: formData.issuedDate.toISO()!,
+    issued_at: formData.issuedDate.toISO()!,
+    expires_at: formData.expiryDate.toISO(),
     descriptive_weather: descriptiveWeather,
     tabular_weather: formData.weatherData.map(row => ({
       forecast_time: toForecastTimeISO(row.dateTime),
@@ -152,6 +155,15 @@ export interface SpotSubscriber {
   subscriber_status: string
 }
 
+export interface SpotLatestForecast {
+  id: number
+  created_at: string
+  issued_at: string
+  expires_at?: string | null
+  forecast_end_at?: string | null
+  forecaster_name?: string | null
+}
+
 interface SpotRequestBase {
   request_reference: string
   fire_number: string[]
@@ -169,6 +181,7 @@ interface SpotRequestBase {
   start_at: string
   end_at: string
   subscribers: SpotSubscriber[]
+  latest_forecast?: SpotLatestForecast | null
 }
 
 export interface SpotRequestInput extends SpotRequestBase {
