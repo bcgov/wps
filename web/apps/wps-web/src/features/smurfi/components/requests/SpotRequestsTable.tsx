@@ -1,32 +1,21 @@
 import { selectFireCentres } from '@/app/rootReducer'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
+import {
+  formatRequestFrequency,
+  formatSpotRequestDate,
+  formatSpotRequestDateTimeWithDay,
+  formatSpotRequestDateWithDay
+} from '@/features/smurfi/utils/spotRequestFormatters'
 import { Box, Button, Typography } from '@mui/material'
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
-import { DateTime } from 'luxon'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 export interface SpotRequestsTableProps {
   rows: SpotRequestOutput[]
-}
-
-const formatDate = (value: string | null | undefined) => {
-  if (!value) {
-    return null
-  }
-  const dateTime = DateTime.fromISO(value)
-  return dateTime.isValid ? dateTime.toFormat('yyyy-MM-dd') : null
-}
-
-const formatDateTime = (value: string | null | undefined) => {
-  if (!value) {
-    return null
-  }
-  const dateTime = DateTime.fromISO(value)
-  return dateTime.isValid ? dateTime.toFormat('yyyy-MM-dd HH:mm') : null
 }
 
 const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
@@ -52,23 +41,13 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       field: 'start_at',
       headerName: 'Start Date',
       width: 150,
-      renderCell: params => {
-        const dt = DateTime.fromISO(params.value)
-        if (dt.isValid) {
-          return dt.toISODate()
-        }
-      }
+      renderCell: params => formatSpotRequestDate(params.value) ?? '-'
     },
     {
       field: 'end_at',
       headerName: 'End Date',
       width: 150,
-      renderCell: params => {
-        const dt = DateTime.fromISO(params.value)
-        if (dt.isValid) {
-          return dt.toISODate()
-        }
-      }
+      renderCell: params => formatSpotRequestDate(params.value) ?? '-'
     },
     {
       field: 'status',
@@ -112,16 +91,26 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       }
     },
     {
+      field: 'request_frequency',
+      headerName: 'Frequency',
+      width: 120,
+      renderCell: params => (
+        <Typography variant="body2" title={params.value?.join(', ')}>
+          {formatRequestFrequency(params.value)}
+        </Typography>
+      )
+    },
+    {
       field: 'latestForecastSubmittedAt',
       headerName: 'Last Forecast',
-      width: 160,
-      renderCell: params => formatDateTime(params.row.latest_forecast?.created_at) ?? '-'
+      width: 190,
+      renderCell: params => formatSpotRequestDateTimeWithDay(params.row.latest_forecast?.created_at) ?? '-'
     },
     {
       field: 'latestForecastEndAt',
       headerName: 'Forecast Through',
-      width: 160,
-      renderCell: params => formatDate(params.row.latest_forecast?.forecast_end_at) ?? '-'
+      width: 170,
+      renderCell: params => formatSpotRequestDateWithDay(params.row.latest_forecast?.forecast_end_at) ?? '-'
     },
     {
       field: 'actions',
