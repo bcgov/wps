@@ -26,10 +26,6 @@ export interface SpotAdminRow {
   spot_request?: SpotRequestOutput
 }
 
-export interface SpotAdminRowResponse {
-  rows: SpotAdminRow[]
-}
-
 interface SpotDescriptiveWeatherInput {
   period: 'Today' | 'Tonight' | 'Tomorrow'
   temperature: number | null
@@ -261,12 +257,6 @@ export const postSpotRequest = async (formData: SpotRequestFormData): Promise<Sp
   const spotRequestInput = marshalFormDataToSpotRequestInput(formData)
   const url = '/smurfi/spot_request'
   const { data } = await axios.post(url, spotRequestInput)
-  return data
-}
-
-export async function getSpotAdminRows(): Promise<SpotAdminRowResponse> {
-  const url = '/smurfi/admin/'
-  const { data } = await axios.get(url)
   return data
 }
 

@@ -6,7 +6,6 @@ import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon'
 import { LocalizationProvider } from '@mui/x-date-pickers-pro/LocalizationProvider'
 import { SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE } from '@wps/utils/constants'
-import SpotManagement from '@/features/smurfi/components/management/SpotManagement'
 import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
 import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
 import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
@@ -48,7 +47,6 @@ const SMURFIPage = () => {
         <Tabs value={currentTab} onChange={handleChange}>
           <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
           <Tab label="Map" />
-          <Tab label="Spot Management" />
         </Tabs>
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
           <Routes>
@@ -74,14 +72,6 @@ const SMURFIPage = () => {
                   <ErrorBoundary>
                     <SMURFIMap />
                   </ErrorBoundary>
-                </RouteContent>
-              }
-            />
-            <Route
-              path="management"
-              element={
-                <RouteContent>
-                  <SpotManagement />
                 </RouteContent>
               }
             />
