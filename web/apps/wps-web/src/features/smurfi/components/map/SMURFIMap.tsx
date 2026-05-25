@@ -1,4 +1,4 @@
-import { Box, Checkbox, FormControlLabel, FormGroup, Paper, Typography } from '@mui/material'
+import { Box } from '@mui/material'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Feature, Map, View } from 'ol'
 import { fromLonLat, toLonLat } from 'ol/proj'
@@ -21,6 +21,13 @@ import { AppDispatch } from '@/app/store'
 import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { useNavigate } from 'react-router-dom'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
+import {
+  CurrentFirePolygonAttributes,
+  createCurrentFirePolygonsLayer,
+  getCurrentFirePolygonAttributes
+} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
+import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 
 export interface SelectedCoordinates {
   latitude: number
@@ -35,6 +42,25 @@ type SpotFeature = {
   spotId: number
   fireNumber: string
   spotRequest: SpotRequestOutput
+}
+
+type SpotPopupData = {
+  type: 'spot'
+  open: boolean
+  position: number[]
+  lat: number
+  lng: number
+  status: SpotRequestStatus
+  fireNumber: string
+  spotId: number
+  spotRequest: SpotRequestOutput
+}
+
+type FirePopupData = {
+  type: 'fire'
+  open: boolean
+  position: number[]
+  attributes: CurrentFirePolygonAttributes
 }
 
 export const MapContext = React.createContext<Map | null>(null)
@@ -73,6 +99,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const { isForecaster } = useSpotPermissions(undefined)
   const mapSpotRequests = propSpotRequests ?? spotRequests
   const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
+  const [currentFiresVisible, setCurrentFiresVisible] = useState(true)
   const filteredSpotRequests = useMemo(
     () => mapSpotRequests.filter(spotRequest => selectedStatuses.includes(spotRequest.status)),
     [mapSpotRequests, selectedStatuses]
@@ -82,16 +109,8 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
   const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
-  const [popupData, setPopupData] = useState<{
-    open: boolean
-    position: number[]
-    lat: number
-    lng: number
-    status: SpotRequestStatus
-    fireNumber: string
-    spotId: number
-    spotRequest: SpotRequestOutput
-  } | null>(null)
+  const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
+  const [popupData, setPopupData] = useState<SpotPopupData | FirePopupData | null>(null)
 
   const handleOpenForecasts = (spotRequestId: number) => {
     navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`)
@@ -102,9 +121,13 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   }
 
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
-    setSelectedStatuses(current =>
-      checked ? [...current, status] : current.filter(selectedStatus => selectedStatus !== status)
-    )
+    setSelectedStatuses(current => {
+      if (!checked) {
+        return current.filter(selectedStatus => selectedStatus !== status)
+      }
+
+      return current.includes(status) ? current : [...current, status]
+    })
   }
 
   const handleAllStatusesChange = (checked: boolean) => {
@@ -157,12 +180,6 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   }, [dispatch, propSpotRequests])
 
   useEffect(() => {
-    if (propSpotRequests === undefined) {
-      dispatch(fetchSpotRequests())
-    }
-  }, [dispatch, propSpotRequests])
-
-  useEffect(() => {
     if (!mapRef.current) return
 
     const featureSource = new VectorSource<Feature<Point>>({
@@ -173,11 +190,13 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       style: createMarkerStyle(null),
       zIndex: 50
     })
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
     featureLayerRef.current = featureLayer
+    currentFirePolygonsLayerRef.current = currentFirePolygonsLayer
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [featureLayer], // known-good baseline
+      layers: [currentFirePolygonsLayer, featureLayer],
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
@@ -204,6 +223,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
         const [lng, lat] = toLonLat(coord)
         overlay.setPosition(coord)
         setPopupData({
+          type: 'spot',
           open: true,
           position: coord,
           lat,
@@ -213,10 +233,27 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
           spotId: feature.get('spotId') as number,
           spotRequest: feature.get('spotRequest') as SpotRequestOutput
         })
-      } else {
-        overlay.setPosition(undefined)
-        setPopupData(null)
+        return
       }
+
+      if (currentFirePolygonsLayer.getVisible()) {
+        const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
+          layer === currentFirePolygonsLayer ? f : undefined
+        )
+        if (fireFeature) {
+          overlay.setPosition(event.coordinate)
+          setPopupData({
+            type: 'fire',
+            open: true,
+            position: event.coordinate,
+            attributes: getCurrentFirePolygonAttributes(fireFeature)
+          })
+          return
+        }
+      }
+
+      overlay.setPosition(undefined)
+      setPopupData(null)
     })
 
     setMap(mapObject)
@@ -229,9 +266,20 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     loadBaseMap()
 
     return () => {
+      currentFirePolygonsLayerRef.current = null
       mapObject.setTarget('')
     }
   }, [])
+
+  useEffect(() => {
+    currentFirePolygonsLayerRef.current?.setVisible(currentFiresVisible)
+  }, [currentFiresVisible])
+
+  useEffect(() => {
+    if (!currentFiresVisible) {
+      setPopupData(current => (current?.type === 'fire' ? null : current))
+    }
+  }, [currentFiresVisible])
 
   useEffect(() => {
     const featureSource = featureLayerRef.current?.getSource()
@@ -258,7 +306,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   }, [spotFeatures])
 
   useEffect(() => {
-    if (popupData && !selectedStatuses.includes(popupData.status)) {
+    if (popupData?.type === 'spot' && !selectedStatuses.includes(popupData.status)) {
       setPopupData(null)
     }
   }, [popupData, selectedStatuses])
@@ -283,63 +331,20 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     <MapContext.Provider value={map}>
       <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 0, flex: 1 }}>
         <Box ref={mapRef} data-testid={'smurfi-map'} sx={{ width: '100%', height: '100%' }} />
-        <Paper
-          elevation={3}
-          sx={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            zIndex: 2,
-            p: 1.5,
-            maxWidth: 240
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-            Status
-          </Typography>
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  size="small"
-                  checked={selectedStatuses.length === STATUS_FILTER_OPTIONS.length}
-                  indeterminate={selectedStatuses.length > 0 && selectedStatuses.length < STATUS_FILTER_OPTIONS.length}
-                  onChange={event => handleAllStatusesChange(event.target.checked)}
-                />
-              }
-              label="All"
-            />
-            {STATUS_FILTER_OPTIONS.map(status => (
-              <FormControlLabel
-                key={status}
-                control={
-                  <Checkbox
-                    size="small"
-                    checked={selectedStatuses.includes(status)}
-                    onChange={event => handleStatusFilterChange(status, event.target.checked)}
-                  />
-                }
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box
-                      component="img"
-                      src={statusToPath[status]}
-                      alt=""
-                      sx={{ width: 18, height: 18, objectFit: 'contain' }}
-                    />
-                    <Typography variant="body2">{status}</Typography>
-                  </Box>
-                }
-              />
-            ))}
-          </FormGroup>
-        </Paper>
+        <SpotMapLayerSwitcher
+          statusOptions={STATUS_FILTER_OPTIONS}
+          selectedStatuses={selectedStatuses}
+          currentFiresVisible={currentFiresVisible}
+          onStatusChange={handleStatusFilterChange}
+          onAllStatusesChange={handleAllStatusesChange}
+          onCurrentFiresVisibleChange={setCurrentFiresVisible}
+        />
         <div
           ref={popupRef}
           className="ol-popup"
           style={{ display: popupData?.open ? 'block' : 'none', pointerEvents: 'auto' }}
         >
-          {popupData && (
+          {popupData?.type === 'spot' && (
             <SpotPopup
               lat={popupData.lat}
               lng={popupData.lng}
@@ -351,6 +356,9 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
               onOpenForecast={handleOpenForecasts}
               onSubmitForecast={handleSubmitForecast}
             />
+          )}
+          {popupData?.type === 'fire' && (
+            <CurrentFirePolygonPopup attributes={popupData.attributes} onClose={() => setPopupData(null)} />
           )}
         </div>
       </Box>
