@@ -33,16 +33,16 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
   const schema = useMemo(() => createSchema(isMini), [isMini])
   const resolver = useMemo(() => zodResolver(schema), [schema])
 
-  const requestDefaultValues = useMemo<Partial<SpotFormData>>(() => {
-    const defaultValues = getDefaultValues()
+  const defaultValues = useMemo<Partial<SpotFormData>>(() => {
+    const baseDefaults = getDefaultValues()
 
     return {
-      ...defaultValues,
+      ...baseDefaults,
       fireProj: formatFireNumbers(spotRequest.fire_number),
       requestBy: spotRequest.requestor_name,
       latitude: toFormString(spotRequest.latitude),
       longitude: toFormString(spotRequest.longitude),
-      slopeAspect: spotRequest.aspect ?? defaultValues.slopeAspect,
+      slopeAspect: spotRequest.aspect ?? baseDefaults.slopeAspect,
       elevation: toFormString(spotRequest.elevation),
       weatherData: defaultWeatherRows
     }
@@ -55,7 +55,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
     formState: { errors, isValid }
   } = useForm<SpotFormData>({
     resolver,
-    defaultValues: getDefaultValues(),
+    defaultValues,
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
@@ -84,8 +84,8 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
   }, [spotRequest.request_type])
 
   useEffect(() => {
-    reset(requestDefaultValues)
-  }, [requestDefaultValues, reset])
+    reset(defaultValues)
+  }, [defaultValues, reset])
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
