@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Alert, Grid, Typography, Button, Box, Switch, FormControlLabel } from '@mui/material'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { AppDispatch } from '@/app/store'
-import { RootState } from '@/app/rootReducer'
 import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
 import SpotForecastHeader from '@/features/smurfi/components/forecastForm/SpotForecastHeader'
 import SpotForecastSynopsis from '@/features/smurfi/components/forecastForm/SpotForecastSynopsis'
@@ -15,7 +14,7 @@ import SpotForecastSections from '@/features/smurfi/components/forecastForm/Spot
 import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { getStations, StationSource } from '@wps/api/stationAPI'
-import { clearSpotForecastSubmitState, submitSpotForecast } from '@/features/smurfi/slices/smurfiSlice'
+import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 
 const toFormString = (value: number | string | null | undefined) =>
   value === null || value === undefined ? '' : String(value)
@@ -29,7 +28,7 @@ interface SpotForecastFormProps {
 
 const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubmitSuccess }) => {
   const dispatch: AppDispatch = useDispatch()
-  const { spotForecastSubmitting, spotForecastSubmitError } = useSelector((state: RootState) => state.smurfi)
+  const { spotForecastSubmitting, spotForecastSubmitError } = useSelector(selectSmurfi)
   const [isMini, setIsMini] = useState(false)
   const schema = useMemo(() => createSchema(isMini), [isMini])
   const resolver = useMemo(() => zodResolver(schema), [schema])
