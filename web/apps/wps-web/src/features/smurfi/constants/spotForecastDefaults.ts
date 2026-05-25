@@ -17,44 +17,38 @@ export const defaultWeatherRows: SpotFormData['weatherData'] = defaultDateTimes.
   dateTime: dt.toFormat('yyyy-MM-dd HH:mm'),
   temp: '',
   rh: '',
-  windSpeed: '',
-  windGust: '',
-  windDirection: '',
+  wind: '',
   rain: '',
   chanceRain: ''
 }))
 
-export const getDefaultValues = (user: { name: string; email: string; phone: string }): Partial<SpotFormData> => ({
+export const getDefaultValues = (): Partial<SpotFormData> => ({
   issuedDate: DateTime.now().setZone('America/Vancouver'),
-  expiryDate: DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).endOf('day'),
-  fireProj: 'K00000',
-  requestBy: 'Marsha Mellow',
-  forecastBy: user.name,
-  email: user.email,
-  phone: user.phone,
-  city: 'Kamloops',
+  expiryDate: DateTime.now().setZone('America/Vancouver').plus({ days: 2 }).endOf('day'),
+  fireProj: '',
+  requestBy: '',
   stns: [],
-  latitude: '50.612',
-  longitude: '-120.20088',
-  slopeAspect: 'South',
-  valley: 'W to E',
-  elevation: '545',
-  size: '5 to 20',
+  latitude: '',
+  longitude: '',
+  slopeAspect: '',
+  valley: '',
+  elevation: '',
+  size: '',
   synopsis: '',
   afternoonForecast: {
-    description: 'Mainly sunny in the morning then increasing afternoon cloud.',
-    maxTemp: 11,
-    minRh: 40
+    description: '',
+    maxTemp: undefined,
+    minRh: undefined
   },
   tonightForecast: {
-    description: 'Mainly clear.',
-    minTemp: -2,
-    maxRh: 90
+    description: '',
+    minTemp: undefined,
+    maxRh: undefined
   },
   tomorrowForecast: {
-    description: 'Cloudy.',
-    maxTemp: 12,
-    minRh: 40
+    description: '',
+    maxTemp: undefined,
+    minRh: undefined
   },
   weatherData: defaultWeatherRows,
   inversionVenting: '',

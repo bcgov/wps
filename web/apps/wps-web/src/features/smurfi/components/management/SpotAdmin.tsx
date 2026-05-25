@@ -52,17 +52,7 @@ const SpotAdmin = () => {
     }
   ]
 
-  const rows: SpotAdminRow[] = [
-    {
-      id: 1,
-      spotId: 123,
-      fireId: 'V0800168',
-      forecaster: 'Matt MacDonald',
-      fireCentre: 'Coastal',
-      status: SpotRequestStatus.REQUESTED,
-      lastUpdated: null
-    }
-  ]
+  const rows: SpotAdminRow[] = []
 
   return (
     <Box sx={{ display: 'flex', flexGrow: 1, pr: 3 }}>

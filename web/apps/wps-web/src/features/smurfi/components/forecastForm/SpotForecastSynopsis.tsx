@@ -7,10 +7,9 @@ import ControlledForecastTextField from '@/features/smurfi/components/forecastFo
 interface SpotForecastSynopsisProps {
   control: Control<SpotFormData>
   errors: FieldErrors<SpotFormData>
-  readOnly?: boolean
 }
 
-const SpotForecastSynopsis: React.FC<SpotForecastSynopsisProps> = ({ control, errors, readOnly = false }) => {
+const SpotForecastSynopsis: React.FC<SpotForecastSynopsisProps> = ({ control, errors }) => {
   return (
     <Grid size={12}>
       <Card>
@@ -25,7 +24,6 @@ const SpotForecastSynopsis: React.FC<SpotForecastSynopsisProps> = ({ control, er
             rows={5}
             fullWidth
             errorMessage={errors.synopsis?.message}
-            readOnly={readOnly}
           />
         </CardContent>
       </Card>

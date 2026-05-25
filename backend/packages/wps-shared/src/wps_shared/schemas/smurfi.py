@@ -52,16 +52,18 @@ class SpotRequestListResponse(BaseModel):
     spot_requests: list[SpotRequestData]
 
 
-class SpotDescriptiveWeatherData(BaseModel):
-    id: int | None = None
+class SpotDescriptiveWeatherInput(BaseModel):
     period: str
     temperature: float | None = None
     relative_humidity: float | None = None
     conditions: str | None = None
 
 
-class SpotTabularWeatherData(BaseModel):
+class SpotDescriptiveWeatherData(SpotDescriptiveWeatherInput):
     id: int | None = None
+
+
+class SpotTabularWeatherInput(BaseModel):
     forecast_time: datetime
     temperature: float | None = None
     relative_humidity: float | None = None
@@ -70,12 +72,12 @@ class SpotTabularWeatherData(BaseModel):
     precipitation_amount: float | None = None
 
 
-class SpotForecastData(BaseModel):
+class SpotTabularWeatherData(SpotTabularWeatherInput):
     id: int | None = None
+
+
+class SpotForecastInput(BaseModel):
     spot_request_id: int
-    forecaster_name: str
-    forecaster_email: str
-    forecaster_phone: str | None = None
     synopsis: str | None = None
     inversion_and_venting: str | None = None
     outlook: str | None = None
@@ -83,12 +85,25 @@ class SpotForecastData(BaseModel):
     fire_size: float | None = None
     representative_station_codes: list[int] | None = None
     for_date: datetime | None = None
+    descriptive_weather: list[SpotDescriptiveWeatherInput] = []
+    tabular_weather: list[SpotTabularWeatherInput] = []
+
+
+class SpotForecastData(SpotForecastInput):
+    id: int | None = None
+    forecaster_name: str | None = None
+    forecaster_email: str | None = None
+    forecaster_phone: str | None = None
     descriptive_weather: list[SpotDescriptiveWeatherData] = []
     tabular_weather: list[SpotTabularWeatherData] = []
 
 
 class SpotForecastResponse(BaseModel):
     spot_forecast: SpotForecastData
+
+
+class SpotForecastListResponse(BaseModel):
+    spot_forecasts: list[SpotForecastData]
 
 
 class SmurfiGeneralForecastData(BaseModel):

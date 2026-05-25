@@ -28,17 +28,13 @@ interface WeatherDataTableProps {
   fields: UseFieldArrayReturn<SpotFormData, 'weatherData'>['fields']
   append: UseFieldArrayReturn<SpotFormData, 'weatherData'>['append']
   remove: UseFieldArrayReturn<SpotFormData, 'weatherData'>['remove']
-  readOnly?: boolean
 }
 
-const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
-  control,
-  errors,
-  fields,
-  append,
-  remove,
-  readOnly = false
-}) => {
+const dateCellSx = { width: 175, minWidth: 175 }
+const compactWeatherCellSx = { width: 90, minWidth: 90 }
+const windCellSx = { width: 190, minWidth: 190 }
+
+const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ control, errors, fields, append, remove }) => {
   const weatherDataArrayError = Array.isArray(errors.weatherData) ? undefined : errors.weatherData?.message
   const weatherDataError = errors.weatherData?.root?.message ?? weatherDataArrayError
 
@@ -48,41 +44,35 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="h6">Weather Data</Typography>
-            {!readOnly && (
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
-                onClick={() =>
-                  append({
-                    dateTime: DateTime.now().toFormat('yyyy-MM-dd HH:mm'),
-                    temp: '',
-                    rh: '',
-                    windSpeed: '',
-                    windGust: '',
-                    windDirection: '',
-                    rain: '-',
-                    chanceRain: '-'
-                  })
-                }
-              >
-                Add Row
-              </Button>
-            )}
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() =>
+                append({
+                  dateTime: DateTime.now().toFormat('yyyy-MM-dd HH:mm'),
+                  temp: '',
+                  rh: '',
+                  wind: '',
+                  rain: '-',
+                  chanceRain: '-'
+                })
+              }
+            >
+              Add Row
+            </Button>
           </Box>
 
           <TableContainer component={Paper}>
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 850 }}>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ minWidth: 175 }}>Date/Time (PDT)</TableCell>
-                  <TableCell>Temp (C)</TableCell>
-                  <TableCell>RH (%)</TableCell>
-                  <TableCell>Wind Speed (km/h)</TableCell>
-                  <TableCell>Wind Gust (km/h)</TableCell>
-                  <TableCell>Wind Direction (°)</TableCell>
-                  <TableCell>Rain (mm)</TableCell>
-                  <TableCell>Chance Rain (%)</TableCell>
-                  {!readOnly && <TableCell width={60} />}
+                  <TableCell sx={dateCellSx}>Date/Time (PDT)</TableCell>
+                  <TableCell sx={compactWeatherCellSx}>Temp (C)</TableCell>
+                  <TableCell sx={compactWeatherCellSx}>RH (%)</TableCell>
+                  <TableCell sx={windCellSx}>Wind</TableCell>
+                  <TableCell sx={compactWeatherCellSx}>Rain (mm)</TableCell>
+                  <TableCell sx={compactWeatherCellSx}>Chance Rain (%)</TableCell>
+                  <TableCell width={60} />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -91,56 +81,45 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({
                     <WeatherDataCell
                       name={`weatherData.${index}.dateTime` as FieldPath<SpotFormData>}
                       control={control}
-                      readOnly={readOnly}
                       errorMessage={errors.weatherData?.[index]?.dateTime?.message}
+                      sx={dateCellSx}
                     />
                     <WeatherDataCell
                       name={`weatherData.${index}.temp` as FieldPath<SpotFormData>}
                       control={control}
                       type="number"
-                      readOnly={readOnly}
                       errorMessage={errors.weatherData?.[index]?.temp?.message}
+                      sx={compactWeatherCellSx}
                     />
                     <WeatherDataCell
                       name={`weatherData.${index}.rh` as FieldPath<SpotFormData>}
                       control={control}
                       type="number"
-                      readOnly={readOnly}
                       errorMessage={errors.weatherData?.[index]?.rh?.message}
+                      sx={compactWeatherCellSx}
                     />
                     <WeatherDataCell
-                      name={`weatherData.${index}.windSpeed` as FieldPath<SpotFormData>}
+                      name={`weatherData.${index}.wind` as FieldPath<SpotFormData>}
                       control={control}
-                      readOnly={readOnly}
-                    />
-                    <WeatherDataCell
-                      name={`weatherData.${index}.windGust` as FieldPath<SpotFormData>}
-                      control={control}
-                      readOnly={readOnly}
-                    />
-                    <WeatherDataCell
-                      name={`weatherData.${index}.windDirection` as FieldPath<SpotFormData>}
-                      control={control}
-                      readOnly={readOnly}
-                      errorMessage={errors.weatherData?.[index]?.windDirection?.message}
+                      sx={windCellSx}
                     />
                     <WeatherDataCell
                       name={`weatherData.${index}.rain` as FieldPath<SpotFormData>}
                       control={control}
-                      readOnly={readOnly}
+                      type="number"
+                      sx={compactWeatherCellSx}
                     />
                     <WeatherDataCell
                       name={`weatherData.${index}.chanceRain` as FieldPath<SpotFormData>}
                       control={control}
-                      readOnly={readOnly}
+                      type="number"
+                      sx={compactWeatherCellSx}
                     />
-                    {!readOnly && (
-                      <TableCell>
-                        <IconButton size="small" color="error" onClick={() => remove(index)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    )}
+                    <TableCell>
+                      <IconButton size="small" color="error" onClick={() => remove(index)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

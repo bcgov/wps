@@ -25,7 +25,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { DateTime } from 'luxon'
 import { Controller, FieldErrors, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { DatePicker } from '@mui/x-date-pickers'
+import { DatePicker } from '@mui/x-date-pickers-pro'
 import {
   requestedFrequencyOptions,
   slopeAspectOptions,
@@ -69,6 +69,42 @@ const getEmailErrorMessage = (errors: FieldErrors<SpotRequestFormValues>) => {
   return undefined
 }
 
+const getFireNumberErrorMessage = (errors: FieldErrors<SpotRequestFormValues>) => {
+  const error = errors.fireNumbers
+
+  if (!error) {
+    return undefined
+  }
+
+  if ('message' in error && typeof error.message === 'string') {
+    return error.message
+  }
+
+  if (Array.isArray(error)) {
+    return error.find(Boolean)?.message
+  }
+
+  return undefined
+}
+
+const splitFireNumberInput = (value: string) =>
+  value
+    .split(/[,\s]+/)
+    .map(fireNumber => fireNumber.trim())
+    .filter(Boolean)
+
+const normalizeFireNumberValues = (values: string[]) => {
+  const seenFireNumbers = new Set<string>()
+  return values.flatMap(splitFireNumberInput).filter(fireNumber => {
+    const normalizedFireNumber = fireNumber.toUpperCase()
+    if (seenFireNumbers.has(normalizedFireNumber)) {
+      return false
+    }
+    seenFireNumbers.add(normalizedFireNumber)
+    return true
+  })
+}
+
 const splitEmailInput = (value: string) =>
   value
     .split(/\s+/)
@@ -88,7 +124,7 @@ const normalizeEmailValues = (values: string[]) => {
 }
 
 const defaultValues: SpotRequestFormValues = {
-  fireNumber: '',
+  fireNumbers: [],
   fireCentreId: 0,
   forecastStartDate: DateTime.now().setZone('America/Vancouver'),
   forecastEndDate: DateTime.now().setZone('America/Vancouver').plus({ days: 5 }),
@@ -106,6 +142,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
   const dispatch: AppDispatch = useDispatch()
   const { fireCentres, loading: fireCentresLoading } = useSelector(selectFireCentres)
   const { spotRequestSubmitting, spotRequestSubmitError } = useSelector((state: RootState) => state.smurfi)
+  const [fireNumberInputValue, setFireNumberInputValue] = useState('')
   const [emailInputValue, setEmailInputValue] = useState('')
   const {
     control,
@@ -132,6 +169,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
   }
 
   const emailErrorMessage = getEmailErrorMessage(errors)
+  const fireNumberErrorMessage = getFireNumberErrorMessage(errors)
   const locationErrorMessage =
     errors.location?.message ?? errors.location?.latitude?.message ?? errors.location?.longitude?.message
 
@@ -147,17 +185,54 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
 
         <Grid size={{ xs: 12, sm: 6 }}>
           <Controller
-            name="fireNumber"
+            name="fireNumbers"
             control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Fire Number"
-                fullWidth
-                error={!!errors.fireNumber}
-                helperText={errors.fireNumber?.message}
-              />
-            )}
+            render={({ field }) => {
+              const commitFireNumberInput = () => {
+                if (fireNumberInputValue.trim()) {
+                  field.onChange(normalizeFireNumberValues([...field.value, fireNumberInputValue]))
+                  setFireNumberInputValue('')
+                }
+              }
+
+              return (
+                <Autocomplete<string, true, false, true>
+                  multiple
+                  freeSolo
+                  options={[]}
+                  value={field.value}
+                  inputValue={fireNumberInputValue}
+                  onBlur={() => {
+                    commitFireNumberInput()
+                    field.onBlur()
+                  }}
+                  onChange={(_, value) => {
+                    field.onChange(normalizeFireNumberValues(value))
+                    setFireNumberInputValue('')
+                  }}
+                  onInputChange={(_, value, reason) => {
+                    if (reason !== 'input') {
+                      setFireNumberInputValue(value)
+                      return
+                    }
+                    if (/[,\s]/.test(value)) {
+                      field.onChange(normalizeFireNumberValues([...field.value, value]))
+                      setFireNumberInputValue('')
+                      return
+                    }
+                    setFireNumberInputValue(value)
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label="Fire Numbers"
+                      error={!!fireNumberErrorMessage}
+                      helperText={fireNumberErrorMessage}
+                    />
+                  )}
+                />
+              )
+            }}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>

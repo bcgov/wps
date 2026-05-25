@@ -1,4 +1,4 @@
-import EditIcon from '@mui/icons-material/Edit'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
 import CloseIcon from '@mui/icons-material/Close'
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
@@ -38,8 +38,8 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
     },
     {
       field: 'fire_id',
-      headerName: 'Fire ID',
-      width: 100
+      headerName: 'Fire ID(s)',
+      width: 150
     },
     {
       field: 'forecaster',
@@ -100,10 +100,10 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
         const isSubscribed = subscribedIds.includes(params.row.spot_id)
         return [
           <GridActionsCellItem
-            key={`edit-${params.row.id}`}
-            icon={<EditIcon />}
-            label="View details"
-            onClick={() => handleEditButtonClick(params.row)}
+            key={`create-${params.row.id}`}
+            icon={<AddCircleIcon />}
+            label="Create forecast"
+            onClick={() => handleCreateForecastClick(params.row)}
             showInMenu={false}
           />,
           <GridActionsCellItem
@@ -119,7 +119,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
     }
   ]
 
-  const handleEditButtonClick = (row: SpotAdminRow) => {
+  const handleCreateForecastClick = (row: SpotAdminRow) => {
     setSelectedSpot(row)
     setModalOpen(true)
   }
@@ -158,7 +158,7 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">
-            {selectedSpot?.status === SpotRequestStatus.REQUESTED ? 'New Spot Forecast' : 'Edit Spot Forecast'}
+            New Spot Forecast
             {selectedSpot && ` - Spot ID: ${selectedSpot.spot_id}`}
           </Typography>
           <IconButton aria-label="close" onClick={handleModalClose} size="small">
@@ -166,7 +166,9 @@ const SpotManagementTable = ({ spotAdminRows, selectedRowId, setSelectedRowId }:
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          <SpotForecastForm />
+          {selectedSpot?.spot_request && (
+            <SpotForecastForm spotRequest={selectedSpot.spot_request} onSubmitSuccess={handleModalClose} />
+          )}
         </DialogContent>
       </Dialog>
     </Box>

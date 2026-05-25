@@ -1,5 +1,5 @@
-import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
-import React, { useEffect, useRef, useState } from 'react'
+import { Box } from '@mui/material'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Feature, Map, View } from 'ol'
 import { fromLonLat, toLonLat } from 'ol/proj'
 import Overlay from 'ol/Overlay'
@@ -12,18 +12,19 @@ import { Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
 import SpotPopup, { statusToPath } from './SpotPopup'
 import { FeatureLike } from 'ol/Feature'
-import CloseIcon from '@mui/icons-material/Close'
-import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotForecastForm'
-import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
+import { BC_EXTENT, CENTER_OF_BC, SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
+import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch } from '@/app/store'
+import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
+import { useNavigate } from 'react-router-dom'
 
 export interface SelectedCoordinates {
   latitude: number
   longitude: number
 }
-
-type SpotRequestStatus = 'ACTIVE' | 'COMPLETE' | 'PENDING' | 'PAUSED'
 
 type SpotFeature = {
   lon: number
@@ -32,68 +33,35 @@ type SpotFeature = {
   id: string
   spotId: number
   fireNumber: string
-  fireCentre?: string
 }
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
-const mockFeatures: SpotFeature[] = [
-  {
-    lon: -125.0313,
-    lat: 49.6188,
-    status: 'PENDING' as SpotRequestStatus,
-    id: '123',
-    spotId: 123,
-    fireNumber: 'V0800168',
-    fireCentre: 'Coastal'
-  },
-  {
-    lon: -122.7497,
-    lat: 53.9171,
-    status: 'ACTIVE' as SpotRequestStatus,
-    id: '124',
-    spotId: 124,
-    fireNumber: 'G0700234',
-    fireCentre: 'Prince George'
-  },
-  {
-    lon: -122.7497,
-    lat: 50.9171,
-    status: 'PAUSED' as SpotRequestStatus,
-    id: '125',
-    spotId: 125,
-    fireNumber: 'K0300789',
-    fireCentre: 'Kamloops'
-  },
-  {
-    lon: -125.7497,
-    lat: 54.9171,
-    status: 'COMPLETE' as SpotRequestStatus,
-    id: '126',
-    spotId: 126,
-    fireNumber: 'C092346',
-    fireCentre: 'Cariboo'
-  },
-  {
-    lon: -125.7497,
-    lat: 50.9171,
-    status: 'COMPLETE' as SpotRequestStatus,
-    id: '127',
-    spotId: 127,
-    fireNumber: 'C092347',
-    fireCentre: 'Southeast'
-  }
-]
-
 // Tolerance for coordinate matching (in degrees)
 const COORDINATE_TOLERANCE = 0.0001
+const formatFireNumbers = (fireNumbers: string[] | null | undefined) => fireNumbers?.join(', ') ?? ''
+
+const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature => ({
+  lon: spotRequest.longitude,
+  lat: spotRequest.latitude,
+  status: spotRequest.status,
+  id: String(spotRequest.id),
+  spotId: spotRequest.id,
+  fireNumber: formatFireNumbers(spotRequest.fire_number)
+})
 
 interface SMURFIMapProps {
   selectedCoordinates?: SelectedCoordinates | null
+  spotRequests?: SpotRequestOutput[]
 }
 
-const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
+const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMURFIMapProps) => {
+  const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
+  const { spotRequests } = useSelector(selectSmurfi)
+  const mapSpotRequests = propSpotRequests ?? spotRequests
+  const spotFeatures = useMemo(() => mapSpotRequests.map(buildSpotFeature), [mapSpotRequests])
   const [map, setMap] = useState<Map | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
@@ -107,22 +75,9 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
     fireNumber: string
     spotId: number
   } | null>(null)
-  const [forecastModalOpen, setForecastModalOpen] = useState(false)
-  const [selectedFireNumber, setSelectedFireNumber] = useState<string>('')
-  const [selectedSpotCoords, setSelectedSpotCoords] = useState<{ lat: number; lng: number } | null>(null)
 
-  const handleOpenForecastModal = (fireNumber: string, lat?: number, lng?: number) => {
-    setSelectedFireNumber(fireNumber)
-    if (lat !== undefined && lng !== undefined) {
-      setSelectedSpotCoords({ lat, lng })
-    }
-    setForecastModalOpen(true)
-  }
-
-  const handleCloseForecastModal = () => {
-    setForecastModalOpen(false)
-    setSelectedFireNumber('')
-    setSelectedSpotCoords(null)
+  const handleOpenForecasts = (spotRequestId: number) => {
+    navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`)
   }
 
   // Create highlight style for selected marker
@@ -165,25 +120,16 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
   }
 
   useEffect(() => {
+    if (propSpotRequests === undefined) {
+      dispatch(fetchSpotRequests())
+    }
+  }, [dispatch, propSpotRequests])
+
+  useEffect(() => {
     if (!mapRef.current) return
 
-    const createMarker = (spotFeature: SpotFeature) => {
-      return new Feature({
-        geometry: new Point(fromLonLat([spotFeature.lon, spotFeature.lat])),
-        id: spotFeature.id,
-        spotId: spotFeature.spotId,
-        status: spotFeature.status,
-        fireNumber: spotFeature.fireNumber,
-        fireCentre: spotFeature.fireCentre,
-        lon: spotFeature.lon,
-        lat: spotFeature.lat
-      })
-    }
-
-    const mockMarkers = mockFeatures.map(feat => createMarker(feat))
-
-    const featureSource = new VectorSource({
-      features: mockMarkers
+    const featureSource = new VectorSource<Feature<Point>>({
+      features: []
     })
     const featureLayer = new VectorLayer({
       source: featureSource,
@@ -249,6 +195,29 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
     }
   }, [])
 
+  useEffect(() => {
+    const featureSource = featureLayerRef.current?.getSource()
+    if (!featureSource) {
+      return
+    }
+
+    const markers = spotFeatures.map(
+      spotFeature =>
+        new Feature({
+          geometry: new Point(fromLonLat([spotFeature.lon, spotFeature.lat])),
+          id: spotFeature.id,
+          spotId: spotFeature.spotId,
+          status: spotFeature.status,
+          fireNumber: spotFeature.fireNumber,
+          lon: spotFeature.lon,
+          lat: spotFeature.lat
+        })
+    )
+
+    featureSource.clear()
+    featureSource.addFeatures(markers)
+  }, [spotFeatures])
+
   // Update marker styles when selectedCoordinates changes
   useEffect(() => {
     if (featureLayerRef.current) {
@@ -281,41 +250,11 @@ const SMURFIMap = ({ selectedCoordinates }: SMURFIMapProps) => {
               status={popupData.status}
               fireNumber={popupData.fireNumber}
               spotId={popupData.spotId}
-              onOpenForecast={handleOpenForecastModal}
+              onOpenForecast={handleOpenForecasts}
             />
           )}
         </div>
       </Box>
-
-      {/* Forecast Modal - rendered outside the overlay */}
-      <Dialog
-        open={forecastModalOpen}
-        onClose={handleCloseForecastModal}
-        maxWidth="lg"
-        fullWidth
-        slotProps={{
-          paper: {
-            sx: {
-              maxHeight: '90vh'
-            }
-          }
-        }}
-      >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Spot Forecast - {selectedFireNumber}</Typography>
-          <IconButton aria-label="close" onClick={handleCloseForecastModal} size="small">
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          <SpotForecastForm
-            readOnly={true}
-            fireId={selectedFireNumber}
-            latitude={selectedSpotCoords?.lat}
-            longitude={selectedSpotCoords?.lng}
-          />
-        </DialogContent>
-      </Dialog>
     </MapContext.Provider>
   )
 }

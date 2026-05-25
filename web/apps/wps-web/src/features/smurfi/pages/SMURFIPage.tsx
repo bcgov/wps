@@ -3,8 +3,8 @@ import { Box, Tabs, Tab } from '@mui/material'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
-import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
-import { LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon'
+import { LocalizationProvider } from '@mui/x-date-pickers-pro/LocalizationProvider'
 import { SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE } from '@wps/utils/constants'
 import SpotManagement from '@/features/smurfi/components/management/SpotManagement'
 import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
@@ -44,7 +44,7 @@ const SMURFIPage = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
         <Tabs value={currentTab} onChange={handleChange}>
-          <Tab label="Dashboard" />
+          <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
           <Tab label="Map" />
           <Tab label="Spot Management" />
         </Tabs>

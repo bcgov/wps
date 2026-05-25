@@ -1,160 +1,72 @@
-import React, { useContext, useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useDispatch } from 'react-redux'
-import { Grid, Typography, Button, Box, Switch, FormControlLabel } from '@mui/material'
-import { DateTime } from 'luxon'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  Alert,
+  Grid,
+  Typography,
+  Button,
+  Box,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  Radio
+} from '@mui/material'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { AppDispatch } from '@/app/store'
-import { UserContext } from '@/features/smurfi/contexts/UserContext'
 import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
-import { SpotForecastHistoryItem } from '@/features/smurfi/interfaces'
 import SpotForecastHeader from '@/features/smurfi/components/forecastForm/SpotForecastHeader'
 import SpotForecastSynopsis from '@/features/smurfi/components/forecastForm/SpotForecastSynopsis'
 import WeatherDataTable from '@/features/smurfi/components/forecastForm/WeatherDataTable'
 import SpotForecastSummaries from '@/features/smurfi/components/forecastForm/SpotForecastSummaries'
 import SpotForecastSections from '@/features/smurfi/components/forecastForm/SpotForecastSections'
-import ForecastHistoryList from '@/features/smurfi/components/forecastForm/ForecastHistoryList'
-import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { getStations, StationSource } from '@wps/api/stationAPI'
+import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 
-// Mock data for all forecasts (including current) - in production this would come from an API
-const mockAllForecasts: SpotForecastHistoryItem[] = [
-  // Current/most recent forecasts
-  {
-    id: 100,
-    fire_id: 'V0800168',
-    latitude: 49.6188,
-    longitude: -125.0313,
-    issued_date: DateTime.now().toMillis(),
-    expiry_date: DateTime.now().plus({ days: 1 }).toMillis(),
-    forecaster: 'Matt',
-    synopsis: 'Current forecast: High pressure continues to dominate with warm and dry conditions expected.',
-    status: SpotRequestStatus.STARTED
-  },
-  {
-    id: 105,
-    fire_id: 'G0700234',
-    latitude: 53.9171,
-    longitude: -122.7497,
-    issued_date: DateTime.now().toMillis(),
-    expiry_date: DateTime.now().plus({ days: 1 }).toMillis(),
-    forecaster: 'Jessie',
-    synopsis: 'Current forecast: Unstable conditions with potential for afternoon thunderstorms.',
-    status: SpotRequestStatus.STARTED
-  },
-  // Historical forecasts for V0800168
-  {
-    id: 101,
-    fire_id: 'V0800168',
-    latitude: 49.6188,
-    longitude: -125.0313,
-    issued_date: DateTime.now().minus({ days: 1 }).toMillis(),
-    expiry_date: DateTime.now().toMillis(),
-    forecaster: 'Matt',
-    synopsis: 'A ridge of high pressure will bring warm and dry conditions to the region.',
-    status: SpotRequestStatus.ARCHIVED
-  },
-  {
-    id: 102,
-    fire_id: 'V0800168',
-    latitude: 49.6188,
-    longitude: -125.0313,
-    issued_date: DateTime.now().minus({ days: 2 }).toMillis(),
-    expiry_date: DateTime.now().minus({ days: 1 }).toMillis(),
-    forecaster: 'Jessie',
-    synopsis: 'An approaching cold front will bring cooler temperatures and increased humidity.',
-    status: SpotRequestStatus.ARCHIVED
-  },
-  {
-    id: 103,
-    fire_id: 'V0800168',
-    latitude: 49.6188,
-    longitude: -125.0313,
-    issued_date: DateTime.now().minus({ days: 3 }).toMillis(),
-    expiry_date: DateTime.now().minus({ days: 2 }).toMillis(),
-    forecaster: 'Brett',
-    synopsis: 'Stable conditions expected with light winds and moderate temperatures.',
-    status: SpotRequestStatus.ARCHIVED
-  },
-  // Historical forecasts for G0700234
-  {
-    id: 104,
-    fire_id: 'G0700234',
-    latitude: 53.9171,
-    longitude: -122.7497,
-    issued_date: DateTime.now().minus({ days: 1 }).toMillis(),
-    expiry_date: DateTime.now().toMillis(),
-    forecaster: 'Liz',
-    synopsis: 'Thunderstorm activity possible in the afternoon with gusty winds.',
-    status: SpotRequestStatus.ARCHIVED
-  }
-]
+const toFormString = (value: number | string | null | undefined) =>
+  value === null || value === undefined ? '' : String(value)
 
-// Mock function to get full forecast data by ID - in production this would be an API call
-const getMockForecastData = (
-  forecastId: number,
-  user: { name: string; email: string; phone: string }
-): Partial<SpotFormData> => {
-  const forecast = mockAllForecasts.find(f => f.id === forecastId)
-  if (!forecast) return getDefaultValues(user)
-
-  // Return mock data based on the forecast ID
-  const baseData = getDefaultValues(user)
-  return {
-    ...baseData,
-    issuedDate: DateTime.fromMillis(forecast.issued_date),
-    expiryDate: DateTime.fromMillis(forecast.expiry_date),
-    fireProj: forecast.fire_id,
-    forecastBy: forecast.forecaster,
-    latitude: String(forecast.latitude),
-    longitude: String(forecast.longitude),
-    synopsis: forecast.synopsis,
-    inversionVenting: `Inversion data for forecast ${forecastId}`,
-    outlook: `Outlook for forecast ${forecastId}`,
-    confidenceDiscussion: `Confidence discussion for forecast ${forecastId}`,
-    weatherData: defaultWeatherRows.map((row, idx) => ({
-      ...row,
-      temp: String(15 + idx + (forecastId % 10)),
-      rh: String(45 + idx * 2),
-      windSpeed: String(10 + idx),
-      windDirection: String((idx * 45) % 360)
-    }))
-  }
-}
+const formatFireNumbers = (fireNumbers: string[] | null | undefined) => fireNumbers?.join(', ') ?? ''
 
 interface SpotForecastFormProps {
-  readOnly?: boolean
-  fireId?: string
-  latitude?: number
-  longitude?: number
+  spotRequest: SpotRequestOutput
+  onSubmitSuccess?: () => void
 }
 
-const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, fireId, latitude, longitude }) => {
-  const user = useContext(UserContext)
+const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubmitSuccess }) => {
   const dispatch: AppDispatch = useDispatch()
+  const { spotForecastSubmitting, spotForecastSubmitError } = useSelector(selectSmurfi)
   const [isMini, setIsMini] = useState(false)
-  const [selectedForecastId, setSelectedForecastId] = useState<number | null>(null)
-  const [isInitialized, setIsInitialized] = useState(false)
   const schema = useMemo(() => createSchema(isMini), [isMini])
   const resolver = useMemo(() => zodResolver(schema), [schema])
 
-  // Filter and sort forecasts by fireId (most recent first)
-  const allForecasts = useMemo(() => {
-    if (!fireId) return []
-    return mockAllForecasts.filter(f => f.fire_id === fireId).sort((a, b) => b.issued_date - a.issued_date)
-  }, [fireId])
+  const defaultValues = useMemo<Partial<SpotFormData>>(() => {
+    const baseDefaults = getDefaultValues()
+
+    return {
+      ...baseDefaults,
+      fireProj: formatFireNumbers(spotRequest.fire_number),
+      requestBy: spotRequest.requestor_name,
+      latitude: toFormString(spotRequest.latitude),
+      longitude: toFormString(spotRequest.longitude),
+      slopeAspect: spotRequest.aspect ?? baseDefaults.slopeAspect,
+      elevation: toFormString(spotRequest.elevation),
+      weatherData: defaultWeatherRows
+    }
+  }, [spotRequest])
 
   const {
     control,
     handleSubmit,
     reset,
-    trigger,
     formState: { errors, isValid }
   } = useForm<SpotFormData>({
     resolver,
-    defaultValues: getDefaultValues(user),
+    defaultValues,
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
@@ -164,112 +76,79 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ readOnly = false, f
     name: 'weatherData'
   })
 
-  const onSubmit = (data: SpotFormData) => {
-    // For mini forecasts, exclude forecast summary data
-    const dataToSubmit = { ...data }
-    if (isMini) {
-      delete dataToSubmit.afternoonForecast
-      delete dataToSubmit.tonightForecast
-      delete dataToSubmit.tomorrowForecast
+  const onSubmit = async (data: SpotFormData) => {
+    const submittedForecast = await dispatch(
+      submitSpotForecast({
+        formData: data,
+        isMini,
+        spotRequestId: spotRequest.id
+      })
+    )
+
+    if (submittedForecast) {
+      onSubmitSuccess?.()
     }
-
-    console.log('Submitted Forecast:', {
-      ...dataToSubmit,
-      issuedDate: dataToSubmit.issuedDate.toISO(),
-      expiryDate: dataToSubmit.expiryDate.toISO(),
-      weatherData: dataToSubmit.weatherData.map(row => ({
-        ...row,
-        temp: row.temp ? Number(row.temp) : '-',
-        rh: row.rh ? Number(row.rh) : '-'
-      }))
-    })
-
-    alert('Forecast submitted! Check console for formatted data.')
   }
 
-  const handleSelectForecast = (forecast: SpotForecastHistoryItem) => {
-    setSelectedForecastId(forecast.id)
-    const forecastData = getMockForecastData(forecast.id, user)
-    reset(forecastData)
-  }
-
-  // Auto-select the most recent forecast when the component loads in readOnly mode
   useEffect(() => {
-    if (readOnly && allForecasts.length > 0 && !isInitialized) {
-      const mostRecentForecast = allForecasts[0]
-      setSelectedForecastId(mostRecentForecast.id)
-      const forecastData = getMockForecastData(mostRecentForecast.id, user)
-      reset(forecastData)
-      setIsInitialized(true)
-    }
-  }, [readOnly, allForecasts, isInitialized, user, reset])
+    setIsMini(spotRequest.request_type === 'Mini')
+  }, [spotRequest.request_type])
 
-  // Reset initialization when fireId changes
   useEffect(() => {
-    setIsInitialized(false)
-    setSelectedForecastId(null)
-  }, [fireId])
+    reset(defaultValues)
+  }, [defaultValues, reset])
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, [dispatch])
 
   useEffect(() => {
-    // re-check fields whose requirements change when switching between Mini and Full SPOT
-    const validateModeDependentFields = async () => {
-      await trigger(['outlook', 'weatherData'])
+    return () => {
+      dispatch(clearSpotForecastSubmitState())
     }
-
-    validateModeDependentFields()
-  }, [isMini, trigger])
+  }, [dispatch])
 
   return (
     <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>
-        {readOnly ? 'Spot Forecast' : 'Spot Forecast Form'}
+        Spot Forecast Form
       </Typography>
 
-      {!readOnly && (
-        <Box sx={{ mb: 2 }}>
-          <FormControlLabel
-            control={<Switch checked={isMini} onChange={e => setIsMini(e.target.checked)} />}
-            label="Mini Spot"
-          />
-        </Box>
-      )}
-
-      {/* Forecast History List - show at top in readOnly mode */}
-      {readOnly && allForecasts.length > 0 && (
-        <ForecastHistoryList
-          forecasts={allForecasts}
-          selectedId={selectedForecastId}
-          onSelectForecast={handleSelectForecast}
-        />
-      )}
+      <Box sx={{ mb: 2 }}>
+        <FormControl>
+          <FormLabel>Forecast Type</FormLabel>
+          <RadioGroup row value={isMini ? 'mini' : 'full'} onChange={event => setIsMini(event.target.value === 'mini')}>
+            <FormControlLabel value="mini" control={<Radio />} label="Mini Spot" />
+            <FormControlLabel value="full" control={<Radio />} label="Full Spot" />
+          </RadioGroup>
+        </FormControl>
+      </Box>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
-          <SpotForecastHeader control={control} errors={errors} readOnly={readOnly} />
-          <SpotForecastSynopsis control={control} errors={errors} readOnly={readOnly} />
-          {!isMini && <SpotForecastSummaries control={control} errors={errors} readOnly={readOnly} />}
-          <WeatherDataTable
-            control={control}
-            errors={errors}
-            fields={fields}
-            append={append}
-            remove={remove}
-            readOnly={readOnly}
-          />
-          <SpotForecastSections control={control} errors={errors} isMini={isMini} readOnly={readOnly} />
+          <SpotForecastHeader control={control} errors={errors} />
+          <SpotForecastSynopsis control={control} errors={errors} />
+          {!isMini && <SpotForecastSummaries control={control} errors={errors} />}
+          <WeatherDataTable control={control} errors={errors} fields={fields} append={append} remove={remove} />
+          <SpotForecastSections control={control} errors={errors} isMini={isMini} />
 
-          {/* Submit */}
-          {!readOnly && (
+          {spotForecastSubmitError && (
             <Grid size={12}>
-              <Button type="submit" variant="contained" size="large" fullWidth disabled={!isValid}>
-                Submit Spot Forecast
-              </Button>
+              <Alert severity="error">{spotForecastSubmitError}</Alert>
             </Grid>
           )}
+
+          <Grid size={12}>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              disabled={!isValid || spotForecastSubmitting}
+            >
+              {spotForecastSubmitting ? 'Submitting Spot Forecast...' : 'Submit Spot Forecast'}
+            </Button>
+          </Grid>
         </Grid>
       </form>
     </Box>

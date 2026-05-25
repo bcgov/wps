@@ -1,5 +1,6 @@
 """Unit tests for smurfi subscribe endpoints."""
 
+from datetime import datetime, timezone
 from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
@@ -13,6 +14,7 @@ DB_WRITE = "app.routers.smurfi.get_async_write_session_scope"
 SUBSCRIBE = "app.routers.smurfi.subscribe_to_spot_request"
 UNSUBSCRIBE = "app.routers.smurfi.unsubscribe_from_spot_request"
 GET_IDS = "app.routers.smurfi.get_subscribed_spot_request_ids"
+GET_FORECASTS = "app.routers.smurfi.get_spot_forecasts_for_request"
 
 
 def _make_subscriber(status: str):
@@ -82,34 +84,105 @@ def test_get_subscriptions_requires_auth():
     assert response.status_code == 401
 
 
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_get_spot_forecasts_returns_saved_forecasts():
+    """GET spot forecasts returns forecasts and weather for a spot request."""
+    client = TestClient(app.main.app)
+    forecast_time = datetime(2026, 5, 21, 16, tzinfo=timezone.utc)
+    descriptive_weather = [
+        type(
+            "SpotDescriptiveWeather",
+            (),
+            {
+                "id": 7,
+                "period": "Today",
+                "temperature": 22,
+                "relative_humidity": 35,
+                "conditions": "Clear",
+            },
+        )()
+    ]
+    tabular_weather = [
+        type(
+            "SpotTabularWeather",
+            (),
+            {
+                "id": 8,
+                "forecast_time": forecast_time,
+                "temperature": 20,
+                "relative_humidity": 40,
+                "wind": "SE 10-20 G 30-35",
+                "probability_of_precipitation": 10,
+                "precipitation_amount": 0,
+            },
+        )()
+    ]
+    forecast = type(
+        "SpotForecast",
+        (),
+        {
+            "id": 99,
+            "spot_request_id": 42,
+            "forecaster_name": "Test Forecaster",
+            "forecaster_email": "forecaster@example.com",
+            "forecaster_phone": "250-555-0100",
+            "synopsis": "High pressure.",
+            "inversion_and_venting": "Good venting.",
+            "outlook": "Dry.",
+            "confidence": "High.",
+            "fire_size": 12.5,
+            "representative_station_codes": [1, 2],
+            "for_date": forecast_time,
+            "descriptive_weather": descriptive_weather,
+            "tabular_weather": tabular_weather,
+        },
+    )()
+
+    with (
+        patch(DB_READ),
+        patch(GET_FORECASTS, new_callable=AsyncMock, return_value=[forecast]),
+    ):
+        response = client.get("/api/smurfi/spot_requests/42/spot_forecasts")
+
+    assert response.status_code == 200
+    assert response.json()["spot_forecasts"][0]["id"] == 99
+    assert response.json()["spot_forecasts"][0]["tabular_weather"][0]["wind"] == "SE 10-20 G 30-35"
+
+
 PUBLISH = "app.routers.smurfi.publish"
 CREATE_FORECAST = "app.routers.smurfi.create_spot_forecast"
-UPSERT_DW = "app.routers.smurfi._upsert_descriptive_weather"
-UPSERT_TW = "app.routers.smurfi._upsert_tabular_weather"
+CREATE_DW = "app.routers.smurfi._create_descriptive_weather"
+CREATE_TW = "app.routers.smurfi._create_tabular_weather"
+START_REQUEST = "app.routers.smurfi.start_requested_spot_request"
 
 FORECAST_PAYLOAD = {
     "spot_request_id": 1,
-    "forecaster_name": "Test Forecaster",
-    "forecaster_email": "forecaster@example.com",
     "descriptive_weather": [],
     "tabular_weather": [],
 }
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_upsert_spot_forecast_publishes_nats_message():
-    """Saving a spot forecast publishes a smurfi.spot.update NATS message."""
+def test_create_spot_forecast_publishes_nats_message():
+    """Creating a spot forecast publishes a smurfi.spot.update NATS message."""
     client = TestClient(app.main.app)
     mock_result = type("SpotForecast", (), {"id": 99})()
     with (
         patch(DB_WRITE),
-        patch(CREATE_FORECAST, new_callable=AsyncMock, return_value=mock_result),
-        patch(UPSERT_DW, new_callable=AsyncMock, return_value=[]),
-        patch(UPSERT_TW, new_callable=AsyncMock, return_value=[]),
+        patch(
+            CREATE_FORECAST, new_callable=AsyncMock, return_value=mock_result
+        ) as mock_create_forecast,
+        patch(CREATE_DW, new_callable=AsyncMock, return_value=[]),
+        patch(CREATE_TW, new_callable=AsyncMock, return_value=[]),
+        patch(START_REQUEST, new_callable=AsyncMock) as mock_start_request,
         patch(PUBLISH, new_callable=AsyncMock) as mock_publish,
     ):
         response = client.post("/api/smurfi/spot_forecast", json=FORECAST_PAYLOAD)
     assert response.status_code == 200
+    saved_forecast = mock_create_forecast.call_args.args[1]
+    assert saved_forecast.forecaster_name == "test_username"
+    assert saved_forecast.forecaster_email == "test@email.com"
+    mock_start_request.assert_awaited_once_with(ANY, FORECAST_PAYLOAD["spot_request_id"])
     mock_publish.assert_called_once_with(
         stream=stream_name,
         subject=smurfi_spot_update_subject,

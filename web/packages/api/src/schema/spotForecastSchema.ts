@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { DateTime } from 'luxon'
 
 const requiredString = (message = 'Required') => z.string().trim().min(1, message)
+const tabularWeatherDateTimeFormat = 'yyyy-MM-dd HH:mm'
 
 const isOptionalNumber = (val: string | undefined) => {
   if (val === undefined || val.trim() === '') {
@@ -23,19 +24,20 @@ const requiredNumericString = (rangeMessage: string, isInRange: (value: number) 
     return Number.isFinite(num) && isInRange(num)
   }, rangeMessage)
 
+const requiredTabularWeatherDateTime = () =>
+  requiredString('Date/Time required').refine(value => {
+    const parsedDateTime = DateTime.fromFormat(value, tabularWeatherDateTimeFormat, { zone: 'America/Vancouver' })
+    return parsedDateTime.isValid && parsedDateTime.toFormat(tabularWeatherDateTimeFormat) === value
+  }, `Use format ${tabularWeatherDateTimeFormat}`)
+
 export const createSchema = (isMini: boolean) => {
   const weatherRowSchema = z.object({
-    dateTime: requiredString('Date/Time required'),
+    dateTime: requiredTabularWeatherDateTime(),
     temp: optionalNumericString('Must be a number'),
     rh: optionalNumericString('RH must be a number between 0 and 100', num => num >= 0 && num <= 100),
-    windSpeed: z.string().optional(),
-    windGust: z.string().optional(),
-    windDirection: optionalNumericString(
-      'Wind direction must be a number between 0 and 359',
-      num => num >= 0 && num <= 359
-    ),
-    rain: z.string().optional(),
-    chanceRain: z.string().optional()
+    wind: z.string().optional(),
+    rain: optionalNumericString('Must be a number'),
+    chanceRain: optionalNumericString('Must be a number')
   })
 
   return z.object({
@@ -47,10 +49,6 @@ export const createSchema = (isMini: boolean) => {
     }),
     fireProj: requiredString(),
     requestBy: requiredString(),
-    forecastBy: requiredString(),
-    email: z.string().email('Invalid email'),
-    phone: requiredString(),
-    city: requiredString(),
     stns: z.array(z.number()).optional(),
     latitude: requiredNumericString('Latitude must be a number between -90 and 90', num => num >= -90 && num <= 90),
     longitude: requiredNumericString(
