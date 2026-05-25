@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Container, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { SpotForecastOutput, SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import SpotForecastHeaderTable from '@/features/smurfi/components/forecasts/SpotForecastHeaderTable'
 import WeatherDataTable from '@/features/smurfi/components/forecasts/WeatherDataTable'
