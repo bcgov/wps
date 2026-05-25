@@ -52,7 +52,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
     control,
     handleSubmit,
     reset,
-    formState: { errors, isValid }
+    formState: { errors, submitCount }
   } = useForm<SpotFormData>({
     resolver,
     defaultValues,
@@ -64,6 +64,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
     control,
     name: 'weatherData'
   })
+  const hasValidationErrors = Object.keys(errors).length > 0
 
   const onSubmit = async (data: SpotFormData) => {
     const submittedForecast = await dispatch(
@@ -124,13 +125,14 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
           )}
 
           <Grid size={12}>
-            <Button
-              type="submit"
-              variant="contained"
-              size="large"
-              fullWidth
-              disabled={!isValid || spotForecastSubmitting}
-            >
+            {submitCount > 0 && hasValidationErrors && (
+              <Grid size={12}>
+                <Alert severity="error">
+                  Some required fields are missing or invalid. Review the highlighted fields above.
+                </Alert>
+              </Grid>
+            )}
+            <Button type="submit" variant="contained" size="large" fullWidth disabled={spotForecastSubmitting}>
               {spotForecastSubmitting ? 'Submitting Spot Forecast...' : 'Submit Spot Forecast'}
             </Button>
           </Grid>
