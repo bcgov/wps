@@ -30,7 +30,7 @@ const SpotMapLayerSwitcher = ({
       maxWidth: 260
     }}
   >
-    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+    <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold' }}>
       Layers
     </Typography>
     <FormGroup>
@@ -75,6 +75,7 @@ const SpotMapLayerSwitcher = ({
       {statusOptions.map(status => (
         <FormControlLabel
           key={status}
+          sx={{ ml: 0.5 }}
           control={
             <Checkbox
               size="small"
