@@ -45,6 +45,9 @@ parameters:
   - name: CPU_REQUEST
     required: true
     value: "1.5"
+  - name: VANITY_DOMAIN
+    description: Vanity domain for the web application (e.g. psu.nrs.gov.bc.ca)
+    required: true
 
 objects:
   - apiVersion: v1
@@ -559,7 +562,4 @@ objects:
                       name: ${GLOBAL_NAME}
                       key: ches-sender-email
                 - name: WEB_BASE_URL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.web-base-url
+                  value: https://${VANITY_DOMAIN}
