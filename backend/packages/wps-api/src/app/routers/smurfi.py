@@ -11,10 +11,8 @@ from wps_shared.db.crud.smurfi import (
     create_spot_forecast,
     create_spot_tabular_weather,
     get_spot_forecasts_for_request,
-    get_spot_forecasts_for_request,
     get_spot_requests_for_year,
     get_subscribed_spot_request_ids,
-    start_requested_spot_request,
     start_requested_spot_request,
     subscribe_to_spot_request,
     sync_spot_subscribers,
@@ -249,9 +247,7 @@ async def create_spot_forecast_endpoint(
     now = get_utc_now()
     forecaster = _get_spot_user(token)
     if not forecaster.email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=MISSING_TOKEN_MESSAGE
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=MISSING_TOKEN_MESSAGE)
     spot_forecast = SpotForecast(
         spot_request_id=data.spot_request_id,
         forecaster_name=forecaster.name,

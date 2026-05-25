@@ -1,14 +1,12 @@
 """Unit tests for smurfi subscribe endpoints."""
 
 from datetime import datetime, timezone
-from datetime import datetime, timezone
 from unittest.mock import ANY, AsyncMock, patch
 
-import pytest
-from fastapi.testclient import TestClient
-
 import app.main
+import pytest
 from app.smurfi.nats_config import smurfi_spot_update_subject, stream_name, subjects
+from fastapi.testclient import TestClient
 
 DB_READ = "app.routers.smurfi.get_async_read_session_scope"
 DB_WRITE = "app.routers.smurfi.get_async_write_session_scope"
