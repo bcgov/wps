@@ -32,7 +32,7 @@ const SpotForecastFormPage = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 1440, mx: 'auto' }}>
+    <Box sx={{ width: '100%', maxWidth: 1440, mx: 'auto', pb: 6 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4">Submit Spot Forecast</Typography>
