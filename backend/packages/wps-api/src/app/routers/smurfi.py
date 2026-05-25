@@ -224,7 +224,7 @@ async def create_spot_forecast_endpoint(
     forecaster = _get_spot_requestor(token)
     if not forecaster.email:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Token missing email claim"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=MISSING_TOKEN_MESSAGE
         )
     spot_forecast = SpotForecast(
         spot_request_id=data.spot_request_id,
