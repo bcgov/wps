@@ -82,8 +82,8 @@ async def create_spot_descriptive_weather(
     return spot_descriptive_weather
 
 
-async def start_requested_spot_request(session: AsyncSession, spot_request_id: int) -> bool:
-    result = await session.execute(
+async def start_requested_spot_request(session: AsyncSession, spot_request_id: int):
+    await session.execute(
         update(SpotRequest)
         .where(
             SpotRequest.id == spot_request_id,
@@ -92,7 +92,6 @@ async def start_requested_spot_request(session: AsyncSession, spot_request_id: i
         .values(status=SpotRequestStatusEnum.STARTED.value)
     )
     await session.flush()
-    return result.rowcount > 0
 
 
 async def update_spot_request(session: AsyncSession, updated: SpotRequest):

@@ -2,10 +2,20 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch, useSelector } from 'react-redux'
-import { Alert, Grid, Button, Box, Switch, FormControlLabel } from '@mui/material'
+import {
+  Alert,
+  Grid,
+  Typography,
+  Button,
+  Box,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  Radio
+} from '@mui/material'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { AppDispatch } from '@/app/store'
-import { RootState } from '@/app/rootReducer'
 import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
 import SpotForecastHeader from '@/features/smurfi/components/forecastForm/SpotForecastHeader'
 import SpotForecastSynopsis from '@/features/smurfi/components/forecastForm/SpotForecastSynopsis'
@@ -15,7 +25,7 @@ import SpotForecastSections from '@/features/smurfi/components/forecastForm/Spot
 import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { getStations, StationSource } from '@wps/api/stationAPI'
-import { clearSpotForecastSubmitState, submitSpotForecast } from '@/features/smurfi/slices/smurfiSlice'
+import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 
 const toFormString = (value: number | string | null | undefined) =>
   value === null || value === undefined ? '' : String(value)
@@ -29,21 +39,21 @@ interface SpotForecastFormProps {
 
 const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubmitSuccess }) => {
   const dispatch: AppDispatch = useDispatch()
-  const { spotForecastSubmitting, spotForecastSubmitError } = useSelector((state: RootState) => state.smurfi)
+  const { spotForecastSubmitting, spotForecastSubmitError } = useSelector(selectSmurfi)
   const [isMini, setIsMini] = useState(false)
   const schema = useMemo(() => createSchema(isMini), [isMini])
   const resolver = useMemo(() => zodResolver(schema), [schema])
 
-  const requestDefaultValues = useMemo<Partial<SpotFormData>>(() => {
-    const defaultValues = getDefaultValues()
+  const defaultValues = useMemo<Partial<SpotFormData>>(() => {
+    const baseDefaults = getDefaultValues()
 
     return {
-      ...defaultValues,
+      ...baseDefaults,
       fireProj: formatFireNumbers(spotRequest.fire_number),
       requestBy: spotRequest.requestor_name,
       latitude: toFormString(spotRequest.latitude),
       longitude: toFormString(spotRequest.longitude),
-      slopeAspect: spotRequest.aspect ?? defaultValues.slopeAspect,
+      slopeAspect: spotRequest.aspect ?? baseDefaults.slopeAspect,
       elevation: toFormString(spotRequest.elevation),
       weatherData: defaultWeatherRows
     }
@@ -56,7 +66,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
     formState: { errors, isValid }
   } = useForm<SpotFormData>({
     resolver,
-    defaultValues: getDefaultValues(),
+    defaultValues,
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
@@ -85,8 +95,8 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
   }, [spotRequest.request_type])
 
   useEffect(() => {
-    reset(requestDefaultValues)
-  }, [requestDefaultValues, reset])
+    reset(defaultValues)
+  }, [defaultValues, reset])
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -101,10 +111,13 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
   return (
     <Box sx={{ p: 3, width: '100%' }}>
       <Box sx={{ mb: 2 }}>
-        <FormControlLabel
-          control={<Switch checked={isMini} onChange={e => setIsMini(e.target.checked)} />}
-          label="Mini Spot"
-        />
+        <FormControl>
+          <FormLabel>Forecast Type</FormLabel>
+          <RadioGroup row value={isMini ? 'mini' : 'full'} onChange={event => setIsMini(event.target.value === 'mini')}>
+            <FormControlLabel value="mini" control={<Radio />} label="Mini Spot" />
+            <FormControlLabel value="full" control={<Radio />} label="Full Spot" />
+          </RadioGroup>
+        </FormControl>
       </Box>
 
       <form onSubmit={handleSubmit(onSubmit)}>
