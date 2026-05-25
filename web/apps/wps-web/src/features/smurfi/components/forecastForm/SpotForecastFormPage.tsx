@@ -1,32 +1,21 @@
-import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
+import { selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotForecastForm'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
-import { AppDispatch } from '@/app/store'
 import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 
 const SpotForecastFormPage = () => {
   const navigate = useNavigate()
-  const dispatch: AppDispatch = useDispatch()
   const { id } = useParams()
   const spotRequestId = Number(id)
   const { spotRequests, spotRequestsLoading, spotRequestsError } = useSelector(selectSmurfi)
-  const [hasRequestedSpotRequests, setHasRequestedSpotRequests] = useState(false)
   const spotRequest = spotRequests.find(request => request.id === spotRequestId)
   const { isForecaster } = useSpotPermissions(spotRequest)
   const forecastsRoute = `${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`
 
-  useEffect(() => {
-    if (spotRequests.length === 0) {
-      dispatch(fetchSpotRequests())
-    }
-    setHasRequestedSpotRequests(true)
-  }, [dispatch, spotRequests.length])
-
-  if (!hasRequestedSpotRequests || spotRequestsLoading) {
+  if (spotRequestsLoading) {
     return <CircularProgress aria-label="Loading spot request" />
   }
 
