@@ -1,6 +1,7 @@
 """Unit tests for smurfi subscribe endpoints."""
 
 from datetime import datetime, timezone
+from datetime import datetime, timezone
 from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
@@ -14,6 +15,7 @@ DB_WRITE = "app.routers.smurfi.get_async_write_session_scope"
 SUBSCRIBE = "app.routers.smurfi.subscribe_to_spot_request"
 UNSUBSCRIBE = "app.routers.smurfi.unsubscribe_from_spot_request"
 GET_IDS = "app.routers.smurfi.get_subscribed_spot_request_ids"
+GET_FORECASTS = "app.routers.smurfi.get_spot_forecasts_for_request"
 GET_FORECASTS = "app.routers.smurfi.get_spot_forecasts_for_request"
 
 

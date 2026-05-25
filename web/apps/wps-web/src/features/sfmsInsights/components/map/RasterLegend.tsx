@@ -45,7 +45,7 @@ const RasterLegend = ({ rasterType }: RasterLegendProps) => {
             <ListItemIcon>
               <LegendSymbol sx={{ backgroundColor: colorBreak.color }} />
             </ListItemIcon>
-            <ListItemText>{colorBreak.label}</ListItemText>
+            <ListItemText sx={{ pl: 1 }}>{colorBreak.label}</ListItemText>
           </ListItem>
         ))}
       </List>

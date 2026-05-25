@@ -11,29 +11,6 @@ export interface Station {
   core_season: FireSeason
 }
 
-export interface DetailedStationProperties extends StationProperties {
-  observations: {
-    temperature: number
-    relative_humidity: number
-  }
-  forecasts: {
-    temperature: number
-    relative_humidity: number
-  }
-}
-export interface StationProperties {
-  code: number
-  name: string
-  ecodivision_name: string | null
-  elevation: number
-  core_season: FireSeason
-}
-
-export interface StationGeometry {
-  type: string
-  coordinates: number[]
-}
-
 export interface StationsResponse {
   type: string
   features: GeoJsonStation[]

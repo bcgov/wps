@@ -50,6 +50,15 @@ export class GridComponentRenderer {
     return this.isPredictionItem(value) ? value.value : value
   }
 
+  private readonly parseEditableNumber = (value: GridRendererEditableValue): number => {
+    if (value == null || value === '') {
+      return Number.NaN
+    }
+
+    const parsedValue = Number(value)
+    return Number.isNaN(parsedValue) ? Number.NaN : parsedValue
+  }
+
   public renderForecastHeaderWith = (
     params: GridColumnHeaderParams<MoreCast2Row>,
     columnClickHandlerProps: ColumnClickHandlerProps
@@ -231,10 +240,8 @@ export class GridComponentRenderer {
       return row
     }
 
-    const oldValue = predictionItem.value
-
-    const parsedValue = Number(value)
-    const newValue = Number.isNaN(parsedValue) ? Number.NaN : parsedValue
+    const oldValue = this.parseEditableNumber(predictionItem.value)
+    const newValue = this.parseEditableNumber(value)
 
     if (Number.isNaN(oldValue) && Number.isNaN(newValue)) {
       return row

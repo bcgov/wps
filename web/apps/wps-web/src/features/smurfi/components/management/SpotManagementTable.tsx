@@ -1,4 +1,5 @@
 import AddCircleIcon from '@mui/icons-material/AddCircle'
+import CloseIcon from '@mui/icons-material/Close'
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import { Box, Typography } from '@mui/material'
