@@ -561,5 +561,10 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: ches-sender-email
+                - name: CHES_MERGE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: ches-merge-url
                 - name: WEB_BASE_URL
                   value: https://${VANITY_DOMAIN}

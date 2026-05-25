@@ -11,7 +11,7 @@ CHES_TOKEN_URL = config.get("CHES_TOKEN_URL")
 CHES_CLIENT_ID = config.get("CHES_CLIENT_ID")
 CHES_CLIENT_SECRET = config.get("CHES_CLIENT_SECRET")
 CHES_SENDER_EMAIL = config.get("CHES_SENDER_EMAIL")
-CHES_EMAIL_MERGE_URL = "https://ches.api.gov.bc.ca/api/v1/email/merge"
+CHES_EMAIL_MERGE_URL = config.get("CHES_MERGE_URL")
 WEB_BASE_URL = config.get("WEB_BASE_URL")
 
 
@@ -30,7 +30,11 @@ def build_spot_forecast_email(spot_forecast, spot_detail_url: str) -> tuple[str,
 
     tabular_rows = ""
     for tw in spot_forecast.tabular_weather:
-        time_str = tw.forecast_time.astimezone(vancouver_tz).strftime("%Y-%m-%d %H:%M %Z") if tw.forecast_time else ""
+        time_str = (
+            tw.forecast_time.astimezone(vancouver_tz).strftime("%Y-%m-%d %H:%M %Z")
+            if tw.forecast_time
+            else ""
+        )
         tabular_rows += (
             f"<tr><td>{time_str}</td><td>{tw.temperature}°C</td>"
             f"<td>{tw.relative_humidity}%</td><td>{html.escape(tw.wind or '')}</td>"
@@ -41,7 +45,7 @@ def build_spot_forecast_email(spot_forecast, spot_detail_url: str) -> tuple[str,
 <html><body>
 <h2>Spot Forecast Update</h2>
 <p><strong>Fire Number(s):</strong> {fire_numbers}</p>
-<p><strong>Location:</strong> {html.escape(sr.geographic_description or '')}</p>
+<p><strong>Location:</strong> {html.escape(sr.geographic_description or "")}</p>
 
 <h3>Descriptive Forecast</h3>
 <table border="1" cellpadding="4" cellspacing="0">
@@ -61,7 +65,9 @@ def build_spot_forecast_email(spot_forecast, spot_detail_url: str) -> tuple[str,
     return subject, html_body
 
 
-async def send_spot_forecast_emails(subscriber_emails: list[str], subject: str, html_body: str) -> None:
+async def send_spot_forecast_emails(
+    subscriber_emails: list[str], subject: str, html_body: str
+) -> None:
     """Fetch a CHES OAuth2 token and send bulk email via /email/merge."""
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
