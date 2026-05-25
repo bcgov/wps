@@ -13,6 +13,7 @@ import SpotForecasts from '@/features/smurfi/components/forecasts/SpotForecasts'
 import SpotForecast from '@/features/smurfi/components/forecasts/SpotForecast'
 import SpotRequestFormPage from '@/features/smurfi/components/requestForm/SpotRequestFormPage'
 import SpotForecastFormPage from '@/features/smurfi/components/forecastForm/SpotForecastFormPage'
+import PrintableSpotForecast from '@/features/smurfi/pages/PrintableSpotForecast'
 import { AppDispatch } from '@/app/store'
 import { useDispatch } from 'react-redux'
 import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
@@ -43,11 +44,13 @@ const SMURFIPage = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
-        <Tabs value={currentTab} onChange={handleChange}>
-          <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
-          <Tab label="Map" />
-        </Tabs>
+        <Box sx={{ display: location.pathname.endsWith('/printable') ? 'none' : 'block' }}>
+          <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
+          <Tabs value={currentTab} onChange={handleChange}>
+            <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
+            <Tab label="Map" />
+          </Tabs>
+        </Box>
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
           <Routes>
             <Route
@@ -61,6 +64,7 @@ const SMURFIPage = () => {
                     <Route path=":id/forecasts" element={<SpotForecasts />} />
                     <Route path=":id/forecasts/new" element={<SpotForecastFormPage />} />
                     <Route path=":id/forecasts/:forecastId" element={<SpotForecast />} />
+                    <Route path=":id/forecasts/:forecastId/printable" element={<PrintableSpotForecast />} />
                   </Routes>
                 </RouteContent>
               }

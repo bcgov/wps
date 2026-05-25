@@ -1,13 +1,34 @@
-import { Box } from '@mui/material'
+import { AppDispatch } from '@/app/store'
+import { fetchSpotForecasts, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
+import { Box, CircularProgress, Typography } from '@mui/material'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 
-// Placeholder page for the SpotForecasts associated with the SpotRequested as referenced by param.id which is taken from the URL
 const SpotForecasts = () => {
-  const params = useParams()
+  const { id } = useParams<{ id: string }>()
+  const dispatch = useDispatch<AppDispatch>()
+  const { spotForecastsByRequestId, spotForecastsLoading } = useSelector(selectSmurfi)
+
+  const spotRequestId = Number(id)
+
+  useEffect(() => {
+    if (!spotForecastsByRequestId[spotRequestId]) {
+      dispatch(fetchSpotForecasts(spotRequestId))
+    }
+  }, [dispatch, spotRequestId, spotForecastsByRequestId])
+
+  if (spotForecastsLoading) {
+    return <CircularProgress />
+  }
+
+  const forecasts = spotForecastsByRequestId[spotRequestId] ?? []
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-      Placeholder for spot forecasts associated with the Spot Request specified in the URL path SpotForecast:{' '}
-      {params.id}
+      <Typography>
+        Spot forecasts for request {id} — {forecasts.length} forecast(s)
+      </Typography>
     </Box>
   )
 }

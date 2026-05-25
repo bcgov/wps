@@ -171,14 +171,12 @@ export const submitSpotForecast =
   }
 
 export const fetchSpotForecasts =
-  (spotRequestId: number): AppThunk<Promise<SpotForecastOutput[]>> =>
+  (spotRequestId: number): AppThunk =>
   async dispatch => {
     try {
       dispatch(getSpotForecastsStart())
-
       const response = await getSpotForecasts(spotRequestId)
       dispatch(getSpotForecastsSuccess({ spotRequestId, spotForecasts: response.spot_forecasts }))
-      return response.spot_forecasts
     } catch (err) {
       dispatch(getSpotForecastsFailed((err as Error).toString()))
       return []

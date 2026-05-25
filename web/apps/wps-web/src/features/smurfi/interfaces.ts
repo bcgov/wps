@@ -8,6 +8,12 @@ export const SpotRequestStatusColorMap = {
   [SpotRequestStatus.ARCHIVED]: { bgColor: '#e0e0e0', color: 'black', borderColor: 'black' }
 }
 
+export interface RepresentativeStation {
+  code: number
+  name: string
+  elevation?: number
+}
+
 export interface SpotForecastHistoryItem {
   id: number
   fire_id: string

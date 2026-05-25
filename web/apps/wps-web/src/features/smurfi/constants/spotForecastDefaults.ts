@@ -4,12 +4,12 @@ import { DateTime } from 'luxon'
 export const defaultDateTimes = [
   DateTime.now().setZone('America/Vancouver').set({ hour: 16, minute: 0 }),
   DateTime.now().setZone('America/Vancouver').set({ hour: 19, minute: 0 }),
-  DateTime.now().setZone('America/Vancouver').set({ hour: 0, minute: 0 }),
+  DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).set({ hour: 0, minute: 0 }),
   DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).set({ hour: 10, minute: 0 }),
   DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).set({ hour: 13, minute: 0 }),
   DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).set({ hour: 16, minute: 0 }),
   DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).set({ hour: 19, minute: 0 }),
-  DateTime.now().setZone('America/Vancouver').plus({ days: 1 }).set({ hour: 0, minute: 0 }),
+  DateTime.now().setZone('America/Vancouver').plus({ days: 2 }).set({ hour: 0, minute: 0 }),
   DateTime.now().setZone('America/Vancouver').plus({ days: 2 }).set({ hour: 16, minute: 0 })
 ]
 

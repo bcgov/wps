@@ -1,17 +1,15 @@
-import { CircularProgress, Typography } from '@mui/material'
+import { Box, CircularProgress, Typography } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchSpotForecasts, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { selectFireWeatherStations } from '@/app/rootReducer'
 import { getStations, StationSource } from '@wps/api/stationAPI'
-import { spotRequestTypeMap } from '@wps/api/SMURFIAPI'
-import MiniSpotForecast from '@/features/smurfi/components/forecasts/MiniSpotForecast'
+import PrintableFullSpotForecast from '@/features/smurfi/components/forecasts/PrintableFullSpotForecast'
 import { useEffect } from 'react'
 import { AppDispatch } from '@/app/store'
-import FullSpotForecast from '@/features/smurfi/components/forecasts/FullSpotForecast'
 
-const SpotForecast = () => {
+const PrintableSpotForecast = () => {
   const { id, forecastId } = useParams<{ id: string; forecastId: string }>()
   const dispatch = useDispatch<AppDispatch>()
   const { spotRequests, spotRequestsLoading, spotForecastsByRequestId, spotForecastsLoading } =
@@ -49,17 +47,15 @@ const SpotForecast = () => {
     return station ? [{ code, name: station.properties.name, elevation: station.properties.elevation }] : []
   })
 
-  if (spotRequest.request_type === spotRequestTypeMap['MINI_SPOT']) {
-    return <MiniSpotForecast forecast={spotForecast} />
-  }
-
   return (
-    <FullSpotForecast
-      forecast={spotForecast}
-      spotRequest={spotRequest}
-      representativeStations={representativeStations}
-    />
+    <Box sx={{ p: 3 }}>
+      <PrintableFullSpotForecast
+        forecast={spotForecast}
+        spotRequest={spotRequest}
+        representativeStations={representativeStations}
+      />
+    </Box>
   )
 }
 
-export default SpotForecast
+export default PrintableSpotForecast
