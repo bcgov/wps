@@ -25,7 +25,6 @@ import fireWatchSlice from 'features/fireWatch/slices/fireWatchSlice'
 import fireWatchFireCentresSlice from '@/features/fireWatch/slices/fireWatchFireCentresSlice'
 import burnForecastsSlice from '@/features/fireWatch/slices/burnForecastSlice'
 import { filterHFIFuelStatsByArea } from '@/features/fba/hfiStatsUtils'
-import spotAdminSlice from '@/features/smurfi/slices/spotAdminSlice'
 import smurfiSlice from '@/features/smurfi/slices/smurfiSlice'
 import subscriptionsReducer from '@/features/smurfi/slices/subscriptionsSlice'
 
@@ -55,7 +54,6 @@ const rootReducer = combineReducers({
   fireWatch: fireWatchSlice,
   fireWatchFireCentres: fireWatchFireCentresSlice,
   burnForecasts: burnForecastsSlice,
-  spotAdmin: spotAdminSlice,
   smurfi: smurfiSlice,
   subscriptions: subscriptionsReducer
 })
