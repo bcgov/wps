@@ -9,20 +9,9 @@ import {
   toggleSpotSubscription
 } from '@/features/smurfi/slices/subscriptionsSlice'
 import { AppDispatch } from '@/app/store'
-import activeSpot from './styles/activeSpot.svg'
-import completeSpot from './styles/completeSpot.svg'
-import pendingSpot from './styles/newSpotRequest.svg'
-import pausedSpot from './styles/onHoldSpot.svg'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
-
-export const statusToPath: Record<SpotRequestStatus, string> = {
-  [SpotRequestStatus.REQUESTED]: pendingSpot,
-  [SpotRequestStatus.STARTED]: activeSpot,
-  [SpotRequestStatus.SUSPENDED]: pausedSpot,
-  [SpotRequestStatus.COMPLETE]: completeSpot,
-  [SpotRequestStatus.ARCHIVED]: completeSpot
-}
+import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
 
 interface SpotPopupProps {
   lat: number
@@ -96,8 +85,8 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
                 src={statusToPath[status]}
                 alt="status"
                 style={{
-                  width: 20,
-                  height: 20
+                  width: 18,
+                  height: 24
                 }}
               />
             }
