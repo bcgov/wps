@@ -67,20 +67,20 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotReque
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <Box>
         <Button variant="outlined" size="small" onClick={() => navigate(printableUrl)}>
           Printable Version
         </Button>
       </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
         <Section title="Forecast Info">
+          <Field label="Fire Number(s)" value={spotRequest.fire_number?.join(', ') ?? '—'} />
+          <Field label="Requested By" value={spotRequest.requestor_name} />
           <Field label="Issued" value={formatDateTime(forecast.issued_at)} />
           <Field label="Expires" value={forecast.expires_at ? formatDateTime(forecast.expires_at) : '—'} />
           <Field label="Forecaster" value={forecast.forecaster_name} />
           <Field label="Email" value={forecast.forecaster_email} />
           {forecast.forecaster_phone && <Field label="Phone" value={forecast.forecaster_phone} />}
-          <Field label="Requested By" value={spotRequest.requestor_name} />
-          <Field label="Fire Number(s)" value={spotRequest.fire_number?.join(', ') ?? '—'} />
           {forecast.fire_size != null && <Field label="Fire Size" value={`${forecast.fire_size} ha`} />}
           <Box sx={{ gridColumn: '1 / -1' }}>
             <Field label="Representative Stations" value={stationsStr} />

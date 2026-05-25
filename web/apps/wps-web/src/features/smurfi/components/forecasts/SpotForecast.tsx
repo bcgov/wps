@@ -1,4 +1,4 @@
-import { CircularProgress, Typography } from '@mui/material'
+import { Box, CircularProgress, Typography } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchSpotForecasts, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
@@ -54,11 +54,13 @@ const SpotForecast = () => {
   }
 
   return (
-    <FullSpotForecast
-      forecast={spotForecast}
-      spotRequest={spotRequest}
-      representativeStations={representativeStations}
-    />
+    <Box sx={{ pb: 4 }}>
+      <FullSpotForecast
+        forecast={spotForecast}
+        spotRequest={spotRequest}
+        representativeStations={representativeStations}
+      />
+    </Box>
   )
 }
 
