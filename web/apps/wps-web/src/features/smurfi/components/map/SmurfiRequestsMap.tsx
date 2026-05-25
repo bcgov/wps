@@ -7,16 +7,23 @@ import { Box } from '@mui/material'
 import { boundingExtent } from 'ol/extent'
 import { Feature, Map, View } from 'ol'
 import { fromLonLat } from 'ol/proj'
+import Overlay from 'ol/Overlay'
 import { Icon, Style } from 'ol/style'
 import { Point } from 'ol/geom'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import 'ol/ol.css'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import startedSpot from './styles/activeSpot.svg'
 import completeSpot from './styles/completeSpot.svg'
 import requestedSpot from './styles/newSpotRequest.svg'
 import pausedSpot from './styles/onHoldSpot.svg'
+import {
+  CurrentFirePolygonAttributes,
+  createCurrentFirePolygonsLayer,
+  getCurrentFirePolygonAttributes
+} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 
 interface SmurfiRequestsMapProps {
   spotRequest: SpotRequestOutput
@@ -42,6 +49,8 @@ const getMarkerStyle = (status: SpotRequestStatus) =>
 
 const SmurfiRequestsMap = ({ spotRequest }: SmurfiRequestsMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
+  const popupRef = useRef<HTMLDivElement | null>(null)
+  const [firePopupAttributes, setFirePopupAttributes] = useState<CurrentFirePolygonAttributes | null>(null)
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -55,15 +64,39 @@ const SmurfiRequestsMap = ({ spotRequest }: SmurfiRequestsMapProps) => {
       source: new VectorSource({ features: [marker] }),
       zIndex: 50
     })
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [vectorLayer],
+      layers: [currentFirePolygonsLayer, vectorLayer],
       view: new View({
         center: coord,
         zoom: 10
       })
     })
+
+    const overlay = new Overlay({
+      element: popupRef.current!,
+      positioning: 'bottom-center',
+      stopEvent: true,
+      offset: [0, -10]
+    })
+    mapObject.addOverlay(overlay)
+
+    mapObject.on('click', event => {
+      const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (feature, layer) =>
+        layer === currentFirePolygonsLayer ? feature : undefined
+      )
+      if (fireFeature) {
+        overlay.setPosition(event.coordinate)
+        setFirePopupAttributes(getCurrentFirePolygonAttributes(fireFeature))
+        return
+      }
+
+      overlay.setPosition(undefined)
+      setFirePopupAttributes(null)
+    })
+
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
     mapObject.getView().animate({ center: coord, zoom: 10, duration: 0 })
 
@@ -79,7 +112,20 @@ const SmurfiRequestsMap = ({ spotRequest }: SmurfiRequestsMapProps) => {
     }
   }, [spotRequest.latitude, spotRequest.longitude])
 
-  return <Box ref={mapRef} sx={{ width: '100%', height: '100%', minHeight: 300 }} />
+  return (
+    <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 300 }}>
+      <Box ref={mapRef} sx={{ width: '100%', height: '100%' }} />
+      <div
+        ref={popupRef}
+        className="ol-popup"
+        style={{ display: firePopupAttributes ? 'block' : 'none', pointerEvents: 'auto' }}
+      >
+        {firePopupAttributes && (
+          <CurrentFirePolygonPopup attributes={firePopupAttributes} onClose={() => setFirePopupAttributes(null)} />
+        )}
+      </div>
+    </Box>
+  )
 }
 
 export default SmurfiRequestsMap
