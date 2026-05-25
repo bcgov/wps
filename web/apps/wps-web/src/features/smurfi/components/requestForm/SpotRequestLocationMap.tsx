@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Box } from '@mui/material'
 import { Feature, Map, MapBrowserEvent, View } from 'ol'
 import { FeatureLike } from 'ol/Feature'
-import Overlay from 'ol/Overlay'
 import { boundingExtent } from 'ol/extent'
 import { Point } from 'ol/geom'
 import TileLayer from 'ol/layer/Tile'
@@ -14,12 +13,7 @@ import { Circle as CircleStyle, Fill, Icon, Stroke, Style } from 'ol/style'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import { source as baseMapSource } from '@/features/fireWeather/components/maps/constants'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
-import {
-  CurrentFirePolygonAttributes,
-  createCurrentFirePolygonsLayer,
-  getCurrentFirePolygonAttributes
-} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
-import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
+import { createCurrentFirePolygonsLayer } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { statusToPath } from '@/features/smurfi/components/map/SpotPopup'
 
@@ -59,7 +53,6 @@ const existingSpotStyle = (feature: FeatureLike) => {
 const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, onChange, existingSpotRequests }) => {
   // refs
   const mapRef = useRef<HTMLDivElement | null>(null)
-  const popupRef = useRef<HTMLDivElement | null>(null)
   const featureSourceRef = useRef(new VectorSource<Feature<Point>>())
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
   const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
@@ -68,7 +61,6 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
   // state
   const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
   const [currentFiresVisible, setCurrentFiresVisible] = useState(true)
-  const [firePopupAttributes, setFirePopupAttributes] = useState<CurrentFirePolygonAttributes | null>(null)
 
   // handlers
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
@@ -126,29 +118,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
 
     mapObject.getView().fit(bcExtent, { padding: [30, 30, 30, 30] })
 
-    const overlay = new Overlay({
-      element: popupRef.current!,
-      positioning: 'bottom-center',
-      stopEvent: true,
-      offset: [0, -10]
-    })
-    mapObject.addOverlay(overlay)
-
     mapObject.on('singleclick', (event: MapBrowserEvent<UIEvent>) => {
-      if (currentFirePolygonsLayer.getVisible()) {
-        const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (feature, layer) =>
-          layer === currentFirePolygonsLayer ? feature : undefined
-        )
-        if (fireFeature) {
-          overlay.setPosition(event.coordinate)
-          setFirePopupAttributes(getCurrentFirePolygonAttributes(fireFeature))
-          return
-        }
-      }
-
-      overlay.setPosition(undefined)
-      setFirePopupAttributes(null)
-
       const [longitude, latitude] = toLonLat(event.coordinate)
       onChangeRef.current({
         latitude: Number(latitude.toFixed(6)),
@@ -164,10 +134,6 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
 
   useEffect(() => {
     currentFirePolygonsLayerRef.current?.setVisible(currentFiresVisible)
-
-    if (!currentFiresVisible) {
-      setFirePopupAttributes(null)
-    }
   }, [currentFiresVisible])
 
   useEffect(() => {
@@ -208,15 +174,6 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
         onAllStatusesChange={handleAllStatusesChange}
         onCurrentFiresVisibleChange={setCurrentFiresVisible}
       />
-      <div
-        ref={popupRef}
-        className="ol-popup"
-        style={{ display: firePopupAttributes ? 'block' : 'none', pointerEvents: 'auto' }}
-      >
-        {firePopupAttributes && (
-          <CurrentFirePolygonPopup attributes={firePopupAttributes} onClose={() => setFirePopupAttributes(null)} />
-        )}
-      </div>
     </Box>
   )
 }
