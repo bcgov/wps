@@ -2,7 +2,18 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch, useSelector } from 'react-redux'
-import { Alert, Grid, Typography, Button, Box, Switch, FormControlLabel } from '@mui/material'
+import {
+  Alert,
+  Grid,
+  Typography,
+  Button,
+  Box,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  Radio
+} from '@mui/material'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { AppDispatch } from '@/app/store'
 import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
@@ -104,10 +115,13 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
       </Typography>
 
       <Box sx={{ mb: 2 }}>
-        <FormControlLabel
-          control={<Switch checked={isMini} onChange={e => setIsMini(e.target.checked)} />}
-          label="Mini Spot"
-        />
+        <FormControl>
+          <FormLabel>Forecast Type</FormLabel>
+          <RadioGroup row value={isMini ? 'mini' : 'full'} onChange={event => setIsMini(event.target.value === 'mini')}>
+            <FormControlLabel value="mini" control={<Radio />} label="Mini Spot" />
+            <FormControlLabel value="full" control={<Radio />} label="Full Spot" />
+          </RadioGroup>
+        </FormControl>
       </Box>
 
       <form onSubmit={handleSubmit(onSubmit)}>
