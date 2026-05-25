@@ -2,18 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch, useSelector } from 'react-redux'
-import {
-  Alert,
-  Grid,
-  Typography,
-  Button,
-  Box,
-  FormControlLabel,
-  FormControl,
-  FormLabel,
-  RadioGroup,
-  Radio
-} from '@mui/material'
+import { Alert, Grid, Button, Box, FormControlLabel, FormControl, FormLabel, RadioGroup, Radio } from '@mui/material'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { AppDispatch } from '@/app/store'
 import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
@@ -51,8 +40,8 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
       ...baseDefaults,
       fireProj: formatFireNumbers(spotRequest.fire_number),
       requestBy: spotRequest.requestor_name,
-      latitude: toFormString(spotRequest.latitude),
-      longitude: toFormString(spotRequest.longitude),
+      latitude: toFormString(spotRequest.latitude.toFixed(4)),
+      longitude: toFormString(spotRequest.longitude.toFixed(4)),
       slopeAspect: spotRequest.aspect ?? baseDefaults.slopeAspect,
       elevation: toFormString(spotRequest.elevation),
       weatherData: defaultWeatherRows
