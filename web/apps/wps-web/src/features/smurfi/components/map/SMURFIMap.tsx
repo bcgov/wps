@@ -13,7 +13,6 @@ import VectorSource from 'ol/source/Vector'
 import SpotPopup, { statusToPath } from './SpotPopup'
 import { FeatureLike } from 'ol/Feature'
 import { BC_EXTENT, CENTER_OF_BC, SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
-import { BC_EXTENT, CENTER_OF_BC, SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
@@ -64,7 +63,6 @@ const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature => ({
 
 interface SMURFIMapProps {
   selectedCoordinates?: SelectedCoordinates | null
-  spotRequests?: SpotRequestOutput[]
   spotRequests?: SpotRequestOutput[]
 }
 
@@ -167,8 +165,6 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   useEffect(() => {
     if (!mapRef.current) return
 
-    const featureSource = new VectorSource<Feature<Point>>({
-      features: []
     const featureSource = new VectorSource<Feature<Point>>({
       features: []
     })
