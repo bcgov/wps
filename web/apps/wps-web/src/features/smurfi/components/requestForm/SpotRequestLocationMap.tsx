@@ -57,16 +57,20 @@ const existingSpotStyle = (feature: FeatureLike) => {
 }
 
 const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, onChange, existingSpotRequests }) => {
+  // refs
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
   const featureSourceRef = useRef(new VectorSource<Feature<Point>>())
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
   const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
   const onChangeRef = useRef(onChange)
+
+  // state
   const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
   const [currentFiresVisible, setCurrentFiresVisible] = useState(true)
   const [firePopupAttributes, setFirePopupAttributes] = useState<CurrentFirePolygonAttributes | null>(null)
 
+  // handlers
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
     setSelectedStatuses(current => {
       if (!checked) {
@@ -81,6 +85,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
     setSelectedStatuses(checked ? STATUS_FILTER_OPTIONS : [])
   }
 
+  // effects
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])

@@ -93,25 +93,33 @@ interface SMURFIMapProps {
 }
 
 const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMURFIMapProps) => {
+  // hooks
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
   const { spotRequests } = useSelector(selectSmurfi)
   const { isForecaster } = useSpotPermissions(undefined)
-  const mapSpotRequests = propSpotRequests ?? spotRequests
+
+  // state
   const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
   const [currentFiresVisible, setCurrentFiresVisible] = useState(true)
+  const [map, setMap] = useState<Map | null>(null)
+  const [popupData, setPopupData] = useState<SpotPopupData | FirePopupData | null>(null)
+
+  // refs
+  const mapRef = useRef<HTMLDivElement | null>(null)
+  const popupRef = useRef<HTMLDivElement | null>(null)
+  const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
+  const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
+
+  // derived values
+  const mapSpotRequests = propSpotRequests ?? spotRequests
   const filteredSpotRequests = useMemo(
     () => mapSpotRequests.filter(spotRequest => selectedStatuses.includes(spotRequest.status)),
     [mapSpotRequests, selectedStatuses]
   )
   const spotFeatures = useMemo(() => filteredSpotRequests.map(buildSpotFeature), [filteredSpotRequests])
-  const [map, setMap] = useState<Map | null>(null)
-  const mapRef = useRef<HTMLDivElement | null>(null)
-  const popupRef = useRef<HTMLDivElement | null>(null)
-  const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
-  const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
-  const [popupData, setPopupData] = useState<SpotPopupData | FirePopupData | null>(null)
 
+  // handlers
   const handleOpenForecasts = (spotRequestId: number) => {
     navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`)
   }
@@ -134,7 +142,8 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     setSelectedStatuses(checked ? STATUS_FILTER_OPTIONS : [])
   }
 
-  // Create highlight style for selected marker
+  // styles
+  // create highlight style for selected marker
   const createHighlightStyle = () => {
     return new Style({
       image: new CircleStyle({
@@ -145,7 +154,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     })
   }
 
-  // Create marker style function that checks if feature is selected
+  // create marker style function that checks if feature is selected
   const createMarkerStyle = (selectedCoords: SelectedCoordinates | null | undefined) => {
     return (feature: FeatureLike) => {
       const status = feature.get('status') as SpotRequestStatus
@@ -159,13 +168,13 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
         })
       })
 
-      // Check if this feature is selected
+      // check if this feature is selected
       if (
         selectedCoords &&
         Math.abs(featureLon - selectedCoords.longitude) < COORDINATE_TOLERANCE &&
         Math.abs(featureLat - selectedCoords.latitude) < COORDINATE_TOLERANCE
       ) {
-        // Return both highlight and base style for selected marker
+        // return both highlight and base style for selected marker
         return [createHighlightStyle(), baseStyle]
       }
 
@@ -173,6 +182,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     }
   }
 
+  // effects
   useEffect(() => {
     if (propSpotRequests === undefined) {
       dispatch(fetchSpotRequests())
@@ -204,7 +214,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     })
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
-    // Add popup overlay
+    // add popup overlay
     const overlay = new Overlay({
       element: popupRef.current!,
       positioning: 'bottom-center',
@@ -213,7 +223,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     })
     mapObject.addOverlay(overlay)
 
-    // Add click handler
+    // add click handler
     mapObject.on('click', event => {
       const feature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
         layer === featureLayer ? f : undefined
@@ -311,12 +321,12 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     }
   }, [popupData, selectedStatuses])
 
-  // Update marker styles when selectedCoordinates changes
+  // update marker styles when selectedCoordinates changes
   useEffect(() => {
     if (featureLayerRef.current) {
       featureLayerRef.current.setStyle(createMarkerStyle(selectedCoordinates))
 
-      // If coordinates are selected, pan to them
+      // if coordinates are selected, pan to them
       if (selectedCoordinates && map) {
         const coord = fromLonLat([selectedCoordinates.longitude, selectedCoordinates.latitude])
         map.getView().animate({
