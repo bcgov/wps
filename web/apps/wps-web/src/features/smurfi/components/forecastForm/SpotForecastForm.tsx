@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch, useSelector } from 'react-redux'
-import { Alert, Grid, Button, Box, Switch, FormControlLabel } from '@mui/material'
+import { Alert, Grid, Button, Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { AppDispatch } from '@/app/store'
 import { RootState } from '@/app/rootReducer'
@@ -101,10 +101,13 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
   return (
     <Box sx={{ p: 3, width: '100%' }}>
       <Box sx={{ mb: 2 }}>
-        <FormControlLabel
-          control={<Switch checked={isMini} onChange={e => setIsMini(e.target.checked)} />}
-          label="Mini Spot"
-        />
+        <FormControl>
+          <FormLabel>Forecast Type</FormLabel>
+          <RadioGroup row value={isMini ? 'mini' : 'full'} onChange={event => setIsMini(event.target.value === 'mini')}>
+            <FormControlLabel value="mini" control={<Radio />} label="Mini Spot" />
+            <FormControlLabel value="full" control={<Radio />} label="Full Spot" />
+          </RadioGroup>
+        </FormControl>
       </Box>
 
       <form onSubmit={handleSubmit(onSubmit)}>
