@@ -22,13 +22,13 @@ const SpotForecastSummarySection: React.FC<SpotForecastSummarySectionProps> = ({
 
   return (
     <Box sx={{ mt: 1.5 }}>
-      <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+      <Typography variant="body2" sx={{ fontSize: '12px', lineHeight: 1.6 }}>
         <strong>
           <span style={{ textDecoration: 'underline' }}>FORECAST:</span>
         </strong>
       </Typography>
       {afternoonForecast && (
-        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+        <Typography variant="body2" sx={{ fontSize: '12px', lineHeight: 1.6 }}>
           <strong>AFTERNOON:</strong>
           {'  '}
           {ensurePeriod(afternoonForecast.conditions)} MAX TEMP {afternoonForecast.temperature}C, MIN RH{' '}
@@ -36,7 +36,7 @@ const SpotForecastSummarySection: React.FC<SpotForecastSummarySectionProps> = ({
         </Typography>
       )}
       {tonightForecast && (
-        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+        <Typography variant="body2" sx={{ fontSize: '12px', lineHeight: 1.6 }}>
           <strong>TONIGHT:</strong>
           {'  '}
           {ensurePeriod(tonightForecast.conditions)} MIN TEMP {tonightForecast.temperature}C. MAX RH{' '}
@@ -44,7 +44,7 @@ const SpotForecastSummarySection: React.FC<SpotForecastSummarySectionProps> = ({
         </Typography>
       )}
       {tomorrowForecast && (
-        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+        <Typography variant="body2" sx={{ fontSize: '12px', lineHeight: 1.6 }}>
           <strong>TOMORROW:</strong>
           {'  '}
           {ensurePeriod(tomorrowForecast.conditions)} TEMP {tomorrowForecast.temperature}C. MIN RH{' '}

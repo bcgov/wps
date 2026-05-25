@@ -17,7 +17,7 @@ const cell: React.CSSProperties = {
   border: '1px solid black',
   padding: '3px 8px',
   verticalAlign: 'top',
-  fontSize: '0.875rem'
+  fontSize: '12px'
 }
 
 interface SpotForecastHeaderTableProps {
@@ -41,12 +41,12 @@ const SpotForecastHeaderTable: React.FC<SpotForecastHeaderTableProps> = ({ forec
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-        <Typography variant="body2">
+        <Typography variant="body2" sx={{ fontSize: '12px' }}>
           <strong style={{ textDecoration: 'underline' }}>Date/time Issued:</strong>
           {'  '}
           {issuedStr}
         </Typography>
-        <Typography variant="body2">
+        <Typography variant="body2" sx={{ fontSize: '12px' }}>
           <strong style={{ textDecoration: 'underline' }}>Default Expiry:</strong> {expiryStr}
         </Typography>
       </Box>

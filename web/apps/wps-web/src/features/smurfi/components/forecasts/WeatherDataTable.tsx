@@ -16,8 +16,20 @@ const formatDateLabel = (dateTimeStr: string, issuedDateISO: string): string => 
   return dateTimeStr
 }
 
+const COLUMNS = '2fr 1fr 1fr 2fr 1fr 1fr'
+
+const grid: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: COLUMNS,
+  borderTop: '1px solid black',
+  borderLeft: '1px solid black',
+  marginTop: 12,
+  width: '100%'
+}
+
 const cell: React.CSSProperties = {
-  border: '1px solid black',
+  borderRight: '1px solid black',
+  borderBottom: '1px solid black',
   padding: '3px 8px',
   verticalAlign: 'top',
   fontSize: '0.875rem'
@@ -40,39 +52,40 @@ const dashCell: React.CSSProperties = {
   textAlign: 'center'
 }
 
+const HEADERS = ['Date/Time (PDT)', 'Temp (C)', 'RH', 'Wind (km/h)', 'Rain (mm)', 'Chance Rain']
+
 interface WeatherDataTableProps {
   rows: SpotForecastOutput['tabular_weather']
   issuedDate: string
+  fontSize?: string
 }
 
-const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ rows, issuedDate }) => {
+const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ rows, issuedDate, fontSize = '0.875rem' }) => {
   const sorted = [...rows].sort((a, b) => a.forecast_time.localeCompare(b.forecast_time))
 
+  const cellWithSize: React.CSSProperties = { ...cell, fontSize }
+  const numCellWithSize: React.CSSProperties = { ...numCell, fontSize }
+  const dashCellWithSize: React.CSSProperties = { ...dashCell, fontSize }
+  const hdrCellWithSize: React.CSSProperties = { ...hdrCell, fontSize }
+
   return (
-    <table role="presentation" style={{ borderCollapse: 'collapse', width: '100%', marginTop: 12 }}>
-      <thead>
-        <tr>
-          <th style={{ ...hdrCell, textAlign: 'left' }}>Date/Time (PDT)</th>
-          <th style={hdrCell}>Temp (C)</th>
-          <th style={hdrCell}>RH</th>
-          <th style={hdrCell}>Wind (km/h)</th>
-          <th style={hdrCell}>Rain (mm)</th>
-          <th style={hdrCell}>Chance Rain</th>
-        </tr>
-      </thead>
-      <tbody>
-        {sorted.map((row, i) => (
-          <tr key={i}>
-            <td style={cell}>{formatDateLabel(row.forecast_time, issuedDate)}</td>
-            <td style={numCell}>{row.temperature ?? '-'}</td>
-            <td style={numCell}>{row.relative_humidity ?? '-'}</td>
-            <td style={numCell}>{row.wind ?? '-'}</td>
-            <td style={dashCell}>{row.precipitation_amount ?? '-'}</td>
-            <td style={dashCell}>{row.probability_of_precipitation ?? '-'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div style={grid}>
+      {HEADERS.map((header, i) => (
+        <div key={header} style={i === 0 ? { ...hdrCellWithSize, textAlign: 'left' } : hdrCellWithSize}>
+          {header}
+        </div>
+      ))}
+      {sorted.map((row, i) => (
+        <React.Fragment key={i}>
+          <div style={cellWithSize}>{formatDateLabel(row.forecast_time, issuedDate)}</div>
+          <div style={numCellWithSize}>{row.temperature ?? '-'}</div>
+          <div style={numCellWithSize}>{row.relative_humidity ?? '-'}</div>
+          <div style={numCellWithSize}>{row.wind ?? '-'}</div>
+          <div style={dashCellWithSize}>{row.precipitation_amount ?? '-'}</div>
+          <div style={dashCellWithSize}>{row.probability_of_precipitation ?? '-'}</div>
+        </React.Fragment>
+      ))}
+    </div>
   )
 }
 
