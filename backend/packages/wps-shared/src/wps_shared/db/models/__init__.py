@@ -44,7 +44,6 @@ from wps_shared.db.models.sfms_run import SFMSRunLog
 from wps_shared.db.models.fcm import DeviceToken
 from wps_shared.db.models.smurfi import (
     SpotRequestBase,
-    SpotRequestBase,
     SpotRequestInstance,
     SpotSubscriber,
     SpotForecast,
