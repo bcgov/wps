@@ -51,13 +51,13 @@ const SpotForecast = () => {
     return station ? [{ code, name: station.properties.name, elevation: station.properties.elevation }] : []
   })
 
-  const printableUrl = `${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts/${spotForecastId}/printable`
+  const printUrl = `${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts/${spotForecastId}/print`
   const isMini = spotRequest.request_type === spotRequestTypeMap['MINI_SPOT']
 
   return (
     <Box sx={{ pb: 4 }}>
       <Box sx={{ mb: 1 }}>
-        <Button variant="outlined" onClick={() => navigate(printableUrl)} size="small">
+        <Button variant="outlined" onClick={() => navigate(printUrl)} size="small">
           Printable Version
         </Button>
       </Box>

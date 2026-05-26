@@ -44,7 +44,7 @@ const SMURFIPage = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        <Box sx={{ display: location.pathname.endsWith('/printable') ? 'none' : 'block' }}>
+        <Box sx={{ display: location.pathname.endsWith('/print') ? 'none' : 'block' }}>
           <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
           <Tabs value={currentTab} onChange={handleChange}>
             <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
@@ -64,7 +64,7 @@ const SMURFIPage = () => {
                     <Route path=":id/forecasts" element={<SpotForecasts />} />
                     <Route path=":id/forecasts/new" element={<SpotForecastFormPage />} />
                     <Route path=":id/forecasts/:forecastId" element={<SpotForecast />} />
-                    <Route path=":id/forecasts/:forecastId/printable" element={<PrintableSpotForecast />} />
+                    <Route path=":id/forecasts/:forecastId/print" element={<PrintableSpotForecast />} />
                   </Routes>
                 </RouteContent>
               }
