@@ -1,51 +1,14 @@
 import React from 'react'
-import { Box, Button, Divider, Paper, Typography } from '@mui/material'
-import { DateTime } from 'luxon'
-import { useNavigate } from 'react-router-dom'
+import { Box, Typography } from '@mui/material'
 import { SpotForecastOutput, SpotRequestOutput } from '@wps/api/SMURFIAPI'
-import WeatherDataTable from '@/features/smurfi/components/forecasts/WeatherDataTable'
 import { RepresentativeStation } from '@/features/smurfi/interfaces'
-import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
-
-const TIMEZONE = 'America/Vancouver'
-
-const formatDateTime = (iso: string) => {
-  const dt = DateTime.fromISO(iso).setZone(TIMEZONE)
-  return dt.isValid ? `${dt.toFormat('HHmm')} ${dt.offsetNameShort} ${dt.toFormat('EEE, MMM d, yyyy')}` : iso
-}
-
-const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <Box>
-    <Typography
-      variant="caption"
-      color="text.secondary"
-      sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}
-    >
-      {label}
-    </Typography>
-    <Typography variant="body1">{value ?? '—'}</Typography>
-  </Box>
-)
-
-const Section = ({ title, children, contentSx }: { title: string; children: React.ReactNode; contentSx?: object }) => (
-  <Paper variant="outlined" sx={{ p: 2.5, display: 'flex', flexDirection: 'column' }}>
-    <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 1.5 }}>
-      {title}
-    </Typography>
-    <Divider sx={{ mt: 0.5, mb: 2 }} />
-    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, ...contentSx }}>{children}</Box>
-  </Paper>
-)
-
-const TextSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <Paper variant="outlined" sx={{ p: 2.5 }}>
-    <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 1.5 }}>
-      {title}
-    </Typography>
-    <Divider sx={{ mt: 0.5, mb: 2 }} />
-    <Typography variant="body1">{children}</Typography>
-  </Paper>
-)
+import {
+  Field,
+  Section,
+  TextSection,
+  WeatherDataSection
+} from '@/features/smurfi/components/forecasts/SpotForecastComponents'
+import { formatDateTime, formatStationsStr } from '@/features/smurfi/utils/spotForecastUtils'
 
 export interface FullSpotForecastProps {
   forecast: SpotForecastOutput
@@ -54,24 +17,13 @@ export interface FullSpotForecastProps {
 }
 
 const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotRequest, representativeStations }) => {
-  const navigate = useNavigate()
   const afternoonForecast = forecast.descriptive_weather.find(dw => dw.period === 'Today')
   const tonightForecast = forecast.descriptive_weather.find(dw => dw.period === 'Tonight')
   const tomorrowForecast = forecast.descriptive_weather.find(dw => dw.period === 'Tomorrow')
-  const stationsStr =
-    representativeStations.length > 0
-      ? representativeStations.map(s => `${s.name}${s.elevation != null ? ` (${s.elevation}m)` : ''}`).join(', ')
-      : '—'
-
-  const printableUrl = `${SMURFI_DASHBOARD_ROUTE}/${spotRequest.id}/forecasts/${forecast.id}/printable`
+  const stationsStr = formatStationsStr(representativeStations)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box>
-        <Button variant="outlined" size="small" onClick={() => navigate(printableUrl)}>
-          Printable Version
-        </Button>
-      </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
         <Section title="Forecast Info">
           <Field label="Fire Number(s)" value={spotRequest.fire_number?.join(', ') ?? '—'} />
@@ -135,15 +87,7 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotReque
         </Section>
       )}
 
-      {forecast.tabular_weather.length > 0 && (
-        <Paper variant="outlined" sx={{ p: 2.5 }}>
-          <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 1.5 }}>
-            Weather Data
-          </Typography>
-          <Divider sx={{ mt: 0.5, mb: 2 }} />
-          <WeatherDataTable rows={forecast.tabular_weather} issuedDate={forecast.issued_at} />
-        </Paper>
-      )}
+      <WeatherDataSection forecast={forecast} />
 
       <Box
         sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: forecast.outlook ? '1fr 1fr' : '1fr' }, gap: 2 }}
