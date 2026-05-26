@@ -121,6 +121,10 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const spotFeatures = useMemo(() => filteredSpotRequests.map(buildSpotFeature), [filteredSpotRequests])
 
   // handlers
+  const handleOpenRequest = (spotRequestId: number) => {
+    navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}`)
+  }
+
   const handleOpenForecasts = (spotRequestId: number) => {
     navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`)
   }
@@ -217,7 +221,13 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       element: popupRef.current!,
       positioning: 'bottom-center',
       stopEvent: true,
-      offset: [0, -10]
+      offset: [0, -10],
+      autoPan: {
+        margin: 24,
+        animation: {
+          duration: 250
+        }
+      }
     })
     mapObject.addOverlay(overlay)
 
@@ -361,6 +371,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
               spotId={popupData.spotId}
               spotRequest={popupData.spotRequest}
               canSubmitForecast={isForecaster}
+              onOpenRequest={handleOpenRequest}
               onOpenForecast={handleOpenForecasts}
               onSubmitForecast={handleSubmitForecast}
             />

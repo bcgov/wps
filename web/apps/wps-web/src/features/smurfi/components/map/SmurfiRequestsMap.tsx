@@ -65,7 +65,13 @@ const SmurfiRequestsMap = ({ spotRequest }: SmurfiRequestsMapProps) => {
       element: popupRef.current!,
       positioning: 'bottom-center',
       stopEvent: true,
-      offset: [0, -10]
+      offset: [0, -10],
+      autoPan: {
+        margin: 24,
+        animation: {
+          duration: 250
+        }
+      }
     })
     mapObject.addOverlay(overlay)
 
