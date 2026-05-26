@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from geoalchemy2.shape import to_shape
-from wps_shared.auth import authentication_required
+from wps_shared.auth import auth_with_forecaster_role_required, authentication_required
 from wps_shared.db.crud.smurfi import (
     create_distribution_group,
     create_spot_descriptive_weather,
@@ -440,7 +440,7 @@ async def get_distribution_groups_endpoint():
     status_code=status.HTTP_201_CREATED,
 )
 async def create_distribution_group_endpoint(
-    data: DistributionGroupInput, token: Annotated[dict, Depends(authentication_required)]
+    data: DistributionGroupInput, token: Annotated[dict, Depends(auth_with_forecaster_role_required)]
 ):
     user = _get_spot_user(token)
     group = SmurfiDistributionGroup(
@@ -455,7 +455,7 @@ async def create_distribution_group_endpoint(
 async def update_distribution_group_endpoint(
     group_id: int,
     data: DistributionGroupInput,
-    token: Annotated[dict, Depends(authentication_required)],
+    token: Annotated[dict, Depends(auth_with_forecaster_role_required)],
 ):
     user = _get_spot_user(token)
     async with get_async_write_session_scope() as session:
@@ -467,11 +467,13 @@ async def update_distribution_group_endpoint(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Distribution group {group_id} not found",
         )
-    return _group_to_schema(result)
+    return DistributionGroupOutput.to_schema(result)
 
 
 @router.delete("/distribution_groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_distribution_group_endpoint(group_id: int):
+async def delete_distribution_group_endpoint(
+    group_id: int, token: Annotated[dict, Depends(auth_with_forecaster_role_required)]
+):
     async with get_async_write_session_scope() as session:
         found = await delete_distribution_group(session, group_id)
     if not found:

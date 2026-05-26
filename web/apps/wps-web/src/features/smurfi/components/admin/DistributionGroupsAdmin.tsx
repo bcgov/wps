@@ -22,6 +22,7 @@ import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
+import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import {
   DistributionGroup,
   DistributionGroupInput,
@@ -35,6 +36,8 @@ import { useEffect, useState } from 'react'
 const EMPTY_FORM: DistributionGroupInput = { name: '', emails: [] }
 
 const DistributionGroupsAdmin = () => {
+  const { isForecaster } = useSpotPermissions(undefined)
+
   const [groups, setGroups] = useState<DistributionGroup[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingGroup, setEditingGroup] = useState<DistributionGroup | null>(null)
@@ -140,9 +143,11 @@ const DistributionGroupsAdmin = () => {
     <Box sx={{ width: '100%' }}>
       <Stack direction="row" sx={{ mb: 2, alignItems: 'center' }}>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>Distribution Groups</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
-          New Group
-        </Button>
+        {isForecaster && (
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
+            New Group
+          </Button>
+        )}
       </Stack>
 
       <TableContainer component={Paper}>
@@ -173,12 +178,16 @@ const DistributionGroupsAdmin = () => {
                 <TableCell>{group.created_by}</TableCell>
                 <TableCell>{group.updated_by ?? '—'}</TableCell>
                 <TableCell align="right">
-                  <IconButton size="small" onClick={() => openEdit(group)}>
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => handleDelete(group)}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                  {isForecaster && (
+                    <>
+                      <IconButton size="small" onClick={() => openEdit(group)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDelete(group)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -198,7 +207,7 @@ const DistributionGroupsAdmin = () => {
               size="small"
               error={!!error && !formValues.name.trim()}
             />
-            <Stack direction="row" spacing={1} alignItems="flex-start">
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
               <TextField
                 label="Add Email"
                 value={emailInput}
