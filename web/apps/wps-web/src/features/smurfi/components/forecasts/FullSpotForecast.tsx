@@ -108,8 +108,7 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotReque
                 Afternoon
               </Typography>
               <Typography variant="body2">
-                {afternoonForecast.conditions} Max Temp: {afternoonForecast.temperature ?? '—'}°C, Min RH:{' '}
-                {afternoonForecast.relative_humidity ?? '—'}%
+                {`${afternoonForecast.conditions} Max Temp: ${afternoonForecast.temperature ?? '—'}°C, Min RH: ${afternoonForecast.relative_humidity ?? '—'}%`}
               </Typography>
             </Box>
           )}
@@ -119,8 +118,7 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotReque
                 Tonight
               </Typography>
               <Typography variant="body2">
-                {tonightForecast.conditions} Min Temp: {tonightForecast.temperature ?? '—'}°C, Max RH:{' '}
-                {tonightForecast.relative_humidity ?? '—'}%
+                {`${tonightForecast.conditions} Min Temp: ${tonightForecast.temperature ?? '—'}°C, Max RH: ${tonightForecast.relative_humidity ?? '—'}%`}
               </Typography>
             </Box>
           )}
@@ -130,8 +128,7 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotReque
                 Tomorrow
               </Typography>
               <Typography variant="body2">
-                {tomorrowForecast.conditions} Temp: {tomorrowForecast.temperature ?? '—'}°C, Min RH:{' '}
-                {tomorrowForecast.relative_humidity ?? '—'}%
+                {`${tomorrowForecast.conditions} Temp: ${tomorrowForecast.temperature ?? '—'}°C, Min RH: ${tomorrowForecast.relative_humidity ?? '—'}%`}
               </Typography>
             </Box>
           )}
