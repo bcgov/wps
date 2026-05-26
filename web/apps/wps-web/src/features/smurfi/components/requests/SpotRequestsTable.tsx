@@ -18,6 +18,22 @@ export interface SpotRequestsTableProps {
   rows: SpotRequestOutput[]
 }
 
+const compareNullableIsoDates = (firstDate: string | null | undefined, secondDate: string | null | undefined) => {
+  if (!firstDate && !secondDate) {
+    return 0
+  }
+
+  if (!firstDate) {
+    return 1
+  }
+
+  if (!secondDate) {
+    return -1
+  }
+
+  return Date.parse(firstDate) - Date.parse(secondDate)
+}
+
 const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
   const navigate = useNavigate()
   const { fireCentres } = useSelector(selectFireCentres)
@@ -106,13 +122,17 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       field: 'latestForecastSubmittedAt',
       headerName: 'Last Forecast',
       width: 190,
-      renderCell: params => formatSpotRequestDateTimeWithDay(params.row.latest_forecast?.created_at) ?? '-'
+      valueGetter: (_value, row) => row.latest_forecast?.created_at ?? null,
+      sortComparator: compareNullableIsoDates,
+      renderCell: params => formatSpotRequestDateTimeWithDay(params.value) ?? '-'
     },
     {
       field: 'latestForecastEndAt',
       headerName: 'Forecast Through',
       width: 170,
-      renderCell: params => formatSpotRequestDateWithDay(params.row.latest_forecast?.forecast_end_at) ?? '-'
+      valueGetter: (_value, row) => row.latest_forecast?.forecast_end_at ?? null,
+      sortComparator: compareNullableIsoDates,
+      renderCell: params => formatSpotRequestDateWithDay(params.value) ?? '-'
     },
     {
       field: 'actions',
