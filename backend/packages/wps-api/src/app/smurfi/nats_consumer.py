@@ -6,7 +6,7 @@ import logging
 import nats
 from nats.aio.msg import Msg
 from nats.js.api import AckPolicy, ConsumerConfig, RetentionPolicy, StreamConfig
-from wps_shared.db.crud.smurfi import get_active_subscribers_for_spot, get_spot_forecast_with_weather
+from wps_shared.db.crud.smurfi import get_all_notification_emails_for_spot, get_spot_forecast_with_weather
 from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.wps_logging import configure_logging
 
@@ -30,8 +30,8 @@ async def process_message(msg: Msg) -> None:
         logger.info("Processing smurfi.spot.update for spot_request_id=%s", spot_request_id)
 
         async with get_async_read_session_scope() as session:
-            subscribers = await get_active_subscribers_for_spot(session, spot_request_id)
-            if not subscribers:
+            emails = await get_all_notification_emails_for_spot(session, spot_request_id)
+            if not emails:
                 logger.info("No active subscribers for spot_request_id=%s — skipping email", spot_request_id)
                 await msg.ack()
                 return
@@ -44,7 +44,6 @@ async def process_message(msg: Msg) -> None:
 
         spot_detail_url = f"{WEB_BASE_URL}/smurfi/spots/{spot_request_id}"
         subject, html_body = build_spot_forecast_email(spot_forecast, spot_detail_url=spot_detail_url)
-        emails = [s.email for s in subscribers]
         await send_spot_forecast_emails(subscriber_emails=emails, subject=subject, html_body=html_body)
         await msg.ack()
     except Exception as exc:

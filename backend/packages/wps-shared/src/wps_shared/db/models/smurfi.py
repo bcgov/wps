@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Table,
     Text,
 )
 from sqlalchemy.orm import relationship
@@ -92,6 +93,40 @@ cardinal_direction_values = (
 )
 
 
+spot_request_distribution_groups = Table(
+    "spot_request_distribution_group",
+    Base.metadata,
+    Column("spot_request_id", Integer, ForeignKey("spot_request.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "distribution_group_id",
+        Integer,
+        ForeignKey("smurfi_distribution_group.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+)
+
+
+class SmurfiDistributionGroup(Base):
+    """Named email distribution groups that can be attached to spot requests."""
+
+    __tablename__ = "smurfi_distribution_group"
+    __table_args__ = {"comment": "Named distribution groups for spot forecast email notifications."}
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    emails = Column(ARRAY(String), nullable=False, default=list)
+    created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
+    updated_at = Column(
+        TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now, default=time_utils.get_utc_now
+    )
+
+    spot_requests = relationship(
+        "SpotRequest",
+        secondary=spot_request_distribution_groups,
+        back_populates="distribution_groups",
+    )
+
+
 class SpotSubscriberStatusEnum(enum.Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -141,6 +176,11 @@ class SpotRequest(Base):
     # Relationships
     spot_forecasts = relationship("SpotForecast", back_populates="spot_request")
     spot_subscribers = relationship("SpotSubscriber", back_populates="spot_request")
+    distribution_groups = relationship(
+        "SmurfiDistributionGroup",
+        secondary=spot_request_distribution_groups,
+        back_populates="spot_requests",
+    )
 
     __table_args__ = (
         CheckConstraint(status.in_(request_status_values), name="chk_status_spot_request"),

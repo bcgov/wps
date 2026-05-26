@@ -1,5 +1,6 @@
 import { AppDispatch } from '@/app/store'
 import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
+import DistributionGroupsAdmin from '@/features/smurfi/components/admin/DistributionGroupsAdmin'
 import SpotForecastFormPage from '@/features/smurfi/components/forecastForm/SpotForecastFormPage'
 import SpotForecast from '@/features/smurfi/components/forecasts/SpotForecast'
 import SpotForecasts from '@/features/smurfi/components/forecasts/SpotForecasts'
@@ -52,6 +53,7 @@ const SMURFIPage = () => {
           <Tabs value={currentTab} onChange={handleChange}>
             <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
             <Tab label="Map" />
+            <Tab label="Management" />
           </Tabs>
         </Box>
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
@@ -79,6 +81,14 @@ const SMURFIPage = () => {
                   <ErrorBoundary>
                     <SMURFIMap />
                   </ErrorBoundary>
+                </RouteContent>
+              }
+            />
+            <Route
+              path="management"
+              element={
+                <RouteContent>
+                  <DistributionGroupsAdmin />
                 </RouteContent>
               }
             />

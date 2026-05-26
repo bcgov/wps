@@ -44,7 +44,8 @@ export const spotRequestSchema = z
     forecastStartDate: validDateTime(),
     forecastEndDate: validDateTime(),
     forecastType: z.enum(spotForecastTypes),
-    emailDistributionList: z.array(z.string().email('Invalid email')).min(1, 'At least one email is required'),
+    emailDistributionList: z.array(z.string().email('Invalid email')).default([]),
+    distributionGroupIds: z.array(z.number().int()).default([]),
     requestedFrequency: z.array(z.enum(requestedFrequencyOptions)).min(1, 'Select at least one day'),
     location: requiredCoordinate
       .nullable()
@@ -65,6 +66,10 @@ export const spotRequestSchema = z
   .refine(data => data.forecastEndDate.toMillis() >= data.forecastStartDate.toMillis(), {
     message: 'Forecast end date must be after the start date',
     path: ['forecastEndDate']
+  })
+  .refine(data => data.emailDistributionList.length > 0 || data.distributionGroupIds.length > 0, {
+    message: 'At least one email or distribution group is required',
+    path: ['emailDistributionList']
   })
 
 export type SpotRequestFormValues = z.input<typeof spotRequestSchema>

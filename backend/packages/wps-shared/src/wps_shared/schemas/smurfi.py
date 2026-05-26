@@ -7,6 +7,15 @@ class PullFromChefsResponse(BaseModel):
     success: bool
 
 
+class DistributionGroupInput(BaseModel):
+    name: str
+    emails: list[str] = []
+
+
+class DistributionGroupOutput(DistributionGroupInput):
+    id: int
+
+
 class SpotSubscriberData(BaseModel):
     id: int | None = None
     email: str
@@ -45,6 +54,7 @@ class SpotRequestInput(BaseModel):
     start_at: datetime
     end_at: datetime
     subscribers: list[SpotSubscriberData] = []
+    distribution_group_ids: list[int] = []
 
 
 class SpotRequestData(SpotRequestInput):
@@ -52,6 +62,7 @@ class SpotRequestData(SpotRequestInput):
     requestor_idir: str
     requestor_email: str
     latest_forecast: SpotLatestForecastData | None = None
+    distribution_groups: list[DistributionGroupOutput] = []
 
 
 class SpotRequestResponse(BaseModel):

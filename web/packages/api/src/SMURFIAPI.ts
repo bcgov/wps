@@ -155,6 +155,17 @@ export interface SpotSubscriber {
   subscriber_status: string
 }
 
+export interface DistributionGroup {
+  id: number
+  name: string
+  emails: string[]
+}
+
+export interface DistributionGroupInput {
+  name: string
+  emails: string[]
+}
+
 export interface SpotLatestForecast {
   id: number
   created_at: string
@@ -181,6 +192,7 @@ interface SpotRequestBase {
   start_at: string
   end_at: string
   subscribers: SpotSubscriber[]
+  distribution_group_ids?: number[]
   latest_forecast?: SpotLatestForecast | null
 }
 
@@ -193,6 +205,7 @@ export interface SpotRequestOutput extends SpotRequestBase {
   requestor_name: string
   requestor_idir: string
   requestor_email: string
+  distribution_groups?: DistributionGroup[]
 }
 
 export interface SpotRequestResponse {
@@ -237,7 +250,8 @@ const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotR
       id: null,
       email,
       subscriber_status: 'active'
-    }))
+    })),
+    distribution_group_ids: formData.distributionGroupIds
   }
 }
 
@@ -296,4 +310,23 @@ export const getSpotRequests = async (): Promise<SpotRequestsResponse> => {
   const url = '/smurfi/spot_requests'
   const { data } = await axios.get(url)
   return data
+}
+
+export const getDistributionGroups = async (): Promise<DistributionGroup[]> => {
+  const { data } = await axios.get('/smurfi/distribution_groups')
+  return data
+}
+
+export const postDistributionGroup = async (input: DistributionGroupInput): Promise<DistributionGroup> => {
+  const { data } = await axios.post('/smurfi/distribution_groups', input)
+  return data
+}
+
+export const putDistributionGroup = async (id: number, input: DistributionGroupInput): Promise<DistributionGroup> => {
+  const { data } = await axios.put(`/smurfi/distribution_groups/${id}`, input)
+  return data
+}
+
+export const deleteDistributionGroup = async (id: number): Promise<void> => {
+  await axios.delete(`/smurfi/distribution_groups/${id}`)
 }
