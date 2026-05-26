@@ -95,9 +95,11 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       headerName: 'Frequency',
       width: 120,
       renderCell: params => (
-        <Typography variant="body2" title={params.value?.join(', ')}>
-          {formatRequestFrequency(params.value)}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
+          <Typography variant="body2" title={params.value?.join(', ')}>
+            {formatRequestFrequency(params.value)}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -135,7 +137,7 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
               variant="outlined"
               onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}/forecasts/new`)}
             >
-              Submit
+              New Forecast
             </Button>
           )}
         </Box>
