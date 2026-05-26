@@ -147,11 +147,11 @@ def _get_latest_forecast(spot_request: SpotRequestBase) -> SpotForecast | None:
     )
 
 
-def _get_current_instance(spot_request: SpotRequestBase) -> SpotRequestInstance:
-    latest_forecast = _get_latest_forecast(spot_request)
+def _get_current_instance(spot_request_base: SpotRequestBase) -> SpotRequestInstance:
+    latest_forecast = _get_latest_forecast(spot_request_base)
     if latest_forecast is not None:
         return latest_forecast.spot_request_instance
-    return _get_initial_instance(spot_request)
+    return _get_initial_instance(spot_request_base)
 
 
 def _latest_forecast_to_schema(spot_request_base: SpotRequestBase) -> SpotLatestForecastData | None:
@@ -193,7 +193,7 @@ async def upsert_spot_request_endpoint(
                 detail=f"SpotRequestBase {spot_request_base.id} not found",
             )
 
-        initial_instance = await create_spot_request_instance(
+        instance = await create_spot_request_instance(
             session, _build_spot_request_instance(result.id, spot_request_input.initial_instance)
         )
 
@@ -206,14 +206,14 @@ async def upsert_spot_request_endpoint(
             SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status)
             for s in subscribers
         ]
-        initial_instance_data = _spot_request_instance_to_schema(initial_instance)
+        spot_request_instance = _spot_request_instance_to_schema(instance)
 
     return SpotRequestResponse(
         spot_request=SpotRequestData(
             **spot_request_input.model_dump(exclude={"id", "initial_instance", "subscribers"}),
             id=spot_request_base_id,
-            initial_instance=initial_instance_data,
-            current_instance=initial_instance_data,
+            initial_instance=spot_request_instance,
+            current_instance=spot_request_instance,
             subscribers=subscriber_data,
             requestor_name=requestor.name,
             requestor_idir=requestor.idir,
