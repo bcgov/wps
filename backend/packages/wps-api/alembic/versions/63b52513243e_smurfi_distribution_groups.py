@@ -23,6 +23,8 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(), nullable=False),
         sa.Column("emails", sa.ARRAY(sa.String()), nullable=False),
+        sa.Column("created_by", sa.String(), nullable=False),
+        sa.Column("updated_by", sa.String(), nullable=True),
         sa.Column("created_at", TZTimeStamp(), nullable=False),
         sa.Column("updated_at", TZTimeStamp(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
