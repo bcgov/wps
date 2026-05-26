@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from wps_shared.db.models.smurfi import SmurfiDistributionGroup
 
 
 class PullFromChefsResponse(BaseModel):
@@ -14,6 +20,18 @@ class DistributionGroupInput(BaseModel):
 
 class DistributionGroupOutput(DistributionGroupInput):
     id: int
+    created_by: str
+    updated_by: str | None = None
+
+    @classmethod
+    def to_schema(cls, group: SmurfiDistributionGroup) -> DistributionGroupOutput:
+        return cls(
+            id=group.id,
+            name=group.name,
+            emails=group.emails,
+            created_by=group.created_by,
+            updated_by=group.updated_by,
+        )
 
 
 class SpotSubscriberData(BaseModel):

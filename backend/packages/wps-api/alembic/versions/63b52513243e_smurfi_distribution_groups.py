@@ -5,6 +5,7 @@ Revises: 3b9310ff54f5
 Create Date: 2026-05-26 00:00:00.000000
 
 """
+
 import sqlalchemy as sa
 from alembic import op
 from wps_shared.db.models.common import TZTimeStamp

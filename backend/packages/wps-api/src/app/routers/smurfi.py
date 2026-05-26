@@ -103,7 +103,9 @@ def _get_bc_albers_point(latitude: float, longitude: float) -> str:
 def _build_spot_request(data: SpotRequestInput, requestor: SpotRequestor) -> SpotRequest:
     now = get_utc_now()
     return SpotRequest(
-        **data.model_dump(exclude={"latitude", "longitude", "subscribers", "distribution_group_ids"}),
+        **data.model_dump(
+            exclude={"latitude", "longitude", "subscribers", "distribution_group_ids"}
+        ),
         requestor_name=requestor.name,
         requestor_idir=requestor.idir,
         requestor_email=requestor.email,
@@ -184,21 +186,18 @@ async def upsert_spot_request_endpoint(
         subscribers = await sync_spot_subscribers(
             session, result.id, [s.email for s in data.subscribers]
         )
-        await sync_spot_request_distribution_groups(
-            session, result.id, data.distribution_group_ids
-        )
+        await sync_spot_request_distribution_groups(session, result.id, data.distribution_group_ids)
         distribution_groups = await get_distribution_groups_for_spot(session, result.id)
         spot_request_id = result.id
         subscriber_data = [
             SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status)
             for s in subscribers
         ]
-        group_data = [
-            DistributionGroupOutput(id=g.id, name=g.name, emails=g.emails)
-            for g in distribution_groups
-        ]
+        group_data = [DistributionGroupOutput.to_schema(g) for g in distribution_groups]
 
-    return _build_spot_request_response(data, requestor, spot_request_id, subscriber_data, group_data)
+    return _build_spot_request_response(
+        data, requestor, spot_request_id, subscriber_data, group_data
+    )
 
 
 async def _create_descriptive_weather(
@@ -405,8 +404,7 @@ def _spot_request_to_schema(spot_request: SpotRequest) -> SpotRequestData:
             if s.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value
         ],
         distribution_groups=[
-            DistributionGroupOutput(id=g.id, name=g.name, emails=g.emails)
-            for g in spot_request.distribution_groups
+            DistributionGroupOutput.to_schema(g) for g in spot_request.distribution_groups
         ],
         distribution_group_ids=[g.id for g in spot_request.distribution_groups],
     )
@@ -433,27 +431,43 @@ async def update_subscriber(data: UpdateSubscriberStatusData):
 async def get_distribution_groups_endpoint():
     async with get_async_read_session_scope() as session:
         groups = await get_distribution_groups(session)
-    return [DistributionGroupOutput(id=g.id, name=g.name, emails=g.emails) for g in groups]
+    return [DistributionGroupOutput.to_schema(g) for g in groups]
 
 
-@router.post("/distribution_groups", response_model=DistributionGroupOutput, status_code=status.HTTP_201_CREATED)
-async def create_distribution_group_endpoint(data: DistributionGroupInput):
-    group = SmurfiDistributionGroup(name=data.name, emails=data.emails)
+@router.post(
+    "/distribution_groups",
+    response_model=DistributionGroupOutput,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_distribution_group_endpoint(
+    data: DistributionGroupInput, token: Annotated[dict, Depends(authentication_required)]
+):
+    user = _get_spot_user(token)
+    group = SmurfiDistributionGroup(
+        name=data.name, emails=data.emails, created_by=user.name or user.idir or user.email
+    )
     async with get_async_write_session_scope() as session:
         result = await create_distribution_group(session, group)
-        return DistributionGroupOutput(id=result.id, name=result.name, emails=result.emails)
+        return DistributionGroupOutput.to_schema(result)
 
 
 @router.put("/distribution_groups/{group_id}", response_model=DistributionGroupOutput)
-async def update_distribution_group_endpoint(group_id: int, data: DistributionGroupInput):
+async def update_distribution_group_endpoint(
+    group_id: int,
+    data: DistributionGroupInput,
+    token: Annotated[dict, Depends(authentication_required)],
+):
+    user = _get_spot_user(token)
     async with get_async_write_session_scope() as session:
-        result = await update_distribution_group(session, group_id, data.name, data.emails)
+        result = await update_distribution_group(
+            session, group_id, data.name, data.emails, user.name or user.idir or user.email
+        )
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Distribution group {group_id} not found",
         )
-    return DistributionGroupOutput(id=result.id, name=result.name, emails=result.emails)
+    return _group_to_schema(result)
 
 
 @router.delete("/distribution_groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)

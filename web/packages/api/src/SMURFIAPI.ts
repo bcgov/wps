@@ -159,6 +159,8 @@ export interface DistributionGroup {
   id: number
   name: string
   emails: string[]
+  created_by: string
+  updated_by?: string | null
 }
 
 export interface DistributionGroupInput {

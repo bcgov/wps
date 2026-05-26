@@ -137,9 +137,9 @@ const DistributionGroupsAdmin = () => {
   }
 
   return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Typography variant="h6">Distribution Groups</Typography>
+    <Box sx={{ width: '100%' }}>
+      <Stack direction="row" sx={{ mb: 2, alignItems: 'center' }}>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>Distribution Groups</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
           New Group
         </Button>
@@ -151,13 +151,15 @@ const DistributionGroupsAdmin = () => {
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Members</TableCell>
+              <TableCell>Created by</TableCell>
+              <TableCell>Last edited by</TableCell>
               <TableCell align="right" />
             </TableRow>
           </TableHead>
           <TableBody>
             {groups.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3}>
+                <TableCell colSpan={5}>
                   <Typography variant="body2" color="text.secondary">
                     No distribution groups yet.
                   </Typography>
@@ -168,6 +170,8 @@ const DistributionGroupsAdmin = () => {
               <TableRow key={group.id}>
                 <TableCell>{group.name}</TableCell>
                 <TableCell>{group.emails.length}</TableCell>
+                <TableCell>{group.created_by}</TableCell>
+                <TableCell>{group.updated_by ?? '—'}</TableCell>
                 <TableCell align="right">
                   <IconButton size="small" onClick={() => openEdit(group)}>
                     <EditIcon fontSize="small" />

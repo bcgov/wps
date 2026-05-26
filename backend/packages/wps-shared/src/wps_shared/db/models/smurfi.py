@@ -96,7 +96,12 @@ cardinal_direction_values = (
 spot_request_distribution_groups = Table(
     "spot_request_distribution_group",
     Base.metadata,
-    Column("spot_request_id", Integer, ForeignKey("spot_request.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "spot_request_id",
+        Integer,
+        ForeignKey("spot_request.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
     Column(
         "distribution_group_id",
         Integer,
@@ -115,6 +120,8 @@ class SmurfiDistributionGroup(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
     emails = Column(ARRAY(String), nullable=False, default=list)
+    created_by = Column(String, nullable=False)
+    updated_by = Column(String, nullable=True)
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
     updated_at = Column(
         TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now, default=time_utils.get_utc_now
