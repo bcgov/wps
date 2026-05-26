@@ -3,6 +3,10 @@ import { SpotFormData } from './schema/spotForecastSchema'
 import { SpotRequestFormData } from './schema/spotRequestSchema'
 import { DateTime } from 'luxon'
 
+const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const
+
+const degreesToCompass = (degrees: number): string => COMPASS[Math.round((((degrees % 360) + 360) % 360) / 45) % 8]
+
 export enum SpotRequestStatus {
   REQUESTED = 'Requested',
   STARTED = 'Started',
@@ -56,7 +60,7 @@ export interface SpotForecastInput {
   tabular_weather: SpotTabularWeatherInput[]
 }
 
-interface SpotDescriptiveWeatherOutput extends SpotDescriptiveWeatherInput {
+export interface SpotDescriptiveWeatherOutput extends SpotDescriptiveWeatherInput {
   id: number
 }
 
@@ -199,7 +203,7 @@ export interface SpotRequestsResponse {
   spot_requests: SpotRequestOutput[]
 }
 
-const spotRequestTypeMap: Record<SpotRequestFormData['forecastType'], string> = {
+export const spotRequestTypeMap: Record<SpotRequestFormData['forecastType'], string> = {
   MINI_SPOT: 'Mini',
   FULL_SPOT: 'Full'
 }
