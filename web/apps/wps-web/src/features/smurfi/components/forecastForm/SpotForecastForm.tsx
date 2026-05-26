@@ -12,7 +12,6 @@ import SpotForecastSummaries from '@/features/smurfi/components/forecastForm/Spo
 import SpotForecastSections from '@/features/smurfi/components/forecastForm/SpotForecastSections'
 import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
-import { getStations, StationSource } from '@wps/api/stationAPI'
 import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 
 const toFormString = (value: number | string | null | undefined) =>
