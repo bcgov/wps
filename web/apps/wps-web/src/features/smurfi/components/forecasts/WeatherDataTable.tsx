@@ -75,8 +75,8 @@ const WeatherDataTable: React.FC<WeatherDataTableProps> = ({ rows, issuedDate, f
           {header}
         </div>
       ))}
-      {sorted.map((row, i) => (
-        <React.Fragment key={i}>
+      {sorted.map(row => (
+        <React.Fragment key={row.forecast_time}>
           <div style={cellWithSize}>{formatDateLabel(row.forecast_time, issuedDate)}</div>
           <div style={numCellWithSize}>{row.temperature ?? '-'}</div>
           <div style={numCellWithSize}>{row.relative_humidity ?? '-'}</div>
