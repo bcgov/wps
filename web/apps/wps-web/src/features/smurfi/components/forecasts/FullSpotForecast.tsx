@@ -1,11 +1,9 @@
 import React from 'react'
-import { Box, Button, Divider, Paper, Typography } from '@mui/material'
+import { Box, Divider, Paper, Typography } from '@mui/material'
 import { DateTime } from 'luxon'
-import { useNavigate } from 'react-router-dom'
 import { SpotForecastOutput, SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import WeatherDataTable from '@/features/smurfi/components/forecasts/WeatherDataTable'
 import { RepresentativeStation } from '@/features/smurfi/interfaces'
-import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 
 const TIMEZONE = 'America/Vancouver'
 
@@ -54,24 +52,16 @@ export interface FullSpotForecastProps {
 }
 
 const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotRequest, representativeStations }) => {
-  const navigate = useNavigate()
   const afternoonForecast = forecast.descriptive_weather.find(dw => dw.period === 'Today')
   const tonightForecast = forecast.descriptive_weather.find(dw => dw.period === 'Tonight')
   const tomorrowForecast = forecast.descriptive_weather.find(dw => dw.period === 'Tomorrow')
   const stationsStr =
     representativeStations.length > 0
-      ? representativeStations.map(s => `${s.name}${s.elevation != null ? ` (${s.elevation}m)` : ''}`).join(', ')
+      ? representativeStations.map(s => s.name + (s.elevation == null ? '' : ` (${s.elevation}m)`)).join(', ')
       : '—'
-
-  const printableUrl = `${SMURFI_DASHBOARD_ROUTE}/${spotRequest.id}/forecasts/${forecast.id}/printable`
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box>
-        <Button variant="outlined" size="small" onClick={() => navigate(printableUrl)}>
-          Printable Version
-        </Button>
-      </Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
         <Section title="Forecast Info">
           <Field label="Fire Number(s)" value={spotRequest.fire_number?.join(', ') ?? '—'} />

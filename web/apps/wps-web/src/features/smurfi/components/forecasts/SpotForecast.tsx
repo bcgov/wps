@@ -1,5 +1,5 @@
-import { Box, CircularProgress, Typography } from '@mui/material'
-import { useParams } from 'react-router-dom'
+import { Box, Button, CircularProgress, Typography } from '@mui/material'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchSpotForecasts, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
@@ -10,10 +10,12 @@ import MiniSpotForecast from '@/features/smurfi/components/forecasts/MiniSpotFor
 import { useEffect } from 'react'
 import { AppDispatch } from '@/app/store'
 import FullSpotForecast from '@/features/smurfi/components/forecasts/FullSpotForecast'
+import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 
 const SpotForecast = () => {
   const { id, forecastId } = useParams<{ id: string; forecastId: string }>()
   const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
   const { spotRequests, spotRequestsLoading, spotForecastsByRequestId, spotForecastsLoading } =
     useSelector(selectSmurfi)
   const { stationsByCode, loading: stationsLoading } = useSelector(selectFireWeatherStations)
@@ -49,17 +51,29 @@ const SpotForecast = () => {
     return station ? [{ code, name: station.properties.name, elevation: station.properties.elevation }] : []
   })
 
-  if (spotRequest.request_type === spotRequestTypeMap['MINI_SPOT']) {
-    return <MiniSpotForecast forecast={spotForecast} />
-  }
+  const printableUrl = `${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts/${spotForecastId}/printable`
+  const isMini = spotRequest.request_type === spotRequestTypeMap['MINI_SPOT']
 
   return (
     <Box sx={{ pb: 4 }}>
-      <FullSpotForecast
-        forecast={spotForecast}
-        spotRequest={spotRequest}
-        representativeStations={representativeStations}
-      />
+      <Box sx={{ mb: 1 }}>
+        <Button variant="outlined" onClick={() => navigate(printableUrl)} size="small">
+          Printable Version
+        </Button>
+      </Box>
+      {isMini ? (
+        <MiniSpotForecast
+          forecast={spotForecast}
+          spotRequest={spotRequest}
+          representativeStations={representativeStations}
+        />
+      ) : (
+        <FullSpotForecast
+          forecast={spotForecast}
+          spotRequest={spotRequest}
+          representativeStations={representativeStations}
+        />
+      )}
     </Box>
   )
 }
