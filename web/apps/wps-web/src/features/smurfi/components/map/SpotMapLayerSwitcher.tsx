@@ -1,4 +1,4 @@
-import { Box, Checkbox, FormControlLabel, FormGroup, Paper, Typography } from '@mui/material'
+import { Autocomplete, Box, Checkbox, FormControlLabel, FormGroup, Paper, TextField, Typography } from '@mui/material'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
 
@@ -6,18 +6,24 @@ interface SpotMapLayerSwitcherProps {
   statusOptions: SpotRequestStatus[]
   selectedStatuses: SpotRequestStatus[]
   currentFiresVisible: boolean
+  allFireNumbers?: string[]
+  selectedFireNumbers?: string[]
   onStatusChange: (status: SpotRequestStatus, checked: boolean) => void
   onAllStatusesChange: (checked: boolean) => void
   onCurrentFiresVisibleChange: (checked: boolean) => void
+  onFireNumbersChange?: (fireNumbers: string[]) => void
 }
 
 const SpotMapLayerSwitcher = ({
   statusOptions,
   selectedStatuses,
   currentFiresVisible,
+  allFireNumbers,
+  selectedFireNumbers,
   onStatusChange,
   onAllStatusesChange,
-  onCurrentFiresVisibleChange
+  onCurrentFiresVisibleChange,
+  onFireNumbersChange
 }: SpotMapLayerSwitcherProps) => (
   <Paper
     elevation={3}
@@ -30,6 +36,24 @@ const SpotMapLayerSwitcher = ({
       maxWidth: 260
     }}
   >
+    {allFireNumbers && selectedFireNumbers && onFireNumbersChange && (
+      <>
+        <Typography variant="subtitle2" sx={{ mb: 0.5, fontWeight: 'bold' }}>
+          Fire Number
+        </Typography>
+        <Autocomplete
+          multiple
+          size="small"
+          options={allFireNumbers}
+          value={selectedFireNumbers}
+          onChange={(_, value) => onFireNumbersChange(value)}
+          renderInput={params => (
+            <TextField {...params} placeholder={selectedFireNumbers.length === 0 ? 'All fires' : ''} />
+          )}
+          sx={{ mb: 1.5 }}
+        />
+      </>
+    )}
     <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold' }}>
       Layers
     </Typography>
