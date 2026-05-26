@@ -16,16 +16,16 @@ from wps_shared.db.models.smurfi import (
 )
 
 
-async def create_spot_request(session: AsyncSession, spot_request: SpotRequestBase):
-    session.add(spot_request)
+async def create_spot_request(session: AsyncSession, spot_request_base: SpotRequestBase):
+    session.add(spot_request_base)
     await session.flush()
-    return spot_request
+    return spot_request_base
 
 
-async def upsert_spot_request(session: AsyncSession, spot_request: SpotRequestBase):
-    if spot_request.id is None:
-        return await create_spot_request(session, spot_request)
-    return await update_spot_request(session, spot_request)
+async def upsert_spot_request(session: AsyncSession, spot_request_base: SpotRequestBase):
+    if spot_request_base.id is None:
+        return await create_spot_request(session, spot_request_base)
+    return await update_spot_request(session, spot_request_base)
 
 
 async def create_spot_request_instance(
