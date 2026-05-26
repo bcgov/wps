@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -14,6 +14,9 @@ from wps_shared.db.models.smurfi import (
     SpotSubscriberStatusEnum,
     SpotTabularWeather,
 )
+
+# roughly 20m in degrees, which is sufficient for matching spot request instances to forecasts without requiring exact coordinate matches
+COORDINATE_MATCH_TOLERANCE = 0.0002
 
 
 async def create_spot_request(session: AsyncSession, spot_request_base: SpotRequestBase):
@@ -42,8 +45,10 @@ async def get_matching_spot_request_instance(
     result = await session.execute(
         select(SpotRequestInstance).where(
             SpotRequestInstance.spot_request_base_id == spot_request_instance.spot_request_base_id,
-            SpotRequestInstance.latitude == spot_request_instance.latitude,
-            SpotRequestInstance.longitude == spot_request_instance.longitude,
+            func.abs(SpotRequestInstance.latitude - spot_request_instance.latitude)
+            <= COORDINATE_MATCH_TOLERANCE,
+            func.abs(SpotRequestInstance.longitude - spot_request_instance.longitude)
+            <= COORDINATE_MATCH_TOLERANCE,
             SpotRequestInstance.geographic_description
             == spot_request_instance.geographic_description,
             SpotRequestInstance.aspect == spot_request_instance.aspect,
