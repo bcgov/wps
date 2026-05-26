@@ -23,6 +23,10 @@ def _make_spot_request(fire_number=None, geographic_description="Test Area"):
 def _make_spot_request_instance(geographic_description="Test Area"):
     instance = MagicMock()
     instance.geographic_description = geographic_description
+    instance.aspect = "East"
+    instance.elevation = 1100
+    instance.latitude = 48.5
+    instance.longitude = -123.5
     return instance
 
 
