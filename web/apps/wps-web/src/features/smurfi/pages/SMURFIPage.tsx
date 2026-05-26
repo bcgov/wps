@@ -1,23 +1,25 @@
-import React, { useEffect } from 'react'
-import { Box, Tabs, Tab } from '@mui/material'
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { GeneralHeader } from '@wps/ui/GeneralHeader'
-import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
+import { AppDispatch } from '@/app/store'
+import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
+import SpotForecastFormPage from '@/features/smurfi/components/forecastForm/SpotForecastFormPage'
+import SpotForecast from '@/features/smurfi/components/forecasts/SpotForecast'
+import SpotForecasts from '@/features/smurfi/components/forecasts/SpotForecasts'
+import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
+import SpotRequestFormPage from '@/features/smurfi/components/requestForm/SpotRequestFormPage'
+import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
+import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
+import PrintableSpotForecast from '@/features/smurfi/pages/PrintableSpotForecast'
+import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
+import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
+import { Box, Tab, Tabs } from '@mui/material'
 import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon'
 import { LocalizationProvider } from '@mui/x-date-pickers-pro/LocalizationProvider'
-import { SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE } from '@wps/utils/constants'
-import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
-import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
-import SpotForecasts from '@/features/smurfi/components/forecasts/SpotForecasts'
-import SpotForecast from '@/features/smurfi/components/forecasts/SpotForecast'
-import SpotRequestFormPage from '@/features/smurfi/components/requestForm/SpotRequestFormPage'
-import SpotForecastFormPage from '@/features/smurfi/components/forecastForm/SpotForecastFormPage'
-import PrintableSpotForecast from '@/features/smurfi/pages/PrintableSpotForecast'
-import { AppDispatch } from '@/app/store'
+import { getStations, StationSource } from '@wps/api/stationAPI'
+import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
+import { SMURFI_DASHBOARD_ROUTE, SMURFI_MANAGEMENT_ROUTE, SMURFI_MAP_ROUTE } from '@wps/utils/constants'
+import React, { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
-import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
-import SMURFIMap from '@/features/smurfi/components/map/SMURFIMap'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
 const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE]
 
@@ -30,6 +32,7 @@ const SMURFIPage = () => {
   useEffect(() => {
     dispatch(fetchSpotRequests())
     dispatch(fetchFireCentres())
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, [])
   const location = useLocation()
   const navigate = useNavigate()
@@ -44,7 +47,7 @@ const SMURFIPage = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        <Box sx={{ display: location.pathname.endsWith('/printable') ? 'none' : 'block' }}>
+        <Box sx={{ display: location.pathname.endsWith('/print') ? 'none' : 'block' }}>
           <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
           <Tabs value={currentTab} onChange={handleChange}>
             <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
@@ -64,7 +67,7 @@ const SMURFIPage = () => {
                     <Route path=":id/forecasts" element={<SpotForecasts />} />
                     <Route path=":id/forecasts/new" element={<SpotForecastFormPage />} />
                     <Route path=":id/forecasts/:forecastId" element={<SpotForecast />} />
-                    <Route path=":id/forecasts/:forecastId/printable" element={<PrintableSpotForecast />} />
+                    <Route path=":id/forecasts/:forecastId/print" element={<PrintableSpotForecast />} />
                   </Routes>
                 </RouteContent>
               }

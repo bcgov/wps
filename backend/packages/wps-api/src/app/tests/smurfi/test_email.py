@@ -6,11 +6,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from app.smurfi.email import build_spot_forecast_email, send_spot_forecast_emails
 
+_ISSUED_AT = datetime(2026, 5, 25, 21, 30, tzinfo=timezone.utc)  # 1430 PDT
+
 
 def _make_spot_request(fire_number=None, geographic_description="Test Area"):
     sr = MagicMock()
     sr.fire_number = fire_number or ["V0800168"]
     sr.geographic_description = geographic_description
+    sr.requestor_name = "Test Requestor"
+    sr.aspect = "East"
+    sr.elevation = 1100
+    sr.geom = None  # coord extraction will fall back to "—" via try/except
     return sr
 
 
@@ -28,6 +34,17 @@ def _make_spot_forecast(spot_request, descriptive_weather=None, tabular_weather=
     )
     sf.descriptive_weather = descriptive_weather or []
     sf.tabular_weather = tabular_weather or []
+    sf.issued_at = _ISSUED_AT
+    sf.expires_at = None
+    sf.forecaster_name = "Test Forecaster"
+    sf.forecaster_email = "test@example.com"
+    sf.forecaster_phone = None
+    sf.synopsis = "Test synopsis"
+    sf.inversion_and_venting = "Test inversion"
+    sf.outlook = None
+    sf.confidence = "Test confidence"
+    sf.fire_size = None
+    sf.representative_station_codes = None
     return sf
 
 
@@ -76,15 +93,26 @@ def test_build_email_body_contains_geographic_description():
 
 
 def test_build_email_body_contains_descriptive_period():
-    """Email body contains descriptive weather period."""
+    """Email body contains descriptive weather rendered as AFTERNOON/TONIGHT/TOMORROW labels."""
     sr = _make_spot_request()
-    dw = _make_descriptive(
+    afternoon = _make_descriptive(
         period="Today", conditions="Partly cloudy", temperature=22.0, relative_humidity=35.0
     )
-    sf = _make_spot_forecast(sr, descriptive_weather=[dw])
-    _, html = build_spot_forecast_email(sf, spot_detail_url="http://example.com/smurfi/spots/1")
-    assert "Today" in html
-    assert "Partly cloudy" in html
+    tonight = _make_descriptive(
+        period="Tonight", conditions="Clear", temperature=5.0, relative_humidity=80.0
+    )
+    tomorrow = _make_descriptive(
+        period="Tomorrow", conditions="Sunny", temperature=20.0, relative_humidity=30.0
+    )
+    sf = _make_spot_forecast(sr, descriptive_weather=[afternoon, tonight, tomorrow])
+    _, body = build_spot_forecast_email(sf, spot_detail_url="http://example.com/smurfi/spots/1")
+    assert "AFTERNOON:" in body
+    assert "Partly cloudy" in body
+    assert "MAX TEMP 22.0C, MIN RH 35.0%" in body
+    assert "TONIGHT:" in body
+    assert "MIN TEMP 5.0C. MAX RH 80.0%" in body
+    assert "TOMORROW:" in body
+    assert "TEMP 20.0C. MIN RH 30.0%" in body
 
 
 def test_build_email_body_contains_tabular_row():
