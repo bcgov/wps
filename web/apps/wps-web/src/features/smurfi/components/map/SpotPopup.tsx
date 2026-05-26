@@ -43,6 +43,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
   const isLoading = useSelector(selectSubscriptionsLoading)
   const isSubscribed = subscribedIds.includes(spotId)
   const statusColors = SpotRequestStatusColorMap[status]
+  const locationLabel = spotRequest.latest_forecast ? 'Last forecasted location' : 'Requested location'
 
   const handleRequestClick = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -111,9 +112,14 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
           </Button>
         </Box>
       </Box>
-      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-        Lat: {lat.toFixed(6)}, Lng: {lng.toFixed(6)}
-      </Typography>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
+          {locationLabel}
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Lat: {lat.toFixed(6)}, Lng: {lng.toFixed(6)}
+        </Typography>
+      </Box>
       <Box sx={{ display: 'flex', gap: 1 }}>
         <Button variant="outlined" color="primary" size="small" fullWidth onClick={handleRequestClick}>
           View Request
