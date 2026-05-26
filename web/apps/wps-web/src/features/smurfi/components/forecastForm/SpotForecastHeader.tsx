@@ -1,17 +1,36 @@
 import React from 'react'
-import { Controller, Control, FieldErrors } from 'react-hook-form'
-import { Grid, Card, CardContent, InputAdornment } from '@mui/material'
+import { Controller, Control, FieldErrors, UseFormSetValue, useWatch } from 'react-hook-form'
+import { Grid, Card, CardContent, InputAdornment, Typography } from '@mui/material'
 import StationSelector from '@/features/smurfi/components/StationSelector'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import ControlledForecastTextField from '@/features/smurfi/components/forecastForm/ControlledForecastTextField'
 import ControlledForecastDateTimePicker from '@/features/smurfi/components/forecastForm/ControlledForecastDateTimePicker'
+import SpotRequestLocationMap from '@/features/smurfi/components/requestForm/SpotRequestLocationMap'
 
 interface SpotForecastHeaderProps {
   control: Control<SpotFormData>
   errors: FieldErrors<SpotFormData>
+  fireNumbers: string[] | null | undefined
+  setValue: UseFormSetValue<SpotFormData>
 }
 
-const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors }) => {
+const toNumericLocation = (latitude: string | undefined, longitude: string | undefined) => {
+  const lat = Number(latitude)
+  const lon = Number(longitude)
+  return Number.isFinite(lat) && Number.isFinite(lon) ? { latitude: lat, longitude: lon } : null
+}
+
+const getFireSizeErrorMessage = (errors: FieldErrors<SpotFormData>, index: number) => {
+  const fireSizesError = errors.fireSizes
+  return Array.isArray(fireSizesError) ? fireSizesError[index]?.message : undefined
+}
+
+const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors, fireNumbers, setValue }) => {
+  const latitude = useWatch({ control, name: 'latitude' })
+  const longitude = useWatch({ control, name: 'longitude' })
+  const selectedLocation = toNumericLocation(latitude, longitude)
+  const fireSizeLabels = fireNumbers?.length ? fireNumbers : ['Fire Size']
+
   return (
     <Grid size={12}>
       <Card>
@@ -67,7 +86,6 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Latitude"
                 fullWidth
-                disabled
                 errorMessage={errors.latitude?.message}
               />
             </Grid>
@@ -77,8 +95,29 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Longitude"
                 fullWidth
-                disabled
                 errorMessage={errors.longitude?.message}
+              />
+            </Grid>
+            <Grid size={12}>
+              <SpotRequestLocationMap
+                value={selectedLocation}
+                existingSpotRequests={[]}
+                onChange={location => {
+                  if (!location) {
+                    return
+                  }
+                  setValue('latitude', location.latitude.toFixed(6), { shouldValidate: true, shouldDirty: true })
+                  setValue('longitude', location.longitude.toFixed(6), { shouldValidate: true, shouldDirty: true })
+                }}
+              />
+            </Grid>
+            <Grid size={12}>
+              <ControlledForecastTextField
+                name="geographicDescription"
+                control={control}
+                label="Geographic Description"
+                fullWidth
+                errorMessage={errors.geographicDescription?.message}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
@@ -87,12 +126,11 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Slope/Aspect"
                 fullWidth
-                disabled
                 errorMessage={errors.slopeAspect?.message}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <ControlledForecastTextField name="valley" control={control} label="Valley" fullWidth disabled />
+              <ControlledForecastTextField name="valley" control={control} label="Valley" fullWidth />
             </Grid>
             <Grid size={6}>
               <ControlledForecastTextField
@@ -100,19 +138,27 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
                 control={control}
                 label="Elevation"
                 fullWidth
-                disabled
                 endAdornment={<InputAdornment position="end">m</InputAdornment>}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <ControlledForecastTextField
-                name="size"
-                control={control}
-                label="Size (ha)"
-                fullWidth
-                disabled
-                endAdornment={<InputAdornment position="end">ha</InputAdornment>}
-              />
+            <Grid size={12}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Fire Size(s)
+              </Typography>
+              <Grid container spacing={2}>
+                {fireSizeLabels.map((fireNumber, index) => (
+                  <Grid key={`${fireNumber}-${index}`} size={{ xs: 12, sm: 6 }}>
+                    <ControlledForecastTextField
+                      name={`fireSizes.${index}`}
+                      control={control}
+                      label={`${fireNumber} Size`}
+                      fullWidth
+                      errorMessage={getFireSizeErrorMessage(errors, index)}
+                      endAdornment={<InputAdornment position="end">ha</InputAdornment>}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
             </Grid>
           </Grid>
         </CardContent>

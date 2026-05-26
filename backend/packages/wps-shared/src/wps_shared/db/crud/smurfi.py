@@ -7,7 +7,8 @@ from sqlalchemy.orm import selectinload
 from wps_shared.db.models.smurfi import (
     SpotDescriptiveWeather,
     SpotForecast,
-    SpotRequest,
+    SpotRequestBase,
+    SpotRequestInstance,
     SpotRequestStatusEnum,
     SpotSubscriber,
     SpotSubscriberStatusEnum,
@@ -15,16 +16,51 @@ from wps_shared.db.models.smurfi import (
 )
 
 
-async def create_spot_request(session: AsyncSession, spot_request: SpotRequest):
+async def create_spot_request(session: AsyncSession, spot_request: SpotRequestBase):
     session.add(spot_request)
     await session.flush()
     return spot_request
 
 
-async def upsert_spot_request(session: AsyncSession, spot_request: SpotRequest):
+async def upsert_spot_request(session: AsyncSession, spot_request: SpotRequestBase):
     if spot_request.id is None:
         return await create_spot_request(session, spot_request)
     return await update_spot_request(session, spot_request)
+
+
+async def create_spot_request_instance(
+    session: AsyncSession, spot_request_instance: SpotRequestInstance
+) -> SpotRequestInstance:
+    session.add(spot_request_instance)
+    await session.flush()
+    return spot_request_instance
+
+
+async def get_matching_spot_request_instance(
+    session: AsyncSession, spot_request_instance: SpotRequestInstance
+) -> SpotRequestInstance | None:
+    result = await session.execute(
+        select(SpotRequestInstance).where(
+            SpotRequestInstance.spot_request_base_id == spot_request_instance.spot_request_base_id,
+            SpotRequestInstance.latitude == spot_request_instance.latitude,
+            SpotRequestInstance.longitude == spot_request_instance.longitude,
+            SpotRequestInstance.geographic_description
+            == spot_request_instance.geographic_description,
+            SpotRequestInstance.aspect == spot_request_instance.aspect,
+            SpotRequestInstance.elevation == spot_request_instance.elevation,
+            SpotRequestInstance.valley == spot_request_instance.valley,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+async def get_or_create_spot_request_instance(
+    session: AsyncSession, spot_request_instance: SpotRequestInstance
+) -> SpotRequestInstance:
+    existing = await get_matching_spot_request_instance(session, spot_request_instance)
+    if existing is not None:
+        return existing
+    return await create_spot_request_instance(session, spot_request_instance)
 
 
 async def create_spot_forecast(session: AsyncSession, spot_forecast: SpotForecast):
@@ -34,10 +70,10 @@ async def create_spot_forecast(session: AsyncSession, spot_forecast: SpotForecas
 
 
 async def sync_spot_subscribers(
-    session: AsyncSession, spot_request_id: int, emails: list[str]
+    session: AsyncSession, spot_request_base_id: int, emails: list[str]
 ) -> list[SpotSubscriber]:
     result = await session.execute(
-        select(SpotSubscriber).where(SpotSubscriber.spot_request_id == spot_request_id)
+        select(SpotSubscriber).where(SpotSubscriber.spot_request_base_id == spot_request_base_id)
     )
     existing = result.scalars().all()
 
@@ -58,7 +94,7 @@ async def sync_spot_subscribers(
 
     for email in active_emails:
         if email not in existing_by_email:
-            new_subscriber = SpotSubscriber(spot_request_id=spot_request_id, email=email)
+            new_subscriber = SpotSubscriber(spot_request_base_id=spot_request_base_id, email=email)
             session.add(new_subscriber)
             active_subscribers.append(new_subscriber)
 
@@ -82,20 +118,20 @@ async def create_spot_descriptive_weather(
     return spot_descriptive_weather
 
 
-async def start_requested_spot_request(session: AsyncSession, spot_request_id: int):
+async def start_requested_spot_request(session: AsyncSession, spot_request_base_id: int):
     await session.execute(
-        update(SpotRequest)
+        update(SpotRequestBase)
         .where(
-            SpotRequest.id == spot_request_id,
-            SpotRequest.status == SpotRequestStatusEnum.REQUESTED.value,
+            SpotRequestBase.id == spot_request_base_id,
+            SpotRequestBase.status == SpotRequestStatusEnum.REQUESTED.value,
         )
         .values(status=SpotRequestStatusEnum.STARTED.value)
     )
     await session.flush()
 
 
-async def update_spot_request(session: AsyncSession, updated: SpotRequest):
-    result = await session.execute(select(SpotRequest).where(SpotRequest.id == updated.id))
+async def update_spot_request(session: AsyncSession, updated: SpotRequestBase):
+    result = await session.execute(select(SpotRequestBase).where(SpotRequestBase.id == updated.id))
     existing = result.scalar_one_or_none()
     if existing is not None:
         existing.request_reference = updated.request_reference
@@ -107,11 +143,7 @@ async def update_spot_request(session: AsyncSession, updated: SpotRequest):
         existing.requestor_email = updated.requestor_email
         existing.request_frequency = updated.request_frequency
         existing.request_type = updated.request_type
-        existing.aspect = updated.aspect
-        existing.elevation = updated.elevation
-        existing.geographic_description = updated.geographic_description
         existing.additional_information = updated.additional_information
-        existing.geom = updated.geom
         existing.requested_at = updated.requested_at
         existing.start_at = updated.start_at
         existing.end_at = updated.end_at
@@ -123,11 +155,15 @@ async def get_spot_requests_for_year(session: AsyncSession, year: int):
     year_start = datetime(year, 1, 1, tzinfo=timezone.utc)
     year_end = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
     result = await session.execute(
-        select(SpotRequest)
-        .where(SpotRequest.start_at >= year_start, SpotRequest.start_at < year_end)
+        select(SpotRequestBase)
+        .where(SpotRequestBase.start_at >= year_start, SpotRequestBase.start_at < year_end)
         .options(
-            selectinload(SpotRequest.spot_subscribers),
-            selectinload(SpotRequest.spot_forecasts).selectinload(SpotForecast.tabular_weather),
+            selectinload(SpotRequestBase.spot_subscribers),
+            selectinload(SpotRequestBase.spot_request_instances),
+            selectinload(SpotRequestBase.spot_forecasts).selectinload(SpotForecast.tabular_weather),
+            selectinload(SpotRequestBase.spot_forecasts).selectinload(
+                SpotForecast.spot_request_instance
+            ),
         )
     )
     return result.scalars().all()
@@ -145,18 +181,18 @@ async def update_spot_subscriber_status(
 
 
 async def subscribe_to_spot_request(
-    session: AsyncSession, spot_request_id: int, email: str
+    session: AsyncSession, spot_request_base_id: int, email: str
 ) -> SpotSubscriber:
     result = await session.execute(
         select(SpotSubscriber).where(
-            SpotSubscriber.spot_request_id == spot_request_id,
+            SpotSubscriber.spot_request_base_id == spot_request_base_id,
             SpotSubscriber.email == email,
         )
     )
     subscriber = result.scalar_one_or_none()
     if subscriber is None:
         subscriber = SpotSubscriber(
-            spot_request_id=spot_request_id,
+            spot_request_base_id=spot_request_base_id,
             email=email,
             subscriber_status=SpotSubscriberStatusEnum.ACTIVE.value,
         )
@@ -168,11 +204,11 @@ async def subscribe_to_spot_request(
 
 
 async def unsubscribe_from_spot_request(
-    session: AsyncSession, spot_request_id: int, email: str
+    session: AsyncSession, spot_request_base_id: int, email: str
 ) -> SpotSubscriber | None:
     result = await session.execute(
         select(SpotSubscriber).where(
-            SpotSubscriber.spot_request_id == spot_request_id,
+            SpotSubscriber.spot_request_base_id == spot_request_base_id,
             SpotSubscriber.email == email,
         )
     )
@@ -185,7 +221,7 @@ async def unsubscribe_from_spot_request(
 
 async def get_subscribed_spot_request_ids(session: AsyncSession, email: str) -> list[int]:
     result = await session.execute(
-        select(SpotSubscriber.spot_request_id).where(
+        select(SpotSubscriber.spot_request_base_id).where(
             SpotSubscriber.email == email,
             SpotSubscriber.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value,
         )
@@ -194,11 +230,11 @@ async def get_subscribed_spot_request_ids(session: AsyncSession, email: str) -> 
 
 
 async def get_active_subscribers_for_spot(
-    session: AsyncSession, spot_request_id: int
+    session: AsyncSession, spot_request_base_id: int
 ) -> list[SpotSubscriber]:
     result = await session.execute(
         select(SpotSubscriber).where(
-            SpotSubscriber.spot_request_id == spot_request_id,
+            SpotSubscriber.spot_request_base_id == spot_request_base_id,
             SpotSubscriber.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value,
         )
     )
@@ -214,21 +250,23 @@ async def get_spot_forecast_with_weather(
         .options(
             selectinload(SpotForecast.descriptive_weather),
             selectinload(SpotForecast.tabular_weather),
-            selectinload(SpotForecast.spot_request),
+            selectinload(SpotForecast.spot_request_base),
+            selectinload(SpotForecast.spot_request_instance),
         )
     )
     return result.scalar_one_or_none()
 
 
 async def get_spot_forecasts_for_request(
-    session: AsyncSession, spot_request_id: int
+    session: AsyncSession, spot_request_base_id: int
 ) -> list[SpotForecast]:
     result = await session.execute(
         select(SpotForecast)
-        .where(SpotForecast.spot_request_id == spot_request_id)
+        .where(SpotForecast.spot_request_base_id == spot_request_base_id)
         .options(
             selectinload(SpotForecast.descriptive_weather),
             selectinload(SpotForecast.tabular_weather),
+            selectinload(SpotForecast.spot_request_instance),
         )
         .order_by(SpotForecast.created_at.desc())
     )

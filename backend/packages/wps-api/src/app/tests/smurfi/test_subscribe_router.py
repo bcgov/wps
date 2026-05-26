@@ -14,11 +14,27 @@ SUBSCRIBE = "app.routers.smurfi.subscribe_to_spot_request"
 UNSUBSCRIBE = "app.routers.smurfi.unsubscribe_from_spot_request"
 GET_IDS = "app.routers.smurfi.get_subscribed_spot_request_ids"
 GET_FORECASTS = "app.routers.smurfi.get_spot_forecasts_for_request"
-GET_FORECASTS = "app.routers.smurfi.get_spot_forecasts_for_request"
+GET_OR_CREATE_INSTANCE = "app.routers.smurfi.get_or_create_spot_request_instance"
 
 
 def _make_subscriber(status: str):
     return type("SpotSubscriber", (), {"subscriber_status": status})()
+
+
+def _make_spot_request_instance(instance_id: int = 3):
+    return type(
+        "SpotRequestInstance",
+        (),
+        {
+            "id": instance_id,
+            "geographic_description": "Clearwater Valley",
+            "aspect": "North",
+            "elevation": 1000,
+            "valley": None,
+            "latitude": 48.5,
+            "longitude": -123.5,
+        },
+    )()
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
@@ -122,7 +138,9 @@ def test_get_spot_forecasts_returns_saved_forecasts():
         (),
         {
             "id": 99,
-            "spot_request_id": 42,
+            "spot_request_base_id": 42,
+            "spot_request_instance_id": 3,
+            "spot_request_instance": _make_spot_request_instance(),
             "forecaster_name": "Test Forecaster",
             "forecaster_email": "forecaster@example.com",
             "forecaster_phone": "250-555-0100",
@@ -130,7 +148,7 @@ def test_get_spot_forecasts_returns_saved_forecasts():
             "inversion_and_venting": "Good venting.",
             "outlook": "Dry.",
             "confidence": "High.",
-            "fire_size": 12.5,
+            "fire_size": [12.5],
             "representative_station_codes": [1, 2],
             "created_at": forecast_time,
             "issued_at": forecast_time,
@@ -158,7 +176,15 @@ CREATE_TW = "app.routers.smurfi._create_tabular_weather"
 START_REQUEST = "app.routers.smurfi.start_requested_spot_request"
 
 FORECAST_PAYLOAD = {
-    "spot_request_id": 1,
+    "spot_request_base_id": 1,
+    "spot_request_instance": {
+        "geographic_description": "Clearwater Valley",
+        "aspect": "North",
+        "elevation": 1000,
+        "valley": None,
+        "latitude": 48.5,
+        "longitude": -123.5,
+    },
     "issued_at": "2026-05-21T16:00:00Z",
     "expires_at": None,
     "descriptive_weather": [],
@@ -176,6 +202,11 @@ def test_create_spot_forecast_publishes_nats_message():
         patch(
             CREATE_FORECAST, new_callable=AsyncMock, return_value=mock_result
         ) as mock_create_forecast,
+        patch(
+            GET_OR_CREATE_INSTANCE,
+            new_callable=AsyncMock,
+            return_value=_make_spot_request_instance(),
+        ),
         patch(CREATE_DW, new_callable=AsyncMock, return_value=[]),
         patch(CREATE_TW, new_callable=AsyncMock, return_value=[]),
         patch(START_REQUEST, new_callable=AsyncMock) as mock_start_request,
@@ -186,7 +217,7 @@ def test_create_spot_forecast_publishes_nats_message():
     saved_forecast = mock_create_forecast.call_args.args[1]
     assert saved_forecast.forecaster_name == "test_username"
     assert saved_forecast.forecaster_email == "test@email.com"
-    mock_start_request.assert_awaited_once_with(ANY, FORECAST_PAYLOAD["spot_request_id"])
+    mock_start_request.assert_awaited_once_with(ANY, FORECAST_PAYLOAD["spot_request_base_id"])
     mock_publish.assert_called_once_with(
         stream=stream_name,
         subject=smurfi_spot_update_subject,

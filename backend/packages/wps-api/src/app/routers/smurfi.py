@@ -4,12 +4,13 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from geoalchemy2.shape import to_shape
 from wps_shared.auth import authentication_required
 from wps_shared.db.crud.smurfi import (
     create_spot_descriptive_weather,
     create_spot_forecast,
+    create_spot_request_instance,
     create_spot_tabular_weather,
+    get_or_create_spot_request_instance,
     get_spot_forecasts_for_request,
     get_spot_requests_for_year,
     get_subscribed_spot_request_ids,
@@ -24,7 +25,8 @@ from wps_shared.db.database import get_async_read_session_scope, get_async_write
 from wps_shared.db.models.smurfi import (
     SpotDescriptiveWeather,
     SpotForecast,
-    SpotRequest,
+    SpotRequestBase,
+    SpotRequestInstance,
     SpotSubscriberStatusEnum,
     SpotTabularWeather,
 )
@@ -42,6 +44,8 @@ from wps_shared.schemas.smurfi import (
     SpotLatestForecastData,
     SpotRequestData,
     SpotRequestInput,
+    SpotRequestInstanceData,
+    SpotRequestInstanceInput,
     SpotRequestListResponse,
     SpotRequestResponse,
     SpotSubscriberData,
@@ -91,44 +95,63 @@ def _get_bc_albers_point(latitude: float, longitude: float) -> str:
     return f"POINT({x} {y})"
 
 
-def _build_spot_request(data: SpotRequestInput, requestor: SpotRequestor) -> SpotRequest:
+def _build_spot_request_base(data: SpotRequestInput, requestor: SpotRequestor) -> SpotRequestBase:
     now = get_utc_now()
-    return SpotRequest(
-        **data.model_dump(exclude={"latitude", "longitude", "subscribers"}),
+    return SpotRequestBase(
+        **data.model_dump(exclude={"initial_instance", "subscribers"}),
         requestor_name=requestor.name,
         requestor_idir=requestor.idir,
         requestor_email=requestor.email,
-        geom=_get_bc_albers_point(data.latitude, data.longitude),
         created_at=now,
         updated_at=now,
     )
 
 
-def _build_spot_request_response(
-    data: SpotRequestInput,
-    requestor: SpotRequestor,
-    spot_request_id: int,
-    subscribers: list[SpotSubscriberData],
-) -> SpotRequestResponse:
-    spot_request_response = SpotRequestData(
+def _build_spot_request_instance(
+    spot_request_base_id: int, data: SpotRequestInstanceInput
+) -> SpotRequestInstance:
+    return SpotRequestInstance(
         **data.model_dump(),
-        requestor_name=requestor.name,
-        requestor_idir=requestor.idir,
-        requestor_email=requestor.email,
-    )
-    return SpotRequestResponse(
-        spot_request=spot_request_response.model_copy(
-            update={"id": spot_request_id, "subscribers": subscribers}
-        )
+        spot_request_base_id=spot_request_base_id,
+        geom=_get_bc_albers_point(data.latitude, data.longitude),
     )
 
 
-def _latest_forecast_to_schema(spot_request: SpotRequest) -> SpotLatestForecastData | None:
-    latest_forecast = max(
+def _spot_request_instance_to_schema(
+    spot_request_instance: SpotRequestInstance,
+) -> SpotRequestInstanceData:
+    return SpotRequestInstanceData(
+        id=spot_request_instance.id,
+        geographic_description=spot_request_instance.geographic_description,
+        aspect=spot_request_instance.aspect,
+        elevation=spot_request_instance.elevation,
+        valley=spot_request_instance.valley,
+        latitude=spot_request_instance.latitude,
+        longitude=spot_request_instance.longitude,
+    )
+
+
+def _get_initial_instance(spot_request: SpotRequestBase) -> SpotRequestInstance:
+    return min(spot_request.spot_request_instances, key=lambda instance: instance.created_at)
+
+
+def _get_latest_forecast(spot_request: SpotRequestBase) -> SpotForecast | None:
+    return max(
         spot_request.spot_forecasts,
         key=lambda forecast: forecast.created_at,
         default=None,
     )
+
+
+def _get_current_instance(spot_request: SpotRequestBase) -> SpotRequestInstance:
+    latest_forecast = _get_latest_forecast(spot_request)
+    if latest_forecast is not None:
+        return latest_forecast.spot_request_instance
+    return _get_initial_instance(spot_request)
+
+
+def _latest_forecast_to_schema(spot_request: SpotRequestBase) -> SpotLatestForecastData | None:
+    latest_forecast = _get_latest_forecast(spot_request)
     if latest_forecast is None:
         return None
 
@@ -151,32 +174,48 @@ async def upsert_spot_request_endpoint(
     data: SpotRequestInput, token: Annotated[dict, Depends(authentication_required)]
 ):
     requestor = _get_spot_user(token)
-    spot_request = _build_spot_request(data, requestor)
+    spot_request_base = _build_spot_request_base(data, requestor)
 
     async with get_async_write_session_scope() as session:
-        if spot_request.id is None:
-            logger.info("Creating a new SpotRequest.")
+        if spot_request_base.id is None:
+            logger.info("Creating a new SpotRequestBase.")
         else:
-            logger.info("Updating an existing SpotRequest with id: %s.", spot_request.id)
+            logger.info("Updating an existing SpotRequestBase with id: %s.", spot_request_base.id)
 
-        result = await upsert_spot_request(session, spot_request)
+        result = await upsert_spot_request(session, spot_request_base)
         if result is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"SpotRequest {spot_request.id} not found",
+                detail=f"SpotRequestBase {spot_request_base.id} not found",
             )
 
-        logger.info("Syncing subscribers for SpotRequest id: %s", result.id)
+        initial_instance = await create_spot_request_instance(
+            session, _build_spot_request_instance(result.id, data.initial_instance)
+        )
+
+        logger.info("Syncing subscribers for SpotRequestBase id: %s", result.id)
         subscribers = await sync_spot_subscribers(
             session, result.id, [s.email for s in data.subscribers]
         )
-        spot_request_id = result.id
+        spot_request_base_id = result.id
         subscriber_data = [
             SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status)
             for s in subscribers
         ]
+        initial_instance_data = _spot_request_instance_to_schema(initial_instance)
 
-    return _build_spot_request_response(data, requestor, spot_request_id, subscriber_data)
+    return SpotRequestResponse(
+        spot_request=SpotRequestData(
+            **data.model_dump(exclude={"id", "initial_instance", "subscribers"}),
+            id=spot_request_base_id,
+            initial_instance=initial_instance_data,
+            current_instance=initial_instance_data,
+            subscribers=subscriber_data,
+            requestor_name=requestor.name,
+            requestor_idir=requestor.idir,
+            requestor_email=requestor.email,
+        )
+    )
 
 
 async def _create_descriptive_weather(
@@ -248,40 +287,51 @@ async def create_spot_forecast_endpoint(
     forecaster = _get_spot_user(token)
     if not forecaster.email:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=MISSING_TOKEN_MESSAGE)
-    spot_forecast = SpotForecast(
-        spot_request_id=data.spot_request_id,
-        forecaster_name=forecaster.name,
-        forecaster_email=forecaster.email,
-        forecaster_phone=None,
-        synopsis=data.synopsis,
-        inversion_and_venting=data.inversion_and_venting,
-        outlook=data.outlook,
-        confidence=data.confidence,
-        fire_size=data.fire_size,
-        representative_station_codes=data.representative_station_codes,
-        issued_at=data.issued_at,
-        expires_at=data.expires_at,
-        created_at=now,
-    )
     async with get_async_write_session_scope() as session:
+        spot_request_instance = await get_or_create_spot_request_instance(
+            session,
+            _build_spot_request_instance(data.spot_request_base_id, data.spot_request_instance),
+        )
+        spot_forecast = SpotForecast(
+            spot_request_base_id=data.spot_request_base_id,
+            spot_request_instance_id=spot_request_instance.id,
+            forecaster_name=forecaster.name,
+            forecaster_email=forecaster.email,
+            forecaster_phone=None,
+            synopsis=data.synopsis,
+            inversion_and_venting=data.inversion_and_venting,
+            outlook=data.outlook,
+            confidence=data.confidence,
+            fire_size=data.fire_size,
+            representative_station_codes=data.representative_station_codes,
+            issued_at=data.issued_at,
+            expires_at=data.expires_at,
+            created_at=now,
+        )
         logger.info("Creating a new SpotForecast.")
         result = await create_spot_forecast(session, spot_forecast)
 
         spot_forecast_id = result.id
         descriptive_weather = await _create_descriptive_weather(session, spot_forecast_id, data)
         tabular_weather = await _create_tabular_weather(session, spot_forecast_id, data)
-        await start_requested_spot_request(session, data.spot_request_id)
+        await start_requested_spot_request(session, data.spot_request_base_id)
+        spot_request_instance_id = spot_request_instance.id
+        spot_request_instance_data = _spot_request_instance_to_schema(spot_request_instance)
 
     payload = SpotUpdatePayload(
-        spot_request_id=data.spot_request_id, spot_forecast_id=spot_forecast_id
+        spot_request_id=data.spot_request_base_id, spot_forecast_id=spot_forecast_id
     )
     await publish(
         stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
     )
     return SpotForecastResponse(
         spot_forecast=SpotForecastData(
-            **data.model_dump(exclude={"descriptive_weather", "tabular_weather"}),
+            **data.model_dump(
+                exclude={"descriptive_weather", "tabular_weather", "spot_request_instance"}
+            ),
             id=spot_forecast_id,
+            spot_request_instance_id=spot_request_instance_id,
+            spot_request_instance=spot_request_instance_data,
             created_at=now,
             forecaster_name=forecaster.name,
             forecaster_email=forecaster.email,
@@ -301,7 +351,9 @@ def _spot_forecast_to_schema(spot_forecast: SpotForecast) -> SpotForecastData:
 
     return SpotForecastData(
         id=spot_forecast.id,
-        spot_request_id=spot_forecast.spot_request_id,
+        spot_request_base_id=spot_forecast.spot_request_base_id,
+        spot_request_instance_id=spot_forecast.spot_request_instance_id,
+        spot_request_instance=_spot_request_instance_to_schema(spot_forecast.spot_request_instance),
         forecaster_name=spot_forecast.forecaster_name,
         forecaster_email=spot_forecast.forecaster_email,
         forecaster_phone=spot_forecast.forecaster_phone,
@@ -351,11 +403,9 @@ async def get_spot_forecasts(spot_request_id: int):
         )
 
 
-def _spot_request_to_schema(spot_request: SpotRequest) -> SpotRequestData:
-    shape = to_shape(spot_request.geom)
-    lat, lon = PointTransformer(
-        NAD83_BC_ALBERS, SpatialReferenceSystem.WGS84.code
-    ).transform_coordinate(shape.x, shape.y)
+def _spot_request_to_schema(spot_request: SpotRequestBase) -> SpotRequestData:
+    initial_instance = _get_initial_instance(spot_request)
+    current_instance = _get_current_instance(spot_request)
     return SpotRequestData(
         id=spot_request.id,
         request_reference=spot_request.request_reference,
@@ -367,12 +417,9 @@ def _spot_request_to_schema(spot_request: SpotRequest) -> SpotRequestData:
         requestor_email=spot_request.requestor_email,
         request_frequency=spot_request.request_frequency,
         request_type=spot_request.request_type,
-        aspect=spot_request.aspect,
-        elevation=spot_request.elevation,
-        geographic_description=spot_request.geographic_description,
         additional_information=spot_request.additional_information,
-        latitude=lat,
-        longitude=lon,
+        initial_instance=_spot_request_instance_to_schema(initial_instance),
+        current_instance=_spot_request_instance_to_schema(current_instance),
         requested_at=spot_request.requested_at,
         start_at=spot_request.start_at,
         end_at=spot_request.end_at,

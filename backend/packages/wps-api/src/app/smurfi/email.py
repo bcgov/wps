@@ -17,7 +17,8 @@ WEB_BASE_URL = config.get("WEB_BASE_URL")
 
 def build_spot_forecast_email(spot_forecast, spot_detail_url: str) -> tuple[str, str]:
     """Return (subject, html_body) for a spot forecast notification email."""
-    sr = spot_forecast.spot_request
+    sr = spot_forecast.spot_request_base
+    instance = spot_forecast.spot_request_instance
     fire_numbers = html.escape(", ".join(sr.fire_number)) if sr.fire_number else "N/A"
     subject = f"Spot Forecast Update: Fire {fire_numbers}"
 
@@ -45,7 +46,7 @@ def build_spot_forecast_email(spot_forecast, spot_detail_url: str) -> tuple[str,
 <html><body>
 <h2>Spot Forecast Update</h2>
 <p><strong>Fire Number(s):</strong> {fire_numbers}</p>
-<p><strong>Location:</strong> {html.escape(sr.geographic_description or "")}</p>
+<p><strong>Location:</strong> {html.escape(instance.geographic_description or "")}</p>
 
 <h3>Descriptive Forecast</h3>
 <table border="1" cellpadding="4" cellspacing="0">

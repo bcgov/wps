@@ -13,6 +13,11 @@ const toDDM = (decimal: number): string => {
   return `${decimal < 0 ? '-' : ''}${degrees} ${minutes}`
 }
 
+const formatFireSizes = (fireSizes: (number | null)[] | null | undefined) =>
+  fireSizes?.some(fireSize => fireSize !== null)
+    ? fireSizes.map(fireSize => (fireSize === null ? '—' : `${fireSize} ha`)).join(', ')
+    : null
+
 const COLUMNS = '145px 210px 1fr 190px'
 
 const grid: React.CSSProperties = {
@@ -41,7 +46,11 @@ interface SpotForecastHeaderTableProps {
   representativeStations: RepresentativeStation[]
 }
 
-const SpotForecastHeaderTable: React.FC<SpotForecastHeaderTableProps> = ({ forecast, spotRequest, representativeStations }) => {
+const SpotForecastHeaderTable: React.FC<SpotForecastHeaderTableProps> = ({
+  forecast,
+  spotRequest,
+  representativeStations
+}) => {
   const issuedDt = DateTime.fromISO(forecast.issued_at).setZone(TIMEZONE)
   const expiryDt = forecast.expires_at ? DateTime.fromISO(forecast.expires_at).setZone(TIMEZONE) : null
 
@@ -53,6 +62,8 @@ const SpotForecastHeaderTable: React.FC<SpotForecastHeaderTableProps> = ({ forec
       ? representativeStations.map(s => s.name + (s.elevation == null ? '' : ` (${s.elevation}m)`)).join(', ')
       : '—'
   const fireNumberStr = spotRequest.fire_number?.join(', ') ?? '—'
+  const forecastInstance = forecast.spot_request_instance
+  const fireSizeStr = formatFireSizes(forecast.fire_size)
 
   return (
     <Box>
@@ -81,7 +92,7 @@ const SpotForecastHeaderTable: React.FC<SpotForecastHeaderTableProps> = ({ forec
         <div style={cell}>Phone: {forecast.forecaster_phone ?? '—'}</div>
 
         <div style={cell}>Geographic</div>
-        <div style={cell}>{spotRequest.geographic_description}</div>
+        <div style={cell}>{forecastInstance.geographic_description}</div>
         <div style={span2}>
           Representative <span style={{ textDecoration: 'underline' }}>Stations</span>: {stationsStr}
         </div>
@@ -90,17 +101,17 @@ const SpotForecastHeaderTable: React.FC<SpotForecastHeaderTableProps> = ({ forec
           Coordinates (<span style={{ textDecoration: 'underline' }}>approx</span>)
         </div>
         <div style={cell}>
-          {toDDM(spotRequest.latitude)},{toDDM(spotRequest.longitude)}
+          {toDDM(forecastInstance.latitude)},{toDDM(forecastInstance.longitude)}
         </div>
         <div style={cell}>
           Slope/aspect:{'  '}
-          {spotRequest.aspect ?? '—'}
+          {forecastInstance.aspect ?? '—'}
         </div>
         <div style={cell} />
 
         <div style={cell}>Elevation</div>
-        <div style={cell}>{spotRequest.elevation ? `${spotRequest.elevation} m` : '—'}</div>
-        <div style={cell}>{forecast.fire_size ? `Size:   ${forecast.fire_size} ha` : ''}</div>
+        <div style={cell}>{forecastInstance.elevation ? `${forecastInstance.elevation} m` : '—'}</div>
+        <div style={cell}>{fireSizeStr ? `Size:   ${fireSizeStr}` : ''}</div>
         <div style={cell} />
       </div>
     </Box>

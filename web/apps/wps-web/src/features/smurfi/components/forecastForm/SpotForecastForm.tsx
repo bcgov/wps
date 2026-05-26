@@ -15,11 +15,13 @@ import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { getStations, StationSource } from '@wps/api/stationAPI'
 import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
+import { fetchCurrentFireSizesByFireNumbers } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 
 const toFormString = (value: number | string | null | undefined) =>
   value === null || value === undefined ? '' : String(value)
 
 const formatFireNumbers = (fireNumbers: string[] | null | undefined) => fireNumbers?.join(', ') ?? ''
+const getEmptyFireSizes = (fireNumbers: string[] | null | undefined) => fireNumbers?.map(() => '') ?? []
 
 interface SpotForecastFormProps {
   spotRequest: SpotRequestOutput
@@ -35,23 +37,29 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
 
   const defaultValues = useMemo<Partial<SpotFormData>>(() => {
     const baseDefaults = getDefaultValues()
+    const requestInstance = spotRequest.current_instance
 
     return {
       ...baseDefaults,
       fireProj: formatFireNumbers(spotRequest.fire_number),
       requestBy: spotRequest.requestor_name,
-      latitude: toFormString(spotRequest.latitude.toFixed(4)),
-      longitude: toFormString(spotRequest.longitude.toFixed(4)),
-      slopeAspect: spotRequest.aspect ?? baseDefaults.slopeAspect,
-      elevation: toFormString(spotRequest.elevation),
+      latitude: toFormString(requestInstance.latitude.toFixed(4)),
+      longitude: toFormString(requestInstance.longitude.toFixed(4)),
+      geographicDescription: requestInstance.geographic_description,
+      slopeAspect: requestInstance.aspect ?? baseDefaults.slopeAspect,
+      valley: requestInstance.valley ?? baseDefaults.valley,
+      elevation: toFormString(requestInstance.elevation),
+      fireSizes: getEmptyFireSizes(spotRequest.fire_number),
       weatherData: defaultWeatherRows
     }
   }, [spotRequest])
 
   const {
     control,
+    getValues,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, submitCount }
   } = useForm<SpotFormData>({
     resolver,
@@ -89,6 +97,30 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
   }, [defaultValues, reset])
 
   useEffect(() => {
+    const fireNumbers = spotRequest.fire_number ?? []
+    if (fireNumbers.length === 0) {
+      return
+    }
+
+    let cancelled = false
+    fetchCurrentFireSizesByFireNumbers(fireNumbers)
+      .then(fireSizes => {
+        const currentFireSizes = getValues('fireSizes') ?? []
+        const hasExistingFireSizes = currentFireSizes.some(fireSize => fireSize?.trim())
+        if (!cancelled && !hasExistingFireSizes) {
+          setValue('fireSizes', fireSizes.map(toFormString), { shouldValidate: true })
+        }
+      })
+      .catch(() => {
+        // keep fire sizes editable when the public fire layer cannot provide values
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [getValues, setValue, spotRequest.fire_number])
+
+  useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, [dispatch])
 
@@ -112,7 +144,12 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
-          <SpotForecastHeader control={control} errors={errors} />
+          <SpotForecastHeader
+            control={control}
+            errors={errors}
+            fireNumbers={spotRequest.fire_number}
+            setValue={setValue}
+          />
           <SpotForecastSynopsis control={control} errors={errors} />
           {!isMini && <SpotForecastSummaries control={control} errors={errors} />}
           <WeatherDataTable control={control} errors={errors} fields={fields} append={append} remove={remove} />

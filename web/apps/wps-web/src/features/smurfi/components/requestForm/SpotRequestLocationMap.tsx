@@ -153,7 +153,9 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
         .map(
           spotRequest =>
             new Feature({
-              geometry: new Point(fromLonLat([spotRequest.longitude, spotRequest.latitude])),
+              geometry: new Point(
+                fromLonLat([spotRequest.current_instance.longitude, spotRequest.current_instance.latitude])
+              ),
               status: spotRequest.status
             })
         )

@@ -13,18 +13,8 @@ export const requestedFrequencyOptions = [
   'Saturday'
 ] as const
 
-export const slopeAspectOptions = [
-  'Northwest',
-  'North',
-  'Northeast',
-  'East',
-  'Southeast',
-  'South',
-  'Southwest',
-  'West'
-] as const
-
 const requiredString = (message = 'Required') => z.string().trim().min(1, message)
+const optionalString = () => z.string().trim().optional()
 
 const validDateTime = (message = 'Invalid date/time') =>
   z.custom<DateTime>((val): val is DateTime => DateTime.isDateTime(val) && val.isValid, {
@@ -54,12 +44,10 @@ export const spotRequestSchema = z
       })
       .transform(value => value as SpotRequestCoordinate),
     geographicDescription: requiredString(),
-    slopeAspect: z.enum(slopeAspectOptions, {
-      errorMap: () => ({ message: 'Required' })
-    }),
-    elevation: requiredString()
-      .refine(value => Number.isFinite(Number(value)), 'Elevation must be a number')
-      .refine(value => Number.isInteger(Number(value)), 'Elevation must be a whole number'),
+    slopeAspect: optionalString(),
+    elevation: optionalString()
+      .refine(value => !value || Number.isFinite(Number(value)), 'Elevation must be a number')
+      .refine(value => !value || Number.isInteger(Number(value)), 'Elevation must be a whole number'),
     additionalInformation: z.string().optional()
   })
   .refine(data => data.forecastEndDate.toMillis() >= data.forecastStartDate.toMillis(), {
