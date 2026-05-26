@@ -21,6 +21,7 @@ interface SpotPopupProps {
   spotId: number
   spotRequest: SpotRequestOutput
   canSubmitForecast: boolean
+  onOpenRequest: (spotId: number) => void
   onOpenForecast: (spotId: number) => void
   onSubmitForecast: (spotRequest: SpotRequestOutput) => void
 }
@@ -33,6 +34,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
   spotId,
   spotRequest,
   canSubmitForecast,
+  onOpenRequest,
   onOpenForecast,
   onSubmitForecast
 }) => {
@@ -41,6 +43,12 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
   const isLoading = useSelector(selectSubscriptionsLoading)
   const isSubscribed = subscribedIds.includes(spotId)
   const statusColors = SpotRequestStatusColorMap[status]
+
+  const handleRequestClick = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    event.preventDefault()
+    onOpenRequest(spotId)
+  }
 
   const handleSpotForecastClick = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -106,9 +114,14 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
       <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
         Lat: {lat.toFixed(6)}, Lng: {lng.toFixed(6)}
       </Typography>
-      <Button variant="contained" color="primary" size="small" fullWidth onClick={handleSpotForecastClick}>
-        View Forecasts
-      </Button>
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Button variant="outlined" color="primary" size="small" fullWidth onClick={handleRequestClick}>
+          View Request
+        </Button>
+        <Button variant="contained" color="primary" size="small" fullWidth onClick={handleSpotForecastClick}>
+          View Forecasts
+        </Button>
+      </Box>
       {canSubmitForecast && (
         <Button
           variant="outlined"
@@ -118,7 +131,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
           onClick={handleSubmitForecastClick}
           sx={{ mt: 1 }}
         >
-          Submit Forecast
+          New Forecast
         </Button>
       )}
     </Box>
