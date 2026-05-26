@@ -21,6 +21,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
+import UploadFileIcon from '@mui/icons-material/UploadFile'
 import {
   DistributionGroup,
   DistributionGroupInput,
@@ -78,6 +79,24 @@ const DistributionGroupsAdmin = () => {
 
   const removeEmail = (email: string) => {
     setFormValues(v => ({ ...v, emails: v.emails.filter(e => e !== email) }))
+  }
+
+  const handleCsvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = e => {
+      const text = e.target?.result as string
+      const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g
+      const found = text.match(emailRegex) ?? []
+      setFormValues(v => {
+        const existing = new Set(v.emails)
+        const added = found.filter(email => !existing.has(email.toLowerCase())).map(e => e.toLowerCase())
+        return { ...v, emails: [...v.emails, ...added] }
+      })
+    }
+    reader.readAsText(file)
+    event.target.value = ''
   }
 
   const handleSave = async () => {
@@ -175,21 +194,43 @@ const DistributionGroupsAdmin = () => {
               size="small"
               error={!!error && !formValues.name.trim()}
             />
-            <TextField
-              label="Add Email"
-              value={emailInput}
-              onChange={e => setEmailInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  commitEmailInput()
-                }
-              }}
-              onBlur={commitEmailInput}
-              fullWidth
-              size="small"
-              helperText="Press Enter or Space to add"
-            />
+            <Stack direction="row" spacing={1} alignItems="flex-start">
+              <TextField
+                label="Add Email"
+                value={emailInput}
+                onChange={e => setEmailInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    commitEmailInput()
+                  }
+                }}
+                onBlur={commitEmailInput}
+                fullWidth
+                size="small"
+                helperText="Press Enter or Space to add"
+              />
+              <Box>
+                <input
+                  id="csv-upload"
+                  type="file"
+                  accept=".csv,text/csv"
+                  style={{ display: 'none' }}
+                  onChange={handleCsvUpload}
+                />
+                <label htmlFor="csv-upload">
+                  <Button
+                    component="span"
+                    variant="outlined"
+                    size="small"
+                    startIcon={<UploadFileIcon />}
+                    sx={{ mt: 0.25, whiteSpace: 'nowrap' }}
+                  >
+                    Import CSV
+                  </Button>
+                </label>
+              </Box>
+            </Stack>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
               {formValues.emails.map(email => (
                 <Chip key={email} label={email} size="small" onDelete={() => removeEmail(email)} />
