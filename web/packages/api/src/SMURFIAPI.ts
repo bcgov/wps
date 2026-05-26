@@ -47,14 +47,15 @@ interface SpotTabularWeatherInput {
 }
 
 export interface SpotForecastInput {
-  spot_request_id: number
+  spot_request_base_id: number
+  spot_request_instance: SpotRequestInstanceInput
   issued_at: string
   expires_at?: string | null
   synopsis?: string
   inversion_and_venting?: string
   outlook?: string
   confidence?: string
-  fire_size?: number | null
+  fire_size?: (number | null)[] | null
   representative_station_codes?: number[]
   descriptive_weather: SpotDescriptiveWeatherInput[]
   tabular_weather: SpotTabularWeatherInput[]
@@ -70,6 +71,8 @@ interface SpotTabularWeatherOutput extends SpotTabularWeatherInput {
 
 export interface SpotForecastOutput extends Omit<SpotForecastInput, 'descriptive_weather' | 'tabular_weather'> {
   id: number
+  spot_request_instance_id: number
+  spot_request_instance: SpotRequestInstanceOutput
   created_at: string
   forecaster_name: string
   forecaster_email: string
@@ -84,6 +87,20 @@ const toNullableNumber = (value: string | undefined): number | null => {
   }
   const numberValue = Number(value)
   return Number.isFinite(numberValue) ? numberValue : null
+}
+
+const toNullableNumberList = (values: (string | undefined)[] | undefined): (number | null)[] | null => {
+  if (!values?.length) {
+    return null
+  }
+
+  const numberValues = values.map(toNullableNumber)
+  return numberValues.some(value => value !== null) ? numberValues : null
+}
+
+const toNullableInteger = (value: string | undefined): number | null => {
+  const numberValue = toNullableNumber(value)
+  return numberValue === null ? null : Math.trunc(numberValue)
 }
 
 const toForecastTimeISO = (dateTime: string) => {
@@ -120,12 +137,20 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
   ].filter(weather => weather !== undefined)
 
   return {
-    spot_request_id: spotRequestId,
+    spot_request_base_id: spotRequestId,
+    spot_request_instance: {
+      geographic_description: formData.geographicDescription,
+      aspect: formData.slopeAspect,
+      elevation: toNullableInteger(formData.elevation),
+      valley: formData.valley || null,
+      latitude: Number(formData.latitude),
+      longitude: Number(formData.longitude)
+    },
     synopsis: formData.synopsis,
     inversion_and_venting: formData.inversionVenting,
     outlook: formData.outlook,
     confidence: formData.confidenceDiscussion,
-    fire_size: toNullableNumber(formData.size),
+    fire_size: toNullableNumberList(formData.fireSizes),
     representative_station_codes: formData.stns,
     issued_at: formData.issuedDate.toISO()!,
     expires_at: formData.expiryDate.toISO(),
@@ -164,19 +189,27 @@ export interface SpotLatestForecast {
   forecaster_name?: string | null
 }
 
-interface SpotRequestBase {
+export interface SpotRequestInstanceInput {
+  geographic_description: string
+  aspect?: string | null
+  elevation?: number | null
+  valley?: string | null
+  latitude: number
+  longitude: number
+}
+
+export interface SpotRequestInstanceOutput extends SpotRequestInstanceInput {
+  id: number
+}
+
+interface SpotRequestFields {
   request_reference: string
   fire_number: string[]
   fire_centre: number
   status: SpotRequestStatus
   request_frequency: string[]
   request_type: string
-  aspect: string
-  elevation: number
-  geographic_description: string
   additional_information?: string
-  latitude: number
-  longitude: number
   requested_at: string
   start_at: string
   end_at: string
@@ -184,12 +217,15 @@ interface SpotRequestBase {
   latest_forecast?: SpotLatestForecast | null
 }
 
-export interface SpotRequestInput extends SpotRequestBase {
+export interface SpotRequestInput extends SpotRequestFields {
   id: number | null
+  initial_instance: SpotRequestInstanceInput
 }
 
-export interface SpotRequestOutput extends SpotRequestBase {
+export interface SpotRequestOutput extends SpotRequestFields {
   id: number
+  initial_instance: SpotRequestInstanceOutput
+  current_instance: SpotRequestInstanceOutput
   requestor_name: string
   requestor_idir: string
   requestor_email: string
@@ -224,12 +260,15 @@ const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotR
     status: SpotRequestStatus.REQUESTED,
     request_frequency: formData.requestedFrequency,
     request_type: spotRequestTypeMap[formData.forecastType],
-    aspect: formData.slopeAspect,
-    elevation: Number(formData.elevation),
-    geographic_description: formData.geographicDescription,
     additional_information: formData.additionalInformation || undefined,
-    latitude: formData.location.latitude,
-    longitude: formData.location.longitude,
+    initial_instance: {
+      geographic_description: formData.geographicDescription,
+      aspect: formData.slopeAspect || null,
+      elevation: toNullableInteger(formData.elevation),
+      valley: null,
+      latitude: formData.location.latitude,
+      longitude: formData.location.longitude
+    },
     requested_at: new Date().toISOString(),
     start_at: toStartOfDayISO(formData.forecastStartDate),
     end_at: toEndOfDayISO(formData.forecastEndDate),

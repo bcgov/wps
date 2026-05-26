@@ -18,6 +18,7 @@ export interface MiniSpotForecastProps {
 
 const MiniSpotForecast: React.FC<MiniSpotForecastProps> = ({ forecast, spotRequest, representativeStations }) => {
   const stationsStr = formatStationsStr(representativeStations)
+  const forecastInstance = forecast.spot_request_instance
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -37,10 +38,10 @@ const MiniSpotForecast: React.FC<MiniSpotForecastProps> = ({ forecast, spotReque
 
         <Section title="Location">
           <Box sx={{ gridColumn: '1 / -1' }}>
-            <Field label="Geographic Description" value={spotRequest.geographic_description} />
+            <Field label="Geographic Description" value={forecastInstance.geographic_description} />
           </Box>
-          <Field label="Latitude" value={spotRequest.latitude.toFixed(4)} />
-          <Field label="Longitude" value={spotRequest.longitude.toFixed(4)} />
+          <Field label="Latitude" value={forecastInstance.latitude.toFixed(4)} />
+          <Field label="Longitude" value={forecastInstance.longitude.toFixed(4)} />
         </Section>
       </Box>
 

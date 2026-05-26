@@ -79,8 +79,8 @@ const COORDINATE_TOLERANCE = 0.0001
 const formatFireNumbers = (fireNumbers: string[] | null | undefined) => fireNumbers?.join(', ') ?? ''
 
 const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature => ({
-  lon: spotRequest.longitude,
-  lat: spotRequest.latitude,
+  lon: spotRequest.current_instance.longitude,
+  lat: spotRequest.current_instance.latitude,
   status: spotRequest.status,
   id: String(spotRequest.id),
   spotId: spotRequest.id,

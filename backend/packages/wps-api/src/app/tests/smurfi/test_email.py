@@ -1,4 +1,5 @@
 """Unit tests for smurfi CHES email builder."""
+
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -19,9 +20,22 @@ def _make_spot_request(fire_number=None, geographic_description="Test Area"):
     return sr
 
 
+def _make_spot_request_instance(geographic_description="Test Area"):
+    instance = MagicMock()
+    instance.geographic_description = geographic_description
+    instance.aspect = "East"
+    instance.elevation = 1100
+    instance.latitude = 48.5
+    instance.longitude = -123.5
+    return instance
+
+
 def _make_spot_forecast(spot_request, descriptive_weather=None, tabular_weather=None):
     sf = MagicMock()
-    sf.spot_request = spot_request
+    sf.spot_request_base = spot_request
+    sf.spot_request_instance = _make_spot_request_instance(
+        geographic_description=getattr(spot_request, "geographic_description", "Test Area")
+    )
     sf.descriptive_weather = descriptive_weather or []
     sf.tabular_weather = tabular_weather or []
     sf.issued_at = _ISSUED_AT
@@ -47,7 +61,14 @@ def _make_descriptive(period, conditions="Sunny", temperature=18.0, relative_hum
     return dw
 
 
-def _make_tabular(forecast_time, temperature=18.0, relative_humidity=40.0, wind="NW 20", probability_of_precipitation=10.0, precipitation_amount=0.0):
+def _make_tabular(
+    forecast_time,
+    temperature=18.0,
+    relative_humidity=40.0,
+    wind="NW 20",
+    probability_of_precipitation=10.0,
+    precipitation_amount=0.0,
+):
     tw = MagicMock()
     tw.forecast_time = forecast_time
     tw.temperature = temperature
@@ -68,8 +89,9 @@ def test_build_email_subject_includes_fire_number():
 
 def test_build_email_body_contains_geographic_description():
     """Email body contains the geographic description."""
-    sr = _make_spot_request(geographic_description="Clearwater Valley")
+    sr = _make_spot_request()
     sf = _make_spot_forecast(sr)
+    sf.spot_request_instance.geographic_description = "Clearwater Valley"
     _, html = build_spot_forecast_email(sf, spot_detail_url="http://example.com/smurfi/spots/1")
     assert "Clearwater Valley" in html
 
@@ -77,9 +99,15 @@ def test_build_email_body_contains_geographic_description():
 def test_build_email_body_contains_descriptive_period():
     """Email body contains descriptive weather rendered as AFTERNOON/TONIGHT/TOMORROW labels."""
     sr = _make_spot_request()
-    afternoon = _make_descriptive(period="Today", conditions="Partly cloudy", temperature=22.0, relative_humidity=35.0)
-    tonight = _make_descriptive(period="Tonight", conditions="Clear", temperature=5.0, relative_humidity=80.0)
-    tomorrow = _make_descriptive(period="Tomorrow", conditions="Sunny", temperature=20.0, relative_humidity=30.0)
+    afternoon = _make_descriptive(
+        period="Today", conditions="Partly cloudy", temperature=22.0, relative_humidity=35.0
+    )
+    tonight = _make_descriptive(
+        period="Tonight", conditions="Clear", temperature=5.0, relative_humidity=80.0
+    )
+    tomorrow = _make_descriptive(
+        period="Tomorrow", conditions="Sunny", temperature=20.0, relative_humidity=30.0
+    )
     sf = _make_spot_forecast(sr, descriptive_weather=[afternoon, tonight, tomorrow])
     _, body = build_spot_forecast_email(sf, spot_detail_url="http://example.com/smurfi/spots/1")
     assert "AFTERNOON:" in body

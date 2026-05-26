@@ -27,6 +27,34 @@ currentFirePolygonsUrl.search = new URLSearchParams({
   CQL_FILTER: ACTIVE_FIRE_FILTER
 }).toString()
 
+const buildCurrentFirePolygonsUrl = (cqlFilter: string) => {
+  const url = new URL(CURRENT_FIRE_POLYS_WFS_URL)
+  url.search = new URLSearchParams({
+    service: 'WFS',
+    version: '2.0.0',
+    request: 'GetFeature',
+    typeNames: CURRENT_FIRE_POLYS_TYPE_NAME,
+    outputFormat: 'application/json',
+    srsName: 'EPSG:4326',
+    CQL_FILTER: cqlFilter
+  }).toString()
+  return url.toString()
+}
+
+export const fetchCurrentFireSizeByFireNumber = async (fireNumber: string): Promise<number | null> => {
+  const escapedFireNumber = fireNumber.replaceAll("'", "''")
+  const response = await fetch(
+    buildCurrentFirePolygonsUrl(`${ACTIVE_FIRE_FILTER} AND FIRE_NUMBER = '${escapedFireNumber}'`)
+  )
+  const data = await response.json()
+  const fireSize = data?.features?.[0]?.properties?.FIRE_SIZE_HECTARES
+  const numericFireSize = Number(fireSize)
+  return Number.isFinite(numericFireSize) ? numericFireSize : null
+}
+
+export const fetchCurrentFireSizesByFireNumbers = async (fireNumbers: string[]): Promise<(number | null)[]> =>
+  Promise.all(fireNumbers.map(fetchCurrentFireSizeByFireNumber))
+
 const createFireLabel = (feature: { get: (property: string) => string | undefined }, resolution: number) => {
   if (resolution > FIRE_LABEL_MAX_RESOLUTION) {
     return undefined

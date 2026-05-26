@@ -24,6 +24,11 @@ const requiredNumericString = (rangeMessage: string, isInRange: (value: number) 
     return Number.isFinite(num) && isInRange(num)
   }, rangeMessage)
 
+const requiredWholeNumberString = (numberMessage: string, integerMessage: string) =>
+  requiredString()
+    .refine(value => Number.isFinite(Number(value)), numberMessage)
+    .refine(value => Number.isInteger(Number(value)), integerMessage)
+
 const requiredTabularWeatherDateTime = () =>
   requiredString('Date/Time required').refine(value => {
     const parsedDateTime = DateTime.fromFormat(value, tabularWeatherDateTimeFormat, { zone: 'America/Vancouver' })
@@ -55,10 +60,11 @@ export const createSchema = (isMini: boolean) => {
       'Longitude must be a negative number between -180 and 0',
       num => num >= -180 && num <= 0
     ),
+    geographicDescription: requiredString(),
     slopeAspect: requiredString(),
     valley: z.string().optional(),
-    elevation: z.string().optional(),
-    size: z.string().optional(),
+    elevation: requiredWholeNumberString('Elevation must be a number', 'Elevation must be a whole number'),
+    fireSizes: z.array(optionalNumericString('Must be a number')).optional(),
     synopsis: requiredString(),
     afternoonForecast: z
       .object({

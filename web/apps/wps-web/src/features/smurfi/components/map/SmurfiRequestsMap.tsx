@@ -2,7 +2,7 @@ import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layer
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
 import { BC_EXTENT } from '@wps/utils/constants'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
-import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { SpotRequestInstanceOutput, SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { Box } from '@mui/material'
 import { boundingExtent } from 'ol/extent'
 import { Feature, Map, View } from 'ol'
@@ -24,6 +24,7 @@ import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatu
 
 interface SmurfiRequestsMapProps {
   spotRequest: SpotRequestOutput
+  spotRequestInstance?: SpotRequestInstanceOutput
 }
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -33,15 +34,16 @@ const getMarkerStyle = (status: SpotRequestStatus) =>
     image: createSpotStatusIcon(status)
   })
 
-const SmurfiRequestsMap = ({ spotRequest }: SmurfiRequestsMapProps) => {
+const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
   const [firePopupAttributes, setFirePopupAttributes] = useState<CurrentFirePolygonAttributes | null>(null)
+  const spotInstance = spotRequestInstance ?? spotRequest.current_instance
 
   useEffect(() => {
     if (!mapRef.current) return
 
-    const coord = fromLonLat([Number(spotRequest.longitude), Number(spotRequest.latitude)])
+    const coord = fromLonLat([Number(spotInstance.longitude), Number(spotInstance.latitude)])
 
     const marker = new Feature({ geometry: new Point(coord) })
     marker.setStyle(getMarkerStyle(spotRequest.status as SpotRequestStatus))
@@ -102,7 +104,7 @@ const SmurfiRequestsMap = ({ spotRequest }: SmurfiRequestsMapProps) => {
     return () => {
       mapObject.setTarget('')
     }
-  }, [spotRequest.latitude, spotRequest.longitude])
+  }, [spotInstance.latitude, spotInstance.longitude, spotRequest.status])
 
   return (
     <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 300 }}>

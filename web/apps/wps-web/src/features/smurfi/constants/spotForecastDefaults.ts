@@ -30,10 +30,11 @@ export const getDefaultValues = (): Partial<SpotFormData> => ({
   stns: [],
   latitude: '',
   longitude: '',
+  geographicDescription: '',
   slopeAspect: '',
   valley: '',
   elevation: '',
-  size: '',
+  fireSizes: [],
   synopsis: '',
   afternoonForecast: {
     description: '',

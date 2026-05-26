@@ -10,6 +10,11 @@ import {
 } from '@/features/smurfi/components/forecasts/SpotForecastComponents'
 import { formatDateTime, formatStationsStr } from '@/features/smurfi/utils/spotForecastUtils'
 
+const formatFireSizes = (fireSizes: (number | null)[] | null | undefined) =>
+  fireSizes?.some(fireSize => fireSize !== null)
+    ? fireSizes.map(fireSize => (fireSize === null ? '—' : `${fireSize} ha`)).join(', ')
+    : null
+
 export interface FullSpotForecastProps {
   forecast: SpotForecastOutput
   spotRequest: SpotRequestOutput
@@ -22,6 +27,8 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotReque
   const tomorrowForecast = forecast.descriptive_weather.find(dw => dw.period === 'Tomorrow')
   const stationsStr = formatStationsStr(representativeStations)
 
+  const forecastInstance = forecast.spot_request_instance
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
@@ -33,7 +40,7 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotReque
           <Field label="Forecaster" value={forecast.forecaster_name} />
           <Field label="Email" value={forecast.forecaster_email} />
           {forecast.forecaster_phone && <Field label="Phone" value={forecast.forecaster_phone} />}
-          {forecast.fire_size != null && <Field label="Fire Size" value={`${forecast.fire_size} ha`} />}
+          {forecast.fire_size != null && <Field label="Fire Size(s)" value={formatFireSizes(forecast.fire_size)} />}
           <Box sx={{ gridColumn: '1 / -1' }}>
             <Field label="Representative Stations" value={stationsStr} />
           </Box>
@@ -41,12 +48,12 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotReque
 
         <Section title="Location">
           <Box sx={{ gridColumn: '1 / -1' }}>
-            <Field label="Geographic Description" value={spotRequest.geographic_description} />
+            <Field label="Geographic Description" value={forecastInstance.geographic_description} />
           </Box>
-          <Field label="Latitude" value={spotRequest.latitude.toFixed(4)} />
-          <Field label="Longitude" value={spotRequest.longitude.toFixed(4)} />
-          <Field label="Elevation" value={spotRequest.elevation ? `${spotRequest.elevation} m` : '—'} />
-          <Field label="Slope / Aspect" value={spotRequest.aspect ?? '—'} />
+          <Field label="Latitude" value={forecastInstance.latitude.toFixed(4)} />
+          <Field label="Longitude" value={forecastInstance.longitude.toFixed(4)} />
+          <Field label="Elevation" value={forecastInstance.elevation ? `${forecastInstance.elevation} m` : '—'} />
+          <Field label="Slope / Aspect" value={forecastInstance.aspect ?? '—'} />
         </Section>
       </Box>
 
