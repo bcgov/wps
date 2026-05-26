@@ -116,7 +116,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   // derived values
   const mapSpotRequests = propSpotRequests ?? spotRequests
   const allFireNumbers = useMemo(
-    () => [...new Set(mapSpotRequests.flatMap(sr => sr.fire_number ?? []))].sort(),
+    () => [...new Set(mapSpotRequests.flatMap(sr => sr.fire_number ?? []))].sort((a, b) => a.localeCompare(b)),
     [mapSpotRequests]
   )
   const filteredSpotRequests = useMemo(
