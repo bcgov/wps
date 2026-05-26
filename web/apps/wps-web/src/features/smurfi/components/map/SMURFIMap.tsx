@@ -102,6 +102,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
 
   // state
   const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
+  const [selectedFireNumbers, setSelectedFireNumbers] = useState<string[]>([])
   const [currentFiresVisible, setCurrentFiresVisible] = useState(true)
   const [map, setMap] = useState<Map | null>(null)
   const [popupData, setPopupData] = useState<SpotPopupData | FirePopupData | null>(null)
@@ -114,9 +115,18 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
 
   // derived values
   const mapSpotRequests = propSpotRequests ?? spotRequests
+  const allFireNumbers = useMemo(
+    () => [...new Set(mapSpotRequests.flatMap(sr => sr.fire_number ?? []))].sort(),
+    [mapSpotRequests]
+  )
   const filteredSpotRequests = useMemo(
-    () => mapSpotRequests.filter(spotRequest => selectedStatuses.includes(spotRequest.status)),
-    [mapSpotRequests, selectedStatuses]
+    () =>
+      mapSpotRequests.filter(
+        sr =>
+          selectedStatuses.includes(sr.status) &&
+          (selectedFireNumbers.length === 0 || sr.fire_number?.some(fn => selectedFireNumbers.includes(fn)))
+      ),
+    [mapSpotRequests, selectedStatuses, selectedFireNumbers]
   )
   const spotFeatures = useMemo(() => filteredSpotRequests.map(buildSpotFeature), [filteredSpotRequests])
 
@@ -324,10 +334,15 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   }, [spotFeatures])
 
   useEffect(() => {
-    if (popupData?.type === 'spot' && !selectedStatuses.includes(popupData.status)) {
+    if (popupData?.type !== 'spot') return
+    const statusFiltered = !selectedStatuses.includes(popupData.status)
+    const fireNumberFiltered =
+      selectedFireNumbers.length > 0 &&
+      !popupData.spotRequest.fire_number?.some(fn => selectedFireNumbers.includes(fn))
+    if (statusFiltered || fireNumberFiltered) {
       setPopupData(null)
     }
-  }, [popupData, selectedStatuses])
+  }, [popupData, selectedStatuses, selectedFireNumbers])
 
   // update marker styles when selectedCoordinates changes
   useEffect(() => {
@@ -353,9 +368,12 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
           statusOptions={STATUS_FILTER_OPTIONS}
           selectedStatuses={selectedStatuses}
           currentFiresVisible={currentFiresVisible}
+          allFireNumbers={allFireNumbers}
+          selectedFireNumbers={selectedFireNumbers}
           onStatusChange={handleStatusFilterChange}
           onAllStatusesChange={handleAllStatusesChange}
           onCurrentFiresVisibleChange={setCurrentFiresVisible}
+          onFireNumbersChange={setSelectedFireNumbers}
         />
         <div
           ref={popupRef}
