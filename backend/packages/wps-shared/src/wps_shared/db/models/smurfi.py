@@ -127,7 +127,7 @@ class SmurfiDistributionGroup(Base):
     )
 
     spot_requests = relationship(
-        "SpotRequest",
+        "SpotRequestBase",
         secondary=spot_request_distribution_groups,
         back_populates="distribution_groups",
     )
