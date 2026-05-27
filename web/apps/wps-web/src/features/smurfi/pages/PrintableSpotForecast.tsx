@@ -1,5 +1,4 @@
 import { Box, CircularProgress, Typography } from '@mui/material'
-import { spotRequestTypeMap } from '@wps/api/SMURFIAPI'
 import PrintableFullSpotForecast from '@/features/smurfi/components/forecasts/PrintableFullSpotForecast'
 import PrintableMiniSpotForecast from '@/features/smurfi/components/forecasts/PrintableMiniSpotForecast'
 import useSpotForecastData from '@/features/smurfi/hooks/useSpotForecastData'
@@ -19,7 +18,7 @@ const PrintableSpotForecast = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {spotRequest.request_type === spotRequestTypeMap['MINI_SPOT'] ? (
+      {spotForecast.forecast_type === 'Mini' ? (
         <PrintableMiniSpotForecast {...props} />
       ) : (
         <PrintableFullSpotForecast {...props} />

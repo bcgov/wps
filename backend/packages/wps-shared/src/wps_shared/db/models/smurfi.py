@@ -212,7 +212,6 @@ class SpotForecast(Base):
     """Represents a spot forecast for a spot request."""
 
     __tablename__ = "spot_forecast"
-    __table_args__ = {"comment": "Spot forecasts for spot requests."}
 
     id = Column(Integer, primary_key=True)
     spot_request_base_id = Column(
@@ -231,6 +230,7 @@ class SpotForecast(Base):
     inversion_and_venting = Column(Text, nullable=True)
     outlook = Column(Text, nullable=True)
     confidence = Column(Text, nullable=True)
+    forecast_type = Column(String, nullable=False, default=RequestTypeEnum.FULL.value)
     fire_size = Column(ARRAY(Float), nullable=True)
     representative_station_codes = Column(ARRAY(Integer), nullable=True)
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
@@ -242,6 +242,13 @@ class SpotForecast(Base):
     spot_request_instance = relationship("SpotRequestInstance", back_populates="spot_forecasts")
     tabular_weather = relationship("SpotTabularWeather", back_populates="spot_forecast")
     descriptive_weather = relationship("SpotDescriptiveWeather", back_populates="spot_forecast")
+
+    __table_args__ = (
+        CheckConstraint(
+            forecast_type.in_(request_type_values), name="chk_forecast_type_spot_forecast"
+        ),
+        {"comment": "Spot forecasts for spot requests."},
+    )
 
 
 class SpotTabularWeather(Base):

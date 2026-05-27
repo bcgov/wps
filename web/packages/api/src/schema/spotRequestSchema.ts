@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { DateTime } from 'luxon'
 
-export const spotForecastTypes = ['MINI_SPOT', 'FULL_SPOT'] as const
+export const spotForecastTypes = ['Mini', 'Full'] as const
 
 export const requestedFrequencyOptions = [
   'Sunday',

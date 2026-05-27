@@ -1,6 +1,5 @@
 import { Box, Button, CircularProgress, Typography } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
-import { spotRequestTypeMap } from '@wps/api/SMURFIAPI'
 import MiniSpotForecast from '@/features/smurfi/components/forecasts/MiniSpotForecast'
 import FullSpotForecast from '@/features/smurfi/components/forecasts/FullSpotForecast'
 import { getSmurfiForecastPrintRoute } from '@wps/utils/constants'
@@ -23,7 +22,7 @@ const SpotForecast = () => {
   }
 
   const printUrl = getSmurfiForecastPrintRoute(spotRequestId, spotForecastId)
-  const isMini = spotRequest.request_type === spotRequestTypeMap['MINI_SPOT']
+  const isMini = spotForecast.forecast_type === 'Mini'
 
   return (
     <Box sx={{ pb: 4 }}>

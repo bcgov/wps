@@ -7,20 +7,29 @@ import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { Field } from '@/features/smurfi/components/forecasts/SpotForecastComponents'
 import { formatRequestFrequency, formatSpotRequestDate } from '@/features/smurfi/utils/spotRequestFormatters'
-import { Box, Button, CircularProgress, Divider, Paper, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Divider, Paper, Snackbar, Typography } from '@mui/material'
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { getSmurfiEditForecastRoute, getSmurfiForecastRoute, getSmurfiNewForecastRoute } from '@wps/utils/constants'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+
+interface SpotForecastsLocationState {
+  showForecastSubmitSuccess?: boolean
+}
 
 const SpotForecasts = () => {
   const { id } = useParams<{ id: string }>()
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { spotRequests, spotForecastsByRequestId, spotForecastsLoading } = useSelector(selectSmurfi)
   const { fireCentres } = useSelector(selectFireCentres)
+  const shouldShowSubmitSuccess = Boolean(
+    (location.state as SpotForecastsLocationState | null)?.showForecastSubmitSuccess
+  )
+  const [submitSuccessOpen, setSubmitSuccessOpen] = useState(shouldShowSubmitSuccess)
 
   const spotRequestId = Number(id)
 
@@ -29,6 +38,15 @@ const SpotForecasts = () => {
       dispatch(fetchSpotForecasts(spotRequestId))
     }
   }, [dispatch, spotRequestId, spotForecastsByRequestId])
+
+  useEffect(() => {
+    if (!shouldShowSubmitSuccess) {
+      return
+    }
+
+    setSubmitSuccessOpen(true)
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
+  }, [location.pathname, location.search, navigate, shouldShowSubmitSuccess])
 
   const spotRequest = spotRequests.find(sr => sr.id === spotRequestId)
   const { isForecaster } = useSpotPermissions(spotRequest)
@@ -69,6 +87,7 @@ const SpotForecasts = () => {
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
     { field: 'id', headerName: 'ID', width: 80 },
+    { field: 'forecast_type', headerName: 'Type', width: 110 },
     {
       field: 'issued_at',
       headerName: 'Issued At',
@@ -166,6 +185,31 @@ const SpotForecasts = () => {
         }}
         sx={{ '& .expired-cell': { opacity: 0.4 } }}
       />
+      <Snackbar
+        open={submitSuccessOpen}
+        autoHideDuration={4500}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        onClose={(_, reason) => {
+          if (reason !== 'clickaway') {
+            setSubmitSuccessOpen(false)
+          }
+        }}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            p: 0,
+            bgcolor: 'transparent',
+            boxShadow: 'none',
+            minWidth: 0
+          }
+        }}
+      >
+        <Box
+          component="img"
+          src="/images/smurfi/smurfi_submit.webp"
+          alt="Forecast submitted"
+          sx={{ width: { xs: 180, sm: 240 }, display: 'block' }}
+        />
+      </Snackbar>
     </Box>
   )
 }

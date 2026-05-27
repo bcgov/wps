@@ -10,7 +10,7 @@ import SpotForecastSynopsis from '@/features/smurfi/components/forecastForm/Spot
 import WeatherDataTable from '@/features/smurfi/components/forecastForm/WeatherDataTable'
 import SpotForecastSummaries from '@/features/smurfi/components/forecastForm/SpotForecastSummaries'
 import SpotForecastSections from '@/features/smurfi/components/forecastForm/SpotForecastSections'
-import { SpotForecastOutput, SpotRequestOutput } from '@wps/api/SMURFIAPI'
+import { SpotForecastOutput, SpotForecastType, SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { fetchCurrentFireSizesByFireNumbers } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
@@ -28,6 +28,17 @@ const toFormString = (value: number | string | null | undefined) =>
 const getDescriptiveWeather = (forecast: SpotForecastOutput | undefined, period: string) =>
   forecast?.descriptive_weather.find(weather => weather.period === period)
 
+const getInitialForecastType = (
+  requestType: string,
+  sourceForecastType: string | null | undefined
+): SpotForecastType => {
+  if (sourceForecastType === 'Mini' || sourceForecastType === 'Full') {
+    return sourceForecastType
+  }
+
+  return requestType === 'Mini' ? 'Mini' : 'Full'
+}
+
 interface SpotForecastFormProps {
   spotRequest: SpotRequestOutput
   sourceForecast?: SpotForecastOutput
@@ -43,7 +54,12 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
 }) => {
   const dispatch: AppDispatch = useDispatch()
   const { spotForecastSubmitting, spotForecastSubmitError } = useSelector(selectSmurfi)
-  const [isMini, setIsMini] = useState(false)
+  const initialForecastType = useMemo(
+    () => getInitialForecastType(spotRequest.request_type, sourceForecast?.forecast_type),
+    [sourceForecast?.forecast_type, spotRequest.request_type]
+  )
+  const [forecastType, setForecastType] = useState<SpotForecastType>(initialForecastType)
+  const isMini = forecastType === 'Mini'
   const schema = useMemo(() => createSchema(isMini), [isMini])
   const resolver = useMemo(() => zodResolver(schema), [schema])
 
@@ -122,7 +138,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
     const submittedForecast = await dispatch(
       submitSpotForecast({
         formData: data,
-        isMini,
+        forecastType,
         spotRequestId: spotRequest.id
       })
     )
@@ -133,8 +149,8 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
   }
 
   useEffect(() => {
-    setIsMini(spotRequest.request_type === 'Mini')
-  }, [spotRequest.request_type])
+    setForecastType(initialForecastType)
+  }, [initialForecastType])
 
   useEffect(() => {
     reset(defaultValues)
@@ -179,9 +195,13 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
       <Box sx={{ mb: 2 }}>
         <FormControl>
           <FormLabel>Forecast Type</FormLabel>
-          <RadioGroup row value={isMini ? 'mini' : 'full'} onChange={event => setIsMini(event.target.value === 'mini')}>
-            <FormControlLabel value="mini" control={<Radio />} label="Mini Spot" />
-            <FormControlLabel value="full" control={<Radio />} label="Full Spot" />
+          <RadioGroup
+            row
+            value={forecastType}
+            onChange={event => setForecastType(event.target.value as SpotForecastType)}
+          >
+            <FormControlLabel value="Mini" control={<Radio />} label="Mini Spot" />
+            <FormControlLabel value="Full" control={<Radio />} label="Full Spot" />
           </RadioGroup>
         </FormControl>
       </Box>

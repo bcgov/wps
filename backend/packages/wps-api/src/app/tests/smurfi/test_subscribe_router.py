@@ -148,6 +148,7 @@ def test_get_spot_forecasts_returns_saved_forecasts():
             "inversion_and_venting": "Good venting.",
             "outlook": "Dry.",
             "confidence": "High.",
+            "forecast_type": "Mini",
             "fire_size": [12.5],
             "representative_station_codes": [1, 2],
             "created_at": forecast_time,
@@ -166,6 +167,7 @@ def test_get_spot_forecasts_returns_saved_forecasts():
 
     assert response.status_code == 200
     assert response.json()["spot_forecasts"][0]["id"] == 99
+    assert response.json()["spot_forecasts"][0]["forecast_type"] == "Mini"
     assert response.json()["spot_forecasts"][0]["tabular_weather"][0]["wind"] == "SE 10-20 G 30-35"
 
 
@@ -187,6 +189,7 @@ FORECAST_PAYLOAD = {
     },
     "issued_at": "2026-05-21T16:00:00Z",
     "expires_at": None,
+    "forecast_type": "Full",
     "descriptive_weather": [],
     "tabular_weather": [],
 }
@@ -217,6 +220,7 @@ def test_create_spot_forecast_publishes_nats_message():
     saved_forecast = mock_create_forecast.call_args.args[1]
     assert saved_forecast.forecaster_name == "test_username"
     assert saved_forecast.forecaster_email == "test@email.com"
+    assert saved_forecast.forecast_type == "Full"
     mock_start_request.assert_awaited_once_with(ANY, FORECAST_PAYLOAD["spot_request_base_id"])
     mock_publish.assert_called_once_with(
         stream=stream_name,

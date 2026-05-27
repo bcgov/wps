@@ -64,7 +64,7 @@ const SpotForecastFormPage = () => {
       <SpotForecastForm
         spotRequest={spotRequest}
         sourceForecast={carryForwardForecast}
-        onSubmitSuccess={() => navigate(forecastsRoute)}
+        onSubmitSuccess={() => navigate(forecastsRoute, { state: { showForecastSubmitSuccess: true } })}
       />
     </Box>
   )
