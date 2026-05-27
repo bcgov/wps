@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import SpotMapLayerSwitcher from './SpotMapLayerSwitcher'
+import { getVisibleCurrentFireStatusDefaults } from './mapLayerVisibility'
 
 const STATUS_OPTIONS = [SpotRequestStatus.REQUESTED, SpotRequestStatus.STARTED]
 
@@ -9,9 +10,11 @@ const baseProps = {
   statusOptions: STATUS_OPTIONS,
   selectedStatuses: STATUS_OPTIONS,
   currentFiresVisible: true,
+  selectedCurrentFireStatuses: getVisibleCurrentFireStatusDefaults(),
   onStatusChange: vi.fn(),
   onAllStatusesChange: vi.fn(),
-  onCurrentFiresVisibleChange: vi.fn()
+  onCurrentFiresVisibleChange: vi.fn(),
+  onCurrentFireStatusChange: vi.fn()
 }
 
 describe('SpotMapLayerSwitcher — fire number filter', () => {

@@ -2,6 +2,11 @@ import GeoJSON from 'ol/format/GeoJSON'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style'
+import {
+  CURRENT_FIRE_STATUS_OPTIONS,
+  CurrentFireStatus,
+  getVisibleCurrentFireStatusDefaults
+} from '@/features/smurfi/components/map/mapLayerVisibility'
 
 export interface CurrentFirePolygonAttributes {
   fireNumber: string | null
@@ -21,10 +26,14 @@ const CURRENT_FIRE_POINTS_TYPE_NAME = 'pub:WHSE_LAND_AND_NATURAL_RESOURCE.PROT_C
 const ACTIVE_FIRE_FILTER = "FIRE_STATUS <> 'Out'"
 const FIRE_LABEL_MAX_RESOLUTION = 1000
 
-export const CURRENT_FIRE_STATUS_COLORS: Record<string, string> = {
+export const CURRENT_FIRE_STATUS_COLORS: Record<CurrentFireStatus, string> = {
   'Out of Control': '#D32F2F',
   'Being Held': '#F9A825',
   'Under Control': '#2E7D32'
+}
+
+interface CurrentFireLayerOptions {
+  getVisibleStatuses?: () => readonly string[]
 }
 
 const currentFirePolygonsUrl = new URL(CURRENT_FIRE_POLYS_WFS_URL)
@@ -114,7 +123,16 @@ const currentFirePolygonStyle = (feature: { get: (property: string) => string | 
     text: createFireLabel(feature, resolution)
   })
 
-const getCurrentFireStatusColor = (status: string | undefined) => CURRENT_FIRE_STATUS_COLORS[status ?? ''] ?? '#757575'
+const isCurrentFireStatus = (status: string | undefined): status is CurrentFireStatus =>
+  CURRENT_FIRE_STATUS_OPTIONS.includes(status as CurrentFireStatus)
+
+const getCurrentFireStatusColor = (status: string | undefined) =>
+  isCurrentFireStatus(status) ? CURRENT_FIRE_STATUS_COLORS[status] : '#757575'
+
+const isFireStatusVisible = (
+  feature: { get: (property: string) => string | undefined },
+  visibleStatuses: readonly string[]
+) => visibleStatuses.includes(feature.get('FIRE_STATUS') ?? '')
 
 const currentFirePointStyle = (feature: { get: (property: string) => string | undefined }, resolution: number) =>
   new Style({
@@ -130,6 +148,16 @@ const currentFirePointStyle = (feature: { get: (property: string) => string | un
     }),
     text: createPointFireLabel(feature, resolution)
   })
+
+const createCurrentFirePolygonStyle =
+  ({ getVisibleStatuses = getVisibleCurrentFireStatusDefaults }: CurrentFireLayerOptions) =>
+  (feature: { get: (property: string) => string | undefined }, resolution: number) =>
+    isFireStatusVisible(feature, getVisibleStatuses()) ? currentFirePolygonStyle(feature, resolution) : undefined
+
+const createCurrentFirePointStyle =
+  ({ getVisibleStatuses = getVisibleCurrentFireStatusDefaults }: CurrentFireLayerOptions) =>
+  (feature: { get: (property: string) => string | undefined }, resolution: number) =>
+    isFireStatusVisible(feature, getVisibleStatuses()) ? currentFirePointStyle(feature, resolution) : undefined
 
 export const getCurrentFirePolygonAttributes = (feature: {
   get: (property: string) => string | number | null | undefined
@@ -149,22 +177,22 @@ export const getCurrentFirePointAttributes = (feature: {
   fireYear: feature.get('FIRE_YEAR') ?? null
 })
 
-export const createCurrentFirePolygonsLayer = () =>
+export const createCurrentFirePolygonsLayer = (options: CurrentFireLayerOptions = {}) =>
   new VectorLayer({
     source: new VectorSource({
       format: new GeoJSON(),
       url: currentFirePolygonsUrl.toString()
     }),
-    style: currentFirePolygonStyle,
+    style: createCurrentFirePolygonStyle(options),
     zIndex: 20
   })
 
-export const createCurrentFirePointsLayer = () =>
+export const createCurrentFirePointsLayer = (options: CurrentFireLayerOptions = {}) =>
   new VectorLayer({
     source: new VectorSource({
       format: new GeoJSON(),
       url: currentFirePointsUrl.toString()
     }),
-    style: currentFirePointStyle,
+    style: createCurrentFirePointStyle(options),
     zIndex: 30
   })

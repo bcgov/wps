@@ -19,6 +19,10 @@ import {
 } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import {
+  CurrentFireStatus,
+  getVisibleCurrentFireStatusDefaults
+} from '@/features/smurfi/components/map/mapLayerVisibility'
 
 interface SpotRequestLocation {
   latitude: number
@@ -57,11 +61,15 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
   const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
   const currentFirePointsLayerRef = useRef<ReturnType<typeof createCurrentFirePointsLayer> | null>(null)
+  const selectedCurrentFireStatusesRef = useRef<CurrentFireStatus[]>(getVisibleCurrentFireStatusDefaults())
   const onChangeRef = useRef(onChange)
 
   // state
   const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
   const [currentFiresVisible, setCurrentFiresVisible] = useState(true)
+  const [selectedCurrentFireStatuses, setSelectedCurrentFireStatuses] = useState<CurrentFireStatus[]>(
+    getVisibleCurrentFireStatusDefaults
+  )
 
   // handlers
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
@@ -76,6 +84,16 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
 
   const handleAllStatusesChange = (checked: boolean) => {
     setSelectedStatuses(checked ? STATUS_FILTER_OPTIONS : [])
+  }
+
+  const handleCurrentFireStatusChange = (status: CurrentFireStatus, checked: boolean) => {
+    setSelectedCurrentFireStatuses(current => {
+      if (!checked) {
+        return current.filter(selectedStatus => selectedStatus !== status)
+      }
+
+      return current.includes(status) ? current : [...current, status]
+    })
   }
 
   // effects
@@ -98,8 +116,11 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
       style: existingSpotStyle,
       zIndex: 40
     })
-    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
-    const currentFirePointsLayer = createCurrentFirePointsLayer()
+    const currentFireLayerOptions = {
+      getVisibleStatuses: () => selectedCurrentFireStatusesRef.current
+    }
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(currentFireLayerOptions)
+    const currentFirePointsLayer = createCurrentFirePointsLayer(currentFireLayerOptions)
     currentFirePolygonsLayerRef.current = currentFirePolygonsLayer
     currentFirePointsLayerRef.current = currentFirePointsLayer
 
@@ -143,6 +164,12 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
   }, [currentFiresVisible])
 
   useEffect(() => {
+    selectedCurrentFireStatusesRef.current = selectedCurrentFireStatuses
+    currentFirePolygonsLayerRef.current?.changed()
+    currentFirePointsLayerRef.current?.changed()
+  }, [selectedCurrentFireStatuses])
+
+  useEffect(() => {
     featureSourceRef.current.clear()
 
     if (value) {
@@ -178,9 +205,11 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
         statusOptions={STATUS_FILTER_OPTIONS}
         selectedStatuses={selectedStatuses}
         currentFiresVisible={currentFiresVisible}
+        selectedCurrentFireStatuses={selectedCurrentFireStatuses}
         onStatusChange={handleStatusFilterChange}
         onAllStatusesChange={handleAllStatusesChange}
         onCurrentFiresVisibleChange={setCurrentFiresVisible}
+        onCurrentFireStatusChange={handleCurrentFireStatusChange}
       />
     </Box>
   )

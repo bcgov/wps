@@ -2,16 +2,19 @@ import { Autocomplete, Box, Checkbox, FormControlLabel, FormGroup, Paper, TextFi
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import { CURRENT_FIRE_STATUS_COLORS } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+import { CURRENT_FIRE_STATUS_OPTIONS, CurrentFireStatus } from '@/features/smurfi/components/map/mapLayerVisibility'
 
 interface SpotMapLayerSwitcherProps {
   statusOptions: SpotRequestStatus[]
   selectedStatuses: SpotRequestStatus[]
   currentFiresVisible: boolean
+  selectedCurrentFireStatuses: CurrentFireStatus[]
   allFireNumbers?: string[]
   selectedFireNumbers?: string[]
   onStatusChange: (status: SpotRequestStatus, checked: boolean) => void
   onAllStatusesChange: (checked: boolean) => void
   onCurrentFiresVisibleChange: (checked: boolean) => void
+  onCurrentFireStatusChange: (status: CurrentFireStatus, checked: boolean) => void
   onFireNumbersChange?: (fireNumbers: string[]) => void
 }
 
@@ -19,11 +22,13 @@ const SpotMapLayerSwitcher = ({
   statusOptions,
   selectedStatuses,
   currentFiresVisible,
+  selectedCurrentFireStatuses,
   allFireNumbers,
   selectedFireNumbers,
   onStatusChange,
   onAllStatusesChange,
   onCurrentFiresVisibleChange,
+  onCurrentFireStatusChange,
   onFireNumbersChange
 }: SpotMapLayerSwitcherProps) => (
   <Paper
@@ -82,20 +87,33 @@ const SpotMapLayerSwitcher = ({
         }
       />
       {currentFiresVisible &&
-        Object.entries(CURRENT_FIRE_STATUS_COLORS).map(([status, color]) => (
-          <Box key={status} sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 4, mb: 0.5 }}>
-            <Box
-              sx={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                backgroundColor: color,
-                border: '1px solid #FFFFFF',
-                boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.35)'
-              }}
-            />
-            <Typography variant="caption">{status}</Typography>
-          </Box>
+        CURRENT_FIRE_STATUS_OPTIONS.map(status => (
+          <FormControlLabel
+            key={status}
+            sx={{ ml: 0.5 }}
+            control={
+              <Checkbox
+                size="small"
+                checked={selectedCurrentFireStatuses.includes(status)}
+                onChange={event => onCurrentFireStatusChange(status, event.target.checked)}
+              />
+            }
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    backgroundColor: CURRENT_FIRE_STATUS_COLORS[status],
+                    border: '1px solid #FFFFFF',
+                    boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.35)'
+                  }}
+                />
+                <Typography variant="caption">{status}</Typography>
+              </Box>
+            }
+          />
         ))}
     </FormGroup>
     <Typography variant="subtitle2" sx={{ mt: 1.5, mb: 1, fontWeight: 'bold' }}>
