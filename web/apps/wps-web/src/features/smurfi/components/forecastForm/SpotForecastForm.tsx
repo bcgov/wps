@@ -41,7 +41,9 @@ const getInitialForecastType = (
 
 interface SpotForecastFormProps {
   spotRequest: SpotRequestOutput
+  /** optional prior forecast used to carry forward stable fields like stations and forecast type. */
   sourceForecast?: SpotForecastOutput
+  /** when true, sourceForecast also fills editable forecast content for the create-from-previous flow. */
   prefillFullForecast?: boolean
   onSubmitSuccess?: () => void
 }
