@@ -331,7 +331,7 @@ async def get_all_notification_emails_for_spot(
 ) -> list[str]:
     sub_result = await session.execute(
         select(SpotSubscriber.email).where(
-            SpotSubscriber.spot_request_id == spot_request_id,
+            SpotSubscriber.spot_request_base_id == spot_request_id,
             SpotSubscriber.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value,
         )
     )

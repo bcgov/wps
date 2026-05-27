@@ -10,7 +10,7 @@ import {
 import { Box, Button, Typography } from '@mui/material'
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
-import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
+import { getSmurfiForecastsRoute, getSmurfiNewForecastRoute, getSmurfiRequestRoute } from '@wps/utils/constants'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
@@ -141,22 +141,14 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', height: '100%' }}>
-          <Button size="small" variant="text" onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}`)}>
+          <Button size="small" variant="text" onClick={() => navigate(getSmurfiRequestRoute(params.row.id))}>
             Request
           </Button>
-          <Button
-            size="small"
-            variant="text"
-            onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}/forecasts`)}
-          >
+          <Button size="small" variant="text" onClick={() => navigate(getSmurfiForecastsRoute(params.row.id))}>
             Forecasts
           </Button>
           {isForecaster && (
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${params.row.id}/forecasts/new`)}
-            >
+            <Button size="small" variant="outlined" onClick={() => navigate(getSmurfiNewForecastRoute(params.row.id))}>
               New Forecast
             </Button>
           )}

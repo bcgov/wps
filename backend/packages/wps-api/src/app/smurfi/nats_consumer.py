@@ -1,4 +1,5 @@
 """NATS consumer for smurfi.spot.update — sends email to spot forecast subscribers."""
+
 import asyncio
 import json
 import logging
@@ -32,7 +33,9 @@ async def process_message(msg: Msg) -> None:
         async with get_async_read_session_scope() as session:
             emails = await get_all_notification_emails_for_spot(session, spot_request_id)
             if not emails:
-                logger.info("No active subscribers for spot_request_id=%s — skipping email", spot_request_id)
+                logger.info(
+                    "No active subscribers for spot_request_id=%s — skipping email", spot_request_id
+                )
                 await msg.ack()
                 return
             spot_forecast = await get_spot_forecast_with_weather(session, spot_forecast_id)
@@ -42,9 +45,15 @@ async def process_message(msg: Msg) -> None:
             await msg.nak(delay=60)
             return
 
-        spot_detail_url = f"{WEB_BASE_URL}/smurfi/spots/{spot_request_id}"
-        subject, html_body = build_spot_forecast_email(spot_forecast, spot_detail_url=spot_detail_url)
-        await send_spot_forecast_emails(subscriber_emails=emails, subject=subject, html_body=html_body)
+        spot_detail_url = (
+            f"{WEB_BASE_URL}/smurfi/requests/{spot_request_id}/forecasts/{spot_forecast_id}"
+        )
+        subject, html_body = build_spot_forecast_email(
+            spot_forecast, spot_detail_url=spot_detail_url
+        )
+        await send_spot_forecast_emails(
+            subscriber_emails=emails, subject=subject, html_body=html_body
+        )
         await msg.ack()
     except Exception as exc:
         logger.error("Error processing smurfi.spot.update: %s", msg.data, exc_info=exc)

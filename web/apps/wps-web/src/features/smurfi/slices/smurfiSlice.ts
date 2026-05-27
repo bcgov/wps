@@ -9,6 +9,7 @@ import {
   getSpotRequests,
   postSpotForecast,
   postSpotRequest,
+  SpotForecastType,
   SpotForecastOutput,
   SpotRequestOutput
 } from '@wps/api/SMURFIAPI'
@@ -169,7 +170,7 @@ export default smurfiSlice.reducer
 export const submitSpotForecast =
   (payload: {
     formData: SpotFormData
-    isMini: boolean
+    forecastType: SpotForecastType
     spotRequestId: number
   }): AppThunk<Promise<SpotForecastOutput | undefined>> =>
   async dispatch => {
@@ -178,13 +179,13 @@ export const submitSpotForecast =
 
       // For mini forecasts, exclude forecast summary data
       const dataToSubmit = { ...payload.formData }
-      if (payload.isMini) {
+      if (payload.forecastType === 'Mini') {
         delete dataToSubmit.afternoonForecast
         delete dataToSubmit.tonightForecast
         delete dataToSubmit.tomorrowForecast
       }
 
-      const response = await postSpotForecast(dataToSubmit, payload.spotRequestId)
+      const response = await postSpotForecast(dataToSubmit, payload.spotRequestId, payload.forecastType)
       dispatch(submitSpotForecastSuccess({ spotForecast: response.spot_forecast }))
       dispatch(fetchSpotRequests())
       return response.spot_forecast
