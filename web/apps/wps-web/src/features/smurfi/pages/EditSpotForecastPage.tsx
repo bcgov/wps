@@ -73,7 +73,7 @@ const EditSpotForecastPage = () => {
       <SpotForecastForm
         spotRequest={spotRequest}
         sourceForecast={spotForecast}
-        prefillFullForecast
+        prefillFullForecast={true}
         onSubmitSuccess={() => navigate(forecastsRoute)}
       />
     </Box>
