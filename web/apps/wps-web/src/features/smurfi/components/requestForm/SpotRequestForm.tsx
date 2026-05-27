@@ -174,7 +174,9 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
   })
 
   useEffect(() => {
-    getDistributionGroups().then(setDistributionGroups).catch(() => setDistributionGroups([]))
+    getDistributionGroups()
+      .then(setDistributionGroups)
+      .catch(() => setDistributionGroups([]))
   }, [])
 
   useEffect(() => {
@@ -185,8 +187,16 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
 
   const handleDistributionChange = (items: DistributionItem[]) => {
     setDistributionItems(items)
-    setValue('emailDistributionList', items.filter((i): i is string => !isGroup(i)), { shouldValidate: true })
-    setValue('distributionGroupIds', items.filter(isGroup).map(g => g.id), { shouldValidate: true })
+    setValue(
+      'emailDistributionList',
+      items.filter((i): i is string => !isGroup(i)),
+      { shouldValidate: true }
+    )
+    setValue(
+      'distributionGroupIds',
+      items.filter(isGroup).map(g => g.id),
+      { shouldValidate: true }
+    )
   }
 
   const handleValidSubmit = async (data: SpotRequestFormData) => {
@@ -336,22 +346,23 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
               }
               setEmailInputValue(value)
             }}
-            renderTags={(value, getTagProps) =>
-              value.map((item, index) =>
-                isGroup(item) ? (
+            renderValue={(value, getItemProps) =>
+              value.map((item, index) => {
+                const { key, ...itemProps } = getItemProps({ index })
+                return isGroup(item) ? (
                   <Chip
-                    key={item.id}
+                    key={key}
                     label={item.name}
                     icon={<GroupsIcon />}
                     color="primary"
                     variant="outlined"
                     size="small"
-                    {...getTagProps({ index })}
+                    {...itemProps}
                   />
                 ) : (
-                  <Chip key={item} label={item} size="small" {...getTagProps({ index })} />
+                  <Chip key={key} label={item} size="small" {...itemProps} />
                 )
-              )
+              })
             }
             renderInput={params => (
               <TextField

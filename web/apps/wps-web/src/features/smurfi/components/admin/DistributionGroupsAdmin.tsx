@@ -26,16 +26,19 @@ import {
   DistributionGroup,
   DistributionGroupInput,
   deleteDistributionGroup,
-  getDistributionGroups,
   postDistributionGroup,
   putDistributionGroup
 } from '@wps/api/SMURFIAPI'
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch } from '@/app/store'
+import { fetchDistributionGroups, fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 
 const EMPTY_FORM: DistributionGroupInput = { name: '', emails: [] }
 
 const DistributionGroupsAdmin = () => {
-  const [groups, setGroups] = useState<DistributionGroup[]>([])
+  const dispatch: AppDispatch = useDispatch()
+  const { distributionGroups: groups } = useSelector(selectSmurfi)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingGroup, setEditingGroup] = useState<DistributionGroup | null>(null)
   const [formValues, setFormValues] = useState<DistributionGroupInput>(EMPTY_FORM)
@@ -44,11 +47,9 @@ const DistributionGroupsAdmin = () => {
   const [error, setError] = useState<string | null>(null)
   const [confirmDeleteGroup, setConfirmDeleteGroup] = useState<DistributionGroup | null>(null)
 
-  const loadGroups = () => getDistributionGroups().then(setGroups).catch(() => setGroups([]))
-
   useEffect(() => {
-    loadGroups()
-  }, [])
+    dispatch(fetchDistributionGroups())
+  }, [dispatch])
 
   const openCreate = () => {
     setEditingGroup(null)
@@ -118,7 +119,7 @@ const DistributionGroupsAdmin = () => {
       } else {
         await postDistributionGroup(payload)
       }
-      await loadGroups()
+      dispatch(fetchDistributionGroups())
       setDialogOpen(false)
     } catch {
       setError('Failed to save distribution group')
@@ -131,7 +132,8 @@ const DistributionGroupsAdmin = () => {
     if (!confirmDeleteGroup) return
     try {
       await deleteDistributionGroup(confirmDeleteGroup.id)
-      await loadGroups()
+      dispatch(fetchDistributionGroups())
+      dispatch(fetchSpotRequests())
     } catch {
       // ignore
     } finally {
