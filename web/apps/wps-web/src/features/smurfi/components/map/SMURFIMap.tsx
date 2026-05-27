@@ -145,8 +145,8 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     navigate(getSmurfiForecastsRoute(spotRequestId))
   }
 
-  const handleSubmitForecast = (spotRequest: SpotRequestOutput) => {
-    navigate(getSmurfiNewForecastRoute(spotRequest.id))
+  const handleSubmitForecast = (spotRequestId: number) => {
+    navigate(getSmurfiNewForecastRoute(spotRequestId))
   }
 
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
