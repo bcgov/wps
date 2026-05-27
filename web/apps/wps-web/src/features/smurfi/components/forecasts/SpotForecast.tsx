@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { spotRequestTypeMap } from '@wps/api/SMURFIAPI'
 import MiniSpotForecast from '@/features/smurfi/components/forecasts/MiniSpotForecast'
 import FullSpotForecast from '@/features/smurfi/components/forecasts/FullSpotForecast'
-import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
+import { getSmurfiForecastPrintRoute } from '@wps/utils/constants'
 import useSpotForecastData from '@/features/smurfi/hooks/useSpotForecastData'
 
 const SpotForecast = () => {
@@ -22,7 +22,7 @@ const SpotForecast = () => {
     return <Typography>Forecast not found</Typography>
   }
 
-  const printUrl = `${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts/${spotForecastId}/print`
+  const printUrl = getSmurfiForecastPrintRoute(spotRequestId, spotForecastId)
   const isMini = spotRequest.request_type === spotRequestTypeMap['MINI_SPOT']
 
   return (

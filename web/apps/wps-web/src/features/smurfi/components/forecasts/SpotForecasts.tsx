@@ -10,7 +10,7 @@ import { formatRequestFrequency, formatSpotRequestDate } from '@/features/smurfi
 import { Box, Button, CircularProgress, Divider, Paper, Typography } from '@mui/material'
 import { DataGridPro, GridColDef } from '@mui/x-data-grid-pro'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
-import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
+import { getSmurfiEditForecastRoute, getSmurfiForecastRoute, getSmurfiNewForecastRoute } from '@wps/utils/constants'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -96,7 +96,7 @@ const SpotForecasts = () => {
           <Button
             size="small"
             variant="text"
-            onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts/${params.row.id}`)}
+            onClick={() => navigate(getSmurfiForecastRoute(spotRequestId, params.row.id))}
           >
             View
           </Button>
@@ -104,7 +104,7 @@ const SpotForecasts = () => {
             <Button
               size="small"
               variant="text"
-              onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts/${params.row.id}/edit`)}
+              onClick={() => navigate(getSmurfiEditForecastRoute(spotRequestId, params.row.id))}
             >
               Edit
             </Button>
@@ -141,11 +141,7 @@ const SpotForecasts = () => {
       </Paper>
       {isForecaster && (
         <Box sx={{ mb: 1 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts/new`)}
-          >
+          <Button variant="outlined" size="small" onClick={() => navigate(getSmurfiNewForecastRoute(spotRequestId))}>
             New Forecast
           </Button>
         </Box>

@@ -16,20 +16,31 @@ import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '
 import { fetchCurrentFireSizesByFireNumbers } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { getStations, StationSource } from '@wps/api/stationAPI'
+import {
+  formatFireNumbers,
+  getEmptyFireSizes,
+  toForecastDateTimeString
+} from '@/features/smurfi/utils/spotForecastUtils'
 
 const toFormString = (value: number | string | null | undefined) =>
   value === null || value === undefined ? '' : String(value)
 
-const formatFireNumbers = (fireNumbers: string[] | null | undefined) => fireNumbers?.join(', ') ?? ''
-const getEmptyFireSizes = (fireNumbers: string[] | null | undefined) => fireNumbers?.map(() => '') ?? []
+const getDescriptiveWeather = (forecast: SpotForecastOutput | undefined, period: string) =>
+  forecast?.descriptive_weather.find(weather => weather.period === period)
 
 interface SpotForecastFormProps {
   spotRequest: SpotRequestOutput
-  previousForecast?: SpotForecastOutput
+  sourceForecast?: SpotForecastOutput
+  prefillFullForecast?: boolean
   onSubmitSuccess?: () => void
 }
 
-const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, previousForecast, onSubmitSuccess }) => {
+const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
+  spotRequest,
+  sourceForecast,
+  prefillFullForecast = false,
+  onSubmitSuccess
+}) => {
   const dispatch: AppDispatch = useDispatch()
   const { spotForecastSubmitting, spotForecastSubmitError } = useSelector(selectSmurfi)
   const [isMini, setIsMini] = useState(false)
@@ -38,23 +49,54 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, previo
 
   const defaultValues = useMemo<Partial<SpotFormData>>(() => {
     const baseDefaults = getDefaultValues()
-    const requestInstance = spotRequest.current_instance
+    const fullPrefillForecast = prefillFullForecast ? sourceForecast : undefined
+    const requestInstance = fullPrefillForecast?.spot_request_instance ?? spotRequest.current_instance
+    const afternoonWeather = getDescriptiveWeather(fullPrefillForecast, 'Today')
+    const tonightWeather = getDescriptiveWeather(fullPrefillForecast, 'Tonight')
+    const tomorrowWeather = getDescriptiveWeather(fullPrefillForecast, 'Tomorrow')
 
     return {
       ...baseDefaults,
       fireProj: formatFireNumbers(spotRequest.fire_number),
       requestBy: spotRequest.requestor_name,
-      stns: previousForecast?.representative_station_codes ?? baseDefaults.stns,
+      stns: sourceForecast?.representative_station_codes ?? baseDefaults.stns,
       latitude: toFormString(requestInstance.latitude.toFixed(4)),
       longitude: toFormString(requestInstance.longitude.toFixed(4)),
       geographicDescription: requestInstance.geographic_description,
       slopeAspect: requestInstance.aspect ?? baseDefaults.slopeAspect,
       valley: requestInstance.valley ?? baseDefaults.valley,
       elevation: toFormString(requestInstance.elevation),
-      fireSizes: getEmptyFireSizes(spotRequest.fire_number),
-      weatherData: defaultWeatherRows
+      fireSizes: fullPrefillForecast?.fire_size?.map(toFormString) ?? getEmptyFireSizes(spotRequest.fire_number),
+      synopsis: fullPrefillForecast?.synopsis ?? baseDefaults.synopsis,
+      afternoonForecast: {
+        description: afternoonWeather?.conditions ?? '',
+        maxTemp: afternoonWeather?.temperature ?? undefined,
+        minRh: afternoonWeather?.relative_humidity ?? undefined
+      },
+      tonightForecast: {
+        description: tonightWeather?.conditions ?? '',
+        minTemp: tonightWeather?.temperature ?? undefined,
+        maxRh: tonightWeather?.relative_humidity ?? undefined
+      },
+      tomorrowForecast: {
+        description: tomorrowWeather?.conditions ?? '',
+        maxTemp: tomorrowWeather?.temperature ?? undefined,
+        minRh: tomorrowWeather?.relative_humidity ?? undefined
+      },
+      weatherData:
+        fullPrefillForecast?.tabular_weather.map(row => ({
+          dateTime: toForecastDateTimeString(row.forecast_time),
+          temp: toFormString(row.temperature),
+          rh: toFormString(row.relative_humidity),
+          wind: row.wind ?? '',
+          rain: toFormString(row.precipitation_amount),
+          chanceRain: toFormString(row.probability_of_precipitation)
+        })) ?? defaultWeatherRows,
+      inversionVenting: fullPrefillForecast?.inversion_and_venting ?? baseDefaults.inversionVenting,
+      outlook: fullPrefillForecast?.outlook ?? baseDefaults.outlook,
+      confidenceDiscussion: fullPrefillForecast?.confidence ?? baseDefaults.confidenceDiscussion
     }
-  }, [previousForecast, spotRequest])
+  }, [prefillFullForecast, sourceForecast, spotRequest])
 
   const {
     control,

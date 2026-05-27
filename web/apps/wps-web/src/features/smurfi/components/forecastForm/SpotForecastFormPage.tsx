@@ -4,7 +4,7 @@ import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotFore
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import { getMostRecentForecast } from '@/features/smurfi/utils/spotForecastUtils'
 import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
-import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
+import { getSmurfiForecastsRoute } from '@wps/utils/constants'
 import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -18,9 +18,9 @@ const SpotForecastFormPage = () => {
     useSelector(selectSmurfi)
   const spotRequest = spotRequests.find(request => request.id === spotRequestId)
   const { isForecaster } = useSpotPermissions(spotRequest)
-  const forecastsRoute = `${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`
+  const forecastsRoute = getSmurfiForecastsRoute(spotRequestId)
   const spotForecasts = spotForecastsByRequestId[spotRequestId]
-  const previousForecast = useMemo(() => getMostRecentForecast(spotForecasts ?? []), [spotForecasts])
+  const carryForwardForecast = useMemo(() => getMostRecentForecast(spotForecasts ?? []), [spotForecasts])
 
   useEffect(() => {
     if (Number.isFinite(spotRequestId) && spotForecastsByRequestId[spotRequestId] === undefined) {
@@ -63,7 +63,7 @@ const SpotForecastFormPage = () => {
       </Box>
       <SpotForecastForm
         spotRequest={spotRequest}
-        previousForecast={previousForecast}
+        sourceForecast={carryForwardForecast}
         onSubmitSuccess={() => navigate(forecastsRoute)}
       />
     </Box>

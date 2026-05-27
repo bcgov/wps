@@ -1,14 +1,14 @@
 import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
 import { Box, Button, Typography } from '@mui/material'
 import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
-import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
+import { getSmurfiRequestRoute, SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
 import { useNavigate } from 'react-router-dom'
 
 const SpotRequestFormPage = () => {
   const navigate = useNavigate()
 
   const handleSubmit = (spotRequest: SpotRequestOutput) => {
-    navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequest.id}`)
+    navigate(getSmurfiRequestRoute(spotRequest.id))
   }
 
   return (
