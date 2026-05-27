@@ -97,8 +97,8 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       ),
       sortComparator: (a, b) => {
         const order = [
-          SpotRequestStatus.STARTED,
           SpotRequestStatus.REQUESTED,
+          SpotRequestStatus.STARTED,
           SpotRequestStatus.SUSPENDED,
           SpotRequestStatus.COMPLETE,
           SpotRequestStatus.ARCHIVED

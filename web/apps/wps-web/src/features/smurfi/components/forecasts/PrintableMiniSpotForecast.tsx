@@ -32,6 +32,7 @@ const PrintableMiniSpotForecast: React.FC<PrintableMiniSpotForecastProps> = ({
   const stationsStr = representativeStations
     .map(s => s.name + (s.elevation == null ? '' : ` (${s.elevation} m)`))
     .join(', ')
+  const forecastInstance = forecast.spot_request_instance
 
   return (
     <Box sx={{ p: 3 }}>
@@ -41,11 +42,11 @@ const PrintableMiniSpotForecast: React.FC<PrintableMiniSpotForecastProps> = ({
       <Typography sx={{ fontSize: FONT_SIZE, textAlign: 'center', mb: 3 }}>{issuedDateStr}</Typography>
 
       <Typography sx={{ fontSize: FONT_SIZE, fontWeight: 'bold', lineHeight: 1.4 }}>
-        {spotRequest.geographic_description}
+        {forecastInstance.geographic_description}
       </Typography>
       <Typography sx={{ fontSize: FONT_SIZE, fontWeight: 'bold', mb: 2 }}>
-        <span style={{ textDecoration: 'underline' }}>Lat/Long:</span>{' '}
-        {spotRequest.latitude.toFixed(4)}, {spotRequest.longitude.toFixed(4)}
+        <span style={{ textDecoration: 'underline' }}>Lat/Long:</span> {forecastInstance.latitude.toFixed(4)},{' '}
+        {forecastInstance.longitude.toFixed(4)}
       </Typography>
 
       {stationsStr && (

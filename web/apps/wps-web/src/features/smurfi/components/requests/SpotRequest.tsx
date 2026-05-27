@@ -81,6 +81,7 @@ const SpotRequest = () => {
     String(spotRequest.fire_centre)
 
   const statusColors = SpotRequestStatusColorMap[spotRequest.status as SpotRequestStatus]
+  const requestInstance = spotRequest.initial_instance
 
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, alignItems: 'stretch' }}>
@@ -89,11 +90,7 @@ const SpotRequest = () => {
           title="Request Details"
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => dispatch(toggleSpotSubscription(spotRequest.id))}
-              >
+              <Button variant="outlined" size="small" onClick={() => dispatch(toggleSpotSubscription(spotRequest.id))}>
                 {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
               </Button>
               <Button
@@ -104,97 +101,93 @@ const SpotRequest = () => {
                 View Forecasts
               </Button>
               {(isOwner || isForecaster) && (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => console.log(spotRequest.requestor_idir)}
-                >
+                <Button variant="outlined" size="small" onClick={() => console.log(spotRequest.requestor_idir)}>
                   Edit Request
                 </Button>
               )}
             </Box>
           }
         >
-        <Box>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, display: 'block' }}
-          >
-            Status
-          </Typography>
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              backgroundColor: statusColors?.bgColor,
-              borderRadius: '4px',
-              px: 1.5,
-              py: 0.25,
-              border: 1,
-              borderColor: statusColors?.borderColor,
-              mt: 0.25
-            }}
-          >
-            <Typography variant="body2" sx={{ color: statusColors?.color, fontWeight: 500 }}>
-              {spotRequest.status}
-            </Typography>
-          </Box>
-        </Box>
-        <Box>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, display: 'block' }}
-          >
-            Fire Number(s)
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-            {spotRequest.fire_number.map(fn => (
-              <Chip key={fn} label={fn} size="small" />
-            ))}
-          </Box>
-        </Box>
-        <Field label="Fire Centre" value={fireCentreName} />
-        <Field label="Forecast Type" value={spotRequest.request_type} />
-        <Field label="Start Date" value={formatDate(spotRequest.start_at)} />
-        <Field label="End Date" value={formatDate(spotRequest.end_at)} />
-        <Box>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, display: 'block' }}
-          >
-            Requested Frequency
-          </Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, max-content)', gap: 0.5, mt: 0.5 }}>
-            {spotRequest.request_frequency.map(day => (
-              <Chip key={day} label={day} size="small" />
-            ))}
-          </Box>
-        </Box>
-        <Field label="Geographic Description" value={spotRequest.geographic_description} />
-        <Field label="Elevation" value={`${spotRequest.elevation} m`} />
-        <Field label="Slope / Aspect" value={spotRequest.aspect} />
-        {spotRequest.additional_information && (
-          <Field label="Additional Info" value={spotRequest.additional_information} />
-        )}
-        {spotRequest.subscribers.length > 0 && (
           <Box>
             <Typography
               variant="caption"
               color="text.secondary"
               sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, display: 'block' }}
             >
-              Subscribers
+              Status
+            </Typography>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                backgroundColor: statusColors?.bgColor,
+                borderRadius: '4px',
+                px: 1.5,
+                py: 0.25,
+                border: 1,
+                borderColor: statusColors?.borderColor,
+                mt: 0.25
+              }}
+            >
+              <Typography variant="body2" sx={{ color: statusColors?.color, fontWeight: 500 }}>
+                {spotRequest.status}
+              </Typography>
+            </Box>
+          </Box>
+          <Box>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, display: 'block' }}
+            >
+              Fire Number(s)
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-              {spotRequest.subscribers.map(sub => (
-                <Chip key={sub.email} label={sub.email} size="small" />
+              {spotRequest.fire_number.map(fn => (
+                <Chip key={fn} label={fn} size="small" />
               ))}
             </Box>
           </Box>
-        )}
+          <Field label="Fire Centre" value={fireCentreName} />
+          <Field label="Forecast Type" value={spotRequest.request_type} />
+          <Field label="Start Date" value={formatDate(spotRequest.start_at)} />
+          <Field label="End Date" value={formatDate(spotRequest.end_at)} />
+          <Box>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, display: 'block' }}
+            >
+              Requested Frequency
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, max-content)', gap: 0.5, mt: 0.5 }}>
+              {spotRequest.request_frequency.map(day => (
+                <Chip key={day} label={day} size="small" />
+              ))}
+            </Box>
+          </Box>
+          <Field label="Geographic Description" value={requestInstance.geographic_description} />
+          <Field label="Elevation" value={requestInstance.elevation ? `${requestInstance.elevation} m` : '—'} />
+          <Field label="Slope / Aspect" value={requestInstance.aspect ?? '—'} />
+          {spotRequest.additional_information && (
+            <Field label="Additional Info" value={spotRequest.additional_information} />
+          )}
+          {spotRequest.subscribers.length > 0 && (
+            <Box>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, display: 'block' }}
+              >
+                Subscribers
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                {spotRequest.subscribers.map(sub => (
+                  <Chip key={sub.email} label={sub.email} size="small" />
+                ))}
+              </Box>
+            </Box>
+          )}
         </Section>
         <Section title="Requestor Details">
           <Field label="Requestor Name" value={spotRequest.requestor_name} />
@@ -205,10 +198,10 @@ const SpotRequest = () => {
       </Box>
 
       <Section title="Location" sx={{ height: '100%' }} contentSx={{ gridTemplateRows: 'auto 1fr' }}>
-        <Field label="Latitude" value={Number(spotRequest.latitude).toFixed(4)} />
-        <Field label="Longitude" value={Number(spotRequest.longitude).toFixed(4)} />
+        <Field label="Latitude" value={Number(requestInstance.latitude).toFixed(4)} />
+        <Field label="Longitude" value={Number(requestInstance.longitude).toFixed(4)} />
         <Box sx={{ gridColumn: '1 / -1', minHeight: 0, border: '1px solid black' }}>
-          <SmurfiRequestsMap spotRequest={spotRequest} />
+          <SmurfiRequestsMap spotRequest={spotRequest} spotRequestInstance={requestInstance} />
         </Box>
       </Section>
     </Box>

@@ -99,7 +99,7 @@ spot_request_distribution_groups = Table(
     Column(
         "spot_request_id",
         Integer,
-        ForeignKey("spot_request.id", ondelete="CASCADE"),
+        ForeignKey("spot_request_base.id", ondelete="CASCADE"),
         primary_key=True,
     ),
     Column(
@@ -144,10 +144,10 @@ subscriber_status_values = (
 )
 
 
-class SpotRequest(Base):
-    """A class representing requests for spot forecasts."""
+class SpotRequestBase(Base):
+    """A durable administrative request for spot forecasts."""
 
-    __tablename__ = "spot_request"
+    __tablename__ = "spot_request_base"
 
     id = Column(Integer, primary_key=True)
     request_reference = Column(String, nullable=False)
@@ -166,11 +166,7 @@ class SpotRequest(Base):
     requestor_email = Column(String, nullable=False)
     request_frequency = Column(ARRAY(Enum(FrequencyDayEnum)), nullable=True)
     request_type = Column(String, nullable=False, default=RequestTypeEnum.FULL.value)
-    aspect = Column(String, nullable=True)
-    elevation = Column(Integer, nullable=True)
-    geographic_description = Column(String, nullable=False)
     additional_information = Column(Text, nullable=True)
-    geom = Column(Geometry("POINT", spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
     requested_at = Column(TZTimeStamp, nullable=False)
     start_at = Column(TZTimeStamp, nullable=False, index=True)
     end_at = Column(TZTimeStamp, nullable=False, index=True)
@@ -180,8 +176,9 @@ class SpotRequest(Base):
     )
 
     # Relationships
-    spot_forecasts = relationship("SpotForecast", back_populates="spot_request")
-    spot_subscribers = relationship("SpotSubscriber", back_populates="spot_request")
+    spot_forecasts = relationship("SpotForecast", back_populates="spot_request_base")
+    spot_request_instances = relationship("SpotRequestInstance", back_populates="spot_request_base")
+    spot_subscribers = relationship("SpotSubscriber", back_populates="spot_request_base")
     distribution_groups = relationship(
         "SmurfiDistributionGroup",
         secondary=spot_request_distribution_groups,
@@ -189,12 +186,41 @@ class SpotRequest(Base):
     )
 
     __table_args__ = (
-        CheckConstraint(status.in_(request_status_values), name="chk_status_spot_request"),
+        CheckConstraint(status.in_(request_status_values), name="chk_status_spot_request_base"),
         CheckConstraint(
-            request_type.in_(request_type_values), name="chk_request_type_spot_request"
+            request_type.in_(request_type_values), name="chk_request_type_spot_request_base"
         ),
-        CheckConstraint(aspect.in_(cardinal_direction_values), name="chk_aspect_spot_request"),
-        {"comment": "Tracks requests for spot weather forecasts."},
+        {"comment": "Tracks administrative requests for spot weather forecasts."},
+    )
+
+
+class SpotRequestInstance(Base):
+    """An instance of a spot_request containing geographic and terrain context for a spot request or forecast."""
+
+    __tablename__ = "spot_request_instance"
+
+    id = Column(Integer, primary_key=True)
+    spot_request_base_id = Column(
+        Integer, ForeignKey("spot_request_base.id"), nullable=False, index=True
+    )
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    geom = Column(Geometry("POINT", spatial_index=False, srid=NAD83_BC_ALBERS), nullable=False)
+    geographic_description = Column(String, nullable=False)
+    aspect = Column(String, nullable=True)
+    elevation = Column(Integer, nullable=True)
+    valley = Column(String, nullable=True)
+    created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
+    updated_at = Column(
+        TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now, default=time_utils.get_utc_now
+    )
+
+    # Relationships
+    spot_request_base = relationship("SpotRequestBase", back_populates="spot_request_instances")
+    spot_forecasts = relationship("SpotForecast", back_populates="spot_request_instance")
+
+    __table_args__ = (
+        {"comment": "Tracks geographic instances used by spot requests and forecasts."},
     )
 
 
@@ -204,7 +230,9 @@ class SpotSubscriber(Base):
     __tablename__ = "spot_subscriber"
 
     id = Column(Integer, primary_key=True)
-    spot_request_id = Column(Integer, ForeignKey(SpotRequest.id), nullable=False, index=True)
+    spot_request_base_id = Column(
+        Integer, ForeignKey("spot_request_base.id"), nullable=False, index=True
+    )
     email = Column(String, nullable=False, index=True)
     subscriber_status = Column(
         String, nullable=False, default=SpotSubscriberStatusEnum.ACTIVE.value
@@ -215,7 +243,7 @@ class SpotSubscriber(Base):
     )
 
     # Relationships
-    spot_request = relationship("SpotRequest", back_populates="spot_subscribers")
+    spot_request_base = relationship("SpotRequestBase", back_populates="spot_subscribers")
 
     __table_args__ = (
         CheckConstraint(
@@ -233,7 +261,12 @@ class SpotForecast(Base):
     __table_args__ = {"comment": "Spot forecasts for spot requests."}
 
     id = Column(Integer, primary_key=True)
-    spot_request_id = Column(Integer, ForeignKey("spot_request.id"), nullable=False, index=True)
+    spot_request_base_id = Column(
+        Integer, ForeignKey("spot_request_base.id"), nullable=False, index=True
+    )
+    spot_request_instance_id = Column(
+        Integer, ForeignKey("spot_request_instance.id"), nullable=False, index=True
+    )
 
     # forecaster info
     forecaster_name = Column(String, nullable=False, index=True)
@@ -244,14 +277,15 @@ class SpotForecast(Base):
     inversion_and_venting = Column(Text, nullable=True)
     outlook = Column(Text, nullable=True)
     confidence = Column(Text, nullable=True)
-    fire_size = Column(Float, nullable=True)
+    fire_size = Column(ARRAY(Float), nullable=True)
     representative_station_codes = Column(ARRAY(Integer), nullable=True)
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
     issued_at = Column(TZTimeStamp, nullable=False)
     expires_at = Column(TZTimeStamp, nullable=True)
 
     # Relationships
-    spot_request = relationship("SpotRequest", back_populates="spot_forecasts")
+    spot_request_base = relationship("SpotRequestBase", back_populates="spot_forecasts")
+    spot_request_instance = relationship("SpotRequestInstance", back_populates="spot_forecasts")
     tabular_weather = relationship("SpotTabularWeather", back_populates="spot_forecast")
     descriptive_weather = relationship("SpotDescriptiveWeather", back_populates="spot_forecast")
 

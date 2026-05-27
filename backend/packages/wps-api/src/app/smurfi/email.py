@@ -1,9 +1,11 @@
 import html
 import logging
-from datetime import date
+from collections.abc import Sequence
+from datetime import date, datetime
 
 import httpx
 from wps_shared import config
+from wps_shared.db.models.smurfi import SpotForecast, SpotRequestInstance
 from wps_shared.utils.time import vancouver_tz
 
 logger = logging.getLogger(__name__)
@@ -30,21 +32,30 @@ def _to_ddm(decimal: float) -> str:
     return f"{sign}{degrees} {minutes:.3f}"
 
 
-def _get_coords(spot_request) -> str:
+def _get_coords(spot_location: SpotRequestInstance) -> str:
+    latitude = getattr(spot_location, "latitude", None)
+    longitude = getattr(spot_location, "longitude", None)
+    if latitude is not None and longitude is not None:
+        return f"{_to_ddm(latitude)},{_to_ddm(longitude)}"
+
     try:
         from geoalchemy2.shape import to_shape
-        from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS, PointTransformer, SpatialReferenceSystem
-
-        shape = to_shape(spot_request.geom)
-        lat, lon = PointTransformer(NAD83_BC_ALBERS, SpatialReferenceSystem.WGS84.code).transform_coordinate(
-            shape.x, shape.y
+        from wps_shared.geospatial.geospatial import (
+            NAD83_BC_ALBERS,
+            PointTransformer,
+            SpatialReferenceSystem,
         )
+
+        shape = to_shape(spot_location.geom)
+        lat, lon = PointTransformer(
+            NAD83_BC_ALBERS, SpatialReferenceSystem.WGS84.code
+        ).transform_coordinate(shape.x, shape.y)
         return f"{_to_ddm(lat)},{_to_ddm(lon)}"
     except Exception:
         return "—"
 
 
-def _format_date_label(forecast_time, issued_at) -> str:
+def _format_date_label(forecast_time: datetime, issued_at: datetime) -> str:
     ft = forecast_time.astimezone(vancouver_tz)
     issued_day: date = issued_at.astimezone(vancouver_tz).date()
     day_diff = (ft.date() - issued_day).days
@@ -65,27 +76,47 @@ def _ensure_period(text: str | None) -> str:
     return text if text.endswith(".") else f"{text}."
 
 
-def build_spot_forecast_email(spot_forecast, spot_detail_url: str) -> tuple[str, str]:
+def _format_fire_size(fire_size: Sequence[float | None] | float | None) -> str:
+    if not fire_size:
+        return ""
+
+    if isinstance(fire_size, Sequence) and not isinstance(fire_size, str):
+        fire_sizes = [str(size) for size in fire_size if size is not None]
+        return f"Size:&nbsp;&nbsp;&nbsp;{', '.join(fire_sizes)} ha" if fire_sizes else ""
+
+    return f"Size:&nbsp;&nbsp;&nbsp;{fire_size} ha"
+
+
+def build_spot_forecast_email(spot_forecast: SpotForecast, spot_detail_url: str) -> tuple[str, str]:
     """Return (subject, html_body) for a spot forecast notification email."""
-    sr = spot_forecast.spot_request
+    sr = spot_forecast.spot_request_base
+    instance = spot_forecast.spot_request_instance
     fire_numbers = html.escape(", ".join(sr.fire_number)) if sr.fire_number else "N/A"
     subject = f"Spot Forecast Update: Fire {fire_numbers}"
 
     issued_dt = spot_forecast.issued_at.astimezone(vancouver_tz)
-    issued_str = issued_dt.strftime("%H%M") + " " + issued_dt.strftime("%Z") + " " + issued_dt.strftime("%A, %B %-d, %Y")
+    issued_str = (
+        issued_dt.strftime("%H%M")
+        + " "
+        + issued_dt.strftime("%Z")
+        + " "
+        + issued_dt.strftime("%A, %B %-d, %Y")
+    )
 
-    expiry_dt = spot_forecast.expires_at.astimezone(vancouver_tz) if spot_forecast.expires_at else None
+    expiry_dt = (
+        spot_forecast.expires_at.astimezone(vancouver_tz) if spot_forecast.expires_at else None
+    )
     expiry_str = expiry_dt.strftime("%A %B %-d") if expiry_dt else "—"
 
-    coords_str = _get_coords(sr)
-    aspect_str = html.escape(sr.aspect or "—")
-    elevation_str = f"{sr.elevation} m" if sr.elevation else "—"
-    geo_str = html.escape(sr.geographic_description or "")
+    coords_str = _get_coords(instance)
+    aspect_str = html.escape(instance.aspect or "—")
+    elevation_str = f"{instance.elevation} m" if instance.elevation else "—"
+    geo_str = html.escape(instance.geographic_description or "")
     forecaster_name = html.escape(spot_forecast.forecaster_name or "")
     forecaster_email = html.escape(spot_forecast.forecaster_email or "")
     forecaster_phone = html.escape(spot_forecast.forecaster_phone or "—")
     requestor_name = html.escape(sr.requestor_name or "")
-    fire_size_str = f"Size:&nbsp;&nbsp;&nbsp;{spot_forecast.fire_size} ha" if spot_forecast.fire_size else ""
+    fire_size_str = _format_fire_size(spot_forecast.fire_size)
 
     station_codes = spot_forecast.representative_station_codes
     stations_str = ", ".join(str(c) for c in station_codes) if station_codes else "—"
@@ -120,7 +151,11 @@ def build_spot_forecast_email(spot_forecast, spot_detail_url: str) -> tuple[str,
     sorted_tabular = sorted(spot_forecast.tabular_weather, key=lambda tw: tw.forecast_time)
     tabular_rows = ""
     for tw in sorted_tabular:
-        label = _format_date_label(tw.forecast_time, spot_forecast.issued_at) if tw.forecast_time else ""
+        label = (
+            _format_date_label(tw.forecast_time, spot_forecast.issued_at)
+            if tw.forecast_time
+            else ""
+        )
         tabular_rows += (
             f"<tr>"
             f"<td style='{_CELL_STYLE}'>{html.escape(label)}</td>"
@@ -140,7 +175,8 @@ def build_spot_forecast_email(spot_forecast, spot_detail_url: str) -> tuple[str,
     outlook_block = (
         f"<p style='font-size:12px;line-height:1.6;'>"
         f"<strong><span style='text-decoration:underline;'>OUTLOOK (3-5 Day Outlook)</span></strong> {outlook}</p>"
-        if outlook else ""
+        if outlook
+        else ""
     )
 
     html_body = f"""

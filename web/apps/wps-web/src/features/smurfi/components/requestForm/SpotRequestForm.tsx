@@ -30,7 +30,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { DatePicker } from '@mui/x-date-pickers-pro'
 import {
   requestedFrequencyOptions,
-  slopeAspectOptions,
   spotForecastTypes,
   spotRequestSchema,
   SpotRequestFormData,
@@ -136,7 +135,7 @@ const defaultValues: SpotRequestFormValues = {
   requestedFrequency: [],
   location: null,
   geographicDescription: '',
-  slopeAspect: 'North',
+  slopeAspect: '',
   elevation: '',
   additionalInformation: ''
 }
@@ -476,17 +475,13 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
             name="slopeAspect"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.slopeAspect}>
-                <InputLabel id="slope-aspect-label">Slope/Aspect</InputLabel>
-                <Select {...field} labelId="slope-aspect-label" label="Slope/Aspect">
-                  {slopeAspectOptions.map(option => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText>{errors.slopeAspect?.message}</FormHelperText>
-              </FormControl>
+              <TextField
+                {...field}
+                label="Slope/Aspect"
+                fullWidth
+                error={!!errors.slopeAspect}
+                helperText={errors.slopeAspect?.message ?? 'Optional'}
+              />
             )}
           />
         </Grid>
@@ -501,7 +496,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
                 type="number"
                 fullWidth
                 error={!!errors.elevation}
-                helperText={errors.elevation?.message}
+                helperText={errors.elevation?.message ?? 'Optional'}
                 slotProps={{
                   input: {
                     endAdornment: <InputAdornment position="end">m</InputAdornment>

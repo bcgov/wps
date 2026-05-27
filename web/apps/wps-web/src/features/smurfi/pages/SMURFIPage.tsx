@@ -9,6 +9,7 @@ import SpotRequestFormPage from '@/features/smurfi/components/requestForm/SpotRe
 import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
 import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
 import PrintableSpotForecast from '@/features/smurfi/pages/PrintableSpotForecast'
+import EditSpotForecastPage from '@/features/smurfi/pages/EditSpotForecastPage'
 import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { Box, Tab, Tabs } from '@mui/material'
@@ -52,8 +53,8 @@ const SMURFIPage = () => {
           <GeneralHeader isBeta={true} spacing={1} title="SMURFI" />
           <Tabs value={currentTab} onChange={handleChange}>
             <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
-            <Tab label="Map" />
-            <Tab label="Management" />
+            <Tab label="Map" onClick={() => navigate(SMURFI_MAP_ROUTE)} />
+            <Tab label="Management" onClick={() => navigate(SMURFI_MANAGEMENT_ROUTE)} />
           </Tabs>
         </Box>
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
@@ -70,6 +71,7 @@ const SMURFIPage = () => {
                     <Route path=":id/forecasts/new" element={<SpotForecastFormPage />} />
                     <Route path=":id/forecasts/:forecastId" element={<SpotForecast />} />
                     <Route path=":id/forecasts/:forecastId/print" element={<PrintableSpotForecast />} />
+                    <Route path=":id/forecasts/:forecastId/edit" element={<EditSpotForecastPage />} />
                   </Routes>
                 </RouteContent>
               }
