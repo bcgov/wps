@@ -1,7 +1,7 @@
 """SMURFI distribution groups
 
 Revision ID: 63b52513243e
-Revises: 6f1d8d4c2a90
+Revises: c2a830d3218e
 Create Date: 2026-05-26 00:00:00.000000
 
 """
@@ -12,7 +12,7 @@ from wps_shared.db.models.common import TZTimeStamp
 
 # revision identifiers, used by Alembic.
 revision = "63b52513243e"
-down_revision = "6f1d8d4c2a90"
+down_revision = "c2a830d3218e"
 branch_labels = None
 depends_on = None
 
