@@ -22,7 +22,6 @@ import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
-import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import {
   DistributionGroup,
   DistributionGroupInput,
@@ -36,8 +35,6 @@ import { useEffect, useState } from 'react'
 const EMPTY_FORM: DistributionGroupInput = { name: '', emails: [] }
 
 const DistributionGroupsAdmin = () => {
-  const { isForecaster } = useSpotPermissions(undefined)
-
   const [groups, setGroups] = useState<DistributionGroup[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingGroup, setEditingGroup] = useState<DistributionGroup | null>(null)
@@ -146,11 +143,9 @@ const DistributionGroupsAdmin = () => {
     <Box sx={{ width: '100%' }}>
       <Stack direction="row" sx={{ mb: 2, alignItems: 'center' }}>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>Distribution Groups</Typography>
-        {isForecaster && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
-            New Group
-          </Button>
-        )}
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
+          New Group
+        </Button>
       </Stack>
 
       <TableContainer component={Paper}>
@@ -159,15 +154,13 @@ const DistributionGroupsAdmin = () => {
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Members</TableCell>
-              <TableCell>Created by</TableCell>
-              <TableCell>Last edited by</TableCell>
               <TableCell align="right" />
             </TableRow>
           </TableHead>
           <TableBody>
             {groups.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={3}>
                   <Typography variant="body2" color="text.secondary">
                     No distribution groups yet.
                   </Typography>
@@ -178,19 +171,13 @@ const DistributionGroupsAdmin = () => {
               <TableRow key={group.id}>
                 <TableCell>{group.name}</TableCell>
                 <TableCell>{group.emails.length}</TableCell>
-                <TableCell>{group.created_by}</TableCell>
-                <TableCell>{group.updated_by ?? '—'}</TableCell>
                 <TableCell align="right">
-                  {isForecaster && (
-                    <>
-                      <IconButton size="small" onClick={() => openEdit(group)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => setConfirmDeleteGroup(group)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </>
-                  )}
+                  <IconButton size="small" onClick={() => openEdit(group)}>
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => setConfirmDeleteGroup(group)}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

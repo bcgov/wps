@@ -208,9 +208,13 @@ async def get_active_subscribers_for_spot(
     return list(result.scalars().all())
 
 
-async def get_distribution_groups(session: AsyncSession) -> list[SmurfiDistributionGroup]:
+async def get_distribution_groups(
+    session: AsyncSession, owner_idir: str
+) -> list[SmurfiDistributionGroup]:
     result = await session.execute(
-        select(SmurfiDistributionGroup).order_by(SmurfiDistributionGroup.name)
+        select(SmurfiDistributionGroup)
+        .where(SmurfiDistributionGroup.owner_idir == owner_idir)
+        .order_by(SmurfiDistributionGroup.name)
     )
     return list(result.scalars().all())
 
@@ -233,23 +237,28 @@ async def create_distribution_group(
 
 
 async def update_distribution_group(
-    session: AsyncSession, group_id: int, name: str, emails: list[str], updated_by: str
+    session: AsyncSession, group_id: int, name: str, emails: list[str], owner_idir: str
 ) -> SmurfiDistributionGroup | None:
     result = await session.execute(
-        select(SmurfiDistributionGroup).where(SmurfiDistributionGroup.id == group_id)
+        select(SmurfiDistributionGroup).where(
+            SmurfiDistributionGroup.id == group_id,
+            SmurfiDistributionGroup.owner_idir == owner_idir,
+        )
     )
     group = result.scalar_one_or_none()
     if group is not None:
         group.name = name
         group.emails = emails
-        group.updated_by = updated_by
         await session.flush()
     return group
 
 
-async def delete_distribution_group(session: AsyncSession, group_id: int) -> bool:
+async def delete_distribution_group(session: AsyncSession, group_id: int, owner_idir: str) -> bool:
     result = await session.execute(
-        select(SmurfiDistributionGroup).where(SmurfiDistributionGroup.id == group_id)
+        select(SmurfiDistributionGroup).where(
+            SmurfiDistributionGroup.id == group_id,
+            SmurfiDistributionGroup.owner_idir == owner_idir,
+        )
     )
     group = result.scalar_one_or_none()
     if group is None:

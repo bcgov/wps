@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from geoalchemy2.shape import to_shape
-from wps_shared.auth import auth_with_forecaster_role_required, authentication_required
+from wps_shared.auth import authentication_required
 from wps_shared.db.crud.smurfi import (
     create_distribution_group,
     create_spot_descriptive_weather,
@@ -428,9 +428,10 @@ async def update_subscriber(data: UpdateSubscriberStatusData):
 
 
 @router.get("/distribution_groups", response_model=list[DistributionGroupOutput])
-async def get_distribution_groups_endpoint():
+async def get_distribution_groups_endpoint(token: Annotated[dict, Depends(authentication_required)]):
+    user = _get_spot_user(token)
     async with get_async_read_session_scope() as session:
-        groups = await get_distribution_groups(session)
+        groups = await get_distribution_groups(session, user.idir)
     return [DistributionGroupOutput.to_schema(g) for g in groups]
 
 
@@ -440,12 +441,10 @@ async def get_distribution_groups_endpoint():
     status_code=status.HTTP_201_CREATED,
 )
 async def create_distribution_group_endpoint(
-    data: DistributionGroupInput, token: Annotated[dict, Depends(auth_with_forecaster_role_required)]
+    data: DistributionGroupInput, token: Annotated[dict, Depends(authentication_required)]
 ):
     user = _get_spot_user(token)
-    group = SmurfiDistributionGroup(
-        name=data.name, emails=data.emails, created_by=user.name or user.idir or user.email
-    )
+    group = SmurfiDistributionGroup(name=data.name, emails=data.emails, owner_idir=user.idir)
     async with get_async_write_session_scope() as session:
         result = await create_distribution_group(session, group)
         return DistributionGroupOutput.to_schema(result)
@@ -455,13 +454,11 @@ async def create_distribution_group_endpoint(
 async def update_distribution_group_endpoint(
     group_id: int,
     data: DistributionGroupInput,
-    token: Annotated[dict, Depends(auth_with_forecaster_role_required)],
+    token: Annotated[dict, Depends(authentication_required)],
 ):
     user = _get_spot_user(token)
     async with get_async_write_session_scope() as session:
-        result = await update_distribution_group(
-            session, group_id, data.name, data.emails, user.name or user.idir or user.email
-        )
+        result = await update_distribution_group(session, group_id, data.name, data.emails, user.idir)
         if result is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -472,10 +469,11 @@ async def update_distribution_group_endpoint(
 
 @router.delete("/distribution_groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_distribution_group_endpoint(
-    group_id: int, token: Annotated[dict, Depends(auth_with_forecaster_role_required)]
+    group_id: int, token: Annotated[dict, Depends(authentication_required)]
 ):
+    user = _get_spot_user(token)
     async with get_async_write_session_scope() as session:
-        found = await delete_distribution_group(session, group_id)
+        found = await delete_distribution_group(session, group_id, user.idir)
     if not found:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

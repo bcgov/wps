@@ -120,8 +120,7 @@ class SmurfiDistributionGroup(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
     emails = Column(ARRAY(String), nullable=False, default=list)
-    created_by = Column(String, nullable=False)
-    updated_by = Column(String, nullable=True)
+    owner_idir = Column(String, nullable=False)
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
     updated_at = Column(
         TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now, default=time_utils.get_utc_now

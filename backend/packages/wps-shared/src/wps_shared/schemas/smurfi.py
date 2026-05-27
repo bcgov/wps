@@ -20,18 +20,10 @@ class DistributionGroupInput(BaseModel):
 
 class DistributionGroupOutput(DistributionGroupInput):
     id: int
-    created_by: str
-    updated_by: str | None = None
 
     @classmethod
     def to_schema(cls, group: SmurfiDistributionGroup) -> DistributionGroupOutput:
-        return cls(
-            id=group.id,
-            name=group.name,
-            emails=group.emails,
-            created_by=group.created_by,
-            updated_by=group.updated_by,
-        )
+        return cls(id=group.id, name=group.name, emails=group.emails)
 
 
 class SpotSubscriberData(BaseModel):
