@@ -160,7 +160,7 @@ def upgrade():
         unique=False,
     )
 
-    op.drop_constraint("chk_aspect_spot_request", "spot_request_base", type_="check")
+    op.execute("ALTER TABLE spot_request_base DROP CONSTRAINT IF EXISTS chk_aspect_spot_request")
     op.drop_column("spot_request_base", "geom")
     op.drop_column("spot_request_base", "geographic_description")
     op.drop_column("spot_request_base", "elevation")
