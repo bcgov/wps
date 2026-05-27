@@ -462,12 +462,12 @@ async def update_distribution_group_endpoint(
         result = await update_distribution_group(
             session, group_id, data.name, data.emails, user.name or user.idir or user.email
         )
-    if result is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Distribution group {group_id} not found",
-        )
-    return DistributionGroupOutput.to_schema(result)
+        if result is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Distribution group {group_id} not found",
+            )
+        return DistributionGroupOutput.to_schema(result)
 
 
 @router.delete("/distribution_groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
