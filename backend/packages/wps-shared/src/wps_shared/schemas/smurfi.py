@@ -100,6 +100,7 @@ class SpotTabularWeatherData(SpotTabularWeatherInput):
 class SpotForecastInput(BaseModel):
     spot_request_base_id: int
     spot_request_instance: SpotRequestInstanceInput
+    forecast_type: str = "Full"
     issued_at: datetime
     expires_at: datetime | None = None
     synopsis: str | None = None

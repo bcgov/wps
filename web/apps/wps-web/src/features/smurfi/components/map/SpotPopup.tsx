@@ -23,7 +23,7 @@ interface SpotPopupProps {
   canSubmitForecast: boolean
   onOpenRequest: (spotId: number) => void
   onOpenForecast: (spotId: number) => void
-  onSubmitForecast: (spotRequest: SpotRequestOutput) => void
+  onSubmitForecast: (spotId: number) => void
 }
 
 const SpotPopup: React.FC<SpotPopupProps> = ({
@@ -60,7 +60,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
   const handleSubmitForecastClick = (event: React.MouseEvent) => {
     event.stopPropagation()
     event.preventDefault()
-    onSubmitForecast(spotRequest)
+    onSubmitForecast(spotId)
   }
 
   return (

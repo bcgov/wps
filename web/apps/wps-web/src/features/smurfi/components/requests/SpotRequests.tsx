@@ -17,7 +17,7 @@ import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon'
 import { DateRangePicker } from '@mui/x-date-pickers-pro/DateRangePicker'
 import { SingleInputDateRangeField } from '@mui/x-date-pickers-pro/SingleInputDateRangeField'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
-import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
+import { SMURFI_NEW_REQUEST_ROUTE } from '@wps/utils/constants'
 import { DateTime } from 'luxon'
 import React, { useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -62,7 +62,7 @@ const SpotRequests: React.FC = () => {
         flexDirection: 'column'
       }}
     >
-      <Button variant="contained" onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/new`)} sx={{ maxWidth: '200px' }}>
+      <Button variant="contained" onClick={() => navigate(SMURFI_NEW_REQUEST_ROUTE)} sx={{ maxWidth: '200px' }}>
         Request a Spot Forecast
       </Button>
       <Box sx={{ pb: 2, mt: 2, display: 'flex', gap: 2, alignItems: 'center' }}>

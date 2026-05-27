@@ -46,8 +46,8 @@ interface SpotRequestFormProps {
 }
 
 const forecastTypeOptions: Record<SpotRequestFormValues['forecastType'], string> = {
-  MINI_SPOT: 'Mini SPOT - Use for smaller requests where less detail is sufficient.',
-  FULL_SPOT: 'Full SPOT - Use for requests where more detail is required.'
+  Mini: 'Mini SPOT - Use for smaller requests where less detail is sufficient.',
+  Full: 'Full SPOT - Use for requests where more detail is required.'
 }
 
 const getEmailErrorMessage = (errors: FieldErrors<SpotRequestFormValues>) => {
@@ -127,7 +127,7 @@ const defaultValues: SpotRequestFormValues = {
   fireCentreId: 0,
   forecastStartDate: DateTime.now().setZone('America/Vancouver'),
   forecastEndDate: DateTime.now().setZone('America/Vancouver').plus({ days: 5 }),
-  forecastType: 'MINI_SPOT',
+  forecastType: 'Mini',
   emailDistributionList: [],
   requestedFrequency: [],
   location: null,

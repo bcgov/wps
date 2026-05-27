@@ -10,7 +10,7 @@ import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import { AppDispatch } from '@/app/store'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
-import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
+import { getSmurfiForecastsRoute } from '@wps/utils/constants'
 
 const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <Box>
@@ -93,11 +93,7 @@ const SpotRequest = () => {
               <Button variant="outlined" size="small" onClick={() => dispatch(toggleSpotSubscription(spotRequest.id))}>
                 {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
               </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequest.id}/forecasts`)}
-              >
+              <Button variant="outlined" size="small" onClick={() => navigate(getSmurfiForecastsRoute(spotRequest.id))}>
                 View Forecasts
               </Button>
               {(isOwner || isForecaster) && (

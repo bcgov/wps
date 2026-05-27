@@ -15,6 +15,8 @@ export enum SpotRequestStatus {
   ARCHIVED = 'Archived'
 }
 
+export type SpotForecastType = 'Mini' | 'Full'
+
 export interface SpotAdminRow {
   id: number
   spot_id: number
@@ -49,6 +51,7 @@ interface SpotTabularWeatherInput {
 export interface SpotForecastInput {
   spot_request_base_id: number
   spot_request_instance: SpotRequestInstanceInput
+  forecast_type: SpotForecastType
   issued_at: string
   expires_at?: string | null
   synopsis?: string
@@ -108,7 +111,11 @@ const toForecastTimeISO = (dateTime: string) => {
   return parsedDateTime.isValid ? parsedDateTime.toISO()! : dateTime
 }
 
-const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestId: number): SpotForecastInput => {
+const marshalFormDataToSpotForecastInput = (
+  formData: SpotFormData,
+  spotRequestId: number,
+  forecastType: SpotForecastType
+): SpotForecastInput => {
   const descriptiveWeather: SpotForecastInput['descriptive_weather'] = [
     formData.afternoonForecast
       ? {
@@ -138,6 +145,7 @@ const marshalFormDataToSpotForecastInput = (formData: SpotFormData, spotRequestI
 
   return {
     spot_request_base_id: spotRequestId,
+    forecast_type: forecastType,
     spot_request_instance: {
       geographic_description: formData.geographicDescription,
       aspect: formData.slopeAspect,
@@ -239,11 +247,6 @@ export interface SpotRequestsResponse {
   spot_requests: SpotRequestOutput[]
 }
 
-export const spotRequestTypeMap: Record<SpotRequestFormData['forecastType'], string> = {
-  MINI_SPOT: 'Mini',
-  FULL_SPOT: 'Full'
-}
-
 const createSpotRequestReference = () => `WPS-${new Date().toISOString()}`
 
 const toStartOfDayISO = (dateTime: SpotRequestFormData['forecastStartDate']) => dateTime.startOf('day').toISO()!
@@ -259,7 +262,7 @@ const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotR
     fire_centre: formData.fireCentreId,
     status: SpotRequestStatus.REQUESTED,
     request_frequency: formData.requestedFrequency,
-    request_type: spotRequestTypeMap[formData.forecastType],
+    request_type: formData.forecastType,
     additional_information: formData.additionalInformation || undefined,
     initial_instance: {
       geographic_description: formData.geographicDescription,
@@ -282,9 +285,10 @@ const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotR
 
 export const postSpotForecast = async (
   formData: SpotFormData,
-  spotRequestId: number
+  spotRequestId: number,
+  forecastType: SpotForecastType
 ): Promise<SpotForecastResponse> => {
-  const spotForecastInput = marshalFormDataToSpotForecastInput(formData, spotRequestId)
+  const spotForecastInput = marshalFormDataToSpotForecastInput(formData, spotRequestId, forecastType)
   const url = '/smurfi/spot_forecast'
   const { data } = await axios.post(url, spotForecastInput)
   return data

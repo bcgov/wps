@@ -12,7 +12,13 @@ import { Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
 import SpotPopup from './SpotPopup'
 import { FeatureLike } from 'ol/Feature'
-import { BC_EXTENT, CENTER_OF_BC, SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
+import {
+  BC_EXTENT,
+  CENTER_OF_BC,
+  getSmurfiForecastsRoute,
+  getSmurfiNewForecastRoute,
+  getSmurfiRequestRoute
+} from '@wps/utils/constants'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
@@ -29,6 +35,7 @@ import {
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import { formatFireNumbers } from '@/features/smurfi/utils/spotForecastUtils'
 
 export interface SelectedCoordinates {
   latitude: number
@@ -76,7 +83,6 @@ const STATUS_FILTER_OPTIONS = [
 
 // Tolerance for coordinate matching (in degrees)
 const COORDINATE_TOLERANCE = 0.0001
-const formatFireNumbers = (fireNumbers: string[] | null | undefined) => fireNumbers?.join(', ') ?? ''
 
 const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature => ({
   lon: spotRequest.current_instance.longitude,
@@ -132,15 +138,15 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
 
   // handlers
   const handleOpenRequest = (spotRequestId: number) => {
-    navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}`)
+    navigate(getSmurfiRequestRoute(spotRequestId))
   }
 
   const handleOpenForecasts = (spotRequestId: number) => {
-    navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`)
+    navigate(getSmurfiForecastsRoute(spotRequestId))
   }
 
-  const handleSubmitForecast = (spotRequest: SpotRequestOutput) => {
-    navigate(`${SMURFI_DASHBOARD_ROUTE}/${spotRequest.id}/forecasts/new`)
+  const handleSubmitForecast = (spotRequestId: number) => {
+    navigate(getSmurfiNewForecastRoute(spotRequestId))
   }
 
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
@@ -337,8 +343,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     if (popupData?.type !== 'spot') return
     const statusFiltered = !selectedStatuses.includes(popupData.status)
     const fireNumberFiltered =
-      selectedFireNumbers.length > 0 &&
-      !popupData.spotRequest.fire_number?.some(fn => selectedFireNumbers.includes(fn))
+      selectedFireNumbers.length > 0 && !popupData.spotRequest.fire_number?.some(fn => selectedFireNumbers.includes(fn))
     if (statusFiltered || fireNumberFiltered) {
       setPopupData(null)
     }

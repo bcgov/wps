@@ -57,6 +57,20 @@ export const SMURFI_DASHBOARD_ROUTE = `${SMURFI_ROUTE}/requests`
 export const SMURFI_FORECASTS_ROUTE = `${SMURFI_ROUTE}/forecasts`
 export const SMURFI_MAP_ROUTE = `${SMURFI_ROUTE}/map`
 export const SMURFI_MANAGEMENT_ROUTE = `${SMURFI_ROUTE}/management`
+export const SMURFI_NEW_REQUEST_ROUTE = `${SMURFI_DASHBOARD_ROUTE}/new`
+
+// SMURFI route getters
+export const getSmurfiRequestRoute = (spotRequestId: number | string) => `${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}`
+export const getSmurfiForecastsRoute = (spotRequestId: number | string) =>
+  `${getSmurfiRequestRoute(spotRequestId)}/forecasts`
+export const getSmurfiNewForecastRoute = (spotRequestId: number | string) =>
+  `${getSmurfiForecastsRoute(spotRequestId)}/new`
+export const getSmurfiForecastRoute = (spotRequestId: number | string, forecastId: number | string) =>
+  `${getSmurfiForecastsRoute(spotRequestId)}/${forecastId}`
+export const getSmurfiForecastPrintRoute = (spotRequestId: number | string, forecastId: number | string) =>
+  `${getSmurfiForecastRoute(spotRequestId, forecastId)}/print`
+export const getSmurfiEditForecastRoute = (spotRequestId: number | string, forecastId: number | string) =>
+  `${getSmurfiForecastRoute(spotRequestId, forecastId)}/edit`
 
 // UI constants
 export const HEADER_HEIGHT = 56
