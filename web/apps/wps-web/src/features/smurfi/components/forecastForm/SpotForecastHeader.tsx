@@ -6,11 +6,13 @@ import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import ControlledForecastTextField from '@/features/smurfi/components/forecastForm/ControlledForecastTextField'
 import ControlledForecastDateTimePicker from '@/features/smurfi/components/forecastForm/ControlledForecastDateTimePicker'
 import SpotRequestLocationMap from '@/features/smurfi/components/requestForm/SpotRequestLocationMap'
+import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 
 interface SpotForecastHeaderProps {
   control: Control<SpotFormData>
   errors: FieldErrors<SpotFormData>
   fireNumbers: string[] | null | undefined
+  spotRequest: SpotRequestOutput
   setValue: UseFormSetValue<SpotFormData>
 }
 
@@ -25,7 +27,13 @@ const getFireSizeErrorMessage = (errors: FieldErrors<SpotFormData>, index: numbe
   return Array.isArray(fireSizesError) ? fireSizesError[index]?.message : undefined
 }
 
-const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors, fireNumbers, setValue }) => {
+const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({
+  control,
+  errors,
+  fireNumbers,
+  spotRequest,
+  setValue
+}) => {
   const latitude = useWatch({ control, name: 'latitude' })
   const longitude = useWatch({ control, name: 'longitude' })
   const selectedLocation = toNumericLocation(latitude, longitude)
@@ -101,7 +109,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({ control, errors
             <Grid size={12}>
               <SpotRequestLocationMap
                 value={selectedLocation}
-                existingSpotRequests={[]}
+                existingSpotRequests={[spotRequest]}
                 onChange={location => {
                   if (!location) {
                     return

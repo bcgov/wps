@@ -1,19 +1,32 @@
-import { selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
+import { AppDispatch } from '@/app/store'
+import { fetchSpotForecasts, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import SpotForecastForm from '@/features/smurfi/components/forecastForm/SpotForecastForm'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
+import { getMostRecentForecast } from '@/features/smurfi/utils/spotForecastUtils'
 import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 import { SMURFI_DASHBOARD_ROUTE } from '@wps/utils/constants'
-import { useSelector } from 'react-redux'
+import { useEffect, useMemo } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 
 const SpotForecastFormPage = () => {
+  const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
   const { id } = useParams()
   const spotRequestId = Number(id)
-  const { spotRequests, spotRequestsLoading, spotRequestsError } = useSelector(selectSmurfi)
+  const { spotRequests, spotRequestsLoading, spotRequestsError, spotForecastsByRequestId, spotForecastsError } =
+    useSelector(selectSmurfi)
   const spotRequest = spotRequests.find(request => request.id === spotRequestId)
   const { isForecaster } = useSpotPermissions(spotRequest)
   const forecastsRoute = `${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}/forecasts`
+  const spotForecasts = spotForecastsByRequestId[spotRequestId]
+  const previousForecast = useMemo(() => getMostRecentForecast(spotForecasts ?? []), [spotForecasts])
+
+  useEffect(() => {
+    if (Number.isFinite(spotRequestId) && spotForecastsByRequestId[spotRequestId] === undefined) {
+      dispatch(fetchSpotForecasts(spotRequestId))
+    }
+  }, [dispatch, spotForecastsByRequestId, spotRequestId])
 
   if (spotRequestsLoading) {
     return <CircularProgress aria-label="Loading spot request" />
@@ -25,6 +38,10 @@ const SpotForecastFormPage = () => {
 
   if (!Number.isFinite(spotRequestId) || !spotRequest) {
     return <Alert severity="warning">Spot request not found.</Alert>
+  }
+
+  if (spotForecasts === undefined && !spotForecastsError) {
+    return <CircularProgress aria-label="Loading previous spot forecasts" />
   }
 
   if (!isForecaster) {
@@ -44,7 +61,11 @@ const SpotForecastFormPage = () => {
           View Forecasts
         </Button>
       </Box>
-      <SpotForecastForm spotRequest={spotRequest} onSubmitSuccess={() => navigate(forecastsRoute)} />
+      <SpotForecastForm
+        spotRequest={spotRequest}
+        previousForecast={previousForecast}
+        onSubmitSuccess={() => navigate(forecastsRoute)}
+      />
     </Box>
   )
 }

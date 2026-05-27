@@ -10,7 +10,7 @@ import SpotForecastSynopsis from '@/features/smurfi/components/forecastForm/Spot
 import WeatherDataTable from '@/features/smurfi/components/forecastForm/WeatherDataTable'
 import SpotForecastSummaries from '@/features/smurfi/components/forecastForm/SpotForecastSummaries'
 import SpotForecastSections from '@/features/smurfi/components/forecastForm/SpotForecastSections'
-import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
+import { SpotForecastOutput, SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { fetchCurrentFireSizesByFireNumbers } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
@@ -25,10 +25,11 @@ const getEmptyFireSizes = (fireNumbers: string[] | null | undefined) => fireNumb
 
 interface SpotForecastFormProps {
   spotRequest: SpotRequestOutput
+  previousForecast?: SpotForecastOutput
   onSubmitSuccess?: () => void
 }
 
-const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubmitSuccess }) => {
+const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, previousForecast, onSubmitSuccess }) => {
   const dispatch: AppDispatch = useDispatch()
   const { spotForecastSubmitting, spotForecastSubmitError } = useSelector(selectSmurfi)
   const [isMini, setIsMini] = useState(false)
@@ -43,6 +44,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
       ...baseDefaults,
       fireProj: formatFireNumbers(spotRequest.fire_number),
       requestBy: spotRequest.requestor_name,
+      stns: previousForecast?.representative_station_codes ?? baseDefaults.stns,
       latitude: toFormString(requestInstance.latitude.toFixed(4)),
       longitude: toFormString(requestInstance.longitude.toFixed(4)),
       geographicDescription: requestInstance.geographic_description,
@@ -52,7 +54,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
       fireSizes: getEmptyFireSizes(spotRequest.fire_number),
       weatherData: defaultWeatherRows
     }
-  }, [spotRequest])
+  }, [previousForecast, spotRequest])
 
   const {
     control,
@@ -148,6 +150,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({ spotRequest, onSubm
             control={control}
             errors={errors}
             fireNumbers={spotRequest.fire_number}
+            spotRequest={spotRequest}
             setValue={setValue}
           />
           <SpotForecastSynopsis control={control} errors={errors} />
