@@ -13,7 +13,10 @@ import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import { source as baseMapSource } from '@/features/fireWeather/components/maps/constants'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
-import { createCurrentFirePolygonsLayer } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+import {
+  createCurrentFirePointsLayer,
+  createCurrentFirePolygonsLayer
+} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
 
@@ -53,6 +56,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
   const featureSourceRef = useRef(new VectorSource<Feature<Point>>())
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
   const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
+  const currentFirePointsLayerRef = useRef<ReturnType<typeof createCurrentFirePointsLayer> | null>(null)
   const onChangeRef = useRef(onChange)
 
   // state
@@ -95,7 +99,9 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
       zIndex: 40
     })
     const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
+    const currentFirePointsLayer = createCurrentFirePointsLayer()
     currentFirePolygonsLayerRef.current = currentFirePolygonsLayer
+    currentFirePointsLayerRef.current = currentFirePointsLayer
 
     const mapObject = new Map({
       target: mapRef.current,
@@ -104,6 +110,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
           source: baseMapSource
         }),
         currentFirePolygonsLayer,
+        currentFirePointsLayer,
         existingSpotsLayer,
         featureLayer
       ],
@@ -125,12 +132,14 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
 
     return () => {
       currentFirePolygonsLayerRef.current = null
+      currentFirePointsLayerRef.current = null
       mapObject.setTarget('')
     }
   }, [])
 
   useEffect(() => {
     currentFirePolygonsLayerRef.current?.setVisible(currentFiresVisible)
+    currentFirePointsLayerRef.current?.setVisible(currentFiresVisible)
   }, [currentFiresVisible])
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { Autocomplete, Box, Checkbox, FormControlLabel, FormGroup, Paper, TextField, Typography } from '@mui/material'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import { CURRENT_FIRE_STATUS_COLORS } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 
 interface SpotMapLayerSwitcherProps {
   statusOptions: SpotRequestStatus[]
@@ -80,6 +81,22 @@ const SpotMapLayerSwitcher = ({
           </Box>
         }
       />
+      {currentFiresVisible &&
+        Object.entries(CURRENT_FIRE_STATUS_COLORS).map(([status, color]) => (
+          <Box key={status} sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 4, mb: 0.5 }}>
+            <Box
+              sx={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                backgroundColor: color,
+                border: '1px solid #FFFFFF',
+                boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.35)'
+              }}
+            />
+            <Typography variant="caption">{status}</Typography>
+          </Box>
+        ))}
     </FormGroup>
     <Typography variant="subtitle2" sx={{ mt: 1.5, mb: 1, fontWeight: 'bold' }}>
       Status

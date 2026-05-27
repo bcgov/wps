@@ -16,11 +16,14 @@ import 'ol/ol.css'
 import { useEffect, useRef, useState } from 'react'
 import {
   CurrentFirePolygonAttributes,
+  createCurrentFirePointsLayer,
   createCurrentFirePolygonsLayer,
+  getCurrentFirePointAttributes,
   getCurrentFirePolygonAttributes
 } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import { panMapToFitElement } from '@/features/smurfi/components/map/mapPopupUtils'
 
 interface SmurfiRequestsMapProps {
   spotRequest: SpotRequestOutput
@@ -37,6 +40,7 @@ const getMarkerStyle = (status: SpotRequestStatus) =>
 const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
+  const mapObjectRef = useRef<Map | null>(null)
   const [firePopupAttributes, setFirePopupAttributes] = useState<CurrentFirePolygonAttributes | null>(null)
   const spotInstance = spotRequestInstance ?? spotRequest.current_instance
 
@@ -53,10 +57,11 @@ const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsM
       zIndex: 50
     })
     const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
+    const currentFirePointsLayer = createCurrentFirePointsLayer()
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [currentFirePolygonsLayer, vectorLayer],
+      layers: [currentFirePolygonsLayer, currentFirePointsLayer, vectorLayer],
       view: new View({
         center: coord,
         zoom: 10
@@ -67,17 +72,21 @@ const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsM
       element: popupRef.current!,
       positioning: 'bottom-center',
       stopEvent: true,
-      offset: [0, -10],
-      autoPan: {
-        margin: 24,
-        animation: {
-          duration: 250
-        }
-      }
+      offset: [0, -10]
     })
     mapObject.addOverlay(overlay)
+    mapObjectRef.current = mapObject
 
     mapObject.on('click', event => {
+      const firePointFeature = mapObject.forEachFeatureAtPixel(event.pixel, (feature, layer) =>
+        layer === currentFirePointsLayer ? feature : undefined
+      )
+      if (firePointFeature) {
+        overlay.setPosition(event.coordinate)
+        setFirePopupAttributes(getCurrentFirePointAttributes(firePointFeature))
+        return
+      }
+
       const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (feature, layer) =>
         layer === currentFirePolygonsLayer ? feature : undefined
       )
@@ -102,9 +111,16 @@ const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsM
     loadBaseMap()
 
     return () => {
+      mapObjectRef.current = null
       mapObject.setTarget('')
     }
   }, [spotInstance.latitude, spotInstance.longitude, spotRequest.status])
+
+  useEffect(() => {
+    if (mapObjectRef.current && firePopupAttributes) {
+      panMapToFitElement(mapObjectRef.current, popupRef.current)
+    }
+  }, [firePopupAttributes])
 
   return (
     <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 300 }}>

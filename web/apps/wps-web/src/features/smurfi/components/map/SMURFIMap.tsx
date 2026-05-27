@@ -29,13 +29,16 @@ import { useNavigate } from 'react-router-dom'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import {
   CurrentFirePolygonAttributes,
+  createCurrentFirePointsLayer,
   createCurrentFirePolygonsLayer,
+  getCurrentFirePointAttributes,
   getCurrentFirePolygonAttributes
 } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import { formatFireNumbers } from '@/features/smurfi/utils/spotForecastUtils'
+import { panMapToFitElement } from '@/features/smurfi/components/map/mapPopupUtils'
 
 export interface SelectedCoordinates {
   latitude: number
@@ -118,6 +121,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const popupRef = useRef<HTMLDivElement | null>(null)
   const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
   const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
+  const currentFirePointsLayerRef = useRef<ReturnType<typeof createCurrentFirePointsLayer> | null>(null)
 
   // derived values
   const mapSpotRequests = propSpotRequests ?? spotRequests
@@ -219,12 +223,14 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       zIndex: 50
     })
     const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
+    const currentFirePointsLayer = createCurrentFirePointsLayer()
     featureLayerRef.current = featureLayer
     currentFirePolygonsLayerRef.current = currentFirePolygonsLayer
+    currentFirePointsLayerRef.current = currentFirePointsLayer
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [currentFirePolygonsLayer, featureLayer],
+      layers: [currentFirePolygonsLayer, currentFirePointsLayer, featureLayer],
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
@@ -237,13 +243,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       element: popupRef.current!,
       positioning: 'bottom-center',
       stopEvent: true,
-      offset: [0, -10],
-      autoPan: {
-        margin: 24,
-        animation: {
-          duration: 250
-        }
-      }
+      offset: [0, -10]
     })
     mapObject.addOverlay(overlay)
 
@@ -271,6 +271,20 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       }
 
       if (currentFirePolygonsLayer.getVisible()) {
+        const firePointFeature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
+          layer === currentFirePointsLayer ? f : undefined
+        )
+        if (firePointFeature) {
+          overlay.setPosition(event.coordinate)
+          setPopupData({
+            type: 'fire',
+            open: true,
+            position: event.coordinate,
+            attributes: getCurrentFirePointAttributes(firePointFeature)
+          })
+          return
+        }
+
         const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
           layer === currentFirePolygonsLayer ? f : undefined
         )
@@ -301,12 +315,14 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
 
     return () => {
       currentFirePolygonsLayerRef.current = null
+      currentFirePointsLayerRef.current = null
       mapObject.setTarget('')
     }
   }, [])
 
   useEffect(() => {
     currentFirePolygonsLayerRef.current?.setVisible(currentFiresVisible)
+    currentFirePointsLayerRef.current?.setVisible(currentFiresVisible)
   }, [currentFiresVisible])
 
   useEffect(() => {
@@ -314,6 +330,12 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       setPopupData(current => (current?.type === 'fire' ? null : current))
     }
   }, [currentFiresVisible])
+
+  useEffect(() => {
+    if (map && popupData?.open) {
+      panMapToFitElement(map, popupRef.current)
+    }
+  }, [map, popupData])
 
   useEffect(() => {
     const featureSource = featureLayerRef.current?.getSource()
