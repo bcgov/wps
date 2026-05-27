@@ -45,6 +45,7 @@ const DistributionGroupsAdmin = () => {
   const [emailInput, setEmailInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [confirmDeleteGroup, setConfirmDeleteGroup] = useState<DistributionGroup | null>(null)
 
   const loadGroups = () => getDistributionGroups().then(setGroups).catch(() => setGroups([]))
 
@@ -129,13 +130,15 @@ const DistributionGroupsAdmin = () => {
     }
   }
 
-  const handleDelete = async (group: DistributionGroup) => {
-    if (!window.confirm(`Delete "${group.name}"?`)) return
+  const handleDeleteConfirmed = async () => {
+    if (!confirmDeleteGroup) return
     try {
-      await deleteDistributionGroup(group.id)
+      await deleteDistributionGroup(confirmDeleteGroup.id)
       await loadGroups()
     } catch {
       // ignore
+    } finally {
+      setConfirmDeleteGroup(null)
     }
   }
 
@@ -183,7 +186,7 @@ const DistributionGroupsAdmin = () => {
                       <IconButton size="small" onClick={() => openEdit(group)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" onClick={() => handleDelete(group)}>
+                      <IconButton size="small" onClick={() => setConfirmDeleteGroup(group)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </>
@@ -260,6 +263,21 @@ const DistributionGroupsAdmin = () => {
           <Button onClick={handleClose}>Cancel</Button>
           <Button variant="contained" onClick={handleSave} disabled={saving}>
             {saving ? 'Saving…' : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!confirmDeleteGroup} onClose={() => setConfirmDeleteGroup(null)}>
+        <DialogTitle>Delete Distribution Group</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete &ldquo;{confirmDeleteGroup?.name}&rdquo;? This cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDeleteGroup(null)}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleDeleteConfirmed}>
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
