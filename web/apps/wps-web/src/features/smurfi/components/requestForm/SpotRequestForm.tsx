@@ -219,7 +219,9 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
         <Grid size={12}>
           <Alert severity="info">
             Forecasts are scheduled based on forecaster capacity. Your forecast may not start on the requested date;
-            requests submitted for today will usually begin with tomorrow&apos;s forecast.
+            requests submitted for today will usually begin with tomorrow&apos;s forecast. If urgent, call your
+            forecaster directly for critical weather information while you wait for your first scheduled spot forecast
+            from SMURFI.
           </Alert>
         </Grid>
 
