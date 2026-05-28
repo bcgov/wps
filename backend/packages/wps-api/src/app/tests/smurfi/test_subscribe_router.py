@@ -5,8 +5,13 @@ from unittest.mock import ANY, AsyncMock, patch
 
 import app.main
 import pytest
+from app.routers.smurfi import (
+    SpotRequestor,
+    _get_spot_request_subscriber_emails,
+)
 from app.smurfi.nats_config import smurfi_spot_update_subject, stream_name, subjects
 from fastapi.testclient import TestClient
+from wps_shared.schemas.smurfi import SpotRequestInput, SpotRequestInstanceInput, SpotSubscriberData
 
 DB_READ = "app.routers.smurfi.get_async_read_session_scope"
 DB_WRITE = "app.routers.smurfi.get_async_write_session_scope"
@@ -35,6 +40,46 @@ def _make_spot_request_instance(instance_id: int = 3):
             "longitude": -123.5,
         },
     )()
+
+
+def _make_spot_request_input(subscribers: list[SpotSubscriberData]):
+    return SpotRequestInput(
+        request_reference="WPS-test",
+        fire_number=["V12345"],
+        fire_centre=1,
+        initial_instance=SpotRequestInstanceInput(
+            geographic_description="Clearwater Valley",
+            latitude=48.5,
+            longitude=-123.5,
+        ),
+        requested_at=datetime(2026, 5, 21, tzinfo=timezone.utc),
+        start_at=datetime(2026, 5, 22, tzinfo=timezone.utc),
+        end_at=datetime(2026, 5, 24, tzinfo=timezone.utc),
+        subscribers=subscribers,
+    )
+
+
+def test_spot_request_subscriber_emails_include_requestor_once():
+    requestor = SpotRequestor(name="Test User", idir="test_username", email="test@email.com")
+
+    assert _get_spot_request_subscriber_emails(
+        _make_spot_request_input([SpotSubscriberData(email="owner@example.com")]), requestor
+    ) == [
+        "owner@example.com",
+        "test@email.com",
+    ]
+
+    spot_request_input = _make_spot_request_input(
+        [
+            SpotSubscriberData(email="owner@example.com"),
+            SpotSubscriberData(email="TEST@EMAIL.COM"),
+        ]
+    )
+
+    assert _get_spot_request_subscriber_emails(spot_request_input, requestor) == [
+        "owner@example.com",
+        "TEST@EMAIL.COM",
+    ]
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
