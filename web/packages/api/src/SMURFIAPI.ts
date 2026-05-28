@@ -309,6 +309,15 @@ export const postSpotRequest = async (formData: SpotRequestFormData, spotRequest
   return data
 }
 
+export const patchSpotRequestStatus = async (
+  spotRequestId: number,
+  status: SpotRequestStatus
+): Promise<SpotRequestResponse> => {
+  const url = `/smurfi/spot_requests/${spotRequestId}/status`
+  const { data } = await axios.patch(url, { status })
+  return data
+}
+
 export async function getSpotPDF(spotId: number): Promise<Blob> {
   const url = `/smurfi/pdf/${spotId}`
   const response = await axios.get(url, { responseType: 'blob' })

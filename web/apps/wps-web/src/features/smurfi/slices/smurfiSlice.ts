@@ -7,11 +7,13 @@ import {
   getDistributionGroups,
   getSpotForecasts,
   getSpotRequests,
+  patchSpotRequestStatus,
   postSpotForecast,
   postSpotRequest,
   SpotForecastType,
   SpotForecastOutput,
-  SpotRequestOutput
+  SpotRequestOutput,
+  SpotRequestStatus
 } from '@wps/api/SMURFIAPI'
 import { AppThunk } from 'app/store'
 
@@ -26,6 +28,7 @@ export interface SmurfiState {
   spotForecastsLoading: boolean
   spotRequestSubmitting: boolean
   spotRequestSubmitError: string | null
+  spotRequestStatusUpdateError: string | null
   spotRequestsError: string | null
   spotRequestsLoading: boolean
   spotRequests: SpotRequestOutput[]
@@ -47,6 +50,7 @@ const initialState: SmurfiState = {
   spotRequestSubmitError: null,
   spotRequestsError: null,
   spotRequestsLoading: false,
+  spotRequestStatusUpdateError: null,
   spotRequests: [],
   distributionGroups: [],
   distributionGroupsLoading: false,
@@ -141,6 +145,19 @@ const smurfiSlice = createSlice({
       state.distributionGroupsLoading = false
       state.distributionGroupsError = null
       state.distributionGroups = action.payload
+    },
+    updateSpotRequestStatusFailed(state: SmurfiState, action: PayloadAction<string>) {
+      state.spotRequestStatusUpdateError = action.payload
+    },
+    updateSpotRequestStatusSuccess(state: SmurfiState, action: PayloadAction<{ spotRequest: SpotRequestOutput }>) {
+      state.spotRequestStatusUpdateError = null
+      const index = state.spotRequests.findIndex(spotRequest => spotRequest.id === action.payload.spotRequest.id)
+      if (index === -1) {
+        state.spotRequests = [action.payload.spotRequest, ...state.spotRequests]
+        return
+      }
+
+      state.spotRequests[index] = action.payload.spotRequest
     }
   }
 })
@@ -162,7 +179,9 @@ export const {
   clearSpotRequestSubmitState,
   getDistributionGroupsStart,
   getDistributionGroupsFailed,
-  getDistributionGroupsSuccess
+  getDistributionGroupsSuccess,
+  updateSpotRequestStatusFailed,
+  updateSpotRequestStatusSuccess
 } = smurfiSlice.actions
 
 export default smurfiSlice.reducer
@@ -219,6 +238,19 @@ export const submitSpotRequest =
       return response.spot_request
     } catch (err) {
       dispatch(submitSpotRequestFailed((err as Error).toString()))
+      return undefined
+    }
+  }
+
+export const updateSpotRequestStatus =
+  (payload: { spotRequestId: number; status: SpotRequestStatus }): AppThunk<Promise<SpotRequestOutput | undefined>> =>
+  async dispatch => {
+    try {
+      const response = await patchSpotRequestStatus(payload.spotRequestId, payload.status)
+      dispatch(updateSpotRequestStatusSuccess({ spotRequest: response.spot_request }))
+      return response.spot_request
+    } catch (err) {
+      dispatch(updateSpotRequestStatusFailed((err as Error).toString()))
       return undefined
     }
   }

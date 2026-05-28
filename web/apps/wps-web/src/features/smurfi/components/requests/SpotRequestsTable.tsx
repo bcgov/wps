@@ -1,5 +1,6 @@
 import { selectFireCentres } from '@/app/rootReducer'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
+import SpotStatusControl from '@/features/smurfi/components/SpotStatusControl'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import {
   formatRequestFrequency,
@@ -56,43 +57,22 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
     {
       field: 'start_at',
       headerName: 'Start Date',
-      width: 150,
+      width: 120,
       renderCell: params => formatSpotRequestDate(params.value) ?? '-'
     },
     {
       field: 'end_at',
       headerName: 'End Date',
-      width: 150,
+      width: 120,
       renderCell: params => formatSpotRequestDate(params.value) ?? '-'
     },
     {
       field: 'status',
       headerName: 'Status',
-      width: 100,
+      width: 150,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
-          <Box
-            sx={{
-              backgroundColor: SpotRequestStatusColorMap[params.value as SpotRequestStatus].bgColor,
-              borderRadius: '4px',
-              alignItems: 'center',
-              justifyContent: 'center',
-              display: 'flex',
-              flexGrow: 1,
-              height: '70%',
-              width: '100%',
-              borderWidth: 1,
-              borderStyle: 'solid',
-              borderColor: SpotRequestStatusColorMap[params.value as SpotRequestStatus].borderColor
-            }}
-          >
-            <Typography
-              variant="body2"
-              sx={{ color: SpotRequestStatusColorMap[params.value as SpotRequestStatus].color }}
-            >
-              {params.value}
-            </Typography>
-          </Box>
+          <SpotStatusControl spotRequest={params.row} fullWidth />
         </Box>
       ),
       sortComparator: (a, b) => {

@@ -137,6 +137,32 @@ async def start_requested_spot_request(session: AsyncSession, spot_request_base_
     await session.flush()
 
 
+async def get_spot_request_by_id(
+    session: AsyncSession, spot_request_base_id: int
+) -> SpotRequestBase | None:
+    result = await session.execute(
+        select(SpotRequestBase)
+        .where(SpotRequestBase.id == spot_request_base_id)
+        .options(
+            selectinload(SpotRequestBase.spot_subscribers),
+            selectinload(SpotRequestBase.spot_request_instances),
+            selectinload(SpotRequestBase.spot_forecasts).selectinload(SpotForecast.tabular_weather),
+            selectinload(SpotRequestBase.spot_forecasts).selectinload(
+                SpotForecast.spot_request_instance
+            ),
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+async def update_spot_request_status(
+    session: AsyncSession, spot_request: SpotRequestBase, status: SpotRequestStatusEnum
+) -> SpotRequestBase:
+    spot_request.status = status.value
+    await session.flush()
+    return spot_request
+
+
 async def update_spot_request(session: AsyncSession, updated: SpotRequestBase):
     result = await session.execute(select(SpotRequestBase).where(SpotRequestBase.id == updated.id))
     existing = result.scalar_one_or_none()

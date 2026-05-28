@@ -16,6 +16,7 @@ from wps_shared.db.crud.smurfi import (
     get_distribution_groups_for_spot,
     get_or_create_spot_request_instance,
     get_spot_forecasts_for_request,
+    get_spot_request_by_id,
     get_spot_requests_for_year,
     get_subscribed_spot_request_ids,
     start_requested_spot_request,
@@ -24,6 +25,7 @@ from wps_shared.db.crud.smurfi import (
     sync_spot_subscribers,
     unsubscribe_from_spot_request,
     update_distribution_group,
+    update_spot_request_status,
     update_spot_subscriber_status,
     upsert_spot_request,
 )
@@ -34,6 +36,7 @@ from wps_shared.db.models.smurfi import (
     SpotForecast,
     SpotRequestBase,
     SpotRequestInstance,
+    SpotRequestStatusEnum,
     SpotSubscriberStatusEnum,
     SpotTabularWeather,
 )
@@ -57,6 +60,7 @@ from wps_shared.schemas.smurfi import (
     SpotRequestInstanceInput,
     SpotRequestListResponse,
     SpotRequestResponse,
+    SpotRequestStatusUpdate,
     SpotSubscriberData,
     SpotTabularWeatherData,
     SpotUpdatePayload,
@@ -76,6 +80,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/smurfi", dependencies=[Depends(authentication_required)])
 
 MISSING_TOKEN_MESSAGE = "Token missing email claim"
+FORECASTER_ROLE = "morecast2_write_forecast"
 
 
 @dataclass(frozen=True)
@@ -114,6 +119,29 @@ def _get_spot_request_subscriber_emails(
             seen.add(normalized_email)
 
     return unique_emails
+
+
+def _is_forecaster(token: dict) -> bool:
+    return FORECASTER_ROLE in (token.get("client_roles", []) or [])
+
+
+def _is_spot_request_owner(token: dict, spot_request: SpotRequestBase) -> bool:
+    idir = token.get("idir_username", None)
+    return bool(idir and spot_request.requestor_idir) and (
+        idir.lower() == spot_request.requestor_idir.lower()
+    )
+
+
+def _can_update_spot_request_status(
+    token: dict, spot_request: SpotRequestBase, next_status: SpotRequestStatusEnum
+) -> bool:
+    if _is_forecaster(token):
+        return True
+
+    if not _is_spot_request_owner(token, spot_request):
+        return False
+
+    return False if next_status == SpotRequestStatusEnum.REQUESTED else True
 
 
 def _get_bc_albers_point(latitude: float, longitude: float) -> str:
@@ -441,6 +469,39 @@ def _spot_forecast_to_schema(spot_forecast: SpotForecast) -> SpotForecastData:
     )
 
 
+@router.patch("/spot_requests/{spot_request_id}/status", response_model=SpotRequestResponse)
+async def update_spot_request_status_endpoint(
+    spot_request_id: int,
+    data: SpotRequestStatusUpdate,
+    token: Annotated[dict, Depends(authentication_required)],
+):
+    try:
+        next_status = SpotRequestStatusEnum(data.status)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid status: {data.status}"
+        )
+
+    async with get_async_write_session_scope() as session:
+        spot_request = await get_spot_request_by_id(session, spot_request_id)
+        if spot_request is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SpotRequestBase {spot_request_id} not found",
+            )
+
+        if not _can_update_spot_request_status(token, spot_request, next_status):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to update this spot request status",
+            )
+
+        updated_spot_request = await update_spot_request_status(session, spot_request, next_status)
+        spot_request_data = _spot_request_to_schema(updated_spot_request)
+
+    return SpotRequestResponse(spot_request=spot_request_data)
+
+
 @router.get(
     "/spot_requests/{spot_request_id}/spot_forecasts",
     response_model=SpotForecastListResponse,
@@ -570,31 +631,6 @@ async def get_spot_requests():
     return SpotRequestListResponse(
         spot_requests=[_spot_request_to_schema(sr) for sr in spot_requests]
     )
-
-
-@router.get("/pdf/{spot_id}")
-async def get_spot_pdf(spot_id: int):
-    """Get the PDF for a spot from S3"""
-    # Generate the expected S3 key for the PDF
-    pdf_key = f"smurfi/{spot_id}.pdf"
-
-    try:
-        # Get the PDF from S3 using stream_object
-        generator, response = await S3Client.stream_object(pdf_key)
-
-        # Read all chunks into bytes
-        pdf_bytes = b""
-        async for chunk in generator:
-            pdf_bytes += chunk
-
-        return Response(
-            content=pdf_bytes,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"inline; filename=spot_forecast_{spot_id}.pdf"},
-        )
-    except Exception as e:
-        logger.error(f"Failed to get PDF for spot {spot_id}: {e}")
-        return Response(status_code=404, content="PDF not found")
 
 
 @router.post("/spots/{spot_request_id}/subscribe", response_model=SubscribeResponse)

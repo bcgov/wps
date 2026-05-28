@@ -4,6 +4,7 @@ import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import SpotSubscriptionButton from '@/features/smurfi/components/SpotSubscriptionButton'
+import SpotStatusControl from '@/features/smurfi/components/SpotStatusControl'
 
 interface SpotPopupProps {
   lat: number
@@ -16,6 +17,7 @@ interface SpotPopupProps {
   onOpenRequest: (spotId: number) => void
   onOpenForecast: (spotId: number) => void
   onSubmitForecast: (spotId: number) => void
+  onStatusChanged?: (spotRequest: SpotRequestOutput) => void
 }
 
 const SpotPopup: React.FC<SpotPopupProps> = ({
@@ -28,7 +30,8 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
   canSubmitForecast,
   onOpenRequest,
   onOpenForecast,
-  onSubmitForecast
+  onSubmitForecast,
+  onStatusChanged
 }) => {
   const statusColors = SpotRequestStatusColorMap[status]
   const locationLabel = spotRequest.latest_forecast ? 'Last forecasted location' : 'Requested location'
@@ -67,28 +70,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
         <Typography variant="body2">{fireNumber}</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <SpotSubscriptionButton spotRequest={spotRequest} variant="contained" />
-          <Button
-            startIcon={
-              <img
-                src={statusToPath[status]}
-                alt="status"
-                style={{
-                  width: 18,
-                  height: 24
-                }}
-              />
-            }
-            size="small"
-            disabled
-            sx={{
-              backgroundColor: statusColors.bgColor,
-              color: statusColors.color,
-              border: `1px solid ${statusColors.borderColor}`,
-              '&.Mui-disabled': { color: statusColors.color }
-            }}
-          >
-            {status}
-          </Button>
+          <SpotStatusControl spotRequest={spotRequest} onStatusChanged={onStatusChanged} />
         </Box>
       </Box>
       <Box sx={{ mb: 2 }}>
