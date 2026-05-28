@@ -10,7 +10,7 @@ import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import { AppDispatch } from '@/app/store'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getSmurfiForecastsRoute } from '@wps/utils/constants'
+import { getSmurfiForecastsRoute, getSmurfiEditRequestRoute } from '@wps/utils/constants'
 
 const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <Box>
@@ -97,7 +97,7 @@ const SpotRequest = () => {
                 View Forecasts
               </Button>
               {(isOwner || isForecaster) && (
-                <Button variant="outlined" size="small" onClick={() => console.log(spotRequest.requestor_idir)}>
+                <Button variant="outlined" size="small" onClick={() => navigate(getSmurfiEditRequestRoute(spotRequest.id))}>
                   Edit Request
                 </Button>
               )}

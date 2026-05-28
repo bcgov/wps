@@ -185,12 +185,12 @@ export const fetchSpotForecasts =
   }
 
 export const submitSpotRequest =
-  (formData: SpotRequestFormData): AppThunk<Promise<SpotRequestOutput | undefined>> =>
+  (formData: SpotRequestFormData, spotRequestId?: number): AppThunk<Promise<SpotRequestOutput | undefined>> =>
   async dispatch => {
     try {
       dispatch(submitSpotRequestStart())
 
-      const response = await postSpotRequest(formData)
+      const response = await postSpotRequest(formData, spotRequestId)
       dispatch(submitSpotRequestSuccess({ spotRequest: response.spot_request }))
       return response.spot_request
     } catch (err) {

@@ -71,6 +71,8 @@ export const getSmurfiForecastPrintRoute = (spotRequestId: number | string, fore
   `${getSmurfiForecastRoute(spotRequestId, forecastId)}/print`
 export const getSmurfiEditForecastRoute = (spotRequestId: number | string, forecastId: number | string) =>
   `${getSmurfiForecastRoute(spotRequestId, forecastId)}/edit`
+export const getSmurfiEditRequestRoute = (spotRequestId: number | string) =>
+  `${getSmurfiRequestRoute(spotRequestId)}/edit`
 
 // UI constants
 export const HEADER_HEIGHT = 56

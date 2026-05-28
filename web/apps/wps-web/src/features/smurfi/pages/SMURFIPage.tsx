@@ -9,6 +9,7 @@ import SpotRequest from '@/features/smurfi/components/requests/SpotRequest'
 import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
 import PrintableSpotForecast from '@/features/smurfi/pages/PrintableSpotForecast'
 import EditSpotForecastPage from '@/features/smurfi/pages/EditSpotForecastPage'
+import EditSpotRequestPage from '@/features/smurfi/pages/EditSpotRequestPage'
 import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { Box, Tab, Tabs } from '@mui/material'
@@ -65,6 +66,7 @@ const SMURFIPage = () => {
                     <Route index element={<SpotRequests />} />
                     <Route path="new" element={<SpotRequestFormPage />} />
                     <Route path=":id" element={<SpotRequest />} />
+                    <Route path=":id/edit" element={<EditSpotRequestPage />} />
                     <Route path=":id/forecasts" element={<SpotForecasts />} />
                     <Route path=":id/forecasts/new" element={<SpotForecastFormPage />} />
                     <Route path=":id/forecasts/:forecastId" element={<SpotForecast />} />
