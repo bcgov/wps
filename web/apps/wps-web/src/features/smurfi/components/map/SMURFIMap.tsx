@@ -36,6 +36,7 @@ import {
 } from '@/features/currentFires/map/currentFireLayers'
 import { CurrentFiresClickInteraction } from '@/features/currentFires/map/CurrentFiresClickInteraction'
 import { CurrentFireLayerController } from '@/features/currentFires/map/currentFireLayerController'
+import { NewRequestClickInteraction } from '@/features/smurfi/components/map/NewRequestClickInteraction'
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
@@ -133,8 +134,8 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
   const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
   const currentFiresClickInteractionRef = useRef<CurrentFiresClickInteraction | null>(null)
+  const newRequestClickInteractionRef = useRef<NewRequestClickInteraction | null>(null)
   const popupDataRef = useRef<SpotPopupData | FirePopupData | MapClickPopupData | null>(null)
-  const pendingMarkerSourceRef = useRef(new VectorSource<Feature<Point>>())
 
   // derived values
   const mapSpotRequests = propSpotRequests ?? spotRequests
@@ -233,15 +234,6 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   }, [popupData])
 
   useEffect(() => {
-    pendingMarkerSourceRef.current.clear()
-    if (popupData?.type === 'map') {
-      pendingMarkerSourceRef.current.addFeature(
-        new Feature({ geometry: new Point(fromLonLat([popupData.lon, popupData.lat])) })
-      )
-    }
-  }, [popupData])
-
-  useEffect(() => {
     if (propSpotRequests === undefined) {
       dispatch(fetchSpotRequests())
     }
@@ -260,17 +252,6 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     })
     const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(selectedCurrentFireStatuses)
     const currentFirePointsLayer = createCurrentFirePointsLayer(selectedCurrentFireStatuses)
-    const pendingMarkerLayer = new VectorLayer({
-      source: pendingMarkerSourceRef.current,
-      style: new Style({
-        image: new CircleStyle({
-          radius: 8,
-          fill: new Fill({ color: '#d32f2f' }),
-          stroke: new Stroke({ color: '#ffffff', width: 2 })
-        })
-      }),
-      zIndex: 60
-    })
     featureLayerRef.current = featureLayer
     currentFireLayerControllerRef.current = new CurrentFireLayerController({
       pointsLayer: currentFirePointsLayer,
@@ -279,7 +260,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [currentFirePolygonsLayer, currentFirePointsLayer, featureLayer, pendingMarkerLayer],
+      layers: [currentFirePolygonsLayer, currentFirePointsLayer, featureLayer],
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
@@ -287,7 +268,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     })
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
 
-    // add popup overlay
+    // add popup overlay (shared by all popup types)
     const overlay = new Overlay({
       element: popupRef.current!,
       positioning: 'bottom-center',
@@ -296,43 +277,55 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     })
     mapObject.addOverlay(overlay)
 
-    // add click handler
-    mapObject.on('click', event => {
-      if (popupDataRef.current) {
-        overlay.setPosition(undefined)
+    const newRequestClickInteraction = new NewRequestClickInteraction({
+      overlay,
+      shouldIgnoreClick: event =>
+        Boolean(
+          mapObject.forEachFeatureAtPixel(
+            event.pixel,
+            (f, layer) =>
+              layer === featureLayer || layer === currentFirePointsLayer || layer === currentFirePolygonsLayer
+                ? f
+                : undefined
+          )
+        ),
+      onEmptyClick: ({ lat, lon, coordinate }) => {
+        // if any popup is already open, dismiss it rather than opening a new request
+        if (popupDataRef.current) {
+          newRequestClickInteraction.close()
+          setPopupData(null)
+          return
+        }
+        setPopupData({ type: 'map', open: true, position: coordinate, lat, lon })
+      },
+      onDismiss: () => {
         setPopupData(null)
-        return
       }
+    })
+    newRequestClickInteractionRef.current = newRequestClickInteraction
+    mapObject.addInteraction(newRequestClickInteraction)
 
+    // spot click handler — new request and fire clicks are handled by their interactions
+    mapObject.on('click', event => {
       const feature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
         layer === featureLayer ? f : undefined
       )
-      if (feature) {
-        const coord = event.coordinate
-        const [lng, lat] = toLonLat(coord)
-        overlay.setPosition(coord)
-        setPopupData({
-          type: 'spot',
-          open: true,
-          position: coord,
-          lat,
-          lng,
-          status: feature.get('status') as SpotRequestStatus,
-          fireNumber: feature.get('fireNumber'),
-          spotId: feature.get('spotId') as number,
-          spotRequest: feature.get('spotRequest') as SpotRequestOutput
-        })
-        return
-      }
-
-      if (!currentFirePolygonsLayer.getVisible()) {
-        overlay.setPosition(undefined)
-        setPopupData(null)
-      }
-
-      const [lon, lat] = toLonLat(event.coordinate)
-      overlay.setPosition(event.coordinate)
-      setPopupData({ type: 'map', open: true, position: event.coordinate, lat, lon })
+      if (!feature) return
+      newRequestClickInteraction.close()
+      const coord = event.coordinate
+      const [lng, lat] = toLonLat(coord)
+      overlay.setPosition(coord)
+      setPopupData({
+        type: 'spot',
+        open: true,
+        position: coord,
+        lat,
+        lng,
+        status: feature.get('status') as SpotRequestStatus,
+        fireNumber: feature.get('fireNumber'),
+        spotId: feature.get('spotId') as number,
+        spotRequest: feature.get('spotRequest') as SpotRequestOutput
+      })
     })
 
     const currentFiresClickInteraction = new CurrentFiresClickInteraction({
@@ -341,6 +334,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       shouldIgnoreClick: event =>
         Boolean(mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) => (layer === featureLayer ? f : undefined))),
       onFireClick: ({ attributes, coordinate }) => {
+        newRequestClickInteraction.close()
         overlay.setPosition(coordinate)
         setPopupData({
           type: 'fire',
@@ -350,8 +344,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
         })
       },
       onMapMiss: () => {
-        overlay.setPosition(undefined)
-        setPopupData(null)
+        // popup dismissal on empty clicks is handled by NewRequestClickInteraction.onEmptyClick
       }
     })
     currentFiresClickInteractionRef.current = currentFiresClickInteraction
@@ -369,6 +362,8 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     return () => {
       currentFireLayerControllerRef.current = null
       currentFiresClickInteractionRef.current = null
+      newRequestClickInteractionRef.current = null
+      mapObject.removeInteraction(newRequestClickInteraction)
       mapObject.removeInteraction(currentFiresClickInteraction)
       mapObject.setTarget('')
     }
@@ -506,12 +501,16 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
             )}
             {popupData?.type === 'map' && (
               <NewRequestPopup
-                onConfirm={() =>
+                onConfirm={() => {
+                  newRequestClickInteractionRef.current?.close()
                   navigate(SMURFI_NEW_REQUEST_ROUTE, {
                     state: { latitude: popupData.lat, longitude: popupData.lon }
                   })
-                }
-                onCancel={() => setPopupData(null)}
+                }}
+                onCancel={() => {
+                  newRequestClickInteractionRef.current?.close()
+                  setPopupData(null)
+                }}
               />
             )}
           </Box>
