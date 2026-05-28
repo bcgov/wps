@@ -299,8 +299,11 @@ export const getSpotForecasts = async (spotRequestId: number): Promise<SpotForec
   return data
 }
 
-export const postSpotRequest = async (formData: SpotRequestFormData): Promise<SpotRequestResponse> => {
+export const postSpotRequest = async (formData: SpotRequestFormData, spotRequestId?: number): Promise<SpotRequestResponse> => {
   const spotRequestInput = marshalFormDataToSpotRequestInput(formData)
+  if (spotRequestId !== undefined) {
+    spotRequestInput.id = spotRequestId
+  }
   const url = '/smurfi/spot_request'
   const { data } = await axios.post(url, spotRequestInput)
   return data

@@ -47,6 +47,8 @@ interface SpotRequestFormProps {
   onCancel: () => void
   onSubmit?: (request: SpotRequestOutput) => void
   initialLocation?: { latitude: number; longitude: number }
+  initialValues?: Partial<SpotRequestFormValues>
+  spotRequestId?: number
 }
 
 const forecastTypeOptions: Record<SpotRequestFormValues['forecastType'], string> = {
@@ -145,7 +147,7 @@ const defaultValues: SpotRequestFormValues = {
 type DistributionItem = string | DistributionGroup
 const isGroup = (item: DistributionItem): item is DistributionGroup => typeof item !== 'string'
 
-const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, initialLocation }) => {
+const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, initialLocation, initialValues, spotRequestId }) => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCentres, loading: fireCentresLoading } = useSelector(selectFireCentres)
   const { spotRequestSubmitting, spotRequestSubmitError, spotRequests } = useSelector(
@@ -170,7 +172,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, i
     formState: { errors }
   } = useForm<SpotRequestFormValues, unknown, SpotRequestFormData>({
     resolver: zodResolver(spotRequestSchema),
-    defaultValues: { ...defaultValues, location: initialLocation ?? null },
+    defaultValues: { ...defaultValues, ...initialValues, location: initialLocation ?? null },
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
@@ -202,7 +204,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, i
   }
 
   const handleValidSubmit = async (data: SpotRequestFormData) => {
-    const submittedSpotRequest = await dispatch(submitSpotRequest(data))
+    const submittedSpotRequest = await dispatch(submitSpotRequest(data, spotRequestId))
     if (submittedSpotRequest) {
       dispatch(toggleSubscribedId({ spotRequestId: submittedSpotRequest.id, status: 'active' }))
       onSubmit?.(submittedSpotRequest)
