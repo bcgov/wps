@@ -1,28 +1,33 @@
 import { Autocomplete, Box, Checkbox, FormControlLabel, FormGroup, Paper, TextField, Typography } from '@mui/material'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import { CURRENT_FIRE_STATUS_COLORS } from '@/features/currentFires/map/currentFireLayers'
+import { CURRENT_FIRE_STATUS_OPTIONS, CurrentFireStatus } from '@/features/currentFires/map/layerVisibility'
+import { SPOT_REQUEST_STATUS_OPTIONS } from '@/features/smurfi/components/map/mapLayerVisibility'
 
 interface SpotMapLayerSwitcherProps {
-  statusOptions: SpotRequestStatus[]
   selectedStatuses: SpotRequestStatus[]
   currentFiresVisible: boolean
+  selectedCurrentFireStatuses: CurrentFireStatus[]
   allFireNumbers?: string[]
   selectedFireNumbers?: string[]
   onStatusChange: (status: SpotRequestStatus, checked: boolean) => void
   onAllStatusesChange: (checked: boolean) => void
   onCurrentFiresVisibleChange: (checked: boolean) => void
+  onCurrentFireStatusChange: (status: CurrentFireStatus, checked: boolean) => void
   onFireNumbersChange?: (fireNumbers: string[]) => void
 }
 
 const SpotMapLayerSwitcher = ({
-  statusOptions,
   selectedStatuses,
   currentFiresVisible,
+  selectedCurrentFireStatuses,
   allFireNumbers,
   selectedFireNumbers,
   onStatusChange,
   onAllStatusesChange,
   onCurrentFiresVisibleChange,
+  onCurrentFireStatusChange,
   onFireNumbersChange
 }: SpotMapLayerSwitcherProps) => (
   <Paper
@@ -33,7 +38,8 @@ const SpotMapLayerSwitcher = ({
       right: 16,
       zIndex: 2,
       p: 1.5,
-      maxWidth: 260
+      maxWidth: 260,
+      minWidth: 200
     }}
   >
     {allFireNumbers && selectedFireNumbers && onFireNumbersChange && (
@@ -80,6 +86,35 @@ const SpotMapLayerSwitcher = ({
           </Box>
         }
       />
+      {currentFiresVisible &&
+        CURRENT_FIRE_STATUS_OPTIONS.map(status => (
+          <FormControlLabel
+            key={status}
+            sx={{ ml: 0.5 }}
+            control={
+              <Checkbox
+                size="small"
+                checked={selectedCurrentFireStatuses.includes(status)}
+                onChange={event => onCurrentFireStatusChange(status, event.target.checked)}
+              />
+            }
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    backgroundColor: CURRENT_FIRE_STATUS_COLORS[status],
+                    border: '1px solid #FFFFFF',
+                    boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.35)'
+                  }}
+                />
+                <Typography variant="body2">{status}</Typography>
+              </Box>
+            }
+          />
+        ))}
     </FormGroup>
     <Typography variant="subtitle2" sx={{ mt: 1.5, mb: 1, fontWeight: 'bold' }}>
       Status
@@ -89,14 +124,14 @@ const SpotMapLayerSwitcher = ({
         control={
           <Checkbox
             size="small"
-            checked={selectedStatuses.length === statusOptions.length}
-            indeterminate={selectedStatuses.length > 0 && selectedStatuses.length < statusOptions.length}
+            checked={selectedStatuses.length === SPOT_REQUEST_STATUS_OPTIONS.length}
+            indeterminate={selectedStatuses.length > 0 && selectedStatuses.length < SPOT_REQUEST_STATUS_OPTIONS.length}
             onChange={event => onAllStatusesChange(event.target.checked)}
           />
         }
         label="All"
       />
-      {statusOptions.map(status => (
+      {SPOT_REQUEST_STATUS_OPTIONS.map(status => (
         <FormControlLabel
           key={status}
           sx={{ ml: 0.5 }}

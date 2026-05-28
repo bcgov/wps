@@ -15,12 +15,15 @@ import VectorSource from 'ol/source/Vector'
 import 'ol/ol.css'
 import { useEffect, useRef, useState } from 'react'
 import {
-  CurrentFirePolygonAttributes,
-  createCurrentFirePolygonsLayer,
-  getCurrentFirePolygonAttributes
-} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+  CurrentFireAttributes,
+  createCurrentFirePointsLayer,
+  createCurrentFirePolygonsLayer
+} from '@/features/currentFires/map/currentFireLayers'
+import { CurrentFiresClickInteraction } from '@/features/currentFires/map/CurrentFiresClickInteraction'
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import { panMapToFitElement } from '@/features/map/mapPopupUtils'
+import { getVisibleCurrentFireStatusDefaults } from '@/features/currentFires/map/layerVisibility'
 
 interface SmurfiRequestsMapProps {
   spotRequest: SpotRequestOutput
@@ -37,7 +40,8 @@ const getMarkerStyle = (status: SpotRequestStatus) =>
 const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsMapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
-  const [firePopupAttributes, setFirePopupAttributes] = useState<CurrentFirePolygonAttributes | null>(null)
+  const mapObjectRef = useRef<Map | null>(null)
+  const [firePopupAttributes, setFirePopupAttributes] = useState<CurrentFireAttributes | null>(null)
   const spotInstance = spotRequestInstance ?? spotRequest.current_instance
 
   useEffect(() => {
@@ -52,11 +56,13 @@ const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsM
       source: new VectorSource({ features: [marker] }),
       zIndex: 50
     })
-    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
+    const visibleCurrentFireStatuses = getVisibleCurrentFireStatusDefaults()
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(visibleCurrentFireStatuses)
+    const currentFirePointsLayer = createCurrentFirePointsLayer(visibleCurrentFireStatuses)
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [currentFirePolygonsLayer, vectorLayer],
+      layers: [currentFirePolygonsLayer, currentFirePointsLayer, vectorLayer],
       view: new View({
         center: coord,
         zoom: 10
@@ -67,29 +73,24 @@ const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsM
       element: popupRef.current!,
       positioning: 'bottom-center',
       stopEvent: true,
-      offset: [0, -10],
-      autoPan: {
-        margin: 24,
-        animation: {
-          duration: 250
-        }
-      }
+      offset: [0, -10]
     })
     mapObject.addOverlay(overlay)
+    mapObjectRef.current = mapObject
 
-    mapObject.on('click', event => {
-      const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (feature, layer) =>
-        layer === currentFirePolygonsLayer ? feature : undefined
-      )
-      if (fireFeature) {
-        overlay.setPosition(event.coordinate)
-        setFirePopupAttributes(getCurrentFirePolygonAttributes(fireFeature))
-        return
+    const currentFiresClickInteraction = new CurrentFiresClickInteraction({
+      currentFirePointsLayer,
+      currentFirePolygonsLayer,
+      onFireClick: ({ attributes, coordinate }) => {
+        overlay.setPosition(coordinate)
+        setFirePopupAttributes(attributes)
+      },
+      onMapMiss: () => {
+        overlay.setPosition(undefined)
+        setFirePopupAttributes(null)
       }
-
-      overlay.setPosition(undefined)
-      setFirePopupAttributes(null)
     })
+    mapObject.addInteraction(currentFiresClickInteraction)
 
     mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
     mapObject.getView().animate({ center: coord, zoom: 10, duration: 0 })
@@ -102,9 +103,17 @@ const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsM
     loadBaseMap()
 
     return () => {
+      mapObjectRef.current = null
+      mapObject.removeInteraction(currentFiresClickInteraction)
       mapObject.setTarget('')
     }
   }, [spotInstance.latitude, spotInstance.longitude, spotRequest.status])
+
+  useEffect(() => {
+    if (mapObjectRef.current && firePopupAttributes) {
+      panMapToFitElement(mapObjectRef.current, popupRef.current)
+    }
+  }, [firePopupAttributes])
 
   return (
     <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 300 }}>

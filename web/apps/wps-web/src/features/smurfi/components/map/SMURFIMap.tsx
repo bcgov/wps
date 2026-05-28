@@ -28,14 +28,22 @@ import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfi
 import { useNavigate } from 'react-router-dom'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import {
-  CurrentFirePolygonAttributes,
-  createCurrentFirePolygonsLayer,
-  getCurrentFirePolygonAttributes
-} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+  CurrentFireAttributes,
+  createCurrentFirePointsLayer,
+  createCurrentFirePolygonsLayer
+} from '@/features/currentFires/map/currentFireLayers'
+import { CurrentFiresClickInteraction } from '@/features/currentFires/map/CurrentFiresClickInteraction'
+import { CurrentFireLayerController } from '@/features/currentFires/map/currentFireLayerController'
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import { formatFireNumbers } from '@/features/smurfi/utils/spotForecastUtils'
+import { panMapToFitElement } from '@/features/map/mapPopupUtils'
+import { CurrentFireStatus, getVisibleCurrentFireStatusDefaults } from '@/features/currentFires/map/layerVisibility'
+import {
+  SPOT_REQUEST_STATUS_OPTIONS,
+  getVisibleSpotRequestStatusDefaults
+} from '@/features/smurfi/components/map/mapLayerVisibility'
 
 export interface SelectedCoordinates {
   latitude: number
@@ -68,18 +76,11 @@ type FirePopupData = {
   type: 'fire'
   open: boolean
   position: number[]
-  attributes: CurrentFirePolygonAttributes
+  attributes: CurrentFireAttributes
 }
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
-const STATUS_FILTER_OPTIONS = [
-  SpotRequestStatus.REQUESTED,
-  SpotRequestStatus.STARTED,
-  SpotRequestStatus.SUSPENDED,
-  SpotRequestStatus.COMPLETE,
-  SpotRequestStatus.ARCHIVED
-]
 
 // Tolerance for coordinate matching (in degrees)
 const COORDINATE_TOLERANCE = 0.0001
@@ -107,9 +108,12 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const { isForecaster } = useSpotPermissions(undefined)
 
   // state
-  const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
+  const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(getVisibleSpotRequestStatusDefaults)
   const [selectedFireNumbers, setSelectedFireNumbers] = useState<string[]>([])
   const [currentFiresVisible, setCurrentFiresVisible] = useState(true)
+  const [selectedCurrentFireStatuses, setSelectedCurrentFireStatuses] = useState<CurrentFireStatus[]>(
+    getVisibleCurrentFireStatusDefaults
+  )
   const [map, setMap] = useState<Map | null>(null)
   const [popupData, setPopupData] = useState<SpotPopupData | FirePopupData | null>(null)
 
@@ -117,7 +121,8 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
   const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
-  const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
+  const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
+  const currentFiresClickInteractionRef = useRef<CurrentFiresClickInteraction | null>(null)
 
   // derived values
   const mapSpotRequests = propSpotRequests ?? spotRequests
@@ -160,7 +165,17 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   }
 
   const handleAllStatusesChange = (checked: boolean) => {
-    setSelectedStatuses(checked ? STATUS_FILTER_OPTIONS : [])
+    setSelectedStatuses(checked ? SPOT_REQUEST_STATUS_OPTIONS : [])
+  }
+
+  const handleCurrentFireStatusChange = (status: CurrentFireStatus, checked: boolean) => {
+    setSelectedCurrentFireStatuses(current => {
+      if (!checked) {
+        return current.filter(selectedStatus => selectedStatus !== status)
+      }
+
+      return current.includes(status) ? current : [...current, status]
+    })
   }
 
   // styles
@@ -218,13 +233,17 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       style: createMarkerStyle(null),
       zIndex: 50
     })
-    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(selectedCurrentFireStatuses)
+    const currentFirePointsLayer = createCurrentFirePointsLayer(selectedCurrentFireStatuses)
     featureLayerRef.current = featureLayer
-    currentFirePolygonsLayerRef.current = currentFirePolygonsLayer
+    currentFireLayerControllerRef.current = new CurrentFireLayerController({
+      pointsLayer: currentFirePointsLayer,
+      polygonsLayer: currentFirePolygonsLayer
+    })
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [currentFirePolygonsLayer, featureLayer],
+      layers: [currentFirePolygonsLayer, currentFirePointsLayer, featureLayer],
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
@@ -237,13 +256,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       element: popupRef.current!,
       positioning: 'bottom-center',
       stopEvent: true,
-      offset: [0, -10],
-      autoPan: {
-        margin: 24,
-        animation: {
-          duration: 250
-        }
-      }
+      offset: [0, -10]
     })
     mapObject.addOverlay(overlay)
 
@@ -270,25 +283,33 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
         return
       }
 
-      if (currentFirePolygonsLayer.getVisible()) {
-        const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
-          layer === currentFirePolygonsLayer ? f : undefined
-        )
-        if (fireFeature) {
-          overlay.setPosition(event.coordinate)
-          setPopupData({
-            type: 'fire',
-            open: true,
-            position: event.coordinate,
-            attributes: getCurrentFirePolygonAttributes(fireFeature)
-          })
-          return
-        }
+      if (!currentFirePolygonsLayer.getVisible()) {
+        overlay.setPosition(undefined)
+        setPopupData(null)
       }
-
-      overlay.setPosition(undefined)
-      setPopupData(null)
     })
+
+    const currentFiresClickInteraction = new CurrentFiresClickInteraction({
+      currentFirePointsLayer,
+      currentFirePolygonsLayer,
+      shouldIgnoreClick: event =>
+        Boolean(mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) => (layer === featureLayer ? f : undefined))),
+      onFireClick: ({ attributes, coordinate }) => {
+        overlay.setPosition(coordinate)
+        setPopupData({
+          type: 'fire',
+          open: true,
+          position: coordinate,
+          attributes
+        })
+      },
+      onMapMiss: () => {
+        overlay.setPosition(undefined)
+        setPopupData(null)
+      }
+    })
+    currentFiresClickInteractionRef.current = currentFiresClickInteraction
+    mapObject.addInteraction(currentFiresClickInteraction)
 
     setMap(mapObject)
 
@@ -300,20 +321,37 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     loadBaseMap()
 
     return () => {
-      currentFirePolygonsLayerRef.current = null
+      currentFireLayerControllerRef.current = null
+      currentFiresClickInteractionRef.current = null
+      mapObject.removeInteraction(currentFiresClickInteraction)
       mapObject.setTarget('')
     }
   }, [])
 
   useEffect(() => {
-    currentFirePolygonsLayerRef.current?.setVisible(currentFiresVisible)
+    currentFireLayerControllerRef.current?.setVisible(currentFiresVisible)
+    currentFiresClickInteractionRef.current?.setActive(currentFiresVisible)
   }, [currentFiresVisible])
 
   useEffect(() => {
-    if (!currentFiresVisible) {
+    currentFireLayerControllerRef.current?.setStatuses(selectedCurrentFireStatuses)
+  }, [selectedCurrentFireStatuses])
+
+  useEffect(() => {
+    if (
+      !currentFiresVisible ||
+      (popupData?.type === 'fire' &&
+        !selectedCurrentFireStatuses.includes(popupData.attributes.fireStatus as CurrentFireStatus))
+    ) {
       setPopupData(current => (current?.type === 'fire' ? null : current))
     }
-  }, [currentFiresVisible])
+  }, [currentFiresVisible, popupData, selectedCurrentFireStatuses])
+
+  useEffect(() => {
+    if (map && popupData?.open) {
+      panMapToFitElement(map, popupRef.current)
+    }
+  }, [map, popupData])
 
   useEffect(() => {
     const featureSource = featureLayerRef.current?.getSource()
@@ -370,14 +408,15 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 0, flex: 1 }}>
         <Box ref={mapRef} data-testid={'smurfi-map'} sx={{ width: '100%', height: '100%' }} />
         <SpotMapLayerSwitcher
-          statusOptions={STATUS_FILTER_OPTIONS}
           selectedStatuses={selectedStatuses}
           currentFiresVisible={currentFiresVisible}
+          selectedCurrentFireStatuses={selectedCurrentFireStatuses}
           allFireNumbers={allFireNumbers}
           selectedFireNumbers={selectedFireNumbers}
           onStatusChange={handleStatusFilterChange}
           onAllStatusesChange={handleAllStatusesChange}
           onCurrentFiresVisibleChange={setCurrentFiresVisible}
+          onCurrentFireStatusChange={handleCurrentFireStatusChange}
           onFireNumbersChange={setSelectedFireNumbers}
         />
         <div

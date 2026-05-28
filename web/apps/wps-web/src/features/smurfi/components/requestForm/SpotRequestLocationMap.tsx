@@ -13,9 +13,14 @@ import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import { source as baseMapSource } from '@/features/fireWeather/components/maps/constants'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
-import { createCurrentFirePolygonsLayer } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+import {
+  createCurrentFirePointsLayer,
+  createCurrentFirePolygonsLayer
+} from '@/features/currentFires/map/currentFireLayers'
+import { CurrentFireLayerController } from '@/features/currentFires/map/currentFireLayerController'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import { CurrentFireStatus, getVisibleCurrentFireStatusDefaults } from '@/features/currentFires/map/layerVisibility'
 
 interface SpotRequestLocation {
   latitude: number
@@ -52,12 +57,15 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
   const mapRef = useRef<HTMLDivElement | null>(null)
   const featureSourceRef = useRef(new VectorSource<Feature<Point>>())
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
-  const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
+  const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
   const onChangeRef = useRef(onChange)
 
   // state
   const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
   const [currentFiresVisible, setCurrentFiresVisible] = useState(true)
+  const [selectedCurrentFireStatuses, setSelectedCurrentFireStatuses] = useState<CurrentFireStatus[]>(
+    getVisibleCurrentFireStatusDefaults
+  )
 
   // handlers
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
@@ -72,6 +80,16 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
 
   const handleAllStatusesChange = (checked: boolean) => {
     setSelectedStatuses(checked ? STATUS_FILTER_OPTIONS : [])
+  }
+
+  const handleCurrentFireStatusChange = (status: CurrentFireStatus, checked: boolean) => {
+    setSelectedCurrentFireStatuses(current => {
+      if (!checked) {
+        return current.filter(selectedStatus => selectedStatus !== status)
+      }
+
+      return current.includes(status) ? current : [...current, status]
+    })
   }
 
   // effects
@@ -94,8 +112,12 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
       style: existingSpotStyle,
       zIndex: 40
     })
-    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
-    currentFirePolygonsLayerRef.current = currentFirePolygonsLayer
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(selectedCurrentFireStatuses)
+    const currentFirePointsLayer = createCurrentFirePointsLayer(selectedCurrentFireStatuses)
+    currentFireLayerControllerRef.current = new CurrentFireLayerController({
+      pointsLayer: currentFirePointsLayer,
+      polygonsLayer: currentFirePolygonsLayer
+    })
 
     const mapObject = new Map({
       target: mapRef.current,
@@ -104,6 +126,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
           source: baseMapSource
         }),
         currentFirePolygonsLayer,
+        currentFirePointsLayer,
         existingSpotsLayer,
         featureLayer
       ],
@@ -124,14 +147,18 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
     })
 
     return () => {
-      currentFirePolygonsLayerRef.current = null
+      currentFireLayerControllerRef.current = null
       mapObject.setTarget('')
     }
   }, [])
 
   useEffect(() => {
-    currentFirePolygonsLayerRef.current?.setVisible(currentFiresVisible)
+    currentFireLayerControllerRef.current?.setVisible(currentFiresVisible)
   }, [currentFiresVisible])
+
+  useEffect(() => {
+    currentFireLayerControllerRef.current?.setStatuses(selectedCurrentFireStatuses)
+  }, [selectedCurrentFireStatuses])
 
   useEffect(() => {
     featureSourceRef.current.clear()
@@ -166,12 +193,13 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
     <Box sx={{ position: 'relative', width: '100%', height: 520, border: '1px solid', borderColor: 'divider' }}>
       <Box ref={mapRef} sx={{ width: '100%', height: '100%' }} />
       <SpotMapLayerSwitcher
-        statusOptions={STATUS_FILTER_OPTIONS}
         selectedStatuses={selectedStatuses}
         currentFiresVisible={currentFiresVisible}
+        selectedCurrentFireStatuses={selectedCurrentFireStatuses}
         onStatusChange={handleStatusFilterChange}
         onAllStatusesChange={handleAllStatusesChange}
         onCurrentFiresVisibleChange={setCurrentFiresVisible}
+        onCurrentFireStatusChange={handleCurrentFireStatusChange}
       />
     </Box>
   )

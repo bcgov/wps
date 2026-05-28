@@ -1,9 +1,9 @@
-import { CurrentFirePolygonAttributes } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+import { CurrentFireAttributes } from '@/features/currentFires/map/currentFireLayers'
 import CloseIcon from '@mui/icons-material/Close'
 import { Box, IconButton, Typography } from '@mui/material'
 
 interface CurrentFirePolygonPopupProps {
-  attributes: CurrentFirePolygonAttributes
+  attributes: CurrentFireAttributes
   onClose: () => void
 }
 

@@ -13,7 +13,7 @@ import SpotForecastSections from '@/features/smurfi/components/forecastForm/Spot
 import { SpotForecastOutput, SpotForecastType, SpotRequestOutput } from '@wps/api/SMURFIAPI'
 import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
-import { fetchCurrentFireSizesByFireNumbers } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+import { fetchCurrentFireSizesByFireNumbers } from '@/features/currentFires/map/currentFireLayers'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { getStations, StationSource } from '@wps/api/stationAPI'
 import {
