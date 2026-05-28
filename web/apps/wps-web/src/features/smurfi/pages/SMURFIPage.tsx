@@ -18,12 +18,12 @@ import { LocalizationProvider } from '@mui/x-date-pickers-pro/LocalizationProvid
 import { getStations, StationSource } from '@wps/api/stationAPI'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
-import { SMURFI_DASHBOARD_ROUTE, SMURFI_MANAGEMENT_ROUTE, SMURFI_MAP_ROUTE } from '@wps/utils/constants'
+import { SMURFI_DASHBOARD_ROUTE, SMURFI_ADMIN_ROUTE, SMURFI_MAP_ROUTE } from '@wps/utils/constants'
 import React, { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
-const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_MANAGEMENT_ROUTE]
+const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_ADMIN_ROUTE]
 
 const RouteContent = ({ children, fullBleed = false }: { children: React.ReactNode; fullBleed?: boolean }) => (
   <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, p: fullBleed ? 0 : 3 }}>{children}</Box>
@@ -54,7 +54,7 @@ const SMURFIPage = () => {
           <Tabs value={currentTab} onChange={handleChange}>
             <Tab label="Dashboard" onClick={() => navigate(SMURFI_DASHBOARD_ROUTE)} />
             <Tab label="Map" onClick={() => navigate(SMURFI_MAP_ROUTE)} />
-            <Tab label="Management" onClick={() => navigate(SMURFI_MANAGEMENT_ROUTE)} />
+            <Tab label="Admin" onClick={() => navigate(SMURFI_ADMIN_ROUTE)} />
           </Tabs>
         </Box>
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
@@ -87,7 +87,7 @@ const SMURFIPage = () => {
               }
             />
             <Route
-              path="management"
+              path="admin"
               element={
                 <RouteContent>
                   <DistributionGroupsAdmin />
