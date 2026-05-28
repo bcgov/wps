@@ -32,8 +32,9 @@ const SpotSubscriptionButton = ({
   const subscribedIds = useSelector(selectSubscribedIds)
   const isLoading = useSelector(selectSubscriptionsLoading)
   const { isOwner } = useSpotPermissions(spotRequest)
-  const isSubscribed = isOwner || subscribedIds.includes(spotRequest.id)
-  const label = isOwner ? 'Subscribed' : isSubscribed ? 'Unsubscribe' : 'Subscribe'
+  const isSubscribed = subscribedIds.includes(spotRequest.id)
+  const isOwnerSubscribed = isOwner && isSubscribed
+  const label = isOwnerSubscribed ? 'Subscribed' : isSubscribed ? 'Unsubscribe' : 'Subscribe'
   const startIcon = isSubscribed ? <NotificationsActiveIcon /> : <NotificationsNoneIcon />
 
   const button = (
@@ -43,14 +44,14 @@ const SpotSubscriptionButton = ({
       variant={variant}
       color={color}
       fullWidth={fullWidth}
-      disabled={isOwner || isLoading}
+      disabled={isOwnerSubscribed || isLoading}
       onClick={() => dispatch(toggleSpotSubscription(spotRequest.id))}
     >
       {label}
     </Button>
   )
 
-  if (!isOwner) {
+  if (!isOwnerSubscribed) {
     return button
   }
 
