@@ -25,10 +25,10 @@ export interface CurrentFiresClickInteractionOptions {
 export class CurrentFiresClickInteraction extends Interaction {
   private readonly currentFirePointsLayer: VectorLayer<VectorSource>
   private readonly currentFirePolygonsLayer: VectorLayer<VectorSource>
+  private readonly onFireClick?: (data: CurrentFireClickData) => void
+  private readonly onMapMiss?: (event: MapBrowserEvent<UIEvent>) => void
+  private readonly shouldIgnoreClick?: (event: MapBrowserEvent<UIEvent>) => boolean
   private listenerKey?: EventsKey
-  private onFireClick?: (data: CurrentFireClickData) => void
-  private onMapMiss?: (event: MapBrowserEvent<UIEvent>) => void
-  private shouldIgnoreClick?: (event: MapBrowserEvent<UIEvent>) => boolean
 
   constructor(options: CurrentFiresClickInteractionOptions) {
     super()
@@ -46,18 +46,6 @@ export class CurrentFiresClickInteraction extends Interaction {
     if (map) {
       this.listenerKey = map.on('click', this.handleClick.bind(this))
     }
-  }
-
-  setFireClickCallback(callback: (data: CurrentFireClickData) => void) {
-    this.onFireClick = callback
-  }
-
-  setMapMissCallback(callback: (event: MapBrowserEvent<UIEvent>) => void) {
-    this.onMapMiss = callback
-  }
-
-  setShouldIgnoreClick(callback: (event: MapBrowserEvent<UIEvent>) => boolean) {
-    this.shouldIgnoreClick = callback
   }
 
   dispose() {
