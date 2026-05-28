@@ -111,8 +111,7 @@ const currentFirePolygonStyle = (feature: { get: (property: string) => string | 
     }),
     fill: new Fill({
       color: 'rgba(179, 38, 30, 0.16)'
-    }),
-    text: createFireLabel(feature, resolution)
+    })
   })
 
 const isCurrentFireStatus = (status: string | undefined): status is CurrentFireStatus =>
