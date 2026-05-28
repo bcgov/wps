@@ -2,10 +2,13 @@ import { Autocomplete, Box, Checkbox, FormControlLabel, FormGroup, Paper, TextFi
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import { CURRENT_FIRE_STATUS_COLORS } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
-import { CURRENT_FIRE_STATUS_OPTIONS, CurrentFireStatus } from '@/features/smurfi/components/map/mapLayerVisibility'
+import {
+  CURRENT_FIRE_STATUS_OPTIONS,
+  CurrentFireStatus,
+  SPOT_REQUEST_STATUS_OPTIONS
+} from '@/features/smurfi/components/map/mapLayerVisibility'
 
 interface SpotMapLayerSwitcherProps {
-  statusOptions: SpotRequestStatus[]
   selectedStatuses: SpotRequestStatus[]
   currentFiresVisible: boolean
   selectedCurrentFireStatuses: CurrentFireStatus[]
@@ -19,7 +22,6 @@ interface SpotMapLayerSwitcherProps {
 }
 
 const SpotMapLayerSwitcher = ({
-  statusOptions,
   selectedStatuses,
   currentFiresVisible,
   selectedCurrentFireStatuses,
@@ -125,14 +127,14 @@ const SpotMapLayerSwitcher = ({
         control={
           <Checkbox
             size="small"
-            checked={selectedStatuses.length === statusOptions.length}
-            indeterminate={selectedStatuses.length > 0 && selectedStatuses.length < statusOptions.length}
+            checked={selectedStatuses.length === SPOT_REQUEST_STATUS_OPTIONS.length}
+            indeterminate={selectedStatuses.length > 0 && selectedStatuses.length < SPOT_REQUEST_STATUS_OPTIONS.length}
             onChange={event => onAllStatusesChange(event.target.checked)}
           />
         }
         label="All"
       />
-      {statusOptions.map(status => (
+      {SPOT_REQUEST_STATUS_OPTIONS.map(status => (
         <FormControlLabel
           key={status}
           sx={{ ml: 0.5 }}

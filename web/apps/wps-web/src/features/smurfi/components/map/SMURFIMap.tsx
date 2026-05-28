@@ -415,7 +415,6 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 0, flex: 1 }}>
         <Box ref={mapRef} data-testid={'smurfi-map'} sx={{ width: '100%', height: '100%' }} />
         <SpotMapLayerSwitcher
-          statusOptions={SPOT_REQUEST_STATUS_OPTIONS}
           selectedStatuses={selectedStatuses}
           currentFiresVisible={currentFiresVisible}
           selectedCurrentFireStatuses={selectedCurrentFireStatuses}

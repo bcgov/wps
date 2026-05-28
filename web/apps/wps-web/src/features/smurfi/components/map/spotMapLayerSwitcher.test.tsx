@@ -7,7 +7,6 @@ import { getVisibleCurrentFireStatusDefaults } from './mapLayerVisibility'
 const STATUS_OPTIONS = [SpotRequestStatus.REQUESTED, SpotRequestStatus.STARTED]
 
 const baseProps = {
-  statusOptions: STATUS_OPTIONS,
   selectedStatuses: STATUS_OPTIONS,
   currentFiresVisible: true,
   selectedCurrentFireStatuses: getVisibleCurrentFireStatusDefaults(),

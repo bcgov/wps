@@ -199,7 +199,6 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
     <Box sx={{ position: 'relative', width: '100%', height: 520, border: '1px solid', borderColor: 'divider' }}>
       <Box ref={mapRef} sx={{ width: '100%', height: '100%' }} />
       <SpotMapLayerSwitcher
-        statusOptions={STATUS_FILTER_OPTIONS}
         selectedStatuses={selectedStatuses}
         currentFiresVisible={currentFiresVisible}
         selectedCurrentFireStatuses={selectedCurrentFireStatuses}
