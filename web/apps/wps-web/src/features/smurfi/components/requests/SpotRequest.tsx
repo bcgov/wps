@@ -2,6 +2,7 @@ import { selectFireCentres } from '@/app/rootReducer'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import SmurfiRequestsMap from '@/features/smurfi/components/map/SmurfiRequestsMap'
+import GroupsIcon from '@mui/icons-material/Groups'
 import { Box, Button, Chip, Divider, Paper, Typography } from '@mui/material'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { DateTime } from 'luxon'
@@ -180,6 +181,22 @@ const SpotRequest = () => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                 {spotRequest.subscribers.map(sub => (
                   <Chip key={sub.email} label={sub.email} size="small" />
+                ))}
+              </Box>
+            </Box>
+          )}
+          {spotRequest.distribution_groups && spotRequest.distribution_groups.length > 0 && (
+            <Box>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, display: 'block' }}
+              >
+                Distribution Groups
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                {spotRequest.distribution_groups.map(group => (
+                  <Chip key={group.id} label={group.name} icon={<GroupsIcon />} size="small" color="primary" variant="outlined" />
                 ))}
               </Box>
             </Box>

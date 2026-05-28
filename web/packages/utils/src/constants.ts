@@ -56,7 +56,7 @@ export const SMURFI_ROUTE = '/smurfi'
 export const SMURFI_DASHBOARD_ROUTE = `${SMURFI_ROUTE}/requests`
 export const SMURFI_FORECASTS_ROUTE = `${SMURFI_ROUTE}/forecasts`
 export const SMURFI_MAP_ROUTE = `${SMURFI_ROUTE}/map`
-export const SMURFI_MANAGEMENT_ROUTE = `${SMURFI_ROUTE}/management`
+export const SMURFI_ADMIN_ROUTE = `${SMURFI_ROUTE}/admin`
 export const SMURFI_NEW_REQUEST_ROUTE = `${SMURFI_DASHBOARD_ROUTE}/new`
 
 // SMURFI route getters

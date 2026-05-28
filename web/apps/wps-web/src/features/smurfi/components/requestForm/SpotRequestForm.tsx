@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Chip,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -22,6 +23,7 @@ import {
   Tooltip
 } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import GroupsIcon from '@mui/icons-material/Groups'
 import { DateTime } from 'luxon'
 import { Controller, FieldErrors, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -33,7 +35,7 @@ import {
   SpotRequestFormData,
   SpotRequestFormValues
 } from '@wps/api/schema/spotRequestSchema'
-import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { DistributionGroup, SpotRequestOutput, SpotRequestStatus, getDistributionGroups } from '@wps/api/SMURFIAPI'
 import { AppDispatch } from '@/app/store'
 import { RootState, selectFireCentres } from '@/app/rootReducer'
 import { clearSpotRequestSubmitState, submitSpotRequest } from '@/features/smurfi/slices/smurfiSlice'
@@ -129,6 +131,7 @@ const defaultValues: SpotRequestFormValues = {
   forecastEndDate: DateTime.now().setZone('America/Vancouver').plus({ days: 5 }),
   forecastType: 'Mini',
   emailDistributionList: [],
+  distributionGroupIds: [],
   requestedFrequency: [],
   location: null,
   geographicDescription: '',
@@ -136,6 +139,9 @@ const defaultValues: SpotRequestFormValues = {
   elevation: '',
   additionalInformation: ''
 }
+
+type DistributionItem = string | DistributionGroup
+const isGroup = (item: DistributionItem): item is DistributionGroup => typeof item !== 'string'
 
 const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit }) => {
   const dispatch: AppDispatch = useDispatch()
@@ -145,6 +151,8 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
   )
   const [fireNumberInputValue, setFireNumberInputValue] = useState('')
   const [emailInputValue, setEmailInputValue] = useState('')
+  const [distributionGroups, setDistributionGroups] = useState<DistributionGroup[]>([])
+  const [distributionItems, setDistributionItems] = useState<DistributionItem[]>([])
   const existingMapSpotRequests = useMemo(
     () =>
       spotRequests.filter(
@@ -156,6 +164,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors }
   } = useForm<SpotRequestFormValues, unknown, SpotRequestFormData>({
     resolver: zodResolver(spotRequestSchema),
@@ -165,10 +174,30 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
   })
 
   useEffect(() => {
+    getDistributionGroups()
+      .then(setDistributionGroups)
+      .catch(() => setDistributionGroups([]))
+  }, [])
+
+  useEffect(() => {
     return () => {
       dispatch(clearSpotRequestSubmitState())
     }
   }, [dispatch])
+
+  const handleDistributionChange = (items: DistributionItem[]) => {
+    setDistributionItems(items)
+    setValue(
+      'emailDistributionList',
+      items.filter((i): i is string => !isGroup(i)),
+      { shouldValidate: true }
+    )
+    setValue(
+      'distributionGroupIds',
+      items.filter(isGroup).map(g => g.id),
+      { shouldValidate: true }
+    )
+  }
 
   const handleValidSubmit = async (data: SpotRequestFormData) => {
     const submittedSpotRequest = await dispatch(submitSpotRequest(data))
@@ -275,55 +304,74 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
         </Grid>
 
         <Grid size={12}>
-          <Controller
-            name="emailDistributionList"
-            control={control}
-            render={({ field }) => {
-              const commitEmailInput = () => {
-                if (emailInputValue.trim()) {
-                  field.onChange(normalizeEmailValues([...field.value, emailInputValue]))
-                  setEmailInputValue('')
-                }
+          <Autocomplete<DistributionItem, true, false, true>
+            multiple
+            freeSolo
+            options={distributionGroups}
+            value={distributionItems}
+            inputValue={emailInputValue}
+            getOptionLabel={option => (isGroup(option) ? option.name : option)}
+            isOptionEqualToValue={(option, value) =>
+              isGroup(option) && isGroup(value) ? option.id === value.id : option === value
+            }
+            onBlur={() => {
+              if (emailInputValue.trim()) {
+                const normalized = normalizeEmailValues([
+                  ...distributionItems.filter((i): i is string => !isGroup(i)),
+                  emailInputValue
+                ])
+                handleDistributionChange([...distributionItems.filter(isGroup), ...normalized])
+                setEmailInputValue('')
               }
-
-              return (
-                <Autocomplete<string, true, false, true>
-                  multiple
-                  freeSolo
-                  options={[]}
-                  value={field.value}
-                  inputValue={emailInputValue}
-                  onBlur={() => {
-                    commitEmailInput()
-                    field.onBlur()
-                  }}
-                  onChange={(_, value) => {
-                    field.onChange(normalizeEmailValues(value))
-                    setEmailInputValue('')
-                  }}
-                  onInputChange={(_, value, reason) => {
-                    if (reason !== 'input') {
-                      setEmailInputValue(value)
-                      return
-                    }
-                    if (/\s/.test(value)) {
-                      field.onChange(normalizeEmailValues([...field.value, value]))
-                      setEmailInputValue('')
-                      return
-                    }
-                    setEmailInputValue(value)
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label="Email Distribution List"
-                      error={!!emailErrorMessage}
-                      helperText={emailErrorMessage}
-                    />
-                  )}
-                />
-              )
             }}
+            onChange={(_, value) => {
+              const emails = value.filter((i): i is string => !isGroup(i))
+              const groups = value.filter(isGroup)
+              handleDistributionChange([...groups, ...normalizeEmailValues(emails)])
+              setEmailInputValue('')
+            }}
+            onInputChange={(_, value, reason) => {
+              if (reason !== 'input') {
+                setEmailInputValue(value)
+                return
+              }
+              if (/\s/.test(value)) {
+                const normalized = normalizeEmailValues([
+                  ...distributionItems.filter((i): i is string => !isGroup(i)),
+                  value
+                ])
+                handleDistributionChange([...distributionItems.filter(isGroup), ...normalized])
+                setEmailInputValue('')
+                return
+              }
+              setEmailInputValue(value)
+            }}
+            renderValue={(value, getItemProps) =>
+              value.map((item, index) => {
+                const { key, ...itemProps } = getItemProps({ index })
+                return isGroup(item) ? (
+                  <Chip
+                    key={key}
+                    label={item.name}
+                    icon={<GroupsIcon />}
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    {...itemProps}
+                  />
+                ) : (
+                  <Chip key={key} label={item} size="small" {...itemProps} />
+                )
+              })
+            }
+            renderInput={params => (
+              <TextField
+                {...params}
+                label="Email Distribution List"
+                error={!!emailErrorMessage}
+                helperText={emailErrorMessage}
+              />
+            )}
           />
         </Grid>
 

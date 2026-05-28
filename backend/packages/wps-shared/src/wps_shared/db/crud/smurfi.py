@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from wps_shared.db.models.smurfi import (
+    SmurfiDistributionGroup,
     SpotDescriptiveWeather,
     SpotForecast,
     SpotRequestBase,
@@ -13,6 +14,7 @@ from wps_shared.db.models.smurfi import (
     SpotSubscriber,
     SpotSubscriberStatusEnum,
     SpotTabularWeather,
+    spot_request_distribution_groups,
 )
 
 # roughly 20m in degrees, which is sufficient for matching spot request instances to forecasts without requiring exact coordinate matches
@@ -169,6 +171,7 @@ async def get_spot_requests_for_year(session: AsyncSession, year: int):
             selectinload(SpotRequestBase.spot_forecasts).selectinload(
                 SpotForecast.spot_request_instance
             ),
+            selectinload(SpotRequestBase.distribution_groups),
         )
     )
     return result.scalars().all()
@@ -242,6 +245,122 @@ async def get_active_subscribers_for_spot(
             SpotSubscriber.spot_request_base_id == spot_request_base_id,
             SpotSubscriber.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value,
         )
+    )
+    return list(result.scalars().all())
+
+
+async def get_distribution_groups(
+    session: AsyncSession, owner_idir: str
+) -> list[SmurfiDistributionGroup]:
+    result = await session.execute(
+        select(SmurfiDistributionGroup)
+        .where(SmurfiDistributionGroup.owner_idir == owner_idir)
+        .order_by(SmurfiDistributionGroup.name)
+    )
+    return list(result.scalars().all())
+
+
+async def get_distribution_group(
+    session: AsyncSession, group_id: int
+) -> SmurfiDistributionGroup | None:
+    result = await session.execute(
+        select(SmurfiDistributionGroup).where(SmurfiDistributionGroup.id == group_id)
+    )
+    return result.scalar_one_or_none()
+
+
+async def create_distribution_group(
+    session: AsyncSession, group: SmurfiDistributionGroup
+) -> SmurfiDistributionGroup:
+    session.add(group)
+    await session.flush()
+    return group
+
+
+async def update_distribution_group(
+    session: AsyncSession, group_id: int, name: str, emails: list[str], owner_idir: str
+) -> SmurfiDistributionGroup | None:
+    result = await session.execute(
+        select(SmurfiDistributionGroup).where(
+            SmurfiDistributionGroup.id == group_id,
+            SmurfiDistributionGroup.owner_idir == owner_idir,
+        )
+    )
+    group = result.scalar_one_or_none()
+    if group is not None:
+        group.name = name
+        group.emails = emails
+        await session.flush()
+    return group
+
+
+async def delete_distribution_group(session: AsyncSession, group_id: int, owner_idir: str) -> bool:
+    result = await session.execute(
+        select(SmurfiDistributionGroup).where(
+            SmurfiDistributionGroup.id == group_id,
+            SmurfiDistributionGroup.owner_idir == owner_idir,
+        )
+    )
+    group = result.scalar_one_or_none()
+    if group is None:
+        return False
+    await session.delete(group)
+    await session.flush()
+    return True
+
+
+async def sync_spot_request_distribution_groups(
+    session: AsyncSession, spot_request_id: int, group_ids: list[int]
+) -> None:
+    await session.execute(
+        delete(spot_request_distribution_groups).where(
+            spot_request_distribution_groups.c.spot_request_id == spot_request_id
+        )
+    )
+    for group_id in group_ids:
+        await session.execute(
+            insert(spot_request_distribution_groups).values(
+                spot_request_id=spot_request_id, distribution_group_id=group_id
+            )
+        )
+    await session.flush()
+
+
+async def get_all_notification_emails_for_spot(
+    session: AsyncSession, spot_request_id: int
+) -> list[str]:
+    sub_result = await session.execute(
+        select(SpotSubscriber.email).where(
+            SpotSubscriber.spot_request_base_id == spot_request_id,
+            SpotSubscriber.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value,
+        )
+    )
+    emails: set[str] = set(sub_result.scalars().all())
+
+    group_result = await session.execute(
+        select(SmurfiDistributionGroup.emails)
+        .join(
+            spot_request_distribution_groups,
+            SmurfiDistributionGroup.id == spot_request_distribution_groups.c.distribution_group_id,
+        )
+        .where(spot_request_distribution_groups.c.spot_request_id == spot_request_id)
+    )
+    for group_emails in group_result.scalars().all():
+        emails.update(group_emails or [])
+
+    return list(emails)
+
+
+async def get_distribution_groups_for_spot(
+    session: AsyncSession, spot_request_id: int
+) -> list[SmurfiDistributionGroup]:
+    result = await session.execute(
+        select(SmurfiDistributionGroup)
+        .join(
+            spot_request_distribution_groups,
+            SmurfiDistributionGroup.id == spot_request_distribution_groups.c.distribution_group_id,
+        )
+        .where(spot_request_distribution_groups.c.spot_request_id == spot_request_id)
     )
     return list(result.scalars().all())
 

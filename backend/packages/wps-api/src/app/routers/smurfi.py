@@ -6,23 +6,30 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from wps_shared.auth import authentication_required
 from wps_shared.db.crud.smurfi import (
+    create_distribution_group,
     create_spot_descriptive_weather,
     create_spot_forecast,
     create_spot_request_instance,
     create_spot_tabular_weather,
+    delete_distribution_group,
+    get_distribution_groups,
+    get_distribution_groups_for_spot,
     get_or_create_spot_request_instance,
     get_spot_forecasts_for_request,
     get_spot_requests_for_year,
     get_subscribed_spot_request_ids,
     start_requested_spot_request,
     subscribe_to_spot_request,
+    sync_spot_request_distribution_groups,
     sync_spot_subscribers,
     unsubscribe_from_spot_request,
+    update_distribution_group,
     update_spot_subscriber_status,
     upsert_spot_request,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.smurfi import (
+    SmurfiDistributionGroup,
     SpotDescriptiveWeather,
     SpotForecast,
     SpotRequestBase,
@@ -36,6 +43,8 @@ from wps_shared.geospatial.geospatial import (
     SpatialReferenceSystem,
 )
 from wps_shared.schemas.smurfi import (
+    DistributionGroupInput,
+    DistributionGroupOutput,
     SpotDescriptiveWeatherData,
     SpotForecastData,
     SpotForecastInput,
@@ -100,7 +109,7 @@ def _build_spot_request_base(
 ) -> SpotRequestBase:
     now = get_utc_now()
     return SpotRequestBase(
-        **spot_request_input.model_dump(exclude={"initial_instance", "subscribers"}),
+        **spot_request_input.model_dump(exclude={"initial_instance", "subscribers", "distribution_group_ids"}),
         requestor_name=requestor.name,
         requestor_idir=requestor.idir,
         requestor_email=requestor.email,
@@ -201,11 +210,16 @@ async def upsert_spot_request_endpoint(
         subscribers = await sync_spot_subscribers(
             session, result.id, [s.email for s in spot_request_input.subscribers]
         )
+        await sync_spot_request_distribution_groups(
+            session, result.id, spot_request_input.distribution_group_ids or []
+        )
+        distribution_groups = await get_distribution_groups_for_spot(session, result.id)
         spot_request_base_id = result.id
         subscriber_data = [
             SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status)
             for s in subscribers
         ]
+        group_data = [DistributionGroupOutput.to_schema(g) for g in distribution_groups]
         spot_request_instance = _spot_request_instance_to_schema(instance)
 
     return SpotRequestResponse(
@@ -215,6 +229,7 @@ async def upsert_spot_request_endpoint(
             initial_instance=spot_request_instance,
             current_instance=spot_request_instance,
             subscribers=subscriber_data,
+            distribution_groups=group_data,
             requestor_name=requestor.name,
             requestor_idir=requestor.idir,
             requestor_email=requestor.email,
@@ -441,6 +456,10 @@ def _spot_request_to_schema(spot_request: SpotRequestBase) -> SpotRequestData:
             for s in spot_request.spot_subscribers
             if s.subscriber_status == SpotSubscriberStatusEnum.ACTIVE.value
         ],
+        distribution_groups=[
+            DistributionGroupOutput.to_schema(g) for g in spot_request.distribution_groups
+        ],
+        distribution_group_ids=[g.id for g in spot_request.distribution_groups],
     )
 
 
@@ -458,6 +477,60 @@ async def update_subscriber(data: UpdateSubscriberStatusData):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Subscriber {data.subscriber_id} not found",
+        )
+
+
+@router.get("/distribution_groups", response_model=list[DistributionGroupOutput])
+async def get_distribution_groups_endpoint(token: Annotated[dict, Depends(authentication_required)]):
+    user = _get_spot_user(token)
+    async with get_async_read_session_scope() as session:
+        groups = await get_distribution_groups(session, user.idir)
+    return [DistributionGroupOutput.to_schema(g) for g in groups]
+
+
+@router.post(
+    "/distribution_groups",
+    response_model=DistributionGroupOutput,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_distribution_group_endpoint(
+    data: DistributionGroupInput, token: Annotated[dict, Depends(authentication_required)]
+):
+    user = _get_spot_user(token)
+    group = SmurfiDistributionGroup(name=data.name, emails=data.emails, owner_idir=user.idir)
+    async with get_async_write_session_scope() as session:
+        result = await create_distribution_group(session, group)
+        return DistributionGroupOutput.to_schema(result)
+
+
+@router.put("/distribution_groups/{group_id}", response_model=DistributionGroupOutput)
+async def update_distribution_group_endpoint(
+    group_id: int,
+    data: DistributionGroupInput,
+    token: Annotated[dict, Depends(authentication_required)],
+):
+    user = _get_spot_user(token)
+    async with get_async_write_session_scope() as session:
+        result = await update_distribution_group(session, group_id, data.name, data.emails, user.idir)
+        if result is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Distribution group {group_id} not found",
+            )
+        return DistributionGroupOutput.to_schema(result)
+
+
+@router.delete("/distribution_groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_distribution_group_endpoint(
+    group_id: int, token: Annotated[dict, Depends(authentication_required)]
+):
+    user = _get_spot_user(token)
+    async with get_async_write_session_scope() as session:
+        found = await delete_distribution_group(session, group_id, user.idir)
+    if not found:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Distribution group {group_id} not found",
         )
 
 

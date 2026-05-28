@@ -1,10 +1,27 @@
+from __future__ import annotations
+
 from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from wps_shared.db.models.smurfi import SmurfiDistributionGroup
+
 
 class PullFromChefsResponse(BaseModel):
     success: bool
+
+
+class DistributionGroupInput(BaseModel):
+    name: str
+    emails: list[str] = []
+
+
+class DistributionGroupOutput(DistributionGroupInput):
+    id: int
+
+    @classmethod
+    def to_schema(cls, group: SmurfiDistributionGroup) -> DistributionGroupOutput:
+        return cls(id=group.id, name=group.name, emails=group.emails)
 
 
 class SpotSubscriberData(BaseModel):
@@ -54,6 +71,7 @@ class SpotRequestInput(BaseModel):
     start_at: datetime
     end_at: datetime
     subscribers: list[SpotSubscriberData] = Field(default_factory=list)
+    distribution_group_ids: list[int] = Field(default_factory=list)
 
 
 class SpotRequestData(SpotRequestInput):
@@ -63,6 +81,7 @@ class SpotRequestData(SpotRequestInput):
     initial_instance: SpotRequestInstanceData
     current_instance: SpotRequestInstanceData
     latest_forecast: SpotLatestForecastData | None = None
+    distribution_groups: list[DistributionGroupOutput] = []
 
 
 class SpotRequestResponse(BaseModel):

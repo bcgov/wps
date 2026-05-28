@@ -3,6 +3,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { SpotFormData } from '@wps/api/schema/spotForecastSchema'
 import { SpotRequestFormData } from '@wps/api/schema/spotRequestSchema'
 import {
+  DistributionGroup,
+  getDistributionGroups,
   getSpotForecasts,
   getSpotRequests,
   postSpotForecast,
@@ -27,6 +29,9 @@ export interface SmurfiState {
   spotRequestsError: string | null
   spotRequestsLoading: boolean
   spotRequests: SpotRequestOutput[]
+  distributionGroups: DistributionGroup[]
+  distributionGroupsLoading: boolean
+  distributionGroupsError: string | null
 }
 
 const initialState: SmurfiState = {
@@ -42,7 +47,10 @@ const initialState: SmurfiState = {
   spotRequestSubmitError: null,
   spotRequestsError: null,
   spotRequestsLoading: false,
-  spotRequests: []
+  spotRequests: [],
+  distributionGroups: [],
+  distributionGroupsLoading: false,
+  distributionGroupsError: null
 }
 
 const smurfiSlice = createSlice({
@@ -120,6 +128,19 @@ const smurfiSlice = createSlice({
     clearSpotRequestSubmitState(state: SmurfiState) {
       state.spotRequestSubmitting = false
       state.spotRequestSubmitError = null
+    },
+    getDistributionGroupsStart(state: SmurfiState) {
+      state.distributionGroupsLoading = true
+      state.distributionGroupsError = null
+    },
+    getDistributionGroupsFailed(state: SmurfiState, action: PayloadAction<string>) {
+      state.distributionGroupsLoading = false
+      state.distributionGroupsError = action.payload
+    },
+    getDistributionGroupsSuccess(state: SmurfiState, action: PayloadAction<DistributionGroup[]>) {
+      state.distributionGroupsLoading = false
+      state.distributionGroupsError = null
+      state.distributionGroups = action.payload
     }
   }
 })
@@ -138,7 +159,10 @@ export const {
   submitSpotRequestStart,
   submitSpotRequestFailed,
   submitSpotRequestSuccess,
-  clearSpotRequestSubmitState
+  clearSpotRequestSubmitState,
+  getDistributionGroupsStart,
+  getDistributionGroupsFailed,
+  getDistributionGroupsSuccess
 } = smurfiSlice.actions
 
 export default smurfiSlice.reducer
@@ -207,6 +231,16 @@ export const fetchSpotRequests = (): AppThunk => async dispatch => {
     dispatch(getSpotRequestsSuccess({ spotRequests: response.spot_requests }))
   } catch (err) {
     dispatch(getSpotRequestsFailed((err as Error).toString()))
+  }
+}
+
+export const fetchDistributionGroups = (): AppThunk => async dispatch => {
+  try {
+    dispatch(getDistributionGroupsStart())
+    const groups = await getDistributionGroups()
+    dispatch(getDistributionGroupsSuccess(groups))
+  } catch (err) {
+    dispatch(getDistributionGroupsFailed((err as Error).toString()))
   }
 }
 
