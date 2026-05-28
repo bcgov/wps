@@ -39,7 +39,8 @@ const SpotMapLayerSwitcher = ({
       right: 16,
       zIndex: 2,
       p: 1.5,
-      maxWidth: 260
+      maxWidth: 260,
+      minWidth: 200
     }}
   >
     {allFireNumbers && selectedFireNumbers && onFireNumbersChange && (
@@ -110,7 +111,7 @@ const SpotMapLayerSwitcher = ({
                     boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.35)'
                   }}
                 />
-                <Typography variant="caption">{status}</Typography>
+                <Typography variant="body2">{status}</Typography>
               </Box>
             }
           />
