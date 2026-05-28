@@ -39,6 +39,7 @@ import { DistributionGroup, SpotRequestOutput, SpotRequestStatus, getDistributio
 import { AppDispatch } from '@/app/store'
 import { RootState, selectFireCentres } from '@/app/rootReducer'
 import { clearSpotRequestSubmitState, submitSpotRequest } from '@/features/smurfi/slices/smurfiSlice'
+import { toggleSubscribedId } from '@/features/smurfi/slices/subscriptionsSlice'
 import SpotRequestLocationField from '@/features/smurfi/components/requestForm/SpotRequestLocationField'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -202,6 +203,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
   const handleValidSubmit = async (data: SpotRequestFormData) => {
     const submittedSpotRequest = await dispatch(submitSpotRequest(data))
     if (submittedSpotRequest) {
+      dispatch(toggleSubscribedId({ spotRequestId: submittedSpotRequest.id, status: 'active' }))
       onSubmit?.(submittedSpotRequest)
     }
   }
@@ -217,7 +219,9 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit })
         <Grid size={12}>
           <Alert severity="info">
             Forecasts are scheduled based on forecaster capacity. Your forecast may not start on the requested date;
-            requests submitted for today will usually begin with tomorrow&apos;s forecast.
+            requests submitted for today will usually begin with tomorrow&apos;s forecast. If urgent, call your
+            forecaster directly for critical weather information while you wait for your first scheduled spot forecast
+            from SMURFI.
           </Alert>
         </Grid>
 

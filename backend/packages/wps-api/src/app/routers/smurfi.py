@@ -97,6 +97,25 @@ def _get_spot_user(token: dict) -> SpotRequestor:
     return SpotRequestor(name=requestor_name, idir=requestor_idir, email=requestor_email)
 
 
+def _get_spot_request_subscriber_emails(
+    spot_request_input: SpotRequestInput, requestor: SpotRequestor
+) -> list[str]:
+    seen = set()
+    unique_emails = []
+
+    for email in [s.email for s in spot_request_input.subscribers] + [requestor.email]:
+        if not email:
+            continue
+
+        email = email.strip()
+        normalized_email = email.lower()
+        if normalized_email not in seen:
+            unique_emails.append(email)
+            seen.add(normalized_email)
+
+    return unique_emails
+
+
 def _get_bc_albers_point(latitude: float, longitude: float) -> str:
     x, y = PointTransformer(
         SpatialReferenceSystem.WGS84.code, NAD83_BC_ALBERS
@@ -109,7 +128,9 @@ def _build_spot_request_base(
 ) -> SpotRequestBase:
     now = get_utc_now()
     return SpotRequestBase(
-        **spot_request_input.model_dump(exclude={"initial_instance", "subscribers", "distribution_group_ids"}),
+        **spot_request_input.model_dump(
+            exclude={"initial_instance", "subscribers", "distribution_group_ids"}
+        ),
         requestor_name=requestor.name,
         requestor_idir=requestor.idir,
         requestor_email=requestor.email,
@@ -208,7 +229,9 @@ async def upsert_spot_request_endpoint(
 
         logger.info("Syncing subscribers for SpotRequestBase id: %s", result.id)
         subscribers = await sync_spot_subscribers(
-            session, result.id, [s.email for s in spot_request_input.subscribers]
+            session,
+            result.id,
+            _get_spot_request_subscriber_emails(spot_request_input, requestor),
         )
         await sync_spot_request_distribution_groups(
             session, result.id, spot_request_input.distribution_group_ids or []
@@ -481,7 +504,9 @@ async def update_subscriber(data: UpdateSubscriberStatusData):
 
 
 @router.get("/distribution_groups", response_model=list[DistributionGroupOutput])
-async def get_distribution_groups_endpoint(token: Annotated[dict, Depends(authentication_required)]):
+async def get_distribution_groups_endpoint(
+    token: Annotated[dict, Depends(authentication_required)],
+):
     user = _get_spot_user(token)
     async with get_async_read_session_scope() as session:
         groups = await get_distribution_groups(session, user.idir)
@@ -511,7 +536,9 @@ async def update_distribution_group_endpoint(
 ):
     user = _get_spot_user(token)
     async with get_async_write_session_scope() as session:
-        result = await update_distribution_group(session, group_id, data.name, data.emails, user.idir)
+        result = await update_distribution_group(
+            session, group_id, data.name, data.emails, user.idir
+        )
         if result is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

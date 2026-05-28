@@ -1,17 +1,9 @@
 import React from 'react'
 import { Box, Button, Typography } from '@mui/material'
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
-import { useDispatch, useSelector } from 'react-redux'
-import {
-  selectSubscribedIds,
-  selectSubscriptionsLoading,
-  toggleSpotSubscription
-} from '@/features/smurfi/slices/subscriptionsSlice'
-import { AppDispatch } from '@/app/store'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import SpotSubscriptionButton from '@/features/smurfi/components/SpotSubscriptionButton'
 
 interface SpotPopupProps {
   lat: number
@@ -38,10 +30,6 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
   onOpenForecast,
   onSubmitForecast
 }) => {
-  const dispatch = useDispatch<AppDispatch>()
-  const subscribedIds = useSelector(selectSubscribedIds)
-  const isLoading = useSelector(selectSubscriptionsLoading)
-  const isSubscribed = subscribedIds.includes(spotId)
   const statusColors = SpotRequestStatusColorMap[status]
   const locationLabel = spotRequest.latest_forecast ? 'Last forecasted location' : 'Requested location'
 
@@ -78,16 +66,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Typography variant="body2">{fireNumber}</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            startIcon={isSubscribed ? <NotificationsActiveIcon /> : <NotificationsNoneIcon />}
-            size="small"
-            variant="contained"
-            color="primary"
-            disabled={isLoading}
-            onClick={() => dispatch(toggleSpotSubscription(spotId))}
-          >
-            {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
-          </Button>
+          <SpotSubscriptionButton spotRequest={spotRequest} variant="contained" />
           <Button
             startIcon={
               <img

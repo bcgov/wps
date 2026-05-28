@@ -17,21 +17,6 @@ export enum SpotRequestStatus {
 
 export type SpotForecastType = 'Mini' | 'Full'
 
-export interface SpotAdminRow {
-  id: number
-  spot_id: number
-  fire_id: string
-  forecaster: string
-  fire_centre: string
-  status: SpotRequestStatus
-  last_updated: number | null
-  latitude: number
-  longitude: number
-  spot_start: number
-  spot_end: number
-  spot_request?: SpotRequestOutput
-}
-
 interface SpotDescriptiveWeatherInput {
   period: 'Today' | 'Tonight' | 'Tomorrow'
   temperature: number | null

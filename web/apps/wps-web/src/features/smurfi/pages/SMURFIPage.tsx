@@ -11,6 +11,7 @@ import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
 import PrintableSpotForecast from '@/features/smurfi/pages/PrintableSpotForecast'
 import EditSpotForecastPage from '@/features/smurfi/pages/EditSpotForecastPage'
 import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
+import { fetchSubscriptions } from '@/features/smurfi/slices/subscriptionsSlice'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
 import { Box, Tab, Tabs } from '@mui/material'
 import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon'
@@ -33,6 +34,7 @@ const SMURFIPage = () => {
   const dispatch: AppDispatch = useDispatch()
   useEffect(() => {
     dispatch(fetchSpotRequests())
+    dispatch(fetchSubscriptions())
     dispatch(fetchFireCentres())
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, [])
