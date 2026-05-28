@@ -2,14 +2,13 @@ import { selectFireCentres } from '@/app/rootReducer'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import SmurfiRequestsMap from '@/features/smurfi/components/map/SmurfiRequestsMap'
+import SpotSubscriptionButton from '@/features/smurfi/components/SpotSubscriptionButton'
 import GroupsIcon from '@mui/icons-material/Groups'
 import { Box, Button, Chip, Divider, Paper, Typography } from '@mui/material'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { DateTime } from 'luxon'
-import { selectSubscribedIds, toggleSpotSubscription } from '@/features/smurfi/slices/subscriptionsSlice'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
-import { AppDispatch } from '@/app/store'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getSmurfiForecastsRoute } from '@wps/utils/constants'
 
@@ -57,12 +56,10 @@ const formatDate = (iso: string) => {
 }
 
 const SpotRequest = () => {
-  const dispatch: AppDispatch = useDispatch()
   const { id } = useParams()
   const navigate = useNavigate()
   const { spotRequests } = useSelector(selectSmurfi)
   const { fireCentres } = useSelector(selectFireCentres)
-  const subscribedIds = useSelector(selectSubscribedIds)
 
   const spotRequest = spotRequests.find(sr => sr.id === Number(id))
   const { isOwner, isForecaster } = useSpotPermissions(spotRequest)
@@ -74,8 +71,6 @@ const SpotRequest = () => {
       </Typography>
     )
   }
-
-  const isSubscribed = subscribedIds.includes(spotRequest.id)
 
   const fireCentreName =
     fireCentres.find(fc => fc.id === spotRequest.fire_centre)?.name?.replace(/ Fire Centre$/, '') ??
@@ -91,9 +86,7 @@ const SpotRequest = () => {
           title="Request Details"
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button variant="outlined" size="small" onClick={() => dispatch(toggleSpotSubscription(spotRequest.id))}>
-                {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
-              </Button>
+              <SpotSubscriptionButton spotRequest={spotRequest} />
               <Button variant="outlined" size="small" onClick={() => navigate(getSmurfiForecastsRoute(spotRequest.id))}>
                 View Forecasts
               </Button>
@@ -196,7 +189,14 @@ const SpotRequest = () => {
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                 {spotRequest.distribution_groups.map(group => (
-                  <Chip key={group.id} label={group.name} icon={<GroupsIcon />} size="small" color="primary" variant="outlined" />
+                  <Chip
+                    key={group.id}
+                    label={group.name}
+                    icon={<GroupsIcon />}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                  />
                 ))}
               </Box>
             </Box>
