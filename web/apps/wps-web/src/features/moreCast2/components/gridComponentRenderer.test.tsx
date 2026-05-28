@@ -548,6 +548,24 @@ describe('GridComponentRenderer', () => {
     expect(updatedRow).toBe(mockRow)
   })
 
+  it('should update a null prediction value without crashing', () => {
+    const mockRow = {
+      tempForecast: {
+        value: null,
+        choice: ModelChoice.GDPS
+      }
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(2, mockRow, 'tempForecast', 1)
+
+    expect(updatedRow).toEqual({
+      tempForecast: {
+        value: 2,
+        choice: ModelChoice.MANUAL
+      }
+    })
+  })
+
   it('should round decimal edits using the configured precision and mark the choice as manual', () => {
     const mockRow = {
       tempForecast: {
