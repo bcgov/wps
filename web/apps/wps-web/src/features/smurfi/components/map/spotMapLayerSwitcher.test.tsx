@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import SpotMapLayerSwitcher from './SpotMapLayerSwitcher'
-import { getVisibleCurrentFireStatusDefaults } from './mapLayerVisibility'
+import { getVisibleCurrentFireStatusDefaults } from '@/features/currentFires/map/layerVisibility'
 
 const STATUS_OPTIONS = [SpotRequestStatus.REQUESTED, SpotRequestStatus.STARTED]
 

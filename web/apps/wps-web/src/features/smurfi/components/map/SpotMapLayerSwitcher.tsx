@@ -1,12 +1,9 @@
 import { Autocomplete, Box, Checkbox, FormControlLabel, FormGroup, Paper, TextField, Typography } from '@mui/material'
 import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
-import { CURRENT_FIRE_STATUS_COLORS } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
-import {
-  CURRENT_FIRE_STATUS_OPTIONS,
-  CurrentFireStatus,
-  SPOT_REQUEST_STATUS_OPTIONS
-} from '@/features/smurfi/components/map/mapLayerVisibility'
+import { CURRENT_FIRE_STATUS_COLORS } from '@/features/currentFires/map/currentFireLayers'
+import { CURRENT_FIRE_STATUS_OPTIONS, CurrentFireStatus } from '@/features/currentFires/map/layerVisibility'
+import { SPOT_REQUEST_STATUS_OPTIONS } from '@/features/smurfi/components/map/mapLayerVisibility'
 
 interface SpotMapLayerSwitcherProps {
   selectedStatuses: SpotRequestStatus[]

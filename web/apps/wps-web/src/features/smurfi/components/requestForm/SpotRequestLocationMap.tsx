@@ -14,17 +14,13 @@ import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import { source as baseMapSource } from '@/features/fireWeather/components/maps/constants'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import {
-  createCurrentFirePointStyle,
   createCurrentFirePointsLayer,
-  createCurrentFirePolygonStyle,
   createCurrentFirePolygonsLayer
-} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+} from '@/features/currentFires/map/currentFireLayers'
+import { CurrentFireLayerController } from '@/features/currentFires/map/currentFireLayerController'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
-import {
-  CurrentFireStatus,
-  getVisibleCurrentFireStatusDefaults
-} from '@/features/smurfi/components/map/mapLayerVisibility'
+import { CurrentFireStatus, getVisibleCurrentFireStatusDefaults } from '@/features/currentFires/map/layerVisibility'
 
 interface SpotRequestLocation {
   latitude: number
@@ -61,8 +57,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
   const mapRef = useRef<HTMLDivElement | null>(null)
   const featureSourceRef = useRef(new VectorSource<Feature<Point>>())
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
-  const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
-  const currentFirePointsLayerRef = useRef<ReturnType<typeof createCurrentFirePointsLayer> | null>(null)
+  const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
   const onChangeRef = useRef(onChange)
 
   // state
@@ -119,8 +114,10 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
     })
     const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(selectedCurrentFireStatuses)
     const currentFirePointsLayer = createCurrentFirePointsLayer(selectedCurrentFireStatuses)
-    currentFirePolygonsLayerRef.current = currentFirePolygonsLayer
-    currentFirePointsLayerRef.current = currentFirePointsLayer
+    currentFireLayerControllerRef.current = new CurrentFireLayerController({
+      pointsLayer: currentFirePointsLayer,
+      polygonsLayer: currentFirePolygonsLayer
+    })
 
     const mapObject = new Map({
       target: mapRef.current,
@@ -150,20 +147,17 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
     })
 
     return () => {
-      currentFirePolygonsLayerRef.current = null
-      currentFirePointsLayerRef.current = null
+      currentFireLayerControllerRef.current = null
       mapObject.setTarget('')
     }
   }, [])
 
   useEffect(() => {
-    currentFirePolygonsLayerRef.current?.setVisible(currentFiresVisible)
-    currentFirePointsLayerRef.current?.setVisible(currentFiresVisible)
+    currentFireLayerControllerRef.current?.setVisible(currentFiresVisible)
   }, [currentFiresVisible])
 
   useEffect(() => {
-    currentFirePolygonsLayerRef.current?.setStyle(createCurrentFirePolygonStyle(selectedCurrentFireStatuses))
-    currentFirePointsLayerRef.current?.setStyle(createCurrentFirePointStyle(selectedCurrentFireStatuses))
+    currentFireLayerControllerRef.current?.setStatuses(selectedCurrentFireStatuses)
   }, [selectedCurrentFireStatuses])
 
   useEffect(() => {

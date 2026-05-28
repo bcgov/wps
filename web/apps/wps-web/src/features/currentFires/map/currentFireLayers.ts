@@ -2,9 +2,9 @@ import GeoJSON from 'ol/format/GeoJSON'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style'
-import { CURRENT_FIRE_STATUS_OPTIONS, CurrentFireStatus } from '@/features/smurfi/components/map/mapLayerVisibility'
+import { CURRENT_FIRE_STATUS_OPTIONS, CurrentFireStatus } from '@/features/currentFires/map/layerVisibility'
 
-export interface CurrentFirePolygonAttributes {
+export interface CurrentFireAttributes {
   fireNumber: string | null
   fireSizeHectares: number | string | null
   fireStatus: string | null
@@ -20,7 +20,7 @@ const CURRENT_FIRE_POINTS_WFS_URL =
 const CURRENT_FIRE_POINTS_TYPE_NAME = 'pub:WHSE_LAND_AND_NATURAL_RESOURCE.PROT_CURRENT_FIRE_PNTS_SP'
 
 const ACTIVE_FIRE_FILTER = "FIRE_STATUS <> 'Out'"
-const FIRE_LABEL_MAX_RESOLUTION = 1000
+const FIRE_LABEL_MAX_RESOLUTION = 1500
 
 export const CURRENT_FIRE_STATUS_COLORS: Record<CurrentFireStatus, string> = {
   'Out of Control': '#D32F2F',
@@ -152,7 +152,7 @@ export const createCurrentFirePointStyle =
 
 export const getCurrentFirePolygonAttributes = (feature: {
   get: (property: string) => string | number | null | undefined
-}): CurrentFirePolygonAttributes => ({
+}): CurrentFireAttributes => ({
   fireNumber: feature.get('FIRE_NUMBER')?.toString() ?? null,
   fireSizeHectares: feature.get('FIRE_SIZE_HECTARES') ?? null,
   fireStatus: feature.get('FIRE_STATUS')?.toString() ?? null,
@@ -161,7 +161,7 @@ export const getCurrentFirePolygonAttributes = (feature: {
 
 export const getCurrentFirePointAttributes = (feature: {
   get: (property: string) => string | number | null | undefined
-}): CurrentFirePolygonAttributes => ({
+}): CurrentFireAttributes => ({
   fireNumber: feature.get('FIRE_NUMBER')?.toString() ?? null,
   fireSizeHectares: feature.get('CURRENT_SIZE') ?? null,
   fireStatus: feature.get('FIRE_STATUS')?.toString() ?? null,

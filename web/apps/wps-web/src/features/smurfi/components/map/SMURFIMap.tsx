@@ -28,23 +28,20 @@ import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfi
 import { useNavigate } from 'react-router-dom'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import {
-  CurrentFirePolygonAttributes,
-  createCurrentFirePointStyle,
+  CurrentFireAttributes,
   createCurrentFirePointsLayer,
-  createCurrentFirePolygonStyle,
-  createCurrentFirePolygonsLayer,
-  getCurrentFirePointAttributes,
-  getCurrentFirePolygonAttributes
-} from '@/features/smurfi/components/map/currentFirePolygonsLayer'
+  createCurrentFirePolygonsLayer
+} from '@/features/currentFires/map/currentFireLayers'
+import { CurrentFiresClickInteraction } from '@/features/currentFires/map/CurrentFiresClickInteraction'
+import { CurrentFireLayerController } from '@/features/currentFires/map/currentFireLayerController'
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import { formatFireNumbers } from '@/features/smurfi/utils/spotForecastUtils'
-import { panMapToFitElement } from '@/features/smurfi/components/map/mapPopupUtils'
+import { panMapToFitElement } from '@/features/map/mapPopupUtils'
+import { CurrentFireStatus, getVisibleCurrentFireStatusDefaults } from '@/features/currentFires/map/layerVisibility'
 import {
-  CurrentFireStatus,
   SPOT_REQUEST_STATUS_OPTIONS,
-  getVisibleCurrentFireStatusDefaults,
   getVisibleSpotRequestStatusDefaults
 } from '@/features/smurfi/components/map/mapLayerVisibility'
 
@@ -79,7 +76,7 @@ type FirePopupData = {
   type: 'fire'
   open: boolean
   position: number[]
-  attributes: CurrentFirePolygonAttributes
+  attributes: CurrentFireAttributes
 }
 
 export const MapContext = React.createContext<Map | null>(null)
@@ -124,8 +121,8 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
   const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
-  const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
-  const currentFirePointsLayerRef = useRef<ReturnType<typeof createCurrentFirePointsLayer> | null>(null)
+  const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
+  const currentFiresClickInteractionRef = useRef<CurrentFiresClickInteraction | null>(null)
 
   // derived values
   const mapSpotRequests = propSpotRequests ?? spotRequests
@@ -239,8 +236,10 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(selectedCurrentFireStatuses)
     const currentFirePointsLayer = createCurrentFirePointsLayer(selectedCurrentFireStatuses)
     featureLayerRef.current = featureLayer
-    currentFirePolygonsLayerRef.current = currentFirePolygonsLayer
-    currentFirePointsLayerRef.current = currentFirePointsLayer
+    currentFireLayerControllerRef.current = new CurrentFireLayerController({
+      pointsLayer: currentFirePointsLayer,
+      polygonsLayer: currentFirePolygonsLayer
+    })
 
     const mapObject = new Map({
       target: mapRef.current,
@@ -284,39 +283,33 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
         return
       }
 
-      if (currentFirePolygonsLayer.getVisible()) {
-        const firePointFeature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
-          layer === currentFirePointsLayer ? f : undefined
-        )
-        if (firePointFeature) {
-          overlay.setPosition(event.coordinate)
-          setPopupData({
-            type: 'fire',
-            open: true,
-            position: event.coordinate,
-            attributes: getCurrentFirePointAttributes(firePointFeature)
-          })
-          return
-        }
-
-        const fireFeature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
-          layer === currentFirePolygonsLayer ? f : undefined
-        )
-        if (fireFeature) {
-          overlay.setPosition(event.coordinate)
-          setPopupData({
-            type: 'fire',
-            open: true,
-            position: event.coordinate,
-            attributes: getCurrentFirePolygonAttributes(fireFeature)
-          })
-          return
-        }
+      if (!currentFirePolygonsLayer.getVisible()) {
+        overlay.setPosition(undefined)
+        setPopupData(null)
       }
-
-      overlay.setPosition(undefined)
-      setPopupData(null)
     })
+
+    const currentFiresClickInteraction = new CurrentFiresClickInteraction({
+      currentFirePointsLayer,
+      currentFirePolygonsLayer,
+      shouldIgnoreClick: event =>
+        Boolean(mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) => (layer === featureLayer ? f : undefined))),
+      onFireClick: ({ attributes, coordinate }) => {
+        overlay.setPosition(coordinate)
+        setPopupData({
+          type: 'fire',
+          open: true,
+          position: coordinate,
+          attributes
+        })
+      },
+      onMapMiss: () => {
+        overlay.setPosition(undefined)
+        setPopupData(null)
+      }
+    })
+    currentFiresClickInteractionRef.current = currentFiresClickInteraction
+    mapObject.addInteraction(currentFiresClickInteraction)
 
     setMap(mapObject)
 
@@ -328,20 +321,20 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     loadBaseMap()
 
     return () => {
-      currentFirePolygonsLayerRef.current = null
-      currentFirePointsLayerRef.current = null
+      currentFireLayerControllerRef.current = null
+      currentFiresClickInteractionRef.current = null
+      mapObject.removeInteraction(currentFiresClickInteraction)
       mapObject.setTarget('')
     }
   }, [])
 
   useEffect(() => {
-    currentFirePolygonsLayerRef.current?.setVisible(currentFiresVisible)
-    currentFirePointsLayerRef.current?.setVisible(currentFiresVisible)
+    currentFireLayerControllerRef.current?.setVisible(currentFiresVisible)
+    currentFiresClickInteractionRef.current?.setActive(currentFiresVisible)
   }, [currentFiresVisible])
 
   useEffect(() => {
-    currentFirePolygonsLayerRef.current?.setStyle(createCurrentFirePolygonStyle(selectedCurrentFireStatuses))
-    currentFirePointsLayerRef.current?.setStyle(createCurrentFirePointStyle(selectedCurrentFireStatuses))
+    currentFireLayerControllerRef.current?.setStatuses(selectedCurrentFireStatuses)
   }, [selectedCurrentFireStatuses])
 
   useEffect(() => {
