@@ -24,6 +24,7 @@ import {
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import { panMapToFitElement } from '@/features/smurfi/components/map/mapPopupUtils'
+import { getVisibleCurrentFireStatusDefaults } from '@/features/smurfi/components/map/mapLayerVisibility'
 
 interface SmurfiRequestsMapProps {
   spotRequest: SpotRequestOutput
@@ -56,8 +57,9 @@ const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsM
       source: new VectorSource({ features: [marker] }),
       zIndex: 50
     })
-    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer()
-    const currentFirePointsLayer = createCurrentFirePointsLayer()
+    const visibleCurrentFireStatuses = getVisibleCurrentFireStatusDefaults()
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(visibleCurrentFireStatuses)
+    const currentFirePointsLayer = createCurrentFirePointsLayer(visibleCurrentFireStatuses)
 
     const mapObject = new Map({
       target: mapRef.current,

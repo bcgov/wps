@@ -14,7 +14,9 @@ import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import { source as baseMapSource } from '@/features/fireWeather/components/maps/constants'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import {
+  createCurrentFirePointStyle,
   createCurrentFirePointsLayer,
+  createCurrentFirePolygonStyle,
   createCurrentFirePolygonsLayer
 } from '@/features/smurfi/components/map/currentFirePolygonsLayer'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
@@ -61,7 +63,6 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
   const currentFirePolygonsLayerRef = useRef<ReturnType<typeof createCurrentFirePolygonsLayer> | null>(null)
   const currentFirePointsLayerRef = useRef<ReturnType<typeof createCurrentFirePointsLayer> | null>(null)
-  const selectedCurrentFireStatusesRef = useRef<CurrentFireStatus[]>(getVisibleCurrentFireStatusDefaults())
   const onChangeRef = useRef(onChange)
 
   // state
@@ -116,11 +117,8 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
       style: existingSpotStyle,
       zIndex: 40
     })
-    const currentFireLayerOptions = {
-      getVisibleStatuses: () => selectedCurrentFireStatusesRef.current
-    }
-    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(currentFireLayerOptions)
-    const currentFirePointsLayer = createCurrentFirePointsLayer(currentFireLayerOptions)
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(selectedCurrentFireStatuses)
+    const currentFirePointsLayer = createCurrentFirePointsLayer(selectedCurrentFireStatuses)
     currentFirePolygonsLayerRef.current = currentFirePolygonsLayer
     currentFirePointsLayerRef.current = currentFirePointsLayer
 
@@ -164,9 +162,8 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
   }, [currentFiresVisible])
 
   useEffect(() => {
-    selectedCurrentFireStatusesRef.current = selectedCurrentFireStatuses
-    currentFirePolygonsLayerRef.current?.changed()
-    currentFirePointsLayerRef.current?.changed()
+    currentFirePolygonsLayerRef.current?.setStyle(createCurrentFirePolygonStyle(selectedCurrentFireStatuses))
+    currentFirePointsLayerRef.current?.setStyle(createCurrentFirePointStyle(selectedCurrentFireStatuses))
   }, [selectedCurrentFireStatuses])
 
   useEffect(() => {
