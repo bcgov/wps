@@ -35,15 +35,13 @@ const EditSpotRequestPage = () => {
     return <Alert severity="warning">You do not have permission to edit this request.</Alert>
   }
 
-  const initialValues: Partial<SpotRequestFormValues> = {
+  const editRequestValues: Partial<SpotRequestFormValues> = {
     fireNumbers: spotRequest.fire_number,
     fireCentreId: spotRequest.fire_centre,
     forecastStartDate: DateTime.fromISO(spotRequest.start_at).setZone('America/Vancouver'),
     forecastEndDate: DateTime.fromISO(spotRequest.end_at).setZone('America/Vancouver'),
     forecastType: spotRequest.request_type as SpotRequestFormValues['forecastType'],
-    emailDistributionList: spotRequest.subscribers
-      .filter(s => s.subscriber_status === 'active')
-      .map(s => s.email),
+    emailDistributionList: spotRequest.subscribers.filter(s => s.subscriber_status === 'active').map(s => s.email),
     requestedFrequency: spotRequest.request_frequency as SpotRequestFormValues['requestedFrequency'],
     location: {
       latitude: spotRequest.current_instance.latitude,
@@ -66,7 +64,7 @@ const EditSpotRequestPage = () => {
       <SpotRequestForm
         onCancel={() => navigate(requestRoute)}
         onSubmit={() => navigate(requestRoute)}
-        initialValues={initialValues}
+        editRequestValues={editRequestValues}
         spotRequestId={spotRequestId}
       />
     </Box>
