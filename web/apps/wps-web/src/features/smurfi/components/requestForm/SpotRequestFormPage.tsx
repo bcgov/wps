@@ -13,7 +13,7 @@ const SpotRequestFormPage = () => {
   const navigate = useNavigate()
   const { state } = useLocation()
   const locationState = (state as NewRequestLocationState | null) ?? {}
-  const initialLocation =
+  const newRequestMapLocation =
     locationState.latitude != null && locationState.longitude != null
       ? { latitude: locationState.latitude, longitude: locationState.longitude }
       : undefined
@@ -33,7 +33,7 @@ const SpotRequestFormPage = () => {
       <SpotRequestForm
         onCancel={() => navigate(SMURFI_DASHBOARD_ROUTE)}
         onSubmit={handleSubmit}
-        initialLocation={initialLocation}
+        newRequestMapLocation={newRequestMapLocation}
       />
     </Box>
   )

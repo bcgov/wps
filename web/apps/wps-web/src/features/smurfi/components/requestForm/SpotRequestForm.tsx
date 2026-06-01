@@ -46,7 +46,9 @@ import { useDispatch, useSelector } from 'react-redux'
 interface SpotRequestFormProps {
   onCancel: () => void
   onSubmit?: (request: SpotRequestOutput) => void
-  initialLocation?: { latitude: number; longitude: number }
+  newRequestMapLocation?: { latitude: number; longitude: number }
+  editRequestValues?: Partial<SpotRequestFormValues>
+  spotRequestId?: number
 }
 
 const forecastTypeOptions: Record<SpotRequestFormValues['forecastType'], string> = {
@@ -142,10 +144,28 @@ const defaultValues: SpotRequestFormValues = {
   additionalInformation: ''
 }
 
+const getFormDefaultValues = (
+  editRequestValues?: Partial<SpotRequestFormValues>,
+  newRequestMapLocation?: { latitude: number; longitude: number }
+): SpotRequestFormValues => ({
+  ...defaultValues,
+  ...editRequestValues,
+  location:
+    editRequestValues?.location !== undefined
+      ? editRequestValues.location
+      : (newRequestMapLocation ?? defaultValues.location)
+})
+
 type DistributionItem = string | DistributionGroup
 const isGroup = (item: DistributionItem): item is DistributionGroup => typeof item !== 'string'
 
-const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, initialLocation }) => {
+const SpotRequestForm: React.FC<SpotRequestFormProps> = ({
+  onCancel,
+  onSubmit,
+  newRequestMapLocation,
+  editRequestValues,
+  spotRequestId
+}) => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCentres, loading: fireCentresLoading } = useSelector(selectFireCentres)
   const { spotRequestSubmitting, spotRequestSubmitError, spotRequests } = useSelector(
@@ -170,7 +190,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, i
     formState: { errors }
   } = useForm<SpotRequestFormValues, unknown, SpotRequestFormData>({
     resolver: zodResolver(spotRequestSchema),
-    defaultValues: { ...defaultValues, location: initialLocation ?? null },
+    defaultValues: getFormDefaultValues(editRequestValues, newRequestMapLocation),
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
@@ -202,7 +222,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, i
   }
 
   const handleValidSubmit = async (data: SpotRequestFormData) => {
-    const submittedSpotRequest = await dispatch(submitSpotRequest(data))
+    const submittedSpotRequest = await dispatch(submitSpotRequest(data, spotRequestId))
     if (submittedSpotRequest) {
       dispatch(toggleSubscribedId({ spotRequestId: submittedSpotRequest.id, status: 'active' }))
       onSubmit?.(submittedSpotRequest)

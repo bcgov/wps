@@ -10,7 +10,7 @@ import { DateTime } from 'luxon'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import { useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getSmurfiForecastsRoute } from '@wps/utils/constants'
+import { getSmurfiForecastsRoute, getSmurfiEditRequestRoute } from '@wps/utils/constants'
 
 const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <Box>
@@ -77,7 +77,7 @@ const SpotRequest = () => {
     String(spotRequest.fire_centre)
 
   const statusColors = SpotRequestStatusColorMap[spotRequest.status as SpotRequestStatus]
-  const requestInstance = spotRequest.initial_instance
+  const requestInstance = spotRequest.request_instance
 
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, alignItems: 'stretch' }}>
@@ -91,7 +91,11 @@ const SpotRequest = () => {
                 View Forecasts
               </Button>
               {(isOwner || isForecaster) && (
-                <Button variant="outlined" size="small" onClick={() => console.log(spotRequest.requestor_idir)}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => navigate(getSmurfiEditRequestRoute(spotRequest.id))}
+                >
                   Edit Request
                 </Button>
               )}
