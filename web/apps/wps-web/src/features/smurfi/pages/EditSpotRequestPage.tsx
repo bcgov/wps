@@ -35,6 +35,8 @@ const EditSpotRequestPage = () => {
     return <Alert severity="warning">You do not have permission to edit this request.</Alert>
   }
 
+  const requestInstance = spotRequest.request_instance
+
   const editRequestValues: Partial<SpotRequestFormValues> = {
     fireNumbers: spotRequest.fire_number,
     fireCentreId: spotRequest.fire_centre,
@@ -42,14 +44,15 @@ const EditSpotRequestPage = () => {
     forecastEndDate: DateTime.fromISO(spotRequest.end_at).setZone('America/Vancouver'),
     forecastType: spotRequest.request_type as SpotRequestFormValues['forecastType'],
     emailDistributionList: spotRequest.subscribers.filter(s => s.subscriber_status === 'active').map(s => s.email),
+    distributionGroupIds: spotRequest.distribution_group_ids ?? [],
     requestedFrequency: spotRequest.request_frequency as SpotRequestFormValues['requestedFrequency'],
     location: {
-      latitude: spotRequest.current_instance.latitude,
-      longitude: spotRequest.current_instance.longitude
+      latitude: requestInstance.latitude,
+      longitude: requestInstance.longitude
     },
-    geographicDescription: spotRequest.initial_instance.geographic_description,
-    slopeAspect: spotRequest.initial_instance.aspect ?? '',
-    elevation: spotRequest.initial_instance.elevation != null ? String(spotRequest.initial_instance.elevation) : '',
+    geographicDescription: requestInstance.geographic_description,
+    slopeAspect: requestInstance.aspect ?? '',
+    elevation: requestInstance.elevation != null ? String(requestInstance.elevation) : '',
     additionalInformation: spotRequest.additional_information ?? ''
   }
 

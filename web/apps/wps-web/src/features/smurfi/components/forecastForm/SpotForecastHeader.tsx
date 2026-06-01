@@ -110,6 +110,7 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({
               <SpotRequestLocationMap
                 value={selectedLocation}
                 existingSpotRequests={[spotRequest]}
+                focusOnValue
                 onChange={location => {
                   if (!location) {
                     return

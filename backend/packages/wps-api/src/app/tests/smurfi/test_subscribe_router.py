@@ -6,8 +6,8 @@ from unittest.mock import ANY, AsyncMock, patch
 import app.main
 import pytest
 from app.routers.smurfi import (
-    SpotRequestor,
     _get_spot_request_subscriber_emails,
+    _spot_request_instance_has_changed,
 )
 from app.smurfi.nats_config import smurfi_spot_update_subject, stream_name, subjects
 from fastapi.testclient import TestClient
@@ -38,6 +38,7 @@ def _make_spot_request_instance(instance_id: int = 3):
             "valley": None,
             "latitude": 48.5,
             "longitude": -123.5,
+            "created_at": datetime(2026, 5, 21, tzinfo=timezone.utc),
         },
     )()
 
@@ -60,10 +61,9 @@ def _make_spot_request_input(subscribers: list[SpotSubscriberData]):
 
 
 def test_spot_request_subscriber_emails_include_requestor_once():
-    requestor = SpotRequestor(name="Test User", idir="test_username", email="test@email.com")
-
     assert _get_spot_request_subscriber_emails(
-        _make_spot_request_input([SpotSubscriberData(email="owner@example.com")]), requestor
+        _make_spot_request_input([SpotSubscriberData(email="owner@example.com")]),
+        ["test@email.com"],
     ) == [
         "owner@example.com",
         "test@email.com",
@@ -76,10 +76,62 @@ def test_spot_request_subscriber_emails_include_requestor_once():
         ]
     )
 
-    assert _get_spot_request_subscriber_emails(spot_request_input, requestor) == [
+    assert _get_spot_request_subscriber_emails(spot_request_input, ["test@email.com"]) == [
         "owner@example.com",
         "TEST@EMAIL.COM",
     ]
+
+
+def test_spot_request_instance_has_changed_detects_geographic_updates():
+    existing = _make_spot_request_instance()
+
+    assert not _spot_request_instance_has_changed(
+        existing,
+        SpotRequestInstanceInput(
+            geographic_description="Clearwater Valley",
+            aspect="North",
+            elevation=1000,
+            valley=None,
+            latitude=48.5,
+            longitude=-123.5,
+        ),
+    )
+
+    assert not _spot_request_instance_has_changed(
+        existing,
+        SpotRequestInstanceInput(
+            geographic_description="Clearwater Valley",
+            aspect="North",
+            elevation=1000,
+            valley=None,
+            latitude=48.5001,
+            longitude=-123.5001,
+        ),
+    )
+
+    assert _spot_request_instance_has_changed(
+        existing,
+        SpotRequestInstanceInput(
+            geographic_description="Clearwater Valley",
+            aspect="North",
+            elevation=1000,
+            valley=None,
+            latitude=48.5003,
+            longitude=-123.5,
+        ),
+    )
+
+    assert _spot_request_instance_has_changed(
+        existing,
+        SpotRequestInstanceInput(
+            geographic_description="New location description",
+            aspect="North",
+            elevation=1000,
+            valley=None,
+            latitude=48.5,
+            longitude=-123.5,
+        ),
+    )
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")

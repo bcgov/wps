@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { RepresentativeStation } from '@/features/smurfi/interfaces'
-import { SpotForecastOutput } from '@wps/api/SMURFIAPI'
+import { SpotForecastOutput, SpotRequestOutput } from '@wps/api/SMURFIAPI'
 
 export const TIMEZONE = 'America/Vancouver'
 const forecastDateTimeFormat = 'yyyy-MM-dd HH:mm'
@@ -31,3 +31,8 @@ export const getMostRecentForecast = (forecasts: SpotForecastOutput[]): SpotFore
 
     return Date.parse(forecast.created_at) > Date.parse(mostRecent.created_at) ? forecast : mostRecent
   }, undefined)
+
+export const getSpotRequestDisplayLocation = (spotRequest: SpotRequestOutput) => {
+  // the backend decides whether current_instance is the requested or latest forecasted location
+  return { instance: spotRequest.current_instance, locationType: spotRequest.current_instance_type }
+}

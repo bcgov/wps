@@ -19,6 +19,7 @@ import { getStations, StationSource } from '@wps/api/stationAPI'
 import {
   formatFireNumbers,
   getEmptyFireSizes,
+  getSpotRequestDisplayLocation,
   toForecastDateTimeString
 } from '@/features/smurfi/utils/spotForecastUtils'
 
@@ -68,7 +69,8 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
   const defaultValues = useMemo<Partial<SpotFormData>>(() => {
     const baseDefaults = getDefaultValues()
     const fullPrefillForecast = prefillFullForecast ? sourceForecast : undefined
-    const requestInstance = fullPrefillForecast?.spot_request_instance ?? spotRequest.current_instance
+    const requestInstance =
+      fullPrefillForecast?.spot_request_instance ?? getSpotRequestDisplayLocation(spotRequest).instance
     const afternoonWeather = getDescriptiveWeather(fullPrefillForecast, 'Today')
     const tonightWeather = getDescriptiveWeather(fullPrefillForecast, 'Tonight')
     const tomorrowWeather = getDescriptiveWeather(fullPrefillForecast, 'Tomorrow')

@@ -77,7 +77,7 @@ const SpotRequest = () => {
     String(spotRequest.fire_centre)
 
   const statusColors = SpotRequestStatusColorMap[spotRequest.status as SpotRequestStatus]
-  const requestInstance = spotRequest.initial_instance
+  const requestInstance = spotRequest.request_instance
 
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, alignItems: 'stretch' }}>
@@ -91,7 +91,11 @@ const SpotRequest = () => {
                 View Forecasts
               </Button>
               {(isOwner || isForecaster) && (
-                <Button variant="outlined" size="small" onClick={() => navigate(getSmurfiEditRequestRoute(spotRequest.id))}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => navigate(getSmurfiEditRequestRoute(spotRequest.id))}
+                >
                   Edit Request
                 </Button>
               )}
