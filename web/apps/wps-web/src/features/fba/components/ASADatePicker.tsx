@@ -87,7 +87,11 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
           readOnly: true,
           startAdornment: renderStartAdornments(),
           endAdornment: renderEndAdornments(),
-          sx: { cursor: disabled ? 'default' : 'pointer', '& *': { cursor: 'inherit' }, ...(externalSlotProps?.input as { sx?: object })?.sx }
+          sx: {
+            cursor: disabled ? 'default' : 'pointer',
+            '& *': { cursor: 'inherit' },
+            ...(externalSlotProps?.input as { sx?: object })?.sx
+          }
         }
       }}
     />
@@ -142,6 +146,7 @@ const ASADatePicker = ({
             slotProps: other.slotProps
           } as any
         }}
+        sx={{ ...other.sx }}
         value={date}
       />
     </LocalizationProvider>

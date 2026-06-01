@@ -51,6 +51,26 @@ export const PERCENTILE_CALC_NAME = 'Percentile Calculator'
 export const SFMS_INSIGHTS_NAME = 'SFMS Insights'
 export const FIRE_WATCH_NAME = 'Fire Watch'
 export const WEATHER_TOOLKIT_NAME = 'Weather Toolkit'
+export const SMURFI_NAME = 'SMURFI'
+export const SMURFI_ROUTE = '/smurfi'
+export const SMURFI_DASHBOARD_ROUTE = `${SMURFI_ROUTE}/requests`
+export const SMURFI_FORECASTS_ROUTE = `${SMURFI_ROUTE}/forecasts`
+export const SMURFI_MAP_ROUTE = `${SMURFI_ROUTE}/map`
+export const SMURFI_ADMIN_ROUTE = `${SMURFI_ROUTE}/admin`
+export const SMURFI_NEW_REQUEST_ROUTE = `${SMURFI_DASHBOARD_ROUTE}/new`
+
+// SMURFI route getters
+export const getSmurfiRequestRoute = (spotRequestId: number | string) => `${SMURFI_DASHBOARD_ROUTE}/${spotRequestId}`
+export const getSmurfiForecastsRoute = (spotRequestId: number | string) =>
+  `${getSmurfiRequestRoute(spotRequestId)}/forecasts`
+export const getSmurfiNewForecastRoute = (spotRequestId: number | string) =>
+  `${getSmurfiForecastsRoute(spotRequestId)}/new`
+export const getSmurfiForecastRoute = (spotRequestId: number | string, forecastId: number | string) =>
+  `${getSmurfiForecastsRoute(spotRequestId)}/${forecastId}`
+export const getSmurfiForecastPrintRoute = (spotRequestId: number | string, forecastId: number | string) =>
+  `${getSmurfiForecastRoute(spotRequestId, forecastId)}/print`
+export const getSmurfiEditForecastRoute = (spotRequestId: number | string, forecastId: number | string) =>
+  `${getSmurfiForecastRoute(spotRequestId, forecastId)}/edit`
 
 // UI constants
 export const HEADER_HEIGHT = 56
@@ -67,6 +87,7 @@ export const PERCENTILE_CALC_DOC_TITLE = 'Percentile Calculator | BCWS PSU'
 export const SFMS_INSIGHTS_DOC_TITLE = 'SFMS Insights | BCWS PSU'
 export const FIRE_WATCH_TITLE = 'Fire Watch | BCWS PSU'
 export const WEATHER_TOOLKIT_TITLE = 'Weather Forecast Toolkit | BCWS PSU'
+export const SMURFI_DOC_TITLE = 'SMURFI | BCWS PSU'
 
 export enum FireCentres {
   CARIBOO_FC = 'Cariboo Fire Centre',

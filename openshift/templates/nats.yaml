@@ -45,6 +45,9 @@ parameters:
   - name: CPU_REQUEST
     required: true
     value: "1.5"
+  - name: VANITY_DOMAIN
+    description: Vanity domain for the web application (e.g. psu.nrs.gov.bc.ca)
+    required: true
 
 objects:
   - apiVersion: v1
@@ -449,3 +452,119 @@ objects:
                   name: monitor
                 - containerPort: 7777
                   name: metrics
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ${APP_NAME}-${SUFFIX}-smurfi-consumer
+      labels:
+        app: ${APP_NAME}-${SUFFIX}
+      annotations:
+        image.openshift.io/triggers: |-
+          [
+            {
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "${IMAGE_NAME}:${IMAGE_TAG}",
+                "namespace": "${PROJ_TOOLS}"
+              },
+              "fieldPath": "spec.template.spec.containers[0].image"
+            }
+          ]
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: ${APP_NAME}-${SUFFIX}-smurfi-consumer
+      template:
+        metadata:
+          labels:
+            app: ${APP_NAME}-${SUFFIX}-smurfi-consumer
+        spec:
+          containers:
+            - name: ${APP_NAME}-${SUFFIX}-smurfi-consumer
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
+              imagePullPolicy: "Always"
+              resources:
+                requests:
+                  cpu: "50m"
+                  memory: "128Mi"
+                limits:
+                  memory: "256Mi"
+              command:
+                [
+                  "uv",
+                  "run",
+                  "--no-sync",
+                  "python",
+                  "-m",
+                  "app.smurfi.nats_consumer",
+                ]
+              env:
+                - name: UV_NO_CACHE
+                  value: "1"
+                - name: NATS_STREAM_PREFIX
+                  value: ${APP_NAME}-${SUFFIX}
+                - name: NATS_SERVER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${APP_NAME}-${SUFFIX}-nats-server
+                      key: nats.server
+                - name: POSTGRES_READ_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: POSTGRES_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: password
+                - name: POSTGRES_WRITE_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: POSTGRES_READ_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: POSTGRES_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-port
+                - name: POSTGRES_DATABASE
+                  value: ${POSTGRES_DATABASE}
+                - name: CHES_TOKEN_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: ches-token-url
+                - name: CHES_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: ches-client-id
+                - name: CHES_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: ches-client-secret
+                - name: CHES_SENDER_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: ches-sender-email
+                - name: CHES_MERGE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: ches-merge-url
+                - name: WEB_BASE_URL
+                  value: https://${VANITY_DOMAIN}

@@ -562,6 +562,7 @@ class WfwxApi:
                         name=station.name,
                         ecodivision_name=station.ecodivision_name,
                         core_season=station.core_season,
+                        elevation=station.elevation,
                     ),
                     geometry=WeatherStationGeometry(coordinates=[station.long, station.lat]),
                 )

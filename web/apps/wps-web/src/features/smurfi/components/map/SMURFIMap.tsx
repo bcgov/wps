@@ -1,0 +1,523 @@
+import { Box } from '@mui/material'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Feature, Map, View } from 'ol'
+import { fromLonLat, toLonLat } from 'ol/proj'
+import Overlay from 'ol/Overlay'
+import 'ol/ol.css'
+import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
+import { boundingExtent } from 'ol/extent'
+import VectorLayer from 'ol/layer/Vector'
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
+import { Point } from 'ol/geom'
+import VectorSource from 'ol/source/Vector'
+import NewRequestPopup from './NewRequestPopup'
+import SpotPopup from './SpotPopup'
+import { FeatureLike } from 'ol/Feature'
+import {
+  BC_EXTENT,
+  CENTER_OF_BC,
+  SMURFI_NEW_REQUEST_ROUTE,
+  getSmurfiForecastsRoute,
+  getSmurfiNewForecastRoute,
+  getSmurfiRequestRoute
+} from '@wps/utils/constants'
+import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
+import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch } from '@/app/store'
+import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
+import { useNavigate } from 'react-router-dom'
+import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
+import {
+  CurrentFireAttributes,
+  createCurrentFirePointsLayer,
+  createCurrentFirePolygonsLayer
+} from '@/features/currentFires/map/currentFireLayers'
+import { CurrentFiresClickInteraction } from '@/features/currentFires/map/CurrentFiresClickInteraction'
+import { CurrentFireLayerController } from '@/features/currentFires/map/currentFireLayerController'
+import { NewRequestClickInteraction } from '@/features/smurfi/components/map/NewRequestClickInteraction'
+import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
+import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
+import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import { formatFireNumbers } from '@/features/smurfi/utils/spotForecastUtils'
+import { panMapToFitElement } from '@/features/map/mapPopupUtils'
+import { CurrentFireStatus, getVisibleCurrentFireStatusDefaults } from '@/features/currentFires/map/layerVisibility'
+import {
+  SPOT_REQUEST_STATUS_OPTIONS,
+  getVisibleSpotRequestStatusDefaults
+} from '@/features/smurfi/components/map/mapLayerVisibility'
+
+export interface SelectedCoordinates {
+  latitude: number
+  longitude: number
+}
+
+type SpotFeature = {
+  lon: number
+  lat: number
+  status: SpotRequestStatus
+  id: string
+  spotId: number
+  fireNumber: string
+  spotRequest: SpotRequestOutput
+}
+
+type SpotPopupData = {
+  type: 'spot'
+  open: boolean
+  position: number[]
+  lat: number
+  lng: number
+  status: SpotRequestStatus
+  fireNumber: string
+  spotId: number
+  spotRequest: SpotRequestOutput
+}
+
+type FirePopupData = {
+  type: 'fire'
+  open: boolean
+  position: number[]
+  attributes: CurrentFireAttributes
+}
+
+type MapClickPopupData = {
+  type: 'map'
+  open: boolean
+  position: number[]
+  lat: number
+  lon: number
+}
+
+export const MapContext = React.createContext<Map | null>(null)
+const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
+
+// Tolerance for coordinate matching (in degrees)
+const COORDINATE_TOLERANCE = 0.0001
+
+const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature => ({
+  lon: spotRequest.current_instance.longitude,
+  lat: spotRequest.current_instance.latitude,
+  status: spotRequest.status,
+  id: String(spotRequest.id),
+  spotId: spotRequest.id,
+  fireNumber: formatFireNumbers(spotRequest.fire_number),
+  spotRequest
+})
+
+interface SMURFIMapProps {
+  selectedCoordinates?: SelectedCoordinates | null
+  spotRequests?: SpotRequestOutput[]
+}
+
+const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMURFIMapProps) => {
+  // hooks
+  const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
+  const { spotRequests } = useSelector(selectSmurfi)
+  const { isForecaster } = useSpotPermissions(undefined)
+
+  // state
+  const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(getVisibleSpotRequestStatusDefaults)
+  const [selectedFireNumbers, setSelectedFireNumbers] = useState<string[]>([])
+  const [currentFiresVisible, setCurrentFiresVisible] = useState(true)
+  const [selectedCurrentFireStatuses, setSelectedCurrentFireStatuses] = useState<CurrentFireStatus[]>(
+    getVisibleCurrentFireStatusDefaults
+  )
+  const [map, setMap] = useState<Map | null>(null)
+  const [popupData, setPopupData] = useState<SpotPopupData | FirePopupData | MapClickPopupData | null>(null)
+
+  // refs
+  const mapRef = useRef<HTMLDivElement | null>(null)
+  const popupRef = useRef<HTMLDivElement | null>(null)
+  const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
+  const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
+  const currentFiresClickInteractionRef = useRef<CurrentFiresClickInteraction | null>(null)
+  const newRequestClickInteractionRef = useRef<NewRequestClickInteraction | null>(null)
+  const popupDataRef = useRef<SpotPopupData | FirePopupData | MapClickPopupData | null>(null)
+
+  // derived values
+  const mapSpotRequests = propSpotRequests ?? spotRequests
+  const allFireNumbers = useMemo(
+    () => [...new Set(mapSpotRequests.flatMap(sr => sr.fire_number ?? []))].sort((a, b) => a.localeCompare(b)),
+    [mapSpotRequests]
+  )
+  const filteredSpotRequests = useMemo(
+    () =>
+      mapSpotRequests.filter(
+        sr =>
+          selectedStatuses.includes(sr.status) &&
+          (selectedFireNumbers.length === 0 || sr.fire_number?.some(fn => selectedFireNumbers.includes(fn)))
+      ),
+    [mapSpotRequests, selectedStatuses, selectedFireNumbers]
+  )
+  const spotFeatures = useMemo(() => filteredSpotRequests.map(buildSpotFeature), [filteredSpotRequests])
+
+  // handlers
+  const handleOpenRequest = (spotRequestId: number) => {
+    navigate(getSmurfiRequestRoute(spotRequestId))
+  }
+
+  const handleOpenForecasts = (spotRequestId: number) => {
+    navigate(getSmurfiForecastsRoute(spotRequestId))
+  }
+
+  const handleSubmitForecast = (spotRequestId: number) => {
+    navigate(getSmurfiNewForecastRoute(spotRequestId))
+  }
+
+  const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
+    setSelectedStatuses(current => {
+      if (!checked) {
+        return current.filter(selectedStatus => selectedStatus !== status)
+      }
+
+      return current.includes(status) ? current : [...current, status]
+    })
+  }
+
+  const handleAllStatusesChange = (checked: boolean) => {
+    setSelectedStatuses(checked ? SPOT_REQUEST_STATUS_OPTIONS : [])
+  }
+
+  const handleCurrentFireStatusChange = (status: CurrentFireStatus, checked: boolean) => {
+    setSelectedCurrentFireStatuses(current => {
+      if (!checked) {
+        return current.filter(selectedStatus => selectedStatus !== status)
+      }
+
+      return current.includes(status) ? current : [...current, status]
+    })
+  }
+
+  // styles
+  // create highlight style for selected marker
+  const createHighlightStyle = () => {
+    return new Style({
+      image: new CircleStyle({
+        radius: 20,
+        fill: new Fill({ color: 'rgba(255, 255, 0, 0.3)' }),
+        stroke: new Stroke({ color: '#FFD700', width: 3 })
+      })
+    })
+  }
+
+  // create marker style function that checks if feature is selected
+  const createMarkerStyle = (selectedCoords: SelectedCoordinates | null | undefined) => {
+    return (feature: FeatureLike) => {
+      const status = feature.get('status') as SpotRequestStatus
+      const featureLon = feature.get('lon') as number
+      const featureLat = feature.get('lat') as number
+
+      const baseStyle = new Style({
+        image: createSpotStatusIcon(status)
+      })
+
+      // check if this feature is selected
+      if (
+        selectedCoords &&
+        Math.abs(featureLon - selectedCoords.longitude) < COORDINATE_TOLERANCE &&
+        Math.abs(featureLat - selectedCoords.latitude) < COORDINATE_TOLERANCE
+      ) {
+        // return both highlight and base style for selected marker
+        return [createHighlightStyle(), baseStyle]
+      }
+
+      return baseStyle
+    }
+  }
+
+  // effects
+  useEffect(() => {
+    popupDataRef.current = popupData
+  }, [popupData])
+
+  useEffect(() => {
+    if (propSpotRequests === undefined) {
+      dispatch(fetchSpotRequests())
+    }
+  }, [dispatch, propSpotRequests])
+
+  useEffect(() => {
+    if (!mapRef.current) return
+
+    const featureSource = new VectorSource<Feature<Point>>({
+      features: []
+    })
+    const featureLayer = new VectorLayer({
+      source: featureSource,
+      style: createMarkerStyle(null),
+      zIndex: 50
+    })
+    const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(selectedCurrentFireStatuses)
+    const currentFirePointsLayer = createCurrentFirePointsLayer(selectedCurrentFireStatuses)
+    featureLayerRef.current = featureLayer
+    currentFireLayerControllerRef.current = new CurrentFireLayerController({
+      pointsLayer: currentFirePointsLayer,
+      polygonsLayer: currentFirePolygonsLayer
+    })
+
+    const mapObject = new Map({
+      target: mapRef.current,
+      layers: [currentFirePolygonsLayer, currentFirePointsLayer, featureLayer],
+      view: new View({
+        zoom: 5,
+        center: fromLonLat(CENTER_OF_BC)
+      })
+    })
+    mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
+
+    // add popup overlay (shared by all popup types)
+    const overlay = new Overlay({
+      element: popupRef.current!,
+      positioning: 'bottom-center',
+      stopEvent: true,
+      offset: [0, -10]
+    })
+    mapObject.addOverlay(overlay)
+
+    const newRequestClickInteraction = new NewRequestClickInteraction({
+      overlay,
+      shouldIgnoreClick: event =>
+        Boolean(
+          mapObject.forEachFeatureAtPixel(
+            event.pixel,
+            (f, layer) =>
+              layer === featureLayer || layer === currentFirePointsLayer || layer === currentFirePolygonsLayer
+                ? f
+                : undefined
+          )
+        ),
+      onEmptyClick: ({ lat, lon, coordinate }) => {
+        // if any popup is already open, dismiss it rather than opening a new request
+        if (popupDataRef.current) {
+          newRequestClickInteraction.close()
+          setPopupData(null)
+          return
+        }
+        setPopupData({ type: 'map', open: true, position: coordinate, lat, lon })
+      },
+      onDismiss: () => {
+        setPopupData(null)
+      }
+    })
+    newRequestClickInteractionRef.current = newRequestClickInteraction
+    mapObject.addInteraction(newRequestClickInteraction)
+
+    // spot click handler — new request and fire clicks are handled by their interactions
+    mapObject.on('click', event => {
+      const feature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
+        layer === featureLayer ? f : undefined
+      )
+      if (!feature) return
+      newRequestClickInteraction.close()
+      const coord = event.coordinate
+      const [lng, lat] = toLonLat(coord)
+      overlay.setPosition(coord)
+      setPopupData({
+        type: 'spot',
+        open: true,
+        position: coord,
+        lat,
+        lng,
+        status: feature.get('status') as SpotRequestStatus,
+        fireNumber: feature.get('fireNumber'),
+        spotId: feature.get('spotId') as number,
+        spotRequest: feature.get('spotRequest') as SpotRequestOutput
+      })
+    })
+
+    const currentFiresClickInteraction = new CurrentFiresClickInteraction({
+      currentFirePointsLayer,
+      currentFirePolygonsLayer,
+      shouldIgnoreClick: event =>
+        Boolean(mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) => (layer === featureLayer ? f : undefined))),
+      onFireClick: ({ attributes, coordinate }) => {
+        newRequestClickInteraction.close()
+        overlay.setPosition(coordinate)
+        setPopupData({
+          type: 'fire',
+          open: true,
+          position: coordinate,
+          attributes
+        })
+      },
+      onMapMiss: () => {
+        // popup dismissal on empty clicks is handled by NewRequestClickInteraction.onEmptyClick
+      }
+    })
+    currentFiresClickInteractionRef.current = currentFiresClickInteraction
+    mapObject.addInteraction(currentFiresClickInteraction)
+
+    setMap(mapObject)
+
+    const loadBaseMap = async () => {
+      const style = await getStyleJson(BASEMAP_STYLE_URL)
+      const basemapLayer = await createVectorTileLayer(BASEMAP_TILE_URL, style, 1, BASEMAP_LAYER_NAME)
+      mapObject.addLayer(basemapLayer)
+    }
+    loadBaseMap()
+
+    return () => {
+      currentFireLayerControllerRef.current = null
+      currentFiresClickInteractionRef.current = null
+      newRequestClickInteractionRef.current = null
+      mapObject.removeInteraction(newRequestClickInteraction)
+      mapObject.removeInteraction(currentFiresClickInteraction)
+      mapObject.setTarget('')
+    }
+  }, [])
+
+  useEffect(() => {
+    currentFireLayerControllerRef.current?.setVisible(currentFiresVisible)
+    currentFiresClickInteractionRef.current?.setActive(currentFiresVisible)
+  }, [currentFiresVisible])
+
+  useEffect(() => {
+    currentFireLayerControllerRef.current?.setStatuses(selectedCurrentFireStatuses)
+  }, [selectedCurrentFireStatuses])
+
+  useEffect(() => {
+    if (
+      !currentFiresVisible ||
+      (popupData?.type === 'fire' &&
+        !selectedCurrentFireStatuses.includes(popupData.attributes.fireStatus as CurrentFireStatus))
+    ) {
+      setPopupData(current => (current?.type === 'fire' ? null : current))
+    }
+  }, [currentFiresVisible, popupData, selectedCurrentFireStatuses])
+
+  useEffect(() => {
+    if (map && popupData?.open) {
+      panMapToFitElement(map, popupRef.current)
+    }
+  }, [map, popupData])
+
+  useEffect(() => {
+    const featureSource = featureLayerRef.current?.getSource()
+    if (!featureSource) {
+      return
+    }
+
+    const markers = spotFeatures.map(
+      spotFeature =>
+        new Feature({
+          geometry: new Point(fromLonLat([spotFeature.lon, spotFeature.lat])),
+          id: spotFeature.id,
+          spotId: spotFeature.spotId,
+          status: spotFeature.status,
+          fireNumber: spotFeature.fireNumber,
+          spotRequest: spotFeature.spotRequest,
+          lon: spotFeature.lon,
+          lat: spotFeature.lat
+        })
+    )
+
+    featureSource.clear()
+    featureSource.addFeatures(markers)
+  }, [spotFeatures])
+
+  useEffect(() => {
+    if (popupData?.type !== 'spot') return
+    const statusFiltered = !selectedStatuses.includes(popupData.status)
+    const fireNumberFiltered =
+      selectedFireNumbers.length > 0 && !popupData.spotRequest.fire_number?.some(fn => selectedFireNumbers.includes(fn))
+    if (statusFiltered || fireNumberFiltered) {
+      setPopupData(null)
+    }
+  }, [popupData, selectedStatuses, selectedFireNumbers])
+
+  // update marker styles when selectedCoordinates changes
+  useEffect(() => {
+    if (featureLayerRef.current) {
+      featureLayerRef.current.setStyle(createMarkerStyle(selectedCoordinates))
+
+      // if coordinates are selected, pan to them
+      if (selectedCoordinates && map) {
+        const coord = fromLonLat([selectedCoordinates.longitude, selectedCoordinates.latitude])
+        map.getView().animate({
+          center: coord,
+          duration: 500
+        })
+      }
+    }
+  }, [selectedCoordinates, map])
+
+  return (
+    <MapContext.Provider value={map}>
+      <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: 0, flex: 1 }}>
+        <Box ref={mapRef} data-testid={'smurfi-map'} sx={{ width: '100%', height: '100%' }} />
+        <SpotMapLayerSwitcher
+          selectedStatuses={selectedStatuses}
+          currentFiresVisible={currentFiresVisible}
+          selectedCurrentFireStatuses={selectedCurrentFireStatuses}
+          allFireNumbers={allFireNumbers}
+          selectedFireNumbers={selectedFireNumbers}
+          onStatusChange={handleStatusFilterChange}
+          onAllStatusesChange={handleAllStatusesChange}
+          onCurrentFiresVisibleChange={setCurrentFiresVisible}
+          onCurrentFireStatusChange={handleCurrentFireStatusChange}
+          onFireNumbersChange={setSelectedFireNumbers}
+        />
+        <div
+          ref={popupRef}
+          className="ol-popup"
+          style={{ display: popupData?.open ? 'block' : 'none', pointerEvents: 'auto', position: 'relative' }}
+        >
+          {/* rotated square pointer */}
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: -7,
+              left: '50%',
+              width: 14,
+              height: 14,
+              transform: 'translateX(-50%) rotate(45deg)',
+              bgcolor: 'white',
+              borderBottom: '1px solid #ddd',
+              borderRight: '1px solid #ddd',
+              pointerEvents: 'none',
+              zIndex: 2
+            }}
+          />
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            {popupData?.type === 'spot' && (
+              <SpotPopup
+                lat={popupData.lat}
+                lng={popupData.lng}
+                status={popupData.status}
+                fireNumber={popupData.fireNumber}
+                spotId={popupData.spotId}
+                spotRequest={popupData.spotRequest}
+                canSubmitForecast={isForecaster}
+                onOpenRequest={handleOpenRequest}
+                onOpenForecast={handleOpenForecasts}
+                onSubmitForecast={handleSubmitForecast}
+              />
+            )}
+            {popupData?.type === 'fire' && (
+              <CurrentFirePolygonPopup attributes={popupData.attributes} onClose={() => setPopupData(null)} />
+            )}
+            {popupData?.type === 'map' && (
+              <NewRequestPopup
+                onConfirm={() => {
+                  newRequestClickInteractionRef.current?.close()
+                  navigate(SMURFI_NEW_REQUEST_ROUTE, {
+                    state: { latitude: popupData.lat, longitude: popupData.lon }
+                  })
+                }}
+                onCancel={() => {
+                  newRequestClickInteractionRef.current?.close()
+                  setPopupData(null)
+                }}
+              />
+            )}
+          </Box>
+        </div>
+      </Box>
+    </MapContext.Provider>
+  )
+}
+
+export default SMURFIMap

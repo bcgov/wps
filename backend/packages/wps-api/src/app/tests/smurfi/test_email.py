@@ -1,0 +1,170 @@
+"""Unit tests for smurfi CHES email builder."""
+
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from app.smurfi.email import build_spot_forecast_email, send_spot_forecast_emails
+
+_ISSUED_AT = datetime(2026, 5, 25, 21, 30, tzinfo=timezone.utc)  # 1430 PDT
+
+
+def _make_spot_request(fire_number=None, geographic_description="Test Area"):
+    sr = MagicMock()
+    sr.fire_number = fire_number or ["V0800168"]
+    sr.geographic_description = geographic_description
+    sr.requestor_name = "Test Requestor"
+    sr.aspect = "East"
+    sr.elevation = 1100
+    sr.geom = None  # coord extraction will fall back to "—" via try/except
+    return sr
+
+
+def _make_spot_request_instance(geographic_description="Test Area"):
+    instance = MagicMock()
+    instance.geographic_description = geographic_description
+    instance.aspect = "East"
+    instance.elevation = 1100
+    instance.latitude = 48.5
+    instance.longitude = -123.5
+    return instance
+
+
+def _make_spot_forecast(spot_request, descriptive_weather=None, tabular_weather=None):
+    sf = MagicMock()
+    sf.spot_request_base = spot_request
+    sf.spot_request_instance = _make_spot_request_instance(
+        geographic_description=getattr(spot_request, "geographic_description", "Test Area")
+    )
+    sf.descriptive_weather = descriptive_weather or []
+    sf.tabular_weather = tabular_weather or []
+    sf.issued_at = _ISSUED_AT
+    sf.expires_at = None
+    sf.forecaster_name = "Test Forecaster"
+    sf.forecaster_email = "test@example.com"
+    sf.forecaster_phone = None
+    sf.synopsis = "Test synopsis"
+    sf.inversion_and_venting = "Test inversion"
+    sf.outlook = None
+    sf.confidence = "Test confidence"
+    sf.fire_size = None
+    sf.representative_station_codes = None
+    return sf
+
+
+def _make_descriptive(period, conditions="Sunny", temperature=18.0, relative_humidity=40.0):
+    dw = MagicMock()
+    dw.period = period
+    dw.conditions = conditions
+    dw.temperature = temperature
+    dw.relative_humidity = relative_humidity
+    return dw
+
+
+def _make_tabular(
+    forecast_time,
+    temperature=18.0,
+    relative_humidity=40.0,
+    wind="NW 20",
+    probability_of_precipitation=10.0,
+    precipitation_amount=0.0,
+):
+    tw = MagicMock()
+    tw.forecast_time = forecast_time
+    tw.temperature = temperature
+    tw.relative_humidity = relative_humidity
+    tw.wind = wind
+    tw.probability_of_precipitation = probability_of_precipitation
+    tw.precipitation_amount = precipitation_amount
+    return tw
+
+
+def test_build_email_subject_includes_fire_number():
+    """Email subject contains the fire number."""
+    sr = _make_spot_request(fire_number=["V0800168"])
+    sf = _make_spot_forecast(sr)
+    subject, _ = build_spot_forecast_email(sf, spot_detail_url="http://example.com/smurfi/spots/1")
+    assert "V0800168" in subject
+
+
+def test_build_email_body_contains_geographic_description():
+    """Email body contains the geographic description."""
+    sr = _make_spot_request()
+    sf = _make_spot_forecast(sr)
+    sf.spot_request_instance.geographic_description = "Clearwater Valley"
+    _, html = build_spot_forecast_email(sf, spot_detail_url="http://example.com/smurfi/spots/1")
+    assert "Clearwater Valley" in html
+
+
+def test_build_email_body_contains_descriptive_period():
+    """Email body contains descriptive weather rendered as AFTERNOON/TONIGHT/TOMORROW labels."""
+    sr = _make_spot_request()
+    afternoon = _make_descriptive(
+        period="Today", conditions="Partly cloudy", temperature=22.0, relative_humidity=35.0
+    )
+    tonight = _make_descriptive(
+        period="Tonight", conditions="Clear", temperature=5.0, relative_humidity=80.0
+    )
+    tomorrow = _make_descriptive(
+        period="Tomorrow", conditions="Sunny", temperature=20.0, relative_humidity=30.0
+    )
+    sf = _make_spot_forecast(sr, descriptive_weather=[afternoon, tonight, tomorrow])
+    _, body = build_spot_forecast_email(sf, spot_detail_url="http://example.com/smurfi/spots/1")
+    assert "AFTERNOON:" in body
+    assert "Partly cloudy" in body
+    assert "MAX TEMP 22.0C, MIN RH 35.0%" in body
+    assert "TONIGHT:" in body
+    assert "MIN TEMP 5.0C. MAX RH 80.0%" in body
+    assert "TOMORROW:" in body
+    assert "TEMP 20.0C. MIN RH 30.0%" in body
+
+
+def test_build_email_body_contains_tabular_row():
+    """Email body contains a tabular weather row."""
+    sr = _make_spot_request()
+    tw = _make_tabular(
+        forecast_time=datetime(2026, 5, 19, 14, 0, tzinfo=timezone.utc),
+        temperature=21.0,
+        relative_humidity=38.0,
+        wind="SE 15",
+    )
+    sf = _make_spot_forecast(sr, tabular_weather=[tw])
+    _, html = build_spot_forecast_email(sf, spot_detail_url="http://example.com/smurfi/spots/1")
+    assert "SE 15" in html
+
+
+def test_build_email_body_contains_spot_detail_link():
+    """Email body contains the view-forecast link."""
+    sr = _make_spot_request()
+    sf = _make_spot_forecast(sr)
+    _, html = build_spot_forecast_email(sf, spot_detail_url="http://example.com/smurfi/spots/99")
+    assert "http://example.com/smurfi/spots/99" in html
+
+
+@pytest.mark.anyio
+async def test_send_spot_forecast_emails_calls_ches():
+    """send_spot_forecast_emails fetches a token and POSTs to CHES /email/merge."""
+    mock_token_response = MagicMock()
+    mock_token_response.json.return_value = {"access_token": "test-token"}
+    mock_token_response.raise_for_status = MagicMock()
+
+    mock_merge_response = MagicMock()
+    mock_merge_response.raise_for_status = MagicMock()
+
+    with patch("app.smurfi.email.httpx.AsyncClient") as mock_client_cls:
+        mock_client = AsyncMock()
+        mock_client_cls.return_value.__aenter__.return_value = mock_client
+        mock_client.post.side_effect = [mock_token_response, mock_merge_response]
+
+        await send_spot_forecast_emails(
+            subscriber_emails=["a@example.com", "b@example.com"],
+            subject="Test Subject",
+            html_body="<p>Test</p>",
+        )
+
+        assert mock_client.post.call_count == 2
+        merge_call = mock_client.post.call_args_list[1]
+        merge_body = merge_call.kwargs.get("json") or merge_call.args[1]
+        assert len(merge_body["contexts"]) == 2
+        assert merge_body["contexts"][0]["to"] == ["a@example.com"]
+        assert merge_body["contexts"][1]["to"] == ["b@example.com"]

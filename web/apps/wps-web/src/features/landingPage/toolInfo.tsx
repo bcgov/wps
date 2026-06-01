@@ -30,6 +30,8 @@ import {
   MORECAST_ROUTE,
   PERCENTILE_CALC_NAME,
   PERCENTILE_CALC_ROUTE,
+  SMURFI_NAME,
+  SMURFI_ROUTE,
   SFMS_INSIGHTS_NAME,
   SFMS_INSIGHTS_ROUTE,
   WEATHER_TOOLKIT_NAME,
@@ -207,6 +209,18 @@ export const weatherToolkitInfo: ToolInfo = {
   isBeta: true
 }
 
+export const smurfiInfo: ToolInfo = {
+  name: SMURFI_NAME,
+  route: SMURFI_ROUTE,
+  description: (
+    <Typography>
+      Spot Forecast Management Interface - An application for managing and forecasting spots related to wildfires in BC
+    </Typography>
+  ),
+  icon: <PublicIcon color="primary" fontSize={ICON_FONT_SIZE} />,
+  isBeta: true
+}
+
 // The order of items in this array determines the order of items as they appear in the landing page
 // side bar and order of tiles.
 export const toolInfos = [
@@ -217,6 +231,7 @@ export const toolInfos = [
   fireBehaviourCalcInfo,
   fireWatchInfo,
   sfmsInsightsInfo,
+  smurfiInfo,
   percentileCalcInfo,
   cHainesInfo,
   weatherToolkitInfo
