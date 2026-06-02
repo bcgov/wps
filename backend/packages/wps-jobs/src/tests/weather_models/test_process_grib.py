@@ -1,12 +1,13 @@
+import math
 import os
+
+import pytest
 from aiohttp import ClientSession
 from osgeo import gdal
 from pyproj import CRS
-import math
-import pytest
+from weather_model_jobs.utils import process_grib
 from wps_shared.geospatial.geospatial import NAD83_CRS
 from wps_shared.tests.common import default_mock_client_get
-from weather_model_jobs.utils import process_grib
 
 
 def test_convert_mps_to_kph():
@@ -25,11 +26,11 @@ def test_convert_mps_to_kph_zero_wind_speed():
 
 def test_read_single_raster_value(monkeypatch: pytest.MonkeyPatch):
     """
-    Verified with gdallocationinfo CMC_reg_RH_TGL_2_ps10km_2020110500_P034.grib2 -wgs84 -120.4816667 50.6733333
+    Verified with gdallocationinfo 20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2 -wgs84 -120.4816667 50.6733333
     """
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     filename = os.path.join(
-        os.path.dirname(__file__), "CMC_reg_RH_TGL_2_ps10km_2020110500_P034.grib2"
+        os.path.dirname(__file__), "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2"
     )
     dataset = gdal.Open(filename, gdal.GA_ReadOnly)
 
@@ -49,6 +50,6 @@ def test_read_single_raster_value(monkeypatch: pytest.MonkeyPatch):
     station, value = next(processor.yield_value_for_stations(raster_band))
 
     assert station.code == 995
-    assert math.isclose(value, 95.276, abs_tol=0.001)
+    assert math.isclose(value, 21.893, abs_tol=0.001)
 
     del dataset
