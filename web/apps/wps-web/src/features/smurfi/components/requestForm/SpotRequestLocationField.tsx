@@ -98,6 +98,7 @@ const SpotRequestLocationField: React.FC<SpotRequestLocationFieldProps> = ({
         selectedLocation={value}
         onChange={handleMapChange}
         existingSpotRequests={existingSpotRequests}
+        focusOnSelectedLocation
       />
       {errorMessage && <FormHelperText error>{errorMessage}</FormHelperText>}
     </Box>

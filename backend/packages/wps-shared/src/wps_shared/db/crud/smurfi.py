@@ -35,14 +35,6 @@ async def create_spot_request_instance(
     return spot_request_instance
 
 
-async def set_current_request_instance(
-    session: AsyncSession, spot_request_base: SpotRequestBase, spot_request_instance_id: int
-) -> SpotRequestBase:
-    spot_request_base.current_request_instance_id = spot_request_instance_id
-    await session.flush()
-    return spot_request_base
-
-
 async def get_matching_spot_request_instance(
     session: AsyncSession, spot_request_instance: SpotRequestInstance
 ) -> SpotRequestInstance | None:
@@ -81,7 +73,6 @@ async def get_spot_request_by_id(
         .options(
             selectinload(SpotRequestBase.spot_subscribers),
             selectinload(SpotRequestBase.spot_request_instances),
-            selectinload(SpotRequestBase.current_request_instance),
             selectinload(SpotRequestBase.spot_forecasts).selectinload(SpotForecast.tabular_weather),
             selectinload(SpotRequestBase.spot_forecasts).selectinload(
                 SpotForecast.spot_request_instance
@@ -174,6 +165,20 @@ async def update_spot_request_details(session: AsyncSession, updated: SpotReques
     return existing
 
 
+async def update_spot_request_instance_details(
+    session: AsyncSession, existing: SpotRequestInstance, updated: SpotRequestInstance
+) -> SpotRequestInstance:
+    existing.latitude = updated.latitude
+    existing.longitude = updated.longitude
+    existing.geom = updated.geom
+    existing.geographic_description = updated.geographic_description
+    existing.aspect = updated.aspect
+    existing.elevation = updated.elevation
+    existing.valley = updated.valley
+    await session.flush()
+    return existing
+
+
 async def get_spot_requests_for_year(session: AsyncSession, year: int):
     year_start = datetime(year, 1, 1, tzinfo=timezone.utc)
     year_end = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
@@ -183,7 +188,6 @@ async def get_spot_requests_for_year(session: AsyncSession, year: int):
         .options(
             selectinload(SpotRequestBase.spot_subscribers),
             selectinload(SpotRequestBase.spot_request_instances),
-            selectinload(SpotRequestBase.current_request_instance),
             selectinload(SpotRequestBase.spot_forecasts).selectinload(SpotForecast.tabular_weather),
             selectinload(SpotRequestBase.spot_forecasts).selectinload(
                 SpotForecast.spot_request_instance

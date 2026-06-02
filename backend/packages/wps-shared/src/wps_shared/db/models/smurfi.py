@@ -170,10 +170,6 @@ class SpotRequestBase(Base):
     requested_at = Column(TZTimeStamp, nullable=False)
     start_at = Column(TZTimeStamp, nullable=False, index=True)
     end_at = Column(TZTimeStamp, nullable=False, index=True)
-    # tracks the editable/requested location independently from forecast locations
-    current_request_instance_id = Column(
-        Integer, ForeignKey("spot_request_instance.id"), nullable=True, index=True
-    )
     created_at = Column(TZTimeStamp, nullable=False, default=time_utils.get_utc_now)
     updated_at = Column(
         TZTimeStamp, nullable=False, onupdate=time_utils.get_utc_now, default=time_utils.get_utc_now
@@ -185,9 +181,6 @@ class SpotRequestBase(Base):
         "SpotRequestInstance",
         back_populates="spot_request_base",
         foreign_keys="SpotRequestInstance.spot_request_base_id",
-    )
-    current_request_instance = relationship(
-        "SpotRequestInstance", foreign_keys=[current_request_instance_id], post_update=True
     )
     spot_subscribers = relationship("SpotSubscriber", back_populates="spot_request_base")
     distribution_groups = relationship(

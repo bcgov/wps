@@ -20,7 +20,6 @@ from wps_shared.db.crud.smurfi import (
     get_spot_request_by_id,
     get_spot_requests_for_year,
     get_subscribed_spot_request_ids,
-    set_current_request_instance,
     start_requested_spot_request,
     subscribe_to_spot_request,
     sync_spot_request_distribution_groups,
@@ -28,6 +27,7 @@ from wps_shared.db.crud.smurfi import (
     unsubscribe_from_spot_request,
     update_distribution_group,
     update_spot_request_details,
+    update_spot_request_instance_details,
     update_spot_subscriber_status,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -187,8 +187,6 @@ def _get_initial_instance(spot_request: SpotRequestBase) -> SpotRequestInstance:
 
 
 def _get_request_instance(spot_request: SpotRequestBase) -> SpotRequestInstance:
-    if spot_request.current_request_instance is not None:
-        return spot_request.current_request_instance
     return _get_initial_instance(spot_request)
 
 
@@ -206,7 +204,7 @@ def _get_current_instance(spot_request_base: SpotRequestBase) -> SpotRequestInst
     if latest_forecast is None:
         return request_instance
 
-    if request_instance.created_at > latest_forecast.created_at:
+    if request_instance.updated_at > latest_forecast.created_at:
         return request_instance
 
     return latest_forecast.spot_request_instance
@@ -222,7 +220,7 @@ def _get_current_instance_type(
     request_instance = _get_request_instance(spot_request_base)
     return (
         SpotRequestCurrentInstanceType.REQUESTED
-        if request_instance.created_at > latest_forecast.created_at
+        if request_instance.updated_at > latest_forecast.created_at
         else SpotRequestCurrentInstanceType.FORECASTED
     )
 
@@ -279,11 +277,10 @@ async def create_spot_request_endpoint(
     async with get_async_write_session_scope() as session:
         logger.info("Creating a new SpotRequestBase.")
         result = await create_spot_request(session, spot_request_base)
-        # creation always creates the first request location and marks it as the editable request instance
-        instance = await create_spot_request_instance(
+        # creation always creates the request's editable location instance
+        await create_spot_request_instance(
             session, _build_spot_request_instance(result.id, spot_request_input.initial_instance)
         )
-        await set_current_request_instance(session, result, instance.id)
 
         logger.info("Syncing subscribers for SpotRequestBase id: %s", result.id)
         await sync_spot_subscribers(
@@ -329,15 +326,15 @@ async def update_spot_request_endpoint(
             )
 
         request_instance = _get_request_instance(existing_spot_request)
-        # request edits preserve history by creating a fresh instance when geographic fields change
+        # edits update the original request location; forecast locations remain immutable
         if _spot_request_instance_has_changed(
             request_instance, spot_request_input.request_instance
         ):
-            request_instance = await create_spot_request_instance(
+            await update_spot_request_instance_details(
                 session,
+                request_instance,
                 _build_spot_request_instance(spot_request_id, spot_request_input.request_instance),
             )
-            await set_current_request_instance(session, result, request_instance.id)
 
         logger.info("Syncing subscribers for SpotRequestBase id: %s", result.id)
         await sync_spot_subscribers(
@@ -472,9 +469,9 @@ async def create_spot_forecast_endpoint(
     payload = SpotUpdatePayload(
         spot_request_id=spot_forecast_input.spot_request_base_id, spot_forecast_id=spot_forecast_id
     )
-    await publish(
-        stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
-    )
+    # await publish(
+    #     stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
+    # )
     return SpotForecastResponse(
         spot_forecast=SpotForecastData(
             **spot_forecast_input.model_dump(
