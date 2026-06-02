@@ -55,8 +55,8 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 def mock_database(monkeypatch):
     """Mocked out database queries"""
     gdps_url = (
-        "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/000/"
-        "CMC_glb_TMP_TGL_2_latlon.15x.15_2020052100_P000.grib2"
+        "https://dd.weather.gc.ca/today/model_gdps/15km/00/000/"
+        "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2"
     )
     gdps_processed_model_run = ProcessedModelRunUrl(url=gdps_url)
     gdps_prediction_model = PredictionModel(
@@ -105,7 +105,9 @@ def mock_download(monkeypatch):
     def mock_requests_get_gdps(*args, **kwargs):
         """mock env_canada download method for GDPS"""
         dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(dirname, "CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2")
+        filename = os.path.join(
+            dirname, "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2"
+        )
         with open(filename, "rb") as file:
             content = file.read()
         return MockResponse(status_code=200, content=content)
@@ -151,5 +153,3 @@ def test_process_gdps(
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     sys.argv = ["argv", "GDPS"]
     assert env_canada.process_models() == 1
-
-

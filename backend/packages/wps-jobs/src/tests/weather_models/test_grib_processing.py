@@ -1,14 +1,15 @@
 """Tests for grib file processing"""
 
-import os
 import logging
-import pytest
+import os
 from operator import itemgetter
-from affine import Affine
-from pyproj import CRS
-from osgeo import gdal
-from wps_shared.geospatial.geospatial import NAD83_CRS
+
+import pytest
 import weather_model_jobs.utils.process_grib as process_grib
+from affine import Affine
+from osgeo import gdal
+from pyproj import CRS
+from wps_shared.geospatial.geospatial import NAD83_CRS
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +37,9 @@ def read_file_contents(filename):
     "filename,origin,pixel_size",
     [
         (
-            "CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2",
+            "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2",
             (-180.075, 90.075),
-            (0.15000000000000002, -0.15),
+            (0.15, -0.15),
         ),
     ],
 )
