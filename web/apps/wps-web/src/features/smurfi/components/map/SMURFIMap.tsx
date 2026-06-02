@@ -586,7 +586,6 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
                 canSubmitForecast={isForecaster}
                 onOpenRequest={handleOpenRequest}
                 onOpenForecast={handleOpenForecast}
-                onOpenForecasts={handleOpenForecasts}
                 onSubmitForecast={handleSubmitForecastFromForecastLocation}
               />
             )}

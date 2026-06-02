@@ -8,7 +8,6 @@ interface ForecastPopupProps {
   canSubmitForecast: boolean
   onOpenRequest: (spotId: number) => void
   onOpenForecast: (spotId: number, forecastId: number) => void
-  onOpenForecasts: (spotId: number) => void
   onSubmitForecast: (spotId: number, sourceForecastId: number) => void
 }
 
@@ -17,7 +16,6 @@ const ForecastPopup: React.FC<ForecastPopupProps> = ({
   canSubmitForecast,
   onOpenRequest,
   onOpenForecast,
-  onOpenForecasts,
   onSubmitForecast
 }) => {
   const { lat, lng, fireNumber, spotId, forecastCount, latestForecast } = popupData
@@ -32,11 +30,6 @@ const ForecastPopup: React.FC<ForecastPopupProps> = ({
   const handleForecastClick = (event: React.MouseEvent) => {
     event.stopPropagation()
     event.preventDefault()
-    if (hasMultipleForecasts) {
-      onOpenForecasts(spotId)
-      return
-    }
-
     onOpenForecast(spotId, latestForecast.id)
   }
 
@@ -54,7 +47,7 @@ const ForecastPopup: React.FC<ForecastPopupProps> = ({
         border: '1px solid #ddd',
         borderRadius: 2,
         boxShadow: 3,
-        minWidth: 320,
+        minWidth: 340,
         maxWidth: 350
       }}
     >
@@ -84,7 +77,7 @@ const ForecastPopup: React.FC<ForecastPopupProps> = ({
           View Request
         </Button>
         <Button variant="contained" color="primary" size="small" fullWidth onClick={handleForecastClick}>
-          {hasMultipleForecasts ? 'View Forecasts' : 'View Forecast'}
+          {hasMultipleForecasts ? 'View Latest Forecast' : 'View Forecast'}
         </Button>
       </Box>
       {canSubmitForecast && (

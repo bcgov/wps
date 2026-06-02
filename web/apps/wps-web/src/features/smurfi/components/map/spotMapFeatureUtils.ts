@@ -41,10 +41,17 @@ export const buildForecastFeature = (spotRequest: SpotRequestOutput, forecast: S
   }
 }
 
-const getLatestForecast = (forecasts: SpotForecastOutput[]): SpotForecastOutput =>
-  forecasts.reduce((latest, forecast) =>
-    Date.parse(forecast.created_at) > Date.parse(latest.created_at) ? forecast : latest
-  )
+const getLatestForecast = (forecasts: SpotForecastOutput[]): SpotForecastOutput | undefined => {
+  let latestForecast: SpotForecastOutput | undefined
+
+  forecasts.forEach(forecast => {
+    if (!latestForecast || Date.parse(forecast.created_at) > Date.parse(latestForecast.created_at)) {
+      latestForecast = forecast
+    }
+  })
+
+  return latestForecast
+}
 
 const groupForecastsByLocation = (forecasts: SpotForecastOutput[]): SpotForecastOutput[][] =>
   forecasts.reduce<SpotForecastOutput[][]>((groups, forecast) => {
@@ -83,8 +90,12 @@ export const getForecastFeaturesForRequest = (
           longitude: forecast.spot_request_instance.longitude
         })
     )
-  ).map(group => {
+  ).flatMap(group => {
     const latestForecast = getLatestForecast(group)
+    if (!latestForecast) {
+      return []
+    }
+
     return {
       ...buildForecastFeature(spotRequest, latestForecast),
       id: group.map(forecast => forecast.id).join('-'),
