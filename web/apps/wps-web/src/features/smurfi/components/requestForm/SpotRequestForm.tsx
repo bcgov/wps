@@ -42,6 +42,7 @@ import { clearSpotRequestSubmitState, submitSpotRequest } from '@/features/smurf
 import { toggleSubscribedId } from '@/features/smurfi/slices/subscriptionsSlice'
 import SpotRequestLocationField from '@/features/smurfi/components/requestForm/SpotRequestLocationField'
 import { useDispatch, useSelector } from 'react-redux'
+import { isUndefined } from 'lodash'
 
 interface SpotRequestFormProps {
   onCancel: () => void
@@ -150,10 +151,9 @@ const getFormDefaultValues = (
 ): SpotRequestFormValues => ({
   ...defaultValues,
   ...editRequestValues,
-  location:
-    editRequestValues?.location !== undefined
-      ? editRequestValues.location
-      : (newRequestMapLocation ?? defaultValues.location)
+  location: isUndefined(editRequestValues?.location)
+    ? (newRequestMapLocation ?? defaultValues.location)
+    : editRequestValues.location
 })
 
 type DistributionItem = string | DistributionGroup

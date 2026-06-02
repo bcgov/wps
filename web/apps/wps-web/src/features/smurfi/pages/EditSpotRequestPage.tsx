@@ -7,6 +7,7 @@ import { DateTime } from 'luxon'
 import SpotRequestForm from '@/features/smurfi/components/requestForm/SpotRequestForm'
 import { getSmurfiRequestRoute } from '@wps/utils/constants'
 import { SpotRequestFormValues } from '@wps/api/schema/spotRequestSchema'
+import { isNull } from 'lodash'
 
 const EditSpotRequestPage = () => {
   const { id } = useParams<{ id: string }>()
@@ -52,7 +53,7 @@ const EditSpotRequestPage = () => {
     },
     geographicDescription: requestInstance.geographic_description,
     slopeAspect: requestInstance.aspect ?? '',
-    elevation: requestInstance.elevation != null ? String(requestInstance.elevation) : '',
+    elevation: isNull(requestInstance.elevation) ? '' : String(requestInstance.elevation),
     additionalInformation: spotRequest.additional_information ?? ''
   }
 
