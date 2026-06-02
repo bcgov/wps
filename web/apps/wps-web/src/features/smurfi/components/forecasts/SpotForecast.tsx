@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Divider, Paper, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Paper, Typography } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
 import MiniSpotForecast from '@/features/smurfi/components/forecasts/MiniSpotForecast'
 import FullSpotForecast from '@/features/smurfi/components/forecasts/FullSpotForecast'
