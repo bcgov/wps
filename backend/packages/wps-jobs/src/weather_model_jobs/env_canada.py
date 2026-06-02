@@ -158,7 +158,7 @@ def parse_high_res_model_url(url):
         variable = base_parts[3]
         level = base_parts[4]
         variable_name = "_".join([variable, level])
-        projection = ProjectionEnum.HIGH_RES_CONTINENTAL
+        projection = ProjectionEnum.HRDPS_LATLON
         run_date_str = base_parts[0][:-4]
         run_hour_str = url_parts[7]
         model_run_timestamp = datetime.datetime(
@@ -255,7 +255,7 @@ class EnvCanada:
         if self.model_type == ModelEnum.GDPS:
             self.projection = ProjectionEnum.LATLON_15X_15
         elif self.model_type == ModelEnum.HRDPS:
-            self.projection = ProjectionEnum.HIGH_RES_CONTINENTAL
+            self.projection = ProjectionEnum.HRDPS_LATLON
         elif self.model_type == ModelEnum.RDPS:
             self.projection = ProjectionEnum.RDPS_LATLON
         else:
