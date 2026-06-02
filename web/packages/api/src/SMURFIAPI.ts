@@ -16,12 +16,7 @@ export enum SpotRequestStatus {
 }
 
 export type SpotForecastType = 'Mini' | 'Full'
-export const SpotRequestCurrentInstanceTypes = {
-  REQUESTED: 'requested',
-  FORECASTED: 'forecasted'
-} as const
-export type SpotRequestCurrentInstanceType =
-  (typeof SpotRequestCurrentInstanceTypes)[keyof typeof SpotRequestCurrentInstanceTypes]
+export type SpotRequestCurrentInstanceType = 'requested' | 'forecasted'
 
 interface SpotDescriptiveWeatherInput {
   period: 'Today' | 'Tonight' | 'Tomorrow'

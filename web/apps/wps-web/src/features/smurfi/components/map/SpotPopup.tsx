@@ -3,7 +3,6 @@ import { Box, Button, Typography } from '@mui/material'
 import { SpotPopupData, SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import SpotSubscriptionButton from '@/features/smurfi/components/SpotSubscriptionButton'
-import { SpotRequestCurrentInstanceTypes } from '@wps/api/SMURFIAPI'
 
 interface SpotPopupProps {
   popupData: SpotPopupData
@@ -22,8 +21,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
 }) => {
   const { lat, lng, status, fireNumber, spotId, spotRequest, locationType } = popupData
   const statusColors = SpotRequestStatusColorMap[status]
-  const locationLabel =
-    locationType === SpotRequestCurrentInstanceTypes.REQUESTED ? 'Requested location' : 'Last forecasted location'
+  const locationLabel = locationType === 'requested' ? 'Requested location' : 'Last forecasted location'
 
   const handleRequestClick = (event: React.MouseEvent) => {
     event.stopPropagation()
