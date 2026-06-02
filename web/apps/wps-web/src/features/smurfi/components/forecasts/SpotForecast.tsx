@@ -1,9 +1,11 @@
-import { Box, Button, CircularProgress, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Divider, Paper, Typography } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
 import MiniSpotForecast from '@/features/smurfi/components/forecasts/MiniSpotForecast'
 import FullSpotForecast from '@/features/smurfi/components/forecasts/FullSpotForecast'
 import { getSmurfiForecastPrintRoute } from '@wps/utils/constants'
 import useSpotForecastData from '@/features/smurfi/hooks/useSpotForecastData'
+import SpotRequestLocationMap from '@/features/smurfi/components/requestForm/SpotRequestLocationMap'
+import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 
 const SpotForecast = () => {
   const { id, forecastId } = useParams<{ id: string; forecastId: string }>()
@@ -23,6 +25,15 @@ const SpotForecast = () => {
 
   const printUrl = getSmurfiForecastPrintRoute(spotRequestId, spotForecastId)
   const isMini = spotForecast.forecast_type === 'Mini'
+  const forecastLocation = {
+    latitude: spotForecast.spot_request_instance.latitude,
+    longitude: spotForecast.spot_request_instance.longitude
+  }
+  const forecastLocationSpotRequest: SpotRequestOutput = {
+    ...spotRequest,
+    current_instance: spotForecast.spot_request_instance,
+    current_instance_type: 'forecasted'
+  }
 
   return (
     <Box sx={{ pb: 4 }}>
@@ -44,6 +55,15 @@ const SpotForecast = () => {
           representativeStations={representativeStations}
         />
       )}
+      <Paper variant="outlined" sx={{ p: 2.5, mt: 2 }}>
+        <SpotRequestLocationMap
+          selectedLocation={forecastLocation}
+          existingSpotRequests={[forecastLocationSpotRequest]}
+          focusOnSelectedLocation
+          readOnly
+          showSelectedLocationMarker={false}
+        />
+      </Paper>
     </Box>
   )
 }

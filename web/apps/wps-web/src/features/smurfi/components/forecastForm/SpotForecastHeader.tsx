@@ -108,9 +108,9 @@ const SpotForecastHeader: React.FC<SpotForecastHeaderProps> = ({
             </Grid>
             <Grid size={12}>
               <SpotRequestLocationMap
-                value={selectedLocation}
+                selectedLocation={selectedLocation}
                 existingSpotRequests={[spotRequest]}
-                focusOnValue
+                focusOnSelectedLocation
                 onChange={location => {
                   if (!location) {
                     return

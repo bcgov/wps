@@ -29,10 +29,12 @@ interface SpotRequestLocation {
 }
 
 interface SpotRequestLocationMapProps {
-  value: SpotRequestLocation | null
-  onChange: (value: SpotRequestLocation | null) => void
+  selectedLocation: SpotRequestLocation | null
+  onChange?: (value: SpotRequestLocation | null) => void
   existingSpotRequests: SpotRequestOutput[]
-  focusOnValue?: boolean
+  focusOnSelectedLocation?: boolean
+  readOnly?: boolean
+  showSelectedLocationMarker?: boolean
 }
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -41,7 +43,7 @@ const STATUS_FILTER_OPTIONS = [SpotRequestStatus.REQUESTED, SpotRequestStatus.ST
 const markerStyle = new Style({
   image: new CircleStyle({
     radius: 8,
-    fill: new Fill({ color: '#053662' }),
+    fill: new Fill({ color: '#fe6900' }),
     stroke: new Stroke({ color: '#ffffff', width: 2 })
   })
 })
@@ -55,19 +57,22 @@ const existingSpotStyle = (feature: FeatureLike) => {
 }
 
 const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
-  value,
+  selectedLocation,
   onChange,
   existingSpotRequests,
-  focusOnValue = false
+  focusOnSelectedLocation = false,
+  readOnly = false,
+  showSelectedLocationMarker = true
 }) => {
   // refs
   const mapRef = useRef<HTMLDivElement | null>(null)
   const mapObjectRef = useRef<Map | null>(null)
-  const hasFocusedValueRef = useRef(false)
+  const hasFocusedSelectedLocationRef = useRef(false)
   const featureSourceRef = useRef(new VectorSource<Feature<Point>>())
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
   const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
   const onChangeRef = useRef(onChange)
+  const readOnlyRef = useRef(readOnly)
 
   // state
   const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
@@ -105,6 +110,10 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
+
+  useEffect(() => {
+    readOnlyRef.current = readOnly
+  }, [readOnly])
 
   useEffect(() => {
     if (!mapRef.current) {
@@ -146,15 +155,19 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
     })
 
     mapObjectRef.current = mapObject
-    if (focusOnValue && value) {
-      mapObject.getView().setCenter(fromLonLat([value.longitude, value.latitude]))
+    if (focusOnSelectedLocation && selectedLocation) {
+      mapObject.getView().setCenter(fromLonLat([selectedLocation.longitude, selectedLocation.latitude]))
       mapObject.getView().setZoom(12)
-      hasFocusedValueRef.current = true
+      hasFocusedSelectedLocationRef.current = true
     } else {
       mapObject.getView().fit(bcExtent, { padding: [30, 30, 30, 30] })
     }
 
     mapObject.on('singleclick', (event: MapBrowserEvent<UIEvent>) => {
+      if (readOnlyRef.current || !onChangeRef.current) {
+        return
+      }
+
       const [longitude, latitude] = toLonLat(event.coordinate)
       onChangeRef.current({
         latitude: Number(latitude.toFixed(6)),
@@ -165,13 +178,13 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
     return () => {
       currentFireLayerControllerRef.current = null
       mapObjectRef.current = null
-      hasFocusedValueRef.current = false
+      hasFocusedSelectedLocationRef.current = false
       mapObject.setTarget('')
     }
   }, [])
 
   useEffect(() => {
-    if (!focusOnValue || !value || hasFocusedValueRef.current) {
+    if (!focusOnSelectedLocation || !selectedLocation || hasFocusedSelectedLocationRef.current) {
       return
     }
 
@@ -180,10 +193,10 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
       return
     }
 
-    mapObject.getView().setCenter(fromLonLat([value.longitude, value.latitude]))
+    mapObject.getView().setCenter(fromLonLat([selectedLocation.longitude, selectedLocation.latitude]))
     mapObject.getView().setZoom(12)
-    hasFocusedValueRef.current = true
-  }, [focusOnValue, value])
+    hasFocusedSelectedLocationRef.current = true
+  }, [focusOnSelectedLocation, selectedLocation])
 
   useEffect(() => {
     currentFireLayerControllerRef.current?.setVisible(currentFiresVisible)
@@ -196,14 +209,14 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
   useEffect(() => {
     featureSourceRef.current.clear()
 
-    if (value) {
+    if (selectedLocation && showSelectedLocationMarker) {
       featureSourceRef.current.addFeature(
         new Feature({
-          geometry: new Point(fromLonLat([value.longitude, value.latitude]))
+          geometry: new Point(fromLonLat([selectedLocation.longitude, selectedLocation.latitude]))
         })
       )
     }
-  }, [value])
+  }, [selectedLocation, showSelectedLocationMarker])
 
   useEffect(() => {
     existingSpotsSourceRef.current.clear()
