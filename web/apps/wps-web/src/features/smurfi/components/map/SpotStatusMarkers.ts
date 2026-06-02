@@ -16,9 +16,10 @@ export const statusToPath: Record<SpotRequestStatus, string> = {
   [SpotRequestStatus.ARCHIVED]: archivedSpot
 }
 
-export const createSpotStatusIcon = (status: SpotRequestStatus, scale = SPOT_MARKER_SCALE) =>
+export const createSpotStatusIcon = (status: SpotRequestStatus, scale = SPOT_MARKER_SCALE, opacity = 1) =>
   new Icon({
     anchor: [0.5, 1],
     src: statusToPath[status],
-    scale
+    scale,
+    opacity
   })
