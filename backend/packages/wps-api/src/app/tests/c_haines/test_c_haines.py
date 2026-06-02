@@ -1,8 +1,9 @@
 import gzip
 import json
-import pytest
-import numpy as np
 from datetime import datetime
+
+import numpy as np
+import pytest
 
 from app.c_haines.c_haines_index import CHainesGenerator, calculate_c_haines_index
 from app.c_haines.severity_index import (
@@ -75,7 +76,7 @@ def test_c_haines_generator(tmp_700, tmp_850, dew_850, c_haines_data):
             "GDPS",
             "00",
             "120",
-            "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/120/",
+            "https://dd.weather.gc.ca/today/model_gdps/15km/00/120/",
         ),
         (
             "RDPS",
@@ -87,7 +88,7 @@ def test_c_haines_generator(tmp_700, tmp_850, dew_850, c_haines_data):
             "HRDPS",
             "00",
             "001",
-            "https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/00/001/",
+            "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/00/001/",
         ),
     ],
 )
@@ -100,27 +101,27 @@ def test_generate_url(model, model_run_start, forecast_hour, expected_result):
     [
         (
             "HRDPS",
-            "DEPR_ISBL",
-            "2021012618",
-            "048",
-            "00",
-            "CMC_hrdps_continental_DEPR_ISBL_ps2.5km_2021012618048_P00-00.grib2",
-        ),
-        (
-            "RDPS",
-            "DEPR_ISBL",
+            "DEPR_ISBL_0700",
             "20210126",
             "00",
             "012",
-            "20210126T00Z_MSC_RDPS_DEPR_ISBL_RLatLon0.09_PT012H.grib2",
+            "20210126T00Z_MSC_HRDPS_DEPR_ISBL_0700_RLatLon0.0225_PT012H.grib2",
+        ),
+        (
+            "RDPS",
+            "AirTemp_IsbL-0700",
+            "20210126",
+            "00",
+            "012",
+            "20210126T00Z_MSC_RDPS_AirTemp_IsbL-0700_RLatLon0.09_PT012H.grib2",
         ),
         (
             "GDPS",
-            "DEPR_ISBL",
-            "2021012618",
-            "0",
-            "13",
-            "CMC_glb_DEPR_ISBL_latlon.15x.15_20210126180_P13.grib2",
+            "AirTemp_IsbL-0700",
+            "20210126",
+            "00",
+            "013",
+            "20210126T00Z_MSC_GDPS_AirTemp_IsbL-0700_LatLon0.15_PT013H.grib2",
         ),
     ],
 )
