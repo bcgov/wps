@@ -31,8 +31,7 @@ const SpotForecast = () => {
   }
   const forecastLocationSpotRequest: SpotRequestOutput = {
     ...spotRequest,
-    current_instance: spotForecast.spot_request_instance,
-    current_instance_type: 'forecasted'
+    current_instance: spotForecast.spot_request_instance
   }
 
   return (

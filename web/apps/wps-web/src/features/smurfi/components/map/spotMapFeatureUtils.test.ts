@@ -47,7 +47,6 @@ describe('spotMapFeatureUtils', () => {
 
     expect(feature.lat).toBe(spotRequest.request_instance.latitude)
     expect(feature.lon).toBe(spotRequest.request_instance.longitude)
-    expect(feature.locationType).toBe('requested')
   })
 
   it('omits forecast markers that share the requested location', () => {

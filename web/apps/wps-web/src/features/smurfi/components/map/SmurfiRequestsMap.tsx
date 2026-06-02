@@ -42,7 +42,7 @@ const SmurfiRequestsMap = ({ spotRequest, spotRequestInstance }: SmurfiRequestsM
   const popupRef = useRef<HTMLDivElement | null>(null)
   const mapObjectRef = useRef<Map | null>(null)
   const [firePopupAttributes, setFirePopupAttributes] = useState<CurrentFireAttributes | null>(null)
-  const spotInstance = spotRequestInstance ?? spotRequest.current_instance
+  const spotInstance = spotRequestInstance ?? spotRequest.request_instance
 
   useEffect(() => {
     if (!mapRef.current) return

@@ -19,9 +19,8 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
   onOpenForecast,
   onSubmitForecast
 }) => {
-  const { lat, lng, status, fireNumber, spotId, spotRequest, locationType } = popupData
+  const { lat, lng, status, fireNumber, spotId, spotRequest } = popupData
   const statusColors = SpotRequestStatusColorMap[status]
-  const locationLabel = locationType === 'requested' ? 'Requested location' : 'Last forecasted location'
 
   const handleRequestClick = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -83,7 +82,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
       </Box>
       <Box sx={{ mb: 2 }}>
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
-          {locationLabel}
+          Requested location
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           Lat: {lat.toFixed(6)}, Lng: {lng.toFixed(6)}

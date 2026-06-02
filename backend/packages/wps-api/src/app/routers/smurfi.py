@@ -54,7 +54,6 @@ from wps_shared.schemas.smurfi import (
     SpotForecastListResponse,
     SpotForecastResponse,
     SpotLatestForecastData,
-    SpotRequestCurrentInstanceType,
     SpotRequestData,
     SpotRequestEditInput,
     SpotRequestInput,
@@ -208,21 +207,6 @@ def _get_current_instance(spot_request_base: SpotRequestBase) -> SpotRequestInst
         return request_instance
 
     return latest_forecast.spot_request_instance
-
-
-def _get_current_instance_type(
-    spot_request_base: SpotRequestBase,
-) -> SpotRequestCurrentInstanceType:
-    latest_forecast = _get_latest_forecast(spot_request_base)
-    if latest_forecast is None:
-        return SpotRequestCurrentInstanceType.REQUESTED
-
-    request_instance = _get_request_instance(spot_request_base)
-    return (
-        SpotRequestCurrentInstanceType.REQUESTED
-        if request_instance.updated_at > latest_forecast.created_at
-        else SpotRequestCurrentInstanceType.FORECASTED
-    )
 
 
 def _coordinate_has_changed(existing: float, updated: float) -> bool:
@@ -569,7 +553,6 @@ def _spot_request_to_schema(spot_request: SpotRequestBase) -> SpotRequestData:
         additional_information=spot_request.additional_information,
         request_instance=_spot_request_instance_to_schema(request_instance),
         current_instance=_spot_request_instance_to_schema(current_instance),
-        current_instance_type=_get_current_instance_type(spot_request),
         requested_at=spot_request.requested_at,
         start_at=spot_request.start_at,
         end_at=spot_request.end_at,

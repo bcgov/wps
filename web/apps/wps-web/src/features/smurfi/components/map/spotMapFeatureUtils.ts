@@ -20,8 +20,7 @@ export const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature =>
     id: String(spotRequest.id),
     spotId: spotRequest.id,
     fireNumber: formatFireNumbers(spotRequest.fire_number),
-    spotRequest,
-    locationType: 'requested'
+    spotRequest
   }
 }
 

@@ -19,7 +19,6 @@ import { getStations, StationSource } from '@wps/api/stationAPI'
 import {
   formatFireNumbers,
   getEmptyFireSizes,
-  getSpotRequestDisplayLocation,
   toForecastDateTimeString
 } from '@/features/smurfi/utils/spotForecastUtils'
 
@@ -49,7 +48,7 @@ const getForecastLocationInstance = (
     return sourceForecast.spot_request_instance
   }
 
-  return getSpotRequestDisplayLocation(spotRequest).instance
+  return spotRequest.request_instance
 }
 
 interface SpotForecastFormProps {

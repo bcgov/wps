@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -43,11 +42,6 @@ class SpotLatestForecastData(BaseModel):
     expires_at: datetime | None = None
     forecast_end_at: datetime | None = None
     forecaster_name: str | None = None
-
-
-class SpotRequestCurrentInstanceType(StrEnum):
-    REQUESTED = "requested"
-    FORECASTED = "forecasted"
 
 
 class SpotRequestInstanceInput(BaseModel):
@@ -109,7 +103,6 @@ class SpotRequestData(BaseModel):
     additional_information: str | None = None
     request_instance: SpotRequestInstanceData
     current_instance: SpotRequestInstanceData
-    current_instance_type: SpotRequestCurrentInstanceType
     requested_at: datetime
     start_at: datetime
     end_at: datetime

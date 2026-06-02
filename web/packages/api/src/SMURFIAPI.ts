@@ -16,7 +16,6 @@ export enum SpotRequestStatus {
 }
 
 export type SpotForecastType = 'Mini' | 'Full'
-export type SpotRequestCurrentInstanceType = 'requested' | 'forecasted'
 
 interface SpotDescriptiveWeatherInput {
   period: 'Today' | 'Tonight' | 'Tomorrow'
@@ -248,7 +247,6 @@ export interface SpotRequestOutput extends SpotRequestFields {
   id: number
   request_instance: SpotRequestInstanceOutput
   current_instance: SpotRequestInstanceOutput
-  current_instance_type: SpotRequestCurrentInstanceType
   requestor_name: string
   requestor_idir: string
   requestor_email: string

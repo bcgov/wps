@@ -21,7 +21,6 @@ import { CurrentFireLayerController } from '@/features/currentFires/map/currentF
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
 import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import { CurrentFireStatus, getVisibleCurrentFireStatusDefaults } from '@/features/currentFires/map/layerVisibility'
-import { getSpotRequestDisplayLocation } from '@/features/smurfi/utils/spotForecastUtils'
 
 interface SpotRequestLocation {
   latitude: number
@@ -224,7 +223,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
       existingSpotRequests
         .filter(spotRequest => selectedStatuses.includes(spotRequest.status))
         .map(spotRequest => {
-          const { instance } = getSpotRequestDisplayLocation(spotRequest)
+          const instance = spotRequest.request_instance
           return new Feature({
             geometry: new Point(fromLonLat([instance.longitude, instance.latitude])),
             status: spotRequest.status

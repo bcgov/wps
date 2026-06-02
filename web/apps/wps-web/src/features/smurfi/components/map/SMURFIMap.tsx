@@ -23,12 +23,7 @@ import {
 } from '@wps/utils/constants'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
-import {
-  SpotForecastOutput,
-  SpotRequestCurrentInstanceType,
-  SpotRequestOutput,
-  SpotRequestStatus
-} from '@wps/api/SMURFIAPI'
+import { SpotForecastOutput, SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '@/app/store'
 import { fetchSpotForecasts, fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
@@ -325,7 +320,6 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
         position: coord,
         lat,
         lng,
-        locationType: feature.get('locationType') as SpotRequestCurrentInstanceType,
         status: feature.get('status') as SpotRequestStatus,
         fireNumber: feature.get('fireNumber'),
         spotId,
@@ -421,7 +415,6 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
           status: spotFeature.status,
           fireNumber: spotFeature.fireNumber,
           spotRequest: spotFeature.spotRequest,
-          locationType: spotFeature.locationType,
           lon: spotFeature.lon,
           lat: spotFeature.lat
         })
