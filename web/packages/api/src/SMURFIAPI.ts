@@ -246,7 +246,6 @@ export interface SpotRequestEditInput extends Pick<
 export interface SpotRequestOutput extends SpotRequestFields {
   id: number
   request_instance: SpotRequestInstanceOutput
-  current_instance: SpotRequestInstanceOutput
   requestor_name: string
   requestor_idir: string
   requestor_email: string

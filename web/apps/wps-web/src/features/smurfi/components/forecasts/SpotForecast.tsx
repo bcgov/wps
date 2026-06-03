@@ -5,7 +5,6 @@ import FullSpotForecast from '@/features/smurfi/components/forecasts/FullSpotFor
 import { getSmurfiForecastPrintRoute } from '@wps/utils/constants'
 import useSpotForecastData from '@/features/smurfi/hooks/useSpotForecastData'
 import SpotRequestLocationMap from '@/features/smurfi/components/requestForm/SpotRequestLocationMap'
-import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 
 const SpotForecast = () => {
   const { id, forecastId } = useParams<{ id: string; forecastId: string }>()
@@ -29,11 +28,6 @@ const SpotForecast = () => {
     latitude: spotForecast.spot_request_instance.latitude,
     longitude: spotForecast.spot_request_instance.longitude
   }
-  const forecastLocationSpotRequest: SpotRequestOutput = {
-    ...spotRequest,
-    current_instance: spotForecast.spot_request_instance
-  }
-
   return (
     <Box sx={{ pb: 4 }}>
       <Box sx={{ mb: 1 }}>
@@ -57,7 +51,7 @@ const SpotForecast = () => {
       <Paper variant="outlined" sx={{ p: 2.5, mt: 2 }}>
         <SpotRequestLocationMap
           selectedLocation={forecastLocation}
-          existingSpotRequests={[forecastLocationSpotRequest]}
+          existingSpotRequests={[spotRequest]}
           focusOnSelectedLocation
           readOnly
           showSelectedLocationMarker={false}

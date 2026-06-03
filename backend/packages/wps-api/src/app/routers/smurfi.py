@@ -197,18 +197,6 @@ def _get_latest_forecast(spot_request: SpotRequestBase) -> SpotForecast | None:
     )
 
 
-def _get_current_instance(spot_request_base: SpotRequestBase) -> SpotRequestInstance:
-    latest_forecast = _get_latest_forecast(spot_request_base)
-    request_instance = _get_request_instance(spot_request_base)
-    if latest_forecast is None:
-        return request_instance
-
-    if request_instance.updated_at > latest_forecast.created_at:
-        return request_instance
-
-    return latest_forecast.spot_request_instance
-
-
 def _coordinate_has_changed(existing: float, updated: float) -> bool:
     return abs(existing - updated) > COORDINATE_MATCH_TOLERANCE
 
@@ -538,7 +526,6 @@ async def get_spot_forecasts(spot_request_id: int):
 
 def _spot_request_to_schema(spot_request: SpotRequestBase) -> SpotRequestData:
     request_instance = _get_request_instance(spot_request)
-    current_instance = _get_current_instance(spot_request)
     return SpotRequestData(
         id=spot_request.id,
         request_reference=spot_request.request_reference,
@@ -552,7 +539,6 @@ def _spot_request_to_schema(spot_request: SpotRequestBase) -> SpotRequestData:
         request_type=spot_request.request_type,
         additional_information=spot_request.additional_information,
         request_instance=_spot_request_instance_to_schema(request_instance),
-        current_instance=_spot_request_instance_to_schema(current_instance),
         requested_at=spot_request.requested_at,
         start_at=spot_request.start_at,
         end_at=spot_request.end_at,

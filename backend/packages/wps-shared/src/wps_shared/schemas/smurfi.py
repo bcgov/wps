@@ -102,7 +102,6 @@ class SpotRequestData(BaseModel):
     request_type: str
     additional_information: str | None = None
     request_instance: SpotRequestInstanceData
-    current_instance: SpotRequestInstanceData
     requested_at: datetime
     start_at: datetime
     end_at: datetime

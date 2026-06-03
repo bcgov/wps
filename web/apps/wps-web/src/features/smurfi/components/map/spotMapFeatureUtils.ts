@@ -82,6 +82,7 @@ export const getForecastFeaturesForRequest = (
 ): ForecastFeature[] => {
   const requestLocation = spotRequest.request_instance
   return groupForecastsByLocation(
+    // forecasts at the requested location are represented by the request marker itself
     forecasts.filter(
       forecast =>
         !locationsMatch(requestLocation, {
@@ -95,6 +96,7 @@ export const getForecastFeaturesForRequest = (
       return []
     }
 
+    // one forecast marker can represent multiple forecasts at the same location
     return {
       ...buildForecastFeature(spotRequest, latestForecast),
       id: group.map(forecast => forecast.id).join('-'),
