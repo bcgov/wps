@@ -32,8 +32,6 @@ interface SpotRequestLocationMapProps {
   onChange?: (value: SpotRequestLocation | null) => void
   existingSpotRequests: SpotRequestOutput[]
   focusOnSelectedLocation?: boolean
-  readOnly?: boolean
-  showSelectedLocationMarker?: boolean
 }
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -59,9 +57,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
   selectedLocation,
   onChange,
   existingSpotRequests,
-  focusOnSelectedLocation = false,
-  readOnly = false,
-  showSelectedLocationMarker = true
+  focusOnSelectedLocation = false
 }) => {
   // refs
   const mapRef = useRef<HTMLDivElement | null>(null)
@@ -71,7 +67,6 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
   const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
   const onChangeRef = useRef(onChange)
-  const readOnlyRef = useRef(readOnly)
 
   // state
   const [selectedStatuses, setSelectedStatuses] = useState<SpotRequestStatus[]>(STATUS_FILTER_OPTIONS)
@@ -109,10 +104,6 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
-
-  useEffect(() => {
-    readOnlyRef.current = readOnly
-  }, [readOnly])
 
   useEffect(() => {
     if (!mapRef.current) {
@@ -163,7 +154,7 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
     }
 
     mapObject.on('singleclick', (event: MapBrowserEvent<UIEvent>) => {
-      if (readOnlyRef.current || !onChangeRef.current) {
+      if (!onChangeRef.current) {
         return
       }
 
@@ -208,14 +199,14 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
   useEffect(() => {
     featureSourceRef.current.clear()
 
-    if (selectedLocation && showSelectedLocationMarker) {
+    if (selectedLocation) {
       featureSourceRef.current.addFeature(
         new Feature({
           geometry: new Point(fromLonLat([selectedLocation.longitude, selectedLocation.latitude]))
         })
       )
     }
-  }, [selectedLocation, showSelectedLocationMarker])
+  }, [selectedLocation])
 
   useEffect(() => {
     existingSpotsSourceRef.current.clear()
