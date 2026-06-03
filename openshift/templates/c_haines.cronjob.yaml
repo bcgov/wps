@@ -123,7 +123,7 @@ objects:
                           key: env.max-weeks-c-haines
                     - name: CHATOPS_URL
                       valueFrom:
-                        configMapKeyRef:
+                        secretKeyRef:
                           name: ${GLOBAL_NAME}
                           key: chatops-url
                     - name: CHATOPS_AUTH_TOKEN

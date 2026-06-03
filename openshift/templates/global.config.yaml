@@ -121,7 +121,6 @@ objects:
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
       env.openshift-base-uri: ${OPENSHIFT_BASE_URI}
-      chatops-url: ${CHATOPS_URL}
       env.redis-host: ${REDIS_HOST}
       env.redis-port: ${REDIS_PORT}
       env.redis-use: ${REDIS_USE}
@@ -152,6 +151,7 @@ objects:
       patroni-superuser-password: ${PATRONI_SUPERUSER_PASSWORD}
       bc-fire-weather-secret: ${BC_FIRE_WEATHER_SECRET}
       status-checker-sa-secret: ${STATUS_CHECKER_SECRET}
+      chatops-url: ${CHATOPS_URL}
       chatops-auth-token: ${CHATOPS_AUTH_TOKEN}
       env.openshift-namespace-api: ${OPENSHIFT_NAMESPACE_API}
       certbot-server: ${CERTBOT_SERVER}

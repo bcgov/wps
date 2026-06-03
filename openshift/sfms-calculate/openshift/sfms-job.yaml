@@ -42,7 +42,7 @@ objects:
                   value: "1"
                 - name: CHATOPS_URL
                   valueFrom:
-                    configMapKeyRef:
+                    secretKeyRef:
                       name: wps-global
                       key: chatops-url
                 - name: CHATOPS_AUTH_TOKEN
