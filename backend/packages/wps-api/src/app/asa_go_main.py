@@ -11,7 +11,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from wps_shared import config
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.wps_logging import configure_logging
 
 from app import health
@@ -78,7 +78,7 @@ async def catch_exception_middleware(request: Request, call_next):
     except Exception as exc:
         logger.error("%s %s %s", request.method, request.url.path, exc, exc_info=True)
         rc_message = f"Exception occurred {request.method} {request.url.path}"
-        send_rocketchat_notification(rc_message, exc)
+        send_chatops_notification(rc_message, exc)
         raise
 
 

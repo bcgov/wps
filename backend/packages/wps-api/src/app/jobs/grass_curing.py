@@ -10,6 +10,7 @@ import numpy as np
 from affine import Affine
 from aiohttp import ClientSession
 from osgeo import gdal, osr
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.grass_curing import (
     get_last_percent_grass_curing_for_date,
     save_percent_grass_curing,
@@ -17,7 +18,6 @@ from wps_shared.db.crud.grass_curing import (
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.grass_curing import PercentGrassCuring
 from wps_shared.geospatial.geospatial import SpatialReferenceSystem
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
@@ -32,8 +32,8 @@ class GrassCuringFileNotFoundException(Exception):
     """Raised when the CWFIS grass curing file is not yet available for the requested date."""
 
 
-class GrassCuringJob():
-    """ Job that downloads and processes percent grass curing data from the CWFIS. """
+class GrassCuringJob:
+    """Job that downloads and processes percent grass curing data from the CWFIS."""
 
     def __init__(self):
         self.grass_cure_datetime = get_utc_now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -55,7 +55,7 @@ class GrassCuringJob():
             await file.write(content)
 
     def _yield_value_for_stations(self, data_source, stations):
-        """ Given a list of stations, and a gdal dataset, yield the grass curing value for each station
+        """Given a list of stations, and a gdal dataset, yield the grass curing value for each station
 
         :param data_source: A gdal representation of a raster image of percent grass curing.
         :param stations: A list of weather station objects.
@@ -98,13 +98,11 @@ class GrassCuringJob():
                 continue
             yield (station.code, data_np_array[py][px])
 
-
     async def _get_last_for_date(self):
-        """ Get the date of the most recently processed percent grass curing data."""
+        """Get the date of the most recently processed percent grass curing data."""
         async with get_async_read_session_scope() as session:
-            result =  await get_last_percent_grass_curing_for_date(session)
+            result = await get_last_percent_grass_curing_for_date(session)
             return result
-
 
     async def _process_grass_curing(self):
         """Download and process percent grass curing data."""
@@ -129,10 +127,9 @@ class GrassCuringJob():
         logger.info(
             f"Finished processing percent grass curing data from CWFIS for {self.grass_cure_datetime}."
         )
-            
 
     async def _run_grass_curing(self):
-        """ Entry point for running the job. """   
+        """Entry point for running the job."""
         last_processed = await self._get_last_for_date()
         if last_processed is None or last_processed.date() < self.grass_cure_datetime.date():
             await self._process_grass_curing()
@@ -165,9 +162,10 @@ def main():
             "An error occurred while processing CWFIS grass curing data.", exc_info=exception
         )
         rc_message = ":scream: Encountered an error while processing CWFIS grass curing data."
-        send_rocketchat_notification(rc_message, exception)
+        send_chatops_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     configure_logging()
     main()

@@ -6,8 +6,6 @@ from datetime import datetime, timedelta
 from typing import List
 
 import pandas as pd
-from wps_wf1.wfwx_api import get_stations_asynchronously
-from wps_shared.schemas.stations import WeatherStation
 import wps_shared.utils.time as time_utils
 from herbie import Herbie
 from osgeo import gdal
@@ -21,12 +19,14 @@ from weather_model_jobs import (
 from weather_model_jobs.ecmwf_model_processor import TEMP, ECMWFModelProcessor
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from weather_model_jobs.utils.process_grib import PredictionModelNotFound
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
 from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.schemas.stations import WeatherStation
 from wps_shared.wps_logging import configure_logging
+from wps_wf1.wfwx_api import get_stations_asynchronously
 
 gdal.UseExceptions()
 
@@ -265,7 +265,7 @@ def main():
     except Exception as exception:
         logger.error("An error occurred while processing ECMWF model.", exc_info=exception)
         rc_message = ":poop: Encountered error retrieving model data from ECMWF"
-        send_rocketchat_notification(rc_message, exception)
+        send_chatops_notification(rc_message, exception)
         os._exit(os.EX_SOFTWARE)
 
 

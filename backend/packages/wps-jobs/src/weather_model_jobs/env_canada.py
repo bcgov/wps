@@ -22,13 +22,13 @@ from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.weather_models import (
     get_prediction_model,
     get_prediction_run,
     get_processed_file_record,
     update_prediction_run,
 )
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.weather_models import (
     CompletedWithSomeExceptions,
     ModelEnum,
@@ -394,7 +394,7 @@ def main():
         # We catch and log any exceptions we may have missed.
         logger.error("unexpected exception processing", exc_info=exception)
         rc_message = f":poop: Encountered error retrieving {sys.argv[1]} model data from Env Canada"
-        send_rocketchat_notification(rc_message, exception)
+        send_chatops_notification(rc_message, exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
     # We assume success if we get to this point.
