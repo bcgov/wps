@@ -28,6 +28,7 @@ const SpotForecast = () => {
     latitude: spotForecast.spot_request_instance.latitude,
     longitude: spotForecast.spot_request_instance.longitude
   }
+
   return (
     <Box sx={{ pb: 4 }}>
       <Box sx={{ mb: 1 }}>
@@ -54,7 +55,6 @@ const SpotForecast = () => {
           existingSpotRequests={[spotRequest]}
           focusOnSelectedLocation
           readOnly
-          showSelectedLocationMarker={false}
         />
       </Paper>
     </Box>
