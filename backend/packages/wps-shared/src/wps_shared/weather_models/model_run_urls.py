@@ -2,9 +2,10 @@ from datetime import datetime
 from typing import Generator, Iterable
 
 from wps_shared.weather_models import ModelEnum, UnhandledPredictionModelType, get_file_date_part
+from wps_shared.weather_models.gdps import GDPS_VARIABLE_NAMES
 from wps_shared.weather_models.rdps import RDPS_VARIABLE_NAMES
 
-GDPS_GRIB_LAYERS = ("TMP_TGL_2", "RH_TGL_2", "APCP_SFC_0", "WDIR_TGL_10", "WIND_TGL_10")
+GDPS_GRIB_LAYERS = tuple(GDPS_VARIABLE_NAMES.values())
 RDPS_GRIB_LAYERS = tuple(RDPS_VARIABLE_NAMES.values())
 HRDPS_GRIB_LAYERS = ("TMP_AGL-2m", "APCP_Sfc", "WDIR_AGL-10m", "WIND_AGL-10m", "RH_AGL-2m")
 
@@ -22,13 +23,11 @@ def get_global_model_run_download_urls(
         hhh = format(h, "03d")
         for level in GDPS_GRIB_LAYERS:
             # Accumulated precipitation does not exist for 000 hour, so the url for this doesn't exist
-            if hhh == "000" and level == "APCP_SFC_0":
+            if hhh == "000" and level == GDPS_VARIABLE_NAMES["precip"]:
                 continue
-            base_url = (
-                f"https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/{hh}/{hhh}/"
-            )
+            base_url = f"https://dd.weather.gc.ca/today/model_gdps/15km/{hh}/{hhh}/"
             date = get_file_date_part(now, model_run_hour)
-            filename = f"CMC_glb_{level}_latlon.15x.15_{date}{hh}_P{hhh}.grib2"
+            filename = f"{date}T{hh}Z_MSC_GDPS_{level}_LatLon0.15_PT{hhh}H.grib2"
             url = base_url + filename
             yield url
 
