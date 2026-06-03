@@ -9,7 +9,6 @@ import requests
 from aiohttp import ClientSession
 from pytest_mock import MockerFixture
 
-
 import wps_shared.db.database
 import wps_shared.utils.redis
 import wps_shared.utils.s3
@@ -51,10 +50,8 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("PROJECT_NAMESPACE", "project_namespace")
     monkeypatch.setenv("STATUS_CHECKER_SECRET", "some_secret")
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
-    monkeypatch.setenv(
-        "ROCKET_URL_POST_MESSAGE", "https://rc-notifications-test.ca/api/v1/chat.postMessage"
-    )
-    monkeypatch.setenv("ROCKET_AUTH_TOKEN", "sometoken")
+    monkeypatch.setenv("CHATOPS_URL", "https://chat.ops/webhook/1")
+    monkeypatch.setenv("CHATOPS_AUTH_TOKEN", "sometoken")
     monkeypatch.setenv("ROCKET_USER_ID", "someid")
     monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
     monkeypatch.setenv("OPENSHIFT_NAMESPACE_API", "apis/apps/v1beta1/namespaces/")

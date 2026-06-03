@@ -12,11 +12,11 @@ import aiofiles
 import earthaccess as ea
 import numpy as np
 from osgeo import gdal, osr
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.snow import get_last_processed_snow_by_processed_date, save_processed_snow
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
 from wps_shared.geospatial.geospatial import SpatialReferenceSystem
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.polygonize import polygonize_in_memory
 from wps_shared.utils.s3 import get_client
 from wps_shared.utils.time import vancouver_tz
@@ -43,6 +43,7 @@ GLOBAL_ULY = 10007554
 MODIS_SINUSOIDAL_PROJ4 = "+proj=sinu +R=6371007.181 +nadgrids=@null +wktext +units=m +no_defs"
 RESAMPLING = "near"
 SUBDATASET = "://HDFEOS/GRIDS/VIIRS_Grid_IMG_2D/Data_Fields/CGF_NDSI_Snow_Cover"
+
 
 class NoGranulesException(Exception):
     """
@@ -72,6 +73,7 @@ def get_pmtiles_filepath(for_date: date, filename: str) -> str:
     )
 
     return pmtiles_filepath
+
 
 def build_modis_sinu_wkt() -> str:
     srs = osr.SpatialReference()
@@ -146,6 +148,7 @@ def translate_assign_sinu(
         raise RuntimeError("gdal.Translate failed when assigning sinusoidal georeference.")
     out.FlushCache()
     out = None
+
 
 class ViirsSnowJob:
     """Job that downloads and processed VIIRS snow coverage data from the NSIDC (https://nsidc.org)."""
@@ -489,7 +492,7 @@ def main():
             "An error occurred while processing VIIRS snow coverage data.", exc_info=exception
         )
         rc_message = ":scream: Encountered an error while processing VIIRS snow data."
-        send_rocketchat_notification(rc_message, exception)
+        send_chatops_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 
