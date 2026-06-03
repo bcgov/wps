@@ -7,13 +7,15 @@ from wps_shared.geospatial.geospatial import get_transformer
 from wps_shared.geospatial.geospatial import NAD83_CRS
 from app.c_haines.c_haines_index import BoundingBoxChecker
 
+DEW_850_FIXTURE = "20210126T18Z_MSC_HRDPS_DEPR_ISBL_0850_RLatLon0.0225_PT048.grib2"
+
 
 @pytest.mark.parametrize(
     "grib_file, x_coordinate, y_coordinate, is_inside",
     [
-        ("CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012618_P048-00.grib2", 1, 1, False),
-        ("CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012618_P048-00.grib2", 2, 2, False),
-        ("CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012618_P048-00.grib2", 315, 0, True),
+        (DEW_850_FIXTURE, 1, 1, False),
+        (DEW_850_FIXTURE, 2, 2, False),
+        (DEW_850_FIXTURE, 315, 0, True),
     ],
 )
 def test_bounding_box(grib_file, x_coordinate, y_coordinate, is_inside):

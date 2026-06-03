@@ -16,6 +16,10 @@ from app.c_haines.severity_index import (
 )
 from app.tests import get_complete_filename
 
+TMP_700_FIXTURE = "20210126T18Z_MSC_HRDPS_TMP_ISBL_0700_RLatLon0.0225_PT048.grib2"
+TMP_850_FIXTURE = "20210126T18Z_MSC_HRDPS_TMP_ISBL_0850_RLatLon0.0225_PT048.grib2"
+DEW_850_FIXTURE = "20210126T18Z_MSC_HRDPS_DEPR_ISBL_0850_RLatLon0.0225_PT048.grib2"
+
 
 @pytest.mark.parametrize(
     "t_850, t_700, dp_850, c_haines",
@@ -45,9 +49,9 @@ def test_calculate_severity(c_haines_data, expected_mask_data, expected_severity
     "tmp_700, tmp_850, dew_850, c_haines_data",
     [
         (
-            "CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021012618_P048-00.grib2",
-            "CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021012618_P048-00.grib2",
-            "CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012618_P048-00.grib2",
+            TMP_700_FIXTURE,
+            TMP_850_FIXTURE,
+            DEW_850_FIXTURE,
             "c_haines_data.json.gz",
         ),
     ],
