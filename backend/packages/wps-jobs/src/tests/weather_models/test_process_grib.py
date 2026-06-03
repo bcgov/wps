@@ -8,6 +8,7 @@ from pyproj import CRS
 from weather_model_jobs.utils import process_grib
 from wps_shared.geospatial.geospatial import NAD83_CRS
 from wps_shared.tests.common import default_mock_client_get
+from wps_shared.weather_models import ModelEnum
 
 
 def test_convert_mps_to_kph():
@@ -22,6 +23,27 @@ def test_convert_mps_to_kph_zero_wind_speed():
     metres_per_second_speed = 0
     kilometres_per_hour_speed = process_grib.convert_mps_to_kph(metres_per_second_speed)
     assert kilometres_per_hour_speed == 0
+
+
+@pytest.mark.parametrize(
+    "variable_name,expected",
+    [
+        ("AirTemp_AGL-2m", "tmp_tgl_2"),
+        ("RelativeHumidity_AGL-2m", "rh_tgl_2"),
+        ("Precip-Accum_Sfc", "apcp_sfc_0"),
+        ("WindSpeed_AGL-10m", "wind_tgl_10"),
+        ("WindDir_AGL-10m", "wdir_tgl_10"),
+        ("TMP_TGL_2", "tmp_tgl_2"),
+    ],
+)
+def test_get_variable_name_maps_gdps_filename_variables(variable_name, expected):
+    grib_info = process_grib.ModelRunInfo(
+        model_enum=ModelEnum.GDPS,
+        variable_name=variable_name,
+    )
+    processor = process_grib.GribFileProcessor.__new__(process_grib.GribFileProcessor)
+
+    assert processor.get_variable_name(grib_info) == expected
 
 
 def test_read_single_raster_value(monkeypatch: pytest.MonkeyPatch):
