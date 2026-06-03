@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 import aiofiles
 import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.weather_models import (
     create_model_run_for_sfms,
     create_saved_model_run_for_sfms_url,
@@ -22,7 +23,6 @@ from wps_shared.db.crud.weather_models import (
     get_saved_model_run_for_sfms,
 )
 from wps_shared.db.database import get_write_session_scope
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.weather_models import CompletedWithSomeExceptions, ModelEnum, download
@@ -218,7 +218,7 @@ def main():
             "An error occurred while downloading and storing RDPS data.", exc_info=exception
         )
         rc_message = ":scream: Encountered an error while processing RDPS data."
-        send_rocketchat_notification(rc_message, exception)
+        send_chatops_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 

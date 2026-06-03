@@ -10,13 +10,12 @@ import sys
 from datetime import datetime
 
 from osgeo import gdal
-
 from wps_shared import config
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import save_processed_fuel_raster
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models import FuelTypeRaster
 from wps_shared.fuel_raster import process_fuel_type_raster
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
@@ -83,7 +82,7 @@ def main():
         # Exit non 0 - failure.
         logger.error("An error occurred while processing fuel raster.", exc_info=exception)
         rc_message = ":scream: Encountered an error while processing fuel raster."
-        send_rocketchat_notification(rc_message, exception)
+        send_chatops_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 

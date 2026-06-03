@@ -153,7 +153,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     def mock_process_models():
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(weather_model_jobs.env_canada, "send_rocketchat_notification")
+    rocket_chat_spy = mocker.spy(weather_model_jobs.env_canada, "send_chatops_notification")
     monkeypatch.setattr(weather_model_jobs.env_canada, "process_models", mock_process_models)
 
     with pytest.raises(SystemExit) as excinfo:

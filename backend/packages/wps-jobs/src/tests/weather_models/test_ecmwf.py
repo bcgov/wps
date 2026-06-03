@@ -274,7 +274,7 @@ def test_main_success(mocker: MockerFixture, monkeypatch):
 
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
-    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_rocketchat_notification")
+    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
         weather_model_jobs.ecmwf.main()
@@ -291,7 +291,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     def mock_process_models():
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_rocketchat_notification")
+    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
 
     with pytest.raises(SystemExit) as excinfo:

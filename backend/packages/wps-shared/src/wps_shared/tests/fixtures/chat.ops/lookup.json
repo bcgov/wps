@@ -1,0 +1,9 @@
+{
+  "https://chat.ops/webhook/1": {
+    "post": {
+      "None": {
+        "None": "webhook/1.json"
+      }
+    }
+  }
+}
