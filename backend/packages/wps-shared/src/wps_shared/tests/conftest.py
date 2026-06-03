@@ -52,8 +52,6 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("PATRONI_CLUSTER_NAME", "some_suffix")
     monkeypatch.setenv("CHATOPS_URL", "https://chat.ops/webhook/1")
     monkeypatch.setenv("CHATOPS_AUTH_TOKEN", "sometoken")
-    monkeypatch.setenv("ROCKET_USER_ID", "someid")
-    monkeypatch.setenv("ROCKET_CHANNEL", "#channel")
     monkeypatch.setenv("OPENSHIFT_NAMESPACE_API", "apis/apps/v1beta1/namespaces/")
     monkeypatch.setenv("OBJECT_STORE_SERVER", "some server")
     monkeypatch.setenv("OBJECT_STORE_USER_ID", "some user id")

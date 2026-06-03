@@ -40,26 +40,16 @@ objects:
               env:
                 - name: UV_NO_CACHE
                   value: "1"
-                - name: ROCKET_URL_POST_MESSAGE
+                - name: CHATOPS_URL
                   valueFrom:
                     configMapKeyRef:
                       name: wps-global
-                      key: rocket.chat-url-post-message
-                - name: ROCKET_CHANNEL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: wps-global
-                      key: rocket.chat-channel
-                - name: ROCKET_USER_ID
+                      key: chatops-url
+                - name: CHATOPS_AUTH_TOKEN
                   valueFrom:
                     secretKeyRef:
                       name: wps-global
-                      key: rocket.chat-user-id-secret
-                - name: ROCKET_AUTH_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: wps-global
-                      key: rocket.chat-auth-token-secret
+                      key: chatops-auth-token
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:

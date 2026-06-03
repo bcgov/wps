@@ -73,26 +73,16 @@ objects:
                       key: pgbouncer-port
                 - name: SUFFIX
                   value: ${SUFFIX}
-                - name: ROCKET_URL_POST_MESSAGE
+                - name: CHATOPS_URL
                   valueFrom:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
-                      key: rocket.chat-url-post-message
-                - name: ROCKET_CHANNEL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: rocket.chat-channel
-                - name: ROCKET_USER_ID
+                      key: chatops-url
+                - name: CHATOPS_AUTH_TOKEN
                   valueFrom:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
-                      key: rocket.chat-user-id-secret
-                - name: ROCKET_AUTH_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: rocket.chat-auth-token-secret
+                      key: chatops-auth-token
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:
