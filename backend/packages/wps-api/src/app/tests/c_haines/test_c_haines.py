@@ -1,8 +1,9 @@
 import gzip
 import json
-import pytest
-import numpy as np
 from datetime import datetime
+
+import numpy as np
+import pytest
 
 from app.c_haines.c_haines_index import CHainesGenerator, calculate_c_haines_index
 from app.c_haines.severity_index import (
@@ -14,6 +15,10 @@ from app.c_haines.severity_index import (
     re_project_and_classify_geojson,
 )
 from app.tests import get_complete_filename
+
+TMP_700_FIXTURE = "20210126T18Z_MSC_HRDPS_TMP_ISBL_0700_RLatLon0.0225_PT048.grib2"
+TMP_850_FIXTURE = "20210126T18Z_MSC_HRDPS_TMP_ISBL_0850_RLatLon0.0225_PT048.grib2"
+DEW_850_FIXTURE = "20210126T18Z_MSC_HRDPS_DEPR_ISBL_0850_RLatLon0.0225_PT048.grib2"
 
 
 @pytest.mark.parametrize(
@@ -44,9 +49,9 @@ def test_calculate_severity(c_haines_data, expected_mask_data, expected_severity
     "tmp_700, tmp_850, dew_850, c_haines_data",
     [
         (
-            "CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021012618_P048-00.grib2",
-            "CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021012618_P048-00.grib2",
-            "CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021012618_P048-00.grib2",
+            TMP_700_FIXTURE,
+            TMP_850_FIXTURE,
+            DEW_850_FIXTURE,
             "c_haines_data.json.gz",
         ),
     ],
@@ -75,7 +80,7 @@ def test_c_haines_generator(tmp_700, tmp_850, dew_850, c_haines_data):
             "GDPS",
             "00",
             "120",
-            "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/120/",
+            "https://dd.weather.gc.ca/today/model_gdps/15km/00/120/",
         ),
         (
             "RDPS",
@@ -87,7 +92,7 @@ def test_c_haines_generator(tmp_700, tmp_850, dew_850, c_haines_data):
             "HRDPS",
             "00",
             "001",
-            "https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/00/001/",
+            "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/00/001/",
         ),
     ],
 )
@@ -100,27 +105,27 @@ def test_generate_url(model, model_run_start, forecast_hour, expected_result):
     [
         (
             "HRDPS",
-            "DEPR_ISBL",
-            "2021012618",
-            "048",
-            "00",
-            "CMC_hrdps_continental_DEPR_ISBL_ps2.5km_2021012618048_P00-00.grib2",
-        ),
-        (
-            "RDPS",
-            "DEPR_ISBL",
+            "DEPR_ISBL_0700",
             "20210126",
             "00",
             "012",
-            "20210126T00Z_MSC_RDPS_DEPR_ISBL_RLatLon0.09_PT012H.grib2",
+            "20210126T00Z_MSC_HRDPS_DEPR_ISBL_0700_RLatLon0.0225_PT012H.grib2",
+        ),
+        (
+            "RDPS",
+            "AirTemp_IsbL-0700",
+            "20210126",
+            "00",
+            "012",
+            "20210126T00Z_MSC_RDPS_AirTemp_IsbL-0700_RLatLon0.09_PT012H.grib2",
         ),
         (
             "GDPS",
-            "DEPR_ISBL",
-            "2021012618",
-            "0",
-            "13",
-            "CMC_glb_DEPR_ISBL_latlon.15x.15_20210126180_P13.grib2",
+            "AirTemp_IsbL-0700",
+            "20210126",
+            "00",
+            "013",
+            "20210126T00Z_MSC_GDPS_AirTemp_IsbL-0700_LatLon0.15_PT013H.grib2",
         ),
     ],
 )
@@ -140,9 +145,9 @@ def test_generate_file_name(model, level, date, model_run_start, forecast_hour, 
             12,
             240,
             {
-                "TMP_ISBL_0700": "https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_TMP_ISBL_0700_ps2.5km_2021031112_P240-00.grib2",
-                "TMP_ISBL_0850": "https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_TMP_ISBL_0850_ps2.5km_2021031112_P240-00.grib2",
-                "DEPR_ISBL_0850": "https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/12/240/CMC_hrdps_continental_DEPR_ISBL_0850_ps2.5km_2021031112_P240-00.grib2",
+                "TMP_ISBL_0700": "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/12/240/20210311T12Z_MSC_HRDPS_TMP_ISBL_0700_RLatLon0.0225_PT240H.grib2",
+                "TMP_ISBL_0850": "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/12/240/20210311T12Z_MSC_HRDPS_TMP_ISBL_0850_RLatLon0.0225_PT240H.grib2",
+                "DEPR_ISBL_0850": "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/12/240/20210311T12Z_MSC_HRDPS_DEPR_ISBL_0850_RLatLon0.0225_PT240H.grib2",
             },
             "2021-03-11 12:00:00+00:00",
             "2021-03-21 12:00:00+00:00",
@@ -166,9 +171,9 @@ def test_generate_file_name(model, level, date, model_run_start, forecast_hour, 
             00,
             6,
             {
-                "TMP_ISBL_700": "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_TMP_ISBL_700_latlon.15x.15_2021051100_P006.grib2",
-                "TMP_ISBL_850": "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_TMP_ISBL_850_latlon.15x.15_2021051100_P006.grib2",
-                "DEPR_ISBL_850": "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/006/CMC_glb_DEPR_ISBL_850_latlon.15x.15_2021051100_P006.grib2",
+                "AirTemp_IsbL-0700": "https://dd.weather.gc.ca/today/model_gdps/15km/00/006/20210511T00Z_MSC_GDPS_AirTemp_IsbL-0700_LatLon0.15_PT006H.grib2",
+                "AirTemp_IsbL-0850": "https://dd.weather.gc.ca/today/model_gdps/15km/00/006/20210511T00Z_MSC_GDPS_AirTemp_IsbL-0850_LatLon0.15_PT006H.grib2",
+                "DewPointDepression_IsbL-0850": "https://dd.weather.gc.ca/today/model_gdps/15km/00/006/20210511T00Z_MSC_GDPS_DewPointDepression_IsbL-0850_LatLon0.15_PT006H.grib2",
             },
             "2021-05-11 00:00:00+00:00",
             "2021-05-11 06:00:00+00:00",

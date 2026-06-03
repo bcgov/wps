@@ -50,28 +50,60 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 
-def parse_gdps_rdps_filename(filename):
-    """Parse filename for GDPS grib file to extract metadata"""
-    base = os.path.basename(filename)
-    parts = base.split("_")
-    variable = parts[2]
-    level_type = parts[3]
-    level = parts[4]
-    variable_name = "_".join([variable, level_type, level])
-    projection = ProjectionEnum(parts[5])
-    prediction_start = parts[6][:-2]
-    run_time = parts[6][-2:]
-    model_run_timestamp = datetime.datetime(
-        year=int(prediction_start[:4]),
-        month=int(prediction_start[4:6]),
-        day=int(prediction_start[6:8]),
-        hour=int(run_time),
-        tzinfo=datetime.timezone.utc,
+def parse_gdps_msc_filename(url: str):
+    """Parse MSC GDPS filename format.
+
+    Expected:
+    {YYYYMMDD}T{HH}Z_MSC_GDPS_{VAR_LEVEL}_LatLon0.15_PT{hhh}H.grib2
+
+    Example:
+    20260501T12Z_MSC_GDPS_TMP_AGL-2m_LatLon0.15_PT003H.grib2
+    """
+
+    base = os.path.basename(url)
+
+    try:
+        run_part, provider, model, remainder = base.split("_", 3)
+    except ValueError as exc:
+        raise ValueError(f"Not a valid MSC GDPS filename: {base}") from exc
+
+    if provider != "MSC" or model != "GDPS":
+        raise ValueError(f"Not a valid MSC GDPS filename: {base}")
+
+    try:
+        variable_name, projection_part, forecast_part = remainder.rsplit("_", 2)
+    except ValueError as exc:
+        raise ValueError(f"Not a valid MSC GDPS filename: {base}") from exc
+
+    if projection_part != "LatLon0.15":
+        raise ValueError(f"Unsupported projection in filename: {projection_part}")
+
+    if not forecast_part.endswith(".grib2"):
+        raise ValueError(f"Expected .grib2 filename: {base}")
+
+    forecast_part = forecast_part.removesuffix(".grib2")
+
+    if not forecast_part.startswith("PT") or not forecast_part.endswith("H"):
+        raise ValueError(f"Cannot parse forecast hour from: {forecast_part}")
+
+    try:
+        model_run_timestamp = datetime.datetime.strptime(
+            run_part,
+            "%Y%m%dT%HZ",
+        ).replace(tzinfo=datetime.timezone.utc)
+
+        forecast_hours = int(forecast_part.removeprefix("PT").removesuffix("H"))
+    except ValueError as exc:
+        raise ValueError(f"Cannot parse timestamps from filename: {base}") from exc
+
+    prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=forecast_hours)
+
+    return (
+        variable_name,
+        ProjectionEnum.LATLON_15X_15,
+        model_run_timestamp,
+        prediction_timestamp,
     )
-    last_part = parts[7].split(".")
-    prediction_hour = last_part[0][1:]
-    prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=int(prediction_hour))
-    return variable_name, projection, model_run_timestamp, prediction_timestamp
 
 
 def parse_rdps_msc_filename(url: str):
@@ -126,7 +158,7 @@ def parse_high_res_model_url(url):
         variable = base_parts[3]
         level = base_parts[4]
         variable_name = "_".join([variable, level])
-        projection = ProjectionEnum.HIGH_RES_CONTINENTAL
+        projection = ProjectionEnum.HRDPS_LATLON
         run_date_str = base_parts[0][:-4]
         run_hour_str = url_parts[7]
         model_run_timestamp = datetime.datetime(
@@ -151,9 +183,9 @@ def parse_env_canada_filename(url):
     filename = os.path.basename(urlparse(url).path)
     base = os.path.basename(filename)
     parts = base.split("_")
-    if "glb" in parts:
+    if "GDPS" in parts:
         variable_name, projection, model_run_timestamp, prediction_timestamp = (
-            parse_gdps_rdps_filename(filename)
+            parse_gdps_msc_filename(url)
         )
         model_enum = ModelEnum.GDPS
     elif "HRDPS" in parts:
@@ -164,11 +196,6 @@ def parse_env_canada_filename(url):
     elif "RDPS" in parts:
         variable_name, projection, model_run_timestamp, prediction_timestamp = (
             parse_rdps_msc_filename(url)
-        )
-        model_enum = ModelEnum.RDPS
-    elif "reg" in parts:
-        variable_name, projection, model_run_timestamp, prediction_timestamp = (
-            parse_gdps_rdps_filename(filename)
         )
         model_enum = ModelEnum.RDPS
     else:
@@ -228,7 +255,7 @@ class EnvCanada:
         if self.model_type == ModelEnum.GDPS:
             self.projection = ProjectionEnum.LATLON_15X_15
         elif self.model_type == ModelEnum.HRDPS:
-            self.projection = ProjectionEnum.HIGH_RES_CONTINENTAL
+            self.projection = ProjectionEnum.HRDPS_LATLON
         elif self.model_type == ModelEnum.RDPS:
             self.projection = ProjectionEnum.RDPS_LATLON
         else:

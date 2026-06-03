@@ -107,14 +107,11 @@ def make_model_run_base_url(model: ModelEnum, model_run_start: str, forecast_hou
     """Return the base url for the grib file.
     The location of the files differs slightly for each model."""
     if model == ModelEnum.GDPS:
-        return (
-            "https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/"
-            f"{model_run_start}/{forecast_hour}/"
-        )
+        return f"https://dd.weather.gc.ca/today/model_gdps/15km/{model_run_start}/{forecast_hour}/"
     if model == ModelEnum.RDPS:
         return f"https://dd.weather.gc.ca/today/model_rdps/10km/{model_run_start}/{forecast_hour}/"
     if model == ModelEnum.HRDPS:
-        return f"https://dd.weather.gc.ca/today/model_hrdps/continental/grib2/{model_run_start}/{forecast_hour}/"
+        return f"https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/{model_run_start}/{forecast_hour}/"
     raise UnhandledPredictionModelType()
 
 
@@ -124,11 +121,11 @@ def make_model_run_filename(
     """Return the filename of the grib file.
     The filename for each model differs slightly."""
     if model == ModelEnum.GDPS:
-        return f"CMC_glb_{level}_latlon.15x.15_{date}{model_run_start}_P{forecast_hour}.grib2"
+        return f"{date}T{model_run_start}Z_MSC_GDPS_{level}_LatLon0.15_PT{forecast_hour}H.grib2"
     if model == ModelEnum.RDPS:
         return f"{date}T{model_run_start}Z_MSC_RDPS_{level}_RLatLon0.09_PT{forecast_hour}H.grib2"
     if model == ModelEnum.HRDPS:
-        return f"CMC_hrdps_continental_{level}_ps2.5km_{date}{model_run_start}_P{forecast_hour}-00.grib2"
+        return f"{date}T{model_run_start}Z_MSC_HRDPS_{level}_RLatLon0.0225_PT{forecast_hour}H.grib2"
     raise UnhandledPredictionModelType()
 
 
@@ -140,7 +137,7 @@ def make_model_levels(model: ModelEnum):
     """
     if model == ModelEnum.HRDPS:
         return ["TMP_ISBL_0700", "TMP_ISBL_0850", "DEPR_ISBL_0850"]
-    if model == ModelEnum.RDPS:
+    if model in (ModelEnum.RDPS, ModelEnum.GDPS):
         return ["AirTemp_IsbL-0700", "AirTemp_IsbL-0850", "DewPointDepression_IsbL-0850"]
     return ["TMP_ISBL_700", "TMP_ISBL_850", "DEPR_ISBL_850"]
 
