@@ -58,7 +58,9 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
         <Typography variant="body2">{fireNumber}</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <SpotSubscriptionButton spotRequest={spotRequest} variant="contained" />
-          <SpotStatusControl spotRequest={spotRequest} onStatusChanged={onStatusChanged} />
+          <Box sx={{ flex: '0 0 132px', width: 132 }}>
+            <SpotStatusControl spotRequest={spotRequest} fullWidth onStatusChanged={onStatusChanged} />
+          </Box>
         </Box>
       </Box>
       <Box sx={{ mb: 2 }}>
