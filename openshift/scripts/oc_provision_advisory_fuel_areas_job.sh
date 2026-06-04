@@ -22,7 +22,8 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/advisory_fuel_areas_job.yaml \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
--p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX}"
+-p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
+-p PROJECT_NAMESPACE=${PROJ_TARGET}"
 
 # Apply template (apply or use --dry-run)
 #
