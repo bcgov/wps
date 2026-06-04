@@ -27,12 +27,6 @@ async def create_spot_request(session: AsyncSession, spot_request_base: SpotRequ
     return spot_request_base
 
 
-async def upsert_spot_request(session: AsyncSession, spot_request_base: SpotRequestBase):
-    if spot_request_base.id is None:
-        return await create_spot_request(session, spot_request_base)
-    return await update_spot_request(session, spot_request_base)
-
-
 async def create_spot_request_instance(
     session: AsyncSession, spot_request_instance: SpotRequestInstance
 ) -> SpotRequestInstance:
@@ -68,6 +62,25 @@ async def get_or_create_spot_request_instance(
     if existing is not None:
         return existing
     return await create_spot_request_instance(session, spot_request_instance)
+
+
+async def get_spot_request_by_id(
+    session: AsyncSession, spot_request_base_id: int
+) -> SpotRequestBase | None:
+    result = await session.execute(
+        select(SpotRequestBase)
+        .where(SpotRequestBase.id == spot_request_base_id)
+        .options(
+            selectinload(SpotRequestBase.spot_subscribers),
+            selectinload(SpotRequestBase.spot_request_instances),
+            selectinload(SpotRequestBase.spot_forecasts).selectinload(SpotForecast.tabular_weather),
+            selectinload(SpotRequestBase.spot_forecasts).selectinload(
+                SpotForecast.spot_request_instance
+            ),
+            selectinload(SpotRequestBase.distribution_groups),
+        )
+    )
+    return result.scalar_one_or_none()
 
 
 async def create_spot_forecast(session: AsyncSession, spot_forecast: SpotForecast):
@@ -137,24 +150,6 @@ async def start_requested_spot_request(session: AsyncSession, spot_request_base_
     await session.flush()
 
 
-async def get_spot_request_by_id(
-    session: AsyncSession, spot_request_base_id: int
-) -> SpotRequestBase | None:
-    result = await session.execute(
-        select(SpotRequestBase)
-        .where(SpotRequestBase.id == spot_request_base_id)
-        .options(
-            selectinload(SpotRequestBase.spot_subscribers),
-            selectinload(SpotRequestBase.spot_request_instances),
-            selectinload(SpotRequestBase.spot_forecasts).selectinload(SpotForecast.tabular_weather),
-            selectinload(SpotRequestBase.spot_forecasts).selectinload(
-                SpotForecast.spot_request_instance
-            ),
-        )
-    )
-    return result.scalar_one_or_none()
-
-
 async def update_spot_request_status(
     session: AsyncSession, spot_request: SpotRequestBase, status: SpotRequestStatusEnum
 ) -> SpotRequestBase:
@@ -163,24 +158,32 @@ async def update_spot_request_status(
     return spot_request
 
 
-async def update_spot_request(session: AsyncSession, updated: SpotRequestBase):
+async def update_spot_request_details(session: AsyncSession, updated: SpotRequestBase):
     result = await session.execute(select(SpotRequestBase).where(SpotRequestBase.id == updated.id))
     existing = result.scalar_one_or_none()
     if existing is not None:
-        existing.request_reference = updated.request_reference
         existing.fire_number = updated.fire_number
         existing.fire_centre = updated.fire_centre
-        existing.status = updated.status
-        existing.requestor_name = updated.requestor_name
-        existing.requestor_idir = updated.requestor_idir
-        existing.requestor_email = updated.requestor_email
         existing.request_frequency = updated.request_frequency
         existing.request_type = updated.request_type
         existing.additional_information = updated.additional_information
-        existing.requested_at = updated.requested_at
         existing.start_at = updated.start_at
         existing.end_at = updated.end_at
         await session.flush()
+    return existing
+
+
+async def update_spot_request_instance_details(
+    session: AsyncSession, existing: SpotRequestInstance, updated: SpotRequestInstance
+) -> SpotRequestInstance:
+    existing.latitude = updated.latitude
+    existing.longitude = updated.longitude
+    existing.geom = updated.geom
+    existing.geographic_description = updated.geographic_description
+    existing.aspect = updated.aspect
+    existing.elevation = updated.elevation
+    existing.valley = updated.valley
+    await session.flush()
     return existing
 
 

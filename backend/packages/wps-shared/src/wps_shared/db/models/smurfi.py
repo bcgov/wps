@@ -177,7 +177,11 @@ class SpotRequestBase(Base):
 
     # Relationships
     spot_forecasts = relationship("SpotForecast", back_populates="spot_request_base")
-    spot_request_instances = relationship("SpotRequestInstance", back_populates="spot_request_base")
+    spot_request_instances = relationship(
+        "SpotRequestInstance",
+        back_populates="spot_request_base",
+        foreign_keys="SpotRequestInstance.spot_request_base_id",
+    )
     spot_subscribers = relationship("SpotSubscriber", back_populates="spot_request_base")
     distribution_groups = relationship(
         "SmurfiDistributionGroup",
@@ -216,7 +220,11 @@ class SpotRequestInstance(Base):
     )
 
     # Relationships
-    spot_request_base = relationship("SpotRequestBase", back_populates="spot_request_instances")
+    spot_request_base = relationship(
+        "SpotRequestBase",
+        back_populates="spot_request_instances",
+        foreign_keys=[spot_request_base_id],
+    )
     spot_forecasts = relationship("SpotForecast", back_populates="spot_request_instance")
 
     __table_args__ = (

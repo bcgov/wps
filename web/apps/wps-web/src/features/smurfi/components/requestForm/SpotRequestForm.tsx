@@ -42,12 +42,13 @@ import { clearSpotRequestSubmitState, submitSpotRequest } from '@/features/smurf
 import { toggleSubscribedId } from '@/features/smurfi/slices/subscriptionsSlice'
 import SpotRequestLocationField from '@/features/smurfi/components/requestForm/SpotRequestLocationField'
 import { useDispatch, useSelector } from 'react-redux'
+import { isUndefined } from 'lodash'
 
 interface SpotRequestFormProps {
   onCancel: () => void
   onSubmit?: (request: SpotRequestOutput) => void
-  initialLocation?: { latitude: number; longitude: number }
-  initialValues?: Partial<SpotRequestFormValues>
+  newRequestMapLocation?: { latitude: number; longitude: number }
+  editRequestValues?: Partial<SpotRequestFormValues>
   spotRequestId?: number
 }
 
@@ -144,10 +145,27 @@ const defaultValues: SpotRequestFormValues = {
   additionalInformation: ''
 }
 
+const getFormDefaultValues = (
+  editRequestValues?: Partial<SpotRequestFormValues>,
+  newRequestMapLocation?: { latitude: number; longitude: number }
+): SpotRequestFormValues => ({
+  ...defaultValues,
+  ...editRequestValues,
+  location: isUndefined(editRequestValues?.location)
+    ? (newRequestMapLocation ?? defaultValues.location)
+    : editRequestValues.location
+})
+
 type DistributionItem = string | DistributionGroup
 const isGroup = (item: DistributionItem): item is DistributionGroup => typeof item !== 'string'
 
-const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, initialLocation, initialValues, spotRequestId }) => {
+const SpotRequestForm: React.FC<SpotRequestFormProps> = ({
+  onCancel,
+  onSubmit,
+  newRequestMapLocation,
+  editRequestValues,
+  spotRequestId
+}) => {
   const dispatch: AppDispatch = useDispatch()
   const { fireCentres, loading: fireCentresLoading } = useSelector(selectFireCentres)
   const { spotRequestSubmitting, spotRequestSubmitError, spotRequests } = useSelector(
@@ -156,7 +174,9 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, i
   const [fireNumberInputValue, setFireNumberInputValue] = useState('')
   const [emailInputValue, setEmailInputValue] = useState('')
   const [distributionGroups, setDistributionGroups] = useState<DistributionGroup[]>([])
-  const [distributionItems, setDistributionItems] = useState<DistributionItem[]>([])
+  const [distributionItems, setDistributionItems] = useState<DistributionItem[]>(
+    () => editRequestValues?.emailDistributionList ?? []
+  )
   const existingMapSpotRequests = useMemo(
     () =>
       spotRequests.filter(
@@ -172,7 +192,7 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, i
     formState: { errors }
   } = useForm<SpotRequestFormValues, unknown, SpotRequestFormData>({
     resolver: zodResolver(spotRequestSchema),
-    defaultValues: { ...defaultValues, ...initialValues, location: initialLocation ?? null },
+    defaultValues: getFormDefaultValues(editRequestValues, newRequestMapLocation),
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
@@ -182,6 +202,16 @@ const SpotRequestForm: React.FC<SpotRequestFormProps> = ({ onCancel, onSubmit, i
       .then(setDistributionGroups)
       .catch(() => setDistributionGroups([]))
   }, [])
+
+  useEffect(() => {
+    const selectedGroupIds = editRequestValues?.distributionGroupIds ?? []
+    if (selectedGroupIds.length === 0 || distributionGroups.length === 0) {
+      return
+    }
+
+    const selectedGroups = distributionGroups.filter(group => selectedGroupIds.includes(group.id))
+    setDistributionItems(current => [...selectedGroups, ...current.filter((item): item is string => !isGroup(item))])
+  }, [distributionGroups, editRequestValues?.distributionGroupIds])
 
   useEffect(() => {
     return () => {

@@ -39,10 +39,24 @@ const getInitialForecastType = (
   return requestType === 'Mini' ? 'Mini' : 'Full'
 }
 
+const getForecastLocationInstance = (
+  spotRequest: SpotRequestOutput,
+  sourceForecast: SpotForecastOutput | undefined,
+  useSourceForecastLocation: boolean
+) => {
+  if (useSourceForecastLocation && sourceForecast) {
+    return sourceForecast.spot_request_instance
+  }
+
+  return spotRequest.request_instance
+}
+
 interface SpotForecastFormProps {
   spotRequest: SpotRequestOutput
   /** optional prior forecast used to carry forward stable fields like stations and forecast type. */
   sourceForecast?: SpotForecastOutput
+  /** when true, sourceForecast also fills location and terrain fields without prefilling forecast text/weather. */
+  prefillForecastLocation?: boolean
   /** when true, sourceForecast also fills editable forecast content for the create-from-previous flow. */
   prefillFullForecast?: boolean
   onSubmitSuccess?: () => void
@@ -51,6 +65,7 @@ interface SpotForecastFormProps {
 const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
   spotRequest,
   sourceForecast,
+  prefillForecastLocation = false,
   prefillFullForecast = false,
   onSubmitSuccess
 }) => {
@@ -68,7 +83,11 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
   const defaultValues = useMemo<Partial<SpotFormData>>(() => {
     const baseDefaults = getDefaultValues()
     const fullPrefillForecast = prefillFullForecast ? sourceForecast : undefined
-    const requestInstance = fullPrefillForecast?.spot_request_instance ?? spotRequest.current_instance
+    const requestInstance = getForecastLocationInstance(
+      spotRequest,
+      sourceForecast,
+      prefillFullForecast || prefillForecastLocation
+    )
     const afternoonWeather = getDescriptiveWeather(fullPrefillForecast, 'Today')
     const tonightWeather = getDescriptiveWeather(fullPrefillForecast, 'Tonight')
     const tomorrowWeather = getDescriptiveWeather(fullPrefillForecast, 'Tomorrow')
@@ -114,7 +133,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
       outlook: fullPrefillForecast?.outlook ?? baseDefaults.outlook,
       confidenceDiscussion: fullPrefillForecast?.confidence ?? baseDefaults.confidenceDiscussion
     }
-  }, [prefillFullForecast, sourceForecast, spotRequest])
+  }, [prefillForecastLocation, prefillFullForecast, sourceForecast, spotRequest])
 
   const {
     control,

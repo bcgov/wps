@@ -14,9 +14,15 @@ export interface MiniSpotForecastProps {
   forecast: SpotForecastOutput
   spotRequest: SpotRequestOutput
   representativeStations: RepresentativeStation[]
+  locationMap?: React.ReactNode
 }
 
-const MiniSpotForecast: React.FC<MiniSpotForecastProps> = ({ forecast, spotRequest, representativeStations }) => {
+const MiniSpotForecast: React.FC<MiniSpotForecastProps> = ({
+  forecast,
+  spotRequest,
+  representativeStations,
+  locationMap
+}) => {
   const stationsStr = formatStationsStr(representativeStations)
   const forecastInstance = forecast.spot_request_instance
 
@@ -36,12 +42,20 @@ const MiniSpotForecast: React.FC<MiniSpotForecastProps> = ({ forecast, spotReque
           </Box>
         </Section>
 
-        <Section title="Location">
-          <Box sx={{ gridColumn: '1 / -1' }}>
-            <Field label="Geographic Description" value={forecastInstance.geographic_description} />
+        <Section
+          title="Location"
+          contentSx={{
+            gridTemplateColumns: { xs: '1fr', lg: locationMap ? 'minmax(0, 0.9fr) minmax(280px, 1.1fr)' : '1fr 1fr' }
+          }}
+        >
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, alignContent: 'start' }}>
+            <Box sx={{ gridColumn: '1 / -1' }}>
+              <Field label="Geographic Description" value={forecastInstance.geographic_description} />
+            </Box>
+            <Field label="Latitude" value={forecastInstance.latitude.toFixed(4)} />
+            <Field label="Longitude" value={forecastInstance.longitude.toFixed(4)} />
           </Box>
-          <Field label="Latitude" value={forecastInstance.latitude.toFixed(4)} />
-          <Field label="Longitude" value={forecastInstance.longitude.toFixed(4)} />
+          {locationMap}
         </Section>
       </Box>
 

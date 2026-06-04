@@ -1,36 +1,35 @@
 import { Box } from '@mui/material'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Feature, Map, View } from 'ol'
-import { fromLonLat, toLonLat } from 'ol/proj'
+import { fromLonLat } from 'ol/proj'
 import Overlay from 'ol/Overlay'
 import 'ol/ol.css'
 import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import { boundingExtent } from 'ol/extent'
 import VectorLayer from 'ol/layer/Vector'
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
-import { Point } from 'ol/geom'
+import { LineString, Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
 import NewRequestPopup from './NewRequestPopup'
 import SpotPopup from './SpotPopup'
-import { FeatureLike } from 'ol/Feature'
+import ForecastPopup from './ForecastPopup'
 import {
   BC_EXTENT,
   CENTER_OF_BC,
   SMURFI_NEW_REQUEST_ROUTE,
+  getSmurfiForecastRoute,
   getSmurfiForecastsRoute,
   getSmurfiNewForecastRoute,
   getSmurfiRequestRoute
 } from '@wps/utils/constants'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
-import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { SpotForecastOutput, SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from '@/app/store'
-import { fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
+import { fetchSpotForecasts, fetchSpotRequests, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import { useNavigate } from 'react-router-dom'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import {
-  CurrentFireAttributes,
   createCurrentFirePointsLayer,
   createCurrentFirePolygonsLayer
 } from '@/features/currentFires/map/currentFireLayers'
@@ -39,72 +38,28 @@ import { CurrentFireLayerController } from '@/features/currentFires/map/currentF
 import { NewRequestClickInteraction } from '@/features/smurfi/components/map/NewRequestClickInteraction'
 import CurrentFirePolygonPopup from '@/features/smurfi/components/map/CurrentFirePolygonPopup'
 import SpotMapLayerSwitcher from '@/features/smurfi/components/map/SpotMapLayerSwitcher'
-import { createSpotStatusIcon } from '@/features/smurfi/components/map/SpotStatusMarkers'
-import { formatFireNumbers } from '@/features/smurfi/utils/spotForecastUtils'
 import { panMapToFitElement } from '@/features/map/mapPopupUtils'
 import { CurrentFireStatus, getVisibleCurrentFireStatusDefaults } from '@/features/currentFires/map/layerVisibility'
 import {
   SPOT_REQUEST_STATUS_OPTIONS,
   getVisibleSpotRequestStatusDefaults
 } from '@/features/smurfi/components/map/mapLayerVisibility'
-
-export interface SelectedCoordinates {
-  latitude: number
-  longitude: number
-}
-
-type SpotFeature = {
-  lon: number
-  lat: number
-  status: SpotRequestStatus
-  id: string
-  spotId: number
-  fireNumber: string
-  spotRequest: SpotRequestOutput
-}
-
-type SpotPopupData = {
-  type: 'spot'
-  open: boolean
-  position: number[]
-  lat: number
-  lng: number
-  status: SpotRequestStatus
-  fireNumber: string
-  spotId: number
-  spotRequest: SpotRequestOutput
-}
-
-type FirePopupData = {
-  type: 'fire'
-  open: boolean
-  position: number[]
-  attributes: CurrentFireAttributes
-}
-
-type MapClickPopupData = {
-  type: 'map'
-  open: boolean
-  position: number[]
-  lat: number
-  lon: number
-}
+import {
+  FirePopupData,
+  ForecastPopupData,
+  MapClickPopupData,
+  SelectedCoordinates,
+  SpotPopupData
+} from '@/features/smurfi/interfaces'
+import { buildSpotFeature, getForecastFeaturesForRequest } from '@/features/smurfi/components/map/spotMapFeatureUtils'
+import {
+  createForecastMarkerStyle,
+  createSpotMarkerStyle,
+  forecastLineStyle
+} from '@/features/smurfi/components/map/mapFeatureStyles'
 
 export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
-
-// Tolerance for coordinate matching (in degrees)
-const COORDINATE_TOLERANCE = 0.0001
-
-const buildSpotFeature = (spotRequest: SpotRequestOutput): SpotFeature => ({
-  lon: spotRequest.current_instance.longitude,
-  lat: spotRequest.current_instance.latitude,
-  status: spotRequest.status,
-  id: String(spotRequest.id),
-  spotId: spotRequest.id,
-  fireNumber: formatFireNumbers(spotRequest.fire_number),
-  spotRequest
-})
 
 interface SMURFIMapProps {
   selectedCoordinates?: SelectedCoordinates | null
@@ -115,7 +70,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   // hooks
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
-  const { spotRequests } = useSelector(selectSmurfi)
+  const { spotForecastsByRequestId, spotRequests } = useSelector(selectSmurfi)
   const { isForecaster } = useSpotPermissions(undefined)
 
   // state
@@ -126,16 +81,22 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     getVisibleCurrentFireStatusDefaults
   )
   const [map, setMap] = useState<Map | null>(null)
-  const [popupData, setPopupData] = useState<SpotPopupData | FirePopupData | MapClickPopupData | null>(null)
+  const [popupData, setPopupData] = useState<
+    SpotPopupData | ForecastPopupData | FirePopupData | MapClickPopupData | null
+  >(null)
+  const [expandedSpotRequestId, setExpandedSpotRequestId] = useState<number | null>(null)
 
   // refs
   const mapRef = useRef<HTMLDivElement | null>(null)
   const popupRef = useRef<HTMLDivElement | null>(null)
   const featureLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
+  const forecastLayerRef = useRef<VectorLayer<VectorSource<Feature<Point>>> | null>(null)
+  const forecastLineLayerRef = useRef<VectorLayer<VectorSource<Feature<LineString>>> | null>(null)
   const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
   const currentFiresClickInteractionRef = useRef<CurrentFiresClickInteraction | null>(null)
   const newRequestClickInteractionRef = useRef<NewRequestClickInteraction | null>(null)
-  const popupDataRef = useRef<SpotPopupData | FirePopupData | MapClickPopupData | null>(null)
+  const popupDataRef = useRef<SpotPopupData | ForecastPopupData | FirePopupData | MapClickPopupData | null>(null)
+  const spotForecastsByRequestIdRef = useRef(spotForecastsByRequestId)
 
   // derived values
   const mapSpotRequests = propSpotRequests ?? spotRequests
@@ -153,6 +114,17 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     [mapSpotRequests, selectedStatuses, selectedFireNumbers]
   )
   const spotFeatures = useMemo(() => filteredSpotRequests.map(buildSpotFeature), [filteredSpotRequests])
+  const expandedSpotRequest = useMemo(
+    () => filteredSpotRequests.find(spotRequest => spotRequest.id === expandedSpotRequestId),
+    [expandedSpotRequestId, filteredSpotRequests]
+  )
+  const expandedForecastFeatures = useMemo(() => {
+    if (!expandedSpotRequest) {
+      return []
+    }
+
+    return getForecastFeaturesForRequest(expandedSpotRequest, spotForecastsByRequestId[expandedSpotRequest.id] ?? [])
+  }, [expandedSpotRequest, spotForecastsByRequestId])
 
   // handlers
   const handleOpenRequest = (spotRequestId: number) => {
@@ -163,8 +135,16 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     navigate(getSmurfiForecastsRoute(spotRequestId))
   }
 
+  const handleOpenForecast = (spotRequestId: number, forecastId: number) => {
+    navigate(getSmurfiForecastRoute(spotRequestId, forecastId))
+  }
+
   const handleSubmitForecast = (spotRequestId: number) => {
     navigate(getSmurfiNewForecastRoute(spotRequestId))
+  }
+
+  const handleSubmitForecastFromForecastLocation = (spotRequestId: number, sourceForecastId: number) => {
+    navigate(getSmurfiNewForecastRoute(spotRequestId), { state: { sourceForecastId } })
   }
 
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
@@ -191,47 +171,14 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     })
   }
 
-  // styles
-  // create highlight style for selected marker
-  const createHighlightStyle = () => {
-    return new Style({
-      image: new CircleStyle({
-        radius: 20,
-        fill: new Fill({ color: 'rgba(255, 255, 0, 0.3)' }),
-        stroke: new Stroke({ color: '#FFD700', width: 3 })
-      })
-    })
-  }
-
-  // create marker style function that checks if feature is selected
-  const createMarkerStyle = (selectedCoords: SelectedCoordinates | null | undefined) => {
-    return (feature: FeatureLike) => {
-      const status = feature.get('status') as SpotRequestStatus
-      const featureLon = feature.get('lon') as number
-      const featureLat = feature.get('lat') as number
-
-      const baseStyle = new Style({
-        image: createSpotStatusIcon(status)
-      })
-
-      // check if this feature is selected
-      if (
-        selectedCoords &&
-        Math.abs(featureLon - selectedCoords.longitude) < COORDINATE_TOLERANCE &&
-        Math.abs(featureLat - selectedCoords.latitude) < COORDINATE_TOLERANCE
-      ) {
-        // return both highlight and base style for selected marker
-        return [createHighlightStyle(), baseStyle]
-      }
-
-      return baseStyle
-    }
-  }
-
   // effects
   useEffect(() => {
     popupDataRef.current = popupData
   }, [popupData])
+
+  useEffect(() => {
+    spotForecastsByRequestIdRef.current = spotForecastsByRequestId
+  }, [spotForecastsByRequestId])
 
   useEffect(() => {
     if (propSpotRequests === undefined) {
@@ -247,12 +194,30 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     })
     const featureLayer = new VectorLayer({
       source: featureSource,
-      style: createMarkerStyle(null),
+      style: createSpotMarkerStyle(null),
       zIndex: 50
+    })
+    const forecastSource = new VectorSource<Feature<Point>>({
+      features: []
+    })
+    const forecastLineSource = new VectorSource<Feature<LineString>>({
+      features: []
+    })
+    const forecastLineLayer = new VectorLayer({
+      source: forecastLineSource,
+      style: forecastLineStyle,
+      zIndex: 55
+    })
+    const forecastLayer = new VectorLayer({
+      source: forecastSource,
+      style: createForecastMarkerStyle,
+      zIndex: 60
     })
     const currentFirePolygonsLayer = createCurrentFirePolygonsLayer(selectedCurrentFireStatuses)
     const currentFirePointsLayer = createCurrentFirePointsLayer(selectedCurrentFireStatuses)
     featureLayerRef.current = featureLayer
+    forecastLineLayerRef.current = forecastLineLayer
+    forecastLayerRef.current = forecastLayer
     currentFireLayerControllerRef.current = new CurrentFireLayerController({
       pointsLayer: currentFirePointsLayer,
       polygonsLayer: currentFirePolygonsLayer
@@ -260,7 +225,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
 
     const mapObject = new Map({
       target: mapRef.current,
-      layers: [currentFirePolygonsLayer, currentFirePointsLayer, featureLayer],
+      layers: [currentFirePolygonsLayer, currentFirePointsLayer, featureLayer, forecastLineLayer, forecastLayer],
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
@@ -273,7 +238,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       element: popupRef.current!,
       positioning: 'bottom-center',
       stopEvent: true,
-      offset: [0, -10]
+      offset: [0, -25]
     })
     mapObject.addOverlay(overlay)
 
@@ -281,12 +246,13 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       overlay,
       shouldIgnoreClick: event =>
         Boolean(
-          mapObject.forEachFeatureAtPixel(
-            event.pixel,
-            (f, layer) =>
-              layer === featureLayer || layer === currentFirePointsLayer || layer === currentFirePolygonsLayer
-                ? f
-                : undefined
+          mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
+            layer === featureLayer ||
+            layer === forecastLayer ||
+            layer === currentFirePointsLayer ||
+            layer === currentFirePolygonsLayer
+              ? f
+              : undefined
           )
         ),
       onEmptyClick: ({ lat, lon, coordinate }) => {
@@ -294,9 +260,11 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
         if (popupDataRef.current) {
           newRequestClickInteraction.close()
           setPopupData(null)
+          setExpandedSpotRequestId(null)
           return
         }
         setPopupData({ type: 'map', open: true, position: coordinate, lat, lon })
+        setExpandedSpotRequestId(null)
       },
       onDismiss: () => {
         setPopupData(null)
@@ -307,14 +275,45 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
 
     // spot click handler — new request and fire clicks are handled by their interactions
     mapObject.on('click', event => {
+      const forecastFeature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
+        layer === forecastLayer ? f : undefined
+      )
+      if (forecastFeature) {
+        newRequestClickInteraction.close()
+        const lng = forecastFeature.get('lon') as number
+        const lat = forecastFeature.get('lat') as number
+        const coord = fromLonLat([lng, lat])
+        overlay.setPosition(coord)
+        setPopupData({
+          type: 'forecast',
+          open: true,
+          position: coord,
+          lat,
+          lng,
+          fireNumber: forecastFeature.get('fireNumber'),
+          spotId: forecastFeature.get('spotId') as number,
+          spotRequest: forecastFeature.get('spotRequest') as SpotRequestOutput,
+          forecastCount: forecastFeature.get('forecastCount') as number,
+          forecasts: forecastFeature.get('forecasts') as SpotForecastOutput[],
+          latestForecast: forecastFeature.get('latestForecast') as SpotForecastOutput
+        })
+        return
+      }
+
       const feature = mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
         layer === featureLayer ? f : undefined
       )
       if (!feature) return
       newRequestClickInteraction.close()
-      const coord = event.coordinate
-      const [lng, lat] = toLonLat(coord)
+      const lng = feature.get('lon') as number
+      const lat = feature.get('lat') as number
+      const coord = fromLonLat([lng, lat])
+      const spotId = feature.get('spotId') as number
       overlay.setPosition(coord)
+      setExpandedSpotRequestId(spotId)
+      if (spotForecastsByRequestIdRef.current[spotId] === undefined) {
+        dispatch(fetchSpotForecasts(spotId))
+      }
       setPopupData({
         type: 'spot',
         open: true,
@@ -323,7 +322,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
         lng,
         status: feature.get('status') as SpotRequestStatus,
         fireNumber: feature.get('fireNumber'),
-        spotId: feature.get('spotId') as number,
+        spotId,
         spotRequest: feature.get('spotRequest') as SpotRequestOutput
       })
     })
@@ -332,9 +331,14 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       currentFirePointsLayer,
       currentFirePolygonsLayer,
       shouldIgnoreClick: event =>
-        Boolean(mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) => (layer === featureLayer ? f : undefined))),
+        Boolean(
+          mapObject.forEachFeatureAtPixel(event.pixel, (f, layer) =>
+            layer === featureLayer || layer === forecastLayer ? f : undefined
+          )
+        ),
       onFireClick: ({ attributes, coordinate }) => {
         newRequestClickInteraction.close()
+        setExpandedSpotRequestId(null)
         overlay.setPosition(coordinate)
         setPopupData({
           type: 'fire',
@@ -363,6 +367,8 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
       currentFireLayerControllerRef.current = null
       currentFiresClickInteractionRef.current = null
       newRequestClickInteractionRef.current = null
+      forecastLineLayerRef.current = null
+      forecastLayerRef.current = null
       mapObject.removeInteraction(newRequestClickInteraction)
       mapObject.removeInteraction(currentFiresClickInteraction)
       mapObject.setTarget('')
@@ -419,6 +425,59 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
   }, [spotFeatures])
 
   useEffect(() => {
+    const forecastLineSource = forecastLineLayerRef.current?.getSource()
+    if (!forecastLineSource) {
+      return
+    }
+
+    forecastLineSource.clear()
+
+    if (!expandedSpotRequest) {
+      return
+    }
+
+    const requestCoordinate = fromLonLat([
+      expandedSpotRequest.request_instance.longitude,
+      expandedSpotRequest.request_instance.latitude
+    ])
+    forecastLineSource.addFeatures(
+      expandedForecastFeatures.map(
+        forecastFeature =>
+          new Feature({
+            geometry: new LineString([requestCoordinate, fromLonLat([forecastFeature.lon, forecastFeature.lat])])
+          })
+      )
+    )
+  }, [expandedForecastFeatures, expandedSpotRequest])
+
+  useEffect(() => {
+    const forecastSource = forecastLayerRef.current?.getSource()
+    if (!forecastSource) {
+      return
+    }
+
+    const markers = expandedForecastFeatures.map(
+      forecastFeature =>
+        new Feature({
+          geometry: new Point(fromLonLat([forecastFeature.lon, forecastFeature.lat])),
+          id: forecastFeature.id,
+          spotId: forecastFeature.spotId,
+          status: forecastFeature.status,
+          fireNumber: forecastFeature.fireNumber,
+          spotRequest: forecastFeature.spotRequest,
+          forecastCount: forecastFeature.forecastCount,
+          forecasts: forecastFeature.forecasts,
+          latestForecast: forecastFeature.latestForecast,
+          lon: forecastFeature.lon,
+          lat: forecastFeature.lat
+        })
+    )
+
+    forecastSource.clear()
+    forecastSource.addFeatures(markers)
+  }, [expandedForecastFeatures])
+
+  useEffect(() => {
     if (popupData?.type !== 'spot') return
     const statusFiltered = !selectedStatuses.includes(popupData.status)
     const fireNumberFiltered =
@@ -428,10 +487,33 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     }
   }, [popupData, selectedStatuses, selectedFireNumbers])
 
+  useEffect(() => {
+    if (expandedSpotRequestId === null || expandedSpotRequest) {
+      return
+    }
+
+    setExpandedSpotRequestId(null)
+    setPopupData(current => (current?.type === 'forecast' || current?.type === 'spot' ? null : current))
+  }, [expandedSpotRequest, expandedSpotRequestId])
+
+  useEffect(() => {
+    if (popupData?.type !== 'forecast') {
+      return
+    }
+
+    if (
+      !expandedForecastFeatures.some(feature =>
+        feature.forecasts.some(forecast => forecast.id === popupData.latestForecast.id)
+      )
+    ) {
+      setPopupData(null)
+    }
+  }, [expandedForecastFeatures, popupData])
+
   // update marker styles when selectedCoordinates changes
   useEffect(() => {
     if (featureLayerRef.current) {
-      featureLayerRef.current.setStyle(createMarkerStyle(selectedCoordinates))
+      featureLayerRef.current.setStyle(createSpotMarkerStyle(selectedCoordinates))
 
       // if coordinates are selected, pan to them
       if (selectedCoordinates && map) {
@@ -484,16 +566,20 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
           <Box sx={{ position: 'relative', zIndex: 1 }}>
             {popupData?.type === 'spot' && (
               <SpotPopup
-                lat={popupData.lat}
-                lng={popupData.lng}
-                status={popupData.status}
-                fireNumber={popupData.fireNumber}
-                spotId={popupData.spotId}
-                spotRequest={popupData.spotRequest}
+                popupData={popupData}
                 canSubmitForecast={isForecaster}
                 onOpenRequest={handleOpenRequest}
                 onOpenForecast={handleOpenForecasts}
                 onSubmitForecast={handleSubmitForecast}
+              />
+            )}
+            {popupData?.type === 'forecast' && (
+              <ForecastPopup
+                popupData={popupData}
+                canSubmitForecast={isForecaster}
+                onOpenRequest={handleOpenRequest}
+                onOpenForecast={handleOpenForecast}
+                onSubmitForecast={handleSubmitForecastFromForecastLocation}
               />
             )}
             {popupData?.type === 'fire' && (

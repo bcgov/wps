@@ -19,9 +19,15 @@ export interface FullSpotForecastProps {
   forecast: SpotForecastOutput
   spotRequest: SpotRequestOutput
   representativeStations: RepresentativeStation[]
+  locationMap?: React.ReactNode
 }
 
-const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotRequest, representativeStations }) => {
+const FullSpotForecast: React.FC<FullSpotForecastProps> = ({
+  forecast,
+  spotRequest,
+  representativeStations,
+  locationMap
+}) => {
   const afternoonForecast = forecast.descriptive_weather.find(dw => dw.period === 'Today')
   const tonightForecast = forecast.descriptive_weather.find(dw => dw.period === 'Tonight')
   const tomorrowForecast = forecast.descriptive_weather.find(dw => dw.period === 'Tomorrow')
@@ -46,14 +52,22 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({ forecast, spotReque
           </Box>
         </Section>
 
-        <Section title="Location">
-          <Box sx={{ gridColumn: '1 / -1' }}>
-            <Field label="Geographic Description" value={forecastInstance.geographic_description} />
+        <Section
+          title="Location"
+          contentSx={{
+            gridTemplateColumns: { xs: '1fr', lg: locationMap ? 'minmax(0, 0.9fr) minmax(280px, 1.1fr)' : '1fr 1fr' }
+          }}
+        >
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, alignContent: 'start' }}>
+            <Box sx={{ gridColumn: '1 / -1' }}>
+              <Field label="Geographic Description" value={forecastInstance.geographic_description} />
+            </Box>
+            <Field label="Latitude" value={forecastInstance.latitude.toFixed(4)} />
+            <Field label="Longitude" value={forecastInstance.longitude.toFixed(4)} />
+            <Field label="Elevation" value={forecastInstance.elevation ? `${forecastInstance.elevation} m` : '—'} />
+            <Field label="Slope / Aspect" value={forecastInstance.aspect ?? '—'} />
           </Box>
-          <Field label="Latitude" value={forecastInstance.latitude.toFixed(4)} />
-          <Field label="Longitude" value={forecastInstance.longitude.toFixed(4)} />
-          <Field label="Elevation" value={forecastInstance.elevation ? `${forecastInstance.elevation} m` : '—'} />
-          <Field label="Slope / Aspect" value={forecastInstance.aspect ?? '—'} />
+          {locationMap}
         </Section>
       </Box>
 

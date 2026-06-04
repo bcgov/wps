@@ -60,9 +60,6 @@ const SpotMapLayerSwitcher = ({
         />
       </>
     )}
-    <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold' }}>
-      Layers
-    </Typography>
     <FormGroup>
       <FormControlLabel
         control={
@@ -117,7 +114,7 @@ const SpotMapLayerSwitcher = ({
         ))}
     </FormGroup>
     <Typography variant="subtitle2" sx={{ mt: 1.5, mb: 1, fontWeight: 'bold' }}>
-      Status
+      Spot Requests
     </Typography>
     <FormGroup>
       <FormControlLabel

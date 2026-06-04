@@ -1,29 +1,25 @@
 import React from 'react'
 import { Box, Button, Typography } from '@mui/material'
-import { SpotPopupData, SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
-import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
-import SpotSubscriptionButton from '@/features/smurfi/components/SpotSubscriptionButton'
-import SpotStatusControl from '@/features/smurfi/components/SpotStatusControl'
+import { ForecastPopupData } from '@/features/smurfi/interfaces'
+import { formatDateTime } from '@/features/smurfi/utils/spotForecastUtils'
 
-interface SpotPopupProps {
-  popupData: SpotPopupData
+interface ForecastPopupProps {
+  popupData: ForecastPopupData
   canSubmitForecast: boolean
   onOpenRequest: (spotId: number) => void
-  onOpenForecast: (spotId: number) => void
-  onSubmitForecast: (spotId: number) => void
-  onStatusChanged?: (spotRequest: SpotRequestOutput) => void
+  onOpenForecast: (spotId: number, forecastId: number) => void
+  onSubmitForecast: (spotId: number, sourceForecastId: number) => void
 }
 
-const SpotPopup: React.FC<SpotPopupProps> = ({
+const ForecastPopup: React.FC<ForecastPopupProps> = ({
   popupData,
   canSubmitForecast,
   onOpenRequest,
   onOpenForecast,
-  onSubmitForecast,
-  onStatusChanged
+  onSubmitForecast
 }) => {
-  const { lat, lng, status, fireNumber, spotId, spotRequest } = popupData
-  const statusColors = SpotRequestStatusColorMap[status]
+  const { lat, lng, fireNumber, spotId, forecastCount, latestForecast } = popupData
+  const hasMultipleForecasts = forecastCount > 1
 
   const handleRequestClick = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -31,16 +27,16 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
     onOpenRequest(spotId)
   }
 
-  const handleSpotForecastClick = (event: React.MouseEvent) => {
+  const handleForecastClick = (event: React.MouseEvent) => {
     event.stopPropagation()
     event.preventDefault()
-    onOpenForecast(spotId)
+    onOpenForecast(spotId, latestForecast.id)
   }
 
   const handleSubmitForecastClick = (event: React.MouseEvent) => {
     event.stopPropagation()
     event.preventDefault()
-    onSubmitForecast(spotId)
+    onSubmitForecast(spotId, latestForecast.id)
   }
 
   return (
@@ -51,31 +47,37 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
         border: '1px solid #ddd',
         borderRadius: 2,
         boxShadow: 3,
-        minWidth: 320,
+        minWidth: 340,
         maxWidth: 350
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="body2">{fireNumber}</Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <SpotSubscriptionButton spotRequest={spotRequest} variant="contained" />
-          <SpotStatusControl spotRequest={spotRequest} onStatusChanged={onStatusChanged} />
-        </Box>
-      </Box>
       <Box sx={{ mb: 2 }}>
+        <Typography variant="body2">{fireNumber}</Typography>
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
-          Requested location
+          Forecast location
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           Lat: {lat.toFixed(6)}, Lng: {lng.toFixed(6)}
         </Typography>
       </Box>
+
+      <Box sx={{ mb: 2 }}>
+        {hasMultipleForecasts && <Typography variant="body2">{forecastCount} forecasts at this location</Typography>}
+        <Typography variant="body2">
+          {hasMultipleForecasts ? 'Latest issued' : 'Issued'}: {formatDateTime(latestForecast.issued_at)}
+        </Typography>
+        <Typography variant="body2">Type: {latestForecast.forecast_type}</Typography>
+        {latestForecast.forecaster_name && (
+          <Typography variant="body2">Forecaster: {latestForecast.forecaster_name}</Typography>
+        )}
+      </Box>
+
       <Box sx={{ display: 'flex', gap: 1 }}>
         <Button variant="outlined" color="primary" size="small" fullWidth onClick={handleRequestClick}>
           View Request
         </Button>
-        <Button variant="contained" color="primary" size="small" fullWidth onClick={handleSpotForecastClick}>
-          View Forecasts
+        <Button variant="contained" color="primary" size="small" fullWidth onClick={handleForecastClick}>
+          {hasMultipleForecasts ? 'View Latest Forecast' : 'View Forecast'}
         </Button>
       </Box>
       {canSubmitForecast && (
@@ -94,4 +96,4 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
   )
 }
 
-export default SpotPopup
+export default ForecastPopup
