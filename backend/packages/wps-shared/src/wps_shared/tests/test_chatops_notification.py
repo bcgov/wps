@@ -30,7 +30,7 @@ def test_posts_to_chatops_url(mock_post):
 def test_auth_header(mock_post):
     send_chatops_notification("test", Exception("err"))
     headers = mock_post.call_args.kwargs["headers"]
-    assert headers["Authorization"] == "Bearer sometoken"
+    assert headers["token"] == "sometoken"
 
 
 def test_body_contains_text(mock_post):
