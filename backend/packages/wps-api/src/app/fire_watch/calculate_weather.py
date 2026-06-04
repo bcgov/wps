@@ -464,7 +464,6 @@ async def process_all_fire_watch_weather():
     """
     Process all FireWatch weather data by gathering inputs, validating them, and saving results.
     """
-    raise Exception("test chatops notification - remove me")
 
     async with get_async_write_session_scope() as session:
         latest_prediction_id = await get_latest_prediction_timestamp_id_for_model(

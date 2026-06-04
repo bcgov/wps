@@ -143,12 +143,6 @@ api.include_router(object_store_proxy.wx_router, tags=["Object Store Proxy"])
 api.include_router(fcm.router, tags=["Firebase Cloud Messaging"])
 
 
-@api.get("/debug/boom")
-async def boom():
-    """Temporary endpoint to test chatops notification - remove me"""
-    raise Exception("test chatops notification - remove me")
-
-
 @api.get("/ready")
 async def get_ready():
     """A simple endpoint for OpenShift readiness"""
