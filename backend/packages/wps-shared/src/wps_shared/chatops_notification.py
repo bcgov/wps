@@ -14,8 +14,10 @@ from wps_shared import config
 
 logger = logging.getLogger(__name__)
 
+webhook_max_char_len = 2000
 
-def send_chatops_notification(text: str, exc_info: Exception) -> dict:
+
+def send_chatops_notification(text: str, exc_info: Exception) -> str | None:
     """Sends message with specified text to configured chatops webhook.
 
     We don't want this method to raise any exceptions, as we don't want to
@@ -25,16 +27,23 @@ def send_chatops_notification(text: str, exc_info: Exception) -> dict:
     If you want to know if this method worked or not, you'll have to inspect
     the response.
     """
-    full_message = f"{datetime.now(tz=timezone.utc).isoformat()}\n{text}\n\
-        {config.get('HOSTNAME')} ({threading.get_native_id()}): {exc_info}\n\
-        {traceback.format_exception(exc_info, value=exc_info, tb=exc_info.__traceback__)}"
+    traceback_str = "".join(
+        traceback.format_exception(type(exc_info), exc_info, exc_info.__traceback__)
+    )
+    header = (
+        f"{datetime.now(tz=timezone.utc).isoformat()}\n"
+        f"{text}\n"
+        f"{config.get('HOSTNAME')} ({threading.get_native_id()}): {exc_info}\n"
+    )
+    max_tb_len = webhook_max_char_len - len(header) - 8  # 8 for "```\n" + "\n```"
+    full_message = f"{header}```\n{traceback_str[:max_tb_len]}\n```"
     pod_logs_url = f"{config.get('OPENSHIFT_BASE_URI')}/k8s/ns/{config.get('PROJECT_NAMESPACE')}/pods/{config.get('HOSTNAME')}/logs"
     result = None
     try:
         response = requests.post(
             config.get("CHATOPS_URL"),
             headers={
-                "Authorization": f"Bearer {config.get('CHATOPS_AUTH_TOKEN')}",
+                "token": f"{config.get('CHATOPS_AUTH_TOKEN')}",
                 "Content-Type": "application/json",
             },
             json={
@@ -46,6 +55,7 @@ def send_chatops_notification(text: str, exc_info: Exception) -> dict:
             },
             timeout=10,
         )
+        logger.info("chatops webhook response: %s %s", response.status_code, response.text)
         result = response.json()
     except Exception as exception:
         # not doing exc_info=exception - as this causes a lot of noise, and we're more interested
