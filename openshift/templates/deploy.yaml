@@ -254,6 +254,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: chatops-auth-token
+                - name: OPENSHIFT_CONSOLE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.openshift-console-url
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:

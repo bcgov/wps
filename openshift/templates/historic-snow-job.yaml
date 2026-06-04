@@ -22,6 +22,9 @@ parameters:
   - name: END_DATETIME
     description: The last day to process snow data for.
     required: true
+  - name: PROJECT_NAMESPACE
+    description: OpenShift project namespace
+    required: true
 objects:
   - kind: Job
     apiVersion: batch/v1
@@ -83,6 +86,13 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: chatops-auth-token
+                - name: OPENSHIFT_CONSOLE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.openshift-console-url
+                - name: PROJECT_NAMESPACE
+                  value: ${PROJECT_NAMESPACE}
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:

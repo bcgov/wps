@@ -25,6 +25,9 @@ parameters:
   - name: IMAGE_REGISTRY
     required: true
     value: image-registry.openshift-image-registry.svc:5000
+  - name: PROJECT_NAMESPACE
+    description: OpenShift project namespace
+    required: true
 objects:
   - kind: Job
     apiVersion: batch/v1
@@ -107,6 +110,13 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: chatops-auth-token
+                - name: OPENSHIFT_CONSOLE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.openshift-console-url
+                - name: PROJECT_NAMESPACE
+                  value: ${PROJECT_NAMESPACE}
               resources:
                 limits:
                   cpu: "1"

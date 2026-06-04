@@ -33,6 +33,8 @@ parameters:
     description: Token for status-checker Openshift service account. Used for /health check
   - name: OPENSHIFT_BASE_URI
     description: Base URI for connecting to console in Openshift. Used for /health check
+  - name: OPENSHIFT_CONSOLE_URL
+    description: URL for the OpenShift console. Used for chatops pod log links
   - name: OPENSHIFT_NAMESPACE_API
     description: Openshift namespace api
     value: "apis/apps/v1/namespaces/"
@@ -121,6 +123,7 @@ objects:
       bc-fire-weather-user: ${BC_FIRE_WEATHER_USER}
       bc-fire-weather-filter-id: ${BC_FIRE_WEATHER_FILTER_ID}
       env.openshift-base-uri: ${OPENSHIFT_BASE_URI}
+      env.openshift-console-url: ${OPENSHIFT_CONSOLE_URL}
       env.redis-host: ${REDIS_HOST}
       env.redis-port: ${REDIS_PORT}
       env.redis-use: ${REDIS_USE}
