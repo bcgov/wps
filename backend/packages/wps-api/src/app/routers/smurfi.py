@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from wps_shared.auth import authentication_required
 from wps_shared.db.crud.smurfi import (
     COORDINATE_MATCH_TOLERANCE,
@@ -71,7 +71,6 @@ from wps_shared.schemas.smurfi import (
     SubscriptionsResponse,
     UpdateSubscriberStatusData,
 )
-from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
 from app.nats_publish import publish

@@ -5,7 +5,7 @@ import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { updateSpotRequestStatus } from '@/features/smurfi/slices/smurfiSlice'
 import { canChangeSpotStatus, getAllowedSpotStatusOptions } from '@/features/smurfi/utils/spotStatusUtils'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
-import { Box, Button, Menu, MenuItem, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Menu, MenuItem, Typography } from '@mui/material'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { MouseEvent, useState } from 'react'
 import { useDispatch } from 'react-redux'
@@ -57,7 +57,6 @@ const SpotStatusControl = ({ spotRequest, fullWidth = false, onStatusChanged }: 
   const { isOwner, isForecaster } = useSpotPermissions(spotRequest)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const allowedStatuses = getAllowedSpotStatusOptions({ spotRequest, isOwner, isForecaster })
   const isEditable = canChangeSpotStatus({ spotRequest, isOwner, isForecaster })
   const open = Boolean(anchorEl)
@@ -78,16 +77,14 @@ const SpotStatusControl = ({ spotRequest, fullWidth = false, onStatusChanged }: 
     }
 
     setIsUpdating(true)
-    setError(null)
-    const updatedSpotRequest = await dispatch(updateSpotRequestStatus({ spotRequestId: spotRequest.id, status }))
+    const result = await dispatch(updateSpotRequestStatus({ spotRequestId: spotRequest.id, status }))
     setIsUpdating(false)
 
-    if (!updatedSpotRequest) {
-      setError('Status update failed')
+    if (!result.spotRequest) {
       return
     }
 
-    onStatusChanged?.(updatedSpotRequest)
+    onStatusChanged?.(result.spotRequest)
   }
 
   if (!isEditable) {
@@ -100,17 +97,15 @@ const SpotStatusControl = ({ spotRequest, fullWidth = false, onStatusChanged }: 
 
   return (
     <>
-      <Tooltip title={error ?? ''}>
-        <Button
-          size="small"
-          endIcon={<ArrowDropDownIcon />}
-          disabled={isUpdating}
-          onClick={handleOpen}
-          sx={getStatusSx(spotRequest.status, fullWidth)}
-        >
-          <StatusContent status={spotRequest.status} />
-        </Button>
-      </Tooltip>
+      <Button
+        size="small"
+        endIcon={<ArrowDropDownIcon />}
+        disabled={isUpdating}
+        onClick={handleOpen}
+        sx={getStatusSx(spotRequest.status, fullWidth)}
+      >
+        <StatusContent status={spotRequest.status} />
+      </Button>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         {allowedStatuses.map(status => (
           <MenuItem key={status} selected={status === spotRequest.status} onClick={() => handleStatusChange(status)}>
