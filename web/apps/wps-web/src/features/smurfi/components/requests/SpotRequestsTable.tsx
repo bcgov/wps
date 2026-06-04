@@ -40,7 +40,6 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
   const { fireCentres } = useSelector(selectFireCentres)
   const { isForecaster } = useSpotPermissions(rows[0])
   const columns: GridColDef<(typeof rows)[number]>[] = [
-    { field: 'id', headerName: 'ID', width: 90 },
     {
       field: 'fire_number',
       headerName: 'Fire Number',
