@@ -137,13 +137,11 @@ def _is_spot_request_owner(token: dict, spot_request: SpotRequestBase) -> bool:
 def _can_update_spot_request_status(
     token: dict, spot_request: SpotRequestBase, next_status: SpotRequestStatusEnum
 ) -> bool:
-    if _is_forecaster(token):
-        return True
-
-    if not _is_spot_request_owner(token, spot_request):
+    # once work has started, requests should not move back to the initial Requested state
+    if next_status == SpotRequestStatusEnum.REQUESTED:
         return False
 
-    return False if next_status == SpotRequestStatusEnum.REQUESTED else True
+    return _is_forecaster(token) or _is_spot_request_owner(token, spot_request)
 
 
 def _get_bc_albers_point(latitude: float, longitude: float) -> str:
