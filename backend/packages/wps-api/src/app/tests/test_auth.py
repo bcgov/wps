@@ -1,10 +1,16 @@
-from fastapi.testclient import TestClient
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-import pytest
-from fastapi.routing import APIRoute
-from wps_shared.auth import authentication_required
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
 import app.main
+import pytest
+import wps_shared.auth as auth
 from app.tests import load_json_file
+from fastapi import HTTPException, status
+from fastapi.routing import APIRoute
+from fastapi.testclient import TestClient
+from wps_shared.auth import authentication_required
 
 
 @pytest.mark.parametrize(
@@ -123,3 +129,72 @@ def test_non_fba_routes_blocked_for_test_guid():
         else:
             response = client.get(path, headers=headers)
         assert response.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_forecaster_or_spot_owner_auth_allows_forecaster_without_db_lookup(monkeypatch):
+    token = {"client_roles": ["morecast2_write_forecast"], "idir_username": "someone"}
+
+    def fail_if_queried():
+        raise AssertionError("forecaster role should not need a spot request lookup")
+
+    monkeypatch.setattr("wps_shared.db.database.get_async_read_session_scope", fail_if_queried)
+
+    result = await auth.auth_with_forecaster_role_or_spot_owner_required(42, token)
+
+    assert result == token
+
+
+@pytest.mark.anyio
+async def test_forecaster_or_spot_owner_auth_allows_spot_owner(monkeypatch):
+    session = SimpleNamespace()
+    token = {"client_roles": [], "idir_username": "owner_idir"}
+    get_spot_request = AsyncMock(return_value=SimpleNamespace(requestor_idir="OWNER_IDIR"))
+
+    @asynccontextmanager
+    async def session_scope():
+        yield session
+
+    monkeypatch.setattr("wps_shared.db.database.get_async_read_session_scope", session_scope)
+    monkeypatch.setattr("wps_shared.db.crud.smurfi.get_spot_request_by_id", get_spot_request)
+
+    result = await auth.auth_with_forecaster_role_or_spot_owner_required(42, token)
+
+    assert result == token
+    get_spot_request.assert_awaited_once_with(session, 42)
+
+
+@pytest.mark.anyio
+async def test_forecaster_or_spot_owner_auth_rejects_non_owner(monkeypatch):
+    token = {"client_roles": [], "idir_username": "other_idir"}
+    get_spot_request = AsyncMock(return_value=SimpleNamespace(requestor_idir="owner_idir"))
+
+    @asynccontextmanager
+    async def session_scope():
+        yield SimpleNamespace()
+
+    monkeypatch.setattr("wps_shared.db.database.get_async_read_session_scope", session_scope)
+    monkeypatch.setattr("wps_shared.db.crud.smurfi.get_spot_request_by_id", get_spot_request)
+
+    with pytest.raises(HTTPException) as exc:
+        await auth.auth_with_forecaster_role_or_spot_owner_required(42, token)
+
+    assert exc.value.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.anyio
+async def test_forecaster_or_spot_owner_auth_returns_404_for_missing_spot_request(monkeypatch):
+    token = {"client_roles": [], "idir_username": "owner_idir"}
+    get_spot_request = AsyncMock(return_value=None)
+
+    @asynccontextmanager
+    async def session_scope():
+        yield SimpleNamespace()
+
+    monkeypatch.setattr("wps_shared.db.database.get_async_read_session_scope", session_scope)
+    monkeypatch.setattr("wps_shared.db.crud.smurfi.get_spot_request_by_id", get_spot_request)
+
+    with pytest.raises(HTTPException) as exc:
+        await auth.auth_with_forecaster_role_or_spot_owner_required(42, token)
+
+    assert exc.value.status_code == status.HTTP_404_NOT_FOUND

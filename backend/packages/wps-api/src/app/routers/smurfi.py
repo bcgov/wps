@@ -4,7 +4,10 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from wps_shared.auth import authentication_required
+from wps_shared.auth import (
+    auth_with_forecaster_role_or_spot_owner_required,
+    authentication_required,
+)
 from wps_shared.db.crud.smurfi import (
     COORDINATE_MATCH_TOLERANCE,
     create_distribution_group,
@@ -82,7 +85,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/smurfi", dependencies=[Depends(authentication_required)])
 
 MISSING_TOKEN_MESSAGE = "Token missing email claim"
-FORECASTER_ROLE = "morecast2_write_forecast"
 
 
 @dataclass(frozen=True)
@@ -121,27 +123,6 @@ def _get_spot_request_subscriber_emails(
             seen.add(normalized_email)
 
     return unique_emails
-
-
-def _is_forecaster(token: dict) -> bool:
-    return FORECASTER_ROLE in (token.get("client_roles", []) or [])
-
-
-def _is_spot_request_owner(token: dict, spot_request: SpotRequestBase) -> bool:
-    idir = token.get("idir_username", None)
-    return bool(idir and spot_request.requestor_idir) and (
-        idir.lower() == spot_request.requestor_idir.lower()
-    )
-
-
-def _can_update_spot_request_status(
-    token: dict, spot_request: SpotRequestBase, next_status: SpotRequestStatusEnum
-) -> bool:
-    # once work has started, requests should not move back to the initial Requested state
-    if next_status == SpotRequestStatusEnum.REQUESTED:
-        return False
-
-    return _is_forecaster(token) or _is_spot_request_owner(token, spot_request)
 
 
 def _get_bc_albers_point(latitude: float, longitude: float) -> str:
@@ -540,7 +521,7 @@ def _spot_forecast_to_schema(spot_forecast: SpotForecast) -> SpotForecastData:
 async def update_spot_request_status_endpoint(
     spot_request_id: int,
     data: SpotRequestStatusUpdate,
-    token: Annotated[dict, Depends(authentication_required)],
+    _: Annotated[dict, Depends(auth_with_forecaster_role_or_spot_owner_required)],
 ):
     try:
         next_status = SpotRequestStatusEnum(data.status)
@@ -549,18 +530,19 @@ async def update_spot_request_status_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid status: {data.status}"
         )
 
+    # once work has started, requests should not move back to the initial Requested state
+    if next_status == SpotRequestStatusEnum.REQUESTED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Spot request status cannot be changed back to Requested",
+        )
+
     async with get_async_write_session_scope() as session:
         spot_request = await get_spot_request_by_id(session, spot_request_id)
         if spot_request is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"SpotRequestBase {spot_request_id} not found",
-            )
-
-        if not _can_update_spot_request_status(token, spot_request, next_status):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to update this spot request status",
             )
 
         updated_spot_request = await update_spot_request_status(session, spot_request, next_status)
