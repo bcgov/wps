@@ -204,6 +204,7 @@ export interface SpotRequestInstanceInput {
 
 export interface SpotRequestInstanceOutput extends SpotRequestInstanceInput {
   id: number
+  created_at: string
 }
 
 interface SpotRequestFields {
@@ -227,10 +228,24 @@ export interface SpotRequestInput extends SpotRequestFields {
   initial_instance: SpotRequestInstanceInput
 }
 
+export interface SpotRequestEditInput extends Pick<
+  SpotRequestFields,
+  | 'fire_number'
+  | 'fire_centre'
+  | 'request_frequency'
+  | 'request_type'
+  | 'additional_information'
+  | 'start_at'
+  | 'end_at'
+  | 'subscribers'
+  | 'distribution_group_ids'
+> {
+  request_instance: SpotRequestInstanceInput
+}
+
 export interface SpotRequestOutput extends SpotRequestFields {
   id: number
-  initial_instance: SpotRequestInstanceOutput
-  current_instance: SpotRequestInstanceOutput
+  request_instance: SpotRequestInstanceOutput
   requestor_name: string
   requestor_idir: string
   requestor_email: string
@@ -282,6 +297,32 @@ const marshalFormDataToSpotRequestInput = (formData: SpotRequestFormData): SpotR
   }
 }
 
+const marshalFormDataToSpotRequestEditInput = (formData: SpotRequestFormData): SpotRequestEditInput => {
+  return {
+    fire_number: formData.fireNumbers,
+    fire_centre: formData.fireCentreId,
+    request_frequency: formData.requestedFrequency,
+    request_type: formData.forecastType,
+    additional_information: formData.additionalInformation || undefined,
+    request_instance: {
+      geographic_description: formData.geographicDescription,
+      aspect: formData.slopeAspect || null,
+      elevation: toNullableInteger(formData.elevation),
+      valley: null,
+      latitude: formData.location.latitude,
+      longitude: formData.location.longitude
+    },
+    start_at: toStartOfDayISO(formData.forecastStartDate),
+    end_at: toEndOfDayISO(formData.forecastEndDate),
+    subscribers: formData.emailDistributionList.map(email => ({
+      id: null,
+      email,
+      subscriber_status: 'active'
+    })),
+    distribution_group_ids: formData.distributionGroupIds
+  }
+}
+
 export const postSpotForecast = async (
   formData: SpotFormData,
   spotRequestId: number,
@@ -299,7 +340,18 @@ export const getSpotForecasts = async (spotRequestId: number): Promise<SpotForec
   return data
 }
 
-export const postSpotRequest = async (formData: SpotRequestFormData): Promise<SpotRequestResponse> => {
+export const postSpotRequest = async (
+  formData: SpotRequestFormData,
+  spotRequestId?: number
+): Promise<SpotRequestResponse> => {
+  if (spotRequestId !== undefined) {
+    // edits use PATCH so create-only fields are not sent back to the API
+    const spotRequestInput = marshalFormDataToSpotRequestEditInput(formData)
+    const url = `/smurfi/spot_requests/${spotRequestId}`
+    const { data } = await axios.patch(url, spotRequestInput)
+    return data
+  }
+
   const spotRequestInput = marshalFormDataToSpotRequestInput(formData)
   const url = '/smurfi/spot_request'
   const { data } = await axios.post(url, spotRequestInput)

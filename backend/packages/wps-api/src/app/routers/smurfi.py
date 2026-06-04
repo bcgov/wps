@@ -6,16 +6,18 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from wps_shared.auth import authentication_required
 from wps_shared.db.crud.smurfi import (
+    COORDINATE_MATCH_TOLERANCE,
     create_distribution_group,
     create_spot_descriptive_weather,
     create_spot_forecast,
+    create_spot_request,
     create_spot_request_instance,
     create_spot_tabular_weather,
     delete_distribution_group,
     get_distribution_groups,
-    get_distribution_groups_for_spot,
     get_or_create_spot_request_instance,
     get_spot_forecasts_for_request,
+    get_spot_request_by_id,
     get_spot_requests_for_year,
     get_subscribed_spot_request_ids,
     start_requested_spot_request,
@@ -24,8 +26,9 @@ from wps_shared.db.crud.smurfi import (
     sync_spot_subscribers,
     unsubscribe_from_spot_request,
     update_distribution_group,
+    update_spot_request_details,
+    update_spot_request_instance_details,
     update_spot_subscriber_status,
-    upsert_spot_request,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.smurfi import (
@@ -52,6 +55,7 @@ from wps_shared.schemas.smurfi import (
     SpotForecastResponse,
     SpotLatestForecastData,
     SpotRequestData,
+    SpotRequestEditInput,
     SpotRequestInput,
     SpotRequestInstanceData,
     SpotRequestInstanceInput,
@@ -98,12 +102,12 @@ def _get_spot_user(token: dict) -> SpotRequestor:
 
 
 def _get_spot_request_subscriber_emails(
-    spot_request_input: SpotRequestInput, requestor: SpotRequestor
+    spot_request_input: SpotRequestInput | SpotRequestEditInput, required_emails: list[str]
 ) -> list[str]:
     seen = set()
     unique_emails = []
 
-    for email in [s.email for s in spot_request_input.subscribers] + [requestor.email]:
+    for email in [s.email for s in spot_request_input.subscribers] + required_emails:
         if not email:
             continue
 
@@ -129,13 +133,24 @@ def _build_spot_request_base(
     now = get_utc_now()
     return SpotRequestBase(
         **spot_request_input.model_dump(
-            exclude={"initial_instance", "subscribers", "distribution_group_ids"}
+            exclude={"id", "initial_instance", "subscribers", "distribution_group_ids"}
         ),
         requestor_name=requestor.name,
         requestor_idir=requestor.idir,
         requestor_email=requestor.email,
         created_at=now,
         updated_at=now,
+    )
+
+
+def _build_spot_request_update(
+    spot_request_base_id: int, spot_request_input: SpotRequestEditInput
+) -> SpotRequestBase:
+    return SpotRequestBase(
+        id=spot_request_base_id,
+        **spot_request_input.model_dump(
+            exclude={"request_instance", "subscribers", "distribution_group_ids"}
+        ),
     )
 
 
@@ -162,11 +177,16 @@ def _spot_request_instance_to_schema(
         valley=spot_request_instance.valley,
         latitude=spot_request_instance.latitude,
         longitude=spot_request_instance.longitude,
+        created_at=spot_request_instance.created_at,
     )
 
 
 def _get_initial_instance(spot_request: SpotRequestBase) -> SpotRequestInstance:
     return min(spot_request.spot_request_instances, key=lambda instance: instance.created_at)
+
+
+def _get_request_instance(spot_request: SpotRequestBase) -> SpotRequestInstance:
+    return _get_initial_instance(spot_request)
 
 
 def _get_latest_forecast(spot_request: SpotRequestBase) -> SpotForecast | None:
@@ -177,11 +197,21 @@ def _get_latest_forecast(spot_request: SpotRequestBase) -> SpotForecast | None:
     )
 
 
-def _get_current_instance(spot_request_base: SpotRequestBase) -> SpotRequestInstance:
-    latest_forecast = _get_latest_forecast(spot_request_base)
-    if latest_forecast is not None:
-        return latest_forecast.spot_request_instance
-    return _get_initial_instance(spot_request_base)
+def _coordinate_has_changed(existing: float, updated: float) -> bool:
+    return abs(existing - updated) > COORDINATE_MATCH_TOLERANCE
+
+
+def _spot_request_instance_has_changed(
+    existing: SpotRequestInstance, updated: SpotRequestInstanceInput
+) -> bool:
+    return (
+        existing.geographic_description != updated.geographic_description
+        or existing.aspect != updated.aspect
+        or existing.elevation != updated.elevation
+        or existing.valley != updated.valley
+        or _coordinate_has_changed(existing.latitude, updated.latitude)
+        or _coordinate_has_changed(existing.longitude, updated.longitude)
+    )
 
 
 def _latest_forecast_to_schema(spot_request_base: SpotRequestBase) -> SpotLatestForecastData | None:
@@ -204,60 +234,100 @@ def _latest_forecast_to_schema(spot_request_base: SpotRequestBase) -> SpotLatest
 
 
 @router.post("/spot_request", response_model=SpotRequestResponse)
-async def upsert_spot_request_endpoint(
+async def create_spot_request_endpoint(
     spot_request_input: SpotRequestInput, token: Annotated[dict, Depends(authentication_required)]
 ):
+    if spot_request_input.id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Use PATCH /spot_requests/{spot_request_id} to edit a spot request",
+        )
+
     requestor = _get_spot_user(token)
     spot_request_base = _build_spot_request_base(spot_request_input, requestor)
 
     async with get_async_write_session_scope() as session:
-        if spot_request_base.id is None:
-            logger.info("Creating a new SpotRequestBase.")
-        else:
-            logger.info("Updating an existing SpotRequestBase with id: %s.", spot_request_base.id)
-
-        result = await upsert_spot_request(session, spot_request_base)
-        if result is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"SpotRequestBase {spot_request_base.id} not found",
-            )
-
-        instance = await create_spot_request_instance(
+        logger.info("Creating a new SpotRequestBase.")
+        result = await create_spot_request(session, spot_request_base)
+        # creation always creates the request's editable location instance
+        await create_spot_request_instance(
             session, _build_spot_request_instance(result.id, spot_request_input.initial_instance)
         )
 
         logger.info("Syncing subscribers for SpotRequestBase id: %s", result.id)
-        subscribers = await sync_spot_subscribers(
+        await sync_spot_subscribers(
             session,
             result.id,
-            _get_spot_request_subscriber_emails(spot_request_input, requestor),
+            _get_spot_request_subscriber_emails(spot_request_input, [requestor.email]),
         )
         await sync_spot_request_distribution_groups(
             session, result.id, spot_request_input.distribution_group_ids or []
         )
-        distribution_groups = await get_distribution_groups_for_spot(session, result.id)
-        spot_request_base_id = result.id
-        subscriber_data = [
-            SpotSubscriberData(id=s.id, email=s.email, subscriber_status=s.subscriber_status)
-            for s in subscribers
-        ]
-        group_data = [DistributionGroupOutput.to_schema(g) for g in distribution_groups]
-        spot_request_instance = _spot_request_instance_to_schema(instance)
+        saved_spot_request = await get_spot_request_by_id(session, result.id)
+        if saved_spot_request is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SpotRequestBase {result.id} not found",
+            )
+        spot_request = _spot_request_to_schema(saved_spot_request)
 
-    return SpotRequestResponse(
-        spot_request=SpotRequestData(
-            **spot_request_input.model_dump(exclude={"id", "initial_instance", "subscribers"}),
-            id=spot_request_base_id,
-            initial_instance=spot_request_instance,
-            current_instance=spot_request_instance,
-            subscribers=subscriber_data,
-            distribution_groups=group_data,
-            requestor_name=requestor.name,
-            requestor_idir=requestor.idir,
-            requestor_email=requestor.email,
+    return SpotRequestResponse(spot_request=spot_request)
+
+
+@router.patch("/spot_requests/{spot_request_id}", response_model=SpotRequestResponse)
+async def update_spot_request_endpoint(
+    spot_request_id: int,
+    spot_request_input: SpotRequestEditInput,
+    token: Annotated[dict, Depends(authentication_required)],
+):
+    async with get_async_write_session_scope() as session:
+        existing_spot_request = await get_spot_request_by_id(session, spot_request_id)
+        if existing_spot_request is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SpotRequestBase {spot_request_id} not found",
+            )
+
+        result = await update_spot_request_details(
+            session, _build_spot_request_update(spot_request_id, spot_request_input)
         )
-    )
+        if result is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SpotRequestBase {spot_request_id} not found",
+            )
+
+        request_instance = _get_request_instance(existing_spot_request)
+        # edits update the original request location; forecast locations remain immutable
+        if _spot_request_instance_has_changed(
+            request_instance, spot_request_input.request_instance
+        ):
+            await update_spot_request_instance_details(
+                session,
+                request_instance,
+                _build_spot_request_instance(spot_request_id, spot_request_input.request_instance),
+            )
+
+        logger.info("Syncing subscribers for SpotRequestBase id: %s", result.id)
+        await sync_spot_subscribers(
+            session,
+            result.id,
+            _get_spot_request_subscriber_emails(
+                spot_request_input, [existing_spot_request.requestor_email]
+            ),
+        )
+        await sync_spot_request_distribution_groups(
+            session, result.id, spot_request_input.distribution_group_ids or []
+        )
+        saved_spot_request = await get_spot_request_by_id(session, result.id)
+        if saved_spot_request is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SpotRequestBase {spot_request_id} not found",
+            )
+        spot_request = _spot_request_to_schema(saved_spot_request)
+
+    return SpotRequestResponse(spot_request=spot_request)
 
 
 async def _create_descriptive_weather(
@@ -330,6 +400,7 @@ async def create_spot_forecast_endpoint(
     if not forecaster.email:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=MISSING_TOKEN_MESSAGE)
     async with get_async_write_session_scope() as session:
+        # forecasts can reuse an identical location instance; request edits intentionally do not
         spot_request_instance = await get_or_create_spot_request_instance(
             session,
             _build_spot_request_instance(
@@ -454,8 +525,7 @@ async def get_spot_forecasts(spot_request_id: int):
 
 
 def _spot_request_to_schema(spot_request: SpotRequestBase) -> SpotRequestData:
-    initial_instance = _get_initial_instance(spot_request)
-    current_instance = _get_current_instance(spot_request)
+    request_instance = _get_request_instance(spot_request)
     return SpotRequestData(
         id=spot_request.id,
         request_reference=spot_request.request_reference,
@@ -468,8 +538,7 @@ def _spot_request_to_schema(spot_request: SpotRequestBase) -> SpotRequestData:
         request_frequency=spot_request.request_frequency,
         request_type=spot_request.request_type,
         additional_information=spot_request.additional_information,
-        initial_instance=_spot_request_instance_to_schema(initial_instance),
-        current_instance=_spot_request_instance_to_schema(current_instance),
+        request_instance=_spot_request_instance_to_schema(request_instance),
         requested_at=spot_request.requested_at,
         start_at=spot_request.start_at,
         end_at=spot_request.end_at,

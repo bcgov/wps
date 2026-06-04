@@ -1,17 +1,11 @@
 import React from 'react'
 import { Box, Button, Typography } from '@mui/material'
-import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
-import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
+import { SpotPopupData, SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import SpotSubscriptionButton from '@/features/smurfi/components/SpotSubscriptionButton'
 
 interface SpotPopupProps {
-  lat: number
-  lng: number
-  status: SpotRequestStatus
-  fireNumber: string
-  spotId: number
-  spotRequest: SpotRequestOutput
+  popupData: SpotPopupData
   canSubmitForecast: boolean
   onOpenRequest: (spotId: number) => void
   onOpenForecast: (spotId: number) => void
@@ -19,19 +13,14 @@ interface SpotPopupProps {
 }
 
 const SpotPopup: React.FC<SpotPopupProps> = ({
-  lat,
-  lng,
-  status,
-  fireNumber,
-  spotId,
-  spotRequest,
+  popupData,
   canSubmitForecast,
   onOpenRequest,
   onOpenForecast,
   onSubmitForecast
 }) => {
+  const { lat, lng, status, fireNumber, spotId, spotRequest } = popupData
   const statusColors = SpotRequestStatusColorMap[status]
-  const locationLabel = spotRequest.latest_forecast ? 'Last forecasted location' : 'Requested location'
 
   const handleRequestClick = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -93,7 +82,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
       </Box>
       <Box sx={{ mb: 2 }}>
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
-          {locationLabel}
+          Requested location
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           Lat: {lat.toFixed(6)}, Lng: {lng.toFixed(6)}

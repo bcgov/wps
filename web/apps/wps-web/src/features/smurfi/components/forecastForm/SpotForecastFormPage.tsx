@@ -7,20 +7,33 @@ import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 import { getSmurfiForecastsRoute } from '@wps/utils/constants'
 import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+
+interface ForecastFormLocationState {
+  sourceForecastId?: number
+}
 
 const SpotForecastFormPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { id } = useParams()
   const spotRequestId = Number(id)
+  const sourceForecastId = (location.state as ForecastFormLocationState | null)?.sourceForecastId
   const { spotRequests, spotRequestsLoading, spotRequestsError, spotForecastsByRequestId, spotForecastsError } =
     useSelector(selectSmurfi)
   const spotRequest = spotRequests.find(request => request.id === spotRequestId)
   const { isForecaster } = useSpotPermissions(spotRequest)
   const forecastsRoute = getSmurfiForecastsRoute(spotRequestId)
   const spotForecasts = spotForecastsByRequestId[spotRequestId]
-  const carryForwardForecast = useMemo(() => getMostRecentForecast(spotForecasts ?? []), [spotForecasts])
+  const selectedSourceForecast = useMemo(
+    () => spotForecasts?.find(forecast => forecast.id === sourceForecastId),
+    [sourceForecastId, spotForecasts]
+  )
+  const carryForwardForecast = useMemo(
+    () => selectedSourceForecast ?? getMostRecentForecast(spotForecasts ?? []),
+    [selectedSourceForecast, spotForecasts]
+  )
 
   useEffect(() => {
     if (Number.isFinite(spotRequestId) && spotForecastsByRequestId[spotRequestId] === undefined) {
@@ -64,6 +77,7 @@ const SpotForecastFormPage = () => {
       <SpotForecastForm
         spotRequest={spotRequest}
         sourceForecast={carryForwardForecast}
+        prefillForecastLocation={selectedSourceForecast !== undefined}
         onSubmitSuccess={() => navigate(forecastsRoute, { state: { showForecastSubmitSuccess: true } })}
       />
     </Box>

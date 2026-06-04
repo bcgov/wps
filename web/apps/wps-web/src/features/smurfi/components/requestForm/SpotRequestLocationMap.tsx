@@ -28,9 +28,10 @@ interface SpotRequestLocation {
 }
 
 interface SpotRequestLocationMapProps {
-  value: SpotRequestLocation | null
-  onChange: (value: SpotRequestLocation | null) => void
+  selectedLocation: SpotRequestLocation | null
+  onChange?: (value: SpotRequestLocation | null) => void
   existingSpotRequests: SpotRequestOutput[]
+  focusOnSelectedLocation?: boolean
 }
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -39,7 +40,7 @@ const STATUS_FILTER_OPTIONS = [SpotRequestStatus.REQUESTED, SpotRequestStatus.ST
 const markerStyle = new Style({
   image: new CircleStyle({
     radius: 8,
-    fill: new Fill({ color: '#d32f2f' }),
+    fill: new Fill({ color: '#fe6900' }),
     stroke: new Stroke({ color: '#ffffff', width: 2 })
   })
 })
@@ -52,9 +53,16 @@ const existingSpotStyle = (feature: FeatureLike) => {
   })
 }
 
-const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, onChange, existingSpotRequests }) => {
+const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({
+  selectedLocation,
+  onChange,
+  existingSpotRequests,
+  focusOnSelectedLocation = false
+}) => {
   // refs
   const mapRef = useRef<HTMLDivElement | null>(null)
+  const mapObjectRef = useRef<Map | null>(null)
+  const hasFocusedSelectedLocationRef = useRef(false)
   const featureSourceRef = useRef(new VectorSource<Feature<Point>>())
   const existingSpotsSourceRef = useRef(new VectorSource<Feature<Point>>())
   const currentFireLayerControllerRef = useRef<CurrentFireLayerController | null>(null)
@@ -136,9 +144,20 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
       })
     })
 
-    mapObject.getView().fit(bcExtent, { padding: [30, 30, 30, 30] })
+    mapObjectRef.current = mapObject
+    if (focusOnSelectedLocation && selectedLocation) {
+      mapObject.getView().setCenter(fromLonLat([selectedLocation.longitude, selectedLocation.latitude]))
+      mapObject.getView().setZoom(12)
+      hasFocusedSelectedLocationRef.current = true
+    } else {
+      mapObject.getView().fit(bcExtent, { padding: [30, 30, 30, 30] })
+    }
 
     mapObject.on('singleclick', (event: MapBrowserEvent<UIEvent>) => {
+      if (!onChangeRef.current) {
+        return
+      }
+
       const [longitude, latitude] = toLonLat(event.coordinate)
       onChangeRef.current({
         latitude: Number(latitude.toFixed(6)),
@@ -148,9 +167,26 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
 
     return () => {
       currentFireLayerControllerRef.current = null
+      mapObjectRef.current = null
+      hasFocusedSelectedLocationRef.current = false
       mapObject.setTarget('')
     }
   }, [])
+
+  useEffect(() => {
+    if (!focusOnSelectedLocation || !selectedLocation || hasFocusedSelectedLocationRef.current) {
+      return
+    }
+
+    const mapObject = mapObjectRef.current
+    if (!mapObject) {
+      return
+    }
+
+    mapObject.getView().setCenter(fromLonLat([selectedLocation.longitude, selectedLocation.latitude]))
+    mapObject.getView().setZoom(12)
+    hasFocusedSelectedLocationRef.current = true
+  }, [focusOnSelectedLocation, selectedLocation])
 
   useEffect(() => {
     currentFireLayerControllerRef.current?.setVisible(currentFiresVisible)
@@ -163,29 +199,27 @@ const SpotRequestLocationMap: React.FC<SpotRequestLocationMapProps> = ({ value, 
   useEffect(() => {
     featureSourceRef.current.clear()
 
-    if (value) {
+    if (selectedLocation) {
       featureSourceRef.current.addFeature(
         new Feature({
-          geometry: new Point(fromLonLat([value.longitude, value.latitude]))
+          geometry: new Point(fromLonLat([selectedLocation.longitude, selectedLocation.latitude]))
         })
       )
     }
-  }, [value])
+  }, [selectedLocation])
 
   useEffect(() => {
     existingSpotsSourceRef.current.clear()
     existingSpotsSourceRef.current.addFeatures(
       existingSpotRequests
         .filter(spotRequest => selectedStatuses.includes(spotRequest.status))
-        .map(
-          spotRequest =>
-            new Feature({
-              geometry: new Point(
-                fromLonLat([spotRequest.current_instance.longitude, spotRequest.current_instance.latitude])
-              ),
-              status: spotRequest.status
-            })
-        )
+        .map(spotRequest => {
+          const instance = spotRequest.request_instance
+          return new Feature({
+            geometry: new Point(fromLonLat([instance.longitude, instance.latitude])),
+            status: spotRequest.status
+          })
+        })
     )
   }, [existingSpotRequests, selectedStatuses])
 

@@ -6,8 +6,8 @@ from unittest.mock import ANY, AsyncMock, patch
 import app.main
 import pytest
 from app.routers.smurfi import (
-    SpotRequestor,
     _get_spot_request_subscriber_emails,
+    _spot_request_instance_has_changed,
 )
 from app.smurfi.nats_config import smurfi_spot_update_subject, stream_name, subjects
 from fastapi.testclient import TestClient
@@ -20,6 +20,12 @@ UNSUBSCRIBE = "app.routers.smurfi.unsubscribe_from_spot_request"
 GET_IDS = "app.routers.smurfi.get_subscribed_spot_request_ids"
 GET_FORECASTS = "app.routers.smurfi.get_spot_forecasts_for_request"
 GET_OR_CREATE_INSTANCE = "app.routers.smurfi.get_or_create_spot_request_instance"
+GET_REQUEST = "app.routers.smurfi.get_spot_request_by_id"
+CREATE_INSTANCE = "app.routers.smurfi.create_spot_request_instance"
+UPDATE_REQUEST = "app.routers.smurfi.update_spot_request_details"
+UPDATE_INSTANCE = "app.routers.smurfi.update_spot_request_instance_details"
+SYNC_SUBSCRIBERS = "app.routers.smurfi.sync_spot_subscribers"
+SYNC_GROUPS = "app.routers.smurfi.sync_spot_request_distribution_groups"
 
 
 def _make_subscriber(status: str):
@@ -38,6 +44,35 @@ def _make_spot_request_instance(instance_id: int = 3):
             "valley": None,
             "latitude": 48.5,
             "longitude": -123.5,
+            "created_at": datetime(2026, 5, 21, tzinfo=timezone.utc),
+            "updated_at": datetime(2026, 5, 21, tzinfo=timezone.utc),
+        },
+    )()
+
+
+def _make_spot_request():
+    return type(
+        "SpotRequestBase",
+        (),
+        {
+            "id": 42,
+            "request_reference": "WPS-test",
+            "fire_number": ["V12345"],
+            "fire_centre": 1,
+            "status": "Requested",
+            "requestor_name": "Original Owner",
+            "requestor_idir": "owner_idir",
+            "requestor_email": "owner@example.com",
+            "request_frequency": ["Monday"],
+            "request_type": "Full",
+            "additional_information": "Original notes",
+            "requested_at": datetime(2026, 5, 21, tzinfo=timezone.utc),
+            "start_at": datetime(2026, 5, 22, tzinfo=timezone.utc),
+            "end_at": datetime(2026, 5, 24, tzinfo=timezone.utc),
+            "spot_request_instances": [_make_spot_request_instance()],
+            "spot_forecasts": [],
+            "spot_subscribers": [],
+            "distribution_groups": [],
         },
     )()
 
@@ -60,10 +95,9 @@ def _make_spot_request_input(subscribers: list[SpotSubscriberData]):
 
 
 def test_spot_request_subscriber_emails_include_requestor_once():
-    requestor = SpotRequestor(name="Test User", idir="test_username", email="test@email.com")
-
     assert _get_spot_request_subscriber_emails(
-        _make_spot_request_input([SpotSubscriberData(email="owner@example.com")]), requestor
+        _make_spot_request_input([SpotSubscriberData(email="owner@example.com")]),
+        ["test@email.com"],
     ) == [
         "owner@example.com",
         "test@email.com",
@@ -76,10 +110,103 @@ def test_spot_request_subscriber_emails_include_requestor_once():
         ]
     )
 
-    assert _get_spot_request_subscriber_emails(spot_request_input, requestor) == [
+    assert _get_spot_request_subscriber_emails(spot_request_input, ["test@email.com"]) == [
         "owner@example.com",
         "TEST@EMAIL.COM",
     ]
+
+
+def test_spot_request_instance_has_changed_detects_geographic_updates():
+    existing = _make_spot_request_instance()
+
+    assert not _spot_request_instance_has_changed(
+        existing,
+        SpotRequestInstanceInput(
+            geographic_description="Clearwater Valley",
+            aspect="North",
+            elevation=1000,
+            valley=None,
+            latitude=48.5,
+            longitude=-123.5,
+        ),
+    )
+
+    assert not _spot_request_instance_has_changed(
+        existing,
+        SpotRequestInstanceInput(
+            geographic_description="Clearwater Valley",
+            aspect="North",
+            elevation=1000,
+            valley=None,
+            latitude=48.5001,
+            longitude=-123.5001,
+        ),
+    )
+
+    assert _spot_request_instance_has_changed(
+        existing,
+        SpotRequestInstanceInput(
+            geographic_description="Clearwater Valley",
+            aspect="North",
+            elevation=1000,
+            valley=None,
+            latitude=48.5003,
+            longitude=-123.5,
+        ),
+    )
+
+    assert _spot_request_instance_has_changed(
+        existing,
+        SpotRequestInstanceInput(
+            geographic_description="New location description",
+            aspect="North",
+            elevation=1000,
+            valley=None,
+            latitude=48.5,
+            longitude=-123.5,
+        ),
+    )
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_update_spot_request_updates_existing_request_instance():
+    """PATCH spot request updates the request location instead of creating a new instance."""
+    client = TestClient(app.main.app)
+    spot_request = _make_spot_request()
+    payload = {
+        "fire_number": ["V12345"],
+        "fire_centre": 1,
+        "request_frequency": ["Monday"],
+        "request_type": "Full",
+        "additional_information": "Updated notes",
+        "request_instance": {
+            "geographic_description": "Updated location",
+            "aspect": "North",
+            "elevation": 1000,
+            "valley": None,
+            "latitude": 48.5003,
+            "longitude": -123.5,
+        },
+        "start_at": "2026-05-22T00:00:00Z",
+        "end_at": "2026-05-24T23:59:00Z",
+        "subscribers": [],
+        "distribution_group_ids": [],
+    }
+
+    with (
+        patch(DB_WRITE),
+        patch(GET_REQUEST, new_callable=AsyncMock, side_effect=[spot_request, spot_request]),
+        patch(UPDATE_REQUEST, new_callable=AsyncMock, return_value=spot_request),
+        patch(UPDATE_INSTANCE, new_callable=AsyncMock) as mock_update_instance,
+        patch(CREATE_INSTANCE, new_callable=AsyncMock) as mock_create_instance,
+        patch(SYNC_SUBSCRIBERS, new_callable=AsyncMock),
+        patch(SYNC_GROUPS, new_callable=AsyncMock),
+    ):
+        response = client.patch("/api/smurfi/spot_requests/42", json=payload)
+
+    assert response.status_code == 200
+    mock_update_instance.assert_awaited_once()
+    mock_create_instance.assert_not_awaited()
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")

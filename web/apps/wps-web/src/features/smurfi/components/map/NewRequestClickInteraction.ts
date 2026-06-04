@@ -18,7 +18,7 @@ export interface NewRequestClickData {
 const PENDING_MARKER_STYLE = new Style({
   image: new CircleStyle({
     radius: 8,
-    fill: new Fill({ color: '#d32f2f' }),
+    fill: new Fill({ color: '#fe6900' }),
     stroke: new Stroke({ color: '#ffffff', width: 2 })
   })
 })

@@ -1,4 +1,5 @@
-import { SpotRequestStatus } from '@wps/api/SMURFIAPI'
+import { CurrentFireAttributes } from '@/features/currentFires/map/currentFireLayers'
+import { SpotForecastOutput, SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 
 export const SpotRequestStatusColorMap = {
   [SpotRequestStatus.REQUESTED]: { bgColor: '#F7F9FC', color: '#053662', borderColor: '#053662' },
@@ -24,4 +25,73 @@ export interface SpotForecastHistoryItem {
   forecaster: string
   synopsis: string
   status: SpotRequestStatus
+}
+
+export interface SelectedCoordinates {
+  latitude: number
+  longitude: number
+}
+
+export interface SpotFeature {
+  lon: number
+  lat: number
+  status: SpotRequestStatus
+  id: string
+  spotId: number
+  fireNumber: string
+  spotRequest: SpotRequestOutput
+}
+
+export interface ForecastFeature {
+  lon: number
+  lat: number
+  status: SpotRequestStatus
+  id: string
+  spotId: number
+  fireNumber: string
+  spotRequest: SpotRequestOutput
+  forecastCount: number
+  forecasts: SpotForecastOutput[]
+  latestForecast: SpotForecastOutput
+}
+
+export type SpotPopupData = {
+  type: 'spot'
+  open: boolean
+  position: number[]
+  lat: number
+  lng: number
+  status: SpotRequestStatus
+  fireNumber: string
+  spotId: number
+  spotRequest: SpotRequestOutput
+}
+
+export type ForecastPopupData = {
+  type: 'forecast'
+  open: boolean
+  position: number[]
+  lat: number
+  lng: number
+  fireNumber: string
+  spotId: number
+  spotRequest: SpotRequestOutput
+  forecastCount: number
+  forecasts: SpotForecastOutput[]
+  latestForecast: SpotForecastOutput
+}
+
+export type FirePopupData = {
+  type: 'fire'
+  open: boolean
+  position: number[]
+  attributes: CurrentFireAttributes
+}
+
+export type MapClickPopupData = {
+  type: 'map'
+  open: boolean
+  position: number[]
+  lat: number
+  lon: number
 }

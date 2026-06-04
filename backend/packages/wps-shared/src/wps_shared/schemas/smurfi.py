@@ -55,6 +55,7 @@ class SpotRequestInstanceInput(BaseModel):
 
 class SpotRequestInstanceData(SpotRequestInstanceInput):
     id: int
+    created_at: datetime
 
 
 class SpotRequestInput(BaseModel):
@@ -74,12 +75,38 @@ class SpotRequestInput(BaseModel):
     distribution_group_ids: list[int] = Field(default_factory=list)
 
 
-class SpotRequestData(SpotRequestInput):
+class SpotRequestEditInput(BaseModel):
+    # edit payloads intentionally omit create-only fields like requestor, requested_at, and status
+    fire_number: list[str] | None = None
+    fire_centre: int
+    request_frequency: list[str] | None = None
+    request_type: str = "Full"
+    additional_information: str | None = None
+    request_instance: SpotRequestInstanceInput
+    start_at: datetime
+    end_at: datetime
+    subscribers: list[SpotSubscriberData] = Field(default_factory=list)
+    distribution_group_ids: list[int] = Field(default_factory=list)
+
+
+class SpotRequestData(BaseModel):
+    id: int
+    request_reference: str
+    fire_number: list[str] | None = None
+    fire_centre: int
+    status: str
     requestor_name: str
     requestor_idir: str
     requestor_email: str
-    initial_instance: SpotRequestInstanceData
-    current_instance: SpotRequestInstanceData
+    request_frequency: list[str] | None = None
+    request_type: str
+    additional_information: str | None = None
+    request_instance: SpotRequestInstanceData
+    requested_at: datetime
+    start_at: datetime
+    end_at: datetime
+    subscribers: list[SpotSubscriberData] = Field(default_factory=list)
+    distribution_group_ids: list[int] = Field(default_factory=list)
     latest_forecast: SpotLatestForecastData | None = None
     distribution_groups: list[DistributionGroupOutput] = []
 
