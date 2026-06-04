@@ -2,13 +2,13 @@ import { AppDispatch } from '@/app/store'
 import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
-import { updateSpotRequestStatus } from '@/features/smurfi/slices/smurfiSlice'
+import { selectSmurfi, updateSpotRequestStatus } from '@/features/smurfi/slices/smurfiSlice'
 import { canChangeSpotStatus, getAllowedSpotStatusOptions } from '@/features/smurfi/utils/spotStatusUtils'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import { Box, Button, Menu, MenuItem, Typography } from '@mui/material'
 import { SpotRequestOutput, SpotRequestStatus } from '@wps/api/SMURFIAPI'
 import { MouseEvent, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 interface SpotStatusControlProps {
   spotRequest: SpotRequestOutput
@@ -54,11 +54,12 @@ const getStatusSx = (status: SpotRequestStatus, fullWidth: boolean) => {
 
 const SpotStatusControl = ({ spotRequest, fullWidth = false, onStatusChanged }: SpotStatusControlProps) => {
   const dispatch = useDispatch<AppDispatch>()
+  const { spotRequestStatusUpdatingById } = useSelector(selectSmurfi)
   const { isOwner, isForecaster } = useSpotPermissions(spotRequest)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
-  const [isUpdating, setIsUpdating] = useState(false)
   const allowedStatuses = getAllowedSpotStatusOptions({ spotRequest, isOwner, isForecaster })
   const isEditable = canChangeSpotStatus({ spotRequest, isOwner, isForecaster })
+  const isUpdating = Boolean(spotRequestStatusUpdatingById[spotRequest.id])
   const open = Boolean(anchorEl)
 
   const handleOpen = (event: MouseEvent<HTMLButtonElement>) => {
@@ -76,9 +77,7 @@ const SpotStatusControl = ({ spotRequest, fullWidth = false, onStatusChanged }: 
       return
     }
 
-    setIsUpdating(true)
     const result = await dispatch(updateSpotRequestStatus({ spotRequestId: spotRequest.id, status }))
-    setIsUpdating(false)
 
     if (!result.spotRequest) {
       return
