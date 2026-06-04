@@ -1,9 +1,9 @@
 import React from 'react'
 import { Box, Button, Typography } from '@mui/material'
-import { SpotPopupData, SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
-import { statusToPath } from '@/features/smurfi/components/map/SpotStatusMarkers'
+import { SpotPopupData } from '@/features/smurfi/interfaces'
 import SpotSubscriptionButton from '@/features/smurfi/components/SpotSubscriptionButton'
 import SpotStatusControl from '@/features/smurfi/components/SpotStatusControl'
+import { SpotRequestOutput } from '@wps/api/SMURFIAPI'
 
 interface SpotPopupProps {
   popupData: SpotPopupData
@@ -22,8 +22,7 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
   onSubmitForecast,
   onStatusChanged
 }) => {
-  const { lat, lng, status, fireNumber, spotId, spotRequest } = popupData
-  const statusColors = SpotRequestStatusColorMap[status]
+  const { lat, lng, fireNumber, spotId, spotRequest } = popupData
 
   const handleRequestClick = (event: React.MouseEvent) => {
     event.stopPropagation()
