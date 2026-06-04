@@ -115,6 +115,10 @@ class SpotRequestResponse(BaseModel):
     spot_request: SpotRequestData
 
 
+class SpotRequestStatusUpdate(BaseModel):
+    status: str
+
+
 class SpotRequestListResponse(BaseModel):
     spot_requests: list[SpotRequestData]
 

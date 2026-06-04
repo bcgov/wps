@@ -7,13 +7,29 @@ import {
   getDistributionGroups,
   getSpotForecasts,
   getSpotRequests,
+  patchSpotRequestStatus,
   postSpotForecast,
   postSpotRequest,
   SpotForecastType,
   SpotForecastOutput,
-  SpotRequestOutput
+  SpotRequestOutput,
+  SpotRequestStatus
 } from '@wps/api/SMURFIAPI'
 import { AppThunk } from 'app/store'
+import { getErrorMessage } from '@wps/utils/getError'
+
+interface SpotRequestStatusUpdateResult {
+  spotRequest?: SpotRequestOutput
+  error?: string
+}
+
+export type SmurfiErrorKey =
+  | 'spotForecastSubmitError'
+  | 'spotForecastsError'
+  | 'spotRequestSubmitError'
+  | 'spotRequestStatusUpdateError'
+  | 'spotRequestsError'
+  | 'distributionGroupsError'
 
 export interface SmurfiState {
   loading: boolean
@@ -26,6 +42,8 @@ export interface SmurfiState {
   spotForecastsLoading: boolean
   spotRequestSubmitting: boolean
   spotRequestSubmitError: string | null
+  spotRequestStatusUpdateError: string | null
+  spotRequestStatusUpdatingById: Record<number, boolean>
   spotRequestsError: string | null
   spotRequestsLoading: boolean
   spotRequests: SpotRequestOutput[]
@@ -47,6 +65,8 @@ const initialState: SmurfiState = {
   spotRequestSubmitError: null,
   spotRequestsError: null,
   spotRequestsLoading: false,
+  spotRequestStatusUpdateError: null,
+  spotRequestStatusUpdatingById: {},
   spotRequests: [],
   distributionGroups: [],
   distributionGroupsLoading: false,
@@ -141,6 +161,28 @@ const smurfiSlice = createSlice({
       state.distributionGroupsLoading = false
       state.distributionGroupsError = null
       state.distributionGroups = action.payload
+    },
+    updateSpotRequestStatusStart(state: SmurfiState, action: PayloadAction<number>) {
+      state.spotRequestStatusUpdateError = null
+      state.spotRequestStatusUpdatingById[action.payload] = true
+    },
+    updateSpotRequestStatusFailed(state: SmurfiState, action: PayloadAction<{ spotRequestId: number; error: string }>) {
+      state.spotRequestStatusUpdateError = action.payload.error
+      delete state.spotRequestStatusUpdatingById[action.payload.spotRequestId]
+    },
+    clearSmurfiError(state: SmurfiState, action: PayloadAction<SmurfiErrorKey>) {
+      state[action.payload] = null
+    },
+    updateSpotRequestStatusSuccess(state: SmurfiState, action: PayloadAction<{ spotRequest: SpotRequestOutput }>) {
+      state.spotRequestStatusUpdateError = null
+      delete state.spotRequestStatusUpdatingById[action.payload.spotRequest.id]
+      const index = state.spotRequests.findIndex(spotRequest => spotRequest.id === action.payload.spotRequest.id)
+      if (index === -1) {
+        state.spotRequests = [action.payload.spotRequest, ...state.spotRequests]
+        return
+      }
+
+      state.spotRequests[index] = action.payload.spotRequest
     }
   }
 })
@@ -162,7 +204,11 @@ export const {
   clearSpotRequestSubmitState,
   getDistributionGroupsStart,
   getDistributionGroupsFailed,
-  getDistributionGroupsSuccess
+  getDistributionGroupsSuccess,
+  updateSpotRequestStatusStart,
+  updateSpotRequestStatusFailed,
+  clearSmurfiError,
+  updateSpotRequestStatusSuccess
 } = smurfiSlice.actions
 
 export default smurfiSlice.reducer
@@ -190,7 +236,7 @@ export const submitSpotForecast =
       dispatch(fetchSpotRequests())
       return response.spot_forecast
     } catch (err) {
-      dispatch(submitSpotForecastFailed((err as Error).toString()))
+      dispatch(submitSpotForecastFailed(getErrorMessage(err)))
       return undefined
     }
   }
@@ -203,7 +249,7 @@ export const fetchSpotForecasts =
       const response = await getSpotForecasts(spotRequestId)
       dispatch(getSpotForecastsSuccess({ spotRequestId, spotForecasts: response.spot_forecasts }))
     } catch (err) {
-      dispatch(getSpotForecastsFailed((err as Error).toString()))
+      dispatch(getSpotForecastsFailed(getErrorMessage(err)))
       return []
     }
   }
@@ -218,8 +264,23 @@ export const submitSpotRequest =
       dispatch(submitSpotRequestSuccess({ spotRequest: response.spot_request }))
       return response.spot_request
     } catch (err) {
-      dispatch(submitSpotRequestFailed((err as Error).toString()))
+      dispatch(submitSpotRequestFailed(getErrorMessage(err)))
       return undefined
+    }
+  }
+
+export const updateSpotRequestStatus =
+  (payload: { spotRequestId: number; status: SpotRequestStatus }): AppThunk<Promise<SpotRequestStatusUpdateResult>> =>
+  async dispatch => {
+    try {
+      dispatch(updateSpotRequestStatusStart(payload.spotRequestId))
+      const response = await patchSpotRequestStatus(payload.spotRequestId, payload.status)
+      dispatch(updateSpotRequestStatusSuccess({ spotRequest: response.spot_request }))
+      return { spotRequest: response.spot_request }
+    } catch (err) {
+      const error = getErrorMessage(err)
+      dispatch(updateSpotRequestStatusFailed({ spotRequestId: payload.spotRequestId, error }))
+      return { error }
     }
   }
 
@@ -230,7 +291,7 @@ export const fetchSpotRequests = (): AppThunk => async dispatch => {
     const response = await getSpotRequests()
     dispatch(getSpotRequestsSuccess({ spotRequests: response.spot_requests }))
   } catch (err) {
-    dispatch(getSpotRequestsFailed((err as Error).toString()))
+    dispatch(getSpotRequestsFailed(getErrorMessage(err)))
   }
 }
 
@@ -240,7 +301,7 @@ export const fetchDistributionGroups = (): AppThunk => async dispatch => {
     const groups = await getDistributionGroups()
     dispatch(getDistributionGroupsSuccess(groups))
   } catch (err) {
-    dispatch(getDistributionGroupsFailed((err as Error).toString()))
+    dispatch(getDistributionGroupsFailed(getErrorMessage(err)))
   }
 }
 

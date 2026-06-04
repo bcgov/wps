@@ -147,6 +147,20 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
     navigate(getSmurfiNewForecastRoute(spotRequestId), { state: { sourceForecastId } })
   }
 
+  const handlePopupStatusChanged = (updatedSpotRequest: SpotRequestOutput) => {
+    setPopupData(current => {
+      if (current?.type !== 'spot' || current.spotId !== updatedSpotRequest.id) {
+        return current
+      }
+
+      return {
+        ...current,
+        status: updatedSpotRequest.status,
+        spotRequest: updatedSpotRequest
+      }
+    })
+  }
+
   const handleStatusFilterChange = (status: SpotRequestStatus, checked: boolean) => {
     setSelectedStatuses(current => {
       if (!checked) {
@@ -571,6 +585,7 @@ const SMURFIMap = ({ selectedCoordinates, spotRequests: propSpotRequests }: SMUR
                 onOpenRequest={handleOpenRequest}
                 onOpenForecast={handleOpenForecasts}
                 onSubmitForecast={handleSubmitForecast}
+                onStatusChanged={handlePopupStatusChanged}
               />
             )}
             {popupData?.type === 'forecast' && (

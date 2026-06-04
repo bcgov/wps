@@ -3,8 +3,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from wps_shared.auth import authentication_required
+from fastapi import APIRouter, Depends, HTTPException, status
+from wps_shared.auth import (
+    auth_with_forecaster_role_or_spot_owner_required,
+    authentication_required,
+)
 from wps_shared.db.crud.smurfi import (
     COORDINATE_MATCH_TOLERANCE,
     create_distribution_group,
@@ -28,6 +31,7 @@ from wps_shared.db.crud.smurfi import (
     update_distribution_group,
     update_spot_request_details,
     update_spot_request_instance_details,
+    update_spot_request_status,
     update_spot_subscriber_status,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -37,6 +41,7 @@ from wps_shared.db.models.smurfi import (
     SpotForecast,
     SpotRequestBase,
     SpotRequestInstance,
+    SpotRequestStatusEnum,
     SpotSubscriberStatusEnum,
     SpotTabularWeather,
 )
@@ -61,6 +66,7 @@ from wps_shared.schemas.smurfi import (
     SpotRequestInstanceInput,
     SpotRequestListResponse,
     SpotRequestResponse,
+    SpotRequestStatusUpdate,
     SpotSubscriberData,
     SpotTabularWeatherData,
     SpotUpdatePayload,
@@ -68,7 +74,6 @@ from wps_shared.schemas.smurfi import (
     SubscriptionsResponse,
     UpdateSubscriberStatusData,
 )
-from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
 from app.nats_publish import publish
@@ -512,6 +517,40 @@ def _spot_forecast_to_schema(spot_forecast: SpotForecast) -> SpotForecastData:
     )
 
 
+@router.patch("/spot_requests/{spot_request_id}/status", response_model=SpotRequestResponse)
+async def update_spot_request_status_endpoint(
+    spot_request_id: int,
+    data: SpotRequestStatusUpdate,
+    _: Annotated[dict, Depends(auth_with_forecaster_role_or_spot_owner_required)],
+):
+    try:
+        next_status = SpotRequestStatusEnum(data.status)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid status: {data.status}"
+        )
+
+    # once work has started, requests should not move back to the initial Requested state
+    if next_status == SpotRequestStatusEnum.REQUESTED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Spot request status cannot be changed back to Requested",
+        )
+
+    async with get_async_write_session_scope() as session:
+        spot_request = await get_spot_request_by_id(session, spot_request_id)
+        if spot_request is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SpotRequestBase {spot_request_id} not found",
+            )
+
+        updated_spot_request = await update_spot_request_status(session, spot_request, next_status)
+        spot_request_data = _spot_request_to_schema(updated_spot_request)
+
+    return SpotRequestResponse(spot_request=spot_request_data)
+
+
 @router.get(
     "/spot_requests/{spot_request_id}/spot_forecasts",
     response_model=SpotForecastListResponse,
@@ -639,31 +678,6 @@ async def get_spot_requests():
     return SpotRequestListResponse(
         spot_requests=[_spot_request_to_schema(sr) for sr in spot_requests]
     )
-
-
-@router.get("/pdf/{spot_id}")
-async def get_spot_pdf(spot_id: int):
-    """Get the PDF for a spot from S3"""
-    # Generate the expected S3 key for the PDF
-    pdf_key = f"smurfi/{spot_id}.pdf"
-
-    try:
-        # Get the PDF from S3 using stream_object
-        generator, response = await S3Client.stream_object(pdf_key)
-
-        # Read all chunks into bytes
-        pdf_bytes = b""
-        async for chunk in generator:
-            pdf_bytes += chunk
-
-        return Response(
-            content=pdf_bytes,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"inline; filename=spot_forecast_{spot_id}.pdf"},
-        )
-    except Exception as e:
-        logger.error(f"Failed to get PDF for spot {spot_id}: {e}")
-        return Response(status_code=404, content="PDF not found")
 
 
 @router.post("/spots/{spot_request_id}/subscribe", response_model=SubscribeResponse)

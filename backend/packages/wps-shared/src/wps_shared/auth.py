@@ -129,6 +129,38 @@ async def check_token_for_role(role: str, token):
     return token
 
 
+async def auth_with_forecaster_role_or_spot_owner_required(
+    spot_request_id: int, token=Depends(authentication_required)
+):
+    """Return token if the user is a forecaster or owns the requested spot."""
+    if "morecast2_write_forecast" in (token.get("client_roles", []) or []):
+        return token
+
+    from wps_shared.db.crud.smurfi import get_spot_request_by_id
+    from wps_shared.db.database import get_async_read_session_scope
+
+    async with get_async_read_session_scope() as session:
+        spot_request = await get_spot_request_by_id(session, spot_request_id)
+
+    if spot_request is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"SpotRequestBase {spot_request_id} not found",
+        )
+
+    idir = token.get("idir_username", None)
+    is_owner = bool(idir and spot_request.requestor_idir) and (
+        idir.lower() == spot_request.requestor_idir.lower()
+    )
+    if not is_owner:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this spot request status",
+        )
+
+    return token
+
+
 def create_role_auth_dependency(role: str):
     """Factory function to create role-based authentication dependencies."""
 

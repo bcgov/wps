@@ -150,6 +150,14 @@ async def start_requested_spot_request(session: AsyncSession, spot_request_base_
     await session.flush()
 
 
+async def update_spot_request_status(
+    session: AsyncSession, spot_request: SpotRequestBase, status: SpotRequestStatusEnum
+) -> SpotRequestBase:
+    spot_request.status = status.value
+    await session.flush()
+    return spot_request
+
+
 async def update_spot_request_details(session: AsyncSession, updated: SpotRequestBase):
     result = await session.execute(select(SpotRequestBase).where(SpotRequestBase.id == updated.id))
     existing = result.scalar_one_or_none()

@@ -11,10 +11,10 @@ import SpotRequests from '@/features/smurfi/components/requests/SpotRequests'
 import PrintableSpotForecast from '@/features/smurfi/pages/PrintableSpotForecast'
 import EditSpotForecastPage from '@/features/smurfi/pages/EditSpotForecastPage'
 import EditSpotRequestPage from '@/features/smurfi/pages/EditSpotRequestPage'
-import { fetchSpotRequests } from '@/features/smurfi/slices/smurfiSlice'
+import { clearSmurfiError, fetchSpotRequests, selectSmurfi, SmurfiErrorKey } from '@/features/smurfi/slices/smurfiSlice'
 import { fetchSubscriptions } from '@/features/smurfi/slices/subscriptionsSlice'
 import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
-import { Box, Tab, Tabs } from '@mui/material'
+import { Alert, Box, Snackbar, Tab, Tabs } from '@mui/material'
 import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon'
 import { LocalizationProvider } from '@mui/x-date-pickers-pro/LocalizationProvider'
 import { getStations, StationSource } from '@wps/api/stationAPI'
@@ -22,7 +22,7 @@ import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { SMURFI_DASHBOARD_ROUTE, SMURFI_ADMIN_ROUTE, SMURFI_MAP_ROUTE } from '@wps/utils/constants'
 import React, { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
 const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_ADMIN_ROUTE]
@@ -33,6 +33,14 @@ const RouteContent = ({ children, fullBleed = false }: { children: React.ReactNo
 
 const SMURFIPage = () => {
   const dispatch: AppDispatch = useDispatch()
+  const {
+    spotForecastSubmitError,
+    spotForecastsError,
+    spotRequestSubmitError,
+    spotRequestStatusUpdateError,
+    spotRequestsError,
+    distributionGroupsError
+  } = useSelector(selectSmurfi)
   useEffect(() => {
     dispatch(fetchSpotRequests())
     dispatch(fetchSubscriptions())
@@ -44,9 +52,25 @@ const SMURFIPage = () => {
 
   const activeTab = TAB_ROUTES.findIndex(route => location.pathname.startsWith(route))
   const currentTab = activeTab === -1 ? 0 : activeTab
+  const smurfiError = [
+    { key: 'spotRequestStatusUpdateError', message: spotRequestStatusUpdateError },
+    { key: 'spotRequestSubmitError', message: spotRequestSubmitError },
+    { key: 'spotForecastSubmitError', message: spotForecastSubmitError },
+    { key: 'spotRequestsError', message: spotRequestsError },
+    { key: 'spotForecastsError', message: spotForecastsError },
+    { key: 'distributionGroupsError', message: distributionGroupsError }
+  ].find((error): error is { key: SmurfiErrorKey; message: string } => Boolean(error.message))
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     navigate(TAB_ROUTES[newValue])
+  }
+
+  const handleSmurfiErrorClose = (_?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway' || !smurfiError) {
+      return
+    }
+
+    dispatch(clearSmurfiError(smurfiError.key))
   }
 
   return (
@@ -101,6 +125,16 @@ const SMURFIPage = () => {
             <Route path="*" element={<Navigate to={SMURFI_DASHBOARD_ROUTE} replace />} />
           </Routes>
         </Box>
+        <Snackbar
+          open={Boolean(smurfiError)}
+          autoHideDuration={6000}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          onClose={handleSmurfiErrorClose}
+        >
+          <Alert severity="error" variant="filled" onClose={handleSmurfiErrorClose}>
+            {smurfiError?.message}
+          </Alert>
+        </Snackbar>
       </Box>
     </LocalizationProvider>
   )

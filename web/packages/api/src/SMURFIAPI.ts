@@ -353,8 +353,20 @@ export const postSpotRequest = async (
   }
 
   const spotRequestInput = marshalFormDataToSpotRequestInput(formData)
+  if (spotRequestId !== undefined) {
+    spotRequestInput.id = spotRequestId
+  }
   const url = '/smurfi/spot_request'
   const { data } = await axios.post(url, spotRequestInput)
+  return data
+}
+
+export const patchSpotRequestStatus = async (
+  spotRequestId: number,
+  status: SpotRequestStatus
+): Promise<SpotRequestResponse> => {
+  const url = `/smurfi/spot_requests/${spotRequestId}/status`
+  const { data } = await axios.patch(url, { status })
   return data
 }
 
