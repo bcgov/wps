@@ -48,13 +48,24 @@ def parse_nats_message(msg: Msg):
 
 async def process_message(msg: Msg):
     """Process a single JetStream message and only ack after successful processing."""
+
+    async def keepalive():
+        while True:
+            await asyncio.sleep(450)  # 7.5 minutes, half of ack_wait
+            await msg.in_progress()
+            logger.debug("Sent in_progress for message: %s", msg.subject)
+
     try:
         logger.info("Msg received - %s\n", msg)
         run_type, run_datetime, for_date = parse_nats_message(msg)
         logger.info(
             "Awaiting process_sfms_hfi_stats({}, {}, {})\n".format(run_type, run_datetime, for_date)
         )
-        await process_sfms_hfi_stats(run_type, run_datetime, for_date)
+        keepalive_task = asyncio.create_task(keepalive())
+        try:
+            await process_sfms_hfi_stats(run_type, run_datetime, for_date)
+        finally:
+            keepalive_task.cancel()
         await msg.ack()
     except Exception as exc:
         logger.error(
@@ -102,7 +113,7 @@ async def run():
     consumer_config = ConsumerConfig(
         durable_name=hfi_classify_durable_group,
         ack_policy=AckPolicy.EXPLICIT,
-        ack_wait=86400,  # 24 hours
+        ack_wait=900,  # 15 minutes; keepalive pings extend this for long-running jobs
         max_deliver=6,  # initial try + 5 retries
     )
 
