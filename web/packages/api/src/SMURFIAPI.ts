@@ -3,10 +3,6 @@ import { SpotFormData } from './schema/spotForecastSchema'
 import { SpotRequestFormData } from './schema/spotRequestSchema'
 import { DateTime } from 'luxon'
 
-const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const
-
-const degreesToCompass = (degrees: number): string => COMPASS[Math.round((((degrees % 360) + 360) % 360) / 45) % 8]
-
 export enum SpotRequestStatus {
   REQUESTED = 'Requested',
   STARTED = 'Started',

@@ -1,5 +1,6 @@
 import { selectFireCentres } from '@/app/rootReducer'
 import useSpotPermissions from '@/features/smurfi/hooks/useSpotPermissions'
+import ForecasterInitialsChip from '@/features/smurfi/components/ForecasterInitialsChip'
 import SpotStatusControl from '@/features/smurfi/components/SpotStatusControl'
 import { SpotRequestStatusColorMap } from '@/features/smurfi/interfaces'
 import {
@@ -104,6 +105,18 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       valueGetter: (_value, row) => row.latest_forecast?.created_at ?? null,
       sortComparator: compareNullableIsoDates,
       renderCell: params => formatSpotRequestDateTimeWithDay(params.value) ?? '-'
+    },
+    {
+      field: 'latestForecastForecaster',
+      headerName: 'By',
+      width: 70,
+      sortable: false,
+      valueGetter: (_value, row) => row.latest_forecast?.forecaster_name ?? null,
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+          <ForecasterInitialsChip forecasterName={params.value} />
+        </Box>
+      )
     },
     {
       field: 'latestForecastEndAt',

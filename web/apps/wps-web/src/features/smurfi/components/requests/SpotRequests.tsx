@@ -1,4 +1,6 @@
 import { selectFireCentres } from '@/app/rootReducer'
+import SpotForecasterFilter from '@/features/smurfi/components/SpotForecasterFilter'
+import SpotRequestStatsButton from '@/features/smurfi/components/SpotRequestStatsButton'
 import SpotRequestsTable from '@/features/smurfi/components/requests/SpotRequestsTable'
 import { selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
 import CloseIcon from '@mui/icons-material/Close'
@@ -31,6 +33,7 @@ const SpotRequests: React.FC = () => {
   const [dateRange, setDateRange] = useState<[DateTime | null, DateTime | null]>([null, null])
   const [fireCentreSearch, setFireCentreSearch] = useState<number | null>(null)
   const [statusSearch, setStatusSearch] = useState<SpotRequestStatus | ''>('')
+  const [selectedForecaster, setSelectedForecaster] = useState<string | null>(null)
 
   const dateInRange = (endDate: string) => {
     const [start, end] = dateRange
@@ -48,10 +51,12 @@ const SpotRequests: React.FC = () => {
       const matchesFireId = spot.fire_number.some(fn => fn.toLowerCase().includes(searchTerm.toLowerCase()))
       const matchesFireCentre = fireCentreSearch === null || spot.fire_centre === fireCentreSearch
       const matchesStatus = statusSearch === '' || spot.status === statusSearch
+      const matchesForecaster =
+        selectedForecaster === null || spot.latest_forecast?.forecaster_name === selectedForecaster
       const matchesDate = dateInRange(spot.end_at)
-      return matchesFireId && matchesDate && matchesFireCentre && matchesStatus
+      return matchesFireId && matchesDate && matchesFireCentre && matchesStatus && matchesForecaster
     })
-  }, [spotRequests, searchTerm, fireCentreSearch, statusSearch, dateRange])
+  }, [spotRequests, searchTerm, fireCentreSearch, statusSearch, selectedForecaster, dateRange])
 
   return (
     <Box
@@ -69,6 +74,7 @@ const SpotRequests: React.FC = () => {
         <TextField
           label="Search by Fire ID"
           variant="outlined"
+          size="small"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           sx={{ flex: 1 }}
@@ -85,12 +91,21 @@ const SpotRequests: React.FC = () => {
           }}
         />
         <Autocomplete
+          size="small"
           sx={{ flex: 1 }}
           options={fireCentres}
           getOptionLabel={option => option.name}
           value={fireCentres.find(fc => fc.id === fireCentreSearch) ?? null}
           onChange={(_, newValue) => setFireCentreSearch(newValue?.id ?? null)}
-          renderInput={params => <TextField {...params} label="Search by Fire Centre" variant="outlined" />}
+          renderInput={params => (
+            <TextField {...params} label="Search by Fire Centre" variant="outlined" size="small" />
+          )}
+        />
+        <SpotForecasterFilter
+          spotRequests={spotRequests}
+          value={selectedForecaster}
+          onChange={setSelectedForecaster}
+          sx={{ flex: 1 }}
         />
         <LocalizationProvider dateAdapter={AdapterLuxon}>
           <DateRangePicker
@@ -98,10 +113,11 @@ const SpotRequests: React.FC = () => {
             onChange={setDateRange}
             label="Spot End Date Range"
             slots={{ field: SingleInputDateRangeField }}
-            slotProps={{ field: { clearable: true }, textField: { sx: { flex: 1 } } }}
+            slotProps={{ field: { clearable: true }, textField: { size: 'small', sx: { flex: 1 } } }}
           />
         </LocalizationProvider>
         <Autocomplete
+          size="small"
           sx={{ flex: 1 }}
           options={[
             SpotRequestStatus.REQUESTED,
@@ -112,8 +128,11 @@ const SpotRequests: React.FC = () => {
           ]}
           value={statusSearch || null}
           onChange={(event, newValue) => setStatusSearch(newValue || '')}
-          renderInput={params => <TextField {...params} label="Search by Status" variant="outlined" />}
+          renderInput={params => <TextField {...params} label="Search by Status" variant="outlined" size="small" />}
         />
+        <Box sx={{ ml: 'auto' }}>
+          <SpotRequestStatsButton spotRequests={filteredSpotRequests} />
+        </Box>
       </Box>
       {spotRequestsLoading && <CircularProgress aria-label="Loading…" />}
       {spotRequestsError && (
