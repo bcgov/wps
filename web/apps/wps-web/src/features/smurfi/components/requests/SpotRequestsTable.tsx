@@ -129,7 +129,8 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: isForecaster ? 260 : 180,
+      minWidth: isForecaster ? 260 : 180,
+      flex: 1,
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', height: '100%' }}>
@@ -154,6 +155,31 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
       <DataGridPro
         columns={columns}
         rows={rows}
+        sx={{
+          '& .MuiDataGrid-columnHeaders, & .MuiDataGrid-columnHeader': {
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText'
+          },
+          '& .MuiDataGrid-columnHeader:hover': {
+            bgcolor: 'primary.main'
+          },
+          '& .MuiDataGrid-sortIcon, & .MuiDataGrid-iconButtonContainer .MuiIconButton-root': {
+            color: 'primary.contrastText'
+          },
+          '& .MuiDataGrid-iconButtonContainer .MuiIconButton-root, & .MuiDataGrid-iconButtonContainer .MuiBadge-badge':
+            {
+              bgcolor: 'transparent'
+            },
+          '& .MuiDataGrid-columnHeaderTitle, & .MuiDataGrid-iconButtonContainer .MuiBadge-badge': {
+            fontWeight: 700
+          },
+          '& .MuiDataGrid-iconButtonContainer .MuiIconButton-root:hover': {
+            bgcolor: 'rgba(255, 255, 255, 0.12)'
+          },
+          '& .MuiDataGrid-menuIconButton': {
+            color: 'inherit'
+          }
+        }}
         disableColumnFilter
         disableColumnPinning
         disableColumnReorder
@@ -163,7 +189,8 @@ const SpotRequestsTable = ({ rows }: SpotRequestsTableProps) => {
           sorting: {
             sortModel: [
               { field: 'status', sort: 'asc' },
-              { field: 'latestForecastSubmittedAt', sort: 'asc' }
+              { field: 'latestForecastSubmittedAt', sort: 'asc' },
+              { field: 'fire_number', sort: 'asc' }
             ]
           }
         }}
