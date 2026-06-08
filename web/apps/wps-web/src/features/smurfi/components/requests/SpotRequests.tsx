@@ -64,20 +64,49 @@ const SpotRequests: React.FC = () => {
         display: 'flex',
         justifyContent: 'flex-start',
         mb: 2,
-        flexDirection: 'column'
+        flexDirection: 'column',
+        minWidth: 0,
+        width: '100%'
       }}
     >
-      <Button variant="contained" onClick={() => navigate(SMURFI_NEW_REQUEST_ROUTE)} sx={{ maxWidth: '200px' }}>
-        Request a Spot Forecast
-      </Button>
-      <Box sx={{ pb: 2, mt: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: 2,
+          flexWrap: 'wrap',
+          minWidth: 0,
+          width: '100%'
+        }}
+      >
+        <Button
+          variant="contained"
+          onClick={() => navigate(SMURFI_NEW_REQUEST_ROUTE)}
+          sx={{ flexShrink: 0, maxWidth: '100%' }}
+        >
+          Request a Spot Forecast
+        </Button>
+        <Box sx={{ flexShrink: 0 }}>
+          <SpotRequestStatsButton spotRequests={filteredSpotRequests} />
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          pb: 2,
+          mt: 2,
+          display: 'grid',
+          gap: 2,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))',
+          minWidth: 0,
+          width: '100%'
+        }}
+      >
         <TextField
           label="Search by Fire ID"
           variant="outlined"
           size="small"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          sx={{ flex: 1 }}
           slotProps={{
             input: {
               endAdornment: searchTerm && (
@@ -92,7 +121,6 @@ const SpotRequests: React.FC = () => {
         />
         <Autocomplete
           size="small"
-          sx={{ flex: 1 }}
           options={fireCentres}
           getOptionLabel={option => option.name}
           value={fireCentres.find(fc => fc.id === fireCentreSearch) ?? null}
@@ -101,24 +129,18 @@ const SpotRequests: React.FC = () => {
             <TextField {...params} label="Search by Fire Centre" variant="outlined" size="small" />
           )}
         />
-        <SpotForecasterFilter
-          spotRequests={spotRequests}
-          value={selectedForecaster}
-          onChange={setSelectedForecaster}
-          sx={{ flex: 1 }}
-        />
+        <SpotForecasterFilter spotRequests={spotRequests} value={selectedForecaster} onChange={setSelectedForecaster} />
         <LocalizationProvider dateAdapter={AdapterLuxon}>
           <DateRangePicker
             value={dateRange}
             onChange={setDateRange}
             label="Spot End Date Range"
             slots={{ field: SingleInputDateRangeField }}
-            slotProps={{ field: { clearable: true }, textField: { size: 'small', sx: { flex: 1 } } }}
+            slotProps={{ field: { clearable: true }, textField: { size: 'small' } }}
           />
         </LocalizationProvider>
         <Autocomplete
           size="small"
-          sx={{ flex: 1 }}
           options={[
             SpotRequestStatus.REQUESTED,
             SpotRequestStatus.STARTED,
@@ -130,9 +152,6 @@ const SpotRequests: React.FC = () => {
           onChange={(event, newValue) => setStatusSearch(newValue || '')}
           renderInput={params => <TextField {...params} label="Search by Status" variant="outlined" size="small" />}
         />
-        <Box sx={{ ml: 'auto' }}>
-          <SpotRequestStatsButton spotRequests={filteredSpotRequests} />
-        </Box>
       </Box>
       {spotRequestsLoading && <CircularProgress aria-label="Loading…" />}
       {spotRequestsError && (
@@ -140,7 +159,11 @@ const SpotRequests: React.FC = () => {
           An error occurred while retrieving the list of Spot Requests. Please try again.
         </Typography>
       )}
-      {!spotRequestsLoading && !spotRequestsError && <SpotRequestsTable rows={filteredSpotRequests} />}
+      {!spotRequestsLoading && !spotRequestsError && (
+        <Box sx={{ minWidth: 0, overflowX: 'auto', width: '100%' }}>
+          <SpotRequestsTable rows={filteredSpotRequests} />
+        </Box>
+      )}
     </Box>
   )
 }

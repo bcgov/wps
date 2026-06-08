@@ -28,7 +28,19 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 const TAB_ROUTES = [SMURFI_DASHBOARD_ROUTE, SMURFI_MAP_ROUTE, SMURFI_ADMIN_ROUTE]
 
 const RouteContent = ({ children, fullBleed = false }: { children: React.ReactNode; fullBleed?: boolean }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, p: fullBleed ? 0 : 3 }}>{children}</Box>
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      flex: 1,
+      minHeight: 0,
+      minWidth: 0,
+      width: '100%',
+      p: fullBleed ? 0 : 3
+    }}
+  >
+    {children}
+  </Box>
 )
 
 const SMURFIPage = () => {
