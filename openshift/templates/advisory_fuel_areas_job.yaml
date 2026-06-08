@@ -16,6 +16,9 @@ parameters:
     value: wps-global
   - name: CRUNCHYDB_USER
     value: wps-crunchydb-16-pr-4249-pguser-wps-crunchydb-16-pr-4249
+  - name: PROJECT_NAMESPACE
+    description: OpenShift project namespace
+    required: true
 objects:
   - kind: Job
     apiVersion: batch/v1
@@ -69,26 +72,23 @@ objects:
                       key: pgbouncer-port
                 - name: SUFFIX
                   value: ${SUFFIX}
-                - name: ROCKET_URL_POST_MESSAGE
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: rocket.chat-url-post-message
-                - name: ROCKET_CHANNEL
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: rocket.chat-channel
-                - name: ROCKET_USER_ID
+                - name: CHATOPS_URL
                   valueFrom:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
-                      key: rocket.chat-user-id-secret
-                - name: ROCKET_AUTH_TOKEN
+                      key: chatops-url
+                - name: CHATOPS_AUTH_TOKEN
                   valueFrom:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
-                      key: rocket.chat-auth-token-secret
+                      key: chatops-auth-token
+                - name: OPENSHIFT_CONSOLE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.openshift-console-url
+                - name: PROJECT_NAMESPACE
+                  value: ${PROJECT_NAMESPACE}
                 - name: OBJECT_STORE_SERVER
                   valueFrom:
                     secretKeyRef:

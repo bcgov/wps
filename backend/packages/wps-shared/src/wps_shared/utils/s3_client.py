@@ -60,7 +60,7 @@ class S3Client:
             raw_key = key.removeprefix(f"/vsis3/{self.bucket}/")
             key_exists = await self.object_exists(raw_key)
             if not key_exists:
-                logger.error("Required S3 object does not exist: %s", raw_key)
+                logger.warning("Required S3 object does not exist: %s", raw_key)
                 return False
         return True
 
@@ -210,7 +210,9 @@ class S3Client:
         return temp_geotiff
 
     @staticmethod
-    async def _stream(s3_client: "S3Client", key: str, byte_range: str = None, chunk_size: int = 65536):
+    async def _stream(
+        s3_client: "S3Client", key: str, byte_range: str = None, chunk_size: int = 65536
+    ):
         """Internal streaming implementation. Manages s3_client lifecycle."""
         await s3_client.__aenter__()
 
@@ -268,5 +270,3 @@ class S3Client:
             bucket=config.get("WX_OBJECT_STORE_BUCKET"),
         )
         return await S3Client._stream(client, key, byte_range, chunk_size)
-
-    

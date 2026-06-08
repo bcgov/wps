@@ -15,10 +15,27 @@ runs:
       env:
         VITE_MUI_LICENSE_KEY: ${{ inputs.mui-license-key }}
       run: |
-        node -e "
-          const { verifyLicense, generateReleaseInfo } = require('./node_modules/@mui/x-license-pro/node/verifyLicense/verifyLicense.js');
-          const result = verifyLicense({ releaseInfo: generateReleaseInfo(), licenseKey: process.env.VITE_MUI_LICENSE_KEY, acceptedScopes: ['pro', 'premium'] });
-          if (result.meta?.expiryTimestamp) console.log('MUI license expiry:', new Date(result.meta.expiryTimestamp).toISOString().split('T')[0]);
+        node - <<'NODE'
+          const { dirname, join } = require('path');
+          const { readFileSync } = require('fs');
+          const { verifyLicense } = require('@mui/x-license/internals');
+          const { version } = require('@mui/x-data-grid-pro/package.json');
+          const releaseDate = readFileSync(join(dirname(require.resolve('@mui/x-data-grid-pro/DataGridPro')), 'DataGridPro.js'), 'utf8')
+            .match(/releaseDate:\s*"([^"]+)"/)?.[1];
+
+          if (!releaseDate) {
+            console.error('Unable to find MUI X Data Grid Pro release date');
+            process.exit(1);
+          }
+          
+          const result = verifyLicense({
+            licenseKey: process.env.VITE_MUI_LICENSE_KEY,
+            packageInfo: {
+              name: 'x-data-grid-pro',
+              version,
+              releaseDate,
+            },
+          });
           console.log('MUI license status:', result.status);
           if (result.status !== 'Valid') { console.error('MUI license check failed'); process.exit(1); }
-        "
+        NODE

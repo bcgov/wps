@@ -4442,7 +4442,7 @@ __metadata:
     start-server-and-test: "npm:^3.0.0"
     ts-sinon: "npm:^2.0.2"
     vite: "npm:^7.0.0"
-    vite-plugin-istanbul: "npm:^8.0.0"
+    vite-plugin-istanbul: "npm:^9.0.0"
     vite-plugin-svgr: "npm:^5.0.0"
     webpack: "npm:^5.105.4"
     whatwg-fetch: "npm:^3.6.20"
@@ -10232,9 +10232,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-plugin-istanbul@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "vite-plugin-istanbul@npm:8.0.0"
+"vite-plugin-istanbul@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "vite-plugin-istanbul@npm:9.0.0"
   dependencies:
     "@babel/generator": "npm:^7.29.1"
     "@istanbuljs/load-nyc-config": "npm:^1.1.0"
@@ -10245,8 +10245,8 @@ __metadata:
     source-map: "npm:^0.7.6"
     test-exclude: "npm:^8.0.0"
   peerDependencies:
-    vite: ">=4"
-  checksum: 10c0/6ffb43bdee0046e07d781b8593d08dec94daedb5067474921ca129afc24129fbcaf3408ad580dd9ac2dfa3b3d51e4ae1619c2870fb725bf987d827f39619fffc
+    vite: ">=7"
+  checksum: 10c0/ac5faf78c93fdeffba7aa0d4c99178f87cb65122ca2c4b3a5ac3e9ab047d24bacb2fd704370455cf13fe221b4941359d85f83c4b376bc2ffd530a0f6d6e3d65d
   languageName: node
   linkType: hard
 

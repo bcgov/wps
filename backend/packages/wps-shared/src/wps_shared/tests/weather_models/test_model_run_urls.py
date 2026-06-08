@@ -46,7 +46,9 @@ class TestGetRegionalModelRunDownloadUrls:
 
     def test_custom_grib_layers_and_limit(self):
         custom_layers = (RDPS_VARIABLE_NAMES["temp"],)
-        urls = list(get_regional_model_run_download_urls(NOW, 0, grib_layers=custom_layers, limit=3))
+        urls = list(
+            get_regional_model_run_download_urls(NOW, 0, grib_layers=custom_layers, limit=3)
+        )
         assert len(urls) == 3
         assert all(RDPS_VARIABLE_NAMES["temp"] in u for u in urls)
 
@@ -64,17 +66,16 @@ class TestGetGlobalModelRunDownloadUrls:
     def test_url_format(self):
         date = get_file_date_part(NOW, 0)
         urls = list(get_global_model_run_download_urls(NOW, 0))
-        assert urls[0].startswith("https://dd.weather.gc.ca/today/model_gem_global/15km/grib2/lat_lon/00/000/")
-        assert f"CMC_glb_{GDPS_GRIB_LAYERS[0]}_latlon.15x.15_{date}00_P000.grib2" in urls[0]
+        assert urls[0].startswith("https://dd.weather.gc.ca/today/model_gdps/15km/00/000/")
+        assert f"{date}T00Z_MSC_GDPS_{GDPS_GRIB_LAYERS[0]}_LatLon0.15_PT000H.grib2" in urls[0]
 
     def test_zero_day_bug(self):
         """On the 1st of the month before 12 UTC, the previous day's 12 UTC run should be used."""
         problem_date = datetime.fromisoformat("2020-09-01T00:13:58+00:00")
         url = next(get_global_model_run_download_urls(problem_date, 12))
         assert url == (
-            "https://dd.weather.gc.ca/today/model_gem_global/15km/"
-            "grib2/lat_lon/12/000/CMC_glb_TMP_TGL_2_latlon."
-            "15x.15_2020083112_P000.grib2"
+            "https://dd.weather.gc.ca/today/model_gdps/15km/"
+            "12/000/20200831T12Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2"
         )
 
 
@@ -91,7 +92,9 @@ class TestGetHighResModelRunDownloadUrls:
     def test_url_format(self):
         date = get_file_date_part(NOW, 0, True)
         urls = list(get_high_res_model_run_download_urls(NOW, 0))
-        assert urls[0].startswith("https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/00/000/")
+        assert urls[0].startswith(
+            "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/00/000/"
+        )
         assert f"{date}_MSC_HRDPS_{HRDPS_GRIB_LAYERS[0]}_RLatLon0.0225_PT000H.grib2" in urls[0]
 
 

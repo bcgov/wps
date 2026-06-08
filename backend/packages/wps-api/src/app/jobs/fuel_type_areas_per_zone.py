@@ -9,6 +9,7 @@ import numpy as np
 from geoalchemy2.shape import to_shape
 from osgeo import gdal, osr
 from sqlalchemy.dialects.postgresql import insert
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_zone_unit_shape_type_id,
     get_fire_zone_units,
@@ -21,7 +22,6 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryShapeFuels
 from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
@@ -105,7 +105,8 @@ class FuelTypeAreasJob:
                 )
                 for advisory_shape_id, fuel_type_id, fuel_area in fuel_type_area_data:
                     logger.info(
-                        f"Calculated fuel area for advisory_shape_id {advisory_shape_id}, fuel_type_id {fuel_type_id}, fuel_area {fuel_area}")
+                        f"Calculated fuel area for advisory_shape_id {advisory_shape_id}, fuel_type_id {fuel_type_id}, fuel_area {fuel_area}"
+                    )
                     await self._save_fuel_type_area(
                         session,
                         advisory_shape_id,
@@ -146,7 +147,7 @@ def main():
             "An error occurred while processing fuel types area per zone.", exc_info=exception
         )
         rc_message = ":scream: Encountered an error while processing fuel types area per zone."
-        send_rocketchat_notification(rc_message, exception)
+        send_chatops_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 

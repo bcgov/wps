@@ -154,7 +154,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     async def mock_start_job(_, __, ___, ____):
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(fuel_raster.__main__, "send_rocketchat_notification")
+    rocket_chat_spy = mocker.spy(fuel_raster.__main__, "send_chatops_notification")
     monkeypatch.setattr(fuel_raster.__main__, "start_job", mock_start_job)
 
     with pytest.raises(SystemExit) as excinfo:
@@ -170,7 +170,7 @@ def test_main_success(mocker: MockerFixture, monkeypatch):
     async def mock_start_job(_, __, ___):
         pass
 
-    rocket_chat_spy = mocker.spy(fuel_raster.__main__, "send_rocketchat_notification")
+    rocket_chat_spy = mocker.spy(fuel_raster.__main__, "send_chatops_notification")
     monkeypatch.setattr(fuel_raster.__main__, "start_job", mock_start_job)
 
     with pytest.raises(SystemExit) as excinfo:

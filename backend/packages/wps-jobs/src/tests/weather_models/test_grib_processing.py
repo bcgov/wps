@@ -1,14 +1,14 @@
 """Tests for grib file processing"""
 
-import os
 import logging
-import pytest
+import os
 from operator import itemgetter
-from affine import Affine
-from pyproj import CRS
-from osgeo import gdal
-from wps_shared.geospatial.geospatial import NAD83_CRS
+
+import pytest
 import weather_model_jobs.utils.process_grib as process_grib
+from osgeo import gdal
+from pyproj import CRS
+from wps_shared.geospatial.geospatial import NAD83_CRS
 
 logger = logging.getLogger(__name__)
 
@@ -25,20 +25,13 @@ def get_grib_file_path(filename: str):
     return grib_path
 
 
-def read_file_contents(filename):
-    """Given a filename, return json"""
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dirname, filename), "r") as file:
-        return file.read()
-
-
 @pytest.mark.parametrize(
     "filename,origin,pixel_size",
     [
         (
-            "CMC_glb_RH_TGL_2_latlon.15x.15_2020071300_P000.grib2",
+            "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2",
             (-180.075, 90.075),
-            (0.15000000000000002, -0.15),
+            (0.15, -0.15),
         ),
     ],
 )
@@ -53,55 +46,65 @@ def test_get_dataset_geometry(filename, origin, pixel_size):
 
 
 @pytest.mark.parametrize(
-    "geotransform,wkt_projection_string,geographic_coordinate,raster_coordinate",
+    "filename,geographic_coordinate,raster_coordinate,expected_value",
     [
         (
-            [-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0],
-            "CMC_hrdps_continental_ps2.5km_projection_wkt.txt",
-            [-120.4816667, 50.6733333],
-            (472, 819),
-        ),
-        (
-            [-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0],
-            "CMC_hrdps_continental_ps2.5km_projection_wkt.txt",
-            [-116.7464000, 49.4358000],
-            (572, 897),
-        ),
-        (
-            [-2099127.494496938, 2500.0, 0.0, -2099388.521499629, 0.0, -2500.0],
-            "CMC_hrdps_continental_ps2.5km_projection_wkt.txt",
-            [-123.2732667, 52.0837700],
-            (409, 736),
-        ),
-        (
-            [-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15],
-            "CMC_glb_latlon.15x.15_projection_wkt.txt",
+            "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2",
             [-120.4816667, 50.6733333],
             (397, 262),
+            17.5934692382813,
         ),
         (
-            [-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15],
-            "CMC_glb_latlon.15x.15_projection_wkt.txt",
+            "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2",
             [-116.7464000, 49.4358000],
             (422, 270),
+            7.39345703125002,
         ),
         (
-            [-180.075, 0.15000000000000002, 0.0, 90.075, 0.0, -0.15],
-            "CMC_glb_latlon.15x.15_projection_wkt.txt",
+            "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2",
             [-123.2732667, 52.0837700],
             (378, 253),
+            21.8934570312500,
+        ),
+        (
+            "20230317T18Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2",
+            [-120.4816667, 50.6733333],
+            (496, 879),
+            49.6418838500977,
+        ),
+        (
+            "20230317T18Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2",
+            [-116.7464000, 49.4358000],
+            (599, 940),
+            41.9403686523438,
+        ),
+        (
+            "20230317T18Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2",
+            [-123.2732667, 52.0837700],
+            (425, 809),
+            57.5278663635254,
         ),
     ],
 )
 def test_calculate_raster_coordinates(
-    geotransform, wkt_projection_string, geographic_coordinate, raster_coordinate
+    filename, geographic_coordinate, raster_coordinate, expected_value
 ):
-    wkt_string = read_file_contents(wkt_projection_string)
-    proj_crs = CRS.from_string(wkt_string)
+    grib_path = get_grib_file_path(filename)
+    dataset = gdal.Open(grib_path, gdal.GA_ReadOnly)
+    proj_crs = CRS.from_string(dataset.GetProjection())
     transformer = process_grib.get_transformer(NAD83_CRS, proj_crs)
-    padf_transform = Affine.from_gdal(*geotransform)
+    padf_transform = process_grib.get_dataset_transform(grib_path)
     longitude, latitude = geographic_coordinate
-    expected_raster_coordinate = process_grib.calculate_raster_coordinate(
+    actual_raster_coordinate = process_grib.calculate_raster_coordinate(
         longitude, latitude, padf_transform, transformer
     )
-    assert expected_raster_coordinate == raster_coordinate
+    assert actual_raster_coordinate == raster_coordinate
+
+    x_coordinate, y_coordinate = actual_raster_coordinate
+    assert 0 <= x_coordinate < dataset.RasterXSize
+    assert 0 <= y_coordinate < dataset.RasterYSize
+
+    value = dataset.GetRasterBand(1).ReadAsArray(
+        x_coordinate, y_coordinate, 1, 1
+    )[0, 0]
+    assert value == pytest.approx(expected_value)

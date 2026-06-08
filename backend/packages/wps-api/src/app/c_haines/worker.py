@@ -21,7 +21,7 @@ async def main():
         models = (
             (ModelEnum.GDPS, ProjectionEnum.LATLON_15X_15),
             (ModelEnum.RDPS, ProjectionEnum.RDPS_LATLON),
-            (ModelEnum.HRDPS, ProjectionEnum.HIGH_RES_CONTINENTAL),
+            (ModelEnum.HRDPS, ProjectionEnum.HRDPS_LATLON),
         )
         for model, projection in models:
             logger.info("Generating C-Haines Severity Index for %s", model)
