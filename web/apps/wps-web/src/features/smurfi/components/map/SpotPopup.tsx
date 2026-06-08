@@ -70,6 +70,14 @@ const SpotPopup: React.FC<SpotPopupProps> = ({
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           Lat: {lat.toFixed(6)}, Lng: {lng.toFixed(6)}
         </Typography>
+        {spotRequest.latest_forecast?.forecaster_name && (
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            <Box component="span" sx={{ fontWeight: 600 }}>
+              Last Forecast By:
+            </Box>{' '}
+            {spotRequest.latest_forecast.forecaster_name}
+          </Typography>
+        )}
       </Box>
       <Box sx={{ display: 'flex', gap: 1 }}>
         <Button variant="outlined" color="primary" size="small" fullWidth onClick={handleRequestClick}>

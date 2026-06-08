@@ -362,6 +362,7 @@ FORECAST_PAYLOAD = {
     "issued_at": "2026-05-21T16:00:00Z",
     "expires_at": None,
     "forecast_type": "Full",
+    "forecaster_phone": "250-555-0100",
     "descriptive_weather": [],
     "tabular_weather": [],
 }
@@ -392,7 +393,9 @@ def test_create_spot_forecast_publishes_nats_message():
     saved_forecast = mock_create_forecast.call_args.args[1]
     assert saved_forecast.forecaster_name == "test_username"
     assert saved_forecast.forecaster_email == "test@email.com"
+    assert saved_forecast.forecaster_phone == "250-555-0100"
     assert saved_forecast.forecast_type == "Full"
+    assert response.json()["spot_forecast"]["forecaster_phone"] == "250-555-0100"
     mock_start_request.assert_awaited_once_with(ANY, FORECAST_PAYLOAD["spot_request_base_id"])
     mock_publish.assert_called_once_with(
         stream=stream_name,

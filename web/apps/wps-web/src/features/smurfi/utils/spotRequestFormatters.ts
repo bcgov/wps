@@ -34,15 +34,6 @@ export const formatSpotRequestDateWithDay = (value: string | null | undefined) =
   return dateTime.isValid ? dateTime.toFormat('EEE yyyy-MM-dd') : null
 }
 
-export const formatSpotRequestDateTime = (value: string | null | undefined) => {
-  if (!value) {
-    return null
-  }
-
-  const dateTime = DateTime.fromISO(value)
-  return dateTime.isValid ? dateTime.toFormat('yyyy-MM-dd HH:mm') : null
-}
-
 export const formatSpotRequestDateTimeWithDay = (value: string | null | undefined) => {
   if (!value) {
     return null

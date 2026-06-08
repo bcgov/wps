@@ -52,6 +52,7 @@ export const createSchema = (isMini: boolean) => {
     expiryDate: z.custom<DateTime>((val): val is DateTime => DateTime.isDateTime(val) && val.isValid, {
       message: 'Invalid date/time'
     }),
+    forecasterPhone: z.string().optional(),
     fireProj: requiredString(),
     requestBy: requiredString(),
     stns: z.array(z.number()).optional(),

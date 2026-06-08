@@ -3,10 +3,6 @@ import { SpotFormData } from './schema/spotForecastSchema'
 import { SpotRequestFormData } from './schema/spotRequestSchema'
 import { DateTime } from 'luxon'
 
-const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const
-
-const degreesToCompass = (degrees: number): string => COMPASS[Math.round((((degrees % 360) + 360) % 360) / 45) % 8]
-
 export enum SpotRequestStatus {
   REQUESTED = 'Requested',
   STARTED = 'Started',
@@ -43,6 +39,7 @@ export interface SpotForecastInput {
   inversion_and_venting?: string
   outlook?: string
   confidence?: string
+  forecaster_phone?: string | null
   fire_size?: (number | null)[] | null
   representative_station_codes?: number[]
   descriptive_weather: SpotDescriptiveWeatherInput[]
@@ -143,6 +140,7 @@ const marshalFormDataToSpotForecastInput = (
     inversion_and_venting: formData.inversionVenting,
     outlook: formData.outlook,
     confidence: formData.confidenceDiscussion,
+    forecaster_phone: formData.forecasterPhone?.trim() || null,
     fire_size: toNullableNumberList(formData.fireSizes),
     representative_station_codes: formData.stns,
     issued_at: formData.issuedDate.toISO()!,
