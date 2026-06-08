@@ -1,5 +1,5 @@
 import { Box } from '@mui/material'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Feature, Map, View } from 'ol'
 import { fromLonLat } from 'ol/proj'
 import Overlay from 'ol/Overlay'
@@ -57,8 +57,8 @@ import {
   createSpotMarkerStyle,
   forecastLineStyle
 } from '@/features/smurfi/components/map/mapFeatureStyles'
+import { MapContext } from '@/features/smurfi/components/map/mapContext'
 
-export const MapContext = React.createContext<Map | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 interface SMURFIMapProps {

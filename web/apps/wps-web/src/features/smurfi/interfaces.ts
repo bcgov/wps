@@ -15,18 +15,6 @@ export interface RepresentativeStation {
   elevation?: number
 }
 
-export interface SpotForecastHistoryItem {
-  id: number
-  fire_id: string
-  latitude: number
-  longitude: number
-  issued_date: number
-  expiry_date: number
-  forecaster: string
-  synopsis: string
-  status: SpotRequestStatus
-}
-
 export interface SelectedCoordinates {
   latitude: number
   longitude: number
