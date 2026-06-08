@@ -25,6 +25,7 @@ export const defaultWeatherRows: SpotFormData['weatherData'] = defaultDateTimes.
 export const getDefaultValues = (): Partial<SpotFormData> => ({
   issuedDate: DateTime.now().setZone('America/Vancouver'),
   expiryDate: DateTime.now().setZone('America/Vancouver').plus({ days: 2 }).endOf('day'),
+  forecasterPhone: '',
   fireProj: '',
   requestBy: '',
   stns: [],

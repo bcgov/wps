@@ -157,6 +157,7 @@ class SpotForecastInput(BaseModel):
     inversion_and_venting: str | None = None
     outlook: str | None = None
     confidence: str | None = None
+    forecaster_phone: str | None = None
     fire_size: list[float | None] | None = None
     representative_station_codes: list[int] | None = None
     descriptive_weather: list[SpotDescriptiveWeatherInput] = Field(default_factory=list)

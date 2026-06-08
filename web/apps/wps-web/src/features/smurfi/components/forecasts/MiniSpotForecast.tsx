@@ -36,7 +36,7 @@ const MiniSpotForecast: React.FC<MiniSpotForecastProps> = ({
           <Field label="Expires" value={forecast.expires_at ? formatDateTime(forecast.expires_at) : '—'} />
           <Field label="Forecaster" value={forecast.forecaster_name} />
           <Field label="Email" value={forecast.forecaster_email} />
-          {forecast.forecaster_phone && <Field label="Phone" value={forecast.forecaster_phone} />}
+          <Field label="Phone" value={forecast.forecaster_phone ?? '—'} />
           <Box sx={{ gridColumn: '1 / -1' }}>
             <Field label="Representative Stations" value={stationsStr} />
           </Box>

@@ -39,6 +39,7 @@ export interface SpotForecastInput {
   inversion_and_venting?: string
   outlook?: string
   confidence?: string
+  forecaster_phone?: string | null
   fire_size?: (number | null)[] | null
   representative_station_codes?: number[]
   descriptive_weather: SpotDescriptiveWeatherInput[]
@@ -139,6 +140,7 @@ const marshalFormDataToSpotForecastInput = (
     inversion_and_venting: formData.inversionVenting,
     outlook: formData.outlook,
     confidence: formData.confidenceDiscussion,
+    forecaster_phone: formData.forecasterPhone?.trim() || null,
     fire_size: toNullableNumberList(formData.fireSizes),
     representative_station_codes: formData.stns,
     issued_at: formData.issuedDate.toISO()!,

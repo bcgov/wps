@@ -4,7 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch, useSelector } from 'react-redux'
 import { Alert, Grid, Button, Box, FormControlLabel, FormControl, FormLabel, RadioGroup, Radio } from '@mui/material'
 import { AppDispatch } from '@/app/store'
+import { selectAuthentication } from '@/app/rootReducer'
 import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
+import SpotForecasterInfo from '@/features/smurfi/components/forecastForm/SpotForecasterInfo'
 import SpotForecastHeader from '@/features/smurfi/components/forecastForm/SpotForecastHeader'
 import SpotForecastSynopsis from '@/features/smurfi/components/forecastForm/SpotForecastSynopsis'
 import WeatherDataTable from '@/features/smurfi/components/forecastForm/WeatherDataTable'
@@ -51,6 +53,33 @@ const getForecastLocationInstance = (
   return spotRequest.request_instance
 }
 
+const normalizeForecasterText = (value: string | null | undefined) => value?.trim().toLowerCase() ?? ''
+
+const isSameForecaster = (
+  forecast: SpotForecastOutput | undefined,
+  forecasterName: string | undefined,
+  forecasterEmail: string | undefined
+) =>
+  !!forecast &&
+  normalizeForecasterText(forecast.forecaster_name) === normalizeForecasterText(forecasterName) &&
+  normalizeForecasterText(forecast.forecaster_email) === normalizeForecasterText(forecasterEmail)
+
+const getPrefilledForecasterPhone = (
+  sourceForecast: SpotForecastOutput | undefined,
+  forecasterName: string | undefined,
+  forecasterEmail: string | undefined,
+  prefillFullForecast: boolean
+) => {
+  if (!sourceForecast?.forecaster_phone) {
+    return ''
+  }
+
+  // carry phone forward for create-from-previous, otherwise only for the same forecaster
+  return prefillFullForecast || isSameForecaster(sourceForecast, forecasterName, forecasterEmail)
+    ? sourceForecast.forecaster_phone
+    : ''
+}
+
 interface SpotForecastFormProps {
   spotRequest: SpotRequestOutput
   /** optional prior forecast used to carry forward stable fields like stations and forecast type. */
@@ -71,6 +100,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
 }) => {
   const dispatch: AppDispatch = useDispatch()
   const { spotForecastSubmitting, spotForecastSubmitError } = useSelector(selectSmurfi)
+  const { name: forecasterName, email: forecasterEmail } = useSelector(selectAuthentication)
   const initialForecastType = useMemo(
     () => getInitialForecastType(spotRequest.request_type, sourceForecast?.forecast_type),
     [sourceForecast?.forecast_type, spotRequest.request_type]
@@ -94,6 +124,12 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
 
     return {
       ...baseDefaults,
+      forecasterPhone: getPrefilledForecasterPhone(
+        sourceForecast,
+        forecasterName,
+        forecasterEmail,
+        prefillFullForecast
+      ),
       fireProj: formatFireNumbers(spotRequest.fire_number),
       requestBy: spotRequest.requestor_name,
       stns: sourceForecast?.representative_station_codes ?? baseDefaults.stns,
@@ -133,7 +169,7 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
       outlook: fullPrefillForecast?.outlook ?? baseDefaults.outlook,
       confidenceDiscussion: fullPrefillForecast?.confidence ?? baseDefaults.confidenceDiscussion
     }
-  }, [prefillForecastLocation, prefillFullForecast, sourceForecast, spotRequest])
+  }, [forecasterEmail, forecasterName, prefillForecastLocation, prefillFullForecast, sourceForecast, spotRequest])
 
   const {
     control,
@@ -229,6 +265,12 @@ const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
+          <SpotForecasterInfo
+            control={control}
+            errors={errors}
+            forecasterName={forecasterName}
+            forecasterEmail={forecasterEmail}
+          />
           <SpotForecastHeader
             control={control}
             errors={errors}

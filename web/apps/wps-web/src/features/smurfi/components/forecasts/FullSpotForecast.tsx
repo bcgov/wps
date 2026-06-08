@@ -45,7 +45,7 @@ const FullSpotForecast: React.FC<FullSpotForecastProps> = ({
           <Field label="Expires" value={forecast.expires_at ? formatDateTime(forecast.expires_at) : '—'} />
           <Field label="Forecaster" value={forecast.forecaster_name} />
           <Field label="Email" value={forecast.forecaster_email} />
-          {forecast.forecaster_phone && <Field label="Phone" value={forecast.forecaster_phone} />}
+          <Field label="Phone" value={forecast.forecaster_phone ?? '—'} />
           {forecast.fire_size != null && <Field label="Fire Size(s)" value={formatFireSizes(forecast.fire_size)} />}
           <Box sx={{ gridColumn: '1 / -1' }}>
             <Field label="Representative Stations" value={stationsStr} />

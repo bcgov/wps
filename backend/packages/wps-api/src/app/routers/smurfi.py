@@ -417,7 +417,7 @@ async def create_spot_forecast_endpoint(
             spot_request_instance_id=spot_request_instance.id,
             forecaster_name=forecaster.name,
             forecaster_email=forecaster.email,
-            forecaster_phone=None,
+            forecaster_phone=spot_forecast_input.forecaster_phone,
             synopsis=spot_forecast_input.synopsis,
             inversion_and_venting=spot_forecast_input.inversion_and_venting,
             outlook=spot_forecast_input.outlook,
@@ -446,13 +446,18 @@ async def create_spot_forecast_endpoint(
     payload = SpotUpdatePayload(
         spot_request_id=spot_forecast_input.spot_request_base_id, spot_forecast_id=spot_forecast_id
     )
-    await publish(
-        stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
-    )
+    # await publish(
+    #     stream=stream_name, subject=smurfi_spot_update_subject, payload=payload, subjects=subjects
+    # )
     return SpotForecastResponse(
         spot_forecast=SpotForecastData(
             **spot_forecast_input.model_dump(
-                exclude={"descriptive_weather", "tabular_weather", "spot_request_instance"}
+                exclude={
+                    "descriptive_weather",
+                    "tabular_weather",
+                    "spot_request_instance",
+                    "forecaster_phone",
+                }
             ),
             id=spot_forecast_id,
             spot_request_instance_id=spot_request_instance_id,
@@ -460,7 +465,7 @@ async def create_spot_forecast_endpoint(
             created_at=now,
             forecaster_name=forecaster.name,
             forecaster_email=forecaster.email,
-            forecaster_phone=None,
+            forecaster_phone=spot_forecast_input.forecaster_phone,
             descriptive_weather=descriptive_weather,
             tabular_weather=tabular_weather,
         )

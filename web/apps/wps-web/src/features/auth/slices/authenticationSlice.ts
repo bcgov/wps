@@ -15,6 +15,7 @@ export interface AuthState {
   token: string | undefined
   idToken: string | undefined
   idir: string | undefined
+  name: string | undefined
   email: string | undefined
   roles: string[]
   error: string | null
@@ -27,6 +28,7 @@ export const initialState: AuthState = {
   token: undefined,
   idToken: undefined,
   idir: undefined,
+  name: undefined,
   email: undefined,
   roles: [],
   error: null
@@ -54,6 +56,7 @@ const authSlice = createSlice({
       state.roles = decodeRoles(action.payload.token)
       const userDetails = decodeUserDetails(action.payload.token)
       state.idir = userDetails?.idir
+      state.name = userDetails?.name
       state.email = userDetails?.email
     },
     authenticateError(state: AuthState, action: PayloadAction<string>) {
@@ -76,6 +79,7 @@ const authSlice = createSlice({
       state.roles = decodeRoles(action.payload.token)
       const userDetails = decodeUserDetails(action.payload.token)
       state.idir = userDetails?.idir
+      state.name = userDetails?.name
       state.email = userDetails?.email
     },
     signoutFinished(state: AuthState) {
@@ -132,12 +136,14 @@ export const decodeUserDetails = (token: string | undefined) => {
     return undefined
   }
   if (TEST_AUTH || window.Playwright) {
-    return { idir: 'test@idir', email: 'test@example.com' }
+    return { idir: 'test@idir', name: 'test@idir', email: 'test@example.com' }
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwtDecode(token)
   try {
-    return { idir: decodedToken.idir_username, email: decodedToken.email }
+    const name =
+      [decodedToken.given_name, decodedToken.family_name].filter(Boolean).join(' ') || decodedToken.idir_username
+    return { idir: decodedToken.idir_username, name, email: decodedToken.email }
   } catch (e) {
     // No idir username
     return undefined
