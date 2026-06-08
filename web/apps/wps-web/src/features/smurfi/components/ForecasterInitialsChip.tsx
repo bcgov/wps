@@ -15,7 +15,7 @@ const getForecasterInitials = (forecasterName: string) => {
     return nameParts[0].slice(0, 2).toUpperCase()
   }
 
-  return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
+  return `${nameParts[0][0]}${nameParts.at(-1)?.[0] ?? ''}`.toUpperCase()
 }
 
 const ForecasterInitialsChip = ({ forecasterName }: ForecasterInitialsChipProps) => {
