@@ -296,6 +296,7 @@ objects:
               requiredDuringSchedulingIgnoredDuringExecution:
                 - labelSelector:
                     matchLabels:
+                      app: ${APP_NAME}-${SUFFIX}
                       component: nats-consumer
                   topologyKey: "kubernetes.io/hostname"
           containers:
