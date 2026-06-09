@@ -1,0 +1,310 @@
+import React, { useEffect, useState, useMemo } from 'react'
+import { useForm, useFieldArray } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useDispatch, useSelector } from 'react-redux'
+import { Alert, Grid, Button, Box, FormControlLabel, FormControl, FormLabel, RadioGroup, Radio } from '@mui/material'
+import { AppDispatch } from '@/app/store'
+import { selectAuthentication } from '@/app/rootReducer'
+import { getDefaultValues, defaultWeatherRows } from '@/features/smurfi/constants/spotForecastDefaults'
+import SpotForecasterInfo from '@/features/smurfi/components/forecastForm/SpotForecasterInfo'
+import SpotForecastHeader from '@/features/smurfi/components/forecastForm/SpotForecastHeader'
+import SpotForecastSynopsis from '@/features/smurfi/components/forecastForm/SpotForecastSynopsis'
+import WeatherDataTable from '@/features/smurfi/components/forecastForm/WeatherDataTable'
+import SpotForecastSummaries from '@/features/smurfi/components/forecastForm/SpotForecastSummaries'
+import SpotForecastSections from '@/features/smurfi/components/forecastForm/SpotForecastSections'
+import { SpotForecastOutput, SpotForecastType, SpotRequestOutput } from '@wps/api/SMURFIAPI'
+import { createSchema, SpotFormData } from '@wps/api/schema/spotForecastSchema'
+import { clearSpotForecastSubmitState, submitSpotForecast, selectSmurfi } from '@/features/smurfi/slices/smurfiSlice'
+import { fetchCurrentFireSizesByFireNumbers } from '@/features/currentFires/map/currentFireLayers'
+import { fetchWxStations } from '@/features/stations/slices/stationsSlice'
+import { getStations, StationSource } from '@wps/api/stationAPI'
+import {
+  formatFireNumbers,
+  getEmptyFireSizes,
+  toForecastDateTimeString
+} from '@/features/smurfi/utils/spotForecastUtils'
+
+const toFormString = (value: number | string | null | undefined) =>
+  value === null || value === undefined ? '' : String(value)
+
+const getDescriptiveWeather = (forecast: SpotForecastOutput | undefined, period: string) =>
+  forecast?.descriptive_weather.find(weather => weather.period === period)
+
+const getInitialForecastType = (
+  requestType: string,
+  sourceForecastType: string | null | undefined
+): SpotForecastType => {
+  if (sourceForecastType === 'Mini' || sourceForecastType === 'Full') {
+    return sourceForecastType
+  }
+
+  return requestType === 'Mini' ? 'Mini' : 'Full'
+}
+
+const getForecastLocationInstance = (
+  spotRequest: SpotRequestOutput,
+  sourceForecast: SpotForecastOutput | undefined,
+  useSourceForecastLocation: boolean
+) => {
+  if (useSourceForecastLocation && sourceForecast) {
+    return sourceForecast.spot_request_instance
+  }
+
+  return spotRequest.request_instance
+}
+
+const normalizeForecasterText = (value: string | null | undefined) => value?.trim().toLowerCase() ?? ''
+
+const isSameForecaster = (
+  forecast: SpotForecastOutput | undefined,
+  forecasterName: string | undefined,
+  forecasterEmail: string | undefined
+) =>
+  !!forecast &&
+  normalizeForecasterText(forecast.forecaster_name) === normalizeForecasterText(forecasterName) &&
+  normalizeForecasterText(forecast.forecaster_email) === normalizeForecasterText(forecasterEmail)
+
+const getPrefilledForecasterPhone = (
+  sourceForecast: SpotForecastOutput | undefined,
+  forecasterName: string | undefined,
+  forecasterEmail: string | undefined,
+  prefillFullForecast: boolean
+) => {
+  if (!sourceForecast?.forecaster_phone) {
+    return ''
+  }
+
+  // carry phone forward for create-from-previous, otherwise only for the same forecaster
+  return prefillFullForecast || isSameForecaster(sourceForecast, forecasterName, forecasterEmail)
+    ? sourceForecast.forecaster_phone
+    : ''
+}
+
+interface SpotForecastFormProps {
+  spotRequest: SpotRequestOutput
+  /** optional prior forecast used to carry forward stable fields like stations and forecast type. */
+  sourceForecast?: SpotForecastOutput
+  /** when true, sourceForecast also fills location and terrain fields without prefilling forecast text/weather. */
+  prefillForecastLocation?: boolean
+  /** when true, sourceForecast also fills editable forecast content for the create-from-previous flow. */
+  prefillFullForecast?: boolean
+  onSubmitSuccess?: () => void
+}
+
+const SpotForecastForm: React.FC<SpotForecastFormProps> = ({
+  spotRequest,
+  sourceForecast,
+  prefillForecastLocation = false,
+  prefillFullForecast = false,
+  onSubmitSuccess
+}) => {
+  const dispatch: AppDispatch = useDispatch()
+  const { spotForecastSubmitting, spotForecastSubmitError } = useSelector(selectSmurfi)
+  const { name: forecasterName, email: forecasterEmail } = useSelector(selectAuthentication)
+  const initialForecastType = useMemo(
+    () => getInitialForecastType(spotRequest.request_type, sourceForecast?.forecast_type),
+    [sourceForecast?.forecast_type, spotRequest.request_type]
+  )
+  const [forecastType, setForecastType] = useState<SpotForecastType>(initialForecastType)
+  const isMini = forecastType === 'Mini'
+  const schema = useMemo(() => createSchema(isMini), [isMini])
+  const resolver = useMemo(() => zodResolver(schema), [schema])
+
+  const defaultValues = useMemo<Partial<SpotFormData>>(() => {
+    const baseDefaults = getDefaultValues()
+    const fullPrefillForecast = prefillFullForecast ? sourceForecast : undefined
+    const requestInstance = getForecastLocationInstance(
+      spotRequest,
+      sourceForecast,
+      prefillFullForecast || prefillForecastLocation
+    )
+    const afternoonWeather = getDescriptiveWeather(fullPrefillForecast, 'Today')
+    const tonightWeather = getDescriptiveWeather(fullPrefillForecast, 'Tonight')
+    const tomorrowWeather = getDescriptiveWeather(fullPrefillForecast, 'Tomorrow')
+
+    return {
+      ...baseDefaults,
+      forecasterPhone: getPrefilledForecasterPhone(
+        sourceForecast,
+        forecasterName,
+        forecasterEmail,
+        prefillFullForecast
+      ),
+      fireProj: formatFireNumbers(spotRequest.fire_number),
+      requestBy: spotRequest.requestor_name,
+      stns: sourceForecast?.representative_station_codes ?? baseDefaults.stns,
+      latitude: toFormString(requestInstance.latitude.toFixed(4)),
+      longitude: toFormString(requestInstance.longitude.toFixed(4)),
+      geographicDescription: requestInstance.geographic_description,
+      slopeAspect: requestInstance.aspect ?? baseDefaults.slopeAspect,
+      valley: requestInstance.valley ?? baseDefaults.valley,
+      elevation: toFormString(requestInstance.elevation),
+      fireSizes: fullPrefillForecast?.fire_size?.map(toFormString) ?? getEmptyFireSizes(spotRequest.fire_number),
+      synopsis: fullPrefillForecast?.synopsis ?? baseDefaults.synopsis,
+      afternoonForecast: {
+        description: afternoonWeather?.conditions ?? '',
+        maxTemp: afternoonWeather?.temperature ?? undefined,
+        minRh: afternoonWeather?.relative_humidity ?? undefined
+      },
+      tonightForecast: {
+        description: tonightWeather?.conditions ?? '',
+        minTemp: tonightWeather?.temperature ?? undefined,
+        maxRh: tonightWeather?.relative_humidity ?? undefined
+      },
+      tomorrowForecast: {
+        description: tomorrowWeather?.conditions ?? '',
+        maxTemp: tomorrowWeather?.temperature ?? undefined,
+        minRh: tomorrowWeather?.relative_humidity ?? undefined
+      },
+      weatherData:
+        fullPrefillForecast?.tabular_weather.map(row => ({
+          dateTime: toForecastDateTimeString(row.forecast_time),
+          temp: toFormString(row.temperature),
+          rh: toFormString(row.relative_humidity),
+          wind: row.wind ?? '',
+          rain: toFormString(row.precipitation_amount),
+          chanceRain: toFormString(row.probability_of_precipitation)
+        })) ?? defaultWeatherRows,
+      inversionVenting: fullPrefillForecast?.inversion_and_venting ?? baseDefaults.inversionVenting,
+      outlook: fullPrefillForecast?.outlook ?? baseDefaults.outlook,
+      confidenceDiscussion: fullPrefillForecast?.confidence ?? baseDefaults.confidenceDiscussion
+    }
+  }, [forecasterEmail, forecasterName, prefillForecastLocation, prefillFullForecast, sourceForecast, spotRequest])
+
+  const {
+    control,
+    getValues,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors, submitCount }
+  } = useForm<SpotFormData>({
+    resolver,
+    defaultValues,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'weatherData'
+  })
+  const hasValidationErrors = Object.keys(errors).length > 0
+
+  const onSubmit = async (data: SpotFormData) => {
+    const submittedForecast = await dispatch(
+      submitSpotForecast({
+        formData: data,
+        forecastType,
+        spotRequestId: spotRequest.id
+      })
+    )
+
+    if (submittedForecast) {
+      onSubmitSuccess?.()
+    }
+  }
+
+  useEffect(() => {
+    setForecastType(initialForecastType)
+  }, [initialForecastType])
+
+  useEffect(() => {
+    reset(defaultValues)
+  }, [defaultValues, reset])
+
+  useEffect(() => {
+    const fireNumbers = spotRequest.fire_number ?? []
+    if (fireNumbers.length === 0) {
+      return
+    }
+
+    let cancelled = false
+    fetchCurrentFireSizesByFireNumbers(fireNumbers)
+      .then(fireSizes => {
+        const currentFireSizes = getValues('fireSizes') ?? []
+        const hasExistingFireSizes = currentFireSizes.some(fireSize => fireSize?.trim())
+        if (!cancelled && !hasExistingFireSizes) {
+          setValue('fireSizes', fireSizes.map(toFormString), { shouldValidate: true })
+        }
+      })
+      .catch(() => {
+        // keep fire sizes editable when the public fire layer cannot provide values
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [getValues, setValue, spotRequest.fire_number])
+
+  useEffect(() => {
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+  }, [dispatch])
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearSpotForecastSubmitState())
+    }
+  }, [dispatch])
+
+  return (
+    <Box sx={{ p: 3, width: '100%' }}>
+      <Box sx={{ mb: 2 }}>
+        <FormControl>
+          <FormLabel>Forecast Type</FormLabel>
+          <RadioGroup
+            row
+            value={forecastType}
+            onChange={event => setForecastType(event.target.value as SpotForecastType)}
+          >
+            <FormControlLabel value="Mini" control={<Radio />} label="Mini Spot" />
+            <FormControlLabel value="Full" control={<Radio />} label="Full Spot" />
+          </RadioGroup>
+        </FormControl>
+      </Box>
+
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Grid container spacing={3}>
+          <SpotForecasterInfo
+            control={control}
+            errors={errors}
+            forecasterName={forecasterName}
+            forecasterEmail={forecasterEmail}
+          />
+          <SpotForecastHeader
+            control={control}
+            errors={errors}
+            fireNumbers={spotRequest.fire_number}
+            spotRequest={spotRequest}
+            setValue={setValue}
+          />
+          <SpotForecastSynopsis control={control} errors={errors} />
+          {!isMini && <SpotForecastSummaries control={control} errors={errors} />}
+          <WeatherDataTable control={control} errors={errors} fields={fields} append={append} remove={remove} />
+          <SpotForecastSections control={control} errors={errors} isMini={isMini} />
+
+          {spotForecastSubmitError && (
+            <Grid size={12}>
+              <Alert severity="error">{spotForecastSubmitError}</Alert>
+            </Grid>
+          )}
+
+          <Grid size={12}>
+            {submitCount > 0 && hasValidationErrors && (
+              <Grid size={12}>
+                <Alert severity="error">
+                  Some required fields are missing or invalid. Review the highlighted fields above.
+                </Alert>
+              </Grid>
+            )}
+            <Button type="submit" variant="contained" size="large" fullWidth disabled={spotForecastSubmitting}>
+              {spotForecastSubmitting ? 'Submitting Spot Forecast...' : 'Submit Spot Forecast'}
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+    </Box>
+  )
+}
+
+export default SpotForecastForm

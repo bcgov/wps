@@ -32,6 +32,7 @@ from app.routers import (
     object_store_proxy,
     psu,
     sfms,
+    smurfi,
     snow,
     stations,
     weather_models,
@@ -121,7 +122,7 @@ api.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "HEAD", "POST", "PATCH", "DELETE"],
+    allow_methods=["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 api.middleware("http")(catch_exception_middleware)
@@ -138,6 +139,7 @@ api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
 api.include_router(psu.router, tags=["PSU"])
+api.include_router(smurfi.router, tags=["SMURFI"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])
 api.include_router(object_store_proxy.wx_router, tags=["Object Store Proxy"])
 api.include_router(fcm.router, tags=["Firebase Cloud Messaging"])

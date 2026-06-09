@@ -42,3 +42,11 @@ from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather, PrescriptionStatus
 from wps_shared.db.models.sfms_run import SFMSRunLog
 from wps_shared.db.models.fcm import DeviceToken
+from wps_shared.db.models.smurfi import (
+    SpotRequestBase,
+    SpotRequestInstance,
+    SpotSubscriber,
+    SpotForecast,
+    SpotDescriptiveWeather,
+    SpotTabularWeather,
+)

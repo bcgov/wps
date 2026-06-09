@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "submissionId": "16821268-22f1-4a5c-bea9-db13f138b701",
+    "confirmationId": "16821268",
+    "formName": "SPOT Forecast Request",
+    "version": 4,
+    "createdAt": "2026-01-20T22:43:35.874Z",
+    "fullName": "Pressney, Stewart WLRS:EX",
+    "username": "SPRESSNE",
+    "email": "stewart.pressney@gov.bc.ca",
+    "submittedAt": "2026-01-20T22:43:35.879Z",
+    "status": "SUBMITTED",
+    "assignee": null,
+    "assigneeEmail": null
+  },
+  "fire_number": "V12345",
+  "forecast_end_date": "2026-01-30T00:00:00-08:00",
+  "forecast_start_date": "2026-01-20T15:00:00-08:00",
+  "spot_forecast_type": "fullSpot",
+  "email_distribution_list": [
+    "STEWART.pressney@gov.bc.ca",
+    "stewartpressney@gmail.com"
+  ],
+  "additional_info": "More Info Please!",
+  "coordinates": {
+    "features": [
+      {
+        "type": "marker",
+        "coordinates": {
+          "lat": 50.402470152529034,
+          "lng": -121.09730131924152
+        }
+      }
+    ],
+    "selectedBaseLayer": "OpenStreetMap"
+  }
+}

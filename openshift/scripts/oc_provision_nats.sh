@@ -33,7 +33,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
  ${CPU_REQUEST:+ "-p CPU_REQUEST=${CPU_REQUEST}"} \
  -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
- -p APP_NAME=${APP_NAME}"
+ -p APP_NAME=${APP_NAME} \
+ -p VANITY_DOMAIN=${VANITY_DOMAIN}"
 
 # Apply a template (apply or use --dry-run=client)
 #

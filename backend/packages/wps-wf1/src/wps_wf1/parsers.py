@@ -195,6 +195,7 @@ async def station_list_mapper(raw_stations: Generator[dict, None, None]):
                     name=raw_station["displayLabel"],
                     lat=raw_station["latitude"],
                     long=raw_station["longitude"],
+                    elevation=raw_station["elevation"],
                 )
             )
     return stations

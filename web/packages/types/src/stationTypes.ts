@@ -15,6 +15,7 @@ export interface StationProperties {
   name: string
   ecodivision_name: string | null
   core_season: FireSeason
+  elevation?: number
 }
 
 export interface DetailedStationProperties extends StationProperties {
