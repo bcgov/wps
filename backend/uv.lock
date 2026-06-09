@@ -4427,6 +4427,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/31/5e7b23f9e43ff7fd46d243808d70c5e8daf3bc08ecf5a7fb84d5e38f7603/testcontainers-4.14.1-py3-none-any.whl", hash = "sha256:03dfef4797b31c82e7b762a454b6afec61a2a512ad54af47ab41e4fa5415f891", size = 125640, upload-time = "2026-01-31T23:13:45.464Z" },
 ]
 
+[package.optional-dependencies]
+nats = [
+    { name = "nats-py" },
+]
+
 [[package]]
 name = "threadpoolctl"
 version = "3.6.0"
@@ -4732,6 +4737,7 @@ dev = [
     { name = "pycodestyle" },
     { name = "pytest-watch" },
     { name = "rope" },
+    { name = "testcontainers", extra = ["nats"] },
 ]
 
 [package.metadata]
@@ -4784,6 +4790,7 @@ requires-dist = [
     { name = "setuptools", specifier = ">=80.0.0,<81" },
     { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "sqlalchemy", specifier = ">=2,<3" },
+    { name = "testcontainers", extras = ["nats"], marker = "extra == 'dev'", specifier = ">=4.10.0,<5" },
     { name = "uvicorn", specifier = ">=0,<1" },
     { name = "wps-sfms", editable = "packages/wps-sfms" },
     { name = "wps-shared", editable = "packages/wps-shared" },
