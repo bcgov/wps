@@ -6,6 +6,11 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
+      server: {
+        deps: {
+          inline: ['react-transition-group']
+        }
+      },
       coverage: {
         provider: "v8",
         reportsDirectory: "./coverage",
