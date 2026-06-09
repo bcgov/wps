@@ -159,6 +159,7 @@ objects:
               requiredDuringSchedulingIgnoredDuringExecution:
                 - labelSelector:
                     matchLabels:
+                      app: ${APP_NAME}-${SUFFIX}
                       component: nats-server
                   topologyKey: "kubernetes.io/hostname"
           # Common volumes for the containers
