@@ -14,6 +14,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.orm import relationship
 
 from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
@@ -138,6 +139,7 @@ class FuelType(Base):
     fuel_type_id = Column(Integer, nullable=False, index=True)
     geom = Column(Geometry("POLYGON", spatial_index=False, srid=NAD83_BC_ALBERS))
     fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
+    fuel_type_raster = relationship(FuelTypeRaster)
 
 
 # Explicit creation of index due to issue with alembic + geoalchemy.
@@ -285,6 +287,7 @@ class TPIFuelArea(Base):
     tpi_class = Column(Enum(TPIClassEnum), nullable=False)
     fuel_area = Column(Float, nullable=False)
     fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
+    fuel_type_raster = relationship(FuelTypeRaster)
 
 
 class AdvisoryShapeFuels(Base):
@@ -307,6 +310,7 @@ class AdvisoryShapeFuels(Base):
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     fuel_area = Column(Float, nullable=False)
     fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=False, index=True)
+    fuel_type_raster = relationship(FuelTypeRaster)
     created_at = Column(TZTimeStamp, default=get_utc_now, nullable=False)
 
 
@@ -357,6 +361,7 @@ class CombustibleArea(Base):
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     combustible_area = Column(Float, nullable=False)
     fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=False, index=True)
+    fuel_type_raster = relationship(FuelTypeRaster)
 
 
 class AdvisoryZoneStatus(Base):

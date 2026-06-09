@@ -83,7 +83,9 @@ def setup_mocks(monkeypatch):
     async def mock_process_fuel_type_raster(_, __, ___):
         return (START_TIMESTAMP.year, 3, 100, 200, "fuel-key-v3", "abc123", CREATE_TIMESTAMP)
 
-    monkeypatch.setattr("fuel_raster.__main__.process_fuel_type_raster", mock_process_fuel_type_raster)
+    monkeypatch.setattr(
+        "fuel_raster.__main__.process_fuel_type_raster", mock_process_fuel_type_raster
+    )
 
     raster_addresser = BaseRasterAddresser()
     monkeypatch.setattr(
@@ -92,11 +94,6 @@ def setup_mocks(monkeypatch):
     monkeypatch.setattr(raster_addresser, "get_fuel_raster_key", mock_get_fuel_key)
 
     monkeypatch.setattr("wps_shared.fuel_raster.S3Client", lambda: MockS3Client())
-
-    async def mock_find_latest_version(_, __, ___, ____):
-        return 2
-
-    monkeypatch.setattr("wps_shared.fuel_raster.find_latest_version", mock_find_latest_version)
 
     monkeypatch.setattr(
         "wps_shared.fuel_raster.WPSDataset.from_bytes", lambda res: MockRasterContext()

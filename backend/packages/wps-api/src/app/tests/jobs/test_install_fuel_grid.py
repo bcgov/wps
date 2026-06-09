@@ -141,6 +141,7 @@ async def test_create_fuel_type_raster_record_reserves_id_without_flushing(monke
         content_hash="hash-2026",
     )
     assert added[0].id == 42
+    assert result.record is added[0]
 
 
 @pytest.mark.anyio

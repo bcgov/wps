@@ -2,7 +2,7 @@ import logging
 import os
 import tempfile
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Sequence
 
@@ -11,9 +11,9 @@ import numpy as np
 from geoalchemy2.elements import WKBElement, WKTElement
 from geoalchemy2.shape import to_shape
 from osgeo import ogr
+from shapely import wkb as shapely_wkb
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from shapely import wkb as shapely_wkb
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_zone_unit_shape_type_id,
@@ -52,6 +52,7 @@ class InstalledFuelRaster:
     version: int
     object_store_path: str
     content_hash: str
+    record: FuelTypeRaster | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass(frozen=True)
@@ -141,7 +142,14 @@ async def create_fuel_type_raster_record(
         version=fuel_type_raster.version,
         object_store_path=fuel_type_raster.object_store_path,
         content_hash=fuel_type_raster.content_hash,
+        record=fuel_type_raster,
     )
+
+
+def get_fuel_type_raster_record(fuel_type_raster: InstalledFuelRaster) -> FuelTypeRaster:
+    if fuel_type_raster.record is None:
+        raise RuntimeError("Installed fuel raster is missing its staged ORM record")
+    return fuel_type_raster.record
 
 
 def get_fuel_masked_tpi_filename(year: int, version: int) -> str:
@@ -169,12 +177,14 @@ async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster)
 def populate_advisory_fuel_types(
     session: AsyncSession, fuel_type_raster: InstalledFuelRaster, fuel_raster_key: str
 ) -> list[FuelType]:
+    fuel_type_raster_record = get_fuel_type_raster_record(fuel_type_raster)
     fuel_type_rows = []
     for fuel_type_id, geom in fuel_type_iterator_by_key(fuel_raster_key):
         fuel_type = FuelType(
             fuel_type_id=fuel_type_id,
             geom=geom,
             fuel_type_raster_id=fuel_type_raster.id,
+            fuel_type_raster=fuel_type_raster_record,
         )
         session.add(fuel_type)
         fuel_type_rows.append(fuel_type)
@@ -187,6 +197,7 @@ async def populate_advisory_shape_fuels(
     fuel_raster_key: str,
     zones: Sequence[Shape],
 ) -> None:
+    fuel_type_raster_record = get_fuel_type_raster_record(fuel_type_raster)
     sfms_fuel_types = await get_fuel_types_id_dict(session)
     all_zone_data = calculate_fuel_type_areas_per_zone(fuel_raster_key, zones)
     for zone_data in all_zone_data:
@@ -197,13 +208,14 @@ async def populate_advisory_shape_fuels(
                     fuel_type=sfms_fuel_types[int(fuel_type_id)],
                     fuel_area=fuel_area,
                     fuel_type_raster_id=fuel_type_raster.id,
+                    fuel_type_raster=fuel_type_raster_record,
                 )
             )
 
 
 @contextmanager
 def fuel_types_layer_from_db(session_rows):
-    mem_driver = ogr.GetDriverByName("Memory")
+    mem_driver = ogr.GetDriverByName("MEM")
     mem_ds = mem_driver.CreateDataSource("fuel_types")
     fuel_types_layer = mem_ds.CreateLayer("fuel_types", geom_type=ogr.wkbPolygon)
     fuel_types_layer.CreateField(ogr.FieldDefn("id", ogr.OFTInteger))
@@ -240,6 +252,7 @@ def populate_combustible_area(
     zones: Sequence[Shape],
     fuel_type_rows: list[FuelType],
 ) -> None:
+    fuel_type_raster_record = get_fuel_type_raster_record(fuel_type_raster)
     combustible_fuel_type_rows = [
         fuel_type
         for fuel_type in fuel_type_rows
@@ -257,6 +270,7 @@ def populate_combustible_area(
                     advisory_shape_id=advisory_shape_id,
                     combustible_area=area,
                     fuel_type_raster_id=fuel_type_raster.id,
+                    fuel_type_raster=fuel_type_raster_record,
                 )
             )
 
@@ -267,6 +281,7 @@ def populate_tpi_fuel_area(
     tpi_filename: str,
     zones: Sequence[Shape],
 ) -> None:
+    fuel_type_raster_record = get_fuel_type_raster_record(fuel_type_raster)
     for advisory_shape_id, tpi_class, fuel_area in calculate_masked_tpi_areas(zones, tpi_filename):
         session.add(
             TPIFuelArea(
@@ -276,6 +291,7 @@ def populate_tpi_fuel_area(
                     fuel_area.item() if isinstance(fuel_area, np.generic) else fuel_area
                 ),
                 fuel_type_raster_id=fuel_type_raster.id,
+                fuel_type_raster=fuel_type_raster_record,
             )
         )
 
