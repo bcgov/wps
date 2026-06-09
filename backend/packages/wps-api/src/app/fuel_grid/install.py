@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Sequence
 
+import aiofiles
 import numpy as np
 from geoalchemy2.shape import to_shape
 from osgeo import ogr
@@ -158,12 +159,12 @@ async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster)
     async with S3Client() as s3_client:
         with tempfile.TemporaryDirectory() as temp_dir:
             masked_tpi_path = prepare_masked_tif(temp_dir, fuel_type_raster.object_store_path)
-            with open(masked_tpi_path, "rb") as masked_tpi:
-                await s3_client.put_object(key=masked_tpi_key, body=masked_tpi)
+            async with aiofiles.open(masked_tpi_path, "rb") as masked_tpi:
+                await s3_client.put_object(key=masked_tpi_key, body=await masked_tpi.read())
     return masked_tpi_key
 
 
-async def populate_advisory_fuel_types(
+def populate_advisory_fuel_types(
     session: AsyncSession, fuel_type_raster: InstalledFuelRaster, fuel_raster_key: str
 ) -> list[FuelType]:
     fuel_type_rows = []
@@ -221,7 +222,7 @@ def fuel_types_layer_from_db(session_rows):
         mem_ds = None
 
 
-async def populate_combustible_area(
+def populate_combustible_area(
     session: AsyncSession,
     fuel_type_raster: InstalledFuelRaster,
     zones: Sequence[Shape],
@@ -248,7 +249,7 @@ async def populate_combustible_area(
             )
 
 
-async def populate_tpi_fuel_area(
+def populate_tpi_fuel_area(
     session: AsyncSession,
     fuel_type_raster: InstalledFuelRaster,
     tpi_filename: str,
@@ -337,10 +338,10 @@ async def populate_static_fuel_grid_data(
     shape_type_id = await get_fire_zone_unit_shape_type_id(session)
     zones = await get_fire_zone_units(session, shape_type_id)
 
-    fuel_type_rows = await populate_advisory_fuel_types(session, fuel_type_raster, fuel_raster_key)
+    fuel_type_rows = populate_advisory_fuel_types(session, fuel_type_raster, fuel_raster_key)
     await populate_advisory_shape_fuels(session, fuel_type_raster, fuel_raster_key, zones)
-    await populate_combustible_area(session, fuel_type_raster, zones, fuel_type_rows)
-    await populate_tpi_fuel_area(session, fuel_type_raster, tpi_filename, zones)
+    populate_combustible_area(session, fuel_type_raster, zones, fuel_type_rows)
+    populate_tpi_fuel_area(session, fuel_type_raster, tpi_filename, zones)
     await session.flush()
     return await verify_static_fuel_grid_data(session, fuel_type_raster.id)
 

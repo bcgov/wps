@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
-from unittest.mock import AsyncMock
+from typing import AsyncIterator, cast
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.fuel_grid.install import (
     FuelGridInstallCounts,
@@ -30,20 +32,15 @@ class MockS3Client:
         return self.object_exists_result
 
 
-class FakeSession:
-    def __init__(self):
-        self.added = []
-
-    def add(self, fuel_type_raster):
-        self.added.append(fuel_type_raster)
-
-    async def flush(self):
-        raise AssertionError("flush should not happen before static data is staged")
+def make_mock_session() -> tuple[AsyncSession, MagicMock]:
+    session_mock = MagicMock(spec=AsyncSession)
+    return cast(AsyncSession, session_mock), session_mock
 
 
 @asynccontextmanager
-async def fake_session_scope():
-    yield object()
+async def fake_session_scope() -> AsyncIterator[AsyncSession]:
+    session, _ = make_mock_session()
+    yield session
 
 
 @pytest.mark.anyio
@@ -93,7 +90,12 @@ async def test_process_fuel_type_raster_for_install_fails_when_source_missing(mo
 
 @pytest.mark.anyio
 async def test_create_fuel_type_raster_record_reserves_id_without_flushing(monkeypatch):
-    session = FakeSession()
+    session, session_mock = make_mock_session()
+    added = []
+    session_mock.add.side_effect = added.append
+    session_mock.flush = AsyncMock(
+        side_effect=AssertionError("flush should not happen before static data is staged")
+    )
     monkeypatch.setattr(
         "app.fuel_grid.install.reserve_fuel_type_raster_id", AsyncMock(return_value=42)
     )
@@ -116,20 +118,19 @@ async def test_create_fuel_type_raster_record_reserves_id_without_flushing(monke
         object_store_path="sfms/static/fuel/2026/fbp2026_v4.tif",
         content_hash="hash-2026",
     )
-    assert session.added[0].id == 42
-
-
-class FakeFlushSession:
-    def __init__(self):
-        self.flush_count = 0
-
-    async def flush(self):
-        self.flush_count += 1
+    assert added[0].id == 42
 
 
 @pytest.mark.anyio
 async def test_populate_static_fuel_grid_data_flushes_once_after_population(monkeypatch):
-    session = FakeFlushSession()
+    session, session_mock = make_mock_session()
+    flush_count = 0
+
+    async def count_flushes():
+        nonlocal flush_count
+        flush_count += 1
+
+    session_mock.flush = AsyncMock(side_effect=count_flushes)
     fuel_type_raster = InstalledFuelRaster(
         id=42,
         year=2026,
@@ -144,10 +145,10 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
         tpi_fuel_area=1,
         advisory_shape_fuels_duplicates=0,
     )
-    populate_advisory_fuel_types = AsyncMock(return_value=["fuel-type-row"])
+    populate_advisory_fuel_types = MagicMock(return_value=["fuel-type-row"])
     populate_advisory_shape_fuels = AsyncMock()
-    populate_combustible_area = AsyncMock()
-    populate_tpi_fuel_area = AsyncMock()
+    populate_combustible_area = MagicMock()
+    populate_tpi_fuel_area = MagicMock()
     verify_static_fuel_grid_data = AsyncMock(return_value=expected_counts)
 
     monkeypatch.setattr(
@@ -178,11 +179,11 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
     )
 
     assert counts == expected_counts
-    assert session.flush_count == 1
-    populate_advisory_fuel_types.assert_awaited_once()
+    assert flush_count == 1
+    populate_advisory_fuel_types.assert_called_once()
     populate_advisory_shape_fuels.assert_awaited_once()
-    populate_combustible_area.assert_awaited_once()
-    populate_tpi_fuel_area.assert_awaited_once()
+    populate_combustible_area.assert_called_once()
+    populate_tpi_fuel_area.assert_called_once()
     verify_static_fuel_grid_data.assert_awaited_once_with(session, 42)
 
 
