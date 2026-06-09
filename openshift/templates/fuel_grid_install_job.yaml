@@ -50,7 +50,8 @@ objects:
       parallelism: 1
       completions: 1
       activeDeadlineSeconds: 21600
-      backoffLimit: 1
+      ttlSecondsAfterFinished: 86400
+      backoffLimit: 0
       template:
         metadata:
           labels:
