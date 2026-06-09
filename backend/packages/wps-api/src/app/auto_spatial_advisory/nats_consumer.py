@@ -27,6 +27,9 @@ from app.auto_spatial_advisory.process_stats import process_sfms_hfi_stats
 
 logger = logging.getLogger(__name__)
 
+_ACK_WAIT = 900           # 15 minutes; keepalive pings extend this for long-running jobs
+_KEEPALIVE_INTERVAL = 450  # 7.5 minutes, half of _ACK_WAIT
+
 
 def parse_nats_message(msg: Msg):
     """
@@ -51,7 +54,7 @@ async def process_message(msg: Msg):
 
     async def keepalive():
         while True:
-            await asyncio.sleep(450)  # 7.5 minutes, half of ack_wait
+            await asyncio.sleep(_KEEPALIVE_INTERVAL)
             await msg.in_progress()
             logger.debug("Sent in_progress for message: %s", msg.subject)
 
@@ -79,6 +82,25 @@ async def process_message(msg: Msg):
             logger.exception("Failed to negatively acknowledge message: %s", msg.data)
 
 
+async def _setup_subscriber(jetstream):
+    await jetstream.add_stream(
+        name=stream_name,
+        config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
+        subjects=subjects,
+    )
+    return await jetstream.pull_subscribe(
+        stream=stream_name,
+        subject=sfms_file_subject,
+        durable=hfi_classify_durable_group,
+        config=ConsumerConfig(
+            durable_name=hfi_classify_durable_group,
+            ack_policy=AckPolicy.EXPLICIT,
+            ack_wait=_ACK_WAIT,
+            max_deliver=6,
+        ),
+    )
+
+
 async def run():
     async def disconnected_cb():
         logger.info("Got disconnected!")
@@ -102,27 +124,7 @@ async def run():
         closed_cb=closed_cb,
     )
     jetstream = nats_connection.jetstream()
-    # we create a stream, this is important, we need to messages to stick around for a while!
-    # idempotent operation, IFF stream with same configuration is added each time
-    await jetstream.add_stream(
-        name=stream_name,
-        config=StreamConfig(retention=RetentionPolicy.WORK_QUEUE),
-        subjects=subjects,
-    )
-
-    consumer_config = ConsumerConfig(
-        durable_name=hfi_classify_durable_group,
-        ack_policy=AckPolicy.EXPLICIT,
-        ack_wait=900,  # 15 minutes; keepalive pings extend this for long-running jobs
-        max_deliver=6,  # initial try + 5 retries
-    )
-
-    sfms_sub = await jetstream.pull_subscribe(
-        stream=stream_name,
-        subject=sfms_file_subject,
-        durable=hfi_classify_durable_group,
-        config=consumer_config,
-    )
+    sfms_sub = await _setup_subscriber(jetstream)
     while True:
         msgs: List[Msg] = await sfms_sub.fetch(batch=1, timeout=None)
         for msg in msgs:

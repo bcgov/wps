@@ -61,6 +61,7 @@ dev = [
     "matplotlib>=3,<4",
     "rope>=1,<2",
     "pytest-watch>=4.2.0,<5",
+    "testcontainers[nats]>=4.10.0,<5",
 ]
 
 [tool.uv.sources]
