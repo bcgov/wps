@@ -26,8 +26,6 @@ from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
 
-from app.sfms.raster_addresser import RasterKeyAddresser
-
 logger = logging.getLogger(__name__)
 
 
@@ -67,9 +65,7 @@ class FuelTypeAreasJob:
         set_s3_gdal_config()
         async with get_async_write_session_scope() as session:
             fuel_type_raster = await get_fuel_type_raster_by_year(session, year)
-            fuel_raster_key = get_versioned_fuel_raster_key(
-                RasterKeyAddresser(), fuel_type_raster.object_store_path
-            )
+            fuel_raster_key = get_versioned_fuel_raster_key(fuel_type_raster.object_store_path)
             logger.info(f"Calculating fuel type areas per zone using fuel raster {fuel_raster_key}")
             fuel_raster_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)
             pixel_size = fuel_raster_ds.GetGeoTransform()[1]

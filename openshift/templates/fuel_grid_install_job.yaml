@@ -1,0 +1,149 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: fuel-grid-install-job-template
+  annotations:
+    description: "Install a fuel grid and derived ASA static data."
+    tags: "job,sfms,fuel"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: SUFFIX
+    description: Deployment suffix, e.g. prod, test, pr-###
+    required: true
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: CRUNCHYDB_USER
+    required: true
+  - name: IMAGE_REGISTRY
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000
+  - name: PROJECT_NAMESPACE
+    description: OpenShift project namespace
+    required: true
+  - name: FUEL_RASTER_YEAR
+    description: Fuel grid year to install.
+    value: "2026"
+  - name: FUEL_RASTER_KEY
+    description: Staged object name under sfms/static/.
+    value: fbp2026.tif
+  - name: FUEL_RASTER_JOB_SUFFIX
+    description: DNS-safe suffix used to keep same-year install Job names distinct.
+    value: fbp2026
+objects:
+  - kind: Job
+    apiVersion: batch/v1
+    metadata:
+      name: fuel-grid-install-${NAME}-${SUFFIX}-${FUEL_RASTER_YEAR}-${FUEL_RASTER_JOB_SUFFIX}
+      annotations:
+        wps.bcgov/fuel-grid-year: "${FUEL_RASTER_YEAR}"
+        wps.bcgov/fuel-grid-source-key: "sfms/static/${FUEL_RASTER_KEY}"
+    spec:
+      suspend: true
+      parallelism: 1
+      completions: 1
+      activeDeadlineSeconds: 21600
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: ${NAME}-${SUFFIX}
+        spec:
+          containers:
+            - name: fuel-grid-install
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
+              imagePullPolicy: "Always"
+              command:
+                - uv
+                - run
+                - --no-sync
+                - python
+                - -m
+                - app.jobs.install_fuel_grid
+                - --year
+                - ${FUEL_RASTER_YEAR}
+                - --key
+                - ${FUEL_RASTER_KEY}
+              env:
+                - name: UV_NO_CACHE
+                  value: "1"
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-user-id
+                - name: OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-secret
+                - name: OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-bucket
+                - name: CLASSIFIED_TPI_DEM_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.classified_tpi_dem_name
+                - name: POSTGRES_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: password
+                - name: POSTGRES_WRITE_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: POSTGRES_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-port
+                - name: POSTGRES_DATABASE
+                  value: ${NAME}
+                - name: SUFFIX
+                  value: ${SUFFIX}
+                - name: CHATOPS_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: chatops-url
+                - name: CHATOPS_AUTH_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: chatops-auth-token
+                - name: OPENSHIFT_CONSOLE_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.openshift-console-url
+                - name: PROJECT_NAMESPACE
+                  value: ${PROJECT_NAMESPACE}
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 2Gi
+                limits:
+                  memory: 3Gi
+          restartPolicy: OnFailure

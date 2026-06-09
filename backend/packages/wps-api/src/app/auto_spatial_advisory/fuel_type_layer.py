@@ -10,10 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import save_fuel_type
-from wps_shared.db.crud.fuel_layer import get_latest_fuel_type_raster_by_fuel_raster_name
+from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import FuelType
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
+from wps_shared.utils.time import get_utc_now
 from wps_shared.utils.polygonize import polygonize_in_memory
 
 logger = logging.getLogger(__name__)
@@ -21,18 +22,11 @@ logger = logging.getLogger(__name__)
 
 async def get_current_fuel_type_raster(session: AsyncSession):
     """
-    Gets the FuelTypeRaster record for the most recent version of the fuel raster
-    that matches the env FUEL_RASTER_NAME
+    Gets the latest installed FuelTypeRaster record for the current year.
     :param session: An async database session.
     :return: A FuelTypeRaster record.
     """
-    # get fuel_type_raster record based on current value of the FUEL_RASTER_NAME env variable
-    name = config.get("FUEL_RASTER_NAME")
-    fuel_raster_name = name.lower()[:-4]
-    fuel_type_raster = await get_latest_fuel_type_raster_by_fuel_raster_name(
-        session, fuel_raster_name
-    )
-    return fuel_type_raster
+    return await get_fuel_type_raster_by_year(session, get_utc_now().year)
 
 
 def fuel_type_iterator(fuel_grid_filename: str) -> Generator[Tuple[int, str], None, None]:

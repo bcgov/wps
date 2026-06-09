@@ -4,8 +4,6 @@ from app.auto_spatial_advisory.process_fuel_type_area import (
     get_fuel_type_s3_key,
 )
 
-from wps_shared import config
-
 HFI_RASTER = np.array(
     [
         [1000, 2000, 3000, 4005],
@@ -18,9 +16,9 @@ HFI_RASTER = np.array(
 
 def test_get_warped_fuel_type_s3_key():
     bucket = "abcde"
-    key = get_fuel_type_s3_key(bucket)
-    fuel_raster_name = config.get("FUEL_RASTER_NAME")
-    assert key == f"/vsis3/{bucket}/sfms/static/{fuel_raster_name}"
+    object_store_path = "sfms/static/fuel/2026/fbp2026_v1.tif"
+    key = get_fuel_type_s3_key(bucket, object_store_path)
+    assert key == f"/vsis3/{bucket}/{object_store_path}"
 
 
 def test_classify_by_threshold_1():

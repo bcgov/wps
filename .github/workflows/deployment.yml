@@ -160,8 +160,7 @@ jobs:
       - name: Provision dev cronjobs and jobs
         shell: bash
         run: |
-          bash openshift/scripts/oc_provision_advisory_fuel_areas_job.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_fuel_raster_processor_job.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_fuel_grid_install_job.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
