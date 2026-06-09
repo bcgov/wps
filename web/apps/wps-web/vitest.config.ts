@@ -8,7 +8,7 @@ export default mergeConfig(
     test: {
       server: {
         deps: {
-          inline: ['react-transition-group']
+          inline: ['react-transition-group', /@mui\//]
         }
       },
       coverage: {

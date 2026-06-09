@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     server: {
       deps: {
-        inline: ['react-transition-group']
+        inline: ['react-transition-group', /@mui\//]
       }
     },
     globals: true,
