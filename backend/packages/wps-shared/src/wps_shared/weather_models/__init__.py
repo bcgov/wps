@@ -137,9 +137,12 @@ def download(url: str, path: str, config_cache_var: str, model_name: str, config
                 file_object.write(response.content)
             # Cache the response
             if cache:
-                with open(target, "rb") as file_object:
-                    # Cache for 6 hours (21600 seconds)
-                    cache.set(url, file_object.read(), ex=config.get(config_cache_expiry_var, 21600))
+                try:
+                    with open(target, "rb") as file_object:
+                        # Cache for 6 hours (21600 seconds)
+                        cache.set(url, file_object.read(), ex=config.get(config_cache_expiry_var, 21600))
+                except Exception as error:
+                    logger.error(error)
         elif response.status_code == 404:
             # We expect this to happen frequently - just log for info.
             logger.info("404 error for %s", url)
