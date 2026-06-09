@@ -52,6 +52,7 @@ class InstalledFuelRaster:
     version: int
     object_store_path: str
     content_hash: str
+    # keep the staged ORM parent so SQLAlchemy orders the single flush by FK dependency.
     record: FuelTypeRaster | None = field(default=None, compare=False, repr=False)
 
 
@@ -184,6 +185,7 @@ def populate_advisory_fuel_types(
             fuel_type_id=fuel_type_id,
             geom=geom,
             fuel_type_raster_id=fuel_type_raster.id,
+            # assign both the FK and relationship; the relationship controls flush ordering.
             fuel_type_raster=fuel_type_raster_record,
         )
         session.add(fuel_type)
@@ -237,6 +239,7 @@ def fuel_types_layer_from_db(session_rows):
 
 
 def fuel_type_geom_to_shape(geom):
+    # unflushed GeoAlchemy geometry values are still hex EWKB strings at this point.
     if isinstance(geom, str):
         return shapely_wkb.loads(geom, hex=True)
     if isinstance(geom, bytes):
@@ -370,6 +373,7 @@ async def populate_static_fuel_grid_data(
     await populate_advisory_shape_fuels(session, fuel_type_raster, fuel_raster_key, zones)
     populate_combustible_area(session, fuel_type_raster, zones, fuel_type_rows)
     populate_tpi_fuel_area(session, fuel_type_raster, tpi_filename, zones)
+    # flush once after all derived rows are staged so verification can query the transaction.
     await session.flush()
     return await verify_static_fuel_grid_data(session, fuel_type_raster.id)
 
@@ -387,6 +391,7 @@ async def cleanup_object_store_artifacts(
         return
 
     try:
+        # object-store writes are outside the DB transaction, so cleanup is best effort on failure.
         async with S3Client() as s3_client:
             for key in keys:
                 try:
