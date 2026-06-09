@@ -17,8 +17,11 @@ spec:
             description: Alerts fire when any error/critical logs occur.
             summary: Nats is generating too many errors
           # Get the rate of error logs per second over the last minute, alert if any errors occurred.
+          # Uses regexp to parse the actual Python levelname from the log format rather than relying
+          # on the OpenShift collector's pre-extracted level label, which incorrectly tags logs from
+          # the critical_hours module as critical due to the module name containing "critical".
           expr: |
-            sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"wps-prod-nats.*" } | json | level=~"critical|emerg|fatal|alert|crit|error|err|eror" [1m])) > 0
+            sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"wps-prod-nats.*" } | regexp `- (?P<level>[A-Z]+) -` | level=~"ERROR|CRITICAL" [1m])) > 0
           for: 0s
           labels:
             namespace: e1e498-prod
