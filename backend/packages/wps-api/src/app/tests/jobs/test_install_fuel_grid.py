@@ -1,9 +1,12 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
+from types import SimpleNamespace
 from typing import AsyncIterator, cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from shapely import wkb
+from shapely.geometry import Polygon
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.fuel_grid.install import (
@@ -11,6 +14,7 @@ from app.fuel_grid.install import (
     InstalledFuelRaster,
     ProcessedFuelRaster,
     create_fuel_type_raster_record,
+    fuel_types_layer_from_db,
     install_fuel_grid,
     populate_static_fuel_grid_data,
     process_fuel_type_raster_for_install,
@@ -41,6 +45,24 @@ def make_mock_session() -> tuple[AsyncSession, MagicMock]:
 async def fake_session_scope() -> AsyncIterator[AsyncSession]:
     session, _ = make_mock_session()
     yield session
+
+
+def test_fuel_types_layer_from_db_accepts_unflushed_hex_wkb():
+    geom = wkb.dumps(
+        Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),
+        hex=True,
+        srid=3005,
+    )
+    row = SimpleNamespace(id=None, fuel_type_id=1, geom=geom)
+
+    with fuel_types_layer_from_db([row]) as layer:
+        layer.ResetReading()
+        feature = layer.GetNextFeature()
+
+        assert layer.GetFeatureCount() == 1
+        assert feature.GetField("id") == 1
+        assert feature.GetField("fuel_type_id") == 1
+        assert feature.GetGeometryRef().GetArea() == 100
 
 
 @pytest.mark.anyio

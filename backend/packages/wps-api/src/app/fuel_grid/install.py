@@ -8,10 +8,12 @@ from typing import Sequence
 
 import aiofiles
 import numpy as np
+from geoalchemy2.elements import WKBElement, WKTElement
 from geoalchemy2.shape import to_shape
 from osgeo import ogr
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from shapely import wkb as shapely_wkb
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_zone_unit_shape_type_id,
@@ -208,7 +210,7 @@ def fuel_types_layer_from_db(session_rows):
     fuel_types_layer.CreateField(ogr.FieldDefn("fuel_type_id", ogr.OFTInteger))
 
     for index, row in enumerate(session_rows, start=1):
-        shapely_obj = to_shape(row.geom)
+        shapely_obj = fuel_type_geom_to_shape(row.geom)
         feature = ogr.Feature(fuel_types_layer.GetLayerDefn())
         feature.SetGeometry(ogr.CreateGeometryFromWkt(shapely_obj.wkt))
         feature.SetField("id", row.id if row.id is not None else index)
@@ -220,6 +222,16 @@ def fuel_types_layer_from_db(session_rows):
         yield fuel_types_layer
     finally:
         mem_ds = None
+
+
+def fuel_type_geom_to_shape(geom):
+    if isinstance(geom, str):
+        return shapely_wkb.loads(geom, hex=True)
+    if isinstance(geom, bytes):
+        return shapely_wkb.loads(geom)
+    if isinstance(geom, WKBElement | WKTElement):
+        return to_shape(geom)
+    raise TypeError(f"Unsupported fuel type geometry: {type(geom).__name__}")
 
 
 def populate_combustible_area(
