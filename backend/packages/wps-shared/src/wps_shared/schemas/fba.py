@@ -1,9 +1,10 @@
 """This module contains pydantic models related to the new formal/non-tinker fba."""
 
+import math
 from datetime import date, datetime
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
 from wps_shared.schemas.psu import FireCentre
@@ -126,6 +127,13 @@ class AdvisoryMinWindStats(BaseModel):
 
     threshold: HfiThreshold
     min_wind_speed: Optional[float]
+
+    @field_validator("min_wind_speed", mode="before")
+    @classmethod
+    def nan_to_none(cls, v):
+        if isinstance(v, float) and math.isnan(v):
+            return None
+        return v
 
 
 class FireZoneHFIStats(BaseModel):

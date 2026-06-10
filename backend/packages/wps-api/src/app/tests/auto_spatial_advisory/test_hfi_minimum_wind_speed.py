@@ -54,3 +54,15 @@ def test_arrays_with_no_data_values():
 
     assert result[mock_advisory_id_lut[HfiClassificationThresholdEnum.ADVISORY.value]] == 15
     assert result[mock_advisory_id_lut[HfiClassificationThresholdEnum.WARNING.value]] == 14
+
+
+def test_all_masked_wind_speeds_are_nodata():
+    """When every pixel at an HFI threshold has nodata wind speed, result must be None not NaN."""
+    wind_speed_array = np.array([5, -1, -1, 20])
+    hfi_array = np.array([1000, 5000, 8000, 500])
+
+    result = get_minimum_wind_speed_for_hfi(wind_speed_array, hfi_array, mock_advisory_id_lut, -1)
+
+    # Both advisory-threshold pixels (index 1, 2) have nodata (-1 → NaN), so result must be None
+    assert result[mock_advisory_id_lut[HfiClassificationThresholdEnum.ADVISORY.value]] is None
+    assert result[mock_advisory_id_lut[HfiClassificationThresholdEnum.WARNING.value]] is None

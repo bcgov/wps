@@ -184,7 +184,12 @@ def get_minimum_wind_speed_for_hfi(
     # Compute minimum wind speed for each classification
     min_wind_speeds: dict[int, float | None] = {}
     for hfi_class, mask in hfi_class_ids.items():
-        min_wind_speeds[hfi_class] = np.nanmin(wind_speed_array[mask]) if np.any(mask) else None
+        if not np.any(mask):
+            min_wind_speeds[hfi_class] = None
+            continue
+        values = wind_speed_array[mask]
+        valid = values[~np.isnan(values)]
+        min_wind_speeds[hfi_class] = float(np.min(valid)) if len(valid) > 0 else None
 
     return min_wind_speeds
 
