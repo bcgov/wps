@@ -171,9 +171,8 @@ def parse_high_res_model_url(url):
         prediction_hour = url_parts[8]
         prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=int(prediction_hour))
         return variable_name, projection, model_run_timestamp, prediction_timestamp
-    except Exception as exc:
-        logger.error("HRDPS URL %s is not in the expected format", url)
-        logger.error(exc_info=exc)
+    except Exception:
+        logger.exception("HRDPS URL %s is not in the expected format", url)
 
 
 def parse_env_canada_filename(url):
@@ -296,12 +295,12 @@ class EnvCanada:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
-            except Exception as exception:
+            except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
                 # as we can.
-                logger.error("unexpected exception processing %s", url, exc_info=exception)
+                logger.exception("unexpected exception processing %s", url)
 
     def process_model_run(self, model_run_hour):
         """Process a particular model run"""
@@ -330,15 +329,14 @@ class EnvCanada:
         for hour in get_env_canada_model_run_hours(self.model_type):
             try:
                 self.process_model_run(hour)
-            except Exception as exception:
+            except Exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
-                logger.error(
+                logger.exception(
                     "unexpected exception processing %s model run %d",
                     self.model_type,
                     hour,
-                    exc_info=exception,
                 )
 
 
@@ -392,7 +390,7 @@ def main():
         sys.exit(os.EX_SOFTWARE)
     except Exception as exception:
         # We catch and log any exceptions we may have missed.
-        logger.error("unexpected exception processing", exc_info=exception)
+        logger.exception("unexpected exception processing")
         rc_message = f":poop: Encountered error retrieving {sys.argv[1]} model data from Env Canada"
         send_chatops_notification(rc_message, exception)
         # Exit with a failure code.
