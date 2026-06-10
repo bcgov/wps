@@ -90,6 +90,14 @@ class FuelGridInstallResult:
 
 
 async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult | None:
+    """
+    Install a staged fuel grid into object storage and the database.
+
+    :param year: Fuel grid year.
+    :param key: Staged object name under sfms/static/.
+    :return: Install result when new database rows are populated, or None when a ready
+        fuel_type_raster row already exists for the same year and raster content.
+    """
     raster_addresser = BaseRasterAddresser()
     staged_source_key = raster_addresser.get_unprocessed_fuel_raster_key(key)
     processed_raster = None
@@ -166,6 +174,19 @@ async def get_or_create_processed_fuel_raster(
     raster_addresser: BaseRasterAddresser,
     source_hash: str,
 ) -> tuple[ProcessedFuelRaster, bool]:
+    """
+    Return versioned fuel raster metadata for the staged source raster.
+
+    Reuses an existing versioned object when the staged source hash already exists in S3. Only
+    creates a new versioned object when the content is new.
+
+    :param year: Fuel grid year.
+    :param key: Staged object name under sfms/static/.
+    :param raster_addresser: Helper for fuel raster S3 keys.
+    :param source_hash: Content hash of the staged source raster.
+    :return: Processed raster metadata and a flag that is True only when this call created a new
+        versioned fuel raster object in S3.
+    """
     existing_raster = await find_versioned_fuel_raster_by_hash(year, raster_addresser, source_hash)
     if existing_raster is not None:
         logger.info(
@@ -181,6 +202,15 @@ async def get_or_create_processed_fuel_raster(
 async def find_versioned_fuel_raster_by_hash(
     year: int, raster_addresser: BaseRasterAddresser, content_hash: str
 ) -> ProcessedFuelRaster | None:
+    """
+    Find an existing versioned fuel raster object with the requested content hash.
+
+    :param year: Fuel grid year.
+    :param raster_addresser: Helper for fuel raster S3 keys.
+    :param content_hash: Content hash to match.
+    :return: Processed raster metadata for the first matching versioned object, or None when no
+        matching object exists before the first missing version.
+    """
     start_datetime = datetime(year, 1, 1, tzinfo=timezone.utc)
     version = 1
 
@@ -205,6 +235,16 @@ async def processed_fuel_raster_from_s3(
     object_store_path: str,
     content_hash: str,
 ) -> ProcessedFuelRaster:
+    """
+    Build processed fuel raster metadata from an existing versioned S3 object.
+
+    :param s3_client: S3 client with an active async context.
+    :param year: Fuel grid year.
+    :param version: Version number encoded in the object path.
+    :param object_store_path: Versioned fuel raster S3 key.
+    :param content_hash: Expected content hash for the object.
+    :return: Processed raster metadata suitable for database population.
+    """
     raster_bytes = await s3_client.get_fuel_raster(object_store_path, content_hash)
     with WPSDataset.from_bytes(raster_bytes) as raster_ds:
         gdal_dataset = raster_ds.as_gdal_ds()
@@ -225,7 +265,14 @@ async def processed_fuel_raster_from_s3(
 async def process_fuel_type_raster_for_install(
     year: int, key: str, raster_addresser: BaseRasterAddresser
 ) -> ProcessedFuelRaster:
-    """Process the staged raster and return metadata for the next installed version."""
+    """
+    Copy the staged raster into the next versioned S3 key and return its metadata.
+
+    :param year: Fuel grid year.
+    :param key: Staged object name under sfms/static/.
+    :param raster_addresser: Helper for fuel raster S3 keys.
+    :return: Metadata for the newly created versioned fuel raster object.
+    """
     staged_key = raster_addresser.get_unprocessed_fuel_raster_key(key)
     async with S3Client() as s3_client:
         if not await s3_client.object_exists(staged_key):
@@ -254,6 +301,12 @@ async def process_fuel_type_raster_for_install(
 
 
 async def get_staged_fuel_raster_hash(staged_key: str) -> str:
+    """
+    Validate that the staged source raster exists and return its content hash.
+
+    :param staged_key: S3 key for the staged source raster.
+    :return: Content hash for the staged source raster.
+    """
     async with S3Client() as s3_client:
         if not await s3_client.object_exists(staged_key):
             raise FileNotFoundError(f"Fuel raster source object does not exist: {staged_key}")
@@ -261,7 +314,12 @@ async def get_staged_fuel_raster_hash(staged_key: str) -> str:
 
 
 async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster) -> str:
-    """Generate the TPI raster masked by the selected fuel grid and return its S3 key."""
+    """
+    Generate the static fuel-masked TPI raster for a processed fuel grid.
+
+    :param fuel_type_raster: Metadata for the processed fuel raster.
+    :return: S3 key for the generated fuel-masked TPI raster.
+    """
     masked_tpi_key = get_fuel_masked_tpi_key(fuel_type_raster)
     async with S3Client() as s3_client:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -274,6 +332,14 @@ async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster)
 async def ensure_fuel_masked_tpi_raster(
     fuel_type_raster: ProcessedFuelRaster, masked_tpi_key: str
 ) -> bool:
+    """
+    Ensure the fuel-masked TPI raster exists for the processed fuel grid.
+
+    :param fuel_type_raster: Metadata for the processed fuel raster.
+    :param masked_tpi_key: S3 key where the fuel-masked TPI raster should exist.
+    :return: True when this call generated and uploaded the raster, False when an existing S3
+        object was reused.
+    """
     async with S3Client() as s3_client:
         if await s3_client.object_exists(masked_tpi_key):
             logger.info("Reusing existing fuel-masked TPI raster: %s", masked_tpi_key)
