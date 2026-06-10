@@ -21,8 +21,10 @@ class MissingFuelTypeRasterError(Exception):
 
 def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
     """
-    Creates a masked TPI raster using a classified TPI raster from S3 storage and masking it using
-    the specified fuel layer also from S3 storage
+    Creates a static classified TPI raster masked to fuel covered pixels for one fuel grid.
+
+    The result is used to populate tpi_fuel_area, which gives the total fuel covered area in each
+    TPI class.
     """
     # Open up our rasters with gdal
     set_s3_gdal_config()
@@ -50,7 +52,7 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
     tpi_band: gdal.Band = tpi_ds.GetRasterBand(1)
     tpi_data = tpi_band.ReadAsArray()
 
-    # Apply the fuel layer mask to the classified TPI raster and store the result in an in-memory gdal dataset
+    # keep only fuel-covered TPI pixels so later area totals exclude non-fuel classes.
     masked_tpi_data = np.multiply(mask, tpi_data)
     output_driver: gdal.Driver = gdal.GetDriverByName("GTiff")
     output_path = os.path.join(temp_dir, "fuel_masked_tpi.tif")
