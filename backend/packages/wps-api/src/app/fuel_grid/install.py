@@ -28,10 +28,10 @@ from wps_shared.db.models.auto_spatial_advisory import (
     Shape,
     TPIFuelArea,
 )
-from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.fuel_type_raster import (
     FUEL_RASTER_STATUS_INSTALLING,
     FUEL_RASTER_STATUS_READY,
+    FuelTypeRaster,
 )
 from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
@@ -88,6 +88,34 @@ class FuelGridInstallResult:
     counts: FuelGridInstallCounts
 
 
+async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult:
+    raster_addresser = BaseRasterAddresser()
+    processed_raster = None
+    fuel_masked_tpi_key = None
+    try:
+        processed_raster = await process_fuel_type_raster_for_install(year, key, raster_addresser)
+        fuel_masked_tpi_key = get_fuel_masked_tpi_key(processed_raster)
+        await generate_fuel_masked_tpi_raster(processed_raster)
+
+        async with get_async_write_session_scope() as session:
+            installed_fuel_raster, counts = await install_static_fuel_grid_data(
+                session, processed_raster, fuel_masked_tpi_key
+            )
+    except Exception:
+        await cleanup_object_store_artifacts(processed_raster, fuel_masked_tpi_key)
+        raise
+
+    return FuelGridInstallResult(
+        fuel_type_raster=installed_fuel_raster,
+        staged_source_key=raster_addresser.get_unprocessed_fuel_raster_key(key),
+        fuel_masked_tpi_key=fuel_masked_tpi_key,
+        counts=counts,
+    )
+
+
+# object-store raster processing
+
+
 async def process_fuel_type_raster_for_install(
     year: int, key: str, raster_addresser: BaseRasterAddresser
 ) -> ProcessedFuelRaster:
@@ -119,6 +147,41 @@ async def process_fuel_type_raster_for_install(
     )
 
 
+async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster) -> str:
+    """Generate the TPI raster masked by the selected fuel grid and return its S3 key."""
+    masked_tpi_key = get_fuel_masked_tpi_key(fuel_type_raster)
+    async with S3Client() as s3_client:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            masked_tpi_path = prepare_masked_tif(temp_dir, fuel_type_raster.object_store_path)
+            async with aiofiles.open(masked_tpi_path, "rb") as masked_tpi:
+                await s3_client.put_object(key=masked_tpi_key, body=await masked_tpi.read())
+    return masked_tpi_key
+
+
+def get_fuel_masked_tpi_key(fuel_type_raster: ProcessedFuelRaster) -> str:
+    filename = get_fuel_masked_tpi_filename(fuel_type_raster.year, fuel_type_raster.version)
+    return f"dem/tpi/{filename}"
+
+
+def get_fuel_masked_tpi_filename(year: int, version: int) -> str:
+    classified_tpi_name = config.get("CLASSIFIED_TPI_DEM_NAME")
+    classified_tpi_base, _ = os.path.splitext(classified_tpi_name)
+    return f"{classified_tpi_base}_fuel_masked_{year}_v{version}.tif"
+
+
+# database install lifecycle
+
+
+async def install_static_fuel_grid_data(
+    session: AsyncSession,
+    processed_raster: ProcessedFuelRaster,
+    fuel_masked_tpi_key: str,
+) -> tuple[InstalledFuelRaster, FuelGridInstallCounts]:
+    fuel_type_raster = await create_fuel_type_raster_record(session, processed_raster)
+    counts = await populate_static_fuel_grid_data(session, fuel_type_raster, fuel_masked_tpi_key)
+    return mark_fuel_type_raster_ready(fuel_type_raster), counts
+
+
 async def create_fuel_type_raster_record(
     session: AsyncSession, processed_raster: ProcessedFuelRaster
 ) -> FuelTypeRaster:
@@ -138,6 +201,12 @@ async def create_fuel_type_raster_record(
     return fuel_type_raster
 
 
+def mark_fuel_type_raster_ready(fuel_type_raster: FuelTypeRaster) -> InstalledFuelRaster:
+    fuel_type_raster.install_status = FUEL_RASTER_STATUS_READY
+    fuel_type_raster.ready_timestamp = get_utc_now()
+    return installed_fuel_raster_from_record(fuel_type_raster)
+
+
 def installed_fuel_raster_from_record(fuel_type_raster: FuelTypeRaster) -> InstalledFuelRaster:
     return InstalledFuelRaster(
         id=fuel_type_raster.id,
@@ -149,32 +218,30 @@ def installed_fuel_raster_from_record(fuel_type_raster: FuelTypeRaster) -> Insta
     )
 
 
-def mark_fuel_type_raster_ready(fuel_type_raster: FuelTypeRaster) -> InstalledFuelRaster:
-    fuel_type_raster.install_status = FUEL_RASTER_STATUS_READY
-    fuel_type_raster.ready_timestamp = get_utc_now()
-    return installed_fuel_raster_from_record(fuel_type_raster)
+# static derived table population
 
 
-def get_fuel_masked_tpi_filename(year: int, version: int) -> str:
-    classified_tpi_name = config.get("CLASSIFIED_TPI_DEM_NAME")
-    classified_tpi_base, _ = os.path.splitext(classified_tpi_name)
-    return f"{classified_tpi_base}_fuel_masked_{year}_v{version}.tif"
+async def populate_static_fuel_grid_data(
+    session: AsyncSession,
+    fuel_type_raster: FuelTypeRaster,
+    fuel_masked_tpi_key: str,
+) -> FuelGridInstallCounts:
+    fuel_raster_key = get_versioned_fuel_raster_key(fuel_type_raster.object_store_path)
+    tpi_filename = fuel_masked_tpi_key.removeprefix("dem/tpi/")
+    zones = await get_fire_zone_unit_shapes(session)
+
+    fuel_type_rows = populate_advisory_fuel_types(session, fuel_type_raster, fuel_raster_key)
+    await populate_advisory_shape_fuels(session, fuel_type_raster, fuel_raster_key, zones)
+    populate_combustible_area(session, fuel_type_raster, zones, fuel_type_rows)
+    populate_tpi_fuel_area(session, fuel_type_raster, tpi_filename, zones)
+    # flush derived rows so verification can query them before the transaction commits.
+    await session.flush()
+    return await verify_static_fuel_grid_data(session, fuel_type_raster.id)
 
 
-def get_fuel_masked_tpi_key(fuel_type_raster: ProcessedFuelRaster) -> str:
-    filename = get_fuel_masked_tpi_filename(fuel_type_raster.year, fuel_type_raster.version)
-    return f"dem/tpi/{filename}"
-
-
-async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster) -> str:
-    """Generate the TPI raster masked by the selected fuel grid and return its S3 key."""
-    masked_tpi_key = get_fuel_masked_tpi_key(fuel_type_raster)
-    async with S3Client() as s3_client:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            masked_tpi_path = prepare_masked_tif(temp_dir, fuel_type_raster.object_store_path)
-            async with aiofiles.open(masked_tpi_path, "rb") as masked_tpi:
-                await s3_client.put_object(key=masked_tpi_key, body=await masked_tpi.read())
-    return masked_tpi_key
+async def get_fire_zone_unit_shapes(session: AsyncSession) -> Sequence[Shape]:
+    shape_type_id = await get_fire_zone_unit_shape_type_id(session)
+    return await get_fire_zone_units(session, shape_type_id)
 
 
 def populate_advisory_fuel_types(
@@ -212,40 +279,6 @@ async def populate_advisory_shape_fuels(
             )
 
 
-@contextmanager
-def fuel_types_layer_from_db(session_rows):
-    mem_driver = ogr.GetDriverByName("MEM")
-    mem_ds = mem_driver.CreateDataSource("fuel_types")
-    fuel_types_layer = mem_ds.CreateLayer("fuel_types", geom_type=ogr.wkbPolygon)
-    fuel_types_layer.CreateField(ogr.FieldDefn("id", ogr.OFTInteger))
-    fuel_types_layer.CreateField(ogr.FieldDefn("fuel_type_id", ogr.OFTInteger))
-
-    for index, row in enumerate(session_rows, start=1):
-        shapely_obj = fuel_type_geom_to_shape(row.geom)
-        feature = ogr.Feature(fuel_types_layer.GetLayerDefn())
-        feature.SetGeometry(ogr.CreateGeometryFromWkt(shapely_obj.wkt))
-        feature.SetField("id", row.id if row.id is not None else index)
-        feature.SetField("fuel_type_id", row.fuel_type_id)
-        fuel_types_layer.CreateFeature(feature)
-        feature = None
-
-    try:
-        yield fuel_types_layer
-    finally:
-        mem_ds = None
-
-
-def fuel_type_geom_to_shape(geom):
-    # unflushed GeoAlchemy geometry values are still hex EWKB strings at this point.
-    if isinstance(geom, str):
-        return shapely_wkb.loads(geom, hex=True)
-    if isinstance(geom, bytes):
-        return shapely_wkb.loads(geom)
-    if isinstance(geom, WKBElement | WKTElement):
-        return to_shape(geom)
-    raise TypeError(f"Unsupported fuel type geometry: {type(geom).__name__}")
-
-
 def populate_combustible_area(
     session: AsyncSession,
     fuel_type_raster: FuelTypeRaster,
@@ -258,7 +291,7 @@ def populate_combustible_area(
         if fuel_type.fuel_type_id < 99 and fuel_type.fuel_type_id > 0
     ]
 
-    with fuel_types_layer_from_db(combustible_fuel_type_rows) as fuel_types:
+    with fuel_types_layer_from_rows(combustible_fuel_type_rows) as fuel_types:
         for _, area, advisory_shape_id in calculate_combustible_area_by_fire_zone(
             fuel_types, zones
         ):
@@ -290,6 +323,52 @@ def populate_tpi_fuel_area(
                 fuel_type_raster_id=fuel_type_raster.id,
             )
         )
+
+
+# in-memory geometry conversion for combustible-area calculation
+
+
+@contextmanager
+def fuel_types_layer_from_db(session_rows):
+    with fuel_types_layer_from_rows(session_rows) as fuel_types:
+        yield fuel_types
+
+
+@contextmanager
+def fuel_types_layer_from_rows(fuel_type_rows):
+    mem_driver = ogr.GetDriverByName("MEM")
+    mem_ds = mem_driver.CreateDataSource("fuel_types")
+    fuel_types_layer = mem_ds.CreateLayer("fuel_types", geom_type=ogr.wkbPolygon)
+    fuel_types_layer.CreateField(ogr.FieldDefn("id", ogr.OFTInteger))
+    fuel_types_layer.CreateField(ogr.FieldDefn("fuel_type_id", ogr.OFTInteger))
+
+    for index, row in enumerate(fuel_type_rows, start=1):
+        shapely_obj = fuel_type_geom_to_shape(row.geom)
+        feature = ogr.Feature(fuel_types_layer.GetLayerDefn())
+        feature.SetGeometry(ogr.CreateGeometryFromWkt(shapely_obj.wkt))
+        feature.SetField("id", row.id if row.id is not None else index)
+        feature.SetField("fuel_type_id", row.fuel_type_id)
+        fuel_types_layer.CreateFeature(feature)
+        feature = None
+
+    try:
+        yield fuel_types_layer
+    finally:
+        mem_ds = None
+
+
+def fuel_type_geom_to_shape(geom):
+    # unflushed GeoAlchemy geometry values are still hex EWKB strings at this point.
+    if isinstance(geom, str):
+        return shapely_wkb.loads(geom, hex=True)
+    if isinstance(geom, bytes):
+        return shapely_wkb.loads(geom)
+    if isinstance(geom, WKBElement | WKTElement):
+        return to_shape(geom)
+    raise TypeError(f"Unsupported fuel type geometry: {type(geom).__name__}")
+
+
+# verification
 
 
 async def verify_static_fuel_grid_data(
@@ -352,23 +431,7 @@ async def count_advisory_shape_fuel_duplicates(
     return result.scalar_one()
 
 
-async def populate_static_fuel_grid_data(
-    session: AsyncSession,
-    fuel_type_raster: FuelTypeRaster,
-    fuel_masked_tpi_key: str,
-) -> FuelGridInstallCounts:
-    fuel_raster_key = get_versioned_fuel_raster_key(fuel_type_raster.object_store_path)
-    tpi_filename = fuel_masked_tpi_key.removeprefix("dem/tpi/")
-    shape_type_id = await get_fire_zone_unit_shape_type_id(session)
-    zones = await get_fire_zone_units(session, shape_type_id)
-
-    fuel_type_rows = populate_advisory_fuel_types(session, fuel_type_raster, fuel_raster_key)
-    await populate_advisory_shape_fuels(session, fuel_type_raster, fuel_raster_key, zones)
-    populate_combustible_area(session, fuel_type_raster, zones, fuel_type_rows)
-    populate_tpi_fuel_area(session, fuel_type_raster, tpi_filename, zones)
-    # flush derived rows so verification can query them before the transaction commits.
-    await session.flush()
-    return await verify_static_fuel_grid_data(session, fuel_type_raster.id)
+# failure cleanup
 
 
 async def cleanup_object_store_artifacts(
@@ -394,31 +457,3 @@ async def cleanup_object_store_artifacts(
                     logger.warning("Could not clean up fuel grid install object: %s", key)
     except Exception:
         logger.warning("Could not create S3 client for fuel grid install cleanup", exc_info=True)
-
-
-async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult:
-    raster_addresser = BaseRasterAddresser()
-    processed_raster = None
-    fuel_masked_tpi_key = None
-    try:
-        processed_raster = await process_fuel_type_raster_for_install(year, key, raster_addresser)
-        fuel_masked_tpi_key = get_fuel_masked_tpi_key(processed_raster)
-        await generate_fuel_masked_tpi_raster(processed_raster)
-
-        async with get_async_write_session_scope() as session:
-            fuel_type_raster = await create_fuel_type_raster_record(session, processed_raster)
-            counts = await populate_static_fuel_grid_data(
-                session, fuel_type_raster, fuel_masked_tpi_key
-            )
-            # only ready rasters are selected by normal read paths.
-            installed_fuel_type_raster = mark_fuel_type_raster_ready(fuel_type_raster)
-    except Exception:
-        await cleanup_object_store_artifacts(processed_raster, fuel_masked_tpi_key)
-        raise
-
-    return FuelGridInstallResult(
-        fuel_type_raster=installed_fuel_type_raster,
-        staged_source_key=raster_addresser.get_unprocessed_fuel_raster_key(key),
-        fuel_masked_tpi_key=fuel_masked_tpi_key,
-        counts=counts,
-    )
