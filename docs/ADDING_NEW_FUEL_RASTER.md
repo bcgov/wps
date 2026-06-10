@@ -13,6 +13,7 @@ The install job does the static setup for one fuel grid:
    - `combustible_area`
    - `tpi_fuel_area`
 5. Verifies the derived row counts before the DB transaction commits.
+6. Marks the `fuel_type_raster` row as `ready`.
 
 The install job does not reprocess date-based advisory or SFMS outputs. Reprocess those separately
 for the operational date range that should use the new fuel grid.
@@ -98,6 +99,7 @@ Fuel grid install complete
 fuel_type_raster_id: <id>
 year: 2026
 version: 1
+install_status: ready
 processed_raster_key: sfms/static/fuel/2026/fbp2026_v1.tif
 fuel_masked_tpi_key: dem/tpi/<classified_tpi_base>_fuel_masked_2026_v1.tif
 advisory_fuel_types_count: <count>
@@ -113,6 +115,7 @@ You can also verify in SQL:
 SELECT id, year, version, object_store_path, content_hash, create_timestamp
 FROM fuel_type_raster
 WHERE year = 2026
+  AND install_status = 'ready'
 ORDER BY version DESC;
 ```
 
@@ -143,6 +146,7 @@ install job.
 ## Failure Behavior
 
 The job stages all DB rows in one transaction. If verification fails, the transaction rolls back.
+Normal read paths only select fuel rasters with `install_status = 'ready'`.
 
 Object-store writes cannot roll back with the database, so the job makes a best-effort attempt to
 delete the processed fuel raster and generated fuel-masked TPI raster on failure.
