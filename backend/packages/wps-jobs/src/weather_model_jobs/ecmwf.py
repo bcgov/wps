@@ -173,7 +173,7 @@ class ECMWF:
 
                     self.files_processed += 1
                     self.model_run_repository.mark_url_as_processed(url)
-                except Exception as exception:
+                except Exception:
                     self.exception_count += 1
                     logger.exception("unexpected exception processing %s", url)
                     self.model_run_repository.session.rollback()
@@ -191,7 +191,7 @@ class ECMWF:
         for hour in get_model_run_hours(self.model_type):
             try:
                 self.process_model_run(hour)
-            except Exception as exception:
+            except Exception:
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
                 logger.exception(

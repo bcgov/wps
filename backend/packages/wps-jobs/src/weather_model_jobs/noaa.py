@@ -340,7 +340,7 @@ class NOAA:
                     )
                 else:
                     raise http_error
-            except Exception as exception:
+            except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
@@ -375,7 +375,7 @@ class NOAA:
         for hour in get_gfs_and_nam_model_run_hours():
             try:
                 self.process_model_run(hour)
-            except Exception as exception:
+            except Exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1

@@ -111,7 +111,7 @@ class RDPSGrib:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
-            except Exception as exception:
+            except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
@@ -136,7 +136,7 @@ class RDPSGrib:
                 await self._process_model_run(hour)
                 if self.files_downloaded > 0:
                     create_model_run_for_sfms(self.session, ModelEnum.RDPS, self.now, hour)
-            except Exception as exception:
+            except Exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1

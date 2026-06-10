@@ -171,7 +171,7 @@ def parse_high_res_model_url(url):
         prediction_hour = url_parts[8]
         prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=int(prediction_hour))
         return variable_name, projection, model_run_timestamp, prediction_timestamp
-    except Exception as exc:
+    except Exception:
         logger.exception("HRDPS URL %s is not in the expected format", url)
 
 
@@ -295,7 +295,7 @@ class EnvCanada:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
-            except Exception as exception:
+            except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
@@ -329,7 +329,7 @@ class EnvCanada:
         for hour in get_env_canada_model_run_hours(self.model_type):
             try:
                 self.process_model_run(hour)
-            except Exception as exception:
+            except Exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
