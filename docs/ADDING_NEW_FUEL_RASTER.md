@@ -4,7 +4,8 @@ Use this checklist near the start of each fire season when a new SFMS fuel grid 
 
 The install job does the static setup for one fuel grid:
 
-1. Copies the staged raster to the versioned fuel raster location.
+1. Copies the staged raster to the versioned fuel raster location, or reuses an existing
+   versioned raster with the same content hash.
 2. Inserts one `fuel_type_raster` row.
 3. Generates the fuel-masked classified TPI raster.
 4. Populates static advisory data for that raster:
@@ -20,6 +21,11 @@ for the operational date range that should use the new fuel grid.
 
 If the staged raster has the same content hash as a `ready` `fuel_type_raster` for the same year,
 the job logs a warning and exits without installing another version.
+
+If the database does not have that raster yet but object storage already has a versioned raster
+with the same content hash, the job reuses the existing object-store version and only populates the
+database. This lets dev deployments run the job repeatedly without creating new S3 fuel-grid
+versions for every PR environment.
 
 ## 1. Stage the Raster
 

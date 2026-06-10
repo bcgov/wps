@@ -35,6 +35,7 @@ from wps_shared.db.models.fuel_type_raster import (
 )
 from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
@@ -93,6 +94,8 @@ async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult | None
     staged_source_key = raster_addresser.get_unprocessed_fuel_raster_key(key)
     processed_raster = None
     fuel_masked_tpi_key = None
+    created_fuel_raster = False
+    created_fuel_masked_tpi = False
     try:
         source_hash = await get_staged_fuel_raster_hash(staged_source_key)
         async with get_async_write_session_scope() as session:
@@ -109,16 +112,23 @@ async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult | None
                 )
                 return None
 
-        processed_raster = await process_fuel_type_raster_for_install(year, key, raster_addresser)
+        processed_raster, created_fuel_raster = await get_or_create_processed_fuel_raster(
+            year, key, raster_addresser, source_hash
+        )
         fuel_masked_tpi_key = get_fuel_masked_tpi_key(processed_raster)
-        await generate_fuel_masked_tpi_raster(processed_raster)
+        created_fuel_masked_tpi = await ensure_fuel_masked_tpi_raster(
+            processed_raster, fuel_masked_tpi_key
+        )
 
         async with get_async_write_session_scope() as session:
             installed_fuel_raster, counts = await install_static_fuel_grid_data(
                 session, processed_raster, fuel_masked_tpi_key
             )
     except Exception:
-        await cleanup_object_store_artifacts(processed_raster, fuel_masked_tpi_key)
+        await cleanup_object_store_artifacts(
+            processed_raster if created_fuel_raster else None,
+            fuel_masked_tpi_key if created_fuel_masked_tpi else None,
+        )
         raise
 
     return FuelGridInstallResult(
@@ -148,6 +158,68 @@ def log_existing_fuel_grid_install(
 
 
 # object-store raster processing
+
+
+async def get_or_create_processed_fuel_raster(
+    year: int,
+    key: str,
+    raster_addresser: BaseRasterAddresser,
+    source_hash: str,
+) -> tuple[ProcessedFuelRaster, bool]:
+    existing_raster = await find_versioned_fuel_raster_by_hash(year, raster_addresser, source_hash)
+    if existing_raster is not None:
+        logger.info(
+            "Reusing existing versioned fuel raster for year %s with matching content hash: %s",
+            year,
+            existing_raster.object_store_path,
+        )
+        return existing_raster, False
+
+    return await process_fuel_type_raster_for_install(year, key, raster_addresser), True
+
+
+async def find_versioned_fuel_raster_by_hash(
+    year: int, raster_addresser: BaseRasterAddresser, content_hash: str
+) -> ProcessedFuelRaster | None:
+    start_datetime = datetime(year, 1, 1, tzinfo=timezone.utc)
+    version = 1
+
+    async with S3Client() as s3_client:
+        while True:
+            object_store_path = raster_addresser.get_fuel_raster_key(start_datetime, version)
+            if not await s3_client.object_exists(object_store_path):
+                return None
+
+            if await s3_client.get_content_hash(object_store_path) == content_hash:
+                return await processed_fuel_raster_from_s3(
+                    s3_client, year, version, object_store_path, content_hash
+                )
+
+            version += 1
+
+
+async def processed_fuel_raster_from_s3(
+    s3_client: S3Client,
+    year: int,
+    version: int,
+    object_store_path: str,
+    content_hash: str,
+) -> ProcessedFuelRaster:
+    raster_bytes = await s3_client.get_fuel_raster(object_store_path, content_hash)
+    with WPSDataset.from_bytes(raster_bytes) as raster_ds:
+        gdal_dataset = raster_ds.as_gdal_ds()
+        xsize = gdal_dataset.RasterXSize
+        ysize = gdal_dataset.RasterYSize
+
+    return ProcessedFuelRaster(
+        year=year,
+        version=version,
+        xsize=xsize,
+        ysize=ysize,
+        object_store_path=object_store_path,
+        content_hash=content_hash,
+        create_timestamp=get_utc_now(),
+    )
 
 
 async def process_fuel_type_raster_for_install(
@@ -197,6 +269,18 @@ async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster)
             async with aiofiles.open(masked_tpi_path, "rb") as masked_tpi:
                 await s3_client.put_object(key=masked_tpi_key, body=await masked_tpi.read())
     return masked_tpi_key
+
+
+async def ensure_fuel_masked_tpi_raster(
+    fuel_type_raster: ProcessedFuelRaster, masked_tpi_key: str
+) -> bool:
+    async with S3Client() as s3_client:
+        if await s3_client.object_exists(masked_tpi_key):
+            logger.info("Reusing existing fuel-masked TPI raster: %s", masked_tpi_key)
+            return False
+
+    await generate_fuel_masked_tpi_raster(fuel_type_raster)
+    return True
 
 
 def get_fuel_masked_tpi_key(fuel_type_raster: ProcessedFuelRaster) -> str:
