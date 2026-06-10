@@ -209,5 +209,12 @@ def test_get_zone_wind_stats_skips_unknown_threshold():
     assert result == [AdvisoryMinWindStats(threshold=advisory_threshold, min_wind_speed=10)]
 
 
-def test_percent_curing_none_fuel_type():
-    assert get_optional_percent_curing(date(2024, 8, 1), None) is None
+def test_percent_curing_non_fuel_type():
+    non_fuel_type = SFMSFuelType(
+        id=99,
+        fuel_type_id=99,
+        fuel_type_code="Non-fuel",
+        description="Non-fuel",
+    )
+
+    assert get_optional_percent_curing(date(2024, 8, 1), non_fuel_type) is None
