@@ -59,10 +59,12 @@ Update the defaults in `openshift/templates/fuel_grid_install_job.yaml`:
 Commit this change with the PR. Git history is the record of what raster the seasonal install job
 was configured to install.
 
-## 3. Deploy the Suspended Job
+## 3. Deploy the Job
 
-The deployment workflow provisions the fuel grid install job. The job is created suspended, so it
-does not consume CPU or memory until it is unsuspended.
+The deployment workflow provisions the fuel grid install job. Dev deployments create the job
+unsuspended so new PR databases are populated automatically. Production creates the job suspended so
+the install can be started manually after the staged raster, image tag, database target, and
+object-store target are confirmed.
 
 For a PR/dev deployment, the job name looks like:
 
@@ -76,10 +78,9 @@ For production, the name looks like:
 fuel-grid-install-wps-prod-2026-fbp2026
 ```
 
-## 4. Run the Job
+## 4. Run the Job in Production
 
-Unsuspend the job when the staged raster, image tag, database target, and object-store target are
-confirmed.
+Unsuspend the production job when it is ready to run.
 
 ```bash
 oc -n <namespace> patch job/<job-name> --type=merge -p '{"spec":{"suspend":false}}'

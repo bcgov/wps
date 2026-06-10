@@ -37,6 +37,9 @@ parameters:
   - name: FUEL_RASTER_JOB_SUFFIX
     description: DNS-safe suffix used to keep same-year install Job names distinct.
     value: fbp2026
+  - name: FUEL_GRID_INSTALL_SUSPEND
+    description: Whether the install job should be created suspended.
+    value: "false"
 objects:
   - kind: Job
     apiVersion: batch/v1
@@ -46,7 +49,7 @@ objects:
         wps.bcgov/fuel-grid-year: "${FUEL_RASTER_YEAR}"
         wps.bcgov/fuel-grid-source-key: "sfms/static/${FUEL_RASTER_KEY}"
     spec:
-      suspend: true
+      suspend: ${FUEL_GRID_INSTALL_SUSPEND}
       parallelism: 1
       completions: 1
       activeDeadlineSeconds: 21600

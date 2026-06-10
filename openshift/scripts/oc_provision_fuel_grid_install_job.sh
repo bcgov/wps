@@ -17,12 +17,14 @@ source "$(dirname ${0})/common/common"
 #%   PROJ_TARGET=e1e498-dev ${THIS_FILE} pr-0
 
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
+FUEL_GRID_INSTALL_SUSPEND="${FUEL_GRID_INSTALL_SUSPEND:-false}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/fuel_grid_install_job.yaml \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
 -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
+-p FUEL_GRID_INSTALL_SUSPEND=${FUEL_GRID_INSTALL_SUSPEND} \
 -p PROJECT_NAMESPACE=${PROJ_TARGET}"
 
 # Apply template (apply or use --dry-run)
