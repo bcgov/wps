@@ -52,8 +52,6 @@ Update the defaults in `openshift/templates/fuel_grid_install_job.yaml`:
   value: "2026"
 - name: FUEL_RASTER_KEY
   value: fbp2026.tif
-- name: FUEL_RASTER_JOB_SUFFIX
-  value: fbp2026
 ```
 
 Commit this change with the PR. Git history is the record of what raster the seasonal install job
@@ -69,13 +67,13 @@ object-store target are confirmed.
 For a PR/dev deployment, the job name looks like:
 
 ```text
-fuel-grid-install-wps-pr-5495-2026-fbp2026
+fuel-grid-install-wps-pr-5495
 ```
 
 For production, the name looks like:
 
 ```text
-fuel-grid-install-wps-prod-2026-fbp2026
+fuel-grid-install-wps-prod
 ```
 
 ## 4. Run the Job in Production
