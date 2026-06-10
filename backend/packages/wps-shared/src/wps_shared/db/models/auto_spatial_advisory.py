@@ -329,6 +329,15 @@ class AdvisoryHFIWindSpeed(Base):
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
     _min_wind_speed = Column("min_wind_speed", Float, nullable=True)
 
+    # hybrid_property exposes _min_wind_speed through three roles:
+    #   - getter (instance): normalizes NaN/Inf stored by raster calculations to None
+    #   - expression (class): returns the raw Column so the property can be used in SQLAlchemy
+    #     query filters/ordering (e.g. .filter(AdvisoryHFIWindSpeed.min_wind_speed > 5));
+    #     without this, class-level access would invoke the getter and fail on a Column object
+    #   - setter: delegates to the underlying column attribute
+    # Pyright reports false-positive redeclaration and type errors here because it does not
+    # model SQLAlchemy's hybrid_property descriptor; the three same-named methods are
+    # intentional and correct at runtime.
     @hybrid_property
     def min_wind_speed(self) -> float | None:
         v = self._min_wind_speed
