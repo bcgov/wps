@@ -11,13 +11,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.fuel_grid.install import (
     FuelGridInstallCounts,
-    InstalledFuelRaster,
     ProcessedFuelRaster,
     create_fuel_type_raster_record,
     fuel_types_layer_from_db,
     install_fuel_grid,
     populate_static_fuel_grid_data,
     process_fuel_type_raster_for_install,
+)
+from wps_shared.db.models.fuel_type_raster import (
+    FUEL_RASTER_STATUS_INSTALLING,
+    FUEL_RASTER_STATUS_READY,
+    FuelTypeRaster,
 )
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 
@@ -111,16 +115,11 @@ async def test_process_fuel_type_raster_for_install_fails_when_source_missing(mo
 
 
 @pytest.mark.anyio
-async def test_create_fuel_type_raster_record_reserves_id_without_flushing(monkeypatch):
+async def test_create_fuel_type_raster_record_flushes_installing_parent(monkeypatch):
     session, session_mock = make_mock_session()
     added = []
     session_mock.add.side_effect = added.append
-    session_mock.flush = AsyncMock(
-        side_effect=AssertionError("flush should not happen before static data is staged")
-    )
-    monkeypatch.setattr(
-        "app.fuel_grid.install.reserve_fuel_type_raster_id", AsyncMock(return_value=42)
-    )
+    session_mock.flush = AsyncMock()
     processed_raster = ProcessedFuelRaster(
         year=2026,
         version=4,
@@ -133,15 +132,10 @@ async def test_create_fuel_type_raster_record_reserves_id_without_flushing(monke
 
     result = await create_fuel_type_raster_record(session, processed_raster)
 
-    assert result == InstalledFuelRaster(
-        id=42,
-        year=2026,
-        version=4,
-        object_store_path="sfms/static/fuel/2026/fbp2026_v4.tif",
-        content_hash="hash-2026",
-    )
-    assert added[0].id == 42
-    assert result.record is added[0]
+    assert result is added[0]
+    assert result.install_status == FUEL_RASTER_STATUS_INSTALLING
+    assert result.object_store_path == "sfms/static/fuel/2026/fbp2026_v4.tif"
+    session_mock.flush.assert_awaited_once()
 
 
 @pytest.mark.anyio
@@ -154,7 +148,7 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
         flush_count += 1
 
     session_mock.flush = AsyncMock(side_effect=count_flushes)
-    fuel_type_raster = InstalledFuelRaster(
+    fuel_type_raster = FuelTypeRaster(
         id=42,
         year=2026,
         version=4,
@@ -221,12 +215,13 @@ async def test_install_fuel_grid_cleans_up_object_store_artifacts_on_failure(mon
         content_hash="hash-2026",
         create_timestamp=datetime(2026, 6, 1),
     )
-    installed_raster = InstalledFuelRaster(
+    installing_raster = FuelTypeRaster(
         id=42,
         year=2026,
         version=4,
         object_store_path="sfms/static/fuel/2026/fbp2026_v4.tif",
         content_hash="hash-2026",
+        install_status=FUEL_RASTER_STATUS_INSTALLING,
     )
     cleanup = AsyncMock()
 
@@ -241,7 +236,7 @@ async def test_install_fuel_grid_cleans_up_object_store_artifacts_on_failure(mon
     monkeypatch.setattr("app.fuel_grid.install.get_async_write_session_scope", fake_session_scope)
     monkeypatch.setattr(
         "app.fuel_grid.install.create_fuel_type_raster_record",
-        AsyncMock(return_value=installed_raster),
+        AsyncMock(return_value=installing_raster),
     )
     monkeypatch.setattr(
         "app.fuel_grid.install.populate_static_fuel_grid_data",
@@ -253,3 +248,56 @@ async def test_install_fuel_grid_cleans_up_object_store_artifacts_on_failure(mon
         await install_fuel_grid(2026, "fbp2026.tif")
 
     cleanup.assert_awaited_once_with(processed_raster, "dem/tpi/masked.tif")
+
+
+@pytest.mark.anyio
+async def test_install_fuel_grid_marks_raster_ready_after_verification(monkeypatch):
+    processed_raster = ProcessedFuelRaster(
+        year=2026,
+        version=4,
+        xsize=100,
+        ysize=200,
+        object_store_path="sfms/static/fuel/2026/fbp2026_v4.tif",
+        content_hash="hash-2026",
+        create_timestamp=datetime(2026, 6, 1),
+    )
+    installing_raster = FuelTypeRaster(
+        id=42,
+        year=2026,
+        version=4,
+        object_store_path="sfms/static/fuel/2026/fbp2026_v4.tif",
+        content_hash="hash-2026",
+        install_status=FUEL_RASTER_STATUS_INSTALLING,
+    )
+    expected_counts = FuelGridInstallCounts(
+        advisory_fuel_types=1,
+        advisory_shape_fuels=1,
+        combustible_area=1,
+        tpi_fuel_area=1,
+        advisory_shape_fuels_duplicates=0,
+    )
+
+    monkeypatch.setattr(
+        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        AsyncMock(return_value=processed_raster),
+    )
+    monkeypatch.setattr("app.fuel_grid.install.generate_fuel_masked_tpi_raster", AsyncMock())
+    monkeypatch.setattr(
+        "app.fuel_grid.install.get_fuel_masked_tpi_key", lambda _: "dem/tpi/masked.tif"
+    )
+    monkeypatch.setattr("app.fuel_grid.install.get_async_write_session_scope", fake_session_scope)
+    monkeypatch.setattr(
+        "app.fuel_grid.install.create_fuel_type_raster_record",
+        AsyncMock(return_value=installing_raster),
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.populate_static_fuel_grid_data",
+        AsyncMock(return_value=expected_counts),
+    )
+
+    result = await install_fuel_grid(2026, "fbp2026.tif")
+
+    assert installing_raster.install_status == FUEL_RASTER_STATUS_READY
+    assert installing_raster.ready_timestamp is not None
+    assert result.fuel_type_raster.install_status == FUEL_RASTER_STATUS_READY
+    assert result.counts == expected_counts

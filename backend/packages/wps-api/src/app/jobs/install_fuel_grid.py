@@ -20,6 +20,7 @@ def log_install_result(result: FuelGridInstallResult) -> None:
     logger.info("fuel_type_raster_id: %s", fuel_type_raster.id)
     logger.info("year: %s", fuel_type_raster.year)
     logger.info("version: %s", fuel_type_raster.version)
+    logger.info("install_status: %s", fuel_type_raster.install_status)
     logger.info("staged_source_key: %s", result.staged_source_key)
     logger.info("processed_raster_key: %s", fuel_type_raster.object_store_path)
     logger.info("content_hash: %s", fuel_type_raster.content_hash)

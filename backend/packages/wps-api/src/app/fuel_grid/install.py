@@ -2,7 +2,7 @@ import logging
 import os
 import tempfile
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Sequence
 
@@ -29,10 +29,15 @@ from wps_shared.db.models.auto_spatial_advisory import (
     TPIFuelArea,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
+from wps_shared.db.models.fuel_type_raster import (
+    FUEL_RASTER_STATUS_INSTALLING,
+    FUEL_RASTER_STATUS_READY,
+)
 from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
 
 from app.auto_spatial_advisory.calculate_combustible_land_area import (
     calculate_combustible_area_by_fire_zone,
@@ -52,8 +57,7 @@ class InstalledFuelRaster:
     version: int
     object_store_path: str
     content_hash: str
-    # keep the staged ORM parent so SQLAlchemy orders the single flush by FK dependency.
-    record: FuelTypeRaster | None = field(default=None, compare=False, repr=False)
+    install_status: str
 
 
 @dataclass(frozen=True)
@@ -115,19 +119,10 @@ async def process_fuel_type_raster_for_install(
     )
 
 
-async def reserve_fuel_type_raster_id(session: AsyncSession) -> int:
-    """Reserve a primary key so related rows can be staged without an early flush."""
-    stmt = select(func.nextval(func.pg_get_serial_sequence("fuel_type_raster", "id")))
-    result = await session.execute(stmt)
-    return result.scalar_one()
-
-
 async def create_fuel_type_raster_record(
     session: AsyncSession, processed_raster: ProcessedFuelRaster
-) -> InstalledFuelRaster:
-    fuel_type_raster_id = await reserve_fuel_type_raster_id(session)
+) -> FuelTypeRaster:
     fuel_type_raster = FuelTypeRaster(
-        id=fuel_type_raster_id,
         year=processed_raster.year,
         version=processed_raster.version,
         xsize=processed_raster.xsize,
@@ -135,22 +130,29 @@ async def create_fuel_type_raster_record(
         object_store_path=processed_raster.object_store_path,
         content_hash=processed_raster.content_hash,
         create_timestamp=processed_raster.create_timestamp,
+        install_status=FUEL_RASTER_STATUS_INSTALLING,
     )
     session.add(fuel_type_raster)
+    # flush the parent row now so FK-only derived rows can reference it safely.
+    await session.flush()
+    return fuel_type_raster
+
+
+def installed_fuel_raster_from_record(fuel_type_raster: FuelTypeRaster) -> InstalledFuelRaster:
     return InstalledFuelRaster(
         id=fuel_type_raster.id,
         year=fuel_type_raster.year,
         version=fuel_type_raster.version,
         object_store_path=fuel_type_raster.object_store_path,
         content_hash=fuel_type_raster.content_hash,
-        record=fuel_type_raster,
+        install_status=fuel_type_raster.install_status,
     )
 
 
-def get_fuel_type_raster_record(fuel_type_raster: InstalledFuelRaster) -> FuelTypeRaster:
-    if fuel_type_raster.record is None:
-        raise RuntimeError("Installed fuel raster is missing its staged ORM record")
-    return fuel_type_raster.record
+def mark_fuel_type_raster_ready(fuel_type_raster: FuelTypeRaster) -> InstalledFuelRaster:
+    fuel_type_raster.install_status = FUEL_RASTER_STATUS_READY
+    fuel_type_raster.ready_timestamp = get_utc_now()
+    return installed_fuel_raster_from_record(fuel_type_raster)
 
 
 def get_fuel_masked_tpi_filename(year: int, version: int) -> str:
@@ -176,17 +178,14 @@ async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster)
 
 
 def populate_advisory_fuel_types(
-    session: AsyncSession, fuel_type_raster: InstalledFuelRaster, fuel_raster_key: str
+    session: AsyncSession, fuel_type_raster: FuelTypeRaster, fuel_raster_key: str
 ) -> list[FuelType]:
-    fuel_type_raster_record = get_fuel_type_raster_record(fuel_type_raster)
     fuel_type_rows = []
     for fuel_type_id, geom in fuel_type_iterator_by_key(fuel_raster_key):
         fuel_type = FuelType(
             fuel_type_id=fuel_type_id,
             geom=geom,
             fuel_type_raster_id=fuel_type_raster.id,
-            # assign both the FK and relationship; the relationship controls flush ordering.
-            fuel_type_raster=fuel_type_raster_record,
         )
         session.add(fuel_type)
         fuel_type_rows.append(fuel_type)
@@ -195,11 +194,10 @@ def populate_advisory_fuel_types(
 
 async def populate_advisory_shape_fuels(
     session: AsyncSession,
-    fuel_type_raster: InstalledFuelRaster,
+    fuel_type_raster: FuelTypeRaster,
     fuel_raster_key: str,
     zones: Sequence[Shape],
 ) -> None:
-    fuel_type_raster_record = get_fuel_type_raster_record(fuel_type_raster)
     sfms_fuel_types = await get_fuel_types_id_dict(session)
     all_zone_data = calculate_fuel_type_areas_per_zone(fuel_raster_key, zones)
     for zone_data in all_zone_data:
@@ -210,7 +208,6 @@ async def populate_advisory_shape_fuels(
                     fuel_type=sfms_fuel_types[int(fuel_type_id)],
                     fuel_area=fuel_area,
                     fuel_type_raster_id=fuel_type_raster.id,
-                    fuel_type_raster=fuel_type_raster_record,
                 )
             )
 
@@ -251,11 +248,10 @@ def fuel_type_geom_to_shape(geom):
 
 def populate_combustible_area(
     session: AsyncSession,
-    fuel_type_raster: InstalledFuelRaster,
+    fuel_type_raster: FuelTypeRaster,
     zones: Sequence[Shape],
     fuel_type_rows: list[FuelType],
 ) -> None:
-    fuel_type_raster_record = get_fuel_type_raster_record(fuel_type_raster)
     combustible_fuel_type_rows = [
         fuel_type
         for fuel_type in fuel_type_rows
@@ -273,18 +269,16 @@ def populate_combustible_area(
                     advisory_shape_id=advisory_shape_id,
                     combustible_area=area,
                     fuel_type_raster_id=fuel_type_raster.id,
-                    fuel_type_raster=fuel_type_raster_record,
                 )
             )
 
 
 def populate_tpi_fuel_area(
     session: AsyncSession,
-    fuel_type_raster: InstalledFuelRaster,
+    fuel_type_raster: FuelTypeRaster,
     tpi_filename: str,
     zones: Sequence[Shape],
 ) -> None:
-    fuel_type_raster_record = get_fuel_type_raster_record(fuel_type_raster)
     for advisory_shape_id, tpi_class, fuel_area in calculate_masked_tpi_areas(zones, tpi_filename):
         session.add(
             TPIFuelArea(
@@ -294,7 +288,6 @@ def populate_tpi_fuel_area(
                     fuel_area.item() if isinstance(fuel_area, np.generic) else fuel_area
                 ),
                 fuel_type_raster_id=fuel_type_raster.id,
-                fuel_type_raster=fuel_type_raster_record,
             )
         )
 
@@ -361,7 +354,7 @@ async def count_advisory_shape_fuel_duplicates(
 
 async def populate_static_fuel_grid_data(
     session: AsyncSession,
-    fuel_type_raster: InstalledFuelRaster,
+    fuel_type_raster: FuelTypeRaster,
     fuel_masked_tpi_key: str,
 ) -> FuelGridInstallCounts:
     fuel_raster_key = get_versioned_fuel_raster_key(fuel_type_raster.object_store_path)
@@ -373,7 +366,7 @@ async def populate_static_fuel_grid_data(
     await populate_advisory_shape_fuels(session, fuel_type_raster, fuel_raster_key, zones)
     populate_combustible_area(session, fuel_type_raster, zones, fuel_type_rows)
     populate_tpi_fuel_area(session, fuel_type_raster, tpi_filename, zones)
-    # flush once after all derived rows are staged so verification can query the transaction.
+    # flush derived rows so verification can query them before the transaction commits.
     await session.flush()
     return await verify_static_fuel_grid_data(session, fuel_type_raster.id)
 
@@ -414,17 +407,17 @@ async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult:
 
         async with get_async_write_session_scope() as session:
             fuel_type_raster = await create_fuel_type_raster_record(session, processed_raster)
-            # the flush inside populate_static_fuel_grid_data is still inside this transaction;
-            # if verification raises, the session scope rolls back all staged DB rows.
             counts = await populate_static_fuel_grid_data(
                 session, fuel_type_raster, fuel_masked_tpi_key
             )
+            # only ready rasters are selected by normal read paths.
+            installed_fuel_type_raster = mark_fuel_type_raster_ready(fuel_type_raster)
     except Exception:
         await cleanup_object_store_artifacts(processed_raster, fuel_masked_tpi_key)
         raise
 
     return FuelGridInstallResult(
-        fuel_type_raster=fuel_type_raster,
+        fuel_type_raster=installed_fuel_type_raster,
         staged_source_key=raster_addresser.get_unprocessed_fuel_raster_key(key),
         fuel_masked_tpi_key=fuel_masked_tpi_key,
         counts=counts,

@@ -5,6 +5,7 @@ import pytest
 
 from app.auto_spatial_advisory.fuel_type_layer import get_current_fuel_type_raster
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
+from wps_shared.db.models.fuel_type_raster import FUEL_RASTER_STATUS_READY
 
 
 @pytest.mark.anyio
@@ -35,6 +36,9 @@ async def test_get_fuel_type_raster_by_year_matching_year(monkeypatch):
 
     assert result is mock_raster
     mock_session.execute.assert_called_once()
+    stmt = mock_session.execute.call_args.args[0]
+    compiled = str(stmt.compile(compile_kwargs={"literal_binds": True}))
+    assert f"fuel_type_raster.install_status = '{FUEL_RASTER_STATUS_READY}'" in compiled
 
 
 @pytest.mark.anyio
