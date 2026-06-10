@@ -1,3 +1,4 @@
+import math
 from datetime import date
 
 import pytest
@@ -167,3 +168,15 @@ def test_get_zone_wind_stats(zone_wind_stats, hfi_thresholds_by_id, expected_adv
         )
         == expected_advisory_wind_stats
     )
+
+
+def test_get_zone_wind_stats_normalizes_nan_min_wind_speed():
+    zone_wind_stats = [
+        AdvisoryHFIWindSpeed(
+            id=1, advisory_shape_id=1, threshold=1, run_parameters=1, min_wind_speed=math.nan
+        )
+    ]
+
+    result = get_zone_wind_stats_for_source_id(zone_wind_stats, hfi_threshold_by_id)
+
+    assert result == [AdvisoryMinWindStats(threshold=advisory_threshold, min_wind_speed=None)]
