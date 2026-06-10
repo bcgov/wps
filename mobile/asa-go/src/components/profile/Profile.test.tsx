@@ -53,11 +53,15 @@ vi.mock("@/theme", () => ({
 }));
 
 // Mock theme
-vi.mock("@mui/material/styles", () => ({
-  useTheme: () => ({
-    spacing: (value: number) => `${value * 8}px`,
-  }),
-}));
+vi.mock("@mui/material/styles", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@mui/material/styles")>();
+  return {
+    ...actual,
+    useTheme: () => ({
+      spacing: (value: number) => `${value * 8}px`,
+    }),
+  };
+});
 
 describe("Profile", () => {
   const mockDate = DateTime.fromISO("2023-06-15");
