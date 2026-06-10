@@ -18,6 +18,9 @@ The install job does the static setup for one fuel grid:
 The install job does not reprocess date-based advisory or SFMS outputs. Reprocess those separately
 for the operational date range that should use the new fuel grid.
 
+If the staged raster has the same content hash as a `ready` `fuel_type_raster` for the same year,
+the job logs a warning and exits without installing another version.
+
 ## 1. Stage the Raster
 
 Upload the source GeoTIFF to object storage under `sfms/static/`.

@@ -28,6 +28,7 @@ from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 
 class MockS3Client:
     object_exists_result = True
+    content_hash_result = "hash-2026"
 
     async def __aenter__(self):
         return self
@@ -39,6 +40,10 @@ class MockS3Client:
         assert key == "sfms/static/fbp2026.tif"
         return self.object_exists_result
 
+    async def get_content_hash(self, key):
+        assert key == "sfms/static/fbp2026.tif"
+        return self.content_hash_result
+
 
 def make_mock_session() -> tuple[AsyncSession, MagicMock]:
     session_mock = MagicMock(spec=AsyncSession)
@@ -49,6 +54,17 @@ def make_mock_session() -> tuple[AsyncSession, MagicMock]:
 async def fake_session_scope() -> AsyncIterator[AsyncSession]:
     session, _ = make_mock_session()
     yield session
+
+
+def patch_no_matching_fuel_raster(monkeypatch):
+    monkeypatch.setattr(
+        "app.fuel_grid.install.get_staged_fuel_raster_hash",
+        AsyncMock(return_value="hash-2026"),
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.find_ready_fuel_raster_by_year_and_hash",
+        AsyncMock(return_value=None),
+    )
 
 
 def test_fuel_types_layer_from_db_accepts_unflushed_hex_wkb():
@@ -225,6 +241,7 @@ async def test_install_fuel_grid_cleans_up_object_store_artifacts_on_failure(mon
     )
     cleanup = AsyncMock()
 
+    patch_no_matching_fuel_raster(monkeypatch)
     monkeypatch.setattr(
         "app.fuel_grid.install.process_fuel_type_raster_for_install",
         AsyncMock(return_value=processed_raster),
@@ -277,6 +294,7 @@ async def test_install_fuel_grid_marks_raster_ready_after_verification(monkeypat
         advisory_shape_fuels_duplicates=0,
     )
 
+    patch_no_matching_fuel_raster(monkeypatch)
     monkeypatch.setattr(
         "app.fuel_grid.install.process_fuel_type_raster_for_install",
         AsyncMock(return_value=processed_raster),
@@ -299,5 +317,64 @@ async def test_install_fuel_grid_marks_raster_ready_after_verification(monkeypat
 
     assert installing_raster.install_status == FUEL_RASTER_STATUS_READY
     assert installing_raster.ready_timestamp is not None
+    assert result is not None
     assert result.fuel_type_raster.install_status == FUEL_RASTER_STATUS_READY
     assert result.counts == expected_counts
+
+
+@pytest.mark.anyio
+async def test_install_fuel_grid_skips_ready_raster_with_matching_year_and_hash(
+    monkeypatch,
+):
+    existing_raster = FuelTypeRaster(
+        id=42,
+        year=2026,
+        version=1,
+        object_store_path="sfms/static/fuel/2026/fbp2026_v1.tif",
+        content_hash="hash-2026",
+        install_status=FUEL_RASTER_STATUS_READY,
+    )
+    get_staged_fuel_raster_hash = AsyncMock(return_value="hash-2026")
+    find_ready_fuel_raster = AsyncMock(return_value=existing_raster)
+    process_fuel_type_raster_for_install = AsyncMock()
+    generate_fuel_masked_tpi_raster = AsyncMock()
+    cleanup_object_store_artifacts = AsyncMock()
+    logger_mock = MagicMock()
+
+    monkeypatch.setattr(
+        "app.fuel_grid.install.get_staged_fuel_raster_hash", get_staged_fuel_raster_hash
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.find_ready_fuel_raster_by_year_and_hash",
+        find_ready_fuel_raster,
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.get_fuel_masked_tpi_key_for_version",
+        lambda year, version: f"dem/tpi/masked_{year}_v{version}.tif",
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        process_fuel_type_raster_for_install,
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.generate_fuel_masked_tpi_raster",
+        generate_fuel_masked_tpi_raster,
+    )
+    monkeypatch.setattr("app.fuel_grid.install.get_async_write_session_scope", fake_session_scope)
+    monkeypatch.setattr(
+        "app.fuel_grid.install.cleanup_object_store_artifacts", cleanup_object_store_artifacts
+    )
+    monkeypatch.setattr("app.fuel_grid.install.logger", logger_mock)
+
+    result = await install_fuel_grid(2026, "fbp2026.tif")
+
+    assert result is None
+    logger_mock.warning.assert_called_once()
+    logger_mock.info.assert_any_call("fuel_type_raster_id: %s", 42)
+    logger_mock.info.assert_any_call("staged_source_key: %s", "sfms/static/fbp2026.tif")
+    logger_mock.info.assert_any_call("fuel_masked_tpi_key: %s", "dem/tpi/masked_2026_v1.tif")
+    get_staged_fuel_raster_hash.assert_awaited_once_with("sfms/static/fbp2026.tif")
+    find_ready_fuel_raster.assert_awaited_once()
+    process_fuel_type_raster_for_install.assert_not_awaited()
+    generate_fuel_masked_tpi_raster.assert_not_awaited()
+    cleanup_object_store_artifacts.assert_not_awaited()

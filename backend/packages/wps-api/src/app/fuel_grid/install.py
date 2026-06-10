@@ -88,11 +88,27 @@ class FuelGridInstallResult:
     counts: FuelGridInstallCounts
 
 
-async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult:
+async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult | None:
     raster_addresser = BaseRasterAddresser()
+    staged_source_key = raster_addresser.get_unprocessed_fuel_raster_key(key)
     processed_raster = None
     fuel_masked_tpi_key = None
     try:
+        source_hash = await get_staged_fuel_raster_hash(staged_source_key)
+        async with get_async_write_session_scope() as session:
+            existing_fuel_raster = await find_ready_fuel_raster_by_year_and_hash(
+                session, year, source_hash
+            )
+            if existing_fuel_raster is not None:
+                installed_fuel_raster = installed_fuel_raster_from_record(existing_fuel_raster)
+                fuel_masked_tpi_key = get_fuel_masked_tpi_key_for_version(
+                    installed_fuel_raster.year, installed_fuel_raster.version
+                )
+                log_existing_fuel_grid_install(
+                    installed_fuel_raster, staged_source_key, fuel_masked_tpi_key
+                )
+                return None
+
         processed_raster = await process_fuel_type_raster_for_install(year, key, raster_addresser)
         fuel_masked_tpi_key = get_fuel_masked_tpi_key(processed_raster)
         await generate_fuel_masked_tpi_raster(processed_raster)
@@ -107,10 +123,28 @@ async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult:
 
     return FuelGridInstallResult(
         fuel_type_raster=installed_fuel_raster,
-        staged_source_key=raster_addresser.get_unprocessed_fuel_raster_key(key),
+        staged_source_key=staged_source_key,
         fuel_masked_tpi_key=fuel_masked_tpi_key,
         counts=counts,
     )
+
+
+def log_existing_fuel_grid_install(
+    fuel_type_raster: InstalledFuelRaster, staged_source_key: str, fuel_masked_tpi_key: str
+) -> None:
+    logger.warning(
+        "Fuel grid install skipped: ready fuel raster already exists for year %s "
+        "with matching content hash",
+        fuel_type_raster.year,
+    )
+    logger.info("fuel_type_raster_id: %s", fuel_type_raster.id)
+    logger.info("year: %s", fuel_type_raster.year)
+    logger.info("version: %s", fuel_type_raster.version)
+    logger.info("install_status: %s", fuel_type_raster.install_status)
+    logger.info("staged_source_key: %s", staged_source_key)
+    logger.info("processed_raster_key: %s", fuel_type_raster.object_store_path)
+    logger.info("content_hash: %s", fuel_type_raster.content_hash)
+    logger.info("fuel_masked_tpi_key: %s", fuel_masked_tpi_key)
 
 
 # object-store raster processing
@@ -147,6 +181,13 @@ async def process_fuel_type_raster_for_install(
     )
 
 
+async def get_staged_fuel_raster_hash(staged_key: str) -> str:
+    async with S3Client() as s3_client:
+        if not await s3_client.object_exists(staged_key):
+            raise FileNotFoundError(f"Fuel raster source object does not exist: {staged_key}")
+        return await s3_client.get_content_hash(staged_key)
+
+
 async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster) -> str:
     """Generate the TPI raster masked by the selected fuel grid and return its S3 key."""
     masked_tpi_key = get_fuel_masked_tpi_key(fuel_type_raster)
@@ -159,7 +200,11 @@ async def generate_fuel_masked_tpi_raster(fuel_type_raster: ProcessedFuelRaster)
 
 
 def get_fuel_masked_tpi_key(fuel_type_raster: ProcessedFuelRaster) -> str:
-    filename = get_fuel_masked_tpi_filename(fuel_type_raster.year, fuel_type_raster.version)
+    return get_fuel_masked_tpi_key_for_version(fuel_type_raster.year, fuel_type_raster.version)
+
+
+def get_fuel_masked_tpi_key_for_version(year: int, version: int) -> str:
+    filename = get_fuel_masked_tpi_filename(year, version)
     return f"dem/tpi/{filename}"
 
 
@@ -170,6 +215,24 @@ def get_fuel_masked_tpi_filename(year: int, version: int) -> str:
 
 
 # database install lifecycle
+
+
+async def find_ready_fuel_raster_by_year_and_hash(
+    session: AsyncSession, year: int, content_hash: str
+) -> FuelTypeRaster | None:
+    # check before copying so reruns with the same source raster stay idempotent.
+    stmt = (
+        select(FuelTypeRaster)
+        .where(
+            FuelTypeRaster.year == year,
+            FuelTypeRaster.content_hash == content_hash,
+            FuelTypeRaster.install_status == FUEL_RASTER_STATUS_READY,
+        )
+        .order_by(FuelTypeRaster.version.desc())
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
 
 
 async def install_static_fuel_grid_data(

@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 def log_install_result(result: FuelGridInstallResult) -> None:
     fuel_type_raster = result.fuel_type_raster
-    counts = result.counts
     logger.info("Fuel grid install complete")
     logger.info("fuel_type_raster_id: %s", fuel_type_raster.id)
     logger.info("year: %s", fuel_type_raster.year)
@@ -25,6 +24,7 @@ def log_install_result(result: FuelGridInstallResult) -> None:
     logger.info("processed_raster_key: %s", fuel_type_raster.object_store_path)
     logger.info("content_hash: %s", fuel_type_raster.content_hash)
     logger.info("fuel_masked_tpi_key: %s", result.fuel_masked_tpi_key)
+    counts = result.counts
     logger.info("advisory_fuel_types_count: %s", counts.advisory_fuel_types)
     logger.info("advisory_shape_fuels_count: %s", counts.advisory_shape_fuels)
     logger.info("combustible_area_count: %s", counts.combustible_area)
@@ -51,7 +51,8 @@ def main():
         gdal.UseExceptions()
         args = parse_args()
         result = asyncio.run(install_fuel_grid(args.year, args.key))
-        log_install_result(result)
+        if result is not None:
+            log_install_result(result)
         sys.exit(os.EX_OK)
     except Exception as exception:
         logger.error("An error occurred while installing fuel grid.", exc_info=exception)
