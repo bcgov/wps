@@ -3,7 +3,6 @@ Functions for computing fuel type stats
 """
 
 import logging
-import math
 from datetime import date
 from typing import List, Optional
 
@@ -20,13 +19,6 @@ from wps_shared.schemas.fba import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def finite_wind_speed_or_none(value: float | None) -> float | None:
-    if value is None:
-        return None
-    # existing rows may contain NaN from older runs, which JSON responses cannot encode.
-    return value if math.isfinite(value) else None
 
 
 """
@@ -119,7 +111,7 @@ def get_zone_wind_stats_for_source_id(
         all_zone_wind_stats.append(
             AdvisoryMinWindStats(
                 threshold=hfi_threshold,
-                min_wind_speed=finite_wind_speed_or_none(zone_wind_stats.min_wind_speed),
+                min_wind_speed=zone_wind_stats.min_wind_speed,
             )
         )
 

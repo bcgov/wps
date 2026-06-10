@@ -1,4 +1,5 @@
 import enum
+import math
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
@@ -14,6 +15,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
@@ -325,7 +327,21 @@ class AdvisoryHFIWindSpeed(Base):
         Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False, index=True
     )
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
-    min_wind_speed = Column(Float, nullable=True)
+    _min_wind_speed = Column("min_wind_speed", Float, nullable=True)
+
+    @hybrid_property
+    def min_wind_speed(self) -> float | None:
+        v = self._min_wind_speed
+        return v if v is None or math.isfinite(v) else None
+
+    @min_wind_speed.expression
+    @classmethod
+    def min_wind_speed(cls):
+        return cls._min_wind_speed
+
+    @min_wind_speed.setter
+    def min_wind_speed(self, value: float | None):
+        self._min_wind_speed = value
 
 
 class AdvisoryHFIPercentConifer(Base):
