@@ -130,15 +130,6 @@
             ]
         },
         {
-            "name": "asa - populate advisory shape fuels",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "app.jobs.fuel_type_areas_per_zone",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python"
-        },
-        {
             "name": "asa - process stats",
             "type": "debugpy",
             "request": "launch",
@@ -237,13 +228,20 @@
             ]
         },
         {
-            "name": "fuel type area per zone job",
+            "name": "Fuel Grid Install Job",
             "type": "debugpy",
             "request": "launch",
-            "module": "app.jobs.fuel_type_areas_per_zone",
+            "module": "app.jobs.install_fuel_grid",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python"
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "justMyCode": false,
+            "args": [
+                "--year",
+                "2026",
+                "--key",
+                "fbp2026.tif"
+            ]
         },
         {
             "name": "env_canada GDPS",
@@ -300,16 +298,6 @@
             "args": [
                 "NAM"
             ]
-        },
-        {
-            "name": "fuel layer processor job",
-            "type": "debugpy",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python",
-            "module": "fuel_raster",
-            "console": "integratedTerminal",
-            "args": []
         },
         {
             "name": "ecmwf IFS",
