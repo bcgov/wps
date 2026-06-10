@@ -152,7 +152,16 @@ objects:
         metadata:
           labels:
             app: ${APP_NAME}-${SUFFIX}
+            component: nats-server
         spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: ${APP_NAME}-${SUFFIX}
+                      component: nats-server
+                  topologyKey: "kubernetes.io/hostname"
           # Common volumes for the containers
           volumes:
             - name: config-volume
@@ -281,7 +290,16 @@ objects:
         metadata:
           labels:
             app: ${APP_NAME}-${SUFFIX}
+            component: nats-consumer
         spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: ${APP_NAME}-${SUFFIX}
+                      component: nats-consumer
+                  topologyKey: "kubernetes.io/hostname"
           containers:
             - name: ${APP_NAME}-${SUFFIX}-nats-consumer
               image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${IMAGE_NAME}:${IMAGE_TAG}
