@@ -336,7 +336,7 @@ class NOAA:
                         "Grib file not available at %s for url %s",
                         time_utils.get_utc_now(),
                         url,
-                        exc_info=http_error,
+                        exc_info=True,
                     )
                 else:
                     raise http_error
@@ -345,7 +345,7 @@ class NOAA:
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
                 # as we can.
-                logger.error("unexpected exception processing %s", url, exc_info=exception)
+                logger.exception("unexpected exception processing %s", url)
 
     def process_model_run(self, model_run_hour):
         """Process a particular model run"""
@@ -379,11 +379,10 @@ class NOAA:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
-                logger.error(
+                logger.exception(
                     "unexpected exception processing %s model run %s",
                     self.model_type,
                     hour,
-                    exc_info=exception,
                 )
 
 
@@ -436,7 +435,7 @@ def main():
         sys.exit(os.EX_SOFTWARE)
     except Exception as exception:
         # We catch and log any exceptions we may have missed.
-        logger.error("unexpected exception processing", exc_info=exception)
+        logger.exception("unexpected exception processing")
         rc_message = ":poop: Encountered error retrieving {sys.argv[1]} model data from NOAA"
         send_chatops_notification(rc_message, exception)
         # Exit with a failure code.

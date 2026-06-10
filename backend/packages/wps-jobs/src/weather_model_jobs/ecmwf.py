@@ -175,7 +175,7 @@ class ECMWF:
                     self.model_run_repository.mark_url_as_processed(url)
                 except Exception as exception:
                     self.exception_count += 1
-                    logger.error("unexpected exception processing %s", url, exc_info=exception)
+                    logger.exception("unexpected exception processing %s", url)
                     self.model_run_repository.session.rollback()
 
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
@@ -194,11 +194,10 @@ class ECMWF:
             except Exception as exception:
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
-                logger.error(
+                logger.exception(
                     "unexpected exception processing %s model run %d",
                     self.model_type,
                     hour,
-                    exc_info=exception,
                 )
 
     def store_processed_result(
@@ -263,7 +262,7 @@ def main():
         # due to C extension teardown order (GDAL, PROJ, eccodes, etc.)
         os._exit(os.EX_OK)
     except Exception as exception:
-        logger.error("An error occurred while processing ECMWF model.", exc_info=exception)
+        logger.exception("An error occurred while processing ECMWF model.")
         rc_message = ":poop: Encountered error retrieving model data from ECMWF"
         send_chatops_notification(rc_message, exception)
         os._exit(os.EX_SOFTWARE)

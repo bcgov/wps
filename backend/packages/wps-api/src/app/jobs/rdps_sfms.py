@@ -116,7 +116,7 @@ class RDPSGrib:
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
                 # as we can.
-                logger.error("unexpected exception processing %s", url, exc_info=exception)
+                logger.exception("unexpected exception processing %s", url)
 
     async def _process_model_run(self, model_run_hour: int):
         """Process a particular RDPS model run"""
@@ -140,10 +140,9 @@ class RDPSGrib:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
-                logger.error(
+                logger.exception(
                     "unexpected exception processing RDPS model run %d",
                     hour,
-                    exc_info=exception,
                 )
 
     async def apply_retention_policy(self, days_to_retain: int):
@@ -214,9 +213,7 @@ def main():
         sys.exit(os.EX_OK)
     except Exception as exception:
         # Exit non 0 - failure.
-        logger.error(
-            "An error occurred while downloading and storing RDPS data.", exc_info=exception
-        )
+        logger.exception("An error occurred while downloading and storing RDPS data.")
         rc_message = ":scream: Encountered an error while processing RDPS data."
         send_chatops_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
