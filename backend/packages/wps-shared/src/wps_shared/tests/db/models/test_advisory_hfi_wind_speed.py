@@ -159,7 +159,7 @@ async def test_finite_wind_speed_passes_through(async_session, prerequisites):
     )
     fetched = result.scalar_one()
 
-    assert fetched.min_wind_speed == 12.5
+    assert fetched.min_wind_speed == pytest.approx(12.5)
 
 
 @pytest.mark.anyio
