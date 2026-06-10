@@ -1,4 +1,5 @@
 import enum
+import math
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
@@ -15,6 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
@@ -329,7 +331,30 @@ class AdvisoryHFIWindSpeed(Base):
         Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False, index=True
     )
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
-    min_wind_speed = Column(Float, nullable=True)
+    _min_wind_speed = Column("min_wind_speed", Float, nullable=True)
+
+    # hybrid_property exposes _min_wind_speed through three roles:
+    #   - getter (instance): normalizes NaN/Inf stored by raster calculations to None
+    #   - expression (class): returns the raw Column so the property can be used in SQLAlchemy
+    #     query filters/ordering (e.g. .filter(AdvisoryHFIWindSpeed.min_wind_speed > 5));
+    #     without this, class-level access would invoke the getter and fail on a Column object
+    #   - setter: delegates to the underlying column attribute
+    # Pyright reports false-positive redeclaration and type errors here because it does not
+    # model SQLAlchemy's hybrid_property descriptor; the three same-named methods are
+    # intentional and correct at runtime.
+    @hybrid_property
+    def min_wind_speed(self) -> float | None:
+        v = self._min_wind_speed
+        return v if v is None or math.isfinite(v) else None
+
+    @min_wind_speed.expression
+    @classmethod
+    def min_wind_speed(cls):
+        return cls._min_wind_speed
+
+    @min_wind_speed.setter
+    def min_wind_speed(self, value: float | None):
+        self._min_wind_speed = value
 
 
 class AdvisoryHFIPercentConifer(Base):

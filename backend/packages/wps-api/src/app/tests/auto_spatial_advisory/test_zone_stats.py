@@ -1,3 +1,4 @@
+import math
 from datetime import date
 
 import pytest
@@ -167,3 +168,53 @@ def test_get_zone_wind_stats(zone_wind_stats, hfi_thresholds_by_id, expected_adv
         )
         == expected_advisory_wind_stats
     )
+
+
+def test_get_zone_wind_stats_normalizes_nan_min_wind_speed():
+    zone_wind_stats = [
+        AdvisoryHFIWindSpeed(
+            id=1, advisory_shape_id=1, threshold=1, run_parameters=1, min_wind_speed=math.nan
+        )
+    ]
+
+    result = get_zone_wind_stats_for_source_id(zone_wind_stats, hfi_threshold_by_id)
+
+    assert result == [AdvisoryMinWindStats(threshold=advisory_threshold, min_wind_speed=None)]
+
+
+def test_get_zone_wind_stats_normalizes_inf_min_wind_speed():
+    zone_wind_stats = [
+        AdvisoryHFIWindSpeed(
+            id=1, advisory_shape_id=1, threshold=1, run_parameters=1, min_wind_speed=math.inf
+        )
+    ]
+
+    result = get_zone_wind_stats_for_source_id(zone_wind_stats, hfi_threshold_by_id)
+
+    assert result == [AdvisoryMinWindStats(threshold=advisory_threshold, min_wind_speed=None)]
+
+
+def test_get_zone_wind_stats_skips_unknown_threshold():
+    zone_wind_stats = [
+        AdvisoryHFIWindSpeed(
+            id=1, advisory_shape_id=1, threshold=99, run_parameters=1, min_wind_speed=5
+        ),
+        AdvisoryHFIWindSpeed(
+            id=2, advisory_shape_id=1, threshold=1, run_parameters=1, min_wind_speed=10
+        ),
+    ]
+
+    result = get_zone_wind_stats_for_source_id(zone_wind_stats, hfi_threshold_by_id)
+
+    assert result == [AdvisoryMinWindStats(threshold=advisory_threshold, min_wind_speed=10)]
+
+
+def test_percent_curing_non_fuel_type():
+    non_fuel_type = SFMSFuelType(
+        id=99,
+        fuel_type_id=99,
+        fuel_type_code="Non-fuel",
+        description="Non-fuel",
+    )
+
+    assert get_optional_percent_curing(date(2024, 8, 1), non_fuel_type) is None
