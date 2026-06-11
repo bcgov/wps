@@ -35,6 +35,20 @@
       ],
       "propagate": false
     },
+    "fuel_grid": {
+      "level": "INFO",
+      "handlers": [
+        "console"
+      ],
+      "propagate": false
+    },
+    "weather_model_jobs": {
+      "level": "INFO",
+      "handlers": [
+        "console"
+      ],
+      "propagate": false
+    },
     "wps_weather": {
       "level": "INFO",
       "handlers": [
