@@ -1,10 +1,9 @@
-import { render, waitFor } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ReadyPlanningAreaDetails } from '@wps/api/hfiCalculatorAPI'
 import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
 import { DateTime } from 'luxon'
 import { vi } from 'vitest'
-
 
 describe('PlanningAreaReadyToggle', () => {
   const readyDetails: ReadyPlanningAreaDetails = {
@@ -45,16 +44,15 @@ describe('PlanningAreaReadyToggle', () => {
     expect(tooltipText).toBeDefined()
   })
   it('should call toggle callback when toggle button is clicked', async () => {
+    const user = userEvent.setup()
     const { getByTestId } = render(
       <PlanningAreaReadyToggle enabled={true} loading={false} toggleReady={toggleMockFn} readyDetails={readyDetails} />
     )
     const togglebutton = getByTestId('hfi-toggle-ready')
 
-    await waitFor(() => {
-      togglebutton.focus()
-      userEvent.click(togglebutton)
-      expect(toggleMockFn).toHaveBeenCalledTimes(1)
-    })
+    await user.click(togglebutton)
+
+    expect(toggleMockFn).toHaveBeenCalledTimes(1)
   })
   it('should render the button disabled if no ready state exists', () => {
     const { getByTestId } = render(
