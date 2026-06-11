@@ -37,7 +37,7 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
           rowToBuild.fuelType = keyValPair[1]
           break
         case 'c':
-          rowToBuild.grassCure = parseInt(keyValPair[1], 10)
+          rowToBuild.grassCure = Number.parseInt(keyValPair[1], 10)
           break
         default:
           // No op

@@ -409,7 +409,9 @@ const ASAGoMap = ({
 
   // map state storage and restoration
   useEffect(() => {
-    if (!map) return
+    if (!map) {
+      return
+    }
     ;(async () => {
       const savedState = await loadMapViewState()
       if (savedState) {
@@ -440,7 +442,9 @@ const ASAGoMap = ({
   }, [map])
 
   useEffect(() => {
-    if (!map) return
+    if (!map) {
+      return
+    }
 
     ;(async () => {
       let hfiLayer: VectorTileLayer | null = null

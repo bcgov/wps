@@ -154,6 +154,6 @@ describe('ElevationStatus', () => {
     const allStyleText = Array.from(document.querySelectorAll('style'))
       .map(el => el.textContent ?? '')
       .join('\n')
-    expect(allStyleText).toMatch(new RegExp(`\\.${cls}[^}]*background-repeat\\s*:\\s*round`))
+    expect(allStyleText).toMatch(new RegExp(String.raw`\.${cls}[^}]*background-repeat\s*:\s*round`))
   })
 })

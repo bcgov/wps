@@ -70,9 +70,10 @@ describe('Profile', () => {
   const mockFireCentres = [mockFireCentre]
 
   const createMockStore = (fireCentres = mockFireCentres) => {
+    const initialState = { fireCentres }
     return configureStore({
       reducer: {
-        fireCentres: (state = { fireCentres }) => state
+        fireCentres: (state = initialState) => state
       },
       preloadedState: {
         fireCentres: { fireCentres }

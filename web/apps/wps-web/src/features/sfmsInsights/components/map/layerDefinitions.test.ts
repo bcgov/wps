@@ -14,7 +14,7 @@ vi.mock('pmtiles', () => ({
       return this.url
     }
   },
-  PMTiles: class MockPMTiles {}
+  PMTiles: vi.fn()
 }))
 
 // Mock ol/source/GeoTIFF to prevent background network fetches that cause unhandled rejections
@@ -34,7 +34,7 @@ vi.mock('ol/source/GeoTIFF', () => ({
 // Mock ol-pmtiles to prevent it from using real PMTiles
 vi.mock('ol-pmtiles', () => ({
   PMTilesVectorSource: class MockPMTilesVectorSource {
-    private listeners: Map<string, Set<Listener>> = new Map()
+    private readonly listeners: Map<string, Set<Listener>> = new Map()
 
     addEventListener(type: string, listener: Listener) {
       if (!this.listeners.has(type)) {

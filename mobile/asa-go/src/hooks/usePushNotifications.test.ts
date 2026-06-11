@@ -12,7 +12,7 @@ vi.mock('@capacitor-firebase/messaging', () => ({
     createChannel: vi.fn(),
     getToken: vi.fn(),
     addListener: vi.fn(),
-    removeAllListeners: vi.fn()
+    removeAllListeners: vi.fn().mockResolvedValue(undefined)
   },
   Importance: { High: 4 }
 }))
@@ -31,7 +31,7 @@ vi.mock(import('@capacitor/core'), async importOriginal => {
 vi.mock('@capacitor/local-notifications', () => ({
   LocalNotifications: {
     schedule: vi.fn().mockResolvedValue(undefined),
-    addListener: vi.fn().mockResolvedValue({ remove: vi.fn() })
+    addListener: vi.fn().mockResolvedValue({ remove: vi.fn().mockResolvedValue(undefined) })
   }
 }))
 
@@ -79,7 +79,7 @@ function setupFirebaseMocks({ token = 'test-fcm-token', permissionStatus = 'gran
   } as PermissionStatus)
   vi.mocked(FirebaseMessaging.getToken).mockResolvedValue({ token })
   vi.mocked(FirebaseMessaging.addListener).mockResolvedValue({
-    remove: vi.fn()
+    remove: vi.fn().mockResolvedValue(undefined)
   })
 }
 
@@ -102,11 +102,11 @@ function setupListenerCapture() {
 
   vi.mocked(FirebaseMessaging.addListener).mockImplementation(async (event, handler) => {
     fbListeners[event as string] = handler as (...args: unknown[]) => unknown
-    return { remove: vi.fn() }
+    return { remove: vi.fn().mockResolvedValue(undefined) }
   })
   vi.mocked(LocalNotifications.addListener).mockImplementation(async (event, handler) => {
     localListeners[event as string] = handler as (...args: unknown[]) => unknown
-    return { remove: vi.fn() }
+    return { remove: vi.fn().mockResolvedValue(undefined) }
   })
 
   return { fbListeners, localListeners }
@@ -141,8 +141,8 @@ describe('usePushNotifications', () => {
     let tokenListener: ((e: { token: string }) => void) | undefined
     setupFirebaseMocks({ token: 'initial-token' })
     vi.mocked(FirebaseMessaging.addListener).mockImplementation(async (event, handler) => {
-      if ((event as string) === 'tokenReceived') tokenListener = handler as unknown as typeof tokenListener
-      return { remove: vi.fn() }
+      if (String(event) === 'tokenReceived') tokenListener = handler as unknown as typeof tokenListener
+      return { remove: vi.fn().mockResolvedValue(undefined) }
     })
     const { registerDevice } = await import('@/slices/pushNotificationSlice')
     const { useSelector } = await import('react-redux')
@@ -196,7 +196,7 @@ describe('usePushNotifications', () => {
       token: 'test-token'
     })
     vi.mocked(FirebaseMessaging.addListener).mockResolvedValue({
-      remove: vi.fn()
+      remove: vi.fn().mockResolvedValue(undefined)
     })
 
     const { result } = renderHook(() => usePushNotifications())
@@ -215,7 +215,7 @@ describe('usePushNotifications', () => {
       receive: 'denied'
     } as PermissionStatus)
     vi.mocked(FirebaseMessaging.addListener).mockResolvedValue({
-      remove: vi.fn()
+      remove: vi.fn().mockResolvedValue(undefined)
     })
 
     const { result } = renderHook(() => usePushNotifications())
@@ -317,9 +317,9 @@ describe('usePushNotifications', () => {
   })
 
   it('removes all listeners on unmount only when initialized', async () => {
-    const remove1 = vi.fn()
-    const remove2 = vi.fn()
-    const remove3 = vi.fn()
+    const remove1 = vi.fn().mockResolvedValue(undefined)
+    const remove2 = vi.fn().mockResolvedValue(undefined)
+    const remove3 = vi.fn().mockResolvedValue(undefined)
     vi.mocked(FirebaseMessaging.addListener)
       .mockResolvedValueOnce({ remove: remove1 })
       .mockResolvedValueOnce({ remove: remove2 })

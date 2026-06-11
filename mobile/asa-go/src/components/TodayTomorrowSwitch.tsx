@@ -74,8 +74,8 @@ const TodayTomorrowSwitch = ({ border = false, date, setDate }: TodayTomorrowSwi
       <StyledButton disabled={!isToday} onClick={() => handleDayChange(1)}>
         <StyledTextContainer
           sx={{
-            backgroundColor: !isToday ? MAP_BUTTON_GREY : 'white',
-            color: !isToday ? 'white' : MAP_BUTTON_GREY
+            backgroundColor: isToday ? 'white' : MAP_BUTTON_GREY,
+            color: isToday ? MAP_BUTTON_GREY : 'white'
           }}
         >
           TMR

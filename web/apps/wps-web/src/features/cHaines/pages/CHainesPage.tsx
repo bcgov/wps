@@ -538,14 +538,14 @@ const CHainesPage = () => {
               <input type="datetime-local" value={selectedDatetime} onChange={handleChangeDateTime}></input>
             </div>
             <div>
-              Model:
+              Model:{' '}
               <label>
                 <input
                   type="radio"
                   value="GDPS"
                   checked={selected_model_abbreviation === 'GDPS'}
                   onChange={handleChangeModel}
-                />
+                />{' '}
                 GDPS
               </label>
               <label>
@@ -554,7 +554,7 @@ const CHainesPage = () => {
                   value="RDPS"
                   checked={selected_model_abbreviation === 'RDPS'}
                   onChange={handleChangeModel}
-                />
+                />{' '}
                 RDPS
               </label>
               <label>
@@ -563,7 +563,7 @@ const CHainesPage = () => {
                   value="HRDPS"
                   checked={selected_model_abbreviation === 'HRDPS'}
                   onChange={handleChangeModel}
-                />
+                />{' '}
                 HRDPS
               </label>
             </div>

@@ -98,7 +98,7 @@ describe('Custom Hooks', () => {
   })
 
   it('useTPIStatsForDate returns TPI stats', () => {
-    const mockTPIStats: FireZoneTPIStats[] = [{ fire_zone_id: 1 } as FireZoneTPIStats]
+    const mockTPIStats: FireZoneTPIStats[] = [{ fire_zone_id: 1 }]
     const store = createMockStore({
       data: {
         ...initialState,

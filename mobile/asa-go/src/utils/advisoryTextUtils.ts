@@ -3,7 +3,7 @@ import type { DateTime } from 'luxon'
 import type { AdvisoryMinWindStats, FireZoneFuelStats, FireZoneHFIStats } from '@/api/fbaAPI'
 import { calculateWindSpeedText } from '@/utils/calculateZoneStatus'
 
-const SLASH_FUEL_TYPES = ['S-1', 'S-2', 'S-3']
+const SLASH_FUEL_TYPES = new Set(['S-1', 'S-2', 'S-3'])
 
 // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
 export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
@@ -41,7 +41,7 @@ const isCoreSeason = (date: DateTime) => {
 export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneHFIStats, forDate: DateTime): FireZoneFuelStats[] => {
   let fuelAreaStats = zoneUnitFuelStats.fuel_area_stats
   if (isCoreSeason(forDate)) {
-    fuelAreaStats = fuelAreaStats.filter(stat => !SLASH_FUEL_TYPES.includes(stat.fuel_type.fuel_type_code))
+    fuelAreaStats = fuelAreaStats.filter(stat => !SLASH_FUEL_TYPES.has(stat.fuel_type.fuel_type_code))
   }
 
   const groupedByFuelType = groupBy(fuelAreaStats, stat => stat.fuel_type.fuel_type_code)

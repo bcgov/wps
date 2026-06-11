@@ -173,7 +173,7 @@ export const fillGrassCuringCWFIS = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   // regardless of row order.
   for (const row of rows) {
     const { stationCode, forDate, grassCuringCWFIS } = row
-    const grassCuring = grassCuringCWFIS && !Number.isNaN(grassCuringCWFIS.value) ? grassCuringCWFIS.value : NaN
+    const grassCuring = grassCuringCWFIS && !Number.isNaN(grassCuringCWFIS.value) ? grassCuringCWFIS.value : Number.NaN
 
     if (!Number.isNaN(grassCuring)) {
       const existingStation = stationGrassMap.get(stationCode)

@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<Props, ErrorBoundaryState> {
         >
           <WarningSharp style={{ marginRight: '6px' }} fontSize="small" />
           <span>
-            Unexpected error occurred in this section. You may want to reload the page and try it again.&nbsp;
+            Unexpected error occurred in this section. You may want to reload the page and try it again.{' '}
             <button
               type="button"
               style={{

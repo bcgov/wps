@@ -76,7 +76,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 interface NavigationDrawerProps {
   setFireWatchView: React.Dispatch<SetStateAction<FireWatchViewEnum>>
   open: boolean
-  selectedView: FireWatchViewEnum
 }
 
 const navigationItems = [

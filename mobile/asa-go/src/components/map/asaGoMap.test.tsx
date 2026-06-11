@@ -44,7 +44,7 @@ import { createBasemapLayer, HFI_LAYER_NAME } from '@/layerDefinitions'
 
 describe('ASAGoMap', () => {
   beforeAll(() => {
-    window.ResizeObserver = ResizeObserver
+    globalThis.ResizeObserver = ResizeObserver
   })
 
   const defaultProps: ASAGoMapProps = {

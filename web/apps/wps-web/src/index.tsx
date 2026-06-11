@@ -51,8 +51,8 @@ const render = () => {
 }
 
 // cache bust any stale js chunks
-window.addEventListener('vite:preloadError', _event => {
-  window.location.reload()
+globalThis.addEventListener('vite:preloadError', _event => {
+  globalThis.location.reload()
 })
 
 render()

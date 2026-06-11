@@ -115,7 +115,7 @@ describe('centerOnFireShape', () => {
   })
 
   it('calculates center coordinates correctly using extent bounds', () => {
-    const testExtent = [-1.4e7, 6.5e6, -1.3e7, 7.0e6]
+    const testExtent = [-1.4e7, 6.5e6, -1.3e7, 7e6]
     const testFireZoneExtentsMap = new globalThis.Map([['789', testExtent]])
 
     const testFireShape = {
@@ -137,6 +137,6 @@ describe('centerOnFireShape', () => {
 
     // Verify the calculation is correct
     expect(expectedCenterX).toBe((-1.4e7 + -1.3e7) / 2)
-    expect(expectedCenterY).toBe((6.5e6 + 7.0e6) / 2)
+    expect(expectedCenterY).toBe((6.5e6 + 7e6) / 2)
   })
 })
