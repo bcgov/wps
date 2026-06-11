@@ -220,6 +220,13 @@ jobs:
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: >-
+            ./api-coverage-report/api-coverage-report.xml,
+            ./wps-shared-coverage-report/wps-shared-coverage-report.xml,
+            ./wps-jobs-coverage-report/wps-jobs-coverage-report.xml,
+            ./wps-wf1-coverage-report/wps-wf1-coverage-report.xml,
+            ./web-coverage-report/lcov.info
+          disable_search: true
           fail_ci_if_error: true
 
   lint-and-test-prune:
