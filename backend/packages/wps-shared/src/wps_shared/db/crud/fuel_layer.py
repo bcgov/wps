@@ -1,11 +1,14 @@
 """CRUD operations relating to processing fuel rasters"""
 
+import logging
 from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared.db.models.fuel_type_raster import FUEL_RASTER_STATUS_READY, FuelTypeRaster
+
+logger = logging.getLogger(__name__)
 
 
 async def get_processed_fuel_raster_details(
@@ -67,4 +70,6 @@ async def get_fuel_type_raster_by_year(
         .order_by(FuelTypeRaster.year.desc(), FuelTypeRaster.version.desc())
     )
     result = await session.execute(stmt)
-    return result.scalars().first()
+    fuel_type_raster = result.scalars().first()
+    logger.info("Queried for fuel type raster for year %s, found: %s", year, fuel_type_raster.object_store_path if fuel_type_raster else None)
+    return fuel_type_raster
