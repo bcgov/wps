@@ -46,7 +46,31 @@
         "**/.venv": true
     },
     // JavaScript/TypeScript
-    "[javascript][javascriptreact][typescript][typescriptreact]": {
+    // The repo root has no node_modules, so point the Biome extension at the
+    // binary installed in the web workspace (same pinned version repo-wide).
+    "biome.lsp.bin": "web/node_modules/@biomejs/biome/bin/biome",
+    "[javascript]": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.codeActionsOnSave": {
+            "source.fixAll.biome": "explicit",
+            "source.organizeImports.biome": "explicit"
+        }
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.codeActionsOnSave": {
+            "source.fixAll.biome": "explicit",
+            "source.organizeImports.biome": "explicit"
+        }
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.codeActionsOnSave": {
+            "source.fixAll.biome": "explicit",
+            "source.organizeImports.biome": "explicit"
+        }
+    },
+    "[typescriptreact]": {
         "editor.defaultFormatter": "biomejs.biome",
         "editor.codeActionsOnSave": {
             "source.fixAll.biome": "explicit",
