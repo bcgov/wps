@@ -1,7 +1,0 @@
-{
-  "recommendations": [
-    "biomejs.biome",
-    "charliermarsh.ruff",
-    "esbenp.prettier-vscode"
-  ]
-}
