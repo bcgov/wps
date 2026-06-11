@@ -52,7 +52,7 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
     tpi_band: gdal.Band = tpi_ds.GetRasterBand(1)
     tpi_data = tpi_band.ReadAsArray()
 
-    # keep only fuel-covered TPI pixels so later area totals exclude non-fuel classes.
+    # Apply the fuel layer mask to the classified TPI raster and store the result in an in-memory gdal dataset
     masked_tpi_data = np.multiply(mask, tpi_data)
     output_driver: gdal.Driver = gdal.GetDriverByName("GTiff")
     output_path = os.path.join(temp_dir, "fuel_masked_tpi.tif")
