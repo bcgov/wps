@@ -13,10 +13,13 @@ from app.fuel_grid.install import (
     FuelGridInstallCounts,
     ProcessedFuelRaster,
     create_fuel_type_raster_record,
+    ensure_fuel_masked_tpi_raster,
     fuel_types_layer_from_db,
+    get_or_create_processed_fuel_raster,
     install_fuel_grid,
     populate_static_fuel_grid_data,
     process_fuel_type_raster_for_install,
+    verify_static_fuel_grid_data,
 )
 from wps_shared.db.models.fuel_type_raster import (
     FUEL_RASTER_STATUS_INSTALLING,
@@ -62,7 +65,7 @@ def patch_no_matching_fuel_raster(monkeypatch):
         AsyncMock(return_value="hash-2026"),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.find_ready_fuel_raster_by_year_and_hash",
+        "app.fuel_grid.install.get_ready_fuel_type_raster_by_year_and_hash",
         AsyncMock(return_value=None),
     )
     monkeypatch.setattr(
@@ -136,6 +139,138 @@ async def test_process_fuel_type_raster_for_install_fails_when_source_missing(mo
         await process_fuel_type_raster_for_install(2026, "fbp2026.tif", BaseRasterAddresser())
 
     mock_process.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_get_or_create_processed_fuel_raster_reuses_existing_version(monkeypatch):
+    existing_raster = ProcessedFuelRaster(
+        year=2026,
+        version=1,
+        xsize=100,
+        ysize=200,
+        object_store_path="sfms/static/fuel/2026/fbp2026_v1.tif",
+        content_hash="hash-2026",
+        create_timestamp=datetime(2026, 6, 1),
+    )
+    process_fuel_type_raster_for_install = AsyncMock()
+    monkeypatch.setattr(
+        "app.fuel_grid.install.find_versioned_fuel_raster_by_hash",
+        AsyncMock(return_value=existing_raster),
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        process_fuel_type_raster_for_install,
+    )
+
+    result, created = await get_or_create_processed_fuel_raster(
+        2026, "fbp2026.tif", BaseRasterAddresser(), "hash-2026"
+    )
+
+    assert result == existing_raster
+    assert created is False
+    process_fuel_type_raster_for_install.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_get_or_create_processed_fuel_raster_creates_new_version(monkeypatch):
+    processed_raster = ProcessedFuelRaster(
+        year=2026,
+        version=2,
+        xsize=100,
+        ysize=200,
+        object_store_path="sfms/static/fuel/2026/fbp2026_v2.tif",
+        content_hash="hash-2026",
+        create_timestamp=datetime(2026, 6, 1),
+    )
+    process_fuel_type_raster_for_install = AsyncMock(return_value=processed_raster)
+    monkeypatch.setattr(
+        "app.fuel_grid.install.find_versioned_fuel_raster_by_hash",
+        AsyncMock(return_value=None),
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        process_fuel_type_raster_for_install,
+    )
+
+    result, created = await get_or_create_processed_fuel_raster(
+        2026, "fbp2026.tif", BaseRasterAddresser(), "hash-2026"
+    )
+
+    assert result == processed_raster
+    assert created is True
+    process_fuel_type_raster_for_install.assert_awaited_once()
+
+
+@pytest.mark.anyio
+async def test_ensure_fuel_masked_tpi_raster_reuses_existing_object(monkeypatch):
+    processed_raster = ProcessedFuelRaster(
+        year=2026,
+        version=1,
+        xsize=100,
+        ysize=200,
+        object_store_path="sfms/static/fuel/2026/fbp2026_v1.tif",
+        content_hash="hash-2026",
+        create_timestamp=datetime(2026, 6, 1),
+    )
+    generate_fuel_masked_tpi_raster = AsyncMock()
+
+    class ExistingMaskedTPIClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def object_exists(self, key):
+            assert key == "dem/tpi/masked.tif"
+            return True
+
+    monkeypatch.setattr("app.fuel_grid.install.S3Client", lambda: ExistingMaskedTPIClient())
+    monkeypatch.setattr(
+        "app.fuel_grid.install.generate_fuel_masked_tpi_raster",
+        generate_fuel_masked_tpi_raster,
+    )
+
+    created = await ensure_fuel_masked_tpi_raster(processed_raster, "dem/tpi/masked.tif")
+
+    assert created is False
+    generate_fuel_masked_tpi_raster.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_ensure_fuel_masked_tpi_raster_generates_missing_object(monkeypatch):
+    processed_raster = ProcessedFuelRaster(
+        year=2026,
+        version=1,
+        xsize=100,
+        ysize=200,
+        object_store_path="sfms/static/fuel/2026/fbp2026_v1.tif",
+        content_hash="hash-2026",
+        create_timestamp=datetime(2026, 6, 1),
+    )
+    generate_fuel_masked_tpi_raster = AsyncMock()
+
+    class MissingMaskedTPIClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def object_exists(self, key):
+            assert key == "dem/tpi/masked.tif"
+            return False
+
+    monkeypatch.setattr("app.fuel_grid.install.S3Client", lambda: MissingMaskedTPIClient())
+    monkeypatch.setattr(
+        "app.fuel_grid.install.generate_fuel_masked_tpi_raster",
+        generate_fuel_masked_tpi_raster,
+    )
+
+    created = await ensure_fuel_masked_tpi_raster(processed_raster, "dem/tpi/masked.tif")
+
+    assert created is True
+    generate_fuel_masked_tpi_raster.assert_awaited_once_with(processed_raster)
 
 
 @pytest.mark.anyio
@@ -226,6 +361,40 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
     populate_combustible_area.assert_called_once()
     populate_tpi_fuel_area.assert_called_once()
     verify_static_fuel_grid_data.assert_awaited_once_with(session, 42)
+
+
+@pytest.mark.anyio
+async def test_verify_static_fuel_grid_data_fails_when_required_counts_are_missing(monkeypatch):
+    session, _ = make_mock_session()
+    monkeypatch.setattr(
+        "app.fuel_grid.install.count_rows_by_fuel_type_raster_id",
+        AsyncMock(side_effect=[1, 0, 1, 1]),
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.count_advisory_shape_fuel_duplicates",
+        AsyncMock(return_value=0),
+    )
+
+    with pytest.raises(RuntimeError, match="missing derived data"):
+        await verify_static_fuel_grid_data(session, 42)
+
+
+@pytest.mark.anyio
+async def test_verify_static_fuel_grid_data_fails_when_shape_fuel_rows_are_duplicated(
+    monkeypatch,
+):
+    session, _ = make_mock_session()
+    monkeypatch.setattr(
+        "app.fuel_grid.install.count_rows_by_fuel_type_raster_id",
+        AsyncMock(side_effect=[1, 1, 1, 1]),
+    )
+    monkeypatch.setattr(
+        "app.fuel_grid.install.count_advisory_shape_fuel_duplicates",
+        AsyncMock(return_value=2),
+    )
+
+    with pytest.raises(RuntimeError, match="duplicate advisory_shape_fuels"):
+        await verify_static_fuel_grid_data(session, 42)
 
 
 @pytest.mark.anyio
@@ -367,7 +536,7 @@ async def test_install_fuel_grid_reuses_existing_versioned_s3_raster(monkeypatch
         AsyncMock(return_value="hash-2026"),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.find_ready_fuel_raster_by_year_and_hash",
+        "app.fuel_grid.install.get_ready_fuel_type_raster_by_year_and_hash",
         AsyncMock(return_value=None),
     )
     monkeypatch.setattr(
@@ -432,7 +601,7 @@ async def test_install_fuel_grid_skips_ready_raster_with_matching_year_and_hash(
         "app.fuel_grid.install.get_staged_fuel_raster_hash", get_staged_fuel_raster_hash
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.find_ready_fuel_raster_by_year_and_hash",
+        "app.fuel_grid.install.get_ready_fuel_type_raster_by_year_and_hash",
         find_ready_fuel_raster,
     )
     monkeypatch.setattr(

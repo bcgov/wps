@@ -71,5 +71,34 @@ async def get_fuel_type_raster_by_year(
     )
     result = await session.execute(stmt)
     fuel_type_raster = result.scalars().first()
-    logger.info("Queried for fuel type raster for year %s, found: %s", year, fuel_type_raster.object_store_path if fuel_type_raster else None)
+    logger.info(
+        "Queried for fuel type raster for year %s, found: %s",
+        year,
+        fuel_type_raster.object_store_path if fuel_type_raster else None,
+    )
     return fuel_type_raster
+
+
+async def get_ready_fuel_type_raster_by_year_and_hash(
+    session: AsyncSession, year: int, content_hash: str
+) -> Optional[FuelTypeRaster]:
+    """
+    Get a ready fuel type raster for the exact year and content hash.
+
+    :param session: An async database session.
+    :param year: The fuel grid year to look up.
+    :param content_hash: The fuel grid content hash to match.
+    :return: The latest matching FuelTypeRaster record, or None if not found.
+    """
+    stmt = (
+        select(FuelTypeRaster)
+        .where(
+            FuelTypeRaster.year == year,
+            FuelTypeRaster.content_hash == content_hash,
+            FuelTypeRaster.install_status == FUEL_RASTER_STATUS_READY,
+        )
+        .order_by(FuelTypeRaster.version.desc())
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()

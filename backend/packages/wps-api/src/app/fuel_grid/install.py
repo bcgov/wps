@@ -12,14 +12,16 @@ from geoalchemy2.elements import WKBElement, WKTElement
 from geoalchemy2.shape import to_shape
 from osgeo import ogr
 from shapely import wkb as shapely_wkb
-from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import (
+    count_advisory_shape_fuel_duplicates,
+    count_rows_by_fuel_type_raster_id,
     get_fire_zone_unit_shape_type_id,
     get_fire_zone_units,
     get_fuel_types_id_dict,
 )
+from wps_shared.db.crud.fuel_layer import get_ready_fuel_type_raster_by_year_and_hash
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryShapeFuels,
@@ -107,7 +109,7 @@ async def install_fuel_grid(year: int, key: str) -> FuelGridInstallResult | None
     try:
         source_hash = await get_staged_fuel_raster_hash(staged_source_key)
         async with get_async_write_session_scope() as session:
-            existing_fuel_raster = await find_ready_fuel_raster_by_year_and_hash(
+            existing_fuel_raster = await get_ready_fuel_type_raster_by_year_and_hash(
                 session, year, source_hash
             )
             if existing_fuel_raster is not None:
@@ -367,24 +369,6 @@ def get_fuel_masked_tpi_filename(year: int, version: int) -> str:
 # database install lifecycle
 
 
-async def find_ready_fuel_raster_by_year_and_hash(
-    session: AsyncSession, year: int, content_hash: str
-) -> FuelTypeRaster | None:
-    # check before copying so reruns with the same source raster stay idempotent.
-    stmt = (
-        select(FuelTypeRaster)
-        .where(
-            FuelTypeRaster.year == year,
-            FuelTypeRaster.content_hash == content_hash,
-            FuelTypeRaster.install_status == FUEL_RASTER_STATUS_READY,
-        )
-        .order_by(FuelTypeRaster.version.desc())
-        .limit(1)
-    )
-    result = await session.execute(stmt)
-    return result.scalar_one_or_none()
-
-
 async def install_static_fuel_grid_data(
     session: AsyncSession,
     processed_raster: ProcessedFuelRaster,
@@ -588,10 +572,18 @@ async def verify_static_fuel_grid_data(
     session: AsyncSession, fuel_type_raster_id: int
 ) -> FuelGridInstallCounts:
     counts = FuelGridInstallCounts(
-        advisory_fuel_types=await count_rows(session, FuelType, fuel_type_raster_id),
-        advisory_shape_fuels=await count_rows(session, AdvisoryShapeFuels, fuel_type_raster_id),
-        combustible_area=await count_rows(session, CombustibleArea, fuel_type_raster_id),
-        tpi_fuel_area=await count_rows(session, TPIFuelArea, fuel_type_raster_id),
+        advisory_fuel_types=await count_rows_by_fuel_type_raster_id(
+            session, FuelType, fuel_type_raster_id
+        ),
+        advisory_shape_fuels=await count_rows_by_fuel_type_raster_id(
+            session, AdvisoryShapeFuels, fuel_type_raster_id
+        ),
+        combustible_area=await count_rows_by_fuel_type_raster_id(
+            session, CombustibleArea, fuel_type_raster_id
+        ),
+        tpi_fuel_area=await count_rows_by_fuel_type_raster_id(
+            session, TPIFuelArea, fuel_type_raster_id
+        ),
         advisory_shape_fuels_duplicates=await count_advisory_shape_fuel_duplicates(
             session, fuel_type_raster_id
         ),
@@ -610,38 +602,6 @@ async def verify_static_fuel_grid_data(
             f"{counts.advisory_shape_fuels_duplicates}"
         )
     return counts
-
-
-async def count_rows(session: AsyncSession, model, fuel_type_raster_id: int) -> int:
-    stmt = (
-        select(func.count())
-        .select_from(model)
-        .where(model.fuel_type_raster_id == fuel_type_raster_id)
-    )
-    result = await session.execute(stmt)
-    return result.scalar_one()
-
-
-async def count_advisory_shape_fuel_duplicates(
-    session: AsyncSession, fuel_type_raster_id: int
-) -> int:
-    duplicates = (
-        select(
-            AdvisoryShapeFuels.advisory_shape_id,
-            AdvisoryShapeFuels.fuel_type,
-            AdvisoryShapeFuels.fuel_type_raster_id,
-        )
-        .where(AdvisoryShapeFuels.fuel_type_raster_id == fuel_type_raster_id)
-        .group_by(
-            AdvisoryShapeFuels.advisory_shape_id,
-            AdvisoryShapeFuels.fuel_type,
-            AdvisoryShapeFuels.fuel_type_raster_id,
-        )
-        .having(func.count() > 1)
-        .subquery()
-    )
-    result = await session.execute(select(func.count()).select_from(duplicates))
-    return result.scalar_one()
 
 
 # failure cleanup

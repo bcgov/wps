@@ -68,6 +68,55 @@ async def save_hfi(session: AsyncSession, hfi: ClassifiedHfi):
     session.add(hfi)
 
 
+async def count_rows_by_fuel_type_raster_id(
+    session: AsyncSession, model, fuel_type_raster_id: int
+) -> int:
+    """
+    Count rows for a fuel-grid-derived advisory table.
+
+    :param session: An async database session.
+    :param model: SQLAlchemy model with a fuel_type_raster_id column.
+    :param fuel_type_raster_id: Fuel type raster id to count rows for.
+    :return: Row count for the fuel type raster.
+    """
+    stmt = (
+        select(func.count())
+        .select_from(model)
+        .where(model.fuel_type_raster_id == fuel_type_raster_id)
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one()
+
+
+async def count_advisory_shape_fuel_duplicates(
+    session: AsyncSession, fuel_type_raster_id: int
+) -> int:
+    """
+    Count duplicate advisory_shape_fuels rows for a fuel type raster.
+
+    :param session: An async database session.
+    :param fuel_type_raster_id: Fuel type raster id to check.
+    :return: Number of duplicate advisory shape and fuel type combinations.
+    """
+    duplicates = (
+        select(
+            AdvisoryShapeFuels.advisory_shape_id,
+            AdvisoryShapeFuels.fuel_type,
+            AdvisoryShapeFuels.fuel_type_raster_id,
+        )
+        .where(AdvisoryShapeFuels.fuel_type_raster_id == fuel_type_raster_id)
+        .group_by(
+            AdvisoryShapeFuels.advisory_shape_id,
+            AdvisoryShapeFuels.fuel_type,
+            AdvisoryShapeFuels.fuel_type_raster_id,
+        )
+        .having(func.count() > 1)
+        .subquery()
+    )
+    result = await session.execute(select(func.count()).select_from(duplicates))
+    return result.scalar_one()
+
+
 async def save_fuel_type(session: AsyncSession, fuel_type: FuelType):
     session.add(fuel_type)
 
