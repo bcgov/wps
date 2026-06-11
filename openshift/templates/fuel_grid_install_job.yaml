@@ -38,7 +38,7 @@ objects:
   - kind: Job
     apiVersion: batch/v1
     metadata:
-      name: fuel-grid-install-${NAME}-${SUFFIX}-${FUEL_RASTER_YEAR}
+      name: fuel-grid-install-${FUEL_RASTER_YEAR}-${NAME}-${SUFFIX}
       annotations:
         wps.bcgov/fuel-grid-year: "${FUEL_RASTER_YEAR}"
         wps.bcgov/fuel-grid-source-key: "sfms/static/${FUEL_RASTER_KEY}"
