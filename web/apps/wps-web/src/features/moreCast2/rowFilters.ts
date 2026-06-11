@@ -1,11 +1,11 @@
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { validForecastPredicate, validActualPredicate, validActualOrForecastPredicate } from 'features/moreCast2/util'
+import type { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { validActualOrForecastPredicate, validActualPredicate, validForecastPredicate } from 'features/moreCast2/util'
 
 export const filterAllVisibleRowsForSimulation = (rows: MoreCast2Row[]): MoreCast2Row[] | undefined => {
   const forecasts = rows.filter(validForecastPredicate)
   const actuals = rows.filter(validActualPredicate)
   const mostRecentActualMap = new Map<number, MoreCast2Row>()
-  let rowsForSimulation = undefined
+  let rowsForSimulation: MoreCast2Row[] | undefined
 
   if (forecasts.length > 0) {
     for (const row of actuals) {

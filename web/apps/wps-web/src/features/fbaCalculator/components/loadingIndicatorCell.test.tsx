@@ -1,7 +1,9 @@
-import { TableContainer, Table, TableBody, TableRow, TableCell } from '@mui/material'
+import { Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 
-import LoadingIndicatorCell, { LoadingIndicatorCellProps } from 'features/fbaCalculator/components/LoadingIndicatorCell'
+import LoadingIndicatorCell, {
+  type LoadingIndicatorCellProps
+} from 'features/fbaCalculator/components/LoadingIndicatorCell'
 
 describe('LoadingIndicatorCell', () => {
   const renderTable = (props: LoadingIndicatorCellProps) => (

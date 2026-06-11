@@ -1,12 +1,11 @@
 import { ThemeProvider } from '@mui/material/styles'
 import { render, waitFor, within } from '@testing-library/react'
-import StationPanel from 'features/moreCast2/components/StationPanel'
-import { theme } from '@wps/ui/theme'
-import { vi } from 'vitest'
-
 import userEvent from '@testing-library/user-event'
-import { Provider } from 'react-redux'
+import { theme } from '@wps/ui/theme'
 import store from 'app/store'
+import StationPanel from 'features/moreCast2/components/StationPanel'
+import { Provider } from 'react-redux'
+import { vi } from 'vitest'
 
 describe('StationPanel', () => {
   it('should render the panel', () => {

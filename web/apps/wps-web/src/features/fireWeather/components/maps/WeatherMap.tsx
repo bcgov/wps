@@ -1,12 +1,10 @@
-import React from 'react'
-
-import { fromLonLat } from 'ol/proj'
-
-import Map, { RedrawCommand } from 'features/map/Map'
-import TileLayer from 'features/map/TileLayer'
-
-import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
+import type { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 import { source } from 'features/fireWeather/components/maps/constants'
+
+import MapComponent, { type RedrawCommand } from 'features/map/Map'
+import TileLayer from 'features/map/TileLayer'
+import { fromLonLat } from 'ol/proj'
+import React from 'react'
 
 interface Props {
   redrawFlag?: RedrawCommand
@@ -19,7 +17,7 @@ interface Props {
 
 const WeatherMap = ({ redrawFlag, center, isCollapsed, toiFromQuery, setMapCenter, selectedWxVariable }: Props) => {
   return (
-    <Map
+    <MapComponent
       center={fromLonLat(center)}
       isCollapsed={isCollapsed}
       setMapCenter={setMapCenter}
@@ -28,7 +26,7 @@ const WeatherMap = ({ redrawFlag, center, isCollapsed, toiFromQuery, setMapCente
       toiFromQuery={toiFromQuery}
     >
       <TileLayer source={source} />
-    </Map>
+    </MapComponent>
   )
 }
 

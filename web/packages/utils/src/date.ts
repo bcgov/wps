@@ -1,14 +1,13 @@
-import { DateTime } from 'luxon'
-
-import { PST_ISO_TIMEZONE, PST_UTC_OFFSET } from './constants'
 import { isNull } from 'lodash'
+import { DateTime } from 'luxon'
+import { PST_ISO_TIMEZONE, PST_UTC_OFFSET } from './constants'
 
 const UTC_NOON_HOUR = Math.abs(PST_UTC_OFFSET) + 12
 
 export const isNoonInPST = (dt: string): boolean => DateTime.fromISO(dt).setZone('UTC').hour === UTC_NOON_HOUR
 
 export const formatDatetimeInPST = (dt: string | Date | DateTime, format?: string): string => {
-  let datetime = undefined
+  let datetime: DateTime
 
   if (typeof dt === 'string') {
     datetime = DateTime.fromISO(dt)
@@ -44,7 +43,7 @@ export const formatDateInUTC00Suffix = (dtISO: string): string => {
   dtJS.setSeconds(0)
   dtJS.setMilliseconds(0)
   const isoNoon = DateTime.fromJSDate(dtJS).setZone('UTC').toISO({ suppressMilliseconds: true, includeOffset: true })
-  return isoNoon?.substring(0, isoNoon.length - 1) + '+00:00'
+  return `${isoNoon?.substring(0, isoNoon.length - 1)}+00:00`
 }
 
 export const pstFormatter = (fromDate: DateTime): string => {

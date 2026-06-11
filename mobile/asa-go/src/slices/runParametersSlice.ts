@@ -1,197 +1,136 @@
-import { getTodayKey, getTomorrowKey } from "@/utils/dataSliceUtils";
-import { AppDispatch, AppThunk, RootState } from "@/store";
-import {
-  readFromFilesystem,
-  RUN_PARAMETERS_CACHE_KEY,
-  writeToFileSystem,
-} from "@/utils/storage";
-import { Filesystem } from "@capacitor/filesystem";
-import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getMostRecentRunParameters, RunParameter } from "api/fbaAPI";
-import { isNil } from "lodash";
-import { setLastUpdated } from "@/slices/dataSlice";
-import { DateTime } from "luxon";
+import { Filesystem } from '@capacitor/filesystem'
+import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { getMostRecentRunParameters, type RunParameter } from 'api/fbaAPI'
+import { isNil } from 'lodash'
+import { DateTime } from 'luxon'
+import { setLastUpdated } from '@/slices/dataSlice'
+import type { AppDispatch, AppThunk, RootState } from '@/store'
+import { getTodayKey, getTomorrowKey } from '@/utils/dataSliceUtils'
+import { RUN_PARAMETERS_CACHE_KEY, readFromFilesystem, writeToFileSystem } from '@/utils/storage'
 
 export interface RunParametersState {
-  error: string | null;
-  runParameters: { [key: string]: RunParameter } | null;
+  error: string | null
+  runParameters: { [key: string]: RunParameter } | null
 }
 
 export const initialState: RunParametersState = {
   error: null,
-  runParameters: null,
-};
+  runParameters: null
+}
 
 const runParameterSlice = createSlice({
-  name: "runParameters",
+  name: 'runParameters',
   initialState,
   reducers: {
     getRunParametersStart(state: RunParametersState) {
-      state.error = null;
+      state.error = null
     },
-    getRunParametersFailed(
-      state: RunParametersState,
-      action: PayloadAction<string>,
-    ) {
-      state.error = action.payload;
+    getRunParametersFailed(state: RunParametersState, action: PayloadAction<string>) {
+      state.error = action.payload
     },
     getRunParametersSuccess(
       state: RunParametersState,
       action: PayloadAction<{
-        runParameters: { [key: string]: RunParameter };
-      }>,
+        runParameters: { [key: string]: RunParameter }
+      }>
     ) {
-      state.error = null;
-      state.runParameters = action.payload.runParameters;
-    },
-  },
-});
+      state.error = null
+      state.runParameters = action.payload.runParameters
+    }
+  }
+})
 
-export const {
-  getRunParametersStart,
-  getRunParametersFailed,
-  getRunParametersSuccess,
-} = runParameterSlice.actions;
+export const { getRunParametersStart, getRunParametersFailed, getRunParametersSuccess } = runParameterSlice.actions
 
-export default runParameterSlice.reducer;
+export default runParameterSlice.reducer
 
 const handleOnlineRunParameters = async (
   dispatch: AppDispatch,
   todayKey: string,
   tomorrowKey: string,
-  reduxRunParameters: { [key: string]: RunParameter } | null,
+  reduxRunParameters: { [key: string]: RunParameter } | null
 ) => {
-  const now = DateTime.now();
+  const now = DateTime.now()
   try {
-    dispatch(getRunParametersStart());
-    const latestRunParameters: { [key: string]: RunParameter } =
-      await getMostRecentRunParameters(todayKey, tomorrowKey);
+    dispatch(getRunParametersStart())
+    const latestRunParameters: { [key: string]: RunParameter } = await getMostRecentRunParameters(todayKey, tomorrowKey)
 
-    if (
-      isNil(latestRunParameters) ||
-      Object.keys(latestRunParameters).length === 0
-    ) {
-      dispatch(
-        getRunParametersFailed("Unable to update runParameters from the API."),
-      );
-      return;
+    if (isNil(latestRunParameters) || Object.keys(latestRunParameters).length === 0) {
+      dispatch(getRunParametersFailed('Unable to update runParameters from the API.'))
+      return
     }
 
-    await writeToFileSystem(
-      Filesystem,
-      RUN_PARAMETERS_CACHE_KEY,
-      latestRunParameters,
-      now,
-    );
+    await writeToFileSystem(Filesystem, RUN_PARAMETERS_CACHE_KEY, latestRunParameters, now)
 
     if (
       isNil(reduxRunParameters) ||
-      stateUpdateRequired(
-        todayKey,
-        tomorrowKey,
-        reduxRunParameters,
-        latestRunParameters,
-      )
+      stateUpdateRequired(todayKey, tomorrowKey, reduxRunParameters, latestRunParameters)
     ) {
-      dispatch(getRunParametersSuccess({ runParameters: latestRunParameters }));
+      dispatch(getRunParametersSuccess({ runParameters: latestRunParameters }))
     } else {
-      dispatch(setLastUpdated({ lastUpdated: now.toISO() }));
+      dispatch(setLastUpdated({ lastUpdated: now.toISO() }))
     }
   } catch (err) {
-    dispatch(getRunParametersFailed((err as Error).toString()));
-    console.log(err);
+    dispatch(getRunParametersFailed((err as Error).toString()))
+    console.log(err)
   }
-};
+}
 
 const handleOfflineRunParameters = async (
   dispatch: AppDispatch,
   todayKey: string,
   tomorrowKey: string,
-  reduxRunParameters: { [key: string]: RunParameter } | null,
+  reduxRunParameters: { [key: string]: RunParameter } | null
 ) => {
-  const cachedData = await readFromFilesystem(
-    Filesystem,
-    RUN_PARAMETERS_CACHE_KEY,
-  );
-  const cachedRunParameters: { [key: string]: RunParameter } | null = isNil(
-    cachedData,
-  )
+  const cachedData = await readFromFilesystem(Filesystem, RUN_PARAMETERS_CACHE_KEY)
+  const cachedRunParameters: { [key: string]: RunParameter } | null = isNil(cachedData)
     ? null
-    : (cachedData.data as { [key: string]: RunParameter });
+    : (cachedData.data as { [key: string]: RunParameter })
 
   if (isNil(cachedRunParameters)) {
-    dispatch(getRunParametersFailed("No run parameters available."));
-    return;
+    dispatch(getRunParametersFailed('No run parameters available.'))
+    return
   }
 
   if (
     isNil(reduxRunParameters) ||
-    stateUpdateRequired(
-      todayKey,
-      tomorrowKey,
-      reduxRunParameters,
-      cachedRunParameters,
-    )
+    stateUpdateRequired(todayKey, tomorrowKey, reduxRunParameters, cachedRunParameters)
   ) {
-    dispatch(getRunParametersSuccess({ runParameters: cachedRunParameters }));
+    dispatch(getRunParametersSuccess({ runParameters: cachedRunParameters }))
   }
-};
+}
 
-export const fetchSFMSRunParameters =
-  (): AppThunk => async (dispatch, getState) => {
-    const todayKey = getTodayKey();
-    const tomorrowKey = getTomorrowKey();
-    const state = getState();
-    const connected = state.networkStatus.networkStatus.connected;
-    const reduxRunParameters = state.runParameters.runParameters;
+export const fetchSFMSRunParameters = (): AppThunk => async (dispatch, getState) => {
+  const todayKey = getTodayKey()
+  const tomorrowKey = getTomorrowKey()
+  const state = getState()
+  const connected = state.networkStatus.networkStatus.connected
+  const reduxRunParameters = state.runParameters.runParameters
 
-    if (connected) {
-      await handleOnlineRunParameters(
-        dispatch,
-        todayKey,
-        tomorrowKey,
-        reduxRunParameters,
-      );
-    } else {
-      await handleOfflineRunParameters(
-        dispatch,
-        todayKey,
-        tomorrowKey,
-        reduxRunParameters,
-      );
-    }
-  };
+  if (connected) {
+    await handleOnlineRunParameters(dispatch, todayKey, tomorrowKey, reduxRunParameters)
+  } else {
+    await handleOfflineRunParameters(dispatch, todayKey, tomorrowKey, reduxRunParameters)
+  }
+}
 
-export const selectRunParameters = (state: RootState) =>
-  state.runParameters.runParameters;
+export const selectRunParameters = (state: RootState) => state.runParameters.runParameters
 
 export const selectRunParameterByForDate = (forDate: string) =>
-  createSelector([selectRunParameters], (runParameters) =>
-    isNil(runParameters) ? null : runParameters[forDate],
-  );
+  createSelector([selectRunParameters], runParameters => (isNil(runParameters) ? null : runParameters[forDate]))
 
 const stateUpdateRequired = (
   todayKey: string,
   tomorrowKey: string,
   a: { [key: string]: RunParameter },
-  b: { [key: string]: RunParameter },
+  b: { [key: string]: RunParameter }
 ) => {
-  return (
-    !runParametersAreEqual(a[todayKey], b[todayKey]) ||
-    !runParametersAreEqual(a[tomorrowKey], b[tomorrowKey])
-  );
-};
+  return !runParametersAreEqual(a[todayKey], b[todayKey]) || !runParametersAreEqual(a[tomorrowKey], b[tomorrowKey])
+}
 
-const runParametersAreEqual = (
-  a: RunParameter | undefined,
-  b: RunParameter | undefined,
-) => {
+const runParametersAreEqual = (a: RunParameter | undefined, b: RunParameter | undefined) => {
   if (isNil(a) || isNil(b)) {
-    return isNil(a) && isNil(b);
+    return isNil(a) && isNil(b)
   }
-  return (
-    a.for_date === b.for_date &&
-    a.run_datetime === b.run_datetime &&
-    a.run_type === b.run_type
-  );
-};
+  return a.for_date === b.for_date && a.run_datetime === b.run_datetime && a.run_type === b.run_type
+}

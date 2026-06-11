@@ -1,10 +1,9 @@
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ReadyPlanningAreaDetails } from '@wps/api/hfiCalculatorAPI'
+import type { ReadyPlanningAreaDetails } from '@wps/api/hfiCalculatorAPI'
 import PlanningAreaReadyToggle from 'features/hfiCalculator/components/PlanningAreaReadyToggle'
 import { DateTime } from 'luxon'
 import { vi } from 'vitest'
-
 
 describe('PlanningAreaReadyToggle', () => {
   const readyDetails: ReadyPlanningAreaDetails = {

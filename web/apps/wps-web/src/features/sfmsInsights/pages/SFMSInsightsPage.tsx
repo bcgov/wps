@@ -1,10 +1,3 @@
-import { AppDispatch } from '@/app/store'
-import ASADatePicker from '@/features/fba/components/ASADatePicker'
-import { fetchSFMSBounds, selectEarliestSFMSBounds, selectLatestSFMSBounds } from '@/features/fba/slices/runDatesSlice'
-import Footer from '@/features/landingPage/components/Footer'
-import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
-import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
-import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
 import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
@@ -15,6 +8,13 @@ import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import type { AppDispatch } from '@/app/store'
+import ASADatePicker from '@/features/fba/components/ASADatePicker'
+import { fetchSFMSBounds, selectEarliestSFMSBounds, selectLatestSFMSBounds } from '@/features/fba/slices/runDatesSlice'
+import Footer from '@/features/landingPage/components/Footer'
+import type { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
+import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
+import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
 
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -37,7 +37,6 @@ export const SFMSInsightsPage = () => {
     if (sfmsBounds === undefined && !sfmsBoundsLoading) {
       dispatch(fetchSFMSBounds())
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -77,9 +76,13 @@ export const SFMSInsightsPage = () => {
           borderBottomColor: 'secondary.main'
         }}
       >
-        <Grid container spacing={1} sx={{
-          alignItems: 'center'
-        }}>
+        <Grid
+          container
+          spacing={1}
+          sx={{
+            alignItems: 'center'
+          }}
+        >
           {sfmsBoundsLoading ? (
             <Grid>
               <StyledFormControl>
@@ -124,5 +127,5 @@ export const SFMSInsightsPage = () => {
       </Box>
       <Footer />
     </Box>
-  );
+  )
 }

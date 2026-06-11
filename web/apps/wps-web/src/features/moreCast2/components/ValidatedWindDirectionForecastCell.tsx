@@ -1,5 +1,5 @@
 import { Grid } from '@mui/material'
-import { GridRenderCellParams } from '@mui/x-data-grid-pro'
+import type { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import ValidatedCell from '@/features/moreCast2/components/ValidatedCell'
 
 interface ForecastCellProps {

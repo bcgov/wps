@@ -1,7 +1,7 @@
-import CreateFireWatch from '@/features/fireWatch/components/CreateFireWatch'
-import { FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
 import { Modal, Paper, Typography } from '@mui/material'
 import { useTheme } from '@mui/system'
+import CreateFireWatch from '@/features/fireWatch/components/CreateFireWatch'
+import type { FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
 
 export interface FireWatchDetailsModalProps {
   open: boolean

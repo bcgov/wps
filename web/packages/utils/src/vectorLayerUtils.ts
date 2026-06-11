@@ -1,8 +1,8 @@
 import axios from 'axios'
-import { applyStyle } from 'ol-mapbox-style'
 import MVT from 'ol/format/MVT'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorSource from 'ol/source/VectorTile'
+import { applyStyle } from 'ol-mapbox-style'
 
 export const getStyleJson = async (url: string) => {
   try {

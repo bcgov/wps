@@ -1,9 +1,9 @@
-import { renderHook, act } from '@testing-library/react'
+import { renderHook } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { describe, it, expect, vi } from 'vitest'
-import { useLoading } from './useLoading'
+import { describe, expect, it } from 'vitest'
+import type { RootState } from '@/app/rootReducer'
 import { createTestStore } from '@/test/testUtils'
-import { RootState } from '@/app/rootReducer'
+import { useLoading } from './useLoading'
 
 const getStore = (asaLoading: boolean) =>
   createTestStore({

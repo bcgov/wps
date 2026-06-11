@@ -1,5 +1,5 @@
-import { theme } from '@wps/ui/theme'
 import { Box, Typography } from '@mui/material'
+import { theme } from '@wps/ui/theme'
 
 interface SummaryLineTextProps {
   indentLevel: number
@@ -11,16 +11,20 @@ interface SummaryLineTextProps {
 const SummaryTextLine = ({ indentLevel, left, right, rightColor }: SummaryLineTextProps) => {
   return (
     <Box sx={{ display: 'flex', pl: theme.spacing(2 * indentLevel) }}>
-      <Typography component={'div'} variant="body1" sx={{
-        fontStyle: "italic"
-      }}>
+      <Typography
+        component={'div'}
+        variant="body1"
+        sx={{
+          fontStyle: 'italic'
+        }}
+      >
         • {left}: &nbsp;
       </Typography>
       <Typography component={'div'} variant="body1" color={rightColor}>
         {right}
       </Typography>
     </Box>
-  );
+  )
 }
 
 export default SummaryTextLine

@@ -1,22 +1,22 @@
-import { RootState } from '@/app/rootReducer'
-import { AppDispatch } from '@/app/store'
-import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
-import FireWatchDetailsModal from '@/features/fireWatch/components/FireWatchDetailsModal'
-import { BurnStatusEnum, BurnWatchRow, FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
-import { fetchBurnForecasts, selectBurnForecasts, updateFireWatch } from '@/features/fireWatch/slices/burnForecastSlice'
+import CancelIcon from '@mui/icons-material/Cancel'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined'
 import InfoIcon from '@mui/icons-material/Info'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import PauseCircleIcon from '@mui/icons-material/PauseCircle'
-import CancelIcon from '@mui/icons-material/Cancel'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle'
-import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined'
 import { Alert, Backdrop, Box, CircularProgress, Snackbar, Tooltip, Typography, useTheme } from '@mui/material'
-import { DataGridPro, DataGridProProps, GridActionsCellItem, GridColDef } from '@mui/x-data-grid-pro'
+import { DataGridPro, type DataGridProProps, GridActionsCellItem, type GridColDef } from '@mui/x-data-grid-pro'
 import { FireWatchPrescriptionColors } from '@wps/ui/theme'
 import { upperFirst } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import type { RootState } from '@/app/rootReducer'
+import type { AppDispatch } from '@/app/store'
+import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
+import FireWatchDetailsModal from '@/features/fireWatch/components/FireWatchDetailsModal'
+import { BurnStatusEnum, type BurnWatchRow, type FireWatchBurnForecast } from '@/features/fireWatch/interfaces'
+import { fetchBurnForecasts, selectBurnForecasts, updateFireWatch } from '@/features/fireWatch/slices/burnForecastSlice'
 
 const FireWatchDashboard = () => {
   const dispatch: AppDispatch = useDispatch()
@@ -170,7 +170,7 @@ const FireWatchDashboard = () => {
         try {
           await dispatch(updateFireWatch(updatedRow.fireWatch))
           return updatedRow
-        } catch (error) {
+        } catch (_error) {
           setSnackbarOpen(true)
           setSnackbarMsg('Failed to update row status')
           // on error revert to oldRow

@@ -1,5 +1,4 @@
-import React from 'react'
-import { Grid, Typography, Checkbox, List, ListItem, ListItemText, ListItemIcon, Icon } from '@mui/material'
+import { Checkbox, Grid, Icon, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import {
   ADVISORY_ORANGE_FILL,
@@ -8,6 +7,7 @@ import {
   HFI_WARNING
 } from 'features/fba/components/map/featureStylers'
 import { isEqual } from 'lodash'
+import type React from 'react'
 import { hfiLayerName, zoneStatusLayerName } from '@/features/fba/components/map/FBAMap'
 
 const LegendGrid = styled(Grid)({

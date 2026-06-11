@@ -1,24 +1,24 @@
-import { DateTime } from 'luxon'
 import { ModelChoice } from '@wps/api/moreCast2API'
+import type { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
+import { createEmptyMoreCast2Row } from 'features/moreCast2/slices/dataSlice'
 import {
+  calculateFWIs,
   createDateInterval,
   createWeatherModelLabel,
-  fillGrassCuringForecast,
+  dateTimeComparator,
+  fillForecastsFromRows,
   fillGrassCuringCWFIS,
+  fillGrassCuringForecast,
   fillStationGrassCuringForward,
   mapForecastChoiceLabels,
   parseForecastsHelper,
   rowIDHasher,
+  simulateFireWeatherIndices,
   validActualPredicate,
-  validForecastPredicate,
-  fillForecastsFromRows,
-  dateTimeComparator,
-  calculateFWIs,
-  simulateFireWeatherIndices
+  validForecastPredicate
 } from 'features/moreCast2/util'
-import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
-import { createEmptyMoreCast2Row } from 'features/moreCast2/slices/dataSlice'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { DateTime } from 'luxon'
 
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
@@ -316,10 +316,10 @@ describe('fillStationGrassCuringForward', () => {
     forecast1B.grassCuringForecast!.value = 43
     const filledRows = fillStationGrassCuringForward(forecast1B, rows)
 
-    expect(filledRows.find(row => row.id === forecast1C.id)?.grassCuringForecast!.value).toBe(43)
-    expect(filledRows.find(row => row.id === forecast1A.id)?.grassCuringForecast!.value).toBe(60)
-    expect(filledRows.find(row => row.id === forecast1B.id)?.grassCuringForecast!.value).toBe(43)
-    expect(rows.find(row => row.id === forecast1C.id)?.grassCuringForecast!.value).toBe(50)
+    expect(filledRows.find(row => row.id === forecast1C.id)?.grassCuringForecast?.value).toBe(43)
+    expect(filledRows.find(row => row.id === forecast1A.id)?.grassCuringForecast?.value).toBe(60)
+    expect(filledRows.find(row => row.id === forecast1B.id)?.grassCuringForecast?.value).toBe(43)
+    expect(rows.find(row => row.id === forecast1C.id)?.grassCuringForecast?.value).toBe(50)
   })
 })
 describe('fillRowsFromSavedDraft', () => {

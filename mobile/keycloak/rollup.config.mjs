@@ -6,17 +6,17 @@ export default {
       format: 'iife',
       name: 'capacitorKeycloak',
       globals: {
-        '@capacitor/core': 'capacitorExports',
+        '@capacitor/core': 'capacitorExports'
       },
       sourcemap: true,
-      inlineDynamicImports: true,
+      inlineDynamicImports: true
     },
     {
       file: 'dist/plugin.cjs.js',
       format: 'cjs',
       sourcemap: true,
-      inlineDynamicImports: true,
-    },
+      inlineDynamicImports: true
+    }
   ],
-  external: ['@capacitor/core'],
-};
+  external: ['@capacitor/core']
+}

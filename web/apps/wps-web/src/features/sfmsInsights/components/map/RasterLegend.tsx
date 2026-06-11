@@ -1,6 +1,6 @@
 import { Grid, Icon, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { RASTER_CONFIG, RasterType, ColorBreak } from './rasterConfig'
+import { type ColorBreak, RASTER_CONFIG, type RasterType } from './rasterConfig'
 
 const LegendGrid = styled(Grid)({
   position: 'absolute',

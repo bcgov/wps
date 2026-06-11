@@ -1,5 +1,5 @@
-import WebGLTileLayer from 'ol/layer/WebGLTile'
-import { RasterType, RASTER_CONFIG, FUEL_TYPE_COLORS } from './rasterConfig'
+import type WebGLTileLayer from 'ol/layer/WebGLTile'
+import { FUEL_TYPE_COLORS, RASTER_CONFIG, type RasterType } from './rasterConfig'
 import { isNodataValue } from './sfmsFeatureStylers'
 
 export type RasterValue = number | string | null

@@ -1,9 +1,9 @@
 import { TextField, Tooltip } from '@mui/material'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNull, isUndefined } from 'lodash'
-import React, { ChangeEvent, useEffect, useState } from 'react'
+import React, { type ChangeEvent, useEffect, useState } from 'react'
 
 export interface GrassCureCellProps {
   inputRows: FBATableRow[]
@@ -20,9 +20,9 @@ const GrassCureProps = (props: GrassCureCellProps) => {
 
   const changeHandler = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const stringInput = String(event.target.value)
-    const numberInput = parseInt(stringInput)
-    if (isUndefined(stringInput) || isNull(stringInput) || isNaN(numberInput) || stringInput.length <= 3) {
-      setGrassCurePercentage(parseInt(event.target.value))
+    const numberInput = parseInt(stringInput, 10)
+    if (isUndefined(stringInput) || isNull(stringInput) || Number.isNaN(numberInput) || stringInput.length <= 3) {
+      setGrassCurePercentage(parseInt(event.target.value, 10))
     }
   }
 
@@ -71,7 +71,7 @@ const GrassCureProps = (props: GrassCureCellProps) => {
         }}
       />
     </Tooltip>
-  );
+  )
 }
 
 export default React.memo(GrassCureProps)

@@ -1,25 +1,21 @@
-import { FireShape } from "@/api/fbaAPI";
-import type { FireCentre } from "@/types/fireCentre";
-import FireCenterDropdown from "@/components/FireCenterDropdown";
-import AdvisoryText from "@/components/report/AdvisoryText";
-import FireZoneUnitTabs from "@/components/report/FireZoneUnitTabs";
-import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
-import { selectFireCentres } from "@/store";
-import { Box, useTheme } from "@mui/material";
-import { DateTime } from "luxon";
-import { useSelector } from "react-redux";
+import { Box, useTheme } from '@mui/material'
+import type { DateTime } from 'luxon'
+import { useSelector } from 'react-redux'
+import type { FireShape } from '@/api/fbaAPI'
+import FireCenterDropdown from '@/components/FireCenterDropdown'
+import AdvisoryText from '@/components/report/AdvisoryText'
+import FireZoneUnitTabs from '@/components/report/FireZoneUnitTabs'
+import TodayTomorrowSwitch from '@/components/TodayTomorrowSwitch'
+import { selectFireCentres } from '@/store'
+import type { FireCentre } from '@/types/fireCentre'
 
 interface AdvisoryProps {
-  date: DateTime;
-  setDate: React.Dispatch<React.SetStateAction<DateTime>>;
-  selectedFireCentre: FireCentre | undefined;
-  setSelectedFireCentre: React.Dispatch<
-    React.SetStateAction<FireCentre | undefined>
-  >;
-  selectedFireZoneUnit: FireShape | undefined;
-  setSelectedFireZoneUnit: React.Dispatch<
-    React.SetStateAction<FireShape | undefined>
-  >;
+  date: DateTime
+  setDate: React.Dispatch<React.SetStateAction<DateTime>>
+  selectedFireCentre: FireCentre | undefined
+  setSelectedFireCentre: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
+  selectedFireZoneUnit: FireShape | undefined
+  setSelectedFireZoneUnit: React.Dispatch<React.SetStateAction<FireShape | undefined>>
 }
 
 const Advisory = ({
@@ -28,35 +24,33 @@ const Advisory = ({
   selectedFireCentre,
   setSelectedFireCentre,
   selectedFireZoneUnit,
-  setSelectedFireZoneUnit,
+  setSelectedFireZoneUnit
 }: AdvisoryProps) => {
-  const { fireCentres } = useSelector(selectFireCentres);
-  const theme = useTheme();
+  const { fireCentres } = useSelector(selectFireCentres)
+  const theme = useTheme()
   return (
     <Box
       data-testid="asa-go-advisory"
       sx={{
-        display: "flex",
+        display: 'flex',
         flex: 1,
-        flexDirection: "column",
-        height: "100%",
+        flexDirection: 'column',
+        height: '100%'
       }}
     >
       <Box
         data-testid="advisory-control-container"
         sx={{
-          alignItems: "end",
-          backgroundColor: "white",
-          display: "flex",
-          padding: theme.spacing(1),
+          alignItems: 'end',
+          backgroundColor: 'white',
+          display: 'flex',
+          padding: theme.spacing(1)
         }}
       >
-        <Box
-          sx={{ alignItems: "center", display: "flex", pr: theme.spacing(1) }}
-        >
+        <Box sx={{ alignItems: 'center', display: 'flex', pr: theme.spacing(1) }}>
           <TodayTomorrowSwitch border date={date} setDate={setDate} />
         </Box>
-        <Box sx={{ display: "flex", flexGrow: 1, pt: theme.spacing(1) }}>
+        <Box sx={{ display: 'flex', flexGrow: 1, pt: theme.spacing(1) }}>
           <FireCenterDropdown
             fireCentreOptions={fireCentres ?? []}
             selectedFireCentre={selectedFireCentre}
@@ -68,11 +62,11 @@ const Advisory = ({
       <Box
         id="advisory-content-container"
         sx={{
-          backgroundColor: "#FFFFFF",
-          display: "flex",
+          backgroundColor: '#FFFFFF',
+          display: 'flex',
           flexGrow: 1,
           paddingTop: theme.spacing(1),
-          overflowY: "hidden",
+          overflowY: 'hidden'
         }}
       >
         <FireZoneUnitTabs
@@ -89,7 +83,7 @@ const Advisory = ({
         </FireZoneUnitTabs>
       </Box>
     </Box>
-  );
-};
+  )
+}
 
-export default Advisory;
+export default Advisory

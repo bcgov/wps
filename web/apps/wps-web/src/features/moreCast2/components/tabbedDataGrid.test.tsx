@@ -1,10 +1,10 @@
-import { vi } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { Provider } from 'react-redux'
-import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
-import { DateRange } from '@wps/ui/dateRangePicker/types'
+import type { DateRange } from '@wps/ui/dateRangePicker/types'
 import store from 'app/store'
+import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
+import { Provider } from 'react-redux'
+import { vi } from 'vitest'
 
 const FROM_TO: DateRange = {}
 const SET_FROM_TO: React.Dispatch<React.SetStateAction<DateRange>> = vi.fn()

@@ -1,9 +1,14 @@
-import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { AppThunk } from 'app/store'
+import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import {
+  type FireShapeStatusDetail,
+  getProvincialSummary,
+  type ProvincialSummaryResponse,
+  type RunType
+} from '@wps/api/fbaAPI'
 import { logError } from '@wps/utils/error'
+import type { RootState } from 'app/rootReducer'
+import type { AppThunk } from 'app/store'
 import { groupBy, isNull, isUndefined } from 'lodash'
-import { FireShapeStatusDetail, getProvincialSummary, ProvincialSummaryResponse, RunType } from '@wps/api/fbaAPI'
-import { RootState } from 'app/rootReducer'
 
 export interface ProvincialSummaryState {
   loading: boolean

@@ -1,9 +1,7 @@
-import { AdvisoryTypography } from "@/components/report/AdvisoryText";
+import { AdvisoryTypography } from '@/components/report/AdvisoryTypography'
 
-export const DefaultText = () => (
-  <AdvisoryTypography data-testid="default-message">
-    Please select a fire centre.
-  </AdvisoryTypography>
-);
+const DefaultText = () => (
+  <AdvisoryTypography data-testid="default-message">Please select a fire centre.</AdvisoryTypography>
+)
 
-export default DefaultText;
+export default DefaultText

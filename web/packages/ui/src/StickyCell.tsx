@@ -1,7 +1,7 @@
 import { TableCell } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { theme } from './theme'
 import React from 'react'
+import { theme } from './theme'
 
 const StyledTableCell = styled(TableCell, {
   shouldForwardProp: prop => prop !== 'zIndexOffset' && prop !== 'backgroundColor'

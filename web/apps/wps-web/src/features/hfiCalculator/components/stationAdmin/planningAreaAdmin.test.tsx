@@ -1,10 +1,9 @@
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import type { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
-import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
+import type { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { vi } from 'vitest'
-
 
 describe('PlanningAreaAdmin', () => {
   const planningArea = { id: 1, name: 'testPlanningArea' }

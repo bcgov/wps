@@ -1,10 +1,10 @@
 import { TableCell } from '@mui/material'
-import { StationDaily } from '@wps/api/hfiCalculatorAPI'
+import type { StationDaily } from '@wps/api/hfiCalculatorAPI'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { UnSelectedTableCell } from 'features/hfiCalculator/components/StyledTableComponents'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import { isNull, isUndefined } from 'lodash'
-import React, { ReactElement } from 'react'
+import React, { type ReactElement } from 'react'
 
 export interface RequiredDataCellProps {
   testId?: string

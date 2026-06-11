@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import GrassCureCell, { GrassCureCellProps } from 'features/fbaCalculator/components/GrassCureCell'
-import { FBAFuelType, FuelTypes } from 'features/fbaCalculator/fuelTypes'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
+import GrassCureCell, { type GrassCureCellProps } from 'features/fbaCalculator/components/GrassCureCell'
+import { type FBAFuelType, FuelTypes } from 'features/fbaCalculator/fuelTypes'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { isNull } from 'lodash'
 
 describe('GrassCureCell', () => {

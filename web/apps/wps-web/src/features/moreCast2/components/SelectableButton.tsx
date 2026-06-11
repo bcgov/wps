@@ -1,8 +1,8 @@
-import React from 'react'
+import styled from '@emotion/styled'
 
 import { Button } from '@mui/material'
-import { MORECAST_WEATHER_PARAMS, MoreCastParams, theme } from '@wps/ui/theme'
-import styled from '@emotion/styled'
+import { MORECAST_WEATHER_PARAMS, type MoreCastParams, theme } from '@wps/ui/theme'
+import React from 'react'
 
 const StyledButton = styled(Button)(() => ({
   marginLeft: theme.spacing(1),

@@ -1,18 +1,6 @@
-import { FireCentreInfo } from "@/api/fbaAPI";
-import SubscriptionOption from "@/components/settings/SubscriptionOption";
-import { useNotificationSettings } from "@/hooks/useNotificationSettings";
-import { savePinnedFireCentre } from "@/slices/settingsSlice";
-import {
-  AppDispatch,
-  selectNotificationSettingsDisabled,
-  selectSettings,
-} from "@/store";
-import { theme } from "@/theme";
-import { subscriptionUpdateErrorMessage } from "@/utils/constants";
-import { nameFormatter } from "@/utils/stringUtils";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import PushPinIcon from "@mui/icons-material/PushPin";
-import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import PushPinIcon from '@mui/icons-material/PushPin'
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined'
 import {
   Accordion,
   AccordionDetails,
@@ -23,116 +11,108 @@ import {
   FormGroup,
   IconButton,
   List,
-  Typography,
-} from "@mui/material";
-import NotificationErrorSnackbar from "@/components/NotificationErrorSnackbar";
-import { useCallback, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+  Typography
+} from '@mui/material'
+import { useCallback, useMemo, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import type { FireCentreInfo } from '@/api/fbaAPI'
+import NotificationErrorSnackbar from '@/components/NotificationErrorSnackbar'
+import SubscriptionOption from '@/components/settings/SubscriptionOption'
+import { useNotificationSettings } from '@/hooks/useNotificationSettings'
+import { savePinnedFireCentre } from '@/slices/settingsSlice'
+import { type AppDispatch, selectNotificationSettingsDisabled, selectSettings } from '@/store'
+import { theme } from '@/theme'
+import { subscriptionUpdateErrorMessage } from '@/utils/constants'
+import { nameFormatter } from '@/utils/stringUtils'
 
 interface SubscriptionAccordionProps {
-  defaultExpanded: boolean;
-  disabled: boolean;
-  fireCentreInfo: FireCentreInfo;
+  defaultExpanded: boolean
+  disabled: boolean
+  fireCentreInfo: FireCentreInfo
 }
 
-const SubscriptionAccordion = ({
-  defaultExpanded,
-  disabled,
-  fireCentreInfo,
-}: SubscriptionAccordionProps) => {
-  const dispatch: AppDispatch = useDispatch();
-  const {
-    updateSubscriptions,
-    toggleSubscription,
-    updateError,
-    clearUpdateError,
-  } = useNotificationSettings();
-  const { pinnedFireCentre, subscriptions } = useSelector(selectSettings);
-  const notificationSettingsDisabled = useSelector(
-    selectNotificationSettingsDisabled,
-  );
+const SubscriptionAccordion = ({ defaultExpanded, disabled, fireCentreInfo }: SubscriptionAccordionProps) => {
+  const dispatch: AppDispatch = useDispatch()
+  const { updateSubscriptions, toggleSubscription, updateError, clearUpdateError } = useNotificationSettings()
+  const { pinnedFireCentre, subscriptions } = useSelector(selectSettings)
+  const notificationSettingsDisabled = useSelector(selectNotificationSettingsDisabled)
 
-  const [expanded, setExpanded] = useState(defaultExpanded);
-  const [pendingZoneId, setPendingZoneId] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState(defaultExpanded)
+  const [pendingZoneId, setPendingZoneId] = useState<number | null>(null)
 
   // All fire zone unit ids in this fire centre.
   const allFireZoneUnitIds = useMemo(() => {
     if (fireCentreInfo?.fire_zone_units?.length) {
-      return fireCentreInfo.fire_zone_units.map((fzu) => fzu.id);
+      return fireCentreInfo.fire_zone_units.map(fzu => fzu.id)
     }
-    return [];
-  }, [fireCentreInfo]);
+    return []
+  }, [fireCentreInfo])
 
   // All fire zone units ids in this fire centre that are subscribed to.
   const subscribedFireZoneUnits = useMemo(() => {
-    return allFireZoneUnitIds.filter((zone) => subscriptions.includes(zone));
-  }, [subscriptions, allFireZoneUnitIds]);
+    return allFireZoneUnitIds.filter(zone => subscriptions.includes(zone))
+  }, [subscriptions, allFireZoneUnitIds])
 
   // Handle expanding/collapsing the accordion.
   const handleChange = useCallback(
     (_: React.SyntheticEvent, newExpanded: boolean) => {
       if (disabled) {
-        return; // block expansion when disabled
+        return // block expansion when disabled
       }
-      setExpanded(newExpanded);
+      setExpanded(newExpanded)
     },
-    [disabled],
-  );
+    [disabled]
+  )
 
   // Handle a touch of the pin icon to move a fire centre to the top of the group of accordions.
   const handlePinTouch = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
+    e.stopPropagation()
     if (pinnedFireCentre === fireCentreInfo.fire_centre_name) {
-      dispatch(savePinnedFireCentre(null));
+      dispatch(savePinnedFireCentre(null))
     } else {
-      dispatch(savePinnedFireCentre(fireCentreInfo.fire_centre_name));
+      dispatch(savePinnedFireCentre(fireCentreInfo.fire_centre_name))
     }
-  };
+  }
 
   const allSelected = () => {
-    if (
-      subscribedFireZoneUnits.length &&
-      subscribedFireZoneUnits.length === allFireZoneUnitIds.length
-    ) {
-      return true;
+    if (subscribedFireZoneUnits.length && subscribedFireZoneUnits.length === allFireZoneUnitIds.length) {
+      return true
     }
-    return false;
-  };
+    return false
+  }
 
   // Add/remove subscription to all fire zone units in this fire centre.
   const handleToggle = async (id: number) => {
-    setPendingZoneId(id);
-    await toggleSubscription(id);
-    setPendingZoneId(null);
-  };
+    setPendingZoneId(id)
+    await toggleSubscription(id)
+    setPendingZoneId(null)
+  }
 
   const toggleAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.stopPropagation();
+    e.stopPropagation()
     // Remove all of this fire centre's fire zone unit ids to avoid adding duplicates in the following if block.
-    const newSubs = subscriptions.filter(
-      (sub) => !allFireZoneUnitIds.includes(sub),
-    );
+    const newSubs = subscriptions.filter(sub => !allFireZoneUnitIds.includes(sub))
     // If none or some ids are already subscribed to, add back all ids to select all.
     if (!allSelected()) {
-      newSubs.push(...allFireZoneUnitIds);
+      newSubs.push(...allFireZoneUnitIds)
     }
 
-    updateSubscriptions(newSubs);
-  };
+    updateSubscriptions(newSubs)
+  }
 
   const disabledStyles = disabled
     ? {
         opacity: 0.5,
-        filter: "grayscale(1)",
-        pointerEvents: "none" as const, // block all pointer events
+        filter: 'grayscale(1)',
+        pointerEvents: 'none' as const // block all pointer events
       }
-    : {};
+    : {}
 
   return (
     <Box
       sx={{
-        position: "relative",
-        "& [role='button']": disabled ? { pointerEvents: "none" } : undefined,
+        position: 'relative',
+        "& [role='button']": disabled ? { pointerEvents: 'none' } : undefined
       }}
       aria-disabled={disabled ? true : undefined}
     >
@@ -155,7 +135,7 @@ const SubscriptionAccordion = ({
           id={`summary-${fireCentreInfo.fire_centre_name}`}
           expandIcon={<ExpandMoreIcon />}
           sx={{
-            backgroundColor: "rgba(252, 186, 25, 0.30)",
+            backgroundColor: 'rgba(252, 186, 25, 0.30)'
           }}
         >
           <IconButton onClick={handlePinTouch}>
@@ -165,22 +145,18 @@ const SubscriptionAccordion = ({
               <PushPinOutlinedIcon color="primary" />
             )}
           </IconButton>
-          <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
             <Typography
               variant="body2"
               sx={{
-                display: "flex",
+                display: 'flex',
                 flex: 1,
                 flexShrink: 0,
-                fontWeight: "bold",
-                pl: theme.spacing(1),
+                fontWeight: 'bold',
+                pl: theme.spacing(1)
               }}
             >
-              {nameFormatter(
-                fireCentreInfo.fire_centre_name,
-                "Fire Centre",
-                true,
-              )}
+              {nameFormatter(fireCentreInfo.fire_centre_name, 'Fire Centre', true)}
             </Typography>
             <FormGroup>
               <FormControlLabel
@@ -189,22 +165,20 @@ const SubscriptionAccordion = ({
                     disabled={disabled}
                     aria-label={`checkbox-${fireCentreInfo.fire_centre_name}`}
                     checked={allSelected()}
-                    indeterminate={
-                      !allSelected() && subscribedFireZoneUnits.length > 0
-                    }
+                    indeterminate={!allSelected() && subscribedFireZoneUnits.length > 0}
                     onChange={toggleAll}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
                   />
                 }
                 label="All"
-                onClick={(e) => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
               />
             </FormGroup>
           </Box>
         </AccordionSummary>
         <AccordionDetails>
           <List data-testid="switch-options">
-            {fireCentreInfo.fire_zone_units.map((fireZoneUnit) => {
+            {fireCentreInfo.fire_zone_units.map(fireZoneUnit => {
               return (
                 <SubscriptionOption
                   key={fireZoneUnit.id}
@@ -213,13 +187,13 @@ const SubscriptionAccordion = ({
                   disabled={notificationSettingsDisabled}
                   loading={pendingZoneId === fireZoneUnit.id}
                 />
-              );
+              )
             })}
           </List>
         </AccordionDetails>
       </Accordion>
     </Box>
-  );
-};
+  )
+}
 
-export default SubscriptionAccordion;
+export default SubscriptionAccordion

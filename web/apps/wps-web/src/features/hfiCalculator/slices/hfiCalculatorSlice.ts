@@ -1,28 +1,29 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-import { AppThunk } from 'app/store'
-import { logError } from '@wps/utils/error'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import {
-  loadDefaultHFIResult,
-  setNewFireStarts,
-  setFuelType,
-  getPrepDateRange,
-  setStationSelected,
-  getPDF,
+  type FireCentre,
+  type FireStartRange,
+  type FuelType,
+  type FuelTypesResponse,
   getFuelTypes,
-  FuelType,
-  FireCentre,
-  FuelTypesResponse,
-  updateStations,
-  FireStartRange,
-  PrepDateRange,
-  PlanningAreaResult,
-  HFIResultResponse
+  getPDF,
+  getPrepDateRange,
+  type HFIResultResponse,
+  loadDefaultHFIResult,
+  type PlanningAreaResult,
+  type PrepDateRange,
+  setFuelType,
+  setNewFireStarts,
+  setStationSelected,
+  updateStations
 } from '@wps/api/hfiCalculatorAPI'
-
-import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
-import { isUndefined } from 'lodash'
+import { logError } from '@wps/utils/error'
+import type { AppThunk } from 'app/store'
 import axios from 'axios'
+import type {
+  AddStationOptions,
+  StationAdminRow
+} from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import { isUndefined } from 'lodash'
 
 export interface HFICalculatorState {
   pdfLoading: boolean

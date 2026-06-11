@@ -1,4 +1,4 @@
-import { StationDaily, WeatherStation, WeatherStationProperties } from '@wps/api/hfiCalculatorAPI'
+import type { StationDaily, WeatherStation, WeatherStationProperties } from '@wps/api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
 const defaultProps: WeatherStationProperties = {

@@ -1,14 +1,14 @@
-import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { AppThunk } from 'app/store'
+import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import type { AppThunk } from 'app/store'
+import type { RootState } from '@/app/rootReducer'
 import { getBurnForecasts, patchFireWatchUpdate } from '@/features/fireWatch/fireWatchApi'
 import {
-  BurnForecast,
-  BurnWatchRow,
-  FireWatch,
-  FireWatchBurnForecast,
+  type BurnForecast,
+  type BurnWatchRow,
+  type FireWatch,
+  type FireWatchBurnForecast,
   PrescriptionEnum
 } from '@/features/fireWatch/interfaces'
-import { RootState } from '@/app/rootReducer'
 
 export interface BurnForecastsState {
   loading: boolean

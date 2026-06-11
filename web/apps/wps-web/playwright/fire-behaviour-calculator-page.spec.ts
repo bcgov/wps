@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { test, expect, type Page } from './fixtures'
+import { expect, type Page, test } from './fixtures'
 
 const FBA_ROUTE = '/fire-behaviour-calculator'
 const fixturesDir = path.join(import.meta.dirname, 'fixtures')
@@ -95,7 +95,7 @@ test.describe('FireCalc Page', () => {
       fuel_type: C1.name,
       percentage_conifer: C1.percentage_conifer,
       crown_base_height: C1.crown_base_height,
-      grass_cure: Number.parseInt(grassCure)
+      grass_cure: Number.parseInt(grassCure, 10)
     })
     await expectRowCount(page, 1)
     await expect(page).toHaveURL(new RegExp(`s=${stationCode}&f=${C1.name.toLowerCase()}&c=${grassCure}`))
@@ -122,7 +122,7 @@ test.describe('FireCalc Page', () => {
       fuel_type: C1.name,
       percentage_conifer: C1.percentage_conifer,
       crown_base_height: C1.crown_base_height,
-      grass_cure: Number.parseInt(grassCure),
+      grass_cure: Number.parseInt(grassCure, 10),
       wind_speed: Number.parseFloat(windSpeed)
     })
     await expectRowCount(page, 1)

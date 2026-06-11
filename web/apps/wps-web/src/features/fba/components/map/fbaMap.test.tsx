@@ -1,12 +1,12 @@
-import { RunType } from '@wps/api/fbaAPI'
-import { createLayerMock } from '@/test/testUtils'
-import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { render } from '@testing-library/react'
+import { RunType } from '@wps/api/fbaAPI'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import store from 'app/store'
 import FBAMap from 'features/fba/components/map/FBAMap'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
-import { Mock } from 'vitest'
+import type { Mock } from 'vitest'
+import { createLayerMock } from '@/test/testUtils'
 
 vi.mock('@wps/utils/vectorLayerUtils', async () => {
   return {
@@ -41,11 +41,11 @@ describe('FBAMap', () => {
           selectedFireCentre={undefined}
           selectedFireShape={undefined}
           runType={RunType.FORECAST}
-          setSelectedFireShape={function (): void {
+          setSelectedFireShape={(): void => {
             throw new Error('Function not implemented.')
           }}
           zoomSource={'fireCentre'}
-          setZoomSource={function (): void {
+          setZoomSource={(): void => {
             throw new Error('Function not implemented.')
           }}
         />

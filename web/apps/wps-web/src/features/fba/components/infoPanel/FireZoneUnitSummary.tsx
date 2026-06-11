@@ -1,9 +1,9 @@
-import React from 'react'
 import { Box, Stack, Typography } from '@mui/material'
-import { isNil, isUndefined } from 'lodash'
-import { FireShape, FireZoneTPIStats, FireZoneFuelStats } from '@wps/api/fbaAPI'
-import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 import { useTheme } from '@mui/material/styles'
+import type { FireShape, FireZoneFuelStats, FireZoneTPIStats } from '@wps/api/fbaAPI'
+import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
+import { isNil, isUndefined } from 'lodash'
+import React from 'react'
 import FuelSummary from '@/features/fba/components/viz/FuelSummary'
 
 interface FireZoneUnitSummaryProps {
@@ -53,7 +53,7 @@ const FireZoneUnitSummary = ({
         </Box>
       </Stack>
     </div>
-  );
+  )
 }
 
 export default React.memo(FireZoneUnitSummary)

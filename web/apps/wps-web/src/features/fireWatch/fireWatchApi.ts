@@ -1,4 +1,7 @@
-import {
+import axios from '@wps/api/axios'
+import { isNull } from 'lodash'
+import { DateTime } from 'luxon'
+import type {
   BurnForecast,
   BurnStatusEnum,
   FireWatch,
@@ -8,9 +11,6 @@ import {
   FuelTypeEnum,
   PrescriptionEnum
 } from '@/features/fireWatch/interfaces'
-import axios from '@wps/api/axios'
-import { isNull } from 'lodash'
-import { DateTime } from 'luxon'
 
 // Interfaces for data transfer objects and functions for fetching data.
 

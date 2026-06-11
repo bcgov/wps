@@ -117,7 +117,6 @@ export const determineMarkerRadius = (scaleIndex: number): number => {
     case 2:
     case 4:
       return mediumRadius
-    case 3:
     default:
       return smallRadius
   }

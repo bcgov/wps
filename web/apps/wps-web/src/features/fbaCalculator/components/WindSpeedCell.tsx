@@ -1,11 +1,11 @@
 import { TextField, Tooltip } from '@mui/material'
-import { ThemeProvider, StyledEngineProvider, styled } from '@mui/material/styles'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
-import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
+import { StyledEngineProvider, styled, ThemeProvider } from '@mui/material/styles'
+import { adjustedTheme } from '@wps/ui/theme'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
+import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNil, isUndefined } from 'lodash'
-import React, { ChangeEvent, useState, useEffect } from 'react'
-import { adjustedTheme } from '@wps/ui/theme'
+import React, { type ChangeEvent, useEffect, useState } from 'react'
 
 const PREFIX = 'WindSpeedCell'
 

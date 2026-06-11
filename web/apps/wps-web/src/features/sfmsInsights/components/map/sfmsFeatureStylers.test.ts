@@ -1,17 +1,17 @@
 import * as ol from 'ol'
-import Geometry from 'ol/geom/Geometry'
-import {
-  EMPTY_FILL,
-  getColorForRasterValue,
-  SNOW_FILL,
-  snowStyler,
-  styleFuelGrid,
-  fuelCOGColourExpression,
-  NODATA_THRESHOLD,
-  isNodataValue
-} from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
+import type Geometry from 'ol/geom/Geometry'
 import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
 import { FUEL_TYPE_COLORS } from '@/features/sfmsInsights/components/map/rasterConfig'
+import {
+  EMPTY_FILL,
+  fuelCOGColourExpression,
+  getColorForRasterValue,
+  isNodataValue,
+  NODATA_THRESHOLD,
+  SNOW_FILL,
+  snowStyler,
+  styleFuelGrid
+} from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 
 describe('getColorForRasterValue', () => {
   it('should get the correct colour for the specified raster value', () => {

@@ -1,10 +1,9 @@
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import store from 'app/store'
-import ResetForecastButton, { ResetForecastButtonProps } from 'features/moreCast2/components/ResetForecastButton'
-import { vi } from 'vitest'
-
+import ResetForecastButton, { type ResetForecastButtonProps } from 'features/moreCast2/components/ResetForecastButton'
 import { Provider } from 'react-redux'
+import { vi } from 'vitest'
 
 describe('SaveForecastButton', () => {
   const mockHandleResetClick = vi.fn()

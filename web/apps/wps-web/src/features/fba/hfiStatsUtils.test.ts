@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest'
-import { filterHFIFuelStatsByArea, FUEL_AREA_THRESHOLD } from './hfiStatsUtils'
-import { FireCentreHFIStats, FireZoneFuelStats } from '@wps/api/fbaAPI'
+import type { FireCentreHFIStats, FireZoneFuelStats } from '@wps/api/fbaAPI'
+import { describe, expect, it } from 'vitest'
 import {
   createMockCriticalHours,
   createMockFuelType,
   createMockMinWindStats,
   createMockThreshold
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice.test'
+import { FUEL_AREA_THRESHOLD, filterHFIFuelStatsByArea } from './hfiStatsUtils'
 
 const makeFuelStat = (code: string, fuel_area: number): FireZoneFuelStats => ({
   fuel_type: createMockFuelType(1, code, 'desc'),

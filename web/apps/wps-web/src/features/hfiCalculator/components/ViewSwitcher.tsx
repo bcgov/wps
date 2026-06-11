@@ -1,4 +1,4 @@
-import { FireCentre, FireStartRange, FuelType, PrepDateRange, StationInfo } from '@wps/api/hfiCalculatorAPI'
+import type { FireCentre, FireStartRange, FuelType, PrepDateRange, StationInfo } from '@wps/api/hfiCalculatorAPI'
 import { DailyViewTable } from 'features/hfiCalculator/components/DailyViewTable'
 import WeeklyViewTable from 'features/hfiCalculator/components/WeeklyViewTable'
 import React from 'react'
@@ -18,7 +18,7 @@ export interface ViewSwitcherProps {
 const ViewSwitcher = (props: ViewSwitcherProps) => {
   return (
     <React.Fragment>
-      {props.selectedPrepDay == '' ? (
+      {props.selectedPrepDay === '' ? (
         <WeeklyViewTable
           testId="hfi-calc-weekly-table"
           fireCentre={props.selectedFireCentre}

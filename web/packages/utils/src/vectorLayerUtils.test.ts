@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from './vectorLayerUtils'
 import axios from 'axios'
 import { applyStyle } from 'ol-mapbox-style'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from './vectorLayerUtils'
 
 // Mock applyStyle from ol-mapbox-style
 vi.mock('ol-mapbox-style', () => ({

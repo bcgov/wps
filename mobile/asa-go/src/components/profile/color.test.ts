@@ -1,5 +1,4 @@
-import { getColorByFuelTypeCode } from "@/components/profile/color"
-
+import { getColorByFuelTypeCode } from '@/components/profile/color'
 
 const colorByFuelTypeCodeTestMap = new Map()
 colorByFuelTypeCodeTestMap.set('C-1', 'rgb(209, 255, 115)')

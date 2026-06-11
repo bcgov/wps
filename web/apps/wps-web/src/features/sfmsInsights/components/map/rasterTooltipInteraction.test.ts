@@ -1,13 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { RasterTooltipInteraction, RasterTooltipData } from './rasterTooltipInteraction'
-import { MapBrowserEvent } from 'ol'
-import { EventsKey } from 'ol/events'
+import type { MapBrowserEvent } from 'ol'
+import type { EventsKey } from 'ol/events'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { type RasterTooltipData, RasterTooltipInteraction } from './rasterTooltipInteraction'
 
 interface MockMapWithHandler {
   on: ReturnType<typeof vi.fn>
   getEventPixel: ReturnType<typeof vi.fn>
   getLayers: ReturnType<typeof vi.fn>
-  pointerMoveHandler?: Function
+  pointerMoveHandler?: (...args: unknown[]) => void
 }
 
 describe('RasterTooltipInteraction', () => {
@@ -31,9 +31,12 @@ describe('RasterTooltipInteraction', () => {
     beforeEach(() => {
       interaction = new RasterTooltipInteraction()
       mockMap = {
-        on: vi.fn(() => (({
-          type: 'mock-listener-key'
-        }) as EventsKey)),
+        on: vi.fn(
+          () =>
+            ({
+              type: 'mock-listener-key'
+            }) as EventsKey
+        ),
         getLayers: vi.fn(() => ({
           getArray: vi.fn(() => [])
         }))
@@ -57,9 +60,12 @@ describe('RasterTooltipInteraction', () => {
 
       // Change to a new map
       const mockMap2 = {
-        on: vi.fn(() => (({
-          type: 'mock-listener-key-2'
-        }) as EventsKey)),
+        on: vi.fn(
+          () =>
+            ({
+              type: 'mock-listener-key-2'
+            }) as EventsKey
+        ),
         getLayers: vi.fn(() => ({
           getArray: vi.fn(() => [])
         }))
@@ -98,7 +104,7 @@ describe('RasterTooltipInteraction', () => {
       }
 
       mockMap = {
-        on: vi.fn((event: string, handler: Function) => {
+        on: vi.fn((_event: string, handler: (...args: unknown[]) => void) => {
           // Store the handler so we can call it manually
           mockMap.pointerMoveHandler = handler
           return { type: 'mock-listener-key' } as EventsKey
@@ -212,7 +218,7 @@ describe('RasterTooltipInteraction', () => {
       }
 
       const mockMap: MockMapWithHandler = {
-        on: vi.fn((event: string, handler: Function) => {
+        on: vi.fn((_event: string, handler: (...args: unknown[]) => void) => {
           mockMap.pointerMoveHandler = handler
           return { type: 'mock-listener-key' } as EventsKey
         }),
@@ -243,9 +249,12 @@ describe('RasterTooltipInteraction', () => {
   describe('dispose', () => {
     it('should clean up listener when disposed', () => {
       const mockMap = {
-        on: vi.fn(() => (({
-          type: 'mock-listener-key'
-        }) as EventsKey)),
+        on: vi.fn(
+          () =>
+            ({
+              type: 'mock-listener-key'
+            }) as EventsKey
+        ),
         getLayers: vi.fn(() => ({
           getArray: vi.fn(() => [])
         }))

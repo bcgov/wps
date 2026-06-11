@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { StationGroupMember } from '@wps/api/stationAPI'
-import { RootState } from 'app/rootReducer'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import type { StationGroupMember } from '@wps/api/stationAPI'
+import type { RootState } from 'app/rootReducer'
 
 export interface SelectedStationState {
   selectedStations: StationGroupMember[]

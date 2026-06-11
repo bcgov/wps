@@ -1,5 +1,11 @@
+import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from '@mui/material'
 import { getStations, StationSource } from '@wps/api/stationAPI'
-import { AppDispatch } from '@/app/store'
+import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFireCentresSlice'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { useEffect, useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fireWatch as fireWatchState, type RootState } from '@/app/rootReducer'
+import type { AppDispatch } from '@/app/store'
 import CompleteStep from '@/features/fireWatch/components/steps/CompleteStep'
 import FireBehvaiourIndicesStep from '@/features/fireWatch/components/steps/FireBehaviourIndicesStep'
 import FuelStep from '@/features/fireWatch/components/steps/FuelStep'
@@ -7,17 +13,11 @@ import InfoStep from '@/features/fireWatch/components/steps/InfoStep'
 import LocationStep from '@/features/fireWatch/components/steps/LocationStep'
 import ReviewSubmitStep from '@/features/fireWatch/components/steps/ReviewSubmitStep'
 import WeatherParametersStep from '@/features/fireWatch/components/steps/WeatherParametersStep'
-import { FireWatch } from '@/features/fireWatch/interfaces'
-import { submitNewFireWatch } from '@/features/fireWatch/slices/fireWatchSlice'
-import { updateFireWatch } from '../slices/burnForecastSlice'
-import { getBlankFireWatch } from '@/features/fireWatch/utils'
-import { Box, Button, Step, StepLabel, Stepper, Typography, useTheme } from '@mui/material'
-import { fetchFireWatchFireCentres } from 'features/fireWatch/slices/fireWatchFireCentresSlice'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import { useEffect, useRef, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
-import { fireWatch as fireWatchState, RootState } from '@/app/rootReducer'
+import type { FireWatch } from '@/features/fireWatch/interfaces'
+import { submitNewFireWatch } from '@/features/fireWatch/slices/fireWatchSlice'
+import { getBlankFireWatch } from '@/features/fireWatch/utils'
+import { updateFireWatch } from '../slices/burnForecastSlice'
 
 interface CreateFireWatchProps {
   fireWatch?: FireWatch
@@ -105,7 +105,7 @@ const CreateFireWatch = ({
 
   const handleSubmit = async () => {
     try {
-      if (isNaN(fireWatch.id)) {
+      if (Number.isNaN(fireWatch.id)) {
         dispatch(submitNewFireWatch(fireWatch))
       } else {
         await dispatch(updateFireWatch(fireWatch))
@@ -120,7 +120,7 @@ const CreateFireWatch = ({
     dispatch(fetchFireWatchFireCentres())
   }, [])
 
-  const isEditMode = !isNaN(fireWatch.id)
+  const isEditMode = !Number.isNaN(fireWatch.id)
 
   return (
     <Box id="fire-watch-dashboard" sx={{ flexGrow: 1, width: `${FORM_MAX_WIDTH}px` }}>

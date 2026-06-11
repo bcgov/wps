@@ -1,8 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
-import { getPercentiles, PercentilesResponse, YearRange } from '@wps/api/percentileAPI'
-import { AppThunk } from 'app/store'
+import { getPercentiles, type PercentilesResponse, type YearRange } from '@wps/api/percentileAPI'
 import { logError } from '@wps/utils/error'
+import type { AppThunk } from 'app/store'
 
 export interface PercentilesState {
   loading: boolean

@@ -1,7 +1,7 @@
-import React from 'react'
-import { TextField, Autocomplete } from '@mui/material'
+import { Autocomplete, TextField } from '@mui/material'
+import type { ModelType } from '@wps/api/moreCast2API'
 import { isEqual } from 'lodash'
-import { ModelType } from '@wps/api/moreCast2API'
+import React from 'react'
 
 interface WeatherModelDropdownProps {
   label?: string
@@ -11,8 +11,7 @@ interface WeatherModelDropdownProps {
 }
 
 const WeatherModelDropdown = (props: WeatherModelDropdownProps) => {
-  // eslint-disable-next-line
-  const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
+  const changeHandler = (_: React.ChangeEvent<unknown>, value: any | null) => {
     if (!isEqual(props.selectedModelType, value)) {
       props.setSelectedModelType(value)
     }

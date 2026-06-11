@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
+import { LicenseInfo } from '@mui/x-license'
+import { MUI_LICENSE } from '@wps/utils/env'
 import { DateTime } from 'luxon'
 import DetailPanelContent from '@/features/fireWatch/components/DetailPanelContent'
 import { BurnStatusEnum, FuelTypeEnum, PrescriptionEnum } from '@/features/fireWatch/interfaces'
-import { MUI_LICENSE } from '@wps/utils/env'
-import { LicenseInfo } from '@mui/x-license'
 
 const now = DateTime.now()
 const mockFireWatch = {

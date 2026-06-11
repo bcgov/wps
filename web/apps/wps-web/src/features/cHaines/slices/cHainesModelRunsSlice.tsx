@@ -1,8 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { ModelRun, ModelRuns, getModelRuns, getCHainesGeoJSON } from '@wps/api/cHainesAPI'
-import { AppThunk } from 'app/store'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { getCHainesGeoJSON, getModelRuns, type ModelRun, type ModelRuns } from '@wps/api/cHainesAPI'
 import { logError } from '@wps/utils/error'
-import { FeatureCollection } from 'geojson'
+import type { AppThunk } from 'app/store'
+import type { FeatureCollection } from 'geojson'
 
 export interface CHainesModelState {
   loading: boolean

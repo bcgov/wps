@@ -1,10 +1,10 @@
-import { FBAStation } from '@wps/api/fbaCalcAPI'
-import { GridMenuOption, FBAInputRow } from 'features/fbaCalculator/components/FBATable'
-import { formatCrownFractionBurned } from 'features/fbaCalculator/components/CrownFractionBurnedCell'
+import type { FBAStation } from '@wps/api/fbaCalcAPI'
+import type { Order } from '@wps/utils/constants'
 import { formatCriticalHoursAsString } from 'features/fbaCalculator/components/CriticalHoursCell'
+import { formatCrownFractionBurned } from 'features/fbaCalculator/components/CrownFractionBurnedCell'
+import type { FBAInputRow, GridMenuOption } from 'features/fbaCalculator/components/FBATable'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
 import _, { isNil, isNull, isUndefined, merge } from 'lodash'
-import { Order } from '@wps/utils/constants'
 export enum SortByColumn {
   Zone,
   Station,
@@ -48,8 +48,8 @@ export interface DisplayableInputRow {
 
 export type FBATableRow = DisplayableInputRow & Partial<FBAStation>
 
-export class RowManager {
-  public static sortRows = (sortByColumn: SortByColumn, order: Order, tableRows: FBATableRow[]): FBATableRow[] => {
+export const RowManager = {
+  sortRows: (sortByColumn: SortByColumn, order: Order, tableRows: FBATableRow[]): FBATableRow[] => {
     const reverseOrder = order === 'asc' ? 'desc' : 'asc'
     /**
      * Partitions table rows into non-empty and empty row arrays, sorts the non-empty row array,
@@ -147,11 +147,8 @@ export class RowManager {
         return tableRows
       }
     }
-  }
-  public static updateRows<T extends { id: number }>(
-    existingRows: Array<T>,
-    updatedCalculatedRows: Partial<FBAStation>[]
-  ): Array<T> {
+  },
+  updateRows<T extends { id: number }>(existingRows: Array<T>, updatedCalculatedRows: Partial<FBAStation>[]): Array<T> {
     const rows = [...existingRows]
     const updatedRowById = new Map(updatedCalculatedRows.map(row => [row.id, row]))
     const mergedRows = rows.map(row => {
@@ -164,18 +161,15 @@ export class RowManager {
     })
 
     return mergedRows
-  }
+  },
 
-  public static buildFBATableRow = (inputRow: FBAInputRow, stationCodeMap: Map<string, string>): FBATableRow => ({
+  buildFBATableRow: (inputRow: FBAInputRow, stationCodeMap: Map<string, string>): FBATableRow => ({
     ...inputRow,
     weatherStation: RowManager.buildStationOption(inputRow.weatherStation, stationCodeMap),
     fuelType: RowManager.buildFuelTypeMenuOption(inputRow.fuelType)
-  })
+  }),
 
-  public static buildStationOption = (
-    value: string | undefined,
-    stationCodeMap: Map<string, string>
-  ): GridMenuOption | null => {
+  buildStationOption: (value: string | undefined, stationCodeMap: Map<string, string>): GridMenuOption | null => {
     if (isUndefined(value)) {
       return null
     }
@@ -188,8 +182,8 @@ export class RowManager {
       label,
       value
     }
-  }
-  public static buildFuelTypeMenuOption = (value: string | undefined): GridMenuOption | null => {
+  },
+  buildFuelTypeMenuOption: (value: string | undefined): GridMenuOption | null => {
     if (isUndefined(value)) {
       return null
     }
@@ -201,9 +195,9 @@ export class RowManager {
       label: fuelType.friendlyName,
       value
     }
-  }
+  },
 
-  public static exportRowsAsStrings = (tableRows: FBATableRow[]): string[][] => {
+  exportRowsAsStrings: (tableRows: FBATableRow[]): string[][] => {
     const rowsAsStrings: string[][] = []
     tableRows.forEach(value => {
       const rowString: string[] = []
@@ -214,7 +208,7 @@ export class RowManager {
       rowString.push(isUndefined(value.elevation) ? '' : value.elevation.toString())
       rowString.push(isUndefined(value.fuel_type) ? '' : value.fuel_type)
       rowString.push(
-        isUndefined(value.grass_cure) || isNaN(value.grass_cure) || isNull(value.grass_cure)
+        isUndefined(value.grass_cure) || Number.isNaN(value.grass_cure) || isNull(value.grass_cure)
           ? ''
           : value.grass_cure.toString()
       )
@@ -222,19 +216,17 @@ export class RowManager {
       rowString.push(isUndefined(value.temp) || isNull(value.temp) ? '' : value.temp.toFixed(DECIMAL_PLACES))
       rowString.push(isUndefined(value.rh) || isNull(value.rh) ? '' : value.rh.toString())
       rowString.push(
-        isNil(value.wind_direction) || isNaN(value.wind_direction)
-          ? ''
-          : value.wind_direction.toString()
+        isNil(value.wind_direction) || Number.isNaN(value.wind_direction) ? '' : value.wind_direction.toString()
       )
       let formattedWindSpeed = ''
-      if (!isNil(value.windSpeed) && !isNaN(value.windSpeed)) {
+      if (!isNil(value.windSpeed) && !Number.isNaN(value.windSpeed)) {
         formattedWindSpeed = value.windSpeed.toFixed(DECIMAL_PLACES)
       } else if (!isNil(value.wind_speed)) {
         formattedWindSpeed = value.wind_speed.toFixed(DECIMAL_PLACES)
       }
       rowString.push(formattedWindSpeed)
       let formattedPrecip = ''
-      if (!isNil(value.precip) && !isNaN(value.precip)) {
+      if (!isNil(value.precip) && !Number.isNaN(value.precip)) {
         formattedPrecip = value.precip.toFixed(DECIMAL_PLACES)
       } else if (!isNil(value.precipitation)) {
         formattedPrecip = value.precipitation.toFixed(DECIMAL_PLACES)

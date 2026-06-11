@@ -1,7 +1,7 @@
-import { modelRegistry, ModelRunHour, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
 import { getWxChart } from '@wps/api/weatherToolkitAPI'
-import { DateTime } from 'luxon'
+import type { DateTime } from 'luxon'
 import { useEffect, useRef, useState } from 'react'
+import { type ModelRunHour, type ModelType, modelRegistry } from '@/features/weatherToolkit/weatherToolkitTypes'
 
 // The number of charts to pre-fetch to improve the user perception of performance.
 const PREFETCH_AHEAD = 5
@@ -42,7 +42,9 @@ export function useWxChartCache(
   useEffect(() => {
     const state = stateRef.current
     state.generation++
-    state.cache.forEach(url => URL.revokeObjectURL(url))
+    state.cache.forEach(url => {
+      URL.revokeObjectURL(url)
+    })
     state.cache = new Map()
     state.failed = new Set()
     state.fetching = new Set()
@@ -84,7 +86,9 @@ export function useWxChartCache(
   // Revoke all URLs on unmount
   useEffect(() => {
     return () => {
-      stateRef.current.cache.forEach(url => URL.revokeObjectURL(url))
+      stateRef.current.cache.forEach(url => {
+        URL.revokeObjectURL(url)
+      })
     }
   }, [])
 

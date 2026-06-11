@@ -1,5 +1,7 @@
-import { getSnowPMTilesLayer, getFireWeatherRasterLayer, getRasterLayer } from './layerDefinitions'
 import { DateTime } from 'luxon'
+import { getFireWeatherRasterLayer, getRasterLayer, getSnowPMTilesLayer } from './layerDefinitions'
+
+type Listener = (...args: unknown[]) => void
 
 // Mock pmtiles completely to prevent any parsing
 vi.mock('pmtiles', () => ({
@@ -12,11 +14,7 @@ vi.mock('pmtiles', () => ({
       return this.url
     }
   },
-  PMTiles: class MockPMTiles {
-    constructor() {
-      // Do nothing - prevent any initialization
-    }
-  }
+  PMTiles: class MockPMTiles {}
 }))
 
 // Mock ol/source/GeoTIFF to prevent background network fetches that cause unhandled rejections
@@ -36,37 +34,33 @@ vi.mock('ol/source/GeoTIFF', () => ({
 // Mock ol-pmtiles to prevent it from using real PMTiles
 vi.mock('ol-pmtiles', () => ({
   PMTilesVectorSource: class MockPMTilesVectorSource {
-    private listeners: Map<string, Set<Function>> = new Map()
+    private listeners: Map<string, Set<Listener>> = new Map()
 
-    constructor() {
-      // Do nothing - prevent PMTiles initialization
-    }
-
-    addEventListener(type: string, listener: Function) {
+    addEventListener(type: string, listener: Listener) {
       if (!this.listeners.has(type)) {
         this.listeners.set(type, new Set())
       }
       this.listeners.get(type)!.add(listener)
     }
 
-    removeEventListener(type: string, listener: Function) {
+    removeEventListener(type: string, listener: Listener) {
       const typeListeners = this.listeners.get(type)
       if (typeListeners) {
         typeListeners.delete(listener)
       }
     }
 
-    on(type: string, listener: Function) {
+    on(type: string, listener: Listener) {
       this.addEventListener(type, listener)
       return this
     }
 
-    once(type: string, listener: Function) {
+    once(type: string, listener: Listener) {
       this.addEventListener(type, listener)
       return this
     }
 
-    un(type: string, listener: Function) {
+    un(type: string, listener: Listener) {
       this.removeEventListener(type, listener)
       return this
     }
