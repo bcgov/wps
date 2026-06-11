@@ -1,17 +1,17 @@
-import React, { useState } from 'react'
-import { FuelType, PlanningArea } from '@wps/api/hfiCalculatorAPI'
-import { sortBy, maxBy, findIndex, every, isUndefined } from 'lodash'
-import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import { Box } from '@mui/material'
-import {
+import type { FuelType, PlanningArea } from '@wps/api/hfiCalculatorAPI'
+import type { AppDispatch } from 'app/store'
+import AdminCancelButton from 'features/hfiCalculator/components/stationAdmin/AdminCancelButton'
+import type {
   AddStationOptions,
   BasicWFWXStation,
   StationAdminRow
 } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
-import AdminCancelButton from 'features/hfiCalculator/components/stationAdmin/AdminCancelButton'
 import { fetchAddOrUpdateStations } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { AppDispatch } from 'app/store'
+import { every, findIndex, isUndefined, maxBy, sortBy } from 'lodash'
+import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 
 export interface AdminHandlers {
@@ -41,17 +41,11 @@ const StationListAdmin = ({
   const dispatch: AppDispatch = useDispatch()
 
   const [addedStations, setAddedStations] = useState<{ [key: string]: StationAdminRow[] }>(
-    Object.keys(existingPlanningAreaStations).reduce((accumulator, key) => {
-      return { ...accumulator, [key]: [] }
-    }, {})
+    Object.fromEntries(Object.keys(existingPlanningAreaStations).map(key => [key, []]))
   )
   const [removedStations, setRemovedStations] = useState<{
     [key: string]: { planningAreaId: number; rowId: number; station: BasicWFWXStation }[]
-  }>(
-    Object.keys(existingPlanningAreaStations).reduce((accumulator, key) => {
-      return { ...accumulator, [key]: [] }
-    }, {})
-  )
+  }>(Object.fromEntries(Object.keys(existingPlanningAreaStations).map(key => [key, []])))
 
   /** Adds net new stations */
   const handleAddStation = (planningAreaId: number) => {
@@ -112,9 +106,9 @@ const StationListAdmin = ({
 
   return (
     <Box sx={{ width: '100%', pl: 4 }} aria-labelledby="planning-areas-admin">
-      {sortBy(planningAreas, planningArea => planningArea.order_of_appearance_in_list).map((area, index) => (
+      {sortBy(planningAreas, planningArea => planningArea.order_of_appearance_in_list).map(area => (
         <PlanningAreaAdmin
-          key={`planning-area-admin-${index}`}
+          key={`planning-area-admin-${area.id}`}
           planningArea={area}
           existingStations={existingPlanningAreaStations}
           addedStations={addedStations}

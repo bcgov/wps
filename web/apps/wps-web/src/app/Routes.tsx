@@ -1,34 +1,37 @@
-import React, { Suspense, lazy } from 'react'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
-
 import { HIDE_DISCLAIMER } from '@wps/utils/env'
 import AuthWrapper from 'features/auth/components/AuthWrapper'
+import React, { lazy, Suspense } from 'react'
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+
 const PercentileCalculatorPageWithDisclaimer = lazy(
   () => import('features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer')
 )
 const HfiCalculatorPage = lazy(() => import('features/hfiCalculator/pages/HfiCalculatorPage'))
 const CHainesPage = lazy(() => import('features/cHaines/pages/CHainesPage'))
+
 import {
-  PERCENTILE_CALC_ROUTE,
-  HFI_CALC_ROUTE,
-  MORECAST_ROUTE,
   C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
+  FIRE_WATCH_ROUTE,
+  HFI_CALC_ROUTE,
   LANDING_PAGE_ROUTE,
   MORE_CAST_2_ROUTE,
+  MORECAST_ROUTE,
+  PERCENTILE_CALC_ROUTE,
   SFMS_INSIGHTS_ROUTE,
-  FIRE_WATCH_ROUTE,
   WEATHER_TOOLKIT_ROUTE
 } from '@wps/utils/constants'
 import { NoMatchPage } from 'features/NoMatchPage'
+
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
 const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBehaviourAdvisoryPage'))
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
 const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'))
+
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
-import { SFMSInsightsPage } from '@/features/sfmsInsights/pages/SFMSInsightsPage'
 import FireWatchPage from '@/features/fireWatch/pages/FireWatchPage'
+import { SFMSInsightsPage } from '@/features/sfmsInsights/pages/SFMSInsightsPage'
 import WeatherToolkitPage from '@/features/weatherToolkit/pages/WeatherToolkitPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined

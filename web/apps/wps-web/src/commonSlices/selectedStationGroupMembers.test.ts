@@ -1,10 +1,10 @@
 import selectedStationGroupsMembersSlice, {
-  initialState,
+  getStationGroupsMembersFailed,
   getStationGroupsMembersStart,
   getStationGroupsMembersSuccess,
-  getStationGroupsMembersFailed
+  initialState
 } from 'commonSlices/selectedStationGroupMembers'
-import { StationGroupMember } from '@wps/api/stationAPI'
+import type { StationGroupMember } from '@wps/api/stationAPI'
 
 describe('selectedStationGroupMembers', () => {
   it('should set loading = true when getWeatherIndeterminatesStart is called', () => {

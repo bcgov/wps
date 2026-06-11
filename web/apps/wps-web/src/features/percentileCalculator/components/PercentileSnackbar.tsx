@@ -1,5 +1,5 @@
-import React from 'react'
 import { Alert, Snackbar } from '@mui/material'
+import React from 'react'
 
 interface PercentileSnackbarProps {
   autoHideDuration: number

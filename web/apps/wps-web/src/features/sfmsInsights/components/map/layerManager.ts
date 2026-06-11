@@ -1,6 +1,6 @@
-import { Map } from 'ol'
-import WebGLTileLayer from 'ol/layer/WebGLTile'
-import VectorTileLayer from 'ol/layer/VectorTile'
+import type { Map as OlMap } from 'ol'
+import type VectorTileLayer from 'ol/layer/VectorTile'
+import type WebGLTileLayer from 'ol/layer/WebGLTile'
 
 export type ManagedLayer = WebGLTileLayer | VectorTileLayer
 
@@ -21,7 +21,7 @@ export interface LayerManagerOptions {
  * Handles layer switching and optional loading state tracking
  */
 export class LayerManager {
-  private map: Map | null = null
+  private map: OlMap | null = null
   private currentLayer: ManagedLayer | null = null
   private readonly onLoadingChange?: (isLoading: boolean, error?: RasterError) => void
   private readonly trackLoading: boolean
@@ -35,7 +35,7 @@ export class LayerManager {
   /**
    * Set the map instance
    */
-  setMap(map: Map | null) {
+  setMap(map: OlMap | null) {
     this.map = map
   }
 
@@ -153,7 +153,7 @@ export class LayerManager {
    * Since OpenLayers doesn't expose HTTP status codes, we use 'not_found' as the default
    * error type since the most common case is that data doesn't exist for the requested date
    */
-  private extractErrorFromEvent(event: any): RasterError {
+  private extractErrorFromEvent(_event: any): RasterError {
     // Default to 'not_found' which is the most common scenario
     // This will display as a warning (orange) rather than an error (red)
     const errorType: RasterError['type'] = 'not_found'

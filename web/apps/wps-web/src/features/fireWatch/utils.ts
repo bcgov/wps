@@ -1,5 +1,5 @@
-import { BurnStatusEnum, FireWatch, FuelTypeEnum } from '@/features/fireWatch/interfaces'
 import { isNil, isNull } from 'lodash'
+import { BurnStatusEnum, type FireWatch, FuelTypeEnum } from '@/features/fireWatch/interfaces'
 
 export const getBlankFireWatch = (): FireWatch => {
   return {
@@ -72,14 +72,14 @@ export const isValidFireWatch = (fireWatch: FireWatch) => {
     // Fuel parameters
     hasValidFuelInfo(fireWatch) &&
     // Weather parameters
-    !isNaN(fireWatch.tempMin) &&
-    !isNaN(fireWatch.tempMax) &&
-    !isNaN(fireWatch.rhMin) &&
-    !isNaN(fireWatch.rhMax) &&
-    !isNaN(fireWatch.windSpeedMin) &&
-    !isNaN(fireWatch.windSpeedMax) &&
+    !Number.isNaN(fireWatch.tempMin) &&
+    !Number.isNaN(fireWatch.tempMax) &&
+    !Number.isNaN(fireWatch.rhMin) &&
+    !Number.isNaN(fireWatch.rhMax) &&
+    !Number.isNaN(fireWatch.windSpeedMin) &&
+    !Number.isNaN(fireWatch.windSpeedMax) &&
     // FWI and FBP parameters
-    !isNaN(fireWatch.hfiMin) &&
-    !isNaN(fireWatch.hfiMax)
+    !Number.isNaN(fireWatch.hfiMin) &&
+    !Number.isNaN(fireWatch.hfiMax)
   )
 }

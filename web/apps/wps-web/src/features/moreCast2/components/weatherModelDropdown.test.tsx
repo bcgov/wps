@@ -1,8 +1,8 @@
-import { vi } from 'vitest'
 import { render, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ModelChoice, ModelChoices } from '@wps/api/moreCast2API'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
+import { vi } from 'vitest'
 
 describe('WeatherModelDropdown', () => {
   it('should call selected model handler when new model selected', async () => {

@@ -23,9 +23,9 @@
  */
 export function bui(dmc: number, dc: number) {
   // Eq. 27a
-  let bui1 = dmc == 0 && dc == 0 ? 0 : (0.8 * dc * dmc) / (dmc + 0.4 * dc)
+  let bui1 = dmc === 0 && dc === 0 ? 0 : (0.8 * dc * dmc) / (dmc + 0.4 * dc)
   // Eq. 27b - next 3 lines
-  const p = dmc == 0 ? 0 : (dmc - bui1) / dmc
+  const p = dmc === 0 ? 0 : (dmc - bui1) / dmc
   const cc = 0.92 + (0.0114 * dmc) ** 1.7
   let bui0 = dmc - cc * p
   // Constraints

@@ -1,4 +1,11 @@
-import { StationDaily, PlanningArea, FuelType, HFIResultResponse, PrepDateRange, StationInfo } from '@wps/api/hfiCalculatorAPI'
+import type {
+  FuelType,
+  HFIResultResponse,
+  PlanningArea,
+  PrepDateRange,
+  StationDaily,
+  StationInfo
+} from '@wps/api/hfiCalculatorAPI'
 import { groupBy, isUndefined, sortBy, take } from 'lodash'
 import { DateTime } from 'luxon'
 
@@ -20,7 +27,11 @@ export const calculateNumPrepDays = (dateRange: PrepDateRange | undefined): numb
   return 0
 }
 
-export const getDailiesByStationCode = (result: HFIResultResponse | undefined, stationCode: number, areaId: number): StationDaily[] => {
+export const getDailiesByStationCode = (
+  result: HFIResultResponse | undefined,
+  stationCode: number,
+  areaId: number
+): StationDaily[] => {
   if (isUndefined(result)) {
     return []
   }
@@ -70,5 +81,5 @@ export const getSelectedFuelType = (
   fuelTypes: FuelType[]
 ) => {
   const stationInfo = getPlanningAreaStationInfo(planningAreaStationInfo, planningAreaId, stationCode)
-  return isUndefined(stationInfo) ? undefined : fuelTypes.find(instance => instance.id == stationInfo.fuel_type_id)
+  return isUndefined(stationInfo) ? undefined : fuelTypes.find(instance => instance.id === stationInfo.fuel_type_id)
 }

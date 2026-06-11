@@ -1,10 +1,10 @@
+import { DateTime } from 'luxon'
 import {
-  getSnowPMTilesLayer,
   getFireWeatherRasterLayer,
   getRasterLayer,
-  getSFMSNGActualRasterPath
+  getSFMSNGActualRasterPath,
+  getSnowPMTilesLayer
 } from './layerDefinitions'
-import { DateTime } from 'luxon'
 
 // Mock pmtiles completely to prevent any parsing
 vi.mock('pmtiles', () => ({

@@ -1,6 +1,7 @@
-import { StationGroupMember, getStationGroupsMembers } from './stationAPI'
-import axios from './axios'
 import { vi } from 'vitest'
+import axios from './axios'
+import { getStationGroupsMembers, type StationGroupMember } from './stationAPI'
+
 describe('stationAPI', () => {
   it('should return groups from group endpoint', async () => {
     const mockMemberStation: StationGroupMember = {

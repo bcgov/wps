@@ -1,9 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-import { AppThunk } from 'app/store'
-import { FireCentresResponse, getFireCentres } from '@wps/api/psuAPI'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { type FireCentresResponse, getFireCentres } from '@wps/api/psuAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { logError } from '@wps/utils/error'
+import type { AppThunk } from 'app/store'
 
 export interface FireCentresState {
   loading: boolean

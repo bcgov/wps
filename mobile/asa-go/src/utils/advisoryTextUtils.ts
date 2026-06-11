@@ -1,33 +1,24 @@
-import {
-  AdvisoryMinWindStats,
-  FireZoneFuelStats,
-  FireZoneHFIStats,
-} from "@/api/fbaAPI";
-import { calculateWindSpeedText } from "@/utils/calculateZoneStatus";
-import { groupBy, isEmpty } from "lodash";
-import { DateTime } from "luxon";
+import { groupBy, isEmpty } from 'lodash'
+import type { DateTime } from 'luxon'
+import type { AdvisoryMinWindStats, FireZoneFuelStats, FireZoneHFIStats } from '@/api/fbaAPI'
+import { calculateWindSpeedText } from '@/utils/calculateZoneStatus'
 
-const SLASH_FUEL_TYPES = ["S-1", "S-2", "S-3"];
+const SLASH_FUEL_TYPES = ['S-1', 'S-2', 'S-3']
 
 // Return a list of fuel stats for which greater than 90% of the area of each fuel type has high HFI.
-export const getTopFuelsByProportion = (
-  zoneUnitFuelStats: FireZoneFuelStats[]
-): FireZoneFuelStats[] => {
-  const groupedByFuelType = groupBy(
-    zoneUnitFuelStats,
-    (stat) => stat.fuel_type.fuel_type_code
-  );
-  const topFuelsByProportion: FireZoneFuelStats[] = [];
+export const getTopFuelsByProportion = (zoneUnitFuelStats: FireZoneFuelStats[]): FireZoneFuelStats[] => {
+  const groupedByFuelType = groupBy(zoneUnitFuelStats, stat => stat.fuel_type.fuel_type_code)
+  const topFuelsByProportion: FireZoneFuelStats[] = []
 
-  Object.values(groupedByFuelType).forEach((entries) => {
-    const totalArea = entries.reduce((sum, entry) => sum + entry.area, 0);
-    const fuelArea = entries[0].fuel_area;
+  Object.values(groupedByFuelType).forEach(entries => {
+    const totalArea = entries.reduce((sum, entry) => sum + entry.area, 0)
+    const fuelArea = entries[0].fuel_area
     if (totalArea / fuelArea >= 0.9) {
-      topFuelsByProportion.push(...entries);
+      topFuelsByProportion.push(...entries)
     }
-  });
-  return topFuelsByProportion;
-};
+  })
+  return topFuelsByProportion
+}
 
 /**
  * Determine if we are in the core season ie between June 1 - September 30. Alternate logic for
@@ -36,8 +27,8 @@ export const getTopFuelsByProportion = (
  * @returns True if the date is between June 1 - September 30, otherwise False.
  */
 const isCoreSeason = (date: DateTime) => {
-  return date.month > 5 && date.month < 10;
-};
+  return date.month > 5 && date.month < 10
+}
 
 /**
  * Returns the fuel type stat records that cumulatively account for more than 75% of total area with high HFI.
@@ -47,57 +38,38 @@ const isCoreSeason = (date: DateTime) => {
  * @param zoneUnitFuelStats
  * @returns FireZoneFuelStats array
  */
-export const getTopFuelsByArea = (
-  zoneUnitFuelStats: FireZoneHFIStats,
-  forDate: DateTime
-): FireZoneFuelStats[] => {
-  let fuelAreaStats = zoneUnitFuelStats.fuel_area_stats;
+export const getTopFuelsByArea = (zoneUnitFuelStats: FireZoneHFIStats, forDate: DateTime): FireZoneFuelStats[] => {
+  let fuelAreaStats = zoneUnitFuelStats.fuel_area_stats
   if (isCoreSeason(forDate)) {
-    fuelAreaStats = fuelAreaStats.filter(
-      (stat) => !SLASH_FUEL_TYPES.includes(stat.fuel_type.fuel_type_code)
-    );
+    fuelAreaStats = fuelAreaStats.filter(stat => !SLASH_FUEL_TYPES.includes(stat.fuel_type.fuel_type_code))
   }
 
-  const groupedByFuelType = groupBy(
-    fuelAreaStats,
-    (stat) => stat.fuel_type.fuel_type_code
-  );
-  const fuelTypeAreas = Object.entries(groupedByFuelType).map(
-    ([fuelType, entries]) => ({
-      fuelType,
-      fuelTypeTotalHfi: entries.reduce((sum, entry) => sum + entry.area, 0),
-      entries,
-    })
-  );
-  const sortedFuelTypes = fuelTypeAreas
-    .slice()
-    .sort((a, b) => b.fuelTypeTotalHfi - a.fuelTypeTotalHfi);
-  const totalHighHFIArea = fuelAreaStats.reduce(
-    (total, stats) => total + stats.area,
-    0
-  );
-  const topFuelsByArea: FireZoneFuelStats[] = [];
-  let highHFIArea = 0;
+  const groupedByFuelType = groupBy(fuelAreaStats, stat => stat.fuel_type.fuel_type_code)
+  const fuelTypeAreas = Object.entries(groupedByFuelType).map(([fuelType, entries]) => ({
+    fuelType,
+    fuelTypeTotalHfi: entries.reduce((sum, entry) => sum + entry.area, 0),
+    entries
+  }))
+  const sortedFuelTypes = fuelTypeAreas.slice().sort((a, b) => b.fuelTypeTotalHfi - a.fuelTypeTotalHfi)
+  const totalHighHFIArea = fuelAreaStats.reduce((total, stats) => total + stats.area, 0)
+  const topFuelsByArea: FireZoneFuelStats[] = []
+  let highHFIArea = 0
 
   for (const { fuelTypeTotalHfi, entries } of sortedFuelTypes) {
-    highHFIArea += fuelTypeTotalHfi;
-    topFuelsByArea.push(...entries);
+    highHFIArea += fuelTypeTotalHfi
+    topFuelsByArea.push(...entries)
 
     if (highHFIArea / totalHighHFIArea > 0.75) {
-      break;
+      break
     }
   }
 
-  return topFuelsByArea;
-};
+  return topFuelsByArea
+}
 
-export const getZoneMinWindStatsText = (
-  selectedFireZoneUnitMinWindSpeeds: AdvisoryMinWindStats[]
-) => {
+export const getZoneMinWindStatsText = (selectedFireZoneUnitMinWindSpeeds: AdvisoryMinWindStats[]) => {
   if (!isEmpty(selectedFireZoneUnitMinWindSpeeds)) {
-    const zoneMinWindSpeedsText = calculateWindSpeedText(
-      selectedFireZoneUnitMinWindSpeeds
-    );
-    return zoneMinWindSpeedsText;
+    const zoneMinWindSpeedsText = calculateWindSpeedText(selectedFireZoneUnitMinWindSpeeds)
+    return zoneMinWindSpeedsText
   }
-};
+}

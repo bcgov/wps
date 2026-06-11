@@ -1,12 +1,11 @@
 import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
-import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
-import { DateTime } from 'luxon'
-import { range } from 'lodash'
-import { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
-import { calculateNumPrepDays } from 'features/hfiCalculator/util'
-
+import type { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import { pstFormatter } from '@wps/utils/date'
+import DayHeaders from 'features/hfiCalculator/components/DayHeaders'
+import { calculateNumPrepDays } from 'features/hfiCalculator/util'
+import { range } from 'lodash'
+import { DateTime } from 'luxon'
 
 const prepCycleIteration = (dateRange: PrepDateRange) => {
   const numPrepDays = calculateNumPrepDays(dateRange)

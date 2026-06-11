@@ -1,22 +1,22 @@
-import { FireWatch } from '@/features/fireWatch/interfaces'
-import React, { SetStateAction, useEffect, useRef, useState } from 'react'
-import { Collection, Map, MapBrowserEvent, View } from 'ol'
-import TileLayer from 'ol/layer/Tile'
-import { fromLonLat, toLonLat } from 'ol/proj'
-import { CENTER_OF_BC } from '@wps/utils/constants'
 import { Box, Step, TextField, Typography } from '@mui/material'
-import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
 import { theme } from '@wps/ui/theme'
+import { CENTER_OF_BC } from '@wps/utils/constants'
+import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
+import { Collection, type MapBrowserEvent, Map as OlMap, View } from 'ol'
 import Feature from 'ol/Feature.js'
-import VectorSource from 'ol/source/Vector.js'
-import VectorLayer from 'ol/layer/Vector.js'
-import { Icon, Style } from 'ol/style'
-import { Geometry, Point } from 'ol/geom'
-import Translate from 'ol/interaction/Translate.js'
+import { type Geometry, Point } from 'ol/geom'
 import { defaults as defaultInteractions } from 'ol/interaction/defaults'
+import Translate from 'ol/interaction/Translate.js'
+import TileLayer from 'ol/layer/Tile'
+import VectorLayer from 'ol/layer/Vector.js'
+import { fromLonLat, toLonLat } from 'ol/proj'
+import VectorSource from 'ol/source/Vector.js'
+import { Icon, Style } from 'ol/style'
+import React, { type SetStateAction, useEffect, useRef, useState } from 'react'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
+import type { FireWatch } from '@/features/fireWatch/interfaces'
 
-export const MapContext = React.createContext<Map | null>(null)
+export const MapContext = React.createContext<OlMap | null>(null)
 
 interface LocationStepProps {
   fireWatch: FireWatch
@@ -24,7 +24,7 @@ interface LocationStepProps {
 }
 
 const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
-  const [map, setMap] = useState<Map | null>(null)
+  const [map, setMap] = useState<OlMap | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
 
   const isValidGeometry =
@@ -45,7 +45,9 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
   // and restore the original interactions in the correct order.
   const resetMapInteractions = () => {
     map?.getInteractions().clear()
-    defaultInteractions({}).forEach(interaction => map?.addInteraction(interaction))
+    defaultInteractions({}).forEach(interaction => {
+      map?.addInteraction(interaction)
+    })
   }
 
   useEffect(() => {
@@ -79,7 +81,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
       }),
       zIndex: 50
     })
-    const mapObject = new Map({
+    const mapObject = new OlMap({
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
@@ -117,7 +119,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
       handleFormUpdate({ geometry: evt.coordinate })
     })
     map?.addInteraction(translate)
-  }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [map])
 
   // sync textfields with marker coords
   useEffect(() => {
@@ -137,7 +139,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
     }
     const lat = parseFloat(latInput)
     const lon = parseFloat(lonInput)
-    if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+    if (!Number.isNaN(lat) && !Number.isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
       const coords = fromLonLat([lon, lat])
       setMarker([new Feature({ geometry: new Point(coords) })])
       handleFormUpdate({ geometry: coords })
@@ -206,7 +208,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
         </MapContext.Provider>
       </Box>
     </Step>
-  );
+  )
 }
 
 export default LocationStep

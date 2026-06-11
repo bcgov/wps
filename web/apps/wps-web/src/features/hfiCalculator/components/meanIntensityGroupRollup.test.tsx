@@ -1,7 +1,7 @@
-import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
+import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
+import type { PlanningArea } from '@wps/api/hfiCalculatorAPI'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
-import { PlanningArea } from '@wps/api/hfiCalculatorAPI'
 
 describe('Mean Intensity Group Rollup', () => {
   const planningArea: PlanningArea = {

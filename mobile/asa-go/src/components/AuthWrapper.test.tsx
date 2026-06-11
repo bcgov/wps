@@ -1,24 +1,24 @@
-import * as selectors from "@/store";
-import { createTestStore } from "@/testUtils";
-import { useIsPortrait } from "@/hooks/useIsPortrait";
-import { useIsTablet } from "@/hooks/useIsTablet";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { render, screen } from "@testing-library/react";
-import { Provider } from "react-redux";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import AuthWrapper from "./AuthWrapper";
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { render, screen } from '@testing-library/react'
+import { Provider } from 'react-redux'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useIsPortrait } from '@/hooks/useIsPortrait'
+import { useIsTablet } from '@/hooks/useIsTablet'
+import * as selectors from '@/store'
+import { createTestStore } from '@/testUtils'
+import AuthWrapper from './AuthWrapper'
 
-vi.mock("@/hooks/useIsPortrait", () => ({ useIsPortrait: vi.fn() }));
-vi.mock("@/hooks/useIsTablet", () => ({ useIsTablet: vi.fn() }));
-vi.mock("@/components/PortraitLandingPage", () => ({
-  default: () => <div data-testid="portrait-landing-page" />,
-}));
-vi.mock("@/components/LandscapeLandingPage", () => ({
-  default: () => <div data-testid="landscape-landing-page" />,
-}));
+vi.mock('@/hooks/useIsPortrait', () => ({ useIsPortrait: vi.fn() }))
+vi.mock('@/hooks/useIsTablet', () => ({ useIsTablet: vi.fn() }))
+vi.mock('@/components/PortraitLandingPage', () => ({
+  default: () => <div data-testid="portrait-landing-page" />
+}))
+vi.mock('@/components/LandscapeLandingPage', () => ({
+  default: () => <div data-testid="landscape-landing-page" />
+}))
 
-const mockStore = createTestStore();
-const theme = createTheme();
+const mockStore = createTestStore()
+const theme = createTheme()
 
 const renderWithProviders = (children = <div>Protected</div>) =>
   render(
@@ -26,95 +26,95 @@ const renderWithProviders = (children = <div>Protected</div>) =>
       <ThemeProvider theme={theme}>
         <AuthWrapper>{children}</AuthWrapper>
       </ThemeProvider>
-    </Provider>,
-  );
+    </Provider>
+  )
 
-describe("AuthWrapper", () => {
+describe('AuthWrapper', () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
-    vi.mocked(useIsPortrait).mockReturnValue(true);
-    vi.mocked(useIsTablet).mockReturnValue(false);
-  });
+    vi.restoreAllMocks()
+    vi.mocked(useIsPortrait).mockReturnValue(true)
+    vi.mocked(useIsTablet).mockReturnValue(false)
+  })
 
-  it("renders children when authenticated", () => {
-    vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      sessionMode: "authenticated",
+  it('renders children when authenticated', () => {
+    vi.spyOn(selectors, 'selectAuthentication').mockReturnValue({
+      sessionMode: 'authenticated',
       authenticating: false,
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
       idir: undefined,
-      token: "test-token",
-      email: "test@email.com",
-    });
+      token: 'test-token',
+      email: 'test@email.com'
+    })
 
-    renderWithProviders();
+    renderWithProviders()
 
-    expect(screen.getByText("Protected")).toBeInTheDocument();
-  });
+    expect(screen.getByText('Protected')).toBeInTheDocument()
+  })
 
-  it("renders children when unauthenticated and offline", () => {
-    vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-      sessionMode: "login",
+  it('renders children when unauthenticated and offline', () => {
+    vi.spyOn(selectors, 'selectAuthentication').mockReturnValue({
+      sessionMode: 'login',
       authenticating: false,
       error: null,
       tokenRefreshed: false,
       idToken: undefined,
       idir: undefined,
-      token: "test-token",
-      email: "test@email.com",
-    });
-    vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
-      networkStatus: { connected: false, connectionType: "wifi" },
-    });
+      token: 'test-token',
+      email: 'test@email.com'
+    })
+    vi.spyOn(selectors, 'selectNetworkStatus').mockReturnValue({
+      networkStatus: { connected: false, connectionType: 'wifi' }
+    })
 
-    renderWithProviders();
+    renderWithProviders()
 
-    expect(screen.getByText("Protected")).toBeInTheDocument();
-  });
+    expect(screen.getByText('Protected')).toBeInTheDocument()
+  })
 
-  describe("landing page routing when online and unauthenticated", () => {
+  describe('landing page routing when online and unauthenticated', () => {
     beforeEach(() => {
-      vi.spyOn(selectors, "selectAuthentication").mockReturnValue({
-        sessionMode: "login",
+      vi.spyOn(selectors, 'selectAuthentication').mockReturnValue({
+        sessionMode: 'login',
         authenticating: false,
         error: null,
         tokenRefreshed: false,
         idToken: undefined,
         idir: undefined,
         token: undefined,
-        email: undefined,
-      });
-      vi.spyOn(selectors, "selectNetworkStatus").mockReturnValue({
-        networkStatus: { connected: true, connectionType: "wifi" },
-      });
-    });
+        email: undefined
+      })
+      vi.spyOn(selectors, 'selectNetworkStatus').mockReturnValue({
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      })
+    })
 
-    it("renders PortraitLandingPage in portrait orientation", () => {
-      vi.mocked(useIsPortrait).mockReturnValue(true);
-      vi.mocked(useIsTablet).mockReturnValue(false);
+    it('renders PortraitLandingPage in portrait orientation', () => {
+      vi.mocked(useIsPortrait).mockReturnValue(true)
+      vi.mocked(useIsTablet).mockReturnValue(false)
 
-      renderWithProviders();
+      renderWithProviders()
 
-      expect(screen.getByTestId("portrait-landing-page")).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('portrait-landing-page')).toBeInTheDocument()
+    })
 
-    it("renders PortraitLandingPage on a tablet regardless of orientation", () => {
-      vi.mocked(useIsPortrait).mockReturnValue(false);
-      vi.mocked(useIsTablet).mockReturnValue(true);
+    it('renders PortraitLandingPage on a tablet regardless of orientation', () => {
+      vi.mocked(useIsPortrait).mockReturnValue(false)
+      vi.mocked(useIsTablet).mockReturnValue(true)
 
-      renderWithProviders();
+      renderWithProviders()
 
-      expect(screen.getByTestId("portrait-landing-page")).toBeInTheDocument();
-    });
+      expect(screen.getByTestId('portrait-landing-page')).toBeInTheDocument()
+    })
 
-    it("renders LandscapeLandingPage on a phone in landscape orientation", () => {
-      vi.mocked(useIsPortrait).mockReturnValue(false);
-      vi.mocked(useIsTablet).mockReturnValue(false);
+    it('renders LandscapeLandingPage on a phone in landscape orientation', () => {
+      vi.mocked(useIsPortrait).mockReturnValue(false)
+      vi.mocked(useIsTablet).mockReturnValue(false)
 
-      renderWithProviders();
+      renderWithProviders()
 
-      expect(screen.getByTestId("landscape-landing-page")).toBeInTheDocument();
-    });
-  });
-});
+      expect(screen.getByTestId('landscape-landing-page')).toBeInTheDocument()
+    })
+  })
+})

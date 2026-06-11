@@ -1,5 +1,5 @@
+import { Alert, type AlertColor, Snackbar } from '@mui/material'
 import React from 'react'
-import { Alert, AlertColor, Snackbar } from '@mui/material'
 
 interface MoreCast2SnackbarProps {
   autoHideDuration: number

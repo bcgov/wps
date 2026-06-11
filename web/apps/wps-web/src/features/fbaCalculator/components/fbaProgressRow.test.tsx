@@ -1,8 +1,6 @@
-import React from 'react'
-import { TableContainer, Table, TableHead } from '@mui/material'
+import { Table, TableContainer, TableHead } from '@mui/material'
 import { render } from '@testing-library/react'
 import { theme } from '@wps/ui/theme'
-
 import FBAProgressRow from 'features/fbaCalculator/components/FBAProgressRow'
 
 describe('FBAProgressRow', () => {

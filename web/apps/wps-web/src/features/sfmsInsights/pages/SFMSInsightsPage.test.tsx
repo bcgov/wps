@@ -1,11 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SFMSInsightsPage } from './SFMSInsightsPage'
-import { Provider } from 'react-redux'
-import { createTestStore } from '@/test/testUtils'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
 import { getDateTimeNowPST } from '@wps/utils/date'
 import { DateTime } from 'luxon'
-import { Mock } from 'vitest'
+import { Provider } from 'react-redux'
+import type { Mock } from 'vitest'
+import { createTestStore } from '@/test/testUtils'
+import { SFMSInsightsPage } from './SFMSInsightsPage'
 
 vi.mock('@wps/api/snow', () => ({
   getMostRecentProcessedSnowByDate: vi.fn()

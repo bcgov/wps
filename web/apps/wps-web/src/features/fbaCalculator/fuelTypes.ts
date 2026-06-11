@@ -7,18 +7,18 @@ export interface FBAFuelType {
   percentage_dead_balsam_fir: number | undefined
   crown_base_height: number | undefined
 }
-export class FuelTypes {
-  static lookup(key: string | undefined): FBAFuelType | null {
+export const FuelTypes = {
+  lookup(key: string | undefined): FBAFuelType | null {
     if (isUndefined(key)) {
       return null
     }
     // Special handling for API breaking typo fix in https://github.com/bcgov/wps/pull/1240 (conider -> conifer)
     if (isEqual(key, 'm2_50conider')) {
-      return FuelTypes.get()['m2_50conifer']
+      return FuelTypes.get().m2_50conifer
     }
     return FuelTypes.get()[key]
-  }
-  static get(): Record<string, FBAFuelType> {
+  },
+  get(): Record<string, FBAFuelType> {
     return {
       c1: {
         name: 'C1',

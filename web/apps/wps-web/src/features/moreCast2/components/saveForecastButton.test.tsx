@@ -1,7 +1,7 @@
-import { createTestStore } from '@/test/testUtils'
 import { render } from '@testing-library/react'
 import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
 import { Provider } from 'react-redux'
+import { createTestStore } from '@/test/testUtils'
 
 describe('SaveForecastButton', () => {
   it('should render the button as enabled', () => {

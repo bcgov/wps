@@ -1,12 +1,12 @@
-import { Box, Button, FormControl, Menu, MenuItem, Stack } from '@mui/material'
 import { ExpandMore } from '@mui/icons-material'
 import SaveIcon from '@mui/icons-material/Save'
-import React, { MouseEvent, useState } from 'react'
-import { DEFAULT_MODEL_TYPE, ModelOptions, ModelType } from '@wps/api/moreCast2API'
+import { Box, Button, FormControl, Menu, MenuItem, Stack } from '@mui/material'
+import type { GridColDef } from '@mui/x-data-grid-pro'
+import { DEFAULT_MODEL_TYPE, ModelOptions, type ModelType } from '@wps/api/moreCast2API'
+import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import WeatherModelDropdown from 'features/moreCast2/components/WeatherModelDropdown'
 import { isNull } from 'lodash'
-import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
-import { GridColDef } from '@mui/x-data-grid-pro'
+import React, { type MouseEvent, useState } from 'react'
 
 interface ForecastHeaderProps {
   colDef: Pick<GridColDef, 'field' | 'headerName'>

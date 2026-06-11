@@ -1,7 +1,7 @@
-import React from 'react'
 import { styled, useTheme } from '@mui/material/styles'
-import { theme } from '@wps/ui/theme'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import { theme } from '@wps/ui/theme'
+import React from 'react'
 import { Link } from 'react-router-dom'
 
 const PREFIX = 'Footer'

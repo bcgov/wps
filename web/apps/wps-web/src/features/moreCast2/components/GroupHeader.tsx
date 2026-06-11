@@ -1,8 +1,8 @@
-import { Button, Checkbox, FormControlLabel, FormGroup, Popover, Stack, Typography, styled } from '@mui/material'
 import { PlaylistAdd } from '@mui/icons-material'
-import React, { ChangeEvent, MouseEvent, useState } from 'react'
-import { LIGHT_GREY, MEDIUM_GREY, DARK_GREY, MoreCastParams } from '@wps/ui/theme'
-import { ColumnVis } from 'features/moreCast2/components/DataGridColumns'
+import { Button, Checkbox, FormControlLabel, FormGroup, Popover, Stack, styled, Typography } from '@mui/material'
+import { DARK_GREY, LIGHT_GREY, MEDIUM_GREY, type MoreCastParams } from '@wps/ui/theme'
+import type { ColumnVis } from 'features/moreCast2/components/DataGridColumns'
+import React, { type ChangeEvent, type MouseEvent, useState } from 'react'
 
 interface GroupHeaderProps {
   id: string
@@ -22,13 +22,13 @@ const PopoverFormControlLabel = styled(FormControlLabel)(({ theme }) => ({
   height: theme.spacing(4),
   marginRight: 0,
   paddingLeft: theme.spacing(1),
-  [':hover']: {
+  ':hover': {
     backgroundColor: LIGHT_GREY
   }
 }))
 
 const ShowHideCheckbox = styled(Checkbox)({
-  ['&.Mui-checked']: {
+  '&.Mui-checked': {
     color: MEDIUM_GREY
   }
 })

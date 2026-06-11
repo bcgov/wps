@@ -1,6 +1,6 @@
-import * as React from 'react'
-import { styled } from '@mui/material/styles'
 import { IconButton, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import type * as React from 'react'
 import { theme } from '../theme'
 import { combineCSSClassNames } from './utils'
 

@@ -1,8 +1,7 @@
-
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
-import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { vi } from 'vitest'
 
 describe('ForecastHeader', () => {

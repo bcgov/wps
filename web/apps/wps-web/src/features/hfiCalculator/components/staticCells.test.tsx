@@ -1,5 +1,5 @@
+import type { FuelType, StationDaily } from '@wps/api/hfiCalculatorAPI'
 import { isError } from 'features/hfiCalculator/components/StaticCells'
-import { FuelType, StationDaily } from '@wps/api/hfiCalculatorAPI'
 import { DateTime } from 'luxon'
 
 describe('StaticCells', () => {

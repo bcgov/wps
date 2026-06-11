@@ -1,10 +1,10 @@
-import { ReadyPlanningAreaDetails } from '@wps/api/hfiCalculatorAPI'
+import type { ReadyPlanningAreaDetails } from '@wps/api/hfiCalculatorAPI'
 import hfiReadyReducer, {
   initialState,
-  setHFIReadyStart,
-  setHFIToggleReadyState,
+  setAllReadyStates,
   setHFIReadyFailed,
-  setAllReadyStates
+  setHFIReadyStart,
+  setHFIToggleReadyState
 } from 'features/hfiCalculator/slices/hfiReadySlice'
 import { DateTime } from 'luxon'
 

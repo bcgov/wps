@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
-import { DateTime } from 'luxon'
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { isNil, isNull } from 'lodash'
+import type { DateTime } from 'luxon'
+import React, { useState } from 'react'
 
 interface WPSDatePickerProps {
   testId?: string
@@ -27,7 +27,7 @@ const WPSDatePicker = (props: WPSDatePickerProps) => {
     }
   }
 
-  let label = isNil(props.label) ? 'Date of Interest' : props.label
+  const label = isNil(props.label) ? 'Date of Interest' : props.label
 
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>

@@ -1,4 +1,4 @@
-import React from "react";
-import { Map } from "ol";
+import type { Map as OlMap } from 'ol'
+import React from 'react'
 
-export const MapContext = React.createContext<Map | null>(null);
+export const MapContext = React.createContext<OlMap | null>(null)

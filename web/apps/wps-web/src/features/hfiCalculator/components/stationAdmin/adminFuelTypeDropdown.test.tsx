@@ -1,8 +1,8 @@
 import { render, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { FuelType } from '@wps/api/hfiCalculatorAPI'
-import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import type { FuelType } from '@wps/api/hfiCalculatorAPI'
 import { AdminFuelTypesDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminFuelTypesDropdown'
+import type { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { vi } from 'vitest'
 
 describe('AdminFuelTypesDropdown', () => {

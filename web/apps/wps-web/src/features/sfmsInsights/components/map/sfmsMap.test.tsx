@@ -1,11 +1,11 @@
+import { render, screen } from '@testing-library/react'
+import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
+import { DateTime } from 'luxon'
+import { Provider } from 'react-redux'
+import type { Mock } from 'vitest'
+import * as layerDefinitions from '@/features/sfmsInsights/components/map/layerDefinitions'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import { createLayerMock, createTestStore } from '@/test/testUtils'
-import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
-import { render, screen } from '@testing-library/react'
-import { DateTime } from 'luxon'
-import { Mock } from 'vitest'
-import * as layerDefinitions from '@/features/sfmsInsights/components/map/layerDefinitions'
-import { Provider } from 'react-redux'
 
 vi.mock('@wps/utils/vectorLayerUtils', async () => {
   return {

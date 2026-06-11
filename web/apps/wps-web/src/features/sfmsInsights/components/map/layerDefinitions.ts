@@ -1,19 +1,19 @@
+import { BC_EXTENT } from '@wps/utils/constants'
+import { API_BASE_URL } from '@wps/utils/env'
+import type { DateTime } from 'luxon'
+import { boundingExtent } from 'ol/extent'
+import VectorTileLayer from 'ol/layer/VectorTile'
+import WebGLTile from 'ol/layer/WebGLTile'
+import { fromLonLat } from 'ol/proj'
+import GeoTIFF from 'ol/source/GeoTIFF'
 import { PMTilesVectorSource } from 'ol-pmtiles'
 import { FetchSource } from 'pmtiles'
-import { API_BASE_URL } from '@wps/utils/env'
+import type { RasterType, SFMSNGRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 import {
   fuelCOGColourExpression,
   getFireWeatherColourExpression,
   snowStyler
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
-import VectorTileLayer from 'ol/layer/VectorTile'
-import { DateTime } from 'luxon'
-import WebGLTile from 'ol/layer/WebGLTile'
-import GeoTIFF from 'ol/source/GeoTIFF'
-import { boundingExtent } from 'ol/extent'
-import { fromLonLat } from 'ol/proj'
-import { BC_EXTENT } from '@wps/utils/constants'
-import { RasterType, type SFMSNGRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'

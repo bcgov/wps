@@ -1,21 +1,26 @@
+import { LinearProgress } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import React from 'react'
 import {
   DataGridPro,
-  GridCallbackDetails,
-  GridCellParams,
-  GridColumnGroupingModel,
-  GridColumnVisibilityModel,
-  GridEventListener,
-  MuiEvent
+  type GridCallbackDetails,
+  type GridCellParams,
+  type GridColumnGroupingModel,
+  type GridColumnVisibilityModel,
+  type GridEventListener,
+  type MuiEvent
 } from '@mui/x-data-grid-pro'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { LinearProgress } from '@mui/material'
-import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import { ModelChoice } from '@wps/api/moreCast2API'
-import { MORECAST_MODEL_COLORS, MORECAST_WEATHER_PARAMS, MoreCastModelColors, MoreCastParams } from '@wps/ui/theme'
-import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import {
+  MORECAST_MODEL_COLORS,
+  MORECAST_WEATHER_PARAMS,
+  type MoreCastModelColors,
+  type MoreCastParams
+} from '@wps/ui/theme'
 import { PINNED_COLUMNS } from 'features/moreCast2/components/ColumnDefBuilder'
+import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
+import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import type { MoreCast2Row } from 'features/moreCast2/interfaces'
+import React from 'react'
 
 const PREFIX = 'ForecastDataGrid'
 

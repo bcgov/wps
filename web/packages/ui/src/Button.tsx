@@ -1,6 +1,6 @@
-import React, { forwardRef } from 'react'
+import { Button as B, type ButtonProps, CircularProgress } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { Button as B, ButtonProps, CircularProgress } from '@mui/material'
+import { forwardRef } from 'react'
 import { theme } from './theme'
 
 const PREFIX = 'Button'
@@ -17,8 +17,6 @@ interface CustomProps {
 }
 
 type Props = CustomProps & ButtonProps
-
-/* eslint-disable react/prop-types, react/display-name */
 // Use forwardRef to obtain the ref passed to it, and then forward it to the DOM button that it renders.
 // https://medium.com/@martin_hotell/react-refs-with-typescript-a32d56c4d315
 export const Button = forwardRef<HTMLButtonElement, Props>((props, ref) => {

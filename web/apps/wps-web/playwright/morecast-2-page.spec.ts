@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { test, expect } from './fixtures'
+import { expect, test } from './fixtures'
 
 const MORE_CAST_2_ROUTE = '/morecast-2'
 const fixturesDir = path.join(import.meta.dirname, 'fixtures')

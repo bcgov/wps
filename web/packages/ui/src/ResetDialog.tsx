@@ -1,5 +1,5 @@
-import React from 'react'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material'
+import React from 'react'
 import { theme } from './theme'
 
 export interface ResetDialogProps {

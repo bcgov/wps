@@ -1,4 +1,4 @@
-import { stationCodeQueryKey, getStationCodesFromUrl } from './url'
+import { getStationCodesFromUrl, stationCodeQueryKey } from './url'
 
 describe('Url util functions', () => {
   describe('getStationCodesFromUrl', () => {

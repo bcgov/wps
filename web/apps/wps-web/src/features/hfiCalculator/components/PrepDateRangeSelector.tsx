@@ -1,21 +1,22 @@
+import * as materialIcons from '@mui/icons-material'
 import {
+  Button,
   createTheme,
   Dialog,
-  InputAdornment,
-  TextField,
-  ThemeProvider,
-  StyledEngineProvider,
   Icon,
-  Button
+  InputAdornment,
+  StyledEngineProvider,
+  TextField,
+  ThemeProvider
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import * as materialIcons from '@mui/icons-material'
+import type { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import DateRangePickerWrapper from '@wps/ui/dateRangePicker/DateRangePickerWrapper'
-import { DateRange } from '@wps/ui/dateRangePicker/types'
-import { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
+import type { DateRange } from '@wps/ui/dateRangePicker/types'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
+
 const PREFIX = 'PrepDateRangeSelector'
 
 const DateRangePickerTextField = styled(TextField, {
@@ -83,8 +84,8 @@ export const dateRangePickerTheme = createTheme({
 
 const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelectorProps) => {
   const dateDisplayFormat = 'MMMM dd'
-  const startDate = dateRange && dateRange.start_date ? DateTime.fromISO(dateRange.start_date).toJSDate() : undefined
-  const endDate = dateRange && dateRange.end_date ? DateTime.fromISO(dateRange.end_date).toJSDate() : undefined
+  const startDate = dateRange?.start_date ? DateTime.fromISO(dateRange.start_date).toJSDate() : undefined
+  const endDate = dateRange?.end_date ? DateTime.fromISO(dateRange.end_date).toJSDate() : undefined
 
   const [dateRangePickerOpen, setDateRangePickerOpen] = useState<boolean>(false)
   const toggleDateRangePicker = () => setDateRangePickerOpen(!dateRangePickerOpen)

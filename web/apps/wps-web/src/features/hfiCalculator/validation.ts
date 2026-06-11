@@ -1,4 +1,4 @@
-import { StationDaily, FuelType } from '@wps/api/hfiCalculatorAPI'
+import type { FuelType, StationDaily } from '@wps/api/hfiCalculatorAPI'
 import { isEqual, isNull, isUndefined } from 'lodash'
 
 export const isValidGrassCure = (daily: StationDaily | undefined, fuelType: FuelType | undefined): boolean => {
@@ -9,7 +9,7 @@ export const isValidGrassCure = (daily: StationDaily | undefined, fuelType: Fuel
     !isUndefined(daily) &&
     !isNull(daily.grass_cure_percentage) &&
     !isUndefined(daily.grass_cure_percentage) &&
-    !isNaN(daily.grass_cure_percentage)
+    !Number.isNaN(daily.grass_cure_percentage)
   )
 }
 

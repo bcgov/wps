@@ -1,4 +1,4 @@
-import { createTheme, LinearProgress, TableCell, TableRow, ThemeProvider, StyledEngineProvider } from '@mui/material'
+import { createTheme, LinearProgress, StyledEngineProvider, TableCell, TableRow, ThemeProvider } from '@mui/material'
 import { theme } from '@wps/ui/theme'
 
 import React from 'react'

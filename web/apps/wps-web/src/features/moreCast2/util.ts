@@ -1,11 +1,11 @@
-import { DateTime, Interval } from 'luxon'
-import { ModelChoice, MoreCast2ForecastRecord, WeatherDeterminate } from '@wps/api/moreCast2API'
-import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
-import { StationGroupMember } from '@wps/api/stationAPI'
-import { groupBy, isUndefined } from 'lodash'
-import { getDateTimeNowPST } from '@wps/utils/date'
 import { bui, dc, dmc, ffmc, fwi, isi } from '@psu/cffdrs_ts'
+import { ModelChoice, type MoreCast2ForecastRecord, WeatherDeterminate } from '@wps/api/moreCast2API'
+import type { StationGroupMember } from '@wps/api/stationAPI'
+import { getDateTimeNowPST } from '@wps/utils/date'
+import type { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
+import { groupBy, isUndefined } from 'lodash'
+import { DateTime, Interval } from 'luxon'
 
 export const parseForecastsHelper = (
   forecasts: MoreCast2ForecastRecord[],
@@ -92,18 +92,21 @@ export const validActualOrForecastPredicate = (row: MoreCast2Row) =>
   validForecastPredicate(row) || validActualPredicate(row)
 
 export const validActualPredicate = (row: MoreCast2Row) =>
-  !isNaN(row.precipActual) && !isNaN(row.rhActual) && !isNaN(row.tempActual) && !isNaN(row.windSpeedActual)
+  !Number.isNaN(row.precipActual) &&
+  !Number.isNaN(row.rhActual) &&
+  !Number.isNaN(row.tempActual) &&
+  !Number.isNaN(row.windSpeedActual)
 
 // A valid forecast row has values for precipForecast, rhForecast, tempForecast and windSpeedForecast
 export const validForecastPredicate = (row: MoreCast2Row) =>
   !isUndefined(row.precipForecast) &&
-  !isNaN(row.precipForecast.value) &&
+  !Number.isNaN(row.precipForecast.value) &&
   !isUndefined(row.rhForecast) &&
-  !isNaN(row.rhForecast.value) &&
+  !Number.isNaN(row.rhForecast.value) &&
   !isUndefined(row.tempForecast) &&
-  !isNaN(row.tempForecast.value) &&
+  !Number.isNaN(row.tempForecast.value) &&
   !isUndefined(row.windSpeedForecast) &&
-  !isNaN(row.windSpeedForecast.value)
+  !Number.isNaN(row.windSpeedForecast.value)
 
 export const isForecastRow = (row: MoreCast2Row) => {
   return !rowContainsActual(row) && !isBeforeToday(row.forDate)
@@ -138,7 +141,7 @@ export const fillForecastsFromRows = (
     const savedRowsMap = getRowsMap(savedRows)
     rowsToFill
       .filter(row => isForecastRow(row))
-      .map(forecastRow => {
+      .forEach(forecastRow => {
         const savedRow = savedRowsMap.get(forecastRow.id)
         if (savedRow) {
           forecastRow.tempForecast = savedRow.tempForecast
@@ -170,9 +173,9 @@ export const fillGrassCuringCWFIS = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   // regardless of row order.
   for (const row of rows) {
     const { stationCode, forDate, grassCuringCWFIS } = row
-    const grassCuring = grassCuringCWFIS && !isNaN(grassCuringCWFIS.value) ? grassCuringCWFIS.value : NaN
+    const grassCuring = grassCuringCWFIS && !Number.isNaN(grassCuringCWFIS.value) ? grassCuringCWFIS.value : NaN
 
-    if (!isNaN(grassCuring)) {
+    if (!Number.isNaN(grassCuring)) {
       const existingStation = stationGrassMap.get(stationCode)
 
       if (!existingStation || forDate > existingStation.date) {
@@ -184,7 +187,12 @@ export const fillGrassCuringCWFIS = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   for (const row of rows) {
     const stationInfo = stationGrassMap.get(row.stationCode)
     // Fill the grass curing CWFIS value as long as it doesn't already have a value.
-    if (stationInfo && row.grassCuringCWFIS && isNaN(row.grassCuringCWFIS.value) && row.forDate > stationInfo.date) {
+    if (
+      stationInfo &&
+      row.grassCuringCWFIS &&
+      Number.isNaN(row.grassCuringCWFIS.value) &&
+      row.forDate > stationInfo.date
+    ) {
       row.grassCuringCWFIS.value = stationInfo.grassCuringCWFIS
     }
   }
@@ -204,9 +212,9 @@ export const fillGrassCuringForecast = (rows: MoreCast2Row[]): MoreCast2Row[] =>
     const { stationCode, forDate, grassCuringForecast, grassCuringActual } = row
 
     const grassCuring =
-      grassCuringForecast && !isNaN(grassCuringForecast.value) ? grassCuringForecast.value : grassCuringActual
+      grassCuringForecast && !Number.isNaN(grassCuringForecast.value) ? grassCuringForecast.value : grassCuringActual
 
-    if (!isNaN(grassCuring)) {
+    if (!Number.isNaN(grassCuring)) {
       const existingStation = stationGrassMap.get(stationCode)
 
       if (!existingStation || forDate > existingStation.date) {
@@ -221,7 +229,7 @@ export const fillGrassCuringForecast = (rows: MoreCast2Row[]): MoreCast2Row[] =>
     if (
       stationInfo &&
       row.grassCuringForecast &&
-      isNaN(row.grassCuringForecast.value) &&
+      Number.isNaN(row.grassCuringForecast.value) &&
       row.forDate > stationInfo.date
     ) {
       row.grassCuringForecast.value = stationInfo.grassCuring
@@ -278,7 +286,7 @@ export const isBeforeToday = (datetime: DateTime): boolean => {
 
 export const rowContainsActual = (row: MoreCast2Row): boolean => {
   return Object.entries(row).some(
-    ([key, value]) => key.includes(WeatherDeterminate.ACTUAL) && typeof value === 'number' && !isNaN(value)
+    ([key, value]) => key.includes(WeatherDeterminate.ACTUAL) && typeof value === 'number' && !Number.isNaN(value)
   )
 }
 

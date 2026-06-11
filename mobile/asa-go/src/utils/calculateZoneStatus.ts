@@ -1,51 +1,36 @@
-import { AdvisoryMinWindStats, FireShapeStatusDetail } from "@/api/fbaAPI";
-import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from "@/featureStylers";
-import { AdvisoryStatus } from "@/utils/constants";
-import { isNil } from "lodash";
+import { isNil } from 'lodash'
+import type { AdvisoryMinWindStats, FireShapeStatusDetail } from '@/api/fbaAPI'
+import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/featureStylers'
+import { AdvisoryStatus } from '@/utils/constants'
 
-export const calculateStatusColour = (
-  details: FireShapeStatusDetail | undefined,
-  defaultColour: string
-) => {
+export const calculateStatusColour = (details: FireShapeStatusDetail | undefined, defaultColour: string) => {
   switch (details?.status) {
     case AdvisoryStatus.ADVISORY:
-      return ADVISORY_ORANGE_FILL;
+      return ADVISORY_ORANGE_FILL
     case AdvisoryStatus.WARNING:
-      return ADVISORY_RED_FILL;
+      return ADVISORY_RED_FILL
     default:
-      return defaultColour;
+      return defaultColour
   }
-};
+}
 
-export const getWindSpeedMinimum = (
-  zoneMinWindStats: AdvisoryMinWindStats[]
-): number | undefined => {
-  const advisoryThresholdMinWindSpeed = zoneMinWindStats.find(
-    (windStats) => windStats.threshold.id === 1
-  );
-  const warningThresholdMinWindSpeed = zoneMinWindStats.find(
-    (windStats) => windStats.threshold.id === 2
-  );
+export const getWindSpeedMinimum = (zoneMinWindStats: AdvisoryMinWindStats[]): number | undefined => {
+  const advisoryThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id === 1)
+  const warningThresholdMinWindSpeed = zoneMinWindStats.find(windStats => windStats.threshold.id === 2)
 
-  const advisoryWindSpeed = advisoryThresholdMinWindSpeed?.min_wind_speed ?? -1;
-  const warningWindSpeed = warningThresholdMinWindSpeed?.min_wind_speed ?? -1;
+  const advisoryWindSpeed = advisoryThresholdMinWindSpeed?.min_wind_speed ?? -1
+  const warningWindSpeed = warningThresholdMinWindSpeed?.min_wind_speed ?? -1
 
-  const validSpeeds = [advisoryWindSpeed, warningWindSpeed].filter(
-    (windSpeed) => windSpeed >= 0
-  );
+  const validSpeeds = [advisoryWindSpeed, warningWindSpeed].filter(windSpeed => windSpeed >= 0)
 
-  const minWindSpeed = Math.min(...validSpeeds);
+  const minWindSpeed = Math.min(...validSpeeds)
 
-  return minWindSpeed !== Infinity ? minWindSpeed : undefined;
-};
+  return minWindSpeed !== Infinity ? minWindSpeed : undefined
+}
 
-export const calculateWindSpeedText = (
-  zoneMinWindStats: AdvisoryMinWindStats[]
-): string | undefined => {
-  const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats);
+export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]): string | undefined => {
+  const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats)
 
   // 0 is falsy, so we need to perform a null/undefined check for this to consider 0 valid
-  return !isNil(minWindSpeed)
-    ? `if winds exceed ${minWindSpeed.toFixed(0)} km/h`
-    : undefined;
-};
+  return !isNil(minWindSpeed) ? `if winds exceed ${minWindSpeed.toFixed(0)} km/h` : undefined
+}

@@ -1,9 +1,9 @@
 import {
-  isNoonInPST,
-  formatDatetimeInPST,
-  formatMonthAndDay,
   formatDateInUTC00Suffix,
-  formatISODateInPST
+  formatDatetimeInPST,
+  formatISODateInPST,
+  formatMonthAndDay,
+  isNoonInPST
 } from './date'
 
 describe('Date util functions', () => {

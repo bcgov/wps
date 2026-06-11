@@ -1,5 +1,5 @@
-import { TextField, Autocomplete } from '@mui/material'
-import { FireShape } from '@wps/api/fbaAPI'
+import { Autocomplete, TextField } from '@mui/material'
+import type { FireShape } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
@@ -13,8 +13,7 @@ interface FireCentreDropdownProps {
 }
 
 const FireCentreDropdown = (props: FireCentreDropdownProps) => {
-  // eslint-disable-next-line
-  const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
+  const changeHandler = (_: React.ChangeEvent<unknown>, value: any | null) => {
     if (!isEqual(props.selectedFireCentre, value)) {
       props.setSelectedFireShape(undefined)
       props.setSelectedFireCentre(value ?? undefined)

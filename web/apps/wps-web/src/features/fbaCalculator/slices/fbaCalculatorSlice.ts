@@ -1,14 +1,13 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { FBAStation, FBAWeatherStationsResponse, postFBAStations } from '@wps/api/fbaCalcAPI'
-
-import { AppThunk } from 'app/store'
-import { logError } from '@wps/utils/error'
-import { FuelTypes } from '../fuelTypes'
-import { isEmpty, isNil } from 'lodash'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
-import { DateTime } from 'luxon'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { type FBAStation, type FBAWeatherStationsResponse, postFBAStations } from '@wps/api/fbaCalcAPI'
 import { PST_UTC_OFFSET } from '@wps/utils/constants'
 import { pstFormatter } from '@wps/utils/date'
+import { logError } from '@wps/utils/error'
+import type { AppThunk } from 'app/store'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
+import { isEmpty, isNil } from 'lodash'
+import { DateTime } from 'luxon'
+import { FuelTypes } from '../fuelTypes'
 
 export interface FBACalcState {
   loading: boolean
@@ -65,7 +64,7 @@ export const fetchFireBehaviourStations =
       }
       return {
         id: row.id,
-        stationCode: parseInt(row.weatherStation ? row.weatherStation.value : ''),
+        stationCode: parseInt(row.weatherStation ? row.weatherStation.value : '', 10),
         fuelType: fuelTypeDetails.name,
         percentageConifer: fuelTypeDetails.percentage_conifer,
         grassCurePercentage: row.grassCure,

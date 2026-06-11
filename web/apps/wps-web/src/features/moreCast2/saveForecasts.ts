@@ -1,16 +1,16 @@
-import { isBeforeToday } from 'features/moreCast2/util'
 import { ModelChoice } from '@wps/api/moreCast2API'
-import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
+import type { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
+import { isBeforeToday } from 'features/moreCast2/util'
 import { isNil } from 'lodash'
 
 // Forecast rows contain all NaN values in their 'actual' fields
 export const isForecastRowPredicate = (row: MoreCast2Row) =>
-  isNaN(row.precipActual) &&
-  isNaN(row.rhActual) &&
-  isNaN(row.tempActual) &&
-  isNaN(row.windDirectionActual) &&
-  isNaN(row.windSpeedActual) &&
-  isNaN(row.grassCuringActual)
+  Number.isNaN(row.precipActual) &&
+  Number.isNaN(row.rhActual) &&
+  Number.isNaN(row.tempActual) &&
+  Number.isNaN(row.windDirectionActual) &&
+  Number.isNaN(row.windSpeedActual) &&
+  Number.isNaN(row.grassCuringActual)
 
 export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
   return rows ? rows.filter(row => isForecastRowPredicate(row) && !isBeforeToday(row.forDate)) : []
@@ -35,7 +35,7 @@ export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
 
 export const isRequiredInputSet = (rowsToSave: MoreCast2ForecastRow[]) => {
   const isNilPredictionItem = (item?: PredictionItem) => {
-    return isNil(item) || isNaN(item.value)
+    return isNil(item) || Number.isNaN(item.value)
   }
   const res = rowsToSave.every(row => {
     return (

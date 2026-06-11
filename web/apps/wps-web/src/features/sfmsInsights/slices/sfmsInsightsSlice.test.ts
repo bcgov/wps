@@ -1,8 +1,8 @@
 import { combineReducers } from '@reduxjs/toolkit'
-import { AppDispatch } from '@/app/store'
-import { createTestStore } from '@/test/testUtils'
-import { getSFMSInsightsBounds, SFMSBoundsResponse, type SFMSBounds } from '@wps/api/sfmsAPI'
+import { getSFMSInsightsBounds, type SFMSBounds, type SFMSBoundsResponse } from '@wps/api/sfmsAPI'
 import { logError } from '@wps/utils/error'
+import type { AppDispatch } from '@/app/store'
+import { createTestStore } from '@/test/testUtils'
 import reducer, {
   fetchSFMSInsightsBounds,
   getSFMSInsightsBoundsFailed,
