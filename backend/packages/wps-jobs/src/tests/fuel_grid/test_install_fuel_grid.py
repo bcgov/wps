@@ -331,7 +331,7 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
     populate_tpi_fuel_area = MagicMock()
     verify_static_fuel_grid_data = AsyncMock(return_value=expected_counts)
 
-    monkeypatch.setattr("fuel_grid.install.get_versioned_fuel_raster_key", lambda *_: "fuel-key")
+    monkeypatch.setattr(BaseRasterAddresser, "gdal_path", lambda *_: "fuel-key")
     monkeypatch.setattr(
         "fuel_grid.install.get_fire_zone_unit_shape_type_id", AsyncMock(return_value=1)
     )

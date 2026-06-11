@@ -13,6 +13,7 @@ from wps_shared import config
 from wps_shared.db.crud.fuel_layer import get_processed_fuel_raster_details
 from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.geospatial.geospatial import GDALResamplingMethod, warp_to_match_raster
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
@@ -33,10 +34,10 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
     """
     # Open the rasters with gdal
     set_s3_gdal_config()
-    bucket = config.get("OBJECT_STORE_BUCKET")
+    raster_addresser = BaseRasterAddresser()
     tpi_raster_name = config.get("CLASSIFIED_TPI_DEM_NAME")
-    fuel_raster_key = f"/vsis3/{bucket}/{fuel_type_raster_path}"
-    tpi_raster_key = f"/vsis3/{bucket}/dem/tpi/{tpi_raster_name}"
+    fuel_raster_key = raster_addresser.gdal_path(S3Key(fuel_type_raster_path))
+    tpi_raster_key = raster_addresser.gdal_path(S3Key(f"dem/tpi/{tpi_raster_name}"))
     fuel_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)  # LCC projection
     tpi_ds: gdal.Dataset = gdal.Open(tpi_raster_key, gdal.GA_ReadOnly)  # BC Albers 3005 projection
 

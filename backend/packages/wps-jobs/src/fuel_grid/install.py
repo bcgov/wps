@@ -32,9 +32,8 @@ from wps_shared.db.models.auto_spatial_advisory import (
 )
 from wps_shared.db.models.fuel_type_raster import FuelRasterInstallStatus, FuelTypeRaster
 from wps_shared.fuel_raster import process_fuel_type_raster
-from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.sfms.raster_addresser import BaseRasterAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
@@ -417,7 +416,7 @@ async def populate_static_fuel_grid_data(
     fuel_type_raster: FuelTypeRaster,
     fuel_masked_tpi_key: str,
 ) -> FuelGridInstallCounts:
-    fuel_raster_key = get_versioned_fuel_raster_key(fuel_type_raster.object_store_path)
+    fuel_raster_key = BaseRasterAddresser().gdal_path(S3Key(fuel_type_raster.object_store_path))
     tpi_filename = fuel_masked_tpi_key.removeprefix("dem/tpi/")
     zones = await get_fire_zone_unit_shapes(session)
 
