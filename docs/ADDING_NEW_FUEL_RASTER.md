@@ -43,19 +43,17 @@ The job receives only the object name:
 fbp2026.tif
 ```
 
-## 2. Update the Job Template
+## 2. Update the Install Year
 
-Update the defaults in `openshift/templates/fuel_grid_install_job.yaml`:
+Update `FUEL_RASTER_YEAR` in the dev and production deployment calls:
 
-```yaml
-- name: FUEL_RASTER_YEAR
-  value: "2026"
-- name: FUEL_RASTER_KEY
-  value: fbp2026.tif
+```bash
+FUEL_RASTER_YEAR=2026 bash openshift/scripts/oc_provision_fuel_grid_install_job.sh <suffix> apply
 ```
 
-Commit this change with the PR. Git history is the record of what raster the seasonal install job
-was configured to install.
+The provision script derives the staged object name as `fbp${FUEL_RASTER_YEAR}.tif`, so the staged
+object for 2026 must be `sfms/static/fbp2026.tif`. Commit the year change with the PR. Git history
+is the record of what raster the seasonal install job was configured to install.
 
 ## 3. Deploy the Job
 
@@ -67,13 +65,13 @@ object-store target are confirmed.
 For a PR/dev deployment, the job name looks like:
 
 ```text
-fuel-grid-install-wps-pr-5495
+fuel-grid-install-2026-wps-pr-5495
 ```
 
 For production, the name looks like:
 
 ```text
-fuel-grid-install-wps-prod
+fuel-grid-install-2026-wps-prod
 ```
 
 ## 4. Run the Job in Production
