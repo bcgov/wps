@@ -5,7 +5,7 @@ import pytest
 
 from app.auto_spatial_advisory.fuel_type_layer import get_current_fuel_type_raster
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
-from wps_shared.db.models.fuel_type_raster import FUEL_RASTER_STATUS_READY
+from wps_shared.db.models.fuel_type_raster import FUEL_RASTER_STATUS_READY, FuelTypeRaster
 
 
 @pytest.mark.anyio
@@ -27,7 +27,12 @@ async def test_get_current_fuel_type_raster_uses_current_year(monkeypatch):
 @pytest.mark.anyio
 async def test_get_fuel_type_raster_by_year_matching_year(monkeypatch):
     mock_session = AsyncMock()
-    mock_raster = object()
+    mock_raster = FuelTypeRaster(
+        year=2024,
+        version=1,
+        object_store_path="sfms/static/fuel/2024/fbp2024_v1.tif",
+        install_status=FUEL_RASTER_STATUS_READY,
+    )
     mock_result = MagicMock()
     mock_result.scalars.return_value.first.return_value = mock_raster
     mock_session.execute.return_value = mock_result
