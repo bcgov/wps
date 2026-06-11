@@ -1,7 +1,6 @@
-from contextlib import asynccontextmanager
 from datetime import datetime
 from types import SimpleNamespace
-from typing import AsyncIterator, cast
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -29,23 +28,34 @@ from wps_shared.db.models.fuel_type_raster import (
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 
 
-class MockS3Client:
+class AwaitableResult:
+    def __init__(self, value=None):
+        self.value = value
+
+    def __await__(self):
+        yield from ()
+        return self.value
+
+
+class MockAsyncContextManager:
+    def __aenter__(self):
+        return AwaitableResult(self)
+
+    def __aexit__(self, *args):
+        return AwaitableResult(None)
+
+
+class MockS3Client(MockAsyncContextManager):
     object_exists_result = True
     content_hash_result = "hash-2026"
 
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *args):
-        pass
-
-    async def object_exists(self, key):
+    def object_exists(self, key):
         assert key == "sfms/static/fbp2026.tif"
-        return self.object_exists_result
+        return AwaitableResult(self.object_exists_result)
 
-    async def get_content_hash(self, key):
+    def get_content_hash(self, key):
         assert key == "sfms/static/fbp2026.tif"
-        return self.content_hash_result
+        return AwaitableResult(self.content_hash_result)
 
 
 def make_mock_session() -> tuple[AsyncSession, MagicMock]:
@@ -53,10 +63,20 @@ def make_mock_session() -> tuple[AsyncSession, MagicMock]:
     return cast(AsyncSession, session_mock), session_mock
 
 
-@asynccontextmanager
-async def fake_session_scope() -> AsyncIterator[AsyncSession]:
+class MockSessionScope:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    def __aenter__(self):
+        return AwaitableResult(self.session)
+
+    def __aexit__(self, *args):
+        return AwaitableResult(None)
+
+
+def fake_session_scope() -> MockSessionScope:
     session, _ = make_mock_session()
-    yield session
+    return MockSessionScope(session)
 
 
 def patch_no_matching_fuel_raster(monkeypatch):
@@ -214,16 +234,10 @@ async def test_ensure_fuel_masked_tpi_raster_reuses_existing_object(monkeypatch)
     )
     generate_fuel_masked_tpi_raster = AsyncMock()
 
-    class ExistingMaskedTPIClient:
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, *args):
-            pass
-
-        async def object_exists(self, key):
+    class ExistingMaskedTPIClient(MockAsyncContextManager):
+        def object_exists(self, key):
             assert key == "dem/tpi/masked.tif"
-            return True
+            return AwaitableResult(True)
 
     monkeypatch.setattr("fuel_grid.install.S3Client", lambda: ExistingMaskedTPIClient())
     monkeypatch.setattr(
@@ -250,16 +264,10 @@ async def test_ensure_fuel_masked_tpi_raster_generates_missing_object(monkeypatc
     )
     generate_fuel_masked_tpi_raster = AsyncMock()
 
-    class MissingMaskedTPIClient:
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, *args):
-            pass
-
-        async def object_exists(self, key):
+    class MissingMaskedTPIClient(MockAsyncContextManager):
+        def object_exists(self, key):
             assert key == "dem/tpi/masked.tif"
-            return False
+            return AwaitableResult(False)
 
     monkeypatch.setattr("fuel_grid.install.S3Client", lambda: MissingMaskedTPIClient())
     monkeypatch.setattr(
@@ -302,7 +310,7 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
     session, session_mock = make_mock_session()
     flush_count = 0
 
-    async def count_flushes():
+    def count_flushes():
         nonlocal flush_count
         flush_count += 1
 
