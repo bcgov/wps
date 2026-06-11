@@ -30,11 +30,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     Shape,
     TPIFuelArea,
 )
-from wps_shared.db.models.fuel_type_raster import (
-    FUEL_RASTER_STATUS_INSTALLING,
-    FUEL_RASTER_STATUS_READY,
-    FuelTypeRaster,
-)
+from wps_shared.db.models.fuel_type_raster import FuelRasterInstallStatus, FuelTypeRaster
 from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
 from wps_shared.geospatial.wps_dataset import WPSDataset
@@ -388,7 +384,7 @@ async def create_fuel_type_raster_record(
         object_store_path=processed_raster.object_store_path,
         content_hash=processed_raster.content_hash,
         create_timestamp=processed_raster.create_timestamp,
-        install_status=FUEL_RASTER_STATUS_INSTALLING,
+        install_status=FuelRasterInstallStatus.INSTALLING,
     )
     session.add(fuel_type_raster)
     # flush the parent row now so FK-only derived rows can reference it safely.
@@ -397,7 +393,7 @@ async def create_fuel_type_raster_record(
 
 
 def mark_fuel_type_raster_ready(fuel_type_raster: FuelTypeRaster) -> InstalledFuelRaster:
-    fuel_type_raster.install_status = FUEL_RASTER_STATUS_READY
+    fuel_type_raster.install_status = FuelRasterInstallStatus.READY
     fuel_type_raster.ready_timestamp = get_utc_now()
     return installed_fuel_raster_from_record(fuel_type_raster)
 

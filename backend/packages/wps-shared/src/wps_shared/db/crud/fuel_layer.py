@@ -6,7 +6,7 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from wps_shared.db.models.fuel_type_raster import FUEL_RASTER_STATUS_READY, FuelTypeRaster
+from wps_shared.db.models.fuel_type_raster import FuelRasterInstallStatus, FuelTypeRaster
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ async def get_processed_fuel_raster_details(
         stmt = (
             select(FuelTypeRaster)
             .where(FuelTypeRaster.year == year)
-            .where(FuelTypeRaster.install_status == FUEL_RASTER_STATUS_READY)
+            .where(FuelTypeRaster.install_status == FuelRasterInstallStatus.READY)
             .order_by(FuelTypeRaster.version.desc())
         )
         result = list((await session.execute(stmt)).scalars().all())
@@ -46,7 +46,7 @@ async def get_processed_fuel_raster_details(
             select(FuelTypeRaster)
             .where(FuelTypeRaster.year == year)
             .where(FuelTypeRaster.version == version)
-            .where(FuelTypeRaster.install_status == FUEL_RASTER_STATUS_READY)
+            .where(FuelTypeRaster.install_status == FuelRasterInstallStatus.READY)
         )
         result = (await session.execute(stmt)).scalars().one_or_none()
         return result
@@ -66,7 +66,7 @@ async def get_fuel_type_raster_by_year(
     stmt = (
         select(FuelTypeRaster)
         .where(FuelTypeRaster.year <= year)
-        .where(FuelTypeRaster.install_status == FUEL_RASTER_STATUS_READY)
+        .where(FuelTypeRaster.install_status == FuelRasterInstallStatus.READY)
         .order_by(FuelTypeRaster.year.desc(), FuelTypeRaster.version.desc())
     )
     result = await session.execute(stmt)
@@ -95,7 +95,7 @@ async def get_ready_fuel_type_raster_by_year_and_hash(
         .where(
             FuelTypeRaster.year == year,
             FuelTypeRaster.content_hash == content_hash,
-            FuelTypeRaster.install_status == FUEL_RASTER_STATUS_READY,
+            FuelTypeRaster.install_status == FuelRasterInstallStatus.READY,
         )
         .order_by(FuelTypeRaster.version.desc())
         .limit(1)

@@ -20,11 +20,7 @@ from fuel_grid.install import (
     process_fuel_type_raster_for_install,
     verify_static_fuel_grid_data,
 )
-from wps_shared.db.models.fuel_type_raster import (
-    FUEL_RASTER_STATUS_INSTALLING,
-    FUEL_RASTER_STATUS_READY,
-    FuelTypeRaster,
-)
+from wps_shared.db.models.fuel_type_raster import FuelRasterInstallStatus, FuelTypeRaster
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 
 
@@ -300,7 +296,7 @@ async def test_create_fuel_type_raster_record_flushes_installing_parent(monkeypa
     result = await create_fuel_type_raster_record(session, processed_raster)
 
     assert result is added[0]
-    assert result.install_status == FUEL_RASTER_STATUS_INSTALLING
+    assert result.install_status == FuelRasterInstallStatus.INSTALLING
     assert result.object_store_path == "sfms/static/fuel/2026/fbp2026_v4.tif"
     session_mock.flush.assert_awaited_once()
 
@@ -416,7 +412,7 @@ async def test_install_fuel_grid_cleans_up_object_store_artifacts_on_failure(mon
         version=4,
         object_store_path="sfms/static/fuel/2026/fbp2026_v4.tif",
         content_hash="hash-2026",
-        install_status=FUEL_RASTER_STATUS_INSTALLING,
+        install_status=FuelRasterInstallStatus.INSTALLING,
     )
     cleanup = AsyncMock()
 
@@ -461,7 +457,7 @@ async def test_install_fuel_grid_marks_raster_ready_after_verification(monkeypat
         version=4,
         object_store_path="sfms/static/fuel/2026/fbp2026_v4.tif",
         content_hash="hash-2026",
-        install_status=FUEL_RASTER_STATUS_INSTALLING,
+        install_status=FuelRasterInstallStatus.INSTALLING,
     )
     expected_counts = FuelGridInstallCounts(
         advisory_fuel_types=1,
@@ -490,10 +486,10 @@ async def test_install_fuel_grid_marks_raster_ready_after_verification(monkeypat
 
     result = await install_fuel_grid(2026, "fbp2026.tif")
 
-    assert installing_raster.install_status == FUEL_RASTER_STATUS_READY
+    assert installing_raster.install_status == FuelRasterInstallStatus.READY
     assert installing_raster.ready_timestamp is not None
     assert result is not None
-    assert result.fuel_type_raster.install_status == FUEL_RASTER_STATUS_READY
+    assert result.fuel_type_raster.install_status == FuelRasterInstallStatus.READY
     assert result.counts == expected_counts
 
 
@@ -514,7 +510,7 @@ async def test_install_fuel_grid_reuses_existing_versioned_s3_raster(monkeypatch
         version=1,
         object_store_path="sfms/static/fuel/2026/fbp2026_v1.tif",
         content_hash="hash-2026",
-        install_status=FUEL_RASTER_STATUS_INSTALLING,
+        install_status=FuelRasterInstallStatus.INSTALLING,
     )
     expected_counts = FuelGridInstallCounts(
         advisory_fuel_types=1,
@@ -584,7 +580,7 @@ async def test_install_fuel_grid_skips_ready_raster_with_matching_year_and_hash(
         version=1,
         object_store_path="sfms/static/fuel/2026/fbp2026_v1.tif",
         content_hash="hash-2026",
-        install_status=FUEL_RASTER_STATUS_READY,
+        install_status=FuelRasterInstallStatus.READY,
     )
     get_staged_fuel_raster_hash = AsyncMock(return_value="hash-2026")
     find_ready_fuel_raster = AsyncMock(return_value=existing_raster)
