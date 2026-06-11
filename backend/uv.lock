@@ -4804,14 +4804,17 @@ version = "0.1.0"
 source = { editable = "packages/wps-jobs" }
 dependencies = [
     { name = "affine" },
+    { name = "aiofiles" },
     { name = "asyncpg" },
     { name = "gdal" },
+    { name = "geoalchemy2" },
     { name = "herbie-data" },
     { name = "numpy" },
     { name = "psycopg2-binary" },
     { name = "redis" },
     { name = "scikit-learn" },
     { name = "scipy" },
+    { name = "shapely" },
     { name = "sqlalchemy" },
     { name = "wps-shared" },
     { name = "wps-wf1" },
@@ -4826,8 +4829,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "affine", specifier = ">=2.4.0,<3" },
+    { name = "aiofiles", specifier = ">=25.0.0,<26" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "gdal", specifier = "==3.12.3" },
+    { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "herbie-data", specifier = ">=2025.11.1,<2026" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
     { name = "numpy", specifier = "==2.3.*" },
@@ -4835,6 +4840,7 @@ requires-dist = [
     { name = "redis", specifier = ">=8,<9" },
     { name = "scikit-learn", specifier = ">=1.6.1,<2" },
     { name = "scipy", specifier = ">=1.15.2,<2" },
+    { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "sqlalchemy", specifier = ">=2.0.38,<3" },
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "wps-wf1", editable = "packages/wps-wf1" },

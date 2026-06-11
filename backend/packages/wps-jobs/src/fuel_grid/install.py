@@ -42,13 +42,11 @@ from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
-from app.auto_spatial_advisory.calculate_combustible_land_area import (
-    calculate_combustible_area_by_fire_zone,
-)
-from app.auto_spatial_advisory.fuel_type_area import calculate_fuel_type_areas_per_zone
-from app.auto_spatial_advisory.fuel_type_layer import fuel_type_iterator_by_key
-from app.auto_spatial_advisory.local.generate_fuel_masked_tpi import prepare_masked_tif
-from app.auto_spatial_advisory.process_tpi_fuel_area import calculate_masked_tpi_areas
+from fuel_grid.combustible_area import calculate_combustible_area_by_fire_zone
+from fuel_grid.fuel_masked_tpi import prepare_masked_tif
+from fuel_grid.fuel_type_area import calculate_fuel_type_areas_per_zone
+from fuel_grid.fuel_type_layer import fuel_type_iterator_by_key
+from fuel_grid.tpi_fuel_area import calculate_masked_tpi_areas
 
 logger = logging.getLogger(__name__)
 

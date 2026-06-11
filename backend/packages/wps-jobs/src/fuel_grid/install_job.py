@@ -6,7 +6,7 @@ import sys
 
 from osgeo import gdal
 
-from app.fuel_grid.install import FuelGridInstallResult, install_fuel_grid
+from fuel_grid.install import FuelGridInstallResult, install_fuel_grid
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.wps_logging import configure_logging
 

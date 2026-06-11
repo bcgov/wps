@@ -56,7 +56,7 @@ objects:
         spec:
           containers:
             - name: fuel-grid-install
-              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-api-${SUFFIX}:${SUFFIX}
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
               imagePullPolicy: "Always"
               command:
                 - uv
@@ -64,7 +64,7 @@ objects:
                 - --no-sync
                 - python
                 - -m
-                - app.jobs.install_fuel_grid
+                - fuel_grid.install_job
                 - --year
                 - ${FUEL_RASTER_YEAR}
                 - --key

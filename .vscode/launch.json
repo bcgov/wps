@@ -152,8 +152,8 @@
             "module": "wps_tools.tif_pusher",
             "console": "integratedTerminal",
             "args": [
-                "2025-07-02",
-                "2025-07-03"
+                "2026-06-09",
+                "2026-06-09"
             ]
         },
         {
@@ -231,7 +231,7 @@
             "name": "Fuel Grid Install Job",
             "type": "debugpy",
             "request": "launch",
-            "module": "app.jobs.install_fuel_grid",
+            "module": "fuel_grid.install_job",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python",

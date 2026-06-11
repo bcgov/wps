@@ -9,7 +9,7 @@ from shapely import wkb
 from shapely.geometry import Polygon
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.fuel_grid.install import (
+from fuel_grid.install import (
     FuelGridInstallCounts,
     ProcessedFuelRaster,
     create_fuel_type_raster_record,
@@ -61,19 +61,19 @@ async def fake_session_scope() -> AsyncIterator[AsyncSession]:
 
 def patch_no_matching_fuel_raster(monkeypatch):
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_staged_fuel_raster_hash",
+        "fuel_grid.install.get_staged_fuel_raster_hash",
         AsyncMock(return_value="hash-2026"),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_ready_fuel_type_raster_by_year_and_hash",
+        "fuel_grid.install.get_ready_fuel_type_raster_by_year_and_hash",
         AsyncMock(return_value=None),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.find_versioned_fuel_raster_by_hash",
+        "fuel_grid.install.find_versioned_fuel_raster_by_hash",
         AsyncMock(return_value=None),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.ensure_fuel_masked_tpi_raster",
+        "fuel_grid.install.ensure_fuel_masked_tpi_raster",
         AsyncMock(return_value=True),
     )
 
@@ -110,8 +110,8 @@ async def test_process_fuel_type_raster_for_install_creates_new_version(monkeypa
         )
     )
 
-    monkeypatch.setattr("app.fuel_grid.install.S3Client", lambda: MockS3Client())
-    monkeypatch.setattr("app.fuel_grid.install.process_fuel_type_raster", mock_process)
+    monkeypatch.setattr("fuel_grid.install.S3Client", lambda: MockS3Client())
+    monkeypatch.setattr("fuel_grid.install.process_fuel_type_raster", mock_process)
 
     result = await process_fuel_type_raster_for_install(2026, "fbp2026.tif", BaseRasterAddresser())
 
@@ -132,8 +132,8 @@ async def test_process_fuel_type_raster_for_install_fails_when_source_missing(mo
     missing_s3_client = MockS3Client()
     missing_s3_client.object_exists_result = False
     mock_process = AsyncMock()
-    monkeypatch.setattr("app.fuel_grid.install.S3Client", lambda: missing_s3_client)
-    monkeypatch.setattr("app.fuel_grid.install.process_fuel_type_raster", mock_process)
+    monkeypatch.setattr("fuel_grid.install.S3Client", lambda: missing_s3_client)
+    monkeypatch.setattr("fuel_grid.install.process_fuel_type_raster", mock_process)
 
     with pytest.raises(FileNotFoundError, match="sfms/static/fbp2026.tif"):
         await process_fuel_type_raster_for_install(2026, "fbp2026.tif", BaseRasterAddresser())
@@ -154,11 +154,11 @@ async def test_get_or_create_processed_fuel_raster_reuses_existing_version(monke
     )
     process_fuel_type_raster_for_install = AsyncMock()
     monkeypatch.setattr(
-        "app.fuel_grid.install.find_versioned_fuel_raster_by_hash",
+        "fuel_grid.install.find_versioned_fuel_raster_by_hash",
         AsyncMock(return_value=existing_raster),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        "fuel_grid.install.process_fuel_type_raster_for_install",
         process_fuel_type_raster_for_install,
     )
 
@@ -184,11 +184,11 @@ async def test_get_or_create_processed_fuel_raster_creates_new_version(monkeypat
     )
     process_fuel_type_raster_for_install = AsyncMock(return_value=processed_raster)
     monkeypatch.setattr(
-        "app.fuel_grid.install.find_versioned_fuel_raster_by_hash",
+        "fuel_grid.install.find_versioned_fuel_raster_by_hash",
         AsyncMock(return_value=None),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        "fuel_grid.install.process_fuel_type_raster_for_install",
         process_fuel_type_raster_for_install,
     )
 
@@ -225,9 +225,9 @@ async def test_ensure_fuel_masked_tpi_raster_reuses_existing_object(monkeypatch)
             assert key == "dem/tpi/masked.tif"
             return True
 
-    monkeypatch.setattr("app.fuel_grid.install.S3Client", lambda: ExistingMaskedTPIClient())
+    monkeypatch.setattr("fuel_grid.install.S3Client", lambda: ExistingMaskedTPIClient())
     monkeypatch.setattr(
-        "app.fuel_grid.install.generate_fuel_masked_tpi_raster",
+        "fuel_grid.install.generate_fuel_masked_tpi_raster",
         generate_fuel_masked_tpi_raster,
     )
 
@@ -261,9 +261,9 @@ async def test_ensure_fuel_masked_tpi_raster_generates_missing_object(monkeypatc
             assert key == "dem/tpi/masked.tif"
             return False
 
-    monkeypatch.setattr("app.fuel_grid.install.S3Client", lambda: MissingMaskedTPIClient())
+    monkeypatch.setattr("fuel_grid.install.S3Client", lambda: MissingMaskedTPIClient())
     monkeypatch.setattr(
-        "app.fuel_grid.install.generate_fuel_masked_tpi_raster",
+        "fuel_grid.install.generate_fuel_masked_tpi_raster",
         generate_fuel_masked_tpi_raster,
     )
 
@@ -327,27 +327,21 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
     populate_tpi_fuel_area = MagicMock()
     verify_static_fuel_grid_data = AsyncMock(return_value=expected_counts)
 
+    monkeypatch.setattr("fuel_grid.install.get_versioned_fuel_raster_key", lambda *_: "fuel-key")
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_versioned_fuel_raster_key", lambda *_: "fuel-key"
+        "fuel_grid.install.get_fire_zone_unit_shape_type_id", AsyncMock(return_value=1)
+    )
+    monkeypatch.setattr("fuel_grid.install.get_fire_zone_units", AsyncMock(return_value=["zone"]))
+    monkeypatch.setattr(
+        "fuel_grid.install.populate_advisory_fuel_types", populate_advisory_fuel_types
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_fire_zone_unit_shape_type_id", AsyncMock(return_value=1)
+        "fuel_grid.install.populate_advisory_shape_fuels", populate_advisory_shape_fuels
     )
+    monkeypatch.setattr("fuel_grid.install.populate_combustible_area", populate_combustible_area)
+    monkeypatch.setattr("fuel_grid.install.populate_tpi_fuel_area", populate_tpi_fuel_area)
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_fire_zone_units", AsyncMock(return_value=["zone"])
-    )
-    monkeypatch.setattr(
-        "app.fuel_grid.install.populate_advisory_fuel_types", populate_advisory_fuel_types
-    )
-    monkeypatch.setattr(
-        "app.fuel_grid.install.populate_advisory_shape_fuels", populate_advisory_shape_fuels
-    )
-    monkeypatch.setattr(
-        "app.fuel_grid.install.populate_combustible_area", populate_combustible_area
-    )
-    monkeypatch.setattr("app.fuel_grid.install.populate_tpi_fuel_area", populate_tpi_fuel_area)
-    monkeypatch.setattr(
-        "app.fuel_grid.install.verify_static_fuel_grid_data", verify_static_fuel_grid_data
+        "fuel_grid.install.verify_static_fuel_grid_data", verify_static_fuel_grid_data
     )
 
     counts = await populate_static_fuel_grid_data(
@@ -367,11 +361,11 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
 async def test_verify_static_fuel_grid_data_fails_when_required_counts_are_missing(monkeypatch):
     session, _ = make_mock_session()
     monkeypatch.setattr(
-        "app.fuel_grid.install.count_rows_by_fuel_type_raster_id",
+        "fuel_grid.install.count_rows_by_fuel_type_raster_id",
         AsyncMock(side_effect=[1, 0, 1, 1]),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.count_advisory_shape_fuel_duplicates",
+        "fuel_grid.install.count_advisory_shape_fuel_duplicates",
         AsyncMock(return_value=0),
     )
 
@@ -385,11 +379,11 @@ async def test_verify_static_fuel_grid_data_fails_when_shape_fuel_rows_are_dupli
 ):
     session, _ = make_mock_session()
     monkeypatch.setattr(
-        "app.fuel_grid.install.count_rows_by_fuel_type_raster_id",
+        "fuel_grid.install.count_rows_by_fuel_type_raster_id",
         AsyncMock(side_effect=[1, 1, 1, 1]),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.count_advisory_shape_fuel_duplicates",
+        "fuel_grid.install.count_advisory_shape_fuel_duplicates",
         AsyncMock(return_value=2),
     )
 
@@ -420,23 +414,21 @@ async def test_install_fuel_grid_cleans_up_object_store_artifacts_on_failure(mon
 
     patch_no_matching_fuel_raster(monkeypatch)
     monkeypatch.setattr(
-        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        "fuel_grid.install.process_fuel_type_raster_for_install",
         AsyncMock(return_value=processed_raster),
     )
-    monkeypatch.setattr("app.fuel_grid.install.generate_fuel_masked_tpi_raster", AsyncMock())
+    monkeypatch.setattr("fuel_grid.install.generate_fuel_masked_tpi_raster", AsyncMock())
+    monkeypatch.setattr("fuel_grid.install.get_fuel_masked_tpi_key", lambda _: "dem/tpi/masked.tif")
+    monkeypatch.setattr("fuel_grid.install.get_async_write_session_scope", fake_session_scope)
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_fuel_masked_tpi_key", lambda _: "dem/tpi/masked.tif"
-    )
-    monkeypatch.setattr("app.fuel_grid.install.get_async_write_session_scope", fake_session_scope)
-    monkeypatch.setattr(
-        "app.fuel_grid.install.create_fuel_type_raster_record",
+        "fuel_grid.install.create_fuel_type_raster_record",
         AsyncMock(return_value=installing_raster),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.populate_static_fuel_grid_data",
+        "fuel_grid.install.populate_static_fuel_grid_data",
         AsyncMock(side_effect=RuntimeError("verification failed")),
     )
-    monkeypatch.setattr("app.fuel_grid.install.cleanup_object_store_artifacts", cleanup)
+    monkeypatch.setattr("fuel_grid.install.cleanup_object_store_artifacts", cleanup)
 
     with pytest.raises(RuntimeError, match="verification failed"):
         await install_fuel_grid(2026, "fbp2026.tif")
@@ -473,20 +465,18 @@ async def test_install_fuel_grid_marks_raster_ready_after_verification(monkeypat
 
     patch_no_matching_fuel_raster(monkeypatch)
     monkeypatch.setattr(
-        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        "fuel_grid.install.process_fuel_type_raster_for_install",
         AsyncMock(return_value=processed_raster),
     )
-    monkeypatch.setattr("app.fuel_grid.install.generate_fuel_masked_tpi_raster", AsyncMock())
+    monkeypatch.setattr("fuel_grid.install.generate_fuel_masked_tpi_raster", AsyncMock())
+    monkeypatch.setattr("fuel_grid.install.get_fuel_masked_tpi_key", lambda _: "dem/tpi/masked.tif")
+    monkeypatch.setattr("fuel_grid.install.get_async_write_session_scope", fake_session_scope)
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_fuel_masked_tpi_key", lambda _: "dem/tpi/masked.tif"
-    )
-    monkeypatch.setattr("app.fuel_grid.install.get_async_write_session_scope", fake_session_scope)
-    monkeypatch.setattr(
-        "app.fuel_grid.install.create_fuel_type_raster_record",
+        "fuel_grid.install.create_fuel_type_raster_record",
         AsyncMock(return_value=installing_raster),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.populate_static_fuel_grid_data",
+        "fuel_grid.install.populate_static_fuel_grid_data",
         AsyncMock(return_value=expected_counts),
     )
 
@@ -532,34 +522,32 @@ async def test_install_fuel_grid_reuses_existing_versioned_s3_raster(monkeypatch
     populate_static_fuel_grid_data = AsyncMock(return_value=expected_counts)
 
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_staged_fuel_raster_hash",
+        "fuel_grid.install.get_staged_fuel_raster_hash",
         AsyncMock(return_value="hash-2026"),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_ready_fuel_type_raster_by_year_and_hash",
+        "fuel_grid.install.get_ready_fuel_type_raster_by_year_and_hash",
         AsyncMock(return_value=None),
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.find_versioned_fuel_raster_by_hash",
+        "fuel_grid.install.find_versioned_fuel_raster_by_hash",
         find_versioned_fuel_raster,
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        "fuel_grid.install.process_fuel_type_raster_for_install",
         process_fuel_type_raster_for_install,
     )
+    monkeypatch.setattr("fuel_grid.install.get_fuel_masked_tpi_key", lambda _: "dem/tpi/masked.tif")
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_fuel_masked_tpi_key", lambda _: "dem/tpi/masked.tif"
+        "fuel_grid.install.ensure_fuel_masked_tpi_raster", ensure_fuel_masked_tpi_raster
     )
+    monkeypatch.setattr("fuel_grid.install.get_async_write_session_scope", fake_session_scope)
     monkeypatch.setattr(
-        "app.fuel_grid.install.ensure_fuel_masked_tpi_raster", ensure_fuel_masked_tpi_raster
-    )
-    monkeypatch.setattr("app.fuel_grid.install.get_async_write_session_scope", fake_session_scope)
-    monkeypatch.setattr(
-        "app.fuel_grid.install.create_fuel_type_raster_record",
+        "fuel_grid.install.create_fuel_type_raster_record",
         create_fuel_type_raster_record,
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.populate_static_fuel_grid_data",
+        "fuel_grid.install.populate_static_fuel_grid_data",
         populate_static_fuel_grid_data,
     )
 
@@ -598,29 +586,29 @@ async def test_install_fuel_grid_skips_ready_raster_with_matching_year_and_hash(
     logger_mock = MagicMock()
 
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_staged_fuel_raster_hash", get_staged_fuel_raster_hash
+        "fuel_grid.install.get_staged_fuel_raster_hash", get_staged_fuel_raster_hash
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_ready_fuel_type_raster_by_year_and_hash",
+        "fuel_grid.install.get_ready_fuel_type_raster_by_year_and_hash",
         find_ready_fuel_raster,
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.get_fuel_masked_tpi_key_for_version",
+        "fuel_grid.install.get_fuel_masked_tpi_key_for_version",
         lambda year, version: f"dem/tpi/masked_{year}_v{version}.tif",
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.process_fuel_type_raster_for_install",
+        "fuel_grid.install.process_fuel_type_raster_for_install",
         process_fuel_type_raster_for_install,
     )
     monkeypatch.setattr(
-        "app.fuel_grid.install.generate_fuel_masked_tpi_raster",
+        "fuel_grid.install.generate_fuel_masked_tpi_raster",
         generate_fuel_masked_tpi_raster,
     )
-    monkeypatch.setattr("app.fuel_grid.install.get_async_write_session_scope", fake_session_scope)
+    monkeypatch.setattr("fuel_grid.install.get_async_write_session_scope", fake_session_scope)
     monkeypatch.setattr(
-        "app.fuel_grid.install.cleanup_object_store_artifacts", cleanup_object_store_artifacts
+        "fuel_grid.install.cleanup_object_store_artifacts", cleanup_object_store_artifacts
     )
-    monkeypatch.setattr("app.fuel_grid.install.logger", logger_mock)
+    monkeypatch.setattr("fuel_grid.install.logger", logger_mock)
 
     result = await install_fuel_grid(2026, "fbp2026.tif")
 
