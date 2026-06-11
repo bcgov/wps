@@ -10,7 +10,7 @@ vi.mock('@sentry/capacitor', () => ({}))
 
 import { getFeedback } from '@sentry/react'
 
-const mockGetFeedback = getFeedback as ReturnType<typeof vi.fn>
+const mockGetFeedback = vi.mocked(getFeedback)
 
 describe('HamburgerMenu', () => {
   const defaultProps = { drawerTop: 60, drawerHeight: 740 }
@@ -28,7 +28,7 @@ describe('HamburgerMenu', () => {
   it('opens the Sentry feedback dialog when Submit Feedback is clicked', async () => {
     const mockForm = { appendToDom: vi.fn(), open: vi.fn() }
     const mockCreateForm = vi.fn().mockResolvedValue(mockForm)
-    mockGetFeedback.mockReturnValue({ createForm: mockCreateForm })
+    mockGetFeedback.mockReturnValue({ createForm: mockCreateForm } as unknown as ReturnType<typeof getFeedback>)
 
     render(<HamburgerMenu {...defaultProps} />)
     fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
@@ -47,7 +47,7 @@ describe('HamburgerMenu', () => {
   })
 
   it('opens external links in a new tab', async () => {
-    const mockOpen = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const mockOpen = vi.spyOn(globalThis, 'open').mockImplementation(() => null)
     mockGetFeedback.mockReturnValue(undefined)
 
     render(<HamburgerMenu {...defaultProps} />)
@@ -63,7 +63,7 @@ describe('HamburgerMenu', () => {
   it('does not open the feedback form when the drawer closes without Submit Feedback being clicked', async () => {
     const mockForm = { appendToDom: vi.fn(), open: vi.fn() }
     const mockCreateForm = vi.fn().mockResolvedValue(mockForm)
-    mockGetFeedback.mockReturnValue({ createForm: mockCreateForm })
+    mockGetFeedback.mockReturnValue({ createForm: mockCreateForm } as unknown as ReturnType<typeof getFeedback>)
 
     render(<HamburgerMenu {...defaultProps} />)
     fireEvent.click(screen.getByRole('button', { name: /open menu/i }))

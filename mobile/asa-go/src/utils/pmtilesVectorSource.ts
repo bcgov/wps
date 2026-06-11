@@ -3,7 +3,7 @@ import type { DateTime } from 'luxon'
 import type { Tile } from 'ol'
 import { MVT } from 'ol/format'
 import type RenderFeature from 'ol/render/Feature'
-import VectorTile, { default as VectorTileSource, type Options as VectorTileSourceOptions } from 'ol/source/VectorTile'
+import VectorTileSource, { type Options as VectorTileSourceOptions } from 'ol/source/VectorTile'
 import TileState from 'ol/TileState'
 import { createXYZ } from 'ol/tilegrid'
 import type { PMTiles } from 'pmtiles'
@@ -26,7 +26,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   private pmtiles_: PMTiles
 
   tileLoadFunction = (tile: Tile, url: string) => {
-    const vtile = tile as unknown as VectorTile
+    const vtile = tile as unknown as VectorTileSource
     const re = new RegExp(/pmtiles:\/\/(\d+)\/(\d+)\/(\d+)/)
     const result = url.match(re)
 
@@ -107,7 +107,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     if (!isUndefined(pmtiles)) {
       this.pmtiles_ = pmtiles
     } else {
-      throw Error('Unable to initialize pmtiles')
+      throw new Error('Unable to initialize pmtiles')
     }
     const header = await this.pmtiles_.getHeader()
 

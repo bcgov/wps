@@ -2,7 +2,7 @@ import type { FireZoneFuelStats, FireZoneHFIStatsDictionary } from '@/api/fbaAPI
 
 // Based on 100 pixels at a 2000m resolution fuel raster measured in square meters.
 export const FUEL_AREA_THRESHOLD = 100 * 2000 * 2000
-const FUEL_TYPES_ALWAYS_INCLUDED = ['C-5', 'S-1', 'S-2', 'S-3']
+const FUEL_TYPES_ALWAYS_INCLUDED = new Set(['C-5', 'S-1', 'S-2', 'S-3'])
 
 /**
  * Filters out fuel types which cover less than 100 pixels at a 2km resolution but always includes
@@ -28,6 +28,6 @@ export const filterHFIFuelStatsByArea = (fireCentreHFIFuelStats: FireZoneHFIStat
  */
 const filterHFIStatsByArea = (stats: FireZoneFuelStats[]) => {
   return stats.filter(
-    stat => stat.fuel_area > FUEL_AREA_THRESHOLD || FUEL_TYPES_ALWAYS_INCLUDED.includes(stat.fuel_type.fuel_type_code)
+    stat => stat.fuel_area > FUEL_AREA_THRESHOLD || FUEL_TYPES_ALWAYS_INCLUDED.has(stat.fuel_type.fuel_type_code)
   )
 }

@@ -25,12 +25,12 @@ export const getWindSpeedMinimum = (zoneMinWindStats: AdvisoryMinWindStats[]): n
 
   const minWindSpeed = Math.min(...validSpeeds)
 
-  return minWindSpeed !== Infinity ? minWindSpeed : undefined
+  return minWindSpeed === Infinity ? undefined : minWindSpeed
 }
 
 export const calculateWindSpeedText = (zoneMinWindStats: AdvisoryMinWindStats[]): string | undefined => {
   const minWindSpeed = getWindSpeedMinimum(zoneMinWindStats)
 
   // 0 is falsy, so we need to perform a null/undefined check for this to consider 0 valid
-  return !isNil(minWindSpeed) ? `if winds exceed ${minWindSpeed.toFixed(0)} km/h` : undefined
+  return isNil(minWindSpeed) ? undefined : `if winds exceed ${minWindSpeed.toFixed(0)} km/h`
 }

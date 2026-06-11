@@ -50,7 +50,7 @@ const FireWatchPage = () => {
     >
       <MenuHeader open={drawerOpen} setOpen={setDrawerOpen} />
       <Box sx={{ display: 'flex', flexGrow: 1, overflowY: 'auto' }}>
-        <NavigationDrawer setFireWatchView={setFireWatchView} open={drawerOpen} selectedView={fireWatchView} />
+        <NavigationDrawer setFireWatchView={setFireWatchView} open={drawerOpen} />
         {fireWatchView === FireWatchViewEnum.DASHBOARD && <FireWatchDashboard />}
         {fireWatchView === FireWatchViewEnum.CREATE && <CreateFireWatch />}
       </Box>

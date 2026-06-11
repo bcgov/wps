@@ -32,15 +32,15 @@ describe('ElevationFlag', () => {
     const { container: container2 } = render(<ElevationFlag percent={25} />)
 
     // Both should have mock flags with different maskIds since they're random
-    const mockFlag1 = container1.querySelector('[data-testid^="mock-flag-elevation-flag-"]')
-    const mockFlag2 = container2.querySelector('[data-testid^="mock-flag-elevation-flag-"]')
+    const mockFlag1 = container1.querySelector<HTMLElement>('[data-testid^="mock-flag-elevation-flag-"]')
+    const mockFlag2 = container2.querySelector<HTMLElement>('[data-testid^="mock-flag-elevation-flag-"]')
 
     expect(mockFlag1).toBeInTheDocument()
     expect(mockFlag2).toBeInTheDocument()
 
     // The maskIds should be different (random)
-    const maskId1 = mockFlag1?.getAttribute('data-testid')
-    const maskId2 = mockFlag2?.getAttribute('data-testid')
+    const maskId1 = mockFlag1?.dataset.testid
+    const maskId2 = mockFlag2?.dataset.testid
     expect(maskId1).not.toBe(maskId2)
   })
 
