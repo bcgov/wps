@@ -1,8 +1,5 @@
 import numpy as np
-from app.auto_spatial_advisory.process_fuel_type_area import (
-    classify_by_threshold,
-    get_fuel_type_s3_key,
-)
+from app.auto_spatial_advisory.process_fuel_type_area import classify_by_threshold
 
 HFI_RASTER = np.array(
     [
@@ -12,13 +9,6 @@ HFI_RASTER = np.array(
         [400, 0, 1, 300],
     ]
 )
-
-
-def test_get_warped_fuel_type_s3_key():
-    bucket = "abcde"
-    object_store_path = "sfms/static/fuel/2026/fbp2026_v1.tif"
-    key = get_fuel_type_s3_key(bucket, object_store_path)
-    assert key == f"/vsis3/{bucket}/{object_store_path}"
 
 
 def test_classify_by_threshold_1():

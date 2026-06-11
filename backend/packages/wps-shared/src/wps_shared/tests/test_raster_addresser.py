@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from wps_shared.sfms.raster_addresser import BaseRasterAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 
 TEST_DATETIME = datetime(2024, 10, 10, 6, tzinfo=timezone.utc)
 
@@ -30,6 +30,12 @@ def test_get_dem_key(addresser: BaseRasterAddresser):
 def test_get_mask_key(addresser: BaseRasterAddresser):
     result = addresser.get_mask_key()
     assert result == f"{addresser.s3_prefix}/sfms/static/bc_mask.tif"
+
+
+def test_gdal_path(addresser: BaseRasterAddresser):
+    key = S3Key("sfms/static/fuel/2026/fbp2026_v1.tif")
+    result = addresser.gdal_path(key)
+    assert result == f"{addresser.s3_prefix}/{key}"
 
 
 def test_get_fuel_raster_key(addresser: BaseRasterAddresser):
