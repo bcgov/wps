@@ -31,7 +31,7 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
     The result is used to populate tpi_fuel_area, which gives the total fuel covered area in each
     TPI class.
     """
-    # open the rasters with gdal so /vsis3 paths work without downloading full objects first.
+    # Open the rasters with gdal
     set_s3_gdal_config()
     bucket = config.get("OBJECT_STORE_BUCKET")
     tpi_raster_name = config.get("CLASSIFIED_TPI_DEM_NAME")
@@ -40,13 +40,13 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
     fuel_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)  # LCC projection
     tpi_ds: gdal.Dataset = gdal.Open(tpi_raster_key, gdal.GA_ReadOnly)  # BC Albers 3005 projection
 
-    # warp the fuel raster to match extent, spatial reference and cell size of the TPI raster.
+    # Warp the fuel raster to match extent, spatial reference and cell size of the TPI raster
     warped_fuel_path = "/vsimem/warped_fuel.tif"
     warped_fuel_ds: gdal.Dataset = warp_to_match_raster(
         fuel_ds, tpi_ds, warped_fuel_path, GDALResamplingMethod.NEAREST_NEIGHBOUR
     )
 
-    # classify fuel cells as 1 and non-fuel cells as 0 before masking the TPI classes.
+    # Classify fuel cells as 1 and non-fuel cells as 0 before masking the TPI classes.
     warped_fuel_band: gdal.Band = warped_fuel_ds.GetRasterBand(1)
     warped_fuel_data: np.ndarray = warped_fuel_band.ReadAsArray()
     mask = np.where((warped_fuel_data > 0) & (warped_fuel_data < 99), 1, 0)
