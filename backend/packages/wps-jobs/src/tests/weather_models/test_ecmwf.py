@@ -212,7 +212,6 @@ def test_ecmwf_process(mock_herbie_instance, mocker: MockerFixture):
 
 
 def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerFixture):
-    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", return_value=[0])
     mocker.patch(
         "weather_model_jobs.ecmwf.get_ecmwf_transformer",
         side_effect=Exception("test exception"),
@@ -220,14 +219,14 @@ def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerF
 
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
     mock_repo = MockModelRunRepository()
+    mark_complete_spy = mocker.spy(mock_repo, "mark_model_run_interpolated")
 
     ecmwf = ECMWF("/tmp", stations, mock_repo)
 
-    ecmwf.process_model_run(0)
+    ecmwf.process()
 
-    mock_repo.mark_prediction_model_run_processed.assert_not_called()
-    mock_repo.session.rollback.assert_called_once()
-    assert ecmwf.exception_count == 1
+    assert mark_complete_spy.call_count == 0
+    assert ecmwf.exception_count == (num_forecast_hours * 2)
 
 
 @pytest.mark.parametrize(
