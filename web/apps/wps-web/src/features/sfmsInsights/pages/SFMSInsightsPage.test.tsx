@@ -3,7 +3,6 @@ import { SFMSInsightsPage } from './SFMSInsightsPage'
 import { Provider } from 'react-redux'
 import { createTestStore } from '@/test/testUtils'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
-import { getSFMSInsightsBounds } from '@wps/api/sfmsAPI'
 import { getDateTimeNowPST } from '@wps/utils/date'
 import { DateTime } from 'luxon'
 import { Mock } from 'vitest'
@@ -14,10 +13,6 @@ vi.mock('@wps/api/snow', () => ({
 
 vi.mock('@wps/utils/date', () => ({
   getDateTimeNowPST: vi.fn()
-}))
-
-vi.mock('@wps/api/sfmsAPI', () => ({
-  getSFMSInsightsBounds: vi.fn()
 }))
 
 vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
@@ -127,11 +122,7 @@ describe('SFMSInsightsPage', () => {
     roles: []
   }
 
-  const defaultRunDates = {
-    loading: false,
-    error: null,
-    runDates: [],
-    mostRecentRunDate: null,
+  const defaultSFMSInsights = {
     sfmsBoundsError: null,
     sfmsBoundsLoading: false,
     sfmsBounds: {
@@ -150,14 +141,13 @@ describe('SFMSInsightsPage', () => {
     }
   }
 
-  const renderWithStore = (sfmsBounds: any = defaultRunDates.sfmsBounds) => {
-    ;(getSFMSInsightsBounds as Mock).mockResolvedValue({
-      sfms_bounds: sfmsBounds
-    })
-
+  const renderWithStore = (sfmsBounds: any = defaultSFMSInsights.sfmsBounds) => {
     const store = createTestStore({
       authentication: defaultAuthentication,
-      runDates: defaultRunDates
+      sfmsInsights: {
+        ...defaultSFMSInsights,
+        sfmsBounds
+      }
     })
     return render(<Provider store={store}>{<SFMSInsightsPage />}</Provider>)
   }
@@ -184,23 +174,6 @@ describe('SFMSInsightsPage', () => {
     })
     // Mock getDateTimeNowPST to return a date in 2025
     ;(getDateTimeNowPST as Mock).mockReturnValue(dateTimeNow)
-    // Mock SFMS Insights bounds API call
-    ;(getSFMSInsightsBounds as Mock).mockResolvedValue({
-      sfms_bounds: {
-        '2024': {
-          actual: {
-            minimum: '2024-01-01',
-            maximum: '2024-12-31'
-          }
-        },
-        '2025': {
-          actual: {
-            minimum: '2025-01-01',
-            maximum: '2025-11-02'
-          }
-        }
-      }
-    })
   })
 
   it('should load rasterDate from SFMS bounds in store', async () => {

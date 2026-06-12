@@ -1,49 +1,33 @@
+import { AppDispatch } from '@/app/store'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
 import Footer from '@/features/landingPage/components/Footer'
 import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
+import {
+  fetchSFMSInsightsBounds,
+  selectEarliestSFMSInsightsBounds,
+  selectLatestSFMSInsightsBounds,
+  selectSFMSInsightsBounds,
+  selectSFMSInsightsBoundsLoading
+} from '@/features/sfmsInsights/slices/sfmsInsightsSlice'
 import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
-import { getSFMSInsightsBounds, type SFMSBounds } from '@wps/api/sfmsAPI'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { StyledFormControl } from '@wps/ui/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@wps/utils/constants'
 import { getDateTimeNowPST } from '@wps/utils/date'
-import { logError } from '@wps/utils/error'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
-
-const findActualBoundsInOrder = (
-  sfmsBounds: SFMSBounds | null | undefined,
-  sortFn: (a: string, b: string) => number,
-  hasValue: (bounds: { minimum: string; maximum: string }) => boolean
-) => {
-  if (!sfmsBounds) return null
-
-  for (const year of Object.keys(sfmsBounds).sort(sortFn)) {
-    const bounds = sfmsBounds[year]?.actual
-    if (bounds && hasValue(bounds)) {
-      return bounds
-    }
-  }
-  return null
-}
+import { useDispatch, useSelector } from 'react-redux'
 
 export const SFMSInsightsPage = () => {
-  const [sfmsBounds, setSfmsBounds] = useState<SFMSBounds | null | undefined>(undefined)
-  const [sfmsBoundsLoading, setSfmsBoundsLoading] = useState<boolean>(false)
-  const latestBounds = findActualBoundsInOrder(
-    sfmsBounds,
-    (a, b) => b.localeCompare(a),
-    bounds => !!bounds.maximum
-  )
-  const earliestBounds = findActualBoundsInOrder(
-    sfmsBounds,
-    (a, b) => a.localeCompare(b),
-    bounds => !!bounds.minimum
-  )
+  const dispatch = useDispatch<AppDispatch>()
+  const sfmsBounds = useSelector(selectSFMSInsightsBounds)
+  const sfmsBoundsLoading = useSelector(selectSFMSInsightsBoundsLoading)
+  const latestBounds = useSelector(selectLatestSFMSInsightsBounds)
+  const earliestBounds = useSelector(selectEarliestSFMSInsightsBounds)
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const [rasterDate, setRasterDate] = useState<DateTime | null>(getDateTimeNowPST())
   const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
@@ -59,21 +43,8 @@ export const SFMSInsightsPage = () => {
       return
     }
 
-    const fetchBounds = async () => {
-      try {
-        setSfmsBoundsLoading(true)
-        const bounds = await getSFMSInsightsBounds()
-        setSfmsBounds(bounds.sfms_bounds)
-      } catch (err) {
-        setSfmsBounds(null)
-        logError(err)
-      } finally {
-        setSfmsBoundsLoading(false)
-      }
-    }
-
-    fetchBounds()
-  }, [sfmsBounds, sfmsBoundsLoading])
+    dispatch(fetchSFMSInsightsBounds())
+  }, [dispatch, sfmsBounds, sfmsBoundsLoading])
 
   useEffect(() => {
     if (earliestBounds?.minimum) {
