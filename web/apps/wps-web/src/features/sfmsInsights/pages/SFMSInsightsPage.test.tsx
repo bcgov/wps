@@ -102,7 +102,6 @@ vi.mock('@/features/sfmsInsights/components/RasterTypeDropdown', () => ({
 
 describe('SFMSInsightsPage', () => {
   const dateTimeNow = DateTime.fromISO('2025-11-02')
-  const dateTimeNowPlusTen = dateTimeNow.plus({ days: 10 })
   class ResizeObserver {
     observe() {
       // mock no-op
