@@ -135,14 +135,14 @@ export const WIND_DIRECTION_COLOR_BREAKS: ColorBreak[] = [
 ]
 
 export const PRECIPITATION_COLOR_BREAKS: ColorBreak[] = [
-  { min: 0.0, max: 0.1, color: 'rgb(255, 0, 0)', label: '0.0 - 0.1 mm' },
+  { min: 0, max: 0.1, color: 'rgb(255, 0, 0)', label: '0.0 - 0.1 mm' },
   { min: 0.1, max: 0.6, color: 'rgb(255, 170, 0)', label: '0.1 - 0.6 mm' },
   { min: 0.6, max: 1.5, color: 'rgb(255, 255, 0)', label: '0.6 - 1.5 mm' },
   { min: 1.5, max: 2.5, color: 'rgb(128, 255, 0)', label: '1.5 - 2.5 mm' },
-  { min: 2.5, max: 5.0, color: 'rgb(0, 170, 0)', label: '2.5 - 5.0 mm' },
-  { min: 5.0, max: 10.0, color: 'rgb(102, 153, 204)', label: '5 - 10 mm' },
-  { min: 10.0, max: 25.0, color: 'rgb(0, 0, 255)', label: '10 - 25 mm' },
-  { min: 25.0, max: null, color: 'rgb(0, 0, 128)', label: '25+ mm' }
+  { min: 2.5, max: 5, color: 'rgb(0, 170, 0)', label: '2.5 - 5.0 mm' },
+  { min: 5, max: 10, color: 'rgb(102, 153, 204)', label: '5 - 10 mm' },
+  { min: 10, max: 25, color: 'rgb(0, 0, 255)', label: '10 - 25 mm' },
+  { min: 25, max: null, color: 'rgb(0, 0, 128)', label: '25+ mm' }
 ]
 
 // Fuel type color mappings based on BCWS standard colors
