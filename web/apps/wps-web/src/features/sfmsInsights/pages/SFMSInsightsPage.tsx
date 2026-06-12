@@ -1,50 +1,93 @@
-import { AppDispatch } from '@/app/store'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
-import { fetchSFMSBounds, selectEarliestSFMSBounds, selectLatestSFMSBounds } from '@/features/fba/slices/runDatesSlice'
 import Footer from '@/features/landingPage/components/Footer'
 import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
 import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
+import { getSFMSInsightsBounds, type SFMSBounds } from '@wps/api/sfmsAPI'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { StyledFormControl } from '@wps/ui/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@wps/utils/constants'
 import { getDateTimeNowPST } from '@wps/utils/date'
+import { logError } from '@wps/utils/error'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+
+const findActualBoundsInOrder = (
+  sfmsBounds: SFMSBounds | null | undefined,
+  sortFn: (a: string, b: string) => number,
+  hasValue: (bounds: { minimum: string; maximum: string }) => boolean
+) => {
+  if (!sfmsBounds) return null
+
+  for (const year of Object.keys(sfmsBounds).sort(sortFn)) {
+    const bounds = sfmsBounds[year]?.actual
+    if (bounds && hasValue(bounds)) {
+      return bounds
+    }
+  }
+  return null
+}
 
 export const SFMSInsightsPage = () => {
-  const dispatch = useDispatch<AppDispatch>()
-  const latestBounds = useSelector(selectLatestSFMSBounds)
-  const earliestBounds = useSelector(selectEarliestSFMSBounds)
-  const sfmsBounds = useSelector((state: any) => state.runDates.sfmsBounds)
-  const sfmsBoundsLoading = useSelector((state: any) => state.runDates.sfmsBoundsLoading)
+  const [sfmsBounds, setSfmsBounds] = useState<SFMSBounds | null | undefined>(undefined)
+  const [sfmsBoundsLoading, setSfmsBoundsLoading] = useState<boolean>(false)
+  const latestBounds = findActualBoundsInOrder(
+    sfmsBounds,
+    (a, b) => b.localeCompare(a),
+    bounds => !!bounds.maximum
+  )
+  const earliestBounds = findActualBoundsInOrder(
+    sfmsBounds,
+    (a, b) => a.localeCompare(b),
+    bounds => !!bounds.minimum
+  )
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const [rasterDate, setRasterDate] = useState<DateTime | null>(getDateTimeNowPST())
-  const [maxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
+  const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
   const [minDate, setMinDate] = useState<DateTime>(
     DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPST().year })
   )
 
-  const [rasterType, setRasterType] = useState<RasterType>('fuel')
+  const [rasterType, setRasterType] = useState<RasterType>('fwi')
   const [showSnow, setShowSnow] = useState<boolean>(true)
 
   useEffect(() => {
-    // Only fetch SFMS bounds if we haven't fetched yet (undefined) and aren't already loading
-    if (sfmsBounds === undefined && !sfmsBoundsLoading) {
-      dispatch(fetchSFMSBounds())
+    if (sfmsBounds !== undefined || sfmsBoundsLoading) {
+      return
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+
+    const fetchBounds = async () => {
+      try {
+        setSfmsBoundsLoading(true)
+        const bounds = await getSFMSInsightsBounds()
+        setSfmsBounds(bounds.sfms_bounds)
+      } catch (err) {
+        setSfmsBounds(null)
+        logError(err)
+      } finally {
+        setSfmsBoundsLoading(false)
+      }
+    }
+
+    fetchBounds()
+  }, [sfmsBounds, sfmsBoundsLoading])
 
   useEffect(() => {
     if (earliestBounds?.minimum) {
       setMinDate(DateTime.fromISO(earliestBounds.minimum))
     }
   }, [earliestBounds])
+
+  useEffect(() => {
+    if (latestBounds?.maximum) {
+      const latestDate = DateTime.fromISO(latestBounds.maximum)
+      setMaxDate(latestDate)
+      setRasterDate(currentDate => (currentDate?.toISODate() === latestDate.toISODate() ? currentDate : latestDate))
+    }
+  }, [latestBounds])
 
   useEffect(() => {
     // Only fetch snow data once rasterDate is set
@@ -77,9 +120,13 @@ export const SFMSInsightsPage = () => {
           borderBottomColor: 'secondary.main'
         }}
       >
-        <Grid container spacing={1} sx={{
-          alignItems: 'center'
-        }}>
+        <Grid
+          container
+          spacing={1}
+          sx={{
+            alignItems: 'center'
+          }}
+        >
           {sfmsBoundsLoading ? (
             <Grid>
               <StyledFormControl>
@@ -124,5 +171,5 @@ export const SFMSInsightsPage = () => {
       </Box>
       <Footer />
     </Box>
-  );
+  )
 }

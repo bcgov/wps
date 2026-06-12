@@ -1,4 +1,19 @@
-export type RasterType = 'fwi' | 'dmc' | 'dc' | 'ffmc' | 'bui' | 'isi' | 'fuel'
+export const SFMSNG_RASTER_TYPES = [
+  'fwi',
+  'dmc',
+  'dc',
+  'ffmc',
+  'bui',
+  'isi',
+  'temperature',
+  'relative_humidity',
+  'wind_speed',
+  'wind_direction',
+  'precipitation'
+]
+
+export type SFMSNGRasterType = (typeof SFMSNG_RASTER_TYPES)[number]
+export type RasterType = SFMSNGRasterType | 'fuel'
 
 export interface ColorBreak {
   min: number
@@ -77,6 +92,50 @@ export const ISI_COLOR_BREAKS: ColorBreak[] = [
   { min: 26, max: null, color: 'rgb(255, 0, 0)', label: '26+' }
 ]
 
+export const TEMPERATURE_COLOR_BREAKS: ColorBreak[] = [
+  { min: -50, max: 0, color: 'rgb(0, 64, 255)', label: '<0 C' },
+  { min: 0, max: 10, color: 'rgb(0, 191, 255)', label: '0-10 C' },
+  { min: 10, max: 20, color: 'rgb(0, 180, 0)', label: '10-20 C' },
+  { min: 20, max: 30, color: 'rgb(255, 214, 0)', label: '20-30 C' },
+  { min: 30, max: null, color: 'rgb(220, 0, 0)', label: '30+ C' }
+]
+
+export const RH_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 20, color: 'rgb(220, 0, 0)', label: '0-20%' },
+  { min: 20, max: 40, color: 'rgb(255, 170, 0)', label: '20-40%' },
+  { min: 40, max: 60, color: 'rgb(255, 255, 0)', label: '40-60%' },
+  { min: 60, max: 80, color: 'rgb(0, 191, 255)', label: '60-80%' },
+  { min: 80, max: null, color: 'rgb(0, 0, 255)', label: '80%+' }
+]
+
+export const WIND_SPEED_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 10, color: 'rgb(210, 255, 255)', label: '0-10 km/h' },
+  { min: 10, max: 20, color: 'rgb(0, 255, 0)', label: '10-20 km/h' },
+  { min: 20, max: 40, color: 'rgb(255, 255, 0)', label: '20-40 km/h' },
+  { min: 40, max: 60, color: 'rgb(255, 170, 0)', label: '40-60 km/h' },
+  { min: 60, max: null, color: 'rgb(255, 0, 0)', label: '60+ km/h' }
+]
+
+export const WIND_DIRECTION_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 45, color: 'rgb(230, 25, 75)', label: 'N-NE' },
+  { min: 45, max: 90, color: 'rgb(245, 130, 48)', label: 'NE-E' },
+  { min: 90, max: 135, color: 'rgb(255, 225, 25)', label: 'E-SE' },
+  { min: 135, max: 180, color: 'rgb(60, 180, 75)', label: 'SE-S' },
+  { min: 180, max: 225, color: 'rgb(70, 240, 240)', label: 'S-SW' },
+  { min: 225, max: 270, color: 'rgb(0, 130, 200)', label: 'SW-W' },
+  { min: 270, max: 315, color: 'rgb(145, 30, 180)', label: 'W-NW' },
+  { min: 315, max: null, color: 'rgb(240, 50, 230)', label: 'NW-N' }
+]
+
+export const PRECIPITATION_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 0.1, color: 'rgb(245, 245, 245)', label: '<0.1 mm' },
+  { min: 0.1, max: 2, color: 'rgb(180, 220, 255)', label: '0.1-2 mm' },
+  { min: 2, max: 5, color: 'rgb(80, 170, 255)', label: '2-5 mm' },
+  { min: 5, max: 10, color: 'rgb(0, 90, 220)', label: '5-10 mm' },
+  { min: 10, max: 20, color: 'rgb(80, 30, 180)', label: '10-20 mm' },
+  { min: 20, max: null, color: 'rgb(120, 0, 120)', label: '20+ mm' }
+]
+
 // Fuel type color mappings based on BCWS standard colors
 export const FUEL_TYPE_COLORS: FuelTypeColorMapping[] = [
   { value: 1, fuelCode: 'C-1', color: 'rgb(209, 255, 115)', rgb: [209, 255, 115] },
@@ -110,6 +169,11 @@ export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   ffmc: { label: 'FFMC', colorBreaks: FFMC_COLOR_BREAKS },
   bui: { label: 'BUI', colorBreaks: BUI_COLOR_BREAKS },
   isi: { label: 'ISI', colorBreaks: ISI_COLOR_BREAKS },
+  temperature: { label: 'Temperature', colorBreaks: TEMPERATURE_COLOR_BREAKS },
+  relative_humidity: { label: 'Relative Humidity', colorBreaks: RH_COLOR_BREAKS },
+  wind_speed: { label: 'Wind Speed', colorBreaks: WIND_SPEED_COLOR_BREAKS },
+  wind_direction: { label: 'Wind Direction', colorBreaks: WIND_DIRECTION_COLOR_BREAKS },
+  precipitation: { label: 'Precipitation', colorBreaks: PRECIPITATION_COLOR_BREAKS },
   fuel: { label: 'Fuel', colorBreaks: FUEL_COLOR_BREAKS }
 }
 
@@ -121,5 +185,10 @@ export const RASTER_COLOR_BREAKS: Record<RasterType, ColorBreak[]> = {
   ffmc: FFMC_COLOR_BREAKS,
   bui: BUI_COLOR_BREAKS,
   isi: ISI_COLOR_BREAKS,
+  temperature: TEMPERATURE_COLOR_BREAKS,
+  relative_humidity: RH_COLOR_BREAKS,
+  wind_speed: WIND_SPEED_COLOR_BREAKS,
+  wind_direction: WIND_DIRECTION_COLOR_BREAKS,
+  precipitation: PRECIPITATION_COLOR_BREAKS,
   fuel: FUEL_COLOR_BREAKS
 }

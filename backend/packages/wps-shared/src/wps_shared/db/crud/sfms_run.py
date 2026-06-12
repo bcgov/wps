@@ -5,7 +5,7 @@ import logging
 from datetime import date, datetime
 from typing import List
 
-from sqlalchemy import insert
+from sqlalchemy import extract, func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
@@ -106,7 +106,11 @@ def track_sfms_run(
                         session, log_id, status=SFMSRunLogStatus.FAILED, completed_at=get_utc_now()
                     )
                 except Exception:
-                    logger.error("Failed to update run log for %s after job failure", job_name.value, exc_info=True)
+                    logger.error(
+                        "Failed to update run log for %s after job failure",
+                        job_name.value,
+                        exc_info=True,
+                    )
                 raise
 
         return wrapper
@@ -142,3 +146,24 @@ async def save_sfms_run(
     )
     result = await session.execute(stmt)
     return result.scalar()
+
+
+async def get_sfms_insights_bounds(session: AsyncSession):
+    """Return target-date bounds for completed SFMS runs used by SFMS Insights."""
+    stmt = (
+        select(
+            extract("YEAR", SFMSRun.target_date).label("year"),
+            SFMSRun.run_type,
+            func.min(SFMSRun.target_date).label("minDate"),
+            func.max(SFMSRun.target_date).label("maxDate"),
+        )
+        .join(SFMSRunLog, SFMSRunLog.sfms_run_id == SFMSRun.id)
+        .where(
+            SFMSRunLog.job_name == SFMSRunLogJobName.FWI_CALCULATION.value,
+            SFMSRunLog.status == SFMSRunLogStatus.SUCCESS.value,
+        )
+        .group_by(extract("YEAR", SFMSRun.target_date), SFMSRun.run_type)
+        .order_by("year")
+    )
+    result = await session.execute(stmt)
+    return result.all()

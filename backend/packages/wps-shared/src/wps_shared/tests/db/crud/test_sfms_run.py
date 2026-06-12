@@ -6,7 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
 
-from wps_shared.db.crud.sfms_run import save_sfms_run_log, track_sfms_run, update_sfms_run_log
+from wps_shared.db.crud.sfms_run import (
+    get_sfms_insights_bounds,
+    save_sfms_run_log,
+    track_sfms_run,
+    update_sfms_run_log,
+)
 from wps_shared.db.models.sfms_run import (
     SFMSRun,
     SFMSRunLog,
@@ -214,3 +219,33 @@ async def test_track_sfms_run_preserves_function_name(async_session: AsyncSessio
         pass
 
     assert original_name.__name__ == "original_name"
+
+
+@pytest.mark.anyio
+async def test_get_sfms_insights_bounds_uses_successful_fwi_runs(async_session: AsyncSession):
+    await async_session.execute(
+        text(
+            """INSERT INTO sfms_run (id, run_type, target_date, run_datetime, stations)
+               VALUES
+               (2, 'actual', '2026-04-01', '2026-04-01 20:00:00+00', ARRAY[1]),
+               (3, 'actual', '2026-09-30', '2026-09-30 20:00:00+00', ARRAY[1]),
+               (4, 'actual', '2026-10-15', '2026-10-15 20:00:00+00', ARRAY[1]),
+               (5, 'forecast', '2026-04-02', '2026-04-02 20:00:00+00', ARRAY[1]);"""
+        )
+    )
+    await async_session.execute(
+        text(
+            """INSERT INTO sfms_run_log (job_name, status, sfms_run_id)
+               VALUES
+               ('fwi_calculation', 'success', 2),
+               ('fwi_calculation', 'success', 3),
+               ('fwi_calculation', 'failed', 4),
+               ('fwi_calculation', 'success', 5);"""
+        )
+    )
+
+    rows = await get_sfms_insights_bounds(async_session)
+
+    bounds_by_run_type = {row[1].value: (row[2], row[3]) for row in rows}
+    assert bounds_by_run_type["actual"] == (date(2026, 4, 1), date(2026, 9, 30))
+    assert bounds_by_run_type["forecast"] == (date(2026, 4, 2), date(2026, 4, 2))

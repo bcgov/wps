@@ -13,11 +13,26 @@ import GeoTIFF from 'ol/source/GeoTIFF'
 import { boundingExtent } from 'ol/extent'
 import { fromLonLat } from 'ol/proj'
 import { BC_EXTENT } from '@wps/utils/constants'
-import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
+import {
+  RasterType,
+  SFMSNG_RASTER_TYPES,
+  type SFMSNGRasterType
+} from '@/features/sfmsInsights/components/map/rasterConfig'
 
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
+
+const isSFMSNGRasterType = (rasterType: RasterType): rasterType is SFMSNGRasterType => {
+  return SFMSNG_RASTER_TYPES.includes(rasterType as SFMSNGRasterType)
+}
+
+export const getSFMSNGActualRasterPath = (date: DateTime, rasterType: SFMSNGRasterType) => {
+  const dateString = date.toISODate() ?? ''
+  const datePath = dateString.replaceAll('-', '/')
+  const dateStringBasic = dateString.replaceAll('-', '')
+  return `sfms_ng/actual/${datePath}/${rasterType}_${dateStringBasic}_cog.tif`
+}
 
 export const getSnowPMTilesLayer = (snowDate: DateTime, token?: string) => {
   const isoDate = snowDate.toISODate() ?? ''
@@ -50,13 +65,11 @@ export const getSnowPMTilesLayer = (snowDate: DateTime, token?: string) => {
 
 export const getFireWeatherRasterLayer = (
   date: DateTime,
-  rasterType: RasterType,
+  rasterType: SFMSNGRasterType,
   token: string | undefined,
   layerName: string = FWI_LAYER_NAME
 ) => {
-  const dateString = date.toISODate() ?? '' // Format: YYYY-MM-DD
-  // Use API proxy to bypass CORS restrictions
-  const path = `sfms/calculated/forecast/${dateString}/${rasterType}${dateString.replaceAll('-', '')}_3857_cog.tif`
+  const path = getSFMSNGActualRasterPath(date, rasterType)
   const url = `${API_BASE_URL}/object-store-proxy/${path}`
 
   // Prepare headers for authentication
@@ -137,6 +150,10 @@ export const getRasterLayer = (date: DateTime | null, rasterType: RasterType, to
   }
   if (!date) {
     console.error('date is required for fire weather rasters')
+    return null
+  }
+  if (!isSFMSNGRasterType(rasterType)) {
+    console.error(`unsupported raster type: ${rasterType}`)
     return null
   }
   return getFireWeatherRasterLayer(date, rasterType, token)
