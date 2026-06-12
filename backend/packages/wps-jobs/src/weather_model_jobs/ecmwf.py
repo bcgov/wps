@@ -253,19 +253,22 @@ async def process_models():
     )
 
 
+def exit_process(code: int):
+    # skip Python interpreter cleanup; GDAL/eccodes teardown can segfault in this job.
+    os._exit(code)
+
+
 def main():
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(process_models())
-        # Use os._exit to skip Python interpreter cleanup which causes a segfault
-        # due to C extension teardown order (GDAL, PROJ, eccodes, etc.)
-        os._exit(os.EX_OK)
+        exit_process(os.EX_OK)
     except Exception as exception:
         logger.exception("An error occurred while processing ECMWF model.")
         rc_message = ":poop: Encountered error retrieving model data from ECMWF"
         send_chatops_notification(rc_message, exception)
-        os._exit(os.EX_SOFTWARE)
+        exit_process(os.EX_SOFTWARE)
 
 
 if __name__ == "__main__":

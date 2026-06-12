@@ -1,7 +1,7 @@
 import math
 import os
 from datetime import datetime
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
 import numpy as np
 import pytest
@@ -271,14 +271,11 @@ def test_ecmwf_process_handles_exceptions(monkeypatch):
 
 def test_main_success(mocker: MockerFixture, monkeypatch):
     """Test the main function when it runs successfully."""
-
-    async def mock_process_models():
-        """No implementation required."""
-        pass
+    mock_process_models = AsyncMock()
 
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
-    mocker.patch.object(weather_model_jobs.ecmwf.os, "_exit", side_effect=raise_system_exit)
+    mocker.patch.object(weather_model_jobs.ecmwf, "exit_process", side_effect=raise_system_exit)
     rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
@@ -298,7 +295,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
 
     rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
-    mocker.patch.object(weather_model_jobs.ecmwf.os, "_exit", side_effect=raise_system_exit)
+    mocker.patch.object(weather_model_jobs.ecmwf, "exit_process", side_effect=raise_system_exit)
 
     with pytest.raises(SystemExit) as excinfo:
         weather_model_jobs.ecmwf.main()
