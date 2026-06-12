@@ -1,19 +1,18 @@
-export const SFMSNG_RASTER_TYPES = [
-  'fwi',
-  'dmc',
-  'dc',
-  'ffmc',
-  'bui',
-  'isi',
-  'temperature',
-  'relative_humidity',
-  'wind_speed',
-  'wind_direction',
-  'precipitation'
-]
+export type RasterType =
+  | 'fuel'
+  | 'fwi'
+  | 'dmc'
+  | 'dc'
+  | 'ffmc'
+  | 'bui'
+  | 'isi'
+  | 'temperature'
+  | 'relative_humidity'
+  | 'wind_speed'
+  | 'wind_direction'
+  | 'precipitation'
 
-export type SFMSNGRasterType = (typeof SFMSNG_RASTER_TYPES)[number]
-export type RasterType = SFMSNGRasterType | 'fuel'
+export type SFMSNGRasterType = Exclude<RasterType, 'fuel'>
 
 export interface ColorBreak {
   min: number

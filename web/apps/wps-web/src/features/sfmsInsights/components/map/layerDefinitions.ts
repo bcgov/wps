@@ -13,19 +13,11 @@ import GeoTIFF from 'ol/source/GeoTIFF'
 import { boundingExtent } from 'ol/extent'
 import { fromLonLat } from 'ol/proj'
 import { BC_EXTENT } from '@wps/utils/constants'
-import {
-  RasterType,
-  SFMSNG_RASTER_TYPES,
-  type SFMSNGRasterType
-} from '@/features/sfmsInsights/components/map/rasterConfig'
+import { RasterType, type SFMSNGRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
-
-const isSFMSNGRasterType = (rasterType: RasterType): rasterType is SFMSNGRasterType => {
-  return SFMSNG_RASTER_TYPES.includes(rasterType as SFMSNGRasterType)
-}
 
 export const getSFMSNGActualRasterPath = (date: DateTime, rasterType: SFMSNGRasterType) => {
   const dateString = date.toISODate() ?? ''
@@ -150,10 +142,6 @@ export const getRasterLayer = (date: DateTime | null, rasterType: RasterType, to
   }
   if (!date) {
     console.error('date is required for fire weather rasters')
-    return null
-  }
-  if (!isSFMSNGRasterType(rasterType)) {
-    console.error(`unsupported raster type: ${rasterType}`)
     return null
   }
   return getFireWeatherRasterLayer(date, rasterType, token)
