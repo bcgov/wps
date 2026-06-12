@@ -45,6 +45,7 @@ class MockModelRunRepository(ModelRunRepository):
         # Mock methods for call tracking in tests
         self.get_model_run_prediction = MagicMock()
         self.store_model_run_prediction = MagicMock()
+        self.mark_prediction_model_run_processed = MagicMock()
 
     def get_prediction_model(self, _, __):
         return ModelEnum.ECMWF
@@ -193,7 +194,12 @@ def test_ecmwf_process_model_partial_process(mock_herbie_instance, mocker: Mocke
     assert mock_repository.mark_prediction_model_run_processed.call_count == 0
 
 
-def test_ecmwf_process(mock_herbie_instance):
+def test_ecmwf_process(mock_herbie_instance, mocker: MockerFixture):
+    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_transformer", return_value=MagicMock())
+    mocker.patch("weather_model_jobs.ecmwf.get_stations_dataframe", return_value=MagicMock())
+    mocker.patch.object(ECMWFModelProcessor, "process_grib_data", return_value=MagicMock())
+    mocker.patch.object(ECMWF, "store_processed_result", return_value=None)
+
     mock_repo = MockModelRunRepository()
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
     ecmwf = ECMWF("/tmp", stations, mock_repo)
@@ -202,9 +208,11 @@ def test_ecmwf_process(mock_herbie_instance):
     assert mock_repo.get_or_create_prediction_run_calls == 2  # For hours 0 and 12
     # For each hour (0 and 12) get all the forecast hours (2 * (len(range(0, 145, 3)) + len(range(150, 241, 6)))
     assert ecmwf.files_downloaded == num_forecast_hours * 2
+    assert ecmwf.exception_count == 0
 
 
 def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerFixture):
+    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", return_value=[0])
     mocker.patch(
         "weather_model_jobs.ecmwf.get_ecmwf_transformer",
         side_effect=Exception("test exception"),
@@ -212,14 +220,14 @@ def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerF
 
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
     mock_repo = MockModelRunRepository()
-    mark_complete_spy = mocker.spy(mock_repo, "mark_model_run_interpolated")
 
     ecmwf = ECMWF("/tmp", stations, mock_repo)
 
-    ecmwf.process()
+    ecmwf.process_model_run(0)
 
-    assert mark_complete_spy.call_count == 0
-    assert ecmwf.exception_count == (num_forecast_hours * 2)
+    mock_repo.mark_prediction_model_run_processed.assert_not_called()
+    mock_repo.session.rollback.assert_called_once()
+    assert ecmwf.exception_count == 1
 
 
 @pytest.mark.parametrize(
