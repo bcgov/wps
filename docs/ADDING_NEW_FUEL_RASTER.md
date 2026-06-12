@@ -52,15 +52,13 @@ FUEL_RASTER_YEAR=2026 bash openshift/scripts/oc_provision_fuel_grid_install_job.
 ```
 
 The provision script derives the staged object name as `fbp${FUEL_RASTER_YEAR}.tif`, so the staged
-object for 2026 must be `sfms/static/fbp2026.tif`. Commit the year change with the PR. Git history
-is the record of what raster the seasonal install job was configured to install.
+object for 2026 must be `sfms/static/fbp2026.tif`. Commit the year change with the PR.
 
 ## 3. Deploy the Job
 
 The deployment workflow provisions the fuel grid install job. Dev deployments create the job
 unsuspended so new PR databases are populated automatically. Production creates the job suspended so
-the install can be started manually after the staged raster, image tag, database target, and
-object-store target are confirmed.
+the install can be started manually after the staged raster/object store target are confirmed.
 
 For a PR/dev deployment, the job name looks like:
 
@@ -76,7 +74,8 @@ fuel-grid-install-2026-wps-prod
 
 ## 4. Run the Job in Production
 
-Unsuspend the production job when it is ready to run.
+Unsuspend the production job when it is ready to run. Either use the following command or unsuspend
+the job in the Openshift UI
 
 ```bash
 oc -n <namespace> patch job/<job-name> --type=merge -p '{"spec":{"suspend":false}}'
@@ -154,5 +153,5 @@ install job.
 The job stages all DB rows in one transaction. If verification fails, the transaction rolls back.
 Normal read paths only select fuel rasters with `install_status = 'ready'`.
 
-Object-store writes cannot roll back with the database, so the job makes a best-effort attempt to
+Object-store writes cannot roll back with the database, so the job makes a best effort attempt to
 delete the processed fuel raster and generated fuel-masked TPI raster on failure.
