@@ -51,7 +51,7 @@ export const SFMSInsightsPage = () => {
     DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPST().year })
   )
 
-  const [rasterType, setRasterType] = useState<RasterType>('fwi')
+  const [rasterType, setRasterType] = useState<RasterType>('fuel')
   const [showSnow, setShowSnow] = useState<boolean>(true)
 
   useEffect(() => {
