@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from wps_shared.fuel_raster import find_latest_version, process_fuel_type_raster
+from wps_shared.fuel_raster import find_next_available_version, process_fuel_type_raster
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3_client import S3Client
 
@@ -11,19 +11,23 @@ CREATE_TIMESTAMP = datetime(2024, 4, 15, 12, 0)
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "keys",
+    "keys,expected_next_version,expected_call_log",
     [
-        # existing versions
-        (["raster_v1", "raster_v2", "raster_v3"]),
-        # no existing versions
-        (["raster_v1"]),
+        (
+            ["raster_v1", "raster_v2", "raster_v3"],
+            4,
+            ["raster_v1", "raster_v2", "raster_v3", "raster_v4"],
+        ),
+        (["raster_v1"], 2, ["raster_v1", "raster_v2"]),
+        ([], 1, ["raster_v1"]),
     ],
 )
-async def test_find_latest_version_non_existing(monkeypatch, keys):
+async def test_find_next_available_version(
+    monkeypatch, keys, expected_next_version, expected_call_log
+):
     call_log = []
 
-    # Patch all_objects_exist to simulate
-    async def mock_all_objects_exist(key):
+    async def mock_object_exists(key):
         call_log.append(key)
         return key in keys
 
@@ -33,14 +37,14 @@ async def test_find_latest_version_non_existing(monkeypatch, keys):
     s3_client = S3Client()
     raster_addresser = BaseRasterAddresser()
 
-    monkeypatch.setattr(s3_client, "all_objects_exist", mock_all_objects_exist)
+    monkeypatch.setattr(s3_client, "object_exists", mock_object_exists)
     monkeypatch.setattr(raster_addresser, "get_fuel_raster_key", mock_get_fuel_raster_key)
 
     now = datetime(2024, 4, 15)
-    result = await find_latest_version(s3_client, raster_addresser, now, 1)
+    result = await find_next_available_version(s3_client, raster_addresser, now, 1)
 
-    assert result == len(keys)
-    assert call_log == keys + [f"raster_v{result + 1}"]
+    assert result == expected_next_version
+    assert call_log == expected_call_log
 
 
 # --- Mocked S3Client with async methods ---
@@ -96,10 +100,13 @@ def setup_mocks(monkeypatch):
 
     monkeypatch.setattr("wps_shared.fuel_raster.S3Client", lambda: MockS3Client())
 
-    async def mock_find_latest_version(_, __, ___, ____):
-        return 2
+    async def mock_find_next_available_version(_, __, ___, ____):
+        return 3
 
-    monkeypatch.setattr("wps_shared.fuel_raster.find_latest_version", mock_find_latest_version)
+    monkeypatch.setattr(
+        "wps_shared.fuel_raster.find_next_available_version",
+        mock_find_next_available_version,
+    )
 
     monkeypatch.setattr(
         "wps_shared.fuel_raster.WPSDataset.from_bytes", lambda res: MockRasterContext()

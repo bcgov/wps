@@ -396,11 +396,6 @@ objects:
                     configMapKeyRef:
                       name: ${APP_NAME}-${SUFFIX}-nats-server
                       key: nats.server
-                - name: FUEL_RASTER_NAME
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.fuel_raster_name
                 - name: FCM_CREDS
                   valueFrom:
                     secretKeyRef:

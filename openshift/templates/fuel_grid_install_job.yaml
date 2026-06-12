@@ -1,19 +1,18 @@
-kind: "Template"
-apiVersion: "template.openshift.io/v1"
+apiVersion: template.openshift.io/v1
+kind: Template
 metadata:
-  name: fuel-raster-processor-template
+  name: fuel-grid-install-job-template
   annotations:
-    description: "Job to process a new fuel raster layer."
+    description: "Install a fuel grid and derived ASA static data."
     tags: "job,sfms,fuel"
 labels:
-  app.kubernetes.io/part-of: "${NAME}"
-  app: ${NAME}-${SUFFIX}
+  app.kubernetes.io/part-of: "${NAME}-${SUFFIX}"
 parameters:
   - name: NAME
     description: Module name
     value: wps
   - name: SUFFIX
-    description: Deployment suffix, e.g. pr-###
+    description: Deployment suffix, e.g. prod, test, pr-###
     required: true
   - name: GLOBAL_NAME
     description: Name of global Module
@@ -28,26 +27,49 @@ parameters:
   - name: PROJECT_NAMESPACE
     description: OpenShift project namespace
     required: true
+  - name: FUEL_RASTER_YEAR
+    description: Fuel grid year to install.
+    required: true
+  - name: FUEL_RASTER_KEY
+    description: Staged object name under sfms/static/.
+    required: true
 objects:
   - kind: Job
     apiVersion: batch/v1
     metadata:
-      name: fuel-raster-${NAME}-${SUFFIX}
+      name: fuel-grid-install-${FUEL_RASTER_YEAR}-${NAME}-${SUFFIX}
+      annotations:
+        wps.bcgov/fuel-grid-year: "${FUEL_RASTER_YEAR}"
+        wps.bcgov/fuel-grid-source-key: "sfms/static/${FUEL_RASTER_KEY}"
     spec:
       suspend: true
       parallelism: 1
       completions: 1
-      activeDeadlineSeconds: 3600
-      backoffLimit: 6
+      activeDeadlineSeconds: 21600
+      ttlSecondsAfterFinished: 86400
+      backoffLimit: 0
       template:
         metadata:
-          name: fuel-raster-${NAME}-${SUFFIX}
+          labels:
+            app.kubernetes.io/name: fuel-grid-install
+            app.kubernetes.io/part-of: "${NAME}-${SUFFIX}"
+            app.kubernetes.io/component: fuel-grid-install
         spec:
           containers:
-            - name: fuel-raster-${NAME}-${SUFFIX}
+            - name: fuel-grid-install
               image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
               imagePullPolicy: "Always"
-              command: ["uv", "run", "--no-sync", "python", "-m", "fuel_raster"]
+              command:
+                - uv
+                - run
+                - --no-sync
+                - python
+                - -m
+                - fuel_grid.install_job
+                - --year
+                - ${FUEL_RASTER_YEAR}
+                - --key
+                - ${FUEL_RASTER_KEY}
               env:
                 - name: UV_NO_CACHE
                   value: "1"
@@ -71,11 +93,11 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: object-store-bucket
-                - name: FUEL_RASTER_NAME
+                - name: CLASSIFIED_TPI_DEM_NAME
                   valueFrom:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
-                      key: env.fuel_raster_name
+                      key: env.classified_tpi_dem_name
                 - name: POSTGRES_WRITE_USER
                   valueFrom:
                     secretKeyRef:
@@ -96,7 +118,7 @@ objects:
                     secretKeyRef:
                       name: ${CRUNCHYDB_USER}
                       key: pgbouncer-port
-                - name: PG_DATABASE
+                - name: POSTGRES_DATABASE
                   value: ${NAME}
                 - name: SUFFIX
                   value: ${SUFFIX}
@@ -118,10 +140,9 @@ objects:
                 - name: PROJECT_NAMESPACE
                   value: ${PROJECT_NAMESPACE}
               resources:
-                limits:
-                  cpu: "1"
-                  memory: 256Mi
                 requests:
-                  cpu: "500m"
-                  memory: 128Mi
+                  cpu: 200m
+                  memory: 2Gi
+                limits:
+                  memory: 3Gi
           restartPolicy: OnFailure
