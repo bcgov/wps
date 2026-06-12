@@ -214,12 +214,12 @@ describe('SFMSInsightsPage', () => {
     expect(rasterDate).toContain('2025-11-02')
   })
 
-  it('should show FWI by default', async () => {
+  it('should show the fuel grid by default', async () => {
     renderWithStore()
     await waitForPageLoad()
 
     const map = screen.getByTestId('sfms-map')
-    expect(map).toHaveAttribute('data-raster-type', 'fwi')
+    expect(map).toHaveAttribute('data-raster-type', 'fuel')
   })
 
   it('should set date picker max date based on SFMS bounds', async () => {
