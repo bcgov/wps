@@ -16,28 +16,31 @@ logger = logging.getLogger(__name__)
 @pytest.mark.parametrize(
     "filename,projection,variable_name",
     [
-        ("CMC_glb_TMP_TGL_2_latlon.24x.24_2020070212_P240.grib2", "latlon.24x.24", "TMP_TGL_2"),
         (
-            "CMC_glb_ABSV_ISBL_200_latlon.24x.24_2020070600_P000.grib2",
-            "latlon.24x.24",
-            "ABSV_ISBL_200",
+            "20260501T12Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT003H.grib2",
+            ProjectionEnum.LATLON_15X_15,
+            "AirTemp_AGL-2m",
         ),
         (
-            "CMC_glb_ABSV_ISBL_200_latlon.15x.15_2020070600_P000.grib2",
-            "latlon.15x.15",
-            "ABSV_ISBL_200",
+            "20260501T00Z_MSC_GDPS_RelativeHumidity_AGL-2m_LatLon0.15_PT000H.grib2",
+            ProjectionEnum.LATLON_15X_15,
+            "RelativeHumidity_AGL-2m",
         ),
-        ("CMC_glb_RH_TGL_2_latlon.15x.15_2020070712_P000.grib2", "latlon.15x.15", "RH_TGL_2"),
         (
-            "/somewhere_on/the_drive/CMC_glb_RH_TGL_2_latlon.15x.15_2020070712_P000.grib2",
-            "latlon.15x.15",
-            "RH_TGL_2",
+            "20260501T12Z_MSC_GDPS_Precip-Accum_Sfc_LatLon0.15_PT006H.grib2",
+            ProjectionEnum.LATLON_15X_15,
+            "Precip-Accum_Sfc",
+        ),
+        (
+            "/somewhere_on/the_drive/20260501T12Z_MSC_GDPS_WindSpeed_AGL-10m_LatLon0.15_PT003H.grib2",
+            ProjectionEnum.LATLON_15X_15,
+            "WindSpeed_AGL-10m",
         ),
     ],
 )
 def test_parse_filename(filename, projection, variable_name):
     """
-    _summary_
+    Parse current MSC GDPS filenames.
 
     :param filename: filename to parse
     :param projection: expected projection
@@ -84,18 +87,19 @@ def test_parse_rdps_msc_filename_malformed_raises():
             ProjectionEnum.RDPS_LATLON,
             "WindSpeed_AGL-10m",
         ),
-        # Legacy CMC_reg format — still routed through parse_gdps_rdps_filename
         (
-            "CMC_reg_RH_TGL_2_ps10km_2020110500_P034.grib2",
+            "https://dd.weather.gc.ca/today/model_rdps/10km/00/034/"
+            "20260501T00Z_MSC_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT034H.grib2",
             ModelEnum.RDPS,
-            ProjectionEnum.REGIONAL_PS,
-            "RH_TGL_2",
+            ProjectionEnum.RDPS_LATLON,
+            "RelativeHumidity_AGL-2m",
         ),
         (
-            "CMC_reg_TMP_TGL_2_ps10km_2024010100_P003.grib2",
+            "https://dd.weather.gc.ca/today/model_rdps/10km/18/003/"
+            "20260501T18Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT003H.grib2",
             ModelEnum.RDPS,
-            ProjectionEnum.REGIONAL_PS,
-            "TMP_TGL_2",
+            ProjectionEnum.RDPS_LATLON,
+            "AirTemp_AGL-2m",
         ),
     ],
 )
