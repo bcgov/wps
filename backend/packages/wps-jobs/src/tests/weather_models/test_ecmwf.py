@@ -25,6 +25,10 @@ from wps_shared.tests.common import default_mock_client_get
 num_forecast_hours = len(list(get_ecmwf_forecast_hours()))
 
 
+def raise_system_exit(code: int):
+    raise SystemExit(code)
+
+
 @pytest.fixture
 def mock_stations():
     return [
@@ -274,6 +278,7 @@ def test_main_success(mocker: MockerFixture, monkeypatch):
 
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
+    mocker.patch.object(weather_model_jobs.ecmwf.os, "_exit", side_effect=raise_system_exit)
     rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
@@ -293,6 +298,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
 
     rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
+    mocker.patch.object(weather_model_jobs.ecmwf.os, "_exit", side_effect=raise_system_exit)
 
     with pytest.raises(SystemExit) as excinfo:
         weather_model_jobs.ecmwf.main()
