@@ -118,24 +118,25 @@ describe('fetchSFMSInsightsBounds thunk', () => {
 })
 
 describe('SFMS Insights bounds selectors', () => {
+  const fullSfmsBounds = {
+    '2024': {
+      actual: {
+        minimum: '2024-01-01',
+        maximum: '2024-12-31'
+      }
+    },
+    '2025': {
+      actual: {
+        minimum: '2025-01-01',
+        maximum: '2025-11-02'
+      }
+    }
+  }
   it('selectLatestSFMSInsightsBounds returns actual bounds from most recent year', () => {
     const state = {
       sfmsInsights: {
         ...initialState,
-        sfmsBounds: {
-          '2024': {
-            actual: {
-              minimum: '2024-01-01',
-              maximum: '2024-12-31'
-            }
-          },
-          '2025': {
-            actual: {
-              minimum: '2025-01-01',
-              maximum: '2025-11-02'
-            }
-          }
-        }
+        sfmsBounds: fullSfmsBounds
       }
     }
 
@@ -149,20 +150,7 @@ describe('SFMS Insights bounds selectors', () => {
     const state = {
       sfmsInsights: {
         ...initialState,
-        sfmsBounds: {
-          '2024': {
-            actual: {
-              minimum: '2024-01-01',
-              maximum: '2024-12-31'
-            }
-          },
-          '2025': {
-            actual: {
-              minimum: '2025-01-01',
-              maximum: '2025-11-02'
-            }
-          }
-        }
+        sfmsBounds: fullSfmsBounds
       }
     }
 
