@@ -91,7 +91,7 @@ describe('fetchSFMSInsightsBounds thunk', () => {
     mockedGetSFMSInsightsBounds.mockResolvedValue(sfmsBounds)
 
     const store = createTestStore({ sfmsInsights: initialState }, sfmsInsightsReducer)
-    const dispatch = store.dispatch as AppDispatch
+    const dispatch: AppDispatch = store.dispatch
     await dispatch(fetchSFMSInsightsBounds())
 
     const state = store.getState().sfmsInsights
@@ -106,7 +106,7 @@ describe('fetchSFMSInsightsBounds thunk', () => {
     mockedGetSFMSInsightsBounds.mockRejectedValue(error)
 
     const store = createTestStore({ sfmsInsights: initialState }, sfmsInsightsReducer)
-    const dispatch = store.dispatch as AppDispatch
+    const dispatch: AppDispatch = store.dispatch
     await dispatch(fetchSFMSInsightsBounds())
 
     const state = store.getState().sfmsInsights
