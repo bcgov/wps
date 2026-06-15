@@ -4,6 +4,7 @@ import Footer from '@/features/landingPage/components/Footer'
 import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
+import { SfmsInsightsAboutDataContent } from '@/features/sfmsInsights/components/SfmsInsightsAboutDataContent'
 import {
   fetchSFMSInsightsBounds,
   selectEarliestSFMSInsightsBounds,
@@ -13,6 +14,7 @@ import {
 } from '@/features/sfmsInsights/slices/sfmsInsightsSlice'
 import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
+import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { StyledFormControl } from '@wps/ui/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@wps/utils/constants'
@@ -133,6 +135,13 @@ export const SFMSInsightsPage = () => {
             <FormControlLabel
               control={<Checkbox checked={showSnow} onChange={e => setShowSnow(e.target.checked)} />}
               label={snowDate ? `Show Latest Snow: ${snowDate.toLocaleString(DateTime.DATE_MED)}` : 'Show Latest Snow'}
+            />
+          </Grid>
+          <Grid sx={{ marginLeft: 'auto', paddingRight: 2 }}>
+            <AboutDataPopover
+              content={SfmsInsightsAboutDataContent}
+              maxWidth={450}
+              testId="sfms-insights-about-data-popover"
             />
           </Grid>
         </Grid>

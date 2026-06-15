@@ -263,6 +263,16 @@ describe('SFMSInsightsPage', () => {
     expect(snowCheckbox).toBeInTheDocument()
   })
 
+  it('should show SFMS Insights about data content', async () => {
+    renderWithStore()
+    await waitForPageLoad()
+
+    fireEvent.click(screen.getByTestId('about-data-trigger'))
+
+    expect(screen.getByTestId('about-data-content')).toHaveTextContent('SFMS Next Generation')
+    expect(screen.getByTestId('about-data-content')).toHaveTextContent('separate from the legacy SFMS products')
+  })
+
   it('should fetch snow data on mount with initial rasterDate', async () => {
     renderWithStore()
     await waitForPageLoad()
