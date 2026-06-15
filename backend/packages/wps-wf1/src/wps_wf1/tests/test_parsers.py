@@ -5,7 +5,11 @@ import pytest
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.schemas.stations import WFWXWeatherStation
-from wps_wf1.parsers import parse_hourly_actual, sfms_daily_actuals_mapper
+from wps_wf1.parsers import (
+    parse_hourly_actual,
+    sfms_daily_actuals_mapper,
+    sfms_daily_forecasts_mapper,
+)
 
 
 def _make_station(code, lat=49.0, lon=-123.0, elevation=100):
@@ -172,6 +176,16 @@ class TestSfmsDailyActualsMapper:
         assert actual.dmc is None
         assert actual.dc is None
 
+    def test_maps_manual_record_type_as_actual(self):
+        station = _make_station(100, lat=49.0, lon=-123.0, elevation=150)
+        raw = _make_raw_daily(100, record_type="MANUAL", temperature=15.0)
+
+        result = sfms_daily_actuals_mapper([raw], [station])
+
+        assert len(result) == 1
+        assert result[0].code == 100
+        assert result[0].temperature == 15.0
+
     def test_filters_forecast_record_type(self):
         station = _make_station(100)
         raw = _make_raw_daily(100, record_type="FORECAST", temperature=20.0)
@@ -209,6 +223,53 @@ class TestSfmsDailyActualsMapper:
         raw = _make_raw_daily(100, lat=None, lon=None, temperature=20.0)
 
         assert sfms_daily_actuals_mapper([raw], [station]) == []
+
+
+class TestSfmsDailyForecastsMapper:
+    def test_maps_forecast_and_computes_dewpoint(self):
+        station = _make_station(100, lat=49.0, lon=-123.0, elevation=150)
+        raw = _make_raw_daily(
+            100,
+            record_type="FORECAST",
+            temperature=20.0,
+            relativeHumidity=50.0,
+            precipitation=2.5,
+            windSpeed=10.0,
+            windDirection=180.0,
+            fineFuelMoistureCode=85.0,
+            duffMoistureCode=30.0,
+            droughtCode=200.0,
+        )
+
+        result = sfms_daily_forecasts_mapper([raw], [station])
+
+        assert len(result) == 1
+        forecast = result[0]
+        assert forecast.code == 100
+        assert forecast.lat == 49.0
+        assert forecast.lon == -123.0
+        assert forecast.elevation == 150
+        assert forecast.temperature == 20.0
+        assert forecast.relative_humidity == 50.0
+        assert forecast.dewpoint == pytest.approx(9.28, abs=0.01)
+        assert forecast.precipitation == 2.5
+        assert forecast.wind_speed == 10.0
+        assert forecast.wind_direction == 180.0
+        assert forecast.ffmc is None
+        assert forecast.dmc is None
+        assert forecast.dc is None
+
+    def test_filters_actual_record_type(self):
+        station = _make_station(100)
+        raw = _make_raw_daily(100, record_type="ACTUAL", temperature=20.0)
+
+        assert sfms_daily_forecasts_mapper([raw], [station]) == []
+
+    def test_filters_manual_record_type(self):
+        station = _make_station(100)
+        raw = _make_raw_daily(100, record_type="MANUAL", temperature=20.0)
+
+        assert sfms_daily_forecasts_mapper([raw], [station]) == []
 
     def test_empty_raw_dailies(self):
         station = _make_station(100)

@@ -2,7 +2,7 @@ import asyncio
 import logging
 import math
 from datetime import datetime
-from typing import AsyncGenerator, Dict, List, Optional, Tuple
+from typing import AsyncGenerator, Callable, Dict, List, Optional, Tuple
 
 from aiohttp import ClientSession
 from wps_shared import config
@@ -34,6 +34,7 @@ from wps_wf1.parsers import (
     parse_noon_forecast,
     parse_station,
     sfms_daily_actuals_mapper,
+    sfms_daily_forecasts_mapper,
     station_list_mapper,
     unique_weather_stations_mapper,
     weather_indeterminate_list_mapper,
@@ -312,19 +313,35 @@ class WfwxApi:
 
         return noon_forecasts
 
-    async def get_sfms_daily_actuals_all_stations(
-        self, time_of_interest: datetime
+    async def _get_sfms_daily_weather_all_stations(
+        self,
+        time_of_interest: datetime,
+        mapper: Callable[[list[dict], list[WFWXWeatherStation]], list[SFMSDailyActual]],
+        log_label: str,
     ) -> List[SFMSDailyActual]:
         header = await self._get_auth_header()
         stations: List[WFWXWeatherStation] = await self.get_station_data(
             mapper=wfwx_station_list_mapper
         )
-        logger.info(f"Computing SFMS actuals with {len(stations)} stations")
+        logger.info("Computing SFMS %s with %s stations", log_label, len(stations))
         raw_dailies = await self.wfwx_client.fetch_raw_dailies_for_all_stations(
             header, time_of_interest
         )
-        station_dailies = sfms_daily_actuals_mapper(raw_dailies, stations)
-        return station_dailies
+        return mapper(raw_dailies, stations)
+
+    async def get_sfms_daily_actuals_all_stations(
+        self, time_of_interest: datetime
+    ) -> List[SFMSDailyActual]:
+        return await self._get_sfms_daily_weather_all_stations(
+            time_of_interest, sfms_daily_actuals_mapper, "actuals"
+        )
+
+    async def get_sfms_daily_forecasts_all_stations(
+        self, time_of_interest: datetime
+    ) -> List[SFMSDailyActual]:
+        return await self._get_sfms_daily_weather_all_stations(
+            time_of_interest, sfms_daily_forecasts_mapper, "forecasts"
+        )
 
     async def get_hourly_actuals_all_stations(
         self, start_timestamp: datetime, end_timestamp: datetime

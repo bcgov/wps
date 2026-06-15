@@ -334,7 +334,20 @@
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
-                "2024-07-04"
+                "2026-06-15"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "SFMS Daily Forecasts Interpolation",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.sfms_daily_forecasts",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "2026-06-15"
             ],
             "console": "integratedTerminal"
         },

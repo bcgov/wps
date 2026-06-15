@@ -890,7 +890,12 @@ async def test_post_forecasts(wfwx_api):
 # Helpers for get_sfms_daily_actuals_all_stations tests
 # ---------------------------
 def _setup_sfms_daily_actuals(
-    monkeypatch, wfwx_api, stations=None, raw_dailies=None, mapper_result=None
+    monkeypatch,
+    wfwx_api,
+    stations=None,
+    raw_dailies=None,
+    mapper_result=None,
+    mapper_name="sfms_daily_actuals_mapper",
 ):
     """Common setup for get_sfms_daily_actuals_all_stations tests.
 
@@ -925,7 +930,7 @@ def _setup_sfms_daily_actuals(
         captured["mapper_stations"] = stn
         return mapper_result
 
-    monkeypatch.setattr(api_mod, "sfms_daily_actuals_mapper", fake_sfms_mapper)
+    monkeypatch.setattr(api_mod, mapper_name, fake_sfms_mapper)
 
     return captured
 
@@ -1002,3 +1007,41 @@ async def test_get_sfms_daily_actuals_all_stations_empty_dailies(monkeypatch, wf
 
     result = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime(2025, 7, 1))
     assert result == []
+
+
+@pytest.mark.anyio
+async def test_get_sfms_daily_forecasts_all_stations(monkeypatch, wfwx_api):
+    """Verify forecast SFMS dailies use the forecast mapper with fetched raw dailies."""
+    from wps_shared.schemas.sfms import SFMSDailyActual
+
+    fake_stations = [
+        types.SimpleNamespace(
+            wfwx_id="wfwx-1",
+            code=100,
+            name="S100",
+            lat=49.0,
+            long=-123.0,
+            elevation=100,
+            zone_code=None,
+        ),
+    ]
+    fake_raw_dailies = [{"stationData": {"stationCode": 100}, "temperature": 15.0}]
+    expected = [SFMSDailyActual(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0)]
+
+    toi = datetime(2025, 7, 16, 20, 0, 0)
+    captured = _setup_sfms_daily_actuals(
+        monkeypatch,
+        wfwx_api,
+        stations=fake_stations,
+        raw_dailies=fake_raw_dailies,
+        mapper_result=expected,
+        mapper_name="sfms_daily_forecasts_mapper",
+    )
+
+    result = await wfwx_api.get_sfms_daily_forecasts_all_stations(toi)
+
+    assert result == expected
+    assert captured["headers"] == {"Authorization": "Bearer token123"}
+    assert captured["time_of_interest"] == toi
+    assert captured["mapper_raw_dailies"] is fake_raw_dailies
+    assert captured["mapper_stations"] is fake_stations

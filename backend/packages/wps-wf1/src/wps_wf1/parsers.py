@@ -41,6 +41,17 @@ class WF1RecordTypeEnum(enum.Enum):
     MANUAL = "MANUAL"
 
 
+SFMS_SITE_TYPE_IDS = (
+    "HUB_STN",
+    "WXSTN_GOES",
+    "WXSTN_MB",
+    "WXSTN_TEL",
+    "WXSTN_CELL",
+    "WXSTN_UHF",
+    "EXTERNAL",
+)
+
+
 def construct_zone_code(station: any):
     """Constructs the 2-character zone code for a weather station, using the station's
     zone.alias integer value, prefixed by the fire centre-to-letter mapping.
@@ -339,6 +350,25 @@ async def dailies_list_mapper(
     return wf1_dailies
 
 
+def is_sfms_daily(raw_daily: dict, record_types: tuple[WF1RecordTypeEnum, ...]) -> bool:
+    station_data = raw_daily.get("stationData")
+    if station_data is None:
+        return False
+
+    station_data_or_empty = station_data or {}
+    site_type_id = station_data_or_empty.get("siteType", {}).get("id")
+    station_status_id = station_data_or_empty.get("stationStatus", {}).get("id")
+    record_type_id = (raw_daily.get("recordType") or {}).get("id")
+    return (
+        is_station_valid(station_data)
+        and station_status_id == "ACTIVE"
+        # Site types match those used to define APP_WF1_WEATHER.STATION_BC_ACTIVE_REPORTING_VW,
+        # the station source for legacy SFMS.
+        and site_type_id in SFMS_SITE_TYPE_IDS
+        and record_type_id in {record_type.value for record_type in record_types}
+    )
+
+
 def sfms_daily_actuals_mapper(
     raw_dailies: List[dict], stations: List[WFWXWeatherStation]
 ) -> List[SFMSDailyActual]:
@@ -347,26 +377,7 @@ def sfms_daily_actuals_mapper(
     sfms_daily_actuals: List[SFMSDailyActual] = []
     for raw_daily in raw_dailies:
         station_data = raw_daily.get("stationData")
-        station_data_or_empty = station_data or {}
-        site_type_id = station_data_or_empty.get("siteType", {}).get("id")
-        station_status_id = station_data_or_empty.get("stationStatus", {}).get("id")
-        if (
-            is_station_valid(station_data)
-            and station_status_id == "ACTIVE"
-            # Site types match those used to define APP_WF1_WEATHER.STATION_BC_ACTIVE_REPORTING_VW,
-            # the station source for legacy SFMS.
-            and site_type_id
-            in (
-                "HUB_STN",
-                "WXSTN_GOES",
-                "WXSTN_MB",
-                "WXSTN_TEL",
-                "WXSTN_CELL",
-                "WXSTN_UHF",
-                "EXTERNAL",
-            )
-            and raw_daily.get("recordType").get("id") == WF1RecordTypeEnum.ACTUAL.value
-        ):
+        if is_sfms_daily(raw_daily, (WF1RecordTypeEnum.ACTUAL, WF1RecordTypeEnum.MANUAL)):
             station_code = station_data.get("stationCode")
             station = station_lookup[station_code]
             sfms_daily_actuals.append(
@@ -387,6 +398,36 @@ def sfms_daily_actuals_mapper(
                 )
             )
     return sfms_daily_actuals
+
+
+def sfms_daily_forecasts_mapper(
+    raw_dailies: List[dict], stations: List[WFWXWeatherStation]
+) -> List[SFMSDailyActual]:
+    """Maps raw forecast dailies to SFMS station weather objects."""
+    station_lookup = {station.code: station for station in stations}
+    sfms_daily_forecasts: List[SFMSDailyActual] = []
+    for raw_daily in raw_dailies:
+        station_data = raw_daily.get("stationData")
+        if is_sfms_daily(raw_daily, (WF1RecordTypeEnum.FORECAST,)):
+            station_code = station_data.get("stationCode")
+            station = station_lookup[station_code]
+            temperature = raw_daily.get("temperature")
+            relative_humidity = raw_daily.get("relativeHumidity")
+            sfms_daily_forecasts.append(
+                SFMSDailyActual(
+                    code=station_code,
+                    lat=station.lat,
+                    lon=station.long,
+                    elevation=station.elevation,
+                    temperature=temperature,
+                    dewpoint=compute_dewpoint(temperature, relative_humidity),
+                    relative_humidity=relative_humidity,
+                    precipitation=raw_daily.get("precipitation"),
+                    wind_speed=raw_daily.get("windSpeed"),
+                    wind_direction=raw_daily.get("windDirection"),
+                )
+            )
+    return sfms_daily_forecasts
 
 
 async def weather_indeterminate_list_mapper(raw_dailies: Generator[dict, None, None]):
