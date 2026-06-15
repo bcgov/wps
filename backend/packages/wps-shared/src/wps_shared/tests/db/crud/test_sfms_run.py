@@ -246,6 +246,6 @@ async def test_get_sfms_insights_bounds_uses_successful_fwi_runs(async_session: 
 
     rows = await get_sfms_insights_bounds(async_session)
 
-    bounds_by_run_type = {row[1].value: (row[2], row[3]) for row in rows}
+    bounds_by_run_type = {row.run_type.value: (row.minimum, row.maximum) for row in rows}
     assert bounds_by_run_type["actual"] == (date(2026, 4, 1), date(2026, 9, 30))
     assert bounds_by_run_type["forecast"] == (date(2026, 4, 2), date(2026, 4, 2))

@@ -15,6 +15,7 @@ from wps_shared.db.models.sfms_run import (
     SFMSRunLogJobName,
     SFMSRunLogStatus,
 )
+from wps_shared.schemas.sfms import SFMSRunBounds
 from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
@@ -148,14 +149,14 @@ async def save_sfms_run(
     return result.scalar()
 
 
-async def get_sfms_insights_bounds(session: AsyncSession):
+async def get_sfms_insights_bounds(session: AsyncSession) -> list[SFMSRunBounds]:
     """Return target-date bounds for completed SFMS runs used by SFMS Insights."""
     stmt = (
         select(
             extract("YEAR", SFMSRun.target_date).label("year"),
             SFMSRun.run_type,
-            func.min(SFMSRun.target_date).label("minDate"),
-            func.max(SFMSRun.target_date).label("maxDate"),
+            func.min(SFMSRun.target_date).label("minimum"),
+            func.max(SFMSRun.target_date).label("maximum"),
         )
         .join(SFMSRunLog, SFMSRunLog.sfms_run_id == SFMSRun.id)
         .where(
@@ -166,4 +167,4 @@ async def get_sfms_insights_bounds(session: AsyncSession):
         .order_by("year")
     )
     result = await session.execute(stmt)
-    return result.all()
+    return [SFMSRunBounds.model_validate(row) for row in result.mappings().all()]
