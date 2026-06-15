@@ -1,11 +1,12 @@
-import { FireCentreInfo, getFireCentreInfo } from "@/api/fbaAPI";
-import { createTestStore } from "@/testUtils";
-import { FIRE_CENTRE_INFO_KEY, readFromFilesystem } from "@/utils/storage";
-import { Preferences } from "@capacitor/preferences";
-import { act } from "@testing-library/react";
-import { DateTime } from "luxon";
-import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
-import { getNotificationSettings } from "api/pushNotificationsAPI";
+import { Preferences } from '@capacitor/preferences'
+import { act } from '@testing-library/react'
+import { getNotificationSettings } from 'api/pushNotificationsAPI'
+import { DateTime } from 'luxon'
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { type FireCentreInfo, getFireCentreInfo } from '@/api/fbaAPI'
+import { createTestStore } from '@/testUtils'
+import { FIRE_CENTRE_INFO_KEY, readFromFilesystem } from '@/utils/storage'
+import { getUpdatedSubscriptions } from '@/utils/subscriptionUtils'
 import settingsSlice, {
   fetchFireCentreInfo,
   getFireCentreInfoFailed,
@@ -14,453 +15,425 @@ import settingsSlice, {
   initialState,
   initPinnedFireCentre,
   initSubscriptions,
+  type SettingsState,
   savePinnedFireCentre,
   setPinnedFireCentre,
-  setSubscriptions,
-  SettingsState,
-} from "./settingsSlice";
-import { getUpdatedSubscriptions } from "@/utils/subscriptionUtils";
+  setSubscriptions
+} from './settingsSlice'
 
 // Mock the @capacitor/preferences module
-vi.mock("@capacitor/preferences", () => ({
+vi.mock('@capacitor/preferences', () => ({
   Preferences: {
     get: vi.fn(),
     set: vi.fn(),
-    remove: vi.fn(),
-  },
-}));
+    remove: vi.fn()
+  }
+}))
 
 // Mock the storage utilities
-vi.mock("@/utils/storage", () => ({
+vi.mock('@/utils/storage', () => ({
   readFromFilesystem: vi.fn(),
   writeToFileSystem: vi.fn(),
   FIRE_CENTRE_INFO_CACHE_EXPIRATION: 24,
-  FIRE_CENTRE_INFO_KEY: "fireCentreInfo",
-}));
+  FIRE_CENTRE_INFO_KEY: 'fireCentreInfo'
+}))
 
 // Mock the API
-vi.mock("@/api/fbaAPI", () => ({
-  getFireCentreInfo: vi.fn(),
-}));
+vi.mock('@/api/fbaAPI', () => ({
+  getFireCentreInfo: vi.fn()
+}))
 
-vi.mock("api/pushNotificationsAPI", () => ({
-  getNotificationSettings: vi.fn(),
-}));
+vi.mock('api/pushNotificationsAPI', () => ({
+  getNotificationSettings: vi.fn()
+}))
 
-vi.mock("@/utils/retryWithBackoff", () => ({
-  retryWithBackoff: vi.fn((op: () => Promise<unknown>) => op()),
-}));
+vi.mock('@/utils/retryWithBackoff', () => ({
+  retryWithBackoff: vi.fn((op: () => Promise<unknown>) => op())
+}))
 
-describe("settingsSlice", () => {
+describe('settingsSlice', () => {
   // Test data factories
-  const createSettingsState = (
-    overrides: Partial<SettingsState> = {},
-  ): SettingsState => ({
+  const createSettingsState = (overrides: Partial<SettingsState> = {}): SettingsState => ({
     ...initialState,
-    ...overrides,
-  });
+    ...overrides
+  })
 
-  const createFireCentreInfo = (
-    overrides: Partial<FireCentreInfo> = {},
-  ): FireCentreInfo => ({
-    fire_centre_name: "Test Fire Centre",
-    fire_zone_units: [{ id: 1, name: "Test Zone" }],
-    ...overrides,
-  });
+  const createFireCentreInfo = (overrides: Partial<FireCentreInfo> = {}): FireCentreInfo => ({
+    fire_centre_name: 'Test Fire Centre',
+    fire_zone_units: [{ id: 1, name: 'Test Zone' }],
+    ...overrides
+  })
 
-  const expectSettingsState = (
-    state: SettingsState,
-    expected: Partial<SettingsState>,
-  ) => {
+  const expectSettingsState = (state: SettingsState, expected: Partial<SettingsState>) => {
     Object.entries(expected).forEach(([key, value]) => {
       if (Array.isArray(value)) {
-        expect(state[key as keyof SettingsState]).toEqual(value);
+        expect(state[key as keyof SettingsState]).toEqual(value)
       } else {
-        expect(state[key as keyof SettingsState]).toBe(value);
+        expect(state[key as keyof SettingsState]).toBe(value)
       }
-    });
-  };
+    })
+  }
 
-  describe("reducers", () => {
-    it("should return the initial state", () => {
-      expect(settingsSlice(undefined, { type: "unknown" })).toEqual(
-        initialState,
-      );
-    });
+  describe('reducers', () => {
+    it('should return the initial state', () => {
+      expect(settingsSlice(undefined, { type: 'unknown' })).toEqual(initialState)
+    })
 
-    it("should handle getFireCentreInfoStart", () => {
+    it('should handle getFireCentreInfoStart', () => {
       const previousState = createSettingsState({
         loading: false,
-        error: "Previous error",
-        fireCentreInfos: [
-          { fire_centre_name: "Old Fire Centre", fire_zone_units: [] },
-        ],
-      });
+        error: 'Previous error',
+        fireCentreInfos: [{ fire_centre_name: 'Old Fire Centre', fire_zone_units: [] }]
+      })
 
-      const nextState = settingsSlice(previousState, getFireCentreInfoStart());
+      const nextState = settingsSlice(previousState, getFireCentreInfoStart())
 
       expectSettingsState(nextState, {
         loading: true,
         error: null,
-        fireCentreInfos: [],
-      });
-    });
+        fireCentreInfos: []
+      })
+    })
 
-    it("should handle getFireCentreInfoFailed", () => {
+    it('should handle getFireCentreInfoFailed', () => {
       const previousState = createSettingsState({
-        loading: true,
-      });
-      const errorMessage = "Failed to load fire centre info";
+        loading: true
+      })
+      const errorMessage = 'Failed to load fire centre info'
 
-      const nextState = settingsSlice(
-        previousState,
-        getFireCentreInfoFailed(errorMessage),
-      );
+      const nextState = settingsSlice(previousState, getFireCentreInfoFailed(errorMessage))
 
       expectSettingsState(nextState, {
         loading: false,
-        error: errorMessage,
-      });
-    });
+        error: errorMessage
+      })
+    })
 
-    it("should handle getFireCentreInfoSuccess", () => {
+    it('should handle getFireCentreInfoSuccess', () => {
       const previousState = createSettingsState({
         loading: true,
-        error: "Previous error",
-      });
+        error: 'Previous error'
+      })
       const fireCentreInfos = [
-        createFireCentreInfo({ fire_centre_name: "Fire Centre 1" }),
-        createFireCentreInfo({ fire_centre_name: "Fire Centre 2" }),
-      ];
+        createFireCentreInfo({ fire_centre_name: 'Fire Centre 1' }),
+        createFireCentreInfo({ fire_centre_name: 'Fire Centre 2' })
+      ]
 
-      const nextState = settingsSlice(
-        previousState,
-        getFireCentreInfoSuccess(fireCentreInfos),
-      );
+      const nextState = settingsSlice(previousState, getFireCentreInfoSuccess(fireCentreInfos))
 
       expectSettingsState(nextState, {
         loading: false,
         error: null,
-        fireCentreInfos: fireCentreInfos,
-      });
-    });
+        fireCentreInfos: fireCentreInfos
+      })
+    })
 
-    it("should handle setPinnedFireCentre", () => {
+    it('should handle setPinnedFireCentre', () => {
       const previousState = createSettingsState({
-        pinnedFireCentre: null,
-      });
-      const fireCentre = "Kamloops";
+        pinnedFireCentre: null
+      })
+      const fireCentre = 'Kamloops'
 
-      const nextState = settingsSlice(
-        previousState,
-        setPinnedFireCentre(fireCentre),
-      );
+      const nextState = settingsSlice(previousState, setPinnedFireCentre(fireCentre))
 
       expectSettingsState(nextState, {
-        pinnedFireCentre: fireCentre,
-      });
-    });
+        pinnedFireCentre: fireCentre
+      })
+    })
 
-    it("should handle setPinnedFireCentre with null", () => {
+    it('should handle setPinnedFireCentre with null', () => {
       const previousState = createSettingsState({
-        pinnedFireCentre: "Kamloops",
-      });
+        pinnedFireCentre: 'Kamloops'
+      })
 
-      const nextState = settingsSlice(previousState, setPinnedFireCentre(null));
+      const nextState = settingsSlice(previousState, setPinnedFireCentre(null))
 
       expectSettingsState(nextState, {
-        pinnedFireCentre: null,
-      });
-    });
+        pinnedFireCentre: null
+      })
+    })
 
-    it("should handle setSubscriptions", () => {
+    it('should handle setSubscriptions', () => {
       const previousState = createSettingsState({
-        subscriptions: [],
-      });
-      const subscriptions = [1, 2, 3];
+        subscriptions: []
+      })
+      const subscriptions = [1, 2, 3]
 
-      const nextState = settingsSlice(
-        previousState,
-        setSubscriptions(subscriptions),
-      );
+      const nextState = settingsSlice(previousState, setSubscriptions(subscriptions))
 
       expectSettingsState(nextState, {
-        subscriptions: subscriptions,
-      });
-    });
+        subscriptions: subscriptions
+      })
+    })
 
-    it("should handle setSubscriptions with empty array", () => {
+    it('should handle setSubscriptions with empty array', () => {
       const previousState = createSettingsState({
-        subscriptions: [1, 2, 3],
-      });
+        subscriptions: [1, 2, 3]
+      })
 
-      const nextState = settingsSlice(previousState, setSubscriptions([]));
+      const nextState = settingsSlice(previousState, setSubscriptions([]))
 
       expectSettingsState(nextState, {
-        subscriptions: [],
-      });
-    });
+        subscriptions: []
+      })
+    })
 
-    it("setSubscriptions marks subscriptionsInitialized as true", () => {
+    it('setSubscriptions marks subscriptionsInitialized as true', () => {
       const previousState = createSettingsState({
-        subscriptionsInitialized: false,
-      });
+        subscriptionsInitialized: false
+      })
 
-      const nextState = settingsSlice(previousState, setSubscriptions([1, 2]));
+      const nextState = settingsSlice(previousState, setSubscriptions([1, 2]))
 
-      expect(nextState.subscriptionsInitialized).toBe(true);
-    });
-  });
+      expect(nextState.subscriptionsInitialized).toBe(true)
+    })
+  })
 
-  describe("getUpdatedSubscriptions", () => {
-    it("adds a zone ID that is not yet subscribed", () => {
-      expect(getUpdatedSubscriptions([1, 2], 3)).toEqual([1, 2, 3]);
-    });
+  describe('getUpdatedSubscriptions', () => {
+    it('adds a zone ID that is not yet subscribed', () => {
+      expect(getUpdatedSubscriptions([1, 2], 3)).toEqual([1, 2, 3])
+    })
 
-    it("removes a zone ID that is already subscribed", () => {
-      expect(getUpdatedSubscriptions([1, 2, 3], 2)).toEqual([1, 3]);
-    });
+    it('removes a zone ID that is already subscribed', () => {
+      expect(getUpdatedSubscriptions([1, 2, 3], 2)).toEqual([1, 3])
+    })
 
-    it("adds to an empty subscription list", () => {
-      expect(getUpdatedSubscriptions([], 5)).toEqual([5]);
-    });
+    it('adds to an empty subscription list', () => {
+      expect(getUpdatedSubscriptions([], 5)).toEqual([5])
+    })
 
-    it("removes the only subscription", () => {
-      expect(getUpdatedSubscriptions([5], 5)).toEqual([]);
-    });
-  });
+    it('removes the only subscription', () => {
+      expect(getUpdatedSubscriptions([5], 5)).toEqual([])
+    })
+  })
 
-  describe("thunks", () => {
+  describe('thunks', () => {
     beforeEach(() => {
-      vi.resetAllMocks();
-    });
+      vi.resetAllMocks()
+    })
 
-    describe("initPinnedFireCentre", () => {
-      it("should dispatch setPinnedFireCentre when stored value exists", async () => {
-        const store = createTestStore();
-        (Preferences.get as Mock).mockResolvedValue({
-          value: "Kamloops",
-        });
+    describe('initPinnedFireCentre', () => {
+      it('should dispatch setPinnedFireCentre when stored value exists', async () => {
+        const store = createTestStore()
+        ;(Preferences.get as Mock).mockResolvedValue({
+          value: 'Kamloops'
+        })
 
-        await store.dispatch(initPinnedFireCentre());
+        await store.dispatch(initPinnedFireCentre())
 
         expectSettingsState(store.getState().settings, {
-          pinnedFireCentre: "Kamloops",
-        });
-      });
+          pinnedFireCentre: 'Kamloops'
+        })
+      })
 
-      it("should not dispatch setPinnedFireCentre when no stored value", async () => {
-        const store = createTestStore();
-        (Preferences.get as Mock).mockResolvedValue({ value: null });
+      it('should not dispatch setPinnedFireCentre when no stored value', async () => {
+        const store = createTestStore()
+        ;(Preferences.get as Mock).mockResolvedValue({ value: null })
 
         act(async () => {
-          store.dispatch(initPinnedFireCentre());
-        });
+          store.dispatch(initPinnedFireCentre())
+        })
 
         expectSettingsState(store.getState().settings, {
-          pinnedFireCentre: null,
-        });
-      });
-    });
+          pinnedFireCentre: null
+        })
+      })
+    })
 
-    describe("savePinnedFireCentre", () => {
-      it("should save fire centre to preferences and update state", async () => {
-        const store = createTestStore();
-        (Preferences.set as Mock).mockResolvedValue(undefined);
+    describe('savePinnedFireCentre', () => {
+      it('should save fire centre to preferences and update state', async () => {
+        const store = createTestStore()
+        ;(Preferences.set as Mock).mockResolvedValue(undefined)
 
-        await store.dispatch(savePinnedFireCentre("Kamloops"));
+        await store.dispatch(savePinnedFireCentre('Kamloops'))
 
         expect(Preferences.set).toHaveBeenCalledWith({
-          key: "asaGoPinnedFireCentre",
-          value: "Kamloops",
-        });
+          key: 'asaGoPinnedFireCentre',
+          value: 'Kamloops'
+        })
         expectSettingsState(store.getState().settings, {
-          pinnedFireCentre: "Kamloops",
-        });
-      });
+          pinnedFireCentre: 'Kamloops'
+        })
+      })
 
-      it("should remove fire centre from preferences when null", async () => {
-        const store = createTestStore();
-        (Preferences.remove as Mock).mockResolvedValue(undefined);
+      it('should remove fire centre from preferences when null', async () => {
+        const store = createTestStore()
+        ;(Preferences.remove as Mock).mockResolvedValue(undefined)
 
-        await store.dispatch(savePinnedFireCentre(null));
+        await store.dispatch(savePinnedFireCentre(null))
 
         expect(Preferences.remove).toHaveBeenCalledWith({
-          key: "asaGoPinnedFireCentre",
-        });
+          key: 'asaGoPinnedFireCentre'
+        })
         expectSettingsState(store.getState().settings, {
-          pinnedFireCentre: null,
-        });
-      });
-    });
-    describe("initSubscriptions", () => {
-      it("dispatches setSubscriptions with parsed numbers on success", async () => {
-        (getNotificationSettings as Mock).mockResolvedValue(["1", "2", "3"]);
-        const store = createTestStore();
+          pinnedFireCentre: null
+        })
+      })
+    })
+    describe('initSubscriptions', () => {
+      it('dispatches setSubscriptions with parsed numbers on success', async () => {
+        ;(getNotificationSettings as Mock).mockResolvedValue(['1', '2', '3'])
+        const store = createTestStore()
 
-        await store.dispatch(initSubscriptions("test-device-id"));
+        await store.dispatch(initSubscriptions('test-device-id'))
 
-        expect(store.getState().settings.subscriptions).toEqual([1, 2, 3]);
-        expect(store.getState().settings.subscriptionsInitialized).toBe(true);
-      });
+        expect(store.getState().settings.subscriptions).toEqual([1, 2, 3])
+        expect(store.getState().settings.subscriptionsInitialized).toBe(true)
+      })
 
-      it("does not update state when fetch fails", async () => {
-        (getNotificationSettings as Mock).mockRejectedValue(
-          new Error("network error"),
-        );
-        vi.spyOn(console, "error").mockImplementation(() => {});
-        const store = createTestStore();
+      it('does not update state when fetch fails', async () => {
+        ;(getNotificationSettings as Mock).mockRejectedValue(new Error('network error'))
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        const store = createTestStore()
 
-        await store.dispatch(initSubscriptions("test-device-id"));
+        await store.dispatch(initSubscriptions('test-device-id'))
 
-        expect(store.getState().settings.subscriptions).toEqual([]);
-        expect(store.getState().settings.subscriptionsInitialized).toBe(false);
-      });
-    });
+        expect(store.getState().settings.subscriptions).toEqual([])
+        expect(store.getState().settings.subscriptionsInitialized).toBe(false)
+      })
+    })
 
-    describe("fetchFireCentreInfo", () => {
+    describe('fetchFireCentreInfo', () => {
       beforeEach(() => {
         // Reset all mocks before each test
-        vi.clearAllMocks();
-      });
+        vi.clearAllMocks()
+      })
 
-      const today = DateTime.now().toISO();
-      const yesterday = DateTime.now().plus({ days: -2 }).toISO();
+      const today = DateTime.now().toISO()
+      const yesterday = DateTime.now().plus({ days: -2 }).toISO()
 
       const mockFireCentreInfoA: FireCentreInfo = {
-        fire_centre_name: "Kamloops Fire Centre",
+        fire_centre_name: 'Kamloops Fire Centre',
         fire_zone_units: [
           {
             id: 1,
-            name: "Vernon Fire Zone",
-          },
-        ],
-      };
+            name: 'Vernon Fire Zone'
+          }
+        ]
+      }
       const mockFireCentreInfoB: FireCentreInfo = {
-        fire_centre_name: "Cariboo Fire Centre",
+        fire_centre_name: 'Cariboo Fire Centre',
         fire_zone_units: [
           {
             id: 2,
-            name: "Chilcoltin Fire Zone",
-          },
-        ],
-      };
+            name: 'Chilcoltin Fire Zone'
+          }
+        ]
+      }
 
       const mockCacheWithNoData = () => {
-        (readFromFilesystem as Mock).mockImplementation(() => {
-          return null;
-        });
-      };
+        ;(readFromFilesystem as Mock).mockImplementation(() => {
+          return null
+        })
+      }
       const mockCacheWithData = (isStale: boolean) => {
-        (readFromFilesystem as Mock).mockImplementation((_filesystem, key) => {
+        ;(readFromFilesystem as Mock).mockImplementation((_filesystem, key) => {
           if (key === FIRE_CENTRE_INFO_KEY) {
             return {
               lastUpdated: isStale ? yesterday : today,
-              data: isStale ? [mockFireCentreInfoA] : [mockFireCentreInfoB],
-            };
+              data: isStale ? [mockFireCentreInfoA] : [mockFireCentreInfoB]
+            }
           } else {
-            return null;
+            return null
           }
-        });
-      };
+        })
+      }
 
-      it("should call API and dispatch success when cache is empty and app online", async () => {
-        mockCacheWithNoData(); // mock cache returns null
-        (getFireCentreInfo as Mock).mockResolvedValue({
-          fire_centre_info: [mockFireCentreInfoA],
-        });
+      it('should call API and dispatch success when cache is empty and app online', async () => {
+        mockCacheWithNoData() // mock cache returns null
+        ;(getFireCentreInfo as Mock).mockResolvedValue({
+          fire_centre_info: [mockFireCentreInfoA]
+        })
         const store = createTestStore({
           settings: { ...initialState },
           networkStatus: {
-            networkStatus: { connected: true, connectionType: "wifi" },
-          },
-        });
-        await store.dispatch(fetchFireCentreInfo());
-        const state = store.getState().settings;
-        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoA]);
-        expect(state.loading).toBe(false);
-        expect(getFireCentreInfo).toHaveBeenCalledOnce();
-      });
+            networkStatus: { connected: true, connectionType: 'wifi' }
+          }
+        })
+        await store.dispatch(fetchFireCentreInfo())
+        const state = store.getState().settings
+        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoA])
+        expect(state.loading).toBe(false)
+        expect(getFireCentreInfo).toHaveBeenCalledOnce()
+      })
 
-      it("should call API and dispatch success when cache is stale and app online", async () => {
-        mockCacheWithData(true); // mock cache returns mockFireCentreA
-        (getFireCentreInfo as Mock).mockResolvedValue({
-          fire_centre_info: [mockFireCentreInfoB],
-        }); // API call returns mockFireCentreB
+      it('should call API and dispatch success when cache is stale and app online', async () => {
+        mockCacheWithData(true) // mock cache returns mockFireCentreA
+        ;(getFireCentreInfo as Mock).mockResolvedValue({
+          fire_centre_info: [mockFireCentreInfoB]
+        }) // API call returns mockFireCentreB
         const store = createTestStore({
           settings: { ...initialState },
           networkStatus: {
-            networkStatus: { connected: true, connectionType: "wifi" },
-          },
-        });
-        await store.dispatch(fetchFireCentreInfo());
-        const state = store.getState().settings;
-        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoB]);
-        expect(state.loading).toBe(false);
-        expect(getFireCentreInfo).toHaveBeenCalledOnce();
-      });
+            networkStatus: { connected: true, connectionType: 'wifi' }
+          }
+        })
+        await store.dispatch(fetchFireCentreInfo())
+        const state = store.getState().settings
+        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoB])
+        expect(state.loading).toBe(false)
+        expect(getFireCentreInfo).toHaveBeenCalledOnce()
+      })
 
-      it("should not call API when cache is fresh and app online", async () => {
-        mockCacheWithData(false); // mock cache returns mockFireCentreInfoB
+      it('should not call API when cache is fresh and app online', async () => {
+        mockCacheWithData(false) // mock cache returns mockFireCentreInfoB
         const store = createTestStore({
           settings: { ...initialState },
           networkStatus: {
-            networkStatus: { connected: true, connectionType: "wifi" },
-          },
-        });
-        await store.dispatch(fetchFireCentreInfo());
-        const state = store.getState().settings;
-        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoB]);
-        expect(state.loading).toBe(false);
-        expect(getFireCentreInfo).not.toBeCalled();
-      });
+            networkStatus: { connected: true, connectionType: 'wifi' }
+          }
+        })
+        await store.dispatch(fetchFireCentreInfo())
+        const state = store.getState().settings
+        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoB])
+        expect(state.loading).toBe(false)
+        expect(getFireCentreInfo).not.toBeCalled()
+      })
 
-      it("should dispatch error when cache is empty and app is offline", async () => {
-        mockCacheWithNoData();
+      it('should dispatch error when cache is empty and app is offline', async () => {
+        mockCacheWithNoData()
         const store = createTestStore({
           settings: { ...initialState },
           networkStatus: {
-            networkStatus: { connected: false, connectionType: "none" },
-          },
-        });
-        await store.dispatch(fetchFireCentreInfo());
-        const state = store.getState().settings;
-        expect(state.loading).toBe(false);
-        expect(state.error).toMatch(/Unable to refresh fire centre info data/);
-      });
+            networkStatus: { connected: false, connectionType: 'none' }
+          }
+        })
+        await store.dispatch(fetchFireCentreInfo())
+        const state = store.getState().settings
+        expect(state.loading).toBe(false)
+        expect(state.error).toMatch(/Unable to refresh fire centre info data/)
+      })
 
-      it("should dispatch success when cache is stale and app is offline", async () => {
-        mockCacheWithData(true);
+      it('should dispatch success when cache is stale and app is offline', async () => {
+        mockCacheWithData(true)
         const store = createTestStore({
           settings: { ...initialState },
           networkStatus: {
-            networkStatus: { connected: false, connectionType: "none" },
-          },
-        });
-        await store.dispatch(fetchFireCentreInfo());
-        const state = store.getState().settings;
-        expect(state.loading).toBe(false);
-        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoA]);
-      });
+            networkStatus: { connected: false, connectionType: 'none' }
+          }
+        })
+        await store.dispatch(fetchFireCentreInfo())
+        const state = store.getState().settings
+        expect(state.loading).toBe(false)
+        expect(state.fireCentreInfos).toEqual([mockFireCentreInfoA])
+      })
 
-      it("should dispatch error when API call fails", async () => {
-        mockCacheWithNoData();
-        (getFireCentreInfo as Mock).mockRejectedValue(
-          new Error("server error"),
-        );
-        vi.spyOn(console, "error").mockImplementation(() => {});
+      it('should dispatch error when API call fails', async () => {
+        mockCacheWithNoData()
+        ;(getFireCentreInfo as Mock).mockRejectedValue(new Error('server error'))
+        vi.spyOn(console, 'error').mockImplementation(() => {})
         const store = createTestStore({
           settings: { ...initialState },
           networkStatus: {
-            networkStatus: { connected: true, connectionType: "wifi" },
-          },
-        });
-        await store.dispatch(fetchFireCentreInfo());
-        const state = store.getState().settings;
-        expect(state.loading).toBe(false);
-        expect(state.error).toMatch(/Error: server error/);
-        expect(state.fireCentreInfos).toEqual([]);
-      });
-    });
-  });
-});
+            networkStatus: { connected: true, connectionType: 'wifi' }
+          }
+        })
+        await store.dispatch(fetchFireCentreInfo())
+        const state = store.getState().settings
+        expect(state.loading).toBe(false)
+        expect(state.error).toMatch(/Error: server error/)
+        expect(state.fireCentreInfos).toEqual([])
+      })
+    })
+  })
+})

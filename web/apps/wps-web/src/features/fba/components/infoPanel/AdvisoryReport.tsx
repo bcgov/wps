@@ -1,11 +1,11 @@
-import { useFireCentreDetails } from '@/features/fba/hooks/useFireCentreDetails'
 import { Grid } from '@mui/material'
-import { FireShape } from '@wps/api/fbaAPI'
+import type { FireShape } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { INFO_PANEL_CONTENT_BACKGROUND } from '@wps/ui/theme'
 import AdvisoryText from 'features/fba/components/infoPanel/AdvisoryText'
 import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
-import { DateTime } from 'luxon'
+import type { DateTime } from 'luxon'
+import { useFireCentreDetails } from '@/features/fba/hooks/useFireCentreDetails'
 
 interface AdvisoryReportProps {
   issueDate: DateTime | null
@@ -29,9 +29,12 @@ const AdvisoryReport = ({ issueDate, forDate, selectedFireCentre, selectedFireZo
         showAdvisoryStatusBar={true}
         advisoryStatus={fireZoneUnitDetails?.status}
       >
-        <Grid container sx={{
-          justifyContent: "center"
-        }}>
+        <Grid
+          container
+          sx={{
+            justifyContent: 'center'
+          }}
+        >
           <Grid sx={{ width: '90%' }}>
             <AdvisoryText
               issueDate={issueDate}
@@ -43,7 +46,7 @@ const AdvisoryReport = ({ issueDate, forDate, selectedFireCentre, selectedFireZo
         </Grid>
       </InfoAccordion>
     </div>
-  );
+  )
 }
 
 export default AdvisoryReport

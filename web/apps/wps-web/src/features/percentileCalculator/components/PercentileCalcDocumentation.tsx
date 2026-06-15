@@ -1,9 +1,8 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
-import { Card, CardContent, Typography } from '@mui/material'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
-
+import { Card, CardContent, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import PDF from 'documents/90th_percentile_calculator_rationale.pdf'
+import type React from 'react'
 
 const PREFIX = 'PercentileCalcDocumentation'
 

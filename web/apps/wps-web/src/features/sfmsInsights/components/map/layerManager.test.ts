@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type VectorTileLayer from 'ol/layer/VectorTile'
+import type WebGLTileLayer from 'ol/layer/WebGLTile'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+type Handler = (...args: unknown[]) => void
+
 import { LayerManager } from './layerManager'
-import WebGLTileLayer from 'ol/layer/WebGLTile'
-import VectorTileLayer from 'ol/layer/VectorTile'
 
 describe('LayerManager', () => {
   const createMockSource = () => ({
@@ -247,9 +250,9 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      let tileloadendHandler: Function | null = null
+      let tileloadendHandler: Handler | null = null
       const mockSource = {
-        on: vi.fn((event: string, handler: Function) => {
+        on: vi.fn((event: string, handler: Handler) => {
           if (event === 'tileloadend') {
             tileloadendHandler = handler
           }
@@ -277,10 +280,10 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      let tileloaderrorHandler: Function | null = null
+      let tileloaderrorHandler: Handler | null = null
       const mockSource = {
         on: vi.fn(),
-        once: vi.fn((event: string, handler: Function) => {
+        once: vi.fn((event: string, handler: Handler) => {
           if (event === 'tileloaderror') {
             tileloaderrorHandler = handler
           }
@@ -435,14 +438,14 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      let tileloaderrorHandler: Function | null = null
+      let tileloaderrorHandler: Handler | null = null
       const mockSource = {
-        on: vi.fn((event: string, handler: Function) => {
+        on: vi.fn((event: string, handler: Handler) => {
           if (event === 'tileloaderror') {
             tileloaderrorHandler = handler
           }
         }),
-        once: vi.fn((event: string, handler: Function) => {
+        once: vi.fn((event: string, handler: Handler) => {
           if (event === 'tileloaderror') {
             tileloaderrorHandler = handler
           }
@@ -473,10 +476,10 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      let errorHandler: Function | null = null
+      let errorHandler: Handler | null = null
       const mockSource = {
         on: vi.fn(),
-        once: vi.fn((event: string, handler: Function) => {
+        once: vi.fn((event: string, handler: Handler) => {
           if (event === 'error') {
             errorHandler = handler
           }
@@ -507,9 +510,9 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      let changeHandler: Function | null = null
+      let changeHandler: Handler | null = null
       const mockSource = {
-        on: vi.fn((event: string, handler: Function) => {
+        on: vi.fn((event: string, handler: Handler) => {
           if (event === 'change') {
             changeHandler = handler
           }
@@ -575,9 +578,9 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      let tileloadendHandler: Function | null = null
+      let tileloadendHandler: Handler | null = null
       const mockSource = {
-        on: vi.fn((event: string, handler: Function) => {
+        on: vi.fn((event: string, handler: Handler) => {
           if (event === 'tileloadend') {
             tileloadendHandler = handler
           }
@@ -639,10 +642,10 @@ describe('LayerManager', () => {
       const mockMap = { addLayer: vi.fn(), removeLayer: vi.fn() }
       manager.setMap(mockMap as any)
 
-      let changeHandler: Function | null = null
-      let tileloadendHandler: Function | null = null
+      let changeHandler: Handler | null = null
+      let tileloadendHandler: Handler | null = null
       const mockSource = {
-        on: vi.fn((event: string, handler: Function) => {
+        on: vi.fn((event: string, handler: Handler) => {
           if (event === 'change') {
             changeHandler = handler
           } else if (event === 'tileloadend') {

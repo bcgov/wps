@@ -1,9 +1,9 @@
 import {
-  getRasterTooltipData,
   findRasterLayer,
-  getRasterType,
+  getDataAtPixel,
   getRasterData,
-  getDataAtPixel
+  getRasterTooltipData,
+  getRasterType
 } from './rasterTooltipHandler'
 import { NODATA_THRESHOLD } from './sfmsFeatureStylers'
 
@@ -85,31 +85,20 @@ describe('findRasterLayer', () => {
   })
 
   it('should find layer with rasterType property', () => {
-    const layers = [
-      createMockLayer(false),
-      createMockLayer(true, 'fwi'),
-      createMockLayer(false)
-    ]
+    const layers = [createMockLayer(false), createMockLayer(true, 'fwi'), createMockLayer(false)]
     const result = findRasterLayer(layers)
     expect(result).toBeDefined()
     expect(result?.getProperties().rasterType).toBe('fwi')
   })
 
   it('should return undefined when no raster layer exists', () => {
-    const layers = [
-      createMockLayer(false),
-      createMockLayer(false)
-    ]
+    const layers = [createMockLayer(false), createMockLayer(false)]
     const result = findRasterLayer(layers)
     expect(result).toBeUndefined()
   })
 
   it('should return first raster layer when multiple exist', () => {
-    const layers = [
-      createMockLayer(false),
-      createMockLayer(true, 'fwi'),
-      createMockLayer(true, 'dmc')
-    ]
+    const layers = [createMockLayer(false), createMockLayer(true, 'fwi'), createMockLayer(true, 'dmc')]
     const result = findRasterLayer(layers)
     expect(result?.getProperties().rasterType).toBe('fwi')
   })
@@ -121,9 +110,10 @@ describe('findRasterLayer', () => {
 })
 
 describe('getRasterType', () => {
-  const createMockLayer = (rasterType?: string) => (({
-    getProperties: () => ({ rasterType })
-  }) as any)
+  const createMockLayer = (rasterType?: string) =>
+    ({
+      getProperties: () => ({ rasterType })
+    }) as any
 
   it.each([
     ['fwi', 'fwi'],
@@ -146,9 +136,10 @@ describe('getRasterType', () => {
 })
 
 describe('getRasterData', () => {
-  const createMockLayer = (data: Float32Array | Uint8Array | null) => (({
-    getData: vi.fn(() => data)
-  }) as any)
+  const createMockLayer = (data: Float32Array | Uint8Array | null) =>
+    ({
+      getData: vi.fn(() => data)
+    }) as any
 
   it('should get data from layer at pixel coordinate', () => {
     const data = new Float32Array([42])
@@ -182,10 +173,11 @@ describe('getRasterData', () => {
 })
 
 describe('getDataAtPixel', () => {
-  const createMockLayer = (data: Float32Array | Uint8Array | null, rasterType?: string) => (({
-    getData: vi.fn(() => data),
-    getProperties: () => ({ rasterType })
-  }) as any)
+  const createMockLayer = (data: Float32Array | Uint8Array | null, rasterType?: string) =>
+    ({
+      getData: vi.fn(() => data),
+      getProperties: () => ({ rasterType })
+    }) as any
 
   it('should get tooltip data from layer with valid data', () => {
     const data = new Float32Array([42.7])

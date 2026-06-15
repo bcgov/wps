@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
-import { useSelector } from 'react-redux'
-import { FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import type { FireShapeStatusDetail } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import { useMemo } from 'react'
+import { useSelector } from 'react-redux'
 
 /**
  * Hook for grabbing a fire centre from the provincial summary, grouping by unique 'fire_shape_id' and

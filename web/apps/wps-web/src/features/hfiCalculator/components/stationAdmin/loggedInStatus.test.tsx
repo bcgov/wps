@@ -1,7 +1,6 @@
 import { render } from '@testing-library/react'
 import LoggedInStatus from 'features/hfiCalculator/components/stationAdmin/LoggedInStatus'
 
-
 describe('LoggedInStatus', () => {
   const idir = 'test@idir'
   it('should render nothing if not authenticated', () => {

@@ -1,172 +1,143 @@
-import { describe, it, expect, vi } from "vitest";
-import { renderHook } from "@testing-library/react";
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
-import { DateTime } from "luxon";
+import { configureStore } from '@reduxjs/toolkit'
+import { renderHook } from '@testing-library/react'
+import { DateTime } from 'luxon'
+import type { ReactNode } from 'react'
+import { Provider } from 'react-redux'
+import { describe, expect, it, vi } from 'vitest'
 import {
-  useFilteredHFIStatsForDate,
-  useProvincialSummaryForDate,
-  useTPIStatsForDate,
-} from "@/hooks/dataHooks";
-import {
-  FireShapeStatusDetail,
-  FireZoneHFIStatsDictionary,
-  FireZoneTPIStats,
-  RunParameter,
-  RunType,
-} from "@/api/fbaAPI";
-import { filterHFIFuelStatsByArea } from "@/utils/hfiStatsUtils";
-import { RootState } from "@/store";
-import { initialState } from "@/slices/dataSlice";
-import { ReactNode } from "react";
+  type FireShapeStatusDetail,
+  type FireZoneHFIStatsDictionary,
+  type FireZoneTPIStats,
+  type RunParameter,
+  RunType
+} from '@/api/fbaAPI'
+import { useFilteredHFIStatsForDate, useProvincialSummaryForDate, useTPIStatsForDate } from '@/hooks/dataHooks'
+import { initialState } from '@/slices/dataSlice'
+import type { RootState } from '@/store'
+import { filterHFIFuelStatsByArea } from '@/utils/hfiStatsUtils'
 
-vi.mock("@/utils/hfiStatsUtils", () => ({
-  filterHFIFuelStatsByArea: vi.fn((data) => data), // mock passthrough
-}));
+vi.mock('@/utils/hfiStatsUtils', () => ({
+  filterHFIFuelStatsByArea: vi.fn(data => data) // mock passthrough
+}))
 
-const today = DateTime.now();
-const todayKey = today.toISODate();
+const today = DateTime.now()
+const todayKey = today.toISODate()
 
 const mockRunParameter: RunParameter = {
   run_type: RunType.FORECAST,
-  run_datetime: "2025-11-20T00:00:00Z",
-  for_date: todayKey,
-};
+  run_datetime: '2025-11-20T00:00:00Z',
+  for_date: todayKey
+}
 
 const createMockStore = (state: Partial<RootState>) =>
   configureStore({
-    reducer: () => state,
-  });
+    reducer: () => state
+  })
 
-describe("Custom Hooks", () => {
-  it("useFilteredHFIStatsForDate returns filtered HFI stats", () => {
+describe('Custom Hooks', () => {
+  it('useFilteredHFIStatsForDate returns filtered HFI stats', () => {
     const mockHFIStats: FireZoneHFIStatsDictionary = {
       2: {
         min_wind_stats: [],
-        fuel_area_stats: [],
-      },
-    };
+        fuel_area_stats: []
+      }
+    }
     const store = createMockStore({
       data: {
         ...initialState,
         hfiStats: {
-          [todayKey]: { runParameter: mockRunParameter, data: mockHFIStats },
-        },
-      },
-    });
+          [todayKey]: { runParameter: mockRunParameter, data: mockHFIStats }
+        }
+      }
+    })
 
     const { result } = renderHook(() => useFilteredHFIStatsForDate(today), {
-      wrapper: ({ children }: { children: ReactNode }) => (
-        <Provider store={store}>{children}</Provider>
-      ),
-    });
+      wrapper: ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>
+    })
 
-    expect(result.current).toEqual(mockHFIStats);
-    expect(filterHFIFuelStatsByArea).toHaveBeenCalledWith(mockHFIStats);
-  });
+    expect(result.current).toEqual(mockHFIStats)
+    expect(filterHFIFuelStatsByArea).toHaveBeenCalledWith(mockHFIStats)
+  })
 
-  it("useFilteredHFIStatsForDate returns [] when data is missing", () => {
-    const store = createMockStore({ data: { ...initialState, hfiStats: {} } });
+  it('useFilteredHFIStatsForDate returns [] when data is missing', () => {
+    const store = createMockStore({ data: { ...initialState, hfiStats: {} } })
 
     const { result } = renderHook(() => useFilteredHFIStatsForDate(today), {
-      wrapper: ({ children }: { children: ReactNode }) => (
-        <Provider store={store}>{children}</Provider>
-      ),
-    });
+      wrapper: ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>
+    })
 
-    expect(result.current).toEqual([]);
-  });
+    expect(result.current).toEqual([])
+  })
 
-  it("useProvincialSummaryForDate groups by fire_centre_name", () => {
+  it('useProvincialSummaryForDate groups by fire_centre_name', () => {
     const mockSummary: FireShapeStatusDetail[] = [
       {
         fire_shape_id: 1,
-        fire_centre_name: "Centre A",
+        fire_centre_name: 'Centre A'
       } as FireShapeStatusDetail,
       {
         fire_shape_id: 2,
-        fire_centre_name: "Centre A",
-      } as FireShapeStatusDetail,
-    ];
+        fire_centre_name: 'Centre A'
+      } as FireShapeStatusDetail
+    ]
     const store = createMockStore({
       data: {
         ...initialState,
         provincialSummaries: {
-          [todayKey]: { runParameter: mockRunParameter, data: mockSummary },
-        },
-      },
-    });
+          [todayKey]: { runParameter: mockRunParameter, data: mockSummary }
+        }
+      }
+    })
 
     const { result } = renderHook(() => useProvincialSummaryForDate(today), {
-      wrapper: ({ children }: { children: ReactNode }) => (
-        <Provider store={store}>{children}</Provider>
-      ),
-    });
+      wrapper: ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>
+    })
 
-    expect(result.current).toHaveProperty("Centre A");
-    expect(result.current?.["Centre A"].length).toBe(2);
-  });
+    expect(result.current).toHaveProperty('Centre A')
+    expect(result.current?.['Centre A'].length).toBe(2)
+  })
 
-  it("useTPIStatsForDate returns TPI stats", () => {
-    const mockTPIStats: FireZoneTPIStats[] = [
-      { fire_zone_id: 1 } as FireZoneTPIStats,
-    ];
+  it('useTPIStatsForDate returns TPI stats', () => {
+    const mockTPIStats: FireZoneTPIStats[] = [{ fire_zone_id: 1 }]
     const store = createMockStore({
       data: {
         ...initialState,
         tpiStats: {
-          [todayKey]: { runParameter: mockRunParameter, data: mockTPIStats },
-        },
-      },
-    });
+          [todayKey]: { runParameter: mockRunParameter, data: mockTPIStats }
+        }
+      }
+    })
 
     const { result } = renderHook(() => useTPIStatsForDate(today), {
-      wrapper: ({ children }: { children: ReactNode }) => (
-        <Provider store={store}>{children}</Provider>
-      ),
-    });
+      wrapper: ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>
+    })
 
-    expect(result.current).toEqual(mockTPIStats);
-  });
+    expect(result.current).toEqual(mockTPIStats)
+  })
 
-  it("returns empty array or undefined when forDate is nil", () => {
+  it('returns empty array or undefined when forDate is nil', () => {
     const store = createMockStore({
       data: {
         ...initialState,
         hfiStats: {},
         provincialSummaries: {},
-        tpiStats: {},
-      },
-    });
-
-    const { result: hfiResult } = renderHook(
-      () => useFilteredHFIStatsForDate(null as unknown as DateTime),
-      {
-        wrapper: ({ children }: { children: ReactNode }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
+        tpiStats: {}
       }
-    );
-    expect(hfiResult.current).toEqual([]);
+    })
 
-    const { result: provincialResult } = renderHook(
-      () => useProvincialSummaryForDate(null as unknown as DateTime),
-      {
-        wrapper: ({ children }: { children: ReactNode }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
-      }
-    );
-    expect(provincialResult.current).toBeUndefined();
+    const { result: hfiResult } = renderHook(() => useFilteredHFIStatsForDate(null as unknown as DateTime), {
+      wrapper: ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>
+    })
+    expect(hfiResult.current).toEqual([])
 
-    const { result: tpiResult } = renderHook(
-      () => useTPIStatsForDate(null as unknown as DateTime),
-      {
-        wrapper: ({ children }: { children: ReactNode }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
-      }
-    );
-    expect(tpiResult.current).toEqual([]);
-  });
-});
+    const { result: provincialResult } = renderHook(() => useProvincialSummaryForDate(null as unknown as DateTime), {
+      wrapper: ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>
+    })
+    expect(provincialResult.current).toBeUndefined()
+
+    const { result: tpiResult } = renderHook(() => useTPIStatsForDate(null as unknown as DateTime), {
+      wrapper: ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>
+    })
+    expect(tpiResult.current).toEqual([])
+  })
+})

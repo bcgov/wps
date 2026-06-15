@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableRow, TableBody } from '@mui/material'
+import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import HeaderRowCell, { COLSPAN } from 'features/hfiCalculator/components/HeaderRowCell'
 

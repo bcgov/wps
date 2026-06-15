@@ -1,9 +1,3 @@
-import Footer from '@/features/landingPage/components/Footer'
-import ChartPanel from '@/features/weatherToolkit/components/ChartPanel'
-import SidePanel from '@/features/weatherToolkit/components/SidePanel'
-import TimelineController from '@/features/weatherToolkit/components/TimelineController'
-import { buildChartKey, useWxChartCache } from '@/features/weatherToolkit/hooks/useWxChartCache'
-import { modelRegistry, ModelRunHour, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
 import { Box } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
@@ -11,6 +5,12 @@ import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { WEATHER_TOOLKIT_NAME } from '@wps/utils/constants'
 import { DateTime } from 'luxon'
 import { useEffect, useMemo, useState } from 'react'
+import Footer from '@/features/landingPage/components/Footer'
+import ChartPanel from '@/features/weatherToolkit/components/ChartPanel'
+import SidePanel from '@/features/weatherToolkit/components/SidePanel'
+import TimelineController from '@/features/weatherToolkit/components/TimelineController'
+import { buildChartKey, useWxChartCache } from '@/features/weatherToolkit/hooks/useWxChartCache'
+import { ModelRunHour, ModelType, modelRegistry } from '@/features/weatherToolkit/weatherToolkitTypes'
 
 const WeatherToolkitPage = () => {
   const [currentHour, setCurrentHour] = useState<number>(0)

@@ -1,8 +1,8 @@
-import { useProvincialSummaryForDate } from "@/hooks/dataHooks";
-import { FireShapeStatusDetail } from "api/fbaAPI";
-import type { FireCentre } from "@/types/fireCentre";
-import { DateTime } from "luxon";
-import { useMemo } from "react";
+import type { FireShapeStatusDetail } from 'api/fbaAPI'
+import type { DateTime } from 'luxon'
+import { useMemo } from 'react'
+import { useProvincialSummaryForDate } from '@/hooks/dataHooks'
+import type { FireCentre } from '@/types/fireCentre'
 
 /**
  * Hook for grabbing a fire centre from the provincial summary, grouping by unique 'fire_shape_id' and
@@ -13,18 +13,15 @@ import { useMemo } from "react";
  */
 export const useFireCentreDetails = (
   selectedFireCentre: FireCentre | undefined,
-  forDate: DateTime,
+  forDate: DateTime
 ): FireShapeStatusDetail[] => {
-  const provincialSummary = useProvincialSummaryForDate(forDate);
+  const provincialSummary = useProvincialSummaryForDate(forDate)
 
   return useMemo(() => {
-    if (!selectedFireCentre) return [];
+    if (!selectedFireCentre) return []
 
-    const fireCentreSummary =
-      provincialSummary?.[selectedFireCentre.name] || [];
+    const fireCentreSummary = provincialSummary?.[selectedFireCentre.name] || []
 
-    return fireCentreSummary.sort((a, b) =>
-      a.fire_shape_name.localeCompare(b.fire_shape_name),
-    );
-  }, [selectedFireCentre, provincialSummary]);
-};
+    return fireCentreSummary.sort((a, b) => a.fire_shape_name.localeCompare(b.fire_shape_name))
+  }, [selectedFireCentre, provincialSummary])
+}

@@ -1,5 +1,5 @@
-import { FBAStation } from '@wps/api/fbaCalcAPI'
-import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
+import type { FBAStation } from '@wps/api/fbaCalcAPI'
+import { type FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 
 describe('RowManager', () => {
   const firstInputRow = {

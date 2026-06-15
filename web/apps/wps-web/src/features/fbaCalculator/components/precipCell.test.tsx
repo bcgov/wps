@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import PrecipCell, { PrecipCellProps } from 'features/fbaCalculator/components/PrecipCell'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
+import PrecipCell, { type PrecipCellProps } from 'features/fbaCalculator/components/PrecipCell'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
 
 describe('PrecipCell', () => {
   const buildProps = (inputRow: FBATableRow, calculatedValue?: number): PrecipCellProps => ({

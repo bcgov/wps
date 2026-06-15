@@ -1,7 +1,6 @@
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
-import _ from 'lodash'
-import { isNull } from 'lodash'
-import { FBAInputRow } from './components/FBATable'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
+import _, { isNull } from 'lodash'
+import type { FBAInputRow } from './components/FBATable'
 
 export const isGrassFuelType = (fuelType: string): boolean => fuelType === 'o1a' || fuelType === 'o1b'
 export const isValidFuelSetting = (fuelType: string, grassCurePercentage: number | null): boolean => {
@@ -38,7 +37,7 @@ export const getRowsFromUrlParams = (searchParams: string): FBAInputRow[] => {
           rowToBuild.fuelType = keyValPair[1]
           break
         case 'c':
-          rowToBuild.grassCure = parseInt(keyValPair[1])
+          rowToBuild.grassCure = Number.parseInt(keyValPair[1], 10)
           break
         default:
           // No op
@@ -79,9 +78,7 @@ export const getUrlParamsFromRows = (rows: FBATableRow[]): string => {
     return ''
   }
   const query = '?'
-  const params = rows
-    .map(row => `s=${row.weatherStation?.value}&f=${row.fuelType?.value}&c=${row.grassCure}`)
-    .join(',')
+  const params = rows.map(row => `s=${row.weatherStation?.value}&f=${row.fuelType?.value}&c=${row.grassCure}`).join(',')
 
   return query + params
 }

@@ -1,10 +1,10 @@
-import React from 'react'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { INFO_PANEL_CONTENT_BACKGROUND, INFO_PANEL_HEADER_BACKGROUND } from '@wps/ui/theme'
 import { AdvisoryStatus } from '@wps/utils/constants'
+import type React from 'react'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_LINE } from '@/features/fba/components/map/featureStylers'
 
 const getAdvisoryBarColour = (advisoryStatus?: AdvisoryStatus | null) => {
@@ -50,7 +50,7 @@ interface InfoAccordionProps {
 
 const StyledAccordionSummary = styled(AccordionSummary)(() => ({
   backgroundColor: INFO_PANEL_HEADER_BACKGROUND,
-  ['& .MuiAccordionSummary-content']: {
+  '& .MuiAccordionSummary-content': {
     margin: 0
   }
 }))

@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { RootState } from 'app/rootReducer'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import type { RootState } from 'app/rootReducer'
 
 export interface ValidInputState {
   isValid: boolean

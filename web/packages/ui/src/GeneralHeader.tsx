@@ -1,8 +1,8 @@
-import React from 'react'
 import { styled } from '@mui/material/styles'
-import HeaderImage from './HeaderImage'
+import React from 'react'
 import { OptionalContainer } from './Container'
 import FeedbackButton from './FeedbackButton'
+import HeaderImage from './HeaderImage'
 
 const PREFIX = 'GeneralHeader'
 

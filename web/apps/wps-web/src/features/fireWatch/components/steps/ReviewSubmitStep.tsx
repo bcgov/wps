@@ -1,37 +1,37 @@
-import SummaryTextLine from '@/features/fireWatch/components/steps/SummaryTextLine'
-import { FireWatch, FuelTypeEnum } from '@/features/fireWatch/interfaces'
 import { Box, Button, Step, Typography, useTheme } from '@mui/material'
-import { isNil } from 'lodash'
-import React, { SetStateAction, useEffect, useRef, useState } from 'react'
-import { fromLonLat, toLonLat } from 'ol/proj'
-import { Map, View } from 'ol'
-import TileLayer from 'ol/layer/Tile'
+import { CENTER_OF_BC } from '@wps/utils/constants'
 import { source as baseMapSource } from 'features/fireWeather/components/maps/constants'
-import VectorSource from 'ol/source/Vector.js'
-import VectorLayer from 'ol/layer/Vector.js'
-import { Icon, Style } from 'ol/style'
+import { isNil } from 'lodash'
+import { Map as OlMap, View } from 'ol'
 import Feature from 'ol/Feature.js'
 import { Point } from 'ol/geom'
-import { CENTER_OF_BC } from '@wps/utils/constants'
+import TileLayer from 'ol/layer/Tile'
+import VectorLayer from 'ol/layer/Vector.js'
+import { fromLonLat, toLonLat } from 'ol/proj'
+import VectorSource from 'ol/source/Vector.js'
+import { Icon, Style } from 'ol/style'
+import React, { type SetStateAction, useEffect, useRef, useState } from 'react'
+import SummaryTextLine from '@/features/fireWatch/components/steps/SummaryTextLine'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
+import { type FireWatch, FuelTypeEnum } from '@/features/fireWatch/interfaces'
 
 interface ReviewSubmitStepProps {
   fireWatch: FireWatch
   setActiveStep: React.Dispatch<SetStateAction<number>>
 }
 
-export const MapContext = React.createContext<Map | null>(null)
+export const MapContext = React.createContext<OlMap | null>(null)
 
 const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) => {
   const theme = useTheme()
-  const [map, setMap] = useState<Map | null>(null)
+  const [map, setMap] = useState<OlMap | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
 
   const formatNumber = (value: number | null | undefined) => {
     if (isNil(value)) {
       return '-'
     }
-    return `${!isNaN(value) ? value : '-'}`
+    return `${!Number.isNaN(value) ? value : '-'}`
   }
 
   const formatFuelType = () => {
@@ -70,7 +70,7 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
       }),
       zIndex: 50
     })
-    const mapObject = new Map({
+    const mapObject = new OlMap({
       view: new View({
         zoom: fireWatch.geometry.length === 2 ? 9 : 5,
         center: fireWatch.geometry.length === 2 ? fireWatch.geometry : fromLonLat(CENTER_OF_BC)

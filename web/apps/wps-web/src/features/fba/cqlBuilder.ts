@@ -1,5 +1,5 @@
-import { RunType } from '@wps/api/fbaAPI'
-import { DateTime } from 'luxon'
+import type { RunType } from '@wps/api/fbaAPI'
+import type { DateTime } from 'luxon'
 
 /**
  *
@@ -18,5 +18,5 @@ import { DateTime } from 'luxon'
 // TODO: add in param for run_date: DateTime
 export const buildHFICql = (for_date: DateTime, run_type: RunType) => {
   const queryParams = encodeURIComponent(`for_date=${for_date.toISODate()} AND run_type='${run_type.toLowerCase()}'`)
-  return 'filter=' + queryParams
+  return `filter=${queryParams}`
 }

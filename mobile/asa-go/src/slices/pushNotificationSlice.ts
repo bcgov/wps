@@ -1,77 +1,62 @@
-import { AppThunk } from "@/store";
-import { PushNotificationData } from "@/types/asaGoTypes";
-import { retryWithBackoff } from "@/utils/retryWithBackoff";
-import { FirebaseMessaging } from "@capacitor-firebase/messaging";
-import { Capacitor, PermissionState } from "@capacitor/core";
-import { Device } from "@capacitor/device";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Platform, registerToken } from "api/pushNotificationsAPI";
+import { Capacitor, type PermissionState } from '@capacitor/core'
+import { Device } from '@capacitor/device'
+import { FirebaseMessaging } from '@capacitor-firebase/messaging'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { type Platform, registerToken } from 'api/pushNotificationsAPI'
+import type { AppThunk } from '@/store'
+import type { PushNotificationData } from '@/types/asaGoTypes'
+import { retryWithBackoff } from '@/utils/retryWithBackoff'
 
-export const MAX_REGISTRATION_ATTEMPTS = 5;
+export const MAX_REGISTRATION_ATTEMPTS = 5
 
 export interface PushNotificationState {
-  pushNotificationPermission: PermissionState | "unknown";
-  registeredFcmToken: string | null;
-  deviceIdError: boolean;
-  registrationError: boolean;
-  registrationAttempts: number;
-  pendingNotificationData: PushNotificationData | null;
+  pushNotificationPermission: PermissionState | 'unknown'
+  registeredFcmToken: string | null
+  deviceIdError: boolean
+  registrationError: boolean
+  registrationAttempts: number
+  pendingNotificationData: PushNotificationData | null
 }
 
 export const initialState: PushNotificationState = {
-  pushNotificationPermission: "unknown",
+  pushNotificationPermission: 'unknown',
   registeredFcmToken: null,
   deviceIdError: false,
   registrationError: false,
   registrationAttempts: 0,
-  pendingNotificationData: null,
-};
+  pendingNotificationData: null
+}
 
 const pushNotificationSlice = createSlice({
-  name: "pushNotification",
+  name: 'pushNotification',
   initialState,
   reducers: {
-    setPushNotificationPermission(
-      state: PushNotificationState,
-      action: PayloadAction<PermissionState | "unknown">,
-    ) {
-      state.pushNotificationPermission = action.payload;
+    setPushNotificationPermission(state: PushNotificationState, action: PayloadAction<PermissionState | 'unknown'>) {
+      state.pushNotificationPermission = action.payload
     },
-    setRegisteredFcmToken(
-      state: PushNotificationState,
-      action: PayloadAction<string | null>,
-    ) {
-      state.registeredFcmToken = action.payload;
+    setRegisteredFcmToken(state: PushNotificationState, action: PayloadAction<string | null>) {
+      state.registeredFcmToken = action.payload
     },
-    setDeviceIdError(
-      state: PushNotificationState,
-      action: PayloadAction<boolean>,
-    ) {
-      state.deviceIdError = action.payload;
+    setDeviceIdError(state: PushNotificationState, action: PayloadAction<boolean>) {
+      state.deviceIdError = action.payload
     },
-    setRegistrationError(
-      state: PushNotificationState,
-      action: PayloadAction<boolean>,
-    ) {
-      state.registrationError = action.payload;
+    setRegistrationError(state: PushNotificationState, action: PayloadAction<boolean>) {
+      state.registrationError = action.payload
     },
     incrementRegistrationAttempts(state: PushNotificationState) {
-      state.registrationAttempts += 1;
+      state.registrationAttempts += 1
     },
     resetRegistrationAttempts(state: PushNotificationState) {
-      state.registrationAttempts = 0;
+      state.registrationAttempts = 0
     },
-    setPendingNotificationData(
-      state: PushNotificationState,
-      action: PayloadAction<PushNotificationData>,
-    ) {
-      state.pendingNotificationData = action.payload;
+    setPendingNotificationData(state: PushNotificationState, action: PayloadAction<PushNotificationData>) {
+      state.pendingNotificationData = action.payload
     },
     clearPendingNotificationData(state: PushNotificationState) {
-      state.pendingNotificationData = null;
-    },
-  },
-});
+      state.pendingNotificationData = null
+    }
+  }
+})
 
 export const {
   setDeviceIdError,
@@ -81,43 +66,35 @@ export const {
   incrementRegistrationAttempts,
   resetRegistrationAttempts,
   setPendingNotificationData,
-  clearPendingNotificationData,
-} = pushNotificationSlice.actions;
+  clearPendingNotificationData
+} = pushNotificationSlice.actions
 
-export default pushNotificationSlice.reducer;
+export default pushNotificationSlice.reducer
 
-export const checkPushNotificationPermission =
-  (): AppThunk => async (dispatch) => {
-    try {
-      const permissions = await FirebaseMessaging.checkPermissions();
-      dispatch(setPushNotificationPermission(permissions.receive ?? "unknown"));
-    } catch (e) {
-      console.error(e);
-      dispatch(setPushNotificationPermission("unknown"));
-    }
-  };
+export const checkPushNotificationPermission = (): AppThunk => async dispatch => {
+  try {
+    const permissions = await FirebaseMessaging.checkPermissions()
+    dispatch(setPushNotificationPermission(permissions.receive ?? 'unknown'))
+  } catch (e) {
+    console.error(e)
+    dispatch(setPushNotificationPermission('unknown'))
+  }
+}
 
 export const registerDevice =
   (token: string, registeredFcmToken: string | null): AppThunk =>
   async (dispatch, getState) => {
-    if (token === registeredFcmToken) return;
+    if (token === registeredFcmToken) return
     try {
-      const { idir } = getState().authentication;
-      const { identifier } = await Device.getId();
-      await retryWithBackoff(() =>
-        registerToken(
-          Capacitor.getPlatform() as Platform,
-          token,
-          identifier,
-          idir || null,
-        ),
-      );
-      dispatch(setRegistrationError(false));
-      dispatch(resetRegistrationAttempts());
-      dispatch(setRegisteredFcmToken(token));
+      const { idir } = getState().authentication
+      const { identifier } = await Device.getId()
+      await retryWithBackoff(() => registerToken(Capacitor.getPlatform() as Platform, token, identifier, idir || null))
+      dispatch(setRegistrationError(false))
+      dispatch(resetRegistrationAttempts())
+      dispatch(setRegisteredFcmToken(token))
     } catch (e) {
-      console.error("Failed to register device:", e);
-      dispatch(incrementRegistrationAttempts());
-      dispatch(setRegistrationError(true));
+      console.error('Failed to register device:', e)
+      dispatch(incrementRegistrationAttempts())
+      dispatch(setRegistrationError(true))
     }
-  };
+  }

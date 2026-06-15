@@ -1,6 +1,6 @@
 import { Box } from '@mui/material'
-import React from 'react'
 import { theme } from '@wps/ui/theme'
+import type React from 'react'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -16,11 +16,17 @@ const TabPanel = ({ children, index, value }: TabPanelProps) => {
       data-testid={`tabpanel-${index}`}
       style={{ backgroundColor: theme.palette.common.white }}
     >
-      {value === index && <Box sx={{
-        border: '1px solid #ccc'
-      }}>{children}</Box>}
+      {value === index && (
+        <Box
+          sx={{
+            border: '1px solid #ccc'
+          }}
+        >
+          {children}
+        </Box>
+      )}
     </div>
-  );
+  )
 }
 
 export default TabPanel

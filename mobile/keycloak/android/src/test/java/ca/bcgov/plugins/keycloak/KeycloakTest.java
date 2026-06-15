@@ -173,8 +173,7 @@ public class KeycloakTest {
     @Test
     public void testRestoreAuthState_createsNewStateWhenNoneSaved() {
         // Clean up any existing preferences first
-        context.getSharedPreferences("KeycloakAuthState", Context.MODE_PRIVATE)
-               .edit().clear().commit();
+        context.getSharedPreferences("KeycloakAuthState", Context.MODE_PRIVATE).edit().clear().commit();
 
         Keycloak testKeycloak = new Keycloak(context);
 

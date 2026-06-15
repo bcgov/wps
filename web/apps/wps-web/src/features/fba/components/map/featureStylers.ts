@@ -1,13 +1,13 @@
-import * as ol from 'ol'
-import RenderFeature from 'ol/render/Feature'
-import Geometry from 'ol/geom/Geometry'
-import CircleStyle from 'ol/style/Circle'
-import { Fill, Stroke, Text } from 'ol/style'
-import Style from 'ol/style/Style'
-import { range, startCase, lowerCase, isUndefined } from 'lodash'
-import { FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import type { FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { AdvisoryStatus } from '@wps/utils/constants'
+import { isUndefined, lowerCase, range, startCase } from 'lodash'
+import type * as ol from 'ol'
+import type Geometry from 'ol/geom/Geometry'
+import type RenderFeature from 'ol/render/Feature'
+import { Fill, Stroke, Text } from 'ol/style'
+import CircleStyle from 'ol/style/Circle'
+import Style from 'ol/style/Style'
 
 const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
@@ -41,7 +41,7 @@ export const fireCentreLabelStyler = (feature: RenderFeature | ol.Feature<Geomet
 export const fireCentreStyler = (selectedFireCentre: FireCentre | undefined) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fireCentreId = feature.getProperties().MOF_FIRE_CENTRE_NAME
-    const isSelected = selectedFireCentre && fireCentreId == selectedFireCentre.name
+    const isSelected = selectedFireCentre && fireCentreId === selectedFireCentre.name
 
     const fillColour = isSelected ? new Fill({ color: EMPTY_FILL }) : new Fill({ color: GREY_FILL })
 
@@ -54,7 +54,7 @@ export const fireCentreStyler = (selectedFireCentre: FireCentre | undefined) => 
 export const fireCentreLineStyler = (selectedFireCentre: FireCentre | undefined) => {
   return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fireCentreId = feature.getProperties().MOF_FIRE_CENTRE_NAME
-    const isSelected = selectedFireCentre && fireCentreId == selectedFireCentre.name
+    const isSelected = selectedFireCentre && fireCentreId === selectedFireCentre.name
 
     return new Style({
       stroke: new Stroke({
@@ -68,7 +68,7 @@ export const fireCentreLineStyler = (selectedFireCentre: FireCentre | undefined)
 export const fireShapeStyler = (fireZoneStatuses: FireShapeStatusDetail[], showZoneStatus: boolean) => {
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const fire_shape_id = feature.getProperties().OBJECTID
-    const fireZone = fireZoneStatuses.find(f => f.fire_shape_id == fire_shape_id)
+    const fireZone = fireZoneStatuses.find(f => f.fire_shape_id === fire_shape_id)
 
     return new Style({
       stroke: new Stroke({
@@ -146,8 +146,7 @@ export const fireShapeLabelStyler = (selectedFireShape: FireShape | undefined) =
   const a = (feature: RenderFeature | ol.Feature<Geometry>): Style => {
     const text = getFireZoneUnitLabel(feature)
     const feature_fire_shape_id = feature.getProperties().OBJECTID
-    const selected =
-      !isUndefined(selectedFireShape) && feature_fire_shape_id === selectedFireShape.fire_shape_id ? true : false
+    const selected = !!(!isUndefined(selectedFireShape) && feature_fire_shape_id === selectedFireShape.fire_shape_id)
     return new Style({
       text: new Text({
         overflow: true,

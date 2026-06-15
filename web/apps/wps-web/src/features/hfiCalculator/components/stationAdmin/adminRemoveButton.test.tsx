@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import AdminRemoveButton from 'features/hfiCalculator/components/stationAdmin/AdminRemoveButton'
+import type { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { vi } from 'vitest'
 
 describe('AdminRemoveButton', () => {

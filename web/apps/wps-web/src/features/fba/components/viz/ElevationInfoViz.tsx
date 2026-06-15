@@ -1,5 +1,3 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
 import { Paper, Typography } from '@mui/material'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -7,8 +5,9 @@ import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import type { ElevationInfoByThreshold, FireShape } from '@wps/api/fbaAPI'
 import { isUndefined } from 'lodash'
-import { ElevationInfoByThreshold, FireShape } from '@wps/api/fbaAPI'
+import React from 'react'
 
 const PREFIX = 'ElevationInfoViz'
 

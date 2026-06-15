@@ -1,6 +1,6 @@
-import axios from './axios'
 import { isEqual } from 'lodash'
-import { DateTime } from 'luxon'
+import type { DateTime } from 'luxon'
+import axios from './axios'
 
 export interface PredictionItem {
   choice: ModelType
@@ -236,7 +236,6 @@ export async function submitMoreCastForecastRecords(
       forecasts: forecastRecords
     })
     return { success: status === 201 }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(error.response.data.detail || error)
     return { success: false, errorMessage: error.response.data.detail }

@@ -1,9 +1,9 @@
+import type { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { render } from '@testing-library/react'
-import { GridRenderCellParams } from '@mui/x-data-grid-pro'
-import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { Provider } from 'react-redux'
-import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
 import { buildTestStore } from '@/features/moreCast2/components/testHelper'
+import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
+import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   row: undefined,

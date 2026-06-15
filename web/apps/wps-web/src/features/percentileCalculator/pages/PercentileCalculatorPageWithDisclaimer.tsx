@@ -1,9 +1,8 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
-import { Modal, Card, Button } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
-
+import { Button, Card, Modal } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import PercentileCalculatorPage from 'features/percentileCalculator/pages/PercentileCalculatorPage'
+import React from 'react'
 
 const PREFIX = 'PercentileCalculatorPageWithDisclaimer'
 

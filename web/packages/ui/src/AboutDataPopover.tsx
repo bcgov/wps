@@ -2,10 +2,10 @@ import InfoIcon from '@mui/icons-material/Info'
 import { Box } from '@mui/material'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
-import { INFO_PANEL_CONTENT_BACKGROUND, theme } from './theme'
 import * as React from 'react'
+import { INFO_PANEL_CONTENT_BACKGROUND, theme } from './theme'
 
-interface AboutDataPopoverProps<T = {}> {
+interface AboutDataPopoverProps<T = object> {
   content: (props: T) => React.ReactNode
   props?: T
   maxWidth?: number
@@ -40,7 +40,8 @@ const AboutDataPopover = <T,>({
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center'
-        }}>
+        }}
+      >
         <InfoIcon sx={{ marginRight: theme.spacing(1), color: '#5686E1' }} />
         About this data
       </Typography>
@@ -77,7 +78,7 @@ const AboutDataPopover = <T,>({
         </Box>
       </Popover>
     </Box>
-  );
+  )
 }
 
 export default AboutDataPopover

@@ -1,10 +1,9 @@
-import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
-import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { Box } from '@mui/material'
-import { FireShape, RunType } from '@wps/api/fbaAPI'
+import { type FireShape, RunType } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
-import { selectFireWeatherStations, selectRunDates, selectProvincialSummaryZones } from 'app/rootReducer'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
+import { selectFireWeatherStations, selectProvincialSummaryZones, selectRunDates } from 'app/rootReducer'
 import {
   fireCentreLabelStyler,
   fireCentreLineStyler,
@@ -22,19 +21,16 @@ import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { cloneDeep, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import { Map, View } from 'ol'
-import { PMTilesVectorSource } from 'ol-pmtiles'
+import { Map as OlMap, View } from 'ol'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import ScaleLine from 'ol/control/ScaleLine'
 import { boundingExtent } from 'ol/extent'
 import GeoJSON from 'ol/format/GeoJSON'
 import VectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
+import { PMTilesVectorSource } from 'ol-pmtiles'
+import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import 'ol/ol.css'
-import { fromLonLat } from 'ol/proj'
-import VectorSource from 'ol/source/Vector'
-import React, { useEffect, useRef, useState } from 'react'
-import { useSelector } from 'react-redux'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import {
   BASEMAP_STYLE_URL,
@@ -43,6 +39,10 @@ import {
   HILLSHADE_TILE_URL,
   PMTILES_BUCKET
 } from '@wps/utils/env'
+import { fromLonLat } from 'ol/proj'
+import VectorSource from 'ol/source/Vector'
+import React, { useEffect, useRef, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { MapContext } from '@/features/fba/context/MapContext'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -61,7 +61,7 @@ export interface FBAMapProps {
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCentre' | 'fireShape' | undefined>>
 }
 
-const removeLayerByName = (map: Map, layerName: string) => {
+const removeLayerByName = (map: OlMap, layerName: string) => {
   const layer = map
     .getLayers()
     .getArray()
@@ -79,7 +79,7 @@ const FBAMap = (props: FBAMapProps) => {
     const stored = localStorage.getItem(hfiLayerName)
     return stored === 'true'
   })
-  const [map, setMap] = useState<Map | null>(null)
+  const [map, setMap] = useState<OlMap | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const { mostRecentRunDate } = useSelector(selectRunDates)
@@ -193,7 +193,7 @@ const FBAMap = (props: FBAMapProps) => {
         })
       })
     }
-  }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [map])
 
   useEffect(() => {
     // zoom to fire center or whole province
@@ -236,7 +236,6 @@ const FBAMap = (props: FBAMapProps) => {
     fireShapeLabelVTL.changed()
     fireCentreLineVTL.changed()
     fireCentreVTL.changed()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedFireCentre, props.selectedFireShape, provincialSummaryZones])
 
   useEffect(() => {
@@ -260,7 +259,7 @@ const FBAMap = (props: FBAMapProps) => {
       })
       map.addLayer(latestHFILayer)
     }
-  }, [showHFI, mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHFI, mostRecentRunDate])
 
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
@@ -272,7 +271,7 @@ const FBAMap = (props: FBAMapProps) => {
 
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
-    const mapObject = new Map({
+    const mapObject = new OlMap({
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
@@ -321,7 +320,7 @@ const FBAMap = (props: FBAMapProps) => {
     return () => {
       mapObject.setTarget('')
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     const stationsSource = new VectorSource({
@@ -340,7 +339,7 @@ const FBAMap = (props: FBAMapProps) => {
     })
 
     map?.addLayer(stationsLayer)
-  }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [stations])
 
   return (
     <ErrorBoundary>

@@ -2,7 +2,7 @@ import { styled } from '@mui/material'
 import { BACKGROUND_COLOR } from '@wps/ui/theme'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
-import { isUndefined, isNull } from 'lodash'
+import { isNull, isUndefined } from 'lodash'
 import React from 'react'
 
 export interface MeanPrepLevelCellProps {
@@ -75,7 +75,7 @@ const MeanPrepLevelCell = (props: MeanPrepLevelCellProps) => {
     return (
       isUndefined(props.meanPrepLevel) ||
       isNull(props.meanPrepLevel) ||
-      isNaN(props.meanPrepLevel) ||
+      Number.isNaN(props.meanPrepLevel) ||
       props.emptyOrIncompleteForecast === true
     )
   }

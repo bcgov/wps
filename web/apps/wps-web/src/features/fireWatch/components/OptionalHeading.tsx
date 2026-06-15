@@ -1,4 +1,4 @@
-import { Typography, Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 
 interface OptionalHeadingProps {
   children: React.ReactNode
@@ -9,9 +9,12 @@ const OptionalHeading = ({ children }: OptionalHeadingProps) => (
     <Typography variant="body1" sx={{ mr: 1 }}>
       {children}
     </Typography>
-    <Typography variant="body2" sx={{
-      color: "text.secondary"
-    }}>
+    <Typography
+      variant="body2"
+      sx={{
+        color: 'text.secondary'
+      }}
+    >
       [Optional]
     </Typography>
   </Box>

@@ -1,12 +1,12 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
 import UpdateIcon from '@mui/icons-material/Update'
+import { createTheme, StyledEngineProvider, ThemeProvider } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import type { StationDaily } from '@wps/api/hfiCalculatorAPI'
+import { theme } from '@wps/ui/theme'
+import { PST_UTC_OFFSET } from '@wps/utils/constants'
 import { maxBy } from 'lodash'
 import { DateTime } from 'luxon'
-import { PST_UTC_OFFSET } from '@wps/utils/constants'
-import { StationDaily } from '@wps/api/hfiCalculatorAPI'
-import { theme } from '@wps/ui/theme'
-import { createTheme, StyledEngineProvider, ThemeProvider } from '@mui/material'
+import React from 'react'
 
 const PREFIX = 'LastUpdatedHeader'
 
@@ -57,7 +57,7 @@ const findLastUpdate = (dailies?: StationDaily[]) => {
 const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
   const lastUpdate = findLastUpdate(props.dailies)
   if (lastUpdate) {
-    const dateString = lastUpdate.toFormat('MMMM d, HH:mm') + ' PST'
+    const dateString = `${lastUpdate.toFormat('MMMM d, HH:mm')} PST`
 
     return (
       <StyledEngineProvider injectFirst>

@@ -1,14 +1,7 @@
-import {
-  FireCentreHFIFuelStatsState,
-  initialState as fuelStatsInitialState,
-  getFireCentreHFIFuelStatsSuccess
-} from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
-import { initialState as runDatesInitialState } from '@/features/fba/slices/runDatesSlice'
-import { initialState as fireCentreTPIStatsInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
-import { createTestStore } from '@/test/testUtils'
-import { render, screen, waitFor, act } from '@testing-library/react'
-import { FireShape, FireShapeStatusDetail, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import { act, render, screen, waitFor } from '@testing-library/react'
+import type { FireShape, FireShapeStatusDetail, FireZoneHFIStats } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import AdvisoryText, {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -18,7 +11,14 @@ import { initialState as provSummaryInitialState } from 'features/fba/slices/pro
 import { cloneDeep } from 'lodash'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
-import { AdvisoryStatus } from '@wps/utils/constants'
+import {
+  type FireCentreHFIFuelStatsState,
+  initialState as fuelStatsInitialState,
+  getFireCentreHFIFuelStatsSuccess
+} from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
+import { initialState as fireCentreTPIStatsInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
+import { initialState as runDatesInitialState } from '@/features/fba/slices/runDatesSlice'
+import { createTestStore } from '@/test/testUtils'
 
 const createDateTime = (year: number, month: number, day: number) => {
   return DateTime.fromObject({ year, month, day })

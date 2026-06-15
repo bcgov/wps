@@ -1,5 +1,5 @@
 import { styled } from '@mui/material/styles'
-import React, { useState, MouseEvent } from 'react'
+import React, { type MouseEvent, useState } from 'react'
 
 const PREFIX = 'TableHeader'
 

@@ -1,4 +1,3 @@
-import React from 'react'
 import { render } from '@testing-library/react'
 import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 
@@ -8,6 +7,6 @@ describe('ElevationFlag', () => {
 
     const element = getByTestId('valley-bottom')
     expect(element).toBeInTheDocument()
-    expect(element).toHaveTextContent("50%")
+    expect(element).toHaveTextContent('50%')
   })
 })

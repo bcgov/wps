@@ -1,11 +1,11 @@
-import * as React from 'react'
+import { Grid, Paper, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { Paper, Grid, Stack, Typography } from '@mui/material'
-import { getDate, isSameMonth, isToday, format, isWithinInterval } from 'date-fns'
-import { chunks, getDaysInMonth, isStartOfRange, isEndOfRange, inDateRange, isRangeSameDay } from './utils'
-import { NavigationAction, DateRange } from './types'
-import Header from './Header'
+import { format, getDate, isSameMonth, isToday, isWithinInterval } from 'date-fns'
+import type * as React from 'react'
 import Day from './Day'
+import Header from './Header'
+import { type DateRange, NavigationAction } from './types'
+import { chunks, getDaysInMonth, inDateRange, isEndOfRange, isRangeSameDay, isStartOfRange } from './utils'
 
 const PREFIX = 'Month'
 
@@ -94,9 +94,9 @@ const Month: React.FunctionComponent<MonthProps> = (props: MonthProps) => {
               justifyContent: 'space-between'
             }}
           >
-            {chunks(getDaysInMonth(date), 7).map((week, idx) => (
+            {chunks(getDaysInMonth(date), 7).map(week => (
               <Grid
-                key={idx}
+                key={week[0].toISOString()}
                 container
                 direction="row"
                 sx={{

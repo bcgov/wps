@@ -1,8 +1,8 @@
 import { fireEvent, render, waitFor, within } from '@testing-library/react'
+import { vi } from 'vitest'
 import { MARKERS } from './DateRangePicker'
 import Month from './Month'
-import { DateRange, NavigationAction } from './types'
-import { vi } from 'vitest'
+import type { DateRange, NavigationAction } from './types'
 
 const setup = (
   value: Date,
@@ -40,19 +40,19 @@ const setup = (
 describe('Month', () => {
   const startDate = new Date('2021/2/21')
   const endDate = new Date('2021/2/25')
-  const setValueMock = vi.fn((date: Date): void => {
+  const setValueMock = vi.fn((_date: Date): void => {
     /** no op */
   })
-  const inHoverRangeMock = vi.fn((date: Date): boolean => {
+  const inHoverRangeMock = vi.fn((_date: Date): boolean => {
     return false
   })
-  const onDayClickMock = vi.fn((date: Date): void => {
+  const onDayClickMock = vi.fn((_date: Date): void => {
     /** no op */
   })
-  const onDayHoverMock = vi.fn((date: Date): void => {
+  const onDayHoverMock = vi.fn((_date: Date): void => {
     /** no op */
   })
-  const onMonthNavigateMock = vi.fn((marker: symbol, action: NavigationAction): void => {
+  const onMonthNavigateMock = vi.fn((_marker: symbol, _action: NavigationAction): void => {
     /** no op */
   })
 

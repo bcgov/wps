@@ -1,11 +1,11 @@
-import fireCentreTPIStatsReducer, {
-  initialState,
-  getFireCentreTPIStatsStart,
-  getFireCentreTPIStatsFailed,
-  getFireCentreTPIStatsSuccess
-} from './fireCentreTPIStatsSlice'
-import type { CentreTPIStatsState } from './fireCentreTPIStatsSlice'
 import type { FireCentreTPIResponse } from '@wps/api/fbaAPI'
+import type { CentreTPIStatsState } from './fireCentreTPIStatsSlice'
+import fireCentreTPIStatsReducer, {
+  getFireCentreTPIStatsFailed,
+  getFireCentreTPIStatsStart,
+  getFireCentreTPIStatsSuccess,
+  initialState
+} from './fireCentreTPIStatsSlice'
 
 const mockFireCentreTPIResponse: FireCentreTPIResponse = {
   fire_centre_name: 'Cariboo Fire Centre',

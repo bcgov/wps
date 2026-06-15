@@ -1,7 +1,7 @@
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
-import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
-import { SetStateAction } from 'react'
+import type { SetStateAction } from 'react'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
+import type { FireWatch } from '@/features/fireWatch/interfaces'
 
 interface WeatherParametersStepProps {
   fireWatch: FireWatch
@@ -32,7 +32,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                   label="Minimum"
                   size="small"
                   type="number"
-                  value={isNaN(fireWatch.tempMin) ? '' : fireWatch.tempMin}
+                  value={Number.isNaN(fireWatch.tempMin) ? '' : fireWatch.tempMin}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ tempMin: parseFloat(event.target.value) })
                   }
@@ -43,7 +43,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                   label="Maximum"
                   size="small"
                   type="number"
-                  value={isNaN(fireWatch.tempMax) ? '' : fireWatch.tempMax}
+                  value={Number.isNaN(fireWatch.tempMax) ? '' : fireWatch.tempMax}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ tempMax: parseFloat(event.target.value) })
                   }
@@ -61,7 +61,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 label="Minimum"
                 size="small"
                 type="number"
-                value={isNaN(fireWatch.rhMin) ? '' : fireWatch.rhMin}
+                value={Number.isNaN(fireWatch.rhMin) ? '' : fireWatch.rhMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ rhMin: parseFloat(event.target.value) })
                 }
@@ -72,7 +72,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isNaN(fireWatch.rhMax) ? '' : fireWatch.rhMax}
+                value={Number.isNaN(fireWatch.rhMax) ? '' : fireWatch.rhMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ rhMax: parseFloat(event.target.value) })
                 }
@@ -89,7 +89,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 label="Minimum"
                 size="small"
                 type="number"
-                value={isNaN(fireWatch.windSpeedMin) ? '' : fireWatch.windSpeedMin}
+                value={Number.isNaN(fireWatch.windSpeedMin) ? '' : fireWatch.windSpeedMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ windSpeedMin: parseFloat(event.target.value) })
                 }
@@ -100,7 +100,7 @@ const WeatherParametersStep = ({ fireWatch, setFireWatch }: WeatherParametersSte
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isNaN(fireWatch.windSpeedMax) ? '' : fireWatch.windSpeedMax}
+                value={Number.isNaN(fireWatch.windSpeedMax) ? '' : fireWatch.windSpeedMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ windSpeedMax: parseFloat(event.target.value) })
                 }

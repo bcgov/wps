@@ -1,54 +1,46 @@
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import { Box, Grid } from "@mui/material";
-import { FireZoneTPIStats } from "@/api/fbaAPI";
-import Mountain from "@/images/mountain.png";
-import ElevationLabel from "@/components/profile/ElevationLabel";
-import ElevationFlag from "@/components/profile/ElevationFlag";
+import { Box, Grid } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import Typography from '@mui/material/Typography'
+import type { FireZoneTPIStats } from '@/api/fbaAPI'
+import ElevationFlag from '@/components/profile/ElevationFlag'
+import ElevationLabel from '@/components/profile/ElevationLabel'
+import Mountain from '@/images/mountain.png'
 
 enum ElevationOption {
-  BOTTOM = "Valley Bottom",
-  MID = "Mid Slope",
-  UPPER = "Upper Slope",
+  BOTTOM = 'Valley Bottom',
+  MID = 'Mid Slope',
+  UPPER = 'Upper Slope'
 }
 
 interface ElevationStatusProps {
-  tpiStats: Required<FireZoneTPIStats>;
+  tpiStats: Required<FireZoneTPIStats>
 }
 
 const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
-  const theme = useTheme();
+  const theme = useTheme()
   const mid_percent =
-    tpiStats.mid_slope_tpi === 0
-      ? 0
-      : Math.round((tpiStats.mid_slope_hfi / tpiStats.mid_slope_tpi) * 100);
+    tpiStats.mid_slope_tpi === 0 ? 0 : Math.round((tpiStats.mid_slope_hfi / tpiStats.mid_slope_tpi) * 100)
   const upper_percent =
-    tpiStats.upper_slope_tpi === 0
-      ? 0
-      : Math.round((tpiStats.upper_slope_hfi / tpiStats.upper_slope_tpi) * 100);
+    tpiStats.upper_slope_tpi === 0 ? 0 : Math.round((tpiStats.upper_slope_hfi / tpiStats.upper_slope_tpi) * 100)
   const bottom_percent =
-    tpiStats.valley_bottom_tpi === 0
-      ? 0
-      : Math.round(
-          (tpiStats.valley_bottom_hfi / tpiStats.valley_bottom_tpi) * 100,
-        );
+    tpiStats.valley_bottom_tpi === 0 ? 0 : Math.round((tpiStats.valley_bottom_hfi / tpiStats.valley_bottom_tpi) * 100)
   return (
     <Grid container size={12} data-testid="elevation-status">
       <Grid container sx={{ minHeight: theme.spacing(10) }} size={12}>
         <Grid
           sx={{
-            px: theme.spacing(1),
+            px: theme.spacing(1)
           }}
           size={6}
         >
           <Typography
             sx={{
-              color: "#003366",
-              fontWeight: "bold",
-              textAlign: "left",
-              maxWidth: "85%",
-              fontSize: "1.2rem",
-              pr: theme.spacing(1),
+              color: '#003366',
+              fontWeight: 'bold',
+              textAlign: 'left',
+              maxWidth: '85%',
+              fontSize: '1.2rem',
+              pr: theme.spacing(1)
             }}
           >
             Topographic Position:
@@ -56,19 +48,19 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
         </Grid>
         <Grid
           sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            px: theme.spacing(1),
+            display: 'flex',
+            justifyContent: 'flex-end',
+            px: theme.spacing(1)
           }}
           size={6}
         >
           <Typography
             sx={{
-              color: "#003366",
-              fontWeight: "bold",
-              textAlign: "right",
-              maxWidth: "85%",
-              fontSize: "1.2rem",
+              color: '#003366',
+              fontWeight: 'bold',
+              textAlign: 'right',
+              maxWidth: '85%',
+              fontSize: '1.2rem'
             }}
           >
             Portion Under Advisory:
@@ -79,15 +71,15 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
         <Box
           sx={{
             background: `url(${Mountain})`,
-            backgroundRepeat: "round",
-            display: "flex",
-            width: "100%",
+            backgroundRepeat: 'round',
+            display: 'flex',
+            width: '100%'
           }}
           data-testid="tpi-mountain"
         >
           <Grid
             sx={{
-              px: theme.spacing(1),
+              px: theme.spacing(1)
             }}
             container
             size={12}
@@ -108,7 +100,7 @@ const ElevationStatus = ({ tpiStats }: ElevationStatusProps) => {
         </Box>
       </Grid>
     </Grid>
-  );
-};
+  )
+}
 
-export default ElevationStatus;
+export default ElevationStatus

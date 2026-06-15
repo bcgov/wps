@@ -1,5 +1,5 @@
-import { TextField, Autocomplete, FilterOptionsState, Box, Checkbox, FormControlLabel } from '@mui/material'
-import { StationGroup } from '@wps/api/stationAPI'
+import { Autocomplete, Box, Checkbox, type FilterOptionsState, FormControlLabel, TextField } from '@mui/material'
+import type { StationGroup } from '@wps/api/stationAPI'
 import { isUndefined, sortBy } from 'lodash'
 import { matchSorter, rankings } from 'match-sorter'
 import React, { useEffect, useState } from 'react'
@@ -30,10 +30,8 @@ const StationGroupDropdown = ({
     } else {
       setOptions([...stationGroupOptions])
     }
-  }, [onlyMine]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // eslint-disable-next-line
-  const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
+  }, [onlyMine])
+  const changeHandler = (_: React.ChangeEvent<unknown>, value: any | null) => {
     // Solution for: https://github.com/facebook/react/issues/6222#issuecomment-1188729134
     setLocalSelectedGroup(value)
     setSelectedStationGroup(value)
