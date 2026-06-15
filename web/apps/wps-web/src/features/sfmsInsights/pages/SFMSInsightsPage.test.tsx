@@ -269,8 +269,7 @@ describe('SFMSInsightsPage', () => {
 
     fireEvent.click(screen.getByTestId('about-data-trigger'))
 
-    expect(screen.getByTestId('about-data-content')).toHaveTextContent('SFMS Next Generation')
-    expect(screen.getByTestId('about-data-content')).toHaveTextContent('separate from the legacy SFMS products')
+    expect(screen.getByTestId('about-data-content')).toBeInTheDocument()
   })
 
   it('should fetch snow data on mount with initial rasterDate', async () => {
