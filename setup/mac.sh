@@ -35,11 +35,14 @@ brew install gh
 # The python gdal binding (pinned in backend/packages/*/pyproject.toml) builds from source
 # against the installed libgdal, which must be >= the pinned version. The pin tracks the
 # ghcr.io/osgeo/gdal base image tag (see openshift/wps-api-base/docker/Dockerfile); keep
-# homebrew gdal, the base image tag, and the pyproject pins in step when bumping.
+# the base image tag and the pyproject pins in step when bumping.
+#
+# We intentionally do NOT `brew pin gdal`. Pinning the formula doesn't pin its
+# dependencies, so a later `brew upgrade` of poppler/proj/etc. can move a dylib soname and
+# break gdal anyway. Instead we let homebrew keep gdal consistent with its deps; if gdal
+# drifts ahead of the pinned version the `uv sync` / gdal build fails loudly, which is the
+# signal to bump the pyproject pins + base image (and re-run `uv sync`).
 brew install gdal
-# Prevent `brew upgrade` from moving the libgdal soname out from under backend/.venv.
-# When the project bumps its gdal pin: brew unpin gdal && brew upgrade gdal && uv sync.
-brew list --pinned | grep -qx gdal || brew pin gdal
 
 ### ecCodes (for weather model unit tests)
 brew install eccodes

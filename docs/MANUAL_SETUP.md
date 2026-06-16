@@ -69,18 +69,21 @@ RedAPP unit tests will fail.
 
 The python `gdal` binding is pinned in `backend/packages/*/pyproject.toml` and is built
 from source by `uv sync` against the system libgdal, which must be **at least** the
-pinned version. Install GDAL from Homebrew and pin it so `brew upgrade` doesn't move the
-libgdal soname out from under the venv:
+pinned version. Install GDAL from Homebrew:
 
 ```bash
 brew install gdal
-brew pin gdal
 ```
 
-Keep the Homebrew gdal, the `ghcr.io/osgeo/gdal` base-image tag
-(`openshift/wps-api-base/docker/Dockerfile`), and the three `gdal==` pyproject pins in
-step when bumping. To bump: `brew unpin gdal && brew upgrade gdal`, update the base-image
-tag + the three pins, `uv lock`, then `uv sync`.
+We deliberately don't `brew pin gdal`: pinning the formula doesn't pin its dependencies
+(poppler, proj, geos, …), so a later `brew upgrade` can still move a dependency soname and
+break gdal. Letting homebrew keep gdal consistent with its deps avoids that; if gdal drifts
+ahead of the pinned version, `uv sync` fails loudly — that's the signal to bump.
+
+Keep the `ghcr.io/osgeo/gdal` base-image tag (`openshift/wps-api-base/docker/Dockerfile`)
+and the three `gdal==` pyproject pins in step. To bump: update the base-image tag + the
+three pins, `uv lock`, then `uv sync` (run `brew upgrade gdal` first if your local gdal is
+behind).
 
 ##### wkhtmltopdf
 
