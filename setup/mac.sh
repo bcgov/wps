@@ -11,9 +11,9 @@ if ! command -v brew >/dev/null 2>&1; then
 fi
 # Ensure brew is on PATH for the rest of this script (it isn't, in the shell that
 # just bootstrapped it on a fresh machine).
-if [ -x /opt/homebrew/bin/brew ]; then
+if [[ -x /opt/homebrew/bin/brew ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -x /usr/local/bin/brew ]; then
+elif [[ -x /usr/local/bin/brew ]]; then
   eval "$(/usr/local/bin/brew shellenv)"
 fi
 # Full path to brew (works on Apple Silicon /opt/homebrew and Intel /usr/local); used
@@ -56,7 +56,7 @@ else
   (
     set -e
     # The macOS build is x86_64 -- install Rosetta 2 so it runs on Apple Silicon.
-    if [ "$(uname -m)" = "arm64" ]; then
+    if [[ "$(uname -m)" == "arm64" ]]; then
       sudo softwareupdate --install-rosetta --agree-to-license
     fi
     curl -L -o /tmp/wkhtmltox.pkg "$WKHTMLTOPDF_PKG_URL"
