@@ -75,7 +75,7 @@ vi.mock('@/features/fba/components/ASADatePicker', () => ({
     disabled?: boolean
   }) => (
     <div data-testid="date-picker" data-disabled={disabled}>
-      <button data-testid="change-date-button" onClick={() => updateDate(DateTime.fromISO('2025-12-15'))}>
+      <button type="button" data-testid="change-date-button" onClick={() => updateDate(DateTime.fromISO('2025-12-15'))}>
         Change Date
       </button>
       <span data-testid="current-date">{date?.toISODate() ?? 'null'}</span>

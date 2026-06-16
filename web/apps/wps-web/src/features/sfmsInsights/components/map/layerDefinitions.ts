@@ -67,7 +67,7 @@ export const getFireWeatherRasterLayer = (
   // Prepare headers for authentication
   const headers: Record<string, string> = {}
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+    headers.Authorization = `Bearer ${token}`
   }
 
   const source = new GeoTIFF({
@@ -102,7 +102,7 @@ export const getFuelGridCOG = (token?: string) => {
 
   const headers: Record<string, string> = {}
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+    headers.Authorization = `Bearer ${token}`
   }
 
   return new GeoTIFF({
