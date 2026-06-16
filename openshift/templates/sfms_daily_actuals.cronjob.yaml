@@ -3,7 +3,7 @@ apiVersion: template.openshift.io/v1
 metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
-    description: "Scheduled task to run SFMS daily actuals (temperature + precipitation interpolation)."
+    description: "Scheduled task to run SFMS daily actuals."
     tags: "sfms,interpolation"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
