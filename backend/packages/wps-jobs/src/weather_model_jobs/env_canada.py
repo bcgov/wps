@@ -171,8 +171,9 @@ def parse_high_res_model_url(url):
         prediction_hour = url_parts[8]
         prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=int(prediction_hour))
         return variable_name, projection, model_run_timestamp, prediction_timestamp
-    except Exception:
+    except (IndexError, ValueError) as exception:
         logger.exception("HRDPS URL %s is not in the expected format", url)
+        raise ValueError(f"HRDPS URL {url} is not in the expected format") from exception
 
 
 def parse_env_canada_filename(url):
