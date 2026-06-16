@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     # https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#yaml-anchors-and-aliases
     container: &api-base-image
-      image: ghcr.io/bcgov/wps/wps-api-base:03-30-2026
+      image: ghcr.io/bcgov/wps/wps-api-base:06-16-2026
       options: --user 0
     steps:
       - uses: actions/checkout@v6
