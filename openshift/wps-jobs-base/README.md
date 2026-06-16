@@ -9,7 +9,7 @@ The Docker image and template in this directory are used to create the base imag
 Update the build config with your GIT_BRANCH and VERSION.
 
 ```bash
-oc -n e1e498-tools process -p GIT_BRANCH=my-branch process -p VERSION=dd-mm-yyyy -f ./openshift/build.yaml | oc -n e1e498-tools apply -f -
+oc -n e1e498-tools process -p GIT_BRANCH=my-branch -p VERSION=dd-mm-yyyy -f ./openshift/build.yaml | oc -n e1e498-tools apply -f -
 ```
 
 Kick off a build
