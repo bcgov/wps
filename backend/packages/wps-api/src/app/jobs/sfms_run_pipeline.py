@@ -320,20 +320,21 @@ async def run_fwi_calculations(
         )
         return
 
+    full_fwi_calculators = (
+        FFMCCalculator(),
+        DMCCalculator(month),
+        DCCalculator(month),
+        ISICalculator(),
+        BUICalculator(),
+        FWIFinalCalculator(),
+    )
     await _run_fwi_calculation_jobs(
         datetime_to_process,
         raster_addresser,
         s3_client,
         sfms_run_id,
         session,
-        (
-            FFMCCalculator(),
-            DMCCalculator(month),
-            DCCalculator(month),
-            ISICalculator(),
-            BUICalculator(),
-            FWIFinalCalculator(),
-        ),
+        full_fwi_calculators,
         run_type,
         previous_base_run_type=previous_base_run_type,
     )
@@ -348,12 +349,13 @@ async def run_derived_fwi_calculations(
     run_type: RunType,
 ) -> None:
     """Calculate ISI, BUI, and FWI from same-day weather and interpolated base indices."""
+    derived_fwi_calculators = (ISICalculator(), BUICalculator(), FWIFinalCalculator())
     await _run_fwi_calculation_jobs(
         datetime_to_process,
         raster_addresser,
         s3_client,
         sfms_run_id,
         session,
-        (ISICalculator(), BUICalculator(), FWIFinalCalculator()),
+        derived_fwi_calculators,
         run_type,
     )
