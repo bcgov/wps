@@ -2,6 +2,7 @@ import math
 from datetime import datetime, timezone
 
 import pytest
+from pytest import approx
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.sfms import SFMSDailyActual
 from wps_shared.schemas.stations import WFWXWeatherStation
@@ -184,7 +185,7 @@ class TestSfmsDailyActualsMapper:
 
         assert len(result) == 1
         assert result[0].code == 100
-        assert result[0].temperature == 15.0
+        assert result[0].temperature == approx(15.0)
 
     def test_filters_forecast_record_type(self):
         station = _make_station(100)
@@ -246,15 +247,15 @@ class TestSfmsDailyForecastsMapper:
         assert len(result) == 1
         forecast = result[0]
         assert forecast.code == 100
-        assert forecast.lat == 49.0
-        assert forecast.lon == -123.0
+        assert forecast.lat == approx(49.0, abs=0)
+        assert forecast.lon == approx(-123.0, abs=0)
         assert forecast.elevation == 150
-        assert forecast.temperature == 20.0
-        assert forecast.relative_humidity == 50.0
-        assert forecast.dewpoint == pytest.approx(9.28, abs=0.01)
-        assert forecast.precipitation == 2.5
-        assert forecast.wind_speed == 10.0
-        assert forecast.wind_direction == 180.0
+        assert forecast.temperature == approx(20.0)
+        assert forecast.relative_humidity == approx(50.0)
+        assert forecast.dewpoint == approx(9.28, abs=0.01)
+        assert forecast.precipitation == approx(2.5)
+        assert forecast.wind_speed == approx(10.0)
+        assert forecast.wind_direction == approx(180.0)
         assert forecast.ffmc is None
         assert forecast.dmc is None
         assert forecast.dc is None
