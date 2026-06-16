@@ -184,8 +184,17 @@ class FireZoneElevationStatsListResponse(BaseModel):
     hfi_elevation_info: List[FireZoneElevationStatsByThreshold]
 
 
+class SFMSBoundsDateRange(BaseModel):
+    minimum: date
+    maximum: date
+
+
+SFMSBoundsByRunType = Dict[str, SFMSBoundsDateRange]
+SFMSBoundsByYear = Dict[int, SFMSBoundsByRunType]
+
+
 class SFMSBoundsResponse(BaseModel):
-    sfms_bounds: dict
+    sfms_bounds: SFMSBoundsByYear
 
 
 class LatestSFMSRunParameter(BaseModel):
