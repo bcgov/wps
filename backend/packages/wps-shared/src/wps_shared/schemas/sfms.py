@@ -1,7 +1,11 @@
 """This module contains pydantic schemas related to SFMS."""
 
+from datetime import date
 from typing import List, Optional
+
 from pydantic import BaseModel
+
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 
 
 class HourlyTIF(BaseModel):
@@ -32,3 +36,12 @@ class SFMSDailyActual(BaseModel):
     ffmc: Optional[float] = None
     dmc: Optional[float] = None
     dc: Optional[float] = None
+
+
+class SFMSRunBounds(BaseModel):
+    """Target-date bounds for completed SFMS runs."""
+
+    year: int
+    run_type: RunTypeEnum
+    minimum: date
+    maximum: date

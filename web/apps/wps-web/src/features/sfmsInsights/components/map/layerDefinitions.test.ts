@@ -1,4 +1,9 @@
-import { getSnowPMTilesLayer, getFireWeatherRasterLayer, getRasterLayer } from './layerDefinitions'
+import {
+  getSnowPMTilesLayer,
+  getFireWeatherRasterLayer,
+  getRasterLayer,
+  getSFMSNGActualRasterPath
+} from './layerDefinitions'
 import { DateTime } from 'luxon'
 
 // Mock pmtiles completely to prevent any parsing
@@ -111,6 +116,20 @@ describe('layerDefinitions', () => {
   })
 
   describe('getFireWeatherRasterLayer', () => {
+    it('should generate SFMSNG actual COG paths for FWI rasters', () => {
+      const rasterDate = DateTime.fromISO('2025-11-02')
+
+      expect(getSFMSNGActualRasterPath(rasterDate, 'fwi')).toBe('sfms_ng/actual/2025/11/02/fwi_20251102_cog.tif')
+    })
+
+    it('should generate SFMSNG actual COG paths for weather rasters', () => {
+      const rasterDate = DateTime.fromISO('2025-11-02')
+
+      expect(getSFMSNGActualRasterPath(rasterDate, 'relative_humidity')).toBe(
+        'sfms_ng/actual/2025/11/02/relative_humidity_20251102_cog.tif'
+      )
+    })
+
     it('should create fire weather layer with zIndex 52', () => {
       const rasterDate = DateTime.fromISO('2025-11-02')
       const layer = getFireWeatherRasterLayer(rasterDate, 'fwi', 'test-token')
@@ -169,6 +188,14 @@ describe('layerDefinitions', () => {
       expect(layer).toBeDefined()
       expect(layer).not.toBeNull()
       expect(layer!.getProperties().rasterType).toBe('fwi')
+    })
+
+    it('should return weather layer when date is provided', () => {
+      const date = DateTime.fromISO('2025-11-02')
+      const layer = getRasterLayer(date, 'temperature', 'test-token')
+      expect(layer).toBeDefined()
+      expect(layer).not.toBeNull()
+      expect(layer!.getProperties().rasterType).toBe('temperature')
     })
 
     it('should return null and log error when date is null for fire weather raster', () => {

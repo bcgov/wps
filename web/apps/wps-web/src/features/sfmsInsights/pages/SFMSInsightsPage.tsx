@@ -1,12 +1,20 @@
 import { AppDispatch } from '@/app/store'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
-import { fetchSFMSBounds, selectEarliestSFMSBounds, selectLatestSFMSBounds } from '@/features/fba/slices/runDatesSlice'
 import Footer from '@/features/landingPage/components/Footer'
 import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
+import { SfmsInsightsAboutDataContent } from '@/features/sfmsInsights/components/SfmsInsightsAboutDataContent'
+import {
+  fetchSFMSInsightsBounds,
+  selectEarliestSFMSInsightsBounds,
+  selectLatestSFMSInsightsBounds,
+  selectSFMSInsightsBounds,
+  selectSFMSInsightsBoundsLoading
+} from '@/features/sfmsInsights/slices/sfmsInsightsSlice'
 import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
+import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { StyledFormControl } from '@wps/ui/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@wps/utils/constants'
@@ -18,13 +26,13 @@ import { useDispatch, useSelector } from 'react-redux'
 
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const latestBounds = useSelector(selectLatestSFMSBounds)
-  const earliestBounds = useSelector(selectEarliestSFMSBounds)
-  const sfmsBounds = useSelector((state: any) => state.runDates.sfmsBounds)
-  const sfmsBoundsLoading = useSelector((state: any) => state.runDates.sfmsBoundsLoading)
+  const sfmsBounds = useSelector(selectSFMSInsightsBounds)
+  const sfmsBoundsLoading = useSelector(selectSFMSInsightsBoundsLoading)
+  const latestBounds = useSelector(selectLatestSFMSInsightsBounds)
+  const earliestBounds = useSelector(selectEarliestSFMSInsightsBounds)
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const [rasterDate, setRasterDate] = useState<DateTime | null>(getDateTimeNowPST())
-  const [maxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
+  const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
   const [minDate, setMinDate] = useState<DateTime>(
     DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPST().year })
   )
@@ -33,18 +41,26 @@ export const SFMSInsightsPage = () => {
   const [showSnow, setShowSnow] = useState<boolean>(true)
 
   useEffect(() => {
-    // Only fetch SFMS bounds if we haven't fetched yet (undefined) and aren't already loading
-    if (sfmsBounds === undefined && !sfmsBoundsLoading) {
-      dispatch(fetchSFMSBounds())
+    if (sfmsBounds !== undefined || sfmsBoundsLoading) {
+      return
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+
+    dispatch(fetchSFMSInsightsBounds())
+  }, [dispatch, sfmsBounds, sfmsBoundsLoading])
 
   useEffect(() => {
     if (earliestBounds?.minimum) {
       setMinDate(DateTime.fromISO(earliestBounds.minimum))
     }
   }, [earliestBounds])
+
+  useEffect(() => {
+    if (latestBounds?.maximum) {
+      const latestDate = DateTime.fromISO(latestBounds.maximum)
+      setMaxDate(latestDate)
+      setRasterDate(currentDate => (currentDate?.toISODate() === latestDate.toISODate() ? currentDate : latestDate))
+    }
+  }, [latestBounds])
 
   useEffect(() => {
     // Only fetch snow data once rasterDate is set
@@ -77,9 +93,13 @@ export const SFMSInsightsPage = () => {
           borderBottomColor: 'secondary.main'
         }}
       >
-        <Grid container spacing={1} sx={{
-          alignItems: 'center'
-        }}>
+        <Grid
+          container
+          spacing={1}
+          sx={{
+            alignItems: 'center'
+          }}
+        >
           {sfmsBoundsLoading ? (
             <Grid>
               <StyledFormControl>
@@ -117,6 +137,13 @@ export const SFMSInsightsPage = () => {
               label={snowDate ? `Show Latest Snow: ${snowDate.toLocaleString(DateTime.DATE_MED)}` : 'Show Latest Snow'}
             />
           </Grid>
+          <Grid sx={{ marginLeft: 'auto', paddingRight: 2 }}>
+            <AboutDataPopover
+              content={SfmsInsightsAboutDataContent}
+              maxWidth={450}
+              testId="sfms-insights-about-data-popover"
+            />
+          </Grid>
         </Grid>
       </Box>
       <Box sx={{ flex: 1, position: 'relative' }}>
@@ -124,5 +151,5 @@ export const SFMSInsightsPage = () => {
       </Box>
       <Footer />
     </Box>
-  );
+  )
 }
