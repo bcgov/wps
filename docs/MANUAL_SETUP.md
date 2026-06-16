@@ -1,8 +1,20 @@
 # Manual Setup
 
+The backend is a `uv`-managed Python workspace (see [backend/README.md](../backend/README.md)).
+On macOS most of this is automated by [`setup/mac.sh`](../setup/mac.sh); this document
+covers the manual steps and platform-specific notes.
+
 #### Local machine, in docker
 
-For local development, you can copy .env.example to .env.docker.
+> **Note:** Docker Compose and the VS Code dev container are **currently
+> unsupported** and may be out of date — native setup (below) is the recommended
+> and supported path. The docker steps are kept here for reference.
+
+For local development with docker compose, copy the repo-root `.env.example` to the
+two files compose reads (see `docker-compose.yml`'s `env_file` entries):
+
+- API: `backend/packages/wps-api/src/app/.env.docker`
+- Web: `web/.env` (sample at `web/apps/wps-web/.env.example`)
 
 ```bash
 docker compose build
@@ -10,13 +22,19 @@ docker compose build
 
 #### Local machine, running MacOS
 
-For local development, you can copy .env.example to .env.
+For native (non-docker) local development, copy the repo-root `.env.example` to `.env`
+(at the repo root — python-decouple discovers it by walking up from the package
+directory). Then change the database hosts from the docker-compose service name to
+`localhost`:
 
-NOTE: matching the version of postgresql, postgis and gdal with production is problematic, and best
-avoided. (postgresql + postgis binaries on mac use a newer version of gdal that we don't have on debian yet.)
+```
+POSTGRES_WRITE_HOST=localhost
+POSTGRES_READ_HOST=localhost
+```
 
-NOTE: installing postgresql, postgis and gdal as binaries is the preffered method of installation. Installing
-from source is a world of trouble you don't want to get into. Stick to brew.
+NOTE: matching the exact version of postgresql/postgis with production on your local
+machine is not necessary — production runs in containers (CrunchyDB) and CI matches it
+there. Locally we use Homebrew's `postgresql@17` + `postgis`.
 
 ##### Artifactory npm repo config
 
@@ -35,150 +53,132 @@ The artifactory token is currently stored in Vault as gha_artifactory_token.
 
 ##### Java
 
-Some of the unit tests use jnius to compare output against RedAPP. The default version of Java that
-comes with mac is likely to cause Segmentation Errors when you run unit tests.
-
-Install the latest JDK! Download [https://jdk.java.net/](https://jdk.java.net/)
+Some of the unit tests use jnius to compare output against RedAPP. `setup/mac.sh`
+installs `openjdk` via brew; point `JAVA_HOME` at it (the default macOS Java is likely
+to cause segmentation errors when running the unit tests):
 
 ```bash
-tar -xf openjdk-16.0.2_osx-x64_bin.tar.gz
-sudo mv jdk-16.0.2.jdk /Library/Java/JavaVirtualMachines
+export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
 ```
 
-Ensure that the CLASSPATH environment variable points to the jar files in api/libs, or unit tests will fail.
+Ensure the `CLASSPATH` environment variable in your `.env` points to the jar files in
+`backend/packages/wps-api/libs/` (`REDapp_Lib.jar`, `WTime.jar`, `hss-java.jar`), or the
+RedAPP unit tests will fail.
 
 ##### Gdal
 
-If you already have gdal installed above 3.12.3 you'll need to remove it and install a local version of the 3.12.3 version:
+The python `gdal` binding is pinned in `backend/packages/*/pyproject.toml` and is built
+from source by `uv sync` against the system libgdal, which must be **at least** the
+pinned version. Install GDAL from Homebrew and pin it so `brew upgrade` doesn't move the
+libgdal soname out from under the venv:
 
 ```bash
-brew uninstall postgis #depends on gdal
-brew uninstall gdal
-brew untap gdal/versions
+brew install gdal
+brew pin gdal
 ```
 
-Then:
-
-From: https://github.com/Homebrew/homebrew-core/commits/master/Formula/g/gdal.rb
-
-```bash
-brew tap-new $(whoami)/local-gdal
-curl -s https://raw.githubusercontent.com/Homebrew/homebrew-core/2761c8e5f5547753c8bebc39e95968006f5deb69/Formula/g/gdal.rb > $(brew --repository)/Library/Taps/$(whoami)/homebrew-local-gdal/Formula/gdal.rb
-brew install $(whoami)/local-gdal/gdal
-```
-
-Note that there are other subsequent steps for gdal installation. See "Install project python requirements".
+Keep the Homebrew gdal, the `ghcr.io/osgeo/gdal` base-image tag
+(`openshift/wps-api-base/docker/Dockerfile`), and the three `gdal==` pyproject pins in
+step when bumping. To bump: `brew unpin gdal && brew upgrade gdal`, update the base-image
+tag + the three pins, `uv lock`, then `uv sync`.
 
 ##### wkhtmltopdf
 
+wkhtmltopdf (used by `pdfkit` to generate HFI calculator PDFs) is discontinued and the
+Homebrew cask has been removed. `setup/mac.sh` installs it from the wkhtmltopdf packaging
+releases. Note that the production image uses the Linux `0.12.6.1-2` `.deb`, but that
+release has **no macOS build** — the newest macOS package is the older `0.12.6-2`
+x86_64 ("cocoa") `.pkg`, so on Apple Silicon it needs Rosetta 2:
+
 ```bash
-brew install --cask wkhtmltopdf
+softwareupdate --install-rosetta --agree-to-license
+curl -L -o /tmp/wkhtmltox.pkg \
+  https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-2/wkhtmltox-0.12.6-2.macos-cocoa.pkg
+sudo installer -pkg /tmp/wkhtmltox.pkg -target /
 ```
 
-##### Poetry
+PDF generation is not required for most backend work; the package is unsigned and the
+project is archived, so this is best-effort.
 
-Try to match the latest version of python in our production environment (as of writing, API is on 3.12.3)
+##### eccodes
+
+The weather-model tests need the ecCodes library:
 
 ```bash
-brew update
+brew install eccodes
+```
+
+##### Python (pyenv) and uv
+
+Match the latest version of python in our production environment (as of writing, 3.12.3):
+
+```bash
 brew install pyenv
 pyenv install 3.12.3
-pyenv local 3.12.3
-curl -sSL https://install.python-poetry.org | python -
+pyenv global 3.12.3
+brew install uv
 ```
 
 ##### Install project python requirements
 
-`poetry env use 3.12.3` doesn't actually honor the minor version, if you have more than one version
-of 3.10, and you want 3.12.3 exactly, you have to find the location of the 3.12.3 binary and point
-to that.
+Dependencies are installed for the whole workspace with `uv sync` — there is no
+per-package install step, and gdal/wps_shared are handled by the lockfile (no manual
+`pip install` needed).
+
+`psycopg2` builds from source, so `pg_config` must be on `PATH`. `postgresql@17` is
+keg-only, so expose its bin dir first:
 
 ```bash
-pyenv which python
+export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
+cd backend
+uv sync --all-extras
 ```
-
-```bash
-poetry env use [path to python 3.12.3, get this by running 'pyenv which python']
-poetry run python -m pip install --upgrade pip
-```
-
-Add the artifactory repo source to your poetry config:
-
-```bash
-poetry source add --priority=supplemental psu https://artifacts.developer.gov.bc.ca/artifactory/api/pypi/{repo_name}/simple
-```
-
-Add artifactory repo credentials to poetry config:
-
-```bash
-poetry config http-basic.psu <service-account-username> <service-account-password>
-```
-
-Install dependencies:
-
-In each individual workspace you must do the following
-
-```bash
-poetry install
-# we can't include gdal in poetry as we have little control over the version of gdal available on different platforms - we must match whatever version of gdal is available on the system in question.
-poetry run python -m pip install gdal==$(gdal-config --version)
-
-# Install the wps_shared package in editable mode using pip to allow changes in the wps_shared package to be reflected immediately in the api package. This is not needed in the wps_shared workspace.
-poetry run python -m pip install -e ../wps_shared
-
-# on ubuntu, you may have to install pygdal, with the correct version specified.
-poetry run python -m pip install pygdal==3.0.4.10
-```
-
-**N.B.: If `poetry env use [version]` returns an `EnvCommandError` saying something like "pyenv: python3.10: command not found", but `pyenv versions` shows that 3.12.3 is installed, you must first run `pyenv shell 3.12.3` and then re-run `poetry env use [path to python 3.12.3]`.**
 
 ##### Troubleshooting
 
 ###### psycopg2
 
-If you experience errors when installing `psycopg2` and you are using MacOS, try running
-`env LDFLAGS="-I/usr/local/opt/openssl@1.1/include -L/usr/local/opt/openssl@1.1/lib" poetry install`
-from the command line.
-
-If you're getting errors relating to `pg_config` executable not found when installing `psycopg2` it means
-you either don't have PostgreSQL installed or psycopg2 doesn't know where to find it. You can install PostgreSQL by following instructions on <https://www.postgresql.org/download/>, be sure to update your PATH if you're installing it manually.
+If you get errors about `pg_config` not being found when building `psycopg2`, it means
+`pg_config` isn't on `PATH` — see the export above (`$(brew --prefix postgresql@17)/bin`).
 
 ###### GDAL
 
-If python gdal complains about header files (likely if you've installed gdal manually), you may have to help it find them, export location before doing pip install:
+If the python gdal build complains about header files (likely if you've installed gdal
+manually rather than via brew), help it find them before running `uv sync`:
 
 ```bash
 export CPLUS_INCLUDE_PATH=/usr/include/gdal
 export C_INCLUDE_PATH=/usr/include/gdal
 ```
 
-If gdal isn't installing, and you're on a mac, getting errors like "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/cmath:321:9: error: no member named 'signbit' in the global namespace using ::signbit;" then try the following:
+If gdal isn't building on a mac with errors like "no member named 'signbit' in the global
+namespace", then:
 
-- ensure you've applied most recent OS updates.
-- ensure XCode is updated.
-- wipe your existing virtual environment
+- ensure you've applied the most recent OS updates
+- ensure XCode is updated
+- wipe your existing virtual environment (`backend/.venv`) and re-run `uv sync`
 
 #### Local machine, running Linux
 
 ##### Ubuntu
 
-Install system dependancies:
+The production base image (`openshift/wps-api-base/docker/Dockerfile`) is the
+authoritative list of system dependencies. On a comparable Ubuntu host:
 
 ```bash
-sudo apt install python3 python3-pip
-sudo apt install python-is-python3
-# install osgeo/gdal
-sudo apt install libgdal-dev
-# isntall libudunits2-dev as required dependency of cffdrs
+sudo apt install python3 python3-pip python3-dev python-is-python3
+# geospatial / build dependencies
+sudo apt install libgdal-dev libproj-dev libgeos-dev libsqlite3-dev libxml2-dev cmake build-essential
+# required by cffdrs
 sudo apt install libudunits2-dev
-# install R and pre-req for cffdrs
-sudo apt install r-base
-R
-install.packages('rgdal')
-install.packages('cffdrs')
-# install the jdk (for running tests agains redapp)
+# postgres client headers (for psycopg2)
+sudo apt install libpq-dev
+# the jdk (for running tests against RedAPP)
 sudo apt install default-jdk
 ```
+
+Install `uv` (<https://docs.astral.sh/uv/>) and run `uv sync --all-extras` from
+`backend/`. The python `gdal` package must match the system libgdal version.
 
 ##### Fedora
 
@@ -188,78 +188,54 @@ Install system dependencies:
 sudo dnf install unixODBC-devel
 ```
 
-#### R modules for cffdrs (MacOS Big Sur)
-
-Make sure [GDAL is installed](#gdal-from-brew) on your system
-
-```bash
-- brew install r
-- brew install udunits
-- brew install proj
-```
-
-Within an R interpreter instance:
-
-```R
-- install.packages(c("rgdal","sf", "units"),,"https://mac.R-project.org")
-- install.packages('cffdrs')
-```
-
 ### Executing program
 
-See [Makefile](Makefile) for examples of running the API in docker.
+See the [Makefile](../Makefile) for docker examples and [backend/README.md](../backend/README.md)
+for running the API natively.
 
-e.g.:
-
-```bash
-make init
-```
-
-will execute `poetry install`, which is required before executing the program locally for the first time.
+Install dependencies (required before running the program for the first time):
 
 ```bash
-make docker-run
+cd backend && uv sync --all-extras
 ```
 
-will execute:
+Run the full stack in docker:
 
 ```bash
-docker compose up
+make docker-run        # docker compose up
 ```
 
-#### Local machine, running mac os
-
-See [Makefile](Makefile) for examples or running the API on your local machine.
-
-e.g.:
+Run the API natively (from `backend/packages/wps-api`):
 
 ```bash
-make run
+uv run --package wps-api python -m app.main
 ```
 
-will execute:
-
-```bash
-poetry run ruff .
-cd app; \
-poetry run uvicorn main:app --reload --port 8080;
-```
-
-To shell into the Docker container for the database, execute `make docker-shell-db`.
+To shell into the running docker containers: `make docker-shell-api` / `make docker-shell-web`.
 
 ### Running the database locally
 
 #### In Docker
 
-Executing `make docker-build-dev` followed by `make docker-run-dev` will build and run the Docker container needed to run the application locally. Running the dev container will also spin up a local Postgres service and will create a local copy of the wps database with the necessary schemas.
+```bash
+make docker-db         # docker compose up db
+```
+
+Runs a local Postgres/PostGIS container and creates the `wps` database.
 
 #### Natively
 
-As of Nov 2024 the version of postgis installed with brew doesn't work with postgresql@16. postgis is specifically
-linked to the original postgres cask (aka postgres@14). If you choose to use postgresql@16 installed via brew, you
-will need to compile postgis yourself. The alternative is to use [Postgres.app](https://postgresapp.com/).
+We use Homebrew `postgresql@17` + `postgis` locally. (This became viable once the
+project's GDAL pin moved to current homebrew-core — brew `postgis` links the same
+libgdal the venv uses, so there is no longer a conflict. The older Postgres.app
+workaround is no longer required.)
 
-After installing Postgres.app, run the following commands in a terminal (taken from the mac.sh setup script):
+```bash
+brew install postgresql@17 postgis
+brew services start postgresql@17
+```
+
+Then create the database, extension and users (these match the `.env` defaults):
 
 ```bash
 psql -d postgres -c "create database wps;"
@@ -270,67 +246,31 @@ CREATE USER wpsread;
 ALTER USER wps WITH LOGIN;
 ALTER USER wpsread WITH LOGIN;
 ALTER USER wps WITH SUPERUSER;
+ALTER USER wps WITH PASSWORD 'wps';
 grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;
 "
 ```
 
-If you have chosen to `brew install postgresql@16` and compile `postgis` locally, follow the instructions below:
-
-If you're running Postgresql natively for the first time:
+`\dx` in `psql -d wps` should list `postgis`. Then run the migrations:
 
 ```bash
-brew services start postgresql
-brew services list
+cd backend/packages/wps-api && uv run --package wps-api alembic upgrade head
 ```
 
-should show that the "postgresql" service is running.
+The CI pipeline enforces migrations and tests with `uv run pytest` (see
+`.github/workflows/integration.yml`); run `cd backend && uv run pytest` locally to match.
 
-```bash
-psql -d postgres
-```
+##### Postgres.app (alternative)
 
-will shell you into your local postgres server.
-
-```psql
-create user wps with password "wps";
-```
-
-(or your desired username/password combo. Make sure to update these in your .env file).
-If successful, this command will output `CREATE ROLE`.
-
-```psql
-create database wps with owner wps;
-```
-
-If successful, this command will output `CREATE DATABASE`.
-
-`\l` should show "wps" in the list of databases.
-
-```psql
-\c wps
-\dx
-```
-
-will show the list of extensions, and "postgis" should be one of them. If it isn't, run
-
-```psql
-create extension postgis;
-```
-
-If successful, this command will output `CREATE EXTENSION`. Re-run `\dx` to confirm the postgis extension has now been added.
-
-From a poetry shell, run
-
-```bash
-PYTHONPATH=. alembic upgrade head
-```
-
-Or enforce by running [scripts/test.sh](scripts/test.sh) as part of your ci/cd pipeline.
+If you'd rather not use Homebrew postgres, [Postgres.app](https://postgresapp.com/)
+bundles Postgres + PostGIS. Create the database/users with the same SQL as above. Note
+that Postgres.app bundles its own older `gdal-config`; if you add its `bin` to `PATH`,
+**append** it rather than prepend, so it doesn't shadow Homebrew's gdal during `uv sync`.
 
 #### ModuleNotFoundError: No module named 'pkg_resources'
 
 ```bash
-poetry run python -m pip install --upgrade setuptools
+cd backend && uv pip install --upgrade setuptools
 ```
 
 ## New Workstation Setup
@@ -340,7 +280,7 @@ poetry run python -m pip install --upgrade setuptools
 The following is a list of required software applications and packages. Some of these can be installed automatically using the `setup/mac.sh` script.
 
 - VS Code (technically there are other options, but this is arguably the best)
-  - using the "Python: select interpreter" command within VS Code, select the `pyenv` Python installation
+  - using the "Python: Select Interpreter" command within VS Code, select `backend/.venv/bin/python`
 - Git CLI
 - GitHub CLI
 - Openshift CLI
@@ -349,7 +289,6 @@ The following is a list of required software applications and packages. Some of 
 
 ### Optional but Recommended Software
 
-- [Fig (for Mac)](https://fig.io/)
 - [Oh My Zsh](https://ohmyz.sh/)
 - [Zenhub extension for GitHub](https://www.zenhub.com/extension)
 
@@ -361,9 +300,7 @@ The extensions listed here are shown exactly as they appear in the VS Code Exten
 - Dev Containers
 - Docker
 - ESLint
-- Fig (not available through the Extensions Marketplace within VS Code, but when Fig is installed via CLI, the Fig extension will automatically be available in VS Code)
 - GitLens - Git supercharged
-- Isort
 - Jupyter
 - Jupyter Cell Tags
 - Jupyter Keymap
@@ -378,8 +315,8 @@ The extensions listed here are shown exactly as they appear in the VS Code Exten
 - Prettier - Code formatter
 - Pylance
 - Python
-- R
 - Rainbow Brackets
 - Remote - SSH
+- Ruff
 - SonarLint
 - VS Code Counter
