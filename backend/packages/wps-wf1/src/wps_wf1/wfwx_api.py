@@ -316,14 +316,11 @@ class WfwxApi:
         self, time_of_interest: datetime
     ) -> List[SFMSDailyActual]:
         header = await self._get_auth_header()
-        stations: List[WFWXWeatherStation] = await self.get_station_data(
-            mapper=wfwx_station_list_mapper
-        )
-        logger.info(f"Computing SFMS actuals with {len(stations)} stations")
+        logger.info("Computing SFMS actuals")
         raw_dailies = await self.wfwx_client.fetch_raw_dailies_for_all_stations(
             header, time_of_interest
         )
-        station_dailies = sfms_daily_actuals_mapper(raw_dailies, stations)
+        station_dailies = sfms_daily_actuals_mapper(raw_dailies)
         return station_dailies
 
     async def get_hourly_actuals_all_stations(
