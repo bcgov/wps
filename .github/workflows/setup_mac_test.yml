@@ -9,13 +9,6 @@ name: Setup script (macOS)
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "setup/mac.sh"
-      - "backend/packages/*/pyproject.toml"
-      - "backend/uv.lock"
-      - ".env.example"
-      - ".github/workflows/setup_mac_test.yml"
   schedule:
     # Mondays 09:00 UTC -- catch external drift (homebrew-core gdal vs the pyproject
     # pin, the wkhtmltopdf release, osgeo base images) even when the repo hasn't changed.
