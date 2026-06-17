@@ -1,0 +1,75 @@
+name: Setup script (macOS)
+
+# Runs setup/mac.sh on a clean, disposable arm64 macOS runner to verify the local
+# backend setup works end-to-end (Homebrew deps, GDAL, Postgres/PostGIS, Redis, uv).
+# This is the e2e test for setup/mac.sh that can't be safely run on a dev machine.
+#
+# Note: GitHub runners ship with Homebrew/Python preinstalled, so the "fresh machine"
+# Homebrew bootstrap branch in mac.sh is skipped here (brew is already present).
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays 09:00 UTC -- catch external drift (homebrew-core gdal vs the pyproject
+    # pin, the wkhtmltopdf release, osgeo base images) even when the repo hasn't changed.
+    - cron: "0 9 * * 1"
+
+concurrency:
+  group: setup-mac-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mac-setup:
+    name: Provision a clean macOS machine with setup/mac.sh
+    # Apple Silicon (arm64) -- matches dev machines and exercises the Rosetta/wkhtmltopdf path.
+    runs-on: macos-15
+    timeout-minutes: 75
+    env:
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run setup/mac.sh
+        # Runners have passwordless sudo, so the wkhtmltopdf .pkg / Rosetta steps run
+        # non-interactively.
+        run: bash setup/mac.sh
+
+      - name: Put provisioned tools on PATH for the smoke test
+        # mac.sh exports these for its own run only; re-expose them for later steps.
+        run: |
+          echo "$(brew --prefix postgresql@17)/bin" >> "$GITHUB_PATH"
+          echo "JAVA_HOME=$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home" >> "$GITHUB_ENV"
+
+      - name: Smoke test -- tools installed
+        run: |
+          set -euo pipefail
+          gdal-config --version
+          psql --version
+          redis-cli ping
+          uv --version
+          command -v wkhtmltopdf >/dev/null && wkhtmltopdf --version || echo "wkhtmltopdf not installed (optional)"
+
+      - name: Smoke test -- database provisioned
+        run: |
+          set -euo pipefail
+          psql -d wps -c "select postgis_version();"
+
+      - name: Create .env for the backend
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          # native dev: DB on localhost; hostname-safe object-store placeholders
+          sed -i '' -e 's/^POSTGRES_WRITE_HOST=db/POSTGRES_WRITE_HOST=localhost/' \
+                    -e 's/^POSTGRES_READ_HOST=db/POSTGRES_READ_HOST=localhost/' \
+                    -e 's/=object_store_server/=object-store-server/' \
+                    -e 's/=wx_object_store_server/=wx-object-store-server/' .env
+
+      - name: Smoke test -- uv sync with GDAL binding
+        run: |
+          set -euo pipefail
+          cd backend
+          uv sync --all-extras
+          uv run python -c "from osgeo import gdal; print('osgeo gdal', gdal.__version__)"
