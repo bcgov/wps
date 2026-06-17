@@ -158,12 +158,14 @@ const FBATable = (props: FBATableProps) => {
     label: value.friendlyName
   }))
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     // Strip the wind query parameters if present and update the URL
     updateQueryParams(stripWindFromQueryParams(location.search))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when stations change
   useEffect(() => {
     if (stations.length > 0) {
       const rowsFromQuery = getRowsFromUrlParams(location.search)
@@ -184,6 +186,7 @@ const FBATable = (props: FBATableProps) => {
     }
   }, [stations])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when location changes
   useEffect(() => {
     if (stations.length > 0) {
       const rowsToUpdate = rows.filter(row => rowIdsToUpdate.has(row.id))
@@ -193,6 +196,7 @@ const FBATable = (props: FBATableProps) => {
     }
   }, [location])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     // Row updates
     if (!isEmpty(rowIdsToUpdate) && fireBehaviourResultStations.length > 0) {
@@ -229,6 +233,7 @@ const FBATable = (props: FBATableProps) => {
     setCalculatedResults(updatedCalculatedResults)
   }, [fireBehaviourResultStations, stations])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     const sortedRows = RowManager.sortRows(
       sortByColumn,
@@ -245,6 +250,7 @@ const FBATable = (props: FBATableProps) => {
     }
   }, [dateOfInterest, fireBehaviourResultStations])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     const sortedRows = RowManager.sortRows(
       sortByColumn,

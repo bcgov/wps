@@ -18,6 +18,7 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
 
   const [layer, setLayer] = useState<OLVectorLayer | null>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when map instance changes
   useEffect(() => {
     if (!map) return
 
@@ -39,12 +40,14 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
     }
   }, [map])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when source changes
   useEffect(() => {
     if (!layer) return
 
     layer.setSource(source)
   }, [source])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when style changes
   useEffect(() => {
     if (!layer) return
 

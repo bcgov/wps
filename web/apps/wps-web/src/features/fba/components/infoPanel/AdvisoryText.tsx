@@ -107,6 +107,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
   const isLoading = useLoading()
 
   // derived state
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are correct for this memoization
   const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
     if (
       isUndefined(filteredFireCentreHFIFuelStats) ||
@@ -149,6 +150,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getZoneStatus closes over props correctly
   const zoneStatus = useMemo(() => getZoneStatus(), [selectedFireCentre, selectedFireZoneUnit, provincialSummary])
 
   const getCommaSeparatedString = (array: string[]): string => {

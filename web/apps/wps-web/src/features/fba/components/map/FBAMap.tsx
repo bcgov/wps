@@ -169,6 +169,7 @@ const FBAMap = (props: FBAMapProps) => {
     setShowHFI(hfiLayerEnabled === 'true')
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when map instance changes
   useEffect(() => {
     if (map) {
       map.on('click', event => {
@@ -195,6 +196,7 @@ const FBAMap = (props: FBAMapProps) => {
     }
   }, [map])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when selected fire centre changes
   useEffect(() => {
     // zoom to fire center or whole province
     if (!map) return
@@ -210,6 +212,7 @@ const FBAMap = (props: FBAMapProps) => {
     }
   }, [props.selectedFireCentre])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when selected fire shape changes
   useEffect(() => {
     // zoom to fire zone
     if (!map) return
@@ -222,6 +225,7 @@ const FBAMap = (props: FBAMapProps) => {
     }
   }, [props.selectedFireShape])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when fire centre/shape/zones change
   useEffect(() => {
     if (!map) return
 
@@ -238,6 +242,7 @@ const FBAMap = (props: FBAMapProps) => {
     fireCentreVTL.changed()
   }, [props.selectedFireCentre, props.selectedFireShape, provincialSummaryZones])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when HFI visibility or run date changes
   useEffect(() => {
     if (!map) return
     removeLayerByName(map, hfiLayerName)
@@ -261,6 +266,7 @@ const FBAMap = (props: FBAMapProps) => {
     }
   }, [showHFI, mostRecentRunDate])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
@@ -322,6 +328,7 @@ const FBAMap = (props: FBAMapProps) => {
     }
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     const stationsSource = new VectorSource({
       features: new GeoJSON().readFeatures(

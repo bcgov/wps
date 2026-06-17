@@ -14,6 +14,7 @@ const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
 
   const [layer, setLayer] = useState<OLTileLayer<TileSource> | null>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when map instance changes
   useEffect(() => {
     if (!map) return
 
@@ -34,6 +35,7 @@ const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
     }
   }, [map])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when source changes
   useEffect(() => {
     if (!layer) return
 

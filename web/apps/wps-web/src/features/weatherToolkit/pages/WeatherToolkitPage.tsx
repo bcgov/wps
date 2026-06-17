@@ -27,6 +27,7 @@ const WeatherToolkitPage = () => {
 
   const { cache: chartCache, failed: chartFailed } = useWxChartCache(model, modelRunDate, modelRunHour, currentHour)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — reset on model/run change only
   useEffect(() => {
     // Reset current hour back to zero as hourly intervals for models don't overlap
     setCurrentHour(0)

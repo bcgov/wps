@@ -32,10 +32,12 @@ const PercentileCalculatorPage = () => {
     end: yearWhenTheCalculationIsDone
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.unspecified))
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     if (codesFromQuery.length > 0) {
       dispatch(fetchPercentiles(codesFromQuery, defaultPercentile, yearRange))

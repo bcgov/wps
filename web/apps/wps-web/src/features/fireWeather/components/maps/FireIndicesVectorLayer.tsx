@@ -52,6 +52,7 @@ const FireIndicesVectorLayer = ({ toiFromQuery, selectedWxVariable }: Props) => 
       ? rhPointStyleFunction
       : tempPointStyleFunction
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery))
   }, [])

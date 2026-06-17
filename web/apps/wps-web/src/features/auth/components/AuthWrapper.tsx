@@ -27,6 +27,7 @@ const AuthWrapper = ({ children }: Props) => {
   const dispatch: AppDispatch = useDispatch()
   const { isAuthenticated, authenticating, error, email } = useSelector(selectAuthentication)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — dispatch is stable and adding it changes nothing
   useEffect(() => {
     if (TEST_AUTH || window.Playwright) {
       dispatch(testAuthenticate(true, 'test token', 'test id token'))

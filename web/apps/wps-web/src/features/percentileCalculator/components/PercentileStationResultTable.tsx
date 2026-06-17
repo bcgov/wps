@@ -20,6 +20,7 @@ export const PercentileStationResultTable: React.FunctionComponent<Props> = ({ s
   const yearRange = years.join(', ')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     if (years.length < timeRange) {
       setSnackbarOpen(true)

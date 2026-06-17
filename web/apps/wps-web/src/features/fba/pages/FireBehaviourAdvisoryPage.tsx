@@ -91,6 +91,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     setCurrentYearMaxDate(DateTime.fromISO(currentYearMax))
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — updateDatePickerOptions closes over state correctly
   useEffect(() => updateDatePickerOptions(), [currentYear, runType, sfmsBounds])
 
   useEffect(() => {
@@ -122,6 +123,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
@@ -129,6 +131,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }, [runType])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchFireCentres())
     const doiISODate = dateOfInterest.toISODate()
@@ -139,6 +142,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     dispatch(fetchSFMSBounds())
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when date of interest changes
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
@@ -149,6 +153,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }, [dateOfInterest])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when fire centre or run date changes
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (
@@ -163,6 +168,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }, [fireCentre, mostRecentRunDate])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when most recent run date changes
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {

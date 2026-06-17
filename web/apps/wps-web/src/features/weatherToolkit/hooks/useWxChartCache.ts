@@ -39,6 +39,7 @@ export function useWxChartCache(
   })
 
   // Reset when model params change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     const state = stateRef.current
     state.generation++

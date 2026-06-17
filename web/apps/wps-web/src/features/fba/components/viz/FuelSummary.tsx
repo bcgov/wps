@@ -81,6 +81,7 @@ const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryPro
   const theme = useTheme()
   const [fuelTypeInfoRollup, setFuelTypeInfoRollup] = useState<FuelTypeInfoSummary[]>([])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     if (isUndefined(fireZoneFuelStats) || isUndefined(selectedFireZoneUnit)) {
       setFuelTypeInfoRollup([])

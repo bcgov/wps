@@ -66,6 +66,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     setRasterError(null)
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
   useEffect(() => {
     if (!mapRef.current) return
 

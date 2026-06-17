@@ -146,16 +146,19 @@ const CHainesPage = () => {
     )
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchModelRuns(selectedDatetime))
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when model runs list changes
   useEffect(() => {
     if (selected_prediction_timestamp && selected_model_run_timestamp && model_runs.length > 0) {
       loadModelPrediction(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)
     }
   }, [model_runs])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when predictions map changes
   useEffect(() => {
     if (selected_model_abbreviation in model_run_predictions) {
       if (selected_model_run_timestamp in model_run_predictions[selected_model_abbreviation]) {
@@ -262,6 +265,7 @@ const CHainesPage = () => {
     selected_model_run_timestamp,
     selected_prediction_timestamp
   )
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — complex animation effect, adding all deps would cause excessive re-runs
   useEffect(() => {
     if (mapRef.current && selected_model_run_timestamp && selected_prediction_timestamp) {
       if (isLoaded(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)) {

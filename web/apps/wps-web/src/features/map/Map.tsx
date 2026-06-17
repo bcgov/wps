@@ -48,6 +48,7 @@ const MapComponent = ({
   const [currentCenter, setCurrentCenter] = useState(center)
 
   // on component mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
   useEffect(() => {
     if (!mapRef.current) return
 
@@ -106,6 +107,7 @@ const MapComponent = ({
   }, [])
 
   // zoom change handler
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when zoom changes
   useEffect(() => {
     if (!map) return
 
@@ -113,6 +115,7 @@ const MapComponent = ({
   }, [zoom])
 
   // center change handler
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when center changes
   useEffect(() => {
     if (!map) return
 
@@ -120,12 +123,14 @@ const MapComponent = ({
   }, [center])
 
   // center change if side panel collapses
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when panel collapses
   useEffect(() => {
     if (!map) return
 
     setMapCenter(toLonLat(currentCenter))
   }, [isCollapsed])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when panel collapses
   useEffect(() => {
     if (!map) return
 

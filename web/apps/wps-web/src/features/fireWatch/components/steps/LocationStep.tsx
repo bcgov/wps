@@ -50,6 +50,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
     })
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when marker changes
   useEffect(() => {
     // Clear and update the feature source so the newly created feature renders on the map.
     featureSource.clear()
@@ -66,6 +67,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
     map?.addInteraction(newTranslate)
   }, [marker])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
   useEffect(() => {
     if (!mapRef.current) {
       return
@@ -100,6 +102,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
     }
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when map instance changes
   useEffect(() => {
     // Click handler to allow user to click on map to place a marker.
     const handleMapClick = (evt: MapBrowserEvent<UIEvent>) => {

@@ -264,16 +264,19 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     return visibleTabs
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — init on mount only
   useEffect(() => {
     const initialShowHideColumnsModel = initShowHideColumnsModel()
     setShowHideColumnsModel(initialShowHideColumnsModel)
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — handleShowHideChange is stable
   useEffect(() => {
     const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange)
     setColumnGroupingModel(colGroupingModel)
   }, [showHideColumnsModel])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleTabs/getVisibleColumns close over state correctly
   useEffect(() => {
     const visibleTabs = getVisibleTabs()
     const visibleColumns = getVisibleColumns(visibleTabs)
@@ -301,30 +304,35 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   /********** Start useEffects for managing visibility of column groups *************/
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     tempVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('temp', tempVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [tempVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     rhVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('rh', rhVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [rhVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     precipVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('precip', precipVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [precipVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     windDirectionVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('windDirection', windDirectionVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [windDirectionVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     setForecastSummaryVisible(false)
     windSpeedVisible && setForecastSummaryVisible(false)
@@ -332,6 +340,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     setColumnVisibilityModel(updatedColumnVisibilityModel)
   }, [windSpeedVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     grassCuringVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('grassCuring', grassCuringVisible)

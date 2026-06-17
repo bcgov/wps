@@ -77,11 +77,13 @@ const MoreCast2Page = () => {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     document.title = MORE_CAST_DOC_TITLE
     dispatch(fetchStationGroups())
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when members changes
   useEffect(() => {
     if (!isEmpty(members)) {
       dispatch(selectedStationsChanged([members[0]]))
@@ -90,6 +92,7 @@ const MoreCast2Page = () => {
     fetchWeatherIndeterminates()
   }, [members])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when station group changes
   useEffect(() => {
     if (!isEmpty(selectedStationGroup)) {
       dispatch(fetchStationGroupsMembers([selectedStationGroup.id]))
@@ -98,6 +101,7 @@ const MoreCast2Page = () => {
     }
   }, [selectedStationGroup])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when date range changes
   useEffect(() => {
     fetchWeatherIndeterminates()
   }, [fromTo.startDate, fromTo.endDate])

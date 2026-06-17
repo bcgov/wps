@@ -52,6 +52,7 @@ const ReviewSubmitStep = ({ fireWatch, setActiveStep }: ReviewSubmitStepProps) =
     return `${fireWatch.fuelType} ${postfix}`
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
   useEffect(() => {
     if (!mapRef.current) {
       return

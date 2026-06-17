@@ -166,11 +166,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchHFIStations())
     dispatch(fetchFuelTypes())
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when updatedPlanningAreaId changes
   useEffect(() => {
     if (
       !isUndefined(result) &&
@@ -185,6 +187,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }, [updatedPlanningAreaId])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when selected fire centre changes
   useEffect(() => {
     if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
@@ -196,18 +199,21 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }, [selectedFireCentre])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when dateRange changes
   useEffect(() => {
     if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
   }, [dateRange])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — setSelectedFireCentreFromLocalStorage closes over state correctly
   useEffect(() => {
     if (Object.keys(fireCentres).length > 0) {
       setSelectedFireCentreFromLocalStorage()
     }
   }, [fireCentres])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when updatedPlanningAreaId changes
   useEffect(() => {
     if (
       !isNull(updatedPlanningAreaId) &&
@@ -220,6 +226,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }, [updatedPlanningAreaId])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run after station admin updates complete
   useEffect(() => {
     if (!stationsUpdateLoading && !isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchHFIStations())

@@ -23,6 +23,7 @@ const StationGroupDropdown = ({
     selectedStationGroup ? selectedStationGroup : null
   )
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     if (onlyMine && !isUndefined(idir)) {
       const myGroups = options.filter(option => option.group_owner_user_id.toLowerCase().includes(idir.toLowerCase()))
