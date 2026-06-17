@@ -369,23 +369,19 @@ def is_sfms_daily(raw_daily: dict, record_types: tuple[WF1RecordTypeEnum, ...]) 
     )
 
 
-def sfms_daily_actuals_mapper(
-    raw_dailies: List[dict], stations: List[WFWXWeatherStation]
-) -> List[SFMSDailyActual]:
+def sfms_daily_actuals_mapper(raw_dailies: List[dict]) -> List[SFMSDailyActual]:
     """Maps raw dailies to list of SFMSDailyActual objects"""
-    station_lookup = {station.code: station for station in stations}
     sfms_daily_actuals: List[SFMSDailyActual] = []
     for raw_daily in raw_dailies:
         station_data = raw_daily.get("stationData")
         if is_sfms_daily(raw_daily, (WF1RecordTypeEnum.ACTUAL, WF1RecordTypeEnum.MANUAL)):
             station_code = station_data.get("stationCode")
-            station = station_lookup[station_code]
             sfms_daily_actuals.append(
                 SFMSDailyActual(
                     code=station_code,
-                    lat=station.lat,
-                    lon=station.long,
-                    elevation=station.elevation,
+                    lat=station_data.get("latitude"),
+                    lon=station_data.get("longitude"),
+                    elevation=station_data.get("elevation"),
                     temperature=raw_daily.get("temperature"),
                     dewpoint=raw_daily.get("dewPoint"),
                     relative_humidity=raw_daily.get("relativeHumidity"),

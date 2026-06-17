@@ -1,7 +1,7 @@
 import types
-import pytest
-
 from datetime import datetime
+
+import pytest
 
 
 # ---------------------------
@@ -255,8 +255,8 @@ async def test_get_stations_by_codes_filters_and_parses(monkeypatch, wfwx_api):
     ]
 
     # Make the client generator yield our stations
-    wfwx_api.wfwx_client.fetch_paged_response_generator = (
-        lambda headers, qb, key, use_cache, ttl: async_gen(raw_stations)
+    wfwx_api.wfwx_client.fetch_paged_response_generator = lambda headers, qb, key, use_cache, ttl: (
+        async_gen(raw_stations)
     )
 
     # is_station_valid: True for code 100 and 300, False for 200
@@ -280,8 +280,8 @@ async def test_get_stations_by_codes_filters_and_parses(monkeypatch, wfwx_api):
 async def test_get_station_data_uses_mapper_and_headers(monkeypatch, wfwx_api):
     # Make generator yield some station items
     items = [{"stationCode": 1}, {"stationCode": 2}]
-    wfwx_api.wfwx_client.fetch_paged_response_generator = (
-        lambda headers, qb, key, use_cache, ttl: async_gen(items)
+    wfwx_api.wfwx_client.fetch_paged_response_generator = lambda headers, qb, key, use_cache, ttl: (
+        async_gen(items)
     )
 
     # Mapper that collects items from async generator
@@ -315,8 +315,8 @@ async def test_get_detailed_geojson_stations_filters_inactive(monkeypatch, wfwx_
             "latitude": 49.2,
         },
     ]
-    wfwx_api.wfwx_client.fetch_paged_response_generator = (
-        lambda headers, qb, key, use_cache, ttl: async_gen(raw_stations)
+    wfwx_api.wfwx_client.fetch_paged_response_generator = lambda headers, qb, key, use_cache, ttl: (
+        async_gen(raw_stations)
     )
 
     import wps_wf1.util as util_mod
@@ -473,8 +473,8 @@ async def test_get_hourly_for_station_filters_actual(monkeypatch, wfwx_api):
 @pytest.mark.anyio
 async def test_get_hourly_readings_runs_tasks(monkeypatch, wfwx_api):
     raw_stations = [{"stationCode": 101}, {"stationCode": 202}]
-    wfwx_api.wfwx_client.fetch_paged_response_generator = (
-        lambda headers, qb, key, use_cache, ttl: async_gen(raw_stations)
+    wfwx_api.wfwx_client.fetch_paged_response_generator = lambda headers, qb, key, use_cache, ttl: (
+        async_gen(raw_stations)
     )
 
     # stub get_hourly_for_station to return sentinel objects
@@ -640,8 +640,8 @@ async def test_get_wfwx_stations_from_station_codes_specific(monkeypatch, wfwx_a
 @pytest.mark.anyio
 async def test_get_raw_dailies_in_range_generator(monkeypatch, wfwx_api):
     items = [{"a": 1}, {"b": 2}]
-    wfwx_api.wfwx_client.fetch_paged_response_generator = (
-        lambda headers, qb, key, use_cache, ttl: async_gen(items)
+    wfwx_api.wfwx_client.fetch_paged_response_generator = lambda headers, qb, key, use_cache, ttl: (
+        async_gen(items)
     )
 
     gen = await wfwx_api.get_raw_dailies_in_range_generator(
@@ -892,7 +892,6 @@ async def test_post_forecasts(wfwx_api):
 def _setup_sfms_daily_actuals(
     monkeypatch,
     wfwx_api,
-    stations=None,
     raw_dailies=None,
     mapper_result=None,
     mapper_name="sfms_daily_actuals_mapper",
@@ -903,20 +902,12 @@ def _setup_sfms_daily_actuals(
     """
     import wps_wf1.wfwx_api as api_mod
 
-    if stations is None:
-        stations = []
     if raw_dailies is None:
         raw_dailies = []
     if mapper_result is None:
         mapper_result = []
 
     captured = {}
-
-    async def fake_wfwx_station_list_mapper(raw_gen):
-        _ = [item async for item in raw_gen]
-        return stations
-
-    monkeypatch.setattr(api_mod, "wfwx_station_list_mapper", fake_wfwx_station_list_mapper)
 
     async def fake_fetch_raw_dailies(headers, time_of_interest):
         captured["headers"] = headers
@@ -925,9 +916,13 @@ def _setup_sfms_daily_actuals(
 
     wfwx_api.wfwx_client.fetch_raw_dailies_for_all_stations = fake_fetch_raw_dailies
 
-    def fake_sfms_mapper(raw, stn):
+    async def fail_get_station_data(*args, **kwargs):
+        raise AssertionError("SFMS actuals should not fetch cached station data")
+
+    wfwx_api.get_station_data = fail_get_station_data
+
+    def fake_sfms_mapper(raw):
         captured["mapper_raw_dailies"] = raw
-        captured["mapper_stations"] = stn
         return mapper_result
 
     monkeypatch.setattr(api_mod, mapper_name, fake_sfms_mapper)
@@ -937,29 +932,9 @@ def _setup_sfms_daily_actuals(
 
 @pytest.mark.anyio
 async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
-    """Verify auth header, time_of_interest, stations, and raw dailies are forwarded correctly and the mapper result is returned."""
+    """Verify auth header, time_of_interest, and raw dailies are forwarded correctly and the mapper result is returned."""
     from wps_shared.schemas.sfms import SFMSDailyActual
 
-    fake_stations = [
-        types.SimpleNamespace(
-            wfwx_id="wfwx-1",
-            code=100,
-            name="S100",
-            lat=49.0,
-            long=-123.0,
-            elevation=100,
-            zone_code=None,
-        ),
-        types.SimpleNamespace(
-            wfwx_id="wfwx-2",
-            code=200,
-            name="S200",
-            lat=50.0,
-            long=-124.0,
-            elevation=300,
-            zone_code="K1",
-        ),
-    ]
     fake_raw_dailies = [
         {"stationData": {"stationCode": 100}, "temperature": 15.0},
         {"stationData": {"stationCode": 200}, "temperature": 20.0},
@@ -973,7 +948,6 @@ async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
     captured = _setup_sfms_daily_actuals(
         monkeypatch,
         wfwx_api,
-        stations=fake_stations,
         raw_dailies=fake_raw_dailies,
         mapper_result=expected,
     )
@@ -984,26 +958,12 @@ async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
     assert captured["headers"] == {"Authorization": "Bearer token123"}
     assert captured["time_of_interest"] == toi
     assert captured["mapper_raw_dailies"] is fake_raw_dailies
-    assert captured["mapper_stations"] is fake_stations
 
 
 @pytest.mark.anyio
 async def test_get_sfms_daily_actuals_all_stations_empty_dailies(monkeypatch, wfwx_api):
     """When no raw dailies exist, an empty list is returned."""
-    fake_stations = [
-        types.SimpleNamespace(
-            wfwx_id="wfwx-1",
-            code=100,
-            name="S100",
-            lat=49.0,
-            long=-123.0,
-            elevation=100,
-            zone_code=None,
-        ),
-    ]
-    _setup_sfms_daily_actuals(
-        monkeypatch, wfwx_api, stations=fake_stations, raw_dailies=[], mapper_result=[]
-    )
+    _setup_sfms_daily_actuals(monkeypatch, wfwx_api, raw_dailies=[], mapper_result=[])
 
     result = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime(2025, 7, 1))
     assert result == []
@@ -1014,17 +974,6 @@ async def test_get_sfms_daily_forecasts_all_stations(monkeypatch, wfwx_api):
     """Verify forecast SFMS dailies use the forecast mapper with fetched raw dailies."""
     from wps_shared.schemas.sfms import SFMSDailyActual
 
-    fake_stations = [
-        types.SimpleNamespace(
-            wfwx_id="wfwx-1",
-            code=100,
-            name="S100",
-            lat=49.0,
-            long=-123.0,
-            elevation=100,
-            zone_code=None,
-        ),
-    ]
     fake_raw_dailies = [{"stationData": {"stationCode": 100}, "temperature": 15.0}]
     expected = [SFMSDailyActual(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0)]
 
@@ -1032,7 +981,6 @@ async def test_get_sfms_daily_forecasts_all_stations(monkeypatch, wfwx_api):
     captured = _setup_sfms_daily_actuals(
         monkeypatch,
         wfwx_api,
-        stations=fake_stations,
         raw_dailies=fake_raw_dailies,
         mapper_result=expected,
         mapper_name="sfms_daily_forecasts_mapper",
@@ -1044,4 +992,3 @@ async def test_get_sfms_daily_forecasts_all_stations(monkeypatch, wfwx_api):
     assert captured["headers"] == {"Authorization": "Bearer token123"}
     assert captured["time_of_interest"] == toi
     assert captured["mapper_raw_dailies"] is fake_raw_dailies
-    assert captured["mapper_stations"] is fake_stations

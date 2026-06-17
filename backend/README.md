@@ -9,7 +9,11 @@ backend/
 ├── packages/
 │   ├── wps-api/      # Main API application
 │   ├── wps-jobs/     # Background jobs
-│   └── wps-shared/   # Shared utilities
+│   ├── wps-sfms/     # SFMS processing
+│   ├── wps-shared/   # Shared utilities
+│   ├── wps-tools/    # Tooling / scripts
+│   ├── wps-weather/  # Weather model processing
+│   └── wps-wf1/      # WF1 (WFWX) integration
 ├── .venv/            # Single virtual environment
 ├── pyproject.toml    # Workspace configuration
 └── uv.lock           # Dependency lock file
@@ -17,7 +21,7 @@ backend/
 
 ## Getting Started
 
-You will need an environment file. See: `.env.example`. Contact current maintainers for current variable settings.
+You will need an environment file at the **repo root**: copy `.env.example` (in the repo root) to `.env`. python-decouple discovers it by walking up from the package directory, so it must live at the repo root, not in `backend/`. Contact current maintainers for current variable settings.
 
 ### Installing
 
@@ -31,8 +35,7 @@ You will need an environment file. See: `.env.example`. Contact current maintain
 ### Setup
 
 - Installation section above is completed
-- `.env` is correctly configured in the project root
-- this dynamic library is set in the env: `DYLD_LIBRARY_PATH=/Library/Frameworks/R.framework/Resources/lib`
+- `.env` is correctly configured in the repo root
 
 ### Install Dependencies
 
@@ -47,10 +50,14 @@ uv sync --all-extras
 # Run all tests
 uv run pytest
 
-# Run tests for a specific package
+# Run tests for a specific package (see pytest.ini for the full list of test paths)
 uv run pytest packages/wps-api/src
 uv run pytest packages/wps-jobs/src
+uv run pytest packages/wps-sfms/src
 uv run pytest packages/wps-shared/src
+uv run pytest packages/wps-weather/src
+uv run pytest packages/wps-wf1/src
+uv run pytest packages/wps-tools/tests
 
 # Run a specific test file
 uv run pytest packages/wps-shared/src/wps_shared/tests/test_fuel_raster.py
@@ -84,7 +91,8 @@ uv sync
 
 ## Docker Images
 
-Each package can be built independently:
+Each package can be built independently. Run these from the **repo root** (the
+Dockerfiles and their build context live there, not in `backend/`):
 
 ```bash
 # API image

@@ -1,4 +1,4 @@
-ARG DOCKER_IMAGE=ghcr.io/osgeo/gdal:ubuntu-small-3.12.3
+ARG DOCKER_IMAGE=ghcr.io/osgeo/gdal:ubuntu-small-3.13.1
 
 # Builder stage
 # ────────────────────────────────────────────────────────────────

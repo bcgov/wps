@@ -16,15 +16,23 @@ uv run pytest
 
 ### Troubleshooting
 
-**Poetry can't install rpy2**
-Error: `ld: library not found for -lpcre2-8`
+**`uv sync` fails building psycopg2: `pg_config executable not found`**
 
-pcre2 should be installed after running [mac.sh](../../../setup/mac.sh). This can be verified by running
-
-```bash
-brew list pcre2
-```
+`pg_config` must be on `PATH`. `postgresql@17` is keg-only, so add it:
 
 ```bash
-export LIBRARY_PATH="/opt/homebrew/Cellar/pcre2/10.42/lib/:$LIBRARY_PATH"
+export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 ```
+
+**Tests using jnius/REDapp segfault or can't find Java**
+
+Point `JAVA_HOME` at the brew openjdk (mac.sh installs it):
+
+```bash
+export JAVA_HOME="$(brew --prefix openjdk)/libexec/openjdk.jdk/Contents/Home"
+```
+
+**`GET /api/health` returns 500 locally**
+
+Expected — `/api/health` checks the CrunchyDB/patroni cluster via the OpenShift
+API, which isn't available locally. Use `GET /api/ready` to confirm the API is up.
