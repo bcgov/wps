@@ -166,10 +166,9 @@ class TestSfmsDailyActualsMapper:
         assert actual.dc is None
 
     def test_maps_manual_record_type_as_actual(self):
-        station = _make_station(100, lat=49.0, lon=-123.0, elevation=150)
         raw = _make_raw_daily(100, record_type="MANUAL", temperature=15.0)
 
-        result = sfms_daily_actuals_mapper([raw], [station])
+        result = sfms_daily_actuals_mapper([raw])
 
         assert len(result) == 1
         assert result[0].code == 100
@@ -205,7 +204,7 @@ class TestSfmsDailyActualsMapper:
     def test_filters_station_with_null_coordinates(self):
         raw = _make_raw_daily(100, lat=None, lon=None, temperature=20.0)
 
-        assert sfms_daily_actuals_mapper([raw], [station]) == []
+        assert sfms_daily_actuals_mapper([raw]) == []
 
 
 class TestSfmsDailyForecastsMapper:
