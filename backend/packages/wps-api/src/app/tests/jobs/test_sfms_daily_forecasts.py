@@ -262,13 +262,18 @@ class TestMain:
 
     def test_main_job_exception_exits(self, mocker: MockerFixture):
         mocker.patch.object(sys, "argv", ["sfms_daily_forecasts.py", "2025-07-15"])
+        exception = RuntimeError("job failed")
         mocker.patch(
             f"{MODULE_PATH}.run_sfms_daily_forecasts",
             new_callable=AsyncMock,
-            side_effect=RuntimeError("job failed"),
+            side_effect=exception,
         )
+        chatops_spy = mocker.spy(sys.modules[MODULE_PATH], "send_chatops_notification")
 
         with pytest.raises(SystemExit) as exc_info:
             main()
 
         assert exc_info.value.code == os.EX_SOFTWARE
+        chatops_spy.assert_called_once_with(
+            "Encountered error running SFMS daily forecasts", exception
+        )

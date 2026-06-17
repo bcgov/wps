@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 
 from aiohttp import ClientSession
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
@@ -120,7 +121,9 @@ def main():
         asyncio.set_event_loop(loop)
         loop.run_until_complete(run_sfms_daily_forecasts(target_date))
     except Exception as exception:
-        logger.error("An exception occurred while running SFMS daily forecasts", exc_info=exception)
+        logger.exception("An exception occurred while running SFMS daily forecasts")
+        chatops_message = "Encountered error running SFMS daily forecasts"
+        send_chatops_notification(chatops_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 
