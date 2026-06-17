@@ -183,7 +183,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchToggleReadyState(result.selected_fire_center_id, updatedPlanningAreaId.planning_area_id, result.date_range)
       )
     }
-  }, [updatedPlanningAreaId, dispatch])
+  }, [updatedPlanningAreaId, dispatch, planningAreaReadyDetails, result])
 
   useEffect(() => {
     if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
@@ -200,8 +200,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-  }, [dateRange, dispatch])
+  }, [dateRange, dispatch, selectedFireCentre])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setSelectedFireCentreFromLocalStorage changes on every render
   useEffect(() => {
     if (Object.keys(fireCentres).length > 0) {
       setSelectedFireCentreFromLocalStorage()
@@ -218,8 +219,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       // Request all ready states for hfi request unique by date and fire centre
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-  }, [updatedPlanningAreaId, dispatch])
+  }, [updatedPlanningAreaId, dispatch, selectedFireCentre, dateRange, planningAreaReadyDetails])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: selectedFireCentre/dateRange in deps creates a fetch loop; this effect is only meant to re-sync after a station admin update completes
   useEffect(() => {
     if (!stationsUpdateLoading && !isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchHFIStations())
