@@ -54,7 +54,7 @@ const FireIndicesVectorLayer = ({ toiFromQuery, selectedWxVariable }: Props) => 
 
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery))
-  }, [])
+  }, [dispatch])
 
   return (
     <VectorLayer

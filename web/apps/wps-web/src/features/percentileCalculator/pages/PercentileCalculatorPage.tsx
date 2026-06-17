@@ -34,7 +34,7 @@ const PercentileCalculatorPage = () => {
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.unspecified))
-  }, [])
+  }, [dispatch])
 
   useEffect(() => {
     if (codesFromQuery.length > 0) {
@@ -45,7 +45,7 @@ const PercentileCalculatorPage = () => {
 
     // Update local state to match with the url query
     setStationCodes(codesFromQuery)
-  }, [location])
+  }, [location, dispatch])
 
   const onCalculateClick = () => {
     // Update the url query with the new station codes

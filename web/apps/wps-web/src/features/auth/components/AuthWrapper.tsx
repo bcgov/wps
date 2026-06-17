@@ -34,7 +34,7 @@ const AuthWrapper = ({ children }: Props) => {
       dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())
     }
-  }, [])
+  }, [dispatch])
 
   if (error) {
     return <div>{error}</div>

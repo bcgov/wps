@@ -169,7 +169,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   useEffect(() => {
     dispatch(fetchHFIStations())
     dispatch(fetchFuelTypes())
-  }, [])
+  }, [dispatch])
 
   useEffect(() => {
     if (
@@ -183,7 +183,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchToggleReadyState(result.selected_fire_center_id, updatedPlanningAreaId.planning_area_id, result.date_range)
       )
     }
-  }, [updatedPlanningAreaId])
+  }, [updatedPlanningAreaId, dispatch])
 
   useEffect(() => {
     if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
@@ -194,13 +194,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       // back to "Prep Period" tab instead of a specific date that may no longer be relevant
       dispatch(fetchGetPrepDateRange(selectedFireCentre.id))
     }
-  }, [selectedFireCentre])
+  }, [selectedFireCentre, dispatch])
 
   useEffect(() => {
     if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-  }, [dateRange])
+  }, [dateRange, dispatch])
 
   useEffect(() => {
     if (Object.keys(fireCentres).length > 0) {
@@ -218,14 +218,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       // Request all ready states for hfi request unique by date and fire centre
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-  }, [updatedPlanningAreaId])
+  }, [updatedPlanningAreaId, dispatch])
 
   useEffect(() => {
     if (!stationsUpdateLoading && !isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchHFIStations())
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-  }, [stationsUpdateLoading])
+  }, [stationsUpdateLoading, dispatch])
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))

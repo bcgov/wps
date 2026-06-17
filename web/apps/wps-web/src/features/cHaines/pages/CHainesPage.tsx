@@ -148,7 +148,7 @@ const CHainesPage = () => {
 
   useEffect(() => {
     dispatch(fetchModelRuns(selectedDatetime))
-  }, [])
+  }, [dispatch])
 
   useEffect(() => {
     if (selected_prediction_timestamp && selected_model_run_timestamp && model_runs.length > 0) {

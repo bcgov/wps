@@ -122,8 +122,9 @@ const App = () => {
     return () => {
       Network.removeAllListeners()
     }
-  }, [])
+  }, [dispatch])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: networkStatus.connected intentionally re-runs the fetch when connectivity is restored
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (isActive && !isNull(doiISODate)) {
