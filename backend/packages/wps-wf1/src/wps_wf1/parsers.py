@@ -41,6 +41,17 @@ class WF1RecordTypeEnum(enum.Enum):
     MANUAL = "MANUAL"
 
 
+SFMS_SITE_TYPE_IDS = (
+    "HUB_STN",
+    "WXSTN_GOES",
+    "WXSTN_MB",
+    "WXSTN_TEL",
+    "WXSTN_CELL",
+    "WXSTN_UHF",
+    "EXTERNAL",
+)
+
+
 def construct_zone_code(station: any):
     """Constructs the 2-character zone code for a weather station, using the station's
     zone.alias integer value, prefixed by the fire centre-to-letter mapping.
@@ -339,11 +350,8 @@ async def dailies_list_mapper(
     return wf1_dailies
 
 
-def sfms_daily_actuals_mapper(
-    raw_dailies: List[dict], stations: List[WFWXWeatherStation]
-) -> List[SFMSDailyActual]:
+def sfms_daily_actuals_mapper(raw_dailies: List[dict]) -> List[SFMSDailyActual]:
     """Maps raw dailies to list of SFMSDailyActual objects"""
-    station_lookup = {station.code: station for station in stations}
     sfms_daily_actuals: List[SFMSDailyActual] = []
     for raw_daily in raw_dailies:
         station_data = raw_daily.get("stationData")
@@ -353,28 +361,18 @@ def sfms_daily_actuals_mapper(
         if (
             is_station_valid(station_data)
             and station_status_id == "ACTIVE"
-            # Site types match those used to define APP_WF1_WEATHER.STATION_BC_ACTIVE_REPORTING_VW,
-            # the station source for legacy SFMS.
-            and site_type_id
-            in (
-                "HUB_STN",
-                "WXSTN_GOES",
-                "WXSTN_MB",
-                "WXSTN_TEL",
-                "WXSTN_CELL",
-                "WXSTN_UHF",
-                "EXTERNAL",
-            )
+            # site types match APP_WF1_WEATHER.STATION_BC_ACTIVE_REPORTING_VW,
+            # the legacy SFMS station source.
+            and site_type_id in SFMS_SITE_TYPE_IDS
             and raw_daily.get("recordType").get("id") == WF1RecordTypeEnum.ACTUAL.value
         ):
             station_code = station_data.get("stationCode")
-            station = station_lookup[station_code]
             sfms_daily_actuals.append(
                 SFMSDailyActual(
                     code=station_code,
-                    lat=station.lat,
-                    lon=station.long,
-                    elevation=station.elevation,
+                    lat=station_data.get("latitude"),
+                    lon=station_data.get("longitude"),
+                    elevation=station_data.get("elevation"),
                     temperature=raw_daily.get("temperature"),
                     dewpoint=raw_daily.get("dewPoint"),
                     relative_humidity=raw_daily.get("relativeHumidity"),
