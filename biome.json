@@ -44,7 +44,6 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "useExhaustiveDependencies": "warn",
         "useHookAtTopLevel": "error"
       },
       "style": {
