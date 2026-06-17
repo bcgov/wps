@@ -326,7 +326,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "SFMS Daily Actuals Interpolation",
+            "name": "SFMS Daily Actuals",
             "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.sfms_daily_actuals",
@@ -334,12 +334,12 @@
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
-                "2026-06-15"
+                "2026-06-17"
             ],
             "console": "integratedTerminal"
         },
         {
-            "name": "SFMS Daily Forecasts Interpolation",
+            "name": "SFMS Daily Forecasts",
             "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.sfms_daily_forecasts",
@@ -347,7 +347,7 @@
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
-                "2026-06-15"
+                "2026-06-17"
             ],
             "console": "integratedTerminal"
         },
