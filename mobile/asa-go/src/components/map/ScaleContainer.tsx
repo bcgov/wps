@@ -12,7 +12,7 @@ const ScaleContainer = forwardRef(({ visible, setVisible }: ScaleContainerProps,
       const timer = setTimeout(() => setVisible(false), 2000)
       return () => clearTimeout(timer)
     }
-  }, [visible, setVisible])
+  }, [visible])
 
   return (
     <Fade in={visible} timeout={visible ? 0 : 2000}>

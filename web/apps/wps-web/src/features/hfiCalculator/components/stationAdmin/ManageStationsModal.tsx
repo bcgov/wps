@@ -86,7 +86,7 @@ export const ManageStationsModal = ({
     if (!isUndefined(selectedFireCentre)) {
       dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     }
-  }, [dispatch])
+  }, [])
 
   const handleClose = () => {
     setModalOpen(false)

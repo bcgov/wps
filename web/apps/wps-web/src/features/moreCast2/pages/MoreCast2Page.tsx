@@ -80,7 +80,7 @@ const MoreCast2Page = () => {
   useEffect(() => {
     document.title = MORE_CAST_DOC_TITLE
     dispatch(fetchStationGroups())
-  }, [dispatch])
+  }, [])
 
   useEffect(() => {
     if (!isEmpty(members)) {
@@ -88,7 +88,7 @@ const MoreCast2Page = () => {
       setSelectedGroupsMembers(members)
     }
     fetchWeatherIndeterminates()
-  }, [members, dispatch])
+  }, [members])
 
   useEffect(() => {
     if (!isEmpty(selectedStationGroup)) {
@@ -96,7 +96,7 @@ const MoreCast2Page = () => {
     } else {
       setSelectedGroupsMembers([])
     }
-  }, [selectedStationGroup, dispatch])
+  }, [selectedStationGroup])
 
   useEffect(() => {
     fetchWeatherIndeterminates()

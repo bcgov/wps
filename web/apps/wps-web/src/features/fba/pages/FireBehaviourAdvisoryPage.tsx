@@ -127,7 +127,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
     }
-  }, [runType, dispatch])
+  }, [runType])
 
   useEffect(() => {
     dispatch(fetchFireCentres())
@@ -137,7 +137,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchSFMSBounds())
-  }, [dispatch])
+  }, [])
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
@@ -147,7 +147,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (dateOfInterest.year !== currentYear) {
       setCurrentYear(dateOfInterest.year)
     }
-  }, [dateOfInterest, dispatch])
+  }, [dateOfInterest])
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
@@ -161,14 +161,14 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       dispatch(fetchFireCentreTPIStats(fireCentre.name, runType, doiISODate, mostRecentRunDate.toString()))
       dispatch(fetchFireCentreHFIFuelStats(fireCentre.name, runType, doiISODate, mostRecentRunDate.toString()))
     }
-  }, [fireCentre, mostRecentRunDate, dispatch])
+  }, [fireCentre, mostRecentRunDate])
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate))
     }
-  }, [mostRecentRunDate, dispatch])
+  }, [mostRecentRunDate])
 
   useEffect(() => {
     document.title = ASA_DOC_TITLE

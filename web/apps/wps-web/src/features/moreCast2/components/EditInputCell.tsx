@@ -17,7 +17,7 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
 
   useEffect(() => {
     dispatch(setInputValid(isEmpty(error)))
-  }, [dispatch])
+  }, [])
 
   useEffect(() => {
     if (hasFocus && inputRef.current) {

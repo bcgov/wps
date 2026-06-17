@@ -162,7 +162,7 @@ const FBATable = (props: FBATableProps) => {
     // Strip the wind query parameters if present and update the URL
     updateQueryParams(stripWindFromQueryParams(location.search))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, [dispatch])
+  }, [])
 
   useEffect(() => {
     if (stations.length > 0) {
@@ -182,7 +182,7 @@ const FBATable = (props: FBATableProps) => {
 
       dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
     }
-  }, [stations, dispatch])
+  }, [stations])
 
   useEffect(() => {
     if (stations.length > 0) {
@@ -191,7 +191,7 @@ const FBATable = (props: FBATableProps) => {
         dispatch(fetchFireBehaviourStations(dateOfInterest, rowsToUpdate))
       }
     }
-  }, [location, dispatch])
+  }, [location])
 
   useEffect(() => {
     // Row updates

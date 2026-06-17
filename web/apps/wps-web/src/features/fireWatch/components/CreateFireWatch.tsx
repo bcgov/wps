@@ -118,7 +118,7 @@ const CreateFireWatch = ({
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchFireWatchFireCentres())
-  }, [dispatch])
+  }, [])
 
   const isEditMode = !Number.isNaN(fireWatch.id)
 
