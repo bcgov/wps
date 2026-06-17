@@ -25,7 +25,7 @@ import {
 import 'ol/ol.css'
 import { selectToken } from 'app/rootReducer'
 import { fromLonLat } from 'ol/proj'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
 const MapContext = React.createContext<OlMap | null>(null)
@@ -52,7 +52,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   const rasterLayerManagerRef = useRef<LayerManager | null>(null)
   const snowLayerManagerRef = useRef<LayerManager | null>(null)
 
-  const handleLoadingChange = (isLoading: boolean, error?: RasterError) => {
+  const handleLoadingChange = useCallback((isLoading: boolean, error?: RasterError) => {
     setIsLoading(isLoading)
     if (error) {
       setRasterError(error)
@@ -60,13 +60,12 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
       // Clear error on successful load
       setRasterError(null)
     }
-  }
+  }, [])
 
   const handleErrorClose = () => {
     setRasterError(null)
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
   useEffect(() => {
     if (!mapRef.current) return
 
@@ -88,24 +87,18 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     })
     mapObject.addInteraction(tooltipInteraction)
 
-    // Initialize raster layer manager
+    // Initialize layer managers — initial layer load is handled by the effects below
     const rasterLayerManager = new LayerManager({
       onLoadingChange: handleLoadingChange,
       trackLoading: true
     })
     rasterLayerManager.setMap(mapObject)
-    // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
-    if (rasterDate || rasterType === 'fuel') {
-      rasterLayerManager.updateLayer(getRasterLayer(rasterDate, rasterType, token))
-    }
     rasterLayerManagerRef.current = rasterLayerManager
 
-    // Initialize snow layer manager
     const snowLayerManager = new LayerManager({
-      trackLoading: false // Snow layers load quickly, no need to track
+      trackLoading: false
     })
     snowLayerManager.setMap(mapObject)
-    snowLayerManager.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
     snowLayerManagerRef.current = snowLayerManager
 
     const loadBaseMap = async () => {
@@ -118,7 +111,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     return () => {
       mapObject.setTarget('')
     }
-  }, [])
+  }, [handleLoadingChange])
 
   useEffect(() => {
     if (snowLayerManagerRef.current) {
