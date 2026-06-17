@@ -7,6 +7,7 @@ interface ScaleContainerProps {
 }
 
 const ScaleContainer = forwardRef(({ visible, setVisible }: ScaleContainerProps, ref) => {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — setVisible is a stable prop
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(() => setVisible(false), 2000)

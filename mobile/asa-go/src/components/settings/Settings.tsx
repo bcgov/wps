@@ -45,6 +45,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
 
   // Check push notification settings and fetch fire centre info on mount and when app is foregrounded.
   // Also retry device registration in case the initial attempt failed (e.g. offline at startup).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetchFireCentreInfo and checkPushNotificationPermission are stable action creators
   useEffect(() => {
     if (isVisible) {
       dispatch(fetchFireCentreInfo())

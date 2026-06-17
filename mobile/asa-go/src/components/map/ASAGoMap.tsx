@@ -209,6 +209,7 @@ const ASAGoMap = ({
     }
   }, [centerOnLocation, position, map])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — layer refs are stable
   useEffect(() => {
     fireZoneFileLayer.setStyle(
       fireShapeStyler(cloneDeep(fireShapeStatusDetails), layerVisibility[ZONE_STATUS_LAYER_NAME])
@@ -218,6 +219,7 @@ const ASAGoMap = ({
     fireZoneHighlightFileLayer.changed()
   }, [fireShapeStatusDetails])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — layer refs and helpers are stable
   useEffect(() => {
     if (!map) return
 
@@ -238,6 +240,7 @@ const ASAGoMap = ({
     }
   }, [selectedFireShape])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when network status changes
   useEffect(() => {
     // Toggle basemap visibility based on network connection status.
     if (isNil(map)) {
@@ -254,6 +257,7 @@ const ASAGoMap = ({
     }
   }, [networkStatus])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when localBasemapVectorLayer changes
   useEffect(() => {
     // The locally cached basemap pmtiles layer loads async, so add it
     // to the map once it is loaded and state updated.
@@ -268,6 +272,7 @@ const ASAGoMap = ({
     map.addLayer(localBasemapVectorLayer)
   }, [localBasemapVectorLayer])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once on mount
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.

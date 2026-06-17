@@ -112,6 +112,7 @@ export function usePushNotifications() {
     }
   }, [dispatch])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — registerDevice is a stable action creator
   useEffect(() => {
     if (networkStatus.connected && currentFcmToken) {
       dispatch(registerDevice(currentFcmToken, registeredFcmToken))

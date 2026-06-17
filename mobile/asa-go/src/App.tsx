@@ -106,6 +106,7 @@ const App = () => {
     dispatch(initSubscriptions(deviceId))
   }, [deviceId, networkStatus.connected, registeredFcmToken, subscriptionsInitialized, dispatch])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — listener setup runs once on mount
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status
     // when the app first starts and then attach a listener to keep network status in the redux
@@ -124,6 +125,7 @@ const App = () => {
     }
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetchSFMSRunParameters is a stable action creator
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (isActive && !isNull(doiISODate)) {

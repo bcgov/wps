@@ -115,6 +115,7 @@ const CreateFireWatch = ({
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchFireWatchFireCentres())
