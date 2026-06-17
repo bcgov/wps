@@ -1,9 +1,9 @@
-import { render, fireEvent, within, act } from '@testing-library/react'
+import { GridApiContext, type GridCellMode, type GridTreeNodeWithRender } from '@mui/x-data-grid-pro'
+import type { GridApiCommunity, GridStateColDef } from '@mui/x-data-grid-pro/internals'
+import { act, fireEvent, render, within } from '@testing-library/react'
 import { useDispatch } from 'react-redux'
-import { GridApiContext, GridCellMode, GridTreeNodeWithRender } from '@mui/x-data-grid-pro'
-import { EditInputCell } from '@/features/moreCast2/components/EditInputCell'
 import { vi } from 'vitest'
-import { GridApiCommunity, GridStateColDef } from '@mui/x-data-grid-pro/internals'
+import { EditInputCell } from '@/features/moreCast2/components/EditInputCell'
 import { setInputValid } from '@/features/moreCast2/slices/validInputSlice'
 
 const mockSetEditCellValue = vi.fn()
@@ -44,8 +44,8 @@ vi.mock('@/features/moreCast2/slices/validInputSlice', () => ({
 const mockDispatch = vi.fn()
 
 beforeEach(() => {
-  vi.clearAllMocks();
-  (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch)
+  vi.clearAllMocks()
+  ;(useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch)
 })
 
 describe('EditInputCell', () => {

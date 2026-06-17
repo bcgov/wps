@@ -1,9 +1,9 @@
-import { createTheme, ThemeProvider, StyledEngineProvider, Tooltip, IconButton } from '@mui/material'
 import ToggleOffOutlinedIcon from '@mui/icons-material/ToggleOffOutlined'
 import ToggleOnOutlinedIcon from '@mui/icons-material/ToggleOnOutlined'
-import React from 'react'
-import { ReadyPlanningAreaDetails } from '@wps/api/hfiCalculatorAPI'
+import { createTheme, IconButton, StyledEngineProvider, ThemeProvider, Tooltip } from '@mui/material'
+import type { ReadyPlanningAreaDetails } from '@wps/api/hfiCalculatorAPI'
 import { isUndefined } from 'lodash'
+import React from 'react'
 
 export interface PlanningAreaReadyToggleProps {
   enabled: boolean

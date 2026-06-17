@@ -1,14 +1,14 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardActions from '@mui/material/CardActions'
 import CardContent from '@mui/material/CardContent'
-import { Link } from 'react-router-dom'
-import BetaTag from 'features/landingPage/components/BetaTag'
-import { theme } from '@wps/ui/theme'
 import CardHeader from '@mui/material/CardHeader'
+import { styled } from '@mui/material/styles'
+import { theme } from '@wps/ui/theme'
+import BetaTag from 'features/landingPage/components/BetaTag'
+import type React from 'react'
+import { Link } from 'react-router-dom'
 
 const PREFIX = 'ToolCard'
 
@@ -111,11 +111,12 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
     <StyledCard className={classes.card}>
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative"
-        }}>
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative'
+        }}
+      >
         <CardHeader className={classes.cardHeader} title={renderLink()} />
         <Box sx={{ position: 'absolute', right: theme.spacing(2) }}>{props.isBeta && <BetaTag />}</Box>
       </Box>
@@ -135,7 +136,7 @@ const ToolCard: React.FunctionComponent<ToolCardProps> = (props: ToolCardProps) 
         </Button>
       </CardActions>
     </StyledCard>
-  );
+  )
 }
 
 export default ToolCard

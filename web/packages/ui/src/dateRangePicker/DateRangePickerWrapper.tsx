@@ -1,8 +1,7 @@
-import * as React from 'react'
-
-import { DateRange } from './types'
 import { DateTime } from 'luxon'
+import * as React from 'react'
 import DateRangePicker from './DateRangePicker'
+import type { DateRange } from './types'
 
 export interface DateRangePickerWrapperProps {
   open: boolean
@@ -27,14 +26,23 @@ const DateRangePickerWrapper: React.FunctionComponent<DateRangePickerWrapperProp
     toggle()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleKeyPress = (event: any) => open && event?.key === 'Escape' && handleToggle()
+  React.useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (open && event.key === 'Escape') {
+        handleToggle()
+      }
+    }
+    document.addEventListener('keydown', handleKeyPress)
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress)
+    }
+  })
 
   const minDate = initialDateRange.startDate || new Date()
   const maxDate = DateTime.fromJSDate(minDate).plus({ days: 10 }).toJSDate()
 
   return (
-    <div data-testid="date-range-picker-wrapper" onKeyDown={handleKeyPress}>
+    <div data-testid="date-range-picker-wrapper">
       <div>
         <DateRangePicker {...props} minDate={minDate} maxDate={maxDate} maxDayOffset={maxDayOffset} />
       </div>

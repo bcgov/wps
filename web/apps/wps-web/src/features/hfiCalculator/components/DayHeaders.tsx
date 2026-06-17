@@ -1,4 +1,5 @@
-import { Table, TableBody, TableCell, TableRow, styled } from '@mui/material'
+import { styled, Table, TableBody, TableCell, TableRow } from '@mui/material'
+import type { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import {
   NoBottomBorderCell,
   SpaceHeaderTableCell,
@@ -6,7 +7,6 @@ import {
   StickyCellRightBorderOnly,
   TableCellLeftBorder
 } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
-import { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import { calculateNumPrepDays } from 'features/hfiCalculator/util'
 import { isUndefined, range } from 'lodash'
 import { DateTime } from 'luxon'

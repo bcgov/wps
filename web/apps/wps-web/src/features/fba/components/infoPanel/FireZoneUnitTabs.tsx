@@ -1,7 +1,5 @@
-import { selectFireCentreTPIStats, selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
-import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 import { Box, Grid, Tab, Tabs, Tooltip, Typography } from '@mui/material'
-import { FireShape } from '@wps/api/fbaAPI'
+import type { FireShape } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { INFO_PANEL_CONTENT_BACKGROUND, theme } from '@wps/ui/theme'
 import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
@@ -9,8 +7,11 @@ import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
 import TabPanel from 'features/fba/components/infoPanel/TabPanel'
 import { useFireCentreDetails } from 'features/fba/hooks/useFireCentreDetails'
 import { isEmpty, isNil, isNull, isUndefined } from 'lodash'
-import React, { useCallback, useEffect, useMemo } from 'react'
+import type React from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useSelector } from 'react-redux'
+import { selectFilteredFireCentreHFIFuelStats, selectFireCentreTPIStats } from '@/app/rootReducer'
+import { calculateStatusColour } from '@/features/fba/calculateZoneStatus'
 
 interface FireZoneUnitTabs {
   selectedFireZoneUnit: FireShape | undefined
@@ -98,9 +99,10 @@ const FireZoneUnitTabs = ({
         <Grid
           container
           sx={{
-            justifyContent: "center",
+            justifyContent: 'center',
             minHeight: 500
-          }}>
+          }}
+        >
           <Grid sx={{ width: '95%' }}>
             <Box>
               <Tabs
@@ -157,7 +159,7 @@ const FireZoneUnitTabs = ({
                     hfiFuelStats ? { [zone.fire_shape_id]: hfiFuelStats[zone.fire_shape_id].fuel_area_stats } : {}
                   }
                   fireZoneTPIStats={
-                    tpiStatsArray ? tpiStatsArray.find(stats => stats.fire_zone_id == zone.fire_shape_id) : undefined
+                    tpiStatsArray ? tpiStatsArray.find(stats => stats.fire_zone_id === zone.fire_shape_id) : undefined
                   }
                   selectedFireZoneUnit={selectedFireZoneUnit}
                 />
@@ -167,7 +169,7 @@ const FireZoneUnitTabs = ({
         </Grid>
       </InfoAccordion>
     </div>
-  );
+  )
 }
 
 export default FireZoneUnitTabs

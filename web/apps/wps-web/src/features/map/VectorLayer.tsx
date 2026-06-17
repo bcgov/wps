@@ -1,11 +1,10 @@
-import React, { useState, useContext, useEffect } from 'react'
-import OLVectorLayer from 'ol/layer/Vector'
-import VectorSource from 'ol/source/Vector'
-import { StyleLike } from 'ol/style/Style'
-
 import { MapContext } from 'features/map/Map'
-import Geometry from 'ol/geom/Geometry'
-import Feature from 'ol/Feature'
+import type Feature from 'ol/Feature'
+import type Geometry from 'ol/geom/Geometry'
+import OLVectorLayer from 'ol/layer/Vector'
+import type VectorSource from 'ol/source/Vector'
+import type { StyleLike } from 'ol/style/Style'
+import React, { useContext, useEffect, useState } from 'react'
 
 interface Props {
   source: VectorSource<Feature<Geometry>>
@@ -19,6 +18,7 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
 
   const [layer, setLayer] = useState<OLVectorLayer | null>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when map instance changes
   useEffect(() => {
     if (!map) return
 
@@ -38,19 +38,21 @@ const VectorLayer = ({ source, style, opacity, zIndex = 0 }: Props) => {
         map.removeLayer(vectorLayer)
       }
     }
-  }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [map])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when source changes
   useEffect(() => {
     if (!layer) return
 
     layer.setSource(source)
-  }, [source]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [source])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when style changes
   useEffect(() => {
     if (!layer) return
 
     layer.setStyle(style)
-  }, [style]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [style])
 
   return null
 }

@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { test, expect, type Page } from './fixtures'
+import { expect, type Page, test } from './fixtures'
 
 const PERCENTILE_CALC_ROUTE = '/percentile-calculator'
 const STATION_CODE_QUERY_KEY = 'codes'

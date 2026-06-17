@@ -1,8 +1,8 @@
 import { TableCell } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import { isNull, isUndefined } from 'lodash'
 import React from 'react'
 import FixedDecimalNumberCell from './FixedDecimalNumberCell'
-import { isNull, isUndefined } from 'lodash'
 
 const PREFIX = 'HFICell'
 
@@ -38,7 +38,7 @@ interface HFICellProps {
 }
 
 const HFICell = ({ value, testId }: HFICellProps) => {
-  if (isUndefined(value) || isNull(value) || isNaN(value)) {
+  if (isUndefined(value) || isNull(value) || Number.isNaN(value)) {
     return <TableCell data-testid={testId} className={classes.dataRow}></TableCell>
   }
   if (value >= 3000 && value <= 3999) {

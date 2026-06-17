@@ -1,0 +1,87 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": [
+      "web/**",
+      "mobile/asa-go/**",
+      "mobile/keycloak/**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/build",
+      "!**/coverage",
+      "!**/finalCoverage",
+      "!**/.turbo",
+      "!mobile/asa-go/android",
+      "!mobile/asa-go/ios",
+      "!mobile/asa-go/public",
+      "!mobile/keycloak/android",
+      "!mobile/keycloak/ios",
+      "!web/apps/wps-web/src/serviceWorker.ts"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded",
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "double",
+      "trailingCommas": "none",
+      "arrowParentheses": "asNeeded"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "useHookAtTopLevel": "error"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off"
+      }
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["web/apps/wps-web/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noUselessCatch": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["mobile/asa-go/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": "warn"
+          }
+        }
+      }
+    }
+  ]
+}

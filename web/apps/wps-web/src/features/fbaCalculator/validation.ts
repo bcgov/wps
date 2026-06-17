@@ -1,6 +1,5 @@
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
-import _ from 'lodash'
-import { isNil, isNull } from 'lodash'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
+import _, { isNil, isNull } from 'lodash'
 
 /**
  * Returns whether grass cure percentage input is invalid or not
@@ -14,7 +13,7 @@ export const isGrassCureInvalid = (row: FBATableRow): boolean => {
 
   let notSet = false
   if (row.fuelType?.value === 'o1a' || row.fuelType?.value === 'o1b') {
-    notSet = _.isUndefined(row.grassCure) || isNaN(row.grassCure)
+    notSet = _.isUndefined(row.grassCure) || Number.isNaN(row.grassCure)
   }
   return notSet || isGreaterThan(row.grassCure)
 }
@@ -63,4 +62,3 @@ export const isLessThan = (input: number | undefined, limit = 0): boolean => {
   }
   return false
 }
-

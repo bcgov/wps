@@ -1,20 +1,19 @@
 import 'ol/ol.css'
 
-import React, { useRef, useState, useEffect, useCallback } from 'react'
-import * as ol from 'ol'
-import { toLonLat } from 'ol/proj'
-import { FeatureLike } from 'ol/Feature'
-import OLOverlay from 'ol/Overlay'
-import View from 'ol/View'
-import { defaults as defaultControls } from 'ol/control'
-
 import { Button } from '@wps/ui/Button'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
-import { ObjectEvent } from 'ol/Object'
-import { useDispatch } from 'react-redux'
-import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
-import { selectStation } from 'features/stations/slices/stationsSlice'
+import type { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 import FireIndicesVectorLayer from 'features/fireWeather/components/maps/FireIndicesVectorLayer'
+import { selectStation } from 'features/stations/slices/stationsSlice'
+import * as ol from 'ol'
+import { defaults as defaultControls } from 'ol/control'
+import type { FeatureLike } from 'ol/Feature'
+import type { ObjectEvent } from 'ol/Object'
+import OLOverlay from 'ol/Overlay'
+import { toLonLat } from 'ol/proj'
+import View from 'ol/View'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useDispatch } from 'react-redux'
 
 const zoom = 6
 
@@ -33,7 +32,15 @@ interface Props {
   redrawFlag?: RedrawCommand
 }
 
-const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, toiFromQuery, setMapCenter }: Props) => {
+const MapComponent = ({
+  children,
+  center,
+  redrawFlag,
+  isCollapsed,
+  selectedWxVariable,
+  toiFromQuery,
+  setMapCenter
+}: Props) => {
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const [map, setMap] = useState<ol.Map | null>(null)
@@ -41,6 +48,7 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
   const [currentCenter, setCurrentCenter] = useState(center)
 
   // on component mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
   useEffect(() => {
     if (!mapRef.current) return
 
@@ -89,7 +97,6 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
 
     // Center change listener to update our current center
     mapObject.getView().on('change:center', (event: ObjectEvent) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setCurrentCenter((event.target as any).values_.center)
     })
 
@@ -97,29 +104,33 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
       mapObject.setTarget(undefined)
       overlay && mapObject.removeOverlay(overlay)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   // zoom change handler
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when zoom changes
   useEffect(() => {
     if (!map) return
 
     map.getView().setZoom(zoom)
-  }, [zoom]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [zoom])
 
   // center change handler
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when center changes
   useEffect(() => {
     if (!map) return
 
     map.getView().setCenter(center)
-  }, [center]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [center])
 
   // center change if side panel collapses
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when panel collapses
   useEffect(() => {
     if (!map) return
 
     setMapCenter(toLonLat(currentCenter))
-  }, [isCollapsed]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isCollapsed])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when panel collapses
   useEffect(() => {
     if (!map) return
 
@@ -127,7 +138,7 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
     setTimeout(() => {
       map.updateSize()
     }, 100)
-  }, [redrawFlag]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [redrawFlag])
 
   const dispatch = useDispatch()
   const renderTooltip = useCallback(
@@ -191,4 +202,4 @@ const Map = ({ children, center, redrawFlag, isCollapsed, selectedWxVariable, to
   )
 }
 
-export default React.memo(Map)
+export default React.memo(MapComponent)

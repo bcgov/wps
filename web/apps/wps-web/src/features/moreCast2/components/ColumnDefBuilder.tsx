@@ -1,4 +1,4 @@
-import {
+import type {
   GridAlignment,
   GridCellParams,
   GridColDef,
@@ -7,15 +7,15 @@ import {
   GridRenderCellParams,
   GridRenderEditCellParams
 } from '@mui/x-data-grid-pro'
-import { WeatherDeterminate, WeatherDeterminateType } from '@wps/api/moreCast2API'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { WeatherDeterminate, type WeatherDeterminateType } from '@wps/api/moreCast2API'
 import { modelColorClass, modelHeaderColorClass } from '@wps/ui/theme'
-import {
+import type {
   GridComponentRenderer,
   GridRendererEditableValue,
   GridRendererValue
 } from 'features/moreCast2/components/GridComponentRenderer'
-import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import type { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { EditInputCell } from '@/features/moreCast2/components/EditInputCell'
 
 export const DEFAULT_COLUMN_WIDTH = 80

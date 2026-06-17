@@ -1,51 +1,49 @@
-import PublicLoginButton from "@/components/PublicLoginButton";
-import { continueAsGuest } from "@/slices/authenticationSlice";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { useDispatch } from "react-redux";
-import { Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { useDispatch } from 'react-redux'
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import PublicLoginButton from '@/components/PublicLoginButton'
+import { continueAsGuest } from '@/slices/authenticationSlice'
 
-vi.mock("react-redux", async () => {
-  const actual = await vi.importActual("react-redux");
+vi.mock('react-redux', async () => {
+  const actual = await vi.importActual('react-redux')
   return {
     ...actual,
-    useDispatch: vi.fn(),
-  };
-});
+    useDispatch: vi.fn()
+  }
+})
 
-vi.mock("@/slices/authenticationSlice", () => ({
-  continueAsGuest: vi.fn(() => ({ type: "CONTINUE_AS_GUEST" })),
-}));
+vi.mock('@/slices/authenticationSlice', () => ({
+  continueAsGuest: vi.fn(() => ({ type: 'CONTINUE_AS_GUEST' }))
+}))
 
-describe("PublicLoginButton", () => {
-  const mockDispatch = vi.fn();
-  const theme = createTheme();
+describe('PublicLoginButton', () => {
+  const mockDispatch = vi.fn()
+  const theme = createTheme()
 
   beforeEach(() => {
-    (useDispatch as unknown as Mock).mockReturnValue(mockDispatch);
-    mockDispatch.mockClear();
-  });
+    ;(useDispatch as unknown as Mock).mockReturnValue(mockDispatch)
+    mockDispatch.mockClear()
+  })
 
   const renderComponent = () =>
     render(
       <ThemeProvider theme={theme}>
         <PublicLoginButton />
-      </ThemeProvider>,
-    );
+      </ThemeProvider>
+    )
 
-  it("renders the continue as guest button", () => {
-    renderComponent();
+  it('renders the continue as guest button', () => {
+    renderComponent()
 
-    expect(
-      screen.getByRole("button", { name: /continue as guest/i }),
-    ).toBeInTheDocument();
-  });
+    expect(screen.getByRole('button', { name: /continue as guest/i })).toBeInTheDocument()
+  })
 
-  it("dispatches continueAsGuest on click", () => {
-    renderComponent();
+  it('dispatches continueAsGuest on click', () => {
+    renderComponent()
 
-    fireEvent.click(screen.getByRole("button", { name: /continue as guest/i }));
+    fireEvent.click(screen.getByRole('button', { name: /continue as guest/i }))
 
-    expect(mockDispatch).toHaveBeenCalledWith(continueAsGuest());
-  });
-});
+    expect(mockDispatch).toHaveBeenCalledWith(continueAsGuest())
+  })
+})

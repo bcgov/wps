@@ -1,6 +1,5 @@
 import HFICell from 'features/fbaCalculator/components/HFICell'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
-import React from 'react'
 
 export interface DailyHFICellProps {
   testid: string | undefined

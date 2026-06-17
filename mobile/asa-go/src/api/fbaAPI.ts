@@ -1,211 +1,200 @@
-import { AdvisoryStatus } from "@/utils/constants";
-import axios from "api/axios";
+import axios from 'api/axios'
+import type { AdvisoryStatus } from '@/utils/constants'
 
 export enum RunType {
-  FORECAST = "FORECAST",
-  ACTUAL = "ACTUAL",
+  FORECAST = 'FORECAST',
+  ACTUAL = 'ACTUAL'
 }
 
 export interface FireShape {
-  fire_shape_id: number;
-  mof_fire_zone_name: string;
-  mof_fire_centre_name: string;
-  area_sqm?: number;
+  fire_shape_id: number
+  mof_fire_zone_name: string
+  mof_fire_centre_name: string
+  area_sqm?: number
 }
 
 export interface AdvisoryCriticalHours {
-  start_time?: number;
-  end_time?: number;
+  start_time?: number
+  end_time?: number
 }
 
 export interface AdvisoryMinWindStats {
-  threshold: HfiThreshold;
-  min_wind_speed?: number;
+  threshold: HfiThreshold
+  min_wind_speed?: number
 }
 
 export interface FireZoneFuelStats {
-  fuel_type: FuelType;
-  threshold: HfiThreshold;
-  critical_hours: AdvisoryCriticalHours;
-  area: number;
-  fuel_area: number;
+  fuel_type: FuelType
+  threshold: HfiThreshold
+  critical_hours: AdvisoryCriticalHours
+  area: number
+  fuel_area: number
 }
 
 export interface ElevationInfo {
-  minimum: number;
-  quartile_25: number;
-  median: number;
-  quartile_75: number;
-  maximum: number;
+  minimum: number
+  quartile_25: number
+  median: number
+  quartile_75: number
+  maximum: number
 }
 
 export interface ElevationInfoByThreshold {
-  threshold: number;
-  elevation_info: ElevationInfo;
+  threshold: number
+  elevation_info: ElevationInfo
 }
 
 export interface FireZoneElevationInfoResponse {
-  hfi_elevation_info: ElevationInfoByThreshold[];
+  hfi_elevation_info: ElevationInfoByThreshold[]
 }
 
 export interface FireZoneTPIStats {
-  fire_zone_id: number;
-  valley_bottom_hfi?: number;
-  valley_bottom_tpi?: number;
-  mid_slope_hfi?: number;
-  mid_slope_tpi?: number;
-  upper_slope_hfi?: number;
-  upper_slope_tpi?: number;
+  fire_zone_id: number
+  valley_bottom_hfi?: number
+  valley_bottom_tpi?: number
+  mid_slope_hfi?: number
+  mid_slope_tpi?: number
+  upper_slope_hfi?: number
+  upper_slope_tpi?: number
 }
 
 export interface TPIResponse {
-  firezone_tpi_stats: FireZoneTPIStats[];
+  firezone_tpi_stats: FireZoneTPIStats[]
 }
 
 export interface FireCentreTPIResponse extends TPIResponse {
-  fire_centre_name: string;
+  fire_centre_name: string
 }
 
 export interface FireZoneStatus {
-  fire_shape_id: number;
-  status: AdvisoryStatus | null;
+  fire_shape_id: number
+  status: AdvisoryStatus | null
 }
 
 // Fire shape area (aka fire zone unit) data transfer object
 export interface FireShapeStatusDetail extends FireZoneStatus {
-  fire_shape_name: string;
-  fire_centre_name: string;
+  fire_shape_name: string
+  fire_centre_name: string
 }
 
 // Response object for provincial summary request
 export interface ProvincialSummaryResponse {
-  provincial_summary: FireShapeStatusDetail[];
+  provincial_summary: FireShapeStatusDetail[]
 }
 
 export interface HfiThresholdFuelTypeArea {
-  fuel_type_id: number;
-  threshold_id: number;
-  area: number;
+  fuel_type_id: number
+  threshold_id: number
+  area: number
 }
 
 export interface HfiThreshold {
-  id: number;
-  name: string;
-  description: string;
+  id: number
+  name: string
+  description: string
 }
 
 export interface FireZoneHFIStats {
-  min_wind_stats: AdvisoryMinWindStats[];
-  fuel_area_stats: FireZoneFuelStats[];
+  min_wind_stats: AdvisoryMinWindStats[]
+  fuel_area_stats: FireZoneFuelStats[]
 }
 
 export interface FuelType {
-  fuel_type_id: number;
-  fuel_type_code: string;
-  description: string;
+  fuel_type_id: number
+  fuel_type_code: string
+  description: string
 }
 
 export interface FireCentreHFIStats {
   [fire_centre_name: string]: {
-    [fire_zone_id: number]: FireZoneHFIStats;
-  };
+    [fire_zone_id: number]: FireZoneHFIStats
+  }
 }
 
 export interface FireZoneHFIStatsDictionary {
-  [fire_zone_id: number]: FireZoneHFIStats;
+  [fire_zone_id: number]: FireZoneHFIStats
 }
 
 export interface HFIStatsResponse {
-  zone_data: FireZoneHFIStatsDictionary;
+  zone_data: FireZoneHFIStatsDictionary
 }
 
 export interface RunParameter {
-  for_date: string;
-  run_datetime: string;
-  run_type: RunType;
+  for_date: string
+  run_datetime: string
+  run_type: RunType
 }
 
 export interface RunParametersResponse {
-  [key: string]: RunParameter;
+  [key: string]: RunParameter
 }
 
 export interface FireZoneUnit {
-  id: number;
-  name: string;
+  id: number
+  name: string
 }
 
 export interface FireCentreInfo {
-  fire_centre_name: string;
-  fire_zone_units: FireZoneUnit[];
+  fire_centre_name: string
+  fire_zone_units: FireZoneUnit[]
 }
 
 export interface FireCentreInfoResponse {
-  fire_centre_info: FireCentreInfo[];
+  fire_centre_info: FireCentreInfo[]
 }
 
 // Gets a summary of info about all fire zone units in the province
 export async function getProvincialSummary(
   run_type: RunType,
   run_datetime: string,
-  for_date: string,
+  for_date: string
 ): Promise<ProvincialSummaryResponse> {
-  const url = `fba/provincial-summary/${run_type.toLowerCase()}/${encodeURI(
-    run_datetime,
-  )}/${for_date}`;
-  const { data } = await axios.get(url);
-  return data;
+  const url = `fba/provincial-summary/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
+  const { data } = await axios.get(url)
+  return data
 }
 
-export async function getMostRecentRunParameter(
-  forDate: string,
-): Promise<RunParameter> {
-  const url = `fba/latest-sfms-run-datetime/${forDate}`;
-  const { data } = await axios.get(url);
-  return data.run_parameter;
+export async function getMostRecentRunParameter(forDate: string): Promise<RunParameter> {
+  const url = `fba/latest-sfms-run-datetime/${forDate}`
+  const { data } = await axios.get(url)
+  return data.run_parameter
 }
 
-export async function getMostRecentRunParameters(
-  startDate: string,
-  endDate: string,
-): Promise<RunParametersResponse> {
-  const url = `fba/latest-sfms-run-parameters/${startDate}/${endDate}`;
-  const { data } = await axios.get(url);
-  return data.run_parameters;
+export async function getMostRecentRunParameters(startDate: string, endDate: string): Promise<RunParametersResponse> {
+  const url = `fba/latest-sfms-run-parameters/${startDate}/${endDate}`
+  const { data } = await axios.get(url)
+  return data.run_parameters
 }
 
 export async function getHFIStats(
   run_type: RunType,
   run_datetime: string,
-  for_date: string,
+  for_date: string
 ): Promise<HFIStatsResponse> {
-  const url = `fba/hfi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`;
-  const { data } = await axios.get(url);
-  return data;
+  const url = `fba/hfi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`
+  const { data } = await axios.get(url)
+  return data
 }
 
 export async function getFireZoneElevationInfo(
   fire_zone_id: number,
   run_type: RunType,
   run_datetime: string,
-  for_date: string,
+  for_date: string
 ): Promise<FireZoneElevationInfoResponse> {
-  const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`;
-  const { data } = await axios.get(url);
-  return data;
+  const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
+  const { data } = await axios.get(url)
+  return data
 }
 
-export async function getTPIStats(
-  run_type: RunType,
-  run_datetime: string,
-  for_date: string,
-): Promise<TPIResponse> {
-  const url = `fba/tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`;
-  const { data } = await axios.get(url);
-  return data;
+export async function getTPIStats(run_type: RunType, run_datetime: string, for_date: string): Promise<TPIResponse> {
+  const url = `fba/tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`
+  const { data } = await axios.get(url)
+  return data
 }
 
 export async function getFireCentreInfo(): Promise<FireCentreInfoResponse> {
-  const url = `fba/fire-centre-info`;
-  const { data } = await axios.get(url);
-  return data;
+  const url = `fba/fire-centre-info`
+  const { data } = await axios.get(url)
+  return data
 }

@@ -1,11 +1,9 @@
-/* eslint-disable radix */
-
-import { Grid, IconButton, Select, MenuItem } from '@mui/material'
-import { styled } from '@mui/material/styles'
-import React from 'react'
 import ChevronLeft from '@mui/icons-material/ChevronLeft'
 import ChevronRight from '@mui/icons-material/ChevronRight'
-import { setMonth, getMonth, setYear, getYear } from 'date-fns'
+import { Grid, IconButton, MenuItem, Select } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import { getMonth, getYear, setMonth, setYear } from 'date-fns'
+import type React from 'react'
 
 const PREFIX = 'Header'
 
@@ -53,14 +51,11 @@ const Header: React.FunctionComponent<HeaderProps> = ({
   onClickNext,
   onClickPrevious
 }: HeaderProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleMonthChange = (event: any) => {
-    setDate(setMonth(date, parseInt(event.target.value)))
+    setDate(setMonth(date, parseInt(event.target.value, 10)))
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleYearChange = (event: any) => {
-    setDate(setYear(date, parseInt(event.target.value)))
+    setDate(setYear(date, parseInt(event.target.value, 10)))
   }
 
   return (

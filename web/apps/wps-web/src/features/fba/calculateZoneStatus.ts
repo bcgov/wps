@@ -1,7 +1,7 @@
-import { AdvisoryMinWindStats, FireShapeStatusDetail } from '@wps/api/fbaAPI'
-import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
+import type { AdvisoryMinWindStats, FireShapeStatusDetail } from '@wps/api/fbaAPI'
 import { AdvisoryStatus } from '@wps/utils/constants'
 import { isNil } from 'lodash'
+import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
 
 export const calculateStatusColour = (details: FireShapeStatusDetail | undefined, defaultColour: string) => {
   switch (details?.status) {

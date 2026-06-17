@@ -1,72 +1,57 @@
-import { theme } from "@/theme";
-import { NavPanel } from "@/utils/constants";
-import {
-  Box,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  styled,
-} from "@mui/material";
+import { Box, ListItem, ListItemButton, ListItemIcon, ListItemText, styled } from '@mui/material'
+import { theme } from '@/theme'
+import type { NavPanel } from '@/utils/constants'
 
 const StyledListItemButton = styled(ListItemButton)({
   color: theme.palette.primary.contrastText,
   padding: theme.spacing(1),
-  "&.Mui-selected": {
-    color: theme.palette.secondary.main,
+  '&.Mui-selected': {
+    color: theme.palette.secondary.main
   },
-  height: "auto",
-  display: "flex",
-  flexDirection: "column",
-});
+  height: 'auto',
+  display: 'flex',
+  flexDirection: 'column'
+})
 
 const StyledListItemIcon = styled(ListItemIcon)({
-  color: "inherit",
-  justifyContent: "center",
-});
+  color: 'inherit',
+  justifyContent: 'center'
+})
 
 const StyledListItemText = styled(ListItemText)({
-  color: "inherit",
-  "& .MuiListItemText-primary": {
-    fontSize: "14px",
-    fontWeight: 500,
-  },
-});
+  color: 'inherit',
+  '& .MuiListItemText-primary': {
+    fontSize: '14px',
+    fontWeight: 500
+  }
+})
 
 interface SideNavigationListItemProps {
-  icon: React.ReactNode;
-  navItem: NavPanel;
-  tab: NavPanel;
-  setTab: (newValue: NavPanel) => void;
+  icon: React.ReactNode
+  navItem: NavPanel
+  tab: NavPanel
+  setTab: (newValue: NavPanel) => void
 }
 
-const SideNavigationListItem = ({
-  icon,
-  navItem,
-  tab,
-  setTab,
-}: SideNavigationListItemProps) => {
+const SideNavigationListItem = ({ icon, navItem, tab, setTab }: SideNavigationListItemProps) => {
   return (
     <ListItem key={navItem} sx={{ px: 0 }}>
-      <StyledListItemButton
-        selected={tab === navItem}
-        onClick={() => setTab(navItem)}
-      >
+      <StyledListItemButton selected={tab === navItem} onClick={() => setTab(navItem)}>
         <Box
           sx={{
-            display: "flex",
+            display: 'flex',
             flexGrow: 1,
-            alignItems: "self-end",
+            alignItems: 'self-end'
           }}
         >
           <StyledListItemIcon>{icon}</StyledListItemIcon>
         </Box>
-        <Box sx={{ display: "flex", flexGrow: 1, alignItems: "self-start" }}>
+        <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'self-start' }}>
           <StyledListItemText primary={navItem} />
         </Box>
       </StyledListItemButton>
     </ListItem>
-  );
-};
+  )
+}
 
-export default SideNavigationListItem;
+export default SideNavigationListItem

@@ -1,8 +1,8 @@
 import { render } from '@testing-library/react'
-import ResetDialog from './ResetDialog'
 import { vi } from 'vitest'
+import ResetDialog from './ResetDialog'
 
-const MESSAGE = "Test"
+const MESSAGE = 'Test'
 
 describe('ResetDialog', () => {
   it('should not render when showResetDialog is false', () => {

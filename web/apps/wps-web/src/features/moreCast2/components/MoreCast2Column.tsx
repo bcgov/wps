@@ -1,8 +1,7 @@
-import { DateTime } from 'luxon'
 import {
-  ColDefGenerator,
+  type ColDefGenerator,
   ColumnDefBuilder,
-  ForecastColDefGenerator,
+  type ForecastColDefGenerator,
   GC_HEADER,
   PRECIP_HEADER,
   RH_HEADER,
@@ -11,8 +10,9 @@ import {
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
-import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import type { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { DateTime } from 'luxon'
 
 export class StationForecastField implements ColDefGenerator {
   private static instance: StationForecastField
@@ -172,8 +172,8 @@ export class IndeterminateField implements ColDefGenerator, ForecastColDefGenera
   public generateColDefs = (
     columnClickHandlerProps: ColumnClickHandlerProps,
     headerName?: string,
-    includeBiasFields?: boolean,
-    validator?: (value: string) => string,
+    _includeBiasFields?: boolean,
+    _validator?: (value: string) => string,
     allRows?: MoreCast2Row[]
   ) => {
     return this.colDefBuilder.generateColDefs(

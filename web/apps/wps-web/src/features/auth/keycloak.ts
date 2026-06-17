@@ -1,5 +1,5 @@
-import { KC_AUTH_URL, KC_REALM, KC_CLIENT } from '@wps/utils/env'
-import Keycloak, { KeycloakInitOptions } from 'keycloak-js'
+import { KC_AUTH_URL, KC_CLIENT, KC_REALM } from '@wps/utils/env'
+import Keycloak, { type KeycloakInitOptions } from 'keycloak-js'
 
 export const kcInitOptions: KeycloakInitOptions = {
   onLoad: 'login-required',

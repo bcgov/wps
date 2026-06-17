@@ -1,11 +1,11 @@
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
-import { LocalizationProvider } from '@mui/x-date-pickers'
 import { DateTime } from 'luxon'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import SidePanel from './SidePanel'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ModelRunHour, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
+import SidePanel from './SidePanel'
 
 vi.mock('@/features/fba/components/ASADatePicker', () => ({
   default: ({ date, label }: { date: DateTime | null; label?: string }) => (

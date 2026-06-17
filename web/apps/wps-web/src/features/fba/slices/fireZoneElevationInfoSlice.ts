@@ -1,8 +1,12 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-import { AppThunk } from 'app/store'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import {
+  type ElevationInfoByThreshold,
+  type FireZoneElevationInfoResponse,
+  getFireZoneElevationInfo,
+  type RunType
+} from '@wps/api/fbaAPI'
 import { logError } from '@wps/utils/error'
-import { ElevationInfoByThreshold, FireZoneElevationInfoResponse, getFireZoneElevationInfo, RunType } from '@wps/api/fbaAPI'
+import type { AppThunk } from 'app/store'
 
 export interface ZoneElevationInfoState {
   loading: boolean

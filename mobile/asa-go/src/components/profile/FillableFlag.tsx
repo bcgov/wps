@@ -1,12 +1,12 @@
-import React from "react";
+import React from 'react'
 
 interface FillableFlagProps {
-  maskId: string;
-  percent: number;
+  maskId: string
+  percent: number
 }
 
 const FillableFlag = ({ maskId, percent }: FillableFlagProps) => {
-  const fillWidth = (percent / 100) * 120;
+  const fillWidth = (percent / 100) * 120
   return (
     <svg
       width="100"
@@ -16,6 +16,7 @@ const FillableFlag = ({ maskId, percent }: FillableFlagProps) => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
+      aria-label={`Flag filled to ${percent} percent`}
     >
       <defs>
         <mask id={`mask-${maskId}`}>
@@ -33,7 +34,7 @@ const FillableFlag = ({ maskId, percent }: FillableFlagProps) => {
         stroke="black"
       />
     </svg>
-  );
-};
+  )
+}
 
-export default React.memo(FillableFlag);
+export default React.memo(FillableFlag)

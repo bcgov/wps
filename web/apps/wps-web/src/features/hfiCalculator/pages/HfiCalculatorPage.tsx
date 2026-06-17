@@ -1,45 +1,45 @@
-import React, { useEffect } from 'react'
-import { DateTime } from 'luxon'
+import { FormControl, styled } from '@mui/material'
+import type { FireCentre, FireStartRange } from '@wps/api/hfiCalculatorAPI'
 import { Container } from '@wps/ui/Container'
+import type { DateRange } from '@wps/ui/dateRangePicker/types'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
-import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
-import { FireCentre, FireStartRange } from '@wps/api/hfiCalculatorAPI'
+import { StyledFormControl } from '@wps/ui/StyledFormControl'
+import { theme } from '@wps/ui/theme'
+import { HFI_CALC_DOC_TITLE, HFI_CALC_NAME } from '@wps/utils/constants'
 import {
-  setSelectedFireCentre,
-  fetchSetNewFireStarts,
-  fetchGetPrepDateRange,
-  fetchSetStationSelected,
+  selectAuthentication,
+  selectHFICalculatorState,
+  selectHFIReadyState,
+  selectHFIStations,
+  selectHFIStationsLoading
+} from 'app/rootReducer'
+import type { AppDispatch } from 'app/store'
+import { ROLES } from 'features/auth/roles'
+import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
+import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
+import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
+import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
+import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
+import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
+import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
+import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
+import {
   fetchFuelTypes,
+  fetchGetPrepDateRange,
   fetchPDFDownload,
   fetchSetFuelType,
+  fetchSetNewFireStarts,
+  fetchSetStationSelected,
+  setSelectedFireCentre,
   setSelectedPrepDate
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 import { fetchAllReadyStates, fetchToggleReadyState } from 'features/hfiCalculator/slices/hfiReadySlice'
-import { useDispatch, useSelector } from 'react-redux'
-import {
-  selectHFIStations,
-  selectHFIStationsLoading,
-  selectHFICalculatorState,
-  selectAuthentication,
-  selectHFIReadyState
-} from 'app/rootReducer'
-import { FormControl, styled } from '@mui/material'
-import ViewSwitcher from 'features/hfiCalculator/components/ViewSwitcher'
-import ViewSwitcherToggles from 'features/hfiCalculator/components/ViewSwitcherToggles'
-import { HFIPageSubHeader } from 'features/hfiCalculator/components/HFIPageSubHeader'
+import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import { isNull, isUndefined } from 'lodash'
-import HFISuccessAlert from 'features/hfiCalculator/components/HFISuccessAlert'
-import DownloadPDFButton from 'features/hfiCalculator/components/DownloadPDFButton'
-import { DateRange } from '@wps/ui/dateRangePicker/types'
-import { AppDispatch } from 'app/store'
-import HFILoadingDataContainer from 'features/hfiCalculator/components/HFILoadingDataContainer'
-import ManageStationsButton from 'features/hfiCalculator/components/stationAdmin/ManageStationsButton'
-import { ROLES } from 'features/auth/roles'
-import LastUpdatedHeader from 'features/hfiCalculator/components/LastUpdatedHeader'
-import { HFI_CALC_DOC_TITLE, HFI_CALC_NAME } from '@wps/utils/constants'
-import { theme } from '@wps/ui/theme'
-import { StyledFormControl } from '@wps/ui/StyledFormControl'
+import { DateTime } from 'luxon'
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 
 export const HFIPageContainer = styled(Container)({
   display: 'flex',
@@ -115,7 +115,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
 
   const setNewFireStarts = (planningAreaId: number, dayOffset: number, newFireStarts: FireStartRange) => {
     if (!isUndefined(result) && !isUndefined(result.date_range)) {
-      const prepDayDate = DateTime.fromISO(result.date_range.start_date + 'T00:00+00:00', {
+      const prepDayDate = DateTime.fromISO(`${result.date_range.start_date}T00:00+00:00`, {
         setZone: true
       })
         .plus({ days: dayOffset })
@@ -158,7 +158,7 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
   const setSelectedFireCentreFromLocalStorage = () => {
     const findCentre = (name: string | null): FireCentre | undefined => {
       const fireCentresArray = Object.values(fireCentres)
-      return fireCentresArray.find(centre => centre.name == name)
+      return fireCentresArray.find(centre => centre.name === name)
     }
     const storedFireCentre = findCentre(localStorage.getItem('hfiCalcPreferredFireCentre'))
     if (!isUndefined(storedFireCentre) && storedFireCentre !== selectedFireCentre) {
@@ -166,12 +166,13 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchHFIStations())
     dispatch(fetchFuelTypes())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when updatedPlanningAreaId changes
   useEffect(() => {
     if (
       !isUndefined(result) &&
@@ -184,9 +185,9 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchToggleReadyState(result.selected_fire_center_id, updatedPlanningAreaId.planning_area_id, result.date_range)
       )
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updatedPlanningAreaId])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when selected fire centre changes
   useEffect(() => {
     if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
@@ -196,23 +197,23 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       // back to "Prep Period" tab instead of a specific date that may no longer be relevant
       dispatch(fetchGetPrepDateRange(selectedFireCentre.id))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFireCentre])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when dateRange changes
   useEffect(() => {
     if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — setSelectedFireCentreFromLocalStorage closes over state correctly
   useEffect(() => {
     if (Object.keys(fireCentres).length > 0) {
       setSelectedFireCentreFromLocalStorage()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fireCentres])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when updatedPlanningAreaId changes
   useEffect(() => {
     if (
       !isNull(updatedPlanningAreaId) &&
@@ -223,15 +224,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       // Request all ready states for hfi request unique by date and fire centre
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updatedPlanningAreaId])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run after station admin updates complete
   useEffect(() => {
     if (!stationsUpdateLoading && !isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchHFIStations())
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stationsUpdateLoading])
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
@@ -279,47 +279,43 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
           selectedFireCentre={selectedFireCentre}
           dateRange={dateRange}
         >
-          <React.Fragment>
-            <HFISuccessAlert />
-            <HFIFormControlContainer>
-              <ViewSwitcherToggles dateRange={dateRange} selectedPrepDate={selectedPrepDate} />
-              <LastUpdatedHeader
-                dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
-                  areaResult.daily_results.flatMap(dailyResult =>
-                    dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
-                  )
-                )}
-              />
-              <ActionButtonControlContainer>
-                {!isUndefined(result) && roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
-                  <ManageStationsButton
-                    planningAreas={
-                      selectedFireCentre ? fireCentres.find(fc => fc.id === selectedFireCentre.id)?.planning_areas : []
-                    }
-                    planningAreaStationInfo={result.planning_area_station_info}
-                  />
-                )}
-                <DownloadPDFButton onClick={handleDownloadClicked} />
-              </ActionButtonControlContainer>
-            </HFIFormControlContainer>
-
-            <ErrorBoundary>
-              {isUndefined(result) ? (
-                <React.Fragment></React.Fragment>
-              ) : (
-                <ViewSwitcher
-                  selectedFireCentre={selectedFireCentre}
-                  dateRange={dateRange}
-                  setSelected={setSelectedStation}
-                  setNewFireStarts={setNewFireStarts}
-                  setFuelType={setFuelType}
-                  selectedPrepDay={selectedPrepDate}
-                  fuelTypes={fuelTypes}
+          <HFISuccessAlert />
+          <HFIFormControlContainer>
+            <ViewSwitcherToggles dateRange={dateRange} selectedPrepDate={selectedPrepDate} />
+            <LastUpdatedHeader
+              dailies={result?.planning_area_hfi_results.flatMap(areaResult =>
+                areaResult.daily_results.flatMap(dailyResult =>
+                  dailyResult.dailies.map(validatedDaily => validatedDaily.daily)
+                )
+              )}
+            />
+            <ActionButtonControlContainer>
+              {!isUndefined(result) && roles.includes(ROLES.HFI.STATION_ADMIN) && isAuthenticated && (
+                <ManageStationsButton
+                  planningAreas={
+                    selectedFireCentre ? fireCentres.find(fc => fc.id === selectedFireCentre.id)?.planning_areas : []
+                  }
                   planningAreaStationInfo={result.planning_area_station_info}
                 />
               )}
-            </ErrorBoundary>
-          </React.Fragment>
+              <DownloadPDFButton onClick={handleDownloadClicked} />
+            </ActionButtonControlContainer>
+          </HFIFormControlContainer>
+
+          <ErrorBoundary>
+            {isUndefined(result) ? null : (
+              <ViewSwitcher
+                selectedFireCentre={selectedFireCentre}
+                dateRange={dateRange}
+                setSelected={setSelectedStation}
+                setNewFireStarts={setNewFireStarts}
+                setFuelType={setFuelType}
+                selectedPrepDay={selectedPrepDate}
+                fuelTypes={fuelTypes}
+                planningAreaStationInfo={result.planning_area_station_info}
+              />
+            )}
+          </ErrorBoundary>
         </HFILoadingDataContainer>
       </HFIPageContainer>
     </main>

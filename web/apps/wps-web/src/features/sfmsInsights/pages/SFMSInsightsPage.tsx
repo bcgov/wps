@@ -1,17 +1,3 @@
-import { AppDispatch } from '@/app/store'
-import ASADatePicker from '@/features/fba/components/ASADatePicker'
-import Footer from '@/features/landingPage/components/Footer'
-import { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
-import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
-import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
-import { SfmsInsightsAboutDataContent } from '@/features/sfmsInsights/components/SfmsInsightsAboutDataContent'
-import {
-  fetchSFMSInsightsBounds,
-  selectEarliestSFMSInsightsBounds,
-  selectLatestSFMSInsightsBounds,
-  selectSFMSInsightsBounds,
-  selectSFMSInsightsBoundsLoading
-} from '@/features/sfmsInsights/slices/sfmsInsightsSlice'
 import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
 import AboutDataPopover from '@wps/ui/AboutDataPopover'
@@ -23,6 +9,20 @@ import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import type { AppDispatch } from '@/app/store'
+import ASADatePicker from '@/features/fba/components/ASADatePicker'
+import Footer from '@/features/landingPage/components/Footer'
+import type { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
+import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
+import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
+import { SfmsInsightsAboutDataContent } from '@/features/sfmsInsights/components/SfmsInsightsAboutDataContent'
+import {
+  fetchSFMSInsightsBounds,
+  selectEarliestSFMSInsightsBounds,
+  selectLatestSFMSInsightsBounds,
+  selectSFMSInsightsBounds,
+  selectSFMSInsightsBoundsLoading
+} from '@/features/sfmsInsights/slices/sfmsInsightsSlice'
 
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()

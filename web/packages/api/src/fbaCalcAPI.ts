@@ -61,7 +61,7 @@ export async function postFBAStations(
   const url = '/fba-calc/stations'
 
   // Filter out bad data.
-  fireBehaviorStations = fireBehaviorStations.filter(station => !isNaN(station.stationCode))
+  fireBehaviorStations = fireBehaviorStations.filter(station => !Number.isNaN(station.stationCode))
 
   const { data } = await axios.post(url, {
     date: date.slice(0, 10),

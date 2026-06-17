@@ -1,28 +1,28 @@
-import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
-import { AppHeader } from "@/components/AppHeader";
+import { render, screen } from '@testing-library/react'
+import { vi } from 'vitest'
+import { AppHeader } from '@/components/AppHeader'
 
 // Mock HamburgerMenu to inspect props
-vi.mock("@/components/HamburgerMenu", () => ({
+vi.mock('@/components/HamburgerMenu', () => ({
   HamburgerMenu: ({
     drawerTop,
     drawerHeight,
-    testId,
+    testId
   }: {
-    drawerTop: number;
-    drawerHeight: number;
-    testId?: string;
+    drawerTop: number
+    drawerHeight: number
+    testId?: string
   }) => (
     <div data-testid={testId}>
       drawerTop: {drawerTop}, drawerHeight: {drawerHeight}
     </div>
-  ),
-}));
+  )
+}))
 
-describe("AppHeader", () => {
+describe('AppHeader', () => {
   beforeEach(() => {
     // Mock getBoundingClientRect
-    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
       bottom: 120,
       height: 100,
       top: 20,
@@ -31,30 +31,30 @@ describe("AppHeader", () => {
       width: 0,
       x: 0,
       y: 0,
-      toJSON: () => {},
-    });
+      toJSON: () => {}
+    })
 
     // Mock window.innerHeight
-    Object.defineProperty(window, "innerHeight", {
+    Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
-      value: 800,
-    });
-  });
+      value: 800
+    })
+  })
 
   afterEach(() => {
-    vi.restoreAllMocks();
-  });
+    vi.restoreAllMocks()
+  })
 
-  it("renders the AppHeader with title and HamburgerMenu", () => {
-    render(<AppHeader />);
+  it('renders the AppHeader with title and HamburgerMenu', () => {
+    render(<AppHeader />)
 
     // Check for title
-    expect(screen.getByText("ASA")).toBeInTheDocument();
+    expect(screen.getByText('ASA')).toBeInTheDocument()
 
     // Check for HamburgerMenu with correct props
-    const hamburger = screen.getByTestId("hamburger-menu");
-    expect(hamburger).toHaveTextContent("drawerTop: 120");
-    expect(hamburger).toHaveTextContent("drawerHeight: 680");
-  });
-});
+    const hamburger = screen.getByTestId('hamburger-menu')
+    expect(hamburger).toHaveTextContent('drawerTop: 120')
+    expect(hamburger).toHaveTextContent('drawerHeight: 680')
+  })
+})

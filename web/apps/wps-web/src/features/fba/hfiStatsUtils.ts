@@ -1,4 +1,4 @@
-import { FireCentreHFIStats, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import type { FireCentreHFIStats, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
 
 // Based on 100 pixels at a 2000m resolution fuel raster measured in square meters.
 export const FUEL_AREA_THRESHOLD = 100 * 2000 * 2000
@@ -14,7 +14,7 @@ export const filterHFIFuelStatsByArea = (fireCentreHFIFuelStats: FireCentreHFISt
   for (const [key, value] of Object.entries(fireCentreHFIFuelStats)) {
     const fireZoneStats: { [fire_zone_id: number]: FireZoneHFIStats } = {}
     for (const [key2, value2] of Object.entries(value)) {
-      fireZoneStats[parseInt(key2)] = {
+      fireZoneStats[parseInt(key2, 10)] = {
         min_wind_stats: value2.min_wind_stats,
         fuel_area_stats: filterHFIStatsByArea(value2.fuel_area_stats)
       }

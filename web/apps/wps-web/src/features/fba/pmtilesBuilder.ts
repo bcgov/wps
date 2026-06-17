@@ -1,6 +1,6 @@
-import { RunType } from '@wps/api/fbaAPI'
-import { DateTime } from 'luxon'
+import type { RunType } from '@wps/api/fbaAPI'
 import { PMTILES_BUCKET } from '@wps/utils/env'
+import type { DateTime } from 'luxon'
 
 /**
  *

@@ -1,118 +1,102 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
-import { DateTime } from "luxon";
-import Profile, { ProfileProps } from "@/components/profile/Profile";
-import { FireShape } from "@/api/fbaAPI";
-import type { FireCentre } from "@/types/fireCentre";
+import { configureStore } from '@reduxjs/toolkit'
+import { render, screen } from '@testing-library/react'
+import { DateTime } from 'luxon'
+import { Provider } from 'react-redux'
+import { describe, expect, it, vi } from 'vitest'
+import type { FireShape } from '@/api/fbaAPI'
+import Profile, { type ProfileProps } from '@/components/profile/Profile'
+import type { FireCentre } from '@/types/fireCentre'
 
 // Mock child components
-vi.mock("@/components/FireCenterDropdown", () => ({
-  default: ({
-    selectedFireCentre,
-  }: {
-    selectedFireCentre: FireCentre | undefined;
-  }) => (
+vi.mock('@/components/FireCenterDropdown', () => ({
+  default: ({ selectedFireCentre }: { selectedFireCentre: FireCentre | undefined }) => (
     <div data-testid="fire-center-dropdown">
-      {selectedFireCentre ? selectedFireCentre.name : "No fire centre selected"}
+      {selectedFireCentre ? selectedFireCentre.name : 'No fire centre selected'}
     </div>
-  ),
-}));
+  )
+}))
 
-vi.mock("@/components/profile/FireZoneUnitSummary", () => ({
-  default: ({
-    selectedFireZoneUnit,
-  }: {
-    selectedFireZoneUnit: FireShape | undefined;
-  }) => (
+vi.mock('@/components/profile/FireZoneUnitSummary', () => ({
+  default: ({ selectedFireZoneUnit }: { selectedFireZoneUnit: FireShape | undefined }) => (
     <div data-testid="fire-zone-unit-summary">
-      {selectedFireZoneUnit
-        ? `Summary for ${selectedFireZoneUnit.mof_fire_zone_name}`
-        : "No fire zone selected"}
+      {selectedFireZoneUnit ? `Summary for ${selectedFireZoneUnit.mof_fire_zone_name}` : 'No fire zone selected'}
     </div>
-  ),
-}));
+  )
+}))
 
-vi.mock("@/components/report/FireZoneUnitTabs", () => ({
-  default: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="fire-zone-unit-tabs">{children}</div>
-  ),
-}));
+vi.mock('@/components/report/FireZoneUnitTabs', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <div data-testid="fire-zone-unit-tabs">{children}</div>
+}))
 
-vi.mock("@/components/TodayTomorrowSwitch", () => ({
-  default: ({ date }: { date: DateTime }) => (
-    <div data-testid="today-tomorrow-switch">{date.toISODate()}</div>
-  ),
-}));
+vi.mock('@/components/TodayTomorrowSwitch', () => ({
+  default: ({ date }: { date: DateTime }) => <div data-testid="today-tomorrow-switch">{date.toISODate()}</div>
+}))
 
 // Mock theme constants
-vi.mock("@/theme", () => ({
-  HEADER_GREY: "#f5f5f5",
-  INFO_PANEL_CONTENT_BACKGROUND: "#ffffff",
-}));
+vi.mock('@/theme', () => ({
+  HEADER_GREY: '#f5f5f5',
+  INFO_PANEL_CONTENT_BACKGROUND: '#ffffff'
+}))
 
 // Mock theme
-vi.mock("@mui/material/styles", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@mui/material/styles")>();
+vi.mock('@mui/material/styles', async importOriginal => {
+  const actual = await importOriginal<typeof import('@mui/material/styles')>()
   return {
     ...actual,
     useTheme: () => ({
-      spacing: (value: number) => `${value * 8}px`,
-    }),
-  };
-});
+      spacing: (value: number) => `${value * 8}px`
+    })
+  }
+})
 
-describe("Profile", () => {
-  const mockDate = DateTime.fromISO("2023-06-15");
-  const mockSetDate = vi.fn();
-  const mockSetSelectedFireCentre = vi.fn();
-  const mockSetSelectedFireZoneUnit = vi.fn();
+describe('Profile', () => {
+  const mockDate = DateTime.fromISO('2023-06-15')
+  const mockSetDate = vi.fn()
+  const mockSetSelectedFireCentre = vi.fn()
+  const mockSetSelectedFireZoneUnit = vi.fn()
 
   const mockFireCentre: FireCentre = {
     id: 1,
-    name: "Test Fire Centre",
-  };
+    name: 'Test Fire Centre'
+  }
 
   const mockFireZoneUnit: FireShape = {
     fire_shape_id: 1,
-    mof_fire_zone_name: "Test Zone",
-    mof_fire_centre_name: "Test Centre",
-    area_sqm: 1000,
-  };
+    mof_fire_zone_name: 'Test Zone',
+    mof_fire_centre_name: 'Test Centre',
+    area_sqm: 1000
+  }
 
-  const mockFireCentres = [mockFireCentre];
+  const mockFireCentres = [mockFireCentre]
 
   const createMockStore = (fireCentres = mockFireCentres) => {
+    const initialState = { fireCentres }
     return configureStore({
       reducer: {
-        fireCentres: (state = { fireCentres }) => state,
+        fireCentres: (state = initialState) => state
       },
       preloadedState: {
-        fireCentres: { fireCentres },
-      },
-    });
-  };
+        fireCentres: { fireCentres }
+      }
+    })
+  }
 
-  const renderWithProvider = (
-    component: React.ReactElement,
-    store = createMockStore(),
-  ) => {
-    return render(<Provider store={store}>{component}</Provider>);
-  };
+  const renderWithProvider = (component: React.ReactElement, store = createMockStore()) => {
+    return render(<Provider store={store}>{component}</Provider>)
+  }
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.clearAllMocks()
 
     // Mock useSelector to return fire centres
-    vi.doMock("react-redux", async () => {
-      const actual = await vi.importActual("react-redux");
+    vi.doMock('react-redux', async () => {
+      const actual = await vi.importActual('react-redux')
       return {
         ...actual,
-        useSelector: vi.fn(() => ({ fireCentres: mockFireCentres })),
-      };
-    });
-  });
+        useSelector: vi.fn(() => ({ fireCentres: mockFireCentres }))
+      }
+    })
+  })
 
   const defaultProps: ProfileProps = {
     date: mockDate,
@@ -120,110 +104,102 @@ describe("Profile", () => {
     selectedFireCentre: undefined,
     setSelectedFireCentre: mockSetSelectedFireCentre,
     selectedFireZoneUnit: undefined,
-    setSelectedFireZoneUnit: mockSetSelectedFireZoneUnit,
-  };
+    setSelectedFireZoneUnit: mockSetSelectedFireZoneUnit
+  }
 
-  it("should render the Profile component", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
+  it('should render the Profile component', () => {
+    renderWithProvider(<Profile {...defaultProps} />)
 
-    expect(screen.getByTestId("asa-go-profile")).toBeInTheDocument();
-  });
+    expect(screen.getByTestId('asa-go-profile')).toBeInTheDocument()
+  })
 
-  it("should render TodayTomorrowSwitch with correct date", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
+  it('should render TodayTomorrowSwitch with correct date', () => {
+    renderWithProvider(<Profile {...defaultProps} />)
 
-    const todayTomorrowSwitch = screen.getByTestId("today-tomorrow-switch");
-    expect(todayTomorrowSwitch).toBeInTheDocument();
-    expect(todayTomorrowSwitch).toHaveTextContent("2023-06-15");
-  });
+    const todayTomorrowSwitch = screen.getByTestId('today-tomorrow-switch')
+    expect(todayTomorrowSwitch).toBeInTheDocument()
+    expect(todayTomorrowSwitch).toHaveTextContent('2023-06-15')
+  })
 
-  it("should render FireCenterDropdown", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
+  it('should render FireCenterDropdown', () => {
+    renderWithProvider(<Profile {...defaultProps} />)
 
-    const dropdown = screen.getByTestId("fire-center-dropdown");
-    expect(dropdown).toBeInTheDocument();
-    expect(dropdown).toHaveTextContent("No fire centre selected");
-  });
+    const dropdown = screen.getByTestId('fire-center-dropdown')
+    expect(dropdown).toBeInTheDocument()
+    expect(dropdown).toHaveTextContent('No fire centre selected')
+  })
 
-  it("should render FireCenterDropdown with selected fire centre", () => {
+  it('should render FireCenterDropdown with selected fire centre', () => {
     const propsWithFireCentre: ProfileProps = {
       ...defaultProps,
-      selectedFireCentre: mockFireCentre,
-    };
+      selectedFireCentre: mockFireCentre
+    }
 
-    renderWithProvider(<Profile {...propsWithFireCentre} />);
+    renderWithProvider(<Profile {...propsWithFireCentre} />)
 
-    const dropdown = screen.getByTestId("fire-center-dropdown");
-    expect(dropdown).toHaveTextContent("Test Fire Centre");
-  });
+    const dropdown = screen.getByTestId('fire-center-dropdown')
+    expect(dropdown).toHaveTextContent('Test Fire Centre')
+  })
 
-  it("should render FireZoneUnitTabs", () => {
-    renderWithProvider(
-      <Profile {...defaultProps} selectedFireCentre={mockFireCentre} />,
-    );
+  it('should render FireZoneUnitTabs', () => {
+    renderWithProvider(<Profile {...defaultProps} selectedFireCentre={mockFireCentre} />)
 
-    const tabs = screen.getByTestId("fire-zone-unit-tabs");
-    expect(tabs).toBeInTheDocument();
-  });
+    const tabs = screen.getByTestId('fire-zone-unit-tabs')
+    expect(tabs).toBeInTheDocument()
+  })
 
-  it("should render FireZoneUnitSummary with selected fire zone", () => {
+  it('should render FireZoneUnitSummary with selected fire zone', () => {
     const propsWithFireZone: ProfileProps = {
       ...defaultProps,
       selectedFireCentre: mockFireCentre,
-      selectedFireZoneUnit: mockFireZoneUnit,
-    };
+      selectedFireZoneUnit: mockFireZoneUnit
+    }
 
-    renderWithProvider(<Profile {...propsWithFireZone} />);
+    renderWithProvider(<Profile {...propsWithFireZone} />)
 
-    const summary = screen.getByTestId("fire-zone-unit-summary");
-    expect(summary).toHaveTextContent("Summary for Test Zone");
-  });
+    const summary = screen.getByTestId('fire-zone-unit-summary')
+    expect(summary).toHaveTextContent('Summary for Test Zone')
+  })
 
-  it("should have correct layout structure", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
+  it('should have correct layout structure', () => {
+    renderWithProvider(<Profile {...defaultProps} />)
 
-    const profile = screen.getByTestId("asa-go-profile");
+    const profile = screen.getByTestId('asa-go-profile')
     expect(profile).toHaveStyle({
-      display: "flex",
-      flex: "1",
-      flexDirection: "column",
-      height: "100%",
-      overflowY: "hidden",
-    });
+      display: 'flex',
+      flex: '1',
+      flexDirection: 'column',
+      height: '100%',
+      overflowY: 'hidden'
+    })
 
-    const controlContainer = screen.getByTestId("profile-control-container");
-    expect(controlContainer).toBeInTheDocument();
-  });
+    const controlContainer = screen.getByTestId('profile-control-container')
+    expect(controlContainer).toBeInTheDocument()
+  })
 
-  it("should have correct content container ID", () => {
-    renderWithProvider(<Profile {...defaultProps} />);
+  it('should have correct content container ID', () => {
+    renderWithProvider(<Profile {...defaultProps} />)
 
-    const contentContainer = document.getElementById(
-      "profile-content-container",
-    );
-    expect(contentContainer).toBeInTheDocument();
-  });
+    const contentContainer = document.getElementById('profile-content-container')
+    expect(contentContainer).toBeInTheDocument()
+  })
 
-  it("should pass all props correctly to child components", () => {
+  it('should pass all props correctly to child components', () => {
     const propsWithAllValues: ProfileProps = {
       date: mockDate,
       setDate: mockSetDate,
       selectedFireCentre: mockFireCentre,
       setSelectedFireCentre: mockSetSelectedFireCentre,
       selectedFireZoneUnit: mockFireZoneUnit,
-      setSelectedFireZoneUnit: mockSetSelectedFireZoneUnit,
-    };
+      setSelectedFireZoneUnit: mockSetSelectedFireZoneUnit
+    }
 
-    renderWithProvider(<Profile {...propsWithAllValues} />);
+    renderWithProvider(<Profile {...propsWithAllValues} />)
 
     // Check that fire center is passed
-    expect(screen.getByTestId("fire-center-dropdown")).toHaveTextContent(
-      "Test Fire Centre",
-    );
+    expect(screen.getByTestId('fire-center-dropdown')).toHaveTextContent('Test Fire Centre')
 
     // Check that fire zone unit is passed
-    expect(screen.getByTestId("fire-zone-unit-summary")).toHaveTextContent(
-      "Summary for Test Zone",
-    );
-  });
-});
+    expect(screen.getByTestId('fire-zone-unit-summary')).toHaveTextContent('Summary for Test Zone')
+  })
+})

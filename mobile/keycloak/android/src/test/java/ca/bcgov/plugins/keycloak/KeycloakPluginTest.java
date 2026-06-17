@@ -21,6 +21,7 @@ import org.robolectric.annotation.Config;
  * Testable version of KeycloakPlugin that allows injection of mock implementation
  */
 class TestableKeycloakPlugin extends KeycloakPlugin {
+
     private Keycloak testImplementation;
 
     public void setTestImplementation(Keycloak implementation) {

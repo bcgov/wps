@@ -1,17 +1,17 @@
-import authReducer, {
-  decodeRoles,
-  initialState,
-  authenticateStart,
-  authenticateFinished,
-  authenticateError,
-  refreshTokenFinished,
-  signoutFinished,
-  signoutError,
-  decodeUserDetails
-} from 'features/auth/slices/authenticationSlice'
-import sinon from 'sinon'
-import * as jwt from 'jwt-decode'
 import { ROLES } from 'features/auth/roles'
+import authReducer, {
+  authenticateError,
+  authenticateFinished,
+  authenticateStart,
+  decodeRoles,
+  decodeUserDetails,
+  initialState,
+  refreshTokenFinished,
+  signoutError,
+  signoutFinished
+} from 'features/auth/slices/authenticationSlice'
+import * as jwt from 'jwt-decode'
+import sinon from 'sinon'
 
 describe('authenticationSlice', () => {
   let sandbox: sinon.SinonSandbox

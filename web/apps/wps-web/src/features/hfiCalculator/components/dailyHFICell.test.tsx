@@ -2,7 +2,6 @@ import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
 import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
 
-
 describe('DailyHFICell', () => {
   it('should render a calculated cell if there is an error', () => {
     const { getByTestId } = render(

@@ -1,12 +1,13 @@
-import { GridRenderEditCellParams, useGridApiContext } from '@mui/x-data-grid-pro'
-import React, { useRef, useEffect } from 'react'
 import { TextField } from '@mui/material'
+import { type GridRenderEditCellParams, useGridApiContext } from '@mui/x-data-grid-pro'
 import { theme } from '@wps/ui/theme'
 import { isEmpty } from 'lodash'
-import { AppDispatch } from '@/app/store'
+import type React from 'react'
+import { useEffect, useRef } from 'react'
 import { useDispatch } from 'react-redux'
-import { setInputValid } from '@/features/moreCast2/slices/validInputSlice'
+import type { AppDispatch } from '@/app/store'
 import InvalidCellToolTip from '@/features/moreCast2/components/InvalidCellToolTip'
+import { setInputValid } from '@/features/moreCast2/slices/validInputSlice'
 
 export const EditInputCell = (props: GridRenderEditCellParams) => {
   const { id, value, field, hasFocus, error } = props
@@ -14,6 +15,7 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const dispatch: AppDispatch = useDispatch()
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — run on mount only
   useEffect(() => {
     dispatch(setInputValid(isEmpty(error)))
   }, [])

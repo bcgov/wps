@@ -1,6 +1,6 @@
 import { Typography } from '@mui/material'
-import React from 'react'
 import { isNil } from 'lodash'
+import React from 'react'
 import { formatCriticalHoursTimeText } from '@/features/fba/criticalHoursStartEndTime'
 
 interface CriticalHoursProps {

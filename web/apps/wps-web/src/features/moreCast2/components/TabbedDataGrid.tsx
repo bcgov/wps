@@ -1,8 +1,6 @@
-import { AlertColor, Grid, List, Stack, Typography } from '@mui/material'
+import { type AlertColor, Grid, List, Stack, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { useSelector, useDispatch } from 'react-redux'
-import { AppDispatch } from '@/app/store'
-import {
+import type {
   GridCellParams,
   GridColDef,
   GridColumnGroupingModel,
@@ -11,36 +9,38 @@ import {
 } from '@mui/x-data-grid-pro'
 import {
   ModelChoice,
-  ModelType,
+  type ModelType,
+  submitMoreCastForecastRecords,
   WeatherDeterminate,
-  WeatherDeterminateType,
-  submitMoreCastForecastRecords
+  type WeatherDeterminateType
 } from '@wps/api/moreCast2API'
-import { getTabColumnGroupModel, ColumnVis, DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
+import AboutDataPopover from '@wps/ui/AboutDataPopover'
+import type { DateRange } from '@wps/ui/dateRangePicker/types'
+import { type MoreCastParams, theme } from '@wps/ui/theme'
+import { getDateTimeNowPST } from '@wps/utils/date'
+import { selectAuthentication } from 'app/rootReducer'
+import { ROLES } from 'features/auth/roles'
+import { type ColumnVis, DataGridColumns, getTabColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
-import SelectableButton from 'features/moreCast2/components/SelectableButton'
-import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
-import React, { useEffect, useState } from 'react'
-import { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
-import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
-import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
-import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
-import { ROLES } from 'features/auth/roles'
-import { selectAuthentication } from 'app/rootReducer'
-import { DateRange } from '@wps/ui/dateRangePicker/types'
-import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
-import { getRowsToSave, isForecastRowPredicate, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
-import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
-import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
-import { MoreCastParams, theme } from '@wps/ui/theme'
-import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
+import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
 import ResetForecastButton from 'features/moreCast2/components/ResetForecastButton'
-import { getDateTimeNowPST } from '@wps/utils/date'
-import { setRequiredInputEmpty } from '@/features/moreCast2/slices/validInputSlice'
-import AboutDataPopover from '@wps/ui/AboutDataPopover'
+import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton'
+import SelectableButton from 'features/moreCast2/components/SelectableButton'
+import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
+import type { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
+import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
+import { getRowsToSave, isForecastRowPredicate, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
+import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
+import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
+import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
+import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import type { AppDispatch } from '@/app/store'
 import MorecastAboutDataContent from '@/features/moreCast2/components/MorecastAboutDataContent'
+import { setRequiredInputEmpty } from '@/features/moreCast2/slices/validInputSlice'
 
 export interface ColumnClickHandlerProps {
   colDef: GridColDef | null
@@ -214,8 +214,9 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     return groupByWeatherParam(showHideColumnsUngroupedState)
   }
 
-  const [showHideColumnsModel, setShowHideColumnsModel] =
-    useState<Record<string, ColumnVis[]>>(initShowHideColumnsModel())
+  const [showHideColumnsModel, setShowHideColumnsModel] = useState<Record<string, ColumnVis[]>>(
+    initShowHideColumnsModel()
+  )
 
   // Given an array of weather parameters (aka tabs) return a GridColumnVisibilityModel object that
   // contains all weather model columns that are visible for each weather parameter.
@@ -263,16 +264,19 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     return visibleTabs
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — init on mount only
   useEffect(() => {
     const initialShowHideColumnsModel = initShowHideColumnsModel()
     setShowHideColumnsModel(initialShowHideColumnsModel)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — handleShowHideChange is stable
   useEffect(() => {
     const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange)
     setColumnGroupingModel(colGroupingModel)
-  }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHideColumnsModel])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleTabs/getVisibleColumns close over state correctly
   useEffect(() => {
     const visibleTabs = getVisibleTabs()
     const visibleColumns = getVisibleColumns(visibleTabs)
@@ -281,7 +285,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       ...visibleColumns
     }
     setColumnVisibilityModel(newColumnVisibilityModel)
-  }, [showHideColumnsModel]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHideColumnsModel])
 
   useEffect(() => {
     setAllRows(morecast2Rows)
@@ -291,7 +295,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     const newVisibleRows: MoreCast2Row[] = []
     const stationCodes = selectedStations.map(station => station.station_code)
     for (const row of allRows) {
-      if (!isUndefined(stationCodes.find(code => code == row.stationCode))) {
+      if (!isUndefined(stationCodes.find(code => code === row.stationCode))) {
         newVisibleRows.push(row)
       }
     }
@@ -300,42 +304,48 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   /********** Start useEffects for managing visibility of column groups *************/
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     tempVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('temp', tempVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [tempVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tempVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     rhVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('rh', rhVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [rhVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rhVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     precipVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('precip', precipVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [precipVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [precipVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     windDirectionVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('windDirection', windDirectionVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [windDirectionVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [windDirectionVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     setForecastSummaryVisible(false)
     windSpeedVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('windSpeed', windSpeedVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [windSpeedVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [windSpeedVisible])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     grassCuringVisible && setForecastSummaryVisible(false)
     const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('grassCuring', grassCuringVisible)
     setColumnVisibilityModel(updatedColumnVisibilityModel)
-  }, [grassCuringVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [grassCuringVisible])
 
   useEffect(() => {
     // if the forecast summary is visible, we need to toggle off the weather parameter buttons
@@ -347,7 +357,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       setWindSpeedVisible(false)
       setGrassCuringVisible(false)
     }
-  }, [forecastSummaryVisible]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [forecastSummaryVisible])
 
   /********** End useEffects for managing visibility of column groups *************/
 
@@ -374,9 +384,9 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     const groupedByStationCode = groupBy(newVisibleRows, 'stationCode')
     for (const values of Object.values(groupedByStationCode)) {
       // Get rows with actuals that have non-NaN values
-      const rowsWithActuals: MoreCast2Row[] = values.filter(value => !isNaN(value[actualField] as number))
+      const rowsWithActuals: MoreCast2Row[] = values.filter(value => !Number.isNaN(value[actualField] as number))
       // Filter for the row with the most recent forDate as this contains our most recent actual
-      let mostRecentRow: MoreCast2Row | undefined = undefined
+      let mostRecentRow: MoreCast2Row | undefined
       if (rowsWithActuals.length > 0) {
         mostRecentRow = rowsWithActuals.reduce((a, b) => {
           return a.forDate > b.forDate ? a : b
@@ -387,7 +397,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       const mostRecentValue = isUndefined(mostRecentRow) ? NaN : mostRecentRow[actualField]
       // Finally, get an array of rows that don't have an actual for the weather parameter of interest
       // and iterate through them to apply the most recent actual as the new forecast value
-      const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => isNaN(value[actualField] as number))
+      const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => Number.isNaN(value[actualField] as number))
       rowsWithoutActuals.forEach(row => {
         const predictionItem = row[forecastField] as PredictionItem
         predictionItem.choice = ModelChoice.PERSISTENCE
@@ -408,7 +418,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     // interest we can skip it as we are only concerned with creating new forecasts.
     for (const row of newVisibleRows) {
       // If an actual has a value of NaN, then the forecast field needs to be updated.
-      if (isNaN(row[actualField] as number)) {
+      if (Number.isNaN(row[actualField] as number)) {
         const predictionItem = row[forecastField] as PredictionItem
         const sourceKey = `${prefix}${modelType}` as keyof MoreCast2Row
         predictionItem.choice = modelType
@@ -437,7 +447,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     const index = doubleClickedField.indexOf(headerName)
     const prefix = doubleClickedField.slice(0, index)
     const actualField = `${prefix}Actual`
-    if (isNaN(params.row[actualField])) {
+    if (Number.isNaN(params.row[actualField])) {
       // There is no actual value, so we are in a forecast row and can proceed with updating the
       // forecast field value with the value of the cell that was double-clicked
       const forecastField = `${prefix}Forecast` as keyof MoreCast2Row
@@ -523,16 +533,21 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       <Grid
         container
         sx={{
-          justifyContent: "space-between",
+          justifyContent: 'space-between',
           alignItems: 'center'
-        }}>
+        }}
+      >
         <Grid>
           <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
         </Grid>
         <Grid sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
-          <Stack direction="row" spacing={theme.spacing(2)} sx={{
-            alignItems: 'center'
-          }}>
+          <Stack
+            direction="row"
+            spacing={theme.spacing(2)}
+            sx={{
+              alignItems: 'center'
+            }}
+          >
             {storedDraftForecast.getLastSavedDraftDateTime() && (
               <Typography sx={{ fontSize: 12 }}>
                 Draft saved {storedDraftForecast.getLastSavedDraftDateTime()}
@@ -562,10 +577,11 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       <Grid
         container
         sx={{
-          alignItems: "center",
-          justifyContent: "space-between",
+          alignItems: 'center',
+          justifyContent: 'space-between',
           mb: 2
-        }}>
+        }}
+      >
         <Grid>
           <List component={Stack} direction="row">
             <SelectableButton
@@ -669,7 +685,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
         severity={snackbarSeverity}
       />
     </Root>
-  );
+  )
 }
 
 export default React.memo(TabbedDataGrid)

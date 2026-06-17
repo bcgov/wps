@@ -6,8 +6,26 @@ on:
       - main
     paths:
       - "mobile/**"
+      - "biome.json"
 
 jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    name: Lint JS
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
+      - name: Lint ASA Go
+        working-directory: ./mobile/asa-go
+        run: yarn lint
+      - name: Lint Keycloak plugin
+        working-directory: ./mobile/keycloak
+        run: yarn biome
+
   js_test:
     runs-on: ubuntu-22.04
     permissions:

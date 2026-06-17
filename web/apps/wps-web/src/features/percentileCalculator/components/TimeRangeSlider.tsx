@@ -1,6 +1,7 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
 import { InputLabel, Slider } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import type React from 'react'
+
 const PREFIX = 'TimeRangeSlider'
 
 const classes = {

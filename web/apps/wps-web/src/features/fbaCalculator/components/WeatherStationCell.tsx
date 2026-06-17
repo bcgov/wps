@@ -1,9 +1,9 @@
-import { TextField, Autocomplete } from '@mui/material'
+import { Autocomplete, TextField } from '@mui/material'
+import type { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
+import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isEqual } from 'lodash'
 import React, { useEffect, useState } from 'react'
-import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
-import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
 
 interface WeatherStationCellProps {
   stationOptions: GridMenuOption[]
@@ -19,8 +19,7 @@ const emptyLabel = 'Select a station'
 const WeatherStationCell = (props: WeatherStationCellProps) => {
   const [selectedStation, setSelectedStation] = useState(props.value)
   useEffect(() => setSelectedStation(props.value), [props])
-  // eslint-disable-next-line
-  const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
+  const changeHandler = (_: React.ChangeEvent<unknown>, value: any | null) => {
     if (!isEqual(selectedStation, value)) {
       setSelectedStation(value)
       updateFBARow(props.inputRows, props.updateRow, props.rowId, 'weatherStation', value, buildUpdatedOptionRow)

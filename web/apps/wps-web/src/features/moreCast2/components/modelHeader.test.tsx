@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { DateTime } from 'luxon'
-import ModelHeader from './ModelHeader'
 import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
-import { MoreCast2Row } from '@/features/moreCast2/interfaces'
+import { DateTime } from 'luxon'
+import type { MoreCast2Row } from '@/features/moreCast2/interfaces'
+import ModelHeader from './ModelHeader'
 
 describe('ModelHeader', () => {
   const createMockParams = (field: string, headerName?: string) => ({

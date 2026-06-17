@@ -1,17 +1,17 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import FireZoneUnitTabs from './FireZoneUnitTabs'
-import { FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { combineReducers } from '@reduxjs/toolkit'
+import { fireEvent, render, screen } from '@testing-library/react'
+import type { FireCentreHFIStats, FireCentreTPIResponse, FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
+import { AdvisoryStatus } from '@wps/utils/constants'
+import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 import { ADVISORY_ORANGE_FILL, ADVISORY_RED_FILL } from '@/features/fba/components/map/featureStylers'
-import { combineReducers } from '@reduxjs/toolkit'
-import fireCentreTPIStatsSlice, { initialState as tpiInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
 import fireCentreHFIFuelStatsSlice, {
   initialState as hfiInitialState
 } from '@/features/fba/slices/fireCentreHFIFuelStatsSlice'
-import { Provider } from 'react-redux'
-import { AdvisoryStatus } from '@wps/utils/constants'
+import fireCentreTPIStatsSlice, { initialState as tpiInitialState } from '@/features/fba/slices/fireCentreTPIStatsSlice'
 import { createTestStore } from '@/test/testUtils'
+import FireZoneUnitTabs from './FireZoneUnitTabs'
 
 const fireZoneUnitReducer = combineReducers({
   fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,

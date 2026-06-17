@@ -1,18 +1,18 @@
 import {
   WeatherDeterminate,
   WeatherDeterminateChoices,
-  WeatherIndeterminate,
-  WeatherIndeterminatePayload
+  type WeatherIndeterminate,
+  type WeatherIndeterminatePayload
 } from '@wps/api/moreCast2API'
 import dataSliceReducer, {
+  createEmptyMoreCast2Row,
   createMoreCast2Rows,
   fillMissingPredictions,
   fillMissingWeatherIndeterminates,
-  initialState,
   getWeatherIndeterminatesFailed,
   getWeatherIndeterminatesStart,
   getWeatherIndeterminatesSuccess,
-  createEmptyMoreCast2Row,
+  initialState,
   mapIndeterminateIndicesToRow
 } from 'features/moreCast2/slices/dataSlice'
 import { rowIDHasher } from 'features/moreCast2/util'

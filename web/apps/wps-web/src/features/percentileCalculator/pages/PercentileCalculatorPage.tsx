@@ -1,21 +1,20 @@
+import { getStations, StationSource } from '@wps/api/stationAPI'
+import { Container } from '@wps/ui/Container'
+import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
+import { PERCENTILE_CALC_DOC_TITLE, PERCENTILE_CALC_NAME } from '@wps/utils/constants'
+import { getStationCodesFromUrl, stationCodeQueryKey } from '@wps/utils/url'
+import type { AppDispatch } from 'app/store'
+import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
+import PercentileResults from 'features/percentileCalculator/components/PercentileResults'
+import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
+import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percentileCalculator/components/TimeRangeSlider'
+import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
+import { fetchPercentiles, resetPercentilesResult } from 'features/percentileCalculator/slices/percentilesSlice'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
-
-import { Container } from '@wps/ui/Container'
-import { GeneralHeader } from '@wps/ui/GeneralHeader'
-import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
-import { PercentileTextfield } from 'features/percentileCalculator/components/PercentileTextfield'
-import { fetchPercentiles, resetPercentilesResult } from 'features/percentileCalculator/slices/percentilesSlice'
-import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
-import PercentileResults from 'features/percentileCalculator/components/PercentileResults'
-import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percentileCalculator/components/TimeRangeSlider'
-import { getStationCodesFromUrl, stationCodeQueryKey } from '@wps/utils/url'
-import { getStations, StationSource } from '@wps/api/stationAPI'
-import { AppDispatch } from 'app/store'
-import { PERCENTILE_CALC_DOC_TITLE, PERCENTILE_CALC_NAME } from '@wps/utils/constants'
 
 const defaultTimeRange = 10
 const defaultPercentile = 90
@@ -33,10 +32,12 @@ const PercentileCalculatorPage = () => {
     end: yearWhenTheCalculationIsDone
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.unspecified))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     if (codesFromQuery.length > 0) {
       dispatch(fetchPercentiles(codesFromQuery, defaultPercentile, yearRange))
@@ -46,7 +47,7 @@ const PercentileCalculatorPage = () => {
 
     // Update local state to match with the url query
     setStationCodes(codesFromQuery)
-  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location])
 
   const onCalculateClick = () => {
     // Update the url query with the new station codes

@@ -1,8 +1,7 @@
-import React, { useState, useContext, useEffect } from 'react'
-import TileSource from 'ol/source/Tile'
-import OLTileLayer from 'ol/layer/Tile'
-
 import { MapContext } from 'features/map/Map'
+import OLTileLayer from 'ol/layer/Tile'
+import type TileSource from 'ol/source/Tile'
+import React, { useContext, useEffect, useState } from 'react'
 
 interface Props {
   source: TileSource
@@ -15,6 +14,7 @@ const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
 
   const [layer, setLayer] = useState<OLTileLayer<TileSource> | null>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when map instance changes
   useEffect(() => {
     if (!map) return
 
@@ -33,13 +33,14 @@ const TileLayer = ({ source, opacity = 1, zIndex = 0 }: Props) => {
         map.removeLayer(tileLayer)
       }
     }
-  }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [map])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when source changes
   useEffect(() => {
     if (!layer) return
 
     layer.setSource(source)
-  }, [source]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [source])
 
   return null
 }

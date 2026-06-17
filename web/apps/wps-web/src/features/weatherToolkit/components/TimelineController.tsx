@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react'
-import { IconButton, Slider, Paper, Box, useTheme } from '@mui/material'
 import { ChevronLeft, ChevronRight } from '@mui/icons-material'
+import { Box, IconButton, Paper, Slider, useTheme } from '@mui/material'
+import type React from 'react'
+import { useMemo } from 'react'
 import {
   BORDER_AND_SHADOW_COLOUR,
   BOX_SHADOW_COLOUR,
@@ -25,7 +26,7 @@ interface SliderMark {
 
 const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: TimelineControllerProps) => {
   const theme = useTheme()
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
+  const handleSliderChange = (_event: Event, newValue: number | number[]) => {
     if (Array.isArray(newValue)) {
       // MUI slider allows array values for range sliders so guard against this (more for Typescript sake)
       throw new TypeError('Slider value cannot be an array.')
@@ -45,7 +46,7 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
   const marks = useMemo(() => {
     const result: SliderMark[] = []
     for (let i = start; i <= end; i += step) {
-      let label: string | undefined = undefined
+      let label: string | undefined
       if (i === 0) {
         label = '0h'
       } else {

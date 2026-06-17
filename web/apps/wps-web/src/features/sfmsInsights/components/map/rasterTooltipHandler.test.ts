@@ -1,9 +1,9 @@
 import {
-  getRasterTooltipData,
   findRasterLayer,
-  getRasterType,
+  getDataAtPixel,
   getRasterData,
-  getDataAtPixel
+  getRasterTooltipData,
+  getRasterType
 } from './rasterTooltipHandler'
 import { NODATA_THRESHOLD } from './sfmsFeatureStylers'
 

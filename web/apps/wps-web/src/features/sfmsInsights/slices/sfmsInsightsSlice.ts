@@ -1,7 +1,7 @@
-import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { AppThunk } from 'app/store'
-import { getSFMSInsightsBounds, SFMSBounds, SFMSBoundsResponse } from '@wps/api/sfmsAPI'
+import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { getSFMSInsightsBounds, type SFMSBounds, type SFMSBoundsResponse } from '@wps/api/sfmsAPI'
 import { logError } from '@wps/utils/error'
+import type { AppThunk } from 'app/store'
 
 export interface SFMSInsightsState {
   sfmsBounds: SFMSBounds | null | undefined

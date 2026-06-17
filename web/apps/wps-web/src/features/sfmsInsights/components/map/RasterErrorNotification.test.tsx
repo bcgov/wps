@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+import type { RasterError } from './layerManager'
 import RasterErrorNotification, { getAlertSeverity } from './RasterErrorNotification'
-import { RasterError } from './layerManager'
 
 describe('RasterErrorNotification', () => {
   it('should not render when error is null', () => {

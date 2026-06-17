@@ -1,12 +1,11 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-import { AppThunk } from 'app/store'
-import { jwtDecode } from 'jwt-decode'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { KC_AUTH_URL, KC_CLIENT, KC_REALM, SM_LOGOUT_URL, TEST_AUTH } from '@wps/utils/env'
 import { logError } from '@wps/utils/error'
-import { isUndefined } from 'lodash'
-import { TEST_AUTH, KC_AUTH_URL, KC_REALM, SM_LOGOUT_URL, KC_CLIENT } from '@wps/utils/env'
-import { ROLES } from 'features/auth/roles'
+import type { AppThunk } from 'app/store'
 import { getKeycloakInstance, kcInitOptions } from 'features/auth/keycloak'
+import { ROLES } from 'features/auth/roles'
+import { jwtDecode } from 'jwt-decode'
+import { isUndefined } from 'lodash'
 
 export interface AuthState {
   authenticating: boolean
@@ -114,14 +113,13 @@ export const decodeRoles = (token: string | undefined) => {
   if (TEST_AUTH || window.Playwright) {
     return Object.values(ROLES.HFI)
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwtDecode(token)
   try {
     if (!isUndefined(decodedToken.client_roles)) {
       return decodedToken.client_roles
     }
     return []
-  } catch (e) {
+  } catch (_e) {
     // User has no roles
     return []
   }
@@ -134,11 +132,10 @@ export const decodeUserDetails = (token: string | undefined) => {
   if (TEST_AUTH || window.Playwright) {
     return { idir: 'test@idir', email: 'test@example.com' }
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const decodedToken: any = jwtDecode(token)
   try {
     return { idir: decodedToken.idir_username, email: decodedToken.email }
-  } catch (e) {
+  } catch (_e) {
     // No idir username
     return undefined
   }

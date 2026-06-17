@@ -1,5 +1,5 @@
-import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material'
-import { RASTER_CONFIG, RasterType } from './map/rasterConfig'
+import { FormControl, InputLabel, MenuItem, Select, type SelectChangeEvent } from '@mui/material'
+import { RASTER_CONFIG, type RasterType } from './map/rasterConfig'
 
 interface RasterTypeDropdownProps {
   selectedRasterType: RasterType
@@ -7,7 +7,11 @@ interface RasterTypeDropdownProps {
   rasterDataAvailable?: boolean
 }
 
-const RasterTypeDropdown = ({ selectedRasterType, setSelectedRasterType, rasterDataAvailable = true }: RasterTypeDropdownProps) => {
+const RasterTypeDropdown = ({
+  selectedRasterType,
+  setSelectedRasterType,
+  rasterDataAvailable = true
+}: RasterTypeDropdownProps) => {
   const handleChange = (event: SelectChangeEvent<RasterType>) => {
     const newValue = event.target.value as RasterType
     // Prevent selecting fire weather types when data is unavailable

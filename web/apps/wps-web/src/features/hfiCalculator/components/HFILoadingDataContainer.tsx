@@ -1,10 +1,10 @@
 import { Table, TableBody } from '@mui/material'
-import { FireCentre, PrepDateRange } from '@wps/api/hfiCalculatorAPI'
+import type { FireCentre, PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
-import { isUndefined, isNull } from 'lodash'
-import React from 'react'
 import HFIErrorAlert from 'features/hfiCalculator/components/HFIErrorAlert'
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
+import { isNull, isUndefined } from 'lodash'
+import React from 'react'
 
 export interface HFILoadingDataContainerProps {
   pdfLoading: boolean
@@ -14,7 +14,7 @@ export interface HFILoadingDataContainerProps {
   stationsUpdateLoading: boolean
   fireCentresError: string | null
   hfiError: string | null
-  children: JSX.Element
+  children: React.ReactNode
   dateRange?: PrepDateRange
   selectedFireCentre?: FireCentre
 }
@@ -35,7 +35,7 @@ const HFILoadingDataContainer = ({
     if (!isNull(fireCentresError) || !isNull(hfiError)) {
       return <HFIErrorAlert errors={[hfiError, fireCentresError]} />
     }
-    return <React.Fragment></React.Fragment>
+    return null
   }
 
   const isLoading = () => {
