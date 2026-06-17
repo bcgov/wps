@@ -33,6 +33,10 @@ parameters:
     required: true
   - name: APP_LABEL
     required: true
+  - name: MEMORY_REQUEST
+    value: 1Gi
+  - name: MEMORY_LIMIT
+    value: 2Gi
 objects:
   - kind: CronJob
     apiVersion: batch/v1
@@ -177,8 +181,8 @@ objects:
                       value: ${POSTGRES_DATABASE}
                   resources:
                     limits:
-                      memory: 1024Mi
+                      memory: ${MEMORY_LIMIT}
                     requests:
                       cpu: 100m
-                      memory: 512Mi
+                      memory: ${MEMORY_REQUEST}
               restartPolicy: OnFailure
