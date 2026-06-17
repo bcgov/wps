@@ -396,25 +396,21 @@ def sfms_daily_actuals_mapper(raw_dailies: List[dict]) -> List[SFMSDailyActual]:
     return sfms_daily_actuals
 
 
-def sfms_daily_forecasts_mapper(
-    raw_dailies: List[dict], stations: List[WFWXWeatherStation]
-) -> List[SFMSDailyActual]:
+def sfms_daily_forecasts_mapper(raw_dailies: List[dict]) -> List[SFMSDailyActual]:
     """Maps raw forecast dailies to SFMS station weather objects."""
-    station_lookup = {station.code: station for station in stations}
     sfms_daily_forecasts: List[SFMSDailyActual] = []
     for raw_daily in raw_dailies:
         station_data = raw_daily.get("stationData")
         if is_sfms_daily(raw_daily, (WF1RecordTypeEnum.FORECAST,)):
             station_code = station_data.get("stationCode")
-            station = station_lookup[station_code]
             temperature = raw_daily.get("temperature")
             relative_humidity = raw_daily.get("relativeHumidity")
             sfms_daily_forecasts.append(
                 SFMSDailyActual(
                     code=station_code,
-                    lat=station.lat,
-                    lon=station.long,
-                    elevation=station.elevation,
+                    lat=station_data.get("latitude"),
+                    lon=station_data.get("longitude"),
+                    elevation=station_data.get("elevation"),
                     temperature=temperature,
                     dewpoint=compute_dewpoint(temperature, relative_humidity),
                     relative_humidity=relative_humidity,

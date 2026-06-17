@@ -212,6 +212,7 @@ class TestSfmsDailyForecastsMapper:
         raw = _make_raw_daily(
             100,
             record_type="FORECAST",
+            elevation=150,
             temperature=20.0,
             relativeHumidity=50.0,
             precipitation=2.5,
@@ -250,8 +251,30 @@ class TestSfmsDailyForecastsMapper:
 
         assert sfms_daily_forecasts_mapper([raw]) == []
 
+    def test_filters_station_with_null_coordinates(self):
+        raw = _make_raw_daily(100, record_type="FORECAST", lat=None, lon=None, temperature=20.0)
+
+        assert sfms_daily_forecasts_mapper([raw]) == []
+
+    def test_forecast_uses_daily_station_metadata(self):
+        raw = _make_raw_daily(
+            100,
+            record_type="FORECAST",
+            lat=51.0,
+            lon=-121.0,
+            elevation=250,
+            temperature=20.0,
+            relativeHumidity=50.0,
+        )
+
+        result = sfms_daily_forecasts_mapper([raw])
+
+        assert result[0].lat == pytest.approx(51.0)
+        assert result[0].lon == pytest.approx(-121.0)
+        assert result[0].elevation == 250
+
     def test_empty_raw_dailies(self):
-        assert sfms_daily_actuals_mapper([]) == []
+        assert sfms_daily_forecasts_mapper([]) == []
 
     def test_multiple_stations_mixed_records(self):
         raw_dailies = [
@@ -269,7 +292,7 @@ class TestSfmsDailyForecastsMapper:
         assert result[1].code == 200
         assert result[1].temperature == pytest.approx(25.0)
 
-    def test_uses_daily_station_metadata(self):
+    def test_actuals_uses_daily_station_metadata(self):
         raw = _make_raw_daily(100, lat=49.0, lon=-123.0, elevation=150, temperature=5.0)
 
         result = sfms_daily_actuals_mapper([raw])

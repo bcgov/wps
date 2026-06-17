@@ -316,7 +316,7 @@ class WfwxApi:
     async def _get_sfms_daily_weather_all_stations(
         self,
         time_of_interest: datetime,
-        mapper: Callable[[list[dict], list[WFWXWeatherStation]], list[SFMSDailyActual]],
+        mapper: Callable[[list[dict]], list[SFMSDailyActual]],
         log_label: str,
     ) -> List[SFMSDailyActual]:
         header = await self._get_auth_header()
