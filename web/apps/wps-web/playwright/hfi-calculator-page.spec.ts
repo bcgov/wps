@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { test, expect, type Page } from './fixtures'
+import { expect, type Page, test } from './fixtures'
 
 const HFI_CALC_ROUTE = '/hfi-calculator'
 const fixturesDir = path.join(import.meta.dirname, 'fixtures')

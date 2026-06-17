@@ -1,9 +1,9 @@
-import { theme } from '@wps/ui/theme'
-import { BurnForecast, BurnWatchRow } from '@/features/fireWatch/interfaces'
 import { Box, Typography } from '@mui/material'
-import { DataGridPro, GridColDef, GridRenderCellParams } from '@mui/x-data-grid-pro'
+import { DataGridPro, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid-pro'
+import { theme } from '@wps/ui/theme'
 import { isNull } from 'lodash'
-import { DateTime } from 'luxon'
+import type { DateTime } from 'luxon'
+import type { BurnForecast, BurnWatchRow } from '@/features/fireWatch/interfaces'
 
 interface DetailPanelContentProps {
   row: BurnWatchRow
@@ -11,10 +11,10 @@ interface DetailPanelContentProps {
 
 const DetailPanelContent = ({ row }: DetailPanelContentProps) => {
   const numberFormatter = (value: number, precision: number) => {
-    if (isNaN(value)) {
+    if (Number.isNaN(value)) {
       return ''
     }
-    if (isNaN(precision)) {
+    if (Number.isNaN(precision)) {
       return value
     }
     return value.toFixed(precision)

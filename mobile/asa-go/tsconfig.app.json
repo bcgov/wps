@@ -3,11 +3,7 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2023",
     "useDefineForClassFields": true,
-    "lib": [
-      "ES2023",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     /* Bundler mode */
@@ -26,21 +22,11 @@
     "types": ["vitest/globals"],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "#root/*": [
-        "./*"
-      ],
-      "utils/*": [
-        "./src/utils/*"
-      ],
-      "api/*": [
-        "./src/api/*"
-      ],
+      "@/*": ["./src/*"],
+      "#root/*": ["./*"],
+      "utils/*": ["./src/utils/*"],
+      "api/*": ["./src/api/*"]
     }
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

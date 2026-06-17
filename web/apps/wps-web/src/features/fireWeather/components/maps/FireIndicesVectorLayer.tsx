@@ -1,11 +1,6 @@
-import React, { useEffect } from 'react'
-import * as olSource from 'ol/source'
-import GeoJSON from 'ol/format/GeoJSON'
 import { getDetailedStations, StationSource } from '@wps/api/stationAPI'
 import { selectFireWeatherStations } from 'app/rootReducer'
-import VectorLayer from 'features/map/VectorLayer'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import { useDispatch, useSelector } from 'react-redux'
+import type { AppDispatch } from 'app/store'
 import { AccuracyWeatherVariableEnum } from 'features/fireWeather/components/AccuracyVariablePicker'
 import {
   computeRHAccuracyColor,
@@ -14,16 +9,19 @@ import {
   computeTempAccuracyColor,
   computeTempAccuracySize
 } from 'features/fireWeather/components/maps/stationAccuracy'
-import { Style, Fill } from 'ol/style'
+import VectorLayer from 'features/map/VectorLayer'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import GeoJSON from 'ol/format/GeoJSON'
+import * as olSource from 'ol/source'
+import { Fill, Style } from 'ol/style'
 import CircleStyle from 'ol/style/Circle'
-import { AppDispatch } from 'app/store'
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 
 interface Props {
   toiFromQuery: string
   selectedWxVariable: AccuracyWeatherVariableEnum
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rhPointStyleFunction = (feature: any) => {
   const rhPointColor = computeRHAccuracyColor(feature.values_)
   return new Style({
@@ -34,8 +32,6 @@ const rhPointStyleFunction = (feature: any) => {
     })
   })
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const tempPointStyleFunction = (feature: any) => {
   const tempPointColor = computeTempAccuracyColor(feature.values_)
   return new Style({
@@ -56,9 +52,10 @@ const FireIndicesVectorLayer = ({ toiFromQuery, selectedWxVariable }: Props) => 
       ? rhPointStyleFunction
       : tempPointStyleFunction
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchWxStations(getDetailedStations, StationSource.unspecified, toiFromQuery))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <VectorLayer

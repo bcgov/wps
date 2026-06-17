@@ -1,10 +1,10 @@
+import type { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { render } from '@testing-library/react'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
-import { GridRenderCellParams } from '@mui/x-data-grid-pro'
-import { vi } from 'vitest'
-import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 import { Provider } from 'react-redux'
+import { vi } from 'vitest'
 import { buildTestStore } from '@/features/moreCast2/components/testHelper'
+import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 
 const params: Pick<GridRenderCellParams, 'row' | 'formattedValue'> = {
   row: undefined,

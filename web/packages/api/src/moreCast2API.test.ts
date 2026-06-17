@@ -1,13 +1,13 @@
-import {
-  marshalMoreCast2ForecastRecords,
-  submitMoreCastForecastRecords,
-  fetchWeatherIndeterminates,
-  WeatherDeterminate,
-  MoreCast2ForecastRow
-} from './moreCast2API'
-import axios from './axios'
 import { DateTime } from 'luxon'
 import { vi } from 'vitest'
+import axios from './axios'
+import {
+  fetchWeatherIndeterminates,
+  type MoreCast2ForecastRow,
+  marshalMoreCast2ForecastRecords,
+  submitMoreCastForecastRecords,
+  WeatherDeterminate
+} from './moreCast2API'
 
 describe('moreCast2API', () => {
   const buildMorecast2Forecast = (

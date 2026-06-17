@@ -1,11 +1,5 @@
 package ca.bcgov.plugins.keycloak;
 
-import com.getcapacitor.JSObject;
-import com.getcapacitor.Plugin;
-import com.getcapacitor.PluginCall;
-import com.getcapacitor.PluginMethod;
-import com.getcapacitor.annotation.CapacitorPlugin;
-import com.getcapacitor.annotation.Permission;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,18 +7,23 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import java.util.List;
 import androidx.browser.customtabs.CustomTabsIntent;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import java.util.List;
 import net.openid.appauth.*;
 import net.openid.appauth.browser.AnyBrowserMatcher;
 
 @CapacitorPlugin(
     name = "Keycloak",
-    permissions = {
-        @Permission(strings = {Manifest.permission.INTERNET}, alias = "internet")
-    }
+    permissions = { @Permission(strings = { Manifest.permission.INTERNET }, alias = "internet") }
 )
 public class KeycloakPlugin extends Plugin {
+
     private static final String TAG = "KeycloakPlugin";
     private Keycloak implementation;
 
@@ -37,13 +36,15 @@ public class KeycloakPlugin extends Plugin {
         instance = this;
 
         // Set up automatic token refresh callback
-        implementation.setTokenRefreshCallback(new Keycloak.TokenRefreshCallback() {
-            @Override
-            public void onTokenRefreshed(JSObject tokens) {
-                Log.d(TAG, "Notifying JavaScript of token refresh");
-                notifyListeners("tokenRefresh", tokens);
+        implementation.setTokenRefreshCallback(
+            new Keycloak.TokenRefreshCallback() {
+                @Override
+                public void onTokenRefreshed(JSObject tokens) {
+                    Log.d(TAG, "Notifying JavaScript of token refresh");
+                    notifyListeners("tokenRefresh", tokens);
+                }
             }
-        });
+        );
 
         Log.d(TAG, "KeycloakPlugin loaded and initialized with automatic token refresh");
     }
@@ -85,7 +86,7 @@ public class KeycloakPlugin extends Plugin {
     @PluginMethod
     public void authenticate(PluginCall call) {
         JSObject options = call.getData();
-        
+
         // Validate required parameters
         String clientId = options.getString("clientId");
         String authorizationBaseUrl = options.getString("authorizationBaseUrl");
@@ -112,21 +113,21 @@ public class KeycloakPlugin extends Plugin {
         try {
             // Create service configuration
             AuthorizationServiceConfiguration serviceConfig = new AuthorizationServiceConfiguration(
-                    Uri.parse(authorizationBaseUrl),
-                    Uri.parse(accessTokenEndpoint)
+                Uri.parse(authorizationBaseUrl),
+                Uri.parse(accessTokenEndpoint)
             );
 
             // Build authorization request
             AuthorizationRequest.Builder authRequestBuilder = new AuthorizationRequest.Builder(
-                    serviceConfig,
-                    clientId,
-                    ResponseTypeValues.CODE,
-                    Uri.parse(redirectUrl)
+                serviceConfig,
+                clientId,
+                ResponseTypeValues.CODE,
+                Uri.parse(redirectUrl)
             );
 
             authRequestBuilder
-                    .setScope("openid profile")
-                    .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier());
+                .setScope("openid profile")
+                .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier());
 
             AuthorizationRequest authRequest = authRequestBuilder.build();
 
@@ -155,14 +156,17 @@ public class KeycloakPlugin extends Plugin {
             AppAuthConfiguration.Builder appAuthConfigBuilder = new AppAuthConfiguration.Builder();
             // Force to use any available browser, don't let the system intercept
             appAuthConfigBuilder.setBrowserMatcher(AnyBrowserMatcher.INSTANCE);
-            
+
             AuthorizationService authService = new AuthorizationService(getContext(), appAuthConfigBuilder.build());
-            
+
             // Debug: Check what browsers are available
             Intent testIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com"));
             testIntent.addCategory(Intent.CATEGORY_BROWSABLE);
             PackageManager packageManager = getContext().getPackageManager();
-            List<ResolveInfo> activities = packageManager.queryIntentActivities(testIntent, PackageManager.MATCH_DEFAULT_ONLY);
+            List<ResolveInfo> activities = packageManager.queryIntentActivities(
+                testIntent,
+                PackageManager.MATCH_DEFAULT_ONLY
+            );
 
             Log.d(TAG, "=== Available Browsers Debug ===");
             Log.d(TAG, "Found " + activities.size() + " browser activities:");
@@ -172,23 +176,23 @@ public class KeycloakPlugin extends Plugin {
 
             // Create CustomTabsIntent for proper browser handling
             CustomTabsIntent.Builder customTabsBuilder = authService.createCustomTabsIntentBuilder(authRequest.toUri());
-            
+
             // Force external browser handling to prevent app interception
             customTabsBuilder.setShowTitle(true);
             customTabsBuilder.setUrlBarHidingEnabled(false);
-            
+
             CustomTabsIntent customTabsIntent = customTabsBuilder.build();
-            
+
             // Debug: Check what the CustomTabsIntent is targeting
             Log.d(TAG, "CustomTabs intent package: " + customTabsIntent.intent.getPackage());
             Log.d(TAG, "CustomTabs intent action: " + customTabsIntent.intent.getAction());
             Log.d(TAG, "CustomTabs intent data: " + customTabsIntent.intent.getData());
-            
+
             // Ensure the intent doesn't get intercepted by our own app
             customTabsIntent.intent.setPackage(null); // Don't restrict to a specific browser package
             customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-            
+
             Log.d(TAG, "CustomTabs intent created successfully with external browser forcing");
 
             Log.d(TAG, "=== Launching Browser ===");
@@ -217,7 +221,7 @@ public class KeycloakPlugin extends Plugin {
                 authService.performAuthorizationRequest(
                     authRequest,
                     completionPendingIntent,
-                    null,  // canceledIntent - use default behavior
+                    null, // canceledIntent - use default behavior
                     customTabsIntent
                 );
                 Log.d(TAG, "performAuthorizationRequest completed successfully");
@@ -225,9 +229,8 @@ public class KeycloakPlugin extends Plugin {
                 Log.e(TAG, "Error in performAuthorizationRequest: " + authException.getMessage(), authException);
                 throw authException;
             }
-            
-            Log.d(TAG, "AppAuth authorization request initiated - browser should have launched");
 
+            Log.d(TAG, "AppAuth authorization request initiated - browser should have launched");
         } catch (Exception e) {
             Log.e(TAG, "Error initiating authentication", e);
             call.reject("Authentication failed: " + e.getMessage());

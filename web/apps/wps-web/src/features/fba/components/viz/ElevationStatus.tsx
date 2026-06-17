@@ -1,11 +1,10 @@
-import React from 'react'
-import { useTheme } from '@mui/material/styles'
+import { Box } from '@mui/material'
 import Grid from '@mui/material/Grid'
+import { useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
+import type { FireZoneTPIStats } from '@wps/api/fbaAPI'
 import ElevationFlag from 'features/fba/components/viz/ElevationFlag'
 import ElevationLabel from 'features/fba/components/viz/ElevationLabel'
-import { Box } from '@mui/material'
-import { FireZoneTPIStats } from '@wps/api/fbaAPI'
 import Mountain from 'features/fba/images/mountain.png'
 
 enum ElevationOption {

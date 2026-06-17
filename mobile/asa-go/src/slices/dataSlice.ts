@@ -1,4 +1,9 @@
-import { AppThunk } from "@/store";
+import { Filesystem } from '@capacitor/filesystem'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import type { FireShapeStatusDetail, FireZoneHFIStatsDictionary, FireZoneTPIStats } from 'api/fbaAPI'
+import { isNil } from 'lodash'
+import { DateTime } from 'luxon'
+import type { AppThunk } from '@/store'
 import {
   dataAreEqual,
   fetchHFIStats,
@@ -6,34 +11,25 @@ import {
   fetchTpiStats,
   getTodayKey,
   getTomorrowKey,
-  runParametersMatch,
-} from "@/utils/dataSliceUtils";
+  runParametersMatch
+} from '@/utils/dataSliceUtils'
 import {
-  CacheableData,
-  CachedData,
+  type CacheableData,
+  type CachedData,
   HFI_STATS_KEY,
   PROVINCIAL_SUMMARY_KEY,
   readFromFilesystem,
   TPI_STATS_KEY,
-  writeToFileSystem,
-} from "@/utils/storage";
-import { Filesystem } from "@capacitor/filesystem";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import {
-  FireShapeStatusDetail,
-  FireZoneHFIStatsDictionary,
-  FireZoneTPIStats,
-} from "api/fbaAPI";
-import { isNil } from "lodash";
-import { DateTime } from "luxon";
+  writeToFileSystem
+} from '@/utils/storage'
 
 export interface DataState {
-  loading: boolean;
-  error: string | null;
-  lastUpdated: string | null;
-  provincialSummaries: CacheableData<FireShapeStatusDetail[]> | null;
-  tpiStats: CacheableData<FireZoneTPIStats[]> | null;
-  hfiStats: CacheableData<FireZoneHFIStatsDictionary> | null;
+  loading: boolean
+  error: string | null
+  lastUpdated: string | null
+  provincialSummaries: CacheableData<FireShapeStatusDetail[]> | null
+  tpiStats: CacheableData<FireZoneTPIStats[]> | null
+  hfiStats: CacheableData<FireZoneHFIStatsDictionary> | null
 }
 
 export const initialState: DataState = {
@@ -42,116 +38,93 @@ export const initialState: DataState = {
   lastUpdated: null,
   provincialSummaries: null,
   tpiStats: null,
-  hfiStats: null,
-};
+  hfiStats: null
+}
 
 const dataSlice = createSlice({
-  name: "data",
+  name: 'data',
   initialState,
   reducers: {
     getDataStart(state: DataState) {
-      state.error = null;
-      state.loading = true;
+      state.error = null
+      state.loading = true
     },
     getDataFailed(state: DataState, action: PayloadAction<string>) {
-      state.error = action.payload;
-      state.loading = false;
+      state.error = action.payload
+      state.loading = false
     },
     getDataSuccess(
       state: DataState,
       action: PayloadAction<{
-        lastUpdated: string;
-        provincialSummaries: CacheableData<FireShapeStatusDetail[]> | null;
-        tpiStats: CacheableData<FireZoneTPIStats[]> | null;
-        hfiStats: CacheableData<FireZoneHFIStatsDictionary> | null;
-      }>,
+        lastUpdated: string
+        provincialSummaries: CacheableData<FireShapeStatusDetail[]> | null
+        tpiStats: CacheableData<FireZoneTPIStats[]> | null
+        hfiStats: CacheableData<FireZoneHFIStatsDictionary> | null
+      }>
     ) {
-      state.error = null;
-      state.lastUpdated = action.payload.lastUpdated;
-      state.provincialSummaries = action.payload.provincialSummaries;
-      state.tpiStats = action.payload.tpiStats;
-      state.hfiStats = action.payload.hfiStats;
-      state.loading = false;
+      state.error = null
+      state.lastUpdated = action.payload.lastUpdated
+      state.provincialSummaries = action.payload.provincialSummaries
+      state.tpiStats = action.payload.tpiStats
+      state.hfiStats = action.payload.hfiStats
+      state.loading = false
     },
     setLastUpdated(
       state: DataState,
       action: PayloadAction<{
-        lastUpdated: string;
-      }>,
+        lastUpdated: string
+      }>
     ) {
-      state.lastUpdated = action.payload.lastUpdated;
-    },
-  },
-});
+      state.lastUpdated = action.payload.lastUpdated
+    }
+  }
+})
 
-export const { getDataStart, getDataFailed, getDataSuccess, setLastUpdated } =
-  dataSlice.actions;
+export const { getDataStart, getDataFailed, getDataSuccess, setLastUpdated } = dataSlice.actions
 
-export default dataSlice.reducer;
+export default dataSlice.reducer
 
 export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
-  const todayKey = getTodayKey();
-  const tomorrowKey = getTomorrowKey();
-  const state = getState();
-  const runParameters = state.runParameters.runParameters;
-  let isCurrent = true; // A flag indicating if the cached data and state are current
+  const todayKey = getTodayKey()
+  const tomorrowKey = getTomorrowKey()
+  const state = getState()
+  const runParameters = state.runParameters.runParameters
+  let isCurrent = true // A flag indicating if the cached data and state are current
   if (isNil(runParameters)) {
-    dispatch(
-      getDataFailed(
-        "Unable to fetch and cache data; runParameters can't be null.",
-      ),
-    );
-    return;
+    dispatch(getDataFailed("Unable to fetch and cache data; runParameters can't be null."))
+    return
   }
   // Grab cached data and check if we have cached data for the run parameters in state, if so, set
   // redux state with this data.
-  const cachedProvincialSummaries = (await readFromFilesystem(
-    Filesystem,
-    PROVINCIAL_SUMMARY_KEY,
-  )) as CachedData<CacheableData<FireShapeStatusDetail[]>>;
+  const cachedProvincialSummaries = (await readFromFilesystem(Filesystem, PROVINCIAL_SUMMARY_KEY)) as CachedData<
+    CacheableData<FireShapeStatusDetail[]>
+  >
   isCurrent =
     isCurrent &&
     !isNil(cachedProvincialSummaries?.data) &&
-    runParametersMatch(
-      todayKey,
-      tomorrowKey,
-      runParameters,
-      cachedProvincialSummaries.data,
-    );
+    runParametersMatch(todayKey, tomorrowKey, runParameters, cachedProvincialSummaries.data)
 
-  const cachedTPIStats = (await readFromFilesystem(
-    Filesystem,
-    TPI_STATS_KEY,
-  )) as CachedData<CacheableData<FireZoneTPIStats[]>>;
+  const cachedTPIStats = (await readFromFilesystem(Filesystem, TPI_STATS_KEY)) as CachedData<
+    CacheableData<FireZoneTPIStats[]>
+  >
   isCurrent =
     isCurrent &&
     !isNil(cachedTPIStats?.data) &&
-    runParametersMatch(
-      todayKey,
-      tomorrowKey,
-      runParameters,
-      cachedTPIStats.data,
-    );
+    runParametersMatch(todayKey, tomorrowKey, runParameters, cachedTPIStats.data)
 
-  const cachedHFIStats = (await readFromFilesystem(
-    Filesystem,
-    HFI_STATS_KEY,
-  )) as CachedData<CacheableData<FireZoneHFIStatsDictionary>>;
+  const cachedHFIStats = (await readFromFilesystem(Filesystem, HFI_STATS_KEY)) as CachedData<
+    CacheableData<FireZoneHFIStatsDictionary>
+  >
   isCurrent =
     isCurrent &&
     !isNil(cachedHFIStats?.data) &&
-    runParametersMatch(
-      todayKey,
-      tomorrowKey,
-      runParameters,
-      cachedHFIStats.data,
-    );
+    runParametersMatch(todayKey, tomorrowKey, runParameters, cachedHFIStats.data)
 
   if (isCurrent) {
     // No need to fetch new data, compare cached data to state data to see if state update required
-    const stateProvincialSummaries = state.data.provincialSummaries;
-    const stateTPIStats = state.data.tpiStats;
-    const stateHFIStats = state.data.hfiStats;
+    const stateProvincialSummaries = state.data.provincialSummaries
+    const stateTPIStats = state.data.tpiStats
+    const stateHFIStats = state.data.hfiStats
     if (
       !dataAreEqual(stateProvincialSummaries, cachedProvincialSummaries.data) &&
       !dataAreEqual(stateTPIStats, cachedTPIStats.data) &&
@@ -163,45 +136,28 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
           lastUpdated: cachedProvincialSummaries.lastUpdated,
           provincialSummaries: cachedProvincialSummaries.data,
           tpiStats: cachedTPIStats.data,
-          hfiStats: cachedHFIStats.data,
-        }),
-      );
+          hfiStats: cachedHFIStats.data
+        })
+      )
     }
-    return;
+    return
   }
 
   // Cached data is not available or is stale so we need to fetch and cache if we're online.
-  const { networkStatus } = getState().networkStatus;
+  const { networkStatus } = getState().networkStatus
   if (networkStatus.connected) {
     try {
-      dispatch(getDataStart());
-      const provincialSummaries = await fetchProvincialSummaries(
-        todayKey,
-        tomorrowKey,
-        runParameters,
-      );
-      const tpiStats = await fetchTpiStats(
-        todayKey,
-        tomorrowKey,
-        runParameters,
-      );
-      const hfiStats = await fetchHFIStats(
-        todayKey,
-        tomorrowKey,
-        runParameters,
-      );
+      dispatch(getDataStart())
+      const provincialSummaries = await fetchProvincialSummaries(todayKey, tomorrowKey, runParameters)
+      const tpiStats = await fetchTpiStats(todayKey, tomorrowKey, runParameters)
+      const hfiStats = await fetchHFIStats(todayKey, tomorrowKey, runParameters)
 
-      const now = DateTime.now();
+      const now = DateTime.now()
 
       // Write all new data to cache
-      await writeToFileSystem(
-        Filesystem,
-        PROVINCIAL_SUMMARY_KEY,
-        provincialSummaries,
-        now,
-      );
-      await writeToFileSystem(Filesystem, TPI_STATS_KEY, tpiStats, now);
-      await writeToFileSystem(Filesystem, HFI_STATS_KEY, hfiStats, now);
+      await writeToFileSystem(Filesystem, PROVINCIAL_SUMMARY_KEY, provincialSummaries, now)
+      await writeToFileSystem(Filesystem, TPI_STATS_KEY, tpiStats, now)
+      await writeToFileSystem(Filesystem, HFI_STATS_KEY, hfiStats, now)
 
       // Update state
       dispatch(
@@ -209,14 +165,14 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
           lastUpdated: now.toISO(),
           provincialSummaries,
           tpiStats,
-          hfiStats,
-        }),
-      );
+          hfiStats
+        })
+      )
     } catch (err) {
-      dispatch(getDataFailed((err as Error).toString()));
-      console.error(err);
+      dispatch(getDataFailed((err as Error).toString()))
+      console.error(err)
     }
   } else {
-    dispatch(getDataFailed("Unable to update data. Data may be stale."));
+    dispatch(getDataFailed('Unable to update data. Data may be stale.'))
   }
-};
+}

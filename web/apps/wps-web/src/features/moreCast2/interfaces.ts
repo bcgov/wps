@@ -1,5 +1,5 @@
-import { DateTime } from 'luxon'
-import { ModelType } from '@wps/api/moreCast2API'
+import type { ModelType } from '@wps/api/moreCast2API'
+import type { DateTime } from 'luxon'
 
 export type { MoreCast2ForecastRow } from '@wps/api/moreCast2API'
 

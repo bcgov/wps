@@ -1,10 +1,9 @@
-import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import FeedbackButton from './FeedbackButton'
 
 vi.mock('@sentry/react', () => ({
-  getFeedback: vi.fn(),
+  getFeedback: vi.fn()
 }))
 
 import { getFeedback } from '@sentry/react'
@@ -25,10 +24,10 @@ describe('FeedbackButton', () => {
   it('renders the button when getFeedback returns an integration', () => {
     const mockForm = {
       appendToDom: vi.fn(),
-      open: vi.fn(),
+      open: vi.fn()
     }
     mockGetFeedback.mockReturnValue({
-      createForm: vi.fn().mockResolvedValue(mockForm),
+      createForm: vi.fn().mockResolvedValue(mockForm)
     })
     render(<FeedbackButton color="primary" />)
     expect(screen.getByRole('button', { name: /submit feedback/i })).toBeInTheDocument()
@@ -37,7 +36,7 @@ describe('FeedbackButton', () => {
   it('opens the feedback form when button is clicked', async () => {
     const mockForm = {
       appendToDom: vi.fn(),
-      open: vi.fn(),
+      open: vi.fn()
     }
     const mockCreateForm = vi.fn().mockResolvedValue(mockForm)
     mockGetFeedback.mockReturnValue({ createForm: mockCreateForm })

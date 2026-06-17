@@ -9,8 +9,8 @@ if ! command -v code >/dev/null 2>&1; then
 fi
 
 code --install-extension alexkrechik.cucumberautocomplete
+code --install-extension biomejs.biome
 code --install-extension charliermarsh.ruff
-code --install-extension dbaeumer.vscode-eslint
 code --install-extension deque-systems.vscode-axe-linter
 code --install-extension esbenp.prettier-vscode
 code --install-extension github.vscode-github-actions

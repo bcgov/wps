@@ -1,19 +1,20 @@
 import { Box, Skeleton, styled, Typography } from '@mui/material'
-import { DateTime } from 'luxon'
-import React, { useMemo } from 'react'
-import { useSelector } from 'react-redux'
+import type { AdvisoryMinWindStats, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
+import { DateTime } from 'luxon'
+import type React from 'react'
+import { useMemo } from 'react'
+import { useSelector } from 'react-redux'
+import { selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
 import {
   criticalHoursExtendToNextDay,
   formatCriticalHoursTimeText,
   getMinStartAndMaxEndTime
 } from '@/features/fba/criticalHoursStartEndTime'
-import { AdvisoryMinWindStats, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
-import type { FireCentre } from '@wps/types/fireCentre'
-import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
-import { AdvisoryStatus } from '@wps/utils/constants'
-import { selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { useLoading } from '@/features/fba/hooks/useLoading'
 
 const SLASH_FUEL_TYPES = ['S-1', 'S-2', 'S-3']
@@ -106,6 +107,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
   const isLoading = useLoading()
 
   // derived state
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are correct for this memoization
   const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
     if (
       isUndefined(filteredFireCentreHFIFuelStats) ||
@@ -148,6 +150,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getZoneStatus closes over props correctly
   const zoneStatus = useMemo(() => getZoneStatus(), [selectedFireCentre, selectedFireZoneUnit, provincialSummary])
 
   const getCommaSeparatedString = (array: string[]): string => {

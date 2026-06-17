@@ -1,8 +1,8 @@
-import React from 'react'
-import Alert from '@mui/material/Alert'
-import IconButton from '@mui/material/IconButton'
-import Collapse from '@mui/material/Collapse'
 import CloseIcon from '@mui/icons-material/Close'
+import Alert from '@mui/material/Alert'
+import Collapse from '@mui/material/Collapse'
+import IconButton from '@mui/material/IconButton'
+import React from 'react'
 
 export interface ErrorAlertProps {
   stationsError: string | null
@@ -39,7 +39,7 @@ const ErrorAlert = (props: ErrorAlertProps) => {
           :
           <br />
           {props.fbaResultsError ? ` - ${props.fbaResultsError}` : ''}
-          {props.stationsError ? <br /> + ` - ${props.fbaResultsError}` : ''}
+          {props.stationsError ? `${<br />} - ${props.fbaResultsError}` : ''}
         </Alert>
       </Collapse>
     </div>

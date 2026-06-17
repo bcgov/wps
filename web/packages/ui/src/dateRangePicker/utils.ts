@@ -1,20 +1,20 @@
 import {
-  startOfWeek,
-  startOfMonth,
-  endOfWeek,
-  endOfMonth,
-  isBefore,
   addDays,
-  isSameDay,
-  isWithinInterval,
-  isSameMonth,
   addMonths,
+  endOfMonth,
+  endOfWeek,
+  isBefore,
+  isSameDay,
+  isSameMonth,
   isValid,
+  isWithinInterval,
+  max,
   min,
-  max
+  startOfMonth,
+  startOfWeek
 } from 'date-fns'
-import { DateRange } from './types'
 import { isUndefined } from 'lodash'
+import type { DateRange } from './types'
 
 export const identity = <T>(x: T): T => x
 

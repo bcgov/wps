@@ -1,14 +1,14 @@
-import React from 'react'
 import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
-import { useTheme, styled } from '@mui/material/styles'
+import { styled, useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import BetaTag from 'features/landingPage/components/BetaTag'
 import { toolInfos } from 'features/landingPage/toolInfo'
+import type React from 'react'
 
 const PREFIX = 'SidebarToolList'
 
@@ -79,10 +79,10 @@ const SidebarToolList: React.FunctionComponent = () => {
             </ListItem>
             {isSmall && <Divider />}
           </div>
-        );
+        )
       })}
     </StyledList>
-  );
+  )
 }
 
 export default SidebarToolList

@@ -1,6 +1,6 @@
-import Legend from 'features/fba/components/map/Legend'
 import { render, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
+import Legend from 'features/fba/components/map/Legend'
 import { vi } from 'vitest'
 
 describe('Legend', () => {

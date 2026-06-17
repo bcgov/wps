@@ -1,6 +1,6 @@
-import axios from './axios'
-import { DateTime } from 'luxon'
 import type { FireCentre as BaseFireCentre } from '@wps/types/fireCentre'
+import { DateTime } from 'luxon'
+import axios from './axios'
 
 export interface FireStartRange {
   label: string
@@ -75,6 +75,7 @@ export interface RawHFIResultResponse {
   planning_area_hfi_results: RawPlanningAreaResult[]
   fire_start_ranges: FireStartRange[]
 }
+
 import { PACIFIC_IANA_TIMEZONE } from '@wps/utils/constants'
 import { formatISODateInPST } from '@wps/utils/date'
 
@@ -181,10 +182,8 @@ export interface HFIAllReadyStatesResponse {
  * RawDaily is the daily representation over the wire (a string date)
  * that we then marshall that into an object with a DateTime
  */
-export interface RawReadyPlanningAreaDetails extends Omit<
-  ReadyPlanningAreaDetails,
-  'create_timestamp' | 'update_timestamp'
-> {
+export interface RawReadyPlanningAreaDetails
+  extends Omit<ReadyPlanningAreaDetails, 'create_timestamp' | 'update_timestamp'> {
   create_timestamp: string
   update_timestamp: string
 }
@@ -241,12 +240,12 @@ export async function getHFIStations(): Promise<HFIWeatherStationsResponse> {
 }
 
 export async function loadDefaultHFIResult(fire_center_id: number): Promise<HFIResultResponse> {
-  const { data } = await axios.get<RawHFIResultResponse>(baseUrl + 'fire_centre/' + fire_center_id)
+  const { data } = await axios.get<RawHFIResultResponse>(`${baseUrl}fire_centre/${fire_center_id}`)
   return { ...data, planning_area_hfi_results: buildResult(data) }
 }
 
 export async function getFuelTypes(): Promise<FuelTypesResponse> {
-  const data = await axios.get<FuelTypesResponse>(baseUrl + 'fuel_types')
+  const data = await axios.get<FuelTypesResponse>(`${baseUrl}fuel_types`)
   return data.data
 }
 
@@ -255,7 +254,7 @@ export async function getAllReadyStates(
   start_date: string,
   end_date: string
 ): Promise<ReadyPlanningAreaDetails[]> {
-  const url = baseUrl + 'fire_centre/' + fire_centre_id + '/' + start_date + '/' + end_date + '/ready'
+  const url = `${baseUrl}fire_centre/${fire_centre_id}/${start_date}/${end_date}/ready`
 
   const { data } = await axios.get<HFIAllReadyStatesResponse>(url)
   return data.ready_states.map(planningAreaReadyState => ({
@@ -310,7 +309,7 @@ export async function updateStations(
       row_id: removedStation.rowId
     }))
   }
-  const { status } = await axios.post(baseUrl + 'admin/stations', requestBody)
+  const { status } = await axios.post(`${baseUrl}admin/stations`, requestBody)
   return status
 }
 
@@ -373,7 +372,7 @@ export async function getPrepDateRange(
   start_date: string,
   end_date: string
 ): Promise<HFIResultResponse> {
-  const url = baseUrl + 'fire_centre/' + fire_centre_id + '/' + start_date + '/' + end_date
+  const url = `${baseUrl}fire_centre/${fire_centre_id}/${start_date}/${end_date}`
 
   const { data } = await axios.get<RawHFIResultResponse>(url)
   return { ...data, planning_area_hfi_results: buildResult(data) }
@@ -426,12 +425,9 @@ function buildResult(data: RawHFIResultResponse) {
 }
 
 export async function getPDF(fire_center_id: number, start_date: string, end_date: string): Promise<void> {
-  const response = await axios.get(
-    baseUrl + 'fire_centre/' + fire_center_id + '/' + start_date + '/' + end_date + '/pdf',
-    {
-      responseType: 'blob'
-    }
-  )
+  const response = await axios.get(`${baseUrl}fire_centre/${fire_center_id}/${start_date}/${end_date}/pdf`, {
+    responseType: 'blob'
+  })
   const filename = (response.headers['content-disposition'] as string).split('=')[1]
   const url = window.URL.createObjectURL(new Blob([response.data]))
   const link = document.createElement('a')

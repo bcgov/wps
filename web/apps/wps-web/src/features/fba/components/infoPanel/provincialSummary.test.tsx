@@ -1,10 +1,10 @@
-import { Provider } from 'react-redux'
+import { combineReducers } from '@reduxjs/toolkit'
 import { render } from '@testing-library/react'
+import type { FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import ProvincialSummary, { NO_DATA_MESSAGE } from 'features/fba/components/infoPanel/ProvincialSummary'
 import provincialSummarySlice, { initialState } from 'features/fba/slices/provincialSummarySlice'
-import { combineReducers } from '@reduxjs/toolkit'
-import { FireShapeStatusDetail } from '@wps/api/fbaAPI'
-import { AdvisoryStatus } from '@wps/utils/constants'
+import { Provider } from 'react-redux'
 import { createTestStore } from '@/test/testUtils'
 
 const provincialSummaryReducer = combineReducers({ provincialSummary: provincialSummarySlice })

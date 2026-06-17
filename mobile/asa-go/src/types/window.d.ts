@@ -14,5 +14,5 @@ interface Window {
     REACT_APP_SENTRY_DSN: string
     REACT_APP_SENTRY_ENV: string
   }
-  Cypress: {} | undefined
+  Cypress: Record<string, unknown> | undefined
 }

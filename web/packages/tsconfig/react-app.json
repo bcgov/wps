@@ -9,11 +9,7 @@
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "target": "es2015",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "module": "esnext"
   }

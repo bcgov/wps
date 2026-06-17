@@ -1,7 +1,7 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
 // import { isEmpty } from 'lodash'
 import { /* LockOutlined, */ LockOpenOutlined } from '@mui/icons-material'
+import { styled } from '@mui/material/styles'
+import React from 'react'
 
 const PREFIX = 'LoggedInStatus'
 
@@ -20,7 +20,7 @@ export interface LoggedInStatusProps {
 
 const LoggedInStatus = ({ isAuthenticated, /* roles, */ idir }: LoggedInStatusProps) => {
   if (!isAuthenticated) {
-    return <></>
+    return null
   }
 
   // if (isAuthenticated && isEmpty(roles)) {

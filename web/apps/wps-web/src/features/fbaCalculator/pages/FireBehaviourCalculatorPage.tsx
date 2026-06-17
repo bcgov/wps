@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react'
+import { Box } from '@mui/material'
 import { Container } from '@wps/ui/Container'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
-import FBATable from 'features/fbaCalculator/components/FBATable'
 import { FIRECALC_DOC_TITLE } from '@wps/utils/constants'
+import FBATable from 'features/fbaCalculator/components/FBATable'
+import type React from 'react'
+import { useEffect } from 'react'
 import Footer from '@/features/landingPage/components/Footer'
-import { Box } from '@mui/material'
 
 const FireBehaviourCalculator: React.FunctionComponent = () => {
   useEffect(() => {

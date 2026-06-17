@@ -1,8 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ModelType, modelRegistry } from '@/features/weatherToolkit/weatherToolkitTypes'
 import WeatherToolkitPage from './WeatherToolkitPage'
-import { modelRegistry, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
 
 vi.mock('@/features/weatherToolkit/hooks/useWxChartCache', () => ({
   useWxChartCache: () => ({ cache: new Map(), failed: new Set() }),
@@ -16,7 +16,9 @@ vi.mock('@/features/weatherToolkit/components/SidePanel', () => ({
 vi.mock('@/features/weatherToolkit/components/ChartPanel', () => ({
   default: ({ onToggleExpand, isExpanded }: { onToggleExpand: () => void; isExpanded: boolean }) => (
     <div data-testid="chart-panel" data-expanded={String(isExpanded)}>
-      <button onClick={onToggleExpand}>Toggle expand</button>
+      <button type="button" onClick={onToggleExpand}>
+        Toggle expand
+      </button>
     </div>
   )
 }))

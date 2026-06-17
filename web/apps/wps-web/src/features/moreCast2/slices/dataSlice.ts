@@ -1,28 +1,28 @@
-import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { RootState } from 'app/rootReducer'
+import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import {
   fetchWeatherIndeterminates,
   ModelChoice,
-  WeatherIndeterminate,
-  WeatherIndeterminatePayload,
   WeatherDeterminate,
   WeatherDeterminateChoices,
-  WeatherDeterminateType
+  type WeatherDeterminateType,
+  type WeatherIndeterminate,
+  type WeatherIndeterminatePayload
 } from '@wps/api/moreCast2API'
-import { AppThunk } from 'app/store'
+import type { StationGroupMember } from '@wps/api/stationAPI'
+import { logError } from '@wps/utils/error'
+import type { RootState } from 'app/rootReducer'
+import type { AppThunk } from 'app/store'
+import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
+import type { MoreCast2Row } from 'features/moreCast2/interfaces'
 import {
   createDateInterval,
-  rowIDHasher,
-  fillGrassCuringForecast,
+  fillForecastsFromRows,
   fillGrassCuringCWFIS,
-  fillForecastsFromRows
+  fillGrassCuringForecast,
+  rowIDHasher
 } from 'features/moreCast2/util'
-import { DateTime } from 'luxon'
-import { logError } from '@wps/utils/error'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { groupBy, isEqual, isNull, isNumber, isUndefined } from 'lodash'
-import { StationGroupMember } from '@wps/api/stationAPI'
-import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
+import { DateTime } from 'luxon'
 
 const morecastDraftForecast = new MorecastDraftForecast(localStorage)
 export interface DataState {
@@ -317,10 +317,10 @@ export const createMoreCast2Rows = (
   // Set the forecasted precip value to 0 for rows which have no actual or forecasted precip value.
   for (const row of rows) {
     if (
-      isNaN(row.precipActual) &&
+      Number.isNaN(row.precipActual) &&
       row.precipForecast &&
       row.precipForecast.choice === ModelChoice.NULL &&
-      isNaN(row.precipForecast.value)
+      Number.isNaN(row.precipForecast.value)
     ) {
       row.precipForecast.value = 0
     }
@@ -381,7 +381,7 @@ export const fillMissingWeatherIndeterminates = (
   }
   const weatherIndeterminates: WeatherIndeterminate[] = [...items]
   for (const [key, values] of Object.entries(groupedByStationCode)) {
-    const stationCode = parseInt(key)
+    const stationCode = parseInt(key, 10)
     const stationName = stationMap.get(stationCode) ?? ''
     const latitude = values[0]?.latitude
     const longitude = values[0]?.longitude
@@ -472,7 +472,7 @@ export const fillMissingPredictions = (
 
   const allPredictions = [...items]
   for (const [stationCodeAsString, weatherIndeterminatesByStationCode] of Object.entries(groupedByStationCode)) {
-    const stationCode = parseInt(stationCodeAsString)
+    const stationCode = parseInt(stationCodeAsString, 10)
     const stationName = stationMap.get(stationCode) ?? ''
     const latitude = weatherIndeterminatesByStationCode[0]?.latitude ?? 0
     const longitude = weatherIndeterminatesByStationCode[0]?.longitude ?? 0

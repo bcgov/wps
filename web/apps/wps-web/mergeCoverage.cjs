@@ -4,14 +4,16 @@
  *
  * Script adapted from: https://rafaelalmeidatk.com/blog/merging-coverage-reports-from-jest-and-cypress
  */
-const { execSync } = require('child_process')
+const { execSync } = require('node:child_process')
 const fs = require('fs-extra')
 const PLAYWRIGHT_COVERAGE_FOLDER = 'coverage-playwright'
 const JEST_COVERAGE_FOLDER = 'coverage'
 const INTERMEDIATE_FOLDER = 'intermediateCoverage'
 const FINAL_OUTPUT_FOLDER = 'finalCoverage'
 const run = commands => {
-  commands.forEach(command => execSync(command, { stdio: 'inherit' }))
+  commands.forEach(command => {
+    execSync(command, { stdio: 'inherit' })
+  })
 }
 const PACKAGES = ['api', 'ui', 'utils']
 
@@ -41,4 +43,6 @@ run([
 fs.removeSync(JEST_COVERAGE_FOLDER)
 fs.removeSync(PLAYWRIGHT_COVERAGE_FOLDER)
 fs.removeSync(INTERMEDIATE_FOLDER)
-PACKAGES.forEach(pkg => fs.removeSync(`../../packages/${pkg}/coverage`))
+PACKAGES.forEach(pkg => {
+  fs.removeSync(`../../packages/${pkg}/coverage`)
+})

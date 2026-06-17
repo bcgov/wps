@@ -1,4 +1,4 @@
-import { render, screen, within, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 import { vi } from 'vitest'

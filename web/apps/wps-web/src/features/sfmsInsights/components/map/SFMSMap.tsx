@@ -1,34 +1,34 @@
+import { Box, CircularProgress } from '@mui/material'
+import { ErrorBoundary } from '@sentry/react'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
-import { Box, CircularProgress } from '@mui/material'
-import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
   getRasterLayer,
   getSnowPMTilesLayer
 } from 'features/sfmsInsights/components/map/layerDefinitions'
-import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
-import { RasterType, RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
-import {
-  RasterTooltipInteraction,
-  RasterTooltipData
-} from '@/features/sfmsInsights/components/map/rasterTooltipInteraction'
-import { LayerManager, RasterError } from '@/features/sfmsInsights/components/map/layerManager'
-import RasterErrorNotification from '@/features/sfmsInsights/components/map/RasterErrorNotification'
+import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
+import { RASTER_CONFIG, type RasterType } from 'features/sfmsInsights/components/map/rasterConfig'
 import { isNull } from 'lodash'
-import { DateTime } from 'luxon'
-import { Map, View } from 'ol'
+import type { DateTime } from 'luxon'
+import { Map as OlMap, View } from 'ol'
 import { defaults as defaultControls } from 'ol/control'
 import { boundingExtent } from 'ol/extent'
+import { LayerManager, type RasterError } from '@/features/sfmsInsights/components/map/layerManager'
+import RasterErrorNotification from '@/features/sfmsInsights/components/map/RasterErrorNotification'
+import {
+  type RasterTooltipData,
+  RasterTooltipInteraction
+} from '@/features/sfmsInsights/components/map/rasterTooltipInteraction'
 import 'ol/ol.css'
+import { selectToken } from 'app/rootReducer'
 import { fromLonLat } from 'ol/proj'
 import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { selectToken } from 'app/rootReducer'
 
-const MapContext = React.createContext<Map | null>(null)
+const MapContext = React.createContext<OlMap | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 interface SFMSMapProps {
@@ -40,7 +40,7 @@ interface SFMSMapProps {
 
 const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: SFMSMapProps) => {
   const token = useSelector(selectToken)
-  const [map, setMap] = useState<Map | null>(null)
+  const [map, setMap] = useState<OlMap | null>(null)
   const [rasterTooltipData, setRasterTooltipData] = useState<RasterTooltipData>({
     value: null,
     label: 'FWI',
@@ -66,10 +66,11 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     setRasterError(null)
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
   useEffect(() => {
     if (!mapRef.current) return
 
-    const mapObject = new Map({
+    const mapObject = new OlMap({
       target: mapRef.current,
       layers: [],
       controls: defaultControls(),
@@ -121,7 +122,9 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
 
   useEffect(() => {
     if (snowLayerManagerRef.current) {
-      snowLayerManagerRef.current.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
+      snowLayerManagerRef.current.updateLayer(
+        !isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null
+      )
     }
   }, [snowDate, showSnow, token])
 

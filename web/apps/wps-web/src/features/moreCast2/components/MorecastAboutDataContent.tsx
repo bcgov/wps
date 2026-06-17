@@ -1,21 +1,20 @@
-import React from 'react'
 import {
+  Box,
   List,
   ListItem,
   ListItemText,
-  Typography,
-  Box,
+  Paper,
+  styled,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  styled
+  Typography
 } from '@mui/material'
 
-const StyledListItemText = styled(ListItemText)(({ theme }) => ({
+const StyledListItemText = styled(ListItemText)(() => ({
   '& .MuiTypography-root': {
     fontSize: 'inherit'
   }
@@ -28,9 +27,10 @@ const MorecastAboutDataContent = () => (
         <Box>
           <Typography
             sx={{
-              fontSize: "inherit",
-              fontWeight: "bold"
-            }}>
+              fontSize: 'inherit',
+              fontWeight: 'bold'
+            }}
+          >
             Temp, RH, Wind Speed/Direction
           </Typography>
           <StyledListItemText
@@ -49,9 +49,10 @@ const MorecastAboutDataContent = () => (
         <Box>
           <Typography
             sx={{
-              fontSize: "inherit",
-              fontWeight: "bold"
-            }}>
+              fontSize: 'inherit',
+              fontWeight: 'bold'
+            }}
+          >
             Precipitation
           </Typography>
           <StyledListItemText
@@ -65,9 +66,10 @@ const MorecastAboutDataContent = () => (
         <Box>
           <Typography
             sx={{
-              fontSize: "inherit",
-              fontWeight: "bold"
-            }}>
+              fontSize: 'inherit',
+              fontWeight: 'bold'
+            }}
+          >
             Bias-adjusted Values
           </Typography>
           <StyledListItemText
@@ -81,9 +83,10 @@ const MorecastAboutDataContent = () => (
         <Box>
           <Typography
             sx={{
-              fontSize: "inherit",
-              fontWeight: "bold"
-            }}>
+              fontSize: 'inherit',
+              fontWeight: 'bold'
+            }}
+          >
             Grass Curing
           </Typography>
           <StyledListItemText
@@ -94,14 +97,17 @@ const MorecastAboutDataContent = () => (
       </ListItem>
     </List>
 
-    <Box sx={{
-      mt: 3
-    }}>
+    <Box
+      sx={{
+        mt: 3
+      }}
+    >
       <Typography
         sx={{
-          fontWeight: "bold",
+          fontWeight: 'bold',
           fontSize: 'inherit'
-        }}>
+        }}
+      >
         Model Run Hours
       </Typography>
 

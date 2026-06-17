@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react'
+import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
+import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
 import { styled } from '@mui/material/styles'
-import { useDispatch, useSelector } from 'react-redux'
-import { isEmpty } from 'lodash'
-import { DateTime } from 'luxon'
-import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
-import { AppDispatch } from 'app/store'
+import type { StationGroup } from '@wps/api/stationAPI'
+import type { DateRange } from '@wps/ui/dateRangePicker/types'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { MORE_CAST_DOC_TITLE, MORE_CAST_NAME } from '@wps/utils/constants'
+import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
+import type { AppDispatch } from 'app/store'
 import StationPanel from 'features/moreCast2/components/StationPanel'
-import { DateRange } from '@wps/ui/dateRangePicker/types'
-import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
-import { StationGroup } from '@wps/api/stationAPI'
-import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
-import { getWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
+import { getWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
+import { isEmpty } from 'lodash'
+import { DateTime } from 'luxon'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 
 export const Root = styled('div')({
   display: 'flex',
@@ -55,8 +55,8 @@ const MoreCast2Page = () => {
   const { idir } = useSelector(selectAuthentication)
   const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
 
-  const currentTimeIsBeforeNoon = DateTime.now().hour < 13 ? true : false
-  let startDateTime
+  const currentTimeIsBeforeNoon = DateTime.now().hour < 13
+  let startDateTime: DateTime
   if (currentTimeIsBeforeNoon) {
     startDateTime = DateTime.now().minus({ days: 3 })
   } else {
@@ -77,30 +77,34 @@ const MoreCast2Page = () => {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     document.title = MORE_CAST_DOC_TITLE
     dispatch(fetchStationGroups())
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when members changes
   useEffect(() => {
     if (!isEmpty(members)) {
       dispatch(selectedStationsChanged([members[0]]))
       setSelectedGroupsMembers(members)
     }
     fetchWeatherIndeterminates()
-  }, [members]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [members])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when station group changes
   useEffect(() => {
     if (!isEmpty(selectedStationGroup)) {
       dispatch(fetchStationGroupsMembers([selectedStationGroup.id]))
     } else {
       setSelectedGroupsMembers([])
     }
-  }, [selectedStationGroup]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedStationGroup])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when date range changes
   useEffect(() => {
     fetchWeatherIndeterminates()
-  }, [fromTo.startDate, fromTo.endDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fromTo.startDate, fromTo.endDate])
 
   return (
     <Root data-testid="more-cast-2-page">

@@ -1,13 +1,14 @@
-import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
-import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
-import FireCentreInfo from 'features/fba/components/infoPanel/FireCentreInfo'
-import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
-import { isNull, isUndefined } from 'lodash'
 import { Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { INFO_PANEL_CONTENT_BACKGROUND } from '@wps/ui/theme'
 import { FireCentres } from '@wps/utils/constants'
+import FireCentreInfo from 'features/fba/components/infoPanel/FireCentreInfo'
+import InfoAccordion from 'features/fba/components/infoPanel/InfoAccordion'
+import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import { isNull, isUndefined } from 'lodash'
+import type React from 'react'
+import { useState } from 'react'
+import { useSelector } from 'react-redux'
 
 export const NO_DATA_MESSAGE = 'Choose a date of interest above.'
 
@@ -28,7 +29,7 @@ const ProvincialSummary = () => {
     isNull(provincialSummary) || isUndefined(provincialSummary) || Object.keys(provincialSummary).length === 0
 
   const handleFireCentreAccordionChanged =
-    (fireCentreName: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    (fireCentreName: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
       const newValue = { ...fireCentreExpanded }
       newValue[fireCentreName] = isExpanded
       setFireCentreExpanded(newValue)

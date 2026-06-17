@@ -22,5 +22,5 @@ declare var env: RuntimeEnv
 
 interface Window {
   env: RuntimeEnv
-  Playwright: {} | undefined
+  Playwright: Record<string, unknown> | undefined
 }

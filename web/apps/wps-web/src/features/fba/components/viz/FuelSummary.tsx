@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from 'react'
-import { FireShape, FireZoneFuelStats } from '@wps/api/fbaAPI'
 import { Box, Tooltip, Typography } from '@mui/material'
-import { groupBy, isUndefined } from 'lodash'
-import FuelDistribution from 'features/fba/components/viz/FuelDistribution'
-import { DataGridPro, GridColDef, GridColumnHeaderParams, GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { styled, useTheme } from '@mui/material/styles'
+import {
+  DataGridPro,
+  type GridColDef,
+  type GridColumnHeaderParams,
+  type GridRenderCellParams
+} from '@mui/x-data-grid-pro'
+import type { FireShape, FireZoneFuelStats } from '@wps/api/fbaAPI'
 import CriticalHours from 'features/fba/components/viz/CriticalHours'
+import FuelDistribution from 'features/fba/components/viz/FuelDistribution'
+import { groupBy, isUndefined } from 'lodash'
+import { useEffect, useState } from 'react'
 
 export interface FuelTypeInfoSummary {
   area: number
@@ -41,7 +46,7 @@ const columns: GridColDef[] = [
     minWidth: 120,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => (
-      <Tooltip followCursor placement="right" title={params.row['description']}>
+      <Tooltip followCursor placement="right" title={params.row.description}>
         <Typography sx={{ fontSize: '0.75rem', height: '100%', alignItems: 'center', display: 'flex', flexGrow: 1 }}>
           {params.row[params.field]}
         </Typography>
@@ -56,7 +61,7 @@ const columns: GridColDef[] = [
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => {
-      return <FuelDistribution code={params.row['code']} percent={params.row['percent']} />
+      return <FuelDistribution code={params.row.code} percent={params.row.percent} />
     }
   },
   {
@@ -67,7 +72,7 @@ const columns: GridColDef[] = [
     sortable: false,
     renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => {
-      return <CriticalHours start={params.row['criticalHoursStart']} end={params.row['criticalHoursEnd']} />
+      return <CriticalHours start={params.row.criticalHoursStart} end={params.row.criticalHoursEnd} />
     }
   }
 ]
@@ -76,6 +81,7 @@ const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryPro
   const theme = useTheme()
   const [fuelTypeInfoRollup, setFuelTypeInfoRollup] = useState<FuelTypeInfoSummary[]>([])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     if (isUndefined(fireZoneFuelStats) || isUndefined(selectedFireZoneUnit)) {
       setFuelTypeInfoRollup([])
@@ -115,7 +121,7 @@ const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryPro
       }
     }
     setFuelTypeInfoRollup(rollUp)
-  }, [fireZoneFuelStats]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireZoneFuelStats])
 
   return (
     <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}>

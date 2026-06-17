@@ -1,145 +1,138 @@
-vi.mock("api/fbaAPI", async () => {
-  const actual = await vi.importActual<typeof import("api/fbaAPI")>(
-    "api/fbaAPI",
-  );
+vi.mock('api/fbaAPI', async () => {
+  const actual = await vi.importActual<typeof import('api/fbaAPI')>('api/fbaAPI')
   return {
     ...actual,
-    getMostRecentRunParameters: vi.fn(),
-  };
-});
+    getMostRecentRunParameters: vi.fn()
+  }
+})
 
-vi.mock("@/utils/storage", () => ({
+vi.mock('@/utils/storage', () => ({
   writeToFileSystem: vi.fn(),
   readFromFilesystem: vi.fn(),
-  FIRE_CENTRES_KEY: "fireCentres",
-  HFI_STATS_KEY: "hfiStats",
-  PROVINCIAL_SUMMARY_KEY: "provincialSummary",
-  RUN_PARAMETERS_CACHE_KEY: "runParameters",
-  TPI_STATS_KEY: "tpiStats",
-}));
+  FIRE_CENTRES_KEY: 'fireCentres',
+  HFI_STATS_KEY: 'hfiStats',
+  PROVINCIAL_SUMMARY_KEY: 'provincialSummary',
+  RUN_PARAMETERS_CACHE_KEY: 'runParameters',
+  TPI_STATS_KEY: 'tpiStats'
+}))
 
-vi.mock("@/utils/dataSliceUtils", async () => {
-  const actual = await vi.importActual<typeof import("@/utils/dataSliceUtils")>(
-    "@/utils/dataSliceUtils",
-  );
+vi.mock('@/utils/dataSliceUtils', async () => {
+  const actual = await vi.importActual<typeof import('@/utils/dataSliceUtils')>('@/utils/dataSliceUtils')
   return {
     ...actual,
     fetchHFIStats: vi.fn(),
     fetchProvincialSummaries: vi.fn(),
-    fetchTpiStats: vi.fn(),
-  };
-});
+    fetchTpiStats: vi.fn()
+  }
+})
 
+import {
+  type AdvisoryCriticalHours,
+  type AdvisoryMinWindStats,
+  type FireShapeStatusDetail,
+  type FireZoneFuelStats,
+  type FireZoneHFIStatsDictionary,
+  type FireZoneStatus,
+  type FireZoneTPIStats,
+  type FuelType,
+  type HfiThreshold,
+  type RunParameter,
+  RunType
+} from 'api/fbaAPI'
+import { DateTime } from 'luxon'
+import { describe, expect, it, type Mock, vi } from 'vitest'
 import reducer, {
-  DataState,
+  type DataState,
   fetchAndCacheData,
   getDataFailed,
   getDataStart,
   getDataSuccess,
   initialState,
-  setLastUpdated,
-} from "@/slices/dataSlice";
+  setLastUpdated
+} from '@/slices/dataSlice'
+import { initialState as runParametersInitialState } from '@/slices/runParametersSlice'
+import { createTestStore } from '@/testUtils'
+import { AdvisoryStatus } from '@/utils/constants'
 import {
   fetchHFIStats,
   fetchProvincialSummaries,
   fetchTpiStats,
   getTodayKey,
-  getTomorrowKey,
-} from "@/utils/dataSliceUtils";
-import { initialState as runParametersInitialState } from "@/slices/runParametersSlice";
-import { createTestStore } from "@/testUtils";
+  getTomorrowKey
+} from '@/utils/dataSliceUtils'
 import {
-  CacheableData,
+  type CacheableData,
   HFI_STATS_KEY,
   PROVINCIAL_SUMMARY_KEY,
   readFromFilesystem,
-  TPI_STATS_KEY,
-} from "@/utils/storage";
-import {
-  AdvisoryCriticalHours,
-  AdvisoryMinWindStats,
-  FireShapeStatusDetail,
-  FireZoneFuelStats,
-  FireZoneHFIStatsDictionary,
-  FireZoneStatus,
-  FireZoneTPIStats,
-  FuelType,
-  HfiThreshold,
-  RunParameter,
-  RunType,
-} from "api/fbaAPI";
-import { DateTime } from "luxon";
-import { describe, expect, it, Mock, vi } from "vitest";
-import { AdvisoryStatus } from "@/utils/constants";
+  TPI_STATS_KEY
+} from '@/utils/storage'
 
-const todayKey = getTodayKey();
-const tomorrowKey = getTomorrowKey();
-const yesterdayKey = DateTime.fromISO(todayKey).minus({ days: 1 }).toISODate()!;
-const lastUpdatedDate = "2026-04-22T16:30-07:00";
+const todayKey = getTodayKey()
+const tomorrowKey = getTomorrowKey()
+const yesterdayKey = DateTime.fromISO(todayKey).minus({ days: 1 }).toISODate()!
+const lastUpdatedDate = '2026-04-22T16:30-07:00'
 
 const mockYesterdayRunParameter = {
   for_date: yesterdayKey,
-  run_datetime: "2025-08-27T08:00:00Z",
-  run_type: RunType.FORECAST,
-};
+  run_datetime: '2025-08-27T08:00:00Z',
+  run_type: RunType.FORECAST
+}
 
 const mockTodayRunParameter = {
   for_date: todayKey,
-  run_datetime: "2025-08-27T08:00:00Z",
-  run_type: RunType.FORECAST,
-};
+  run_datetime: '2025-08-27T08:00:00Z',
+  run_type: RunType.FORECAST
+}
 
 const mockTomorrowRunParameter = {
   for_date: tomorrowKey,
-  run_datetime: "2025-08-28T08:00:00Z",
-  run_type: RunType.FORECAST,
-};
+  run_datetime: '2025-08-28T08:00:00Z',
+  run_type: RunType.FORECAST
+}
 
 const mockStaleRunParameters: { [key: string]: RunParameter } = {
   [yesterdayKey]: mockYesterdayRunParameter,
-  [todayKey]: mockTodayRunParameter,
-};
+  [todayKey]: mockTodayRunParameter
+}
 
 const mockRunParameters: { [key: string]: RunParameter } = {
   [todayKey]: mockTodayRunParameter,
-  [tomorrowKey]: mockTomorrowRunParameter,
-};
+  [tomorrowKey]: mockTomorrowRunParameter
+}
 
 const mockFireShapeStatus: FireZoneStatus = {
   fire_shape_id: 1,
-  status: AdvisoryStatus.ADVISORY,
-};
+  status: AdvisoryStatus.ADVISORY
+}
 
 const mockFireShapeStatusDetail: FireShapeStatusDetail = {
   ...mockFireShapeStatus,
-  fire_shape_name: "test_fire_zone_unit",
-  fire_centre_name: "test_fire_centre",
-};
+  fire_shape_name: 'test_fire_zone_unit',
+  fire_centre_name: 'test_fire_centre'
+}
 
-const mockStaleCacheableProvincialSummaries: CacheableData<
-  FireShapeStatusDetail[]
-> = {
+const mockStaleCacheableProvincialSummaries: CacheableData<FireShapeStatusDetail[]> = {
   [yesterdayKey]: {
     runParameter: mockYesterdayRunParameter,
-    data: [mockFireShapeStatusDetail],
+    data: [mockFireShapeStatusDetail]
   },
   [todayKey]: {
     runParameter: mockTodayRunParameter,
-    data: [mockFireShapeStatusDetail],
-  },
-};
+    data: [mockFireShapeStatusDetail]
+  }
+}
 
-const mockCacheableProvincialSummaries: CacheableData<FireShapeStatusDetail[]> =
-  {
-    [todayKey]: {
-      runParameter: mockTodayRunParameter,
-      data: [mockFireShapeStatusDetail],
-    },
-    [tomorrowKey]: {
-      runParameter: mockTomorrowRunParameter,
-      data: [mockFireShapeStatusDetail],
-    },
-  };
+const mockCacheableProvincialSummaries: CacheableData<FireShapeStatusDetail[]> = {
+  [todayKey]: {
+    runParameter: mockTodayRunParameter,
+    data: [mockFireShapeStatusDetail]
+  },
+  [tomorrowKey]: {
+    runParameter: mockTomorrowRunParameter,
+    data: [mockFireShapeStatusDetail]
+  }
+}
 
 const mockFireZoneTPIStats: FireZoneTPIStats = {
   fire_zone_id: 1,
@@ -148,321 +141,315 @@ const mockFireZoneTPIStats: FireZoneTPIStats = {
   mid_slope_hfi: 10,
   mid_slope_tpi: 10,
   upper_slope_hfi: 15,
-  upper_slope_tpi: 15,
-};
+  upper_slope_tpi: 15
+}
 
 const mockStaleCacheableFireZoneTPIStats: CacheableData<FireZoneTPIStats[]> = {
   [yesterdayKey]: {
     runParameter: mockYesterdayRunParameter,
-    data: [mockFireZoneTPIStats],
+    data: [mockFireZoneTPIStats]
   },
   [todayKey]: {
     runParameter: mockTodayRunParameter,
-    data: [mockFireZoneTPIStats],
-  },
-};
+    data: [mockFireZoneTPIStats]
+  }
+}
 
 const mockCacheableFireZoneTPIStats: CacheableData<FireZoneTPIStats[]> = {
   [todayKey]: {
     runParameter: mockTodayRunParameter,
-    data: [mockFireZoneTPIStats],
+    data: [mockFireZoneTPIStats]
   },
   [tomorrowKey]: {
     runParameter: mockTomorrowRunParameter,
-    data: [mockFireZoneTPIStats],
-  },
-};
+    data: [mockFireZoneTPIStats]
+  }
+}
 
 const mockHFIThreshold: HfiThreshold = {
   id: 1,
-  name: "test",
-  description: "test description",
-};
+  name: 'test',
+  description: 'test description'
+}
 
 const mockAdvisoryMinWindStats: AdvisoryMinWindStats = {
   threshold: mockHFIThreshold,
-  min_wind_speed: 5,
-};
+  min_wind_speed: 5
+}
 
 const mockFuelType: FuelType = {
   fuel_type_id: 1,
-  fuel_type_code: "C-3",
-  description: "tree",
-};
+  fuel_type_code: 'C-3',
+  description: 'tree'
+}
 
 const mockAdvisoryCriticalHours: AdvisoryCriticalHours = {
   start_time: 10,
-  end_time: 20,
-};
+  end_time: 20
+}
 
 const mockFireZoneFuelStats: FireZoneFuelStats = {
   fuel_type: mockFuelType,
   threshold: mockHFIThreshold,
   critical_hours: mockAdvisoryCriticalHours,
   area: 5,
-  fuel_area: 10,
-};
+  fuel_area: 10
+}
 
 const mockFireZoneHFIStats: FireZoneHFIStats = {
   min_wind_stats: [mockAdvisoryMinWindStats],
-  fuel_area_stats: [mockFireZoneFuelStats],
-};
+  fuel_area_stats: [mockFireZoneFuelStats]
+}
 
-export interface FireZoneHFIStats {
-  min_wind_stats: AdvisoryMinWindStats[];
-  fuel_area_stats: FireZoneFuelStats[];
+interface FireZoneHFIStats {
+  min_wind_stats: AdvisoryMinWindStats[]
+  fuel_area_stats: FireZoneFuelStats[]
 }
 
 const mockStaleCacheableHFIStats: CacheableData<FireZoneHFIStatsDictionary> = {
   [yesterdayKey]: {
     runParameter: mockYesterdayRunParameter,
     data: {
-      1: mockFireZoneHFIStats,
-    },
+      1: mockFireZoneHFIStats
+    }
   },
   [todayKey]: {
     runParameter: mockTodayRunParameter,
     data: {
-      1: mockFireZoneHFIStats,
-    },
-  },
-};
+      1: mockFireZoneHFIStats
+    }
+  }
+}
 
 const mockCacheableHFIStats: CacheableData<FireZoneHFIStatsDictionary> = {
   [todayKey]: {
     runParameter: mockTodayRunParameter,
     data: {
-      1: mockFireZoneHFIStats,
-    },
+      1: mockFireZoneHFIStats
+    }
   },
   [tomorrowKey]: {
     runParameter: mockTomorrowRunParameter,
     data: {
-      1: mockFireZoneHFIStats,
-    },
-  },
-};
+      1: mockFireZoneHFIStats
+    }
+  }
+}
 
 const mockStaleData = {
   lastUpdated: yesterdayKey,
   provincialSummaries: mockStaleCacheableProvincialSummaries,
   tpiStats: mockStaleCacheableFireZoneTPIStats,
-  hfiStats: mockStaleCacheableHFIStats,
-};
+  hfiStats: mockStaleCacheableHFIStats
+}
 
 const mockData = {
   lastUpdated: todayKey,
   provincialSummaries: mockCacheableProvincialSummaries,
   tpiStats: mockCacheableFireZoneTPIStats,
-  hfiStats: mockCacheableHFIStats,
-};
+  hfiStats: mockCacheableHFIStats
+}
 
-export const staleInitialState: DataState = {
+const staleInitialState: DataState = {
   loading: false,
   error: null,
-  ...mockStaleData,
-};
+  ...mockStaleData
+}
 
-describe("data reducer", () => {
-  it("should handle getDataStart", () => {
-    const nextState = reducer(initialState, getDataStart());
-    expect(nextState.loading).toBe(true);
-    expect(nextState.error).toBeNull();
-  });
+describe('data reducer', () => {
+  it('should handle getDataStart', () => {
+    const nextState = reducer(initialState, getDataStart())
+    expect(nextState.loading).toBe(true)
+    expect(nextState.error).toBeNull()
+  })
 
-  it("should handle getDataFailed", () => {
-    const error = "API error";
-    const nextState = reducer(initialState, getDataFailed(error));
-    expect(nextState.loading).toBe(false);
-    expect(nextState.error).toBe(error);
-  });
+  it('should handle getDataFailed', () => {
+    const error = 'API error'
+    const nextState = reducer(initialState, getDataFailed(error))
+    expect(nextState.loading).toBe(false)
+    expect(nextState.error).toBe(error)
+  })
 
-  it("should handle setLastUpdated", () => {
-    const lastUpdated = "2025-09-02T10:00:00Z";
-    const nextState = reducer(initialState, setLastUpdated({ lastUpdated }));
-    expect(nextState.lastUpdated).toBe(lastUpdated);
-  });
+  it('should handle setLastUpdated', () => {
+    const lastUpdated = '2025-09-02T10:00:00Z'
+    const nextState = reducer(initialState, setLastUpdated({ lastUpdated }))
+    expect(nextState.lastUpdated).toBe(lastUpdated)
+  })
 
-  it("should handle getDataSuccess", () => {
-    const nextState = reducer(initialState, getDataSuccess({ ...mockData }));
-    expect(nextState.loading).toBe(false);
-    expect(nextState.error).toBeNull();
-    expect(nextState.lastUpdated).toEqual(todayKey);
-    expect(nextState.provincialSummaries).toEqual(
-      mockCacheableProvincialSummaries,
-    );
-    expect(nextState.tpiStats).toEqual(mockCacheableFireZoneTPIStats);
-    expect(nextState.hfiStats).toEqual(mockCacheableHFIStats);
-  });
-});
+  it('should handle getDataSuccess', () => {
+    const nextState = reducer(initialState, getDataSuccess({ ...mockData }))
+    expect(nextState.loading).toBe(false)
+    expect(nextState.error).toBeNull()
+    expect(nextState.lastUpdated).toEqual(todayKey)
+    expect(nextState.provincialSummaries).toEqual(mockCacheableProvincialSummaries)
+    expect(nextState.tpiStats).toEqual(mockCacheableFireZoneTPIStats)
+    expect(nextState.hfiStats).toEqual(mockCacheableHFIStats)
+  })
+})
 
-describe("fetchAndCacheData thunk", () => {
+describe('fetchAndCacheData thunk', () => {
   const mockCacheWithData = () => {
-    (readFromFilesystem as Mock).mockImplementation((_filesystem, key) => {
+    ;(readFromFilesystem as Mock).mockImplementation((_filesystem, key) => {
       switch (key) {
         case PROVINCIAL_SUMMARY_KEY:
           return {
             lastUpdated: lastUpdatedDate,
-            data: mockCacheableProvincialSummaries,
-          };
+            data: mockCacheableProvincialSummaries
+          }
         case TPI_STATS_KEY:
           return {
             lastUpdated: lastUpdatedDate,
-            data: mockCacheableFireZoneTPIStats,
-          };
+            data: mockCacheableFireZoneTPIStats
+          }
         case HFI_STATS_KEY:
           return {
             lastUpdated: lastUpdatedDate,
-            data: mockCacheableHFIStats,
-          };
+            data: mockCacheableHFIStats
+          }
       }
-    });
-  };
+    })
+  }
   const mockCacheWithNoData = () => {
-    (readFromFilesystem as Mock).mockImplementation(() => {
-      return null;
-    });
-  };
+    ;(readFromFilesystem as Mock).mockImplementation(() => {
+      return null
+    })
+  }
   const mockAPIData = () => {
-    vi.mocked(fetchHFIStats).mockResolvedValue(mockCacheableHFIStats);
-    vi.mocked(fetchProvincialSummaries).mockResolvedValue(
-      mockCacheableProvincialSummaries,
-    );
-    vi.mocked(fetchTpiStats).mockResolvedValue(mockCacheableFireZoneTPIStats);
-  };
+    vi.mocked(fetchHFIStats).mockResolvedValue(mockCacheableHFIStats)
+    vi.mocked(fetchProvincialSummaries).mockResolvedValue(mockCacheableProvincialSummaries)
+    vi.mocked(fetchTpiStats).mockResolvedValue(mockCacheableFireZoneTPIStats)
+  }
   const testExpectedDataState = (dataState: DataState) => {
-    expect(dataState.error).toBeNull();
-    expect(dataState.provincialSummaries).toEqual(
-      mockCacheableProvincialSummaries,
-    );
-    expect(dataState.tpiStats).toEqual(mockCacheableFireZoneTPIStats);
-    expect(dataState.hfiStats).toEqual(mockCacheableHFIStats);
-  };
+    expect(dataState.error).toBeNull()
+    expect(dataState.provincialSummaries).toEqual(mockCacheableProvincialSummaries)
+    expect(dataState.tpiStats).toEqual(mockCacheableFireZoneTPIStats)
+    expect(dataState.hfiStats).toEqual(mockCacheableHFIStats)
+  }
   beforeEach(() => {
     // Reset all mocks before each test
-    vi.clearAllMocks();
-  });
-  it("should dispatch getDataFailed when runParameters is null", async () => {
+    vi.clearAllMocks()
+  })
+  it('should dispatch getDataFailed when runParameters is null', async () => {
     const store = createTestStore({
       data: { ...initialState },
       networkStatus: {
-        networkStatus: { connected: true, connectionType: "wifi" },
+        networkStatus: { connected: true, connectionType: 'wifi' }
       },
-      runParameters: runParametersInitialState,
-    });
-    await store.dispatch(fetchAndCacheData());
-    expect(store.getState().data.error).toMatch(/runParameters can't be null/);
-  });
+      runParameters: runParametersInitialState
+    })
+    await store.dispatch(fetchAndCacheData())
+    expect(store.getState().data.error).toMatch(/runParameters can't be null/)
+  })
 
-  it("should update state from cache when cache is current and state is empty", async () => {
-    mockCacheWithData();
+  it('should update state from cache when cache is current and state is empty', async () => {
+    mockCacheWithData()
     const store = createTestStore({
       data: { ...initialState },
       networkStatus: {
-        networkStatus: { connected: true, connectionType: "wifi" },
+        networkStatus: { connected: true, connectionType: 'wifi' }
       },
       runParameters: {
         ...runParametersInitialState,
-        runParameters: mockRunParameters,
-      },
-    });
-    await store.dispatch(fetchAndCacheData());
+        runParameters: mockRunParameters
+      }
+    })
+    await store.dispatch(fetchAndCacheData())
 
     // API should not be called
-    expect(fetchHFIStats).not.toHaveBeenCalled();
-    expect(fetchProvincialSummaries).not.toHaveBeenCalled();
-    expect(fetchTpiStats).not.toHaveBeenCalled();
+    expect(fetchHFIStats).not.toHaveBeenCalled()
+    expect(fetchProvincialSummaries).not.toHaveBeenCalled()
+    expect(fetchTpiStats).not.toHaveBeenCalled()
 
     // redux store should be updated with the cached data
-    const dataState = store.getState().data;
-    testExpectedDataState(dataState);
-    expect(dataState.lastUpdated).toBe(lastUpdatedDate);
-  });
-  it("should update state from cache when cache is current and state is stale", async () => {
-    mockCacheWithData();
+    const dataState = store.getState().data
+    testExpectedDataState(dataState)
+    expect(dataState.lastUpdated).toBe(lastUpdatedDate)
+  })
+  it('should update state from cache when cache is current and state is stale', async () => {
+    mockCacheWithData()
     const store = createTestStore({
       data: { ...staleInitialState },
       networkStatus: {
-        networkStatus: { connected: true, connectionType: "wifi" },
+        networkStatus: { connected: true, connectionType: 'wifi' }
       },
       runParameters: {
         ...runParametersInitialState,
-        runParameters: mockRunParameters,
-      },
-    });
-    await store.dispatch(fetchAndCacheData());
+        runParameters: mockRunParameters
+      }
+    })
+    await store.dispatch(fetchAndCacheData())
 
     // Utility functions which call the API should not be called
-    expect(fetchHFIStats).not.toHaveBeenCalled();
-    expect(fetchProvincialSummaries).not.toHaveBeenCalled();
-    expect(fetchTpiStats).not.toHaveBeenCalled();
+    expect(fetchHFIStats).not.toHaveBeenCalled()
+    expect(fetchProvincialSummaries).not.toHaveBeenCalled()
+    expect(fetchTpiStats).not.toHaveBeenCalled()
 
     // redux store should be updated with the cached data
-    const dataState = store.getState().data;
-    testExpectedDataState(dataState);
-  });
-  it("should update state from API calls when cache is empty and app is online", async () => {
-    mockAPIData();
-    mockCacheWithNoData();
+    const dataState = store.getState().data
+    testExpectedDataState(dataState)
+  })
+  it('should update state from API calls when cache is empty and app is online', async () => {
+    mockAPIData()
+    mockCacheWithNoData()
     const store = createTestStore({
       data: { ...initialState },
       networkStatus: {
-        networkStatus: { connected: true, connectionType: "wifi" },
+        networkStatus: { connected: true, connectionType: 'wifi' }
       },
       runParameters: {
         ...runParametersInitialState,
-        runParameters: mockRunParameters,
-      },
-    });
-    await store.dispatch(fetchAndCacheData());
+        runParameters: mockRunParameters
+      }
+    })
+    await store.dispatch(fetchAndCacheData())
 
     // Utility functions which call the API should be called
-    expect(fetchHFIStats).toHaveBeenCalled();
-    expect(fetchProvincialSummaries).toHaveBeenCalled();
-    expect(fetchTpiStats).toHaveBeenCalled();
+    expect(fetchHFIStats).toHaveBeenCalled()
+    expect(fetchProvincialSummaries).toHaveBeenCalled()
+    expect(fetchTpiStats).toHaveBeenCalled()
 
     // redux store should be updated with the fetched data
-    const dataState = store.getState().data;
-    testExpectedDataState(dataState);
-  });
-  it("should update state from API calls when run parameters state is stale", async () => {
-    mockAPIData();
-    mockCacheWithData();
+    const dataState = store.getState().data
+    testExpectedDataState(dataState)
+  })
+  it('should update state from API calls when run parameters state is stale', async () => {
+    mockAPIData()
+    mockCacheWithData()
     const store = createTestStore({
       data: { ...initialState },
       networkStatus: {
-        networkStatus: { connected: true, connectionType: "wifi" },
+        networkStatus: { connected: true, connectionType: 'wifi' }
       },
       runParameters: {
         ...runParametersInitialState,
-        runParameters: mockStaleRunParameters,
-      },
-    });
-    await store.dispatch(fetchAndCacheData());
+        runParameters: mockStaleRunParameters
+      }
+    })
+    await store.dispatch(fetchAndCacheData())
 
     // Utility functions which call the API should be called
-    expect(fetchHFIStats).toHaveBeenCalled();
-    expect(fetchProvincialSummaries).toHaveBeenCalled();
-    expect(fetchTpiStats).toHaveBeenCalled();
+    expect(fetchHFIStats).toHaveBeenCalled()
+    expect(fetchProvincialSummaries).toHaveBeenCalled()
+    expect(fetchTpiStats).toHaveBeenCalled()
 
     // redux store should be updated with the fetched data
-    const dataState = store.getState().data;
-    testExpectedDataState(dataState);
-  });
+    const dataState = store.getState().data
+    testExpectedDataState(dataState)
+  })
 
-  it("should dispatch getDataFailed when state is stale and app is offline", async () => {
-    mockCacheWithData();
+  it('should dispatch getDataFailed when state is stale and app is offline', async () => {
+    mockCacheWithData()
     const store = createTestStore({
       data: { ...initialState },
       networkStatus: {
-        networkStatus: { connected: false, connectionType: "none" },
+        networkStatus: { connected: false, connectionType: 'none' }
       },
       runParameters: {
         ...runParametersInitialState,
-        runParameters: mockStaleRunParameters,
-      },
-    });
-    await store.dispatch(fetchAndCacheData());
-    expect(store.getState().data.error).toMatch(/Unable to update data/);
-  });
-});
+        runParameters: mockStaleRunParameters
+      }
+    })
+    await store.dispatch(fetchAndCacheData())
+    expect(store.getState().data.error).toMatch(/Unable to update data/)
+  })
+})

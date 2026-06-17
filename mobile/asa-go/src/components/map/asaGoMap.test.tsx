@@ -1,27 +1,23 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
-import { Provider } from "react-redux";
-import { DateTime } from "luxon";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { userEvent } from "@testing-library/user-event";
-import ASAGoMap, { ASAGoMapProps } from "@/components/map/ASAGoMap";
-import {
-  createTestStore,
-  setupOpenLayersMocks,
-  createLayerMock,
-} from "@/testUtils";
-import { geolocationInitialState } from "@/slices/geolocationSlice";
-import * as mapView from "@/components/map/mapView";
+import { render, screen, waitFor, within } from '@testing-library/react'
+import { userEvent } from '@testing-library/user-event'
+import { DateTime } from 'luxon'
+import { Provider } from 'react-redux'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import ASAGoMap, { type ASAGoMapProps } from '@/components/map/ASAGoMap'
+import * as mapView from '@/components/map/mapView'
+import { geolocationInitialState } from '@/slices/geolocationSlice'
+import { createLayerMock, createTestStore, setupOpenLayersMocks } from '@/testUtils'
 
-vi.mock("@capacitor/filesystem", () => ({
+vi.mock('@capacitor/filesystem', () => ({
   Filesystem: {
     readFile: vi.fn().mockResolvedValue({ data: JSON.stringify({}) }),
-    writeFile: vi.fn().mockResolvedValue(undefined),
+    writeFile: vi.fn().mockResolvedValue(undefined)
   },
-  Directory: { Data: "DATA" },
-  Encoding: { UTF8: "utf8" },
-}));
+  Directory: { Data: 'DATA' },
+  Encoding: { UTF8: 'utf8' }
+}))
 
-setupOpenLayersMocks();
+setupOpenLayersMocks()
 class ResizeObserver {
   observe() {
     // mock no-op
@@ -34,38 +30,32 @@ class ResizeObserver {
   }
 }
 
-vi.mock("@/layerDefinitions", async () => {
-  const actual = await import("@/layerDefinitions");
+vi.mock('@/layerDefinitions', async () => {
+  const actual = await import('@/layerDefinitions')
 
   return {
     ...actual,
-    createHFILayer: vi
-      .fn()
-      .mockImplementation(() => Promise.resolve(createLayerMock("HFILayer"))),
-    createBasemapLayer: vi
-      .fn()
-      .mockImplementation(() =>
-        Promise.resolve(createLayerMock("vectorBasemapLayer")),
-      ),
-  };
-});
+    createHFILayer: vi.fn().mockImplementation(() => Promise.resolve(createLayerMock('HFILayer'))),
+    createBasemapLayer: vi.fn().mockImplementation(() => Promise.resolve(createLayerMock('vectorBasemapLayer')))
+  }
+})
 
-import { createBasemapLayer, HFI_LAYER_NAME } from "@/layerDefinitions";
+import { createBasemapLayer, HFI_LAYER_NAME } from '@/layerDefinitions'
 
-describe("ASAGoMap", () => {
+describe('ASAGoMap', () => {
   beforeAll(() => {
-    window.ResizeObserver = ResizeObserver;
-  });
+    globalThis.ResizeObserver = ResizeObserver
+  })
 
   const defaultProps: ASAGoMapProps = {
-    testId: "asa-go-map",
+    testId: 'asa-go-map',
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
     setSelectedFireCentre: vi.fn(),
-    date: DateTime.fromISO("2024-12-15"),
+    date: DateTime.fromISO('2024-12-15'),
     setDate: vi.fn(),
-    setTab: vi.fn(),
-  };
+    setTab: vi.fn()
+  }
 
   const mockPosition = {
     coords: {
@@ -75,204 +65,200 @@ describe("ASAGoMap", () => {
       altitude: null,
       altitudeAccuracy: null,
       heading: null,
-      speed: null,
+      speed: null
     },
-    timestamp: Date.now(),
-  };
+    timestamp: Date.now()
+  }
 
   beforeEach(() => {
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+  })
 
-  it("should render the map", () => {
-    const store = createTestStore();
+  it('should render the map', () => {
+    const store = createTestStore()
     const { getByTestId } = render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>,
-    );
+      </Provider>
+    )
 
-    const mobileMap = getByTestId(defaultProps.testId);
-    expect(mobileMap).toBeVisible();
-  });
+    const mobileMap = getByTestId(defaultProps.testId)
+    expect(mobileMap).toBeVisible()
+  })
 
-  it("renders the location button and location indicator", () => {
+  it('renders the location button and location indicator', () => {
     const store = createTestStore({
       geolocation: {
         ...geolocationInitialState,
-        position: mockPosition,
-      },
-    });
+        position: mockPosition
+      }
+    })
 
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>,
-    );
+      </Provider>
+    )
 
-    const locationButton = screen.getByTestId("location-button");
-    const locationIndicator = screen.getByTestId("user-location-indicator");
-    expect(locationIndicator).toBeInTheDocument();
-    expect(locationButton).toBeInTheDocument();
-    expect(locationButton).not.toBeDisabled();
-  });
+    const locationButton = screen.getByTestId('location-button')
+    const locationIndicator = screen.getByTestId('user-location-indicator')
+    expect(locationIndicator).toBeInTheDocument()
+    expect(locationButton).toBeInTheDocument()
+    expect(locationButton).not.toBeDisabled()
+  })
 
-  it("renders the layer switcher button and legend on click", async () => {
-    const store = createTestStore();
+  it('renders the layer switcher button and legend on click', async () => {
+    const store = createTestStore()
     const { getByTestId } = render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>,
-    );
+      </Provider>
+    )
 
-    const legendButton = getByTestId("legend-toggle-button");
-    expect(legendButton).toBeInTheDocument();
+    const legendButton = getByTestId('legend-toggle-button')
+    expect(legendButton).toBeInTheDocument()
 
-    await userEvent.click(legendButton);
-    const legendPopover = getByTestId("asa-go-map-legend-popover");
-    expect(legendPopover).toBeInTheDocument();
-  });
+    await userEvent.click(legendButton)
+    const legendPopover = getByTestId('asa-go-map-legend-popover')
+    expect(legendPopover).toBeInTheDocument()
+  })
 
-  it("calls handleLayerVisibilityChange and updates layerVisibility state", async () => {
-    const store = createTestStore();
+  it('calls handleLayerVisibilityChange and updates layerVisibility state', async () => {
+    const store = createTestStore()
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>,
-    );
+      </Provider>
+    )
 
     // Open legend popover
-    const legendButton = screen.getByTestId("legend-toggle-button");
-    await userEvent.click(legendButton);
+    const legendButton = screen.getByTestId('legend-toggle-button')
+    await userEvent.click(legendButton)
 
     // Find a layer toggle (simulate Zone Status layer toggle)
-    const zoneStatusToggle = screen.getByTestId("zone-checkbox");
-    const zoneStatusCheckbox = within(zoneStatusToggle).getByRole("checkbox");
-    expect(zoneStatusToggle).toBeInTheDocument();
+    const zoneStatusToggle = screen.getByTestId('zone-checkbox')
+    const zoneStatusCheckbox = within(zoneStatusToggle).getByRole('checkbox')
+    expect(zoneStatusToggle).toBeInTheDocument()
 
     // Toggle off
-    await userEvent.click(zoneStatusToggle);
+    await userEvent.click(zoneStatusToggle)
 
     // The toggle should now be unchecked
-    expect(zoneStatusCheckbox).not.toBeChecked();
+    expect(zoneStatusCheckbox).not.toBeChecked()
 
     // Toggle on
-    await userEvent.click(zoneStatusToggle);
-    expect(zoneStatusCheckbox).toBeChecked();
-  });
+    await userEvent.click(zoneStatusToggle)
+    expect(zoneStatusCheckbox).toBeChecked()
+  })
 
-  it("calls setZoneStatusLayerVisibility for ZONE_STATUS_LAYER_NAME", async () => {
-    const store = createTestStore();
+  it('calls setZoneStatusLayerVisibility for ZONE_STATUS_LAYER_NAME', async () => {
+    const store = createTestStore()
     const setZoneStatusLayerVisibilityMock = vi.spyOn(
-      await import("@/components/map/layerVisibility"),
-      "setZoneStatusLayerVisibility",
-    );
+      await import('@/components/map/layerVisibility'),
+      'setZoneStatusLayerVisibility'
+    )
 
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>,
-    );
+      </Provider>
+    )
 
     // Open legend popover
-    const legendButton = screen.getByTestId("legend-toggle-button");
-    await userEvent.click(legendButton);
+    const legendButton = screen.getByTestId('legend-toggle-button')
+    await userEvent.click(legendButton)
 
     // Toggle Zone Status layer
-    const zoneStatusToggle = screen.getByTestId("zone-checkbox");
-    const zoneStatusCheckbox = within(zoneStatusToggle).getByRole("checkbox");
-    await waitFor(() => expect(zoneStatusCheckbox).toBeChecked());
-    await userEvent.click(zoneStatusToggle);
+    const zoneStatusToggle = screen.getByTestId('zone-checkbox')
+    const zoneStatusCheckbox = within(zoneStatusToggle).getByRole('checkbox')
+    await waitFor(() => expect(zoneStatusCheckbox).toBeChecked())
+    await userEvent.click(zoneStatusToggle)
 
-    expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalled();
+    expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalled()
     expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
       expect.any(Object), // layer instance
       undefined, // no provincialSummary data
-      false, // visibility
-    );
-    await waitFor(() => expect(zoneStatusCheckbox).not.toBeChecked());
+      false // visibility
+    )
+    await waitFor(() => expect(zoneStatusCheckbox).not.toBeChecked())
 
-    await userEvent.click(zoneStatusToggle);
+    await userEvent.click(zoneStatusToggle)
     expect(setZoneStatusLayerVisibilityMock).toHaveBeenCalledWith(
       expect.any(Object), // layer instance
       undefined, // no provincialSummary data
-      true, // visibility
-    );
-    await waitFor(() => expect(zoneStatusCheckbox).toBeChecked());
-  });
-  it("calls setDefaultLayerVisibility on the correct layer", async () => {
-    const store = createTestStore();
+      true // visibility
+    )
+    await waitFor(() => expect(zoneStatusCheckbox).toBeChecked())
+  })
+  it('calls setDefaultLayerVisibility on the correct layer', async () => {
+    const store = createTestStore()
     const setDefaultLayerVisibilityMock = vi.spyOn(
-      await import("@/components/map/layerVisibility"),
-      "setDefaultLayerVisibility",
-    );
+      await import('@/components/map/layerVisibility'),
+      'setDefaultLayerVisibility'
+    )
 
     const mockToggleLayersRef = {
-      hfiVectorLayer: null,
-    };
+      hfiVectorLayer: null
+    }
 
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>,
-    );
+      </Provider>
+    )
 
     // Open legend popover
-    const legendButton = screen.getByTestId("legend-toggle-button");
-    await userEvent.click(legendButton);
+    const legendButton = screen.getByTestId('legend-toggle-button')
+    await userEvent.click(legendButton)
 
     // Toggle HFI layer
-    const hfiToggle = screen.getByTestId("hfi-checkbox");
+    const hfiToggle = screen.getByTestId('hfi-checkbox')
     // should be checked at first
-    const hfiCheckbox = within(hfiToggle).getByRole("checkbox");
-    await waitFor(() => expect(hfiCheckbox).toBeChecked());
-    await userEvent.click(hfiToggle);
+    const hfiCheckbox = within(hfiToggle).getByRole('checkbox')
+    await waitFor(() => expect(hfiCheckbox).toBeChecked())
+    await userEvent.click(hfiToggle)
 
     // test that we're turning it off
-    expect(setDefaultLayerVisibilityMock).toHaveBeenCalledWith(
-      mockToggleLayersRef,
-      HFI_LAYER_NAME,
-      false,
-    );
-    await waitFor(() => expect(hfiCheckbox).not.toBeChecked());
-  });
+    expect(setDefaultLayerVisibilityMock).toHaveBeenCalledWith(mockToggleLayersRef, HFI_LAYER_NAME, false)
+    await waitFor(() => expect(hfiCheckbox).not.toBeChecked())
+  })
 
-  it("handles createBasemapLayer failure gracefully when offline", async () => {
-    const error = new Error("Network unavailable");
-    vi.mocked(createBasemapLayer).mockRejectedValueOnce(error);
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it('handles createBasemapLayer failure gracefully when offline', async () => {
+    const error = new Error('Network unavailable')
+    vi.mocked(createBasemapLayer).mockRejectedValueOnce(error)
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-    const store = createTestStore();
+    const store = createTestStore()
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>,
-    );
+      </Provider>
+    )
 
-    expect(screen.getByTestId(defaultProps.testId)).toBeVisible();
+    expect(screen.getByTestId(defaultProps.testId)).toBeVisible()
 
     await waitFor(() => {
-      expect(warnSpy).toHaveBeenCalledWith(error);
-    });
+      expect(warnSpy).toHaveBeenCalledWith(error)
+    })
 
-    warnSpy.mockRestore();
-  });
+    warnSpy.mockRestore()
+  })
 
-  it("calls save and load map view state", async () => {
+  it('calls save and load map view state', async () => {
     const store = createTestStore({
       geolocation: {
         ...geolocationInitialState,
-        position: mockPosition,
-      },
-    });
-    const loadMapViewStateMock = vi.spyOn(mapView, "loadMapViewState");
+        position: mockPosition
+      }
+    })
+    const loadMapViewStateMock = vi.spyOn(mapView, 'loadMapViewState')
 
     render(
       <Provider store={store}>
         <ASAGoMap {...defaultProps} />
-      </Provider>,
-    );
+      </Provider>
+    )
 
-    expect(loadMapViewStateMock).toHaveBeenCalled();
-  });
-});
+    expect(loadMapViewStateMock).toHaveBeenCalled()
+  })
+})

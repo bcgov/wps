@@ -1,4 +1,3 @@
-import React from 'react'
 import { render } from '@testing-library/react'
 import FillableFlag from '@/features/fba/components/viz/FillableFlag'
 

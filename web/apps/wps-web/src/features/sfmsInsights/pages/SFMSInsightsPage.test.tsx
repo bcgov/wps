@@ -1,11 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SFMSInsightsPage } from './SFMSInsightsPage'
-import { Provider } from 'react-redux'
-import { createTestStore } from '@/test/testUtils'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
 import { getDateTimeNowPST } from '@wps/utils/date'
 import { DateTime } from 'luxon'
-import { Mock } from 'vitest'
+import { Provider } from 'react-redux'
+import type { Mock } from 'vitest'
+import { createTestStore } from '@/test/testUtils'
+import { SFMSInsightsPage } from './SFMSInsightsPage'
 
 vi.mock('@wps/api/snow', () => ({
   getMostRecentProcessedSnowByDate: vi.fn()
@@ -75,7 +75,7 @@ vi.mock('@/features/fba/components/ASADatePicker', () => ({
     disabled?: boolean
   }) => (
     <div data-testid="date-picker" data-disabled={disabled}>
-      <button data-testid="change-date-button" onClick={() => updateDate(DateTime.fromISO('2025-12-15'))}>
+      <button type="button" data-testid="change-date-button" onClick={() => updateDate(DateTime.fromISO('2025-12-15'))}>
         Change Date
       </button>
       <span data-testid="current-date">{date?.toISODate() ?? 'null'}</span>

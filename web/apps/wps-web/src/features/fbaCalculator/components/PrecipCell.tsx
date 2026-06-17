@@ -1,11 +1,11 @@
 import { TextField, Tooltip } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
-import { updateFBARow, buildUpdatedNumberRow } from 'features/fbaCalculator/tableState'
+import { adjustedTheme } from '@wps/ui/theme'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
+import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isPrecipInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNil, isUndefined } from 'lodash'
-import React, { ChangeEvent, useState, useEffect } from 'react'
-import { adjustedTheme } from '@wps/ui/theme'
+import React, { type ChangeEvent, useEffect, useState } from 'react'
 
 export interface PrecipCellProps {
   inputRows: FBATableRow[]

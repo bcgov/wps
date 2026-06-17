@@ -1,7 +1,7 @@
-import React from 'react'
-import { Button } from '@mui/material'
 import CampaignIcon from '@mui/icons-material/Campaign'
+import { Button } from '@mui/material'
 import { getFeedback } from '@sentry/react'
+import React from 'react'
 
 const FeedbackButton = ({ color }: { color: 'primary' | 'inherit' }) => {
   const feedback = getFeedback()

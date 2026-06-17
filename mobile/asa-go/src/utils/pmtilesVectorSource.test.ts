@@ -1,19 +1,19 @@
-import { RunType } from "@/api/fbaAPI";
-import { IPMTilesCache } from "@/utils/pmtilesCache";
-import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
-import { DateTime } from "luxon";
+import { DateTime } from 'luxon'
 import {
-  Cache,
+  type Cache,
   Compression,
-  DecompressFunc,
-  Header,
-  PMTiles,
-  RangeResponse,
-  Source,
-  TileType,
-} from "pmtiles";
-import sinon from "sinon";
-import { assert } from "vitest";
+  type DecompressFunc,
+  type Header,
+  type PMTiles,
+  type RangeResponse,
+  type Source,
+  TileType
+} from 'pmtiles'
+import sinon from 'sinon'
+import { assert } from 'vitest'
+import { RunType } from '@/api/fbaAPI'
+import type { IPMTilesCache } from '@/utils/pmtilesCache'
+import { PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
 
 const testPMTilesHeader: Header = {
   specVersion: 0,
@@ -38,144 +38,128 @@ const testPMTilesHeader: Header = {
   maxLat: 0,
   centerZoom: 0,
   centerLon: 0,
-  centerLat: 0,
-};
+  centerLat: 0
+}
 
 class TestPMTiles implements PMTiles {
-  source!: Source;
-  cache!: Cache;
-  decompress!: DecompressFunc;
+  source!: Source
+  cache!: Cache
+  decompress!: DecompressFunc
   getHeader(): Promise<Header> {
-    console.log("getHeader called");
-    return Promise.resolve(testPMTilesHeader);
+    console.log('getHeader called')
+    return Promise.resolve(testPMTilesHeader)
   }
-  getZxyAttempt(
-    z: number,
-    x: number,
-    y: number,
-    signal?: AbortSignal
-  ): Promise<RangeResponse | undefined> {
-    console.log("getZxyAttempt called", z, x, y, signal);
-    return Promise.resolve(undefined);
+  getZxyAttempt(z: number, x: number, y: number, signal?: AbortSignal): Promise<RangeResponse | undefined> {
+    console.log('getZxyAttempt called', z, x, y, signal)
+    return Promise.resolve(undefined)
   }
-  getZxy(
-    z: number,
-    x: number,
-    y: number,
-    signal?: AbortSignal
-  ): Promise<RangeResponse | undefined> {
-    console.log("getZxy called", z, x, y, signal);
-    return Promise.resolve(undefined);
+  getZxy(z: number, x: number, y: number, signal?: AbortSignal): Promise<RangeResponse | undefined> {
+    console.log('getZxy called', z, x, y, signal)
+    return Promise.resolve(undefined)
   }
   getMetadataAttempt(): Promise<unknown> {
-    console.log("getMetadataAttempt called");
-    return Promise.resolve();
+    console.log('getMetadataAttempt called')
+    return Promise.resolve()
   }
   getMetadata(): Promise<unknown> {
-    console.log("getMetadata called");
-    return Promise.resolve();
+    console.log('getMetadata called')
+    return Promise.resolve()
   }
   getTileJson(baseTilesUrl: string): Promise<unknown> {
-    console.log("getTileJSON called", baseTilesUrl);
-    return Promise.resolve();
+    console.log('getTileJSON called', baseTilesUrl)
+    return Promise.resolve()
   }
 }
 
-describe("pmTilesVectorSource", () => {
-  let sandbox: sinon.SinonSandbox;
+describe('pmTilesVectorSource', () => {
+  let sandbox: sinon.SinonSandbox
   beforeEach(() => {
-    sandbox = sinon.createSandbox();
-  });
+    sandbox = sinon.createSandbox()
+  })
   afterEach(() => {
-    sandbox.restore();
-  });
+    sandbox.restore()
+  })
 
   const buildPMTilesTestCache = (pmtiles?: PMTiles) => {
     return {
-      loadPMTiles: function (
+      loadPMTiles: (
         filename: string,
         fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
-      ): Promise<PMTiles | undefined> {
-        console.log("loadPMTiles called", filename, fetchAndStoreCallback);
-        return Promise.resolve(pmtiles);
+      ): Promise<PMTiles | undefined> => {
+        console.log('loadPMTiles called', filename, fetchAndStoreCallback)
+        return Promise.resolve(pmtiles)
       },
-      loadHFIPMTiles: function (
+      loadHFIPMTiles: (
         for_date: DateTime,
         run_type: RunType,
         run_date: DateTime,
         filename: string
-      ): Promise<PMTiles | undefined> {
-        console.log(
-          "loadPMTiles called",
-          for_date,
-          run_type,
-          run_date,
-          filename
-        );
-        return Promise.resolve(pmtiles);
-      },
-    };
-  };
-  it("should attempt to load static pmtiles upon creation", async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles());
-    const pmTilesCacheSpy = sandbox.spy(testCache);
+      ): Promise<PMTiles | undefined> => {
+        console.log('loadPMTiles called', for_date, run_type, run_date, filename)
+        return Promise.resolve(pmtiles)
+      }
+    }
+  }
+  it('should attempt to load static pmtiles upon creation', async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
+    const pmTilesCacheSpy = sandbox.spy(testCache)
 
     await PMTilesFileVectorSource.createStaticLayer(testCache, {
-      filename: "test.pmtiles",
-    });
-    sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles);
-    sinon.assert.notCalled(pmTilesCacheSpy.loadHFIPMTiles);
-  });
+      filename: 'test.pmtiles'
+    })
+    sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles)
+    sinon.assert.notCalled(pmTilesCacheSpy.loadHFIPMTiles)
+  })
 
-  it("should attempt to load hfi pmtiles upon creation", async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles());
-    const pmTilesCacheSpy = sandbox.spy(testCache);
+  it('should attempt to load hfi pmtiles upon creation', async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
+    const pmTilesCacheSpy = sandbox.spy(testCache)
 
     await PMTilesFileVectorSource.createHFILayer(testCache, {
-      filename: "test.pmtiles",
-      for_date: DateTime.fromISO("2016-05-25T09:08:34.123"),
+      filename: 'test.pmtiles',
+      for_date: DateTime.fromISO('2016-05-25T09:08:34.123'),
       run_type: RunType.FORECAST,
-      run_date: DateTime.fromISO("2016-05-25T09:08:34.123"),
-    });
-    sinon.assert.calledOnce(pmTilesCacheSpy.loadHFIPMTiles);
-    sinon.assert.notCalled(pmTilesCacheSpy.loadPMTiles);
-  });
+      run_date: DateTime.fromISO('2016-05-25T09:08:34.123')
+    })
+    sinon.assert.calledOnce(pmTilesCacheSpy.loadHFIPMTiles)
+    sinon.assert.notCalled(pmTilesCacheSpy.loadPMTiles)
+  })
 
-  it("should attempt to load basemap pmtiles upon creation", async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles());
-    const pmTilesCacheSpy = sandbox.spy(testCache);
+  it('should attempt to load basemap pmtiles upon creation', async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
+    const pmTilesCacheSpy = sandbox.spy(testCache)
 
     await PMTilesFileVectorSource.createBasemapSource(testCache, {
-      filename: "test.pmtiles",
-    });
-    sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles);
-    sinon.assert.notCalled(pmTilesCacheSpy.loadHFIPMTiles);
-  });
+      filename: 'test.pmtiles'
+    })
+    sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles)
+    sinon.assert.notCalled(pmTilesCacheSpy.loadHFIPMTiles)
+  })
 
-  it("should set tile status ready once initialized", async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles());
+  it('should set tile status ready once initialized', async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
     const instance = await PMTilesFileVectorSource.createHFILayer(testCache, {
-      filename: "test.pmtiles",
-      for_date: DateTime.fromISO("2016-05-25T09:08:34.123"),
+      filename: 'test.pmtiles',
+      for_date: DateTime.fromISO('2016-05-25T09:08:34.123'),
       run_type: RunType.FORECAST,
-      run_date: DateTime.fromISO("2016-05-25T09:08:34.123"),
-    });
-    const tileGrid = instance.getTileGrid();
-    assert(tileGrid !== null);
-    assert(tileGrid.getMaxZoom() === testPMTilesHeader.maxZoom);
-    assert(tileGrid.getMinZoom() === testPMTilesHeader.minZoom);
-    assert(instance.getState() === "ready");
-  });
+      run_date: DateTime.fromISO('2016-05-25T09:08:34.123')
+    })
+    const tileGrid = instance.getTileGrid()
+    assert(tileGrid !== null)
+    assert(tileGrid.getMaxZoom() === testPMTilesHeader.maxZoom)
+    assert(tileGrid.getMinZoom() === testPMTilesHeader.minZoom)
+    assert(instance.getState() === 'ready')
+  })
 
-  it("should set tile status ready once basemap initialized", async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles());
+  it('should set tile status ready once basemap initialized', async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
     const instance = await PMTilesFileVectorSource.createBasemapSource(testCache, {
-      filename: "test.pmtiles"
-    });
-    const tileGrid = instance.getTileGrid();
-    assert(tileGrid !== null);
-    assert(tileGrid.getMaxZoom() === testPMTilesHeader.maxZoom);
-    assert(tileGrid.getMinZoom() === testPMTilesHeader.minZoom);
-    assert(instance.getState() === "ready");
-  });
-});
+      filename: 'test.pmtiles'
+    })
+    const tileGrid = instance.getTileGrid()
+    assert(tileGrid !== null)
+    assert(tileGrid.getMaxZoom() === testPMTilesHeader.maxZoom)
+    assert(tileGrid.getMinZoom() === testPMTilesHeader.minZoom)
+    assert(instance.getState() === 'ready')
+  })
+})

@@ -1,3 +1,4 @@
+import { addYears } from 'date-fns'
 import {
   combineCSSClassNames,
   isEndOfRange,
@@ -6,7 +7,7 @@ import {
   isStartOfRange,
   parseOptionalDate
 } from './utils'
-import { addYears } from 'date-fns'
+
 describe('DateRangePicker - utils', () => {
   describe('isRangeSameDay', () => {
     it('should return true for same day', () => {

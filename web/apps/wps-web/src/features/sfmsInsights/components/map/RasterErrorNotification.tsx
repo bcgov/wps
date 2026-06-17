@@ -1,6 +1,6 @@
+import { Alert, type AlertColor, Snackbar } from '@mui/material'
 import React from 'react'
-import { Alert, AlertColor, Snackbar } from '@mui/material'
-import { RasterError } from '@/features/sfmsInsights/components/map/layerManager'
+import type { RasterError } from '@/features/sfmsInsights/components/map/layerManager'
 
 interface RasterErrorNotificationProps {
   error: RasterError | null
@@ -14,8 +14,6 @@ export const getAlertSeverity = (errorType: RasterError['type']): AlertColor => 
       return 'warning'
     case 'forbidden':
       return 'error'
-    case 'network':
-    case 'unknown':
     default:
       return 'warning'
   }
@@ -29,7 +27,6 @@ const getErrorMessage = (error: RasterError, rasterLabel: string): string => {
       return `Access denied to ${rasterLabel} data. Please check your authentication.`
     case 'network':
       return `${rasterLabel} data not available. It may not exist for this date or there was a network issue.`
-    case 'unknown':
     default:
       return error.message || `Failed to load ${rasterLabel} data.`
   }

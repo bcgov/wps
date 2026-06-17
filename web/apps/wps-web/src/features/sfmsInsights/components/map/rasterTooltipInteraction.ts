@@ -1,6 +1,6 @@
+import type { MapBrowserEvent } from 'ol'
+import type { EventsKey } from 'ol/events'
 import { Interaction } from 'ol/interaction'
-import { MapBrowserEvent } from 'ol'
-import { EventsKey } from 'ol/events'
 import { unByKey } from 'ol/Observable'
 import { findRasterLayer, getDataAtPixel } from './rasterTooltipHandler'
 

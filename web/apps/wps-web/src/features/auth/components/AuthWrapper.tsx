@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react'
 import * as Sentry from '@sentry/browser'
-import { useDispatch, useSelector } from 'react-redux'
-import { authenticate, testAuthenticate } from 'features/auth/slices/authenticationSlice'
 import axios from '@wps/api/axios'
-import { AppDispatch, AppThunk } from 'app/store'
-import { selectToken, selectAuthentication } from 'app/rootReducer'
 import { TEST_AUTH } from '@wps/utils/env'
+import { selectAuthentication, selectToken } from 'app/rootReducer'
+import type { AppDispatch, AppThunk } from 'app/store'
+import { authenticate, testAuthenticate } from 'features/auth/slices/authenticationSlice'
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 
 interface Props {
   children: React.ReactElement
@@ -27,6 +27,7 @@ const AuthWrapper = ({ children }: Props) => {
   const dispatch: AppDispatch = useDispatch()
   const { isAuthenticated, authenticating, error, email } = useSelector(selectAuthentication)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — dispatch is stable and adding it changes nothing
   useEffect(() => {
     if (TEST_AUTH || window.Playwright) {
       dispatch(testAuthenticate(true, 'test token', 'test id token'))
@@ -34,7 +35,7 @@ const AuthWrapper = ({ children }: Props) => {
       dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   if (error) {
     return <div>{error}</div>

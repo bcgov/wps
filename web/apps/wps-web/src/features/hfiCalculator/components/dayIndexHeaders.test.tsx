@@ -3,7 +3,6 @@ import { render } from '@testing-library/react'
 import DayIndexHeaders from 'features/hfiCalculator/components/DayIndexHeaders'
 import { range } from 'lodash'
 
-
 describe('DayIndexHeaders', () => {
   it('should render day index headers for each day of the week', () => {
     const NUM_WEEK_DAYS = 5

@@ -1,14 +1,10 @@
-import { useIsTablet } from "@/hooks/useIsTablet";
-import { NavPanel } from "@/utils/constants";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
-import MapIcon from "@mui/icons-material/Map";
-import SettingsIcon from "@mui/icons-material/Settings";
-import TextSnippetIcon from "@mui/icons-material/TextSnippet";
-import {
-  BottomNavigation,
-  BottomNavigationAction,
-  styled,
-} from "@mui/material";
+import AnalyticsIcon from '@mui/icons-material/Analytics'
+import MapIcon from '@mui/icons-material/Map'
+import SettingsIcon from '@mui/icons-material/Settings'
+import TextSnippetIcon from '@mui/icons-material/TextSnippet'
+import { BottomNavigation, BottomNavigationAction, styled } from '@mui/material'
+import { useIsTablet } from '@/hooks/useIsTablet'
+import { NavPanel } from '@/utils/constants'
 
 const StyledBottomNavigation = styled(BottomNavigation)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
@@ -16,50 +12,45 @@ const StyledBottomNavigation = styled(BottomNavigation)(({ theme }) => ({
   paddingTop: theme.spacing(1),
   paddingBottom: theme.spacing(1),
   minHeight: theme.spacing(8),
-  [theme.breakpoints.up("md")]: {
-    minHeight: theme.spacing(9),
-  },
-}));
+  [theme.breakpoints.up('md')]: {
+    minHeight: theme.spacing(9)
+  }
+}))
 
-const StyledBottomNavigationAction = styled(BottomNavigationAction)(
-  ({ theme }) => ({
-    color: theme.palette.primary.contrastText,
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1),
-    "&.Mui-selected": {
-      color: theme.palette.secondary.main,
-    },
-    [theme.breakpoints.up("md")]: {
-      "& .MuiBottomNavigationAction-label": {
-        fontSize: "1rem",
-        "&.Mui-selected": {
-          fontSize: "1rem",
-        },
-      },
-    },
-  }),
-);
+const StyledBottomNavigationAction = styled(BottomNavigationAction)(({ theme }) => ({
+  color: theme.palette.primary.contrastText,
+  paddingTop: theme.spacing(1),
+  paddingBottom: theme.spacing(1),
+  '&.Mui-selected': {
+    color: theme.palette.secondary.main
+  },
+  [theme.breakpoints.up('md')]: {
+    '& .MuiBottomNavigationAction-label': {
+      fontSize: '1rem',
+      '&.Mui-selected': {
+        fontSize: '1rem'
+      }
+    }
+  }
+}))
 
 interface BottomNavigationBarProps {
-  tab: NavPanel;
-  setTab: (newValue: NavPanel) => void;
+  tab: NavPanel
+  setTab: (newValue: NavPanel) => void
 }
 
 const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
-  const isTablet = useIsTablet();
+  const isTablet = useIsTablet()
   const actionIconSx = {
-    fontSize: isTablet ? 40 : 32,
-  };
+    fontSize: isTablet ? 40 : 32
+  }
 
   return (
     <StyledBottomNavigation
       showLabels
       value={tab}
-      onChange={(
-        _: React.SyntheticEvent<Element, Event>,
-        newValue: NavPanel,
-      ) => {
-        setTab(newValue);
+      onChange={(_: React.SyntheticEvent<Element, Event>, newValue: NavPanel) => {
+        setTab(newValue)
       }}
     >
       <StyledBottomNavigationAction
@@ -87,7 +78,7 @@ const BottomNavigationBar = ({ tab, setTab }: BottomNavigationBarProps) => {
         value={NavPanel.SETTINGS}
       />
     </StyledBottomNavigation>
-  );
-};
+  )
+}
 
-export default BottomNavigationBar;
+export default BottomNavigationBar

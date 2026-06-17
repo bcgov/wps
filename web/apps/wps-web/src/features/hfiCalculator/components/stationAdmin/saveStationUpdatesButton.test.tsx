@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
 import { vi } from 'vitest'
 
-
 describe('SaveStationUpdatesButton', () => {
   it('should render button enabled when there is a removed station', () => {
     const handleSaveMock = vi.fn()

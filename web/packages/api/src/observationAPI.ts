@@ -1,5 +1,5 @@
-import { Station } from './stationAPI'
 import axios from './axios'
+import type { Station } from './stationAPI'
 
 export interface ObservedValue {
   datetime: string

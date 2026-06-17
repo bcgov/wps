@@ -1,32 +1,32 @@
-import React, { useRef, useEffect, useState } from 'react'
 import { styled } from '@mui/material/styles'
-import ReactDOMServer from 'react-dom/server'
 import { selectCHainesModelRuns } from 'app/rootReducer'
+import React, { useEffect, useRef, useState } from 'react'
+import ReactDOMServer from 'react-dom/server'
 import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
-import { tiledMapLayer } from 'esri-leaflet'
-import { FeatureCollection } from 'geojson'
 import {
+  getCHainesGeoJSONURI,
+  getCHainesKMLModelRunURI,
+  getCHainesKMLURI,
+  getCHainesModelKMLURI,
+  getKMLNetworkLinkURI
+} from '@wps/api/cHainesAPI'
+import { Container } from '@wps/ui/Container'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
+import { C_HAINES_DOC_TITLE, C_HAINES_NAME } from '@wps/utils/constants'
+import { formatDatetimeInPST } from '@wps/utils/date'
+import { logError } from '@wps/utils/error'
+import type { AppDispatch } from 'app/store'
+import { tiledMapLayer } from 'esri-leaflet'
+import {
+  fetchCHainesGeoJSON,
   fetchModelRuns,
   updateSelectedModel,
   updateSelectedModelRun,
-  updateSelectedPrediction,
-  fetchCHainesGeoJSON
+  updateSelectedPrediction
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
-import { Container } from '@wps/ui/Container'
-import { GeneralHeader } from '@wps/ui/GeneralHeader'
-import { formatDatetimeInPST } from '@wps/utils/date'
-import { logError } from '@wps/utils/error'
-import {
-  getCHainesGeoJSONURI,
-  getKMLNetworkLinkURI,
-  getCHainesKMLURI,
-  getCHainesKMLModelRunURI,
-  getCHainesModelKMLURI
-} from '@wps/api/cHainesAPI'
-import { AppDispatch } from 'app/store'
-import { C_HAINES_DOC_TITLE, C_HAINES_NAME } from '@wps/utils/constants'
+import type { FeatureCollection } from 'geojson'
+import L from 'leaflet'
 
 const PREFIX = 'CHainesPage'
 
@@ -146,17 +146,19 @@ const CHainesPage = () => {
     )
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchModelRuns(selectedDatetime))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when model runs list changes
   useEffect(() => {
     if (selected_prediction_timestamp && selected_model_run_timestamp && model_runs.length > 0) {
       loadModelPrediction(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model_runs])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when predictions map changes
   useEffect(() => {
     if (selected_model_abbreviation in model_run_predictions) {
       if (selected_model_run_timestamp in model_run_predictions[selected_model_abbreviation]) {
@@ -168,7 +170,6 @@ const CHainesPage = () => {
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model_run_predictions])
 
   useEffect(() => {
@@ -224,7 +225,7 @@ const CHainesPage = () => {
 
     // Create and add the legend.
     const customControl = L.Control.extend({
-      onAdd: function () {
+      onAdd: () => {
         const html = (
           <div>
             <div className={classes.legend}>
@@ -247,7 +248,7 @@ const CHainesPage = () => {
         return div
       },
 
-      onRemove: function () {
+      onRemove: () => {
         //
       }
     })
@@ -257,7 +258,6 @@ const CHainesPage = () => {
     return () => {
       mapRef.current?.remove()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Initialize the map only once
 
   const predictionIsLoadedCheck = isLoaded(
@@ -265,11 +265,12 @@ const CHainesPage = () => {
     selected_model_run_timestamp,
     selected_prediction_timestamp
   )
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — complex animation effect, adding all deps would cause excessive re-runs
   useEffect(() => {
     if (mapRef.current && selected_model_run_timestamp && selected_prediction_timestamp) {
       if (isLoaded(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)) {
         const customControl = L.Control.extend({
-          onAdd: function () {
+          onAdd: () => {
             const html = (
               <div className={classes.label}>
                 <div>
@@ -286,7 +287,7 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function () {
+          onRemove: () => {
             //
           }
         })
@@ -305,7 +306,7 @@ const CHainesPage = () => {
         }
       } else {
         const customControl = L.Control.extend({
-          onAdd: function () {
+          onAdd: () => {
             const html = (
               <div className={classes.loading}>
                 <div>LOADING: {selected_prediction_timestamp} (UTC)</div>
@@ -317,7 +318,7 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function () {
+          onRemove: () => {
             //
           }
         })
@@ -328,7 +329,6 @@ const CHainesPage = () => {
         loadingLayerRef.current.addTo(mapRef.current)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selected_model_run_timestamp,
     selected_prediction_timestamp,
@@ -462,7 +462,7 @@ const CHainesPage = () => {
         instance.model.abbrev === selected_model_abbreviation
     )
     if (model_run) {
-      const index = model_run.prediction_timestamps.findIndex(value => value === selected_prediction_timestamp)
+      const index = model_run.prediction_timestamps.indexOf(selected_prediction_timestamp)
       const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
       loadModelPrediction(
         selected_model_abbreviation,
@@ -479,7 +479,7 @@ const CHainesPage = () => {
         instance.model.abbrev === selected_model_abbreviation
     )
     if (model_run) {
-      const index = model_run.prediction_timestamps.findIndex(value => value === selected_prediction_timestamp)
+      const index = model_run.prediction_timestamps.indexOf(selected_prediction_timestamp)
       const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
       loadModelPrediction(
         selected_model_abbreviation,
@@ -543,27 +543,33 @@ const CHainesPage = () => {
             </div>
             <div>
               Model:
-              <input
-                type="radio"
-                value="GDPS"
-                checked={selected_model_abbreviation === 'GDPS'}
-                onChange={handleChangeModel}
-              />
-              <label>GDPS</label>
-              <input
-                type="radio"
-                value="RDPS"
-                checked={selected_model_abbreviation === 'RDPS'}
-                onChange={handleChangeModel}
-              />
-              <label>RDPS</label>
-              <input
-                type="radio"
-                value="HRDPS"
-                checked={selected_model_abbreviation === 'HRDPS'}
-                onChange={handleChangeModel}
-              />
-              <label>HRDPS</label>
+              <label>
+                <input
+                  type="radio"
+                  value="GDPS"
+                  checked={selected_model_abbreviation === 'GDPS'}
+                  onChange={handleChangeModel}
+                />
+                GDPS
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="RDPS"
+                  checked={selected_model_abbreviation === 'RDPS'}
+                  onChange={handleChangeModel}
+                />
+                RDPS
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="HRDPS"
+                  checked={selected_model_abbreviation === 'HRDPS'}
+                  onChange={handleChangeModel}
+                />
+                HRDPS
+              </label>
             </div>
             <div>
               Model runs:
@@ -571,15 +577,15 @@ const CHainesPage = () => {
                 .filter(model_run => {
                   return model_run.model.abbrev === selected_model_abbreviation
                 })
-                .map((model_run, i) => (
-                  <div key={i}>
-                    <input
-                      type="radio"
-                      value={model_run.model_run_timestamp}
-                      checked={model_run.model_run_timestamp === selected_model_run_timestamp}
-                      onChange={handleChangeModelRun}
-                    />
+                .map(model_run => (
+                  <div key={`${model_run.model.abbrev}-${model_run.model_run_timestamp}`}>
                     <label>
+                      <input
+                        type="radio"
+                        value={model_run.model_run_timestamp}
+                        checked={model_run.model_run_timestamp === selected_model_run_timestamp}
+                        onChange={handleChangeModelRun}
+                      />
                       {model_run.model.abbrev} {model_run.model_run_timestamp} (UTC)
                     </label>
                   </div>
@@ -595,9 +601,12 @@ const CHainesPage = () => {
                       model_run.model.abbrev === selected_model_abbreviation
                     )
                   })
-                  .map((model_run, i) =>
-                    model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
-                      <option key={`${i}-${i2}`} value={prediction_timestamp}>
+                  .map(model_run =>
+                    model_run.prediction_timestamps.map(prediction_timestamp => (
+                      <option
+                        key={`${model_run.model_run_timestamp}-${prediction_timestamp}`}
+                        value={prediction_timestamp}
+                      >
                         {formatDatetimeInPST(prediction_timestamp)} (PST)
                       </option>
                     ))
@@ -616,11 +625,15 @@ const CHainesPage = () => {
               </select>
             </div>
             <div>
-              <button onClick={() => loadPreviousPrediction()}>&lt; Prev</button>
-              <button onClick={() => toggleAnimate()} className={classes.animateButton}>
+              <button type="button" onClick={() => loadPreviousPrediction()}>
+                &lt; Prev
+              </button>
+              <button type="button" onClick={() => toggleAnimate()} className={classes.animateButton}>
                 {isAnimating ? 'Stop' : 'Animate'}
               </button>
-              <button onClick={() => loadNextPrediction()}>Next &gt;</button>
+              <button type="button" onClick={() => loadNextPrediction()}>
+                Next &gt;
+              </button>
             </div>
           </div>
           <div className={classes.kml_links}>
@@ -654,7 +667,9 @@ const CHainesPage = () => {
                 GeoJSON for {selected_model_abbreviation}, model run {selected_model_run_timestamp} (UTC) prediction{' '}
                 {formatDatetimeInPST(selected_prediction_timestamp)} (PST)
               </a>
-              <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
+              <button type="button" onClick={handleCopyClick}>
+                Copy GeoJSON link to clipboard
+              </button>
             </div>
           </div>
         </div>
