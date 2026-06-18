@@ -25,6 +25,7 @@ class SFMSDaily(BaseModel):
 
     code: int
     for_datetime: datetime
+    run_type: RunTypeEnum
     lat: float
     lon: float
     elevation: Optional[float] = None

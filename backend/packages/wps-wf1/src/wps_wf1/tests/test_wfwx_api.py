@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 
 import pytest
 
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+
 
 # ---------------------------
 # Helpers & Fakes for testing
@@ -944,6 +946,7 @@ async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
         SFMSDaily(
             code=100,
             for_datetime=for_datetime,
+            run_type=RunTypeEnum.actual,
             lat=49.0,
             lon=-123.0,
             elevation=100,
@@ -952,6 +955,7 @@ async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
         SFMSDaily(
             code=200,
             for_datetime=for_datetime,
+            run_type=RunTypeEnum.actual,
             lat=50.0,
             lon=-124.0,
             elevation=300,
@@ -994,6 +998,7 @@ async def test_get_sfms_daily_forecasts_all_stations(monkeypatch, wfwx_api):
         SFMSDaily(
             code=100,
             for_datetime=datetime(2025, 7, 16, 20, tzinfo=timezone.utc),
+            run_type=RunTypeEnum.forecast,
             lat=49.0,
             lon=-123.0,
             elevation=100,
