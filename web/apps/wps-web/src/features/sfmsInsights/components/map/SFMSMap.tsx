@@ -103,9 +103,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   }, [])
 
   useEffect(() => {
-    snowLayerManagerRef.current.updateLayer(
-      !isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null
-    )
+    snowLayerManagerRef.current.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
   }, [snowDate, showSnow, token])
 
   useEffect(() => {
