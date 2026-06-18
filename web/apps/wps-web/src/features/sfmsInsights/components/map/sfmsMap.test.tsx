@@ -126,7 +126,11 @@ describe('SFMSMap', () => {
       </Provider>
     )
 
-    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(DateTime.fromISO('2025-11-03'), 'fwi', 'test-token')
+    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(
+      DateTime.fromISO('2025-11-03'),
+      'fwi',
+      'test-token'
+    )
   })
 
   it('should not request raster layer when rasterDate is null and rasterType is not fuel', () => {
@@ -165,7 +169,11 @@ describe('SFMSMap', () => {
       </Provider>
     )
 
-    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(DateTime.fromISO('2025-11-02'), 'ffmc', 'test-token')
+    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(
+      DateTime.fromISO('2025-11-02'),
+      'ffmc',
+      'test-token'
+    )
   })
 
   it('should update snow layer when snowDate changes', () => {
