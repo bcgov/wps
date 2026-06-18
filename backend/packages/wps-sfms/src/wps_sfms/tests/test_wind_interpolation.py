@@ -6,6 +6,7 @@ import pytest
 from osgeo import gdal
 
 import wps_sfms.processors.wind as wind_module
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_sfms.interpolation.field import build_wind_vector_field
 from wps_sfms.processors.idw import ValidPixelIDWResult
@@ -64,6 +65,7 @@ class TestWindDirectionInterpolator:
                 SFMSDaily(
                     code=100,
                     for_datetime=TEST_FOR_DATETIME,
+                    run_type=RunTypeEnum.actual,
                     lat=49.05,
                     lon=-123.05,
                     wind_speed=10.0,
@@ -72,6 +74,7 @@ class TestWindDirectionInterpolator:
                 SFMSDaily(
                     code=101,
                     for_datetime=TEST_FOR_DATETIME,
+                    run_type=RunTypeEnum.actual,
                     lat=49.08,
                     lon=-123.02,
                     wind_speed=8.0,
@@ -108,6 +111,7 @@ class TestWindDirectionInterpolator:
                 SFMSDaily(
                     code=100,
                     for_datetime=TEST_FOR_DATETIME,
+                    run_type=RunTypeEnum.actual,
                     lat=49.05,
                     lon=-123.05,
                     wind_speed=10.0,
@@ -139,6 +143,7 @@ class TestWindDirectionInterpolator:
                 SFMSDaily(
                     code=100,
                     for_datetime=TEST_FOR_DATETIME,
+                    run_type=RunTypeEnum.actual,
                     lat=49.05,
                     lon=-123.05,
                     wind_speed=10.0,
@@ -147,6 +152,7 @@ class TestWindDirectionInterpolator:
                 SFMSDaily(
                     code=101,
                     for_datetime=TEST_FOR_DATETIME,
+                    run_type=RunTypeEnum.actual,
                     lat=49.08,
                     lon=-123.02,
                     wind_speed=8.0,

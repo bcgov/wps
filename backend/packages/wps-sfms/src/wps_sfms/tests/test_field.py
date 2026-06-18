@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 import numpy as np
 import pytest
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.schemas.sfms import SFMSDaily
 
 from wps_sfms.interpolation.field import (
@@ -20,6 +21,7 @@ class TestScalarFieldBuilders:
             SFMSDaily(
                 code=1,
                 for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
                 lat=49.0,
                 lon=-123.0,
                 precipitation=1.5,
@@ -27,6 +29,7 @@ class TestScalarFieldBuilders:
             SFMSDaily(
                 code=2,
                 for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
                 lat=49.1,
                 lon=-123.1,
                 precipitation=None,
@@ -44,6 +47,7 @@ class TestScalarFieldBuilders:
             SFMSDaily(
                 code=1,
                 for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
                 lat=49.0,
                 lon=-123.0,
                 elevation=100.0,
@@ -60,6 +64,7 @@ class TestScalarFieldBuilders:
             SFMSDaily(
                 code=1,
                 for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
                 lat=49.0,
                 lon=-123.0,
                 elevation=None,
@@ -68,6 +73,7 @@ class TestScalarFieldBuilders:
             SFMSDaily(
                 code=2,
                 for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
                 lat=49.1,
                 lon=-123.1,
                 elevation=100.0,
@@ -88,6 +94,7 @@ class TestWindVectorFieldBuilder:
             SFMSDaily(
                 code=1,
                 for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
                 lat=49.0,
                 lon=-123.0,
                 wind_speed=10.0,
@@ -96,6 +103,7 @@ class TestWindVectorFieldBuilder:
             SFMSDaily(
                 code=2,
                 for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
                 lat=49.1,
                 lon=-123.1,
                 wind_speed=8.0,

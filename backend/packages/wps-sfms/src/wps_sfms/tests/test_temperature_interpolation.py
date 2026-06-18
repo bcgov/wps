@@ -8,6 +8,7 @@ import numpy as np
 import uuid
 import pytest
 from osgeo import gdal
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_sfms.interpolation.field import build_temperature_field
 from wps_sfms.processors.temperature import TemperatureInterpolator
@@ -23,6 +24,7 @@ def create_test_actuals(lats, lons, temps, elevations):
         actual = SFMSDaily(
             code=100 + i,
             for_datetime=TEST_FOR_DATETIME,
+            run_type=RunTypeEnum.actual,
             lat=lat,
             lon=lon,
             elevation=elev,
@@ -206,6 +208,7 @@ class TestTemperatureInterpolator:
                 SFMSDaily(
                     code=1,
                     for_datetime=TEST_FOR_DATETIME,
+                    run_type=RunTypeEnum.actual,
                     lat=49.05,
                     lon=-123.05,
                     elevation=100.0,
