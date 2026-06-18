@@ -51,9 +51,6 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   // Initialized to a detached div so the type is non-nullable — React replaces it with the
   // rendered element during commit, which always happens before effects fire.
   const mapRef = useRef<HTMLDivElement>(document.createElement('div'))
-  const rasterLayerManagerRef = useRef<LayerManager | null>(null)
-  const snowLayerManagerRef = useRef<LayerManager | null>(null)
-
   const handleLoadingChange = useCallback((isLoading: boolean, error?: RasterError) => {
     setIsLoading(isLoading)
     if (error) {
@@ -67,6 +64,9 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   const handleErrorClose = () => {
     setRasterError(null)
   }
+
+  const rasterLayerManagerRef = useRef(new LayerManager({ onLoadingChange: handleLoadingChange, trackLoading: true }))
+  const snowLayerManagerRef = useRef(new LayerManager({ trackLoading: false }))
 
   useEffect(() => {
     const mapObject = new OlMap({
@@ -87,19 +87,8 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     })
     mapObject.addInteraction(tooltipInteraction)
 
-    // Initialize layer managers — initial layer load is handled by the effects below
-    const rasterLayerManager = new LayerManager({
-      onLoadingChange: handleLoadingChange,
-      trackLoading: true
-    })
-    rasterLayerManager.setMap(mapObject)
-    rasterLayerManagerRef.current = rasterLayerManager
-
-    const snowLayerManager = new LayerManager({
-      trackLoading: false
-    })
-    snowLayerManager.setMap(mapObject)
-    snowLayerManagerRef.current = snowLayerManager
+    rasterLayerManagerRef.current.setMap(mapObject)
+    snowLayerManagerRef.current.setMap(mapObject)
 
     const loadBaseMap = async () => {
       const style = await getStyleJson(BASEMAP_STYLE_URL)
@@ -111,27 +100,23 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     return () => {
       mapObject.setTarget('')
     }
-  }, [handleLoadingChange])
+  }, [])
 
   useEffect(() => {
-    if (snowLayerManagerRef.current) {
-      snowLayerManagerRef.current.updateLayer(
-        !isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null
-      )
-    }
+    snowLayerManagerRef.current.updateLayer(
+      !isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null
+    )
   }, [snowDate, showSnow, token])
 
   useEffect(() => {
     // Clear any existing errors when changing date/type
     setRasterError(null)
 
-    if (rasterLayerManagerRef.current) {
-      // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
-      if (rasterDate || rasterType === 'fuel') {
-        rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
-      } else {
-        rasterLayerManagerRef.current.updateLayer(null)
-      }
+    // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
+    if (rasterDate || rasterType === 'fuel') {
+      rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
+    } else {
+      rasterLayerManagerRef.current.updateLayer(null)
     }
   }, [rasterDate, rasterType, token])
 
