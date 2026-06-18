@@ -25,7 +25,7 @@ import {
 import 'ol/ol.css'
 import { selectToken } from 'app/rootReducer'
 import { fromLonLat } from 'ol/proj'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
 const MapContext = React.createContext<OlMap | null>(null)
@@ -48,11 +48,10 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   })
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [rasterError, setRasterError] = useState<RasterError | null>(null)
-  const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
-  const rasterLayerManagerRef = useRef<LayerManager | null>(null)
-  const snowLayerManagerRef = useRef<LayerManager | null>(null)
-
-  const handleLoadingChange = (isLoading: boolean, error?: RasterError) => {
+  // Initialized to a detached div so the type is non-nullable — React replaces it with the
+  // rendered element during commit, which always happens before effects fire.
+  const mapRef = useRef<HTMLDivElement>(document.createElement('div'))
+  const handleLoadingChange = useCallback((isLoading: boolean, error?: RasterError) => {
     setIsLoading(isLoading)
     if (error) {
       setRasterError(error)
@@ -60,16 +59,16 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
       // Clear error on successful load
       setRasterError(null)
     }
-  }
+  }, [])
 
   const handleErrorClose = () => {
     setRasterError(null)
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
-  useEffect(() => {
-    if (!mapRef.current) return
+  const rasterLayerManagerRef = useRef(new LayerManager({ onLoadingChange: handleLoadingChange, trackLoading: true }))
+  const snowLayerManagerRef = useRef(new LayerManager({ trackLoading: false }))
 
+  useEffect(() => {
     const mapObject = new OlMap({
       target: mapRef.current,
       layers: [],
@@ -88,25 +87,8 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     })
     mapObject.addInteraction(tooltipInteraction)
 
-    // Initialize raster layer manager
-    const rasterLayerManager = new LayerManager({
-      onLoadingChange: handleLoadingChange,
-      trackLoading: true
-    })
-    rasterLayerManager.setMap(mapObject)
-    // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
-    if (rasterDate || rasterType === 'fuel') {
-      rasterLayerManager.updateLayer(getRasterLayer(rasterDate, rasterType, token))
-    }
-    rasterLayerManagerRef.current = rasterLayerManager
-
-    // Initialize snow layer manager
-    const snowLayerManager = new LayerManager({
-      trackLoading: false // Snow layers load quickly, no need to track
-    })
-    snowLayerManager.setMap(mapObject)
-    snowLayerManager.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
-    snowLayerManagerRef.current = snowLayerManager
+    rasterLayerManagerRef.current.setMap(mapObject)
+    snowLayerManagerRef.current.setMap(mapObject)
 
     const loadBaseMap = async () => {
       const style = await getStyleJson(BASEMAP_STYLE_URL)
@@ -121,24 +103,18 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   }, [])
 
   useEffect(() => {
-    if (snowLayerManagerRef.current) {
-      snowLayerManagerRef.current.updateLayer(
-        !isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null
-      )
-    }
+    snowLayerManagerRef.current.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
   }, [snowDate, showSnow, token])
 
   useEffect(() => {
     // Clear any existing errors when changing date/type
     setRasterError(null)
 
-    if (rasterLayerManagerRef.current) {
-      // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
-      if (rasterDate || rasterType === 'fuel') {
-        rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
-      } else {
-        rasterLayerManagerRef.current.updateLayer(null)
-      }
+    // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
+    if (rasterDate || rasterType === 'fuel') {
+      rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
+    } else {
+      rasterLayerManagerRef.current.updateLayer(null)
     }
   }, [rasterDate, rasterType, token])
 
