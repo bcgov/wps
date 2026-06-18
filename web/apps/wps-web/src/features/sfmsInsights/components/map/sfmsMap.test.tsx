@@ -229,11 +229,7 @@ describe('SFMSMap', () => {
       </Provider>
     )
 
-    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(
-      DateTime.fromISO('2025-11-02'),
-      'fwi',
-      'new-token'
-    )
+    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(DateTime.fromISO('2025-11-02'), 'fwi', 'new-token')
   })
 
   it('should update snow layer when snowDate changes', () => {
