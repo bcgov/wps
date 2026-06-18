@@ -11,7 +11,7 @@ from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.fba import WFWXFireCentre
 from wps_shared.schemas.morecast_v2 import StationDailyFromWF1, WF1PostForecast
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.schemas.stations import (
     DetailedWeatherStationProperties,
     GeoJsonDetailedWeatherStation,
@@ -316,9 +316,9 @@ class WfwxApi:
     async def _get_sfms_daily_weather_all_stations(
         self,
         time_of_interest: datetime,
-        mapper: Callable[[list[dict]], list[SFMSDailyActual]],
+        mapper: Callable[[list[dict]], list[SFMSDaily]],
         log_label: str,
-    ) -> List[SFMSDailyActual]:
+    ) -> List[SFMSDaily]:
         header = await self._get_auth_header()
         logger.info("Computing SFMS %s", log_label)
         raw_dailies = await self.wfwx_client.fetch_raw_dailies_for_all_stations(
@@ -328,14 +328,14 @@ class WfwxApi:
 
     async def get_sfms_daily_actuals_all_stations(
         self, time_of_interest: datetime
-    ) -> List[SFMSDailyActual]:
+    ) -> List[SFMSDaily]:
         return await self._get_sfms_daily_weather_all_stations(
             time_of_interest, sfms_daily_actuals_mapper, "actuals"
         )
 
     async def get_sfms_daily_forecasts_all_stations(
         self, time_of_interest: datetime
-    ) -> List[SFMSDailyActual]:
+    ) -> List[SFMSDaily]:
         return await self._get_sfms_daily_weather_all_stations(
             time_of_interest, sfms_daily_forecasts_mapper, "forecasts"
         )

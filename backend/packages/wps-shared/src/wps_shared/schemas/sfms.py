@@ -20,8 +20,8 @@ class HourlyTIFs(BaseModel):
     hourlies: List[HourlyTIF]
 
 
-class SFMSDailyActual(BaseModel):
-    """Daily Actual"""
+class SFMSDaily(BaseModel):
+    """Daily SFMS station weather and FWI values."""
 
     code: int
     lat: float

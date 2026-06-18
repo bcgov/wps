@@ -6,17 +6,17 @@ import numpy as np
 import uuid
 import pytest
 from osgeo import gdal
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_sfms.interpolation.field import build_dewpoint_field, compute_rh
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.tests.conftest import create_test_raster
 
 
 def create_test_actuals(lats, lons, dewpoints, elevations):
-    """Create test SFMSDailyActual objects with dewpoint values."""
+    """Create test SFMSDaily objects with dewpoint values."""
     actuals = []
     for i, (lat, lon, td, elev) in enumerate(zip(lats, lons, dewpoints, elevations)):
-        actual = SFMSDailyActual(
+        actual = SFMSDaily(
             code=100 + i,
             lat=lat,
             lon=lon,
@@ -261,9 +261,7 @@ class TestRHInterpolator:
             create_test_raster(temp_raster_path, 5, 5, extent, fill_value=15.0)
             create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
 
-            actuals = [
-                SFMSDailyActual(code=1, lat=49.05, lon=-123.05, elevation=100.0, dewpoint=None)
-            ]
+            actuals = [SFMSDaily(code=1, lat=49.05, lon=-123.05, elevation=100.0, dewpoint=None)]
             dewpoint_field = build_dewpoint_field(actuals)
 
             with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):

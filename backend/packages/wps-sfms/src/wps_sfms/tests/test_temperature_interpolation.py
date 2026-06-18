@@ -6,17 +6,17 @@ import numpy as np
 import uuid
 import pytest
 from osgeo import gdal
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_sfms.interpolation.field import build_temperature_field
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.tests.conftest import create_test_raster
 
 
 def create_test_actuals(lats, lons, temps, elevations):
-    """Create test SFMSDailyActual objects."""
+    """Create test SFMSDaily objects."""
     actuals = []
     for i, (lat, lon, temp, elev) in enumerate(zip(lats, lons, temps, elevations)):
-        actual = SFMSDailyActual(
+        actual = SFMSDaily(
             code=100 + i,
             lat=lat,
             lon=lon,
@@ -197,9 +197,7 @@ class TestTemperatureInterpolator:
             create_test_raster(dem_path, 5, 5, extent, fill_value=100.0)
             create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
 
-            actuals = [
-                SFMSDailyActual(code=1, lat=49.05, lon=-123.05, elevation=100.0, temperature=None)
-            ]
+            actuals = [SFMSDaily(code=1, lat=49.05, lon=-123.05, elevation=100.0, temperature=None)]
             temperature_field = build_temperature_field(actuals)
 
             with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):

@@ -1,6 +1,6 @@
 import os
 
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.tests.conftest import (
     anyio_backend,
     mock_env,
@@ -24,7 +24,7 @@ from wps_shared.tests.conftest import (
 def create_mock_sfms_actuals():
     """Create mock SFMS daily actuals for testing."""
     return [
-        SFMSDailyActual(
+        SFMSDaily(
             code=100,
             lat=49.0,
             lon=-123.0,
@@ -38,7 +38,7 @@ def create_mock_sfms_actuals():
             dmc=30.0,
             dc=200.0,
         ),
-        SFMSDailyActual(
+        SFMSDaily(
             code=101,
             lat=49.5,
             lon=-123.5,
@@ -53,7 +53,6 @@ def create_mock_sfms_actuals():
             dc=180.0,
         ),
     ]
-
 
 
 def pytest_configure(config):

@@ -16,7 +16,7 @@ from wps_sfms.interpolation.field import (
     compute_sea_level_values,
 )
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_wf1.wfwx_api import WfwxApi
 
 from wps_tools.sfms_histogram import create_sfms_histogram
@@ -44,7 +44,7 @@ def leave_one_out_idw(lats: np.ndarray, lons: np.ndarray, values: np.ndarray) ->
     return interpolated_values
 
 
-def interpolate_temp(sfms_actuals: List[SFMSDailyActual]):
+def interpolate_temp(sfms_actuals: List[SFMSDaily]):
     valid = [s for s in sfms_actuals if s.temperature is not None and s.elevation is not None]
     lats = np.array([s.lat for s in valid], dtype=np.float32)
     lons = np.array([s.lon for s in valid], dtype=np.float32)
@@ -59,7 +59,7 @@ def interpolate_temp(sfms_actuals: List[SFMSDailyActual]):
     return (elevs, values, interpolated_values)
 
 
-def interpolate_dewpoint_temp(sfms_actuals: List[SFMSDailyActual]):
+def interpolate_dewpoint_temp(sfms_actuals: List[SFMSDaily]):
     valid = [s for s in sfms_actuals if s.dewpoint is not None and s.elevation is not None]
     lats = np.array([s.lat for s in valid], dtype=np.float32)
     lons = np.array([s.lon for s in valid], dtype=np.float32)
@@ -69,13 +69,11 @@ def interpolate_dewpoint_temp(sfms_actuals: List[SFMSDailyActual]):
     assert len(lats) == len(lons) == len(elevs) == len(values) == len(sea)
     sea_interpolated = leave_one_out_idw(lats, lons, sea)
 
-    interpolated_values = compute_adjusted_values(
-        sea_interpolated, elevs, DEW_POINT_LAPSE_RATE
-    )
+    interpolated_values = compute_adjusted_values(sea_interpolated, elevs, DEW_POINT_LAPSE_RATE)
     return (elevs, values, interpolated_values)
 
 
-def interpolate_wind_speed(sfms_actuals: List[SFMSDailyActual]):
+def interpolate_wind_speed(sfms_actuals: List[SFMSDaily]):
     valid = [s for s in sfms_actuals if s.wind_speed is not None]
     lats = np.array([s.lat for s in valid], dtype=np.float32)
     lons = np.array([s.lon for s in valid], dtype=np.float32)
@@ -89,7 +87,7 @@ def circular_difference_degrees(generated: np.ndarray, reference: np.ndarray) ->
     return (generated - reference + 180.0) % 360.0 - 180.0
 
 
-def interpolate_wind_direction(sfms_actuals: List[SFMSDailyActual]):
+def interpolate_wind_direction(sfms_actuals: List[SFMSDaily]):
     valid = [
         s
         for s in sfms_actuals

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import pytest
 from pytest import approx
 from wps_shared.db.models.observations import HourlyActual
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_wf1.parsers import (
     parse_hourly_actual,
     sfms_daily_actuals_mapper,
@@ -134,7 +134,7 @@ class TestSfmsDailyActualsMapper:
         result = sfms_daily_actuals_mapper([raw])
 
         assert len(result) == 1
-        assert result[0] == SFMSDailyActual(
+        assert result[0] == SFMSDaily(
             code=100,
             lat=49.0,
             lon=-123.0,

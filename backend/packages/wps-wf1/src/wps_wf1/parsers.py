@@ -13,7 +13,7 @@ from wps_shared.schemas.morecast_v2 import (
     WeatherIndeterminate,
 )
 from wps_shared.schemas.observations import WeatherReading
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.schemas.stations import (
     FireZone,
     StationFireCentre,
@@ -369,15 +369,15 @@ def is_sfms_daily(raw_daily: dict, record_types: tuple[WF1RecordTypeEnum, ...]) 
     )
 
 
-def sfms_daily_actuals_mapper(raw_dailies: List[dict]) -> List[SFMSDailyActual]:
-    """Maps raw dailies to list of SFMSDailyActual objects"""
-    sfms_daily_actuals: List[SFMSDailyActual] = []
+def sfms_daily_actuals_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
+    """Maps raw dailies to list of SFMSDaily objects"""
+    sfms_daily_actuals: List[SFMSDaily] = []
     for raw_daily in raw_dailies:
         station_data = raw_daily.get("stationData")
         if is_sfms_daily(raw_daily, (WF1RecordTypeEnum.ACTUAL, WF1RecordTypeEnum.MANUAL)):
             station_code = station_data.get("stationCode")
             sfms_daily_actuals.append(
-                SFMSDailyActual(
+                SFMSDaily(
                     code=station_code,
                     lat=station_data.get("latitude"),
                     lon=station_data.get("longitude"),
@@ -396,9 +396,9 @@ def sfms_daily_actuals_mapper(raw_dailies: List[dict]) -> List[SFMSDailyActual]:
     return sfms_daily_actuals
 
 
-def sfms_daily_forecasts_mapper(raw_dailies: List[dict]) -> List[SFMSDailyActual]:
+def sfms_daily_forecasts_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
     """Maps raw forecast dailies to SFMS station weather objects."""
-    sfms_daily_forecasts: List[SFMSDailyActual] = []
+    sfms_daily_forecasts: List[SFMSDaily] = []
     for raw_daily in raw_dailies:
         station_data = raw_daily.get("stationData")
         if is_sfms_daily(raw_daily, (WF1RecordTypeEnum.FORECAST,)):
@@ -406,7 +406,7 @@ def sfms_daily_forecasts_mapper(raw_dailies: List[dict]) -> List[SFMSDailyActual
             temperature = raw_daily.get("temperature")
             relative_humidity = raw_daily.get("relativeHumidity")
             sfms_daily_forecasts.append(
-                SFMSDailyActual(
+                SFMSDaily(
                     code=station_code,
                     lat=station_data.get("latitude"),
                     lon=station_data.get("longitude"),

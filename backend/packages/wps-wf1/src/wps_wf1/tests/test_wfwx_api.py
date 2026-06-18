@@ -933,15 +933,15 @@ def _setup_sfms_daily_actuals(
 @pytest.mark.anyio
 async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
     """Verify auth header, time_of_interest, and raw dailies are forwarded correctly and the mapper result is returned."""
-    from wps_shared.schemas.sfms import SFMSDailyActual
+    from wps_shared.schemas.sfms import SFMSDaily
 
     fake_raw_dailies = [
         {"stationData": {"stationCode": 100}, "temperature": 15.0},
         {"stationData": {"stationCode": 200}, "temperature": 20.0},
     ]
     expected = [
-        SFMSDailyActual(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0),
-        SFMSDailyActual(code=200, lat=50.0, lon=-124.0, elevation=300, temperature=20.0),
+        SFMSDaily(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0),
+        SFMSDaily(code=200, lat=50.0, lon=-124.0, elevation=300, temperature=20.0),
     ]
 
     toi = datetime(2025, 7, 15, 12, 0, 0)
@@ -972,10 +972,10 @@ async def test_get_sfms_daily_actuals_all_stations_empty_dailies(monkeypatch, wf
 @pytest.mark.anyio
 async def test_get_sfms_daily_forecasts_all_stations(monkeypatch, wfwx_api):
     """Verify forecast SFMS dailies use the forecast mapper with fetched raw dailies."""
-    from wps_shared.schemas.sfms import SFMSDailyActual
+    from wps_shared.schemas.sfms import SFMSDaily
 
     fake_raw_dailies = [{"stationData": {"stationCode": 100}, "temperature": 15.0}]
-    expected = [SFMSDailyActual(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0)]
+    expected = [SFMSDaily(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0)]
 
     toi = datetime(2025, 7, 16, 20, 0, 0)
     captured = _setup_sfms_daily_actuals(
