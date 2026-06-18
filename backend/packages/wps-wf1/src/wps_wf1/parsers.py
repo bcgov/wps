@@ -4,6 +4,7 @@ import math
 from datetime import datetime, timezone
 from typing import Generator, List
 
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.forecasts import NoonForecast
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.fba import FireCenterStation, WFWXFireCentre
@@ -54,6 +55,13 @@ SFMS_SITE_TYPE_IDS = (
 
 def parse_wf1_datetime(raw_daily: dict) -> datetime:
     return datetime.fromtimestamp(raw_daily.get("weatherTimestamp") / 1000, tz=timezone.utc)
+
+
+def parse_sfms_run_type(raw_daily: dict) -> RunTypeEnum:
+    record_type_id = (raw_daily.get("recordType") or {}).get("id")
+    if record_type_id == WF1RecordTypeEnum.FORECAST.value:
+        return RunTypeEnum.forecast
+    return RunTypeEnum.actual
 
 
 def construct_zone_code(station: any):
@@ -384,6 +392,7 @@ def sfms_daily_actuals_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
                 SFMSDaily(
                     code=station_code,
                     for_datetime=parse_wf1_datetime(raw_daily),
+                    run_type=parse_sfms_run_type(raw_daily),
                     lat=station_data.get("latitude"),
                     lon=station_data.get("longitude"),
                     elevation=station_data.get("elevation"),
@@ -414,6 +423,7 @@ def sfms_daily_forecasts_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
                 SFMSDaily(
                     code=station_code,
                     for_datetime=parse_wf1_datetime(raw_daily),
+                    run_type=parse_sfms_run_type(raw_daily),
                     lat=station_data.get("latitude"),
                     lon=station_data.get("longitude"),
                     elevation=station_data.get("elevation"),

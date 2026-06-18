@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 import pytest
 from pytest import approx
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_wf1.parsers import (
@@ -140,6 +141,7 @@ class TestSfmsDailyActualsMapper:
         assert result[0] == SFMSDaily(
             code=100,
             for_datetime=TEST_FOR_DATETIME,
+            run_type=RunTypeEnum.actual,
             lat=49.0,
             lon=-123.0,
             elevation=150,
@@ -177,6 +179,7 @@ class TestSfmsDailyActualsMapper:
         assert len(result) == 1
         assert result[0].code == 100
         assert result[0].for_datetime == TEST_FOR_DATETIME
+        assert result[0].run_type == RunTypeEnum.actual
         assert result[0].temperature == approx(15.0)
 
     def test_filters_forecast_record_type(self):
@@ -234,6 +237,7 @@ class TestSfmsDailyForecastsMapper:
         forecast = result[0]
         assert forecast.code == 100
         assert forecast.for_datetime == TEST_FOR_DATETIME
+        assert forecast.run_type == RunTypeEnum.forecast
         assert forecast.lat == approx(49.0, abs=0)
         assert forecast.lon == approx(-123.0, abs=0)
         assert forecast.elevation == 150
