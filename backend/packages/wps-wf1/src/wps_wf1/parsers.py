@@ -52,6 +52,10 @@ SFMS_SITE_TYPE_IDS = (
 )
 
 
+def parse_wf1_datetime(raw_daily: dict) -> datetime:
+    return datetime.fromtimestamp(raw_daily.get("weatherTimestamp") / 1000, tz=timezone.utc)
+
+
 def construct_zone_code(station: any):
     """Constructs the 2-character zone code for a weather station, using the station's
     zone.alias integer value, prefixed by the fire centre-to-letter mapping.
@@ -379,6 +383,7 @@ def sfms_daily_actuals_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
             sfms_daily_actuals.append(
                 SFMSDaily(
                     code=station_code,
+                    for_datetime=parse_wf1_datetime(raw_daily),
                     lat=station_data.get("latitude"),
                     lon=station_data.get("longitude"),
                     elevation=station_data.get("elevation"),
@@ -408,6 +413,7 @@ def sfms_daily_forecasts_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
             sfms_daily_forecasts.append(
                 SFMSDaily(
                     code=station_code,
+                    for_datetime=parse_wf1_datetime(raw_daily),
                     lat=station_data.get("latitude"),
                     lon=station_data.get("longitude"),
                     elevation=station_data.get("elevation"),

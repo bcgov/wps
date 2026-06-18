@@ -11,6 +11,8 @@ from wps_wf1.parsers import (
     sfms_daily_forecasts_mapper,
 )
 
+TEST_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
+
 
 def _make_raw_daily(
     station_code,
@@ -23,6 +25,7 @@ def _make_raw_daily(
     **weather_fields,
 ):
     defaults = {
+        "weatherTimestamp": int(TEST_FOR_DATETIME.timestamp() * 1000),
         "temperature": None,
         "relativeHumidity": None,
         "precipitation": None,
@@ -136,6 +139,7 @@ class TestSfmsDailyActualsMapper:
         assert len(result) == 1
         assert result[0] == SFMSDaily(
             code=100,
+            for_datetime=TEST_FOR_DATETIME,
             lat=49.0,
             lon=-123.0,
             elevation=150,
@@ -172,6 +176,7 @@ class TestSfmsDailyActualsMapper:
 
         assert len(result) == 1
         assert result[0].code == 100
+        assert result[0].for_datetime == TEST_FOR_DATETIME
         assert result[0].temperature == approx(15.0)
 
     def test_filters_forecast_record_type(self):
@@ -228,6 +233,7 @@ class TestSfmsDailyForecastsMapper:
         assert len(result) == 1
         forecast = result[0]
         assert forecast.code == 100
+        assert forecast.for_datetime == TEST_FOR_DATETIME
         assert forecast.lat == approx(49.0, abs=0)
         assert forecast.lon == approx(-123.0, abs=0)
         assert forecast.elevation == 150

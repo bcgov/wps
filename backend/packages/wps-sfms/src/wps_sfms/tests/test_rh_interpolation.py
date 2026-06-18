@@ -2,6 +2,8 @@
 Unit tests for relative humidity interpolation module.
 """
 
+from datetime import datetime, timezone
+
 import numpy as np
 import uuid
 import pytest
@@ -11,6 +13,8 @@ from wps_sfms.interpolation.field import build_dewpoint_field, compute_rh
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.tests.conftest import create_test_raster
 
+TEST_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
+
 
 def create_test_actuals(lats, lons, dewpoints, elevations):
     """Create test SFMSDaily objects with dewpoint values."""
@@ -18,6 +22,7 @@ def create_test_actuals(lats, lons, dewpoints, elevations):
     for i, (lat, lon, td, elev) in enumerate(zip(lats, lons, dewpoints, elevations)):
         actual = SFMSDaily(
             code=100 + i,
+            for_datetime=TEST_FOR_DATETIME,
             lat=lat,
             lon=lon,
             elevation=elev,
@@ -261,7 +266,16 @@ class TestRHInterpolator:
             create_test_raster(temp_raster_path, 5, 5, extent, fill_value=15.0)
             create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
 
-            actuals = [SFMSDaily(code=1, lat=49.05, lon=-123.05, elevation=100.0, dewpoint=None)]
+            actuals = [
+                SFMSDaily(
+                    code=1,
+                    for_datetime=TEST_FOR_DATETIME,
+                    lat=49.05,
+                    lon=-123.05,
+                    elevation=100.0,
+                    dewpoint=None,
+                )
+            ]
             dewpoint_field = build_dewpoint_field(actuals)
 
             with pytest.raises(RuntimeError, match="No pixels were successfully interpolated"):

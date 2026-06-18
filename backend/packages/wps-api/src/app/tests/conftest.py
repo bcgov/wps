@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.tests.conftest import (
@@ -20,12 +21,15 @@ from wps_shared.tests.conftest import (
     mock_wfwx_api,
 )
 
+SFMS_DAILY_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
+
 
 def create_mock_sfms_actuals():
     """Create mock SFMS daily actuals for testing."""
     return [
         SFMSDaily(
             code=100,
+            for_datetime=SFMS_DAILY_FOR_DATETIME,
             lat=49.0,
             lon=-123.0,
             elevation=100.0,
@@ -40,6 +44,7 @@ def create_mock_sfms_actuals():
         ),
         SFMSDaily(
             code=101,
+            for_datetime=SFMS_DAILY_FOR_DATETIME,
             lat=49.5,
             lon=-123.5,
             elevation=200.0,

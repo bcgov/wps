@@ -1,5 +1,5 @@
 import types
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -939,9 +939,24 @@ async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
         {"stationData": {"stationCode": 100}, "temperature": 15.0},
         {"stationData": {"stationCode": 200}, "temperature": 20.0},
     ]
+    for_datetime = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
     expected = [
-        SFMSDaily(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0),
-        SFMSDaily(code=200, lat=50.0, lon=-124.0, elevation=300, temperature=20.0),
+        SFMSDaily(
+            code=100,
+            for_datetime=for_datetime,
+            lat=49.0,
+            lon=-123.0,
+            elevation=100,
+            temperature=15.0,
+        ),
+        SFMSDaily(
+            code=200,
+            for_datetime=for_datetime,
+            lat=50.0,
+            lon=-124.0,
+            elevation=300,
+            temperature=20.0,
+        ),
     ]
 
     toi = datetime(2025, 7, 15, 12, 0, 0)
@@ -975,7 +990,16 @@ async def test_get_sfms_daily_forecasts_all_stations(monkeypatch, wfwx_api):
     from wps_shared.schemas.sfms import SFMSDaily
 
     fake_raw_dailies = [{"stationData": {"stationCode": 100}, "temperature": 15.0}]
-    expected = [SFMSDaily(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0)]
+    expected = [
+        SFMSDaily(
+            code=100,
+            for_datetime=datetime(2025, 7, 16, 20, tzinfo=timezone.utc),
+            lat=49.0,
+            lon=-123.0,
+            elevation=100,
+            temperature=15.0,
+        )
+    ]
 
     toi = datetime(2025, 7, 16, 20, 0, 0)
     captured = _setup_sfms_daily_actuals(

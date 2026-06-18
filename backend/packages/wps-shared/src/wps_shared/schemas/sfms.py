@@ -1,6 +1,6 @@
 """This module contains pydantic schemas related to SFMS."""
 
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -24,6 +24,7 @@ class SFMSDaily(BaseModel):
     """Daily SFMS station weather and FWI values."""
 
     code: int
+    for_datetime: datetime
     lat: float
     lon: float
     elevation: Optional[float] = None

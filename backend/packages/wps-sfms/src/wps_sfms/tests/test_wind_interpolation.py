@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 import numpy as np
 import pytest
@@ -10,6 +11,8 @@ from wps_sfms.interpolation.field import build_wind_vector_field
 from wps_sfms.processors.idw import ValidPixelIDWResult
 from wps_sfms.processors.wind import WindDirectionInterpolator
 from wps_sfms.tests.conftest import create_test_raster
+
+TEST_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
 
 
 class TestWindDirectionInterpolator:
@@ -58,8 +61,22 @@ class TestWindDirectionInterpolator:
             create_test_raster(mask_path, 10, 10, extent, fill_value=1.0)
 
             actuals = [
-                SFMSDaily(code=100, lat=49.05, lon=-123.05, wind_speed=10.0, wind_direction=90.0),
-                SFMSDaily(code=101, lat=49.08, lon=-123.02, wind_speed=8.0, wind_direction=180.0),
+                SFMSDaily(
+                    code=100,
+                    for_datetime=TEST_FOR_DATETIME,
+                    lat=49.05,
+                    lon=-123.05,
+                    wind_speed=10.0,
+                    wind_direction=90.0,
+                ),
+                SFMSDaily(
+                    code=101,
+                    for_datetime=TEST_FOR_DATETIME,
+                    lat=49.08,
+                    lon=-123.02,
+                    wind_speed=8.0,
+                    wind_direction=180.0,
+                ),
             ]
             field = build_wind_vector_field(actuals)
 
@@ -88,7 +105,14 @@ class TestWindDirectionInterpolator:
             create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
 
             actuals = [
-                SFMSDaily(code=100, lat=49.05, lon=-123.05, wind_speed=10.0, wind_direction=None)
+                SFMSDaily(
+                    code=100,
+                    for_datetime=TEST_FOR_DATETIME,
+                    lat=49.05,
+                    lon=-123.05,
+                    wind_speed=10.0,
+                    wind_direction=None,
+                )
             ]
             field = build_wind_vector_field(actuals)
 
@@ -112,8 +136,22 @@ class TestWindDirectionInterpolator:
             create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
 
             actuals = [
-                SFMSDaily(code=100, lat=49.05, lon=-123.05, wind_speed=10.0, wind_direction=90.0),
-                SFMSDaily(code=101, lat=49.08, lon=-123.02, wind_speed=8.0, wind_direction=180.0),
+                SFMSDaily(
+                    code=100,
+                    for_datetime=TEST_FOR_DATETIME,
+                    lat=49.05,
+                    lon=-123.05,
+                    wind_speed=10.0,
+                    wind_direction=90.0,
+                ),
+                SFMSDaily(
+                    code=101,
+                    for_datetime=TEST_FOR_DATETIME,
+                    lat=49.08,
+                    lon=-123.02,
+                    wind_speed=8.0,
+                    wind_direction=180.0,
+                ),
             ]
             field = build_wind_vector_field(actuals)
 
