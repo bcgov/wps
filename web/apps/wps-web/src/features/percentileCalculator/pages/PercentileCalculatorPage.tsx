@@ -12,7 +12,7 @@ import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percenti
 import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { fetchPercentiles, resetPercentilesResult } from 'features/percentileCalculator/slices/percentilesSlice'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -24,20 +24,21 @@ const PercentileCalculatorPage = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const codesFromQuery = getStationCodesFromUrl(location.search)
+  const codesFromQuery = useMemo(() => getStationCodesFromUrl(location.search), [location.search])
   const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
   const [timeRange, setTimeRange] = useState<number>(defaultTimeRange)
-  const yearRange = {
-    start: yearWhenTheCalculationIsDone - (timeRange - 1),
-    end: yearWhenTheCalculationIsDone
-  }
+  const yearRange = useMemo(
+    () => ({
+      start: yearWhenTheCalculationIsDone - (timeRange - 1),
+      end: yearWhenTheCalculationIsDone
+    }),
+    [timeRange]
+  )
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.unspecified))
-  }, [])
+  }, [dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     if (codesFromQuery.length > 0) {
       dispatch(fetchPercentiles(codesFromQuery, defaultPercentile, yearRange))
@@ -47,7 +48,7 @@ const PercentileCalculatorPage = () => {
 
     // Update local state to match with the url query
     setStationCodes(codesFromQuery)
-  }, [location])
+  }, [codesFromQuery, dispatch, yearRange])
 
   const onCalculateClick = () => {
     // Update the url query with the new station codes
