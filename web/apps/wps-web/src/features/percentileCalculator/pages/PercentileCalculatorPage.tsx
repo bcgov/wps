@@ -12,7 +12,7 @@ import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percenti
 import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { fetchPercentiles, resetPercentilesResult } from 'features/percentileCalculator/slices/percentilesSlice'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -34,6 +34,8 @@ const PercentileCalculatorPage = () => {
     }),
     [timeRange]
   )
+  const yearRangeRef = useRef(yearRange)
+  yearRangeRef.current = yearRange
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.unspecified))
@@ -41,14 +43,14 @@ const PercentileCalculatorPage = () => {
 
   useEffect(() => {
     if (codesFromQuery.length > 0) {
-      dispatch(fetchPercentiles(codesFromQuery, defaultPercentile, yearRange))
+      dispatch(fetchPercentiles(codesFromQuery, defaultPercentile, yearRangeRef.current))
     } else {
       dispatch(resetPercentilesResult())
     }
 
     // Update local state to match with the url query
     setStationCodes(codesFromQuery)
-  }, [codesFromQuery, dispatch, yearRange])
+  }, [codesFromQuery, dispatch])
 
   const onCalculateClick = () => {
     // Update the url query with the new station codes
