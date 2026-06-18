@@ -100,39 +100,131 @@ describe('SFMSMap', () => {
     expect(layerDefinitions.getSnowPMTilesLayer).toHaveBeenCalledWith(snowDate, 'test-token')
   })
 
-  it('should render the sfms map', () => {
-    renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} />)
+  it('should request new layer when raster date changes', () => {
+    const store = createTestStore({
+      authentication: {
+        isAuthenticated: true,
+        error: null,
+        token: 'test-token',
+        authenticating: false,
+        tokenRefreshed: false,
+        idToken: undefined,
+        idir: undefined,
+        email: undefined,
+        roles: []
+      }
+    })
+    const { rerender } = render(
+      <Provider store={store}>
+        <SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} />
+      </Provider>
+    )
 
-    // Initially, we can't easily trigger loading state without direct LayerManager access
-    // This test verifies the component structure supports loading state
-    expect(screen.getByTestId('sfms-map')).toBeInTheDocument()
-  })
-
-  it('should request new layer when date changes', () => {
-    const { rerender } = renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} />)
-
-    // Change the raster date
     rerender(
-      <Provider
-        store={createTestStore({
-          authentication: {
-            isAuthenticated: true,
-            error: null,
-            token: 'test-token',
-            authenticating: false,
-            tokenRefreshed: false,
-            idToken: undefined,
-            idir: undefined,
-            email: undefined,
-            roles: []
-          }
-        })}
-      >
+      <Provider store={store}>
         <SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-03')} />
       </Provider>
     )
 
-    // Verify new layer is requested
-    expect(layerDefinitions.getRasterLayer).toHaveBeenCalledWith(DateTime.fromISO('2025-11-03'), 'fwi', 'test-token')
+    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(DateTime.fromISO('2025-11-03'), 'fwi', 'test-token')
+  })
+
+  it('should not request raster layer when rasterDate is null and rasterType is not fuel', () => {
+    renderWithStore(<SFMSMap snowDate={null} rasterDate={null} rasterType="fwi" />)
+    expect(layerDefinitions.getRasterLayer).not.toHaveBeenCalled()
+  })
+
+  it('should request raster layer for fuel type even when rasterDate is null', () => {
+    renderWithStore(<SFMSMap snowDate={null} rasterDate={null} rasterType="fuel" />)
+    expect(layerDefinitions.getRasterLayer).toHaveBeenCalledWith(null, 'fuel', 'test-token')
+  })
+
+  it('should request new layer when rasterType changes', () => {
+    const store = createTestStore({
+      authentication: {
+        isAuthenticated: true,
+        error: null,
+        token: 'test-token',
+        authenticating: false,
+        tokenRefreshed: false,
+        idToken: undefined,
+        idir: undefined,
+        email: undefined,
+        roles: []
+      }
+    })
+    const { rerender } = render(
+      <Provider store={store}>
+        <SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} rasterType="fwi" />
+      </Provider>
+    )
+
+    rerender(
+      <Provider store={store}>
+        <SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} rasterType="ffmc" />
+      </Provider>
+    )
+
+    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(DateTime.fromISO('2025-11-02'), 'ffmc', 'test-token')
+  })
+
+  it('should update snow layer when snowDate changes', () => {
+    const store = createTestStore({
+      authentication: {
+        isAuthenticated: true,
+        error: null,
+        token: 'test-token',
+        authenticating: false,
+        tokenRefreshed: false,
+        idToken: undefined,
+        idir: undefined,
+        email: undefined,
+        roles: []
+      }
+    })
+    const newSnowDate = DateTime.fromISO('2025-11-03')
+    const { rerender } = render(
+      <Provider store={store}>
+        <SFMSMap snowDate={DateTime.fromISO('2025-11-02')} rasterDate={null} showSnow={true} />
+      </Provider>
+    )
+
+    rerender(
+      <Provider store={store}>
+        <SFMSMap snowDate={newSnowDate} rasterDate={null} showSnow={true} />
+      </Provider>
+    )
+
+    expect(layerDefinitions.getSnowPMTilesLayer).toHaveBeenLastCalledWith(newSnowDate, 'test-token')
+  })
+
+  it('should not request snow layer when showSnow changes to false', () => {
+    const store = createTestStore({
+      authentication: {
+        isAuthenticated: true,
+        error: null,
+        token: 'test-token',
+        authenticating: false,
+        tokenRefreshed: false,
+        idToken: undefined,
+        idir: undefined,
+        email: undefined,
+        roles: []
+      }
+    })
+    const snowDate = DateTime.fromISO('2025-11-02')
+    const { rerender } = render(
+      <Provider store={store}>
+        <SFMSMap snowDate={snowDate} rasterDate={null} showSnow={true} />
+      </Provider>
+    )
+
+    rerender(
+      <Provider store={store}>
+        <SFMSMap snowDate={snowDate} rasterDate={null} showSnow={false} />
+      </Provider>
+    )
+
+    expect(layerDefinitions.getSnowPMTilesLayer).toHaveBeenCalledTimes(1)
   })
 })
