@@ -3,7 +3,7 @@
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
@@ -28,6 +28,7 @@ from app.jobs.sfms_daily_actuals import (
 from app.tests.conftest import create_mock_sfms_actuals
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
+PIPELINE_PATH = "app.jobs.sfms_run_pipeline"
 
 
 @pytest.mark.parametrize(
@@ -119,33 +120,24 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     # Mock processors
     mock_temp_processor = MagicMock(spec=TemperatureInterpolator)
     mock_temp_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/temp.tif")
-    mocker.patch(
-        f"{MODULE_PATH}.TemperatureInterpolator",
-        return_value=mock_temp_processor,
-    )
+    mocker.patch(f"{PIPELINE_PATH}.TemperatureInterpolator", return_value=mock_temp_processor)
 
     mock_rh_processor = MagicMock(spec=RHInterpolator)
     mock_rh_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/rh.tif")
-    mocker.patch(
-        f"{MODULE_PATH}.RHInterpolator",
-        return_value=mock_rh_processor,
-    )
+    mocker.patch(f"{PIPELINE_PATH}.RHInterpolator", return_value=mock_rh_processor)
 
     mock_wind_speed_processor = MagicMock(spec=WindSpeedInterpolator)
     mock_wind_speed_processor.process = AsyncMock(
         return_value="sfms/interpolated/2024/07/04/wind_speed.tif"
     )
-    mocker.patch(
-        f"{MODULE_PATH}.WindSpeedInterpolator",
-        return_value=mock_wind_speed_processor,
-    )
+    mocker.patch(f"{PIPELINE_PATH}.WindSpeedInterpolator", return_value=mock_wind_speed_processor)
 
     mock_wind_direction_processor = MagicMock(spec=WindDirectionInterpolator)
     mock_wind_direction_processor.process = AsyncMock(
         return_value="sfms/interpolated/2024/07/04/wind_direction.tif"
     )
     mocker.patch(
-        f"{MODULE_PATH}.WindDirectionInterpolator",
+        f"{PIPELINE_PATH}.WindDirectionInterpolator",
         return_value=mock_wind_direction_processor,
     )
 
@@ -153,14 +145,11 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_interpolation_processor.process = AsyncMock(
         return_value="sfms/interpolated/2024/07/04/precip.tif"
     )
-    mocker.patch(
-        f"{MODULE_PATH}.Interpolator",
-        return_value=mock_interpolation_processor,
-    )
+    mocker.patch(f"{PIPELINE_PATH}.Interpolator", return_value=mock_interpolation_processor)
 
     mock_fwi_processor = MagicMock(spec=FWIProcessor)
     mock_fwi_processor.calculate_index = AsyncMock(return_value=None)
-    mocker.patch(f"{MODULE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
+    mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
 
     # Keep the session root as a normal mock and only make the async methods AsyncMocks.
     # The session itself is used in async code, but some things it returns are still sync,
@@ -193,6 +182,24 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
 
 class TestRunSfmsDailyActuals:
     """Tests for run_sfms_daily_actuals."""
+
+    @pytest.mark.anyio
+    async def test_rejects_naive_target_date(self, mock_dependencies: MockDailyActualsDeps):
+        target_date = datetime(2024, 7, 4)
+
+        with pytest.raises(AssertionError, match="timezone-aware"):
+            await run_sfms_daily_actuals(target_date)
+
+        mock_dependencies.wfwx_api.get_sfms_daily_actuals_all_stations.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_rejects_non_utc_target_date(self, mock_dependencies: MockDailyActualsDeps):
+        target_date = datetime(2024, 7, 4, tzinfo=timezone(timedelta(hours=-7)))
+
+        with pytest.raises(AssertionError, match="not in UTC"):
+            await run_sfms_daily_actuals(target_date)
+
+        mock_dependencies.wfwx_api.get_sfms_daily_actuals_all_stations.assert_not_called()
 
     @pytest.mark.anyio
     async def test_runs_all_processors(self, mock_dependencies: MockDailyActualsDeps):
@@ -254,7 +261,7 @@ class TestRunSfmsDailyActuals:
         target_date = datetime(2024, 7, 4, hour=10, minute=30, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        dt = mock_dependencies.addresser.get_actual_weather_key.call_args_list[0][0][0]
+        dt = mock_dependencies.addresser.get_weather_key.call_args_list[0][0][0]
         assert dt.hour == 20
         assert dt.minute == 0
         assert dt.second == 0
@@ -436,8 +443,7 @@ class TestFWICalculationVsInterpolation:
         await run_sfms_daily_actuals(target_date)
 
         actual_fwi_params = [
-            call.args[1]
-            for call in mock_dependencies.addresser.get_actual_fwi_inputs.call_args_list
+            call.args[1] for call in mock_dependencies.addresser.get_fwi_inputs.call_args_list
         ]
         assert actual_fwi_params == [
             FWIParameter.ISI,
@@ -460,8 +466,7 @@ class TestFWICalculationVsInterpolation:
         # Each calculator must use its own FWIParameter — a wiring bug where calls
         # share the same fwi_param would silently produce wrong rasters.
         actual_fwi_params = [
-            call.args[1]
-            for call in mock_dependencies.addresser.get_actual_fwi_inputs.call_args_list
+            call.args[1] for call in mock_dependencies.addresser.get_fwi_inputs.call_args_list
         ]
         assert actual_fwi_params == [
             FWIParameter.FFMC,
@@ -478,9 +483,9 @@ class TestFWICalculationVsInterpolation:
     @pytest.mark.parametrize(
         ("missing_param", "expected_missing"),
         [
-            (FWIParameter.FFMC, ["ffmc=ffmc_20240703.tif"]),
-            (FWIParameter.DMC, ["dmc=dmc_20240703.tif"]),
-            (FWIParameter.DC, ["dc=dc_20240703.tif"]),
+            (FWIParameter.FFMC, ["ffmc=actual_ffmc_20240703.tif"]),
+            (FWIParameter.DMC, ["dmc=actual_dmc_20240703.tif"]),
+            (FWIParameter.DC, ["dc=actual_dc_20240703.tif"]),
         ],
     )
     async def test_missing_seed_keys_returns_only_missing_keys(
@@ -491,12 +496,12 @@ class TestFWICalculationVsInterpolation:
     ):
         """Previous-day seed checks should report only the missing FFMC/DMC/DC key."""
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
-        mock_dependencies.addresser.get_actual_index_key.side_effect = (
-            lambda dt, param: f"{param.value}_{dt.strftime('%Y%m%d')}.tif"
+        mock_dependencies.addresser.get_index_key.side_effect = lambda dt, param, run_type: (
+            f"{run_type.value}_{param.value}_{dt.strftime('%Y%m%d')}.tif"
         )
 
         async def fake_all_objects_exist(*keys):
-            return all(f"{missing_param.value}_20240703.tif" not in str(key) for key in keys)
+            return all(f"actual_{missing_param.value}_20240703.tif" not in str(key) for key in keys)
 
         mock_dependencies.s3_client.all_objects_exist = AsyncMock(
             side_effect=fake_all_objects_exist
@@ -535,7 +540,7 @@ class TestFWICalculationVsInterpolation:
             captured_job_names.append(job_name)
             return await action()
 
-        mocker.patch(f"{MODULE_PATH}._run_tracked_job", side_effect=fake_run_tracked_job)
+        mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=fake_run_tracked_job)
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
@@ -565,7 +570,7 @@ class TestFWICalculationVsInterpolation:
             captured_job_names.append(job_name)
             return await action()
 
-        mocker.patch(f"{MODULE_PATH}._run_tracked_job", side_effect=fake_run_tracked_job)
+        mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=fake_run_tracked_job)
 
         target_date = datetime(2024, 5, 6, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
@@ -624,13 +629,18 @@ class TestMain:
     def test_main_job_exception_exits(self, mocker: MockerFixture):
         """Test main() exits with EX_SOFTWARE when the job raises."""
         mocker.patch.object(sys, "argv", ["sfms_daily_actuals.py", "2025-07-15"])
+        exception = RuntimeError("job failed")
         mocker.patch(
             f"{MODULE_PATH}.run_sfms_daily_actuals",
             new_callable=AsyncMock,
-            side_effect=RuntimeError("job failed"),
+            side_effect=exception,
         )
+        chatops_spy = mocker.spy(sys.modules[MODULE_PATH], "send_chatops_notification")
 
         with pytest.raises(SystemExit) as exc_info:
             main()
 
         assert exc_info.value.code == os.EX_SOFTWARE
+        chatops_spy.assert_called_once_with(
+            "Encountered error running SFMS daily actuals", exception
+        )

@@ -1,6 +1,8 @@
+from datetime import datetime, timezone
+
 import numpy as np
 import pytest
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 
 from wps_sfms.interpolation.field import (
     build_attribute_field,
@@ -9,12 +11,26 @@ from wps_sfms.interpolation.field import (
     build_wind_vector_field,
 )
 
+TEST_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
+
 
 class TestScalarFieldBuilders:
     def test_build_attribute_field_filters_missing_values(self):
         actuals = [
-            SFMSDailyActual(code=1, lat=49.0, lon=-123.0, precipitation=1.5),
-            SFMSDailyActual(code=2, lat=49.1, lon=-123.1, precipitation=None),
+            SFMSDaily(
+                code=1,
+                for_datetime=TEST_FOR_DATETIME,
+                lat=49.0,
+                lon=-123.0,
+                precipitation=1.5,
+            ),
+            SFMSDaily(
+                code=2,
+                for_datetime=TEST_FOR_DATETIME,
+                lat=49.1,
+                lon=-123.1,
+                precipitation=None,
+            ),
         ]
 
         field = build_attribute_field(actuals, "precipitation")
@@ -25,8 +41,13 @@ class TestScalarFieldBuilders:
 
     def test_build_temperature_field_applies_sea_level_adjustment(self):
         actuals = [
-            SFMSDailyActual(
-                code=1, lat=49.0, lon=-123.0, elevation=100.0, temperature=15.0
+            SFMSDaily(
+                code=1,
+                for_datetime=TEST_FOR_DATETIME,
+                lat=49.0,
+                lon=-123.0,
+                elevation=100.0,
+                temperature=15.0,
             )
         ]
 
@@ -36,8 +57,22 @@ class TestScalarFieldBuilders:
 
     def test_build_dewpoint_field_skips_missing_elevation_or_value(self):
         actuals = [
-            SFMSDailyActual(code=1, lat=49.0, lon=-123.0, elevation=None, dewpoint=10.0),
-            SFMSDailyActual(code=2, lat=49.1, lon=-123.1, elevation=100.0, dewpoint=None),
+            SFMSDaily(
+                code=1,
+                for_datetime=TEST_FOR_DATETIME,
+                lat=49.0,
+                lon=-123.0,
+                elevation=None,
+                dewpoint=10.0,
+            ),
+            SFMSDaily(
+                code=2,
+                for_datetime=TEST_FOR_DATETIME,
+                lat=49.1,
+                lon=-123.1,
+                elevation=100.0,
+                dewpoint=None,
+            ),
         ]
 
         field = build_dewpoint_field(actuals)
@@ -50,8 +85,22 @@ class TestScalarFieldBuilders:
 class TestWindVectorFieldBuilder:
     def test_build_wind_vector_field_filters_unpaired_values(self):
         actuals = [
-            SFMSDailyActual(code=1, lat=49.0, lon=-123.0, wind_speed=10.0, wind_direction=90.0),
-            SFMSDailyActual(code=2, lat=49.1, lon=-123.1, wind_speed=8.0, wind_direction=None),
+            SFMSDaily(
+                code=1,
+                for_datetime=TEST_FOR_DATETIME,
+                lat=49.0,
+                lon=-123.0,
+                wind_speed=10.0,
+                wind_direction=90.0,
+            ),
+            SFMSDaily(
+                code=2,
+                for_datetime=TEST_FOR_DATETIME,
+                lat=49.1,
+                lon=-123.1,
+                wind_speed=8.0,
+                wind_direction=None,
+            ),
         ]
 
         field = build_wind_vector_field(actuals)
