@@ -1,7 +1,9 @@
 import types
+from datetime import datetime, timezone
+
 import pytest
 
-from datetime import datetime
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 
 
 # ---------------------------
@@ -889,7 +891,13 @@ async def test_post_forecasts(wfwx_api):
 # ---------------------------
 # Helpers for get_sfms_daily_actuals_all_stations tests
 # ---------------------------
-def _setup_sfms_daily_actuals(monkeypatch, wfwx_api, raw_dailies=None, mapper_result=None):
+def _setup_sfms_daily_actuals(
+    monkeypatch,
+    wfwx_api,
+    raw_dailies=None,
+    mapper_result=None,
+    mapper_name="sfms_daily_actuals_mapper",
+):
     """Common setup for get_sfms_daily_actuals_all_stations tests.
 
     Returns a dict for capturing arguments passed to mocked dependencies.
@@ -919,7 +927,7 @@ def _setup_sfms_daily_actuals(monkeypatch, wfwx_api, raw_dailies=None, mapper_re
         captured["mapper_raw_dailies"] = raw
         return mapper_result
 
-    monkeypatch.setattr(api_mod, "sfms_daily_actuals_mapper", fake_sfms_mapper)
+    monkeypatch.setattr(api_mod, mapper_name, fake_sfms_mapper)
 
     return captured
 
@@ -927,15 +935,32 @@ def _setup_sfms_daily_actuals(monkeypatch, wfwx_api, raw_dailies=None, mapper_re
 @pytest.mark.anyio
 async def test_get_sfms_daily_actuals_all_stations(monkeypatch, wfwx_api):
     """Verify auth header, time_of_interest, and raw dailies are forwarded correctly and the mapper result is returned."""
-    from wps_shared.schemas.sfms import SFMSDailyActual
+    from wps_shared.schemas.sfms import SFMSDaily
 
     fake_raw_dailies = [
         {"stationData": {"stationCode": 100}, "temperature": 15.0},
         {"stationData": {"stationCode": 200}, "temperature": 20.0},
     ]
+    for_datetime = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
     expected = [
-        SFMSDailyActual(code=100, lat=49.0, lon=-123.0, elevation=100, temperature=15.0),
-        SFMSDailyActual(code=200, lat=50.0, lon=-124.0, elevation=300, temperature=20.0),
+        SFMSDaily(
+            code=100,
+            for_datetime=for_datetime,
+            run_type=RunTypeEnum.actual,
+            lat=49.0,
+            lon=-123.0,
+            elevation=100,
+            temperature=15.0,
+        ),
+        SFMSDaily(
+            code=200,
+            for_datetime=for_datetime,
+            run_type=RunTypeEnum.actual,
+            lat=50.0,
+            lon=-124.0,
+            elevation=300,
+            temperature=20.0,
+        ),
     ]
 
     toi = datetime(2025, 7, 15, 12, 0, 0)
@@ -961,3 +986,38 @@ async def test_get_sfms_daily_actuals_all_stations_empty_dailies(monkeypatch, wf
 
     result = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime(2025, 7, 1))
     assert result == []
+
+
+@pytest.mark.anyio
+async def test_get_sfms_daily_forecasts_all_stations(monkeypatch, wfwx_api):
+    """Verify forecast SFMS dailies use the forecast mapper with fetched raw dailies."""
+    from wps_shared.schemas.sfms import SFMSDaily
+
+    fake_raw_dailies = [{"stationData": {"stationCode": 100}, "temperature": 15.0}]
+    expected = [
+        SFMSDaily(
+            code=100,
+            for_datetime=datetime(2025, 7, 16, 20, tzinfo=timezone.utc),
+            run_type=RunTypeEnum.forecast,
+            lat=49.0,
+            lon=-123.0,
+            elevation=100,
+            temperature=15.0,
+        )
+    ]
+
+    toi = datetime(2025, 7, 16, 20, 0, 0)
+    captured = _setup_sfms_daily_actuals(
+        monkeypatch,
+        wfwx_api,
+        raw_dailies=fake_raw_dailies,
+        mapper_result=expected,
+        mapper_name="sfms_daily_forecasts_mapper",
+    )
+
+    result = await wfwx_api.get_sfms_daily_forecasts_all_stations(toi)
+
+    assert result == expected
+    assert captured["headers"] == {"Authorization": "Bearer token123"}
+    assert captured["time_of_interest"] == toi
+    assert captured["mapper_raw_dailies"] is fake_raw_dailies
