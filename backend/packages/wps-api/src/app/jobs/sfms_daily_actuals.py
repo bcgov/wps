@@ -21,7 +21,7 @@ from wps_shared.db.database import get_async_read_session_scope, get_async_write
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.utils.time import get_utc_now
+from wps_shared.utils.time import assert_all_utc, get_utc_now
 from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
@@ -50,6 +50,7 @@ def is_fwi_interpolation_day(dt: datetime) -> bool:
 
 async def run_sfms_daily_actuals(target_date: datetime) -> None:
     """Run SFMS daily weather interpolation and FWI updates for the given date."""
+    assert_all_utc(target_date)
     logger.info("Starting SFMS daily actuals for %s", target_date.date())
 
     raster_addresser = SFMSNGRasterAddresser()

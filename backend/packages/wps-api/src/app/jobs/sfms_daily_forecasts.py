@@ -21,7 +21,7 @@ from wps_shared.db.database import get_async_read_session_scope, get_async_write
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.utils.time import get_utc_now
+from wps_shared.utils.time import assert_all_utc, get_utc_now
 from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
@@ -34,6 +34,7 @@ FORECAST_DAYS = 3
 
 def forecast_datetimes(target_date: datetime) -> list[datetime]:
     """Return the next three forecast dates normalized to 20:00 UTC."""
+    assert_all_utc(target_date)
     base_datetime = target_date.replace(hour=20, minute=0, second=0, microsecond=0)
     return [base_datetime + timedelta(days=day) for day in range(1, FORECAST_DAYS + 1)]
 

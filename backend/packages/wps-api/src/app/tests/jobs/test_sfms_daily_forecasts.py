@@ -3,7 +3,7 @@
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
 
@@ -150,6 +150,18 @@ def test_forecast_datetimes_processes_next_three_days():
         datetime(2024, 7, 6, 20, 0, tzinfo=timezone.utc),
         datetime(2024, 7, 7, 20, 0, tzinfo=timezone.utc),
     ]
+
+
+def test_forecast_datetimes_rejects_naive_datetime():
+    with pytest.raises(AssertionError, match="timezone-aware"):
+        forecast_datetimes(datetime(2024, 7, 4))
+
+
+def test_forecast_datetimes_rejects_non_utc_datetime():
+    target_date = datetime(2024, 7, 4, tzinfo=timezone(timedelta(hours=-7)))
+
+    with pytest.raises(AssertionError, match="not in UTC"):
+        forecast_datetimes(target_date)
 
 
 class TestRunSfmsDailyForecasts:

@@ -3,7 +3,7 @@
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
@@ -182,6 +182,24 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
 
 class TestRunSfmsDailyActuals:
     """Tests for run_sfms_daily_actuals."""
+
+    @pytest.mark.anyio
+    async def test_rejects_naive_target_date(self, mock_dependencies: MockDailyActualsDeps):
+        target_date = datetime(2024, 7, 4)
+
+        with pytest.raises(AssertionError, match="timezone-aware"):
+            await run_sfms_daily_actuals(target_date)
+
+        mock_dependencies.wfwx_api.get_sfms_daily_actuals_all_stations.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_rejects_non_utc_target_date(self, mock_dependencies: MockDailyActualsDeps):
+        target_date = datetime(2024, 7, 4, tzinfo=timezone(timedelta(hours=-7)))
+
+        with pytest.raises(AssertionError, match="not in UTC"):
+            await run_sfms_daily_actuals(target_date)
+
+        mock_dependencies.wfwx_api.get_sfms_daily_actuals_all_stations.assert_not_called()
 
     @pytest.mark.anyio
     async def test_runs_all_processors(self, mock_dependencies: MockDailyActualsDeps):
