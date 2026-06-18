@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { Dispatch, SetStateAction } from 'react'
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import LocationStep from '@/features/fireWatch/components/steps/LocationStep'
 import type { FireWatch } from '@/features/fireWatch/interfaces'
 import { getBlankFireWatch } from '@/features/fireWatch/utils'
