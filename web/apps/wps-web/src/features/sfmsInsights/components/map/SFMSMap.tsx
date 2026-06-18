@@ -48,7 +48,9 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   })
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [rasterError, setRasterError] = useState<RasterError | null>(null)
-  const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
+  // Initialized to a detached div so the type is non-nullable — React replaces it with the
+  // rendered element during commit, which always happens before effects fire.
+  const mapRef = useRef<HTMLDivElement>(document.createElement('div'))
   const rasterLayerManagerRef = useRef<LayerManager | null>(null)
   const snowLayerManagerRef = useRef<LayerManager | null>(null)
 
@@ -67,8 +69,6 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   }
 
   useEffect(() => {
-    if (!mapRef.current) return
-
     const mapObject = new OlMap({
       target: mapRef.current,
       layers: [],
