@@ -1,6 +1,7 @@
 import os
+from datetime import datetime, timezone
 
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.tests.conftest import (
     anyio_backend,
     mock_env,
@@ -20,12 +21,15 @@ from wps_shared.tests.conftest import (
     mock_wfwx_api,
 )
 
+SFMS_DAILY_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
+
 
 def create_mock_sfms_actuals():
     """Create mock SFMS daily actuals for testing."""
     return [
-        SFMSDailyActual(
+        SFMSDaily(
             code=100,
+            for_datetime=SFMS_DAILY_FOR_DATETIME,
             lat=49.0,
             lon=-123.0,
             elevation=100.0,
@@ -38,8 +42,9 @@ def create_mock_sfms_actuals():
             dmc=30.0,
             dc=200.0,
         ),
-        SFMSDailyActual(
+        SFMSDaily(
             code=101,
+            for_datetime=SFMS_DAILY_FOR_DATETIME,
             lat=49.5,
             lon=-123.5,
             elevation=200.0,
@@ -53,7 +58,6 @@ def create_mock_sfms_actuals():
             dc=180.0,
         ),
     ]
-
 
 
 def pytest_configure(config):
