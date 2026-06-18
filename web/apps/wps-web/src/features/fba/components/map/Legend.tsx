@@ -8,7 +8,7 @@ import {
 } from 'features/fba/components/map/featureStylers'
 import { isEqual } from 'lodash'
 import type React from 'react'
-import { hfiLayerName, zoneStatusLayerName } from '@/features/fba/components/map/FBAMap'
+import { hfiLayerName, zoneStatusLayerName } from '@/features/fba/components/map/layerDefinitions'
 
 const LegendGrid = styled(Grid)({
   display: 'flex',
