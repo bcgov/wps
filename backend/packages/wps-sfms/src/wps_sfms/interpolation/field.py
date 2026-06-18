@@ -4,7 +4,7 @@ from typing import List
 
 import numpy as np
 from numpy.typing import NDArray
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.schemas.sfms import SFMSDaily
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ LAPSE_RATE = 0.0065
 # Dew point lapse rate: 2.0°C per 1000m.
 DEW_POINT_LAPSE_RATE = 0.002
 
-_VALID_SFMS_ATTRIBUTES = frozenset(SFMSDailyActual.model_fields.keys())
+_VALID_SFMS_ATTRIBUTES = frozenset(SFMSDaily.model_fields.keys())
 
 
 @dataclass(frozen=True)
@@ -68,10 +68,10 @@ def compute_rh(temp: NDArray[np.float32], dewpoint: NDArray[np.float32]) -> NDAr
     return np.clip(rh, 0.0, 100.0).astype(np.float32)
 
 
-def build_attribute_field(actuals: List[SFMSDailyActual], attribute: str) -> ScalarField:
+def build_attribute_field(actuals: List[SFMSDaily], attribute: str) -> ScalarField:
     if attribute not in _VALID_SFMS_ATTRIBUTES:
         raise ValueError(
-            f"Unknown attribute {attribute!r} on SFMSDailyActual. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}"
+            f"Unknown attribute {attribute!r} on SFMSDaily. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}"
         )
 
     valid = [s for s in actuals if getattr(s, attribute) is not None]
@@ -82,35 +82,35 @@ def build_attribute_field(actuals: List[SFMSDailyActual], attribute: str) -> Sca
     )
 
 
-def build_temperature_field(actuals: List[SFMSDailyActual]) -> ScalarField:
+def build_temperature_field(actuals: List[SFMSDaily]) -> ScalarField:
     return _build_lapse_rate_field(actuals, "temperature", LAPSE_RATE, "temperature")
 
 
-def build_dewpoint_field(actuals: List[SFMSDailyActual]) -> ScalarField:
+def build_dewpoint_field(actuals: List[SFMSDaily]) -> ScalarField:
     return _build_lapse_rate_field(actuals, "dewpoint", DEW_POINT_LAPSE_RATE, "dew point")
 
 
-def build_precipitation_field(actuals: List[SFMSDailyActual]) -> ScalarField:
+def build_precipitation_field(actuals: List[SFMSDaily]) -> ScalarField:
     return build_attribute_field(actuals, "precipitation")
 
 
-def build_wind_speed_field(actuals: List[SFMSDailyActual]) -> ScalarField:
+def build_wind_speed_field(actuals: List[SFMSDaily]) -> ScalarField:
     return build_attribute_field(actuals, "wind_speed")
 
 
-def build_ffmc_field(actuals: List[SFMSDailyActual]) -> ScalarField:
+def build_ffmc_field(actuals: List[SFMSDaily]) -> ScalarField:
     return build_attribute_field(actuals, "ffmc")
 
 
-def build_dmc_field(actuals: List[SFMSDailyActual]) -> ScalarField:
+def build_dmc_field(actuals: List[SFMSDaily]) -> ScalarField:
     return build_attribute_field(actuals, "dmc")
 
 
-def build_dc_field(actuals: List[SFMSDailyActual]) -> ScalarField:
+def build_dc_field(actuals: List[SFMSDaily]) -> ScalarField:
     return build_attribute_field(actuals, "dc")
 
 
-def build_wind_vector_field(actuals: List[SFMSDailyActual]) -> WindVectorField:
+def build_wind_vector_field(actuals: List[SFMSDaily]) -> WindVectorField:
     valid = [s for s in actuals if s.wind_speed is not None and s.wind_direction is not None]
     if not valid:
         empty = np.array([], dtype=np.float32)
@@ -128,11 +128,11 @@ def build_wind_vector_field(actuals: List[SFMSDailyActual]) -> WindVectorField:
 
 
 def _build_lapse_rate_field(
-    actuals: List[SFMSDailyActual], attribute: str, lapse_rate: float, label: str
+    actuals: List[SFMSDaily], attribute: str, lapse_rate: float, label: str
 ) -> ScalarField:
     if attribute not in _VALID_SFMS_ATTRIBUTES:
         raise ValueError(
-            f"Unknown attribute {attribute!r} on SFMSDailyActual. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}"
+            f"Unknown attribute {attribute!r} on SFMSDaily. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}"
         )
     lats = np.array([a.lat for a in actuals], dtype=np.float32)
     lons = np.array([a.lon for a in actuals], dtype=np.float32)
