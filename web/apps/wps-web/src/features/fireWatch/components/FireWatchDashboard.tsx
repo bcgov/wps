@@ -142,10 +142,9 @@ const FireWatchDashboard = () => {
     }
   ]
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchBurnForecasts())
-  }, [])
+  }, [dispatch])
 
   const getDetailPanelContent = React.useCallback<NonNullable<DataGridProProps['getDetailPanelContent']>>(
     ({ row }) => <DetailPanelContent row={row} />,
