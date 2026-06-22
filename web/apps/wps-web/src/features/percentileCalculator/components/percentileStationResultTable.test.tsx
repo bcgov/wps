@@ -33,6 +33,18 @@ describe('PercentileStationResultTable snackbar', () => {
     expect(screen.getByText('Data only available for 3 of 10 years')).toBeInTheDocument()
   })
 
+  it('does not close the warning when the user clicks elsewhere (clickaway)', () => {
+    const years = [2022, 2023, 2024]
+    render(<PercentileStationResultTable stationResponse={makeStationResponse(years)} timeRange={10} />)
+
+    expect(screen.getByText('Data only available for 3 of 10 years')).toBeInTheDocument()
+
+    // Simulate a clickaway (e.g. clicking the Calculate button while the snackbar is open)
+    fireEvent.click(document.body)
+
+    expect(screen.getByText('Data only available for 3 of 10 years')).toBeInTheDocument()
+  })
+
   it('re-shows the warning after dismissal when timeRange increases beyond available data', () => {
     const years = [2022, 2023, 2024]
     const { rerender } = render(

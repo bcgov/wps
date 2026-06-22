@@ -21,9 +21,7 @@ export const PercentileStationResultTable: React.FunctionComponent<Props> = ({ s
   const [snackbarOpen, setSnackbarOpen] = useState(false)
 
   useEffect(() => {
-    if (years.length < timeRange) {
-      setSnackbarOpen(true)
-    }
+    setSnackbarOpen(years.length < timeRange)
   }, [years, timeRange])
 
   return (

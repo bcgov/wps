@@ -62,16 +62,30 @@ describe('PercentileCalculatorPage', () => {
   })
 
   it('fetches percentiles on mount when station codes are in the URL', async () => {
-    renderPage('?codes=101,202')
+    renderPage('?codes=101,202&timeRange=10')
 
     await waitFor(() => {
       expect(fetchPercentiles).toHaveBeenCalledOnce()
-      expect(fetchPercentiles).toHaveBeenCalledWith([101, 202], 90, expect.any(Object))
+      expect(fetchPercentiles).toHaveBeenCalledWith([101, 202], 90, {
+        start: MOCKED_CURRENT_YEAR - 9,
+        end: MOCKED_CURRENT_YEAR
+      })
     })
   })
 
-  it('does not fetch percentiles again when the time range slider changes', async () => {
+  it('falls back to the default time range for URLs without a timeRange param', async () => {
     renderPage('?codes=101')
+
+    await waitFor(() => {
+      expect(fetchPercentiles).toHaveBeenCalledWith([101], 90, {
+        start: MOCKED_CURRENT_YEAR - 9, // defaultTimeRange=10
+        end: MOCKED_CURRENT_YEAR
+      })
+    })
+  })
+
+  it('does not fetch when the time range slider changes without clicking Calculate', async () => {
+    renderPage('?codes=101&timeRange=10')
 
     await waitFor(() => {
       expect(fetchPercentiles).toHaveBeenCalledOnce()
@@ -79,27 +93,44 @@ describe('PercentileCalculatorPage', () => {
 
     fireEvent.click(screen.getByTestId('change-time-range'))
 
-    // Allow any potential re-renders to settle
     await new Promise(resolve => setTimeout(resolve, 50))
 
     expect(fetchPercentiles).toHaveBeenCalledOnce()
   })
 
-  it('uses the slider yearRange at the time Calculate is clicked, not the default', async () => {
+  it('fetches with the slider yearRange when Calculate is clicked', async () => {
     renderPage()
 
-    // Change slider to timeRange=5 before selecting any station
-    fireEvent.click(screen.getByTestId('change-time-range'))
-
-    // Select a station to enable Calculate
     fireEvent.click(screen.getByTestId('select-station'))
+    fireEvent.click(screen.getByTestId('change-time-range')) // timeRange → 5
 
-    // Click Calculate — this navigates to ?codes=101
     fireEvent.click(screen.getByText('Calculate'))
 
     await waitFor(() => {
       expect(fetchPercentiles).toHaveBeenCalledWith([101], 90, {
-        start: MOCKED_CURRENT_YEAR - 4, // timeRange=5 → start = 2024 - (5-1)
+        start: MOCKED_CURRENT_YEAR - 4, // timeRange=5
+        end: MOCKED_CURRENT_YEAR
+      })
+    })
+  })
+
+  it('re-fetches with the updated yearRange when Calculate is clicked again', async () => {
+    renderPage('?codes=101&timeRange=10')
+
+    await waitFor(() => {
+      expect(fetchPercentiles).toHaveBeenCalledOnce()
+    })
+
+    fireEvent.click(screen.getByTestId('change-time-range')) // local timeRange → 5, no fetch yet
+    await new Promise(resolve => setTimeout(resolve, 50))
+    expect(fetchPercentiles).toHaveBeenCalledOnce()
+
+    fireEvent.click(screen.getByText('Calculate'))
+
+    await waitFor(() => {
+      expect(fetchPercentiles).toHaveBeenCalledTimes(2)
+      expect(fetchPercentiles).toHaveBeenLastCalledWith([101], 90, {
+        start: MOCKED_CURRENT_YEAR - 4, // timeRange=5
         end: MOCKED_CURRENT_YEAR
       })
     })
