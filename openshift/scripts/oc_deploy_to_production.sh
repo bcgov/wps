@@ -75,9 +75,9 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_calculations_c
 echo SFMS Daily Actuals
 PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_sfms_daily_actuals_cronjob.sh prod ${RUN_TYPE}
 echo SFMS Forecast 15:00 UTC- 8:00 AM PDT
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi SCHEDULE="0 15 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod-8am ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=8am SCHEDULE="0 15 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod ${RUN_TYPE}
 echo SFMS Forecast 00:45 UTC - 5:45 PM PDT
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi SCHEDULE="45 0 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod-545pm ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=545pm SCHEDULE="45 0 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod ${RUN_TYPE}
 echo Fire Watch Weather Calculations
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_fire_watch_weather_cronjob.sh prod ${RUN_TYPE}
 echo BC FireWeather cronjobs

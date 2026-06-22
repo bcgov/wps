@@ -2,7 +2,7 @@
   "name": "@wps/wps-web",
   "version": "0.1.0",
   "engines": {
-    "node": ">=20",
+    "node": ">=24",
     "npm": ">=10.7.0"
   },
   "type": "module",
