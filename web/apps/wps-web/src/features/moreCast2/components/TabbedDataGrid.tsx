@@ -36,7 +36,7 @@ import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'feat
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
 import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AppDispatch } from '@/app/store'
 import MorecastAboutDataContent from '@/features/moreCast2/components/MorecastAboutDataContent'
@@ -50,6 +50,61 @@ export interface ColumnClickHandlerProps {
   } | null
   updateColumnWithModel: (modelType: ModelType, colDef: GridColDef) => void
   handleClose: () => void
+}
+
+const saveShowHideColumnsModelToLocalStorage = (model: Record<string, ColumnVis[]>) => {
+  const modelAsString = JSON.stringify(model)
+  window.localStorage.setItem(SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY, modelAsString)
+}
+
+const getColumnDisplayName = (name: string) => {
+  if (name.endsWith('_BIAS')) {
+    const index = name.indexOf('_BIAS')
+    return `${name.slice(0, index)} bias`
+  }
+  return name
+}
+
+const groupByWeatherParam = (ungroupedState: ColumnVis[]) => {
+  const grouper = (item: ColumnVis) => {
+    const field = item.columnName
+    if (field.startsWith('temp')) {
+      return 'temp'
+    }
+    if (field.startsWith('rh')) {
+      return 'rh'
+    }
+    if (field.startsWith('precip')) {
+      return 'precip'
+    }
+    if (field.startsWith('windDirection')) {
+      return 'windDirection'
+    }
+    if (field.startsWith('windSpeed')) {
+      return 'windSpeed'
+    }
+  }
+  const groupedState = groupBy(ungroupedState, grouper)
+  return groupedState
+}
+
+const getVisibleColumnsByWeatherParam = (
+  weatherParam: string,
+  visible: boolean,
+  columnVisibilityModel: GridColumnVisibilityModel,
+  showHideColumnsModel: Record<string, ColumnVis[]>
+) => {
+  const updatedColumnVisibilityModel = DataGridColumns.updateGridColumnVisibilityModel(
+    [{ columnName: weatherParam, visible: visible }],
+    columnVisibilityModel
+  )
+  if (visible) {
+    const showHideColumns = showHideColumnsModel[weatherParam] || []
+    for (const column of showHideColumns) {
+      updatedColumnVisibilityModel[column.columnName] = column.visible
+    }
+  }
+  return updatedColumnVisibilityModel
 }
 
 export const Root = styled('div')({
@@ -153,37 +208,6 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     }
   }
 
-  const groupByWeatherParam = (ungroupedState: ColumnVis[]) => {
-    const grouper = (item: ColumnVis) => {
-      const field = item.columnName
-      if (field.startsWith('temp')) {
-        return 'temp'
-      }
-      if (field.startsWith('rh')) {
-        return 'rh'
-      }
-      if (field.startsWith('precip')) {
-        return 'precip'
-      }
-      if (field.startsWith('windDirection')) {
-        return 'windDirection'
-      }
-      if (field.startsWith('windSpeed')) {
-        return 'windSpeed'
-      }
-    }
-    const groupedState = groupBy(ungroupedState, grouper)
-    return groupedState
-  }
-
-  const getColumnDisplayName = (name: string) => {
-    if (name.endsWith('_BIAS')) {
-      const index = name.indexOf('_BIAS')
-      return `${name.slice(0, index)} bias`
-    }
-    return name
-  }
-
   // Gets the previously stored set of weather model columns for each weather paramter (aka tab).
   const getShowHideColumnsModelFromLocalStorage = () => {
     const modelAsString = window.localStorage.getItem(SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY)
@@ -218,73 +242,47 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     initShowHideColumnsModel()
   )
 
-  // Given an array of weather parameters (aka tabs) return a GridColumnVisibilityModel object that
-  // contains all weather model columns that are visible for each weather parameter.
-  const getVisibleColumns = (weatherParams: string[]) => {
+  const showHideColumnsModelRef = useRef(showHideColumnsModel)
+  showHideColumnsModelRef.current = showHideColumnsModel
+  const tabVisRef = useRef({ tempVisible, rhVisible, precipVisible, windDirectionVisible, windSpeedVisible })
+  tabVisRef.current = { tempVisible, rhVisible, precipVisible, windDirectionVisible, windSpeedVisible }
+
+  const handleShowHideChange: handleShowHideChangeType = useCallback((
+    weatherParam: keyof MoreCastParams,
+    columnName: string,
+    value: boolean
+  ) => {
+    setShowHideColumnsModel(prev => {
+      const newModel = cloneDeep(prev)
+      const changedColumn = newModel[weatherParam].filter(column => column.columnName === columnName)[0]
+      changedColumn.visible = value
+      saveShowHideColumnsModelToLocalStorage(newModel)
+      return newModel
+    })
+  }, [])
+
+  useEffect(() => {
+    const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange)
+    setColumnGroupingModel(colGroupingModel)
+  }, [showHideColumnsModel, handleShowHideChange])
+
+  useEffect(() => {
+    const { tempVisible, rhVisible, precipVisible, windDirectionVisible, windSpeedVisible } = tabVisRef.current
+    const visibleTabs: string[] = []
+    tempVisible && visibleTabs.push('temp')
+    rhVisible && visibleTabs.push('rh')
+    precipVisible && visibleTabs.push('precip')
+    windDirectionVisible && visibleTabs.push('windDirection')
+    windSpeedVisible && visibleTabs.push('windSpeed')
     const visibleColumns: GridColumnVisibilityModel = {}
-    for (const param of weatherParams) {
+    for (const param of visibleTabs) {
       if (param in showHideColumnsModel) {
         for (const column of showHideColumnsModel[param]) {
           visibleColumns[column.columnName] = column.visible
         }
       }
     }
-    return visibleColumns
-  }
-
-  const getVisibleColumnsByWeatherParam = (weatherParam: string, visible: boolean) => {
-    const updatedColumnVisibilityModel = DataGridColumns.updateGridColumnVisibilityModel(
-      [{ columnName: weatherParam, visible: visible }],
-      columnVisibilityModel
-    )
-    if (visible) {
-      const showHideColumns = showHideColumnsModel[weatherParam] || []
-      for (const column of showHideColumns) {
-        updatedColumnVisibilityModel[column.columnName] = column.visible
-      }
-    }
-    return updatedColumnVisibilityModel
-  }
-
-  // Save the current set of weather model columns for each weather parameter (aka tab) as selected
-  // by the user.
-  const saveShowHideColumnsModelToLocalStorage = (model: Record<string, ColumnVis[]>) => {
-    const modelAsString = JSON.stringify(model)
-    window.localStorage.setItem(SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY, modelAsString)
-  }
-
-  // Return an array of strings representing which weather parameters (aka tabs) are currently visible.
-  const getVisibleTabs = () => {
-    const visibleTabs = []
-    tempVisible && visibleTabs.push('temp')
-    rhVisible && visibleTabs.push('rh')
-    precipVisible && visibleTabs.push('precip')
-    windDirectionVisible && visibleTabs.push('windDirection')
-    windSpeedVisible && visibleTabs.push('windSpeed')
-    return visibleTabs
-  }
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — init on mount only
-  useEffect(() => {
-    const initialShowHideColumnsModel = initShowHideColumnsModel()
-    setShowHideColumnsModel(initialShowHideColumnsModel)
-  }, [])
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — handleShowHideChange is stable
-  useEffect(() => {
-    const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange)
-    setColumnGroupingModel(colGroupingModel)
-  }, [showHideColumnsModel])
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleTabs/getVisibleColumns close over state correctly
-  useEffect(() => {
-    const visibleTabs = getVisibleTabs()
-    const visibleColumns = getVisibleColumns(visibleTabs)
-    const newColumnVisibilityModel = {
-      ...columnVisibilityModel,
-      ...visibleColumns
-    }
-    setColumnVisibilityModel(newColumnVisibilityModel)
+    setColumnVisibilityModel(prev => ({ ...prev, ...visibleColumns }))
   }, [showHideColumnsModel])
 
   useEffect(() => {
@@ -304,47 +302,34 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   /********** Start useEffects for managing visibility of column groups *************/
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     tempVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('temp', tempVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
+    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('temp', tempVisible, prev, showHideColumnsModelRef.current))
   }, [tempVisible])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     rhVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('rh', rhVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
+    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('rh', rhVisible, prev, showHideColumnsModelRef.current))
   }, [rhVisible])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     precipVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('precip', precipVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
+    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('precip', precipVisible, prev, showHideColumnsModelRef.current))
   }, [precipVisible])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     windDirectionVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('windDirection', windDirectionVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
+    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('windDirection', windDirectionVisible, prev, showHideColumnsModelRef.current))
   }, [windDirectionVisible])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
-    setForecastSummaryVisible(false)
     windSpeedVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('windSpeed', windSpeedVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
+    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('windSpeed', windSpeedVisible, prev, showHideColumnsModelRef.current))
   }, [windSpeedVisible])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getVisibleColumnsByWeatherParam is stable
   useEffect(() => {
     grassCuringVisible && setForecastSummaryVisible(false)
-    const updatedColumnVisibilityModel = getVisibleColumnsByWeatherParam('grassCuring', grassCuringVisible)
-    setColumnVisibilityModel(updatedColumnVisibilityModel)
+    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('grassCuring', grassCuringVisible, prev, showHideColumnsModelRef.current))
   }, [grassCuringVisible])
 
   useEffect(() => {
@@ -499,18 +484,6 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   // Checks if the displayed rows includes non-Actual rows
   const hasForecastRow = () => {
     return visibleRows.filter(isForecastRowPredicate).length > 0
-  }
-
-  const handleShowHideChange: handleShowHideChangeType = (
-    weatherParam: keyof MoreCastParams,
-    columnName: string,
-    value: boolean
-  ) => {
-    const newModel = cloneDeep(showHideColumnsModel)
-    const changedColumn = newModel[weatherParam].filter(column => column.columnName === columnName)[0]
-    changedColumn.visible = value
-    saveShowHideColumnsModelToLocalStorage(newModel)
-    setShowHideColumnsModel(newModel)
   }
 
   // Handler passed to our datagrids that runs after a row is updated.
