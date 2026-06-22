@@ -12,7 +12,7 @@ import VectorLayer from 'ol/layer/Vector.js'
 import { fromLonLat, toLonLat } from 'ol/proj'
 import VectorSource from 'ol/source/Vector.js'
 import { Icon, Style } from 'ol/style'
-import React, { type SetStateAction, useEffect, useRef, useState } from 'react'
+import React, { type SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
 import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
 import type { FireWatch } from '@/features/fireWatch/interfaces'
 
@@ -41,16 +41,22 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
   const [lonInput, setLonInput] = useState(isValidGeometry ? toLonLat(fireWatch.geometry)[0].toFixed(6) : '')
   const [editingField, setEditingField] = useState<'lat' | 'lon' | null>(null)
 
+  const handleFormUpdate = useCallback(
+    (partialFireWatch: Partial<FireWatch>) => {
+      setFireWatch(prev => ({ ...prev, ...partialFireWatch }))
+    },
+    [setFireWatch]
+  )
+
   // Clear all interactions in order to remove the Translate interaction
   // and restore the original interactions in the correct order.
-  const resetMapInteractions = () => {
+  const resetMapInteractions = useCallback(() => {
     map?.getInteractions().clear()
     defaultInteractions({}).forEach(interaction => {
       map?.addInteraction(interaction)
     })
-  }
+  }, [map])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when marker changes
   useEffect(() => {
     // Clear and update the feature source so the newly created feature renders on the map.
     featureSource.clear()
@@ -65,9 +71,8 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
       handleFormUpdate({ geometry: evt.coordinate })
     })
     map?.addInteraction(newTranslate)
-  }, [marker])
+  }, [marker, featureSource, resetMapInteractions, handleFormUpdate, map])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once
   useEffect(() => {
     if (!mapRef.current) {
       return
@@ -100,12 +105,14 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
     return () => {
       mapObject.setTarget('')
     }
-  }, [])
+  }, [featureSource])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when map instance changes
   useEffect(() => {
     // Click handler to allow user to click on map to place a marker.
     const handleMapClick = (evt: MapBrowserEvent<UIEvent>) => {
+      const [lon, lat] = toLonLat(evt.coordinate)
+      setLatInput(lat.toFixed(6))
+      setLonInput(lon.toFixed(6))
       handleFormUpdate({ geometry: evt.coordinate })
       const newFeature = new Feature({
         geometry: new Point(evt.coordinate)
@@ -113,25 +120,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
       setMarker([newFeature])
     }
     map?.on('singleclick', evt => handleMapClick(evt))
-
-    // Allow dragging of the marker.
-    const translate = new Translate({
-      features: new Collection(marker)
-    })
-    translate.on('translateend', evt => {
-      handleFormUpdate({ geometry: evt.coordinate })
-    })
-    map?.addInteraction(translate)
-  }, [map])
-
-  // sync textfields with marker coords
-  useEffect(() => {
-    if (marker.length && marker[0].getGeometry()) {
-      const [lon, lat] = toLonLat((marker[0].getGeometry() as Point).getCoordinates())
-      setLatInput(lat.toFixed(6))
-      setLonInput(lon.toFixed(6))
-    }
-  }, [marker])
+  }, [map, handleFormUpdate])
 
   // when user finishes editing both fields, update marker
   const updateMarkerFromInputs = () => {
@@ -140,18 +129,15 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
       handleFormUpdate({ geometry: undefined })
       return
     }
-    const lat = parseFloat(latInput)
-    const lon = parseFloat(lonInput)
+    const lat = Number.parseFloat(latInput)
+    const lon = Number.parseFloat(lonInput)
     if (!Number.isNaN(lat) && !Number.isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
       const coords = fromLonLat([lon, lat])
+      setLatInput(lat.toFixed(6))
+      setLonInput(lon.toFixed(6))
       setMarker([new Feature({ geometry: new Point(coords) })])
       handleFormUpdate({ geometry: coords })
     }
-  }
-
-  const handleFormUpdate = (partialFireWatch: Partial<FireWatch>) => {
-    const newFireWatch = { ...fireWatch, ...partialFireWatch }
-    setFireWatch(newFireWatch)
   }
 
   return (
