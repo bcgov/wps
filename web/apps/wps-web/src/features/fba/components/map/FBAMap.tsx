@@ -81,7 +81,7 @@ const FBAMap = (props: FBAMapProps) => {
   const provincialSummaryZones = useSelector(selectProvincialSummaryZones)
   const { mostRecentRunDate } = useSelector(selectRunDates)
 
-  // local state
+  // state
   const [showShapeStatus, setShowShapeStatus] = useState(true)
   const [showHFI, setShowHFI] = useState(() => {
     const stored = localStorage.getItem(hfiLayerName)
