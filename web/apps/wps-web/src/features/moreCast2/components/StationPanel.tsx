@@ -99,9 +99,10 @@ const StationPanel = (props: StationPanelProps) => {
     dispatch(selectedStationsChanged(updatedSelectedStations))
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: selectedStationGroup triggers the reset but isn't read in the body
   useEffect(() => {
-    setSelectAll(false)
+    if (selectedStationGroup) {
+      setSelectAll(false)
+    }
   }, [selectedStationGroup])
 
   return (
