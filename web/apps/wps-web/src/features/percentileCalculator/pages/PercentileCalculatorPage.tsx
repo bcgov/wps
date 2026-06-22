@@ -3,7 +3,7 @@ import { Container } from '@wps/ui/Container'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { PERCENTILE_CALC_DOC_TITLE, PERCENTILE_CALC_NAME } from '@wps/utils/constants'
-import { getStationCodesFromUrl, stationCodeQueryKey } from '@wps/utils/url'
+import { getStationCodesFromUrl, getTimeRangeFromUrl, stationCodeQueryKey, timeRangeQueryKey } from '@wps/utils/url'
 import type { AppDispatch } from 'app/store'
 import { PercentileActionButtons } from 'features/percentileCalculator/components/PercentileActionButtons'
 import PercentileResults from 'features/percentileCalculator/components/PercentileResults'
@@ -12,7 +12,7 @@ import { TimeRangeSlider, yearWhenTheCalculationIsDone } from 'features/percenti
 import WxStationDropdown from 'features/percentileCalculator/components/WxStationDropdown'
 import { fetchPercentiles, resetPercentilesResult } from 'features/percentileCalculator/slices/percentilesSlice'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -24,42 +24,42 @@ const PercentileCalculatorPage = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const codesFromQuery = getStationCodesFromUrl(location.search)
-  const [stationCodes, setStationCodes] = useState<number[]>(codesFromQuery)
-  const [timeRange, setTimeRange] = useState<number>(defaultTimeRange)
-  const yearRange = {
-    start: yearWhenTheCalculationIsDone - (timeRange - 1),
-    end: yearWhenTheCalculationIsDone
-  }
+  // URL is the source of truth for what has been calculated.
+  const codesFromQuery = useMemo(() => getStationCodesFromUrl(location.search), [location.search])
+  const timeRangeFromQuery = useMemo(() => getTimeRangeFromUrl(location.search) ?? defaultTimeRange, [location.search])
+  const yearRange = useMemo(
+    () => ({
+      start: yearWhenTheCalculationIsDone - (timeRangeFromQuery - 1),
+      end: yearWhenTheCalculationIsDone
+    }),
+    [timeRangeFromQuery]
+  )
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
+  // Local form state — not committed to the URL until Calculate is clicked.
+  const [stationCodes, setStationCodes] = useState(codesFromQuery)
+  const [timeRange, setTimeRange] = useState(timeRangeFromQuery)
+
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.unspecified))
-  }, [])
+  }, [dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     if (codesFromQuery.length > 0) {
       dispatch(fetchPercentiles(codesFromQuery, defaultPercentile, yearRange))
     } else {
       dispatch(resetPercentilesResult())
     }
-
-    // Update local state to match with the url query
-    setStationCodes(codesFromQuery)
-  }, [location])
+  }, [codesFromQuery, dispatch, yearRange])
 
   const onCalculateClick = () => {
-    // Update the url query with the new station codes
-    navigate({ search: `${stationCodeQueryKey}=${stationCodes.join(',')}` })
+    navigate({ search: `${stationCodeQueryKey}=${stationCodes.join(',')}&${timeRangeQueryKey}=${timeRange}` })
   }
 
   const onResetClick = () => {
-    navigate({ search: undefined })
+    setStationCodes([])
     setTimeRange(defaultTimeRange)
+    navigate({ search: undefined })
   }
-
-  const shouldCalcBtnDisabled = stationCodes.length === 0
 
   useEffect(() => {
     document.title = PERCENTILE_CALC_DOC_TITLE
@@ -76,13 +76,13 @@ const PercentileCalculatorPage = () => {
         <PercentileTextfield />
 
         <PercentileActionButtons
-          calcDisabled={shouldCalcBtnDisabled}
+          calcDisabled={stationCodes.length === 0}
           onCalculateClick={onCalculateClick}
           onResetClick={onResetClick}
         />
 
         <ErrorBoundary>
-          <PercentileResults timeRange={timeRange} />
+          <PercentileResults timeRange={timeRangeFromQuery} />
         </ErrorBoundary>
       </Container>
     </main>
