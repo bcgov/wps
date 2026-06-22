@@ -28,19 +28,20 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 # Schedule: 15:00 UTC (8:00 AM PDT)
 SCHEDULE="${SCHEDULE:-0 15 * * *}"
 
-# Strip time-of-day variant (e.g. pr-5331-8am -> pr-5331) so APP_LABEL matches
-# the label used by oc_cleanup.sh, which selects by the base PR suffix.
-BASE_SUFFIX="${SUFFIX%-*}"
+# Optional suffix to distinguish multiple forecast schedules for the same deployment.
+JOB_SUFFIX="${JOB_SUFFIX:-}"
+JOB_NAME_SUFFIX="${SUFFIX}${JOB_SUFFIX:+-${JOB_SUFFIX}}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/sfms_daily_forecasts.cronjob.yaml \
--p JOB_NAME=sfms-forecast-${APP_NAME}-${SUFFIX} \
--p APP_LABEL=${APP_NAME}-${BASE_SUFFIX} \
+-p JOB_NAME=sfms-forecast-${APP_NAME}-${JOB_NAME_SUFFIX} \
+-p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \
 -p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \
 -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
+-p PROJECT_NAMESPACE=${PROJ_TARGET} \
 ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
 ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \

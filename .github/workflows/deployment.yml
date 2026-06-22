@@ -176,9 +176,9 @@ jobs:
           bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
           MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi bash openshift/scripts/oc_provision_sfms_daily_actuals_cronjob.sh ${SUFFIX} apply
           # 15:00 UTC (8:00 AM PDT)
-          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi SCHEDULE="0 15 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX}-8am apply
+          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi JOB_SUFFIX=8am SCHEDULE="0 15 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} apply
           # 00:45 UTC (5:45 PM PDT)
-          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi SCHEDULE="45 0 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX}-545pm apply
+          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi JOB_SUFFIX=545pm SCHEDULE="45 0 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} apply
           SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
           END_HOUR=48 STEP=6 MODEL=GDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
           END_HOUR=15 STEP=3 MODEL=RDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
