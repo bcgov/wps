@@ -2,7 +2,7 @@
   "name": "@wps/wps-web",
   "version": "0.1.0",
   "engines": {
-    "node": ">=20",
+    "node": ">=24",
     "npm": ">=10.7.0"
   },
   "type": "module",
@@ -78,8 +78,8 @@
     "clean": "rm -rf build coverage .turbo"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.0",
+    "@babel/core": "^8.0.0",
+    "@babel/preset-env": "^8.0.0",
     "@playwright/test": "^1.59.1",
     "@testing-library/dom": "^10.1.0",
     "@testing-library/jest-dom": "^6.4.2",
