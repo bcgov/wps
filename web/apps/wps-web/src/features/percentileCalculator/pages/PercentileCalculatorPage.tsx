@@ -26,10 +26,7 @@ const PercentileCalculatorPage = () => {
 
   // URL is the source of truth for what has been calculated.
   const codesFromQuery = useMemo(() => getStationCodesFromUrl(location.search), [location.search])
-  const timeRangeFromQuery = useMemo(
-    () => getTimeRangeFromUrl(location.search) ?? defaultTimeRange,
-    [location.search]
-  )
+  const timeRangeFromQuery = useMemo(() => getTimeRangeFromUrl(location.search) ?? defaultTimeRange, [location.search])
   const yearRange = useMemo(
     () => ({
       start: yearWhenTheCalculationIsDone - (timeRangeFromQuery - 1),
