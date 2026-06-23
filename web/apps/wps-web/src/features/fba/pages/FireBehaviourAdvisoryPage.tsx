@@ -22,7 +22,7 @@ import { fetchSFMSBounds, fetchSFMSRunDates } from 'features/fba/slices/runDates
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { isEmpty, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
 import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
@@ -33,6 +33,8 @@ export const FireCentreFormControl = styled(FormControl)({
   margin: theme.spacing(1),
   minWidth: 280
 })
+
+const dateTimeComparator = (a: DateTime, b: DateTime) => a.valueOf() - b.valueOf()
 
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
@@ -61,11 +63,9 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     DateTime.fromObject({ year: DateTime.now().year, month: 4, day: 1 })
   )
   const [currentYearMaxDate, setCurrentYearMaxDate] = useState<DateTime>(DateTime.now().plus({ days: 3 }))
-  const [currentYear, setCurrentYear] = useState<number>(DateTime.now().year)
+  const dateOfInterestYear = dateOfInterest.year
 
-  const dateTimeComparator = (a: DateTime, b: DateTime) => a.valueOf() - b.valueOf()
-
-  const updateDatePickerOptions = () => {
+  const updateDatePickerOptions = useCallback(() => {
     const dates: DateTime[] = []
     const runTypeLower = runType.toLocaleLowerCase()
     if (!isNull(sfmsBounds) && !isEmpty(sfmsBounds)) {
@@ -84,15 +84,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         setHistoricalMaxDate(dates[dates.length - 1].plus({ days: 1 }))
       }
     }
-    const year = dateOfInterest.year
-    const currentYearMin = sfmsBounds?.[year]?.[runTypeLower]?.minimum ?? `${currentYear}-04-01`
-    const currentYearMax = sfmsBounds?.[year]?.[runTypeLower]?.maximum ?? `${currentYear}-10-31`
+    const currentYearMin = sfmsBounds?.[dateOfInterestYear]?.[runTypeLower]?.minimum ?? `${dateOfInterestYear}-04-01`
+    const currentYearMax = sfmsBounds?.[dateOfInterestYear]?.[runTypeLower]?.maximum ?? `${dateOfInterestYear}-10-31`
     setCurrentYearMinDate(DateTime.fromISO(currentYearMin))
     setCurrentYearMaxDate(DateTime.fromISO(currentYearMax))
-  }
+  }, [dateOfInterestYear, runType, sfmsBounds])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — updateDatePickerOptions closes over state correctly
-  useEffect(() => updateDatePickerOptions(), [currentYear, runType, sfmsBounds])
+  useEffect(() => updateDatePickerOptions(), [updateDatePickerOptions])
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCentre | undefined => {
@@ -123,37 +121,19 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     }
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
     }
-  }, [runType])
+  }, [dateOfInterest, dispatch, runType])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchFireCentres())
-    const doiISODate = dateOfInterest.toISODate()
-    if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunDates(runType, doiISODate))
-    }
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchSFMSBounds())
-  }, [])
+  }, [dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when date of interest changes
-  useEffect(() => {
-    const doiISODate = dateOfInterest.toISODate()
-    if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunDates(runType, doiISODate))
-    }
-    if (dateOfInterest.year !== currentYear) {
-      setCurrentYear(dateOfInterest.year)
-    }
-  }, [dateOfInterest])
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when fire centre or run date changes
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (
@@ -166,15 +146,14 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       dispatch(fetchFireCentreTPIStats(fireCentre.name, runType, doiISODate, mostRecentRunDate.toString()))
       dispatch(fetchFireCentreHFIFuelStats(fireCentre.name, runType, doiISODate, mostRecentRunDate.toString()))
     }
-  }, [fireCentre, mostRecentRunDate])
+  }, [dateOfInterest, dispatch, fireCentre, mostRecentRunDate, runType])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when most recent run date changes
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate))
     }
-  }, [mostRecentRunDate])
+  }, [dateOfInterest, dispatch, mostRecentRunDate, runType])
 
   useEffect(() => {
     document.title = ASA_DOC_TITLE
