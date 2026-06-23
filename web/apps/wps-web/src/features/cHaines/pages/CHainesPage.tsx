@@ -1,6 +1,6 @@
 import { styled } from '@mui/material/styles'
 import { selectCHainesModelRuns } from 'app/rootReducer'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
@@ -91,6 +91,27 @@ const Root = styled('main')({
   }
 })
 
+const createLayer = (data: FeatureCollection) => {
+  const defaults = {
+    fillOpacity: 0.5,
+    weight: 2
+  }
+  return L.geoJSON(data, {
+    style: feature => {
+      switch (feature?.properties.c_haines_index) {
+        case '4-8':
+          return { ...defaults, color: '#ffff00' }
+        case '8-11':
+          return { ...defaults, color: '#FFA500' }
+        case '>11':
+          return { ...defaults, color: '#ff0000' }
+        default:
+          return {}
+      }
+    }
+  })
+}
+
 // interface CHainesPageProps
 
 const CHainesPage = () => {
@@ -123,54 +144,131 @@ const CHainesPage = () => {
     selected_model_abbreviation
   } = useSelector(selectCHainesModelRuns)
 
-  const loadModelPrediction = (
-    model_abbreviation: string,
-    model_run_timestamp: string,
-    prediction_timestamp: string
-  ) => {
-    dispatch(updateSelectedPrediction(prediction_timestamp))
-    if (isLoaded(model_abbreviation, model_run_timestamp, prediction_timestamp)) {
-      showLayer(model_abbreviation, model_run_timestamp, prediction_timestamp)
-      // if it's already loaded, we can just show it
-    } else {
-      // fetch the data
-      dispatch(fetchCHainesGeoJSON(model_abbreviation, model_run_timestamp, prediction_timestamp))
+  // Refs for mutable Redux/component state read inside effects or stable callbacks
+  const selectedDatetimeRef = useRef(selectedDatetime)
+  selectedDatetimeRef.current = selectedDatetime
+  const model_runsRef = useRef(model_runs)
+  model_runsRef.current = model_runs
+  const model_run_predictionsRef = useRef(model_run_predictions)
+  model_run_predictionsRef.current = model_run_predictions
+  const selected_prediction_timestampRef = useRef(selected_prediction_timestamp)
+  selected_prediction_timestampRef.current = selected_prediction_timestamp
+  const selected_model_run_timestampRef = useRef(selected_model_run_timestamp)
+  selected_model_run_timestampRef.current = selected_model_run_timestamp
+  const selected_model_abbreviationRef = useRef(selected_model_abbreviation)
+  selected_model_abbreviationRef.current = selected_model_abbreviation
+  const animationIntervalRef = useRef(animationInterval)
+  animationIntervalRef.current = animationInterval
+
+  const isLoaded = useCallback(
+    (model_abbreviation: string, model_run_timestamp: string, prediction_timestamp: string) => {
+      const mrp = model_run_predictionsRef.current
+      return (
+        model_abbreviation in mrp &&
+        model_run_timestamp in mrp[model_abbreviation] &&
+        prediction_timestamp in mrp[model_abbreviation][model_run_timestamp]
+      )
+    },
+    []
+  )
+
+  const getLayer = useCallback((model: string, model_timestamp: string, prediction_timestamp: string) => {
+    const mrp = model_run_predictionsRef.current
+    const layerKey = `${model}-${model_timestamp}-${prediction_timestamp}`
+    if (layerKey in layersRef.current) {
+      return layersRef.current[layerKey]
     }
-  }
-
-  const isLoaded = (model_abbreviation: string, model_run_timestamp: string, prediction_timestamp: string) => {
-    return (
-      model_abbreviation in model_run_predictions &&
-      model_run_timestamp in model_run_predictions[model_abbreviation] &&
-      prediction_timestamp in model_run_predictions[model_abbreviation][model_run_timestamp]
-    )
-  }
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
-  useEffect(() => {
-    dispatch(fetchModelRuns(selectedDatetime))
+    const data = mrp[model][model_timestamp][prediction_timestamp]
+    const geoJsonLayer = createLayer(data)
+    layersRef.current[layerKey] = geoJsonLayer
+    return geoJsonLayer
   }, [])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when model runs list changes
-  useEffect(() => {
-    if (selected_prediction_timestamp && selected_model_run_timestamp && model_runs.length > 0) {
-      loadModelPrediction(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)
-    }
-  }, [model_runs])
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when predictions map changes
-  useEffect(() => {
-    if (selected_model_abbreviation in model_run_predictions) {
-      if (selected_model_run_timestamp in model_run_predictions[selected_model_abbreviation]) {
-        if (
-          selected_prediction_timestamp in
-          model_run_predictions[selected_model_abbreviation][selected_model_run_timestamp]
-        ) {
-          showLayer(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)
+  const showLayer = useCallback(
+    (model: string, model_run_timestamp: string, prediction_timestamp: string) => {
+      try {
+        const geoJsonLayer = getLayer(model, model_run_timestamp, prediction_timestamp)
+        if (mapRef.current) {
+          if (currentLayersRef.current) {
+            mapRef.current.removeLayer(currentLayersRef.current)
+            currentLayersRef.current = null
+          }
+          geoJsonLayer.addTo(mapRef.current)
+          currentLayersRef.current = geoJsonLayer
         }
+      } catch (exception) {
+        // For some reason, the API sometimes returns geojson data with no features (maybe they're in the
+        // process of being inserted?)
+        logError(exception)
       }
+    },
+    [getLayer]
+  )
+
+  const loadModelPrediction = useCallback(
+    (model_abbreviation: string, model_run_timestamp: string, prediction_timestamp: string) => {
+      dispatch(updateSelectedPrediction(prediction_timestamp))
+      if (isLoaded(model_abbreviation, model_run_timestamp, prediction_timestamp)) {
+        showLayer(model_abbreviation, model_run_timestamp, prediction_timestamp)
+      } else {
+        dispatch(fetchCHainesGeoJSON(model_abbreviation, model_run_timestamp, prediction_timestamp))
+      }
+    },
+    [dispatch, isLoaded, showLayer]
+  )
+
+  const loadNextPrediction = useCallback(() => {
+    const model_runs = model_runsRef.current
+    const model_run_timestamp = selected_model_run_timestampRef.current
+    const model_abbreviation = selected_model_abbreviationRef.current
+    const prediction_timestamp = selected_prediction_timestampRef.current
+    const model_run = model_runs.find(
+      instance => instance.model_run_timestamp === model_run_timestamp && instance.model.abbrev === model_abbreviation
+    )
+    if (model_run) {
+      const index = model_run.prediction_timestamps.indexOf(prediction_timestamp)
+      const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
+      loadModelPrediction(model_abbreviation, model_run_timestamp, model_run.prediction_timestamps[nextIndex])
     }
-  }, [model_run_predictions])
+  }, [loadModelPrediction])
+
+  const loadPreviousPrediction = useCallback(() => {
+    const model_runs = model_runsRef.current
+    const model_run_timestamp = selected_model_run_timestampRef.current
+    const model_abbreviation = selected_model_abbreviationRef.current
+    const prediction_timestamp = selected_prediction_timestampRef.current
+    const model_run = model_runs.find(
+      instance => instance.model_run_timestamp === model_run_timestamp && instance.model.abbrev === model_abbreviation
+    )
+    if (model_run) {
+      const index = model_run.prediction_timestamps.indexOf(prediction_timestamp)
+      const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
+      loadModelPrediction(model_abbreviation, model_run_timestamp, model_run.prediction_timestamps[nextIndex])
+    }
+  }, [loadModelPrediction])
+
+  useEffect(() => {
+    dispatch(fetchModelRuns(selectedDatetimeRef.current))
+  }, [dispatch])
+
+  useEffect(() => {
+    const t = selected_prediction_timestampRef.current
+    const mrt = selected_model_run_timestampRef.current
+    const ma = selected_model_abbreviationRef.current
+    if (t && mrt && model_runs.length > 0) {
+      loadModelPrediction(ma, mrt, t)
+    }
+  }, [model_runs, loadModelPrediction])
+
+  useEffect(() => {
+    const ma = selected_model_abbreviationRef.current
+    const mrt = selected_model_run_timestampRef.current
+    const t = selected_prediction_timestampRef.current
+    const mrp = model_run_predictions
+    if (ma in mrp && mrt in mrp[ma] && t in mrp[ma][mrt]) {
+      showLayer(ma, mrt, t)
+    }
+  }, [model_run_predictions, showLayer])
 
   useEffect(() => {
     mapRef.current = L.map('map-with-selectable-wx-stations', {
@@ -265,10 +363,10 @@ const CHainesPage = () => {
     selected_model_run_timestamp,
     selected_prediction_timestamp
   )
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — complex animation effect, adding all deps would cause excessive re-runs
+
   useEffect(() => {
     if (mapRef.current && selected_model_run_timestamp && selected_prediction_timestamp) {
-      if (isLoaded(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)) {
+      if (predictionIsLoadedCheck) {
         const customControl = L.Control.extend({
           onAdd: () => {
             const html = (
@@ -332,72 +430,12 @@ const CHainesPage = () => {
   }, [
     selected_model_run_timestamp,
     selected_prediction_timestamp,
-    model_run_predictions,
     predictionIsLoadedCheck,
-    isAnimating
+    isAnimating,
+    selected_model_abbreviation,
+    animationInterval,
+    loadNextPrediction
   ])
-
-  const createLayer = (data: FeatureCollection) => {
-    const defaults = {
-      fillOpacity: 0.5,
-      weight: 2
-    }
-    return L.geoJSON(data, {
-      style: feature => {
-        switch (feature?.properties.c_haines_index) {
-          case '4-8':
-            // yellow
-            return {
-              ...defaults,
-              color: '#ffff00'
-            }
-          case '8-11':
-            return {
-              ...defaults,
-              color: '#FFA500'
-            }
-          case '>11':
-            // red
-            return {
-              ...defaults,
-              color: '#ff0000'
-            }
-          default:
-            return {}
-        }
-      }
-    })
-  }
-
-  const getLayer = (model: string, model_timestamp: string, prediction_timestamp: string) => {
-    const layerKey = `${model}-${model_timestamp}-${prediction_timestamp}`
-    if (layerKey in layersRef.current) {
-      return layersRef.current[layerKey]
-    } else {
-      const data = model_run_predictions[model][model_timestamp][prediction_timestamp]
-      const geoJsonLayer = createLayer(data)
-      layersRef.current[layerKey] = geoJsonLayer
-      return geoJsonLayer
-    }
-  }
-
-  const showLayer = (model: string, model_run_timestamp: string, prediction_timestamp: string) => {
-    try {
-      const geoJsonLayer = getLayer(model, model_run_timestamp, prediction_timestamp)
-      if (mapRef.current) {
-        if (currentLayersRef.current) {
-          mapRef.current.removeLayer(currentLayersRef.current)
-          currentLayersRef.current = null
-        }
-        geoJsonLayer.addTo(mapRef.current)
-        currentLayersRef.current = geoJsonLayer
-      }
-    } catch (exception) {
-      // For some reason, the API sometimes returns geosjon data with no features (maybe they're in the
-      // process of being inserted?)
-      logError(exception)
-    }
-  }
 
   const handleChangeDateTime = (event: React.ChangeEvent<{ name?: string; value: string }>) => {
     setSelectedDateTime(event.target.value)
@@ -453,40 +491,6 @@ const CHainesPage = () => {
 
   const handleIntervalChange = (event: React.ChangeEvent<{ name?: string; value: string }>) => {
     setAnimationInterval(Number(event.target.value))
-  }
-
-  const loadNextPrediction = () => {
-    const model_run = model_runs.find(
-      instance =>
-        instance.model_run_timestamp === selected_model_run_timestamp &&
-        instance.model.abbrev === selected_model_abbreviation
-    )
-    if (model_run) {
-      const index = model_run.prediction_timestamps.indexOf(selected_prediction_timestamp)
-      const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
-      loadModelPrediction(
-        selected_model_abbreviation,
-        selected_model_run_timestamp,
-        model_run.prediction_timestamps[nextIndex]
-      )
-    }
-  }
-
-  const loadPreviousPrediction = () => {
-    const model_run = model_runs.find(
-      instance =>
-        instance.model_run_timestamp === selected_model_run_timestamp &&
-        instance.model.abbrev === selected_model_abbreviation
-    )
-    if (model_run) {
-      const index = model_run.prediction_timestamps.indexOf(selected_prediction_timestamp)
-      const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
-      loadModelPrediction(
-        selected_model_abbreviation,
-        selected_model_run_timestamp,
-        model_run.prediction_timestamps[nextIndex]
-      )
-    }
   }
 
   const stopAnimation = () => {
