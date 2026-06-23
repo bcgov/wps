@@ -112,7 +112,7 @@ def mock_download(monkeypatch):
             content = file.read()
         return MockResponse(status_code=200, content=content)
 
-    monkeypatch.setattr(requests, "get", mock_requests_get_gdps)
+    monkeypatch.setattr(requests.Session, "get", mock_requests_get_gdps)
 
 
 @pytest.fixture()
