@@ -38,6 +38,7 @@ from wps_shared.weather_models import (
     download,
     get_env_canada_model_run_hours,
 )
+from wps_shared.weather_models.eccc_url_fetcher import ECCCUrlFetcher
 from wps_shared.weather_models.model_run_urls import (
     get_model_run_urls,
 )
@@ -261,7 +262,7 @@ class EnvCanada:
         else:
             raise UnhandledPredictionModelType(f"Unknown model type: {self.model_type}")
 
-    def process_model_run_urls(self, urls):
+    def process_model_run_urls(self, urls, fetcher: ECCCUrlFetcher):
         """Process the urls for a model run."""
         for url in urls:
             try:
@@ -282,6 +283,7 @@ class EnvCanada:
                             "REDIS_CACHE_ENV_CANADA",
                             model_info.model_enum.value,
                             "REDIS_ENV_CANADA_CACHE_EXPIRY",
+                            fetcher,
                         )
                         if downloaded:
                             self.files_downloaded += 1
@@ -310,8 +312,10 @@ class EnvCanada:
         # Get the urls for the current model run.
         urls = get_model_run_urls(self.now, self.model_type, model_run_hour)
 
+        fetcher = ECCCUrlFetcher(self.now, model_run_hour)
+
         # Process all the urls.
-        self.process_model_run_urls(urls)
+        self.process_model_run_urls(urls, fetcher)
 
         # Having completed processing, check if we're all done.
         if check_if_model_run_complete(self.session, urls):

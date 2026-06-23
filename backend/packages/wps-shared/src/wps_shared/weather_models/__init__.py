@@ -1,10 +1,12 @@
 """Code common to weather_models"""
 
-from datetime import datetime, timedelta
-from enum import Enum
 import logging
 import os
+from datetime import datetime, timedelta
+from enum import Enum
+
 import requests
+
 from wps_shared import config
 from wps_shared.utils.redis import create_redis
 
@@ -80,7 +82,14 @@ class UnhandledPredictionModelType(Exception):
     """Exception raised when an unknown model type is encountered."""
 
 
-def download(url: str, path: str, config_cache_var: str, model_name: str, config_cache_expiry_var=None) -> str:
+def download(
+    url: str,
+    path: str,
+    config_cache_var: str,
+    model_name: str,
+    config_cache_expiry_var=None,
+    fetcher=None,
+) -> str:
     """
     Download a file from a url.
     NOTE: was using wget library initially, but has the drawback of not being able to control where the
@@ -128,9 +137,19 @@ def download(url: str, path: str, config_cache_var: str, model_name: str, config
         # It's important to have a timeout on the get, otherwise the call may get stuck for an indefinite
         # amount of time - there is no default value for timeout. During testing, it was observed that
         # downloads usually complete in less than a second.
-        response = requests.get(url, timeout=60)
+        if fetcher is not None:
+            response = fetcher.get(url)
+        else:
+            raw = requests.get(url, timeout=60)
+            if raw.status_code == 404:
+                logger.info("404 error for %s", url)
+                target = None
+                raw = None
+            elif raw.status_code != 200:
+                raw.raise_for_status()
+            response = raw if (raw is not None and raw.status_code == 200) else None
         # If the response is 200/OK.
-        if response.status_code == 200:
+        if response is not None:
             # Store the response.
             with open(target, "wb") as file_object:
                 # Write the file.
@@ -140,15 +159,14 @@ def download(url: str, path: str, config_cache_var: str, model_name: str, config
                 try:
                     with open(target, "rb") as file_object:
                         # Cache for 6 hours (21600 seconds)
-                        cache.set(url, file_object.read(), ex=config.get(config_cache_expiry_var, 21600))
+                        cache.set(
+                            url, file_object.read(), ex=config.get(config_cache_expiry_var, 21600)
+                        )
                 except Exception as error:
                     logger.error(error)
-        elif response.status_code == 404:
-            # We expect this to happen frequently - just log for info.
-            logger.info("404 error for %s", url)
+        elif target is not None:
+            # fetcher returned None — all candidates 404'd
+            logger.info("404 for all candidates: %s", url)
             target = None
-        else:
-            # Raise an exception
-            response.raise_for_status()
         # Return file location.
     return target
