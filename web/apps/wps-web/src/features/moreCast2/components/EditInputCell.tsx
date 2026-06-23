@@ -15,10 +15,9 @@ export const EditInputCell = (props: GridRenderEditCellParams) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const dispatch: AppDispatch = useDispatch()
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — run on mount only
   useEffect(() => {
     dispatch(setInputValid(isEmpty(error)))
-  }, [])
+  }, [dispatch, error])
 
   useEffect(() => {
     if (hasFocus && inputRef.current) {

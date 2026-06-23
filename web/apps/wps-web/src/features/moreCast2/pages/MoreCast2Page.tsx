@@ -13,7 +13,7 @@ import { getWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
 import { isEmpty } from 'lodash'
 import { DateTime } from 'luxon'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 export const Root = styled('div')({
@@ -69,42 +69,37 @@ const MoreCast2Page = () => {
   })
   const [selectedGroupsMembers, setSelectedGroupsMembers] = useState([...members])
 
-  const fetchWeatherIndeterminates = () => {
+  const fetchWeatherIndeterminates = useCallback(() => {
     if (fromTo?.startDate && fromTo?.endDate) {
       dispatch(
         getWeatherIndeterminates(members, DateTime.fromJSDate(fromTo.startDate), DateTime.fromJSDate(fromTo.endDate))
       )
     }
-  }
+  }, [dispatch, members, fromTo.startDate, fromTo.endDate])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     document.title = MORE_CAST_DOC_TITLE
     dispatch(fetchStationGroups())
-  }, [])
+  }, [dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when members changes
   useEffect(() => {
     if (!isEmpty(members)) {
       dispatch(selectedStationsChanged([members[0]]))
       setSelectedGroupsMembers(members)
     }
-    fetchWeatherIndeterminates()
-  }, [members])
+  }, [members, dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when station group changes
   useEffect(() => {
-    if (!isEmpty(selectedStationGroup)) {
-      dispatch(fetchStationGroupsMembers([selectedStationGroup.id]))
-    } else {
+    if (isEmpty(selectedStationGroup)) {
       setSelectedGroupsMembers([])
+    } else {
+      dispatch(fetchStationGroupsMembers([selectedStationGroup.id]))
     }
-  }, [selectedStationGroup])
+  }, [selectedStationGroup, dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when date range changes
   useEffect(() => {
     fetchWeatherIndeterminates()
-  }, [fromTo.startDate, fromTo.endDate])
+  }, [fetchWeatherIndeterminates])
 
   return (
     <Root data-testid="more-cast-2-page">
