@@ -107,7 +107,6 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
   const isLoading = useLoading()
 
   // derived state
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are correct for this memoization
   const selectedFilteredZoneUnitFuelStats = useMemo<FireZoneHFIStats>(() => {
     if (
       isUndefined(filteredFireCentreHFIFuelStats) ||
@@ -124,7 +123,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
         min_wind_stats: []
       }
     )
-  }, [filteredFireCentreHFIFuelStats, selectedFireZoneUnit])
+  }, [filteredFireCentreHFIFuelStats, selectedFireCentre, selectedFireZoneUnit])
 
   const selectedFireZoneUnitTopFuels = useMemo<FireZoneFuelStats[]>(() => {
     return getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate)
@@ -142,16 +141,13 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
     return getMinStartAndMaxEndTime(selectedFireZoneUnitTopFuels)
   }, [selectedFireZoneUnitTopFuels])
 
-  const getZoneStatus = () => {
+  const zoneStatus = useMemo(() => {
     if (selectedFireCentre) {
       const fireCentreSummary = provincialSummary[selectedFireCentre.name]
       const fireZoneUnitInfo = fireCentreSummary?.find(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
       return fireZoneUnitInfo?.status
     }
-  }
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — getZoneStatus closes over props correctly
-  const zoneStatus = useMemo(() => getZoneStatus(), [selectedFireCentre, selectedFireZoneUnit, provincialSummary])
+  }, [provincialSummary, selectedFireCentre, selectedFireZoneUnit])
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and
