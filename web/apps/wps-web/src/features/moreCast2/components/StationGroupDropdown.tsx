@@ -19,19 +19,18 @@ const StationGroupDropdown = ({
 }: StationGroupDropdownProps) => {
   const [onlyMine, toggleOnlyMine] = useState<boolean>(true)
   const [options, setOptions] = useState<StationGroup[]>([...stationGroupOptions])
-  const [localSelectedGroup, setLocalSelectedGroup] = useState<StationGroup | null>(
-    selectedStationGroup ? selectedStationGroup : null
-  )
+  const [localSelectedGroup, setLocalSelectedGroup] = useState<StationGroup | null>(selectedStationGroup ?? null)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     if (onlyMine && !isUndefined(idir)) {
-      const myGroups = options.filter(option => option.group_owner_user_id.toLowerCase().includes(idir.toLowerCase()))
+      const myGroups = stationGroupOptions.filter(option =>
+        option.group_owner_user_id.toLowerCase().includes(idir.toLowerCase())
+      )
       setOptions(myGroups)
     } else {
       setOptions([...stationGroupOptions])
     }
-  }, [onlyMine])
+  }, [onlyMine, idir, stationGroupOptions])
   const changeHandler = (_: React.ChangeEvent<unknown>, value: any | null) => {
     // Solution for: https://github.com/facebook/react/issues/6222#issuecomment-1188729134
     setLocalSelectedGroup(value)
