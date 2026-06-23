@@ -247,19 +247,18 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   const tabVisRef = useRef({ tempVisible, rhVisible, precipVisible, windDirectionVisible, windSpeedVisible })
   tabVisRef.current = { tempVisible, rhVisible, precipVisible, windDirectionVisible, windSpeedVisible }
 
-  const handleShowHideChange: handleShowHideChangeType = useCallback((
-    weatherParam: keyof MoreCastParams,
-    columnName: string,
-    value: boolean
-  ) => {
-    setShowHideColumnsModel(prev => {
-      const newModel = cloneDeep(prev)
-      const changedColumn = newModel[weatherParam].filter(column => column.columnName === columnName)[0]
-      changedColumn.visible = value
-      saveShowHideColumnsModelToLocalStorage(newModel)
-      return newModel
-    })
-  }, [])
+  const handleShowHideChange: handleShowHideChangeType = useCallback(
+    (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => {
+      setShowHideColumnsModel(prev => {
+        const newModel = cloneDeep(prev)
+        const changedColumn = newModel[weatherParam].filter(column => column.columnName === columnName)[0]
+        changedColumn.visible = value
+        saveShowHideColumnsModelToLocalStorage(newModel)
+        return newModel
+      })
+    },
+    []
+  )
 
   useEffect(() => {
     const colGroupingModel = getTabColumnGroupModel(showHideColumnsModel, handleShowHideChange)
@@ -304,32 +303,44 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
 
   useEffect(() => {
     tempVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('temp', tempVisible, prev, showHideColumnsModelRef.current))
+    setColumnVisibilityModel(prev =>
+      getVisibleColumnsByWeatherParam('temp', tempVisible, prev, showHideColumnsModelRef.current)
+    )
   }, [tempVisible])
 
   useEffect(() => {
     rhVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('rh', rhVisible, prev, showHideColumnsModelRef.current))
+    setColumnVisibilityModel(prev =>
+      getVisibleColumnsByWeatherParam('rh', rhVisible, prev, showHideColumnsModelRef.current)
+    )
   }, [rhVisible])
 
   useEffect(() => {
     precipVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('precip', precipVisible, prev, showHideColumnsModelRef.current))
+    setColumnVisibilityModel(prev =>
+      getVisibleColumnsByWeatherParam('precip', precipVisible, prev, showHideColumnsModelRef.current)
+    )
   }, [precipVisible])
 
   useEffect(() => {
     windDirectionVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('windDirection', windDirectionVisible, prev, showHideColumnsModelRef.current))
+    setColumnVisibilityModel(prev =>
+      getVisibleColumnsByWeatherParam('windDirection', windDirectionVisible, prev, showHideColumnsModelRef.current)
+    )
   }, [windDirectionVisible])
 
   useEffect(() => {
     windSpeedVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('windSpeed', windSpeedVisible, prev, showHideColumnsModelRef.current))
+    setColumnVisibilityModel(prev =>
+      getVisibleColumnsByWeatherParam('windSpeed', windSpeedVisible, prev, showHideColumnsModelRef.current)
+    )
   }, [windSpeedVisible])
 
   useEffect(() => {
     grassCuringVisible && setForecastSummaryVisible(false)
-    setColumnVisibilityModel(prev => getVisibleColumnsByWeatherParam('grassCuring', grassCuringVisible, prev, showHideColumnsModelRef.current))
+    setColumnVisibilityModel(prev =>
+      getVisibleColumnsByWeatherParam('grassCuring', grassCuringVisible, prev, showHideColumnsModelRef.current)
+    )
   }, [grassCuringVisible])
 
   useEffect(() => {
