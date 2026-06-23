@@ -134,7 +134,9 @@ const FBATable = (props: FBATableProps) => {
   const dispatch: AppDispatch = useDispatch()
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
-  const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+  )
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
   const [initialLoad, setInitialLoad] = useState<boolean>(true)
