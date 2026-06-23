@@ -9,7 +9,7 @@ import Footer from '@/features/landingPage/components/Footer'
 import ChartPanel from '@/features/weatherToolkit/components/ChartPanel'
 import SidePanel from '@/features/weatherToolkit/components/SidePanel'
 import TimelineController from '@/features/weatherToolkit/components/TimelineController'
-import { buildChartKey, useWxChartCache } from '@/features/weatherToolkit/hooks/useWxChartCache'
+import { buildChartKey, buildModelRunKey, useWxChartCache } from '@/features/weatherToolkit/hooks/useWxChartCache'
 import { ModelRunHour, ModelType, modelRegistry } from '@/features/weatherToolkit/weatherToolkitTypes'
 
 const WeatherToolkitPage = () => {
@@ -24,14 +24,17 @@ const WeatherToolkitPage = () => {
   const chartKey = useMemo(() => {
     return buildChartKey(model, modelRunDate, modelRunHour, currentHour)
   }, [currentHour, model, modelRunDate, modelRunHour])
+  const modelRunKey = useMemo(() => {
+    return buildModelRunKey(model, modelRunDate, modelRunHour)
+  }, [model, modelRunDate, modelRunHour])
 
   const { cache: chartCache, failed: chartFailed } = useWxChartCache(model, modelRunDate, modelRunHour, currentHour)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — reset on model/run change only
   useEffect(() => {
+    if (!modelRunKey) return
     // Reset current hour back to zero as hourly intervals for models don't overlap
     setCurrentHour(0)
-  }, [model, modelRunDate, modelRunHour])
+  }, [modelRunKey])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
