@@ -3,7 +3,7 @@
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
 
@@ -19,7 +19,13 @@ from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import FWIParameter
 
-from app.jobs.sfms_daily_forecasts import forecast_datetimes, main, run_sfms_daily_forecasts
+from app.jobs.sfms_daily_forecasts import (
+    expected_actual_target_date,
+    forecast_datetimes,
+    main,
+    run_datetime_for_cli_date,
+    run_sfms_daily_forecasts,
+)
 from app.tests.conftest import create_mock_sfms_actuals
 
 MODULE_PATH = "app.jobs.sfms_daily_forecasts"
@@ -69,10 +75,9 @@ def mock_dependencies(
         return_value=mock_fuel_type_raster,
     )
 
-    mock_read_session = MagicMock(spec=AsyncSession)
-
     @asynccontextmanager
     async def _read_scope():
+        mock_read_session = MagicMock(spec=AsyncSession)
         yield mock_read_session
 
     mocker.patch(f"{MODULE_PATH}.get_async_read_session_scope", _read_scope)
@@ -141,9 +146,9 @@ def mock_dependencies(
 
 
 def test_forecast_datetimes_processes_next_three_days():
-    target_date = datetime(2024, 7, 4, hour=10, minute=30, tzinfo=timezone.utc)
+    seed_actual_date = date(2024, 7, 4)
 
-    result = forecast_datetimes(target_date)
+    result = forecast_datetimes(seed_actual_date)
 
     assert result == [
         datetime(2024, 7, 5, 20, 0, tzinfo=timezone.utc),
@@ -152,16 +157,41 @@ def test_forecast_datetimes_processes_next_three_days():
     ]
 
 
-def test_forecast_datetimes_rejects_naive_datetime():
+def test_expected_actual_target_date_uses_yesterday_before_actuals_available():
+    run_datetime = datetime(2024, 7, 4, 15, 0, tzinfo=timezone.utc)
+
+    result = expected_actual_target_date(run_datetime)
+
+    assert result == date(2024, 7, 3)
+
+
+def test_expected_actual_target_date_uses_today_after_actuals_available():
+    run_datetime = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
+
+    result = expected_actual_target_date(run_datetime)
+
+    assert result == date(2024, 7, 4)
+
+
+def test_expected_actual_target_date_rejects_naive_datetime():
     with pytest.raises(AssertionError, match="timezone-aware"):
-        forecast_datetimes(datetime(2024, 7, 4))
+        expected_actual_target_date(datetime(2024, 7, 4))
 
 
-def test_forecast_datetimes_rejects_non_utc_datetime():
-    target_date = datetime(2024, 7, 4, tzinfo=timezone(timedelta(hours=-7)))
+def test_run_datetime_for_cli_date_uses_current_pdt_time():
+    current_datetime = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
-    with pytest.raises(AssertionError, match="not in UTC"):
-        forecast_datetimes(target_date)
+    result = run_datetime_for_cli_date(date(2024, 7, 4), current_datetime)
+
+    assert result == datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
+
+
+def test_run_datetime_for_cli_date_before_actuals_available():
+    current_datetime = datetime(2024, 7, 5, 15, 30, tzinfo=timezone.utc)
+
+    result = run_datetime_for_cli_date(date(2024, 7, 4), current_datetime)
+
+    assert result == datetime(2024, 7, 4, 15, 30, tzinfo=timezone.utc)
 
 
 class TestRunSfmsDailyForecasts:
@@ -169,7 +199,7 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_runs_three_days(self, mock_dependencies: MockDailyForecastsDeps):
-        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+        target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         await run_sfms_daily_forecasts(target_date)
 
@@ -185,7 +215,7 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_saves_forecast_runs(self, mock_dependencies: MockDailyForecastsDeps):
-        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+        target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         await run_sfms_daily_forecasts(target_date)
 
@@ -199,8 +229,26 @@ class TestRunSfmsDailyForecasts:
         ]
 
     @pytest.mark.anyio
+    async def test_forecasts_from_expected_successful_actual(
+        self, mock_dependencies: MockDailyForecastsDeps
+    ):
+        run_datetime = datetime(2024, 7, 4, 15, tzinfo=timezone.utc)
+
+        await run_sfms_daily_forecasts(run_datetime)
+
+        requested_datetimes = [
+            call.args[0]
+            for call in mock_dependencies.wfwx_api.get_sfms_daily_forecasts_all_stations.call_args_list
+        ]
+        assert requested_datetimes == [
+            datetime(2024, 7, 4, 20, 0, tzinfo=timezone.utc),
+            datetime(2024, 7, 5, 20, 0, tzinfo=timezone.utc),
+            datetime(2024, 7, 6, 20, 0, tzinfo=timezone.utc),
+        ]
+
+    @pytest.mark.anyio
     async def test_chains_fwi_seeds(self, mock_dependencies: MockDailyForecastsDeps):
-        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+        target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         await run_sfms_daily_forecasts(target_date)
 
@@ -218,7 +266,7 @@ class TestRunSfmsDailyForecasts:
             return_value=[]
         )
 
-        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+        target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         with pytest.raises(RuntimeError, match="No station forecasts found"):
             await run_sfms_daily_forecasts(target_date)
@@ -226,17 +274,31 @@ class TestRunSfmsDailyForecasts:
         mock_dependencies.temp_processor.process.assert_not_called()
 
     @pytest.mark.anyio
-    async def test_raises_when_previous_indices_missing(
+    async def test_raises_when_actual_seed_rasters_missing(
         self, mock_dependencies: MockDailyForecastsDeps
     ):
         mock_dependencies.s3_client.all_objects_exist = AsyncMock(return_value=False)
 
-        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+        target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
-        with pytest.raises(RuntimeError, match="Missing previous-day actual index rasters"):
+        with pytest.raises(RuntimeError, match="Missing actual seed rasters for 2024-07-04"):
             await run_sfms_daily_forecasts(target_date)
 
+        mock_dependencies.get_fuel_type_raster_by_year.assert_not_called()
+        mock_dependencies.wfwx_api.get_sfms_daily_forecasts_all_stations.assert_not_called()
         mock_dependencies.fwi_processor.calculate_index.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_rejects_naive_run_datetime(self, mock_dependencies: MockDailyForecastsDeps):
+        with pytest.raises(AssertionError, match="timezone-aware"):
+            await run_sfms_daily_forecasts(datetime(2024, 7, 4))
+
+    @pytest.mark.anyio
+    async def test_rejects_non_utc_run_datetime(self, mock_dependencies: MockDailyForecastsDeps):
+        run_datetime = datetime(2024, 7, 4, tzinfo=timezone(timedelta(hours=-7)))
+
+        with pytest.raises(AssertionError, match="not in UTC"):
+            await run_sfms_daily_forecasts(run_datetime)
 
 
 class TestMain:
@@ -244,15 +306,14 @@ class TestMain:
 
     def test_main_with_valid_date(self, mocker: MockerFixture):
         mocker.patch.object(sys, "argv", ["sfms_daily_forecasts.py", "2025-07-15"])
+        mock_now = datetime(2025, 7, 16, 0, 45, tzinfo=timezone.utc)
+        mocker.patch(f"{MODULE_PATH}.get_utc_now", return_value=mock_now)
         mock_run = mocker.patch(f"{MODULE_PATH}.run_sfms_daily_forecasts", new_callable=AsyncMock)
 
         main()
 
         call_args = mock_run.call_args[0][0]
-        assert call_args.year == 2025
-        assert call_args.month == 7
-        assert call_args.day == 15
-        assert call_args.tzinfo == timezone.utc
+        assert call_args == run_datetime_for_cli_date(date(2025, 7, 15), mock_now)
 
     def test_main_without_date_uses_current(self, mocker: MockerFixture):
         mocker.patch.object(sys, "argv", ["sfms_daily_forecasts.py"])
