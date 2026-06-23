@@ -10,7 +10,7 @@ import asyncio
 import logging
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from aiohttp import ClientSession
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
@@ -21,32 +21,87 @@ from wps_shared.db.database import get_async_read_session_scope, get_async_write
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.utils.time import assert_all_utc, get_utc_now
+from wps_shared.utils.time import (
+    assert_all_utc,
+    get_utc_now,
+    vancouver_tz,
+)
 from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
-from app.jobs.sfms_run_pipeline import run_fwi_calculations, run_weather_interpolation
+from app.jobs.sfms_run_pipeline import (
+    _missing_seed_keys,
+    run_fwi_calculations,
+    run_weather_interpolation,
+)
 
 logger = logging.getLogger(__name__)
 
 FORECAST_DAYS = 3
+ACTUALS_AVAILABLE_HOUR_PDT = 15
 
 
-def forecast_datetimes(target_date: datetime) -> list[datetime]:
+def forecast_datetimes(seed_actual_date: date) -> list[datetime]:
     """Return the next three forecast dates normalized to 20:00 UTC."""
-    assert_all_utc(target_date)
-    base_datetime = target_date.replace(hour=20, minute=0, second=0, microsecond=0)
+    base_datetime = datetime(
+        seed_actual_date.year,
+        seed_actual_date.month,
+        seed_actual_date.day,
+        hour=20,
+        tzinfo=timezone.utc,
+    )
     return [base_datetime + timedelta(days=day) for day in range(1, FORECAST_DAYS + 1)]
 
 
-async def run_sfms_daily_forecasts(target_date: datetime) -> None:
+def expected_actual_target_date(run_datetime: datetime) -> date:
+    """Return the actual target date this forecast run is expected to seed from."""
+    assert_all_utc(run_datetime)
+    run_datetime_local = run_datetime.astimezone(vancouver_tz)
+    target_date = run_datetime_local.date()
+    if run_datetime_local.hour < ACTUALS_AVAILABLE_HOUR_PDT:
+        return target_date - timedelta(days=1)
+    return target_date
+
+
+def run_datetime_for_cli_date(run_date: date, current_datetime: datetime) -> datetime:
+    """Return a UTC run datetime for the CLI date at the current local time."""
+    assert_all_utc(current_datetime)
+    current_datetime_local = current_datetime.astimezone(vancouver_tz)
+    cli_datetime = datetime(
+        run_date.year,
+        run_date.month,
+        run_date.day,
+        current_datetime_local.hour,
+        current_datetime_local.minute,
+        current_datetime_local.second,
+        tzinfo=vancouver_tz,
+    )
+    return cli_datetime.astimezone(timezone.utc)
+
+
+async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
     """Run SFMS forecast weather interpolation and FWI updates for the next three days."""
-    logger.info("Starting SFMS daily forecasts from %s", target_date.date())
+    assert_all_utc(run_datetime)
+    logger.info("Starting SFMS daily forecasts from %s", run_datetime.date())
 
     raster_addresser = SFMSNGRasterAddresser()
-    datetimes_to_process = forecast_datetimes(target_date)
+    seed_actual_date = expected_actual_target_date(run_datetime)
+    logger.info("Using %s actual rasters as forecast seed", seed_actual_date)
+    datetimes_to_process = forecast_datetimes(seed_actual_date)
 
     async with S3Client() as s3_client:
+        missing_actual_seed_keys = await _missing_seed_keys(
+            datetimes_to_process[0],
+            raster_addresser,
+            s3_client,
+            RunType.ACTUAL,
+        )
+        if missing_actual_seed_keys:
+            raise RuntimeError(
+                f"Missing actual seed rasters for {seed_actual_date}: "
+                f"{', '.join(missing_actual_seed_keys)}"
+            )
+
         async with ClientSession() as client_session:
             wfwx_api = WfwxApi(client_session)
 
@@ -103,14 +158,15 @@ async def run_sfms_daily_forecasts(target_date: datetime) -> None:
                             raise_on_missing_seed_keys=True,
                         )
 
-    logger.info("SFMS daily forecasts completed successfully from %s", target_date.date())
+    logger.info("SFMS daily forecasts completed successfully from %s", run_datetime.date())
 
 
 def main():
     """Main entry point for the job."""
     if len(sys.argv) > 1:
         try:
-            target_date = datetime.strptime(sys.argv[1], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            run_date = datetime.strptime(sys.argv[1], "%Y-%m-%d").date()
+            target_date = run_datetime_for_cli_date(run_date, get_utc_now())
         except ValueError:
             logger.error("Error: Please provide the date in 'YYYY-MM-DD' format")
             sys.exit(1)
