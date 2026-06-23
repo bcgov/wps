@@ -108,7 +108,7 @@ describe('pushNotificationSlice', () => {
         })
 
         const store = createTestStore()
-        store.dispatch(checkPushNotificationPermission())
+        await store.dispatch(checkPushNotificationPermission())
 
         expect(store.getState().pushNotification.pushNotificationPermission).toBe('granted')
       })
@@ -148,7 +148,7 @@ describe('pushNotificationSlice', () => {
           }
         })
 
-        store.dispatch(registerDevice('fcm-token', null))
+        await store.dispatch(registerDevice('fcm-token', null))
 
         expect(registerToken).toHaveBeenCalledWith('ios', 'fcm-token', 'device-id', 'test-user')
         expect(store.getState().pushNotification.registeredFcmToken).toBe('fcm-token')
@@ -174,7 +174,7 @@ describe('pushNotificationSlice', () => {
 
         const store = createTestStore()
 
-        store.dispatch(registerDevice('new-token', 'old-token'))
+        await store.dispatch(registerDevice('new-token', 'old-token'))
 
         expect(registerToken).toHaveBeenCalledWith('ios', 'new-token', 'device-id', null)
         expect(store.getState().pushNotification.registeredFcmToken).toBe('new-token')
@@ -219,7 +219,7 @@ describe('pushNotificationSlice', () => {
           }
         })
 
-        store.dispatch(registerDevice('fcm-token', null))
+        await store.dispatch(registerDevice('fcm-token', null))
 
         expect(retryWithBackoff).toHaveBeenCalledTimes(1)
         expect(store.getState().pushNotification.registeredFcmToken).toBe('fcm-token')
@@ -237,7 +237,7 @@ describe('pushNotificationSlice', () => {
         ;(retryWithBackoff as Mock).mockRejectedValue(new Error('persistent error'))
 
         const store = createTestStore()
-        store.dispatch(registerDevice('fcm-token', null))
+        await store.dispatch(registerDevice('fcm-token', null))
 
         expect(store.getState().pushNotification.registeredFcmToken).toBeNull()
         expect(consoleSpy).toHaveBeenCalled()
@@ -255,7 +255,7 @@ describe('pushNotificationSlice', () => {
 
         const store = createTestStore()
         for (let i = 0; i < MAX_REGISTRATION_ATTEMPTS; i++) {
-          store.dispatch(registerDevice('fcm-token', null))
+          await store.dispatch(registerDevice('fcm-token', null))
         }
 
         expect(store.getState().pushNotification.registrationAttempts).toBe(MAX_REGISTRATION_ATTEMPTS)
@@ -280,11 +280,11 @@ describe('pushNotificationSlice', () => {
         ;(registerToken as Mock).mockResolvedValue(undefined)
 
         const store = createTestStore()
-        store.dispatch(registerDevice('fcm-token', null))
-        store.dispatch(registerDevice('fcm-token', null))
+        await store.dispatch(registerDevice('fcm-token', null))
+        await store.dispatch(registerDevice('fcm-token', null))
         expect(store.getState().pushNotification.registrationAttempts).toBe(2)
 
-        store.dispatch(registerDevice('fcm-token', 'different-token'))
+        await store.dispatch(registerDevice('fcm-token', 'different-token'))
         expect(store.getState().pushNotification.registrationAttempts).toBe(0)
         consoleSpy.mockRestore()
       })

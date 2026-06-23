@@ -44,7 +44,9 @@ vi.mock('@capacitor/network', () => ({
 }))
 
 vi.mock('@capacitor/filesystem', () => ({
-  Filesystem: {}
+  Filesystem: {},
+  Directory: { Data: 'DATA' },
+  Encoding: { UTF8: 'utf8' }
 }))
 
 // Mock components
