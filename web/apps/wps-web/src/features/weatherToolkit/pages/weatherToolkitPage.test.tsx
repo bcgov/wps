@@ -6,7 +6,8 @@ import WeatherToolkitPage from './WeatherToolkitPage'
 
 vi.mock('@/features/weatherToolkit/hooks/useWxChartCache', () => ({
   useWxChartCache: () => ({ cache: new Map(), failed: new Set() }),
-  buildChartKey: () => 'mock-chart-key'
+  buildChartKey: () => 'mock-chart-key',
+  buildModelRunKey: () => 'mock-model-run-key'
 }))
 
 vi.mock('@/features/weatherToolkit/components/SidePanel', () => ({
