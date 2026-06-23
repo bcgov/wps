@@ -314,7 +314,8 @@ describe('App', () => {
         token: undefined,
         idToken: undefined,
         idir: undefined,
-        error: null
+        error: null,
+        email: undefined
       }
     })
 
