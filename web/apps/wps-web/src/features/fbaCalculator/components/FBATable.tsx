@@ -314,9 +314,10 @@ const FBATable = (props: FBATableProps) => {
   const deleteSelectedStations = () => {
     const selectedSet = new Set<number>(selected)
     const unselectedRows = rows.filter(row => !selectedSet.has(row.id))
-    const updatedCalculateRows = filter(calculatedResults, (_, i) => !selectedSet.has(i))
+    const updatedCalculateRows = filter(calculatedResults, row => !selectedSet.has(row.id))
     setRows(unselectedRows)
     setCalculatedResults(updatedCalculateRows)
+    setRowIdsToUpdate(currentRowIds => new Set(Array.from(currentRowIds).filter(rowId => !selectedSet.has(rowId))))
     updateQueryParams(getUrlParamsFromRows(unselectedRows))
     setSelected([])
   }
@@ -338,11 +339,8 @@ const FBATable = (props: FBATableProps) => {
     newRows[index] = updatedRow
     setRows(newRows)
 
-    if (!rowIdsToUpdate.has(id)) {
-      rowIdsToUpdate.add(id)
-      const toUpdate = new Set(rowIdsToUpdate)
-      setRowIdsToUpdate(toUpdate)
-    }
+    setRowIdsToUpdate(currentRowIds => new Set([...currentRowIds, id]))
+
     return newRows
   }
 
@@ -385,13 +383,22 @@ const FBATable = (props: FBATableProps) => {
 
   const handleResetSelected = () => {
     setShowResetDialog(false)
-    const rowsToUpdate = rows.filter(row => selected.includes(row.id))
-    const updatedRows = rowsToUpdate.map(rowToUpdate => {
-      rowToUpdate.precip = undefined
-      rowToUpdate.windSpeed = undefined
-      return rowToUpdate
+    const selectedSet = new Set<number>(selected)
+    const updatedRows = rows.map(rowToUpdate => {
+      if (!selectedSet.has(rowToUpdate.id)) {
+        return rowToUpdate
+      }
+
+      return {
+        ...rowToUpdate,
+        precip: undefined,
+        windSpeed: undefined
+      }
     })
-    dispatch(fetchFireBehaviourStations(dateOfInterest, updatedRows))
+    const rowsToUpdate = updatedRows.filter(row => selectedSet.has(row.id))
+    setRows(updatedRows)
+    setRowIdsToUpdate(currentRowIds => new Set([...currentRowIds, ...rowsToUpdate.map(row => row.id)]))
+    dispatch(fetchFireBehaviourStations(dateOfInterest, rowsToUpdate))
   }
 
   const filterColumnsCallback = (filterByColumns: ColumnLabel[]) => {
