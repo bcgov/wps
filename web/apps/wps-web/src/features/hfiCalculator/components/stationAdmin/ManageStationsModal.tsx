@@ -82,12 +82,9 @@ export const ManageStationsModal = ({
     'planningAreaId'
   )
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when selected fire centre changes
   useEffect(() => {
-    if (!isUndefined(selectedFireCentre)) {
-      dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-    }
-  }, [])
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+  }, [dispatch])
 
   const handleClose = () => {
     setModalOpen(false)
