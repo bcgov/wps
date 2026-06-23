@@ -1,6 +1,6 @@
 import { getWxChart } from '@wps/api/weatherToolkitAPI'
 import type { DateTime } from 'luxon'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { type ModelRunHour, type ModelType, modelRegistry } from '@/features/weatherToolkit/weatherToolkitTypes'
 
 // The number of charts to pre-fetch to improve the user perception of performance.
@@ -18,6 +18,10 @@ export const buildChartKey = (
   return `wx_4panel_charts/${dateStr}/${ecccPath}/${resolution}/${modelRunHour}/${hourStr}/${model}_${dateStr}T${modelRunHour}Z_F${hourStr}_4panel.png`
 }
 
+export const buildModelRunKey = (model: ModelType, modelRunDate: DateTime, modelRunHour: ModelRunHour): string => {
+  return `${model}:${modelRunDate.toISODate()}:${modelRunHour}`
+}
+
 export interface WxChartCacheResult {
   cache: Map<string, string>
   failed: Set<string>
@@ -31,6 +35,9 @@ export function useWxChartCache(
 ): WxChartCacheResult {
   const [cache, setCache] = useState<Map<string, string>>(new Map())
   const [failed, setFailed] = useState<Set<string>>(new Set())
+  const modelRunKey = useMemo(() => {
+    return buildModelRunKey(model, modelRunDate, modelRunHour)
+  }, [model, modelRunDate, modelRunHour])
   const stateRef = useRef({
     cache: new Map<string, string>(),
     failed: new Set<string>(),
@@ -39,8 +46,8 @@ export function useWxChartCache(
   })
 
   // Reset when model params change
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
+    if (!modelRunKey) return
     const state = stateRef.current
     state.generation++
     state.cache.forEach(url => {
@@ -51,7 +58,7 @@ export function useWxChartCache(
     state.fetching = new Set()
     setCache(new Map())
     setFailed(new Set())
-  }, [model, modelRunDate, modelRunHour])
+  }, [modelRunKey])
 
   // Prefetch rolling window of PREFETCH_AHEAD frames ahead of currentHour
   useEffect(() => {

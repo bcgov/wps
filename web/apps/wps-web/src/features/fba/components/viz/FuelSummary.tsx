@@ -10,7 +10,7 @@ import type { FireShape, FireZoneFuelStats } from '@wps/api/fbaAPI'
 import CriticalHours from 'features/fba/components/viz/CriticalHours'
 import FuelDistribution from 'features/fba/components/viz/FuelDistribution'
 import { groupBy, isUndefined } from 'lodash'
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 
 export interface FuelTypeInfoSummary {
   area: number
@@ -79,19 +79,15 @@ const columns: GridColDef[] = [
 
 const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryProps) => {
   const theme = useTheme()
-  const [fuelTypeInfoRollup, setFuelTypeInfoRollup] = useState<FuelTypeInfoSummary[]>([])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
-  useEffect(() => {
+  const fuelTypeInfoRollup = useMemo<FuelTypeInfoSummary[]>(() => {
     if (isUndefined(fireZoneFuelStats) || isUndefined(selectedFireZoneUnit)) {
-      setFuelTypeInfoRollup([])
-      return
+      return []
     }
     const shapeId = selectedFireZoneUnit.fire_shape_id
     const fuelDetails = fireZoneFuelStats[shapeId]
     if (isUndefined(fuelDetails)) {
-      setFuelTypeInfoRollup([])
-      return
+      return []
     }
 
     const rollUp: FuelTypeInfoSummary[] = []
@@ -120,8 +116,8 @@ const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryPro
         rollUp.push(fuelInfo)
       }
     }
-    setFuelTypeInfoRollup(rollUp)
-  }, [fireZoneFuelStats])
+    return rollUp
+  }, [fireZoneFuelStats, selectedFireZoneUnit])
 
   return (
     <Box sx={{ paddingBottom: theme.spacing(2), paddingTop: theme.spacing(2) }}>
