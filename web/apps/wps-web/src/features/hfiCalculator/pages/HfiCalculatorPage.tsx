@@ -38,7 +38,7 @@ import { fetchAllReadyStates, fetchToggleReadyState } from 'features/hfiCalculat
 import { fetchHFIStations } from 'features/hfiCalculator/slices/stationsSlice'
 import { isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 export const HFIPageContainer = styled(Container)({
@@ -80,6 +80,15 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     updatedPlanningAreaId
   } = useSelector(selectHFICalculatorState)
   const { planningAreaReadyDetails } = useSelector(selectHFIReadyState)
+
+  const resultRef = useRef(result)
+  resultRef.current = result
+  const planningAreaReadyDetailsRef = useRef(planningAreaReadyDetails)
+  planningAreaReadyDetailsRef.current = planningAreaReadyDetails
+  const selectedFireCentreRef = useRef(selectedFireCentre)
+  selectedFireCentreRef.current = selectedFireCentre
+  const dateRangeRef = useRef(dateRange)
+  dateRangeRef.current = dateRange
 
   const setSelectedStation = (planningAreaId: number, code: number, selected: boolean) => {
     if (!isUndefined(result) && !isUndefined(result.date_range.start_date)) {
@@ -155,25 +164,14 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
     }
   }
 
-  const setSelectedFireCentreFromLocalStorage = () => {
-    const findCentre = (name: string | null): FireCentre | undefined => {
-      const fireCentresArray = Object.values(fireCentres)
-      return fireCentresArray.find(centre => centre.name === name)
-    }
-    const storedFireCentre = findCentre(localStorage.getItem('hfiCalcPreferredFireCentre'))
-    if (!isUndefined(storedFireCentre) && storedFireCentre !== selectedFireCentre) {
-      dispatch(setSelectedFireCentre(storedFireCentre))
-    }
-  }
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
   useEffect(() => {
     dispatch(fetchHFIStations())
     dispatch(fetchFuelTypes())
-  }, [])
+  }, [dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when updatedPlanningAreaId changes
   useEffect(() => {
+    const result = resultRef.current
+    const planningAreaReadyDetails = planningAreaReadyDetailsRef.current
     if (
       !isUndefined(result) &&
       !isUndefined(result.date_range) &&
@@ -185,9 +183,8 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
         fetchToggleReadyState(result.selected_fire_center_id, updatedPlanningAreaId.planning_area_id, result.date_range)
       )
     }
-  }, [updatedPlanningAreaId])
+  }, [updatedPlanningAreaId, dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when selected fire centre changes
   useEffect(() => {
     if (selectedFireCentre && selectedFireCentre?.name !== localStorage.getItem('hfiCalcPreferredFireCentre')) {
       localStorage.setItem('hfiCalcPreferredFireCentre', selectedFireCentre?.name)
@@ -197,24 +194,30 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       // back to "Prep Period" tab instead of a specific date that may no longer be relevant
       dispatch(fetchGetPrepDateRange(selectedFireCentre.id))
     }
-  }, [selectedFireCentre])
+  }, [selectedFireCentre, dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when dateRange changes
   useEffect(() => {
+    const selectedFireCentre = selectedFireCentreRef.current
     if (!isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-  }, [dateRange])
+  }, [dateRange, dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — setSelectedFireCentreFromLocalStorage closes over state correctly
   useEffect(() => {
     if (Object.keys(fireCentres).length > 0) {
-      setSelectedFireCentreFromLocalStorage()
+      const storedFireCentre = Object.values(fireCentres).find(
+        centre => centre.name === localStorage.getItem('hfiCalcPreferredFireCentre')
+      )
+      if (!isUndefined(storedFireCentre) && storedFireCentre !== selectedFireCentreRef.current) {
+        dispatch(setSelectedFireCentre(storedFireCentre))
+      }
     }
-  }, [fireCentres])
+  }, [fireCentres, dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when updatedPlanningAreaId changes
   useEffect(() => {
+    const planningAreaReadyDetails = planningAreaReadyDetailsRef.current
+    const selectedFireCentre = selectedFireCentreRef.current
+    const dateRange = dateRangeRef.current
     if (
       !isNull(updatedPlanningAreaId) &&
       isUndefined(planningAreaReadyDetails[updatedPlanningAreaId.planning_area_id]) &&
@@ -224,15 +227,16 @@ const HfiCalculatorPage: React.FunctionComponent = () => {
       // Request all ready states for hfi request unique by date and fire centre
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-  }, [updatedPlanningAreaId])
+  }, [updatedPlanningAreaId, dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run after station admin updates complete
   useEffect(() => {
+    const selectedFireCentre = selectedFireCentreRef.current
+    const dateRange = dateRangeRef.current
     if (!stationsUpdateLoading && !isUndefined(selectedFireCentre) && !isUndefined(dateRange)) {
       dispatch(fetchHFIStations())
       dispatch(fetchAllReadyStates(selectedFireCentre.id, dateRange))
     }
-  }, [stationsUpdateLoading])
+  }, [stationsUpdateLoading, dispatch])
 
   const selectNewFireCentre = (newSelection: FireCentre | undefined) => {
     dispatch(setSelectedFireCentre(newSelection))
