@@ -11,7 +11,7 @@ export const TableColumnHeaderCell = styled(NoBottomBorderCell)({
   fontWeight: 'bold'
 })
 
-export const StationDataHeaderCells = (): ReactElement => {
+export const StationDataHeaderCells = (): ReactElement<any> => {
   return (
     <React.Fragment>
       <StickyCell left={50} zIndexOffset={12}>

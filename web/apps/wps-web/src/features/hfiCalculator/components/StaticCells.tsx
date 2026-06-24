@@ -41,7 +41,7 @@ export const StaticCells = ({
   station,
   isRowSelected,
   selectedFuelType
-}: StaticCellsProps): ReactElement => {
+}: StaticCellsProps): ReactElement<any> => {
   const TableCellComponent = isRowSelected ? TableCell : StationPlainStylingCell
 
   const staticCells = range(numPrepDays).map(dailyIndex => {

@@ -41,7 +41,7 @@ import { getDailiesByStationCode, getSelectedFuelType, stationCodeSelected } fro
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { isUndefined, sortBy } from 'lodash'
 import { DateTime } from 'luxon'
-import React from 'react'
+import React, { type JSX } from 'react';
 import { useSelector } from 'react-redux'
 
 export interface Props {

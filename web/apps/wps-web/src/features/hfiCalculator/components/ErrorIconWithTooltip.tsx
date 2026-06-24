@@ -3,7 +3,7 @@ import { createTheme, StyledEngineProvider, ThemeProvider, Tooltip } from '@mui/
 import { styled } from '@mui/material/styles'
 import { BACKGROUND_COLOR, PLANNING_AREA } from '@wps/ui/theme'
 import { isUndefined } from 'lodash'
-import React from 'react'
+import React, { type JSX } from 'react';
 
 export interface ErrorIconWithTooltipProps {
   testId?: string
