@@ -9,6 +9,7 @@ import sys
 import tempfile
 from urllib.parse import urlparse
 
+import requests
 import wps_shared.db.database
 import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
@@ -32,6 +33,7 @@ from wps_shared.db.crud.weather_models import (
 from wps_shared.weather_models import (
     CompletedWithSomeExceptions,
     ModelEnum,
+    NoFilesProcessed,
     ProjectionEnum,
     UnhandledPredictionModelType,
     adjust_model_day,
@@ -247,6 +249,7 @@ class EnvCanada:
         self.files_downloaded = 0
         self.files_processed = 0
         self.exception_count = 0
+        self.connection_error_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor()
@@ -298,6 +301,9 @@ class EnvCanada:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
+            except requests.RequestException as exc:
+                self.connection_error_count += 1
+                logger.warning("Connection error for %s: %s", url, exc)
             except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
@@ -378,9 +384,11 @@ def process_models():
         seconds,
         execution_time,
     )
-    # check if we encountered any exceptions.
+    if env_canada.connection_error_count > 0:
+        logger.warning("%d connection error(s) during run (hourly retries will catch missed files)", env_canada.connection_error_count)
+    if env_canada.files_processed == 0:
+        raise NoFilesProcessed(f"no files processed for {sys.argv[1]} — possible outage on HPFX and DD")
     if env_canada.exception_count > 0:
-        # if there were any exceptions, return a non-zero status.
         raise CompletedWithSomeExceptions()
     return env_canada.files_processed
 
@@ -390,6 +398,11 @@ def main():
     try:
         process_models()
         apply_data_retention_policy()
+    except NoFilesProcessed as exc:
+        logger.warning("%s", exc)
+        rc_message = f":warning: No files processed for {sys.argv[1]} model data from Env Canada — hourly retries will attempt recovery"
+        send_chatops_notification(rc_message, exc)
+        sys.exit(os.EX_SOFTWARE)
     except CompletedWithSomeExceptions:
         logger.warning("completed processing with some exceptions")
         sys.exit(os.EX_SOFTWARE)

@@ -78,6 +78,10 @@ class CompletedWithSomeExceptions(Exception):
     """Exception raised when processing completed, but there were some non critical exceptions"""
 
 
+class NoFilesProcessed(Exception):
+    """Exception raised when a model job completed but downloaded and processed zero files"""
+
+
 class UnhandledPredictionModelType(Exception):
     """Exception raised when an unknown model type is encountered."""
 
