@@ -1,6 +1,14 @@
-import { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
+import type { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { getRowsMap, isForecastRow } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
+
+function restorePredictionItemNaN(this: { choice?: unknown }, key: string, value: unknown) {
+  if (key === 'value' && value === null && this.choice !== undefined) {
+    return Number.NaN
+  }
+
+  return value
+}
 
 export class MorecastDraftForecast {
   public readonly STORAGE_KEY = 'morecastForecastDraft'
@@ -14,7 +22,7 @@ export class MorecastDraftForecast {
     const storedDraftString = this.localStorage.getItem(this.STORAGE_KEY)
 
     if (storedDraftString) {
-      const storedDraft = JSON.parse(storedDraftString)
+      const storedDraft = JSON.parse(storedDraftString, restorePredictionItemNaN)
       storedDraft.lastEdited = storedDraft.lastEdited ? DateTime.fromISO(storedDraft.lastEdited) : undefined
       return storedDraft
     }

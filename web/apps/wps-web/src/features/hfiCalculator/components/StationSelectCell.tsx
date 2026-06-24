@@ -1,5 +1,5 @@
-import { Checkbox, TableCell, styled } from '@mui/material'
-import { WeatherStation } from '@wps/api/hfiCalculatorAPI'
+import { Checkbox, styled, TableCell } from '@mui/material'
+import type { WeatherStation } from '@wps/api/hfiCalculatorAPI'
 import { UNSELECTED_STATION_COLOR } from '@wps/ui/theme'
 import React from 'react'
 

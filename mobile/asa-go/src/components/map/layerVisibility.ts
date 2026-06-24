@@ -1,65 +1,61 @@
-import { FireShapeStatusDetail } from "@/api/fbaAPI";
-import { fireShapeStyler } from "@/featureStylers";
-import { ZONE_STATUS_LAYER_NAME, HFI_LAYER_NAME } from "@/layerDefinitions";
-import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
-import { cloneDeep } from "lodash";
-import VectorTileLayer from "ol/layer/VectorTile";
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
+import { cloneDeep } from 'lodash'
+import type VectorTileLayer from 'ol/layer/VectorTile'
+import type { FireShapeStatusDetail } from '@/api/fbaAPI'
+import { fireShapeStyler } from '@/featureStylers'
+import { HFI_LAYER_NAME, ZONE_STATUS_LAYER_NAME } from '@/layerDefinitions'
 
 export interface LayerVisibility {
-  [layerName: string]: boolean;
+  [layerName: string]: boolean
 }
 
 export const defaultLayerVisibility: LayerVisibility = {
   [ZONE_STATUS_LAYER_NAME]: true,
-  [HFI_LAYER_NAME]: true,
-};
+  [HFI_LAYER_NAME]: true
+}
 
-const LAYER_VISIBILITY_FILE = "layer_visibility.json";
+const LAYER_VISIBILITY_FILE = 'layer_visibility.json'
 
-export const loadLayerVisibility = async (
-  defaultVisibility: LayerVisibility
-): Promise<LayerVisibility> => {
+export const loadLayerVisibility = async (defaultVisibility: LayerVisibility): Promise<LayerVisibility> => {
   try {
     const result = await Filesystem.readFile({
       path: LAYER_VISIBILITY_FILE,
       directory: Directory.Data,
-      encoding: Encoding.UTF8,
-    });
-    const parsed: LayerVisibility = JSON.parse(result.data as string);
-    return { ...defaultVisibility, ...parsed, [ZONE_STATUS_LAYER_NAME]: true };
+      encoding: Encoding.UTF8
+    })
+    const parsed: LayerVisibility = JSON.parse(result.data as string)
+    return { ...defaultVisibility, ...parsed, [ZONE_STATUS_LAYER_NAME]: true }
   } catch {
     // file may not exist yet; use defaults
-    return defaultVisibility;
+    return defaultVisibility
   }
-};
+}
 
-export const saveLayerVisibility = async (
-  visibility: LayerVisibility
-): Promise<void> => {
+export const saveLayerVisibility = async (visibility: LayerVisibility): Promise<void> => {
   await Filesystem.writeFile({
     path: LAYER_VISIBILITY_FILE,
     data: JSON.stringify(visibility),
     directory: Directory.Data,
-    encoding: Encoding.UTF8,
-  });
-};
+    encoding: Encoding.UTF8
+  })
+}
 
 export const setZoneStatusLayerVisibility = (
   layer: VectorTileLayer,
   fireShapeStatusDetail: FireShapeStatusDetail[] | undefined,
   visible: boolean
 ): void => {
-  layer.setStyle(fireShapeStyler(cloneDeep(fireShapeStatusDetail), visible));
-  layer.changed();
-};
+  layer.setStyle(fireShapeStyler(cloneDeep(fireShapeStatusDetail), visible))
+  layer.changed()
+}
 
 export const setDefaultLayerVisibility = (
   layers: Record<string, VectorTileLayer | null>,
   layerName: string,
   visible: boolean
 ): void => {
-  const layer = layers[layerName];
+  const layer = layers[layerName]
   if (layer) {
-    layer.setVisible(visible);
+    layer.setVisible(visible)
   }
-};
+}

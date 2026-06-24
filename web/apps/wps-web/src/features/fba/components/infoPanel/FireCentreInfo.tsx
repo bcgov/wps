@@ -1,11 +1,11 @@
-import React from 'react'
-import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
-import { styled, useTheme } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material'
+import { styled, useTheme } from '@mui/material/styles'
+import type { FireShapeStatusDetail } from '@wps/api/fbaAPI'
+import { INFO_PANEL_CONTENT_BACKGROUND } from '@wps/ui/theme'
 import FireZoneUnitInfo from 'features/fba/components/infoPanel/FireZoneUnitInfo'
 import { groupBy } from 'lodash'
-import { FireShapeStatusDetail } from '@wps/api/fbaAPI'
-import { INFO_PANEL_CONTENT_BACKGROUND } from '@wps/ui/theme'
+import type React from 'react'
 
 interface FireCentreInfoProps {
   expanded: boolean
@@ -20,7 +20,7 @@ const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
   fontWeight: 'bold',
   margin: '0px',
   minHeight: theme.spacing(4),
-  ['& . .MuiButtonBase-root.MuiAccordionSummary-root']: {
+  '& . .MuiButtonBase-root.MuiAccordionSummary-root': {
     minHeight: theme.spacing(4)
   }
 }))

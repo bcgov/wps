@@ -1,7 +1,5 @@
-import { buildTestStore } from '@/features/moreCast2/components/testHelper'
-import { initialState } from '@/features/moreCast2/slices/validInputSlice'
-import { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
-import { GridStateColDef } from '@mui/x-data-grid-pro/internals'
+import type { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
+import type { GridStateColDef } from '@mui/x-data-grid-pro/internals'
 import { render } from '@testing-library/react'
 import {
   ModelChoice,
@@ -9,18 +7,20 @@ import {
   WeatherDeterminateChoices,
   weatherModelsWithTooltips
 } from '@wps/api/moreCast2API'
+import { theme } from '@wps/ui/theme'
 import { GC_HEADER } from 'features/moreCast2/components/ColumnDefBuilder'
 import {
   GridComponentRenderer,
   NOT_AVAILABLE,
   NOT_REPORTING
 } from 'features/moreCast2/components/GridComponentRenderer'
-import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { vi } from 'vitest'
-import { theme } from '@wps/ui/theme'
-import { MoreCast2Row } from '@/features/moreCast2/interfaces'
+import { buildTestStore } from '@/features/moreCast2/components/testHelper'
+import type { MoreCast2Row } from '@/features/moreCast2/interfaces'
+import { initialState } from '@/features/moreCast2/slices/validInputSlice'
 
 describe('GridComponentRenderer', () => {
   const gridComponentRenderer = new GridComponentRenderer()
@@ -548,6 +548,24 @@ describe('GridComponentRenderer', () => {
     expect(updatedRow).toBe(mockRow)
   })
 
+  it('should update a null prediction value without crashing', () => {
+    const mockRow = {
+      tempForecast: {
+        value: null,
+        choice: ModelChoice.GDPS
+      }
+    } as unknown as MoreCast2Row
+
+    const updatedRow = gridComponentRenderer.predictionItemValueSetter(2, mockRow, 'tempForecast', 1)
+
+    expect(updatedRow).toEqual({
+      tempForecast: {
+        value: 2,
+        choice: ModelChoice.MANUAL
+      }
+    })
+  })
+
   it('should round decimal edits using the configured precision and mark the choice as manual', () => {
     const mockRow = {
       tempForecast: {
@@ -696,15 +714,14 @@ describe('GridComponentRenderer', () => {
         expect(getByTestId(`${param.colDef.field}-model-run-tooltip`)).toBeVisible()
       })
     })
-    describe.each(WeatherDeterminateChoices.filter(determinate => !weatherModelsWithTooltips.includes(determinate)))(
-      'should not render header with tooltip for bias determinate %s',
-      determinate => {
-        const param = createMockParams(determinate)
-        it(`should not render header with tooltip for ${determinate}`, () => {
-          const { queryAllByTestId } = render(<div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>)
-          expect(queryAllByTestId(`${param.colDef.field}-model-run-tooltip`).length === 0)
-        })
-      }
-    )
+    describe.each(
+      WeatherDeterminateChoices.filter(determinate => !weatherModelsWithTooltips.includes(determinate))
+    )('should not render header with tooltip for bias determinate %s', determinate => {
+      const param = createMockParams(determinate)
+      it(`should not render header with tooltip for ${determinate}`, () => {
+        const { queryAllByTestId } = render(<div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>)
+        expect(queryAllByTestId(`${param.colDef.field}-model-run-tooltip`).length === 0)
+      })
+    })
   })
 })

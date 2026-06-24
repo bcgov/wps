@@ -1,10 +1,9 @@
-import * as React from 'react'
-import { addMonths, isSameDay, isWithinInterval, isAfter, isBefore, addYears } from 'date-fns'
-import { DateRange, NavigationAction, DefinedRange } from './types'
-import { getValidatedMonths, parseOptionalDate } from './utils'
-
-import Menu from './Menu'
+import { addMonths, addYears, isAfter, isBefore, isSameDay, isWithinInterval } from 'date-fns'
 import { DateTime } from 'luxon'
+import * as React from 'react'
+import Menu from './Menu'
+import type { DateRange, DefinedRange, NavigationAction } from './types'
+import { getValidatedMonths, parseOptionalDate } from './utils'
 
 type Marker = symbol
 

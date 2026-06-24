@@ -1,6 +1,6 @@
-import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
-import { FireShape } from '@wps/api/fbaAPI'
 import { render } from '@testing-library/react'
+import type { FireShape } from '@wps/api/fbaAPI'
+import FireZoneUnitSummary from 'features/fba/components/infoPanel/FireZoneUnitSummary'
 
 const fireZoneTPIStats = {
   fire_zone_id: 0,
@@ -27,7 +27,11 @@ describe('FireZoneUnitSummary', () => {
   window.ResizeObserver = ResizeObserver
   it('should not render empty div if selectedFireZoneUnit is undefined', () => {
     const { getByTestId } = render(
-      <FireZoneUnitSummary fireZoneFuelStats={[]} fireZoneTPIStats={fireZoneTPIStats} selectedFireZoneUnit={undefined} />
+      <FireZoneUnitSummary
+        fireZoneFuelStats={[]}
+        fireZoneTPIStats={fireZoneTPIStats}
+        selectedFireZoneUnit={undefined}
+      />
     )
     const fireZoneUnitInfo = getByTestId('fire-zone-unit-summary-empty')
     expect(fireZoneUnitInfo).toBeInTheDocument()
@@ -40,7 +44,11 @@ describe('FireZoneUnitSummary', () => {
       area_sqm: 10
     }
     const { getByTestId } = render(
-      <FireZoneUnitSummary fireZoneFuelStats={[]} fireZoneTPIStats={fireZoneTPIStats} selectedFireZoneUnit={fireShape} />
+      <FireZoneUnitSummary
+        fireZoneFuelStats={[]}
+        fireZoneTPIStats={fireZoneTPIStats}
+        selectedFireZoneUnit={fireShape}
+      />
     )
     const fireZoneUnitInfo = getByTestId('fire-zone-unit-summary')
     expect(fireZoneUnitInfo).toBeInTheDocument()

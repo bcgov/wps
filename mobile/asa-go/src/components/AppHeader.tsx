@@ -1,21 +1,21 @@
-import { HamburgerMenu } from "@/components/HamburgerMenu";
-import { theme } from "@/theme";
-import { AppBar, Box, Toolbar, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import { useLayoutEffect, useRef, useState } from "react";
+import { AppBar, Box, Toolbar, Typography } from '@mui/material'
+import Grid from '@mui/material/Grid'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { HamburgerMenu } from '@/components/HamburgerMenu'
+import { theme } from '@/theme'
 
 export const AppHeader = () => {
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [drawerTop, setDrawerTop] = useState(0);
-  const [drawerHeight, setDrawerHeight] = useState(0);
+  const headerRef = useRef<HTMLDivElement>(null)
+  const [drawerTop, setDrawerTop] = useState(0)
+  const [drawerHeight, setDrawerHeight] = useState(0)
 
   useLayoutEffect(() => {
     if (headerRef.current) {
-      const headerRect = headerRef.current.getBoundingClientRect();
-      setDrawerTop(headerRect.bottom);
-      setDrawerHeight(window.innerHeight - headerRect.bottom);
+      const headerRect = headerRef.current.getBoundingClientRect()
+      setDrawerTop(headerRect.bottom)
+      setDrawerHeight(window.innerHeight - headerRect.bottom)
     }
-  }, []);
+  }, [])
 
   return (
     <Box
@@ -24,31 +24,27 @@ export const AppHeader = () => {
         height: 100,
         background: theme.palette.primary.main,
         borderBottomWidth: 2,
-        borderBottomStyle: "solid",
-        borderBottomColor: theme.palette.secondary.main,
+        borderBottomStyle: 'solid',
+        borderBottomColor: theme.palette.secondary.main
       }}
     >
       <Grid
         container
         spacing={1}
         sx={{
-          width: "100%",
-          marginTop: 5,
+          width: '100%',
+          marginTop: 5
         }}
       >
-        <AppBar position="static" sx={{ width: "100%" }}>
-          <Toolbar sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <AppBar position="static" sx={{ width: '100%' }}>
+          <Toolbar sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Typography variant="h6" component="div" sx={{ mr: 0.5 }}>
               ASA
             </Typography>
-            <HamburgerMenu
-              testId="hamburger-menu"
-              drawerTop={drawerTop}
-              drawerHeight={drawerHeight}
-            />
+            <HamburgerMenu testId="hamburger-menu" drawerTop={drawerTop} drawerHeight={drawerHeight} />
           </Toolbar>
         </AppBar>
       </Grid>
     </Box>
-  );
-};
+  )
+}

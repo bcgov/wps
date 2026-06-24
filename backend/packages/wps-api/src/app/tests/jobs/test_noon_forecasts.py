@@ -38,7 +38,7 @@ def test_noon_forecasts_bot_fail(mocker: MockerFixture, monkeypatch, mock_wfwx_a
     """
 
     mock_wfwx_api.get_noon_forecasts_all_stations = mocker.AsyncMock(side_effect=Exception())
-    rocket_chat_spy = mocker.spy(noon_forecasts, "send_rocketchat_notification")
+    rocket_chat_spy = mocker.spy(noon_forecasts, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
         noon_forecasts.main()

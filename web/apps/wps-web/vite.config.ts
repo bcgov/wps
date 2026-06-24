@@ -1,10 +1,9 @@
-import path from 'node:path'
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
-import svgr from 'vite-plugin-svgr'
-import istanbul from 'vite-plugin-istanbul'
+import path, { resolve } from 'node:path'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+import istanbul from 'vite-plugin-istanbul'
+import svgr from 'vite-plugin-svgr'
 
 const isProduction = process.env.NODE_ENV === 'production'
 

@@ -1,9 +1,9 @@
 import {
-  getRasterTooltipData,
   findRasterLayer,
-  getRasterType,
+  getDataAtPixel,
   getRasterData,
-  getDataAtPixel
+  getRasterTooltipData,
+  getRasterType
 } from './rasterTooltipHandler'
 import { NODATA_THRESHOLD } from './sfmsFeatureStylers'
 
@@ -77,6 +77,27 @@ describe('getRasterTooltipData', () => {
       expect(result.label).toBe('FWI')
     })
   })
+
+  describe('should handle fuel raster values', () => {
+    it('should convert valid fuel values to fuel codes', () => {
+      const result = getRasterTooltipData(new Uint8Array([2]), 'fuel')
+
+      expect(result.value).toBe('C-2')
+      expect(result.label).toBe('Fuel')
+    })
+
+    it.each([
+      ['outside grid', new Uint8Array([255])],
+      ['non-fuel area', new Uint8Array([99])],
+      ['water or non-vegetated', new Uint8Array([102])],
+      ['primary nodata', new Float32Array([-10000])]
+    ])('should hide %s fuel values', (_description, data) => {
+      const result = getRasterTooltipData(data, 'fuel')
+
+      expect(result.value).toBeNull()
+      expect(result.label).toBe('Fuel')
+    })
+  })
 })
 
 describe('findRasterLayer', () => {
@@ -85,31 +106,20 @@ describe('findRasterLayer', () => {
   })
 
   it('should find layer with rasterType property', () => {
-    const layers = [
-      createMockLayer(false),
-      createMockLayer(true, 'fwi'),
-      createMockLayer(false)
-    ]
+    const layers = [createMockLayer(false), createMockLayer(true, 'fwi'), createMockLayer(false)]
     const result = findRasterLayer(layers)
     expect(result).toBeDefined()
     expect(result?.getProperties().rasterType).toBe('fwi')
   })
 
   it('should return undefined when no raster layer exists', () => {
-    const layers = [
-      createMockLayer(false),
-      createMockLayer(false)
-    ]
+    const layers = [createMockLayer(false), createMockLayer(false)]
     const result = findRasterLayer(layers)
     expect(result).toBeUndefined()
   })
 
   it('should return first raster layer when multiple exist', () => {
-    const layers = [
-      createMockLayer(false),
-      createMockLayer(true, 'fwi'),
-      createMockLayer(true, 'dmc')
-    ]
+    const layers = [createMockLayer(false), createMockLayer(true, 'fwi'), createMockLayer(true, 'dmc')]
     const result = findRasterLayer(layers)
     expect(result?.getProperties().rasterType).toBe('fwi')
   })
@@ -121,9 +131,10 @@ describe('findRasterLayer', () => {
 })
 
 describe('getRasterType', () => {
-  const createMockLayer = (rasterType?: string) => (({
-    getProperties: () => ({ rasterType })
-  }) as any)
+  const createMockLayer = (rasterType?: string) =>
+    ({
+      getProperties: () => ({ rasterType })
+    }) as any
 
   it.each([
     ['fwi', 'fwi'],
@@ -146,9 +157,10 @@ describe('getRasterType', () => {
 })
 
 describe('getRasterData', () => {
-  const createMockLayer = (data: Float32Array | Uint8Array | null) => (({
-    getData: vi.fn(() => data)
-  }) as any)
+  const createMockLayer = (data: Float32Array | Uint8Array | null) =>
+    ({
+      getData: vi.fn(() => data)
+    }) as any
 
   it('should get data from layer at pixel coordinate', () => {
     const data = new Float32Array([42])
@@ -182,10 +194,11 @@ describe('getRasterData', () => {
 })
 
 describe('getDataAtPixel', () => {
-  const createMockLayer = (data: Float32Array | Uint8Array | null, rasterType?: string) => (({
-    getData: vi.fn(() => data),
-    getProperties: () => ({ rasterType })
-  }) as any)
+  const createMockLayer = (data: Float32Array | Uint8Array | null, rasterType?: string) =>
+    ({
+      getData: vi.fn(() => data),
+      getProperties: () => ({ rasterType })
+    }) as any
 
   it('should get tooltip data from layer with valid data', () => {
     const data = new Float32Array([42.7])

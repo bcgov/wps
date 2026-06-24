@@ -1,19 +1,19 @@
+import CreateIcon from '@mui/icons-material/Create'
+import DashboardIcon from '@mui/icons-material/Dashboard'
 import {
-  CSSObject,
-  Drawer as MuiDrawer,
+  type CSSObject,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Drawer as MuiDrawer,
   styled,
-  Theme,
+  type Theme,
   Tooltip
 } from '@mui/material'
-import CreateIcon from '@mui/icons-material/Create'
-import DashboardIcon from '@mui/icons-material/Dashboard'
 import { DRAWER_WIDTH } from '@wps/utils/constants'
-import { SetStateAction } from 'react'
+import type { SetStateAction } from 'react'
 
 export enum FireWatchViewEnum {
   DASHBOARD = 'dashboard',
@@ -76,7 +76,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 interface NavigationDrawerProps {
   setFireWatchView: React.Dispatch<SetStateAction<FireWatchViewEnum>>
   open: boolean
-  selectedView: FireWatchViewEnum
 }
 
 const navigationItems = [
@@ -92,7 +91,7 @@ const navigationItems = [
   }
 ]
 
-const NavigationDrawer = ({ setFireWatchView, open, selectedView }: NavigationDrawerProps) => {
+const NavigationDrawer = ({ setFireWatchView, open }: NavigationDrawerProps) => {
   return (
     <Drawer open={open} slotProps={{ paper: { sx: { backgroundColor: '#eaeaea' } } }} variant="permanent">
       <DrawerHeader />

@@ -1,7 +1,8 @@
 import { TextField, Typography } from '@mui/material'
-import { GridColumnHeaderParams, GridRenderCellParams } from '@mui/x-data-grid-pro'
+import type { GridColumnHeaderParams, GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { ModelChoice, WeatherDeterminate } from '@wps/api/moreCast2API'
-import { createWeatherModelLabel, isBeforeToday, isForecastRow, rowContainsActual } from 'features/moreCast2/util'
+import { theme } from '@wps/ui/theme'
+import ActualCell from 'features/moreCast2/components/ActualCell'
 import {
   GC_HEADER,
   PRECIP_HEADER,
@@ -10,16 +11,15 @@ import {
   WIND_DIR_HEADER,
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
-import { theme } from '@wps/ui/theme'
-import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
-import { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
-import { isNumber } from 'lodash'
 import ForecastCell from 'features/moreCast2/components/ForecastCell'
+import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
+import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
+import { createWeatherModelLabel, isBeforeToday, isForecastRow, rowContainsActual } from 'features/moreCast2/util'
+import { isNumber } from 'lodash'
+import ModelHeader from '@/features/moreCast2/components/ModelHeader'
 import ValidatedGrassCureForecastCell from '@/features/moreCast2/components/ValidatedGrassCureForecastCell'
 import ValidatedWindDirectionForecastCell from '@/features/moreCast2/components/ValidatedWindDirectionForecastCell'
-import ActualCell from 'features/moreCast2/components/ActualCell'
-import { MoreCast2Row, PredictionItem } from '@/features/moreCast2/interfaces'
-import ModelHeader from '@/features/moreCast2/components/ModelHeader'
+import type { MoreCast2Row, PredictionItem } from '@/features/moreCast2/interfaces'
 
 export const NOT_AVAILABLE = 'N/A'
 export const NOT_REPORTING = 'N/R'
@@ -48,6 +48,15 @@ export class GridComponentRenderer {
 
   private readonly unwrapPredictionValue = (value: GridRendererValue): number | string | null | undefined => {
     return this.isPredictionItem(value) ? value.value : value
+  }
+
+  private readonly parseEditableNumber = (value: GridRendererEditableValue): number => {
+    if (value == null || value === '') {
+      return Number.NaN
+    }
+
+    const parsedValue = Number(value)
+    return Number.isNaN(parsedValue) ? Number.NaN : parsedValue
   }
 
   public renderForecastHeaderWith = (
@@ -231,10 +240,8 @@ export class GridComponentRenderer {
       return row
     }
 
-    const oldValue = predictionItem.value
-
-    const parsedValue = Number(value)
-    const newValue = Number.isNaN(parsedValue) ? Number.NaN : parsedValue
+    const oldValue = this.parseEditableNumber(predictionItem.value)
+    const newValue = this.parseEditableNumber(value)
 
     if (Number.isNaN(oldValue) && Number.isNaN(newValue)) {
       return row

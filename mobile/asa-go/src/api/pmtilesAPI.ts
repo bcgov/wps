@@ -1,6 +1,6 @@
-import { RunType } from "@/api/fbaAPI";
-import { PMTILES_BUCKET } from "@/utils/env";
-import { DateTime } from "luxon";
+import type { DateTime } from 'luxon'
+import type { RunType } from '@/api/fbaAPI'
+import { PMTILES_BUCKET } from '@/utils/env'
 
 /**
  *
@@ -9,28 +9,22 @@ import { DateTime } from "luxon";
  * @param run_date The date of the run to process. (when was the hfi file created?)
  * @returns pmtiles blob
  */
-export const fetchHFIPMTiles = async (
-  for_date: DateTime,
-  run_type: RunType,
-  run_date: DateTime
-): Promise<Blob> => {
-  const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_type.toLowerCase()}/${run_date.toISODate()}/hfi${for_date.toISODate(
-    {
-      format: "basic",
-    }
-  )}.pmtiles`;
+export const fetchHFIPMTiles = async (for_date: DateTime, run_type: RunType, run_date: DateTime): Promise<Blob> => {
+  const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_type.toLowerCase()}/${run_date.toISODate()}/hfi${for_date.toISODate({
+    format: 'basic'
+  })}.pmtiles`
 
-  const response = await fetch(PMTilesURL);
-  const blob = await response.blob();
+  const response = await fetch(PMTilesURL)
+  const blob = await response.blob()
 
-  return blob;
-};
+  return blob
+}
 
 export const fetchStaticPMTiles = async (filename: string): Promise<Blob> => {
-  const PMTilesURL = `${PMTILES_BUCKET}${filename}`;
+  const PMTilesURL = `${PMTILES_BUCKET}${filename}`
 
-  const response = await fetch(PMTilesURL);
-  const blob = await response.blob();
+  const response = await fetch(PMTilesURL)
+  const blob = await response.blob()
 
-  return blob;
-};
+  return blob
+}

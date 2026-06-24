@@ -1,4 +1,4 @@
-import { TableCell, styled } from '@mui/material'
+import { styled, TableCell } from '@mui/material'
 
 export const FireCell = styled(TableCell)({
   backgroundColor: '#dbd9d9'

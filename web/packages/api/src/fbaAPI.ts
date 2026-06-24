@@ -1,6 +1,6 @@
-import { AdvisoryStatus } from '@wps/utils/constants'
+import type { AdvisoryStatus } from '@wps/utils/constants'
+import type { DateTime } from 'luxon'
 import axios, { raster } from './axios'
-import { DateTime } from 'luxon'
 
 export enum RunType {
   FORECAST = 'FORECAST',

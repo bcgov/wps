@@ -1,10 +1,9 @@
-import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
-import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { Box } from '@mui/material'
-import { FireShape, RunType } from '@wps/api/fbaAPI'
+import { type FireShape, RunType } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
-import { selectFireWeatherStations, selectRunDates, selectProvincialSummaryZones } from 'app/rootReducer'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
+import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
+import { selectProvincialSummaryZones, selectRunDates } from 'app/rootReducer'
 import {
   fireCentreLabelStyler,
   fireCentreLineStyler,
@@ -12,8 +11,7 @@ import {
   fireShapeLabelStyler,
   fireShapeLineStyler,
   fireShapeStyler,
-  hfiStyler,
-  stationStyler
+  hfiStyler
 } from 'features/fba/components/map/featureStylers'
 import Legend from 'features/fba/components/map/Legend'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
@@ -22,19 +20,15 @@ import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
 import { cloneDeep, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import { Map, View } from 'ol'
-import { PMTilesVectorSource } from 'ol-pmtiles'
+import { Map as OlMap, View } from 'ol'
 import { defaults as defaultControls, FullScreen } from 'ol/control'
 import ScaleLine from 'ol/control/ScaleLine'
 import { boundingExtent } from 'ol/extent'
-import GeoJSON from 'ol/format/GeoJSON'
-import VectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
+import type MapBrowserEvent from 'ol/MapBrowserEvent'
+import { PMTilesVectorSource } from 'ol-pmtiles'
+import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import 'ol/ol.css'
-import { fromLonLat } from 'ol/proj'
-import VectorSource from 'ol/source/Vector'
-import React, { useEffect, useRef, useState } from 'react'
-import { useSelector } from 'react-redux'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import {
   BASEMAP_STYLE_URL,
@@ -43,6 +37,9 @@ import {
   HILLSHADE_TILE_URL,
   PMTILES_BUCKET
 } from '@wps/utils/env'
+import { fromLonLat } from 'ol/proj'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { MapContext } from '@/features/fba/context/MapContext'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
@@ -61,7 +58,7 @@ export interface FBAMapProps {
   setZoomSource: React.Dispatch<React.SetStateAction<'fireCentre' | 'fireShape' | undefined>>
 }
 
-const removeLayerByName = (map: Map, layerName: string) => {
+const removeLayerByName = (map: OlMap, layerName: string) => {
   const layer = map
     .getLayers()
     .getArray()
@@ -71,183 +68,216 @@ const removeLayerByName = (map: Map, layerName: string) => {
   }
 }
 
+const createPMTilesVectorSource = (filename: string) =>
+  new PMTilesVectorSource({
+    url: `${PMTILES_BUCKET}${filename}`
+  })
+
 const FBAMap = (props: FBAMapProps) => {
-  const { stations } = useSelector(selectFireWeatherStations)
+  const { forDate, selectedFireCentre, selectedFireShape, setSelectedFireShape, runType, zoomSource, setZoomSource } =
+    props
+
+  // store
   const provincialSummaryZones = useSelector(selectProvincialSummaryZones)
+  const { mostRecentRunDate } = useSelector(selectRunDates)
+
+  // state
   const [showShapeStatus, setShowShapeStatus] = useState(true)
   const [showHFI, setShowHFI] = useState(() => {
     const stored = localStorage.getItem(hfiLayerName)
     return stored === 'true'
   })
-  const [map, setMap] = useState<Map | null>(null)
+  const [map, setMap] = useState<OlMap | null>(null)
+
+  // refs
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
-  const { mostRecentRunDate } = useSelector(selectRunDates)
 
-  const fireCentreVectorSource = new PMTilesVectorSource({
-    url: `${PMTILES_BUCKET}fireCentres.pmtiles`
-  })
-  const fireShapeVectorSource = new PMTilesVectorSource({
-    url: `${PMTILES_BUCKET}fireZoneUnits.pmtiles`
-  })
-  const fireCentreLabelVectorSource = new PMTilesVectorSource({
-    url: `${PMTILES_BUCKET}fireCentreLabels.pmtiles`
-  })
-  const fireShapeLabelVectorSource = new PMTilesVectorSource({
-    url: `${PMTILES_BUCKET}fireZoneUnitLabels.pmtiles`
-  })
+  // stable OpenLayers sources and layers
+  const fireCentreVectorSource = useMemo(() => createPMTilesVectorSource('fireCentres.pmtiles'), [])
+  const fireShapeVectorSource = useMemo(() => createPMTilesVectorSource('fireZoneUnits.pmtiles'), [])
+  const fireCentreLabelVectorSource = useMemo(() => createPMTilesVectorSource('fireCentreLabels.pmtiles'), [])
+  const fireShapeLabelVectorSource = useMemo(() => createPMTilesVectorSource('fireZoneUnitLabels.pmtiles'), [])
 
-  const handleToggleLayer = (layerName: string, isVisible: boolean) => {
-    if (map) {
-      const layer = map
-        .getLayers()
-        .getArray()
-        .find(l => l.getProperties()?.name === layerName)
+  const fireCentreVTL = useMemo(
+    () =>
+      new VectorTileLayer({
+        source: fireCentreVectorSource,
+        style: fireCentreStyler(undefined),
+        zIndex: 51
+      }),
+    [fireCentreVectorSource]
+  )
 
-      if (layerName === 'fireShapeVector') {
-        fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(provincialSummaryZones), isVisible))
-      } else if (layer) {
-        layer.setVisible(isVisible)
+  const fireCentreLineVTL = useMemo(
+    () =>
+      new VectorTileLayer({
+        source: fireCentreVectorSource,
+        style: fireCentreLineStyler(undefined),
+        zIndex: 52
+      }),
+    [fireCentreVectorSource]
+  )
+
+  const fireShapeVTL = useMemo(
+    () =>
+      new VectorTileLayer({
+        source: fireShapeVectorSource,
+        style: fireShapeStyler([], true),
+        zIndex: 50,
+        properties: { name: zoneStatusLayerName }
+      }),
+    [fireShapeVectorSource]
+  )
+
+  const fireShapeHighlightVTL = useMemo(
+    () =>
+      new VectorTileLayer({
+        source: fireShapeVectorSource,
+        style: fireShapeLineStyler([], undefined),
+        zIndex: 53,
+        properties: { name: zoneStatusLayerName }
+      }),
+    [fireShapeVectorSource]
+  )
+
+  const fireCentreLabelVTL = useMemo(
+    () =>
+      new VectorTileLayer({
+        source: fireCentreLabelVectorSource,
+        style: fireCentreLabelStyler,
+        zIndex: 100,
+        maxZoom: 6
+      }),
+    [fireCentreLabelVectorSource]
+  )
+
+  const fireShapeLabelVTL = useMemo(
+    () =>
+      new VectorTileLayer({
+        declutter: true,
+        source: fireShapeLabelVectorSource,
+        style: fireShapeLabelStyler(undefined),
+        zIndex: 99,
+        minZoom: 6
+      }),
+    [fireShapeLabelVectorSource]
+  )
+
+  // event handlers
+  const handleToggleLayer = useCallback(
+    (layerName: string, isVisible: boolean) => {
+      if (map) {
+        const layer = map
+          .getLayers()
+          .getArray()
+          .find(l => l.getProperties()?.name === layerName)
+
+        if (layerName === zoneStatusLayerName) {
+          fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(provincialSummaryZones), isVisible))
+        } else if (layer) {
+          layer.setVisible(isVisible)
+        }
       }
-    }
-  }
-
-  const [fireCentreVTL] = useState(
-    new VectorTileLayer({
-      source: fireCentreVectorSource,
-      style: fireCentreStyler(props.selectedFireCentre),
-      zIndex: 51
-    })
+    },
+    [fireShapeVTL, map, provincialSummaryZones]
   )
 
-  const [fireCentreLineVTL] = useState(
-    new VectorTileLayer({
-      source: fireCentreVectorSource,
-      style: fireCentreLineStyler(props.selectedFireCentre),
-      zIndex: 52
-    })
-  )
-
-  const [fireShapeVTL] = useState(
-    new VectorTileLayer({
-      source: fireShapeVectorSource,
-      style: fireShapeStyler(cloneDeep(provincialSummaryZones), showShapeStatus),
-      zIndex: 50,
-      properties: { name: 'fireShapeVector' }
-    })
-  )
-  const [fireShapeHighlightVTL] = useState(
-    new VectorTileLayer({
-      source: fireShapeVectorSource,
-      style: fireShapeLineStyler(cloneDeep(provincialSummaryZones), props.selectedFireShape),
-      zIndex: 53,
-      properties: { name: 'fireShapeVector' }
-    })
-  )
-  // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const [fireCentreLabelVTL] = useState(
-    new VectorTileLayer({
-      source: fireCentreLabelVectorSource,
-      style: fireCentreLabelStyler,
-      zIndex: 100,
-      maxZoom: 6
-    })
-  )
-  // Seperate layer for polygons and for labels, to avoid duplicate labels.
-  const [fireShapeLabelVTL] = useState(
-    new VectorTileLayer({
-      declutter: true,
-      source: fireShapeLabelVectorSource,
-      style: fireShapeLabelStyler(props.selectedFireShape),
-      zIndex: 99,
-      minZoom: 6
-    })
-  )
-
+  // effects
   useEffect(() => {
     const hfiLayerEnabled = localStorage.getItem(hfiLayerName)
     setShowHFI(hfiLayerEnabled === 'true')
   }, [])
 
   useEffect(() => {
-    if (map) {
-      map.on('click', event => {
-        fireShapeVTL.getFeatures(event.pixel).then(features => {
-          if (!features.length) {
-            props.setSelectedFireShape(undefined)
-            return
-          }
-          const feature = features[0]
-          if (!feature) {
-            return
-          }
-          const zonePlacename = `${feature.getProperties().FIRE_ZONE_} - ${feature.getProperties().FIRE_ZON_1}`
-          const fireZone: FireShape = {
-            fire_shape_id: feature.getProperties().OBJECTID,
-            mof_fire_zone_name: zonePlacename,
-            mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
-            area_sqm: feature.getProperties().Shape_Area
-          }
-          props.setZoomSource('fireShape')
-          props.setSelectedFireShape(fireZone)
-        })
-      })
-    }
-  }, [map]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    // zoom to fire center or whole province
     if (!map) return
 
-    if (props.selectedFireCentre && props.zoomSource === 'fireCentre') {
-      const fireCentreExtent = extentsMap.get(props.selectedFireCentre.name)
+    const handleMapClick = (event: MapBrowserEvent<UIEvent>) => {
+      fireShapeVTL.getFeatures(event.pixel).then(features => {
+        if (!features.length) {
+          setSelectedFireShape(undefined)
+          return
+        }
+        const feature = features[0]
+        if (!feature) {
+          return
+        }
+        const zonePlacename = `${feature.getProperties().FIRE_ZONE_} - ${feature.getProperties().FIRE_ZON_1}`
+        const fireZone: FireShape = {
+          fire_shape_id: feature.getProperties().OBJECTID,
+          mof_fire_zone_name: zonePlacename,
+          mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
+          area_sqm: feature.getProperties().Shape_Area
+        }
+        setZoomSource('fireShape')
+        setSelectedFireShape(fireZone)
+      })
+    }
+
+    map.on('click', handleMapClick)
+    return () => {
+      map.un('click', handleMapClick)
+    }
+  }, [fireShapeVTL, map, setSelectedFireShape, setZoomSource])
+
+  useEffect(() => {
+    if (!map) return
+
+    if (selectedFireCentre && zoomSource === 'fireCentre') {
+      const fireCentreExtent = extentsMap.get(selectedFireCentre.name)
       if (fireCentreExtent) {
         map.getView().fit(fireCentreExtent.extent, { duration: 400, padding: [50, 50, 50, 50] })
       }
-    } else if (!props.selectedFireCentre) {
-      // reset map view to full province
+    } else if (!selectedFireCentre && zoomSource !== 'fireShape') {
       map.getView().fit(bcExtent, { duration: 600, padding: [50, 50, 50, 50] })
     }
-  }, [props.selectedFireCentre])
+  }, [map, selectedFireCentre, zoomSource])
 
   useEffect(() => {
-    // zoom to fire zone
     if (!map) return
 
-    if (props.selectedFireShape && props.zoomSource === 'fireShape') {
-      const zoneExtent = fireZoneExtentsMap.get(props.selectedFireShape.fire_shape_id.toString())
+    if (selectedFireShape && zoomSource === 'fireShape') {
+      const zoneExtent = fireZoneExtentsMap.get(selectedFireShape.fire_shape_id.toString())
       if (!isUndefined(zoneExtent)) {
         map.getView().fit(zoneExtent, { duration: 400, padding: [100, 100, 100, 100], maxZoom: 8 })
       }
     }
-  }, [props.selectedFireShape])
+  }, [map, selectedFireShape, zoomSource])
 
   useEffect(() => {
     if (!map) return
 
-    fireCentreVTL.setStyle(fireCentreStyler(props.selectedFireCentre))
+    fireCentreVTL.setStyle(fireCentreStyler(selectedFireCentre))
     fireShapeVTL.setStyle(fireShapeStyler(cloneDeep(provincialSummaryZones), showShapeStatus))
-    fireShapeLabelVTL.setStyle(fireShapeLabelStyler(props.selectedFireShape))
-    fireShapeHighlightVTL.setStyle(fireShapeLineStyler(cloneDeep(provincialSummaryZones), props.selectedFireShape))
-    fireCentreLineVTL.setStyle(fireCentreLineStyler(props.selectedFireCentre))
+    fireShapeLabelVTL.setStyle(fireShapeLabelStyler(selectedFireShape))
+    fireShapeHighlightVTL.setStyle(fireShapeLineStyler(cloneDeep(provincialSummaryZones), selectedFireShape))
+    fireCentreLineVTL.setStyle(fireCentreLineStyler(selectedFireCentre))
 
     fireShapeVTL.changed()
     fireShapeHighlightVTL.changed()
     fireShapeLabelVTL.changed()
     fireCentreLineVTL.changed()
     fireCentreVTL.changed()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedFireCentre, props.selectedFireShape, provincialSummaryZones])
+  }, [
+    fireCentreLineVTL,
+    fireCentreVTL,
+    fireShapeHighlightVTL,
+    fireShapeLabelVTL,
+    fireShapeVTL,
+    map,
+    provincialSummaryZones,
+    selectedFireCentre,
+    selectedFireShape,
+    showShapeStatus
+  ])
 
   useEffect(() => {
     if (!map) return
     removeLayerByName(map, hfiLayerName)
     if (!isNull(mostRecentRunDate)) {
-      // The runDate for forecasts is the mostRecentRunDate. For Actuals, our API expects the runDate to be
-      // the same as the forDate.
-      const runDate = props.runType === RunType.FORECAST ? DateTime.fromISO(mostRecentRunDate) : props.forDate
+      const runDate = runType === RunType.FORECAST ? DateTime.fromISO(mostRecentRunDate) : forDate
       const hfiSource = new PMTilesVectorSource({
-        url: buildPMTilesURL(props.forDate, props.runType, runDate)
+        url: buildPMTilesURL(forDate, runType, runDate)
       })
 
       const latestHFILayer = new VectorTileLayer({
@@ -260,19 +290,12 @@ const FBAMap = (props: FBAMapProps) => {
       })
       map.addLayer(latestHFILayer)
     }
-  }, [showHFI, mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [forDate, map, mostRecentRunDate, runType, showHFI])
 
   useEffect(() => {
-    // The React ref is used to attach to the div rendered in our
-    // return statement of which this map's target is set to.
-    // The ref is a div of type  HTMLDivElement.
-
-    // Pattern copied from web/src/features/map/Map.tsx
     if (!mapRef.current) return
 
-    // Create the map with the options above and set the target
-    // To the ref above so that it is rendered in that div
-    const mapObject = new Map({
+    const mapObject = new OlMap({
       view: new View({
         zoom: 5,
         center: fromLonLat(CENTER_OF_BC)
@@ -303,7 +326,6 @@ const FBAMap = (props: FBAMapProps) => {
     setMap(mapObject)
 
     const loadBaseMap = async () => {
-      // Create and add the hillshade layer first so it renders below the vector basemap layer
       const hillshadeStyle = await getStyleJson(HILLSHADE_STYLE_URL)
       const hillshadeLayer = await createHillshadeVectorTileLayer(
         HILLSHADE_TILE_URL,
@@ -321,26 +343,7 @@ const FBAMap = (props: FBAMapProps) => {
     return () => {
       mapObject.setTarget('')
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const stationsSource = new VectorSource({
-      features: new GeoJSON().readFeatures(
-        { type: 'FeatureCollection', features: stations },
-        {
-          featureProjection: 'EPSG:3857'
-        }
-      )
-    })
-    const stationsLayer = new VectorLayer({
-      source: stationsSource,
-      minZoom: 6,
-      style: stationStyler,
-      zIndex: 51
-    })
-
-    map?.addLayer(stationsLayer)
-  }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireCentreLabelVTL, fireCentreLineVTL, fireCentreVTL, fireShapeHighlightVTL, fireShapeLabelVTL, fireShapeVTL])
 
   return (
     <ErrorBoundary>

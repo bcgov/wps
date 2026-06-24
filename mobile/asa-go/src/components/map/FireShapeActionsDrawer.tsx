@@ -1,46 +1,38 @@
-import { FireShape } from "@/api/fbaAPI";
-import { SwipeableBottomDrawer } from "@/components/SwipeableBottomDrawer";
-import { useIsPortrait } from "@/hooks/useIsPortrait";
-import { useIsTablet } from "@/hooks/useIsTablet";
-import { checkPushNotificationPermission } from "@/slices/pushNotificationSlice";
-import { useNotificationSettings } from "@/hooks/useNotificationSettings";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
+import AnalyticsIcon from '@mui/icons-material/Analytics'
+import CloseIcon from '@mui/icons-material/Close'
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined'
+import NotificationsOffIcon from '@mui/icons-material/NotificationsOff'
+import TextSnippetIcon from '@mui/icons-material/TextSnippet'
+import { Box, Button, CircularProgress, IconButton, Typography, useMediaQuery, useTheme } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import type { FireShape } from '@/api/fbaAPI'
+import NotificationErrorSnackbar from '@/components/NotificationErrorSnackbar'
+import { SwipeableBottomDrawer } from '@/components/SwipeableBottomDrawer'
+import { useIsPortrait } from '@/hooks/useIsPortrait'
+import { useIsTablet } from '@/hooks/useIsTablet'
+import { useNotificationSettings } from '@/hooks/useNotificationSettings'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { checkPushNotificationPermission } from '@/slices/pushNotificationSlice'
 import {
-  AppDispatch,
+  type AppDispatch,
   selectNetworkStatus,
-  selectNotificationSetupState,
   selectNotificationSettingsDisabled,
+  selectNotificationSetupState,
   selectPushNotification,
   selectRegistrationFailed,
-  selectSettings,
-} from "@/store";
-import { fireZoneUnitNameFormatter } from "@/utils/stringUtils";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
-import CloseIcon from "@mui/icons-material/Close";
-import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
-import NotificationsOffIcon from "@mui/icons-material/NotificationsOff";
-import TextSnippetIcon from "@mui/icons-material/TextSnippet";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  IconButton,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import NotificationErrorSnackbar from "@/components/NotificationErrorSnackbar";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { subscriptionUpdateErrorMessage } from "@/utils/constants";
+  selectSettings
+} from '@/store'
+import { subscriptionUpdateErrorMessage } from '@/utils/constants'
+import { fireZoneUnitNameFormatter } from '@/utils/stringUtils'
 
 interface FireShapeActionsDrawerProps {
-  open: boolean;
-  selectedFireShape: FireShape | undefined;
-  onClose: () => void;
-  onSelectProfile: () => void;
-  onSelectAdvisory: () => void;
+  open: boolean
+  selectedFireShape: FireShape | undefined
+  onClose: () => void
+  onSelectProfile: () => void
+  onSelectAdvisory: () => void
 }
 
 const FireShapeActionsDrawer = ({
@@ -48,72 +40,63 @@ const FireShapeActionsDrawer = ({
   selectedFireShape,
   onClose,
   onSelectProfile,
-  onSelectAdvisory,
+  onSelectAdvisory
 }: FireShapeActionsDrawerProps) => {
-  const dispatch: AppDispatch = useDispatch();
-  const { toggleSubscription, updateError, clearUpdateError } =
-    useNotificationSettings();
-  const { retryRegistration } = usePushNotifications();
-  const theme = useTheme();
+  const dispatch: AppDispatch = useDispatch()
+  const { toggleSubscription, updateError, clearUpdateError } = useNotificationSettings()
+  const { retryRegistration } = usePushNotifications()
+  const theme = useTheme()
 
-  const isPortrait = useIsPortrait();
-  const isTablet = useIsTablet();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("lg"));
-  const useSideSheet = !isPortrait && isSmallScreen;
+  const isPortrait = useIsPortrait()
+  const isTablet = useIsTablet()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('lg'))
+  const useSideSheet = !isPortrait && isSmallScreen
 
-  const { subscriptions } = useSelector(selectSettings);
-  const { pushNotificationPermission, deviceIdError } = useSelector(
-    selectPushNotification,
-  );
-  const [registrationErrorDismissed, setRegistrationErrorDismissed] =
-    useState(false);
-  const { networkStatus } = useSelector(selectNetworkStatus);
-  const setupState = useSelector(selectNotificationSetupState);
-  const notificationSettingsDisabled = useSelector(
-    selectNotificationSettingsDisabled,
-  );
-  const isRegistrationFailed = useSelector(selectRegistrationFailed);
+  const { subscriptions } = useSelector(selectSettings)
+  const { pushNotificationPermission, deviceIdError } = useSelector(selectPushNotification)
+  const [registrationErrorDismissed, setRegistrationErrorDismissed] = useState(false)
+  const { networkStatus } = useSelector(selectNetworkStatus)
+  const setupState = useSelector(selectNotificationSetupState)
+  const notificationSettingsDisabled = useSelector(selectNotificationSettingsDisabled)
+  const isRegistrationFailed = useSelector(selectRegistrationFailed)
 
-  const selectedFireShapeId = selectedFireShape?.fire_shape_id;
-  const isSubscribed =
-    selectedFireShapeId !== undefined &&
-    subscriptions.includes(selectedFireShapeId);
+  const selectedFireShapeId = selectedFireShape?.fire_shape_id
+  const isSubscribed = selectedFireShapeId !== undefined && subscriptions.includes(selectedFireShapeId)
 
-  const isAwaitingToken =
-    setupState === "unregistered" && networkStatus.connected && !deviceIdError;
+  const isAwaitingToken = setupState === 'unregistered' && networkStatus.connected && !deviceIdError
 
-  const actionIconSize = isTablet ? 40 : 32;
-  const actionIconSx = { fontSize: actionIconSize };
+  const actionIconSize = isTablet ? 40 : 32
+  const actionIconSx = { fontSize: actionIconSize }
 
   const actionButtonSx = {
     borderRadius: 2,
-    flexDirection: "column",
-    fontSize: isTablet ? "20px" : "14px",
+    flexDirection: 'column',
+    fontSize: isTablet ? '20px' : '14px',
     gap: 0.75,
     padding: 1,
-    textTransform: "none",
-  };
+    textTransform: 'none'
+  }
 
   useEffect(() => {
     // Refresh permission state when the drawer opens so the subscribe action is accurate
-    if (open && pushNotificationPermission === "unknown") {
-      dispatch(checkPushNotificationPermission());
+    if (open && pushNotificationPermission === 'unknown') {
+      dispatch(checkPushNotificationPermission())
     }
-  }, [dispatch, open, pushNotificationPermission]);
+  }, [dispatch, open, pushNotificationPermission])
 
   useEffect(() => {
     if (open) {
-      void retryRegistration();
+      void retryRegistration()
     }
-  }, [open, retryRegistration]);
+  }, [open, retryRegistration])
 
   const handleSubscriptionUpdate = () => {
     if (selectedFireShapeId === undefined || notificationSettingsDisabled) {
-      return;
+      return
     }
 
-    toggleSubscription(selectedFireShapeId);
-  };
+    toggleSubscription(selectedFireShapeId)
+  }
 
   return (
     <>
@@ -123,11 +106,7 @@ const FireShapeActionsDrawer = ({
         message={subscriptionUpdateErrorMessage}
       />
       <NotificationErrorSnackbar
-        open={
-          isRegistrationFailed &&
-          networkStatus.connected &&
-          !registrationErrorDismissed
-        }
+        open={isRegistrationFailed && networkStatus.connected && !registrationErrorDismissed}
         onClose={() => setRegistrationErrorDismissed(true)}
         message="Unable to register this device for notifications. Retrying automatically."
         severity="warning"
@@ -138,24 +117,24 @@ const FireShapeActionsDrawer = ({
           sx={{
             px: 2,
             pb: 2,
-            pt: useSideSheet ? 2 : 0,
+            pt: useSideSheet ? 2 : 0
           }}
         >
           <Box
             sx={{
-              alignItems: "flex-start",
-              display: "flex",
+              alignItems: 'flex-start',
+              display: 'flex',
               gap: 1,
-              justifyContent: "space-between",
-              mb: 2,
+              justifyContent: 'space-between',
+              mb: 2
             }}
           >
             <Typography
               sx={{
                 flex: 1,
                 fontWeight: 700,
-                fontSize: "1.25rem",
-                pl: 0.5,
+                fontSize: '1.25rem',
+                pl: 0.5
               }}
               variant="h6"
             >
@@ -173,31 +152,24 @@ const FireShapeActionsDrawer = ({
 
           <Box
             sx={{
-              display: "grid",
+              display: 'grid',
               gap: 1.5,
-              gridTemplateColumns: useSideSheet
-                ? "repeat(2, minmax(0, 1fr))"
-                : "repeat(3, minmax(0, 1fr))",
+              gridTemplateColumns: useSideSheet ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))'
             }}
           >
             <Box
               sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
               }}
             >
               <Button
-                aria-label={`Toggle subscription for ${
-                  selectedFireShape?.mof_fire_zone_name ?? "selected fire zone"
-                }`}
-                disabled={
-                  selectedFireShapeId === undefined ||
-                  notificationSettingsDisabled
-                }
+                aria-label={`Toggle subscription for ${selectedFireShape?.mof_fire_zone_name ?? 'selected fire zone'}`}
+                disabled={selectedFireShapeId === undefined || notificationSettingsDisabled}
                 disableElevation
                 onClick={handleSubscriptionUpdate}
-                sx={{ ...actionButtonSx, width: "100%" }}
+                sx={{ ...actionButtonSx, width: '100%' }}
                 variant="text"
               >
                 {isAwaitingToken ? (
@@ -209,28 +181,14 @@ const FireShapeActionsDrawer = ({
                 ) : (
                   <NotificationsNoneOutlinedIcon sx={actionIconSx} />
                 )}
-                {isRegistrationFailed
-                  ? "Unavailable"
-                  : isSubscribed
-                  ? "Unsubscribe"
-                  : "Subscribe"}
+                {isRegistrationFailed ? 'Unavailable' : isSubscribed ? 'Unsubscribe' : 'Subscribe'}
               </Button>
             </Box>
-            <Button
-              disableElevation
-              onClick={onSelectProfile}
-              sx={actionButtonSx}
-              variant="text"
-            >
+            <Button disableElevation onClick={onSelectProfile} sx={actionButtonSx} variant="text">
               <AnalyticsIcon sx={actionIconSx} />
               Profile
             </Button>
-            <Button
-              disableElevation
-              onClick={onSelectAdvisory}
-              sx={actionButtonSx}
-              variant="text"
-            >
+            <Button disableElevation onClick={onSelectAdvisory} sx={actionButtonSx} variant="text">
               <TextSnippetIcon sx={actionIconSx} />
               Advisory
             </Button>
@@ -238,7 +196,7 @@ const FireShapeActionsDrawer = ({
         </Box>
       </SwipeableBottomDrawer>
     </>
-  );
-};
+  )
+}
 
-export default FireShapeActionsDrawer;
+export default FireShapeActionsDrawer

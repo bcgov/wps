@@ -160,8 +160,7 @@ jobs:
       - name: Provision dev cronjobs and jobs
         shell: bash
         run: |
-          bash openshift/scripts/oc_provision_advisory_fuel_areas_job.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_fuel_raster_processor_job.sh ${SUFFIX} apply
+          FUEL_RASTER_YEAR=2026 bash openshift/scripts/oc_provision_fuel_grid_install_job.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
@@ -175,11 +174,11 @@ jobs:
           bash openshift/scripts/oc_provision_sfms_calculations_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_fire_watch_weather_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_sfms_daily_actuals_cronjob.sh ${SUFFIX} apply
+          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi bash openshift/scripts/oc_provision_sfms_daily_actuals_cronjob.sh ${SUFFIX} apply
           # 15:00 UTC (8:00 AM PDT)
-          SCHEDULE="0 15 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX}-8am apply
+          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi JOB_SUFFIX=8am SCHEDULE="0 15 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} apply
           # 00:45 UTC (5:45 PM PDT)
-          SCHEDULE="45 0 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX}-545pm apply
+          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi JOB_SUFFIX=545pm SCHEDULE="45 0 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} apply
           SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
           END_HOUR=48 STEP=6 MODEL=GDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
           END_HOUR=15 STEP=3 MODEL=RDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply

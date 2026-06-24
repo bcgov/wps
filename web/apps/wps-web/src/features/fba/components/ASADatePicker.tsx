@@ -1,29 +1,32 @@
 import { PlayArrow } from '@mui/icons-material'
-import { CircularProgress, IconButton, TextField } from '@mui/material'
+import { CircularProgress, IconButton, TextField, type TextFieldProps } from '@mui/material'
 import {
   CalendarIcon,
   DatePicker,
-  DatePickerFieldProps,
-  DatePickerProps,
+  type DatePickerFieldProps,
+  type DatePickerProps,
   LocalizationProvider,
   usePickerContext,
   useSplitFieldProps
 } from '@mui/x-date-pickers'
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon'
 import { isNil, isNull } from 'lodash'
-import { DateTime } from 'luxon'
+import type { DateTime } from 'luxon'
 import React from 'react'
+
+type FieldSlotProps = { input?: NonNullable<TextFieldProps['slotProps']>['input'] }
 
 interface CustomDateTextFieldProps extends DatePickerFieldProps {
   date: DateTime | null
   updateDate: React.Dispatch<React.SetStateAction<DateTime>>
   minimumDate: DateTime
   maximumDate: DateTime
+  slotProps?: FieldSlotProps
 }
 
 function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
   const { forwardedProps } = useSplitFieldProps(props, 'date')
-  const { date, updateDate, minimumDate, maximumDate, ...other } = forwardedProps
+  const { date, updateDate, minimumDate, maximumDate, slotProps: externalSlotProps, ...other } = forwardedProps
   const pickerContext = usePickerContext<DateTime | null>()
   const disabled = pickerContext.disabled
 
@@ -79,18 +82,24 @@ function CustomDateTextField(props: Readonly<CustomDateTextFieldProps>) {
       }
       slotProps={{
         input: {
+          ...externalSlotProps?.input,
           ref: pickerContext.triggerRef,
           readOnly: true,
           startAdornment: renderStartAdornments(),
           endAdornment: renderEndAdornments(),
-          sx: { cursor: disabled ? 'default' : 'pointer', '& *': { cursor: 'inherit' } }
+          sx: {
+            cursor: disabled ? 'default' : 'pointer',
+            '& *': { cursor: 'inherit' },
+            ...(externalSlotProps?.input as { sx?: object })?.sx
+          }
         }
       }}
     />
   )
 }
 
-interface ASADatePickerProps extends DatePickerProps {
+interface ASADatePickerProps extends Omit<DatePickerProps, 'slotProps'> {
+  slotProps?: DatePickerProps['slotProps'] & FieldSlotProps
   date: DateTime | null
   updateDate: (d: DateTime) => void
   currentYearMinDate?: DateTime
@@ -132,10 +141,11 @@ const ASADatePicker = ({
             date,
             updateDate,
             minimumDate: currentYearMinDate,
-            maximumDate: currentYearMaxDate
+            maximumDate: currentYearMaxDate,
+            sx: other.sx,
+            slotProps: other.slotProps
           } as any
         }}
-        sx={{ ...other.sx }}
         value={date}
       />
     </LocalizationProvider>

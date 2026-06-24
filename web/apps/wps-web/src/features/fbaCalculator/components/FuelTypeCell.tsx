@@ -1,6 +1,6 @@
-import { TextField, Autocomplete } from '@mui/material'
-import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
+import { Autocomplete, TextField } from '@mui/material'
+import type { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedOptionRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isGrassCureInvalid } from 'features/fbaCalculator/validation'
 import { isEqual } from 'lodash'
@@ -19,9 +19,7 @@ const emptyLabel = 'Select a fuel type'
 const FuelTypeCell = (props: FuelTypeCellProps) => {
   const [selectedFuelType, setSelectedFuelType] = useState(props.value)
   useEffect(() => setSelectedFuelType(props.value), [props])
-
-  // eslint-disable-next-line
-  const changeHandler = (_: React.ChangeEvent<{}>, value: any | null) => {
+  const changeHandler = (_: React.ChangeEvent<unknown>, value: any | null) => {
     if (!isEqual(selectedFuelType, value)) {
       setSelectedFuelType(value)
       const updatedRow = buildUpdatedOptionRow(props.inputRows[props.rowId], 'fuelType', value)

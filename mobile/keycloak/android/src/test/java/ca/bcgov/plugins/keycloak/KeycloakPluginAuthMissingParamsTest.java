@@ -21,6 +21,7 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 23)
 public class KeycloakPluginAuthMissingParamsTest {
+
     @Mock
     private PluginCall mockCall;
 
@@ -33,6 +34,7 @@ public class KeycloakPluginAuthMissingParamsTest {
      * Test case data class
      */
     private static class TestCase {
+
         final String description;
         final String expectedError;
         final String clientId;
@@ -40,8 +42,14 @@ public class KeycloakPluginAuthMissingParamsTest {
         final String redirectUrl;
         final String accessTokenEndpoint;
 
-        TestCase(String description, String expectedError, String clientId,
-                 String authorizationBaseUrl, String redirectUrl, String accessTokenEndpoint) {
+        TestCase(
+            String description,
+            String expectedError,
+            String clientId,
+            String authorizationBaseUrl,
+            String redirectUrl,
+            String accessTokenEndpoint
+        ) {
             this.description = description;
             this.expectedError = expectedError;
             this.clientId = clientId;
@@ -53,11 +61,46 @@ public class KeycloakPluginAuthMissingParamsTest {
 
     private static List<TestCase> getTestCases() {
         return Arrays.asList(
-            new TestCase("clientId missing", "clientId is required", null, "https://auth.example.com", "ca.bc.gov.asago://callback", "https://auth.example.com/token"),
-            new TestCase("clientId empty", "clientId is required", "", "https://auth.example.com", "ca.bc.gov.asago://callback", "https://auth.example.com/token"),
-            new TestCase("authorizationBaseUrl missing", "authorizationBaseUrl is required", "test-client", null, "ca.bc.gov.asago://callback", "https://auth.example.com/token"),
-            new TestCase("redirectUrl missing", "redirectUrl is required", "test-client", "https://auth.example.com", null, "https://auth.example.com/token"),
-            new TestCase("accessTokenEndpoint missing", "accessTokenEndpoint is required", "test-client", "https://auth.example.com", "ca.bc.gov.asago://callback", null)
+            new TestCase(
+                "clientId missing",
+                "clientId is required",
+                null,
+                "https://auth.example.com",
+                "ca.bc.gov.asago://callback",
+                "https://auth.example.com/token"
+            ),
+            new TestCase(
+                "clientId empty",
+                "clientId is required",
+                "",
+                "https://auth.example.com",
+                "ca.bc.gov.asago://callback",
+                "https://auth.example.com/token"
+            ),
+            new TestCase(
+                "authorizationBaseUrl missing",
+                "authorizationBaseUrl is required",
+                "test-client",
+                null,
+                "ca.bc.gov.asago://callback",
+                "https://auth.example.com/token"
+            ),
+            new TestCase(
+                "redirectUrl missing",
+                "redirectUrl is required",
+                "test-client",
+                "https://auth.example.com",
+                null,
+                "https://auth.example.com/token"
+            ),
+            new TestCase(
+                "accessTokenEndpoint missing",
+                "accessTokenEndpoint is required",
+                "test-client",
+                "https://auth.example.com",
+                "ca.bc.gov.asago://callback",
+                null
+            )
         );
     }
 

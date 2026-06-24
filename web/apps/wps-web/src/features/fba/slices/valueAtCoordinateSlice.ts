@@ -1,8 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { AppThunk } from 'app/store'
-import { logError } from '@wps/utils/error'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { getValueAtCoordinate } from '@wps/api/fbaAPI'
-import { DateTime } from 'luxon'
+import { logError } from '@wps/utils/error'
+import type { AppThunk } from 'app/store'
+import type { DateTime } from 'luxon'
 
 export interface IValueAtCoordinate {
   value: string | undefined

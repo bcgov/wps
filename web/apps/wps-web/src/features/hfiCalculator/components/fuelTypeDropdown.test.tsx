@@ -1,9 +1,8 @@
-import { render, within, waitFor } from '@testing-library/react'
-import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
-import { FuelType } from '@wps/api/hfiCalculatorAPI'
+import { render, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { FuelType } from '@wps/api/hfiCalculatorAPI'
+import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
 import { vi } from 'vitest'
-
 
 describe('FuelTypeDropdown', () => {
   const fuelTypes: FuelType[] = []
@@ -42,7 +41,7 @@ describe('FuelTypeDropdown', () => {
     const autocomplete = getByTestId('fuel-type-dropdown')
     const input = within(autocomplete).getByRole('combobox') as HTMLInputElement
 
-    const fuelType = fuelTypes.find(instance => instance.id == fuelTypes[2].id)
+    const fuelType = fuelTypes.find(instance => instance.id === fuelTypes[2].id)
     await waitFor(() => expect(input.value).toBe(fuelType?.abbrev))
   })
   it('should change value on change and call parent callback', async () => {

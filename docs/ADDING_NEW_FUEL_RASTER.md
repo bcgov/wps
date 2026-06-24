@@ -1,0 +1,157 @@
+# Adding a New Fuel Raster
+
+Use this checklist near the start of each fire season when a new SFMS fuel grid is ready.
+
+The install job does the static setup for one fuel grid:
+
+1. Copies the staged raster to the versioned fuel raster location, or reuses an existing
+   versioned raster with the same content hash.
+2. Inserts one `fuel_type_raster` row.
+3. Generates the fuel-masked classified TPI raster.
+4. Populates static advisory data for that raster:
+   - `advisory_fuel_types`
+   - `advisory_shape_fuels`
+   - `combustible_area`
+   - `tpi_fuel_area`
+5. Verifies the derived row counts before the DB transaction commits.
+6. Marks the `fuel_type_raster` row as `ready`.
+
+The install job does not reprocess date-based advisory or SFMS outputs. Reprocess those separately
+for the operational date range that should use the new fuel grid.
+
+If the staged raster has the same content hash as a `ready` `fuel_type_raster` for the same year,
+the job logs a warning and exits without installing another version.
+
+If the database does not have that raster yet but object storage already has a versioned raster
+with the same content hash, the job reuses the existing object-store version and only populates the
+database. This lets dev deployments run the job repeatedly without creating new S3 fuel-grid
+versions for every PR environment.
+
+## 1. Stage the Raster
+
+Upload the source GeoTIFF to object storage under `sfms/static/`.
+
+For example, for the 2026 grid:
+
+```text
+sfms/static/fbp2026.tif
+```
+
+The job receives only the object name:
+
+```text
+fbp2026.tif
+```
+
+## 2. Update the Install Year
+
+Update `FUEL_RASTER_YEAR` in the dev and production deployment calls:
+
+```bash
+FUEL_RASTER_YEAR=2026 bash openshift/scripts/oc_provision_fuel_grid_install_job.sh <suffix> apply
+```
+
+The provision script derives the staged object name as `fbp${FUEL_RASTER_YEAR}.tif`, so the staged
+object for 2026 must be `sfms/static/fbp2026.tif`. Commit the year change with the PR.
+
+## 3. Deploy the Job
+
+The deployment workflow provisions the fuel grid install job. Dev deployments create the job
+unsuspended so new PR databases are populated automatically. Production creates the job suspended so
+the install can be started manually after the staged raster/object store target are confirmed.
+
+For a PR/dev deployment, the job name looks like:
+
+```text
+fuel-grid-install-2026-wps-pr-5495
+```
+
+For production, the name looks like:
+
+```text
+fuel-grid-install-2026-wps-prod
+```
+
+## 4. Run the Job in Production
+
+Unsuspend the production job when it is ready to run. Either use the following command or unsuspend
+the job in the Openshift UI
+
+```bash
+oc -n <namespace> patch job/<job-name> --type=merge -p '{"spec":{"suspend":false}}'
+```
+
+Follow logs:
+
+```bash
+oc -n <namespace> logs -f job/<job-name> --all-containers
+```
+
+To rerun, delete and recreate the job, then unsuspend it again:
+
+```bash
+oc -n <namespace> delete job/<job-name> --ignore-not-found
+PROJ_TARGET=<namespace> bash openshift/scripts/oc_provision_fuel_grid_install_job.sh <suffix> apply
+oc -n <namespace> patch job/<job-name> --type=merge -p '{"spec":{"suspend":false}}'
+```
+
+## 5. Verify the Install
+
+The job logs should include:
+
+```text
+Fuel grid install complete
+fuel_type_raster_id: <id>
+year: 2026
+version: 1
+install_status: ready
+processed_raster_key: sfms/static/fuel/2026/fbp2026_v1.tif
+fuel_masked_tpi_key: dem/tpi/<classified_tpi_base>_fuel_masked_2026_v1.tif
+advisory_fuel_types_count: <count>
+advisory_shape_fuels_count: <count>
+combustible_area_count: <count>
+tpi_fuel_area_count: <count>
+advisory_shape_fuels_duplicate_count: 0
+```
+
+You can also verify in SQL:
+
+```sql
+SELECT id, year, version, object_store_path, content_hash, create_timestamp
+FROM fuel_type_raster
+WHERE year = 2026
+  AND install_status = 'ready'
+ORDER BY version DESC;
+```
+
+Check the static table counts for the installed raster:
+
+```sql
+WITH target AS (
+    SELECT id
+    FROM fuel_type_raster
+    WHERE year = 2026
+      AND version = 1
+)
+SELECT 'advisory_fuel_types' AS table_name, count(*) FROM advisory_fuel_types WHERE fuel_type_raster_id IN (SELECT id FROM target)
+UNION ALL
+SELECT 'advisory_shape_fuels', count(*) FROM advisory_shape_fuels WHERE fuel_type_raster_id IN (SELECT id FROM target)
+UNION ALL
+SELECT 'combustible_area', count(*) FROM combustible_area WHERE fuel_type_raster_id IN (SELECT id FROM target)
+UNION ALL
+SELECT 'tpi_fuel_area', count(*) FROM tpi_fuel_area WHERE fuel_type_raster_id IN (SELECT id FROM target);
+```
+
+## 6. Reprocess Date-Based Data
+
+After the static fuel-grid install is complete, reprocess any advisory or SFMS stats for dates that
+should use the new grid. The date range is an operational decision and is intentionally outside this
+install job.
+
+## Failure Behavior
+
+The job stages all DB rows in one transaction. If verification fails, the transaction rolls back.
+Normal read paths only select fuel rasters with `install_status = 'ready'`.
+
+Object-store writes cannot roll back with the database, so the job makes a best effort attempt to
+delete the processed fuel raster and generated fuel-masked TPI raster on failure.

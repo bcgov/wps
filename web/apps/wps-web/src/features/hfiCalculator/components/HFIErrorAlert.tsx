@@ -1,7 +1,7 @@
-import { Collapse, IconButton, Alert } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
-import React from 'react'
+import { Alert, Collapse, IconButton } from '@mui/material'
 import { isNull } from 'lodash'
+import React from 'react'
 
 export interface HFIErrorAlertProps {
   errors: Array<string | null>
@@ -24,7 +24,7 @@ const HFIErrorAlert = ({ errors, disableGeneralInstructions }: HFIErrorAlertProp
 
   const generalInstructions = () => {
     if (disableGeneralInstructions) {
-      return <></>
+      return null
     }
     return (
       <>

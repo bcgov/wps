@@ -1,8 +1,10 @@
-import { TextField, Autocomplete } from '@mui/material'
+import { Autocomplete, TextField } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { BasicWFWXStation, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import type {
+  BasicWFWXStation,
+  StationAdminRow
+} from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isEqual, isNull, isUndefined } from 'lodash'
-import React from 'react'
 
 const PREFIX = 'AdminStationDropdown'
 

@@ -1,19 +1,19 @@
 import { Typography } from '@mui/material'
-import { GridColumnVisibilityModel, GridColDef, GridColumnGroup } from '@mui/x-data-grid-pro'
+import type { GridColDef, GridColumnGroup, GridColumnVisibilityModel } from '@mui/x-data-grid-pro'
 import { WeatherDeterminate } from '@wps/api/moreCast2API'
+import type { MoreCastParams } from '@wps/ui/theme'
 import { ORDERED_COLUMN_HEADERS } from 'features/moreCast2/components/ColumnDefBuilder'
+import GroupHeader from 'features/moreCast2/components/GroupHeader'
 import {
   MORECAST2_FIELDS,
   MORECAST2_FORECAST_FIELDS,
-  MORECAST2_INDEX_FIELDS,
-  MORECAST2_STATION_DATE_FIELDS,
   MORECAST2_GRASS_CURING_CWFIS_FIELD,
-  MORECAST2_GRASS_CURING_FORECAST_FIELD
+  MORECAST2_GRASS_CURING_FORECAST_FIELD,
+  MORECAST2_INDEX_FIELDS,
+  MORECAST2_STATION_DATE_FIELDS
 } from 'features/moreCast2/components/MoreCast2Column'
-import GroupHeader from 'features/moreCast2/components/GroupHeader'
-import { ColumnClickHandlerProps, handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
-import { MoreCastParams } from '@wps/ui/theme'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
+import type { ColumnClickHandlerProps, handleShowHideChangeType } from 'features/moreCast2/components/TabbedDataGrid'
+import type { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { GridComponentRenderer } from '@/features/moreCast2/components/GridComponentRenderer'
 
 export interface ColumnVis {
@@ -31,13 +31,10 @@ export enum GroupHeaderName {
   WindSpeed = 'Wind Speed (km/h)'
 }
 
-export class DataGridColumns {
-  public static initGridColumnVisibilityModel(
-    columnClickHandlerProps: ColumnClickHandlerProps,
-    allRows?: MoreCast2Row[]
-  ) {
+export const DataGridColumns = {
+  initGridColumnVisibilityModel(columnClickHandlerProps: ColumnClickHandlerProps, allRows?: MoreCast2Row[]) {
     const model: GridColumnVisibilityModel = {}
-    const weatherParameterColumns = this.getWeatherParameterColumns(columnClickHandlerProps, allRows)
+    const weatherParameterColumns = DataGridColumns.getWeatherParameterColumns(columnClickHandlerProps, allRows)
     weatherParameterColumns.forEach(columnName => {
       // temperature columns are visible by default
       if (columnName.startsWith('temp')) {
@@ -47,12 +44,9 @@ export class DataGridColumns {
       }
     })
     return model
-  }
+  },
 
-  public static updateGridColumnVisibilityModel(
-    parameters: ColumnVis[],
-    columnVisibilityModel: GridColumnVisibilityModel
-  ) {
+  updateGridColumnVisibilityModel(parameters: ColumnVis[], columnVisibilityModel: GridColumnVisibilityModel) {
     const newModel: GridColumnVisibilityModel = {}
     Object.assign(newModel, columnVisibilityModel)
 
@@ -64,12 +58,9 @@ export class DataGridColumns {
       })
     }
     return newModel
-  }
+  },
 
-  public static getTabColumns(
-    columnClickHandlerProps: ColumnClickHandlerProps,
-    allRows?: MoreCast2Row[]
-  ): GridColDef[] {
+  getTabColumns(columnClickHandlerProps: ColumnClickHandlerProps, allRows?: MoreCast2Row[]): GridColDef[] {
     let tabColumns: GridColDef[] = []
     MORECAST2_FIELDS.forEach(field => {
       tabColumns = [
@@ -83,22 +74,22 @@ export class DataGridColumns {
     tabColumns.push(gcCwfisField)
 
     return tabColumns
-  }
+  },
 
-  public static getSummaryColumns(columnClickHandlerProps: ColumnClickHandlerProps): GridColDef[] {
+  getSummaryColumns(columnClickHandlerProps: ColumnClickHandlerProps): GridColDef[] {
     return MORECAST2_STATION_DATE_FIELDS.map(field => field.generateColDef(columnClickHandlerProps)).concat(
       MORECAST2_FORECAST_FIELDS.map(forecastField =>
         forecastField.generateForecastColDef(columnClickHandlerProps)
       ).concat(MORECAST2_INDEX_FIELDS.map(field => field.generateForecastColDef(columnClickHandlerProps)))
     )
-  }
+  },
 
-  public static getWeatherParameterColumns(columnClickHandlerProps: ColumnClickHandlerProps, allRows?: MoreCast2Row[]) {
+  getWeatherParameterColumns(columnClickHandlerProps: ColumnClickHandlerProps, allRows?: MoreCast2Row[]) {
     const fields = DataGridColumns.getTabColumns(columnClickHandlerProps, allRows).map(column => column.field)
     return fields.filter(field => field !== 'stationName' && field !== 'forDate')
-  }
+  },
 
-  public static getWeatherModelColumns(columnClickHandlerProps: ColumnClickHandlerProps, allRows?: MoreCast2Row[]) {
+  getWeatherModelColumns(columnClickHandlerProps: ColumnClickHandlerProps, allRows?: MoreCast2Row[]) {
     const columns = DataGridColumns.getTabColumns(columnClickHandlerProps, allRows)
     return columns.filter(
       column => column.field !== 'stationName' && column.field !== 'forDate' && !column.field.endsWith('Forecast')
@@ -135,21 +126,21 @@ export const getTabColumnGroupModel = (
       children: columnGroupingModelChildGenerator('temp', allRows),
       headerClassName: 'temp',
       renderHeaderGroup: () =>
-        renderGroupHeader(GroupHeaderName.TEMP, 'temp', showHideColumnsModel['temp'], handleShowHideChange)
+        renderGroupHeader(GroupHeaderName.TEMP, 'temp', showHideColumnsModel.temp, handleShowHideChange)
     },
     {
       groupId: 'RH',
       children: columnGroupingModelChildGenerator('rh', allRows),
       headerClassName: 'rh',
       renderHeaderGroup: () =>
-        renderGroupHeader(GroupHeaderName.RH, 'rh', showHideColumnsModel['rh'], handleShowHideChange)
+        renderGroupHeader(GroupHeaderName.RH, 'rh', showHideColumnsModel.rh, handleShowHideChange)
     },
     {
       groupId: 'Precip',
       children: columnGroupingModelChildGenerator('precip', allRows),
       headerClassName: 'precip',
       renderHeaderGroup: () =>
-        renderGroupHeader(GroupHeaderName.PRECIP, 'precip', showHideColumnsModel['precip'], handleShowHideChange)
+        renderGroupHeader(GroupHeaderName.PRECIP, 'precip', showHideColumnsModel.precip, handleShowHideChange)
     },
     {
       groupId: 'Wind Dir',
@@ -159,7 +150,7 @@ export const getTabColumnGroupModel = (
         renderGroupHeader(
           GroupHeaderName.WindDir,
           'windDirection',
-          showHideColumnsModel['windDirection'],
+          showHideColumnsModel.windDirection,
           handleShowHideChange
         )
     },
@@ -168,12 +159,7 @@ export const getTabColumnGroupModel = (
       children: columnGroupingModelChildGenerator('windSpeed', allRows),
       headerClassName: 'windSpeed',
       renderHeaderGroup: () =>
-        renderGroupHeader(
-          GroupHeaderName.WindSpeed,
-          'windSpeed',
-          showHideColumnsModel['windSpeed'],
-          handleShowHideChange
-        )
+        renderGroupHeader(GroupHeaderName.WindSpeed, 'windSpeed', showHideColumnsModel.windSpeed, handleShowHideChange)
     },
     {
       groupId: 'Grass Curing',

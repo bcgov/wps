@@ -21,6 +21,7 @@ from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
 from wps_shared.run_type import RunType
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 
 from app.auto_spatial_advisory.common import get_hfi_s3_key
 
@@ -31,19 +32,6 @@ FUEL_TYPE_RASTER_RESOLUTION_IN_METRES = 2000
 
 def get_intersected_raster_path(source_identifier: str, threshold: int) -> str:
     return f"/vsimem/intersect_{source_identifier}_{threshold}.tif"
-
-
-def get_fuel_type_s3_key(bucket):
-    """
-    Returns the key to the fuel type layer that has been reprojected to the Lambert Conformal Conic spatial reference and
-    transformed to match the extent and spatial reference of hfi files output by sfms.
-    """
-    fuel_raster_name = config.get("FUEL_RASTER_NAME")
-    # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
-    # it's S3 virtual file system driver to read the file.
-    # https://gdal.org/user/virtual_file_systems.html
-    key = f"/vsis3/{bucket}/sfms/static/{fuel_raster_name}"
-    return key
 
 
 def classify_by_threshold(source_data: np.array, threshold: int):
@@ -270,6 +258,8 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
                 session, run_type, run_datetime, for_date
             )
             fuel_type_raster_record = await get_fuel_type_raster_by_year(session, for_date.year)
+            if fuel_type_raster_record is None:
+                raise RuntimeError(f"No fuel type raster found for {for_date.year}")
 
             stmt = select(AdvisoryFuelStats).where(
                 AdvisoryFuelStats.run_parameters == run_parameters_id
@@ -286,7 +276,9 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
             hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
 
             # Retrieve the fuel type raster from s3 storage.
-            fuel_type_key = get_fuel_type_s3_key(config.get("OBJECT_STORE_BUCKET"))
+            fuel_type_key = BaseRasterAddresser().gdal_path(
+                S3Key(fuel_type_raster_record.object_store_path)
+            )
             fuel_type_raster = gdal.Open(fuel_type_key, gdal.GA_ReadOnly)
             fuel_type_band = fuel_type_raster.GetRasterBand(1)
             fuel_type_data = fuel_type_band.ReadAsArray()

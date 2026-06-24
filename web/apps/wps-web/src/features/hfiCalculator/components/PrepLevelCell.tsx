@@ -27,32 +27,32 @@ const PrepLevelDefault = styled(CalculatedPlanningCell, { name: 'prepLevelDefaul
 })
 
 const PrepLevel1Cell = styled(CalculatedPlanningCell, { name: 'prepLevel1' })({
-  border: '2px solid ' + prepLevelColours.green,
+  border: `2px solid ${prepLevelColours.green}`,
   background: DAILY_BACKGROUND_COLOR
 })
 
 const PrepLevel2Cell = styled(CalculatedPlanningCell, { name: 'prepLevel2' })({
-  border: '2px solid ' + prepLevelColours.blue,
+  border: `2px solid ${prepLevelColours.blue}`,
   background: DAILY_BACKGROUND_COLOR
 })
 
 const PrepLevel3Cell = styled(CalculatedPlanningCell, { name: 'prepLevel3' })({
-  border: '2px solid ' + prepLevelColours.yellow,
+  border: `2px solid ${prepLevelColours.yellow}`,
   background: DAILY_BACKGROUND_COLOR
 })
 
 const PrepLevel4Cell = styled(CalculatedPlanningCell, { name: 'prepLevel4' })({
-  border: '2px solid ' + prepLevelColours.orange,
+  border: `2px solid ${prepLevelColours.orange}`,
   background: DAILY_BACKGROUND_COLOR
 })
 
 const PrepLevel5Cell = styled(CalculatedPlanningCell, { name: 'prepLevel5' })({
-  border: '2px solid ' + prepLevelColours.brightRed,
+  border: `2px solid ${prepLevelColours.brightRed}`,
   background: DAILY_BACKGROUND_COLOR
 })
 
 const PrepLevel6Cell = styled(CalculatedPlanningCell, { name: 'prepLevel6' })({
-  border: '2px solid ' + prepLevelColours.bloodRed,
+  border: `2px solid ${prepLevelColours.bloodRed}`,
   background: DAILY_BACKGROUND_COLOR
 })
 

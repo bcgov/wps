@@ -1,12 +1,12 @@
 import { TableCell } from '@mui/material'
-import { FireStartRange, FuelType, PlanningArea, PlanningAreaResult, StationInfo } from '@wps/api/hfiCalculatorAPI'
+import type { FireStartRange, FuelType, PlanningArea, PlanningAreaResult, StationInfo } from '@wps/api/hfiCalculatorAPI'
+import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
 import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
 import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
+import { PlanningAreaTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { range } from 'lodash'
 import React from 'react'
 import MeanPrepLevelCell from './MeanPrepLevelCell'
-import FireStartsDropdown from 'features/hfiCalculator/components/FireStartsDropdown'
-import { PlanningAreaTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 
 export interface CalculatedCellsProps {
   testId?: string

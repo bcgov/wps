@@ -1,7 +1,7 @@
-import React from 'react'
-import { GridRenderCellParams } from '@mui/x-data-grid-pro'
-import ValidatedCell from '@/features/moreCast2/components/ValidatedCell'
 import { Box } from '@mui/material'
+import type { GridRenderCellParams } from '@mui/x-data-grid-pro'
+import React from 'react'
+import ValidatedCell from '@/features/moreCast2/components/ValidatedCell'
 
 interface ValidatedGrassCureForecastCellProps {
   disabled: boolean

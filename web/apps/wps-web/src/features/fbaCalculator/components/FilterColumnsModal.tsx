@@ -1,18 +1,18 @@
-import React, { useState } from 'react'
-import { styled } from '@mui/material/styles'
+import { Clear } from '@mui/icons-material'
 import {
+  Button,
+  Checkbox,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
-  DialogActions,
-  IconButton,
-  Paper,
   Fab,
-  Checkbox,
-  Button
+  IconButton,
+  Paper
 } from '@mui/material'
-import { Clear } from '@mui/icons-material'
-import { ColumnLabel } from 'features/fbaCalculator/components/FBATable'
+import { styled } from '@mui/material/styles'
+import type { ColumnLabel } from 'features/fbaCalculator/components/FBATable'
+import React, { useState } from 'react'
 
 const PREFIX = 'FilterColumnsModal'
 
@@ -103,7 +103,7 @@ export const FilterColumnsModal = (props: ModalProps): JSX.Element => {
                     // below is some jiggery-pokery to get checkboxes to squish closer together vertically
                     // https://stackoverflow.com/questions/64261614/how-to-decrease-vetical-distance-between-two-checkboxes-with-label
                   />
-                  <a>{column}</a>
+                  <span>{column}</span>
                 </div>
               )
             })}

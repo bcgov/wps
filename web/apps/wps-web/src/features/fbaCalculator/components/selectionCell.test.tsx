@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableBody, TableRow, TableCell } from '@mui/material'
+import { Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material'
 import { render, within } from '@testing-library/react'
 
 import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
@@ -13,7 +13,6 @@ describe('SelectionCell', () => {
               <TableCell>
                 <SelectionCell
                   selected={[1]}
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
                   updateSelected={(_: number[]) => {
                     /** no op */
                   }}
@@ -39,7 +38,6 @@ describe('SelectionCell', () => {
               <TableCell>
                 <SelectionCell
                   selected={[]}
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
                   updateSelected={(_: number[]) => {
                     /** no op */
                   }}
@@ -65,7 +63,6 @@ describe('SelectionCell', () => {
               <TableCell>
                 <SelectionCell
                   selected={[]}
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
                   updateSelected={(_: number[]) => {
                     /** no op */
                   }}

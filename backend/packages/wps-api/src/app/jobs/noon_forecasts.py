@@ -3,17 +3,18 @@ for each weather station and store the results in our database.
 """
 
 import asyncio
+import logging
 import os
 import sys
-import logging
-from sqlalchemy.exc import IntegrityError
-from aiohttp.client import ClientSession
-from wps_wf1.wfwx_api import WfwxApi
-from wps_shared.wps_logging import configure_logging
+
 import wps_shared.db.database
-from wps_shared.db.crud.forecasts import save_noon_forecast
 import wps_shared.utils.time
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from aiohttp.client import ClientSession
+from sqlalchemy.exc import IntegrityError
+from wps_shared.chatops_notification import send_chatops_notification
+from wps_shared.db.crud.forecasts import save_noon_forecast
+from wps_shared.wps_logging import configure_logging
+from wps_wf1.wfwx_api import WfwxApi
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ def main():
         # Exit non 0 - failure.
         logger.error("Failed to retrieve noon forecasts.", exc_info=exception)
         rc_message = ":confounded: Encountered error retrieving noon forecasts"
-        send_rocketchat_notification(rc_message, exception)
+        send_chatops_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)
 
 

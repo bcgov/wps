@@ -1,5 +1,5 @@
 import { ModelChoice } from '@wps/api/moreCast2API'
-import { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
+import type { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { getRowsToSave, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
 import { DateTime } from 'luxon'
 
@@ -237,8 +237,8 @@ describe('saveForecasts', () => {
   })
   describe('getRowsToSave', () => {
     it('should filter out rows with actuals', () => {
-      const yesterday = DateTime.now().minus({days: 1})
-      const tomorrow = DateTime.now().plus({days: 1})
+      const yesterday = DateTime.now().minus({ days: 1 })
+      const tomorrow = DateTime.now().plus({ days: 1 })
       const res = getRowsToSave([
         buildForecast('1', tomorrow, 1, 'one', 1, 1),
         buildForecastWithActuals('2', yesterday, 2, 'two', 2, 2)

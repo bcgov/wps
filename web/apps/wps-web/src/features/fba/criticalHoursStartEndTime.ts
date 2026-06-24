@@ -1,4 +1,4 @@
-import { FireZoneFuelStats } from '@wps/api/fbaAPI'
+import type { FireZoneFuelStats } from '@wps/api/fbaAPI'
 import { isNil } from 'lodash'
 
 /**
@@ -17,9 +17,9 @@ export const getMinStartAndMaxEndTime = (
   maxEndTime: number | undefined
   duration: number | undefined
 } => {
-  let minStartTime: number | undefined = undefined
-  let maxEndTime: number | undefined = undefined
-  let duration: number | undefined = undefined
+  let minStartTime: number | undefined
+  let maxEndTime: number | undefined
+  let duration: number | undefined
 
   for (const fuel of fuels) {
     let { start_time, end_time } = fuel.critical_hours

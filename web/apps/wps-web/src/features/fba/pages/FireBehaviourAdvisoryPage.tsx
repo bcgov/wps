@@ -1,38 +1,40 @@
 import { Box, FormControl, Grid, styled } from '@mui/material'
-import { GeneralHeader } from '@wps/ui/GeneralHeader'
-import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
-import React, { useEffect, useState } from 'react'
-import FBAMap from 'features/fba/components/map/FBAMap'
-import FireCentreDropdown from '@wps/ui/FireCentreDropdown'
-import { DateTime } from 'luxon'
-import { selectFireCentres, selectRunDates } from 'app/rootReducer'
-import { useDispatch, useSelector } from 'react-redux'
-import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
-import { theme } from '@wps/ui/theme'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { type FireShape, RunType } from '@wps/api/fbaAPI'
 import { getStations, StationSource } from '@wps/api/stationAPI'
-import { FireShape, RunType } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
-import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from '@wps/utils/constants'
-import { AppDispatch } from 'app/store'
-import ActualForecastControl from 'features/fba/components/ActualForecastControl'
-import { fetchSFMSRunDates, fetchSFMSBounds } from 'features/fba/slices/runDatesSlice'
-import { isEmpty, isNull, isUndefined } from 'lodash'
+import AboutDataPopover from '@wps/ui/AboutDataPopover'
+import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
+import FireCentreDropdown from '@wps/ui/FireCentreDropdown'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { StyledFormControl } from '@wps/ui/StyledFormControl'
-import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import { theme } from '@wps/ui/theme'
+import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME, PST_UTC_OFFSET } from '@wps/utils/constants'
+import { selectFireCentres, selectRunDates } from 'app/rootReducer'
+import type { AppDispatch } from 'app/store'
+import ActualForecastControl from 'features/fba/components/ActualForecastControl'
 import AdvisoryReport from 'features/fba/components/infoPanel/AdvisoryReport'
 import FireZoneUnitTabs from 'features/fba/components/infoPanel/FireZoneUnitTabs'
-import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
+import FBAMap from 'features/fba/components/map/FBAMap'
 import { fetchFireCentreHFIFuelStats } from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
-import Footer from '@/features/landingPage/components/Footer'
-import AboutDataPopover from '@wps/ui/AboutDataPopover'
+import { fetchFireCentreTPIStats } from 'features/fba/slices/fireCentreTPIStatsSlice'
+import { fetchProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import { fetchSFMSBounds, fetchSFMSRunDates } from 'features/fba/slices/runDatesSlice'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { isEmpty, isNull, isUndefined } from 'lodash'
+import { DateTime } from 'luxon'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchFireCentres } from '@/commonSlices/fireCentresSlice'
 import { ASAAboutDataContent } from '@/features/fba/components/ASAAboutDataContent'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
+import Footer from '@/features/landingPage/components/Footer'
 
 export const FireCentreFormControl = styled(FormControl)({
   margin: theme.spacing(1),
   minWidth: 280
 })
+
+const dateTimeComparator = (a: DateTime, b: DateTime) => a.valueOf() - b.valueOf()
 
 const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const dispatch: AppDispatch = useDispatch()
@@ -45,7 +47,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [zoomSource, setZoomSource] = useState<'fireCentre' | 'fireShape' | undefined>('fireCentre')
-  const [dateOfInterest, setDateOfInterest] = useState(
+  const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
@@ -61,17 +63,15 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     DateTime.fromObject({ year: DateTime.now().year, month: 4, day: 1 })
   )
   const [currentYearMaxDate, setCurrentYearMaxDate] = useState<DateTime>(DateTime.now().plus({ days: 3 }))
-  const [currentYear, setCurrentYear] = useState<number>(DateTime.now().year)
+  const dateOfInterestYear = dateOfInterest.year
 
-  const dateTimeComparator = (a: DateTime, b: DateTime) => a.valueOf() - b.valueOf()
-
-  const updateDatePickerOptions = () => {
+  const updateDatePickerOptions = useCallback(() => {
     const dates: DateTime[] = []
     const runTypeLower = runType.toLocaleLowerCase()
     if (!isNull(sfmsBounds) && !isEmpty(sfmsBounds)) {
       for (const key of Object.keys(sfmsBounds)) {
-        const minValue = sfmsBounds[key]?.[runTypeLower]?.['minimum']
-        const maxValue = sfmsBounds[key]?.[runTypeLower]?.['maximum']
+        const minValue = sfmsBounds[key]?.[runTypeLower]?.minimum
+        const maxValue = sfmsBounds[key]?.[runTypeLower]?.maximum
         if (minValue && maxValue) {
           const minDate = DateTime.fromISO(minValue)
           const maxDate = DateTime.fromISO(maxValue)
@@ -84,18 +84,17 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         setHistoricalMaxDate(dates[dates.length - 1].plus({ days: 1 }))
       }
     }
-    const year = dateOfInterest.year
-    const currentYearMin = sfmsBounds?.[year]?.[runTypeLower]?.['minimum'] ?? `${currentYear}-04-01`
-    const currentYearMax = sfmsBounds?.[year]?.[runTypeLower]?.['maximum'] ?? `${currentYear}-10-31`
+    const currentYearMin = sfmsBounds?.[dateOfInterestYear]?.[runTypeLower]?.minimum ?? `${dateOfInterestYear}-04-01`
+    const currentYearMax = sfmsBounds?.[dateOfInterestYear]?.[runTypeLower]?.maximum ?? `${dateOfInterestYear}-10-31`
     setCurrentYearMinDate(DateTime.fromISO(currentYearMin))
     setCurrentYearMaxDate(DateTime.fromISO(currentYearMax))
-  }
+  }, [dateOfInterestYear, runType, sfmsBounds])
 
-  useEffect(() => updateDatePickerOptions(), [currentYear, runType, sfmsBounds])
+  useEffect(() => updateDatePickerOptions(), [updateDatePickerOptions])
 
   useEffect(() => {
     const findCenter = (id: string | null): FireCentre | undefined => {
-      return fireCentres.find(center => center.id.toString() == id)
+      return fireCentres.find(center => center.id.toString() === id)
     }
     setFireCentre(findCenter(localStorage.getItem('preferredFireCentre')))
   }, [fireCentres])
@@ -127,27 +126,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     if (!isNull(doiISODate)) {
       dispatch(fetchSFMSRunDates(runType, doiISODate))
     }
-  }, [runType]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dateOfInterest, dispatch, runType])
 
   useEffect(() => {
     dispatch(fetchFireCentres())
-    const doiISODate = dateOfInterest.toISODate()
-    if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunDates(runType, doiISODate))
-    }
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
     dispatch(fetchSFMSBounds())
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const doiISODate = dateOfInterest.toISODate()
-    if (!isNull(doiISODate)) {
-      dispatch(fetchSFMSRunDates(runType, doiISODate))
-    }
-    if (dateOfInterest.year !== currentYear) {
-      setCurrentYear(dateOfInterest.year)
-    }
-  }, [dateOfInterest]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dispatch])
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
@@ -161,14 +146,14 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       dispatch(fetchFireCentreTPIStats(fireCentre.name, runType, doiISODate, mostRecentRunDate.toString()))
       dispatch(fetchFireCentreHFIFuelStats(fireCentre.name, runType, doiISODate, mostRecentRunDate.toString()))
     }
-  }, [fireCentre, mostRecentRunDate])
+  }, [dateOfInterest, dispatch, fireCentre, mostRecentRunDate, runType])
 
   useEffect(() => {
     const doiISODate = dateOfInterest.toISODate()
     if (!isNull(doiISODate)) {
       dispatch(fetchProvincialSummary(runType, mostRecentRunDate, doiISODate))
     }
-  }, [mostRecentRunDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dateOfInterest, dispatch, mostRecentRunDate, runType])
 
   useEffect(() => {
     document.title = ASA_DOC_TITLE
@@ -178,9 +163,13 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader isBeta={false} spacing={1} title={FIRE_BEHAVIOUR_ADVISORY_NAME} />
       <Box sx={{ paddingTop: '0.5em' }}>
-        <Grid container spacing={1} sx={{
-          alignItems: 'center'
-        }}>
+        <Grid
+          container
+          spacing={1}
+          sx={{
+            alignItems: 'center'
+          }}
+        >
           <Grid>
             <StyledFormControl>
               <ASADatePicker
@@ -243,7 +232,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       </Box>
       <Footer />
     </Box>
-  );
+  )
 }
 
 export default React.memo(FireBehaviourAdvisoryPage)

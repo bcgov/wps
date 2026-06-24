@@ -1,5 +1,5 @@
-import { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
+import type { GridMenuOption } from 'features/fbaCalculator/components/FBATable'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { find } from 'lodash'
 
 export const updateFBARow = (
@@ -7,7 +7,6 @@ export const updateFBARow = (
   updateRow: (id: number, updatedRow: FBATableRow, dispatchUpdate: boolean) => void,
   rowId: number,
   field: string,
-  // eslint-disable-next-line
   value: any,
   updatedRowBuilder: (rowToUpdate: FBATableRow, field: string, value: GridMenuOption | number) => FBATableRow,
   dispatchRequest = true
@@ -19,12 +18,7 @@ export const updateFBARow = (
   }
 }
 
-export const buildUpdatedOptionRow = (
-  rowToUpdate: FBATableRow,
-  field: string,
-  // eslint-disable-next-line
-  value: any
-): FBATableRow => {
+export const buildUpdatedOptionRow = (rowToUpdate: FBATableRow, field: string, value: any): FBATableRow => {
   return {
     ...rowToUpdate,
     ...{
@@ -32,14 +26,7 @@ export const buildUpdatedOptionRow = (
     }
   }
 }
-
-// eslint-disable-next-line
-export const buildUpdatedNumberRow = (
-  rowToUpdate: FBATableRow,
-  field: string,
-  // eslint-disable-next-line
-  value: any
-): FBATableRow => {
+export const buildUpdatedNumberRow = (rowToUpdate: FBATableRow, field: string, value: any): FBATableRow => {
   return {
     ...rowToUpdate,
     ...{

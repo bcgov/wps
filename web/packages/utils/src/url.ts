@@ -1,11 +1,11 @@
+import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
-
 import { PST_UTC_OFFSET } from './constants'
 import { suppressMilliInISO } from './date'
-import { isNull } from 'lodash'
 
 export const stationCodeQueryKey = 'codes'
 export const timeOfInterestQueryKey = 'toi'
+export const timeRangeQueryKey = 'timeRange'
 
 export const getTimeOfInterestFromUrl = (search: string): string => {
   const queryString = new URLSearchParams(search).get(timeOfInterestQueryKey)
@@ -20,6 +20,13 @@ export const getTimeOfInterestFromUrl = (search: string): string => {
   const iso = datetime.setZone(`UTC${PST_UTC_OFFSET}`).toISO()
 
   return !isNull(iso) ? suppressMilliInISO(iso) : ''
+}
+
+export const getTimeRangeFromUrl = (search: string): number | null => {
+  const value = new URLSearchParams(search).get(timeRangeQueryKey)
+  if (!value) return null
+  const parsed = Number(value)
+  return Number.isNaN(parsed) || parsed <= 0 ? null : parsed
 }
 
 export const getStationCodesFromUrl = (search: string): number[] => {

@@ -1,7 +1,7 @@
 import { TableCell } from '@mui/material'
 import { StationPlainStylingCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
-import React, { ReactElement } from 'react'
+import React, { type ReactElement } from 'react'
 
 export interface EmptyStaticCellsProps {
   rowId: number

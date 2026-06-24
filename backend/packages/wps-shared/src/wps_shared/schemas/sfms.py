@@ -1,7 +1,11 @@
 """This module contains pydantic schemas related to SFMS."""
 
+from datetime import date, datetime
 from typing import List, Optional
+
 from pydantic import BaseModel
+
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 
 
 class HourlyTIF(BaseModel):
@@ -16,10 +20,12 @@ class HourlyTIFs(BaseModel):
     hourlies: List[HourlyTIF]
 
 
-class SFMSDailyActual(BaseModel):
-    """Daily Actual"""
+class SFMSDaily(BaseModel):
+    """Daily SFMS station weather and FWI values."""
 
     code: int
+    for_datetime: datetime
+    run_type: RunTypeEnum
     lat: float
     lon: float
     elevation: Optional[float] = None
@@ -32,3 +38,12 @@ class SFMSDailyActual(BaseModel):
     ffmc: Optional[float] = None
     dmc: Optional[float] = None
     dc: Optional[float] = None
+
+
+class SFMSRunBounds(BaseModel):
+    """Target-date bounds for completed SFMS runs."""
+
+    year: int
+    run_type: RunTypeEnum
+    minimum: date
+    maximum: date

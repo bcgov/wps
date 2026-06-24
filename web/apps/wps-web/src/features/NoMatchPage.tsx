@@ -1,6 +1,6 @@
 import { Container } from '@wps/ui/Container'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
-import React from 'react'
+import type React from 'react'
 
 export const NoMatchPage: React.FunctionComponent = () => {
   return (

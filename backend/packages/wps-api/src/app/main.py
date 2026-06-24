@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
 from wps_shared import config
 from wps_shared.auth import audit, authentication_required
-from wps_shared.rocketchat_notifications import send_rocketchat_notification
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.schemas.observations import WeatherStationHourlyReadingsResponse
 from wps_shared.schemas.percentiles import CalculatedResponse, PercentileRequest
 from wps_shared.schemas.shared import WeatherDataRequest
@@ -32,6 +32,7 @@ from app.routers import (
     object_store_proxy,
     psu,
     sfms,
+    sfmsng,
     snow,
     stations,
     weather_models,
@@ -111,7 +112,7 @@ async def catch_exception_middleware(request: Request, call_next):
     except Exception as exc:
         logger.error("%s %s %s", request.method, request.url.path, exc, exc_info=True)
         rc_message = f"Exception occurred {request.method} {request.url.path}"
-        send_rocketchat_notification(rc_message, exc)
+        send_chatops_notification(rc_message, exc)
         raise
 
 
@@ -134,6 +135,7 @@ api.include_router(hfi_calc.router, tags=["HFI"])
 api.include_router(fba_calc.router, tags=["FBA Calc"])
 api.include_router(fba.router, tags=["Auto Spatial Advisory"])
 api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
+api.include_router(sfmsng.router, tags=["SFMS Insights"])
 api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])

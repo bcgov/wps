@@ -1,34 +1,34 @@
+import { Box, CircularProgress } from '@mui/material'
+import { ErrorBoundary } from '@sentry/react'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
-import { Box, CircularProgress } from '@mui/material'
-import { ErrorBoundary } from '@sentry/react'
 import {
   BASEMAP_LAYER_NAME,
   getRasterLayer,
   getSnowPMTilesLayer
 } from 'features/sfmsInsights/components/map/layerDefinitions'
-import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
 import RasterLegend from 'features/sfmsInsights/components/map/RasterLegend'
-import { RasterType, RASTER_CONFIG } from 'features/sfmsInsights/components/map/rasterConfig'
-import {
-  RasterTooltipInteraction,
-  RasterTooltipData
-} from '@/features/sfmsInsights/components/map/rasterTooltipInteraction'
-import { LayerManager, RasterError } from '@/features/sfmsInsights/components/map/layerManager'
-import RasterErrorNotification from '@/features/sfmsInsights/components/map/RasterErrorNotification'
+import RasterTooltip from 'features/sfmsInsights/components/map/RasterTooltip'
+import { RASTER_CONFIG, type RasterType } from 'features/sfmsInsights/components/map/rasterConfig'
 import { isNull } from 'lodash'
-import { DateTime } from 'luxon'
-import { Map, View } from 'ol'
+import type { DateTime } from 'luxon'
+import { Map as OlMap, View } from 'ol'
 import { defaults as defaultControls } from 'ol/control'
 import { boundingExtent } from 'ol/extent'
+import { LayerManager, type RasterError } from '@/features/sfmsInsights/components/map/layerManager'
+import RasterErrorNotification from '@/features/sfmsInsights/components/map/RasterErrorNotification'
+import {
+  type RasterTooltipData,
+  RasterTooltipInteraction
+} from '@/features/sfmsInsights/components/map/rasterTooltipInteraction'
 import 'ol/ol.css'
-import { fromLonLat } from 'ol/proj'
-import React, { useEffect, useRef, useState } from 'react'
-import { useSelector } from 'react-redux'
 import { selectToken } from 'app/rootReducer'
+import { fromLonLat } from 'ol/proj'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useSelector } from 'react-redux'
 
-const MapContext = React.createContext<Map | null>(null)
+const MapContext = React.createContext<OlMap | null>(null)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 interface SFMSMapProps {
@@ -40,7 +40,7 @@ interface SFMSMapProps {
 
 const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: SFMSMapProps) => {
   const token = useSelector(selectToken)
-  const [map, setMap] = useState<Map | null>(null)
+  const [map, setMap] = useState<OlMap | null>(null)
   const [rasterTooltipData, setRasterTooltipData] = useState<RasterTooltipData>({
     value: null,
     label: 'FWI',
@@ -48,11 +48,10 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   })
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [rasterError, setRasterError] = useState<RasterError | null>(null)
-  const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
-  const rasterLayerManagerRef = useRef<LayerManager | null>(null)
-  const snowLayerManagerRef = useRef<LayerManager | null>(null)
-
-  const handleLoadingChange = (isLoading: boolean, error?: RasterError) => {
+  // Initialized to a detached div so the type is non-nullable — React replaces it with the
+  // rendered element during commit, which always happens before effects fire.
+  const mapRef = useRef<HTMLDivElement>(document.createElement('div'))
+  const handleLoadingChange = useCallback((isLoading: boolean, error?: RasterError) => {
     setIsLoading(isLoading)
     if (error) {
       setRasterError(error)
@@ -60,16 +59,17 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
       // Clear error on successful load
       setRasterError(null)
     }
-  }
+  }, [])
 
   const handleErrorClose = () => {
     setRasterError(null)
   }
 
-  useEffect(() => {
-    if (!mapRef.current) return
+  const rasterLayerManagerRef = useRef(new LayerManager({ onLoadingChange: handleLoadingChange, trackLoading: true }))
+  const snowLayerManagerRef = useRef(new LayerManager({ trackLoading: false }))
 
-    const mapObject = new Map({
+  useEffect(() => {
+    const mapObject = new OlMap({
       target: mapRef.current,
       layers: [],
       controls: defaultControls(),
@@ -87,25 +87,8 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     })
     mapObject.addInteraction(tooltipInteraction)
 
-    // Initialize raster layer manager
-    const rasterLayerManager = new LayerManager({
-      onLoadingChange: handleLoadingChange,
-      trackLoading: true
-    })
-    rasterLayerManager.setMap(mapObject)
-    // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
-    if (rasterDate || rasterType === 'fuel') {
-      rasterLayerManager.updateLayer(getRasterLayer(rasterDate, rasterType, token))
-    }
-    rasterLayerManagerRef.current = rasterLayerManager
-
-    // Initialize snow layer manager
-    const snowLayerManager = new LayerManager({
-      trackLoading: false // Snow layers load quickly, no need to track
-    })
-    snowLayerManager.setMap(mapObject)
-    snowLayerManager.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
-    snowLayerManagerRef.current = snowLayerManager
+    rasterLayerManagerRef.current.setMap(mapObject)
+    snowLayerManagerRef.current.setMap(mapObject)
 
     const loadBaseMap = async () => {
       const style = await getStyleJson(BASEMAP_STYLE_URL)
@@ -120,22 +103,18 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
   }, [])
 
   useEffect(() => {
-    if (snowLayerManagerRef.current) {
-      snowLayerManagerRef.current.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
-    }
+    snowLayerManagerRef.current.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
   }, [snowDate, showSnow, token])
 
   useEffect(() => {
     // Clear any existing errors when changing date/type
     setRasterError(null)
 
-    if (rasterLayerManagerRef.current) {
-      // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
-      if (rasterDate || rasterType === 'fuel') {
-        rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
-      } else {
-        rasterLayerManagerRef.current.updateLayer(null)
-      }
+    // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
+    if (rasterDate || rasterType === 'fuel') {
+      rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
+    } else {
+      rasterLayerManagerRef.current.updateLayer(null)
     }
   }, [rasterDate, rasterType, token])
 

@@ -1,25 +1,24 @@
-const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
 
 interface RetryOptions {
-  maxRetries?: number;
-  baseDelayMs?: number;
+  maxRetries?: number
+  baseDelayMs?: number
 }
 
 export async function retryWithBackoff<T>(
   op: () => Promise<T>,
-  { maxRetries = 3, baseDelayMs = 250 }: RetryOptions = {},
+  { maxRetries = 3, baseDelayMs = 250 }: RetryOptions = {}
 ): Promise<T> {
-  let lastError: unknown;
+  let lastError: unknown
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     if (attempt > 0) {
-      await sleep(baseDelayMs * Math.pow(2, attempt - 1));
+      await sleep(baseDelayMs * 2 ** (attempt - 1))
     }
     try {
-      return await op();
+      return await op()
     } catch (e) {
-      lastError = e;
+      lastError = e
     }
   }
-  throw lastError;
+  throw lastError
 }

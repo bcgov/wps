@@ -1,30 +1,30 @@
-import { render } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import UserLocationIndicator from "./LocationIndicator";
-import { Map } from "ol";
-import { Position } from "@capacitor/geolocation";
+import type { Position } from '@capacitor/geolocation'
+import { render } from '@testing-library/react'
+import type { Map as OlMap } from 'ol'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import UserLocationIndicator from './LocationIndicator'
 
 // Mock OpenLayers
-vi.mock("ol", () => ({
+vi.mock('ol', () => ({
   Map: vi.fn(),
   Overlay: class MockOverlay {
     constructor() {
-      this.setPosition = vi.fn();
-      this.getElement = vi.fn();
+      this.setPosition = vi.fn()
+      this.getElement = vi.fn()
     }
-    setPosition: ReturnType<typeof vi.fn>;
-    getElement: ReturnType<typeof vi.fn>;
-  },
-}));
+    setPosition: ReturnType<typeof vi.fn>
+    getElement: ReturnType<typeof vi.fn>
+  }
+}))
 
-vi.mock("ol/proj", () => ({
-  fromLonLat: vi.fn(([lon, lat]) => [lon * 111319.49, lat * 110540.1]),
-}));
+vi.mock('ol/proj', () => ({
+  fromLonLat: vi.fn(([lon, lat]) => [lon * 111319.49, lat * 110540.1])
+}))
 
-describe("UserLocationIndicator", () => {
-  let mockMap: Map;
-  let addOverlay: ReturnType<typeof vi.fn>;
-  let removeOverlay: ReturnType<typeof vi.fn>;
+describe('UserLocationIndicator', () => {
+  let mockMap: OlMap
+  let addOverlay: ReturnType<typeof vi.fn>
+  let removeOverlay: ReturnType<typeof vi.fn>
 
   const mockPosition: Position = {
     coords: {
@@ -34,102 +34,74 @@ describe("UserLocationIndicator", () => {
       altitude: null,
       altitudeAccuracy: null,
       heading: null,
-      speed: null,
+      speed: null
     },
-    timestamp: Date.now(),
-  };
+    timestamp: Date.now()
+  }
 
   beforeEach(() => {
-    addOverlay = vi.fn();
-    removeOverlay = vi.fn();
+    addOverlay = vi.fn()
+    removeOverlay = vi.fn()
 
     mockMap = {
       addOverlay,
-      removeOverlay,
-    } as unknown as Map;
+      removeOverlay
+    } as unknown as OlMap
 
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+  })
 
-  it("renders the blue dot indicator", () => {
-    const { getByTestId } = render(
-      <UserLocationIndicator
-        map={mockMap}
-        position={mockPosition}
-        error={null}
-      />,
-    );
+  it('renders the blue dot indicator', () => {
+    const { getByTestId } = render(<UserLocationIndicator map={mockMap} position={mockPosition} error={null} />)
 
-    const indicator = getByTestId("user-location-indicator");
-    expect(indicator).toBeInTheDocument();
-    expect(indicator).toHaveStyle({ width: "20px", height: "20px" });
+    const indicator = getByTestId('user-location-indicator')
+    expect(indicator).toBeInTheDocument()
+    expect(indicator).toHaveStyle({ width: '20px', height: '20px' })
     // jsdom 29 cannot compute percentage borderRadius via getComputedStyle — check inline style directly
-    expect(indicator.style.borderRadius).toBe("50%");
-    expect(indicator.style.backgroundColor).toBe("rgba(51, 153, 204, 0.8)");
-  });
+    expect(indicator.style.borderRadius).toBe('50%')
+    expect(indicator.style.backgroundColor).toBe('rgba(51, 153, 204, 0.8)')
+  })
 
-  it("adds overlay to map when map and position are provided", () => {
-    render(
-      <UserLocationIndicator
-        map={mockMap}
-        position={mockPosition}
-        error={null}
-      />,
-    );
+  it('adds overlay to map when map and position are provided', () => {
+    render(<UserLocationIndicator map={mockMap} position={mockPosition} error={null} />)
 
-    expect(addOverlay).toHaveBeenCalledTimes(1);
-  });
+    expect(addOverlay).toHaveBeenCalledTimes(1)
+  })
 
-  it("does not add overlay when map is null", () => {
-    render(
-      <UserLocationIndicator map={null} position={mockPosition} error={null} />,
-    );
+  it('does not add overlay when map is null', () => {
+    render(<UserLocationIndicator map={null} position={mockPosition} error={null} />)
 
-    expect(addOverlay).toHaveBeenCalledTimes(0);
-  });
+    expect(addOverlay).toHaveBeenCalledTimes(0)
+  })
 
-  it("removes overlay on cleanup", () => {
-    const { unmount } = render(
-      <UserLocationIndicator
-        map={mockMap}
-        position={mockPosition}
-        error={null}
-      />,
-    );
+  it('removes overlay on cleanup', () => {
+    const { unmount } = render(<UserLocationIndicator map={mockMap} position={mockPosition} error={null} />)
 
-    unmount();
+    unmount()
 
-    expect(removeOverlay).toHaveBeenCalledTimes(1);
-  });
+    expect(removeOverlay).toHaveBeenCalledTimes(1)
+  })
 
-  it("handles null position gracefully", () => {
-    const { getByTestId } = render(
-      <UserLocationIndicator map={mockMap} position={null} error={null} />,
-    );
+  it('handles null position gracefully', () => {
+    const { getByTestId } = render(<UserLocationIndicator map={mockMap} position={null} error={null} />)
 
-    const indicator = getByTestId("user-location-indicator");
-    expect(indicator).toBeInTheDocument();
-    expect(addOverlay).toHaveBeenCalledTimes(1);
-  });
+    const indicator = getByTestId('user-location-indicator')
+    expect(indicator).toBeInTheDocument()
+    expect(addOverlay).toHaveBeenCalledTimes(1)
+  })
 
-  it("renders with correct styling", () => {
-    const { getByTestId } = render(
-      <UserLocationIndicator
-        map={mockMap}
-        position={mockPosition}
-        error={null}
-      />,
-    );
+  it('renders with correct styling', () => {
+    const { getByTestId } = render(<UserLocationIndicator map={mockMap} position={mockPosition} error={null} />)
 
-    const indicator = getByTestId("user-location-indicator");
+    const indicator = getByTestId('user-location-indicator')
     // Use borderTopColor to avoid jsdom v29 shorthand expansion issue with borderColor
     expect(indicator).toHaveStyle({
-      borderTopWidth: "3px",
-      borderTopStyle: "solid",
-      borderTopColor: "rgb(255, 255, 255)",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-      pointerEvents: "none",
-      zIndex: "1000",
-    });
-  });
-});
+      borderTopWidth: '3px',
+      borderTopStyle: 'solid',
+      borderTopColor: 'rgb(255, 255, 255)',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+      pointerEvents: 'none',
+      zIndex: '1000'
+    })
+  })
+})

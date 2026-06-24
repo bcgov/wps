@@ -1,7 +1,7 @@
-import { modelRegistry, ModelRunHour, ModelType } from '@/features/weatherToolkit/weatherToolkitTypes'
 import { getWxChart } from '@wps/api/weatherToolkitAPI'
-import { DateTime } from 'luxon'
-import { useEffect, useRef, useState } from 'react'
+import type { DateTime } from 'luxon'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ModelRunHour, type ModelType, modelRegistry } from '@/features/weatherToolkit/weatherToolkitTypes'
 
 // The number of charts to pre-fetch to improve the user perception of performance.
 const PREFETCH_AHEAD = 5
@@ -18,6 +18,10 @@ export const buildChartKey = (
   return `wx_4panel_charts/${dateStr}/${ecccPath}/${resolution}/${modelRunHour}/${hourStr}/${model}_${dateStr}T${modelRunHour}Z_F${hourStr}_4panel.png`
 }
 
+export const buildModelRunKey = (model: ModelType, modelRunDate: DateTime, modelRunHour: ModelRunHour): string => {
+  return `${model}:${modelRunDate.toISODate()}:${modelRunHour}`
+}
+
 export interface WxChartCacheResult {
   cache: Map<string, string>
   failed: Set<string>
@@ -31,6 +35,9 @@ export function useWxChartCache(
 ): WxChartCacheResult {
   const [cache, setCache] = useState<Map<string, string>>(new Map())
   const [failed, setFailed] = useState<Set<string>>(new Set())
+  const modelRunKey = useMemo(() => {
+    return buildModelRunKey(model, modelRunDate, modelRunHour)
+  }, [model, modelRunDate, modelRunHour])
   const stateRef = useRef({
     cache: new Map<string, string>(),
     failed: new Set<string>(),
@@ -40,15 +47,18 @@ export function useWxChartCache(
 
   // Reset when model params change
   useEffect(() => {
+    if (!modelRunKey) return
     const state = stateRef.current
     state.generation++
-    state.cache.forEach(url => URL.revokeObjectURL(url))
+    state.cache.forEach(url => {
+      URL.revokeObjectURL(url)
+    })
     state.cache = new Map()
     state.failed = new Set()
     state.fetching = new Set()
     setCache(new Map())
     setFailed(new Set())
-  }, [model, modelRunDate, modelRunHour])
+  }, [modelRunKey])
 
   // Prefetch rolling window of PREFETCH_AHEAD frames ahead of currentHour
   useEffect(() => {
@@ -84,7 +94,9 @@ export function useWxChartCache(
   // Revoke all URLs on unmount
   useEffect(() => {
     return () => {
-      stateRef.current.cache.forEach(url => URL.revokeObjectURL(url))
+      stateRef.current.cache.forEach(url => {
+        URL.revokeObjectURL(url)
+      })
     }
   }, [])
 

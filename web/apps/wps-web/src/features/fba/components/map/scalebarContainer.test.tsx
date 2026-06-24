@@ -1,4 +1,3 @@
-
 import { render } from '@testing-library/react'
 import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 import React from 'react'

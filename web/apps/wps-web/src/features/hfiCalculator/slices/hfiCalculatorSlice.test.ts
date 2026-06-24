@@ -1,10 +1,10 @@
 import hfiCalculatorDailiesReducer, {
-  initialState,
-  fetchFuelTypesStart,
   fetchFuelTypesFailed,
+  fetchFuelTypesStart,
+  getHFIResultFailed,
+  initialState,
   pdfDownloadEnd,
-  pdfDownloadStart,
-  getHFIResultFailed
+  pdfDownloadStart
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
 
 describe('hfiCalculatorSlice', () => {

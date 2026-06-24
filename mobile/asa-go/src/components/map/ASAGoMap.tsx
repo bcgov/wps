@@ -1,31 +1,45 @@
-import * as Sentry from "@sentry/capacitor";
-import { centerOnFireShape } from "@/components/map/fireShapeCentering";
+import { Filesystem } from '@capacitor/filesystem'
+import GpsOffIcon from '@mui/icons-material/GpsOff'
+import LayersIcon from '@mui/icons-material/Layers'
+import MyLocationIcon from '@mui/icons-material/MyLocation'
+import { Box } from '@mui/material'
+import * as Sentry from '@sentry/capacitor'
+import type { FireShape } from 'api/fbaAPI'
+import { cloneDeep, isNil, isNull, isUndefined } from 'lodash'
+import { DateTime } from 'luxon'
+import { type MapBrowserEvent, Map as OlMap, View } from 'ol'
+import { defaults as defaultControls } from 'ol/control'
+import ScaleLine from 'ol/control/ScaleLine'
+import { boundingExtent } from 'ol/extent'
+import { defaults as defaultInteractions } from 'ol/interaction'
+import VectorTileLayer from 'ol/layer/VectorTile'
+import MapIconButton from '@/components/MapIconButton'
+import FireShapeActionsDrawer from '@/components/map/FireShapeActionsDrawer'
+import { centerOnFireShape } from '@/components/map/fireShapeCentering'
+import LegendPopover from '@/components/map/LegendPopover'
+import UserLocationIndicator from '@/components/map/LocationIndicator'
 import {
   defaultLayerVisibility,
-  LayerVisibility,
+  type LayerVisibility,
   loadLayerVisibility,
   saveLayerVisibility,
   setDefaultLayerVisibility,
-  setZoneStatusLayerVisibility,
-} from "@/components/map/layerVisibility";
-import FireShapeActionsDrawer from "@/components/map/FireShapeActionsDrawer";
-import LegendPopover from "@/components/map/LegendPopover";
-import UserLocationIndicator from "@/components/map/LocationIndicator";
-import { loadMapViewState, saveMapViewState } from "@/components/map/mapView";
-import ScaleContainer from "@/components/map/ScaleContainer";
-import MapIconButton from "@/components/MapIconButton";
-import TodayTomorrowSwitch from "@/components/TodayTomorrowSwitch";
-import { MapContext } from "@/context/MapContext";
+  setZoneStatusLayerVisibility
+} from '@/components/map/layerVisibility'
+import { loadMapViewState, saveMapViewState } from '@/components/map/mapView'
+import ScaleContainer from '@/components/map/ScaleContainer'
+import TodayTomorrowSwitch from '@/components/TodayTomorrowSwitch'
+import { MapContext } from '@/context/MapContext'
 import {
   fireCentreLabelStyler,
   fireCentreLineStyler,
   fireShapeLabelStyler,
   fireShapeLineStyler,
-  fireShapeStyler,
-} from "@/featureStylers";
-import { fireZoneExtentsMap } from "@/fireZoneUnitExtents";
-import { useProvincialSummaryZonesForDate } from "@/hooks/dataHooks";
-import { useRunParameterForDate } from "@/hooks/useRunParameterForDate";
+  fireShapeStyler
+} from '@/featureStylers'
+import { fireZoneExtentsMap } from '@/fireZoneUnitExtents'
+import { useProvincialSummaryZonesForDate } from '@/hooks/dataHooks'
+import { useRunParameterForDate } from '@/hooks/useRunParameterForDate'
 import {
   BASEMAP_LAYER_NAME,
   createBasemapLayer,
@@ -33,58 +47,35 @@ import {
   createLocalBasemapVectorLayer,
   HFI_LAYER_NAME,
   LOCAL_BASEMAP_LAYER_NAME,
-  ZONE_STATUS_LAYER_NAME,
-} from "@/layerDefinitions";
-import { startWatchingLocation } from "@/slices/geolocationSlice";
-import { NavPanel } from "@/utils/constants";
-import { AppDispatch, selectGeolocation, selectNetworkStatus } from "@/store";
-import { PMTilesCache } from "@/utils/pmtilesCache";
-import { PMTilesFileVectorSource } from "@/utils/pmtilesVectorSource";
-import { Filesystem } from "@capacitor/filesystem";
-import GpsOffIcon from "@mui/icons-material/GpsOff";
-import LayersIcon from "@mui/icons-material/Layers";
-import MyLocationIcon from "@mui/icons-material/MyLocation";
-import { Box } from "@mui/material";
-import { FireShape } from "api/fbaAPI";
-import type { FireCentre } from "@/types/fireCentre";
-import { cloneDeep, isNil, isNull, isUndefined } from "lodash";
-import { DateTime } from "luxon";
-import { Map, MapBrowserEvent, View } from "ol";
-import { defaults as defaultControls } from "ol/control";
-import ScaleLine from "ol/control/ScaleLine";
-import { boundingExtent } from "ol/extent";
-import { defaults as defaultInteractions } from "ol/interaction";
-import VectorTileLayer from "ol/layer/VectorTile";
-import "ol/ol.css";
-import { fromLonLat } from "ol/proj";
-import React, { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { BC_EXTENT } from "utils/constants";
+  ZONE_STATUS_LAYER_NAME
+} from '@/layerDefinitions'
+import { startWatchingLocation } from '@/slices/geolocationSlice'
+import { type AppDispatch, selectGeolocation, selectNetworkStatus } from '@/store'
+import type { FireCentre } from '@/types/fireCentre'
+import { NavPanel } from '@/utils/constants'
+import { PMTilesCache } from '@/utils/pmtilesCache'
+import { PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
+import 'ol/ol.css'
+import { fromLonLat } from 'ol/proj'
+import React, { useEffect, useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { BC_EXTENT } from 'utils/constants'
 
 // used for setting the initial map extent
-const bcExtent = boundingExtent(BC_EXTENT.map((coord) => fromLonLat(coord)));
+const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 // used for bounding the map extent, limit panning to BC + buffer
-const buffer = 1_500_000;
-const BC_FULL_MAP_EXTENT_3857 = [
-  bcExtent[0] - buffer,
-  bcExtent[1] - buffer,
-  bcExtent[2] + buffer,
-  bcExtent[3] + buffer,
-];
+const buffer = 1_500_000
+const BC_FULL_MAP_EXTENT_3857 = [bcExtent[0] - buffer, bcExtent[1] - buffer, bcExtent[2] + buffer, bcExtent[3] + buffer]
 
 export interface ASAGoMapProps {
-  testId: string;
-  selectedFireShape: FireShape | undefined;
-  setSelectedFireShape: React.Dispatch<
-    React.SetStateAction<FireShape | undefined>
-  >;
-  setSelectedFireCentre: React.Dispatch<
-    React.SetStateAction<FireCentre | undefined>
-  >;
-  date: DateTime;
-  setDate: React.Dispatch<React.SetStateAction<DateTime>>;
-  setTab: React.Dispatch<React.SetStateAction<NavPanel>>;
+  testId: string
+  selectedFireShape: FireShape | undefined
+  setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
+  setSelectedFireCentre: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
+  date: DateTime
+  setDate: React.Dispatch<React.SetStateAction<DateTime>>
+  setTab: React.Dispatch<React.SetStateAction<NavPanel>>
 }
 
 const ASAGoMap = ({
@@ -94,90 +85,73 @@ const ASAGoMap = ({
   setSelectedFireCentre,
   date,
   setDate,
-  setTab,
+  setTab
 }: ASAGoMapProps) => {
-  const dispatch: AppDispatch = useDispatch();
+  const dispatch: AppDispatch = useDispatch()
 
   // selectors & hooks
-  const { position, error, loading } = useSelector(selectGeolocation);
-  const { networkStatus } = useSelector(selectNetworkStatus);
+  const { position, error, loading } = useSelector(selectGeolocation)
+  const { networkStatus } = useSelector(selectNetworkStatus)
 
   // hooks
-  const fireShapeStatusDetails = useProvincialSummaryZonesForDate(date);
-  const runParameter = useRunParameterForDate(date);
+  const fireShapeStatusDetails = useProvincialSummaryZonesForDate(date)
+  const runParameter = useRunParameterForDate(date)
 
   // state
-  const [map, setMap] = useState<Map | null>(null);
-  const [scaleVisible, setScaleVisible] = useState<boolean>(true);
-  const [basemapLayer, setBasemapLayer] = useState<VectorTileLayer | null>(
-    null,
-  );
-  const [localBasemapVectorLayer, setLocalBasemapVectorLayer] =
-    useState<VectorTileLayer | null>(null);
-  const [centerOnLocation, setCenterOnLocation] = useState<boolean>(false);
-  const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>(
-    defaultLayerVisibility,
-  );
-  const [legendAnchorEl, setLegendAnchorEl] =
-    useState<HTMLButtonElement | null>(null);
-  const [isFireShapeDrawerOpen, setIsFireShapeDrawerOpen] =
-    useState<boolean>(false);
+  const [map, setMap] = useState<OlMap | null>(null)
+  const [scaleVisible, setScaleVisible] = useState<boolean>(true)
+  const [basemapLayer, setBasemapLayer] = useState<VectorTileLayer | null>(null)
+  const [localBasemapVectorLayer, setLocalBasemapVectorLayer] = useState<VectorTileLayer | null>(null)
+  const [centerOnLocation, setCenterOnLocation] = useState<boolean>(false)
+  const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>(defaultLayerVisibility)
+  const [legendAnchorEl, setLegendAnchorEl] = useState<HTMLButtonElement | null>(null)
+  const [isFireShapeDrawerOpen, setIsFireShapeDrawerOpen] = useState<boolean>(false)
 
   const [fireZoneFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
-      style: fireShapeStyler(
-        cloneDeep(fireShapeStatusDetails),
-        layerVisibility[ZONE_STATUS_LAYER_NAME],
-      ),
+      style: fireShapeStyler(cloneDeep(fireShapeStatusDetails), layerVisibility[ZONE_STATUS_LAYER_NAME]),
       zIndex: 53,
-      properties: { name: ZONE_STATUS_LAYER_NAME },
-    }),
-  );
+      properties: { name: ZONE_STATUS_LAYER_NAME }
+    })
+  )
 
   const [fireZoneHighlightFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
-      style: fireShapeLineStyler(
-        cloneDeep(fireShapeStatusDetails),
-        selectedFireShape,
-      ),
+      style: fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape),
       zIndex: 54,
-      properties: { name: "fireZoneHighlightVector" },
-    }),
-  );
+      properties: { name: 'fireZoneHighlightVector' }
+    })
+  )
 
-  const toggleLayersRef = useRef<Record<string, VectorTileLayer | null>>({});
+  const toggleLayersRef = useRef<Record<string, VectorTileLayer | null>>({})
 
-  const mapRef = useRef<HTMLDivElement | null>(
-    null,
-  ) as React.MutableRefObject<HTMLElement>;
-  const scaleRef = useRef<HTMLDivElement | null>(
-    null,
-  ) as React.MutableRefObject<HTMLElement>;
-  const clickSourceRef = useRef<boolean>(false);
+  const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
+  const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
+  const clickSourceRef = useRef<boolean>(false)
 
-  const removeLayerByName = (map: Map, layerName: string) => {
+  const removeLayerByName = (map: OlMap, layerName: string) => {
     const layer = map
       .getLayers()
       .getArray()
-      .find((l) => l.getProperties()?.name === layerName);
+      .find(l => l.getProperties()?.name === layerName)
     if (layer) {
-      map.removeLayer(layer);
+      map.removeLayer(layer)
     }
-  };
+  }
 
   const replaceMapLayer = React.useCallback(
     (layerName: string, layer: VectorTileLayer | null) => {
-      if (!map) return;
+      if (!map) return
       if (toggleLayersRef.current[layerName]) {
-        map.removeLayer(toggleLayersRef.current[layerName]);
+        map.removeLayer(toggleLayersRef.current[layerName])
       }
       if (layer) {
-        map.addLayer(layer);
+        map.addLayer(layer)
       }
-      toggleLayersRef.current[layerName] = layer;
+      toggleLayersRef.current[layerName] = layer
     },
-    [map],
-  );
+    [map]
+  )
 
   /**
    *
@@ -187,364 +161,327 @@ const ASAGoMap = ({
    *   it centers the map on the user's current position.
    */
   const handleLocationButtonClick = async () => {
-    if (!map) return;
+    if (!map) return
 
     if (!position || error) {
-      dispatch(startWatchingLocation());
-      setCenterOnLocation(true); // center map when position arrives
-      return;
+      dispatch(startWatchingLocation())
+      setCenterOnLocation(true) // center map when position arrives
+      return
     }
-    const pos = fromLonLat([
-      position.coords.longitude,
-      position.coords.latitude,
-    ]);
+    const pos = fromLonLat([position.coords.longitude, position.coords.latitude])
     map.getView().animate({
       center: pos,
       zoom: 7.5,
-      duration: 1000,
-    });
-  };
+      duration: 1000
+    })
+  }
 
-  const handleLegendButtonClick = (
-    event: React.MouseEvent<HTMLButtonElement>,
-  ) => {
-    setLegendAnchorEl(event.currentTarget);
-  };
+  const handleLegendButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setLegendAnchorEl(event.currentTarget)
+  }
 
   const handleLegendClose = () => {
-    setLegendAnchorEl(null);
-  };
+    setLegendAnchorEl(null)
+  }
 
   useEffect(() => {
     const fetchVisibility = async () => {
-      const loaded = await loadLayerVisibility(defaultLayerVisibility);
-      setLayerVisibility(loaded);
-    };
-    fetchVisibility();
-  }, []);
+      const loaded = await loadLayerVisibility(defaultLayerVisibility)
+      setLayerVisibility(loaded)
+    }
+    fetchVisibility()
+  }, [])
 
   useEffect(() => {
-    saveLayerVisibility(layerVisibility);
-  }, [layerVisibility]);
+    saveLayerVisibility(layerVisibility)
+  }, [layerVisibility])
 
   // center map when position is updated after requesting location
   useEffect(() => {
     if (centerOnLocation && position && map) {
-      const pos = fromLonLat([
-        position.coords.longitude,
-        position.coords.latitude,
-      ]);
+      const pos = fromLonLat([position.coords.longitude, position.coords.latitude])
       map.getView().animate({
         center: pos,
         zoom: 7.5,
-        duration: 1000,
-      });
-      setCenterOnLocation(false); // Reset flag
+        duration: 1000
+      })
+      setCenterOnLocation(false) // Reset flag
     }
-  }, [centerOnLocation, position, map]);
+  }, [centerOnLocation, position, map])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — layer refs are stable
   useEffect(() => {
     fireZoneFileLayer.setStyle(
-      fireShapeStyler(
-        cloneDeep(fireShapeStatusDetails),
-        layerVisibility[ZONE_STATUS_LAYER_NAME],
-      ),
-    );
-    fireZoneHighlightFileLayer.setStyle(
-      fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape),
-    );
-    fireZoneFileLayer.changed();
-    fireZoneHighlightFileLayer.changed();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fireShapeStatusDetails]);
+      fireShapeStyler(cloneDeep(fireShapeStatusDetails), layerVisibility[ZONE_STATUS_LAYER_NAME])
+    )
+    fireZoneHighlightFileLayer.setStyle(fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape))
+    fireZoneFileLayer.changed()
+    fireZoneHighlightFileLayer.changed()
+  }, [fireShapeStatusDetails])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — layer refs and helpers are stable
   useEffect(() => {
-    if (!map) return;
+    if (!map) return
 
-    fireZoneHighlightFileLayer.setStyle(
-      fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape),
-    );
+    fireZoneHighlightFileLayer.setStyle(fireShapeLineStyler(cloneDeep(fireShapeStatusDetails), selectedFireShape))
 
     // Only center if the change didn't come from a click
     if (!clickSourceRef.current) {
-      centerOnFireShape(map, selectedFireShape, fireZoneExtentsMap);
+      centerOnFireShape(map, selectedFireShape, fireZoneExtentsMap)
     }
 
     // Reset the flag for next change
-    clickSourceRef.current = false;
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFireShape]);
+    clickSourceRef.current = false
+  }, [selectedFireShape])
 
   useEffect(() => {
     if (isUndefined(selectedFireShape)) {
-      setIsFireShapeDrawerOpen(false);
+      setIsFireShapeDrawerOpen(false)
     }
-  }, [selectedFireShape]);
+  }, [selectedFireShape])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when network status changes
   useEffect(() => {
     // Toggle basemap visibility based on network connection status.
     if (isNil(map)) {
-      return;
+      return
     }
-    removeLayerByName(map, BASEMAP_LAYER_NAME);
+    removeLayerByName(map, BASEMAP_LAYER_NAME)
     if (networkStatus.connected === true) {
-      localBasemapVectorLayer?.setVisible(false);
+      localBasemapVectorLayer?.setVisible(false)
       if (!isNil(basemapLayer)) {
-        map.addLayer(basemapLayer);
+        map.addLayer(basemapLayer)
       }
     } else {
-      localBasemapVectorLayer?.setVisible(true);
+      localBasemapVectorLayer?.setVisible(true)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [networkStatus]);
+  }, [networkStatus])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when localBasemapVectorLayer changes
   useEffect(() => {
     // The locally cached basemap pmtiles layer loads async, so add it
     // to the map once it is loaded and state updated.
     if (isNull(map) || isNull(localBasemapVectorLayer)) {
-      return;
+      return
     }
     if (networkStatus.connected) {
-      localBasemapVectorLayer.setVisible(false);
+      localBasemapVectorLayer.setVisible(false)
     }
     // Remove the placeholder VTL and then add the new localBasemapVectorLayer
-    removeLayerByName(map, LOCAL_BASEMAP_LAYER_NAME);
-    map.addLayer(localBasemapVectorLayer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localBasemapVectorLayer]);
+    removeLayerByName(map, LOCAL_BASEMAP_LAYER_NAME)
+    map.addLayer(localBasemapVectorLayer)
+  }, [localBasemapVectorLayer])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once on mount
   useEffect(() => {
     // The React ref is used to attach to the div rendered in our
     // return statement of which this map's target is set to.
     // The ref is a div of type  HTMLDivElement.
 
     // Pattern copied from web/src/features/map/Map.tsx
-    if (!mapRef.current) return;
+    if (!mapRef.current) return
 
     // Create the map with the options above and set the target
     // To the ref above so that it is rendered in that div
-    const mapObject = new Map({
+    const mapObject = new OlMap({
       view: new View({
-        extent: BC_FULL_MAP_EXTENT_3857, // constrains panning
+        extent: BC_FULL_MAP_EXTENT_3857 // constrains panning
       }),
       layers: [],
       overlays: [],
       controls: defaultControls({
-        zoom: false,
+        zoom: false
       }),
       interactions: defaultInteractions({
-        doubleClickZoom: true,
-      }),
-    });
-    mapObject.setTarget(mapRef.current);
+        doubleClickZoom: true
+      })
+    })
+    mapObject.setTarget(mapRef.current)
 
     /******* Start scale line ******/
 
-    const scaleBar = new ScaleLine({});
-    scaleBar.setTarget(scaleRef.current);
-    mapObject.addControl(scaleBar);
+    const scaleBar = new ScaleLine({})
+    scaleBar.setTarget(scaleRef.current)
+    mapObject.addControl(scaleBar)
     const setScalelineVisibility = () => {
-      setScaleVisible(true);
-    };
+      setScaleVisible(true)
+    }
 
     // Make the scale line visible when the user zooms in/out
-    mapObject.getView().on("change:resolution", setScalelineVisibility);
+    mapObject.getView().on('change:resolution', setScalelineVisibility)
 
     /******* End scale line ******/
 
     /******* Start fire shape selection ******/
     const mapClickHandler = (event: MapBrowserEvent) => {
-      fireZoneFileLayer.getFeatures(event.pixel).then((features) => {
-        clickSourceRef.current = true; // Mark as click source
+      fireZoneFileLayer.getFeatures(event.pixel).then(features => {
+        clickSourceRef.current = true // Mark as click source
         if (!features.length) {
-          setIsFireShapeDrawerOpen(false);
-          setSelectedFireCentre(undefined);
-          setSelectedFireShape(undefined);
-          return;
+          setIsFireShapeDrawerOpen(false)
+          setSelectedFireCentre(undefined)
+          setSelectedFireShape(undefined)
+          return
         }
-        const feature = features[0];
-        const zonePlacename = `${feature.getProperties().FIRE_ZONE_} - ${
-          feature.getProperties().FIRE_ZON_1
-        }`;
+        const feature = features[0]
+        const zonePlacename = `${feature.getProperties().FIRE_ZONE_} - ${feature.getProperties().FIRE_ZON_1}`
         const fireZone: FireShape = {
           fire_shape_id: feature.getProperties().OBJECTID,
           mof_fire_zone_name: zonePlacename,
           mof_fire_centre_name: feature.getProperties().FIRE_CENTR,
-          area_sqm: feature.getProperties().Shape_Area,
-        };
-        setSelectedFireShape(fireZone);
-        setIsFireShapeDrawerOpen(true);
-      });
-    };
-    mapObject.on("singleclick", mapClickHandler);
+          area_sqm: feature.getProperties().Shape_Area
+        }
+        setSelectedFireShape(fireZone)
+        setIsFireShapeDrawerOpen(true)
+      })
+    }
+    mapObject.on('singleclick', mapClickHandler)
 
     /******* End fire shape selection ******/
 
-    setMap(mapObject);
+    setMap(mapObject)
 
     const loadPMTiles = async () => {
-      const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(
+      const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(new PMTilesCache(Filesystem), {
+        filename: 'fireCentres.pmtiles'
+      })
+
+      const fireCentreLabelVectorSource = await PMTilesFileVectorSource.createStaticLayer(
         new PMTilesCache(Filesystem),
         {
-          filename: "fireCentres.pmtiles",
-        },
-      );
+          filename: 'fireCentreLabels.pmtiles'
+        }
+      )
 
-      const fireCentreLabelVectorSource =
-        await PMTilesFileVectorSource.createStaticLayer(
-          new PMTilesCache(Filesystem),
-          {
-            filename: "fireCentreLabels.pmtiles",
-          },
-        );
+      const fireZoneSource = await PMTilesFileVectorSource.createStaticLayer(new PMTilesCache(Filesystem), {
+        filename: 'fireZoneUnits.pmtiles'
+      })
 
-      const fireZoneSource = await PMTilesFileVectorSource.createStaticLayer(
-        new PMTilesCache(Filesystem),
-        {
-          filename: "fireZoneUnits.pmtiles",
-        },
-      );
+      fireZoneFileLayer.setSource(fireZoneSource)
+      fireZoneHighlightFileLayer.setSource(fireZoneSource)
 
-      fireZoneFileLayer.setSource(fireZoneSource);
-      fireZoneHighlightFileLayer.setSource(fireZoneSource);
-
-      const fireZoneLabelVectorSource =
-        await PMTilesFileVectorSource.createStaticLayer(
-          new PMTilesCache(Filesystem),
-          {
-            filename: "fireZoneUnitLabels.pmtiles",
-          },
-        );
+      const fireZoneLabelVectorSource = await PMTilesFileVectorSource.createStaticLayer(new PMTilesCache(Filesystem), {
+        filename: 'fireZoneUnitLabels.pmtiles'
+      })
       if (mapObject) {
         const fireCentreFileLayer = new VectorTileLayer({
           source: fireCentresSource,
           style: fireCentreLineStyler(undefined),
-          zIndex: 52,
-        });
+          zIndex: 52
+        })
 
         const fireCentreLabelsFileLayer = new VectorTileLayer({
           source: fireCentreLabelVectorSource,
           style: fireCentreLabelStyler,
           zIndex: 100,
-          maxZoom: 6,
-        });
+          maxZoom: 6
+        })
 
         const fireZoneLabelFileLayer = new VectorTileLayer({
           source: fireZoneLabelVectorSource,
           declutter: true,
           style: fireShapeLabelStyler(selectedFireShape),
           zIndex: 99,
-          minZoom: 6,
-        });
+          minZoom: 6
+        })
 
-        const localBasemapLayer = await createLocalBasemapVectorLayer();
-        setLocalBasemapVectorLayer(localBasemapLayer);
+        const localBasemapLayer = await createLocalBasemapVectorLayer()
+        setLocalBasemapVectorLayer(localBasemapLayer)
 
         try {
-          const basemapLayer = await createBasemapLayer();
-          setBasemapLayer(basemapLayer);
-          mapObject.addLayer(basemapLayer);
+          const basemapLayer = await createBasemapLayer()
+          setBasemapLayer(basemapLayer)
+          mapObject.addLayer(basemapLayer)
         } catch (e) {
           // offline or endpoint unreachable — local basemap will be used
-          console.warn(e);
+          console.warn(e)
         }
-        mapObject.addLayer(fireCentreFileLayer);
-        mapObject.addLayer(fireCentreLabelsFileLayer);
-        mapObject.addLayer(fireZoneFileLayer);
-        mapObject.addLayer(fireZoneHighlightFileLayer);
-        mapObject.addLayer(fireZoneLabelFileLayer);
+        mapObject.addLayer(fireCentreFileLayer)
+        mapObject.addLayer(fireCentreLabelsFileLayer)
+        mapObject.addLayer(fireZoneFileLayer)
+        mapObject.addLayer(fireZoneHighlightFileLayer)
+        mapObject.addLayer(fireZoneLabelFileLayer)
       }
-    };
-    loadPMTiles().catch(Sentry.captureException);
+    }
+    loadPMTiles().catch(Sentry.captureException)
 
     return () => {
-      mapObject.removeControl(scaleBar);
-      mapObject.un("singleclick", mapClickHandler);
-      mapObject.getView().un("change:resolution", setScalelineVisibility);
-      mapObject.setTarget("");
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+      mapObject.removeControl(scaleBar)
+      mapObject.un('singleclick', mapClickHandler)
+      mapObject.getView().un('change:resolution', setScalelineVisibility)
+      mapObject.setTarget('')
+    }
+  }, [])
 
   // map state storage and restoration
   useEffect(() => {
-    if (!map) return;
-    (async () => {
-      const savedState = await loadMapViewState();
+    if (!map) return
+    ;(async () => {
+      const savedState = await loadMapViewState()
       if (savedState) {
-        map.getView().setZoom(savedState.zoom);
-        map.getView().setCenter(savedState.center);
+        map.getView().setZoom(savedState.zoom)
+        map.getView().setCenter(savedState.center)
       } else {
-        map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] });
+        // biome-ignore lint/suspicious/noFocusedTests: false positive — OpenLayers View.fit(), not a focused test
+        map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
       }
-    })().catch(Sentry.captureException);
+    })().catch(Sentry.captureException)
 
     const saveStateHandler = () => {
-      const view = map.getView();
-      const zoom = view.getZoom();
-      const center = view.getCenter();
+      const view = map.getView()
+      const zoom = view.getZoom()
+      const center = view.getCenter()
       if (zoom && center) {
         saveMapViewState({
           zoom,
-          center,
-        });
+          center
+        })
       }
-    };
-    map.on("moveend", saveStateHandler);
+    }
+    map.on('moveend', saveStateHandler)
 
     return () => {
-      map.un("moveend", saveStateHandler);
-    };
-  }, [map]);
+      map.un('moveend', saveStateHandler)
+    }
+  }, [map])
 
   useEffect(() => {
-    if (!map) return;
+    if (!map) return
 
-    (async () => {
-      let hfiLayer: VectorTileLayer | null = null;
-      if (
-        !isNil(runParameter?.run_type) &&
-        !isNil(runParameter?.run_datetime)
-      ) {
+    ;(async () => {
+      let hfiLayer: VectorTileLayer | null = null
+      if (!isNil(runParameter?.run_type) && !isNil(runParameter?.run_datetime)) {
         hfiLayer = await createHFILayer(
           {
-            filename: "hfi.pmtiles",
+            filename: 'hfi.pmtiles',
             for_date: date,
             run_type: runParameter.run_type,
-            run_date: DateTime.fromISO(runParameter.run_datetime),
+            run_date: DateTime.fromISO(runParameter.run_datetime)
           },
-          layerVisibility[HFI_LAYER_NAME],
-        );
+          layerVisibility[HFI_LAYER_NAME]
+        )
       }
-      replaceMapLayer(HFI_LAYER_NAME, hfiLayer);
-    })().catch(Sentry.captureException);
-  }, [map, runParameter, date, layerVisibility, replaceMapLayer]);
+      replaceMapLayer(HFI_LAYER_NAME, hfiLayer)
+    })().catch(Sentry.captureException)
+  }, [map, runParameter, date, layerVisibility, replaceMapLayer])
 
   const handleDrawerClose = () => {
-    setIsFireShapeDrawerOpen(false);
-  };
+    setIsFireShapeDrawerOpen(false)
+  }
 
-  const handleLayerVisibilityChange = (
-    layerName: string,
-    visible: boolean,
-  ): void => {
-    setLayerVisibility((prev) => ({
+  const handleLayerVisibilityChange = (layerName: string, visible: boolean): void => {
+    setLayerVisibility(prev => ({
       ...prev,
-      [layerName]: visible,
-    }));
+      [layerName]: visible
+    }))
 
     // The Zone Status layer is unique because it's always visible, but we'll change it's style
     // so it isn't filled in anymore if it's "off".
     if (layerName === ZONE_STATUS_LAYER_NAME) {
-      setZoneStatusLayerVisibility(
-        fireZoneFileLayer,
-        fireShapeStatusDetails,
-        visible,
-      );
+      setZoneStatusLayerVisibility(fireZoneFileLayer, fireShapeStatusDetails, visible)
     } else {
-      setDefaultLayerVisibility(toggleLayersRef.current, layerName, visible);
+      setDefaultLayerVisibility(toggleLayersRef.current, layerName, visible)
     }
-  };
+  }
 
   return (
     <MapContext.Provider value={map}>
@@ -552,30 +489,26 @@ const ASAGoMap = ({
         ref={mapRef}
         data-testid={testId}
         sx={{
-          display: "flex",
+          display: 'flex',
           flex: 1,
-          position: "relative",
-          backgroundColor: "grey.300",
+          position: 'relative',
+          backgroundColor: 'grey.300'
         }}
       >
         <UserLocationIndicator map={map} position={position} error={error} />
 
         <Box
           sx={{
-            position: "absolute",
-            left: "8px",
-            bottom: "8px",
+            position: 'absolute',
+            left: '8px',
+            bottom: '8px',
             zIndex: 2,
-            display: "flex",
-            flexDirection: "column",
-            gap: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1
           }}
         >
-          <MapIconButton
-            onClick={handleLegendButtonClick}
-            icon={<LayersIcon />}
-            testid="legend-toggle-button"
-          />
+          <MapIconButton onClick={handleLegendButtonClick} icon={<LayersIcon />} testid="legend-toggle-button" />
           <MapIconButton
             onClick={handleLocationButtonClick}
             icon={error ? <GpsOffIcon color="error" /> : <MyLocationIcon />}
@@ -592,27 +525,23 @@ const ASAGoMap = ({
           onLayerVisibilityChange={handleLayerVisibilityChange}
         />
 
-        <ScaleContainer
-          visible={scaleVisible}
-          setVisible={setScaleVisible}
-          ref={scaleRef}
-        />
+        <ScaleContainer visible={scaleVisible} setVisible={setScaleVisible} ref={scaleRef} />
         <FireShapeActionsDrawer
           open={isFireShapeDrawerOpen}
           selectedFireShape={selectedFireShape}
           onClose={handleDrawerClose}
           onSelectProfile={() => {
-            setTab(NavPanel.PROFILE);
-            handleDrawerClose();
+            setTab(NavPanel.PROFILE)
+            handleDrawerClose()
           }}
           onSelectAdvisory={() => {
-            setTab(NavPanel.ADVISORY);
-            handleDrawerClose();
+            setTab(NavPanel.ADVISORY)
+            handleDrawerClose()
           }}
         />
       </Box>
     </MapContext.Provider>
-  );
-};
+  )
+}
 
-export default React.memo(ASAGoMap);
+export default React.memo(ASAGoMap)

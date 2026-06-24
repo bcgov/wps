@@ -1,16 +1,16 @@
-import { render, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import AdminRemoveButton from 'features/hfiCalculator/components/stationAdmin/AdminRemoveButton'
+import type { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { vi } from 'vitest'
-
 
 describe('AdminRemoveButton', () => {
   it('should call remove handler callback with planning area id and row id', async () => {
+    const user = userEvent.setup()
     const stationAdminRow: StationAdminRow = { planningAreaId: 1, rowId: 1, station: { code: 1, name: 'test' } }
     const removeMock = vi.fn()
 
-    const { getByTestId } = render(
+    render(
       <AdminRemoveButton
         adminRow={stationAdminRow}
         planningAreaId={stationAdminRow.planningAreaId}
@@ -18,16 +18,14 @@ describe('AdminRemoveButton', () => {
       />
     )
 
-    const adminRemoveButton = getByTestId('admin-remove-button')
-    await waitFor(() => {
-      adminRemoveButton.focus()
-      userEvent.click(adminRemoveButton)
-      expect(removeMock).toHaveBeenCalledTimes(1)
-      expect(removeMock).toHaveBeenCalledWith(
-        stationAdminRow.planningAreaId,
-        stationAdminRow.rowId,
-        stationAdminRow.station
-      )
-    })
+    const adminRemoveButton = screen.getByTestId('admin-remove-button')
+    await user.click(adminRemoveButton)
+
+    expect(removeMock).toHaveBeenCalledTimes(1)
+    expect(removeMock).toHaveBeenCalledWith(
+      stationAdminRow.planningAreaId,
+      stationAdminRow.rowId,
+      stationAdminRow.station
+    )
   })
 })

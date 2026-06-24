@@ -37,8 +37,8 @@ def mock_database(monkeypatch):
     _now = time_utils.get_utc_now()
     _date = get_file_date_part(_now, 0)
     rdps_url = (
-        f"https://dd.weather.gc.ca/today/model_rdps/10km/00/034/"
-        f"{_date}T00Z_MSC_RDPS_RH_AGL-2m_RLatLon0.09_PT034H.grib2"
+        f"https://dd.weather.gc.ca/today/model_rdps/10km/00/000/"
+        f"{_date}T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT000H.grib2"
     )
     rdps_processed_model_run = ProcessedModelRunUrl(url=rdps_url)
     rdps_prediction_model = PredictionModel(
@@ -116,7 +116,9 @@ def mock_download(monkeypatch):
     def mock_requests_get_rdps(*args, **kwargs):
         """mock env_canada download method for RDPS"""
         dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(dirname, "CMC_reg_RH_TGL_2_ps10km_2020110500_P034.grib2")
+        filename = os.path.join(
+            dirname, "20260602T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT000H.grib2"
+        )
         with open(filename, "rb") as file:
             content = file.read()
         return MockResponse(status_code=200, content=content)

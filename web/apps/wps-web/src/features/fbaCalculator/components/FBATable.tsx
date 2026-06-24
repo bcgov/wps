@@ -1,56 +1,56 @@
-import React, { useEffect, useState } from 'react'
-import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
-import { Grid, TableBody, TableCell, TableRow } from '@mui/material'
 import GetAppIcon from '@mui/icons-material/GetApp'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
-import { CsvBuilder } from 'filefy'
-import { Button } from '@wps/ui/Button'
-import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
-import { FBAStation } from '@wps/api/fbaCalcAPI'
-import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
-import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
-import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
-import PrecipCell from 'features/fbaCalculator/components/PrecipCell'
-import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
-import { Order, PST_UTC_OFFSET } from '@wps/utils/constants'
-import { FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
+import { Grid, TableBody, TableCell, TableRow } from '@mui/material'
+import type { FBAStation } from '@wps/api/fbaCalcAPI'
 import { getStations, StationSource } from '@wps/api/stationAPI'
 import type { GeoJsonStation } from '@wps/types/stationTypes'
-import { selectFireWeatherStations, selectFireBehaviourCalcResult } from 'app/rootReducer'
+import AboutDataPopover from '@wps/ui/AboutDataPopover'
+import { Button } from '@wps/ui/Button'
+import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
+import FireTable from '@wps/ui/FireTable'
+import ResetDialog from '@wps/ui/ResetDialog'
+import StickyCell from '@wps/ui/StickyCell'
+import { theme } from '@wps/ui/theme'
+import WPSDatePicker from '@wps/ui/WPSDatePicker'
+import { type Order, PST_UTC_OFFSET } from '@wps/utils/constants'
+import { selectFireBehaviourCalcResult, selectFireWeatherStations } from 'app/rootReducer'
+import type { AppDispatch } from 'app/store'
+import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
+import CrownFractionBurnedCell from 'features/fbaCalculator/components/CrownFractionBurnedCell'
+import ErrorAlert from 'features/fbaCalculator/components/ErrorAlert'
+import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
+import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
+import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
+import FuelTypeCell from 'features/fbaCalculator/components/FuelTypeCell'
+import GrassCureCell from 'features/fbaCalculator/components/GrassCureCell'
+import LoadingIndicatorCell from 'features/fbaCalculator/components/LoadingIndicatorCell'
+import PrecipCell from 'features/fbaCalculator/components/PrecipCell'
+import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
+import StatusCell from 'features/fbaCalculator/components/StatusCell'
+import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
+import WeatherStationCell from 'features/fbaCalculator/components/WeatherStationCell'
+import WindSpeedCell from 'features/fbaCalculator/components/WindSpeedCell'
 import { FuelTypes } from 'features/fbaCalculator/fuelTypes'
+import { type FBATableRow, RowManager, SortByColumn } from 'features/fbaCalculator/RowManager'
 import { fetchFireBehaviourStations } from 'features/fbaCalculator/slices/fbaCalculatorSlice'
 import {
-  getRowsFromUrlParams,
   getNextRowIdFromRows,
+  getRowsFromUrlParams,
   getUrlParamsFromRows,
   stripWindFromQueryParams
 } from 'features/fbaCalculator/utils'
+import { isPrecipInvalid, isWindSpeedInvalid, rowShouldUpdate } from 'features/fbaCalculator/validation'
+import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { CsvBuilder } from 'filefy'
+import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { rowShouldUpdate, isWindSpeedInvalid, isPrecipInvalid } from 'features/fbaCalculator/validation'
-import TextDisplayCell from 'features/fbaCalculator/components/TextDisplayCell'
-import FixedDecimalNumberCell from 'features/fbaCalculator/components/FixedDecimalNumberCell'
-import HFICell from './HFICell'
-import CrownFractionBurnedCell from 'features/fbaCalculator/components/CrownFractionBurnedCell'
-import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
-import StatusCell from 'features/fbaCalculator/components/StatusCell'
-import ErrorAlert from 'features/fbaCalculator/components/ErrorAlert'
-import LoadingIndicatorCell from 'features/fbaCalculator/components/LoadingIndicatorCell'
-import SelectionCell from 'features/fbaCalculator/components/SelectionCell'
-import StickyCell from '@wps/ui/StickyCell'
-import FBATableHead from 'features/fbaCalculator/components/FBATableHead'
-import FireTable from '@wps/ui/FireTable'
-import FBATableInstructions from 'features/fbaCalculator/components/FBATableInstructions'
-import FilterColumnsModal from './FilterColumnsModal'
-import WPSDatePicker from '@wps/ui/WPSDatePicker'
-import { AppDispatch } from 'app/store'
-import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
-import { theme } from '@wps/ui/theme'
-import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import { FBAAboutDataContent } from '@/features/fbaCalculator/components/FbaAboutDataContent'
-import ResetDialog from '@wps/ui/ResetDialog'
+import FilterColumnsModal from './FilterColumnsModal'
+import HFICell from './HFICell'
 export interface FBATableProps {
   maxWidth?: number
   maxHeight?: number
@@ -128,13 +128,29 @@ const tableColumnLabels: ColumnLabel[] = [
   '60 min fire size (ha)'
 ]
 
+const getDefinedRows = (rows: FBATableRow[]) => rows.filter(row => !isUndefined(row))
+
+const updateRowsIfPresent = (currentRows: FBATableRow[], updatedRows: FBATableRow[]) => {
+  return currentRows.length > 0 || updatedRows.length > 0 ? updatedRows : currentRows
+}
+
 const FBATable = (props: FBATableProps) => {
+  // routing
   const navigate = useNavigate()
   const location = useLocation()
+
+  // dispatch
   const dispatch: AppDispatch = useDispatch()
 
+  // selectors
+  const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
+  const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(selectFireBehaviourCalcResult)
+
+  // state
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
-  const [dateOfInterest, setDateOfInterest] = useState(DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`))
+  const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(
+    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+  )
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
   const [initialLoad, setInitialLoad] = useState<boolean>(true)
@@ -142,32 +158,53 @@ const FBATable = (props: FBATableProps) => {
   const [order, setOrder] = useState<Order>('desc')
   const [rows, setRows] = useState<FBATableRow[]>([])
   const [modalOpen, setModalOpen] = useState<boolean>(false)
-  const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
-  const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(selectFireBehaviourCalcResult)
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(fireBehaviourResultStations)
   const [visibleColumns, setVisibleColumns] = useState<ColumnLabel[]>(tableColumnLabels)
   const [showResetDialog, setShowResetDialog] = useState<boolean>(false)
+  const [initialLocationSearch] = useState(location.search)
+  const [hydratedStationOptionsKey, setHydratedStationOptionsKey] = useState<string | null>(null)
 
-  const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(station => ({
-    value: String(station.properties.code),
-    label: `${station.properties.name} (${station.properties.code})`
-  }))
+  // derived data
+  const stationMenuOptions: GridMenuOption[] = useMemo(
+    () =>
+      (stations as GeoJsonStation[]).map(station => ({
+        value: String(station.properties.code),
+        label: `${station.properties.name} (${station.properties.code})`
+      })),
+    [stations]
+  )
 
-  const fuelTypeMenuOptions: GridMenuOption[] = Object.entries(FuelTypes.get()).map(([key, value]) => ({
-    value: key,
-    label: value.friendlyName
-  }))
+  const stationCodeMap = useMemo(
+    () => new Map(stationMenuOptions.map(station => [station.value, station.label])),
+    [stationMenuOptions]
+  )
 
+  const stationOptionsKey = useMemo(
+    () => stationMenuOptions.map(station => `${station.value}:${station.label}`).join('|'),
+    [stationMenuOptions]
+  )
+
+  const fuelTypeMenuOptions: GridMenuOption[] = useMemo(
+    () =>
+      Object.entries(FuelTypes.get()).map(([key, value]) => ({
+        value: key,
+        label: value.friendlyName
+      })),
+    []
+  )
+
+  // effects
   useEffect(() => {
-    // Strip the wind query parameters if present and update the URL
-    updateQueryParams(stripWindFromQueryParams(location.search))
+    // strip the wind query parameters if present and update the URL
+    navigate({
+      search: stripWindFromQueryParams(initialLocationSearch)
+    })
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dispatch, initialLocationSearch, navigate])
 
   useEffect(() => {
-    if (stations.length > 0) {
+    if (stations.length > 0 && stationOptionsKey !== hydratedStationOptionsKey) {
       const rowsFromQuery = getRowsFromUrlParams(location.search)
-      const stationCodeMap = new Map(stationMenuOptions.map(station => [station.value, station.label]))
 
       const sortedRows = RowManager.sortRows(
         sortByColumn,
@@ -176,85 +213,49 @@ const FBATable = (props: FBATableProps) => {
           ...RowManager.buildFBATableRow(inputRow, stationCodeMap)
         }))
       )
-      if (rows.length > 0 || sortedRows.length > 0) {
-        setRows(sortedRows)
-      }
+      setRows(currentRows => updateRowsIfPresent(currentRows, sortedRows))
 
+      setHydratedStationOptionsKey(stationOptionsKey)
       dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
     }
-  }, [stations]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    dateOfInterest,
+    dispatch,
+    hydratedStationOptionsKey,
+    location.search,
+    order,
+    sortByColumn,
+    stationCodeMap,
+    stationOptionsKey,
+    stations.length
+  ])
 
   useEffect(() => {
-    if (stations.length > 0) {
-      const rowsToUpdate = rows.filter(row => rowIdsToUpdate.has(row.id))
-      if (!isEmpty(rowsToUpdate)) {
-        dispatch(fetchFireBehaviourStations(dateOfInterest, rowsToUpdate))
-      }
-    }
-  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    // Row updates
-    if (!isEmpty(rowIdsToUpdate) && fireBehaviourResultStations.length > 0) {
-      const updatedRows = RowManager.updateRows(
-        rows.filter(row => !isUndefined(row)),
-        fireBehaviourResultStations
-      )
-      if (rows.length > 0 || updatedRows.length > 0) {
-        setRows(updatedRows)
-      }
-
-      const updatedRowIds = difference(
-        Array.from(rowIdsToUpdate),
-        fireBehaviourResultStations.map(result => result.id)
-      )
-      setRowIdsToUpdate(new Set(updatedRowIds))
-    }
-    // Initial row list page load
-    if (initialLoad && fireBehaviourResultStations.length > 0) {
+    setRows(currentRows => {
       const sortedRows = RowManager.sortRows(
         sortByColumn,
         order,
-        RowManager.updateRows(
-          rows.filter(row => !isUndefined(row)),
-          fireBehaviourResultStations
-        )
+        RowManager.updateRows(getDefinedRows(currentRows), fireBehaviourResultStations)
       )
-      if (rows.length > 0 || sortedRows.length > 0) {
-        setRows(sortedRows)
+      return updateRowsIfPresent(currentRows, sortedRows)
+    })
+    setInitialLoad(currentInitialLoad =>
+      currentInitialLoad && fireBehaviourResultStations.length > 0 ? false : currentInitialLoad
+    )
+    setRowIdsToUpdate(currentRowIdsToUpdate => {
+      if (isEmpty(currentRowIdsToUpdate) || fireBehaviourResultStations.length === 0) {
+        return currentRowIdsToUpdate
       }
-      setInitialLoad(false)
-    }
-    const updatedCalculatedResults = RowManager.updateRows(calculatedResults, fireBehaviourResultStations)
-    setCalculatedResults(updatedCalculatedResults)
-  }, [fireBehaviourResultStations, stations]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const sortedRows = RowManager.sortRows(
-      sortByColumn,
-      order,
-      RowManager.updateRows(
-        rows.filter(row => !isUndefined(row)),
-        fireBehaviourResultStations
+      const updatedRowIds = difference(
+        Array.from(currentRowIdsToUpdate),
+        fireBehaviourResultStations.map(result => result.id)
       )
+      return new Set(updatedRowIds)
+    })
+    setCalculatedResults(currentCalculatedResults =>
+      RowManager.updateRows(currentCalculatedResults, fireBehaviourResultStations)
     )
-    const updatedCalculatedResults = RowManager.updateRows(calculatedResults, fireBehaviourResultStations)
-    setCalculatedResults(updatedCalculatedResults)
-    if (rows.length > 0 || sortedRows.length > 0) {
-      setRows(sortedRows)
-    }
-  }, [dateOfInterest, fireBehaviourResultStations]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const sortedRows = RowManager.sortRows(
-      sortByColumn,
-      order,
-      rows.filter(row => !isUndefined(row))
-    )
-    if (rows.length > 0 || sortedRows.length > 0) {
-      setRows(sortedRows)
-    }
-  }, [order]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fireBehaviourResultStations, order, sortByColumn])
 
   const addStation = () => {
     const newRowId = getNextRowIdFromRows(rows.filter(row => !isUndefined(row)))
@@ -290,39 +291,48 @@ const FBATable = (props: FBATableProps) => {
     csvBuilder.exportFile()
   }
 
+  const updateQueryParams = (queryParams: string) => {
+    navigate({
+      search: queryParams
+    })
+  }
+
+  const markRowForUpdate = (id: number) => {
+    const updatedRowIds = new Set(rowIdsToUpdate)
+    updatedRowIds.add(id)
+    setRowIdsToUpdate(updatedRowIds)
+    return updatedRowIds
+  }
+
   const getNewRows = (id: number, updatedRow: FBATableRow) => {
-    const newRows = [...rows].filter(row => !isUndefined(row))
+    const newRows = getDefinedRows(rows)
     const index = findIndex(newRows, row => row.id === id)
 
     newRows[index] = updatedRow
     setRows(newRows)
-
-    if (!rowIdsToUpdate.has(id)) {
-      rowIdsToUpdate.add(id)
-      const toUpdate = new Set(rowIdsToUpdate)
-      setRowIdsToUpdate(toUpdate)
-    }
     return newRows
   }
 
   const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
     const newRows = getNewRows(id, updatedRow)
+    const updatedRowIds = markRowForUpdate(id)
     if (dispatchUpdate) {
       updateQueryParams(getUrlParamsFromRows(newRows))
+      dispatch(
+        fetchFireBehaviourStations(
+          dateOfInterest,
+          newRows.filter(row => updatedRowIds.has(row.id))
+        )
+      )
     }
   }
 
   const updateRowDirect = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
     const newRows = getNewRows(id, updatedRow)
+    markRowForUpdate(id)
     if (dispatchUpdate) {
       dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
     }
-  }
-
-  const updateQueryParams = (queryParams: string) => {
-    navigate({
-      search: queryParams
-    })
   }
 
   const updateDate = (newDate: DateTime) => {
@@ -603,14 +613,20 @@ const FBATable = (props: FBATableProps) => {
           container
           spacing={2}
           sx={{
-            alignItems: "top",
-            justifyContent: "center",
+            alignItems: 'top',
+            justifyContent: 'center',
             paddingTop: theme.spacing(1),
             paddingBottom: theme.spacing(1)
-          }}>
-          <Grid container spacing={2} size={4} sx={{
-            justifyContent: "flex-start"
-          }}>
+          }}
+        >
+          <Grid
+            container
+            spacing={2}
+            size={4}
+            sx={{
+              justifyContent: 'flex-start'
+            }}
+          >
             <Grid>
               <WPSDatePicker date={dateOfInterest} updateDate={updateDate} />
             </Grid>
@@ -639,9 +655,14 @@ const FBATable = (props: FBATableProps) => {
             </Grid>
           </Grid>
 
-          <Grid container spacing={2} size={4} sx={{
-            justifyContent: "center"
-          }}>
+          <Grid
+            container
+            spacing={2}
+            size={4}
+            sx={{
+              justifyContent: 'center'
+            }}
+          >
             <Grid>
               <Button
                 data-testid="export"
@@ -666,9 +687,14 @@ const FBATable = (props: FBATableProps) => {
               </Button>
             </Grid>
           </Grid>
-          <Grid container spacing={2} size={4} sx={{
-            justifyContent: "flex-end"
-          }}>
+          <Grid
+            container
+            spacing={2}
+            size={4}
+            sx={{
+              justifyContent: 'flex-end'
+            }}
+          >
             <Grid>
               <Button
                 data-testid="reset-selected-btn"
@@ -742,7 +768,7 @@ const FBATable = (props: FBATableProps) => {
         </FireTable>
       </ErrorBoundary>
     </React.Fragment>
-  );
+  )
 }
 
 export default React.memo(FBATable)

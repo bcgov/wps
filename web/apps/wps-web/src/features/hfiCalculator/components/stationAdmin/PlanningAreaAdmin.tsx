@@ -1,12 +1,15 @@
-import React from 'react'
-import { PlanningArea } from '@wps/api/hfiCalculatorAPI'
-import { Typography, Box, IconButton } from '@mui/material'
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined'
+import { Box, IconButton, Typography } from '@mui/material'
+import type { PlanningArea } from '@wps/api/hfiCalculatorAPI'
 import ExistingStationList from 'features/hfiCalculator/components/stationAdmin/ExistingStationList'
-import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
-import { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
+import type {
+  AddStationOptions,
+  StationAdminRow
+} from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import NewStationList from 'features/hfiCalculator/components/stationAdmin/NewStationList'
+import type { AdminHandlers } from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { differenceWith, isEqual } from 'lodash'
+import React from 'react'
 
 export interface PlanningAreaAdminProps {
   planningArea: Pick<PlanningArea, 'id' | 'name'>

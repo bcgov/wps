@@ -24,7 +24,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/historic-snow-job.y
 -p SUFFIX=${SUFFIX} \
 -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
 -p START_DATETIME=${START_DATETIME} \
--p END_DATETIME=${END_DATETIME}"
+-p END_DATETIME=${END_DATETIME} \
+-p PROJECT_NAMESPACE=${PROJ_TARGET}"
 
 
 # Apply template (apply or use --dry-run)

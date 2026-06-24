@@ -1,8 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-import { AppThunk } from 'app/store'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { type FireCentreTPIResponse, getFireCentreTPIStats, type RunType } from '@wps/api/fbaAPI'
 import { logError } from '@wps/utils/error'
-import { FireCentreTPIResponse, getFireCentreTPIStats, RunType } from '@wps/api/fbaAPI'
+import type { AppThunk } from 'app/store'
 
 export interface CentreTPIStatsState {
   error: string | null

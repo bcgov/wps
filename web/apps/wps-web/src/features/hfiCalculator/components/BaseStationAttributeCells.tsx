@@ -1,12 +1,12 @@
-import { Table, TableBody, TableRow, TableCell, styled } from '@mui/material'
-import { FuelType, WeatherStation } from '@wps/api/hfiCalculatorAPI'
+import { styled, Table, TableBody, TableCell, TableRow } from '@mui/material'
+import type { FuelType, WeatherStation } from '@wps/api/hfiCalculatorAPI'
 import StickyCell from '@wps/ui/StickyCell'
 import { UNSELECTED_STATION_COLOR } from '@wps/ui/theme'
-import React from 'react'
-import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import FuelTypeDropdown from 'features/hfiCalculator/components/FuelTypeDropdown'
-import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import GrassCureCell from 'features/hfiCalculator/components/GrassCureCell'
 import StationSelectCell from 'features/hfiCalculator/components/StationSelectCell'
+import { isGrassFuelType } from 'features/hfiCalculator/validation'
+import React from 'react'
 
 export interface BaseStationAttributeCellsProps {
   testid?: string

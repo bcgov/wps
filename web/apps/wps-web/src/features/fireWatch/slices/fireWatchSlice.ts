@@ -1,7 +1,7 @@
-import { FireWatchOutput, getActiveFireWatches, postFireWatchInput } from '@/features/fireWatch/fireWatchApi'
-import { FireWatch } from '@/features/fireWatch/interfaces'
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { AppThunk } from 'app/store'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import type { AppThunk } from 'app/store'
+import { type FireWatchOutput, getActiveFireWatches, postFireWatchInput } from '@/features/fireWatch/fireWatchApi'
+import type { FireWatch } from '@/features/fireWatch/interfaces'
 
 export interface FireWatchState {
   loading: boolean

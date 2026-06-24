@@ -1,9 +1,9 @@
-import OptionalHeading from '@/features/fireWatch/components/OptionalHeading'
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
-import { FireWatch, FuelTypeEnum, fuelTypes } from '@/features/fireWatch/interfaces'
 import { Autocomplete, Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { isNull, isUndefined } from 'lodash'
-import { SetStateAction } from 'react'
+import type { SetStateAction } from 'react'
+import OptionalHeading from '@/features/fireWatch/components/OptionalHeading'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
+import { type FireWatch, FuelTypeEnum, fuelTypes } from '@/features/fireWatch/interfaces'
 
 interface FuelStepProps {
   fireWatch: FireWatch
@@ -32,7 +32,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
               required
               size="small"
               value={
-                !isUndefined(fireWatch.percentConifer) && isNaN(fireWatch.percentConifer)
+                !isUndefined(fireWatch.percentConifer) && Number.isNaN(fireWatch.percentConifer)
                   ? ''
                   : fireWatch.percentConifer
               }
@@ -54,7 +54,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
               required
               size="small"
               value={
-                !isUndefined(fireWatch.percentDeadFir) && isNaN(fireWatch.percentDeadFir)
+                !isUndefined(fireWatch.percentDeadFir) && Number.isNaN(fireWatch.percentDeadFir)
                   ? ''
                   : fireWatch.percentDeadFir
               }
@@ -75,7 +75,7 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
               required
               size="small"
               value={
-                !isUndefined(fireWatch.percentGrassCuring) && isNaN(fireWatch.percentGrassCuring)
+                !isUndefined(fireWatch.percentGrassCuring) && Number.isNaN(fireWatch.percentGrassCuring)
                   ? ''
                   : fireWatch.percentGrassCuring
               }
@@ -115,22 +115,22 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
               <OptionalHeading>Fine Fuel Moisture Code (FFMC)</OptionalHeading>
               <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
                 <TextField
-                  required={!isNull(fireWatch.ffmcMax) && !isNaN(fireWatch.ffmcMax)}
+                  required={!isNull(fireWatch.ffmcMax) && !Number.isNaN(fireWatch.ffmcMax)}
                   label="Minimum"
                   size="small"
                   type="number"
-                  value={isNull(fireWatch.ffmcMin) || isNaN(fireWatch.ffmcMin) ? null : fireWatch.ffmcMin}
+                  value={isNull(fireWatch.ffmcMin) || Number.isNaN(fireWatch.ffmcMin) ? null : fireWatch.ffmcMin}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ ffmcMin: parseFloat(event.target.value) })
                   }
                   sx={{ pr: theme.spacing(2) }}
                 />
                 <TextField
-                  required={!isNull(fireWatch.ffmcMin) && !isNaN(fireWatch.ffmcMin)}
+                  required={!isNull(fireWatch.ffmcMin) && !Number.isNaN(fireWatch.ffmcMin)}
                   label="Maximum"
                   size="small"
                   type="number"
-                  value={isNull(fireWatch.ffmcMax) || isNaN(fireWatch.ffmcMax) ? '' : fireWatch.ffmcMax}
+                  value={isNull(fireWatch.ffmcMax) || Number.isNaN(fireWatch.ffmcMax) ? '' : fireWatch.ffmcMax}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ ffmcMax: parseFloat(event.target.value) })
                   }
@@ -142,22 +142,22 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
             <OptionalHeading>Duff Moisture Code (DMC)</OptionalHeading>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
-                required={!isNull(fireWatch.dmcMax) && !isNaN(fireWatch.dmcMax)}
+                required={!isNull(fireWatch.dmcMax) && !Number.isNaN(fireWatch.dmcMax)}
                 label="Minimum"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.dmcMin) || isNaN(fireWatch.dmcMin) ? '' : fireWatch.dmcMin}
+                value={isNull(fireWatch.dmcMin) || Number.isNaN(fireWatch.dmcMin) ? '' : fireWatch.dmcMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dmcMin: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                required={!isNull(fireWatch.dmcMin) && !isNaN(fireWatch.dmcMin)}
+                required={!isNull(fireWatch.dmcMin) && !Number.isNaN(fireWatch.dmcMin)}
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.dmcMax) || isNaN(fireWatch.dmcMax) ? '' : fireWatch.dmcMax}
+                value={isNull(fireWatch.dmcMax) || Number.isNaN(fireWatch.dmcMax) ? '' : fireWatch.dmcMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dmcMax: parseFloat(event.target.value) })
                 }
@@ -168,22 +168,22 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
             <OptionalHeading>Drought Code (DC)</OptionalHeading>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
-                required={!isNull(fireWatch.dcMax) && !isNaN(fireWatch.dcMax)}
+                required={!isNull(fireWatch.dcMax) && !Number.isNaN(fireWatch.dcMax)}
                 label="Minimum"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.dcMin) || isNaN(fireWatch.dcMin) ? '' : fireWatch.dcMin}
+                value={isNull(fireWatch.dcMin) || Number.isNaN(fireWatch.dcMin) ? '' : fireWatch.dcMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dcMin: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                required={!isNull(fireWatch.dcMin) && !isNaN(fireWatch.dcMin)}
+                required={!isNull(fireWatch.dcMin) && !Number.isNaN(fireWatch.dcMin)}
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.dcMax) || isNaN(fireWatch.dcMax) ? '' : fireWatch.dcMax}
+                value={isNull(fireWatch.dcMax) || Number.isNaN(fireWatch.dcMax) ? '' : fireWatch.dcMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ dcMax: parseFloat(event.target.value) })
                 }
@@ -194,22 +194,22 @@ const FuelStep = ({ fireWatch, setFireWatch }: FuelStepProps) => {
             <OptionalHeading>Buildup Index (BUI)</OptionalHeading>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
               <TextField
-                required={!isNull(fireWatch.buiMax) && !isNaN(fireWatch.buiMax)}
+                required={!isNull(fireWatch.buiMax) && !Number.isNaN(fireWatch.buiMax)}
                 label="Minimum"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.buiMin) || isNaN(fireWatch.buiMin) ? '' : fireWatch.buiMin}
+                value={isNull(fireWatch.buiMin) || Number.isNaN(fireWatch.buiMin) ? '' : fireWatch.buiMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ buiMin: parseFloat(event.target.value) })
                 }
                 sx={{ pr: theme.spacing(2) }}
               />
               <TextField
-                required={!isNull(fireWatch.buiMin) && !isNaN(fireWatch.buiMin)}
+                required={!isNull(fireWatch.buiMin) && !Number.isNaN(fireWatch.buiMin)}
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isNull(fireWatch.buiMax) || isNaN(fireWatch.buiMax) ? '' : fireWatch.buiMax}
+                value={isNull(fireWatch.buiMax) || Number.isNaN(fireWatch.buiMax) ? '' : fireWatch.buiMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ buiMax: parseFloat(event.target.value) })
                 }

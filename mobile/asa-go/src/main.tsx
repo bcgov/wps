@@ -1,16 +1,16 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { CssBaseline } from "@mui/material";
-import { ThemeProvider, StyledEngineProvider } from "@mui/material/styles";
-import { Provider } from "react-redux";
-import { store } from "@/store";
-import { theme } from "@/theme.ts";
-import App from "@/App.tsx";
-import AuthWrapper from "@/components/AuthWrapper";
-import { configureApiInterceptors } from "@/utils/axiosInterceptor";
-import * as Sentry from "@sentry/capacitor";
-import * as SentryReact from "@sentry/react";
-import { ErrorBoundary, feedbackIntegration } from "@sentry/react";
+import { CssBaseline } from '@mui/material'
+import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles'
+import * as Sentry from '@sentry/capacitor'
+import * as SentryReact from '@sentry/react'
+import { ErrorBoundary, feedbackIntegration } from '@sentry/react'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { Provider } from 'react-redux'
+import App from '@/App.tsx'
+import AuthWrapper from '@/components/AuthWrapper'
+import { store } from '@/store'
+import { theme } from '@/theme.ts'
+import { configureApiInterceptors } from '@/utils/axiosInterceptor'
 
 Sentry.init(
   {
@@ -20,40 +20,37 @@ Sentry.init(
       Sentry.browserTracingIntegration(),
       feedbackIntegration({
         autoInject: false,
-        colorScheme: "light",
+        colorScheme: 'light',
         enableScreenshot: true,
         themeLight: {
           submitBackground: theme.palette.primary.main,
           submitBorder: theme.palette.primary.main,
           submitForeground: theme.palette.primary.contrastText,
           accentBackground: theme.palette.secondary.main,
-          accentForeground: theme.palette.secondary.contrastText,
-        },
-      }),
+          accentForeground: theme.palette.secondary.contrastText
+        }
+      })
     ],
-    tracesSampleRate: 0.1,
+    tracesSampleRate: 0.1
   },
-  SentryReact.init,
-);
+  SentryReact.init
+)
 
-configureApiInterceptors();
+configureApiInterceptors()
 
 const render = () => {
-  const container = document.getElementById("root");
+  const container = document.getElementById('root')
 
   // Null check to keep TypeScript happy
   if (container === null) {
-    throw new Error("Root container is missing in index.html");
+    throw new Error('Root container is missing in index.html')
   }
-  const root = createRoot(container);
+  const root = createRoot(container)
   root.render(
     <StrictMode>
       <ErrorBoundary
         fallback={
-          <p>
-            An unexpected error occurred. Please contact
-            BCWS.PredictiveServices@gov.bc.ca if this persists.
-          </p>
+          <p>An unexpected error occurred. Please contact BCWS.PredictiveServices@gov.bc.ca if this persists.</p>
         }
       >
         <Provider store={store}>
@@ -67,8 +64,8 @@ const render = () => {
           </ThemeProvider>
         </Provider>
       </ErrorBoundary>
-    </StrictMode>,
-  );
-};
+    </StrictMode>
+  )
+}
 
-render();
+render()

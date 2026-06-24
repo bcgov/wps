@@ -1,4 +1,5 @@
 import enum
+import math
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
@@ -14,6 +15,8 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
@@ -138,6 +141,7 @@ class FuelType(Base):
     fuel_type_id = Column(Integer, nullable=False, index=True)
     geom = Column(Geometry("POLYGON", spatial_index=False, srid=NAD83_BC_ALBERS))
     fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
+    fuel_type_raster = relationship(FuelTypeRaster)
 
 
 # Explicit creation of index due to issue with alembic + geoalchemy.
@@ -285,6 +289,7 @@ class TPIFuelArea(Base):
     tpi_class = Column(Enum(TPIClassEnum), nullable=False)
     fuel_area = Column(Float, nullable=False)
     fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
+    fuel_type_raster = relationship(FuelTypeRaster)
 
 
 class AdvisoryShapeFuels(Base):
@@ -307,6 +312,7 @@ class AdvisoryShapeFuels(Base):
     fuel_type = Column(Integer, ForeignKey(SFMSFuelType.id), nullable=False, index=True)
     fuel_area = Column(Float, nullable=False)
     fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=False, index=True)
+    fuel_type_raster = relationship(FuelTypeRaster)
     created_at = Column(TZTimeStamp, default=get_utc_now, nullable=False)
 
 
@@ -325,7 +331,30 @@ class AdvisoryHFIWindSpeed(Base):
         Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False, index=True
     )
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
-    min_wind_speed = Column(Float, nullable=True)
+    _min_wind_speed = Column("min_wind_speed", Float, nullable=True)
+
+    # hybrid_property exposes _min_wind_speed through three roles:
+    #   - getter (instance): normalizes NaN/Inf stored by raster calculations to None
+    #   - expression (class): returns the raw Column so the property can be used in SQLAlchemy
+    #     query filters/ordering (e.g. .filter(AdvisoryHFIWindSpeed.min_wind_speed > 5));
+    #     without this, class-level access would invoke the getter and fail on a Column object
+    #   - setter: delegates to the underlying column attribute
+    # Pyright reports false-positive redeclaration and type errors here because it does not
+    # model SQLAlchemy's hybrid_property descriptor; the three same-named methods are
+    # intentional and correct at runtime.
+    @hybrid_property
+    def min_wind_speed(self) -> float | None:
+        v = self._min_wind_speed
+        return v if v is None or math.isfinite(v) else None
+
+    @min_wind_speed.expression
+    @classmethod
+    def min_wind_speed(cls):
+        return cls._min_wind_speed
+
+    @min_wind_speed.setter
+    def min_wind_speed(self, value: float | None):
+        self._min_wind_speed = value
 
 
 class AdvisoryHFIPercentConifer(Base):
@@ -357,6 +386,7 @@ class CombustibleArea(Base):
     advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
     combustible_area = Column(Float, nullable=False)
     fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=False, index=True)
+    fuel_type_raster = relationship(FuelTypeRaster)
 
 
 class AdvisoryZoneStatus(Base):

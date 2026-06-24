@@ -1,8 +1,8 @@
-import { theme } from '@wps/ui/theme'
-import InvalidCellToolTip from '@/features/moreCast2/components/InvalidCellToolTip'
 import { TextField } from '@mui/material'
-import { GridRenderCellParams } from '@mui/x-data-grid-pro'
+import type { GridRenderCellParams } from '@mui/x-data-grid-pro'
+import { theme } from '@wps/ui/theme'
 import React from 'react'
+import InvalidCellToolTip from '@/features/moreCast2/components/InvalidCellToolTip'
 
 interface ValidatedCellProps {
   disabled: boolean
@@ -50,7 +50,7 @@ const ValidatedCell = ({ disabled, label, value, invalid, error }: ValidatedCell
         }}
       ></TextField>
     </InvalidCellToolTip>
-  );
+  )
 }
 
 export default React.memo(ValidatedCell)

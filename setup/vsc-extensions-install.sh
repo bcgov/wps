@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 
+if ! command -v code >/dev/null 2>&1; then
+  echo "error: the 'code' CLI is not on your PATH." >&2
+  echo "In VS Code: Cmd+Shift+P -> \"Shell Command: Install 'code' command in PATH\", then re-run this script." >&2
+  echo "Or for a one-off run:" >&2
+  echo "  export PATH=\"/Applications/Visual Studio Code.app/Contents/Resources/app/bin:\$PATH\"" >&2
+  exit 1
+fi
+
 code --install-extension alexkrechik.cucumberautocomplete
+code --install-extension biomejs.biome
 code --install-extension charliermarsh.ruff
-code --install-extension dbaeumer.vscode-eslint
 code --install-extension deque-systems.vscode-axe-linter
 code --install-extension esbenp.prettier-vscode
 code --install-extension github.vscode-github-actions

@@ -1,5 +1,5 @@
 import axios from './axios'
-import { Station } from './stationAPI'
+import type { Station } from './stationAPI'
 
 export interface FireSeason {
   start_month: number

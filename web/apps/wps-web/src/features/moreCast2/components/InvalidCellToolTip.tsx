@@ -1,7 +1,7 @@
-import React from 'react'
 import Tooltip from '@mui/material/Tooltip'
-import { isEmpty } from 'lodash'
 import { theme } from '@wps/ui/theme'
+import { isEmpty } from 'lodash'
+import React from 'react'
 
 export interface InvalidCellToolTipProps {
   invalid: string

@@ -1,7 +1,7 @@
 import math
 import os
 from datetime import datetime
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
 import numpy as np
 import pytest
@@ -25,6 +25,10 @@ from wps_shared.tests.common import default_mock_client_get
 num_forecast_hours = len(list(get_ecmwf_forecast_hours()))
 
 
+def raise_system_exit(code: int):
+    raise SystemExit(code)
+
+
 @pytest.fixture
 def mock_stations():
     return [
@@ -41,6 +45,7 @@ class MockModelRunRepository(ModelRunRepository):
         # Mock methods for call tracking in tests
         self.get_model_run_prediction = MagicMock()
         self.store_model_run_prediction = MagicMock()
+        self.mark_prediction_model_run_processed = MagicMock()
 
     def get_prediction_model(self, _, __):
         return ModelEnum.ECMWF
@@ -189,7 +194,12 @@ def test_ecmwf_process_model_partial_process(mock_herbie_instance, mocker: Mocke
     assert mock_repository.mark_prediction_model_run_processed.call_count == 0
 
 
-def test_ecmwf_process(mock_herbie_instance):
+def test_ecmwf_process(mock_herbie_instance, mocker: MockerFixture):
+    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_transformer", return_value=MagicMock())
+    mocker.patch("weather_model_jobs.ecmwf.get_stations_dataframe", return_value=MagicMock())
+    mocker.patch.object(ECMWFModelProcessor, "process_grib_data", return_value=MagicMock())
+    mocker.patch.object(ECMWF, "store_processed_result", return_value=None)
+
     mock_repo = MockModelRunRepository()
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
     ecmwf = ECMWF("/tmp", stations, mock_repo)
@@ -198,6 +208,7 @@ def test_ecmwf_process(mock_herbie_instance):
     assert mock_repo.get_or_create_prediction_run_calls == 2  # For hours 0 and 12
     # For each hour (0 and 12) get all the forecast hours (2 * (len(range(0, 145, 3)) + len(range(150, 241, 6)))
     assert ecmwf.files_downloaded == num_forecast_hours * 2
+    assert ecmwf.exception_count == 0
 
 
 def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerFixture):
@@ -267,14 +278,12 @@ def test_ecmwf_process_handles_exceptions(monkeypatch):
 
 def test_main_success(mocker: MockerFixture, monkeypatch):
     """Test the main function when it runs successfully."""
-
-    async def mock_process_models():
-        """No implementation required."""
-        pass
+    mock_process_models = AsyncMock()
 
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
-    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_rocketchat_notification")
+    mocker.patch.object(weather_model_jobs.ecmwf, "exit_process", side_effect=raise_system_exit)
+    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
         weather_model_jobs.ecmwf.main()
@@ -291,8 +300,9 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     def mock_process_models():
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_rocketchat_notification")
+    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
+    mocker.patch.object(weather_model_jobs.ecmwf, "exit_process", side_effect=raise_system_exit)
 
     with pytest.raises(SystemExit) as excinfo:
         weather_model_jobs.ecmwf.main()

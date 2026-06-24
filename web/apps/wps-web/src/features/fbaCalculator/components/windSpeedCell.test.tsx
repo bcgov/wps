@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import WindSpeedCell, { WindSpeedCellProps } from 'features/fbaCalculator/components/WindSpeedCell'
-import { FBATableRow } from 'features/fbaCalculator/RowManager'
+import WindSpeedCell, { type WindSpeedCellProps } from 'features/fbaCalculator/components/WindSpeedCell'
+import type { FBATableRow } from 'features/fbaCalculator/RowManager'
 
 describe('WindSpeedCell', () => {
   const buildProps = (inputRow: FBATableRow, calculatedValue?: number): WindSpeedCellProps => ({

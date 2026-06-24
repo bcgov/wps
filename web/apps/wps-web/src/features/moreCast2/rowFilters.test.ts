@@ -1,9 +1,9 @@
-import { DateTime } from 'luxon'
+import type { ModelType } from '@wps/api/moreCast2API'
+import type { MoreCast2Row } from 'features/moreCast2/interfaces'
+import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 import { createEmptyMoreCast2Row } from 'features/moreCast2/slices/dataSlice'
-import { MoreCast2Row } from 'features/moreCast2/interfaces'
-import { filterRowsForSimulationFromEdited, filterAllVisibleRowsForSimulation } from 'features/moreCast2/rowFilters'
-import { ModelType } from '@wps/api/moreCast2API'
 import { rowIDHasher } from 'features/moreCast2/util'
+import { DateTime } from 'luxon'
 
 const TEST_DATE = DateTime.fromISO('2023-02-16T20:00:00+00:00')
 

@@ -1,8 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-import { AppThunk } from 'app/store'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { getStationGroups, type StationGroup } from '@wps/api/stationAPI'
 import { logError } from '@wps/utils/error'
-import { getStationGroups, StationGroup } from '@wps/api/stationAPI'
+import type { AppThunk } from 'app/store'
 
 export interface StationGroupsState {
   loading: boolean
