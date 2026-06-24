@@ -45,7 +45,7 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { CsvBuilder } from 'filefy'
 import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FBAAboutDataContent } from '@/features/fbaCalculator/components/FbaAboutDataContent'
@@ -128,10 +128,17 @@ const tableColumnLabels: ColumnLabel[] = [
   '60 min fire size (ha)'
 ]
 
+const getDefinedRows = (rows: FBATableRow[]) => rows.filter(row => !isUndefined(row))
+
+const updateRowsIfPresent = (currentRows: FBATableRow[], updatedRows: FBATableRow[]) => {
+  return currentRows.length > 0 || updatedRows.length > 0 ? updatedRows : currentRows
+}
+
 const FBATable = (props: FBATableProps) => {
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch: AppDispatch = useDispatch()
+  const initialLocationSearch = useRef(location.search)
 
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(
@@ -150,118 +157,138 @@ const FBATable = (props: FBATableProps) => {
   const [visibleColumns, setVisibleColumns] = useState<ColumnLabel[]>(tableColumnLabels)
   const [showResetDialog, setShowResetDialog] = useState<boolean>(false)
 
-  const stationMenuOptions: GridMenuOption[] = (stations as GeoJsonStation[]).map(station => ({
-    value: String(station.properties.code),
-    label: `${station.properties.name} (${station.properties.code})`
-  }))
+  const locationSearchRef = useRef(location.search)
+  const rowsRef = useRef(rows)
+  const rowIdsToUpdateRef = useRef(rowIdsToUpdate)
+  const dateOfInterestRef = useRef(dateOfInterest)
+  const sortByColumnRef = useRef(sortByColumn)
+  const orderRef = useRef(order)
+  const stationsRef = useRef(stations)
 
-  const fuelTypeMenuOptions: GridMenuOption[] = Object.entries(FuelTypes.get()).map(([key, value]) => ({
-    value: key,
-    label: value.friendlyName
-  }))
+  locationSearchRef.current = location.search
+  rowsRef.current = rows
+  rowIdsToUpdateRef.current = rowIdsToUpdate
+  dateOfInterestRef.current = dateOfInterest
+  sortByColumnRef.current = sortByColumn
+  orderRef.current = order
+  stationsRef.current = stations
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on mount only
+  const stationMenuOptions: GridMenuOption[] = useMemo(
+    () =>
+      (stations as GeoJsonStation[]).map(station => ({
+        value: String(station.properties.code),
+        label: `${station.properties.name} (${station.properties.code})`
+      })),
+    [stations]
+  )
+
+  const stationCodeMap = useMemo(
+    () => new Map(stationMenuOptions.map(station => [station.value, station.label])),
+    [stationMenuOptions]
+  )
+
+  const fuelTypeMenuOptions: GridMenuOption[] = useMemo(
+    () =>
+      Object.entries(FuelTypes.get()).map(([key, value]) => ({
+        value: key,
+        label: value.friendlyName
+      })),
+    []
+  )
+
+  const updateQueryParams = useCallback(
+    (queryParams: string) => {
+      navigate({
+        search: queryParams
+      })
+    },
+    [navigate]
+  )
+
   useEffect(() => {
     // Strip the wind query parameters if present and update the URL
-    updateQueryParams(stripWindFromQueryParams(location.search))
+    updateQueryParams(stripWindFromQueryParams(initialLocationSearch.current))
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, [])
+  }, [dispatch, updateQueryParams])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when stations change
   useEffect(() => {
     if (stations.length > 0) {
-      const rowsFromQuery = getRowsFromUrlParams(location.search)
-      const stationCodeMap = new Map(stationMenuOptions.map(station => [station.value, station.label]))
+      const rowsFromQuery = getRowsFromUrlParams(locationSearchRef.current)
 
       const sortedRows = RowManager.sortRows(
-        sortByColumn,
-        order,
+        sortByColumnRef.current,
+        orderRef.current,
         rowsFromQuery.map(inputRow => ({
           ...RowManager.buildFBATableRow(inputRow, stationCodeMap)
         }))
       )
-      if (rows.length > 0 || sortedRows.length > 0) {
-        setRows(sortedRows)
-      }
+      setRows(currentRows => updateRowsIfPresent(currentRows, sortedRows))
 
-      dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
+      dispatch(fetchFireBehaviourStations(dateOfInterestRef.current, sortedRows))
     }
-  }, [stations])
+  }, [dispatch, stationCodeMap, stations])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when location changes
   useEffect(() => {
-    if (stations.length > 0) {
-      const rowsToUpdate = rows.filter(row => rowIdsToUpdate.has(row.id))
+    locationSearchRef.current = location.search
+    if (stationsRef.current.length > 0) {
+      const rowsToUpdate = rowsRef.current.filter(row => rowIdsToUpdateRef.current.has(row.id))
       if (!isEmpty(rowsToUpdate)) {
-        dispatch(fetchFireBehaviourStations(dateOfInterest, rowsToUpdate))
+        dispatch(fetchFireBehaviourStations(dateOfInterestRef.current, rowsToUpdate))
       }
     }
-  }, [location])
+  }, [dispatch, location.search])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
     // Row updates
-    if (!isEmpty(rowIdsToUpdate) && fireBehaviourResultStations.length > 0) {
-      const updatedRows = RowManager.updateRows(
-        rows.filter(row => !isUndefined(row)),
-        fireBehaviourResultStations
-      )
-      if (rows.length > 0 || updatedRows.length > 0) {
-        setRows(updatedRows)
-      }
+    if (!isEmpty(rowIdsToUpdateRef.current) && fireBehaviourResultStations.length > 0) {
+      setRows(currentRows => {
+        const updatedRows = RowManager.updateRows(getDefinedRows(currentRows), fireBehaviourResultStations)
+        return updateRowsIfPresent(currentRows, updatedRows)
+      })
 
       const updatedRowIds = difference(
-        Array.from(rowIdsToUpdate),
+        Array.from(rowIdsToUpdateRef.current),
         fireBehaviourResultStations.map(result => result.id)
       )
       setRowIdsToUpdate(new Set(updatedRowIds))
     }
     // Initial row list page load
     if (initialLoad && fireBehaviourResultStations.length > 0) {
-      const sortedRows = RowManager.sortRows(
-        sortByColumn,
-        order,
-        RowManager.updateRows(
-          rows.filter(row => !isUndefined(row)),
-          fireBehaviourResultStations
+      setRows(currentRows => {
+        const sortedRows = RowManager.sortRows(
+          sortByColumnRef.current,
+          orderRef.current,
+          RowManager.updateRows(getDefinedRows(currentRows), fireBehaviourResultStations)
         )
-      )
-      if (rows.length > 0 || sortedRows.length > 0) {
-        setRows(sortedRows)
-      }
+        return updateRowsIfPresent(currentRows, sortedRows)
+      })
       setInitialLoad(false)
     }
-    const updatedCalculatedResults = RowManager.updateRows(calculatedResults, fireBehaviourResultStations)
-    setCalculatedResults(updatedCalculatedResults)
-  }, [fireBehaviourResultStations, stations])
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
-  useEffect(() => {
-    const sortedRows = RowManager.sortRows(
-      sortByColumn,
-      order,
-      RowManager.updateRows(
-        rows.filter(row => !isUndefined(row)),
-        fireBehaviourResultStations
-      )
+    setCalculatedResults(currentCalculatedResults =>
+      RowManager.updateRows(currentCalculatedResults, fireBehaviourResultStations)
     )
-    const updatedCalculatedResults = RowManager.updateRows(calculatedResults, fireBehaviourResultStations)
-    setCalculatedResults(updatedCalculatedResults)
-    if (rows.length > 0 || sortedRows.length > 0) {
-      setRows(sortedRows)
-    }
+  }, [fireBehaviourResultStations, initialLoad])
+
+  useEffect(() => {
+    dateOfInterestRef.current = dateOfInterest
+    setRows(currentRows => {
+      const sortedRows = RowManager.sortRows(
+        sortByColumnRef.current,
+        orderRef.current,
+        RowManager.updateRows(getDefinedRows(currentRows), fireBehaviourResultStations)
+      )
+      return updateRowsIfPresent(currentRows, sortedRows)
+    })
+    setCalculatedResults(currentCalculatedResults =>
+      RowManager.updateRows(currentCalculatedResults, fireBehaviourResultStations)
+    )
   }, [dateOfInterest, fireBehaviourResultStations])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — deps are captured via closure correctly
   useEffect(() => {
-    const sortedRows = RowManager.sortRows(
-      sortByColumn,
-      order,
-      rows.filter(row => !isUndefined(row))
-    )
-    if (rows.length > 0 || sortedRows.length > 0) {
-      setRows(sortedRows)
-    }
+    setRows(currentRows => {
+      const sortedRows = RowManager.sortRows(sortByColumnRef.current, order, getDefinedRows(currentRows))
+      return updateRowsIfPresent(currentRows, sortedRows)
+    })
   }, [order])
 
   const addStation = () => {
@@ -299,17 +326,20 @@ const FBATable = (props: FBATableProps) => {
   }
 
   const getNewRows = (id: number, updatedRow: FBATableRow) => {
-    const newRows = [...rows].filter(row => !isUndefined(row))
+    const newRows = getDefinedRows(rows)
     const index = findIndex(newRows, row => row.id === id)
 
     newRows[index] = updatedRow
     setRows(newRows)
 
-    if (!rowIdsToUpdate.has(id)) {
-      rowIdsToUpdate.add(id)
-      const toUpdate = new Set(rowIdsToUpdate)
-      setRowIdsToUpdate(toUpdate)
-    }
+    setRowIdsToUpdate(currentRowIds => {
+      if (currentRowIds.has(id)) {
+        return currentRowIds
+      }
+      const rowIds = new Set(currentRowIds)
+      rowIds.add(id)
+      return rowIds
+    })
     return newRows
   }
 
@@ -325,12 +355,6 @@ const FBATable = (props: FBATableProps) => {
     if (dispatchUpdate) {
       dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
     }
-  }
-
-  const updateQueryParams = (queryParams: string) => {
-    navigate({
-      search: queryParams
-    })
   }
 
   const updateDate = (newDate: DateTime) => {
