@@ -119,7 +119,7 @@ describe('pushNotificationSlice', () => {
         ;(FirebaseMessaging.checkPermissions as Mock).mockRejectedValue(new Error('permission error'))
 
         const store = createTestStore()
-        await store.dispatch(checkPushNotificationPermission())
+        store.dispatch(checkPushNotificationPermission())
 
         expect(store.getState().pushNotification.pushNotificationPermission).toBe('unknown')
         consoleSpy.mockRestore()
@@ -143,7 +143,8 @@ describe('pushNotificationSlice', () => {
             authenticating: false,
             tokenRefreshed: false,
             token: undefined,
-            idToken: undefined
+            idToken: undefined,
+            email: undefined
           }
         })
 
@@ -158,7 +159,7 @@ describe('pushNotificationSlice', () => {
 
         const store = createTestStore()
 
-        await store.dispatch(registerDevice('existing-token', 'existing-token'))
+        store.dispatch(registerDevice('existing-token', 'existing-token'))
 
         expect(registerToken).not.toHaveBeenCalled()
       })
@@ -190,7 +191,7 @@ describe('pushNotificationSlice', () => {
 
         const store = createTestStore()
 
-        await store.dispatch(registerDevice('fcm-token', null))
+        store.dispatch(registerDevice('fcm-token', null))
 
         expect(store.getState().pushNotification.registeredFcmToken).toBeNull()
         consoleSpy.mockRestore()
@@ -213,7 +214,8 @@ describe('pushNotificationSlice', () => {
             authenticating: false,
             tokenRefreshed: false,
             token: undefined,
-            idToken: undefined
+            idToken: undefined,
+            email: undefined
           }
         })
 

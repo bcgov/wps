@@ -26,11 +26,12 @@ const mockAuthState = (authenticating: boolean, error: string | null = null) =>
   vi.spyOn(selectors, 'selectAuthentication').mockReturnValue({
     authenticating,
     error,
-    isAuthenticated: false,
     tokenRefreshed: false,
     idToken: undefined,
     idir: undefined,
-    token: undefined
+    token: undefined,
+    email: undefined,
+    sessionMode: 'login'
   })
 
 describe('LoginActions', () => {
