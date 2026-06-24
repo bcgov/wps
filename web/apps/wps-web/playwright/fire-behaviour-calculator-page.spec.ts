@@ -29,6 +29,12 @@ async function selectFuelType(page: Page, fuelType: string, rowId: number) {
   await input.press('Enter')
 }
 
+async function selectFuelTypeAndWaitForFBAResponse(page: Page, fuelType: string, rowId: number) {
+  const fbaResponse = page.waitForResponse(r => r.url().includes('/api/fba-calc/stations'))
+  await selectFuelType(page, fuelType, rowId)
+  await fbaResponse
+}
+
 async function setGrassCure(page: Page, value: string, rowId: number) {
   const input = page.getByTestId(`grassCureInput-fba-${rowId}`).locator('input')
   await input.fill(value)
@@ -338,8 +344,7 @@ test.describe('FireCalc Page', () => {
       await addRow(page)
       await setGrassCure(page, '1', 1)
       await selectStation(page, 322, 1)
-      await selectFuelType(page, 'C4', 1)
-      await page.waitForResponse(r => r.url().includes('/api/fba-calc/stations'))
+      await selectFuelTypeAndWaitForFBAResponse(page, 'C4', 1)
       await expect(page.getByTestId('filter-columns-btn')).toBeEnabled()
     })
 
@@ -352,14 +357,12 @@ test.describe('FireCalc Page', () => {
       await addRow(page)
       await setGrassCure(page, '1', 1)
       await selectStation(page, 322, 1)
-      await selectFuelType(page, 'C4', 1)
+      await selectFuelTypeAndWaitForFBAResponse(page, 'C4', 1)
 
       await addRow(page)
       await setGrassCure(page, '1', 1)
       await selectStation(page, 209, 2)
-      await selectFuelType(page, 'C1', 2)
-
-      await page.waitForResponse(r => r.url().includes('/api/fba-calc/stations'))
+      await selectFuelTypeAndWaitForFBAResponse(page, 'C1', 2)
       await expect(page.getByTestId('filter-columns-btn')).toBeEnabled()
 
       await page.getByTestId('filter-columns-btn').click()
