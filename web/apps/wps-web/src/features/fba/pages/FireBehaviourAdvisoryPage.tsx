@@ -47,7 +47,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
   const [zoomSource, setZoomSource] = useState<'fireCentre' | 'fireShape' | undefined>('fireCentre')
-  const [dateOfInterest, setDateOfInterest] = useState(
+  const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).hour < 13
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
