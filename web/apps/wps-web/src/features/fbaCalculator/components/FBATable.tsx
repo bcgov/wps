@@ -45,7 +45,7 @@ import { fetchWxStations } from 'features/stations/slices/stationsSlice'
 import { CsvBuilder } from 'filefy'
 import { difference, filter, findIndex, isEmpty, isEqual, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FBAAboutDataContent } from '@/features/fbaCalculator/components/FbaAboutDataContent'
@@ -135,11 +135,18 @@ const updateRowsIfPresent = (currentRows: FBATableRow[], updatedRows: FBATableRo
 }
 
 const FBATable = (props: FBATableProps) => {
+  // routing
   const navigate = useNavigate()
   const location = useLocation()
-  const dispatch: AppDispatch = useDispatch()
-  const initialLocationSearch = useRef(location.search)
 
+  // dispatch
+  const dispatch: AppDispatch = useDispatch()
+
+  // selectors
+  const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
+  const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(selectFireBehaviourCalcResult)
+
+  // state
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
   const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(
     DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
@@ -151,28 +158,13 @@ const FBATable = (props: FBATableProps) => {
   const [order, setOrder] = useState<Order>('desc')
   const [rows, setRows] = useState<FBATableRow[]>([])
   const [modalOpen, setModalOpen] = useState<boolean>(false)
-  const { stations, error: stationsError } = useSelector(selectFireWeatherStations)
-  const { fireBehaviourResultStations, loading, error: fbaResultsError } = useSelector(selectFireBehaviourCalcResult)
   const [calculatedResults, setCalculatedResults] = useState<FBAStation[]>(fireBehaviourResultStations)
   const [visibleColumns, setVisibleColumns] = useState<ColumnLabel[]>(tableColumnLabels)
   const [showResetDialog, setShowResetDialog] = useState<boolean>(false)
+  const [initialLocationSearch] = useState(location.search)
+  const [hydratedStationOptionsKey, setHydratedStationOptionsKey] = useState<string | null>(null)
 
-  const locationSearchRef = useRef(location.search)
-  const rowsRef = useRef(rows)
-  const rowIdsToUpdateRef = useRef(rowIdsToUpdate)
-  const dateOfInterestRef = useRef(dateOfInterest)
-  const sortByColumnRef = useRef(sortByColumn)
-  const orderRef = useRef(order)
-  const stationsRef = useRef(stations)
-
-  locationSearchRef.current = location.search
-  rowsRef.current = rows
-  rowIdsToUpdateRef.current = rowIdsToUpdate
-  dateOfInterestRef.current = dateOfInterest
-  sortByColumnRef.current = sortByColumn
-  orderRef.current = order
-  stationsRef.current = stations
-
+  // derived data
   const stationMenuOptions: GridMenuOption[] = useMemo(
     () =>
       (stations as GeoJsonStation[]).map(station => ({
@@ -187,6 +179,11 @@ const FBATable = (props: FBATableProps) => {
     [stationMenuOptions]
   )
 
+  const stationOptionsKey = useMemo(
+    () => stationMenuOptions.map(station => `${station.value}:${station.label}`).join('|'),
+    [stationMenuOptions]
+  )
+
   const fuelTypeMenuOptions: GridMenuOption[] = useMemo(
     () =>
       Object.entries(FuelTypes.get()).map(([key, value]) => ({
@@ -196,100 +193,69 @@ const FBATable = (props: FBATableProps) => {
     []
   )
 
-  const updateQueryParams = useCallback(
-    (queryParams: string) => {
-      navigate({
-        search: queryParams
-      })
-    },
-    [navigate]
-  )
-
+  // effects
   useEffect(() => {
-    // Strip the wind query parameters if present and update the URL
-    updateQueryParams(stripWindFromQueryParams(initialLocationSearch.current))
+    // strip the wind query parameters if present and update the URL
+    navigate({
+      search: stripWindFromQueryParams(initialLocationSearch)
+    })
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-  }, [dispatch, updateQueryParams])
+  }, [dispatch, initialLocationSearch, navigate])
 
   useEffect(() => {
-    if (stations.length > 0) {
-      const rowsFromQuery = getRowsFromUrlParams(locationSearchRef.current)
+    if (stations.length > 0 && stationOptionsKey !== hydratedStationOptionsKey) {
+      const rowsFromQuery = getRowsFromUrlParams(location.search)
 
       const sortedRows = RowManager.sortRows(
-        sortByColumnRef.current,
-        orderRef.current,
+        sortByColumn,
+        order,
         rowsFromQuery.map(inputRow => ({
           ...RowManager.buildFBATableRow(inputRow, stationCodeMap)
         }))
       )
       setRows(currentRows => updateRowsIfPresent(currentRows, sortedRows))
 
-      dispatch(fetchFireBehaviourStations(dateOfInterestRef.current, sortedRows))
+      setHydratedStationOptionsKey(stationOptionsKey)
+      dispatch(fetchFireBehaviourStations(dateOfInterest, sortedRows))
     }
-  }, [dispatch, stationCodeMap, stations])
+  }, [
+    dateOfInterest,
+    dispatch,
+    hydratedStationOptionsKey,
+    location.search,
+    order,
+    sortByColumn,
+    stationCodeMap,
+    stationOptionsKey,
+    stations.length
+  ])
 
   useEffect(() => {
-    locationSearchRef.current = location.search
-    if (stationsRef.current.length > 0) {
-      const rowsToUpdate = rowsRef.current.filter(row => rowIdsToUpdateRef.current.has(row.id))
-      if (!isEmpty(rowsToUpdate)) {
-        dispatch(fetchFireBehaviourStations(dateOfInterestRef.current, rowsToUpdate))
-      }
-    }
-  }, [dispatch, location.search])
-
-  useEffect(() => {
-    // Row updates
-    if (!isEmpty(rowIdsToUpdateRef.current) && fireBehaviourResultStations.length > 0) {
-      setRows(currentRows => {
-        const updatedRows = RowManager.updateRows(getDefinedRows(currentRows), fireBehaviourResultStations)
-        return updateRowsIfPresent(currentRows, updatedRows)
-      })
-
-      const updatedRowIds = difference(
-        Array.from(rowIdsToUpdateRef.current),
-        fireBehaviourResultStations.map(result => result.id)
-      )
-      setRowIdsToUpdate(new Set(updatedRowIds))
-    }
-    // Initial row list page load
-    if (initialLoad && fireBehaviourResultStations.length > 0) {
-      setRows(currentRows => {
-        const sortedRows = RowManager.sortRows(
-          sortByColumnRef.current,
-          orderRef.current,
-          RowManager.updateRows(getDefinedRows(currentRows), fireBehaviourResultStations)
-        )
-        return updateRowsIfPresent(currentRows, sortedRows)
-      })
-      setInitialLoad(false)
-    }
-    setCalculatedResults(currentCalculatedResults =>
-      RowManager.updateRows(currentCalculatedResults, fireBehaviourResultStations)
-    )
-  }, [fireBehaviourResultStations, initialLoad])
-
-  useEffect(() => {
-    dateOfInterestRef.current = dateOfInterest
     setRows(currentRows => {
       const sortedRows = RowManager.sortRows(
-        sortByColumnRef.current,
-        orderRef.current,
+        sortByColumn,
+        order,
         RowManager.updateRows(getDefinedRows(currentRows), fireBehaviourResultStations)
       )
       return updateRowsIfPresent(currentRows, sortedRows)
     })
+    setInitialLoad(currentInitialLoad =>
+      currentInitialLoad && fireBehaviourResultStations.length > 0 ? false : currentInitialLoad
+    )
+    setRowIdsToUpdate(currentRowIdsToUpdate => {
+      if (isEmpty(currentRowIdsToUpdate) || fireBehaviourResultStations.length === 0) {
+        return currentRowIdsToUpdate
+      }
+      const updatedRowIds = difference(
+        Array.from(currentRowIdsToUpdate),
+        fireBehaviourResultStations.map(result => result.id)
+      )
+      return new Set(updatedRowIds)
+    })
     setCalculatedResults(currentCalculatedResults =>
       RowManager.updateRows(currentCalculatedResults, fireBehaviourResultStations)
     )
-  }, [dateOfInterest, fireBehaviourResultStations])
-
-  useEffect(() => {
-    setRows(currentRows => {
-      const sortedRows = RowManager.sortRows(sortByColumnRef.current, order, getDefinedRows(currentRows))
-      return updateRowsIfPresent(currentRows, sortedRows)
-    })
-  }, [order])
+  }, [fireBehaviourResultStations, order, sortByColumn])
 
   const addStation = () => {
     const newRowId = getNextRowIdFromRows(rows.filter(row => !isUndefined(row)))
@@ -325,33 +291,45 @@ const FBATable = (props: FBATableProps) => {
     csvBuilder.exportFile()
   }
 
+  const updateQueryParams = (queryParams: string) => {
+    navigate({
+      search: queryParams
+    })
+  }
+
+  const markRowForUpdate = (id: number) => {
+    const updatedRowIds = new Set(rowIdsToUpdate)
+    updatedRowIds.add(id)
+    setRowIdsToUpdate(updatedRowIds)
+    return updatedRowIds
+  }
+
   const getNewRows = (id: number, updatedRow: FBATableRow) => {
     const newRows = getDefinedRows(rows)
     const index = findIndex(newRows, row => row.id === id)
 
     newRows[index] = updatedRow
     setRows(newRows)
-
-    setRowIdsToUpdate(currentRowIds => {
-      if (currentRowIds.has(id)) {
-        return currentRowIds
-      }
-      const rowIds = new Set(currentRowIds)
-      rowIds.add(id)
-      return rowIds
-    })
     return newRows
   }
 
   const updateRow = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
     const newRows = getNewRows(id, updatedRow)
+    const updatedRowIds = markRowForUpdate(id)
     if (dispatchUpdate) {
       updateQueryParams(getUrlParamsFromRows(newRows))
+      dispatch(
+        fetchFireBehaviourStations(
+          dateOfInterest,
+          newRows.filter(row => updatedRowIds.has(row.id))
+        )
+      )
     }
   }
 
   const updateRowDirect = (id: number, updatedRow: FBATableRow, dispatchUpdate = true) => {
     const newRows = getNewRows(id, updatedRow)
+    markRowForUpdate(id)
     if (dispatchUpdate) {
       dispatch(fetchFireBehaviourStations(dateOfInterest, newRows))
     }
