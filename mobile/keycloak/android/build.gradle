@@ -72,7 +72,8 @@ dependencies {
     implementation project(':capacitor-android')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation 'androidx.browser:browser:1.10.0'
-    implementation 'androidx.security:security-crypto:1.1.0'
+    implementation 'androidx.datastore:datastore-preferences-rxjava3:1.2.1'
+    implementation 'com.google.crypto.tink:tink-android:1.18.0'
     implementation 'com.squareup.okhttp3:okhttp:5.4.0'
     implementation 'net.openid:appauth:0.11.1'
     testImplementation "junit:junit:$junitVersion"

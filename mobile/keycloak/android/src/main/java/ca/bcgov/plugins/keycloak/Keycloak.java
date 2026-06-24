@@ -2,14 +2,11 @@ package ca.bcgov.plugins.keycloak;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import androidx.annotation.Nullable;
-import androidx.security.crypto.EncryptedSharedPreferences;
-import androidx.security.crypto.MasterKey;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
 import java.io.IOException;
@@ -22,12 +19,9 @@ public class Keycloak {
     private static final String TAG = "Keycloak";
     private static final long TOKEN_REFRESH_CHECK_INTERVAL = 60000; // Check every 60 seconds
     private static final long TOKEN_EXPIRY_BUFFER = 60000; // Refresh 1 minute before expiry
-    private static final String PREFS_NAME = "KeycloakAuthState";
-    private static final String ENCRYPTED_PREFS_NAME = "KeycloakEncryptedAuthState";
-    private static final String KEY_AUTH_STATE = "auth_state";
 
-    private Context context;
     private AuthorizationService authService;
+    private AuthStateStore authStateStore;
     private PluginCall currentCall;
     private AuthorizationRequest currentAuthRequest;
     private AuthState authState;
@@ -40,15 +34,15 @@ public class Keycloak {
     }
 
     public Keycloak(Context context) {
-        this.context = context;
         this.authService = new AuthorizationService(context);
+        this.authStateStore = createAuthStateStore(context);
         this.authState = restoreAuthState();
         this.refreshHandler = new Handler(Looper.getMainLooper());
         setupAutomaticRefresh();
     }
 
     private AuthState restoreAuthState() {
-        String stateJson = readAuthStateJson();
+        String stateJson = authStateStore != null ? authStateStore.read() : null;
 
         if (stateJson != null) {
             try {
@@ -65,79 +59,35 @@ public class Keycloak {
     }
 
     private void persistAuthState() {
-        try {
-            getEncryptedPreferences()
-                .edit()
-                .putString(KEY_AUTH_STATE, authState.jsonSerializeString())
-                .apply();
-            Log.d(TAG, "Auth state persisted to encrypted storage");
-        } catch (GeneralSecurityException | IOException e) {
-            Log.e(TAG, "Failed to persist auth state to encrypted storage", e);
+        if (authStateStore != null) {
+            authStateStore.write(authState.jsonSerializeString());
         }
     }
 
     private void clearAuthState() {
-        try {
-            getEncryptedPreferences()
-                .edit()
-                .remove(KEY_AUTH_STATE)
-                .apply();
-        } catch (GeneralSecurityException | IOException e) {
-            Log.e(TAG, "Failed to clear encrypted auth state", e);
+        if (authStateStore != null) {
+            authStateStore.clear();
         }
-        clearLegacyAuthState();
         authState = new AuthState();
         Log.d(TAG, "Auth state cleared");
     }
 
-    private String readAuthStateJson() {
+    private AuthStateStore createAuthStateStore(Context context) {
         try {
-            SharedPreferences encryptedPrefs = getEncryptedPreferences();
-            String encryptedStateJson = encryptedPrefs.getString(KEY_AUTH_STATE, null);
-            if (encryptedStateJson != null) {
-                return encryptedStateJson;
-            }
-
-            String legacyStateJson = context
-                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .getString(KEY_AUTH_STATE, null);
-            if (legacyStateJson != null) {
-                encryptedPrefs.edit().putString(KEY_AUTH_STATE, legacyStateJson).apply();
-                clearLegacyAuthState();
-                Log.d(TAG, "Migrated auth state to encrypted storage");
-            }
-            return legacyStateJson;
+            return new AuthStateStore(context);
         } catch (GeneralSecurityException | IOException e) {
-            Log.e(TAG, "Failed to read auth state from encrypted storage", e);
+            Log.e(TAG, "Failed to initialize encrypted auth state storage", e);
             return null;
         }
     }
 
-    private SharedPreferences getEncryptedPreferences()
-        throws GeneralSecurityException, IOException {
-        MasterKey masterKey = new MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build();
-
-        return EncryptedSharedPreferences.create(
-            context,
-            ENCRYPTED_PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        );
-    }
-
-    private void clearLegacyAuthState() {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .remove(KEY_AUTH_STATE)
-            .apply();
-    }
-
-    private JSObject createSuccessResponse(@Nullable String accessToken, @Nullable String idToken,
-                                           @Nullable String tokenType, @Nullable Long expiresAt,
-                                           @Nullable String scope) {
+    private JSObject createSuccessResponse(
+        @Nullable String accessToken,
+        @Nullable String idToken,
+        @Nullable String tokenType,
+        @Nullable Long expiresAt,
+        @Nullable String scope
+    ) {
         JSObject successResponse = new JSObject();
         successResponse.put("isAuthenticated", true);
         successResponse.put("accessToken", accessToken);
@@ -162,28 +112,36 @@ public class Keycloak {
         }
 
         Log.d(TAG, "Refreshing stored auth state before launching browser");
-        authState.performActionWithFreshTokens(authService, new AuthState.AuthStateAction() {
-            @Override
-            public void execute(@Nullable String accessToken, @Nullable String idToken,
-                              @Nullable AuthorizationException exception) {
-                if (exception != null) {
-                    Log.e(TAG, "Stored auth state refresh failed: " + exception.getMessage());
-                    clearAuthState();
-                    fallbackToBrowser.run();
-                    return;
-                }
+        authState.performActionWithFreshTokens(
+            authService,
+            new AuthState.AuthStateAction() {
+                @Override
+                public void execute(
+                    @Nullable String accessToken,
+                    @Nullable String idToken,
+                    @Nullable AuthorizationException exception
+                ) {
+                    if (exception != null) {
+                        Log.e(TAG, "Stored auth state refresh failed: " + exception.getMessage());
+                        clearAuthState();
+                        fallbackToBrowser.run();
+                        return;
+                    }
 
-                Log.d(TAG, "Stored auth state refresh successful");
-                persistAuthState();
-                call.resolve(createSuccessResponse(
-                    accessToken,
-                    idToken,
-                    "Bearer",
-                    authState.getAccessTokenExpirationTime(),
-                    authState.getScope()
-                ));
+                    Log.d(TAG, "Stored auth state refresh successful");
+                    persistAuthState();
+                    call.resolve(
+                        createSuccessResponse(
+                            accessToken,
+                            idToken,
+                            "Bearer",
+                            authState.getAccessTokenExpirationTime(),
+                            authState.getScope()
+                        )
+                    );
+                }
             }
-        });
+        );
 
         return true;
     }
@@ -241,21 +199,22 @@ public class Keycloak {
                     // Persist the updated auth state
                     persistAuthState();
 
-                // Notify JavaScript about the refresh
-                if (tokenRefreshCallback != null) {
-                    JSObject tokens = new JSObject();
-                    tokens.put("accessToken", accessToken);
-                    tokens.put("idToken", idToken);
-                    tokens.put("refreshToken", authState.getRefreshToken());
-                    tokens.put("tokenType", "Bearer");
-                    tokens.put("scope", authState.getScope());
-                    if (authState.getAccessTokenExpirationTime() != null) {
-                        tokens.put("expiresAt", authState.getAccessTokenExpirationTime());
+                    // Notify JavaScript about the refresh
+                    if (tokenRefreshCallback != null) {
+                        JSObject tokens = new JSObject();
+                        tokens.put("accessToken", accessToken);
+                        tokens.put("idToken", idToken);
+                        tokens.put("refreshToken", authState.getRefreshToken());
+                        tokens.put("tokenType", "Bearer");
+                        tokens.put("scope", authState.getScope());
+                        if (authState.getAccessTokenExpirationTime() != null) {
+                            tokens.put("expiresAt", authState.getAccessTokenExpirationTime());
+                        }
+                        tokenRefreshCallback.onTokenRefreshed(tokens);
                     }
-                    tokenRefreshCallback.onTokenRefreshed(tokens);
                 }
             }
-        });
+        );
     }
 
     /**
@@ -385,14 +344,14 @@ public class Keycloak {
                         // Persist auth state for future app restarts
                         persistAuthState();
 
-                    Log.d(TAG, "Token exchange successful");
-                    JSObject successResponse = createSuccessResponse(
-                        tokenResponse.accessToken,
-                        tokenResponse.idToken,
-                        tokenResponse.tokenType,
-                        tokenResponse.accessTokenExpirationTime,
-                        tokenResponse.scope
-                    );
+                        Log.d(TAG, "Token exchange successful");
+                        JSObject successResponse = createSuccessResponse(
+                            tokenResponse.accessToken,
+                            tokenResponse.idToken,
+                            tokenResponse.tokenType,
+                            tokenResponse.accessTokenExpirationTime,
+                            tokenResponse.scope
+                        );
 
                         if (currentCall != null) {
                             currentCall.resolve(successResponse);
