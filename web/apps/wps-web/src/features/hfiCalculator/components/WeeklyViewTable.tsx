@@ -37,7 +37,7 @@ import {
   stationCodeSelected
 } from 'features/hfiCalculator/util'
 import { isEmpty, isUndefined, sortBy } from 'lodash'
-import React, { type JSX } from 'react';
+import React, { type JSX } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 export interface Props {

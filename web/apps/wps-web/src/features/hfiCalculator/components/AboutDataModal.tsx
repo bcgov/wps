@@ -1,7 +1,7 @@
 import { Clear } from '@mui/icons-material'
 import { Dialog, DialogContent, DialogTitle, IconButton, Paper } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import React, { type JSX } from 'react';
+import React, { type JSX } from 'react'
 
 const PREFIX = 'AboutDataModal'
 

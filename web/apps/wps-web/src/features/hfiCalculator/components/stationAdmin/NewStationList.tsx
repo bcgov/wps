@@ -6,7 +6,7 @@ import type {
   AddStationOptions,
   StationAdminRow
 } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
-import React, { type JSX } from 'react';
+import React, { type JSX } from 'react'
 
 export interface NewStationListProps {
   testId?: string

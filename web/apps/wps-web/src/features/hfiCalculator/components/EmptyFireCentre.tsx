@@ -1,5 +1,5 @@
 import { TableCell, TableRow } from '@mui/material'
-import React, { type JSX } from 'react';
+import React, { type JSX } from 'react'
 export interface EmptyFireCentreProps {
   colSpan?: number
 }
