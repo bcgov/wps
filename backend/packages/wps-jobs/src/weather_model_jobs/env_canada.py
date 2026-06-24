@@ -301,7 +301,7 @@ class EnvCanada:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
-            except requests.RequestException as exc:
+            except (requests.ConnectionError, requests.Timeout) as exc:
                 self.connection_error_count += 1
                 logger.warning("Connection error for %s: %s", url, exc)
             except Exception:
@@ -386,7 +386,7 @@ def process_models():
     )
     if env_canada.connection_error_count > 0:
         logger.warning("%d connection error(s) during run (hourly retries will catch missed files)", env_canada.connection_error_count)
-    if env_canada.files_processed == 0:
+    if env_canada.files_processed == 0 and env_canada.connection_error_count > 0:
         raise NoFilesProcessed(f"no files processed for {sys.argv[1]} — possible outage on HPFX and DD")
     if env_canada.exception_count > 0:
         raise CompletedWithSomeExceptions()
