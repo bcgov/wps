@@ -10,7 +10,7 @@ from wps_shared.tests.common import MockResponse
 from wps_shared.weather_models import download
 
 
-URL = "https://dd.weather.gc.ca/model_rdps/some_file.grib2"
+URL = "https://dd.weather.gc.ca/today/model_rdps/10km/00/001/some_file.grib2"
 CACHE_VAR = "REDIS_CACHE_ENV_CANADA"
 EXPIRY_VAR = "REDIS_ENV_CANADA_CACHE_EXPIRY"
 
@@ -48,6 +48,40 @@ class TestDownloadCacheDisabled:
         monkeypatch.setattr(requests, "get", lambda *_, **__: MockResponse(status_code=404))
         with tempfile.TemporaryDirectory() as tmp:
             result = download(URL, tmp, CACHE_VAR, "RDPS")
+        assert result is None
+
+    def test_raises_on_non_200_non_404(self, monkeypatch):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 500
+        mock_resp.raise_for_status.side_effect = requests.HTTPError()
+        monkeypatch.setattr(requests, "get", lambda *_, **__: mock_resp)
+        with tempfile.TemporaryDirectory() as tmp:
+            with pytest.raises(requests.HTTPError):
+                download(URL, tmp, CACHE_VAR, "RDPS")
+
+    def test_gfs_filename_is_truncated(self, monkeypatch, mock_200_response):
+        long_url = "https://example.com/" + "A" * 200 + ".grib2"
+        monkeypatch.setattr(requests, "get", lambda *_, **__: mock_200_response)
+        with tempfile.TemporaryDirectory() as tmp:
+            result = download(long_url, tmp, CACHE_VAR, "GFS")
+        assert result is not None
+        assert len(result.split("/")[-1]) <= 81
+
+
+class TestDownloadWithFetcher:
+    def test_fetcher_success_returns_file(self, monkeypatch, mock_200_response):
+        fetcher = MagicMock()
+        fetcher.get.return_value = mock_200_response
+        with tempfile.TemporaryDirectory() as tmp:
+            result = download(URL, tmp, CACHE_VAR, "RDPS", fetcher=fetcher)
+        assert result is not None
+        fetcher.get.assert_called_once_with(URL)
+
+    def test_fetcher_returns_none_means_all_404(self, monkeypatch):
+        fetcher = MagicMock()
+        fetcher.get.return_value = None
+        with tempfile.TemporaryDirectory() as tmp:
+            result = download(URL, tmp, CACHE_VAR, "RDPS", fetcher=fetcher)
         assert result is None
 
 
