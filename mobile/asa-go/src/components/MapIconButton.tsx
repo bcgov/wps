@@ -4,7 +4,7 @@ import { MAP_BUTTON_GREY } from '@/theme'
 import { BORDER_RADIUS, BUTTON_HEIGHT } from '@/utils/constants'
 
 interface MapIconButtonProps extends Omit<IconButtonProps, 'sx' | 'children'> {
-  icon: React.ReactElement
+  icon: React.ReactElement<any>
   sx?: SxProps<Theme>
   testid?: string
   loading?: boolean

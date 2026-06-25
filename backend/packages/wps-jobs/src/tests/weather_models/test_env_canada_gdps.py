@@ -15,6 +15,8 @@ from tests.weather_models.test_models_common import (
     MockResponse,
     mock_get_stations,
 )
+from unittest.mock import MagicMock
+
 from weather_model_jobs import common_model_fetchers, env_canada, machine_learning
 from wps_shared.db.models.weather_models import (
     PredictionModel,
@@ -22,6 +24,7 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
 )
 from wps_shared.tests.common import default_mock_client_get
+from wps_shared.weather_models import ModelEnum, NoFilesProcessed
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +115,7 @@ def mock_download(monkeypatch):
             content = file.read()
         return MockResponse(status_code=200, content=content)
 
-    monkeypatch.setattr(requests, "get", mock_requests_get_gdps)
+    monkeypatch.setattr(requests.Session, "get", mock_requests_get_gdps)
 
 
 @pytest.fixture()
@@ -153,3 +156,74 @@ def test_process_gdps(
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     sys.argv = ["argv", "GDPS"]
     assert env_canada.process_models() == 1
+
+
+def test_connection_error_increments_connection_error_count_not_exception_count(monkeypatch):
+    """Connection failures from the fetcher should not count as unexpected exceptions."""
+    monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
+    monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: None)
+
+    fetcher = MagicMock()
+    fetcher.get.side_effect = requests.ConnectionError("HPFX and DD both unreachable")
+
+    canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
+    canada.process_model_run_urls(
+        ["https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"],
+        fetcher,
+    )
+
+    assert canada.connection_error_count == 1
+    assert canada.exception_count == 0
+
+
+def test_http_error_increments_exception_count_not_connection_error_count(monkeypatch):
+    """HTTP errors (e.g. 503) from the fetcher are unexpected and must count as exceptions."""
+    monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
+    monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: None)
+
+    fetcher = MagicMock()
+    fetcher.get.side_effect = requests.HTTPError("503 Server Error")
+
+    canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
+    canada.process_model_run_urls(
+        ["https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"],
+        fetcher,
+    )
+
+    assert canada.exception_count == 1
+    assert canada.connection_error_count == 0
+
+
+def test_process_models_does_not_raise_when_all_urls_already_processed(
+    mock_database,
+    mock_get_actuals_left_outer_join_with_predictions,
+    mock_get_stations_synchronously,
+    mock_get_processed_file_count,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """A clean re-run where all URLs are already in the DB should not fire NoFilesProcessed."""
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    # Return a truthy record for every URL so all are skipped as already processed.
+    monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: object())
+    sys.argv = ["argv", "GDPS"]
+    # Should complete without raising — returns 0 (nothing new to process).
+    result = env_canada.process_models()
+    assert result == 0
+
+
+def test_process_models_raises_no_files_processed_when_all_downloads_fail(
+    mock_database,
+    mock_get_actuals_left_outer_join_with_predictions,
+    mock_get_stations_synchronously,
+    mock_get_processed_file_count,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """process_models() raises NoFilesProcessed when every download fails with a connection error."""
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    monkeypatch.setattr(
+        env_canada, "get_processed_file_record", lambda session, url: None
+    )
+    monkeypatch.setattr(requests.Session, "get", MagicMock(side_effect=requests.ConnectionError()))
+    sys.argv = ["argv", "GDPS"]
+    with pytest.raises(NoFilesProcessed):
+        env_canada.process_models()

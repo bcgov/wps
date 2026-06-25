@@ -8,7 +8,7 @@ export interface EmptyStaticCellsProps {
   isRowSelected: boolean
 }
 
-export const EmptyStaticCells = ({ rowId, isRowSelected }: EmptyStaticCellsProps): ReactElement => {
+export const EmptyStaticCells = ({ rowId, isRowSelected }: EmptyStaticCellsProps): ReactElement<any> => {
   const TableCellComponent = isRowSelected ? TableCell : StationPlainStylingCell
   return (
     <React.Fragment key={`empty-row-${rowId}`}>

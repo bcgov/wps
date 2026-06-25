@@ -81,7 +81,7 @@ describe('Profile', () => {
     })
   }
 
-  const renderWithProvider = (component: React.ReactElement, store = createMockStore()) => {
+  const renderWithProvider = (component: React.ReactElement<any>, store = createMockStore()) => {
     return render(<Provider store={store}>{component}</Provider>)
   }
 

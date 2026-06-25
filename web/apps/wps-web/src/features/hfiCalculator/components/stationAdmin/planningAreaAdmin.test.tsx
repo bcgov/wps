@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
@@ -64,6 +64,7 @@ describe('PlanningAreaAdmin', () => {
     expect(getByTestId(`pa-admin-station-${planningArea.id}-${stationAdminRow.rowId}`)).toBeDefined()
   })
   it('should call add handler callback with planning area id when add button clicked', async () => {
+    const user = userEvent.setup()
     const { getByTestId } = render(
       <PlanningAreaAdmin
         planningArea={planningArea}
@@ -76,11 +77,8 @@ describe('PlanningAreaAdmin', () => {
 
     const togglebutton = getByTestId('admin-add-station-button')
 
-    await waitFor(() => {
-      togglebutton.focus()
-      userEvent.click(togglebutton)
-      expect(adminHandlers.handleAddStation).toHaveBeenCalledTimes(1)
-      expect(adminHandlers.handleAddStation).toHaveBeenCalledWith(planningArea.id)
-    })
+    await user.click(togglebutton)
+    expect(adminHandlers.handleAddStation).toHaveBeenCalledTimes(1)
+    expect(adminHandlers.handleAddStation).toHaveBeenCalledWith(planningArea.id)
   })
 })
