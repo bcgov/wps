@@ -8,27 +8,30 @@ parse_common_args() {
   RESTORE_POD=""
 
   while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --namespace)   NAMESPACE="$2";   shift 2 ;;
-      --db-name)     DB_NAME="$2";     shift 2 ;;
-      --backup-pvc)  BACKUP_PVC="$2";  shift 2 ;;
-      --restore-pod) RESTORE_POD="$2"; shift 2 ;;
+    local key="$1"
+    local value="${2:-}"
+    case "$key" in
+      --namespace)   NAMESPACE="$value";   shift 2 ;;
+      --db-name)     DB_NAME="$value";     shift 2 ;;
+      --backup-pvc)  BACKUP_PVC="$value";  shift 2 ;;
+      --restore-pod) RESTORE_POD="$value"; shift 2 ;;
       --help|-h)     return 1 ;;
-      *) echo "Unknown option: $1"; return 1 ;;
+      *) echo "Unknown option: $key" >&2; return 1 ;;
     esac
   done
 
   if [[ -z "$NAMESPACE" || -z "$DB_NAME" || -z "$BACKUP_PVC" || -z "$RESTORE_POD" ]]; then
-    echo "ERROR: --namespace, --db-name, --backup-pvc, and --restore-pod are all required"
+    echo "ERROR: --namespace, --db-name, --backup-pvc, and --restore-pod are all required" >&2
     return 1
   fi
+  return 0
 }
 
 find_db_pod() {
   echo "Finding database pod..."
   DB_POD=$(oc get pods -n "$NAMESPACE" --no-headers | grep "mb-database-prod" | grep Running | awk '{print $1}' | head -1)
   if [[ -z "$DB_POD" ]]; then
-    echo "ERROR: No running mb-database-prod pod found in namespace $NAMESPACE"
+    echo "ERROR: No running mb-database-prod pod found in namespace $NAMESPACE" >&2
     exit 1
   fi
   echo "  DB pod: $DB_POD"
@@ -38,6 +41,7 @@ find_db_pod() {
     read -rp "Enter DB username: " DB_USER
   fi
   echo "  DB user: $DB_USER"
+  return 0
 }
 
 ensure_restore_pod() {
@@ -76,6 +80,7 @@ EOF
     echo "Waiting for restore pod to be ready..."
     oc wait "pod/$RESTORE_POD" -n "$NAMESPACE" --for=condition=Ready --timeout=120s
   fi
+  return 0
 }
 
 select_and_download_backup() {
@@ -89,7 +94,7 @@ select_and_download_backup() {
   done < <(oc exec "$RESTORE_POD" -n "$NAMESPACE" -- find /backups -name "*.sql.gz" | sort -r)
 
   if [[ ${#BACKUPS[@]} -eq 0 ]]; then
-    echo "ERROR: No backup files found on restore pod"
+    echo "ERROR: No backup files found on restore pod" >&2
     exit 1
   fi
 
@@ -108,6 +113,7 @@ select_and_download_backup() {
   echo "Decompressing..."
   gunzip "$local_gz"
   LOCAL_SQL="${local_gz%.gz}"
+  return 0
 }
 
 apply_restore_sql() {
@@ -118,7 +124,7 @@ apply_restore_sql() {
   read -rp "Apply to $DB_NAME in $NAMESPACE? [y/N]: " CONFIRM
   if [[ "${CONFIRM,,}" != "y" ]]; then
     cp "$restore_sql" "$fallback_path"
-    echo "Aborted. Restore SQL saved to $fallback_path"
+    echo "Aborted. Restore SQL saved to $fallback_path" >&2
     exit 0
   fi
 
@@ -126,4 +132,5 @@ apply_restore_sql() {
   oc cp "$restore_sql" "$NAMESPACE/$DB_POD:/tmp/restore.sql"
   echo "Running restore..."
   oc exec -it "$DB_POD" -n "$NAMESPACE" -- psql -U "$DB_USER" -d "$DB_NAME" -f /tmp/restore.sql
+  return 0
 }

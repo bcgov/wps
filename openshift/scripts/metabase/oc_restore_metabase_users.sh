@@ -13,7 +13,7 @@ usage() {
   echo "  --db-name      Metabase database name"
   echo "  --backup-pvc   PVC name containing backups"
   echo "  --restore-pod  Name for the temporary restore pod"
-  exit 1
+  return 1
 }
 
 parse_common_args "$@" || usage
