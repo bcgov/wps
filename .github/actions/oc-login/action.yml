@@ -25,11 +25,9 @@ runs:
         OC_SERVER: ${{ inputs.oc-server }}
         OC_TOKEN: ${{ inputs.oc-token }}
       run: |
-        HOST=$(echo "$OC_SERVER" | sed -E 's|https?://([^/:]+).*|\1|')
         PORT=$(echo "$OC_SERVER" | sed -E 's|.*:([0-9]+)[^0-9]*$|\1|')
-        DEST_IP=$(dig +short "$HOST" | grep -E '^[0-9]+\.' | head -1)
 
-        sudo tcpdump -i any -w /tmp/oc-login.pcap -s 0 "tcp and host $DEST_IP and port $PORT" &
+        sudo tcpdump -i any -w /tmp/oc-login.pcap -s 0 "tcp port $PORT" &
         TCPDUMP_PID=$!
         sleep 1
 
