@@ -1,5 +1,4 @@
 import type { InternalAxiosRequestConfig } from 'axios'
-import { isNil } from 'lodash'
 import axios from '@/api/axios'
 import { authenticateFinished, resetAuthentication, setSentryUserFromToken } from '@/slices/authenticationSlice'
 import { selectAuthentication, store } from '@/store'
@@ -12,6 +11,52 @@ interface RetriableAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retryAfterAuthRefresh?: boolean
 }
 
+const configureRequestBaseUrl = (config: InternalAxiosRequestConfig) => {
+  const { sessionMode, token } = selectAuthentication(store.getState())
+  if (sessionMode === 'authenticated' && token != null) {
+    config.baseURL = API_BASE_URL
+    config.headers.set('Authorization', `Bearer ${token}`)
+    return config
+  }
+
+  config.baseURL = `${API_PUBLIC_BASE_URL}/asa-go`
+  config.headers.delete('Authorization')
+  return config
+}
+
+const retryWithRefreshedToken = async (request: RetriableAxiosRequestConfig | undefined) => {
+  if (!request || request._retryAfterAuthRefresh === true) {
+    return
+  }
+
+  request._retryAfterAuthRefresh = true
+  const refreshResult = await Keycloak.refreshAuthState()
+  if (!refreshResult.isAuthenticated || !refreshResult.accessToken) {
+    return
+  }
+
+  store.dispatch(
+    authenticateFinished({
+      token: refreshResult.accessToken,
+      idToken: refreshResult.idToken
+    })
+  )
+  setSentryUserFromToken(refreshResult.accessToken)
+  request.baseURL = API_BASE_URL
+  request.headers.set('Authorization', `Bearer ${refreshResult.accessToken}`)
+  return axios(request)
+}
+
+const resetStoredAuthentication = async () => {
+  try {
+    await Keycloak.clearAuthState()
+  } catch {
+    // keep resetting app auth even if native storage cleanup fails
+  }
+  store.dispatch(resetAuthentication())
+  setSentryUserFromToken(undefined)
+}
+
 export const configureApiInterceptors = () => {
   if (interceptorsConfigured) {
     return
@@ -19,18 +64,7 @@ export const configureApiInterceptors = () => {
 
   interceptorsConfigured = true
 
-  axios.interceptors.request.use(config => {
-    const { sessionMode, token } = selectAuthentication(store.getState())
-    if (sessionMode === 'authenticated' && !isNil(token)) {
-      config.baseURL = API_BASE_URL
-      config.headers.set('Authorization', `Bearer ${token}`)
-    } else {
-      config.baseURL = `${API_PUBLIC_BASE_URL}/asa-go`
-      config.headers.delete('Authorization')
-    }
-
-    return config
-  })
+  axios.interceptors.request.use(configureRequestBaseUrl)
 
   axios.interceptors.response.use(
     // If there is a response we simply return it
@@ -38,33 +72,16 @@ export const configureApiInterceptors = () => {
 
     // If there is a 401 error we try the offline token before forcing re-authentication.
     async error => {
-      const originalRequest = error?.config as RetriableAxiosRequestConfig | undefined
-      if (error?.response?.status === 401) {
-        if (originalRequest && originalRequest._retryAfterAuthRefresh !== true) {
-          originalRequest._retryAfterAuthRefresh = true
-          const refreshResult = await Keycloak.refreshAuthState()
-          if (refreshResult.isAuthenticated && refreshResult.accessToken) {
-            store.dispatch(
-              authenticateFinished({
-                token: refreshResult.accessToken,
-                idToken: refreshResult.idToken
-              })
-            )
-            setSentryUserFromToken(refreshResult.accessToken)
-            originalRequest.baseURL = API_BASE_URL
-            originalRequest.headers.set('Authorization', `Bearer ${refreshResult.accessToken}`)
-            return axios(originalRequest)
-          }
-        }
-
-        try {
-          await Keycloak.clearAuthState()
-        } catch {
-          // keep resetting app auth even if native storage cleanup fails
-        }
-        store.dispatch(resetAuthentication())
-        setSentryUserFromToken(undefined)
+      if (error?.response?.status !== 401) {
+        return Promise.reject(error)
       }
+
+      const retryResponse = await retryWithRefreshedToken(error?.config as RetriableAxiosRequestConfig | undefined)
+      if (retryResponse) {
+        return retryResponse
+      }
+
+      await resetStoredAuthentication()
       return Promise.reject(error)
     }
   )

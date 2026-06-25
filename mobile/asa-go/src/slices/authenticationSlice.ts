@@ -32,11 +32,13 @@ const authSlice = createSlice({
   name: 'authentication',
   initialState,
   reducers: {
-    continueAsGuest() {
-      return {
-        ...initialState,
-        sessionMode: 'guest' as const
-      }
+    continueAsGuest(state: AuthState) {
+      state.sessionMode = 'guest'
+      state.authenticating = false
+      state.token = undefined
+      state.idToken = undefined
+      state.idir = undefined
+      state.error = null
     },
     authenticateStart(state: AuthState) {
       state.authenticating = true
