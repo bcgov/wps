@@ -155,6 +155,8 @@ jobs:
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     strategy:
       matrix:
         node-version: [24.x]
@@ -174,6 +176,7 @@ jobs:
             **/node_modules
             ~/.cache/ms-playwright
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - uses: rharkor/caching-for-turbo@75f8ebf4a43d2c60b23bc2a27082cfea94ffdad9 # v2.5.0
       - name: enable corepack
         run: corepack enable
       - name: use new yarn
@@ -187,7 +190,7 @@ jobs:
         run: yarn run lint
       - name: Playwright tests (web)
         working-directory: ./web
-        run: yarn workspace @wps/wps-web run playwright:ci
+        run: yarn run playwright:ci
       - name: Unit tests (web)
         working-directory: ./web
         run: yarn run coverage:ci
