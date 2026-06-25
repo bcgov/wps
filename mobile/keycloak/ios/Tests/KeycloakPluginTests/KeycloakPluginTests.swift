@@ -66,7 +66,7 @@ struct KeycloakPluginTests {
 
         #expect(pluginWithServices.identifier == "KeycloakPlugin")
         #expect(pluginWithServices.jsName == "Keycloak")
-        #expect(pluginWithServices.pluginMethods.count == 1)
+        #expect(pluginWithServices.pluginMethods.map { $0.name } == ["authenticate", "refreshAuthState", "clearAuthState"])
     }
 
     @Test func testDefaultServicesInitialization() {
