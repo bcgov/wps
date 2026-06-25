@@ -13,7 +13,7 @@ Deleting a Metabase user via the database cascades to their dashboards, cards, a
 ## Restoring Users
 
 ```bash
-./openshift/scripts/oc_restore_metabase_users.sh \
+./oc_restore_metabase_users.sh \
   --namespace <namespace> \
   --db-name <database> \
   --backup-pvc <pvc-name> \
@@ -49,7 +49,7 @@ If you choose to clear passwords, users must use "Forgot password" to set a new 
 ## Restoring Dashboards
 
 ```bash
-./openshift/scripts/oc_restore_metabase_dashboards.sh \
+./oc_restore_metabase_dashboards.sh \
   --namespace <namespace> \
   --db-name <database> \
   --backup-pvc <pvc-name> \
@@ -108,7 +108,7 @@ gunzip ~/Downloads/metabase-backup.sql.gz
 
 **2. Generate restore SQL for dashboards:**
 ```bash
-python3 openshift/scripts/metabase_dashboard_restore_extract.py \
+python3 metabase_dashboard_restore_extract.py \
   ~/Downloads/metabase-backup.sql \
   <dashboard-id> [<dashboard-id> ...] \
   --owner <user-id> \
@@ -117,7 +117,7 @@ python3 openshift/scripts/metabase_dashboard_restore_extract.py \
 
 **2. Generate restore SQL for users:**
 ```bash
-python3 openshift/scripts/metabase_user_restore_extract.py \
+python3 metabase_user_restore_extract.py \
   ~/Downloads/metabase-backup.sql \
   <user-id> [<user-id> ...] \
   [--reset-password] \
