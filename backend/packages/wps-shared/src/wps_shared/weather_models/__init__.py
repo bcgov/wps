@@ -1,10 +1,12 @@
 """Code common to weather_models"""
 
-from datetime import datetime, timedelta
-from enum import Enum
 import logging
 import os
+from datetime import datetime, timedelta
+from enum import Enum
+
 import requests
+
 from wps_shared import config
 from wps_shared.utils.redis import create_redis
 
@@ -76,11 +78,35 @@ class CompletedWithSomeExceptions(Exception):
     """Exception raised when processing completed, but there were some non critical exceptions"""
 
 
+class NoFilesProcessed(Exception):
+    """Exception raised when a model job completed but downloaded and processed zero files"""
+
+
 class UnhandledPredictionModelType(Exception):
     """Exception raised when an unknown model type is encountered."""
 
 
-def download(url: str, path: str, config_cache_var: str, model_name: str, config_cache_expiry_var=None) -> str:
+def _filename_from_url(url: str, model_name: str) -> str:
+    original = os.path.split(url)[-1]
+    if model_name == "GFS":
+        # NOTE: This is a very not-ideal way to interpolate the filename.
+        # The original_filename that we get from the url is too long and must be condensed.
+        # It also has multiple '.' chars in the URL that must be removed for the filename to be valid.
+        # As long as NOAA's API remains unchanged, we'll have all the info we need (run datetimes,
+        # projections, etc.) in the first 81 characters of original_filename.
+        # An alternative would be to build out a regex to look for
+        return original[:81].replace(".", "")
+    return original
+
+
+def download(
+    url: str,
+    path: str,
+    config_cache_var: str,
+    model_name: str,
+    config_cache_expiry_var=None,
+    fetcher=None,
+) -> str | None:
     """
     Download a file from a url.
     NOTE: was using wget library initially, but has the drawback of not being able to control where the
@@ -88,67 +114,45 @@ def download(url: str, path: str, config_cache_var: str, model_name: str, config
     is a security concern.
     TODO: Would be nice to make this an async
     """
-    if model_name == "GFS":
-        original_filename = os.path.split(url)[-1]
-        # NOTE: This is a very not-ideal way to interpolate the filename.
-        # The original_filename that we get from the url is too long and must be condensed.
-        # It also has multiple '.' chars in the URL that must be removed for the filename to be valid.
-        # As long as NOAA's API remains unchanged, we'll have all the info we need (run datetimes,
-        # projections, etc.) in the first 81 characters of original_filename.
-        # An alternative would be to build out a regex to look for
-        filename = original_filename[:81].replace(".", "")
-    else:
-        # Infer filename from url.
-        filename = os.path.split(url)[-1]
-    # Construct target location for downloaded file.
-    target = os.path.join(os.getcwd(), path, filename)
-    # Get the file.
-    # We don't strictly need to use redis - but it helps a lot when debugging on a local machine, it
-    # saves having to re-download the file all the time.
-    # It also save a lot of bandwidth in our dev environment, where we have multiple workers downloading
-    # the same files over and over.
+    target = os.path.join(os.getcwd(), path, _filename_from_url(url, model_name))
+
+    cache = None
+    cached_object = None
     if config.get(config_cache_var) == "True":
         cache = create_redis()
         try:
             cached_object = cache.get(url)
         except Exception as error:
-            cached_object = None
-            logger.error(error)
-    else:
-        cached_object = None
-        cache = None
+            logger.exception(error)
+
     if cached_object:
         logger.info("Cache hit %s", url)
-        # Store the cached object in a file
         with open(target, "wb") as file_object:
-            # Write the file.
             file_object.write(cached_object)
+        return target
+
+    logger.warning("Downloading %s", url)
+    if fetcher is not None:
+        response = fetcher.get(url)
     else:
-        logger.warning("Downloading %s", url)
-        # It's important to have a timeout on the get, otherwise the call may get stuck for an indefinite
-        # amount of time - there is no default value for timeout. During testing, it was observed that
-        # downloads usually complete in less than a second.
-        response = requests.get(url, timeout=60)
-        # If the response is 200/OK.
-        if response.status_code == 200:
-            # Store the response.
-            with open(target, "wb") as file_object:
-                # Write the file.
-                file_object.write(response.content)
-            # Cache the response
-            if cache:
-                try:
-                    with open(target, "rb") as file_object:
-                        # Cache for 6 hours (21600 seconds)
-                        cache.set(url, file_object.read(), ex=config.get(config_cache_expiry_var, 21600))
-                except Exception as error:
-                    logger.error(error)
-        elif response.status_code == 404:
-            # We expect this to happen frequently - just log for info.
+        raw = requests.get(url, timeout=60)
+        if raw.status_code == 404:
             logger.info("404 error for %s", url)
-            target = None
-        else:
-            # Raise an exception
-            response.raise_for_status()
-        # Return file location.
+            return None
+        if raw.status_code != 200:
+            raw.raise_for_status()
+        response = raw
+
+    if response is None:
+        logger.info("404 for all candidates: %s", url)
+        return None
+
+    with open(target, "wb") as file_object:
+        file_object.write(response.content)
+    if cache:
+        try:
+            with open(target, "rb") as file_object:
+                cache.set(url, file_object.read(), ex=config.get(config_cache_expiry_var, 21600))
+        except Exception as error:
+            logger.exception(error)
     return target

@@ -123,7 +123,7 @@ def mock_download(monkeypatch):
             content = file.read()
         return MockResponse(status_code=200, content=content)
 
-    monkeypatch.setattr(requests, "get", mock_requests_get_hrdps)
+    monkeypatch.setattr(requests.Session, "get", mock_requests_get_hrdps)
 
 
 def test_get_hrdps_download_urls():
