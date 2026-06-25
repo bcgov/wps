@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+"""
+Restore specific Metabase users from a pg_dump backup.
+Usage: python3 metabase_user_restore_extract.py <backup.sql> <id1> [id2 ...] [--output FILE] [--reset-password]
+"""
+import argparse
+import sys
+
+from metabase_restore_utils import append_copy_block, extract_table, filter_by, get_val, set_val, write_sql
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Restore Metabase users from backup")
+    parser.add_argument("backup", help="Path to the decompressed backup SQL file")
+    parser.add_argument("user_ids", nargs="+", help="User IDs to restore")
+    parser.add_argument("--output", default="metabase_user_restore.sql", help="Output file")
+    parser.add_argument("--reset-password", action="store_true",
+                        help="Clear password hash so user must set a new password on next login")
+    args = parser.parse_args()
+
+    user_ids = set(args.user_ids)
+    out = ["BEGIN;", ""]
+
+    # core_user
+    header, cols, rows = extract_table(args.backup, "core_user")
+    if not header:
+        print("ERROR: core_user table not found in backup", file=sys.stderr)
+        sys.exit(1)
+
+    users = filter_by(rows, cols, "id", user_ids)
+    if not users:
+        print(f"ERROR: no users found with IDs {user_ids}", file=sys.stderr)
+        sys.exit(1)
+
+    for p in users:
+        # Ensure user is active
+        set_val(p, cols, "is_active", "t")
+        if args.reset_password:
+            set_val(p, cols, "password", "\\N")
+            set_val(p, cols, "password_salt", "\\N")
+            set_val(p, cols, "reset_token", "\\N")
+            set_val(p, cols, "reset_triggered", "\\N")
+
+    emails = ", ".join(get_val(p, cols, "email") for p in users)
+    append_copy_block(out, header, users, f"{len(users)} users: {emails}")
+
+    # permissions_group_membership
+    header, cols, rows = extract_table(args.backup, "permissions_group_membership")
+    if header:
+        memberships = filter_by(rows, cols, "user_id", user_ids)
+        append_copy_block(out, header, memberships, f"{len(memberships)} group memberships")
+
+    # Sequence reset
+    out += [
+        "-- Reset sequence",
+        "SELECT setval('core_user_id_seq', (SELECT MAX(id) FROM core_user));",
+        "SELECT setval('permissions_group_membership_id_seq', (SELECT MAX(id) FROM permissions_group_membership));",
+        "",
+        "COMMIT;",
+    ]
+
+    write_sql(out, args.output)
+    print(f"Written to {args.output}")
+    print(f"  {len(users)} users, {len(memberships) if header else 0} group memberships")
+    if args.reset_password:
+        print("  Password cleared — users will need to set a new password via 'Forgot password'")
+
+
+if __name__ == "__main__":
+    main()
