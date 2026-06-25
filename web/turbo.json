@@ -52,7 +52,7 @@
     },
     "playwright:ci": {
       "dependsOn": ["^build"],
-      "outputs": ["test-results/**", "playwright-report/**"]
+      "outputs": ["test-results/**", "playwright-report/**", "coverage-playwright/**"]
     },
     "dev": {
       "cache": false,
