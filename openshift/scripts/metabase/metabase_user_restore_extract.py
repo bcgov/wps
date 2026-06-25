@@ -5,9 +5,8 @@ Usage: python3 metabase_user_restore_extract.py <backup.sql> <id1> [id2 ...] [--
 """
 import argparse
 import sys
-from pathlib import Path
 
-from metabase_restore_utils import extract_table, filter_by, get_val, set_val
+from metabase_restore_utils import append_copy_block, extract_table, filter_by, get_val, set_val, write_sql
 
 
 def main():
@@ -43,19 +42,13 @@ def main():
             set_val(p, cols, "reset_triggered", "\\N")
 
     emails = ", ".join(get_val(p, cols, "email") for p in users)
-    out.append(f"-- {len(users)} users: {emails}")
-    out.append(header)
-    out += ["\t".join(p) for p in users]
-    out += ["\\.", ""]
+    append_copy_block(out, header, users, f"{len(users)} users: {emails}")
 
     # permissions_group_membership
     header, cols, rows = extract_table(args.backup, "permissions_group_membership")
     if header:
         memberships = filter_by(rows, cols, "user_id", user_ids)
-        out.append(f"-- {len(memberships)} group memberships")
-        out.append(header)
-        out += ["\t".join(p) for p in memberships]
-        out += ["\\.", ""]
+        append_copy_block(out, header, memberships, f"{len(memberships)} group memberships")
 
     # Sequence reset
     out += [
@@ -66,9 +59,7 @@ def main():
         "COMMIT;",
     ]
 
-    with open(Path(args.output).resolve(), "w") as f:
-        f.write("\n".join(out))
-
+    write_sql(out, args.output)
     print(f"Written to {args.output}")
     print(f"  {len(users)} users, {len(memberships) if header else 0} group memberships")
     if args.reset_password:

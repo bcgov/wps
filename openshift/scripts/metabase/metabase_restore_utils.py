@@ -31,3 +31,15 @@ def set_val(parts, cols, col_name, val):
     if col_name in cols:
         parts[cols.index(col_name)] = val
     return parts
+
+
+def append_copy_block(out, header, rows, label):
+    out.append(f"-- {label}")
+    out.append(header)
+    out += ["\t".join(p) for p in rows]
+    out += ["\\.", ""]
+
+
+def write_sql(out, output_path):
+    with open(Path(output_path).resolve(), "w") as f:
+        f.write("\n".join(out))

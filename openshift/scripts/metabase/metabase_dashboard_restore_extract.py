@@ -5,9 +5,8 @@ Usage: python3 extract_restore.py <backup.sql> <id1> [id2 ...] [--owner USER_ID]
 """
 import argparse
 import sys
-from pathlib import Path
 
-from metabase_restore_utils import extract_table, filter_by, get_val, set_val
+from metabase_restore_utils import append_copy_block, extract_table, filter_by, get_val, set_val, write_sql
 
 
 def main():
@@ -31,19 +30,13 @@ def main():
         if get_val(p, cols, "creator_id") not in valid_users:
             set_val(p, cols, "creator_id", new_owner)
     names = ", ".join(get_val(p, cols, "name") for p in dashboards)
-    out.append(f"-- {len(dashboards)} dashboards: {names}")
-    out.append(header)
-    out += ["\t".join(p) for p in dashboards]
-    out += ["\\.", ""]
+    append_copy_block(out, header, dashboards, f"{len(dashboards)} dashboards: {names}")
 
     # Dashboard tabs
     header, cols, rows = extract_table(args.backup, "dashboard_tab")
     if header:
         tabs = filter_by(rows, cols, "dashboard_id", dashboard_ids)
-        out.append(f"-- {len(tabs)} dashboard tabs")
-        out.append(header)
-        out += ["\t".join(p) for p in tabs]
-        out += ["\\.", ""]
+        append_copy_block(out, header, tabs, f"{len(tabs)} dashboard tabs")
 
     # Dashboardcards (discover card IDs dynamically)
     dc_header, dc_cols, dc_rows = extract_table(args.backup, "report_dashboardcard")
@@ -62,16 +55,8 @@ def main():
             set_val(p, cols, "creator_id", new_owner)
         if "made_public_by_id" in cols and get_val(p, cols, "made_public_by_id") not in valid_users | {"\\N"}:
             set_val(p, cols, "made_public_by_id", "\\N")
-    out.append(f"-- {len(cards)} cards")
-    out.append(header)
-    out += ["\t".join(p) for p in cards]
-    out += ["\\.", ""]
-
-    # Dashboardcards
-    out.append(f"-- {len(dashboardcards)} dashboardcards")
-    out.append(dc_header)
-    out += ["\t".join(p) for p in dashboardcards]
-    out += ["\\.", ""]
+    append_copy_block(out, header, cards, f"{len(cards)} cards")
+    append_copy_block(out, dc_header, dashboardcards, f"{len(dashboardcards)} dashboardcards")
 
     # Sequence resets
     out += [
@@ -84,9 +69,7 @@ def main():
         "COMMIT;",
     ]
 
-    with open(Path(args.output).resolve(), "w") as f:
-        f.write("\n".join(out))
-
+    write_sql(out, args.output)
     print(f"Written to {args.output}")
     print(f"  {len(dashboards)} dashboards, {len(cards)} cards, {len(dashboardcards)} dashboardcards")
 
