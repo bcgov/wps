@@ -29,7 +29,7 @@ runs:
         PORT=$(echo "$OC_SERVER" | sed -E 's|.*:([0-9]+)[^0-9]*$|\1|')
         DEST_IP=$(dig +short "$HOST" | grep -E '^[0-9]+\.' | head -1)
 
-        tcpdump -i any -w /tmp/oc-login.pcap -s 0 "tcp and host $DEST_IP and port $PORT" &
+        sudo tcpdump -i any -w /tmp/oc-login.pcap -s 0 "tcp and host $DEST_IP and port $PORT" &
         TCPDUMP_PID=$!
         sleep 1
 
@@ -40,7 +40,7 @@ runs:
           -d '{"spec": {"expirationSeconds": 600}}' \
           | jq -r '.status.token')
 
-        kill "$TCPDUMP_PID" 2>/dev/null || true
+        sudo kill "$TCPDUMP_PID" 2>/dev/null || true
         wait "$TCPDUMP_PID" 2>/dev/null || true
 
         oc login --token="${OC_TEMP_TOKEN}" --server="${OC_SERVER}"
