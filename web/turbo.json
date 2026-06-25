@@ -50,10 +50,6 @@
       "dependsOn": [],
       "outputs": ["coverage/**"]
     },
-    "playwright:ci": {
-      "dependsOn": ["^build"],
-      "outputs": ["test-results/**", "playwright-report/**"]
-    },
     "dev": {
       "cache": false,
       "persistent": true

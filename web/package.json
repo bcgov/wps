@@ -16,7 +16,7 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "dev": "turbo dev",
-    "playwright:ci": "turbo playwright:ci",
+    "playwright:ci": "yarn workspace @wps/wps-web run playwright:ci",
     "coverage:ci": "turbo coverage:ci",
     "finalizeCoverage": "yarn workspace @wps/wps-web run finalizeCoverage",
     "clean": "turbo clean"
