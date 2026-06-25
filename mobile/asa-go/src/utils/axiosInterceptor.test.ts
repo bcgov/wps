@@ -41,7 +41,7 @@ const setup = async ({
   )
   const resetAuthentication = vi.fn(() => resetAuthenticationAction)
   const authenticateFinished = vi.fn(() => authenticateFinishedAction)
-  const decodeUserDetails = vi.fn(() => ({ email: 'test@example.com' }))
+  const setSentryUserFromToken = vi.fn()
   const refreshAuthState = vi.fn().mockResolvedValue({
     isAuthenticated: true,
     accessToken: 'new-token',
@@ -63,8 +63,8 @@ const setup = async ({
   }))
   vi.doMock('@/slices/authenticationSlice', () => ({
     authenticateFinished,
-    decodeUserDetails,
-    resetAuthentication
+    resetAuthentication,
+    setSentryUserFromToken
   }))
   vi.doMock('@/utils/env', () => ({
     API_BASE_URL,
@@ -84,10 +84,10 @@ const setup = async ({
     authenticateFinished,
     authenticateFinishedAction,
     axiosRequest,
-    decodeUserDetails,
     requestUse,
     resetAuthentication,
     responseUse,
+    setSentryUserFromToken,
     refreshAuthState,
     clearAuthState,
     resetAuthenticationAction,
@@ -182,6 +182,7 @@ describe('configureApiInterceptors', () => {
       clearAuthState,
       refreshAuthState,
       responseUse,
+      setSentryUserFromToken,
       store
     } = await configure()
     const { error, promise } = runErrorInterceptor(responseUse, 401)
@@ -191,12 +192,13 @@ describe('configureApiInterceptors', () => {
     expect(refreshAuthState).toHaveBeenCalled()
     expect(clearAuthState).not.toHaveBeenCalled()
     expect(store.dispatch).toHaveBeenCalledWith(authenticateFinishedAction)
+    expect(setSentryUserFromToken).toHaveBeenCalledWith('new-token')
     expect(error.config.headers.get('Authorization')).toBe('Bearer new-token')
     expect(axiosRequest).toHaveBeenCalledWith(error.config)
   })
 
   it('resets authentication when refresh fails on 401 responses', async () => {
-    const { clearAuthState, refreshAuthState, responseUse, resetAuthenticationAction, store } =
+    const { clearAuthState, refreshAuthState, responseUse, resetAuthenticationAction, setSentryUserFromToken, store } =
       await configure()
     refreshAuthState.mockResolvedValue({
       isAuthenticated: false,
@@ -209,10 +211,11 @@ describe('configureApiInterceptors', () => {
     expect(refreshAuthState).toHaveBeenCalled()
     expect(clearAuthState).toHaveBeenCalled()
     expect(store.dispatch).toHaveBeenCalledWith(resetAuthenticationAction)
+    expect(setSentryUserFromToken).toHaveBeenCalledWith(undefined)
   })
 
   it('does not retry repeated 401 responses', async () => {
-    const { clearAuthState, refreshAuthState, responseUse, resetAuthenticationAction, store } =
+    const { clearAuthState, refreshAuthState, responseUse, resetAuthenticationAction, setSentryUserFromToken, store } =
       await configure()
     const { error, promise } = runErrorInterceptor(responseUse, 401, {
       _retryAfterAuthRefresh: true
@@ -223,6 +226,7 @@ describe('configureApiInterceptors', () => {
     expect(refreshAuthState).not.toHaveBeenCalled()
     expect(clearAuthState).toHaveBeenCalled()
     expect(store.dispatch).toHaveBeenCalledWith(resetAuthenticationAction)
+    expect(setSentryUserFromToken).toHaveBeenCalledWith(undefined)
   })
 
   it('does not reset authentication for non-401 responses', async () => {

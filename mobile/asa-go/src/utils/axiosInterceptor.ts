@@ -1,12 +1,7 @@
-import * as Sentry from '@sentry/capacitor'
 import type { InternalAxiosRequestConfig } from 'axios'
 import { isNil } from 'lodash'
 import axios from '@/api/axios'
-import {
-  authenticateFinished,
-  decodeUserDetails,
-  resetAuthentication
-} from '@/slices/authenticationSlice'
+import { authenticateFinished, resetAuthentication, setSentryUserFromToken } from '@/slices/authenticationSlice'
 import { selectAuthentication, store } from '@/store'
 import { API_BASE_URL, API_PUBLIC_BASE_URL } from '@/utils/env'
 import { Keycloak } from '../../../keycloak/src'
@@ -55,8 +50,7 @@ export const configureApiInterceptors = () => {
                 idToken: refreshResult.idToken
               })
             )
-            const userDetails = decodeUserDetails(refreshResult.accessToken)
-            Sentry.setUser(userDetails ? { email: userDetails.email } : null)
+            setSentryUserFromToken(refreshResult.accessToken)
             originalRequest.baseURL = API_BASE_URL
             originalRequest.headers.set('Authorization', `Bearer ${refreshResult.accessToken}`)
             return axios(originalRequest)
@@ -69,7 +63,7 @@ export const configureApiInterceptors = () => {
           // keep resetting app auth even if native storage cleanup fails
         }
         store.dispatch(resetAuthentication())
-        Sentry.setUser(null)
+        setSentryUserFromToken(undefined)
       }
       return Promise.reject(error)
     }

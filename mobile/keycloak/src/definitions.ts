@@ -116,6 +116,10 @@ export interface KeycloakTokenResponse {
    */
   accessToken: string
   /**
+   * The ID token, if provided by the server.
+   */
+  idToken?: string
+  /**
    * The new refresh token (if provided)
    */
   refreshToken?: string
