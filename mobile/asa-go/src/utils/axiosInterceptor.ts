@@ -73,7 +73,7 @@ export const configureApiInterceptors = () => {
     // If there is a 401 error we try the offline token before forcing re-authentication.
     async error => {
       if (error?.response?.status !== 401) {
-        return Promise.reject(error)
+        throw error
       }
 
       const retryResponse = await retryWithRefreshedToken(error?.config as RetriableAxiosRequestConfig | undefined)
@@ -82,7 +82,7 @@ export const configureApiInterceptors = () => {
       }
 
       await resetStoredAuthentication()
-      return Promise.reject(error)
+      throw error
     }
   )
 }
