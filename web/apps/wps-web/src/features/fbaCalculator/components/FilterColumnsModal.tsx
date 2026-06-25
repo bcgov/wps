@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import type { ColumnLabel } from 'features/fbaCalculator/components/FBATable'
-import React, { useState } from 'react'
+import React, { type JSX, useState } from 'react'
 
 const PREFIX = 'FilterColumnsModal'
 
