@@ -108,6 +108,11 @@ public class KeycloakPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void refreshAuthState(PluginCall call) {
+        implementation.refreshStoredAuthState(call);
+    }
+
+    @PluginMethod
     public void authenticate(PluginCall call) {
         JSObject options = call.getData();
 

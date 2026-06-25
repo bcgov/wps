@@ -148,6 +148,52 @@ public class Keycloak {
         return true;
     }
 
+    public void refreshStoredAuthState(PluginCall call) {
+        if (!authState.isAuthorized()) {
+            JSObject response = new JSObject();
+            response.put("isAuthenticated", false);
+            response.put("error", "not_authenticated");
+            response.put("errorDescription", "No authorized stored auth state available");
+            call.resolve(response);
+            return;
+        }
+
+        Log.d(TAG, "Refreshing stored auth state");
+        authState.performActionWithFreshTokens(
+            authService,
+            new AuthState.AuthStateAction() {
+                @Override
+                public void execute(
+                    @Nullable String accessToken,
+                    @Nullable String idToken,
+                    @Nullable AuthorizationException exception
+                ) {
+                    if (exception != null) {
+                        Log.e(TAG, "Stored auth state refresh failed: " + exception.getMessage());
+                        clearAuthState();
+                        JSObject response = new JSObject();
+                        response.put("isAuthenticated", false);
+                        response.put("error", exception.error);
+                        response.put("errorDescription", exception.getLocalizedMessage());
+                        call.resolve(response);
+                        return;
+                    }
+
+                    persistAuthState();
+                    call.resolve(
+                        createSuccessResponse(
+                            accessToken,
+                            idToken,
+                            "Bearer",
+                            authState.getAccessTokenExpirationTime(),
+                            authState.getScope()
+                        )
+                    );
+                }
+            }
+        );
+    }
+
     public void clearStoredAuthState() {
         clearAuthState();
     }
@@ -215,7 +261,6 @@ public class Keycloak {
                 ) {
                     if (exception != null) {
                         Log.e(TAG, "Automatic token refresh failed: " + exception.getMessage());
-                        clearAuthState();
                         if (tokenRefreshCallback != null) {
                             tokenRefreshCallback.onTokenRefreshFailed(exception.getLocalizedMessage());
                         }

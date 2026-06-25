@@ -26,6 +26,7 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "Keycloak"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "refreshAuthState", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearAuthState", returnType: CAPPluginReturnPromise),
     ]
 
@@ -94,6 +95,51 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve()
     }
 
+    @objc func refreshAuthState(_ call: CAPPluginCall) {
+        guard let existingAuthState = authState ?? services.authStateStorageService.loadAuthState()
+        else {
+            call.resolve([
+                "isAuthenticated": false,
+                "error": "not_authenticated",
+                "errorDescription": "No stored auth state available",
+            ])
+            return
+        }
+
+        guard existingAuthState.isAuthorized else {
+            clearStoredAuthState()
+            call.resolve([
+                "isAuthenticated": false,
+                "error": "not_authenticated",
+                "errorDescription": "No authorized stored auth state available",
+            ])
+            return
+        }
+
+        services.tokenRefreshService.performTokenRefresh(authState: existingAuthState) {
+            [weak self] success, tokenResponse, error in
+            guard let self = self else { return }
+
+            if success {
+                self.authState = existingAuthState
+                self.services.authStateStorageService.saveAuthState(existingAuthState)
+                self.startTokenRefreshManager(authState: existingAuthState)
+                call.resolve(
+                    tokenResponse
+                        ?? self.services.tokenResponseService.createTokenResponse(
+                            from: existingAuthState)
+                )
+            } else {
+                self.clearStoredAuthState()
+                call.resolve([
+                    "isAuthenticated": false,
+                    "error": "refresh_failed",
+                    "errorDescription": error ?? "Failed to refresh stored auth state",
+                ])
+            }
+        }
+    }
+
     private func refreshExistingAuthState(
         authState: OIDAuthState,
         call: CAPPluginCall,
@@ -151,7 +197,6 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                 self?.notifyListeners("tokenRefresh", data: tokenResponse)
             },
             onTokenRefreshFailed: { [weak self] error in
-                self?.clearStoredAuthState()
                 // notify JavaScript layer about refresh failure
                 self?.notifyListeners("tokenRefreshFailed", data: ["error": error])
             }
@@ -193,10 +238,10 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
 
     private func handleAppDidBecomeActive() {
         isAppInBackground = false
-        refreshStoredAuthStateOnForeground()
+        resumeStoredAuthStateOnForeground()
     }
 
-    private func refreshStoredAuthStateOnForeground() {
+    private func resumeStoredAuthStateOnForeground() {
         guard let existingAuthState = authState ?? services.authStateStorageService.loadAuthState()
         else {
             return
@@ -205,6 +250,12 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
         guard existingAuthState.isAuthorized else {
             authState = nil
             services.authStateStorageService.clearAuthState()
+            return
+        }
+
+        if !shouldRefresh(authState: existingAuthState) {
+            authState = existingAuthState
+            startTokenRefreshManager(authState: existingAuthState)
             return
         }
 
@@ -220,13 +271,20 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                     self.notifyListeners("tokenRefresh", data: tokenResponse)
                 }
             } else {
-                self.clearStoredAuthState()
                 self.notifyListeners(
                     "tokenRefreshFailed",
                     data: ["error": error ?? "Failed to refresh stored auth state"]
                 )
             }
         }
+    }
+
+    private func shouldRefresh(authState: OIDAuthState) -> Bool {
+        guard let expirationDate = authState.lastTokenResponse?.accessTokenExpirationDate else {
+            return false
+        }
+
+        return expirationDate.timeIntervalSinceNow <= tokenRefreshThreshold
     }
 
     private func clearStoredAuthState() {

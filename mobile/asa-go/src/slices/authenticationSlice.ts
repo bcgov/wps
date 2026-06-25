@@ -158,14 +158,8 @@ export const authenticate = (): AppThunk => dispatch => {
     }
   }
 
-  const handleTokenRefreshFailed = () => {
-    dispatch(resetAuthentication())
-    Sentry.setUser(null)
-  }
-
   // Set up event listener for token refresh events (works for both web and iOS)
   Keycloak.addListener('tokenRefresh', handleTokenRefresh)
-  Keycloak.addListener('tokenRefreshFailed', handleTokenRefreshFailed)
 }
 
 export const decodeUserDetails = (token: string | undefined) => {

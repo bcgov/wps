@@ -14,6 +14,7 @@ npx cap sync
 <docgen-index>
 
 * [`authenticate(...)`](#authenticate)
+* [`refreshAuthState()`](#refreshauthstate)
 * [`clearAuthState()`](#clearauthstate)
 * [`addListener(string, ...)`](#addlistenerstring-)
 * [Interfaces](#interfaces)
@@ -34,6 +35,19 @@ Authenticate against a Keycloak provider.
 | Param         | Type                                                        |
 | ------------- | ----------------------------------------------------------- |
 | **`options`** | <code><a href="#keycloakoptions">KeycloakOptions</a></code> |
+
+**Returns:** <code>Promise&lt;<a href="#keycloakauthresponse">KeycloakAuthResponse</a>&gt;</code>
+
+--------------------
+
+
+### refreshAuthState()
+
+```typescript
+refreshAuthState() => Promise<KeycloakAuthResponse>
+```
+
+Refresh the stored native authentication state without launching browser auth.
 
 **Returns:** <code>Promise&lt;<a href="#keycloakauthresponse">KeycloakAuthResponse</a>&gt;</code>
 

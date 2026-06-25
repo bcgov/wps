@@ -6,6 +6,10 @@ export interface KeycloakPlugin {
    */
   authenticate(options: KeycloakOptions): Promise<KeycloakAuthResponse>
   /**
+   * Refresh the stored native authentication state without launching browser auth.
+   */
+  refreshAuthState(): Promise<KeycloakAuthResponse>
+  /**
    * Clear any stored native authentication state.
    */
   clearAuthState(): Promise<void>

@@ -13,5 +13,13 @@ export class KeycloakWeb extends WebPlugin {
     }
   }
 
+  async refreshAuthState(): Promise<KeycloakAuthResponse> {
+    return {
+      isAuthenticated: false,
+      error: 'not_implemented',
+      errorDescription: 'Not implemented'
+    }
+  }
+
   async clearAuthState(): Promise<void> {}
 }
