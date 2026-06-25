@@ -29,6 +29,7 @@ runs:
 
         sudo tcpdump -i any -w /tmp/oc-login.pcap -s 0 "tcp port $PORT" &
         TCPDUMP_PID=$!
+        trap 'sudo kill "$TCPDUMP_PID" 2>/dev/null; wait "$TCPDUMP_PID" 2>/dev/null' EXIT
         sleep 1
 
         OC_TEMP_TOKEN=$(curl -sk -X POST \
@@ -37,9 +38,6 @@ runs:
           -H "Content-Type: application/json" \
           -d '{"spec": {"expirationSeconds": 600}}' \
           | jq -r '.status.token')
-
-        sudo kill "$TCPDUMP_PID" 2>/dev/null || true
-        wait "$TCPDUMP_PID" 2>/dev/null || true
 
         oc login --token="${OC_TEMP_TOKEN}" --server="${OC_SERVER}"
 
