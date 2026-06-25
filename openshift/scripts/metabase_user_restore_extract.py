@@ -6,10 +6,11 @@ Usage: python3 metabase_user_restore_extract.py <backup.sql> <id1> [id2 ...] [--
 import argparse
 import re
 import sys
+from pathlib import Path
 
 
 def extract_table(backup_file, table_name):
-    with open(backup_file) as f:
+    with open(Path(backup_file).resolve()) as f:
         content = f.read()
     pattern = rf'(COPY public\.{table_name} \(([^)]+)\) FROM stdin;\n)(.*?)\n\\.'
     m = re.search(pattern, content, re.DOTALL)
@@ -93,7 +94,7 @@ def main():
         "COMMIT;",
     ]
 
-    with open(args.output, "w") as f:
+    with open(Path(args.output).resolve(), "w") as f:
         f.write("\n".join(out))
 
     print(f"Written to {args.output}")
