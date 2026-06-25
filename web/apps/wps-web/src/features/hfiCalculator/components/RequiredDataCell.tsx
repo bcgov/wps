@@ -23,7 +23,7 @@ export const RequiredDataCell = ({
   dailyKey,
   errorToolTipText,
   decimalPlaces = DECIMAL_PLACES
-}: RequiredDataCellProps): ReactElement => {
+}: RequiredDataCellProps): ReactElement<any> => {
   const TableCellComponent = isRowSelected ? TableCell : UnSelectedTableCell
 
   const dataValue = daily ? Number(daily[dailyKey])?.toFixed(decimalPlaces) : ''

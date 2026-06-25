@@ -77,7 +77,7 @@ describe('SFMSMap', () => {
       }
     })
 
-  const renderWithStore = (component: React.ReactElement) =>
+  const renderWithStore = (component: React.ReactElement<any>) =>
     render(<Provider store={makeStore()}>{component}</Provider>)
 
   beforeEach(() => {

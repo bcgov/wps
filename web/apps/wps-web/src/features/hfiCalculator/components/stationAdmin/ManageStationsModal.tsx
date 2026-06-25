@@ -12,7 +12,7 @@ import type {
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
 import type { AppDispatch } from 'app/store'
 import { setStationsUpdatedFailed } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import React, { useEffect } from 'react'
+import React, { type JSX, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 export type { BasicPlanningArea, BasicWFWXStation, StationAdminRow } from '@wps/api/hfiCalculatorAPI'
