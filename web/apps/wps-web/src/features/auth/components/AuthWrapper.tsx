@@ -8,7 +8,7 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 interface Props {
-  children: React.ReactElement
+  children: React.ReactElement<any>
 }
 
 const setAxiosRequestInterceptors = (): AppThunk => (_, getState) => {

@@ -7,7 +7,7 @@ import { useIsTablet } from '@/hooks/useIsTablet'
 import { selectAuthentication, selectNetworkStatus } from '@/store'
 
 interface Props {
-  children: React.ReactElement
+  children: React.ReactElement<any>
 }
 
 const AuthWrapper = ({ children }: Props) => {
