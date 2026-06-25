@@ -43,6 +43,14 @@ public class KeycloakPlugin extends Plugin {
                     Log.d(TAG, "Notifying JavaScript of token refresh");
                     notifyListeners("tokenRefresh", tokens);
                 }
+
+                @Override
+                public void onTokenRefreshFailed(String error) {
+                    Log.d(TAG, "Notifying JavaScript of token refresh failure");
+                    JSObject errorResponse = new JSObject();
+                    errorResponse.put("error", error);
+                    notifyListeners("tokenRefreshFailed", errorResponse);
+                }
             }
         );
 
@@ -70,9 +78,19 @@ public class KeycloakPlugin extends Plugin {
     @Override
     protected void handleOnResume() {
         super.handleOnResume();
-        // MainActivity now handles all authorization responses via onCreate/onNewIntent
-        // This handler is left empty to avoid duplicate processing
-        Log.d(TAG, "App resumed - MainActivity handles authorization responses");
+        if (implementation != null) {
+            implementation.resumeAutomaticRefresh();
+        }
+        Log.d(TAG, "App resumed - automatic token refresh resumed");
+    }
+
+    @Override
+    protected void handleOnPause() {
+        if (implementation != null) {
+            implementation.pauseAutomaticRefresh();
+        }
+        Log.d(TAG, "App paused - automatic token refresh paused");
+        super.handleOnPause();
     }
 
     @Override
@@ -81,6 +99,12 @@ public class KeycloakPlugin extends Plugin {
         // MainActivity now handles all authorization responses via onNewIntent
         // This handler is left empty to avoid duplicate processing
         Log.d(TAG, "New intent received - MainActivity handles authorization responses");
+    }
+
+    @PluginMethod
+    public void clearAuthState(PluginCall call) {
+        implementation.clearStoredAuthState();
+        call.resolve();
     }
 
     @PluginMethod
@@ -110,12 +134,17 @@ public class KeycloakPlugin extends Plugin {
             return;
         }
 
-        if (implementation.authenticateWithStoredState(call, new Runnable() {
-            @Override
-            public void run() {
-                authenticate(call);
-            }
-        })) {
+        if (
+            implementation.authenticateWithStoredState(
+                call,
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        authenticate(call);
+                    }
+                }
+            )
+        ) {
             return;
         }
 
@@ -135,8 +164,8 @@ public class KeycloakPlugin extends Plugin {
             );
 
             authRequestBuilder
-                    .setScope("openid profile offline_access")
-                    .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier());
+                .setScope("openid profile offline_access")
+                .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier());
 
             AuthorizationRequest authRequest = authRequestBuilder.build();
 

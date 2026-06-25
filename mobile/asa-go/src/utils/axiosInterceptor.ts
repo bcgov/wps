@@ -4,6 +4,7 @@ import axios from '@/api/axios'
 import { resetAuthentication } from '@/slices/authenticationSlice'
 import { selectAuthentication, store } from '@/store'
 import { API_BASE_URL, API_PUBLIC_BASE_URL } from '@/utils/env'
+import { Keycloak } from '../../../keycloak/src'
 
 let interceptorsConfigured = false
 
@@ -32,8 +33,13 @@ export const configureApiInterceptors = () => {
     response => response,
 
     // If there is a 401 error we force re-authentication; otherwise we forward the error.
-    error => {
+    async error => {
       if (error?.response?.status === 401) {
+        try {
+          await Keycloak.clearAuthState()
+        } catch {
+          // keep resetting app auth even if native storage cleanup fails
+        }
         store.dispatch(resetAuthentication())
         Sentry.setUser(null)
       }

@@ -6,6 +6,10 @@ export interface KeycloakPlugin {
    */
   authenticate(options: KeycloakOptions): Promise<KeycloakAuthResponse>
   /**
+   * Clear any stored native authentication state.
+   */
+  clearAuthState(): Promise<void>
+  /**
    * Add a listener for plugin events, specifically for token refreshes.
    * @param {string} eventName
    * @param {Function} listenerFunc

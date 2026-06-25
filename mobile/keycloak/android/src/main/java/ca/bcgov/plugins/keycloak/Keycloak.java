@@ -31,6 +31,8 @@ public class Keycloak {
 
     public interface TokenRefreshCallback {
         void onTokenRefreshed(JSObject tokens);
+
+        void onTokenRefreshFailed(String error);
     }
 
     public Keycloak(Context context) {
@@ -146,6 +148,10 @@ public class Keycloak {
         return true;
     }
 
+    public void clearStoredAuthState() {
+        clearAuthState();
+    }
+
     private void setupAutomaticRefresh() {
         refreshCheckRunnable = new Runnable() {
             @Override
@@ -155,8 +161,26 @@ public class Keycloak {
                 refreshHandler.postDelayed(this, TOKEN_REFRESH_CHECK_INTERVAL);
             }
         };
-        // Start checking after initial delay
+        resumeAutomaticRefresh();
+    }
+
+    public void pauseAutomaticRefresh() {
+        if (refreshHandler != null && refreshCheckRunnable != null) {
+            refreshHandler.removeCallbacks(refreshCheckRunnable);
+            Log.d(TAG, "Paused automatic token refresh");
+        }
+    }
+
+    public void resumeAutomaticRefresh() {
+        if (refreshHandler == null || refreshCheckRunnable == null) {
+            return;
+        }
+
+        pauseAutomaticRefresh();
+        checkAndRefreshToken();
+        // schedule checks only while the app is in the foreground
         refreshHandler.postDelayed(refreshCheckRunnable, TOKEN_REFRESH_CHECK_INTERVAL);
+        Log.d(TAG, "Resumed automatic token refresh");
     }
 
     private void checkAndRefreshToken() {
@@ -191,6 +215,10 @@ public class Keycloak {
                 ) {
                     if (exception != null) {
                         Log.e(TAG, "Automatic token refresh failed: " + exception.getMessage());
+                        clearAuthState();
+                        if (tokenRefreshCallback != null) {
+                            tokenRefreshCallback.onTokenRefreshFailed(exception.getLocalizedMessage());
+                        }
                         return;
                     }
 
@@ -387,11 +415,7 @@ public class Keycloak {
      * Clean up resources
      */
     public void dispose() {
-        // Stop automatic refresh checking
-        if (refreshHandler != null && refreshCheckRunnable != null) {
-            refreshHandler.removeCallbacks(refreshCheckRunnable);
-            Log.d(TAG, "Stopped automatic token refresh");
-        }
+        pauseAutomaticRefresh();
 
         if (authService != null) {
             authService.dispose();

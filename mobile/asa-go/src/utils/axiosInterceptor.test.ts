@@ -36,6 +36,7 @@ const setup = async ({
     }
   )
   const resetAuthentication = vi.fn(() => resetAuthenticationAction)
+  const clearAuthState = vi.fn().mockResolvedValue(undefined)
 
   vi.doMock('@/api/axios', () => ({
     default: {
@@ -56,6 +57,11 @@ const setup = async ({
     API_BASE_URL,
     API_PUBLIC_BASE_URL
   }))
+  vi.doMock('../../../keycloak/src', () => ({
+    Keycloak: {
+      clearAuthState
+    }
+  }))
 
   const { configureApiInterceptors } = await import('@/utils/axiosInterceptor')
 
@@ -64,6 +70,7 @@ const setup = async ({
     requestUse,
     resetAuthentication,
     responseUse,
+    clearAuthState,
     resetAuthenticationAction,
     store
   }
@@ -140,20 +147,22 @@ describe('configureApiInterceptors', () => {
   })
 
   it('resets authentication on 401 responses', async () => {
-    const { responseUse, resetAuthenticationAction, store } = await configure()
+    const { clearAuthState, responseUse, resetAuthenticationAction, store } = await configure()
     const { error, promise } = runErrorInterceptor(responseUse, 401)
 
     await expect(promise).rejects.toBe(error)
 
+    expect(clearAuthState).toHaveBeenCalled()
     expect(store.dispatch).toHaveBeenCalledWith(resetAuthenticationAction)
   })
 
   it('does not reset authentication for non-401 responses', async () => {
-    const { responseUse, store } = await configure()
+    const { clearAuthState, responseUse, store } = await configure()
     const { error, promise } = runErrorInterceptor(responseUse, 500)
 
     await expect(promise).rejects.toBe(error)
 
+    expect(clearAuthState).not.toHaveBeenCalled()
     expect(store.dispatch).not.toHaveBeenCalled()
   })
 })

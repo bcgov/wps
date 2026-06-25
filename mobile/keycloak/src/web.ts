@@ -12,4 +12,6 @@ export class KeycloakWeb extends WebPlugin {
       errorDescription: 'Not implemented'
     }
   }
+
+  async clearAuthState(): Promise<void> {}
 }

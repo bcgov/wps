@@ -14,6 +14,7 @@ npx cap sync
 <docgen-index>
 
 * [`authenticate(...)`](#authenticate)
+* [`clearAuthState()`](#clearauthstate)
 * [`addListener(string, ...)`](#addlistenerstring-)
 * [Interfaces](#interfaces)
 
@@ -35,6 +36,17 @@ Authenticate against a Keycloak provider.
 | **`options`** | <code><a href="#keycloakoptions">KeycloakOptions</a></code> |
 
 **Returns:** <code>Promise&lt;<a href="#keycloakauthresponse">KeycloakAuthResponse</a>&gt;</code>
+
+--------------------
+
+
+### clearAuthState()
+
+```typescript
+clearAuthState() => Promise<void>
+```
+
+Clear any stored native authentication state.
 
 --------------------
 

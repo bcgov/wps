@@ -77,16 +77,21 @@ describe('authenticationSlice', () => {
 
   const setupTokenRefreshListener = (store: ReturnType<typeof createTestStore>) => {
     let tokenRefreshCallback: (tokenResponse: TokenResponse) => void = () => {}
+    let tokenRefreshFailedCallback: () => void = () => {}
 
     ;(Keycloak.addListener as Mock).mockImplementation((event, callback) => {
       if (event === 'tokenRefresh') {
         tokenRefreshCallback = callback
       }
+      if (event === 'tokenRefreshFailed') {
+        tokenRefreshFailedCallback = callback
+      }
     })
 
     return {
       store,
-      tokenRefreshCallback: (response: TokenResponse) => tokenRefreshCallback(response)
+      tokenRefreshCallback: (response: TokenResponse) => tokenRefreshCallback(response),
+      tokenRefreshFailedCallback: () => tokenRefreshFailedCallback()
     }
   }
 
@@ -312,6 +317,7 @@ describe('authenticationSlice', () => {
         await store.dispatch(authenticate())
 
         expect(Keycloak.addListener).toHaveBeenCalledWith('tokenRefresh', expect.any(Function))
+        expect(Keycloak.addListener).toHaveBeenCalledWith('tokenRefreshFailed', expect.any(Function))
       })
 
       it('should handle token refresh callback correctly', async () => {
@@ -347,6 +353,23 @@ describe('authenticationSlice', () => {
         const finalState = store.getState().authentication
         expect(finalState.tokenRefreshed).toBe(initialState.tokenRefreshed)
         expect(finalState.token).toBe(initialState.token)
+      })
+
+      it('should reset authentication when token refresh fails', async () => {
+        const store = setupStoreWithMockAuth(createSuccessfulAuthResult())
+        const { tokenRefreshFailedCallback } = setupTokenRefreshListener(store)
+
+        await store.dispatch(authenticate())
+
+        tokenRefreshFailedCallback()
+
+        expectAuthState(store.getState().authentication, {
+          sessionMode: 'login',
+          token: undefined,
+          idToken: undefined,
+          idir: undefined
+        })
+        expect(mockSetUser).toHaveBeenCalledWith(null)
       })
     })
   })

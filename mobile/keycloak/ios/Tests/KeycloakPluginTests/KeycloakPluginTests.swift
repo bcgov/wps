@@ -24,7 +24,8 @@ struct KeycloakPluginTests {
     @Test func testPluginMethods() {
         let methodNames = plugin.pluginMethods.map { $0.name }
         #expect(methodNames.contains("authenticate"))
-        #expect(plugin.pluginMethods.count == 1)
+        #expect(methodNames.contains("clearAuthState"))
+        #expect(plugin.pluginMethods.count == 2)
     }
 
     @Test func testPluginMethodReturnTypes() {
