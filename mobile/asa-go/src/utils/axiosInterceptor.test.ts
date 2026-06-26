@@ -197,6 +197,20 @@ describe('configureApiInterceptors', () => {
     expect(axiosRequest).toHaveBeenCalledWith(error.config)
   })
 
+  it('does not refresh native auth for guest 401 responses', async () => {
+    const { clearAuthState, refreshAuthState, responseUse, store } = await configure({
+      sessionMode: 'guest',
+      token: null
+    })
+    const { error, promise } = runErrorInterceptor(responseUse, 401)
+
+    await expect(promise).rejects.toBe(error)
+
+    expect(refreshAuthState).not.toHaveBeenCalled()
+    expect(clearAuthState).not.toHaveBeenCalled()
+    expect(store.dispatch).not.toHaveBeenCalled()
+  })
+
   it('resets authentication when refresh fails on 401 responses', async () => {
     const { clearAuthState, refreshAuthState, responseUse, resetAuthenticationAction, setSentryUserFromToken, store } =
       await configure()

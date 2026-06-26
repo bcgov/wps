@@ -8,6 +8,7 @@ import authenticationSlice, {
   authenticateFinished,
   authenticateStart,
   continueAsGuest,
+  continueAsGuestSession,
   initialState,
   resetAuthentication
 } from '@/slices/authenticationSlice'
@@ -31,7 +32,8 @@ const mockValidToken =
 vi.mock('../../../keycloak/src', () => ({
   Keycloak: {
     authenticate: vi.fn(),
-    addListener: vi.fn()
+    addListener: vi.fn(),
+    clearAuthState: vi.fn()
   }
 }))
 
@@ -123,7 +125,8 @@ describe('authenticationSlice', () => {
         sessionMode: 'authenticated',
         token: 'existing-token',
         idToken: 'existing-id-token',
-        idir: 'test-user'
+        idir: 'test-user',
+        email: 'test@example.com'
       })
 
       const nextState = authenticationSlice(previousState, continueAsGuest())
@@ -134,6 +137,7 @@ describe('authenticationSlice', () => {
         token: undefined,
         idToken: undefined,
         idir: undefined,
+        email: undefined,
         error: null
       })
     })
@@ -319,6 +323,45 @@ describe('authenticationSlice', () => {
 
         const finalState = store.getState().authentication
         expect(finalState.token).toBe(initialState.token)
+      })
+
+      it('clears native auth state before continuing as guest', async () => {
+        ;(Keycloak.clearAuthState as Mock).mockResolvedValue(undefined)
+        const store = createTestStore({
+          authentication: createAuthState({
+            sessionMode: 'authenticated',
+            token: mockValidToken,
+            idToken: 'existing-id-token',
+            idir: 'test-user',
+            email: 'test@example.com'
+          })
+        })
+
+        await store.dispatch(continueAsGuestSession())
+
+        expect(Keycloak.clearAuthState).toHaveBeenCalled()
+        expectAuthState(store.getState().authentication, {
+          sessionMode: 'guest',
+          token: undefined,
+          idToken: undefined,
+          idir: undefined,
+          email: undefined
+        })
+        expect(mockSetUser).toHaveBeenCalledWith(null)
+      })
+
+      it('continues as guest when native auth clear fails', async () => {
+        ;(Keycloak.clearAuthState as Mock).mockRejectedValue(new Error('clear failed'))
+        const store = createTestStore({
+          authentication: createAuthState({
+            sessionMode: 'authenticated',
+            token: mockValidToken
+          })
+        })
+
+        await store.dispatch(continueAsGuestSession())
+
+        expect(store.getState().authentication.sessionMode).toBe('guest')
       })
     })
   })

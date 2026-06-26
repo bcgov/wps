@@ -76,6 +76,11 @@ export const configureApiInterceptors = () => {
         throw error
       }
 
+      const { sessionMode } = selectAuthentication(store.getState())
+      if (sessionMode !== 'authenticated') {
+        throw error
+      }
+
       const retryResponse = await retryWithRefreshedToken(error?.config as RetriableAxiosRequestConfig | undefined)
       if (retryResponse) {
         return retryResponse

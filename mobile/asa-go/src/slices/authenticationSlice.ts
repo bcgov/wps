@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import * as Sentry from '@sentry/capacitor'
 import { jwtDecode } from 'jwt-decode'
 import { isUndefined } from 'lodash'
-import type { AppThunk } from '@/store'
+import type { AppDispatch, AppThunk } from '@/store'
 import { Keycloak } from '../../../keycloak/src'
 import type { KeycloakTokenResponse } from '../../../keycloak/src/definitions'
 
@@ -38,6 +38,7 @@ const authSlice = createSlice({
       state.token = undefined
       state.idToken = undefined
       state.idir = undefined
+      state.email = undefined
       state.error = null
     },
     authenticateStart(state: AuthState) {
@@ -76,6 +77,16 @@ export const { continueAsGuest, authenticateStart, authenticateFinished, authent
   authSlice.actions
 
 export default authSlice.reducer
+
+export const continueAsGuestSession = () => async (dispatch: AppDispatch) => {
+  try {
+    await Keycloak.clearAuthState()
+  } catch {
+    // keep guest mode available even if native auth storage cleanup fails
+  }
+  dispatch(continueAsGuest())
+  setSentryUserFromToken(undefined)
+}
 
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
