@@ -204,6 +204,7 @@ export interface HFIAdminAddedStation {
 }
 export interface HFIAdminRemovedStation {
   planning_area_id: number
+  station_code: number
   row_id: number
 }
 

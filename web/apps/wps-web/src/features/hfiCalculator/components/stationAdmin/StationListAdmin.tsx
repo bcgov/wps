@@ -10,7 +10,7 @@ import type {
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
 import { fetchAddOrUpdateStations } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { every, findIndex, isUndefined, maxBy, sortBy } from 'lodash'
+import { every, isUndefined, maxBy, sortBy } from 'lodash'
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 
@@ -40,52 +40,47 @@ const StationListAdmin = ({
 }: StationListAdminProps) => {
   const dispatch: AppDispatch = useDispatch()
 
-  const [addedStations, setAddedStations] = useState<{ [key: string]: StationAdminRow[] }>(
-    Object.fromEntries(Object.keys(existingPlanningAreaStations).map(key => [key, []]))
-  )
+  const emptyRowsByPlanningArea = Object.fromEntries(planningAreas.map(planningArea => [planningArea.id, []]))
+  const [addedStations, setAddedStations] = useState<{ [key: string]: StationAdminRow[] }>(emptyRowsByPlanningArea)
   const [removedStations, setRemovedStations] = useState<{
     [key: string]: { planningAreaId: number; rowId: number; station: BasicWFWXStation }[]
-  }>(Object.fromEntries(Object.keys(existingPlanningAreaStations).map(key => [key, []])))
+  }>(emptyRowsByPlanningArea)
 
   /** Adds net new stations */
   const handleAddStation = (planningAreaId: number) => {
-    const maxRowId = maxBy(addedStations[planningAreaId], 'rowId')?.rowId
+    const currentRows = addedStations[planningAreaId] ?? []
+    const maxRowId = maxBy(currentRows, 'rowId')?.rowId
     const lastRowId = maxRowId ? maxRowId : 0
-    const currentRow = addedStations[planningAreaId].concat([{ planningAreaId, rowId: lastRowId + 1 }])
     setAddedStations({
       ...addedStations,
-      [planningAreaId]: currentRow
+      [planningAreaId]: currentRows.concat([{ planningAreaId, rowId: lastRowId + 1 }])
     })
   }
 
   /** Removes net new stations */
   const handleRemoveStation = (planningAreaId: number, rowId: number) => {
-    const currentlyAdded = addedStations[planningAreaId]
-    const idx = findIndex(currentlyAdded, r => r.rowId === rowId)
-    currentlyAdded.splice(idx, 1)
     setAddedStations({
       ...addedStations,
-      [planningAreaId]: currentlyAdded
+      [planningAreaId]: (addedStations[planningAreaId] ?? []).filter(row => row.rowId !== rowId)
     })
   }
 
   /** Edits net new stations */
   const handleEditStation = (planningAreaId: number, rowId: number, row: StationAdminRow) => {
-    const currentlyAdded = addedStations[planningAreaId]
-    const idx = findIndex(currentlyAdded, r => r.rowId === rowId)
-    currentlyAdded.splice(idx, 1, row)
     setAddedStations({
       ...addedStations,
-      [planningAreaId]: currentlyAdded
+      [planningAreaId]: (addedStations[planningAreaId] ?? []).map(currentRow =>
+        currentRow.rowId === rowId ? row : currentRow
+      )
     })
   }
 
   /** Removes existing stations, not net new ones */
   const handleRemoveExistingStation = (planningAreaId: number, rowId: number, station: BasicWFWXStation) => {
-    const currentRow = removedStations[planningAreaId].concat({ planningAreaId, rowId, station })
+    const currentRows = removedStations[planningAreaId] ?? []
     setRemovedStations({
       ...removedStations,
-      [planningAreaId]: currentRow
+      [planningAreaId]: currentRows.concat({ planningAreaId, rowId, station })
     })
   }
 

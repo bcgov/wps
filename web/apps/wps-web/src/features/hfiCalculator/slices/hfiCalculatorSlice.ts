@@ -83,6 +83,7 @@ const dailiesSlice = createSlice({
     },
     loadStationUpdateStart(state: HFICalculatorState) {
       state.stationsUpdateLoading = true
+      state.stationsUpdatedError = null
     },
     loadStationUpdateEnd(state: HFICalculatorState) {
       state.stationsUpdateLoading = false
@@ -284,11 +285,11 @@ export const fetchAddOrUpdateStations =
       dispatch(loadStationUpdateEnd())
       dispatch(setChangeSaved(true))
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        dispatch(getHFIResultFailed(err.response?.data.detail))
-      } else {
-        dispatch(getHFIResultFailed((err as Error).toString()))
-      }
+      dispatch(loadStationUpdateEnd())
+      const errorMessage =
+        (axios.isAxiosError(err) ? err.response?.data.detail : (err as Error).toString()) ?? 'Failed to update stations'
+      dispatch(setStationsUpdatedFailed(errorMessage))
+      dispatch(getHFIResultFailed(errorMessage))
       logError(err)
     }
   }
