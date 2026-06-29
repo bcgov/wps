@@ -3,11 +3,13 @@
 Provides endpoints to download and query SFMS daily FWI actuals rasters
 (FFMC, DMC, DC, ISI, FWI, BUI) and hourly FFMC rasters.
 
-All endpoints require a valid bearer token (authentication_required).
+Access is controlled by the APS Kong gateway (key-auth). Consumers register
+for an API key at https://api.gov.bc.ca.
 """
 
 import logging
 from datetime import date, datetime, timezone
+from typing import Annotated
 
 from botocore.exceptions import ClientError
 from fastapi import APIRouter, HTTPException, Path, Query, Request
@@ -29,6 +31,25 @@ router = APIRouter(
 )
 
 _addresser = RasterKeyAddresser()
+
+_FOR_DATE_DESC = "Date of the raster (YYYY-MM-DD)"
+
+_RASTER_RESPONSES = {
+    200: {"description": "GeoTIFF raster (full content)", "content": {"image/tiff": {}}},
+    206: {
+        "description": "GeoTIFF raster (partial content — range request)",
+        "content": {"image/tiff": {}},
+    },
+    404: {"description": "Raster not found for the requested date and parameter"},
+    422: {"description": "Invalid date, parameter, or hour value"},
+    502: {"description": "Object store error"},
+}
+
+_VALUE_RESPONSES = {
+    404: {"description": "Raster not found for the requested date and parameter"},
+    422: {"description": "Invalid date, parameter, hour, or coordinate value"},
+    502: {"description": "Object store error"},
+}
 
 
 class FWIValueResponse(BaseModel):
@@ -97,12 +118,12 @@ async def _read_raster_from_s3(key: str) -> bytes:
 # the variable {parameter} segment swallowing the literal "value" segment.
 
 
-@router.get("/{for_date}/hffmc/value", response_model=FWIValueResponse)
+@router.get("/{for_date}/hffmc/value", response_model=FWIValueResponse, responses=_VALUE_RESPONSES)
 async def get_hourly_ffmc_value_at_point(
-    for_date: date = Path(..., description="Date of the raster (YYYY-MM-DD)"),
-    hour: int = Query(..., ge=0, le=23, description="UTC hour (0-23)"),
-    lat: float = Query(..., ge=-90, le=90, description="Latitude in WGS84"),
-    lon: float = Query(..., ge=-180, le=180, description="Longitude in WGS84"),
+    for_date: Annotated[date, Path(description=_FOR_DATE_DESC)],
+    hour: Annotated[int, Query(ge=0, le=23, description="UTC hour (0-23)")],
+    lat: Annotated[float, Query(ge=-90, le=90, description="Latitude in WGS84")],
+    lon: Annotated[float, Query(ge=-180, le=180, description="Longitude in WGS84")],
 ):
     """Return the hourly FFMC raster value at a specific lat/lon coordinate."""
     datetime_utc = datetime(for_date.year, for_date.month, for_date.day, hour, tzinfo=timezone.utc)
@@ -123,12 +144,16 @@ async def get_hourly_ffmc_value_at_point(
     )
 
 
-@router.get("/{for_date}/{parameter}/value", response_model=FWIValueResponse)
+@router.get(
+    "/{for_date}/{parameter}/value", response_model=FWIValueResponse, responses=_VALUE_RESPONSES
+)
 async def get_daily_fwi_value_at_point(
-    for_date: date = Path(..., description="Date of the raster (YYYY-MM-DD)"),
-    parameter: FWIParameter = Path(..., description="FWI parameter: dc, dmc, bui, ffmc, isi, fwi"),
-    lat: float = Query(..., ge=-90, le=90, description="Latitude in WGS84"),
-    lon: float = Query(..., ge=-180, le=180, description="Longitude in WGS84"),
+    for_date: Annotated[date, Path(description=_FOR_DATE_DESC)],
+    parameter: Annotated[
+        FWIParameter, Path(description="FWI parameter: dc, dmc, bui, ffmc, isi, fwi")
+    ],
+    lat: Annotated[float, Query(ge=-90, le=90, description="Latitude in WGS84")],
+    lon: Annotated[float, Query(ge=-180, le=180, description="Longitude in WGS84")],
 ):
     """Return the daily FWI actuals raster value at a specific lat/lon coordinate."""
     key = _addresser.get_calculated_index_key(_for_date_to_utc(for_date), parameter, RunType.ACTUAL)
@@ -148,11 +173,11 @@ async def get_daily_fwi_value_at_point(
     )
 
 
-@router.get("/{for_date}/hffmc")
+@router.get("/{for_date}/hffmc", responses=_RASTER_RESPONSES)
 async def get_hourly_ffmc_raster(
     request: Request,
-    for_date: date = Path(..., description="Date of the raster (YYYY-MM-DD)"),
-    hour: int = Query(..., ge=0, le=23, description="UTC hour (0-23)"),
+    for_date: Annotated[date, Path(description=_FOR_DATE_DESC)],
+    hour: Annotated[int, Query(ge=0, le=23, description="UTC hour (0-23)")],
 ):
     """Download the calculated hourly FFMC actuals raster for the given date and UTC hour."""
     datetime_utc = datetime(for_date.year, for_date.month, for_date.day, hour, tzinfo=timezone.utc)
@@ -161,11 +186,13 @@ async def get_hourly_ffmc_raster(
     return await _proxy(key, request.headers.get("range"), S3Client.stream_object)
 
 
-@router.get("/{for_date}/{parameter}")
+@router.get("/{for_date}/{parameter}", responses=_RASTER_RESPONSES)
 async def get_daily_fwi_raster(
     request: Request,
-    for_date: date = Path(..., description="Date of the actuals raster (YYYY-MM-DD)"),
-    parameter: FWIParameter = Path(..., description="FWI parameter: dc, dmc, bui, ffmc, isi, fwi"),
+    for_date: Annotated[date, Path(description=_FOR_DATE_DESC)],
+    parameter: Annotated[
+        FWIParameter, Path(description="FWI parameter: dc, dmc, bui, ffmc, isi, fwi")
+    ],
 ):
     """Download the daily FWI actuals raster for the given date and parameter."""
     key = _addresser.get_calculated_index_key(_for_date_to_utc(for_date), parameter, RunType.ACTUAL)
