@@ -13,6 +13,7 @@ describe('StationListAdmin', () => {
       {
         id: 1,
         name: 'Empty Planning Area',
+        fire_centre_id: 1,
         order_of_appearance_in_list: 1,
         stations: []
       }
