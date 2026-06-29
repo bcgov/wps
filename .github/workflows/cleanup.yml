@@ -48,6 +48,21 @@ jobs:
           name: asa-go-aps-gateway-config-cleanup-pr-${{ github.event.number }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
+      - name: Publish SFMS FWI APS cleanup config
+        uses: ./.github/actions/gwa-publish
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+          qualifier: fwi-${{ env.SUFFIX }}
+
+      - name: Upload SFMS FWI APS cleanup config
+        uses: actions/upload-artifact@v7
+        with:
+          name: sfms-fwi-aps-gateway-config-cleanup-pr-${{ github.event.number }}
+          path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}

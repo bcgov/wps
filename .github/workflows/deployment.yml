@@ -157,6 +157,21 @@ jobs:
           host: psu-${{ env.SUFFIX }}.api.gov.bc.ca
           suffix: ${{ env.SUFFIX }}
 
+      - name: Allow APS to reach wps-api (SFMS FWI gateway)
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_api_gateway_networkpolicy.sh ${SUFFIX} apply
+
+      - name: Render and publish SFMS FWI APS gateway config
+        uses: ./.github/actions/sfms-fwi-aps-publish
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          project-namespace: ${{ env.PROJ_DEV }}
+          host: psu-${{ env.SUFFIX }}.api.gov.bc.ca
+          suffix: ${{ env.SUFFIX }}
+
       - name: Provision dev cronjobs and jobs
         shell: bash
         run: |
