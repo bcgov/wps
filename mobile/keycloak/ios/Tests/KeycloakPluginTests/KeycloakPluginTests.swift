@@ -118,11 +118,10 @@ struct KeycloakPluginTests {
         ))
         plugin.load()
 
-        await confirmation("clearAuthState called after failed foreground refresh") { confirmed in
-            storage.onClearAuthState = { confirmed() }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            storage.onClearAuthState = { continuation.resume() }
             NotificationCenter.default.post(
                 name: UIApplication.didBecomeActiveNotification, object: nil)
-            try? await Task.sleep(for: .milliseconds(200))
         }
 
         // Storage is empty: the next foreground event exits at the guard-let and does not retry.
@@ -158,14 +157,15 @@ struct KeycloakPluginTests {
             codeVerifier: nil,
             additionalParameters: nil
         )
-        // expires_in: 0 makes accessTokenExpirationDate ≈ now, so shouldRefresh returns true
+        // expires_in: 30 sets accessTokenExpirationDate 30s from now, which is within the
+        // 60-second tokenRefreshThreshold so shouldRefresh returns true.
         let tokenResponse = OIDTokenResponse(
             request: tokenRequest,
             parameters: [
                 "access_token": "test-access-token" as NSCopying & NSObjectProtocol,
                 "refresh_token": "test-refresh-token" as NSCopying & NSObjectProtocol,
                 "token_type": "Bearer" as NSCopying & NSObjectProtocol,
-                "expires_in": "0" as NSCopying & NSObjectProtocol,
+                "expires_in": NSNumber(value: 30) as NSCopying & NSObjectProtocol,
             ]
         )
         return OIDAuthState(
