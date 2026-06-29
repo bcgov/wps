@@ -151,8 +151,8 @@ class TestDailyFWIValueAtPoint:
         data = response.json()
         assert data["date"] == "2025-11-02"
         assert data["parameter"] == "fwi"
-        assert data["latitude"] == 49.0
-        assert data["longitude"] == -123.0
+        assert data["latitude"] == pytest.approx(49.0)
+        assert data["longitude"] == pytest.approx(-123.0)
 
     def test_returns_null_value_when_outside_raster(self, monkeypatch):
         monkeypatch.setattr(
@@ -208,8 +208,8 @@ class TestHourlyFFMCValueAtPoint:
         data = response.json()
         assert data["date"] == "2025-11-02"
         assert data["parameter"] == "hffmc"
-        assert data["latitude"] == 49.0
-        assert data["longitude"] == -123.0
+        assert data["latitude"] == pytest.approx(49.0)
+        assert data["longitude"] == pytest.approx(-123.0)
 
     def test_missing_hour_returns_422(self):
         client = TestClient(app.main.app)

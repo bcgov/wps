@@ -8,6 +8,7 @@ for an API key at https://api.gov.bc.ca.
 """
 
 import logging
+import math
 from datetime import date, datetime, timezone
 from typing import Annotated
 
@@ -93,7 +94,7 @@ def _extract_value_at_point(ds: WPSDataset, lat: float, lon: float) -> float | N
     nodata = band.GetNoDataValue()
     value = float(band.ReadAsArray(col, row, 1, 1)[0][0])
 
-    if nodata is not None and value == nodata:
+    if nodata is not None and math.isclose(value, nodata, rel_tol=1e-9):
         return None
 
     return value
