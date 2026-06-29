@@ -68,13 +68,9 @@ Actuals process `DATE` at `20:00 UTC`. Forecasts process the next three forecast
 
 ## Date Range Backfill
 
-Use the `app.jobs.sfms_daily_backfill` wrapper when you need to regenerate more than one day. It runs dates sequentially in one OpenShift Job.
+Use the `app.jobs.sfms_daily_backfill` wrapper when you need to regenerate actuals for more than one day. It runs dates sequentially in one OpenShift Job.
 
-The range is inclusive:
-
-- `--run-type actual` runs actuals for every date from `START_DATE` through `END_DATE`.
-- `--run-type forecast` runs forecast jobs for every seed actual date from `START_DATE` through `END_DATE`. Each forecast job regenerates the next three forecast dates after that seed date.
-- `--run-type both` runs actuals, then forecasts, for each date in the range.
+The range is inclusive. Historical forecasts cannot be regenerated from WF1 because WF1 forecast records are overwritten by actuals.
 
 Generate a one-off Job from the actuals CronJob so it inherits the same image, database, WF1, Redis, object-store, and ChatOps configuration:
 
@@ -82,13 +78,11 @@ Generate a one-off Job from the actuals CronJob so it inherits the same image, d
 PROJ_TARGET=e1e498-prod
 START_DATE=2026-06-25
 END_DATE=2026-06-27
-RUN_TYPE=both
-JOB_NAME=sfms-daily-backfill-${RUN_TYPE}-${START_DATE//-/}-to-${END_DATE//-/}
+JOB_NAME=sfms-daily-backfill-${START_DATE//-/}-to-${END_DATE//-/}
 
 PROJ_TARGET=${PROJ_TARGET} \
 START_DATE=${START_DATE} \
 END_DATE=${END_DATE} \
-RUN_TYPE=${RUN_TYPE} \
 JOB_NAME=${JOB_NAME} \
 bash openshift/scripts/oc_generate_sfms_daily_backfill_job.sh prod \
   > /tmp/${JOB_NAME}.yaml
@@ -106,8 +100,6 @@ command:
   - "python"
   - "-m"
   - "app.jobs.sfms_daily_backfill"
-  - "--run-type"
-  - "both"
   - "--start-date"
   - "2026-06-25"
   - "--end-date"
@@ -125,4 +117,4 @@ oc -n ${PROJ_TARGET} logs -f job/${JOB_NAME}
 
 Backfills overwrite the same SFMS raster keys for each target date and create new `sfms_run` / `sfms_run_log` rows for auditability.
 
-For actual FWI regeneration, the first date in the range needs the previous day's actual FFMC/DMC/DC rasters to exist unless the first date is one of the April/May Monday re-interpolation days. If those seed rasters are missing, the actual weather rasters are still regenerated but FWI calculation is skipped; forecast backfill for that seed date will then fail because forecasts require complete actual seed rasters.
+For actual FWI regeneration, the first date in the range needs the previous day's actual FFMC/DMC/DC rasters to exist unless the first date is one of the April/May Monday re-interpolation days. If those seed rasters are missing, the actual weather rasters are still regenerated but FWI calculation is skipped.
