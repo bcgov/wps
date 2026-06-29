@@ -8,13 +8,11 @@ for an API key at https://api.gov.bc.ca.
 """
 
 import logging
-import math
 from datetime import date, datetime, timezone
 from typing import Annotated
 
 from botocore.exceptions import ClientError
 from fastapi import APIRouter, HTTPException, Path, Query, Request
-from osgeo import osr
 from pydantic import BaseModel
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
@@ -60,45 +58,6 @@ class FWIValueResponse(BaseModel):
     value: float | None
 
 
-def _for_date_to_utc(for_date: date) -> datetime:
-    return datetime(for_date.year, for_date.month, for_date.day, tzinfo=timezone.utc)
-
-
-def _extract_value_at_point(ds: WPSDataset, lat: float, lon: float) -> float | None:
-    """Extract the raster value at a WGS84 lat/lon coordinate."""
-    gdal_ds = ds.as_gdal_ds()
-    geotransform = gdal_ds.GetGeoTransform()
-    projection = gdal_ds.GetProjection()
-
-    src_srs = osr.SpatialReference()
-    src_srs.ImportFromWkt(projection)
-    src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-
-    wgs84 = osr.SpatialReference()
-    wgs84.ImportFromEPSG(4326)
-    wgs84.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-
-    coord_transform = osr.CoordinateTransformation(wgs84, src_srs)
-    x, y, _ = coord_transform.TransformPoint(lon, lat)
-
-    x_origin, x_pixel_size = geotransform[0], geotransform[1]
-    y_origin, y_pixel_size = geotransform[3], geotransform[5]
-
-    col = int((x - x_origin) / x_pixel_size)
-    row = int((y - y_origin) / y_pixel_size)
-
-    if row < 0 or row >= gdal_ds.RasterYSize or col < 0 or col >= gdal_ds.RasterXSize:
-        return None
-
-    band = gdal_ds.GetRasterBand(1)
-    nodata = band.GetNoDataValue()
-    value = float(band.ReadAsArray(col, row, 1, 1)[0][0])
-
-    if nodata is not None and math.isclose(value, nodata, rel_tol=1e-9):
-        return None
-
-    return value
-
 
 async def _load_raster(key: str) -> bytes:
     try:
@@ -129,7 +88,7 @@ async def get_hourly_ffmc_value_at_point(
     raster_bytes = await _load_raster(key)
     ds = WPSDataset.from_bytes(raster_bytes)
     with ds:
-        value = _extract_value_at_point(ds, lat, lon)
+        value = ds.extract_value_at_point(lat, lon)
 
     return FWIValueResponse(
         date=for_date.isoformat(),
@@ -152,13 +111,13 @@ async def get_daily_fwi_value_at_point(
     lon: Annotated[float, Query(ge=-180, le=180, description="Longitude in WGS84")],
 ):
     """Return the daily FWI actuals raster value at a specific lat/lon coordinate."""
-    key = _addresser.get_calculated_index_key(_for_date_to_utc(for_date), parameter, RunType.ACTUAL)
+    key = _addresser.get_calculated_index_key(datetime(for_date.year, for_date.month, for_date.day, tzinfo=timezone.utc), parameter, RunType.ACTUAL)
     logger.info("Sampling %s raster at (%s, %s) from %s", parameter.value, lat, lon, key)
 
     raster_bytes = await _load_raster(key)
     ds = WPSDataset.from_bytes(raster_bytes)
     with ds:
-        value = _extract_value_at_point(ds, lat, lon)
+        value = ds.extract_value_at_point(lat, lon)
 
     return FWIValueResponse(
         date=for_date.isoformat(),
@@ -191,6 +150,6 @@ async def get_daily_fwi_raster(
     ],
 ):
     """Download the daily FWI actuals raster for the given date and parameter."""
-    key = _addresser.get_calculated_index_key(_for_date_to_utc(for_date), parameter, RunType.ACTUAL)
+    key = _addresser.get_calculated_index_key(datetime(for_date.year, for_date.month, for_date.day, tzinfo=timezone.utc), parameter, RunType.ACTUAL)
     logger.info("Streaming daily FWI raster: %s", key)
     return await _proxy(key, request.headers.get("range"), S3Client.stream_object)

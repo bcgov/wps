@@ -32,11 +32,12 @@ def mock_stream_object(monkeypatch):
     monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", _mock)
 
 
-def _make_mock_dataset():
+def _make_mock_dataset(extract_value=None):
     """Return a mock WPSDataset suitable for use as a context manager."""
     mock_ds = MagicMock()
     mock_ds.__enter__ = lambda s: s
     mock_ds.__exit__ = lambda s, *a: None
+    mock_ds.extract_value_at_point.return_value = extract_value
     return mock_ds
 
 
@@ -136,14 +137,8 @@ class TestDailyFWIValueAtPoint:
     """Tests for GET /sfms/daily-fwi/{for_date}/{parameter}/value."""
 
     def test_returns_value_at_point(self, monkeypatch):
-        monkeypatch.setattr(
-            "app.routers.sfms_fwi.read_object",
-            AsyncMock(return_value=b"fake-bytes"),
-        )
-        monkeypatch.setattr("app.routers.sfms_fwi._extract_value_at_point", lambda *_: 42.5)
-        monkeypatch.setattr(
-            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset()
-        )
+        monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
+        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5))
 
         client = TestClient(app.main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
@@ -155,14 +150,8 @@ class TestDailyFWIValueAtPoint:
         assert data["longitude"] == pytest.approx(-123.0)
 
     def test_returns_null_value_when_outside_raster(self, monkeypatch):
-        monkeypatch.setattr(
-            "app.routers.sfms_fwi.read_object",
-            AsyncMock(return_value=b"fake-bytes"),
-        )
-        monkeypatch.setattr("app.routers.sfms_fwi._extract_value_at_point", lambda *_: None)
-        monkeypatch.setattr(
-            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset()
-        )
+        monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
+        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(None))
 
         client = TestClient(app.main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=0.0&lon=0.0")
@@ -193,14 +182,8 @@ class TestHourlyFFMCValueAtPoint:
     """Tests for GET /sfms/daily-fwi/{for_date}/hffmc/value."""
 
     def test_returns_value_at_point(self, monkeypatch):
-        monkeypatch.setattr(
-            "app.routers.sfms_fwi.read_object",
-            AsyncMock(return_value=b"fake-bytes"),
-        )
-        monkeypatch.setattr("app.routers.sfms_fwi._extract_value_at_point", lambda *_: 85.3)
-        monkeypatch.setattr(
-            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset()
-        )
+        monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
+        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3))
 
         client = TestClient(app.main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
@@ -218,45 +201,33 @@ class TestHourlyFFMCValueAtPoint:
 
 
 class TestExtractValueAtPoint:
-    """Unit tests for _extract_value_at_point helper."""
+    """Unit tests for WPSDataset.extract_value_at_point."""
+
+    _WGS84_WKT = (
+        'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],'
+        'PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],'
+        'AUTHORITY["EPSG","4326"]]'
+    )
+
+    def _make_dataset(self, geotransform, x_size=10, y_size=10):
+        from wps_shared.geospatial.wps_dataset import WPSDataset
+
+        mock_gdal_ds = MagicMock()
+        mock_gdal_ds.GetGeoTransform.return_value = geotransform
+        mock_gdal_ds.GetProjection.return_value = self._WGS84_WKT
+        mock_gdal_ds.RasterXSize = x_size
+        mock_gdal_ds.RasterYSize = y_size
+        return WPSDataset(ds_path=None, ds=mock_gdal_ds)
 
     def test_returns_none_for_out_of_bounds(self):
-        from app.routers.sfms_fwi import _extract_value_at_point
-
-        mock_ds = MagicMock()
-        mock_gdal_ds = MagicMock()
-        mock_ds.as_gdal_ds.return_value = mock_gdal_ds
-        mock_gdal_ds.GetGeoTransform.return_value = (0.0, 1.0, 0.0, 0.0, 0.0, -1.0)
-        mock_gdal_ds.GetProjection.return_value = (
-            'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],'
-            'PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],'
-            'AUTHORITY["EPSG","4326"]]'
-        )
-        mock_gdal_ds.RasterXSize = 10
-        mock_gdal_ds.RasterYSize = 10
-
-        result = _extract_value_at_point(mock_ds, 89.0, 179.0)
-        assert result is None
+        ds = self._make_dataset((0.0, 1.0, 0.0, 0.0, 0.0, -1.0))
+        assert ds.extract_value_at_point(89.0, 179.0) is None
 
     def test_returns_none_for_nodata_pixel(self):
-        from app.routers.sfms_fwi import _extract_value_at_point
-
-        mock_ds = MagicMock()
-        mock_gdal_ds = MagicMock()
-        mock_ds.as_gdal_ds.return_value = mock_gdal_ds
-        mock_gdal_ds.GetGeoTransform.return_value = (-130.0, 1.0, 0.0, 60.0, 0.0, -1.0)
-        mock_gdal_ds.GetProjection.return_value = (
-            'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],'
-            'PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],'
-            'AUTHORITY["EPSG","4326"]]'
-        )
-        mock_gdal_ds.RasterXSize = 10
-        mock_gdal_ds.RasterYSize = 10
-
+        ds = self._make_dataset((-130.0, 1.0, 0.0, 60.0, 0.0, -1.0))
         mock_band = MagicMock()
-        mock_gdal_ds.GetRasterBand.return_value = mock_band
+        ds.ds.GetRasterBand.return_value = mock_band
         mock_band.GetNoDataValue.return_value = -9999.0
         mock_band.ReadAsArray.return_value = np.array([[-9999.0]])
 
-        result = _extract_value_at_point(mock_ds, 55.0, -125.0)
-        assert result is None
+        assert ds.extract_value_at_point(55.0, -125.0) is None
