@@ -76,22 +76,25 @@ The range is inclusive:
 - `--run-type forecast` runs forecast jobs for every seed actual date from `START_DATE` through `END_DATE`. Each forecast job regenerates the next three forecast dates after that seed date.
 - `--run-type both` runs actuals, then forecasts, for each date in the range.
 
-Create a one-off Job from the actuals CronJob so it inherits the same image, database, WF1, Redis, object-store, and ChatOps configuration:
+Generate a one-off Job from the actuals CronJob so it inherits the same image, database, WF1, Redis, object-store, and ChatOps configuration:
 
 ```bash
-NAMESPACE=e1e498-prod
+PROJ_TARGET=e1e498-prod
 START_DATE=2026-06-25
 END_DATE=2026-06-27
 RUN_TYPE=both
-JOB_ID=${START_DATE//-/}-to-${END_DATE//-/}
+JOB_NAME=sfms-daily-backfill-${RUN_TYPE}-${START_DATE//-/}-to-${END_DATE//-/}
 
-CRONJOB=$(oc -n ${NAMESPACE} get cronjob -o name | grep sfms-daily-actuals | head -1)
-oc -n ${NAMESPACE} create job sfms-daily-backfill-${JOB_ID} \
-  --from=${CRONJOB} \
-  --dry-run=client -o yaml > /tmp/sfms-daily-backfill-${JOB_ID}.yaml
+PROJ_TARGET=${PROJ_TARGET} \
+START_DATE=${START_DATE} \
+END_DATE=${END_DATE} \
+RUN_TYPE=${RUN_TYPE} \
+JOB_NAME=${JOB_NAME} \
+bash openshift/scripts/oc_generate_sfms_daily_backfill_job.sh prod \
+  > /tmp/${JOB_NAME}.yaml
 ```
 
-Edit `/tmp/sfms-daily-backfill-${JOB_ID}.yaml` and replace the container `command` with:
+The generated YAML replaces the copied CronJob command with:
 
 ```yaml
 command:
@@ -111,13 +114,13 @@ command:
   - "2026-06-27"
 ```
 
-Add `--continue-on-error` if you want the pod to attempt later dates after a date fails. The Job will still fail at the end if any date failed.
+Set `CONTINUE_ON_ERROR=true` when generating the YAML if you want the pod to attempt later dates after a date fails. The Job will still fail at the end if any date failed.
 
 Run and watch it:
 
 ```bash
-oc -n ${NAMESPACE} apply -f /tmp/sfms-daily-backfill-${JOB_ID}.yaml
-oc -n ${NAMESPACE} logs -f job/sfms-daily-backfill-${JOB_ID}
+oc -n ${PROJ_TARGET} apply -f /tmp/${JOB_NAME}.yaml
+oc -n ${PROJ_TARGET} logs -f job/${JOB_NAME}
 ```
 
 Backfills overwrite the same SFMS raster keys for each target date and create new `sfms_run` / `sfms_run_log` rows for auditability.
