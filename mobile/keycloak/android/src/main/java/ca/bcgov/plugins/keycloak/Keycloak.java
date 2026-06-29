@@ -11,6 +11,8 @@ import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import net.openid.appauth.*;
 import org.json.JSONException;
 
@@ -19,6 +21,7 @@ public class Keycloak {
     private static final String TAG = "Keycloak";
     private static final long TOKEN_REFRESH_CHECK_INTERVAL = 60000; // Check every 60 seconds
     private static final long TOKEN_EXPIRY_BUFFER = 60000; // Refresh 1 minute before expiry
+    private static final Executor IO_EXECUTOR = Executors.newSingleThreadExecutor();
 
     private AuthorizationService authService;
     private AuthStateStore authStateStore;
@@ -38,37 +41,46 @@ public class Keycloak {
     public Keycloak(Context context) {
         this.authService = new AuthorizationService(context);
         this.authStateStore = createAuthStateStore(context);
-        this.authState = restoreAuthState();
+        this.authState = new AuthState();
         this.refreshHandler = new Handler(Looper.getMainLooper());
         setupAutomaticRefresh();
+        loadPersistedAuthState();
     }
 
-    private AuthState restoreAuthState() {
-        String stateJson = authStateStore != null ? authStateStore.read() : null;
-
-        if (stateJson != null) {
+    private void loadPersistedAuthState() {
+        if (authStateStore == null) {
+            Log.d(TAG, "No auth state store, starting with empty auth state");
+            return;
+        }
+        IO_EXECUTOR.execute(() -> {
+            String stateJson = authStateStore.read();
+            if (stateJson == null) {
+                Log.d(TAG, "No saved auth state, starting fresh");
+                return;
+            }
             try {
                 AuthState restored = AuthState.jsonDeserialize(stateJson);
-                Log.d(TAG, "Restored auth state from storage");
-                return restored;
+                refreshHandler.post(() -> {
+                    authState = restored;
+                    Log.d(TAG, "Restored auth state from storage");
+                    checkAndRefreshToken();
+                });
             } catch (JSONException e) {
                 Log.e(TAG, "Failed to restore auth state", e);
             }
-        }
-
-        Log.d(TAG, "No saved auth state, creating new");
-        return new AuthState();
+        });
     }
 
     private void persistAuthState() {
         if (authStateStore != null) {
-            authStateStore.write(authState.jsonSerializeString());
+            final String stateJson = authState.jsonSerializeString();
+            IO_EXECUTOR.execute(() -> authStateStore.write(stateJson));
         }
     }
 
     private void clearAuthState() {
         if (authStateStore != null) {
-            authStateStore.clear();
+            IO_EXECUTOR.execute(() -> authStateStore.clear());
         }
         authState = new AuthState();
         Log.d(TAG, "Auth state cleared");
