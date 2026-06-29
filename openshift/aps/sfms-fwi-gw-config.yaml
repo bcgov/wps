@@ -5,13 +5,13 @@ services:
   # Qualifiers allow one gateway to hold multiple independent config sets without pruning
   # other service configs.
   - name: ${FWI_SERVICE_NAME}
-    tags: [ns.${APS_NAMESPACE}.${SUFFIX}]
+    tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
     host: wps-api-${SUFFIX}.${PROJECT_NAMESPACE}.svc
     port: 80
     protocol: http
     routes:
       - name: ${FWI_SERVICE_NAME}
-        tags: [ns.${APS_NAMESPACE}.${SUFFIX}]
+        tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
         hosts:
           - ${FWI_HOST}
         paths:
@@ -21,7 +21,7 @@ services:
       # Require a valid API key issued through the APS portal.
       # Consumers register at https://api.gov.bc.ca to receive a key.
       - name: key-auth
-        tags: [ns.${APS_NAMESPACE}.${SUFFIX}]
+        tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
         config:
           key_names:
             - X-API-Key
@@ -30,7 +30,7 @@ services:
           hide_credentials: true
       # Rate-limit per registered consumer so one key cannot monopolise the service.
       - name: rate-limiting
-        tags: [ns.${APS_NAMESPACE}.${SUFFIX}]
+        tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
         config:
           policy: local
           limit_by: consumer
