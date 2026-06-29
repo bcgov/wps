@@ -17,10 +17,9 @@ from osgeo import osr
 from pydantic import BaseModel
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
-from wps_shared.sfms.raster_addresser import FWIParameter
 from wps_shared.utils.s3_client import S3Client
-
-from app.routers.object_store_proxy import _proxy
+from wps_shared.sfms.raster_addresser import FWIParameter
+from app.routers.object_store_proxy import _proxy, read_object
 from app.sfms.raster_addresser import RasterKeyAddresser
 
 logger = logging.getLogger(__name__)
@@ -100,18 +99,14 @@ def _extract_value_at_point(ds: WPSDataset, lat: float, lon: float) -> float | N
     return value
 
 
-async def _read_raster_from_s3(key: str) -> bytes:
-    """Download raw raster bytes from S3."""
-    async with S3Client() as s3:
-        try:
-            response = await s3.client.get_object(Bucket=s3.bucket, Key=key)
-            async with response["Body"] as stream:
-                return await stream.read()
-        except ClientError as e:
-            error_code = e.response["Error"]["Code"]
-            if error_code == "NoSuchKey":
-                raise HTTPException(status_code=404, detail=f"Raster not found: {key}")
-            raise HTTPException(status_code=502, detail=f"S3 error: {error_code}")
+async def _load_raster(key: str) -> bytes:
+    try:
+        return await read_object(key)
+    except ClientError as e:
+        error_code = e.response["Error"]["Code"]
+        if error_code == "NoSuchKey":
+            raise HTTPException(status_code=404, detail=f"Raster not found: {key}")
+        raise HTTPException(status_code=502, detail=f"S3 error: {error_code}")
 
 
 # /value routes must be defined before the bare download routes to avoid
@@ -130,7 +125,7 @@ async def get_hourly_ffmc_value_at_point(
     key = _addresser.get_calculated_hffmc_index_key(datetime_utc)
     logger.info("Sampling hourly FFMC raster at (%s, %s) from %s", lat, lon, key)
 
-    raster_bytes = await _read_raster_from_s3(key)
+    raster_bytes = await _load_raster(key)
     ds = WPSDataset.from_bytes(raster_bytes)
     with ds:
         value = _extract_value_at_point(ds, lat, lon)
@@ -159,7 +154,7 @@ async def get_daily_fwi_value_at_point(
     key = _addresser.get_calculated_index_key(_for_date_to_utc(for_date), parameter, RunType.ACTUAL)
     logger.info("Sampling %s raster at (%s, %s) from %s", parameter.value, lat, lon, key)
 
-    raster_bytes = await _read_raster_from_s3(key)
+    raster_bytes = await _load_raster(key)
     ds = WPSDataset.from_bytes(raster_bytes)
     with ds:
         value = _extract_value_at_point(ds, lat, lon)

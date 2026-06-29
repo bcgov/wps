@@ -99,6 +99,14 @@ async def head_s3_object(
         raise HTTPException(status_code=502, detail=f"S3 error: {error_code}")
 
 
+async def read_object(key: str) -> bytes:
+    """Read an S3 object fully into memory. Raises ClientError on S3 failures."""
+    async with S3Client() as s3:
+        response = await s3.client.get_object(Bucket=s3.bucket, Key=key)
+        async with response["Body"] as stream:
+            return await stream.read()
+
+
 async def _proxy(path: str, byte_range: str | None, stream_fn) -> RangeStreamingResponse:
     """Shared proxy implementation — fetches from S3 via stream_fn and returns a streaming response."""
     filename = path.rsplit("/", 1)[-1]
