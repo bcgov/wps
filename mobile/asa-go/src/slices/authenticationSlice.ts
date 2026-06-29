@@ -78,6 +78,8 @@ export const { continueAsGuest, authenticateStart, authenticateFinished, authent
 
 export default authSlice.reducer
 
+let tokenRefreshListenerActive = false
+
 export const continueAsGuestSession = () => async (dispatch: AppDispatch) => {
   try {
     await Keycloak.clearAuthState()
@@ -119,21 +121,20 @@ export const authenticate = (): AppThunk => dispatch => {
       dispatch(authenticateError(JSON.stringify(error)))
     })
 
-  // Handle token refresh callback function
-  const handleTokenRefresh = (tokenResponse: KeycloakTokenResponse) => {
-    if (tokenResponse.refreshToken) {
-      dispatch(
-        authenticateFinished({
-          token: tokenResponse.accessToken,
-          idToken: tokenResponse.idToken
-        })
-      )
-      setSentryUserFromToken(tokenResponse.accessToken)
-    }
+  if (!tokenRefreshListenerActive) {
+    tokenRefreshListenerActive = true
+    Keycloak.addListener('tokenRefresh', (tokenResponse: KeycloakTokenResponse) => {
+      if (tokenResponse.refreshToken) {
+        dispatch(
+          authenticateFinished({
+            token: tokenResponse.accessToken,
+            idToken: tokenResponse.idToken
+          })
+        )
+        setSentryUserFromToken(tokenResponse.accessToken)
+      }
+    })
   }
-
-  // Set up event listener for token refresh events (works for both web and iOS)
-  Keycloak.addListener('tokenRefresh', handleTokenRefresh)
 }
 
 export const decodeUserDetails = (token: string | undefined) => {
