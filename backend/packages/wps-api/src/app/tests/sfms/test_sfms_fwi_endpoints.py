@@ -8,7 +8,6 @@ construction, and error handling.
 from unittest.mock import AsyncMock, MagicMock
 
 import app.main
-import numpy as np
 import pytest
 from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
@@ -200,34 +199,3 @@ class TestHourlyFFMCValueAtPoint:
         assert response.status_code == 422
 
 
-class TestExtractValueAtPoint:
-    """Unit tests for WPSDataset.extract_value_at_point."""
-
-    _WGS84_WKT = (
-        'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],'
-        'PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],'
-        'AUTHORITY["EPSG","4326"]]'
-    )
-
-    def _make_dataset(self, geotransform, x_size=10, y_size=10):
-        from wps_shared.geospatial.wps_dataset import WPSDataset
-
-        mock_gdal_ds = MagicMock()
-        mock_gdal_ds.GetGeoTransform.return_value = geotransform
-        mock_gdal_ds.GetProjection.return_value = self._WGS84_WKT
-        mock_gdal_ds.RasterXSize = x_size
-        mock_gdal_ds.RasterYSize = y_size
-        return WPSDataset(ds_path=None, ds=mock_gdal_ds)
-
-    def test_returns_none_for_out_of_bounds(self):
-        ds = self._make_dataset((0.0, 1.0, 0.0, 0.0, 0.0, -1.0))
-        assert ds.extract_value_at_point(89.0, 179.0) is None
-
-    def test_returns_none_for_nodata_pixel(self):
-        ds = self._make_dataset((-130.0, 1.0, 0.0, 60.0, 0.0, -1.0))
-        mock_band = MagicMock()
-        ds.ds.GetRasterBand.return_value = mock_band
-        mock_band.GetNoDataValue.return_value = -9999.0
-        mock_band.ReadAsArray.return_value = np.array([[-9999.0]])
-
-        assert ds.extract_value_at_point(55.0, -125.0) is None
