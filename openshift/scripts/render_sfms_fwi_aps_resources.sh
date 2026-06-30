@@ -43,9 +43,11 @@ PRODUCT_TEMPLATE="${PRODUCT_TEMPLATE:-$(dirname "$0")/../aps/sfms-fwi-product.ya
 if [ "${SUFFIX}" = "prod" ]; then
 	DISPLAY_SUFFIX=""
 	ENV_TIER="prod"
+	ENV_ACTIVE="false"
 else
 	DISPLAY_SUFFIX=" (${SUFFIX})"
 	ENV_TIER="dev"
+	ENV_ACTIVE="true"
 fi
 
 mkdir -p "${OUTPUT_DIR}"
@@ -56,9 +58,10 @@ PRODUCT_OUT="${OUTPUT_DIR}/sfms-fwi-product-${SUFFIX}.yaml"
 export SUFFIX
 export DISPLAY_SUFFIX
 export ENV_TIER
+export ENV_ACTIVE
 
 envsubst '${SUFFIX} ${DISPLAY_SUFFIX}' <"${DATASET_TEMPLATE}" >"${DATASET_OUT}"
-envsubst '${SUFFIX} ${DISPLAY_SUFFIX} ${ENV_TIER}' <"${PRODUCT_TEMPLATE}" >"${PRODUCT_OUT}"
+envsubst '${SUFFIX} ${DISPLAY_SUFFIX} ${ENV_TIER} ${ENV_ACTIVE}' <"${PRODUCT_TEMPLATE}" >"${PRODUCT_OUT}"
 
 echo "${DATASET_OUT}"
 echo "${PRODUCT_OUT}"
