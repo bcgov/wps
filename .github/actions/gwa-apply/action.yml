@@ -52,5 +52,7 @@ runs:
           --client-secret="${GWA_CLIENT_SECRET}"
 
         while IFS= read -r file; do
-          [ -n "${file}" ] && gwa apply -i "${file}"
+          if [ -n "${file}" ]; then
+            gwa apply -i "${file}"
+          fi
         done <<< "${FILES}"
