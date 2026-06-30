@@ -1,0 +1,48 @@
+name: OC Login
+
+on:
+  workflow_dispatch:
+    inputs:
+      oc-server:
+        description: OpenShift server URL
+        required: true
+      oc-namespace:
+        description: OpenShift namespace for the service account
+        required: true
+      oc-service-account:
+        description: Service account name
+        required: false
+        default: ghactions
+
+jobs:
+  oc-login:
+    runs-on: ubuntu-latest
+    steps:
+      - name: OC Login
+        env:
+          OC_SERVER: ${{ inputs.oc-server }}
+          OC_TOKEN: ${{ secrets.OC_TOKEN }}
+        run: |
+          PORT=$(echo "$OC_SERVER" | sed -E 's|.*:([0-9]+)[^0-9]*$|\1|')
+
+          sudo tcpdump -i any -w /tmp/oc-login.pcap -s 0 "tcp port $PORT" &
+          TCPDUMP_PID=$!
+          trap 'sudo kill "$TCPDUMP_PID" 2>/dev/null; wait "$TCPDUMP_PID" 2>/dev/null' EXIT
+          sleep 1
+
+          OC_TEMP_TOKEN=$(curl -sk -X POST \
+            "${OC_SERVER}/api/v1/namespaces/${{ inputs.oc-namespace }}/serviceaccounts/${{ inputs.oc-service-account }}/token" \
+            -H "Authorization: Bearer ${OC_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"spec": {"expirationSeconds": 600}}' \
+            | jq -r '.status.token')
+
+          oc login --token="${OC_TEMP_TOKEN}" --server="${OC_SERVER}"
+
+      - name: Upload pcap
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oc-login-pcap
+          path: /tmp/oc-login.pcap
+          retention-days: 3
