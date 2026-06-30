@@ -5,5 +5,5 @@ environments:
   - name: ${ENV_TIER}
     active: true
     approval: true
-    flow: kong-api-key-acl
+    flow: kong-api-key-only
     services: [psu-sfms-fwi-${SUFFIX}]
