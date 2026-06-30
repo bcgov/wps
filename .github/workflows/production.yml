@@ -76,6 +76,14 @@ jobs:
           host: psu.api.gov.bc.ca
           suffix: prod
 
+      - name: Publish SFMS FWI dataset and product to API Directory
+        uses: ./.github/actions/sfms-fwi-aps-apply
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          suffix: prod
+
   set_deployment_status_success:
     name: Set production deployment successful
     needs: [deploy_to_production]

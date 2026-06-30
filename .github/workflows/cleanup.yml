@@ -63,6 +63,34 @@ jobs:
           name: sfms-fwi-aps-gateway-config-cleanup-pr-${{ github.event.number }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
+      - name: Delete SFMS FWI dataset and product from test API Directory
+        shell: bash
+        env:
+          GATEWAY_ID: ${{ env.APS_GATEWAY_ID }}
+          GWA_CLIENT_ID: ${{ secrets.GWA_ACCT_ID }}
+          GWA_CLIENT_SECRET: ${{ secrets.GWA_ACCT_SECRET }}
+          SUFFIX: ${{ env.SUFFIX }}
+        run: |
+          set -euo pipefail
+          APS_TEST_HOST="api-gov-bc-ca.test.api.gov.bc.ca"
+
+          # Re-login against the test portal so ~/.gwa-config.yaml holds a valid token for it.
+          gwa config set host "${APS_TEST_HOST}"
+          gwa login \
+            --client-id="${GWA_CLIENT_ID}" \
+            --client-secret="${GWA_CLIENT_SECRET}"
+
+          TOKEN=$(python3 -c "import yaml; c=yaml.safe_load(open('${HOME}/.gwa-config.yaml')); print(c['api_key'])")
+          BASE="https://${APS_TEST_HOST}/ds/api/v3/gateways/${GATEWAY_ID}"
+
+          curl -sf -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-${SUFFIX}" \
+            -H "Authorization: Bearer ${TOKEN}" || echo "Dataset not found or already deleted"
+
+          PRODUCT_NAME="SFMS Daily Fire Weather Index (${SUFFIX})"
+          ENCODED=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "${PRODUCT_NAME}")
+          curl -sf -X DELETE "${BASE}/products/${ENCODED}" \
+            -H "Authorization: Bearer ${TOKEN}" || echo "Product not found or already deleted"
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}

@@ -1,0 +1,6 @@
+kind: Product
+name: SFMS Daily Fire Weather Index${DISPLAY_SUFFIX}
+dataset: psu-sfms-daily-fwi-${SUFFIX}
+environments:
+  - name: ${ENV_TIER}
+    active: false
