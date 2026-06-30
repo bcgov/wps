@@ -17,8 +17,8 @@ import {
   updateStations
 } from '@wps/api/hfiCalculatorAPI'
 import { logError } from '@wps/utils/error'
+import { getErrorMessage } from '@wps/utils/getError'
 import type { AppThunk } from 'app/store'
-import axios from 'axios'
 import type {
   AddStationOptions,
   StationAdminRow
@@ -286,8 +286,7 @@ export const fetchAddOrUpdateStations =
       dispatch(setChangeSaved(true))
     } catch (err) {
       dispatch(loadStationUpdateEnd())
-      const errorMessage =
-        (axios.isAxiosError(err) ? err.response?.data.detail : (err as Error).toString()) ?? 'Failed to update stations'
+      const errorMessage = getErrorMessage(err)
       dispatch(setStationsUpdatedFailed(errorMessage))
       dispatch(getHFIResultFailed(errorMessage))
       logError(err)
