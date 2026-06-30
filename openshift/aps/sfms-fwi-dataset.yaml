@@ -1,0 +1,24 @@
+kind: DraftDataset
+name: psu-sfms-daily-fwi-${SUFFIX}
+title: SFMS Daily Fire Weather Index API${DISPLAY_SUFFIX}
+notes: |
+  The SFMS Daily Fire Weather Index (FWI) API provides daily fire weather index values
+  calculated by the Wildfire Predictive Services Unit (PSU) using the Canadian Forest
+  Fire Weather Index System (CFFDRS).
+
+  FWI values represent the fire danger rating for a given day and location, derived from
+  temperature, relative humidity, wind speed, and 24-hour precipitation observations at
+  BC weather stations.
+
+  Visit the [WPS API specification](https://psu.api.gov.bc.ca/api/docs) for endpoint
+  details and the [Wildfire Predictive Services page](https://wildfiresituation.nrs.gov.bc.ca)
+  for background on how FWI is used operationally.
+
+  Access requires an API key issued through the API Services Portal.
+tags: [sfms, fwi, fire-weather-index, wildfire, fire-danger, cffdrs, openapi]
+organization: ministry-of-forests
+organizationUnit: bc-wildfire-service
+license_title: Open Government Licence - British Columbia
+view_audience: Government
+security_class: PUBLIC
+record_publish_date: "2026-06-30"
