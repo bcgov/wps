@@ -1,4 +1,4 @@
-import { Box } from '@mui/material'
+import { Alert, Box } from '@mui/material'
 import type { FuelType, PlanningArea } from '@wps/api/hfiCalculatorAPI'
 import type { AppDispatch } from 'app/store'
 import AdminCancelButton from 'features/hfiCalculator/components/stationAdmin/AdminCancelButton'
@@ -28,6 +28,7 @@ export interface StationListAdminProps {
   fuelTypes: Pick<FuelType, 'id' | 'abbrev'>[]
   addStationOptions?: AddStationOptions
   existingPlanningAreaStations: { [key: string]: StationAdminRow[] }
+  stationUpdateError?: string | null
   handleClose: () => void
 }
 
@@ -36,6 +37,7 @@ const StationListAdmin = ({
   planningAreas,
   addStationOptions,
   existingPlanningAreaStations,
+  stationUpdateError,
   handleClose
 }: StationListAdminProps) => {
   const dispatch: AppDispatch = useDispatch()
@@ -84,23 +86,30 @@ const StationListAdmin = ({
     })
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const allAdded = Object.values(addedStations).flat()
     const allRemoved = Object.values(removedStations).flat()
     if (every(allAdded, addedStation => !isUndefined(addedStation.station) && !isUndefined(addedStation.fuelType))) {
-      dispatch(
+      const saved = await dispatch(
         fetchAddOrUpdateStations(
           fireCentreId,
           allAdded as Required<StationAdminRow>[],
-          allRemoved as Required<StationAdminRow>[]
+          allRemoved as Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
         )
       )
-      handleClose()
+      if (saved) {
+        handleClose()
+      }
     }
   }
 
   return (
     <Box sx={{ width: '100%', pl: 4 }} aria-labelledby="planning-areas-admin">
+      {stationUpdateError && (
+        <Alert severity="error" sx={{ mb: 2, mr: 4 }} data-testid="station-update-error">
+          {stationUpdateError}
+        </Alert>
+      )}
       {sortBy(planningAreas, planningArea => planningArea.order_of_appearance_in_list).map(area => (
         <PlanningAreaAdmin
           key={`planning-area-admin-${area.id}`}

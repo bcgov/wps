@@ -277,19 +277,20 @@ export const fetchAddOrUpdateStations =
     fireCentreId: number,
     addedStations: Required<StationAdminRow>[],
     removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
-  ): AppThunk =>
+  ): AppThunk<Promise<boolean>> =>
   async dispatch => {
     try {
       dispatch(loadStationUpdateStart())
       await updateStations(fireCentreId, addedStations, removedStations)
       dispatch(loadStationUpdateEnd())
       dispatch(setChangeSaved(true))
+      return true
     } catch (err) {
       dispatch(loadStationUpdateEnd())
       const errorMessage = getErrorMessage(err)
       dispatch(setStationsUpdatedFailed(errorMessage))
-      dispatch(getHFIResultFailed(errorMessage))
       logError(err)
+      return false
     }
   }
 
