@@ -1,4 +1,10 @@
-export type ErrorWithDetails = { response: { data: { detail: unknown } } }
+export type ErrorWithDetails = { response?: { data?: { detail?: unknown } } }
+
+type FastApiValidationError = { msg: unknown }
+
+function hasMessage(value: unknown): value is FastApiValidationError {
+  return typeof value === 'object' && value !== null && 'msg' in value
+}
 
 function getDetail(error: ErrorWithDetails): string {
   const detail = error?.response?.data?.detail
@@ -10,7 +16,7 @@ function getDetail(error: ErrorWithDetails): string {
   if (Array.isArray(detail)) {
     return detail
       .map(item => {
-        if (typeof item === 'object' && item !== null && 'msg' in item) {
+        if (hasMessage(item)) {
           return String(item.msg)
         }
         return JSON.stringify(item)
