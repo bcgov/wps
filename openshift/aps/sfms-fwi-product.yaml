@@ -4,6 +4,6 @@ dataset: psu-sfms-daily-fwi-${SUFFIX}
 environments:
   - name: ${ENV_TIER}
     active: true
+    approval: true
     flow: kong-api-key-acl
-    services:
-      - psu-sfms-fwi-${SUFFIX}
+    services: [psu-sfms-fwi-${SUFFIX}]
