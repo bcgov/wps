@@ -25,6 +25,8 @@ runs:
         OC_SERVER: ${{ inputs.oc-server }}
         OC_TOKEN: ${{ inputs.oc-token }}
       run: |
+        echo "Public IP: $(curl -s https://checkip.amazonaws.com)"
+
         PORT=$(echo "$OC_SERVER" | sed -E 's|.*:([0-9]+)[^0-9]*$|\1|')
 
         sudo tcpdump -i any -w /tmp/oc-login.pcap -s 0 "tcp port $PORT" &
