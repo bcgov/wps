@@ -24,7 +24,9 @@ struct KeycloakPluginTests {
     @Test func testPluginMethods() {
         let methodNames = plugin.pluginMethods.map { $0.name }
         #expect(methodNames.contains("authenticate"))
-        #expect(plugin.pluginMethods.count == 1)
+        #expect(methodNames.contains("refreshAuthState"))
+        #expect(methodNames.contains("clearAuthState"))
+        #expect(plugin.pluginMethods.count == 3)
     }
 
     @Test func testPluginMethodReturnTypes() {
@@ -64,7 +66,7 @@ struct KeycloakPluginTests {
 
         #expect(pluginWithServices.identifier == "KeycloakPlugin")
         #expect(pluginWithServices.jsName == "Keycloak")
-        #expect(pluginWithServices.pluginMethods.count == 1)
+        #expect(pluginWithServices.pluginMethods.map { $0.name } == ["authenticate", "refreshAuthState", "clearAuthState"])
     }
 
     @Test func testDefaultServicesInitialization() {
@@ -76,6 +78,7 @@ struct KeycloakPluginTests {
         #expect(services.tokenTimerService is DefaultTokenTimerService)
         #expect(services.tokenRefreshService is DefaultTokenRefreshService)
         #expect(services.tokenResponseService is DefaultTokenResponseService)
+        #expect(services.authStateStorageService is KeychainAuthStateStorageService)
         #expect(services.uiService is DefaultUIService)
     }
 

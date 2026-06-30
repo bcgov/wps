@@ -312,7 +312,6 @@ describe('App', () => {
       authentication: {
         sessionMode: 'authenticated',
         authenticating: false,
-        tokenRefreshed: false,
         token: undefined,
         idToken: undefined,
         idir: undefined,

@@ -8,8 +8,8 @@ import authenticationSlice, {
   authenticateFinished,
   authenticateStart,
   continueAsGuest,
+  continueAsGuestSession,
   initialState,
-  refreshTokenFinished,
   resetAuthentication
 } from '@/slices/authenticationSlice'
 import { createTestStore } from '@/testUtils'
@@ -17,6 +17,7 @@ import { Keycloak } from '../../../keycloak/src'
 
 interface TokenResponse {
   accessToken: string
+  idToken?: string
   refreshToken?: string
   tokenType?: string
   expiresIn?: number
@@ -31,7 +32,8 @@ const mockValidToken =
 vi.mock('../../../keycloak/src', () => ({
   Keycloak: {
     authenticate: vi.fn(),
-    addListener: vi.fn()
+    addListener: vi.fn(),
+    clearAuthState: vi.fn()
   }
 }))
 
@@ -61,6 +63,7 @@ describe('authenticationSlice', () => {
 
   const createTokenResponse = (overrides: Partial<TokenResponse> = {}): TokenResponse => ({
     accessToken: mockValidToken,
+    idToken: 'new-id-token',
     refreshToken: 'new-refresh-token',
     tokenType: 'Bearer',
     expiresIn: 3600,
@@ -122,7 +125,8 @@ describe('authenticationSlice', () => {
         sessionMode: 'authenticated',
         token: 'existing-token',
         idToken: 'existing-id-token',
-        idir: 'test-user'
+        idir: 'test-user',
+        email: 'test@example.com'
       })
 
       const nextState = authenticationSlice(previousState, continueAsGuest())
@@ -133,6 +137,7 @@ describe('authenticationSlice', () => {
         token: undefined,
         idToken: undefined,
         idir: undefined,
+        email: undefined,
         error: null
       })
     })
@@ -157,7 +162,11 @@ describe('authenticationSlice', () => {
     it('should handle authenticateError', () => {
       const previousState = createAuthState({
         authenticating: true,
-        sessionMode: 'authenticated'
+        sessionMode: 'authenticated',
+        token: 'existing-token',
+        idToken: 'existing-id-token',
+        idir: 'test-user',
+        email: 'test@example.com'
       })
       const errorMessage = 'Authentication failed'
 
@@ -166,66 +175,35 @@ describe('authenticationSlice', () => {
       expectAuthState(nextState, {
         sessionMode: 'login',
         authenticating: false,
-        error: errorMessage
-      })
-    })
-
-    it('should handle refreshTokenFinished', () => {
-      const previousState = createAuthState({
-        token: 'old-token',
-        idToken: 'old-id-token',
-        tokenRefreshed: false
-      })
-      const payload = {
-        tokenRefreshed: true,
-        token: mockValidToken,
-        idToken: 'new-id-token'
-      }
-
-      const nextState = authenticationSlice(previousState, refreshTokenFinished(payload))
-
-      expectAuthState(nextState, {
-        sessionMode: 'authenticated',
-        token: mockValidToken,
-        idToken: 'new-id-token',
-        tokenRefreshed: true
-      })
-    })
-
-    it('should handle refreshTokenFinished with undefined tokens', () => {
-      const previousState = createAuthState({
-        token: 'existing-token',
-        idToken: 'existing-id-token',
-        tokenRefreshed: false
-      })
-      const payload = {
-        tokenRefreshed: false,
+        error: errorMessage,
         token: undefined,
-        idToken: undefined
-      }
-
-      const nextState = authenticationSlice(previousState, refreshTokenFinished(payload))
-
-      expect(nextState.token).toBeUndefined()
-      expect(nextState.idToken).toBeUndefined()
-      expect(nextState.tokenRefreshed).toBe(false)
+        idToken: undefined,
+        idir: undefined,
+        email: undefined
+      })
     })
 
     it('should handle resetAuthentication', () => {
       const previousState = createAuthState({
         sessionMode: 'authenticated',
+        authenticating: true,
         token: 'existing-token',
         idToken: 'existing-id-token',
-        idir: 'test-user'
+        idir: 'test-user',
+        email: 'test@example.com',
+        error: 'existing-error'
       })
 
       const nextState = authenticationSlice(previousState, resetAuthentication())
 
       expectAuthState(nextState, {
         sessionMode: 'login',
+        authenticating: false,
         token: undefined,
         idToken: undefined,
-        idir: undefined
+        idir: undefined,
+        email: undefined,
+        error: null
       })
     })
   })
@@ -325,10 +303,9 @@ describe('authenticationSlice', () => {
         tokenRefreshCallback(tokenResponse)
 
         expectAuthState(store.getState().authentication, {
-          tokenRefreshed: true,
-          token: mockValidToken
+          token: mockValidToken,
+          idToken: 'new-id-token'
         })
-        expect(store.getState().authentication.idToken).toBeUndefined()
         expect(mockSetUser).toHaveBeenCalledWith({ email: 'john.doe@contact.com' })
       })
 
@@ -345,8 +322,46 @@ describe('authenticationSlice', () => {
         tokenRefreshCallback(tokenResponse)
 
         const finalState = store.getState().authentication
-        expect(finalState.tokenRefreshed).toBe(initialState.tokenRefreshed)
         expect(finalState.token).toBe(initialState.token)
+      })
+
+      it('clears native auth state before continuing as guest', async () => {
+        ;(Keycloak.clearAuthState as Mock).mockResolvedValue(undefined)
+        const store = createTestStore({
+          authentication: createAuthState({
+            sessionMode: 'authenticated',
+            token: mockValidToken,
+            idToken: 'existing-id-token',
+            idir: 'test-user',
+            email: 'test@example.com'
+          })
+        })
+
+        await store.dispatch(continueAsGuestSession())
+
+        expect(Keycloak.clearAuthState).toHaveBeenCalled()
+        expectAuthState(store.getState().authentication, {
+          sessionMode: 'guest',
+          token: undefined,
+          idToken: undefined,
+          idir: undefined,
+          email: undefined
+        })
+        expect(mockSetUser).toHaveBeenCalledWith(null)
+      })
+
+      it('continues as guest when native auth clear fails', async () => {
+        ;(Keycloak.clearAuthState as Mock).mockRejectedValue(new Error('clear failed'))
+        const store = createTestStore({
+          authentication: createAuthState({
+            sessionMode: 'authenticated',
+            token: mockValidToken
+          })
+        })
+
+        await store.dispatch(continueAsGuestSession())
+
+        expect(store.getState().authentication.sessionMode).toBe('guest')
       })
     })
   })
