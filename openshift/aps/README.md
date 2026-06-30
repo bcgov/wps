@@ -93,8 +93,15 @@ Dataset and Product — delete from the API Directory:
 ```bash
 gwa login
 gwa config set --gateway <gateway-id>
-TOKEN=$(python3 -c "import yaml; c=yaml.safe_load(open('$HOME/.gwa-config.yaml')); print(c['api_key'])")
+TOKEN=$(grep 'api_key:' ~/.gwa-config.yaml | awk '{print $2}')
 BASE="https://api.gov.bc.ca/ds/api/v3/gateways/<gateway-id>"
+
+# Dataset: delete by name
 curl -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-<suffix>" -H "Authorization: Bearer ${TOKEN}"
-curl -X DELETE "${BASE}/products/SFMS%20Daily%20Fire%20Weather%20Index%20%28<suffix>%29" -H "Authorization: Bearer ${TOKEN}"
+
+# Product: the DELETE endpoint uses appId, not the product name
+PRODUCT_NAME="SFMS Daily Fire Weather Index (<suffix>)"
+PRODUCT_APP_ID=$(curl -s "${BASE}/products" -H "Authorization: Bearer ${TOKEN}" | \
+  jq -r --arg name "${PRODUCT_NAME}" '.[] | select(.name==$name) | .appId // empty')
+curl -X DELETE "${BASE}/products/${PRODUCT_APP_ID}" -H "Authorization: Bearer ${TOKEN}"
 ```

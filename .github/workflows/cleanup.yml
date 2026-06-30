@@ -63,7 +63,7 @@ jobs:
           name: sfms-fwi-aps-gateway-config-cleanup-pr-${{ github.event.number }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
-      - name: Delete SFMS FWI dataset and product from test API Directory
+      - name: Delete SFMS FWI dataset and product from API Directory
         shell: bash
         env:
           GATEWAY_ID: ${{ env.APS_GATEWAY_ID }}
@@ -78,16 +78,22 @@ jobs:
             --client-id="${GWA_CLIENT_ID}" \
             --client-secret="${GWA_CLIENT_SECRET}"
 
-          TOKEN=$(python3 -c "import yaml; c=yaml.safe_load(open('${HOME}/.gwa-config.yaml')); print(c['api_key'])")
+          TOKEN=$(grep 'api_key:' "${HOME}/.gwa-config.yaml" | awk '{print $2}')
           BASE="https://${APS_HOST}/ds/api/v3/gateways/${GATEWAY_ID}"
 
           curl -sf -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-${SUFFIX}" \
             -H "Authorization: Bearer ${TOKEN}" || echo "Dataset not found or already deleted"
 
           PRODUCT_NAME="SFMS Daily Fire Weather Index (${SUFFIX})"
-          ENCODED=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "${PRODUCT_NAME}")
-          curl -sf -X DELETE "${BASE}/products/${ENCODED}" \
-            -H "Authorization: Bearer ${TOKEN}" || echo "Product not found or already deleted"
+          PRODUCT_APP_ID=$(curl -sf "${BASE}/products" \
+            -H "Authorization: Bearer ${TOKEN}" | \
+            jq -r --arg name "${PRODUCT_NAME}" '.[] | select(.name==$name) | .appId // empty')
+          if [ -n "${PRODUCT_APP_ID}" ]; then
+            curl -sf -X DELETE "${BASE}/products/${PRODUCT_APP_ID}" \
+              -H "Authorization: Bearer ${TOKEN}" || echo "Product delete failed"
+          else
+            echo "Product not found or already deleted"
+          fi
 
       - uses: ./.github/actions/oc-login
         with:
