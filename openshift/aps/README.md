@@ -71,21 +71,12 @@ gwa config set --gateway <gateway-id>
 gwa publish-gateway ./sfms-fwi-gw-config-prod.yaml --qualifier fwi-prod
 ```
 
-**Dataset and Product:**
-
 ```bash
 openshift/scripts/render_sfms_fwi_aps_resources.sh prod /tmp/sfms-fwi-prod
 
 gwa login
 gwa config set --gateway <gateway-id>
 gwa apply -i /tmp/sfms-fwi-prod/sfms-fwi-dataset-prod.yaml
-gwa apply -i /tmp/sfms-fwi-prod/sfms-fwi-product-prod.yaml
-```
-
-Once the listing looks correct in the API Directory, enable the environment:
-
-```bash
-# Edit sfms-fwi-product.yaml: set active: true, then re-apply.
 gwa apply -i /tmp/sfms-fwi-prod/sfms-fwi-product-prod.yaml
 ```
 
