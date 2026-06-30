@@ -17,8 +17,8 @@ import {
   updateStations
 } from '@wps/api/hfiCalculatorAPI'
 import { logError } from '@wps/utils/error'
+import { getErrorMessage } from '@wps/utils/getError'
 import type { AppThunk } from 'app/store'
-import axios from 'axios'
 import type {
   AddStationOptions,
   StationAdminRow
@@ -83,6 +83,7 @@ const dailiesSlice = createSlice({
     },
     loadStationUpdateStart(state: HFICalculatorState) {
       state.stationsUpdateLoading = true
+      state.stationsUpdatedError = null
     },
     loadStationUpdateEnd(state: HFICalculatorState) {
       state.stationsUpdateLoading = false
@@ -276,20 +277,20 @@ export const fetchAddOrUpdateStations =
     fireCentreId: number,
     addedStations: Required<StationAdminRow>[],
     removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
-  ): AppThunk =>
+  ): AppThunk<Promise<boolean>> =>
   async dispatch => {
     try {
       dispatch(loadStationUpdateStart())
       await updateStations(fireCentreId, addedStations, removedStations)
       dispatch(loadStationUpdateEnd())
       dispatch(setChangeSaved(true))
+      return true
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        dispatch(getHFIResultFailed(err.response?.data.detail))
-      } else {
-        dispatch(getHFIResultFailed((err as Error).toString()))
-      }
+      dispatch(loadStationUpdateEnd())
+      const errorMessage = getErrorMessage(err)
+      dispatch(setStationsUpdatedFailed(errorMessage))
       logError(err)
+      return false
     }
   }
 

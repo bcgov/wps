@@ -2,7 +2,7 @@
 
 from typing import List, Tuple
 
-from sqlalchemy import desc, insert, update
+from sqlalchemy import desc, insert, tuple_, update
 from sqlalchemy.engine import Row
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm import Session
@@ -198,21 +198,22 @@ def get_planning_areas(session: Session, fire_centre_id: int):
 def get_stations_for_removal(session: Session, station_requests: List[HFIAdminRemovedStation]):
     """Returns the station model requested to remove, along with all
     stations in in planning area, in ascending order."""
-    remove_request_planning_area_ids = [request.planning_area_id for request in station_requests]
-    remove_request_station_codes = [request.station_code for request in station_requests]
+    remove_request_keys = [
+        (request.planning_area_id, request.station_code) for request in station_requests
+    ]
 
-    # ordering is 1-based, row_id is 0-based
-    remove_request_orders = [request.row_id + 1 for request in station_requests]
+    if not remove_request_keys:
+        return []
 
     stations_to_remove = (
         session.query(PlanningWeatherStation)
-        .filter(PlanningWeatherStation.planning_area_id.in_(remove_request_planning_area_ids))
-        .filter(PlanningWeatherStation.station_code.in_(remove_request_station_codes))
         .filter(
-            PlanningWeatherStation.order_of_appearance_in_planning_area_list.in_(
-                remove_request_orders
-            )
+            tuple_(
+                PlanningWeatherStation.planning_area_id,
+                PlanningWeatherStation.station_code,
+            ).in_(remove_request_keys)
         )
+        .filter(PlanningWeatherStation.is_deleted == False)
         .all()
     )
     return stations_to_remove

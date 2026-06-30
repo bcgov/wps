@@ -114,6 +114,7 @@ export const ManageStationsModal = ({
               planningAreas={planningAreas}
               fuelTypes={fuelTypes}
               existingPlanningAreaStations={existingStations}
+              stationUpdateError={stationsUpdatedError}
               addStationOptions={{
                 planningAreaOptions: planning_areas,
                 stationOptions: stations,
