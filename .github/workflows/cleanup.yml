@@ -72,16 +72,14 @@ jobs:
           SUFFIX: ${{ env.SUFFIX }}
         run: |
           set -euo pipefail
-          APS_TEST_HOST="api-gov-bc-ca.test.api.gov.bc.ca"
+          APS_HOST="api.gov.bc.ca"
 
-          # Re-login against the test portal so ~/.gwa-config.yaml holds a valid token for it.
-          gwa config set host "${APS_TEST_HOST}"
           gwa login \
             --client-id="${GWA_CLIENT_ID}" \
             --client-secret="${GWA_CLIENT_SECRET}"
 
           TOKEN=$(python3 -c "import yaml; c=yaml.safe_load(open('${HOME}/.gwa-config.yaml')); print(c['api_key'])")
-          BASE="https://${APS_TEST_HOST}/ds/api/v3/gateways/${GATEWAY_ID}"
+          BASE="https://${APS_HOST}/ds/api/v3/gateways/${GATEWAY_ID}"
 
           curl -sf -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-${SUFFIX}" \
             -H "Authorization: Bearer ${TOKEN}" || echo "Dataset not found or already deleted"
