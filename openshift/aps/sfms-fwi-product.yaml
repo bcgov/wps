@@ -6,4 +6,4 @@ environments:
     active: true
     flow: kong-api-key-acl
     services:
-      - name: psu-sfms-fwi-${SUFFIX}
+      - psu-sfms-fwi-${SUFFIX}
