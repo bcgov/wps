@@ -50,42 +50,38 @@ public class Keycloak {
     }
 
     private CompletableFuture<Void> restoreAuthStateAsync() {
-        CompletableFuture<Void> restoreFuture = new CompletableFuture<>();
-
         if (authStateStore == null) {
             Log.d(TAG, "No auth state store, creating new");
-            restoreFuture.complete(null);
-            return restoreFuture;
+            return CompletableFuture.completedFuture(null);
         }
 
-        IO_EXECUTOR.execute(() -> {
-            String stateJson = authStateStore.read();
-            if (stateJson == null) {
-                Log.d(TAG, "No saved auth state, creating new");
-                restoreFuture.complete(null);
-                return;
-            }
-
-            AuthState restoredAuthState;
-            try {
-                restoredAuthState = AuthState.jsonDeserialize(stateJson);
-            } catch (JSONException e) {
-                Log.e(TAG, "Failed to restore auth state", e);
-                restoreFuture.complete(null);
-                return;
-            }
-
-            refreshHandler.post(() -> {
-                if (!authState.isAuthorized()) {
-                    authState = restoredAuthState;
-                    Log.d(TAG, "Restored auth state from storage");
-                    checkAndRefreshToken();
+        return CompletableFuture
+            .supplyAsync(authStateStore::read, IO_EXECUTOR)
+            .thenCompose(stateJson -> {
+                if (stateJson == null) {
+                    Log.d(TAG, "No saved auth state, creating new");
+                    return CompletableFuture.completedFuture(null);
                 }
-                restoreFuture.complete(null);
-            });
-        });
 
-        return restoreFuture;
+                AuthState restoredAuthState;
+                try {
+                    restoredAuthState = AuthState.jsonDeserialize(stateJson);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to restore auth state", e);
+                    return CompletableFuture.completedFuture(null);
+                }
+
+                CompletableFuture<Void> mainThreadFuture = new CompletableFuture<>();
+                refreshHandler.post(() -> {
+                    if (!authState.isAuthorized()) {
+                        authState = restoredAuthState;
+                        Log.d(TAG, "Restored auth state from storage");
+                        checkAndRefreshToken();
+                    }
+                    mainThreadFuture.complete(null);
+                });
+                return mainThreadFuture;
+            });
     }
 
     private void persistAuthState() {
