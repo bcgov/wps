@@ -190,7 +190,7 @@ jobs:
   deploy-sfms-fwi-dev:
     name: Deploy SFMS FWI API to Dev
     if: github.triggering_actor != 'renovate'
-    needs: [build-image]
+    needs: [build-image, prepare-dev-database]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6

@@ -21,6 +21,12 @@ parameters:
   - name: GLOBAL_NAME
     description: Name of global module
     value: wps-global
+  - name: CRUNCHYDB_USER
+    description: Name of crunchydb user details key
+    required: true
+  - name: POSTGRES_DATABASE
+    description: Postgres DB name
+    required: true
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-### or prod
     required: true
@@ -81,6 +87,38 @@ objects:
               env:
                 - name: APP_MODULE
                   value: app.sfms_fwi_main:app
+                - name: POSTGRES_READ_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: POSTGRES_WRITE_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: user
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: password
+                - name: POSTGRES_WRITE_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: POSTGRES_READ_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-host
+                - name: POSTGRES_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${CRUNCHYDB_USER}
+                      key: pgbouncer-port
+                - name: POSTGRES_DATABASE
+                  value: ${POSTGRES_DATABASE}
                 - name: PORT
                   value: "8080"
                 - name: ENVIRONMENT
