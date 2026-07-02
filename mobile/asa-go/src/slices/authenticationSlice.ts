@@ -107,11 +107,6 @@ const registerTokenRefreshListener = (dispatch: AppDispatch) => {
   }
 }
 
-export const resetTokenRefreshListenerForTests = () => {
-  // reset module-level listener state without forcing Vitest to reload the dependency graph
-  tokenRefreshListenerActive = false
-}
-
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
   registerTokenRefreshListener(dispatch)

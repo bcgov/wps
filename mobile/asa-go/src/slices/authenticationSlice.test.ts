@@ -1,20 +1,16 @@
 // @vitest-environment node
 
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { describe, expect, it, type Mock, vi } from 'vitest'
 import authenticationSlice, {
   type AuthState,
-  authenticate,
   authenticateError,
   authenticateFinished,
   authenticateStart,
   continueAsGuest,
-  continueAsGuestSession,
   initialState,
-  resetAuthentication,
-  resetTokenRefreshListenerForTests
+  resetAuthentication
 } from '@/slices/authenticationSlice'
 import { createTestStore } from '@/testUtils'
-import { Keycloak } from '../../../keycloak/src'
 
 interface TokenResponse {
   accessToken: string
@@ -24,6 +20,9 @@ interface TokenResponse {
   expiresIn?: number
   scope?: string
 }
+
+type KeycloakModule = typeof import('../../../keycloak/src')
+type KeycloakPlugin = KeycloakModule['Keycloak']
 
 // Mock valid JWT token with idir_username and email claims
 const mockValidToken =
@@ -73,25 +72,32 @@ describe('authenticationSlice', () => {
   })
 
   // Test helpers for thunk tests
-  const setupStoreWithMockAuth = (mockReturnValue: unknown) => {
+  const setupStoreWithMockAuth = (keycloak: KeycloakPlugin, mockReturnValue: unknown) => {
     const store = createTestStore()
-    ;(Keycloak.authenticate as Mock).mockResolvedValue(mockReturnValue)
+    ;(keycloak.authenticate as Mock).mockResolvedValue(mockReturnValue)
     return store
   }
 
-  const setupTokenRefreshListener = (store: ReturnType<typeof createTestStore>) => {
+  const setupTokenRefreshListener = (keycloak: KeycloakPlugin) => {
     let tokenRefreshCallback: (tokenResponse: TokenResponse) => void = () => {}
 
-    ;(Keycloak.addListener as Mock).mockImplementation((event, callback) => {
+    ;(keycloak.addListener as Mock).mockImplementation((event, callback) => {
       if (event === 'tokenRefresh') {
         tokenRefreshCallback = callback
       }
     })
 
     return {
-      store,
       tokenRefreshCallback: (response: TokenResponse) => tokenRefreshCallback(response)
     }
+  }
+
+  const loadFreshAuthModules = async () => {
+    vi.resetAllMocks()
+    vi.resetModules()
+    const auth = await import('@/slices/authenticationSlice')
+    const { Keycloak } = await import('../../../keycloak/src')
+    return { auth, Keycloak }
   }
 
   const expectAuthState = (state: AuthState, expected: Partial<AuthState>) => {
@@ -210,16 +216,12 @@ describe('authenticationSlice', () => {
   })
 
   describe('thunks', () => {
-    beforeEach(() => {
-      vi.resetAllMocks()
-      resetTokenRefreshListenerForTests()
-    })
-
     describe('authenticate', () => {
       it('should dispatch authenticateStart when called', async () => {
-        const store = setupStoreWithMockAuth(createSuccessfulAuthResult())
+        const { auth, Keycloak } = await loadFreshAuthModules()
+        const store = setupStoreWithMockAuth(Keycloak, createSuccessfulAuthResult())
 
-        await store.dispatch(authenticate())
+        await store.dispatch(auth.authenticate())
 
         expectAuthState(store.getState().authentication, {
           authenticating: false // Should be false after completion
@@ -227,12 +229,13 @@ describe('authenticationSlice', () => {
       })
 
       it('should dispatch authenticateFinished on successful authentication', async () => {
+        const { auth, Keycloak } = await loadFreshAuthModules()
         const mockResult = createSuccessfulAuthResult({
           accessToken: mockValidToken
         })
-        const store = setupStoreWithMockAuth(mockResult)
+        const store = setupStoreWithMockAuth(Keycloak, mockResult)
 
-        await store.dispatch(authenticate())
+        await store.dispatch(auth.authenticate())
 
         expectAuthState(store.getState().authentication, {
           sessionMode: 'authenticated',
@@ -245,10 +248,11 @@ describe('authenticationSlice', () => {
       })
 
       it('should dispatch authenticateError on failed authentication with error message', async () => {
+        const { auth, Keycloak } = await loadFreshAuthModules()
         const mockResult = createFailedAuthResult('Invalid credentials')
-        const store = setupStoreWithMockAuth(mockResult)
+        const store = setupStoreWithMockAuth(Keycloak, mockResult)
 
-        await store.dispatch(authenticate())
+        await store.dispatch(auth.authenticate())
 
         expectAuthState(store.getState().authentication, {
           sessionMode: 'login',
@@ -258,10 +262,11 @@ describe('authenticationSlice', () => {
       })
 
       it('should dispatch authenticateError on failed authentication without error message', async () => {
+        const { auth, Keycloak } = await loadFreshAuthModules()
         const mockResult = createFailedAuthResult()
-        const store = setupStoreWithMockAuth(mockResult)
+        const store = setupStoreWithMockAuth(Keycloak, mockResult)
 
-        await store.dispatch(authenticate())
+        await store.dispatch(auth.authenticate())
 
         expectAuthState(store.getState().authentication, {
           sessionMode: 'login',
@@ -273,9 +278,10 @@ describe('authenticationSlice', () => {
       // Note: Testing promise rejection scenarios is complex due to async thunk behavior
       // The important flows (success and handled errors) are covered above
       it('should call Keycloak.authenticate when authentication is initiated', async () => {
-        const store = setupStoreWithMockAuth(createSuccessfulAuthResult())
+        const { auth, Keycloak } = await loadFreshAuthModules()
+        const store = setupStoreWithMockAuth(Keycloak, createSuccessfulAuthResult())
 
-        await store.dispatch(authenticate())
+        await store.dispatch(auth.authenticate())
 
         // Verify Keycloak.authenticate was called with the expected mocked values
         expect(Keycloak.authenticate).toHaveBeenCalledWith({
@@ -287,27 +293,30 @@ describe('authenticationSlice', () => {
       })
 
       it('should set up token refresh listener', async () => {
-        const store = setupStoreWithMockAuth(createSuccessfulAuthResult())
+        const { auth, Keycloak } = await loadFreshAuthModules()
+        const store = setupStoreWithMockAuth(Keycloak, createSuccessfulAuthResult())
 
-        await store.dispatch(authenticate())
+        await store.dispatch(auth.authenticate())
 
         expect(Keycloak.addListener).toHaveBeenCalledWith('tokenRefresh', expect.any(Function))
       })
 
       it('registers the token refresh listener once across repeated authentication attempts', async () => {
-        const store = setupStoreWithMockAuth(createSuccessfulAuthResult())
+        const { auth, Keycloak } = await loadFreshAuthModules()
+        const store = setupStoreWithMockAuth(Keycloak, createSuccessfulAuthResult())
 
-        await store.dispatch(authenticate())
-        await store.dispatch(authenticate())
+        await store.dispatch(auth.authenticate())
+        await store.dispatch(auth.authenticate())
 
         expect(Keycloak.addListener).toHaveBeenCalledTimes(1)
       })
 
       it('should handle token refresh callback correctly', async () => {
-        const store = setupStoreWithMockAuth(createSuccessfulAuthResult())
-        const { tokenRefreshCallback } = setupTokenRefreshListener(store)
+        const { auth, Keycloak } = await loadFreshAuthModules()
+        const store = setupStoreWithMockAuth(Keycloak, createSuccessfulAuthResult())
+        const { tokenRefreshCallback } = setupTokenRefreshListener(Keycloak)
 
-        await store.dispatch(authenticate())
+        await store.dispatch(auth.authenticate())
 
         // Simulate token refresh
         const tokenResponse = createTokenResponse()
@@ -321,10 +330,11 @@ describe('authenticationSlice', () => {
       })
 
       it('should not update state when token refresh has no refresh token', async () => {
-        const store = setupStoreWithMockAuth(createSuccessfulAuthResult())
-        const { tokenRefreshCallback } = setupTokenRefreshListener(store)
+        const { auth, Keycloak } = await loadFreshAuthModules()
+        const store = setupStoreWithMockAuth(Keycloak, createSuccessfulAuthResult())
+        const { tokenRefreshCallback } = setupTokenRefreshListener(Keycloak)
 
-        await store.dispatch(authenticate())
+        await store.dispatch(auth.authenticate())
 
         const initialState = store.getState().authentication
 
@@ -337,6 +347,7 @@ describe('authenticationSlice', () => {
       })
 
       it('clears native auth state before continuing as guest', async () => {
+        const { auth, Keycloak } = await loadFreshAuthModules()
         ;(Keycloak.clearAuthState as Mock).mockResolvedValue(undefined)
         const store = createTestStore({
           authentication: createAuthState({
@@ -348,7 +359,7 @@ describe('authenticationSlice', () => {
           })
         })
 
-        await store.dispatch(continueAsGuestSession())
+        await store.dispatch(auth.continueAsGuestSession())
 
         expect(Keycloak.clearAuthState).toHaveBeenCalled()
         expectAuthState(store.getState().authentication, {
@@ -362,6 +373,7 @@ describe('authenticationSlice', () => {
       })
 
       it('continues as guest when native auth clear fails', async () => {
+        const { auth, Keycloak } = await loadFreshAuthModules()
         ;(Keycloak.clearAuthState as Mock).mockRejectedValue(new Error('clear failed'))
         const store = createTestStore({
           authentication: createAuthState({
@@ -370,7 +382,7 @@ describe('authenticationSlice', () => {
           })
         })
 
-        await store.dispatch(continueAsGuestSession())
+        await store.dispatch(auth.continueAsGuestSession())
 
         expect(store.getState().authentication.sessionMode).toBe('guest')
       })
