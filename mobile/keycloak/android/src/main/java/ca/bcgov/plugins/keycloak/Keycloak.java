@@ -11,6 +11,9 @@ import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import net.openid.appauth.*;
 import org.json.JSONException;
 
@@ -19,6 +22,7 @@ public class Keycloak {
     private static final String TAG = "Keycloak";
     private static final long TOKEN_REFRESH_CHECK_INTERVAL = 60000; // Check every 60 seconds
     private static final long TOKEN_EXPIRY_BUFFER = 60000; // Refresh 1 minute before expiry
+    private static final ExecutorService IO_EXECUTOR = Executors.newSingleThreadExecutor();
 
     private AuthorizationService authService;
     private AuthStateStore authStateStore;
@@ -28,6 +32,7 @@ public class Keycloak {
     private Handler refreshHandler;
     private Runnable refreshCheckRunnable;
     private TokenRefreshCallback tokenRefreshCallback;
+    private CompletableFuture<Void> authStateRestoreFuture;
 
     public interface TokenRefreshCallback {
         void onTokenRefreshed(JSObject tokens);
@@ -38,37 +43,61 @@ public class Keycloak {
     public Keycloak(Context context) {
         this.authService = new AuthorizationService(context);
         this.authStateStore = createAuthStateStore(context);
-        this.authState = restoreAuthState();
+        this.authState = new AuthState();
         this.refreshHandler = new Handler(Looper.getMainLooper());
         setupAutomaticRefresh();
+        this.authStateRestoreFuture = restoreAuthStateAsync();
     }
 
-    private AuthState restoreAuthState() {
-        String stateJson = authStateStore != null ? authStateStore.read() : null;
+    private CompletableFuture<Void> restoreAuthStateAsync() {
+        CompletableFuture<Void> restoreFuture = new CompletableFuture<>();
 
-        if (stateJson != null) {
-            try {
-                AuthState restored = AuthState.jsonDeserialize(stateJson);
-                Log.d(TAG, "Restored auth state from storage");
-                return restored;
-            } catch (JSONException e) {
-                Log.e(TAG, "Failed to restore auth state", e);
-            }
+        if (authStateStore == null) {
+            Log.d(TAG, "No auth state store, creating new");
+            restoreFuture.complete(null);
+            return restoreFuture;
         }
 
-        Log.d(TAG, "No saved auth state, creating new");
-        return new AuthState();
+        IO_EXECUTOR.execute(() -> {
+            String stateJson = authStateStore.read();
+            if (stateJson == null) {
+                Log.d(TAG, "No saved auth state, creating new");
+                restoreFuture.complete(null);
+                return;
+            }
+
+            AuthState restoredAuthState;
+            try {
+                restoredAuthState = AuthState.jsonDeserialize(stateJson);
+            } catch (JSONException e) {
+                Log.e(TAG, "Failed to restore auth state", e);
+                restoreFuture.complete(null);
+                return;
+            }
+
+            refreshHandler.post(() -> {
+                if (!authState.isAuthorized()) {
+                    authState = restoredAuthState;
+                    Log.d(TAG, "Restored auth state from storage");
+                    checkAndRefreshToken();
+                }
+                restoreFuture.complete(null);
+            });
+        });
+
+        return restoreFuture;
     }
 
     private void persistAuthState() {
         if (authStateStore != null) {
-            authStateStore.write(authState.jsonSerializeString());
+            String stateJson = authState.jsonSerializeString();
+            IO_EXECUTOR.execute(() -> authStateStore.write(stateJson));
         }
     }
 
     private void clearAuthState() {
         if (authStateStore != null) {
-            authStateStore.clear();
+            IO_EXECUTOR.execute(() -> authStateStore.clear());
         }
         authState = new AuthState();
         Log.d(TAG, "Auth state cleared");
@@ -108,6 +137,17 @@ public class Keycloak {
     }
 
     public boolean authenticateWithStoredState(PluginCall call, Runnable fallbackToBrowser) {
+        if (authStateRestoreFuture != null && !authStateRestoreFuture.isDone()) {
+            authStateRestoreFuture.whenComplete((result, error) ->
+                refreshHandler.post(() -> {
+                    if (!authenticateWithStoredState(call, fallbackToBrowser)) {
+                        fallbackToBrowser.run();
+                    }
+                })
+            );
+            return true;
+        }
+
         if (!authState.isAuthorized()) {
             Log.d(TAG, "No authorized stored auth state available");
             return false;
