@@ -32,7 +32,6 @@ from app.routers import (
     object_store_proxy,
     psu,
     sfms,
-    sfms_fwi,
     sfmsng,
     snow,
     stations,
@@ -136,7 +135,6 @@ api.include_router(hfi_calc.router, tags=["HFI"])
 api.include_router(fba_calc.router, tags=["FBA Calc"])
 api.include_router(fba.router, tags=["Auto Spatial Advisory"])
 api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
-api.include_router(sfms_fwi.router, tags=["SFMS Daily FWI"])
 api.include_router(sfmsng.router, tags=["SFMS Insights"])
 api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])

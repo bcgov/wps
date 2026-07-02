@@ -157,10 +157,15 @@ jobs:
           host: psu-${{ env.SUFFIX }}.api.gov.bc.ca
           suffix: ${{ env.SUFFIX }}
 
-      - name: Allow APS to reach wps-api (SFMS FWI gateway)
+      - name: Deploy SFMS FWI API to Dev
         shell: bash
         run: |
-          bash openshift/scripts/oc_provision_api_gateway_networkpolicy.sh ${SUFFIX} apply
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms_fwi_api.sh ${SUFFIX} apply
+
+      - name: Allow APS to reach SFMS FWI API
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_sfms_fwi_gateway_networkpolicy.sh ${SUFFIX} apply
 
       - name: Render and publish SFMS FWI APS gateway config
         uses: ./.github/actions/sfms-fwi-aps-publish

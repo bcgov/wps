@@ -1,20 +1,20 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: allow-gateway-to-wps-api
+  name: allow-gateway-to-wps-sfms-fwi-api
 objects:
   - apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
-      name: allow-gateway-to-${APP_NAME}-api-${SUFFIX}
+      name: allow-gateway-to-${APP_NAME}-${SUFFIX}-sfms-fwi
       labels:
-        app: ${APP_NAME}-${SUFFIX}
+        app: ${APP_NAME}-${SUFFIX}-sfms-fwi
     spec:
       policyTypes:
         - Ingress
       podSelector:
         matchLabels:
-          name: ${APP_NAME}-${SUFFIX}
+          name: ${APP_NAME}-${SUFFIX}-sfms-fwi
       ingress:
         - from:
             - namespaceSelector:

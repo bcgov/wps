@@ -6,7 +6,7 @@ services:
   # other service configs.
   - name: ${FWI_SERVICE_NAME}
     tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
-    host: wps-api-${SUFFIX}.${PROJECT_NAMESPACE}.svc
+    host: wps-sfms-fwi-api-${SUFFIX}.${PROJECT_NAMESPACE}.svc
     port: 80
     protocol: http
     routes:

@@ -1,13 +1,14 @@
 """Tests for SFMS daily FWI raster endpoints.
 
-These endpoints are open at the Python level. Authentication is enforced
-by the APS Kong gateway (key-auth plugin).  Tests verify routing, S3 key
-construction, and error handling.
+These endpoints are served by the standalone SFMS FWI service
+(app.sfms_fwi_main), which is not publicly exposed. Authentication is
+enforced by the APS Kong gateway (key-auth plugin). Tests verify routing,
+S3 key construction, and error handling.
 """
 
 from unittest.mock import AsyncMock, MagicMock
 
-import app.main
+import app.sfms_fwi_main
 import pytest
 from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
@@ -45,14 +46,14 @@ class TestDailyFWIRasterDownload:
 
     @pytest.mark.usefixtures("mock_stream_object")
     def test_downloads_fwi_raster(self):
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi")
         assert response.status_code == 200
         assert response.content == b"fake-tif-content"
 
     @pytest.mark.usefixtures("mock_stream_object")
     def test_downloads_each_parameter(self):
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         for param in ("dc", "dmc", "bui", "ffmc", "isi", "fwi"):
             response = client.get(f"{BASE_URL}/2025-11-02/{param}")
             assert response.status_code == 200, f"Expected 200 for parameter {param!r}"
@@ -62,13 +63,13 @@ class TestDailyFWIRasterDownload:
             raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", _raise_not_found)
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi")
         assert response.status_code == 404
 
     @pytest.mark.usefixtures("mock_stream_object")
     def test_invalid_parameter_returns_422(self):
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/invalid_param")
         assert response.status_code == 422
 
@@ -85,7 +86,7 @@ class TestDailyFWIRasterDownload:
             return gen(), {"ContentType": "image/tiff", "ContentLength": 4}
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", _capture_key)
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/ffmc")
         assert len(captured_keys) == 1
         assert "actual" in captured_keys[0]
@@ -97,18 +98,18 @@ class TestHourlyFFMCRasterDownload:
 
     @pytest.mark.usefixtures("mock_stream_object")
     def test_downloads_hourly_ffmc_raster(self):
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert response.status_code == 200
         assert response.content == b"fake-tif-content"
 
     def test_missing_hour_returns_422(self):
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc")
         assert response.status_code == 422
 
     def test_invalid_hour_returns_422(self):
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=25")
         assert response.status_code == 422
 
@@ -125,7 +126,7 @@ class TestHourlyFFMCRasterDownload:
             return gen(), {"ContentType": "image/tiff", "ContentLength": 4}
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", _capture_key)
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert len(captured_keys) == 1
         assert "hourlies" in captured_keys[0]
@@ -139,7 +140,7 @@ class TestDailyFWIValueAtPoint:
         monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5))
 
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
         assert response.status_code == 200
         data = response.json()
@@ -152,7 +153,7 @@ class TestDailyFWIValueAtPoint:
         monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(None))
 
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=0.0&lon=0.0")
         assert response.status_code == 200
         assert response.json()["value"] is None
@@ -162,17 +163,17 @@ class TestDailyFWIValueAtPoint:
             raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
 
         monkeypatch.setattr("app.routers.sfms_fwi.read_object", _raise_not_found)
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
         assert response.status_code == 404
 
     def test_missing_lat_lon_returns_422(self):
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value")
         assert response.status_code == 422
 
     def test_invalid_parameter_returns_422(self):
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/notaparam/value?lat=49.0&lon=-123.0")
         assert response.status_code == 422
 
@@ -184,7 +185,7 @@ class TestHourlyFFMCValueAtPoint:
         monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3))
 
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
         assert response.status_code == 200
         data = response.json()
@@ -194,8 +195,17 @@ class TestHourlyFFMCValueAtPoint:
         assert data["longitude"] == pytest.approx(-123.0)
 
     def test_missing_hour_returns_422(self):
-        client = TestClient(app.main.app)
+        client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc/value?lat=49.0&lon=-123.0")
         assert response.status_code == 422
 
 
+class TestMainAPIDoesNotServeDailyFWI:
+    """The daily FWI routes must only exist on the standalone service."""
+
+    def test_main_api_returns_404_for_daily_fwi(self):
+        import app.main
+
+        client = TestClient(app.main.app)
+        response = client.get(f"{BASE_URL}/2025-11-02/fwi")
+        assert response.status_code == 404

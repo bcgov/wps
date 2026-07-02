@@ -48,7 +48,7 @@ gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier <suffix>
 
 ## SFMS Daily FWI
 
-Exposes `/api/sfms/daily-fwi` from `wps-api` via key-auth and rate-limiting.
+Exposes `/api/sfms/daily-fwi` from the dedicated `wps-sfms-fwi-api` service via key-auth and rate-limiting. The service has no public route — it is reachable only from the APS gateway (see `openshift/templates/allow_gateway_to_wps_sfms_fwi_api.yaml`).
 
 ### Two separate publishing flows
 

@@ -61,11 +61,6 @@ jobs:
           host: psu.api.gov.bc.ca
           suffix: prod
 
-      - name: Allow APS to reach wps-api (SFMS FWI gateway)
-        shell: bash
-        run: |
-          PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_provision_api_gateway_networkpolicy.sh ${SUFFIX} apply
-
       - name: Render and publish SFMS FWI APS gateway config
         uses: ./.github/actions/sfms-fwi-aps-publish
         with:
