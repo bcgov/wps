@@ -116,20 +116,13 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        services.tokenRefreshService.performTokenRefresh(authState: existingAuthState) {
-            [weak self] success, tokenResponse, error in
-            guard let self = self else { return }
-
-            if success {
-                self.authState = existingAuthState
-                self.services.authStateStorageService.saveAuthState(existingAuthState)
-                self.startTokenRefreshManager(authState: existingAuthState)
-                call.resolve(
-                    tokenResponse
-                        ?? self.services.tokenResponseService.createTokenResponse(
-                            from: existingAuthState)
-                )
-            } else {
+        refreshStoredAuthState(
+            authState: existingAuthState,
+            onSuccess: { response in
+                call.resolve(response)
+            },
+            onFailure: { [weak self] error in
+                guard let self = self else { return }
                 self.clearStoredAuthState()
                 call.resolve([
                     "isAuthenticated": false,
@@ -137,7 +130,7 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                     "errorDescription": error ?? "Failed to refresh stored auth state",
                 ])
             }
-        }
+        )
     }
 
     private func refreshExistingAuthState(
@@ -145,8 +138,27 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
         call: CAPPluginCall,
         fallbackAuthenticationParameters parameters: AuthenticationParameters
     ) {
+        refreshStoredAuthState(
+            authState: authState,
+            onSuccess: { response in
+                call.resolve(response)
+            },
+            onFailure: { [weak self] _ in
+                guard let self = self else { return }
+                self.authState = nil
+                self.services.authStateStorageService.clearAuthState()
+                self.performAuthentication(parameters: parameters, call: call)
+            }
+        )
+    }
+
+    private func refreshStoredAuthState(
+        authState: OIDAuthState,
+        onSuccess: @escaping ([String: Any]) -> Void,
+        onFailure: @escaping (String?) -> Void
+    ) {
         services.tokenRefreshService.performTokenRefresh(authState: authState) {
-            [weak self] success, tokenResponse, _ in
+            [weak self] success, tokenResponse, error in
             guard let self = self else { return }
 
             if success {
@@ -156,11 +168,9 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                 let response =
                     tokenResponse
                     ?? self.services.tokenResponseService.createTokenResponse(from: authState)
-                call.resolve(response)
+                onSuccess(response)
             } else {
-                self.authState = nil
-                self.services.authStateStorageService.clearAuthState()
-                self.performAuthentication(parameters: parameters, call: call)
+                onFailure(error)
             }
         }
     }
