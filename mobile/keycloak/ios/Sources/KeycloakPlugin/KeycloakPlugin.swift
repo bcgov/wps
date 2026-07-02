@@ -281,6 +281,7 @@ public class KeycloakPlugin: CAPPlugin, CAPBridgedPlugin {
                     self.notifyListeners("tokenRefresh", data: tokenResponse)
                 }
             } else {
+                self.clearStoredAuthState()
                 self.notifyListeners(
                     "tokenRefreshFailed",
                     data: ["error": error ?? "Failed to refresh stored auth state"]

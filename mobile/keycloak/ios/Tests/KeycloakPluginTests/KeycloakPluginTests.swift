@@ -2,6 +2,7 @@ import AppAuth
 import Capacitor
 import Foundation
 import Testing
+import UIKit
 
 @testable import KeycloakPlugin
 
@@ -104,5 +105,109 @@ struct KeycloakPluginTests {
         // Create a minimal auth state for testing
         return OIDAuthState(
             authorizationResponse: nil, tokenResponse: nil, registrationResponse: nil)
+    }
+
+    @Test func testForegroundRefreshFailureClearsStoredAuthState() async throws {
+        let storage = SpyAuthStateStorageService(authState: makeExpiringAuthorizedAuthState())
+        let plugin = KeycloakPlugin(services: KeycloakServices(
+            tokenRefreshService: MockFailingTokenRefreshService(),
+            authStateStorageService: storage
+        ))
+        plugin.load()
+
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            storage.onClearAuthState = { continuation.resume() }
+            NotificationCenter.default.post(
+                name: UIApplication.didBecomeActiveNotification, object: nil)
+        }
+
+        #expect(storage.storedAuthState == nil)
+    }
+
+    private func makeExpiringAuthorizedAuthState() -> OIDAuthState {
+        let config = OIDServiceConfiguration(
+            authorizationEndpoint: URL(string: "https://auth.example.com/auth")!,
+            tokenEndpoint: URL(string: "https://auth.example.com/token")!
+        )
+        let authRequest = OIDAuthorizationRequest(
+            configuration: config,
+            clientId: "test-client",
+            scopes: ["openid"],
+            redirectURL: URL(string: "test://callback")!,
+            responseType: OIDResponseTypeCode,
+            additionalParameters: nil
+        )
+        let authResponse = OIDAuthorizationResponse(
+            request: authRequest,
+            parameters: ["code": "test-code" as NSCopying & NSObjectProtocol]
+        )
+        let tokenRequest = OIDTokenRequest(
+            configuration: config,
+            grantType: OIDGrantTypeAuthorizationCode,
+            authorizationCode: "test-code",
+            redirectURL: URL(string: "test://callback")!,
+            clientID: "test-client",
+            clientSecret: nil,
+            scope: "openid",
+            refreshToken: nil,
+            codeVerifier: nil,
+            additionalParameters: nil
+        )
+        let tokenResponse = OIDTokenResponse(
+            request: tokenRequest,
+            parameters: [
+                "access_token": "test-access-token" as NSCopying & NSObjectProtocol,
+                "refresh_token": "test-refresh-token" as NSCopying & NSObjectProtocol,
+                "token_type": "Bearer" as NSCopying & NSObjectProtocol,
+                "expires_in": NSNumber(value: 30) as NSCopying & NSObjectProtocol,
+            ]
+        )
+        return OIDAuthState(
+            authorizationResponse: authResponse,
+            tokenResponse: tokenResponse,
+            registrationResponse: nil
+        )
+    }
+}
+
+private final class MockFailingTokenRefreshService: TokenRefreshServiceProtocol {
+    func performAutomaticTokenRefresh(
+        authState: OIDAuthState?,
+        onSuccess: @escaping ([String: Any]) -> Void,
+        onFailure: @escaping (String) -> Void,
+        onTokenRefreshed: @escaping () -> Void
+    ) {
+        onFailure("mock-refresh-failed")
+    }
+
+    func performTokenRefresh(
+        authState: OIDAuthState?,
+        completion: @escaping (Bool, [String: Any]?, String?) -> Void
+    ) {
+        completion(false, nil, "mock-refresh-failed")
+    }
+}
+
+private final class SpyAuthStateStorageService: AuthStateStorageServiceProtocol {
+    var storedAuthState: OIDAuthState?
+    var clearAuthStateCalled = false
+    var onClearAuthState: (() -> Void)?
+
+    init(authState: OIDAuthState?) {
+        storedAuthState = authState
+    }
+
+    func saveAuthState(_ authState: OIDAuthState) {
+        storedAuthState = authState
+    }
+
+    func loadAuthState() -> OIDAuthState? {
+        storedAuthState
+    }
+
+    func clearAuthState() {
+        clearAuthStateCalled = true
+        storedAuthState = nil
+        onClearAuthState?()
     }
 }
