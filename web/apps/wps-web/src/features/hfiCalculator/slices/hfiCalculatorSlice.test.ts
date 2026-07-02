@@ -3,6 +3,8 @@ import hfiCalculatorDailiesReducer, {
   fetchFuelTypesStart,
   getHFIResultFailed,
   initialState,
+  loadStationUpdateEnd,
+  loadStationUpdateStart,
   pdfDownloadEnd,
   pdfDownloadStart
 } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
@@ -29,6 +31,23 @@ describe('hfiCalculatorSlice', () => {
       expect(hfiCalculatorDailiesReducer(initialState, pdfDownloadEnd())).toEqual({
         ...initialState,
         pdfLoading: false
+      })
+    })
+    it('should set stationsUpdateLoading = true and clear station update errors when loadStationUpdateStart is called', () => {
+      expect(
+        hfiCalculatorDailiesReducer({ ...initialState, stationsUpdatedError: dummyError }, loadStationUpdateStart())
+      ).toEqual({
+        ...initialState,
+        stationsUpdateLoading: true,
+        stationsUpdatedError: null
+      })
+    })
+    it('should set stationsUpdateLoading = false when loadStationUpdateEnd is called', () => {
+      expect(
+        hfiCalculatorDailiesReducer({ ...initialState, stationsUpdateLoading: true }, loadStationUpdateEnd())
+      ).toEqual({
+        ...initialState,
+        stationsUpdateLoading: false
       })
     })
     it('should set a value for error state when fetchFuelTypesFailed is called', () => {

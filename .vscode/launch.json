@@ -352,6 +352,22 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "SFMS Daily Backfill",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.sfms_daily_backfill",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "--start-date",
+                "2026-06-23",
+                "--end-date",
+                "2026-06-25"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Weather - ECCC Grib Consumer",
             "type": "debugpy",
             "request": "launch",
