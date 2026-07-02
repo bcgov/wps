@@ -13,6 +13,5 @@
     "declarationMap": true,
     "customConditions": ["development"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

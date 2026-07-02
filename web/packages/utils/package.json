@@ -23,7 +23,7 @@
     "@wps/types": "workspace:*"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
     "coverage:ci": "vitest run --coverage",
     "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"

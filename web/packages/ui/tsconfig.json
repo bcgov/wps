@@ -8,6 +8,5 @@
     "customConditions": ["development"],
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "@wps/types"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/setupTests.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
