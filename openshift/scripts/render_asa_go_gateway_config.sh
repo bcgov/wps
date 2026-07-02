@@ -6,15 +6,15 @@
 #%
 #% Usage:
 #%
-#%   PROJECT_NAMESPACE=<namespace> APS_NAMESPACE=<aps-namespace> ASA_GO_HOST=<host> \
+#%   PROJECT_NAMESPACE=<namespace> APS_NAMESPACE=<aps-namespace> GW_HOST=<host> \
 #%   ${THIS_FILE} [SUFFIX] [OUTPUT_PATH]
 #%
 #% Examples:
 #%
-#%   PROJECT_NAMESPACE=e1e498-dev APS_NAMESPACE=dev ASA_GO_HOST=asa-go-pr-0.example.ca \
+#%   PROJECT_NAMESPACE=e1e498-dev APS_NAMESPACE=dev GW_HOST=asa-go-pr-0.example.ca \
 #%   ${THIS_FILE} pr-0
 #%
-#%   PROJECT_NAMESPACE=e1e498-prod APS_NAMESPACE=prod ASA_GO_HOST=asa-go.example.ca \
+#%   PROJECT_NAMESPACE=e1e498-prod APS_NAMESPACE=prod GW_HOST=asa-go.example.ca \
 #%   ${THIS_FILE} prod /tmp/asa-go-gw-config-prod.yaml
 #
 
@@ -45,8 +45,8 @@ TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/asa-go-gw-config.yaml}"
 	exit 1
 }
 
-[ -n "${ASA_GO_HOST:-}" ] || {
-	echo "ASA_GO_HOST is required" >&2
+[ -n "${GW_HOST:-}" ] || {
+	echo "GW_HOST is required" >&2
 	exit 1
 }
 
@@ -63,12 +63,12 @@ mkdir -p "$(dirname "${OUTPUT_PATH}")"
 export SUFFIX
 export PROJECT_NAMESPACE
 export APS_NAMESPACE
-export ASA_GO_HOST
+export GW_HOST
 export ASA_GO_SERVICE_NAME
 
 # only substitute the placeholders this template owns, so unrelated ${...} text is left alone.
 envsubst \
-	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${ASA_GO_HOST} ${ASA_GO_SERVICE_NAME}' \
+	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${GW_HOST} ${ASA_GO_SERVICE_NAME}' \
 	<"${TEMPLATE_PATH}" >"${OUTPUT_PATH}"
 
 echo "${OUTPUT_PATH}"

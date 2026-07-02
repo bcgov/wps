@@ -1,0 +1,66 @@
+name: Gateway Config Publish
+description: Render, publish, and upload an APS gateway configuration
+
+inputs:
+  config-name:
+    description: Short name used for the rendered config path and artifact name (e.g. asa-go, sfms-fwi)
+    required: true
+  render-script:
+    description: Repo-relative render script; must accept [SUFFIX] [OUTPUT_PATH] args and read APS_NAMESPACE, PROJECT_NAMESPACE, and GW_HOST from the environment
+    required: true
+  gateway-id:
+    description: APS gateway id
+    required: true
+  client-id:
+    description: APS service account client id
+    required: true
+  client-secret:
+    description: APS service account client secret
+    required: true
+  suffix:
+    description: Config suffix used for service naming, tag scope, and the gwa qualifier
+    required: true
+  qualifier-prefix:
+    description: Optional prefix prepended to the suffix to form the gwa publish-gateway qualifier (e.g. "fwi-")
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Render ${{ inputs.config-name }} APS gateway config
+      shell: bash
+      env:
+        APS_NAMESPACE: ${{ inputs.gateway-id }}
+        SUFFIX: ${{ inputs.suffix }}
+        CONFIG_NAME: ${{ inputs.config-name }}
+      run: |
+        set -euo pipefail
+        # Prod uses the bare vanity host and prod namespace; PRs are suffixed and live in dev.
+        if [ "${SUFFIX}" = "prod" ]; then
+          export GW_HOST="psu.api.gov.bc.ca"
+          export PROJECT_NAMESPACE="e1e498-prod"
+        else
+          export GW_HOST="psu-${SUFFIX}.api.gov.bc.ca"
+          export PROJECT_NAMESPACE="e1e498-dev"
+        fi
+        CONFIG_PATH=".github/tmp/${CONFIG_NAME}-gw-config-${SUFFIX}.yaml"
+        mkdir -p "$(dirname "${CONFIG_PATH}")"
+        bash "${{ github.workspace }}/${{ inputs.render-script }}" \
+          "${SUFFIX}" \
+          "${CONFIG_PATH}"
+
+    - name: Publish ${{ inputs.config-name }} APS gateway config
+      uses: ./.github/actions/gwa-publish
+      with:
+        gateway-id: ${{ inputs.gateway-id }}
+        client-id: ${{ inputs.client-id }}
+        client-secret: ${{ inputs.client-secret }}
+        config-path: .github/tmp/${{ inputs.config-name }}-gw-config-${{ inputs.suffix }}.yaml
+        qualifier: ${{ inputs.qualifier-prefix }}${{ inputs.suffix }}
+
+    - name: Upload ${{ inputs.config-name }} APS gateway config
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.config-name }}-aps-gateway-config-${{ inputs.suffix }}
+        path: .github/tmp/${{ inputs.config-name }}-gw-config-${{ inputs.suffix }}.yaml

@@ -11,7 +11,6 @@ on:
       - "mobile/**"
 
 env:
-  PROJ_DEV: e1e498-dev
   APS_GATEWAY_ID: gw-313f6
   SUFFIX: pr-${{ github.event.number }}
 
@@ -137,54 +136,6 @@ jobs:
         run: |
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
 
-      - name: Deploy ASA Go API to Dev
-        shell: bash
-        run: |
-          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" MEMORY_REQUEST=700Mi MEMORY_LIMIT=1Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
-
-      - name: Allow APS to reach ASA Go API
-        shell: bash
-        run: |
-          bash openshift/scripts/oc_provision_asa_go_gateway_networkpolicy.sh ${SUFFIX} apply
-
-      - name: Render and publish ASA Go APS gateway config
-        uses: ./.github/actions/aps-publish
-        with:
-          gateway-id: ${{ env.APS_GATEWAY_ID }}
-          client-id: ${{ secrets.GWA_ACCT_ID }}
-          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
-          project-namespace: ${{ env.PROJ_DEV }}
-          host: psu-${{ env.SUFFIX }}.api.gov.bc.ca
-          suffix: ${{ env.SUFFIX }}
-
-      - name: Deploy SFMS FWI API to Dev
-        shell: bash
-        run: |
-          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms_fwi_api.sh ${SUFFIX} apply
-
-      - name: Allow APS to reach SFMS FWI API
-        shell: bash
-        run: |
-          bash openshift/scripts/oc_provision_sfms_fwi_gateway_networkpolicy.sh ${SUFFIX} apply
-
-      - name: Render and publish SFMS FWI APS gateway config
-        uses: ./.github/actions/sfms-fwi-aps-publish
-        with:
-          gateway-id: ${{ env.APS_GATEWAY_ID }}
-          client-id: ${{ secrets.GWA_ACCT_ID }}
-          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
-          project-namespace: ${{ env.PROJ_DEV }}
-          host: psu-${{ env.SUFFIX }}.api.gov.bc.ca
-          suffix: ${{ env.SUFFIX }}
-
-      - name: Publish SFMS FWI dataset and product to test API Directory
-        uses: ./.github/actions/sfms-fwi-aps-apply
-        with:
-          gateway-id: ${{ env.APS_GATEWAY_ID }}
-          client-id: ${{ secrets.GWA_ACCT_ID }}
-          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
-          suffix: ${{ env.SUFFIX }}
-
       - name: Provision dev cronjobs and jobs
         shell: bash
         run: |
@@ -210,6 +161,93 @@ jobs:
           SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
           END_HOUR=48 STEP=6 MODEL=GDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
           END_HOUR=15 STEP=3 MODEL=RDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
+
+  deploy-asa-go-dev:
+    name: Deploy ASA Go API to Dev
+    if: github.triggering_actor != 'renovate'
+    needs: [build-image, prepare-dev-database]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/oc-setup
+
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+          oc-namespace: e1e498-dev
+
+      - name: Deploy ASA Go API to Dev
+        shell: bash
+        run: |
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" MEMORY_REQUEST=700Mi MEMORY_LIMIT=1Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
+
+      - name: Allow APS to reach ASA Go API
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_asa_go_gateway_networkpolicy.sh ${SUFFIX} apply
+
+  deploy-sfms-fwi-dev:
+    name: Deploy SFMS FWI API to Dev
+    if: github.triggering_actor != 'renovate'
+    needs: [build-image]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/oc-setup
+
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+          oc-namespace: e1e498-dev
+
+      - name: Deploy SFMS FWI API to Dev
+        shell: bash
+        run: |
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms_fwi_api.sh ${SUFFIX} apply
+
+      - name: Allow APS to reach SFMS FWI API
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_sfms_fwi_gateway_networkpolicy.sh ${SUFFIX} apply
+
+  publish-aps-gateway-dev:
+    name: Publish APS Gateway Config to Dev
+    if: github.triggering_actor != 'renovate'
+    needs: [deploy-asa-go-dev, deploy-sfms-fwi-dev]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Render and publish ASA Go APS gateway config
+        uses: ./.github/actions/gw-config-publish
+        with:
+          config-name: asa-go
+          render-script: openshift/scripts/render_asa_go_gateway_config.sh
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          suffix: ${{ env.SUFFIX }}
+
+      - name: Render and publish SFMS FWI APS gateway config
+        uses: ./.github/actions/gw-config-publish
+        with:
+          config-name: sfms-fwi
+          render-script: openshift/scripts/render_sfms_fwi_gateway_config.sh
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          suffix: ${{ env.SUFFIX }}
+          qualifier-prefix: fwi-
+
+      - name: Publish SFMS FWI dataset and product to test API Directory
+        uses: ./.github/actions/sfms-fwi-aps-apply
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          suffix: ${{ env.SUFFIX }}
 
   scan-dev:
     name: ZAP Baseline Scan Dev

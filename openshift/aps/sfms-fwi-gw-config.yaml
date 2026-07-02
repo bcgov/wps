@@ -13,7 +13,7 @@ services:
       - name: ${FWI_SERVICE_NAME}
         tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
         hosts:
-          - ${FWI_HOST}
+          - ${GW_HOST}
         paths:
           - /api/sfms/daily-fwi
         strip_path: false

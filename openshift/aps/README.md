@@ -28,7 +28,7 @@ See `openshift/scripts/render_asa_go_gateway_config.sh` for render usage.
 ```bash
 APS_NAMESPACE="<gateway-id>" \
 PROJECT_NAMESPACE="<oc-namespace>" \
-ASA_GO_HOST="<public-host>" \
+GW_HOST="<public-host>" \
 openshift/scripts/render_asa_go_gateway_config.sh prod ./asa-go-gw-config-prod.yaml
 
 gwa login
@@ -63,7 +63,7 @@ Exposes `/api/sfms/daily-fwi` from the dedicated `wps-sfms-fwi-api` service via 
 ```bash
 APS_NAMESPACE="<gateway-id>" \
 PROJECT_NAMESPACE="<oc-namespace>" \
-FWI_HOST="<public-host>" \
+GW_HOST="<public-host>" \
 openshift/scripts/render_sfms_fwi_gateway_config.sh prod ./sfms-fwi-gw-config-prod.yaml
 
 gwa login

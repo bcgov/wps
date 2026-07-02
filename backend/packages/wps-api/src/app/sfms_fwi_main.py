@@ -73,7 +73,7 @@ async def catch_exception_middleware(request: Request, call_next):
     try:
         return await call_next(request)
     except Exception as exc:
-        logger.error("%s %s %s", request.method, request.url.path, exc, exc_info=True)
+        logger.exception("%s %s", request.method, request.url.path)
         rc_message = f"Exception occurred {request.method} {request.url.path}"
         send_chatops_notification(rc_message, exc)
         raise
