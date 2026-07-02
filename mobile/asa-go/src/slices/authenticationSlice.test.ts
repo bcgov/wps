@@ -10,7 +10,8 @@ import authenticationSlice, {
   continueAsGuest,
   continueAsGuestSession,
   initialState,
-  resetAuthentication
+  resetAuthentication,
+  resetTokenRefreshListenerForTests
 } from '@/slices/authenticationSlice'
 import { createTestStore } from '@/testUtils'
 import { Keycloak } from '../../../keycloak/src'
@@ -211,6 +212,7 @@ describe('authenticationSlice', () => {
   describe('thunks', () => {
     beforeEach(() => {
       vi.resetAllMocks()
+      resetTokenRefreshListenerForTests()
     })
 
     describe('authenticate', () => {
@@ -290,6 +292,15 @@ describe('authenticationSlice', () => {
         await store.dispatch(authenticate())
 
         expect(Keycloak.addListener).toHaveBeenCalledWith('tokenRefresh', expect.any(Function))
+      })
+
+      it('registers the token refresh listener once across repeated authentication attempts', async () => {
+        const store = setupStoreWithMockAuth(createSuccessfulAuthResult())
+
+        await store.dispatch(authenticate())
+        await store.dispatch(authenticate())
+
+        expect(Keycloak.addListener).toHaveBeenCalledTimes(1)
       })
 
       it('should handle token refresh callback correctly', async () => {

@@ -78,6 +78,8 @@ export const { continueAsGuest, authenticateStart, authenticateFinished, authent
 
 export default authSlice.reducer
 
+let tokenRefreshListenerActive = false
+
 export const continueAsGuestSession = () => async (dispatch: AppDispatch) => {
   try {
     await Keycloak.clearAuthState()
@@ -88,8 +90,31 @@ export const continueAsGuestSession = () => async (dispatch: AppDispatch) => {
   setSentryUserFromToken(undefined)
 }
 
+const registerTokenRefreshListener = (dispatch: AppDispatch) => {
+  if (!tokenRefreshListenerActive) {
+    tokenRefreshListenerActive = true
+    Keycloak.addListener('tokenRefresh', (tokenResponse: KeycloakTokenResponse) => {
+      if (tokenResponse.refreshToken) {
+        dispatch(
+          authenticateFinished({
+            token: tokenResponse.accessToken,
+            idToken: tokenResponse.idToken
+          })
+        )
+        setSentryUserFromToken(tokenResponse.accessToken)
+      }
+    })
+  }
+}
+
+export const resetTokenRefreshListenerForTests = () => {
+  // reset module-level listener state without forcing Vitest to reload the dependency graph
+  tokenRefreshListenerActive = false
+}
+
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
+  registerTokenRefreshListener(dispatch)
 
   const realm = import.meta.env.VITE_KEYCLOAK_REALM
   const authUrl = `${import.meta.env.VITE_KEYCLOAK_AUTH_URL}/realms/${realm}/protocol/openid-connect/auth`
@@ -118,22 +143,6 @@ export const authenticate = (): AppThunk => dispatch => {
     .catch(error => {
       dispatch(authenticateError(JSON.stringify(error)))
     })
-
-  // Handle token refresh callback function
-  const handleTokenRefresh = (tokenResponse: KeycloakTokenResponse) => {
-    if (tokenResponse.refreshToken) {
-      dispatch(
-        authenticateFinished({
-          token: tokenResponse.accessToken,
-          idToken: tokenResponse.idToken
-        })
-      )
-      setSentryUserFromToken(tokenResponse.accessToken)
-    }
-  }
-
-  // Set up event listener for token refresh events (works for both web and iOS)
-  Keycloak.addListener('tokenRefresh', handleTokenRefresh)
 }
 
 export const decodeUserDetails = (token: string | undefined) => {
