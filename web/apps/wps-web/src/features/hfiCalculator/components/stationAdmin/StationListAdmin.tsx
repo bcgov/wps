@@ -1,4 +1,4 @@
-import { Box } from '@mui/material'
+import { Alert, Box } from '@mui/material'
 import type { FuelType, PlanningArea } from '@wps/api/hfiCalculatorAPI'
 import type { AppDispatch } from 'app/store'
 import AdminCancelButton from 'features/hfiCalculator/components/stationAdmin/AdminCancelButton'
@@ -10,7 +10,7 @@ import type {
 import PlanningAreaAdmin from 'features/hfiCalculator/components/stationAdmin/PlanningAreaAdmin'
 import SaveStationUpdatesButton from 'features/hfiCalculator/components/stationAdmin/SaveStationUpdatesButton'
 import { fetchAddOrUpdateStations } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { every, findIndex, isUndefined, maxBy, sortBy } from 'lodash'
+import { every, isUndefined, maxBy, sortBy } from 'lodash'
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 
@@ -28,6 +28,7 @@ export interface StationListAdminProps {
   fuelTypes: Pick<FuelType, 'id' | 'abbrev'>[]
   addStationOptions?: AddStationOptions
   existingPlanningAreaStations: { [key: string]: StationAdminRow[] }
+  stationUpdateError?: string | null
   handleClose: () => void
 }
 
@@ -36,76 +37,79 @@ const StationListAdmin = ({
   planningAreas,
   addStationOptions,
   existingPlanningAreaStations,
+  stationUpdateError,
   handleClose
 }: StationListAdminProps) => {
   const dispatch: AppDispatch = useDispatch()
 
-  const [addedStations, setAddedStations] = useState<{ [key: string]: StationAdminRow[] }>(
-    Object.fromEntries(Object.keys(existingPlanningAreaStations).map(key => [key, []]))
-  )
+  const emptyRowsByPlanningArea = Object.fromEntries(planningAreas.map(planningArea => [planningArea.id, []]))
+  const [addedStations, setAddedStations] = useState<{ [key: string]: StationAdminRow[] }>(emptyRowsByPlanningArea)
   const [removedStations, setRemovedStations] = useState<{
     [key: string]: { planningAreaId: number; rowId: number; station: BasicWFWXStation }[]
-  }>(Object.fromEntries(Object.keys(existingPlanningAreaStations).map(key => [key, []])))
+  }>(emptyRowsByPlanningArea)
 
   /** Adds net new stations */
   const handleAddStation = (planningAreaId: number) => {
-    const maxRowId = maxBy(addedStations[planningAreaId], 'rowId')?.rowId
+    const currentRows = addedStations[planningAreaId] ?? []
+    const maxRowId = maxBy(currentRows, 'rowId')?.rowId
     const lastRowId = maxRowId ? maxRowId : 0
-    const currentRow = addedStations[planningAreaId].concat([{ planningAreaId, rowId: lastRowId + 1 }])
     setAddedStations({
       ...addedStations,
-      [planningAreaId]: currentRow
+      [planningAreaId]: currentRows.concat([{ planningAreaId, rowId: lastRowId + 1 }])
     })
   }
 
   /** Removes net new stations */
   const handleRemoveStation = (planningAreaId: number, rowId: number) => {
-    const currentlyAdded = addedStations[planningAreaId]
-    const idx = findIndex(currentlyAdded, r => r.rowId === rowId)
-    currentlyAdded.splice(idx, 1)
     setAddedStations({
       ...addedStations,
-      [planningAreaId]: currentlyAdded
+      [planningAreaId]: (addedStations[planningAreaId] ?? []).filter(row => row.rowId !== rowId)
     })
   }
 
   /** Edits net new stations */
   const handleEditStation = (planningAreaId: number, rowId: number, row: StationAdminRow) => {
-    const currentlyAdded = addedStations[planningAreaId]
-    const idx = findIndex(currentlyAdded, r => r.rowId === rowId)
-    currentlyAdded.splice(idx, 1, row)
     setAddedStations({
       ...addedStations,
-      [planningAreaId]: currentlyAdded
+      [planningAreaId]: (addedStations[planningAreaId] ?? []).map(currentRow =>
+        currentRow.rowId === rowId ? row : currentRow
+      )
     })
   }
 
   /** Removes existing stations, not net new ones */
   const handleRemoveExistingStation = (planningAreaId: number, rowId: number, station: BasicWFWXStation) => {
-    const currentRow = removedStations[planningAreaId].concat({ planningAreaId, rowId, station })
+    const currentRows = removedStations[planningAreaId] ?? []
     setRemovedStations({
       ...removedStations,
-      [planningAreaId]: currentRow
+      [planningAreaId]: currentRows.concat({ planningAreaId, rowId, station })
     })
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const allAdded = Object.values(addedStations).flat()
     const allRemoved = Object.values(removedStations).flat()
     if (every(allAdded, addedStation => !isUndefined(addedStation.station) && !isUndefined(addedStation.fuelType))) {
-      dispatch(
+      const saved = await dispatch(
         fetchAddOrUpdateStations(
           fireCentreId,
           allAdded as Required<StationAdminRow>[],
-          allRemoved as Required<StationAdminRow>[]
+          allRemoved as Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
         )
       )
-      handleClose()
+      if (saved) {
+        handleClose()
+      }
     }
   }
 
   return (
     <Box sx={{ width: '100%', pl: 4 }} aria-labelledby="planning-areas-admin">
+      {stationUpdateError && (
+        <Alert severity="error" sx={{ mb: 2, mr: 4 }} data-testid="station-update-error">
+          {stationUpdateError}
+        </Alert>
+      )}
       {sortBy(planningAreas, planningArea => planningArea.order_of_appearance_in_list).map(area => (
         <PlanningAreaAdmin
           key={`planning-area-admin-${area.id}`}

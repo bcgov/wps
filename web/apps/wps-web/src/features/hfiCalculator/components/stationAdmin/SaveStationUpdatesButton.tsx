@@ -23,7 +23,7 @@ export interface SaveStationUpdatesButtonProps {
   testId?: string
   addedStations: StationAdminRow[]
   removedStations: StationAdminRow[]
-  handleSave: () => void
+  handleSave: () => void | Promise<void>
 }
 
 const SaveStationUpdatesButton = ({ addedStations, removedStations, handleSave }: SaveStationUpdatesButtonProps) => {
