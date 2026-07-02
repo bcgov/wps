@@ -205,8 +205,9 @@ class TestReadObject:
 
         from app.routers.object_store_proxy import read_object
 
+        coro = read_object("missing/raster.tif")
         with pytest.raises(ClientError) as exc_info:
-            asyncio.run(read_object("missing/raster.tif"))
+            asyncio.run(coro)
         assert exc_info.value.response["Error"]["Code"] == "NoSuchKey"
 
     def test_raises_client_error_on_s3_failure(self, monkeypatch):
@@ -218,8 +219,9 @@ class TestReadObject:
 
         from app.routers.object_store_proxy import read_object
 
+        coro = read_object("sfms/raster.tif")
         with pytest.raises(ClientError) as exc_info:
-            asyncio.run(read_object("sfms/raster.tif"))
+            asyncio.run(coro)
         assert exc_info.value.response["Error"]["Code"] == "InternalError"
 
 
