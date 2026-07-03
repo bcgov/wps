@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     # https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#yaml-anchors-and-aliases
     container: &api-base-image
-      image: ghcr.io/bcgov/wps/wps-api-base:03-30-2026
+      image: ghcr.io/bcgov/wps/wps-api-base:06-16-2026
       options: --user 0
     steps:
       - uses: actions/checkout@v6
@@ -155,9 +155,11 @@ jobs:
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [24.x]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
@@ -167,13 +169,14 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         id: yarn-cache
         with:
           path: |
             **/node_modules
             ~/.cache/ms-playwright
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - uses: rharkor/caching-for-turbo@75f8ebf4a43d2c60b23bc2a27082cfea94ffdad9 # v2.5.0
       - name: enable corepack
         run: corepack enable
       - name: use new yarn
@@ -187,7 +190,7 @@ jobs:
         run: yarn run lint
       - name: Playwright tests (web)
         working-directory: ./web
-        run: yarn workspace @wps/wps-web run playwright:ci
+        run: yarn run playwright:ci
       - name: Unit tests (web)
         working-directory: ./web
         run: yarn run coverage:ci
@@ -217,7 +220,7 @@ jobs:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v8
       - name: Upload test coverage to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v6
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
@@ -238,7 +241,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache poetry installer
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: cache-poetry-installer
         env:
           cache-name: cache-poetry-installer
@@ -258,7 +261,7 @@ jobs:
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
       - name: Cache poetry
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         env:
           cache-name: cache-poetry
         with:

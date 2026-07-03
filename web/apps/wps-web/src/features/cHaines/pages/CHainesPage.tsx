@@ -1,32 +1,32 @@
-import React, { useRef, useEffect, useState } from 'react'
 import { styled } from '@mui/material/styles'
-import ReactDOMServer from 'react-dom/server'
 import { selectCHainesModelRuns } from 'app/rootReducer'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import ReactDOMServer from 'react-dom/server'
 import { useDispatch, useSelector } from 'react-redux'
 import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
-import { tiledMapLayer } from 'esri-leaflet'
-import { FeatureCollection } from 'geojson'
 import {
+  getCHainesGeoJSONURI,
+  getCHainesKMLModelRunURI,
+  getCHainesKMLURI,
+  getCHainesModelKMLURI,
+  getKMLNetworkLinkURI
+} from '@wps/api/cHainesAPI'
+import { Container } from '@wps/ui/Container'
+import { GeneralHeader } from '@wps/ui/GeneralHeader'
+import { C_HAINES_DOC_TITLE, C_HAINES_NAME } from '@wps/utils/constants'
+import { formatDatetimeInPST } from '@wps/utils/date'
+import { logError } from '@wps/utils/error'
+import type { AppDispatch } from 'app/store'
+import { tiledMapLayer } from 'esri-leaflet'
+import {
+  fetchCHainesGeoJSON,
   fetchModelRuns,
   updateSelectedModel,
   updateSelectedModelRun,
-  updateSelectedPrediction,
-  fetchCHainesGeoJSON
+  updateSelectedPrediction
 } from 'features/cHaines/slices/cHainesModelRunsSlice'
-import { Container } from '@wps/ui/Container'
-import { GeneralHeader } from '@wps/ui/GeneralHeader'
-import { formatDatetimeInPST } from '@wps/utils/date'
-import { logError } from '@wps/utils/error'
-import {
-  getCHainesGeoJSONURI,
-  getKMLNetworkLinkURI,
-  getCHainesKMLURI,
-  getCHainesKMLModelRunURI,
-  getCHainesModelKMLURI
-} from '@wps/api/cHainesAPI'
-import { AppDispatch } from 'app/store'
-import { C_HAINES_DOC_TITLE, C_HAINES_NAME } from '@wps/utils/constants'
+import type { FeatureCollection } from 'geojson'
+import L from 'leaflet'
 
 const PREFIX = 'CHainesPage'
 
@@ -91,6 +91,27 @@ const Root = styled('main')({
   }
 })
 
+const createLayer = (data: FeatureCollection) => {
+  const defaults = {
+    fillOpacity: 0.5,
+    weight: 2
+  }
+  return L.geoJSON(data, {
+    style: feature => {
+      switch (feature?.properties.c_haines_index) {
+        case '4-8':
+          return { ...defaults, color: '#ffff00' }
+        case '8-11':
+          return { ...defaults, color: '#FFA500' }
+        case '>11':
+          return { ...defaults, color: '#ff0000' }
+        default:
+          return {}
+      }
+    }
+  })
+}
+
 // interface CHainesPageProps
 
 const CHainesPage = () => {
@@ -123,53 +144,131 @@ const CHainesPage = () => {
     selected_model_abbreviation
   } = useSelector(selectCHainesModelRuns)
 
-  const loadModelPrediction = (
-    model_abbreviation: string,
-    model_run_timestamp: string,
-    prediction_timestamp: string
-  ) => {
-    dispatch(updateSelectedPrediction(prediction_timestamp))
-    if (isLoaded(model_abbreviation, model_run_timestamp, prediction_timestamp)) {
-      showLayer(model_abbreviation, model_run_timestamp, prediction_timestamp)
-      // if it's already loaded, we can just show it
-    } else {
-      // fetch the data
-      dispatch(fetchCHainesGeoJSON(model_abbreviation, model_run_timestamp, prediction_timestamp))
+  // Refs for mutable Redux/component state read inside effects or stable callbacks
+  const selectedDatetimeRef = useRef(selectedDatetime)
+  selectedDatetimeRef.current = selectedDatetime
+  const model_runsRef = useRef(model_runs)
+  model_runsRef.current = model_runs
+  const model_run_predictionsRef = useRef(model_run_predictions)
+  model_run_predictionsRef.current = model_run_predictions
+  const selected_prediction_timestampRef = useRef(selected_prediction_timestamp)
+  selected_prediction_timestampRef.current = selected_prediction_timestamp
+  const selected_model_run_timestampRef = useRef(selected_model_run_timestamp)
+  selected_model_run_timestampRef.current = selected_model_run_timestamp
+  const selected_model_abbreviationRef = useRef(selected_model_abbreviation)
+  selected_model_abbreviationRef.current = selected_model_abbreviation
+  const animationIntervalRef = useRef(animationInterval)
+  animationIntervalRef.current = animationInterval
+
+  const isLoaded = useCallback(
+    (model_abbreviation: string, model_run_timestamp: string, prediction_timestamp: string) => {
+      const mrp = model_run_predictionsRef.current
+      return (
+        model_abbreviation in mrp &&
+        model_run_timestamp in mrp[model_abbreviation] &&
+        prediction_timestamp in mrp[model_abbreviation][model_run_timestamp]
+      )
+    },
+    []
+  )
+
+  const getLayer = useCallback((model: string, model_timestamp: string, prediction_timestamp: string) => {
+    const mrp = model_run_predictionsRef.current
+    const layerKey = `${model}-${model_timestamp}-${prediction_timestamp}`
+    if (layerKey in layersRef.current) {
+      return layersRef.current[layerKey]
     }
-  }
+    const data = mrp[model][model_timestamp][prediction_timestamp]
+    const geoJsonLayer = createLayer(data)
+    layersRef.current[layerKey] = geoJsonLayer
+    return geoJsonLayer
+  }, [])
 
-  const isLoaded = (model_abbreviation: string, model_run_timestamp: string, prediction_timestamp: string) => {
-    return (
-      model_abbreviation in model_run_predictions &&
-      model_run_timestamp in model_run_predictions[model_abbreviation] &&
-      prediction_timestamp in model_run_predictions[model_abbreviation][model_run_timestamp]
-    )
-  }
-
-  useEffect(() => {
-    dispatch(fetchModelRuns(selectedDatetime))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (selected_prediction_timestamp && selected_model_run_timestamp && model_runs.length > 0) {
-      loadModelPrediction(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model_runs])
-
-  useEffect(() => {
-    if (selected_model_abbreviation in model_run_predictions) {
-      if (selected_model_run_timestamp in model_run_predictions[selected_model_abbreviation]) {
-        if (
-          selected_prediction_timestamp in
-          model_run_predictions[selected_model_abbreviation][selected_model_run_timestamp]
-        ) {
-          showLayer(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)
+  const showLayer = useCallback(
+    (model: string, model_run_timestamp: string, prediction_timestamp: string) => {
+      try {
+        const geoJsonLayer = getLayer(model, model_run_timestamp, prediction_timestamp)
+        if (mapRef.current) {
+          if (currentLayersRef.current) {
+            mapRef.current.removeLayer(currentLayersRef.current)
+            currentLayersRef.current = null
+          }
+          geoJsonLayer.addTo(mapRef.current)
+          currentLayersRef.current = geoJsonLayer
         }
+      } catch (exception) {
+        // For some reason, the API sometimes returns geojson data with no features (maybe they're in the
+        // process of being inserted?)
+        logError(exception)
       }
+    },
+    [getLayer]
+  )
+
+  const loadModelPrediction = useCallback(
+    (model_abbreviation: string, model_run_timestamp: string, prediction_timestamp: string) => {
+      dispatch(updateSelectedPrediction(prediction_timestamp))
+      if (isLoaded(model_abbreviation, model_run_timestamp, prediction_timestamp)) {
+        showLayer(model_abbreviation, model_run_timestamp, prediction_timestamp)
+      } else {
+        dispatch(fetchCHainesGeoJSON(model_abbreviation, model_run_timestamp, prediction_timestamp))
+      }
+    },
+    [dispatch, isLoaded, showLayer]
+  )
+
+  const loadNextPrediction = useCallback(() => {
+    const model_runs = model_runsRef.current
+    const model_run_timestamp = selected_model_run_timestampRef.current
+    const model_abbreviation = selected_model_abbreviationRef.current
+    const prediction_timestamp = selected_prediction_timestampRef.current
+    const model_run = model_runs.find(
+      instance => instance.model_run_timestamp === model_run_timestamp && instance.model.abbrev === model_abbreviation
+    )
+    if (model_run) {
+      const index = model_run.prediction_timestamps.indexOf(prediction_timestamp)
+      const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
+      loadModelPrediction(model_abbreviation, model_run_timestamp, model_run.prediction_timestamps[nextIndex])
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model_run_predictions])
+  }, [loadModelPrediction])
+
+  const loadPreviousPrediction = useCallback(() => {
+    const model_runs = model_runsRef.current
+    const model_run_timestamp = selected_model_run_timestampRef.current
+    const model_abbreviation = selected_model_abbreviationRef.current
+    const prediction_timestamp = selected_prediction_timestampRef.current
+    const model_run = model_runs.find(
+      instance => instance.model_run_timestamp === model_run_timestamp && instance.model.abbrev === model_abbreviation
+    )
+    if (model_run) {
+      const index = model_run.prediction_timestamps.indexOf(prediction_timestamp)
+      const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
+      loadModelPrediction(model_abbreviation, model_run_timestamp, model_run.prediction_timestamps[nextIndex])
+    }
+  }, [loadModelPrediction])
+
+  useEffect(() => {
+    dispatch(fetchModelRuns(selectedDatetimeRef.current))
+  }, [dispatch])
+
+  useEffect(() => {
+    const t = selected_prediction_timestampRef.current
+    const mrt = selected_model_run_timestampRef.current
+    const ma = selected_model_abbreviationRef.current
+    if (t && mrt && model_runs.length > 0) {
+      loadModelPrediction(ma, mrt, t)
+    }
+  }, [model_runs, loadModelPrediction])
+
+  useEffect(() => {
+    const ma = selected_model_abbreviationRef.current
+    const mrt = selected_model_run_timestampRef.current
+    const t = selected_prediction_timestampRef.current
+    const mrp = model_run_predictions
+    if (ma in mrp && mrt in mrp[ma] && t in mrp[ma][mrt]) {
+      showLayer(ma, mrt, t)
+    }
+  }, [model_run_predictions, showLayer])
 
   useEffect(() => {
     mapRef.current = L.map('map-with-selectable-wx-stations', {
@@ -224,7 +323,7 @@ const CHainesPage = () => {
 
     // Create and add the legend.
     const customControl = L.Control.extend({
-      onAdd: function () {
+      onAdd: () => {
         const html = (
           <div>
             <div className={classes.legend}>
@@ -247,7 +346,7 @@ const CHainesPage = () => {
         return div
       },
 
-      onRemove: function () {
+      onRemove: () => {
         //
       }
     })
@@ -257,7 +356,6 @@ const CHainesPage = () => {
     return () => {
       mapRef.current?.remove()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Initialize the map only once
 
   const predictionIsLoadedCheck = isLoaded(
@@ -265,11 +363,12 @@ const CHainesPage = () => {
     selected_model_run_timestamp,
     selected_prediction_timestamp
   )
+
   useEffect(() => {
     if (mapRef.current && selected_model_run_timestamp && selected_prediction_timestamp) {
-      if (isLoaded(selected_model_abbreviation, selected_model_run_timestamp, selected_prediction_timestamp)) {
+      if (predictionIsLoadedCheck) {
         const customControl = L.Control.extend({
-          onAdd: function () {
+          onAdd: () => {
             const html = (
               <div className={classes.label}>
                 <div>
@@ -286,7 +385,7 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function () {
+          onRemove: () => {
             //
           }
         })
@@ -305,7 +404,7 @@ const CHainesPage = () => {
         }
       } else {
         const customControl = L.Control.extend({
-          onAdd: function () {
+          onAdd: () => {
             const html = (
               <div className={classes.loading}>
                 <div>LOADING: {selected_prediction_timestamp} (UTC)</div>
@@ -317,7 +416,7 @@ const CHainesPage = () => {
             return div
           },
 
-          onRemove: function () {
+          onRemove: () => {
             //
           }
         })
@@ -328,76 +427,15 @@ const CHainesPage = () => {
         loadingLayerRef.current.addTo(mapRef.current)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selected_model_run_timestamp,
     selected_prediction_timestamp,
-    model_run_predictions,
     predictionIsLoadedCheck,
-    isAnimating
+    isAnimating,
+    selected_model_abbreviation,
+    animationInterval,
+    loadNextPrediction
   ])
-
-  const createLayer = (data: FeatureCollection) => {
-    const defaults = {
-      fillOpacity: 0.5,
-      weight: 2
-    }
-    return L.geoJSON(data, {
-      style: feature => {
-        switch (feature?.properties.c_haines_index) {
-          case '4-8':
-            // yellow
-            return {
-              ...defaults,
-              color: '#ffff00'
-            }
-          case '8-11':
-            return {
-              ...defaults,
-              color: '#FFA500'
-            }
-          case '>11':
-            // red
-            return {
-              ...defaults,
-              color: '#ff0000'
-            }
-          default:
-            return {}
-        }
-      }
-    })
-  }
-
-  const getLayer = (model: string, model_timestamp: string, prediction_timestamp: string) => {
-    const layerKey = `${model}-${model_timestamp}-${prediction_timestamp}`
-    if (layerKey in layersRef.current) {
-      return layersRef.current[layerKey]
-    } else {
-      const data = model_run_predictions[model][model_timestamp][prediction_timestamp]
-      const geoJsonLayer = createLayer(data)
-      layersRef.current[layerKey] = geoJsonLayer
-      return geoJsonLayer
-    }
-  }
-
-  const showLayer = (model: string, model_run_timestamp: string, prediction_timestamp: string) => {
-    try {
-      const geoJsonLayer = getLayer(model, model_run_timestamp, prediction_timestamp)
-      if (mapRef.current) {
-        if (currentLayersRef.current) {
-          mapRef.current.removeLayer(currentLayersRef.current)
-          currentLayersRef.current = null
-        }
-        geoJsonLayer.addTo(mapRef.current)
-        currentLayersRef.current = geoJsonLayer
-      }
-    } catch (exception) {
-      // For some reason, the API sometimes returns geosjon data with no features (maybe they're in the
-      // process of being inserted?)
-      logError(exception)
-    }
-  }
 
   const handleChangeDateTime = (event: React.ChangeEvent<{ name?: string; value: string }>) => {
     setSelectedDateTime(event.target.value)
@@ -455,40 +493,6 @@ const CHainesPage = () => {
     setAnimationInterval(Number(event.target.value))
   }
 
-  const loadNextPrediction = () => {
-    const model_run = model_runs.find(
-      instance =>
-        instance.model_run_timestamp === selected_model_run_timestamp &&
-        instance.model.abbrev === selected_model_abbreviation
-    )
-    if (model_run) {
-      const index = model_run.prediction_timestamps.findIndex(value => value === selected_prediction_timestamp)
-      const nextIndex = index + 1 < model_run.prediction_timestamps.length ? index + 1 : 0
-      loadModelPrediction(
-        selected_model_abbreviation,
-        selected_model_run_timestamp,
-        model_run.prediction_timestamps[nextIndex]
-      )
-    }
-  }
-
-  const loadPreviousPrediction = () => {
-    const model_run = model_runs.find(
-      instance =>
-        instance.model_run_timestamp === selected_model_run_timestamp &&
-        instance.model.abbrev === selected_model_abbreviation
-    )
-    if (model_run) {
-      const index = model_run.prediction_timestamps.findIndex(value => value === selected_prediction_timestamp)
-      const nextIndex = index > 0 ? index - 1 : model_run.prediction_timestamps.length - 1
-      loadModelPrediction(
-        selected_model_abbreviation,
-        selected_model_run_timestamp,
-        model_run.prediction_timestamps[nextIndex]
-      )
-    }
-  }
-
   const stopAnimation = () => {
     setAnimate(false)
     if (loopTimeoutRef.current) {
@@ -543,27 +547,33 @@ const CHainesPage = () => {
             </div>
             <div>
               Model:
-              <input
-                type="radio"
-                value="GDPS"
-                checked={selected_model_abbreviation === 'GDPS'}
-                onChange={handleChangeModel}
-              />
-              <label>GDPS</label>
-              <input
-                type="radio"
-                value="RDPS"
-                checked={selected_model_abbreviation === 'RDPS'}
-                onChange={handleChangeModel}
-              />
-              <label>RDPS</label>
-              <input
-                type="radio"
-                value="HRDPS"
-                checked={selected_model_abbreviation === 'HRDPS'}
-                onChange={handleChangeModel}
-              />
-              <label>HRDPS</label>
+              <label>
+                <input
+                  type="radio"
+                  value="GDPS"
+                  checked={selected_model_abbreviation === 'GDPS'}
+                  onChange={handleChangeModel}
+                />
+                GDPS
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="RDPS"
+                  checked={selected_model_abbreviation === 'RDPS'}
+                  onChange={handleChangeModel}
+                />
+                RDPS
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="HRDPS"
+                  checked={selected_model_abbreviation === 'HRDPS'}
+                  onChange={handleChangeModel}
+                />
+                HRDPS
+              </label>
             </div>
             <div>
               Model runs:
@@ -571,15 +581,15 @@ const CHainesPage = () => {
                 .filter(model_run => {
                   return model_run.model.abbrev === selected_model_abbreviation
                 })
-                .map((model_run, i) => (
-                  <div key={i}>
-                    <input
-                      type="radio"
-                      value={model_run.model_run_timestamp}
-                      checked={model_run.model_run_timestamp === selected_model_run_timestamp}
-                      onChange={handleChangeModelRun}
-                    />
+                .map(model_run => (
+                  <div key={`${model_run.model.abbrev}-${model_run.model_run_timestamp}`}>
                     <label>
+                      <input
+                        type="radio"
+                        value={model_run.model_run_timestamp}
+                        checked={model_run.model_run_timestamp === selected_model_run_timestamp}
+                        onChange={handleChangeModelRun}
+                      />
                       {model_run.model.abbrev} {model_run.model_run_timestamp} (UTC)
                     </label>
                   </div>
@@ -595,9 +605,12 @@ const CHainesPage = () => {
                       model_run.model.abbrev === selected_model_abbreviation
                     )
                   })
-                  .map((model_run, i) =>
-                    model_run.prediction_timestamps.map((prediction_timestamp, i2) => (
-                      <option key={`${i}-${i2}`} value={prediction_timestamp}>
+                  .map(model_run =>
+                    model_run.prediction_timestamps.map(prediction_timestamp => (
+                      <option
+                        key={`${model_run.model_run_timestamp}-${prediction_timestamp}`}
+                        value={prediction_timestamp}
+                      >
                         {formatDatetimeInPST(prediction_timestamp)} (PST)
                       </option>
                     ))
@@ -616,11 +629,15 @@ const CHainesPage = () => {
               </select>
             </div>
             <div>
-              <button onClick={() => loadPreviousPrediction()}>&lt; Prev</button>
-              <button onClick={() => toggleAnimate()} className={classes.animateButton}>
+              <button type="button" onClick={() => loadPreviousPrediction()}>
+                &lt; Prev
+              </button>
+              <button type="button" onClick={() => toggleAnimate()} className={classes.animateButton}>
                 {isAnimating ? 'Stop' : 'Animate'}
               </button>
-              <button onClick={() => loadNextPrediction()}>Next &gt;</button>
+              <button type="button" onClick={() => loadNextPrediction()}>
+                Next &gt;
+              </button>
             </div>
           </div>
           <div className={classes.kml_links}>
@@ -654,7 +671,9 @@ const CHainesPage = () => {
                 GeoJSON for {selected_model_abbreviation}, model run {selected_model_run_timestamp} (UTC) prediction{' '}
                 {formatDatetimeInPST(selected_prediction_timestamp)} (PST)
               </a>
-              <button onClick={handleCopyClick}>Copy GeoJSON link to clipboard</button>
+              <button type="button" onClick={handleCopyClick}>
+                Copy GeoJSON link to clipboard
+              </button>
             </div>
           </div>
         </div>

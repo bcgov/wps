@@ -1,7 +1,7 @@
-import { Grid, Tooltip } from '@mui/material'
-import { GridRenderCellParams } from '@mui/x-data-grid-pro'
-import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
 import AddBoxIcon from '@mui/icons-material/AddBox'
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
+import { Grid, Tooltip } from '@mui/material'
+import type { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { MEDIUM_GREY } from '@wps/ui/theme'
 import ValidatedForecastCell from '@/features/moreCast2/components/ValidatedForecastCell'
 

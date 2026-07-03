@@ -159,3 +159,108 @@ class TestGetActualFwiInputs:
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
         with pytest.raises(Exception):
             addresser.get_actual_fwi_inputs(NON_UTC, FWIParameter.DMC)
+
+
+class TestGetForecastKeys:
+    @pytest.mark.parametrize(
+        "weather_param,expected_key",
+        [
+            (
+                SFMSInterpolatedWeatherParameter.TEMP,
+                "sfms_ng/forecast/2024/04/15/temperature_20240415.tif",
+            ),
+            (
+                SFMSInterpolatedWeatherParameter.RH,
+                "sfms_ng/forecast/2024/04/15/relative_humidity_20240415.tif",
+            ),
+            (
+                SFMSInterpolatedWeatherParameter.WIND_SPEED,
+                "sfms_ng/forecast/2024/04/15/wind_speed_20240415.tif",
+            ),
+            (
+                SFMSInterpolatedWeatherParameter.WIND_DIRECTION,
+                "sfms_ng/forecast/2024/04/15/wind_direction_20240415.tif",
+            ),
+            (
+                SFMSInterpolatedWeatherParameter.PRECIP,
+                "sfms_ng/forecast/2024/04/15/precipitation_20240415.tif",
+            ),
+        ],
+    )
+    def test_forecast_weather_params(
+        self,
+        addresser: SFMSNGRasterAddresser,
+        weather_param: SFMSInterpolatedWeatherParameter,
+        expected_key,
+    ):
+        assert addresser.get_forecast_weather_key(TEST_DATETIME, weather_param) == expected_key
+
+    @pytest.mark.parametrize(
+        "fwi_param,expected_key",
+        [
+            (FWIParameter.FFMC, "sfms_ng/forecast/2024/04/15/ffmc_20240415.tif"),
+            (FWIParameter.DMC, "sfms_ng/forecast/2024/04/15/dmc_20240415.tif"),
+            (FWIParameter.DC, "sfms_ng/forecast/2024/04/15/dc_20240415.tif"),
+            (FWIParameter.ISI, "sfms_ng/forecast/2024/04/15/isi_20240415.tif"),
+            (FWIParameter.BUI, "sfms_ng/forecast/2024/04/15/bui_20240415.tif"),
+            (FWIParameter.FWI, "sfms_ng/forecast/2024/04/15/fwi_20240415.tif"),
+        ],
+    )
+    def test_forecast_index_params(self, addresser: SFMSNGRasterAddresser, fwi_param, expected_key):
+        assert addresser.get_forecast_index_key(TEST_DATETIME, fwi_param) == expected_key
+
+
+class TestGetForecastFwiInputs:
+    @pytest.mark.parametrize(
+        "fwi_param,index_key_checks",
+        [
+            (FWIParameter.FFMC, {FWIParameter.FFMC: "actual/2024/04/14/ffmc_20240414.tif"}),
+            (FWIParameter.DMC, {FWIParameter.DMC: "actual/2024/04/14/dmc_20240414.tif"}),
+            (FWIParameter.DC, {FWIParameter.DC: "actual/2024/04/14/dc_20240414.tif"}),
+            (FWIParameter.ISI, {FWIParameter.FFMC: "forecast/2024/04/15/ffmc_20240415.tif"}),
+            (
+                FWIParameter.BUI,
+                {
+                    FWIParameter.DMC: "forecast/2024/04/15/dmc_20240415.tif",
+                    FWIParameter.DC: "forecast/2024/04/15/dc_20240415.tif",
+                },
+            ),
+            (
+                FWIParameter.FWI,
+                {
+                    FWIParameter.ISI: "forecast/2024/04/15/isi_20240415.tif",
+                    FWIParameter.BUI: "forecast/2024/04/15/bui_20240415.tif",
+                },
+            ),
+        ],
+    )
+    def test_day_one_can_seed_from_actuals(
+        self,
+        addresser: SFMSNGRasterAddresser,
+        fwi_param: FWIParameter,
+        index_key_checks: dict[FWIParameter, str],
+    ):
+        s3 = addresser.s3_prefix
+        result = addresser.get_forecast_fwi_inputs(
+            TEST_DATETIME, fwi_param, previous_base_run_type=RunType.ACTUAL
+        )
+
+        assert (
+            result.weather_keys[SFMSInterpolatedWeatherParameter.TEMP]
+            == f"{s3}/sfms_ng/forecast/2024/04/15/temperature_20240415.tif"
+        )
+        for index_param, expected_suffix in index_key_checks.items():
+            assert result.index_keys[index_param] == f"{s3}/sfms_ng/{expected_suffix}"
+        assert result.output_key == f"sfms_ng/forecast/2024/04/15/{fwi_param.value}_20240415.tif"
+        assert result.run_type == RunType.FORECAST
+
+    def test_chained_forecasts_seed_from_previous_forecast(self, addresser: SFMSNGRasterAddresser):
+        result = addresser.get_forecast_fwi_inputs(TEST_DATETIME, FWIParameter.DMC)
+
+        dmc_dependency_key = result.index_keys[FWIParameter.DMC]
+        assert "forecast/2024/04/14/dmc_20240414.tif" in dmc_dependency_key
+        assert "actual" not in dmc_dependency_key
+
+    def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
+        with pytest.raises(Exception):
+            addresser.get_forecast_fwi_inputs(NON_UTC, FWIParameter.DMC)

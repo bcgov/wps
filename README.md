@@ -13,31 +13,43 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 ### Dependencies
 
+> **Note:** Docker Compose and the VS Code dev container are **currently
+> unsupported**. Native setup is the recommended (and supported) way to run the
+> project locally.
+
+Run the backend and front end natively — see the per-component setup docs:
+
+- Backend: [backend/README.md](backend/README.md) (uv, GDAL, Postgres/PostGIS, Redis). On macOS, `setup/mac.sh` installs the system dependencies.
+- Frontend: [web/README.md](web/README.md) (Node/yarn).
+
 ### Installing
 
-#### Running the application locally in docker:
+Native setup is the recommended and supported path. The Docker Compose and dev
+container flows further down are **currently unsupported** and may be out of date.
 
-1. Create `.env` file in `web` using `web/.env.example` as a sample.
-2. Create `.env.docker` file in `api/app` using `api/app/.env.example` as a sample.
+#### Running the api (native — recommended)
+
+Refer to [backend/packages/wps-api/README.md](backend/packages/wps-api/README.md) (setup in [backend/README.md](backend/README.md); on macOS, `setup/mac.sh` installs the dependencies).
+
+#### Running the front end (native — recommended)
+
+Refer to [web/README.md](web/README.md)
+
+#### Running the application locally in docker (currently unsupported)
+
+1. Create `web/.env` using `web/apps/wps-web/.env.example` as a sample.
+2. Create `backend/packages/wps-api/src/app/.env.docker` using the repo-root `.env.example` as a sample.
 3. Run `docker compose build` and then `docker compose up`
 4. Open [http://localhost:8080](http://localhost:8080) to view the front end served up from a static folder by the python api.
 5. Open [http://localhost:3000](http://localhost:3000) to view the front end served up in developer mode by node.
 
-#### Developing the application in a dev container, using vscode:
+#### Developing the application in a dev container, using vscode (currently unsupported)
 
-- Open up the project: `Remote-Containers: Open Folder in Container`, select docker-compose.vscode.yml
-- Sometimes VSCode doesn't pick up you've changed the docker container: `Remote-Containers: Rebuild Container`
+- Open the project and run `Dev Containers: Reopen in Container` — VS Code picks up `.devcontainer/devcontainer.json`.
+- Sometimes VSCode doesn't pick up you've changed the docker container: `Dev Containers: Rebuild Container`
 - Install extensions into the container, as needed.
 - You can point the API database to: `host.docker.internal`
 - You can start up other services outside of vscode, e.g.: `docker compose up db` and `docker compose up redis`
-
-#### Running the api alone
-
-Refer to [backend/packages/wps-api/README.md](backend/packages/wps-api/README.md).
-
-#### Running the front end alone
-
-Refer to [web/README.md](web/README.md)
 
 ### Documentation
 

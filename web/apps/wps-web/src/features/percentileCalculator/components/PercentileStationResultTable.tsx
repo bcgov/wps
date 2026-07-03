@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react'
-import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material'
-
-import { StationSummaryResponse } from '@wps/api/percentileAPI'
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
+import type { StationSummaryResponse } from '@wps/api/percentileAPI'
 import { FWI_VALUES_DECIMAL } from '@wps/utils/constants'
 import { formatMonthAndDay } from '@wps/utils/date'
 import { NOT_AVAILABLE } from '@wps/utils/strings'
 import PercentileSnackbar from 'features/percentileCalculator/components/PercentileSnackbar'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 
 interface Props {
   stationResponse: StationSummaryResponse
@@ -21,11 +21,8 @@ export const PercentileStationResultTable: React.FunctionComponent<Props> = ({ s
   const [snackbarOpen, setSnackbarOpen] = useState(false)
 
   useEffect(() => {
-    if (years.length < timeRange) {
-      setSnackbarOpen(true)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [years])
+    setSnackbarOpen(years.length < timeRange)
+  }, [years, timeRange])
 
   return (
     <div>

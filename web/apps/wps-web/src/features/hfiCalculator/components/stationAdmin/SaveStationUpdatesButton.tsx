@@ -1,9 +1,9 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
 import { Button } from '@mui/material'
-import { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import { styled } from '@mui/material/styles'
 import { theme } from '@wps/ui/theme'
+import type { StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isEmpty, isUndefined, some } from 'lodash'
+import React from 'react'
 
 const PREFIX = 'SaveStationUpdatesButton'
 
@@ -23,7 +23,7 @@ export interface SaveStationUpdatesButtonProps {
   testId?: string
   addedStations: StationAdminRow[]
   removedStations: StationAdminRow[]
-  handleSave: () => void
+  handleSave: () => void | Promise<void>
 }
 
 const SaveStationUpdatesButton = ({ addedStations, removedStations, handleSave }: SaveStationUpdatesButtonProps) => {

@@ -1,108 +1,103 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { DateTime } from "luxon";
+import { DateTime } from 'luxon'
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import {
-  getPath,
-  writeToFileSystem,
-  readFromFilesystem,
+  type CacheableData,
+  type CacheableDataType,
   clearStaleHFIPMTiles,
-  CacheableDataType,
-  CacheableData,
-} from "@/utils/storage"; // adjust path as needed
+  getPath,
+  readFromFilesystem,
+  writeToFileSystem
+} from '@/utils/storage' // adjust path as needed
 
-vi.mock("@capacitor/filesystem", () => ({
+vi.mock('@capacitor/filesystem', () => ({
   Filesystem: {
     readFile: vi.fn(),
     writeFile: vi.fn(),
     readdir: vi.fn(),
-    deleteFile: vi.fn(),
+    deleteFile: vi.fn()
   },
-  Directory: { Data: "DATA" },
-  Encoding: { UTF8: "utf8" },
-}));
-import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
-import { FireShapeStatusDetail, RunType } from "@/api/fbaAPI";
+  Directory: { Data: 'DATA' },
+  Encoding: { UTF8: 'utf8' }
+}))
 
-const mockData: FireShapeStatusDetail[] = [];
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
+import { type FireShapeStatusDetail, RunType } from '@/api/fbaAPI'
+
+const mockData: FireShapeStatusDetail[] = []
 const mockCacheableData: CacheableData<CacheableDataType> = {
-  "2025-08-25": {
+  '2025-08-25': {
     runParameter: {
-      for_date: "2025-08-25",
-      run_datetime: "2025-08-24",
-      run_type: RunType.FORECAST,
+      for_date: '2025-08-25',
+      run_datetime: '2025-08-24',
+      run_type: RunType.FORECAST
     },
-    data: mockData,
-  },
-};
-const mockFileData = { data: mockCacheableData };
+    data: mockData
+  }
+}
+const mockFileData = { data: mockCacheableData }
 const mockReadFileResult = {
-  data: JSON.stringify(mockFileData),
-};
+  data: JSON.stringify(mockFileData)
+}
 
-describe("Storage utils", () => {
-  const key = "testKey";
-  const date = DateTime.fromISO("2025-08-26");
+describe('Storage utils', () => {
+  const key = 'testKey'
+  const date = DateTime.fromISO('2025-08-26')
 
   beforeEach(() => {
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+  })
 
-  it("getPath returns correct path with date", () => {
-    const path = getPath(key, date);
-    expect(path).toBe("_asa_go_testKey_2025-08-26.json");
-  });
+  it('getPath returns correct path with date', () => {
+    const path = getPath(key, date)
+    expect(path).toBe('_asa_go_testKey_2025-08-26.json')
+  })
 
-  it("getPath returns correct path without date", () => {
-    const path = getPath(key);
-    expect(path).toBe("_asa_go_testKey.json");
-  });
+  it('getPath returns correct path without date', () => {
+    const path = getPath(key)
+    expect(path).toBe('_asa_go_testKey.json')
+  })
 
-  it("writeToFileSystem writes data correctly", async () => {
-    await writeToFileSystem(Filesystem, key, mockCacheableData, date);
+  it('writeToFileSystem writes data correctly', async () => {
+    await writeToFileSystem(Filesystem, key, mockCacheableData, date)
 
     expect(Filesystem.writeFile).toHaveBeenCalledWith({
-      path: "_asa_go_testKey.json",
+      path: '_asa_go_testKey.json',
       data: expect.stringContaining('"lastUpdated":"2025-08-26T'),
       directory: Directory.Data,
-      encoding: Encoding.UTF8,
-    });
-  });
+      encoding: Encoding.UTF8
+    })
+  })
 
-  it("readFromFilesystem returns parsed data", async () => {
-    (Filesystem.readFile as Mock).mockResolvedValue(mockReadFileResult);
+  it('readFromFilesystem returns parsed data', async () => {
+    ;(Filesystem.readFile as Mock).mockResolvedValue(mockReadFileResult)
 
-    const result = await readFromFilesystem(Filesystem, key);
-    expect(result).toEqual(mockFileData);
+    const result = await readFromFilesystem(Filesystem, key)
+    expect(result).toEqual(mockFileData)
     expect(Filesystem.readFile).toHaveBeenCalledWith({
-      path: "_asa_go_testKey.json",
+      path: '_asa_go_testKey.json',
       directory: Directory.Data,
-      encoding: Encoding.UTF8,
-    });
-  });
+      encoding: Encoding.UTF8
+    })
+  })
 
-  it("readFromFilesystem returns null on error", async () => {
-    (Filesystem.readFile as Mock).mockRejectedValue(
-      new Error("File not found")
-    );
+  it('readFromFilesystem returns null on error', async () => {
+    ;(Filesystem.readFile as Mock).mockRejectedValue(new Error('File not found'))
 
-    const result = await readFromFilesystem(Filesystem, key);
-    expect(result).toBeNull();
-  });
+    const result = await readFromFilesystem(Filesystem, key)
+    expect(result).toBeNull()
+  })
 
-  it("clearStaleHFIPMTiles deletes stale files", async () => {
-    (Filesystem.readdir as Mock).mockResolvedValue({
-      files: [
-        { name: "2025-08-25.hfi.pmtiles" },
-        { name: "2025-08-26.hfi.pmtiles" },
-        { name: "otherfile.json" },
-      ],
-    });
+  it('clearStaleHFIPMTiles deletes stale files', async () => {
+    ;(Filesystem.readdir as Mock).mockResolvedValue({
+      files: [{ name: '2025-08-25.hfi.pmtiles' }, { name: '2025-08-26.hfi.pmtiles' }, { name: 'otherfile.json' }]
+    })
 
-    await clearStaleHFIPMTiles(Filesystem, ["2025-08-26.hfi.pmtiles"]);
+    await clearStaleHFIPMTiles(Filesystem, ['2025-08-26.hfi.pmtiles'])
 
-    expect(Filesystem.deleteFile).toHaveBeenCalledTimes(1);
+    expect(Filesystem.deleteFile).toHaveBeenCalledTimes(1)
     expect(Filesystem.deleteFile).toHaveBeenCalledWith({
-      path: "2025-08-25.hfi.pmtiles",
-      directory: Directory.Data,
-    });
-  });
-});
+      path: '2025-08-25.hfi.pmtiles',
+      directory: Directory.Data
+    })
+  })
+})

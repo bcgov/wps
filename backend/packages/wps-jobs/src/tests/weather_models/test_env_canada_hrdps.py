@@ -123,7 +123,7 @@ def mock_download(monkeypatch):
             content = file.read()
         return MockResponse(status_code=200, content=content)
 
-    monkeypatch.setattr(requests, "get", mock_requests_get_hrdps)
+    monkeypatch.setattr(requests.Session, "get", mock_requests_get_hrdps)
 
 
 def test_get_hrdps_download_urls():
@@ -172,7 +172,7 @@ def test_parse_high_res_model_url_correct_format():
         {
             "url": "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/06/012/20230322T06Z_MSC_HRDPS_TMP_AGL-2m_RLatLon0.0225_PT012.grib2",
             "variable_name": "TMP_AGL-2m",
-            "projection": ProjectionEnum.HIGH_RES_CONTINENTAL,
+            "projection": ProjectionEnum.HRDPS_LATLON,
             "model_run_timestamp": datetime.datetime(
                 2023, 3, 22, 6, 0, tzinfo=datetime.timezone.utc
             ),
@@ -183,7 +183,7 @@ def test_parse_high_res_model_url_correct_format():
         {
             "url": "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/06/012/20230322T06Z_MSC_HRDPS_WIND_AGL-10m_RLatLon0.0225_PT012.grib2",
             "variable_name": "WIND_AGL-10m",
-            "projection": ProjectionEnum.HIGH_RES_CONTINENTAL,
+            "projection": ProjectionEnum.HRDPS_LATLON,
             "model_run_timestamp": datetime.datetime(
                 2023, 3, 22, 6, 0, tzinfo=datetime.timezone.utc
             ),
@@ -194,7 +194,7 @@ def test_parse_high_res_model_url_correct_format():
         {
             "url": "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/06/012/20230322T06Z_MSC_HRDPS_APCP_Sfc_RLatLon0.0225_PT012.grib2",
             "variable_name": "APCP_Sfc",
-            "projection": ProjectionEnum.HIGH_RES_CONTINENTAL,
+            "projection": ProjectionEnum.HRDPS_LATLON,
             "model_run_timestamp": datetime.datetime(
                 2023, 3, 22, 6, 0, tzinfo=datetime.timezone.utc
             ),
@@ -205,7 +205,7 @@ def test_parse_high_res_model_url_correct_format():
         {
             "url": "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/12/084/20230322T12Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT084.grib2",
             "variable_name": "RH_AGL-2m",
-            "projection": ProjectionEnum.HIGH_RES_CONTINENTAL,
+            "projection": ProjectionEnum.HRDPS_LATLON,
             "model_run_timestamp": datetime.datetime(
                 2023, 3, 22, 12, 0, tzinfo=datetime.timezone.utc
             ),

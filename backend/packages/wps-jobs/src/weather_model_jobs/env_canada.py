@@ -9,6 +9,7 @@ import sys
 import tempfile
 from urllib.parse import urlparse
 
+import requests
 import wps_shared.db.database
 import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
@@ -32,12 +33,14 @@ from wps_shared.db.crud.weather_models import (
 from wps_shared.weather_models import (
     CompletedWithSomeExceptions,
     ModelEnum,
+    NoFilesProcessed,
     ProjectionEnum,
     UnhandledPredictionModelType,
     adjust_model_day,
     download,
     get_env_canada_model_run_hours,
 )
+from wps_shared.weather_models.eccc_url_fetcher import ECCCUrlFetcher
 from wps_shared.weather_models.model_run_urls import (
     get_model_run_urls,
 )
@@ -171,9 +174,9 @@ def parse_high_res_model_url(url):
         prediction_hour = url_parts[8]
         prediction_timestamp = model_run_timestamp + datetime.timedelta(hours=int(prediction_hour))
         return variable_name, projection, model_run_timestamp, prediction_timestamp
-    except Exception as exc:
-        logger.error("HRDPS URL %s is not in the expected format", url)
-        logger.error(exc_info=exc)
+    except (IndexError, ValueError) as exception:
+        logger.exception("HRDPS URL %s is not in the expected format", url)
+        raise ValueError(f"HRDPS URL {url} is not in the expected format") from exception
 
 
 def parse_env_canada_filename(url):
@@ -246,6 +249,7 @@ class EnvCanada:
         self.files_downloaded = 0
         self.files_processed = 0
         self.exception_count = 0
+        self.connection_error_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor()
@@ -261,7 +265,7 @@ class EnvCanada:
         else:
             raise UnhandledPredictionModelType(f"Unknown model type: {self.model_type}")
 
-    def process_model_run_urls(self, urls):
+    def process_model_run_urls(self, urls, fetcher: ECCCUrlFetcher):
         """Process the urls for a model run."""
         for url in urls:
             try:
@@ -282,6 +286,7 @@ class EnvCanada:
                             "REDIS_CACHE_ENV_CANADA",
                             model_info.model_enum.value,
                             "REDIS_ENV_CANADA_CACHE_EXPIRY",
+                            fetcher,
                         )
                         if downloaded:
                             self.files_downloaded += 1
@@ -296,12 +301,15 @@ class EnvCanada:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
-            except Exception as exception:
+            except (requests.ConnectionError, requests.Timeout) as exc:
+                self.connection_error_count += 1
+                logger.warning("Connection error for %s: %s", url, exc)
+            except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
                 # as we can.
-                logger.error("unexpected exception processing %s", url, exc_info=exception)
+                logger.exception("unexpected exception processing %s", url)
 
     def process_model_run(self, model_run_hour):
         """Process a particular model run"""
@@ -310,8 +318,10 @@ class EnvCanada:
         # Get the urls for the current model run.
         urls = get_model_run_urls(self.now, self.model_type, model_run_hour)
 
+        fetcher = ECCCUrlFetcher(self.now, model_run_hour)
+
         # Process all the urls.
-        self.process_model_run_urls(urls)
+        self.process_model_run_urls(urls, fetcher)
 
         # Having completed processing, check if we're all done.
         if check_if_model_run_complete(self.session, urls):
@@ -330,15 +340,14 @@ class EnvCanada:
         for hour in get_env_canada_model_run_hours(self.model_type):
             try:
                 self.process_model_run(hour)
-            except Exception as exception:
+            except Exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
-                logger.error(
+                logger.exception(
                     "unexpected exception processing %s model run %d",
                     self.model_type,
                     hour,
-                    exc_info=exception,
                 )
 
 
@@ -375,9 +384,11 @@ def process_models():
         seconds,
         execution_time,
     )
-    # check if we encountered any exceptions.
+    if env_canada.connection_error_count > 0:
+        logger.warning("%d connection error(s) during run (hourly retries will catch missed files)", env_canada.connection_error_count)
+    if env_canada.files_processed == 0 and env_canada.connection_error_count > 0:
+        raise NoFilesProcessed(f"no files processed for {sys.argv[1]} — possible outage on HPFX and DD")
     if env_canada.exception_count > 0:
-        # if there were any exceptions, return a non-zero status.
         raise CompletedWithSomeExceptions()
     return env_canada.files_processed
 
@@ -387,12 +398,17 @@ def main():
     try:
         process_models()
         apply_data_retention_policy()
+    except NoFilesProcessed as exc:
+        logger.warning("%s", exc)
+        rc_message = f":warning: No files processed for {sys.argv[1]} model data from Env Canada — hourly retries will attempt recovery"
+        send_chatops_notification(rc_message, exc)
+        sys.exit(os.EX_SOFTWARE)
     except CompletedWithSomeExceptions:
         logger.warning("completed processing with some exceptions")
         sys.exit(os.EX_SOFTWARE)
     except Exception as exception:
         # We catch and log any exceptions we may have missed.
-        logger.error("unexpected exception processing", exc_info=exception)
+        logger.exception("unexpected exception processing")
         rc_message = f":poop: Encountered error retrieving {sys.argv[1]} model data from Env Canada"
         send_chatops_notification(rc_message, exception)
         # Exit with a failure code.

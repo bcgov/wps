@@ -29,7 +29,7 @@
 export function dc(
   dc_yda: number,
   temp: number,
-  rh: number,
+  _rh: number,
   prec: number,
   lat: number,
   mon: number,

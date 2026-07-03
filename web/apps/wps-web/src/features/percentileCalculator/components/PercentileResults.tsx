@@ -1,14 +1,13 @@
-import React from 'react'
 import { styled } from '@mui/material/styles'
-import { useSelector } from 'react-redux'
-
+import type { PercentilesResponse } from '@wps/api/percentileAPI'
+import { ErrorMessage } from '@wps/ui/ErrorMessage'
+import { GridContainer, GridItem } from '@wps/ui/Grid'
 import { selectPercentiles } from 'app/rootReducer'
+import { PercentileCalcDocumentation } from 'features/percentileCalculator/components/PercentileCalcDocumentation'
 import { PercentileMeanResultTable } from 'features/percentileCalculator/components/PercentileMeanResultTable'
 import { PercentileStationResultTable } from 'features/percentileCalculator/components/PercentileStationResultTable'
-import { ErrorMessage } from '@wps/ui/ErrorMessage'
-import { GridItem, GridContainer } from '@wps/ui/Grid'
-import { PercentileCalcDocumentation } from 'features/percentileCalculator/components/PercentileCalcDocumentation'
-import { PercentilesResponse } from '@wps/api/percentileAPI'
+import React from 'react'
+import { useSelector } from 'react-redux'
 
 const PREFIX = 'PercentileResultsWrapper'
 

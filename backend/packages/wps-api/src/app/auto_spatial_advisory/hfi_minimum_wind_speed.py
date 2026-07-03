@@ -181,10 +181,13 @@ def get_minimum_wind_speed_for_hfi(
     if wind_nodata_value is not None:  # convert nodata values to np.nan
         wind_speed_array = np.where(wind_speed_array == wind_nodata_value, np.nan, wind_speed_array)
 
-    # Compute minimum wind speed for each classification
     min_wind_speeds: dict[int, float | None] = {}
     for hfi_class, mask in hfi_class_ids.items():
-        min_wind_speeds[hfi_class] = np.nanmin(wind_speed_array[mask]) if np.any(mask) else None
+        # nodata can overlap valid HFI pixels. Don't persist NaN when no real wind value exists.
+        finite_wind_speeds = wind_speed_array[mask & np.isfinite(wind_speed_array)]
+        min_wind_speeds[hfi_class] = (
+            float(np.min(finite_wind_speeds)) if finite_wind_speeds.size > 0 else None
+        )
 
     return min_wind_speeds
 

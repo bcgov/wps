@@ -1,5 +1,5 @@
 import { TableCell } from '@mui/material'
-import { FuelType, StationDaily, WeatherStation } from '@wps/api/hfiCalculatorAPI'
+import type { FuelType, StationDaily, WeatherStation } from '@wps/api/hfiCalculatorAPI'
 import HFICell from 'features/fbaCalculator/components/HFICell'
 import EmptyStaticCells from 'features/hfiCalculator/components/EmptyStaticCells'
 import HighestDailyFIGCell from 'features/hfiCalculator/components/HighestDailyFIGCell'
@@ -8,7 +8,7 @@ import { StationPlainStylingCell } from 'features/hfiCalculator/components/Style
 import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 import { isValidGrassCure } from 'features/hfiCalculator/validation'
 import { isNull, isUndefined, range } from 'lodash'
-import React, { ReactElement } from 'react'
+import React, { type ReactElement } from 'react'
 
 export interface StaticCellsProps {
   numPrepDays: number
@@ -41,7 +41,7 @@ export const StaticCells = ({
   station,
   isRowSelected,
   selectedFuelType
-}: StaticCellsProps): ReactElement => {
+}: StaticCellsProps): ReactElement<any> => {
   const TableCellComponent = isRowSelected ? TableCell : StationPlainStylingCell
 
   const staticCells = range(numPrepDays).map(dailyIndex => {

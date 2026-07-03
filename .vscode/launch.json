@@ -130,15 +130,6 @@
             ]
         },
         {
-            "name": "asa - populate advisory shape fuels",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "app.jobs.fuel_type_areas_per_zone",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python"
-        },
-        {
             "name": "asa - process stats",
             "type": "debugpy",
             "request": "launch",
@@ -161,8 +152,8 @@
             "module": "wps_tools.tif_pusher",
             "console": "integratedTerminal",
             "args": [
-                "2025-07-02",
-                "2025-07-03"
+                "2026-06-09",
+                "2026-06-09"
             ]
         },
         {
@@ -237,13 +228,20 @@
             ]
         },
         {
-            "name": "fuel type area per zone job",
+            "name": "Fuel Grid Install Job",
             "type": "debugpy",
             "request": "launch",
-            "module": "app.jobs.fuel_type_areas_per_zone",
+            "module": "fuel_grid.install_job",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python"
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "justMyCode": false,
+            "args": [
+                "--year",
+                "2026",
+                "--key",
+                "fbp2026.tif"
+            ]
         },
         {
             "name": "env_canada GDPS",
@@ -302,16 +300,6 @@
             ]
         },
         {
-            "name": "fuel layer processor job",
-            "type": "debugpy",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python",
-            "module": "fuel_raster",
-            "console": "integratedTerminal",
-            "args": []
-        },
-        {
             "name": "ecmwf IFS",
             "type": "debugpy",
             "request": "launch",
@@ -338,7 +326,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "SFMS Daily Actuals Interpolation",
+            "name": "SFMS Daily Actuals",
             "type": "debugpy",
             "request": "launch",
             "module": "app.jobs.sfms_daily_actuals",
@@ -346,7 +334,36 @@
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
-                "2024-07-04"
+                "2026-06-17"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "SFMS Daily Forecasts",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.sfms_daily_forecasts",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "2026-06-17"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "SFMS Daily Backfill",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.jobs.sfms_daily_backfill",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "args": [
+                "--start-date",
+                "2026-06-23",
+                "--end-date",
+                "2026-06-25"
             ],
             "console": "integratedTerminal"
         },

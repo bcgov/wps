@@ -1,17 +1,17 @@
-import { Table, TableBody, TableRow, styled } from '@mui/material'
+import { styled, Table, TableBody, TableRow } from '@mui/material'
 import StickyCell from '@wps/ui/StickyCell'
 import {
   NoBottomBorderCell,
   NonStickyHeaderCell,
   StickyCellRightBorderOnly
 } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
-import React, { ReactElement } from 'react'
+import React, { type ReactElement } from 'react'
 
 export const TableColumnHeaderCell = styled(NoBottomBorderCell)({
   fontWeight: 'bold'
 })
 
-export const StationDataHeaderCells = (): ReactElement => {
+export const StationDataHeaderCells = (): ReactElement<any> => {
   return (
     <React.Fragment>
       <StickyCell left={50} zIndexOffset={12}>

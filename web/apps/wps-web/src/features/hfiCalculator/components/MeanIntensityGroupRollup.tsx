@@ -1,11 +1,11 @@
 import { TableCell } from '@mui/material'
-import { isUndefined, isNull } from 'lodash'
-import React from 'react'
-import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import { StationDaily, PlanningArea, FuelType, StationInfo } from '@wps/api/hfiCalculatorAPI'
-import { getSelectedFuelType } from 'features/hfiCalculator/util'
+import type { FuelType, PlanningArea, StationDaily, StationInfo } from '@wps/api/hfiCalculatorAPI'
 import ErrorIconWithTooltip from 'features/hfiCalculator/components/ErrorIconWithTooltip'
 import { CalculatedPlanningCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
+import { getSelectedFuelType } from 'features/hfiCalculator/util'
+import { isValidGrassCure } from 'features/hfiCalculator/validation'
+import { isNull, isUndefined } from 'lodash'
+import React from 'react'
 
 export interface MeanIntensityGroupRollupProps {
   area: PlanningArea
@@ -62,7 +62,7 @@ const MeanIntensityGroupRollup = (props: MeanIntensityGroupRollupProps) => {
   const validatedMig =
     isUndefined(props.meanIntensityGroup) ||
     isNull(props.meanIntensityGroup) ||
-    isNaN(props.meanIntensityGroup) ||
+    Number.isNaN(props.meanIntensityGroup) ||
     props.meanIntensityGroup === Infinity ||
     props.meanIntensityGroup === -Infinity
       ? ''

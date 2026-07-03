@@ -1,8 +1,8 @@
-import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { getAllRunDates, getMostRecentRunDate, getSFMSBounds, RunType, SFMSBounds } from '@wps/api/fbaAPI'
-import { AppThunk } from 'app/store'
-import { DateTime } from 'luxon'
+import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { getAllRunDates, getMostRecentRunDate, getSFMSBounds, type RunType, type SFMSBounds } from '@wps/api/fbaAPI'
 import { logError } from '@wps/utils/error'
+import type { AppThunk } from 'app/store'
+import type { DateTime } from 'luxon'
 
 export interface RunDateState {
   loading: boolean
@@ -122,9 +122,17 @@ const findBoundsInOrder = (
 }
 
 export const selectLatestSFMSBounds = createSelector([selectSFMSBounds], sfmsBounds =>
-  findBoundsInOrder(sfmsBounds, (a, b) => b.localeCompare(a), bounds => !!bounds.maximum)
+  findBoundsInOrder(
+    sfmsBounds,
+    (a, b) => b.localeCompare(a),
+    bounds => !!bounds.maximum
+  )
 )
 
 export const selectEarliestSFMSBounds = createSelector([selectSFMSBounds], sfmsBounds =>
-  findBoundsInOrder(sfmsBounds, (a, b) => a.localeCompare(b), bounds => !!bounds.minimum)
+  findBoundsInOrder(
+    sfmsBounds,
+    (a, b) => a.localeCompare(b),
+    bounds => !!bounds.minimum
+  )
 )

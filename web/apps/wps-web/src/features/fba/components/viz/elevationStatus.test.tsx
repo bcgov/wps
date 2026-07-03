@@ -1,4 +1,3 @@
-import React from 'react'
 import { render } from '@testing-library/react'
 import ElevationStatus from 'features/fba/components/viz/ElevationStatus'
 

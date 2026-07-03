@@ -2,22 +2,29 @@
 Unit tests for relative humidity interpolation module.
 """
 
+from datetime import datetime, timezone
+
 import numpy as np
 import uuid
 import pytest
 from osgeo import gdal
-from wps_shared.schemas.sfms import SFMSDailyActual
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_sfms.interpolation.field import build_dewpoint_field, compute_rh
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.tests.conftest import create_test_raster
 
+TEST_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
+
 
 def create_test_actuals(lats, lons, dewpoints, elevations):
-    """Create test SFMSDailyActual objects with dewpoint values."""
+    """Create test SFMSDaily objects with dewpoint values."""
     actuals = []
     for i, (lat, lon, td, elev) in enumerate(zip(lats, lons, dewpoints, elevations)):
-        actual = SFMSDailyActual(
+        actual = SFMSDaily(
             code=100 + i,
+            for_datetime=TEST_FOR_DATETIME,
+            run_type=RunTypeEnum.actual,
             lat=lat,
             lon=lon,
             elevation=elev,
@@ -262,7 +269,15 @@ class TestRHInterpolator:
             create_test_raster(mask_path, 5, 5, extent, fill_value=1.0)
 
             actuals = [
-                SFMSDailyActual(code=1, lat=49.05, lon=-123.05, elevation=100.0, dewpoint=None)
+                SFMSDaily(
+                    code=1,
+                    for_datetime=TEST_FOR_DATETIME,
+                    run_type=RunTypeEnum.actual,
+                    lat=49.05,
+                    lon=-123.05,
+                    elevation=100.0,
+                    dewpoint=None,
+                )
             ]
             dewpoint_field = build_dewpoint_field(actuals)
 

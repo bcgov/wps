@@ -1,24 +1,25 @@
-import React, { useEffect, useState } from 'react'
-import { styled } from '@mui/material/styles'
-import { useDispatch, useSelector } from 'react-redux'
 import {
   Box,
   Checkbox,
+  CircularProgress,
   FormControl,
   Grid,
   List,
   ListItem,
   ListItemButton,
-  ListItemText,
   ListItemIcon,
+  ListItemText,
   Stack,
-  Typography,
-  CircularProgress
+  Typography
 } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import type { StationGroup, StationGroupMember } from '@wps/api/stationAPI'
+import type { AppDispatch } from 'app/store'
 import StationGroupDropdown from 'features/moreCast2/components/StationGroupDropdown'
-import { StationGroup, StationGroupMember } from '@wps/api/stationAPI'
-import { AppDispatch } from 'app/store'
 import { selectedStationsChanged, selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 
 const PREFIX = 'StationPanel'
 
@@ -99,7 +100,9 @@ const StationPanel = (props: StationPanelProps) => {
   }
 
   useEffect(() => {
-    setSelectAll(false)
+    if (selectedStationGroup) {
+      setSelectAll(false)
+    }
   }, [selectedStationGroup])
 
   return (

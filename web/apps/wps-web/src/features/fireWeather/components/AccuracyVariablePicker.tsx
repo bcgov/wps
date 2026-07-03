@@ -1,6 +1,6 @@
-import React from 'react'
+import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import React from 'react'
 
 const PREFIX = 'AccuracyVariablePicker'
 
@@ -25,12 +25,12 @@ const Root = styled('div')({
 
 export enum AccuracyWeatherVariableEnum {
   'Relative Humidity' = 1,
-  'Temperature'
+  Temperature
 }
 
 interface Props {
   selectedWxVariable: AccuracyWeatherVariableEnum
-  changeHandler: any //eslint-disable-line @typescript-eslint/no-explicit-any
+  changeHandler: any
 }
 
 const AccuracyVariablePicker = (props: Props) => {
@@ -48,7 +48,7 @@ const AccuracyVariablePicker = (props: Props) => {
           onChange={props.changeHandler}
         >
           <MenuItem value={AccuracyWeatherVariableEnum['Relative Humidity']}>Relative Humidity</MenuItem>
-          <MenuItem value={AccuracyWeatherVariableEnum['Temperature']}>Temperature</MenuItem>
+          <MenuItem value={AccuracyWeatherVariableEnum.Temperature}>Temperature</MenuItem>
         </Select>
       </FormControl>
     </Root>

@@ -1,15 +1,15 @@
 import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material'
-import React from 'react'
-import { isNull } from 'lodash'
-import { theme } from '@wps/ui/theme'
 import { RunType } from '@wps/api/fbaAPI'
+import { theme } from '@wps/ui/theme'
+import { isNull } from 'lodash'
+import React from 'react'
 
 export interface ActualForecastControlProps {
   runType: RunType
   setRunType: React.Dispatch<React.SetStateAction<RunType>>
 }
 const ActualForecastControl = ({ runType, setRunType }: ActualForecastControlProps) => {
-  const changeHandler = (_: React.ChangeEvent<{}>, value: string) => {
+  const changeHandler = (_: React.ChangeEvent<unknown>, value: string) => {
     if (!isNull(value)) {
       setRunType(value as RunType)
     }
@@ -42,24 +42,28 @@ const ActualForecastControl = ({ runType, setRunType }: ActualForecastControlPro
         <FormControlLabel
           value={RunType.ACTUAL}
           control={
-            <Radio slotProps={{
-              input: { 'data-testid': 'actual-radio' } as React.InputHTMLAttributes<HTMLInputElement>
-            }} />
+            <Radio
+              slotProps={{
+                input: { 'data-testid': 'actual-radio' } as React.InputHTMLAttributes<HTMLInputElement>
+              }}
+            />
           }
           label="Actual"
         />
         <FormControlLabel
           value={RunType.FORECAST}
           control={
-            <Radio slotProps={{
-              input: { 'data-testid': 'forecast-radio' } as React.InputHTMLAttributes<HTMLInputElement>
-            }} />
+            <Radio
+              slotProps={{
+                input: { 'data-testid': 'forecast-radio' } as React.InputHTMLAttributes<HTMLInputElement>
+              }}
+            />
           }
           label="Forecast"
         />
       </RadioGroup>
     </FormControl>
-  );
+  )
 }
 
 export default React.memo(ActualForecastControl)

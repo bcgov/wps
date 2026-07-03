@@ -1,9 +1,12 @@
-import React from 'react'
 import { Grid } from '@mui/material'
-import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
-import { AdminStationDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminStationDropdown'
 import { AdminFuelTypesDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminFuelTypesDropdown'
 import AdminRemoveButton from 'features/hfiCalculator/components/stationAdmin/AdminRemoveButton'
+import { AdminStationDropdown } from 'features/hfiCalculator/components/stationAdmin/AdminStationDropdown'
+import type {
+  AddStationOptions,
+  StationAdminRow
+} from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import React, { type JSX } from 'react'
 
 export interface NewStationListProps {
   testId?: string
@@ -60,7 +63,7 @@ export const NewStationList = ({
         </Grid>
       </Grid>
     </Grid>
-  );
+  )
 }
 
 export default React.memo(NewStationList)

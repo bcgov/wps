@@ -1,6 +1,6 @@
-import axios from './axios'
+import type { DetailedGeoJsonStation, FireSeason, GeoJsonStation } from '@wps/types/stationTypes'
 import { sortBy } from 'lodash'
-import type { FireSeason, GeoJsonStation, DetailedGeoJsonStation } from '@wps/types/stationTypes'
+import axios from './axios'
 
 export interface Station {
   code: number

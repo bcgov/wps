@@ -74,3 +74,20 @@ def test_returns_none_on_request_exception(monkeypatch):
 def test_does_not_raise_on_exception(monkeypatch):
     monkeypatch.setattr(requests, "post", MagicMock(side_effect=Exception("unexpected")))
     send_chatops_notification("test", Exception("err"))  # must not raise
+
+
+def test_long_traceback_preserves_tail(monkeypatch, mock_post):
+    """When traceback exceeds the 2000-char limit, the tail (innermost frame + exception line) is
+    kept rather than the head. The header already contains str(exc), so we assert on the
+    'ExceptionType: message' form which only appears in the traceback itself."""
+    try:
+        raise ValueError("unique_sentinel_value")
+    except ValueError as exc:
+        exception = exc
+
+    # Small limit so the traceback is truncated; head-truncation would lose the final
+    # "ValueError: unique_sentinel_value" line while tail-truncation keeps it.
+    monkeypatch.setattr("wps_shared.chatops_notification.webhook_max_char_len", 200)
+    send_chatops_notification("test", exception)
+    body = mock_post.call_args.kwargs["json"]["body"]
+    assert "ValueError: unique_sentinel_value" in body

@@ -36,7 +36,7 @@ def send_chatops_notification(text: str, exc_info: Exception) -> str | None:
         f"{config.get('HOSTNAME')} ({threading.get_native_id()}): {exc_info}\n"
     )
     max_tb_len = webhook_max_char_len - len(header) - 8  # 8 for "```\n" + "\n```"
-    full_message = f"{header}```\n{traceback_str[:max_tb_len]}\n```"
+    full_message = f"{header}```\n{traceback_str[-max_tb_len:]}\n```"
     pod_logs_url = f"{config.get('OPENSHIFT_CONSOLE_URL')}/k8s/ns/{config.get('PROJECT_NAMESPACE')}/pods/{config.get('HOSTNAME')}/logs"
     result = None
     try:

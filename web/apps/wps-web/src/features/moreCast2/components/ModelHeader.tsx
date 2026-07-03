@@ -1,11 +1,11 @@
-import React from 'react'
-import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import { Info as InfoIcon } from '@mui/icons-material'
-import { DateTime } from 'luxon'
-import { MoreCast2Row } from '@/features/moreCast2/interfaces'
-import { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
+import { Box, IconButton, Tooltip, Typography } from '@mui/material'
+import type { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
 import { weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { isEmpty, isNil } from 'lodash'
+import { DateTime } from 'luxon'
+import React from 'react'
+import type { MoreCast2Row } from '@/features/moreCast2/interfaces'
 
 interface ModelHeaderProps {
   params: Pick<GridColumnHeaderParams<MoreCast2Row>, 'field'> & {

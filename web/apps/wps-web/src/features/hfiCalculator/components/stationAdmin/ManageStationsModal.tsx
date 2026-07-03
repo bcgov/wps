@@ -1,18 +1,27 @@
-import React, { useEffect } from 'react'
-import { styled } from '@mui/material/styles'
-import { Dialog, DialogContent, IconButton, Paper, Typography } from '@mui/material'
 import ClearIcon from '@mui/icons-material/Clear'
-import { useDispatch, useSelector } from 'react-redux'
+import { Dialog, DialogContent, IconButton, Paper, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import type {
+  BasicPlanningArea,
+  BasicWFWXStation,
+  FuelType,
+  PlanningArea,
+  StationAdminRow,
+  StationInfo
+} from '@wps/api/hfiCalculatorAPI'
 import { selectFireWeatherStations, selectHFICalculatorState } from 'app/rootReducer'
+import type { AppDispatch } from 'app/store'
 import { setStationsUpdatedFailed } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
-import { BasicPlanningArea, BasicWFWXStation, FuelType, PlanningArea, StationAdminRow, StationInfo } from '@wps/api/hfiCalculatorAPI'
-import { AppDispatch } from 'app/store'
+import React, { type JSX, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+
 export type { BasicPlanningArea, BasicWFWXStation, StationAdminRow } from '@wps/api/hfiCalculatorAPI'
-import { groupBy, isNull, isUndefined, sortBy } from 'lodash'
-import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+
 import { getStations, StationSource } from '@wps/api/stationAPI'
 import StationListAdmin from 'features/hfiCalculator/components/stationAdmin/StationListAdmin'
 import { getSelectedFuelType } from 'features/hfiCalculator/util'
+import { fetchWxStations } from 'features/stations/slices/stationsSlice'
+import { groupBy, isNull, isUndefined, sortBy } from 'lodash'
 
 const PREFIX = 'ManageStationsModal'
 
@@ -61,26 +70,21 @@ export const ManageStationsModal = ({
 
   const existingStations: { [key: string]: StationAdminRow[] } = groupBy(
     planningAreas
-      ? sortBy(planningAreas, 'order_of_appearance_in_list')
-          .map(planningArea =>
-            sortBy(planningArea.stations, 'order_of_appearance_in_planning_area_list').map((station, i) => ({
-              planningAreaId: planningArea.id,
-              rowId: i,
-              station: { code: station.code, name: station.station_props.name },
-              fuelType: getSelectedFuelType(planningAreaStationInfo, planningArea.id, station.code, fuelTypes)
-            }))
-          )
-          .flat()
+      ? sortBy(planningAreas, 'order_of_appearance_in_list').flatMap(planningArea =>
+          sortBy(planningArea.stations, 'order_of_appearance_in_planning_area_list').map((station, i) => ({
+            planningAreaId: planningArea.id,
+            rowId: i,
+            station: { code: station.code, name: station.station_props.name },
+            fuelType: getSelectedFuelType(planningAreaStationInfo, planningArea.id, station.code, fuelTypes)
+          }))
+        )
       : [],
     'planningAreaId'
   )
 
   useEffect(() => {
-    if (!isUndefined(selectedFireCentre)) {
-      dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
+  }, [dispatch])
 
   const handleClose = () => {
     setModalOpen(false)
@@ -110,6 +114,7 @@ export const ManageStationsModal = ({
               planningAreas={planningAreas}
               fuelTypes={fuelTypes}
               existingPlanningAreaStations={existingStations}
+              stationUpdateError={stationsUpdatedError}
               addStationOptions={{
                 planningAreaOptions: planning_areas,
                 stationOptions: stations,

@@ -2,7 +2,6 @@ package ca.bcgov.plugins.keycloak;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,65 +9,229 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import net.openid.appauth.*;
 import org.json.JSONException;
 
 public class Keycloak {
+
     private static final String TAG = "Keycloak";
     private static final long TOKEN_REFRESH_CHECK_INTERVAL = 60000; // Check every 60 seconds
     private static final long TOKEN_EXPIRY_BUFFER = 60000; // Refresh 1 minute before expiry
-    private static final String PREFS_NAME = "KeycloakAuthState";
-    private static final String KEY_AUTH_STATE = "auth_state";
+    private static final ExecutorService IO_EXECUTOR = Executors.newSingleThreadExecutor();
 
-    private Context context;
     private AuthorizationService authService;
+    private AuthStateStore authStateStore;
     private PluginCall currentCall;
     private AuthorizationRequest currentAuthRequest;
     private AuthState authState;
     private Handler refreshHandler;
     private Runnable refreshCheckRunnable;
     private TokenRefreshCallback tokenRefreshCallback;
+    private CompletableFuture<Void> authStateRestoreFuture;
 
     public interface TokenRefreshCallback {
         void onTokenRefreshed(JSObject tokens);
+
+        void onTokenRefreshFailed(String error);
     }
 
     public Keycloak(Context context) {
-        this.context = context;
         this.authService = new AuthorizationService(context);
-        this.authState = restoreAuthState();
+        this.authStateStore = createAuthStateStore(context);
+        this.authState = new AuthState();
         this.refreshHandler = new Handler(Looper.getMainLooper());
         setupAutomaticRefresh();
+        this.authStateRestoreFuture = restoreAuthStateAsync();
     }
 
-    private AuthState restoreAuthState() {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String stateJson = prefs.getString(KEY_AUTH_STATE, null);
-
-        if (stateJson != null) {
-            try {
-                AuthState restored = AuthState.jsonDeserialize(stateJson);
-                Log.d(TAG, "Restored auth state from storage");
-                return restored;
-            } catch (JSONException e) {
-                Log.e(TAG, "Failed to restore auth state", e);
-            }
+    private CompletableFuture<Void> restoreAuthStateAsync() {
+        if (authStateStore == null) {
+            Log.d(TAG, "No auth state store, creating new");
+            return CompletableFuture.completedFuture(null);
         }
 
-        Log.d(TAG, "No saved auth state, creating new");
-        return new AuthState();
+        return CompletableFuture
+            .supplyAsync(authStateStore::read, IO_EXECUTOR)
+            .thenCompose(stateJson -> {
+                if (stateJson == null) {
+                    Log.d(TAG, "No saved auth state, creating new");
+                    return CompletableFuture.completedFuture(null);
+                }
+
+                AuthState restoredAuthState;
+                try {
+                    restoredAuthState = AuthState.jsonDeserialize(stateJson);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to restore auth state", e);
+                    return CompletableFuture.completedFuture(null);
+                }
+
+                CompletableFuture<Void> mainThreadFuture = new CompletableFuture<>();
+                refreshHandler.post(() -> {
+                    if (!authState.isAuthorized()) {
+                        authState = restoredAuthState;
+                        Log.d(TAG, "Restored auth state from storage");
+                        checkAndRefreshToken();
+                    }
+                    mainThreadFuture.complete(null);
+                });
+                return mainThreadFuture;
+            });
     }
 
     private void persistAuthState() {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit()
-            .putString(KEY_AUTH_STATE, authState.jsonSerializeString())
-            .apply();
-        Log.d(TAG, "Auth state persisted");
+        if (authStateStore != null) {
+            String stateJson = authState.jsonSerializeString();
+            IO_EXECUTOR.execute(() -> authStateStore.write(stateJson));
+        }
+    }
+
+    private void clearAuthState() {
+        if (authStateStore != null) {
+            IO_EXECUTOR.execute(() -> authStateStore.clear());
+        }
+        authState = new AuthState();
+        Log.d(TAG, "Auth state cleared");
+    }
+
+    private AuthStateStore createAuthStateStore(Context context) {
+        try {
+            return new AuthStateStore(context);
+        } catch (GeneralSecurityException | IOException e) {
+            Log.e(TAG, "Failed to initialize encrypted auth state storage", e);
+            return null;
+        }
+    }
+
+    private JSObject createSuccessResponse(
+        @Nullable String accessToken,
+        @Nullable String idToken,
+        @Nullable String tokenType,
+        @Nullable Long expiresAt,
+        @Nullable String scope
+    ) {
+        JSObject successResponse = new JSObject();
+        successResponse.put("isAuthenticated", true);
+        successResponse.put("accessToken", accessToken);
+        successResponse.put("refreshToken", authState.getRefreshToken());
+        successResponse.put("idToken", idToken);
+        successResponse.put("tokenType", tokenType != null ? tokenType : "Bearer");
+        successResponse.put("scope", scope);
+        if (expiresAt != null) {
+            successResponse.put("expiresAt", expiresAt);
+        }
+        return successResponse;
     }
 
     public void setTokenRefreshCallback(TokenRefreshCallback callback) {
         this.tokenRefreshCallback = callback;
+    }
+
+    public boolean authenticateWithStoredState(PluginCall call, Runnable fallbackToBrowser) {
+        if (authStateRestoreFuture != null && !authStateRestoreFuture.isDone()) {
+            authStateRestoreFuture.whenComplete((result, error) ->
+                refreshHandler.post(() -> {
+                    if (!authenticateWithStoredState(call, fallbackToBrowser)) {
+                        fallbackToBrowser.run();
+                    }
+                })
+            );
+            return true;
+        }
+
+        if (!authState.isAuthorized()) {
+            Log.d(TAG, "No authorized stored auth state available");
+            return false;
+        }
+
+        Log.d(TAG, "Refreshing stored auth state before launching browser");
+        authState.performActionWithFreshTokens(
+            authService,
+            new AuthState.AuthStateAction() {
+                @Override
+                public void execute(
+                    @Nullable String accessToken,
+                    @Nullable String idToken,
+                    @Nullable AuthorizationException exception
+                ) {
+                    if (exception != null) {
+                        Log.e(TAG, "Stored auth state refresh failed: " + exception.getMessage());
+                        clearAuthState();
+                        fallbackToBrowser.run();
+                        return;
+                    }
+
+                    Log.d(TAG, "Stored auth state refresh successful");
+                    persistAuthState();
+                    call.resolve(
+                        createSuccessResponse(
+                            accessToken,
+                            idToken,
+                            "Bearer",
+                            authState.getAccessTokenExpirationTime(),
+                            authState.getScope()
+                        )
+                    );
+                }
+            }
+        );
+
+        return true;
+    }
+
+    public void refreshStoredAuthState(PluginCall call) {
+        if (!authState.isAuthorized()) {
+            JSObject response = new JSObject();
+            response.put("isAuthenticated", false);
+            response.put("error", "not_authenticated");
+            response.put("errorDescription", "No authorized stored auth state available");
+            call.resolve(response);
+            return;
+        }
+
+        Log.d(TAG, "Refreshing stored auth state");
+        authState.performActionWithFreshTokens(
+            authService,
+            new AuthState.AuthStateAction() {
+                @Override
+                public void execute(
+                    @Nullable String accessToken,
+                    @Nullable String idToken,
+                    @Nullable AuthorizationException exception
+                ) {
+                    if (exception != null) {
+                        Log.e(TAG, "Stored auth state refresh failed: " + exception.getMessage());
+                        clearAuthState();
+                        JSObject response = new JSObject();
+                        response.put("isAuthenticated", false);
+                        response.put("error", exception.error);
+                        response.put("errorDescription", exception.getLocalizedMessage());
+                        call.resolve(response);
+                        return;
+                    }
+
+                    persistAuthState();
+                    call.resolve(
+                        createSuccessResponse(
+                            accessToken,
+                            idToken,
+                            "Bearer",
+                            authState.getAccessTokenExpirationTime(),
+                            authState.getScope()
+                        )
+                    );
+                }
+            }
+        );
+    }
+
+    public void clearStoredAuthState() {
+        clearAuthState();
     }
 
     private void setupAutomaticRefresh() {
@@ -80,8 +243,26 @@ public class Keycloak {
                 refreshHandler.postDelayed(this, TOKEN_REFRESH_CHECK_INTERVAL);
             }
         };
-        // Start checking after initial delay
+        resumeAutomaticRefresh();
+    }
+
+    public void pauseAutomaticRefresh() {
+        if (refreshHandler != null && refreshCheckRunnable != null) {
+            refreshHandler.removeCallbacks(refreshCheckRunnable);
+            Log.d(TAG, "Paused automatic token refresh");
+        }
+    }
+
+    public void resumeAutomaticRefresh() {
+        if (refreshHandler == null || refreshCheckRunnable == null) {
+            return;
+        }
+
+        pauseAutomaticRefresh();
+        checkAndRefreshToken();
+        // schedule checks only while the app is in the foreground
         refreshHandler.postDelayed(refreshCheckRunnable, TOKEN_REFRESH_CHECK_INTERVAL);
+        Log.d(TAG, "Resumed automatic token refresh");
     }
 
     private void checkAndRefreshToken() {
@@ -105,34 +286,44 @@ public class Keycloak {
     }
 
     private void performTokenRefresh() {
-        authState.performActionWithFreshTokens(authService, new AuthState.AuthStateAction() {
-            @Override
-            public void execute(@Nullable String accessToken, @Nullable String idToken,
-                              @Nullable AuthorizationException exception) {
-                if (exception != null) {
-                    Log.e(TAG, "Automatic token refresh failed: " + exception.getMessage());
-                    return;
-                }
-
-                Log.d(TAG, "Token automatically refreshed");
-
-                // Persist the updated auth state
-                persistAuthState();
-
-                // Notify JavaScript about the refresh
-                if (tokenRefreshCallback != null) {
-                    JSObject tokens = new JSObject();
-                    tokens.put("accessToken", accessToken);
-                    tokens.put("idToken", idToken);
-                    tokens.put("refreshToken", authState.getRefreshToken());
-                    tokens.put("tokenType", "Bearer");
-                    if (authState.getAccessTokenExpirationTime() != null) {
-                        tokens.put("expiresAt", authState.getAccessTokenExpirationTime());
+        authState.performActionWithFreshTokens(
+            authService,
+            new AuthState.AuthStateAction() {
+                @Override
+                public void execute(
+                    @Nullable String accessToken,
+                    @Nullable String idToken,
+                    @Nullable AuthorizationException exception
+                ) {
+                    if (exception != null) {
+                        Log.e(TAG, "Automatic token refresh failed: " + exception.getMessage());
+                        if (tokenRefreshCallback != null) {
+                            tokenRefreshCallback.onTokenRefreshFailed(exception.getLocalizedMessage());
+                        }
+                        return;
                     }
-                    tokenRefreshCallback.onTokenRefreshed(tokens);
+
+                    Log.d(TAG, "Token automatically refreshed");
+
+                    // Persist the updated auth state
+                    persistAuthState();
+
+                    // Notify JavaScript about the refresh
+                    if (tokenRefreshCallback != null) {
+                        JSObject tokens = new JSObject();
+                        tokens.put("accessToken", accessToken);
+                        tokens.put("idToken", idToken);
+                        tokens.put("refreshToken", authState.getRefreshToken());
+                        tokens.put("tokenType", "Bearer");
+                        tokens.put("scope", authState.getScope());
+                        if (authState.getAccessTokenExpirationTime() != null) {
+                            tokens.put("expiresAt", authState.getAccessTokenExpirationTime());
+                        }
+                        tokenRefreshCallback.onTokenRefreshed(tokens);
+                    }
                 }
             }
-        });
+        );
     }
 
     /**
@@ -149,20 +340,19 @@ public class Keycloak {
         this.currentAuthRequest = request;
     }
 
-
     /**
      * Handle the authorization response from intent
      */
     public void handleAuthorizationResponse(Intent intent) {
         Log.d(TAG, "handleAuthorizationResponse called");
-        
+
         Log.d(TAG, "=== Authorization State Check ===");
         Log.d(TAG, "Current call present: " + (currentCall != null));
         Log.d(TAG, "Current auth request present: " + (currentAuthRequest != null));
         if (currentAuthRequest != null) {
             Log.d(TAG, "Current auth request state: " + currentAuthRequest.state);
         }
-        
+
         if (currentCall == null) {
             Log.w(TAG, "No current call to complete - this might be due to app restart");
             // Don't return immediately, still try to process the response
@@ -182,7 +372,10 @@ public class Keycloak {
             Log.d(TAG, "Auth response: " + (authResponse != null ? "present" : "null"));
             if (authResponse != null) {
                 Log.d(TAG, "Auth response state: " + authResponse.state);
-                Log.d(TAG, "Auth response authorization code: " + (authResponse.authorizationCode != null ? "present" : "null"));
+                Log.d(
+                    TAG,
+                    "Auth response authorization code: " + (authResponse.authorizationCode != null ? "present" : "null")
+                );
             }
             Log.d(TAG, "Auth exception: " + (authException != null ? authException.getMessage() : "null"));
 
@@ -219,61 +412,63 @@ public class Keycloak {
 
             // Exchange authorization code for tokens
             TokenRequest tokenRequest = authResponse.createTokenExchangeRequest();
-            
-            authService.performTokenRequest(tokenRequest, new AuthorizationService.TokenResponseCallback() {
-                @Override
-                public void onTokenRequestCompleted(@Nullable TokenResponse tokenResponse, 
-                                                  @Nullable AuthorizationException exception) {
-                    if (exception != null) {
-                        Log.e(TAG, "Token exchange failed: " + exception.getMessage());
-                        JSObject errorResponse = new JSObject();
-                        errorResponse.put("isAuthenticated", false);
-                        errorResponse.put("error", exception.error);
-                        errorResponse.put("errorDescription", exception.getLocalizedMessage());
+
+            authService.performTokenRequest(
+                tokenRequest,
+                new AuthorizationService.TokenResponseCallback() {
+                    @Override
+                    public void onTokenRequestCompleted(
+                        @Nullable TokenResponse tokenResponse,
+                        @Nullable AuthorizationException exception
+                    ) {
+                        if (exception != null) {
+                            Log.e(TAG, "Token exchange failed: " + exception.getMessage());
+                            JSObject errorResponse = new JSObject();
+                            errorResponse.put("isAuthenticated", false);
+                            errorResponse.put("error", exception.error);
+                            errorResponse.put("errorDescription", exception.getLocalizedMessage());
+                            if (currentCall != null) {
+                                currentCall.resolve(errorResponse);
+                                currentCall = null;
+                            }
+                            return;
+                        }
+
+                        if (tokenResponse == null) {
+                            Log.e(TAG, "Token response is null");
+                            JSObject errorResponse = new JSObject();
+                            errorResponse.put("isAuthenticated", false);
+                            errorResponse.put("error", "no_token_response");
+                            errorResponse.put("errorDescription", "No token response received");
+                            if (currentCall != null) {
+                                currentCall.resolve(errorResponse);
+                                currentCall = null;
+                            }
+                            return;
+                        }
+
+                        // Update auth state with tokens
+                        authState.update(tokenResponse, exception);
+
+                        // Persist auth state for future app restarts
+                        persistAuthState();
+
+                        Log.d(TAG, "Token exchange successful");
+                        JSObject successResponse = createSuccessResponse(
+                            tokenResponse.accessToken,
+                            tokenResponse.idToken,
+                            tokenResponse.tokenType,
+                            tokenResponse.accessTokenExpirationTime,
+                            tokenResponse.scope
+                        );
+
                         if (currentCall != null) {
-                            currentCall.resolve(errorResponse);
+                            currentCall.resolve(successResponse);
                             currentCall = null;
                         }
-                        return;
-                    }
-
-                    if (tokenResponse == null) {
-                        Log.e(TAG, "Token response is null");
-                        JSObject errorResponse = new JSObject();
-                        errorResponse.put("isAuthenticated", false);
-                        errorResponse.put("error", "no_token_response");
-                        errorResponse.put("errorDescription", "No token response received");
-                        if (currentCall != null) {
-                            currentCall.resolve(errorResponse);
-                            currentCall = null;
-                        }
-                        return;
-                    }
-
-                    // Update auth state with tokens
-                    authState.update(tokenResponse, exception);
-
-                    // Persist auth state for future app restarts
-                    persistAuthState();
-
-                    Log.d(TAG, "Token exchange successful");
-                    JSObject successResponse = new JSObject();
-                    successResponse.put("isAuthenticated", true);
-                    successResponse.put("accessToken", tokenResponse.accessToken);
-                    successResponse.put("refreshToken", tokenResponse.refreshToken);
-                    successResponse.put("idToken", tokenResponse.idToken);
-                    successResponse.put("tokenType", tokenResponse.tokenType);
-                    if (tokenResponse.accessTokenExpirationTime != null) {
-                        successResponse.put("expiresAt", tokenResponse.accessTokenExpirationTime);
-                    }
-
-                    if (currentCall != null) {
-                        currentCall.resolve(successResponse);
-                        currentCall = null;
                     }
                 }
-            });
-
+            );
         } catch (Exception e) {
             Log.e(TAG, "Error handling authorization response", e);
             JSObject errorResponse = new JSObject();
@@ -290,7 +485,7 @@ public class Keycloak {
      */
     public void handleAuthCallback(Uri callbackUri) {
         Log.d(TAG, "handleAuthCallback called with URI: " + callbackUri.toString());
-        
+
         // Create intent from URI for proper AppAuth handling
         Intent intent = new Intent();
         intent.setData(callbackUri);
@@ -301,11 +496,7 @@ public class Keycloak {
      * Clean up resources
      */
     public void dispose() {
-        // Stop automatic refresh checking
-        if (refreshHandler != null && refreshCheckRunnable != null) {
-            refreshHandler.removeCallbacks(refreshCheckRunnable);
-            Log.d(TAG, "Stopped automatic token refresh");
-        }
+        pauseAutomaticRefresh();
 
         if (authService != null) {
             authService.dispose();

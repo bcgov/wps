@@ -1,9 +1,8 @@
 import { render } from '@testing-library/react'
 import { format } from 'date-fns'
-import Menu from './Menu'
-import { DateRange, NavigationAction, Setter } from './types'
 import { vi } from 'vitest'
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import Menu from './Menu'
+import type { DateRange, NavigationAction, Setter } from './types'
 
 const setup = (
   dateRange: DateRange,
@@ -49,22 +48,22 @@ describe('Menu', () => {
   const firstMonth = new Date('2021/2/1')
   const secondMonth = new Date('2021/3/1')
 
-  const inHoverRangeMock = vi.fn((date: Date): boolean => {
+  const inHoverRangeMock = vi.fn((_date: Date): boolean => {
     return false
   })
-  const onDayClickMock = vi.fn((date: Date): void => {
+  const onDayClickMock = vi.fn((_date: Date): void => {
     /** no op */
   })
-  const onDayHoverMock = vi.fn((date: Date): void => {
+  const onDayHoverMock = vi.fn((_date: Date): void => {
     /** no op */
   })
-  const onMonthNavigateMock = vi.fn((marker: symbol, action: NavigationAction): void => {
+  const onMonthNavigateMock = vi.fn((_marker: symbol, _action: NavigationAction): void => {
     /** no op */
   })
-  const setFirstMonthMock = vi.fn((date: Date): void => {
+  const setFirstMonthMock = vi.fn((_date: Date): void => {
     /** no op */
   })
-  const setSecondMonthMock = vi.fn((date: Date): void => {
+  const setSecondMonthMock = vi.fn((_date: Date): void => {
     /** no op */
   })
 

@@ -1,9 +1,8 @@
 import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render } from '@testing-library/react'
-import { StationDaily } from '@wps/api/hfiCalculatorAPI'
-import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
+import type { StationDaily } from '@wps/api/hfiCalculatorAPI'
 import { buildStationDaily } from 'features/hfiCalculator/components/testHelpers'
-
+import WeeklyROSCell from 'features/hfiCalculator/components/WeeklyROSCell'
 
 const renderWeeklyRos = (daily: StationDaily, testId: string, error: boolean, isRowSelected: boolean) => {
   return render(

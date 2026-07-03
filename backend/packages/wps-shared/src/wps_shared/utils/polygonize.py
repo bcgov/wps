@@ -2,9 +2,9 @@
 
 import logging
 from contextlib import contextmanager
-from osgeo import gdal, ogr, osr
-import numpy as np
 
+import numpy as np
+from osgeo import gdal, ogr, osr
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +38,17 @@ def polygonize_in_memory(geotiff_filename, layer, field) -> ogr.Layer:
 
     # generate mask data
     mask_data = np.where(source_data == nodata_value, False, True)
-    mask_ds, mask_band = _create_in_memory_band(mask_data, source_band.XSize, source_band.YSize, source.GetProjection(), source.GetGeoTransform())
+    mask_ds, mask_band = _create_in_memory_band(
+        mask_data,
+        source_band.XSize,
+        source_band.YSize,
+        source.GetProjection(),
+        source.GetGeoTransform(),
+    )
 
     # Create a memory OGR datasource to put results in.
     # https://gdal.org/drivers/vector/memory.html#vector-memory
-    mem_drv: ogr.Driver = ogr.GetDriverByName("Memory")
+    mem_drv: ogr.Driver = ogr.GetDriverByName("MEM")
     # https://gdal.org/api/python/osgeo.ogr.html#osgeo.ogr.DataSource
     dst_ds: ogr.DataSource = mem_drv.CreateDataSource("out")
 
@@ -59,9 +65,7 @@ def polygonize_in_memory(geotiff_filename, layer, field) -> ogr.Layer:
     del dst_ds, dst_layer
 
 
-def polygonize_geotiff_to_shapefile(
-    raster_source_filename: str, vector_dest_filename: str
-):
+def polygonize_geotiff_to_shapefile(raster_source_filename: str, vector_dest_filename: str):
     """
     TODO: Automate this.
     At the moment this function isn't used as part of any automated process,
@@ -86,7 +90,9 @@ def polygonize_geotiff_to_shapefile(
     destination = driver.CreateDataSource(vector_dest_filename)
     dest_srs = ogr.osr.SpatialReference()
     dest_srs.ImportFromEPSG(3005)
-    dest_layer = destination.CreateLayer(vector_dest_filename, geom_type=ogr.wkbPolygon, srs=dest_srs)
+    dest_layer = destination.CreateLayer(
+        vector_dest_filename, geom_type=ogr.wkbPolygon, srs=dest_srs
+    )
     dest_layer.CreateField(value)
     # 'Band 1' is the field name on the layer for Fuel Type ID
     dest_field = dest_layer.GetLayerDefn().GetFieldIndex("Band 1")

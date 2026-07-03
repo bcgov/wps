@@ -50,8 +50,9 @@
       "dependsOn": [],
       "outputs": ["coverage/**"]
     },
-    "lint": {
-      "outputs": []
+    "playwright:ci": {
+      "dependsOn": ["^build"],
+      "outputs": ["test-results/**", "playwright-report/**", "coverage-playwright/**"]
     },
     "dev": {
       "cache": false,

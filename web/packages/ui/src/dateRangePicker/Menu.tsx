@@ -1,12 +1,12 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
-import { Paper, Grid, Typography, Divider, Button } from '@mui/material'
-import { format, differenceInCalendarMonths } from 'date-fns'
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt'
-import { MARKERS } from './DateRangePicker'
-import { DateRange, NavigationAction, Setter } from './types'
-import Month from './Month'
+import { Button, Divider, Grid, Paper, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import { differenceInCalendarMonths, format } from 'date-fns'
+import type React from 'react'
 import { theme } from '../theme'
+import { MARKERS } from './DateRangePicker'
+import Month from './Month'
+import type { DateRange, NavigationAction, Setter } from './types'
 
 const PREFIX = 'Menu'
 
@@ -74,9 +74,13 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
     <StyledPaper elevation={5} square data-testid="date-range-picker-menu">
       <Grid container direction="row" wrap="nowrap">
         <Grid>
-          <Grid container className={classes.header} sx={{
-            alignItems: "center"
-          }}>
+          <Grid
+            container
+            className={classes.header}
+            sx={{
+              alignItems: 'center'
+            }}
+          >
             <Grid className={classes.headerItem}>
               <Typography variant="subtitle1" data-testid="menu-start-date">
                 {startDate ? format(startDate, 'MMMM dd, yyyy') : 'Start Date'}
@@ -92,9 +96,14 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
             </Grid>
           </Grid>
           <Divider />
-          <Grid container direction="row" wrap="nowrap" sx={{
-            justifyContent: "center"
-          }}>
+          <Grid
+            container
+            direction="row"
+            wrap="nowrap"
+            sx={{
+              justifyContent: 'center'
+            }}
+          >
             <Month
               {...commonProps}
               value={firstMonth}
@@ -114,9 +123,14 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         </Grid>
         <div className={classes.divider} />
       </Grid>
-      <Grid container spacing={1} className={classes.footer} sx={{
-        justifyContent: "right"
-      }}>
+      <Grid
+        container
+        spacing={1}
+        className={classes.footer}
+        sx={{
+          justifyContent: 'right'
+        }}
+      >
         <Grid>
           <Button data-testid="date-range-reset-button" variant="outlined" onClick={handlers.resetDateRange}>
             Reset
@@ -129,7 +143,7 @@ const Menu: React.FunctionComponent<MenuProps> = (props: MenuProps) => {
         </Grid>
       </Grid>
     </StyledPaper>
-  );
+  )
 }
 
 export default Menu

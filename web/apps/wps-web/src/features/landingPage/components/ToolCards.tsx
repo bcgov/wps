@@ -1,10 +1,10 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
+import { Typography } from '@mui/material'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
-import { Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import ToolCard from 'features/landingPage/components/ToolCard'
 import { toolInfos } from 'features/landingPage/toolInfo'
+import type React from 'react'
 
 const PREFIX = 'ToolCardsPage'
 
@@ -40,7 +40,8 @@ const ToolCardsPage: React.FunctionComponent = () => {
                 sm: 12,
                 md: 6,
                 lg: 4
-              }}>
+              }}
+            >
               <ToolCard
                 description={item.description}
                 icon={item.icon}
@@ -49,11 +50,11 @@ const ToolCardsPage: React.FunctionComponent = () => {
                 name={item.name}
               />
             </Grid>
-          );
+          )
         })}
       </Grid>
     </StyledContainer>
-  );
+  )
 }
 
 export default ToolCardsPage

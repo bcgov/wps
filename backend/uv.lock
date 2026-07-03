@@ -1264,9 +1264,9 @@ wheels = [
 
 [[package]]
 name = "gdal"
-version = "3.12.3"
+version = "3.13.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/65/cb/64ab7a1dd03e53870fd4c993d72baf6881a663953d2d2e8dd92098c12e94/gdal-3.12.3.tar.gz", hash = "sha256:a5aebb8f50b8f4d5b0c238cc9a6c988be3041bc276535daeddc399fa6ec13972", size = 899374, upload-time = "2026-03-20T13:48:41.273Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/55/0ae08a59293443bbbb8b692d1f4b6d9ca54562c359a48d0426684ac9ea06/gdal-3.13.1.tar.gz", hash = "sha256:94bb64d729ce73ceb75a314a15cba92696cdd854d99b6bf6b88a7b551227db74", size = 940649, upload-time = "2026-06-05T10:50:14.929Z" }
 
 [[package]]
 name = "geoalchemy2"
@@ -4428,6 +4428,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/31/5e7b23f9e43ff7fd46d243808d70c5e8daf3bc08ecf5a7fb84d5e38f7603/testcontainers-4.14.1-py3-none-any.whl", hash = "sha256:03dfef4797b31c82e7b762a454b6afec61a2a512ad54af47ab41e4fa5415f891", size = 125640, upload-time = "2026-01-31T23:13:45.464Z" },
 ]
 
+[package.optional-dependencies]
+nats = [
+    { name = "nats-py" },
+]
+
 [[package]]
 name = "threadpoolctl"
 version = "3.6.0"
@@ -4733,6 +4738,7 @@ dev = [
     { name = "pycodestyle" },
     { name = "pytest-watch" },
     { name = "rope" },
+    { name = "testcontainers", extra = ["nats"] },
 ]
 
 [package.metadata]
@@ -4750,7 +4756,7 @@ requires-dist = [
     { name = "earthaccess", specifier = ">=0.15.1" },
     { name = "fastapi", specifier = ">=0,<1" },
     { name = "firebase-admin", specifier = ">=7.3.0" },
-    { name = "gdal", specifier = "==3.12.3" },
+    { name = "gdal", specifier = "==3.13.1" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "greenlet", specifier = ">=3.0.0,<4" },
@@ -4785,6 +4791,7 @@ requires-dist = [
     { name = "setuptools", specifier = ">=80.0.0,<81" },
     { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "sqlalchemy", specifier = ">=2,<3" },
+    { name = "testcontainers", extras = ["nats"], marker = "extra == 'dev'", specifier = ">=4.10.0,<5" },
     { name = "uvicorn", specifier = ">=0,<1" },
     { name = "wps-sfms", editable = "packages/wps-sfms" },
     { name = "wps-shared", editable = "packages/wps-shared" },
@@ -4798,14 +4805,17 @@ version = "0.1.0"
 source = { editable = "packages/wps-jobs" }
 dependencies = [
     { name = "affine" },
+    { name = "aiofiles" },
     { name = "asyncpg" },
     { name = "gdal" },
+    { name = "geoalchemy2" },
     { name = "herbie-data" },
     { name = "numpy" },
     { name = "psycopg2-binary" },
     { name = "redis" },
     { name = "scikit-learn" },
     { name = "scipy" },
+    { name = "shapely" },
     { name = "sqlalchemy" },
     { name = "wps-shared" },
     { name = "wps-wf1" },
@@ -4820,8 +4830,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "affine", specifier = ">=2.4.0,<3" },
+    { name = "aiofiles", specifier = ">=25.0.0,<26" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
-    { name = "gdal", specifier = "==3.12.3" },
+    { name = "gdal", specifier = "==3.13.1" },
+    { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "herbie-data", specifier = ">=2025.11.1,<2026" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
     { name = "numpy", specifier = "==2.3.*" },
@@ -4829,6 +4841,7 @@ requires-dist = [
     { name = "redis", specifier = ">=8,<9" },
     { name = "scikit-learn", specifier = ">=1.6.1,<2" },
     { name = "scipy", specifier = ">=1.15.2,<2" },
+    { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "sqlalchemy", specifier = ">=2.0.38,<3" },
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "wps-wf1", editable = "packages/wps-wf1" },
@@ -4900,7 +4913,7 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "cffdrs", specifier = ">=0,<1" },
     { name = "fastapi", specifier = ">=0.115.11,<1" },
-    { name = "gdal", specifier = "==3.12.3" },
+    { name = "gdal", specifier = "==3.13.1" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "numba", specifier = ">=0,<1" },

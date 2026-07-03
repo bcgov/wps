@@ -1,13 +1,13 @@
+import { ToggleButton, ToggleButtonGroup } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { ToggleButtonGroup, ToggleButton } from '@mui/material'
-import { isNull, isUndefined, range } from 'lodash'
+import type { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import { theme } from '@wps/ui/theme'
-import React from 'react'
 import { pstFormatter } from '@wps/utils/date'
-import { useDispatch } from 'react-redux'
-import { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import { setSelectedPrepDate } from 'features/hfiCalculator/slices/hfiCalculatorSlice'
+import { isNull, isUndefined, range } from 'lodash'
 import { DateTime } from 'luxon'
+import React from 'react'
+import { useDispatch } from 'react-redux'
 
 const PREFIX = 'ViewSwitcherToggles'
 
@@ -58,7 +58,7 @@ const ViewSwitcherToggles = (props: ViewSwitcherTogglesProps) => {
     // Dates get really gross. We don't know what kind of format the date string is coming in as,
     // since our codebase is all over the place. Until we re-factor everything date related, I'm
     // putting this in here to make sure we're dealing with ISO string in the PST timezone.
-    if (dateString == '') {
+    if (dateString === '') {
       return ''
     }
     const dtObject: DateTime = DateTime.fromISO(dateString)

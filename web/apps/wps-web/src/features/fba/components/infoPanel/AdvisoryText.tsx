@@ -1,19 +1,20 @@
 import { Box, Skeleton, styled, Typography } from '@mui/material'
-import { DateTime } from 'luxon'
-import React, { useMemo } from 'react'
-import { useSelector } from 'react-redux'
+import type { AdvisoryMinWindStats, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
+import type { FireCentre } from '@wps/types/fireCentre'
+import { AdvisoryStatus } from '@wps/utils/constants'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
+import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
+import { DateTime } from 'luxon'
+import type React from 'react'
+import { useMemo } from 'react'
+import { useSelector } from 'react-redux'
+import { selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { calculateWindSpeedText } from '@/features/fba/calculateZoneStatus'
 import {
   criticalHoursExtendToNextDay,
   formatCriticalHoursTimeText,
   getMinStartAndMaxEndTime
 } from '@/features/fba/criticalHoursStartEndTime'
-import { AdvisoryMinWindStats, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
-import type { FireCentre } from '@wps/types/fireCentre'
-import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
-import { AdvisoryStatus } from '@wps/utils/constants'
-import { selectFilteredFireCentreHFIFuelStats } from '@/app/rootReducer'
 import { useLoading } from '@/features/fba/hooks/useLoading'
 
 const SLASH_FUEL_TYPES = ['S-1', 'S-2', 'S-3']
@@ -122,7 +123,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
         min_wind_stats: []
       }
     )
-  }, [filteredFireCentreHFIFuelStats, selectedFireZoneUnit])
+  }, [filteredFireCentreHFIFuelStats, selectedFireCentre, selectedFireZoneUnit])
 
   const selectedFireZoneUnitTopFuels = useMemo<FireZoneFuelStats[]>(() => {
     return getTopFuelsByArea(selectedFilteredZoneUnitFuelStats, forDate)
@@ -140,15 +141,13 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
     return getMinStartAndMaxEndTime(selectedFireZoneUnitTopFuels)
   }, [selectedFireZoneUnitTopFuels])
 
-  const getZoneStatus = () => {
+  const zoneStatus = useMemo(() => {
     if (selectedFireCentre) {
       const fireCentreSummary = provincialSummary[selectedFireCentre.name]
       const fireZoneUnitInfo = fireCentreSummary?.find(fc => fc.fire_shape_id === selectedFireZoneUnit?.fire_shape_id)
       return fireZoneUnitInfo?.status
     }
-  }
-
-  const zoneStatus = useMemo(() => getZoneStatus(), [selectedFireCentre, selectedFireZoneUnit, provincialSummary])
+  }, [provincialSummary, selectedFireCentre, selectedFireZoneUnit])
 
   const getCommaSeparatedString = (array: string[]): string => {
     // Slice off the last two items and join then with ' and ' to create a new string. Then take the first n-2 items and

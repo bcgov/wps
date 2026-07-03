@@ -1,29 +1,31 @@
-import React from 'react'
-import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material'
-import { useSelector } from 'react-redux'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import { DailyResult, FireCentre, FuelType, PlanningAreaResult, StationDaily, StationInfo } from '@wps/api/hfiCalculatorAPI'
-import { isValidGrassCure } from 'features/hfiCalculator/validation'
-import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
+import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material'
+import type {
+  DailyResult,
+  FireCentre,
+  FuelType,
+  PlanningAreaResult,
+  StationDaily,
+  StationInfo
+} from '@wps/api/hfiCalculatorAPI'
 import FireTable from '@wps/ui/FireTable'
-import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
-import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
-import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
-import StatusCell from 'features/hfiCalculator/components/StatusCell'
-import { BACKGROUND_COLOR } from '@wps/ui/theme'
-import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
-import { getDailiesByStationCode, getSelectedFuelType, stationCodeSelected } from 'features/hfiCalculator/util'
 import StickyCell from '@wps/ui/StickyCell'
-import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
+import { BACKGROUND_COLOR } from '@wps/ui/theme'
 import { selectAuthentication, selectHFICalculatorState } from 'app/rootReducer'
-import { DateTime } from 'luxon'
-import { isUndefined, sortBy } from 'lodash'
+import BaseStationAttributeCells from 'features/hfiCalculator/components/BaseStationAttributeCells'
 import CalculatedCell from 'features/hfiCalculator/components/CalculatedCell'
-import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
-import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
-import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
 import { DailyHFICell } from 'features/hfiCalculator/components/DailyHFICell'
+import { DangerClassCell } from 'features/hfiCalculator/components/DangerClassCell'
+import EmptyFireCentreRow from 'features/hfiCalculator/components/EmptyFireCentre'
+import FireCentreCell from 'features/hfiCalculator/components/FireCentreCell'
+import FireStartsCell from 'features/hfiCalculator/components/FireStartsCell'
+import IntensityGroupCell from 'features/hfiCalculator/components/IntensityGroupCell'
+import MeanIntensityGroupRollup from 'features/hfiCalculator/components/MeanIntensityGroupRollup'
+import PrepLevelCell from 'features/hfiCalculator/components/PrepLevelCell'
+import { RequiredDataCell } from 'features/hfiCalculator/components/RequiredDataCell'
 import { StationDataHeaderCells } from 'features/hfiCalculator/components/StationDataHeaderCells'
+import StatusCell from 'features/hfiCalculator/components/StatusCell'
+import { FireCentreHeaderCell } from 'features/hfiCalculator/components/StyledFireComponents'
 /* import { ROLES } from 'features/auth / roles' */
 import {
   NoBottomBorderCell,
@@ -33,9 +35,14 @@ import {
   PlanningAreaTableRow
 } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
 import { UnSelectedTableRow } from 'features/hfiCalculator/components/StyledTableComponents'
-import { DangerClassCell } from 'features/hfiCalculator/components/DangerClassCell'
 import { WindDirectionCell } from 'features/hfiCalculator/components/WindDirectionCell'
-import { FireCentreHeaderCell } from 'features/hfiCalculator/components/StyledFireComponents'
+import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
+import { getDailiesByStationCode, getSelectedFuelType, stationCodeSelected } from 'features/hfiCalculator/util'
+import { isValidGrassCure } from 'features/hfiCalculator/validation'
+import { isUndefined, sortBy } from 'lodash'
+import { DateTime } from 'luxon'
+import React, { type JSX } from 'react'
+import { useSelector } from 'react-redux'
 
 export interface Props {
   fireCentre: FireCentre | undefined
@@ -81,7 +88,7 @@ export const DailyViewTable = (props: Props): JSX.Element => {
 
   const getDailyForDay = (stationCode: number, areaId: number): StationDaily | undefined => {
     const dailiesForStation = getDailiesByStationCode(result, stationCode, areaId)
-    if (selectedPrepDate != '') {
+    if (selectedPrepDate !== '') {
       const selectedPrepDateObject = DateTime.fromISO(selectedPrepDate)
       return dailiesForStation.filter(daily => {
         const dailyDate = daily.date

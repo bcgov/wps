@@ -1,6 +1,6 @@
-import { TextField, Autocomplete } from '@mui/material'
+import { Autocomplete, TextField } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { FireStartRange } from '@wps/api/hfiCalculatorAPI'
+import type { FireStartRange } from '@wps/api/hfiCalculatorAPI'
 import { isEqual, isNull } from 'lodash'
 import React from 'react'
 

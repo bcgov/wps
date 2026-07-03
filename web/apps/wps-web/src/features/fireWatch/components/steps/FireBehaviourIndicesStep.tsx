@@ -1,9 +1,9 @@
-import OptionalHeading from '@/features/fireWatch/components/OptionalHeading'
-import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
-import { FireWatch } from '@/features/fireWatch/interfaces'
 import { Box, Step, TextField, Typography, useTheme } from '@mui/material'
 import { isNull } from 'lodash'
-import { SetStateAction } from 'react'
+import type { SetStateAction } from 'react'
+import OptionalHeading from '@/features/fireWatch/components/OptionalHeading'
+import { FORM_MAX_WIDTH } from '@/features/fireWatch/constants'
+import type { FireWatch } from '@/features/fireWatch/interfaces'
 
 interface FireBehaviourIndicesStepProps {
   fireWatch: FireWatch
@@ -28,22 +28,22 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
               <OptionalHeading>Initial Spread Index (ISI)</OptionalHeading>
               <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1 }}>
                 <TextField
-                  required={!isNull(fireWatch.isiMax) && !isNaN(fireWatch.isiMax)}
+                  required={!isNull(fireWatch.isiMax) && !Number.isNaN(fireWatch.isiMax)}
                   label="Minimum"
                   size="small"
                   type="number"
-                  value={isNull(fireWatch.isiMin) || isNaN(fireWatch.isiMin) ? '' : fireWatch.isiMin}
+                  value={isNull(fireWatch.isiMin) || Number.isNaN(fireWatch.isiMin) ? '' : fireWatch.isiMin}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ isiMin: parseFloat(event.target.value) })
                   }
                   sx={{ pr: theme.spacing(2) }}
                 />
                 <TextField
-                  required={!isNull(fireWatch.isiMin) && !isNaN(fireWatch.isiMin)}
+                  required={!isNull(fireWatch.isiMin) && !Number.isNaN(fireWatch.isiMin)}
                   label="Maximum"
                   size="small"
                   type="number"
-                  value={isNull(fireWatch.isiMax) || isNaN(fireWatch.isiMax) ? '' : fireWatch.isiMax}
+                  value={isNull(fireWatch.isiMax) || Number.isNaN(fireWatch.isiMax) ? '' : fireWatch.isiMax}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleFormUpdate({ isiMax: parseFloat(event.target.value) })
                   }
@@ -61,7 +61,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 label="Minimum"
                 size="small"
                 type="number"
-                value={isNaN(fireWatch.hfiMin) ? '' : fireWatch.hfiMin}
+                value={Number.isNaN(fireWatch.hfiMin) ? '' : fireWatch.hfiMin}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ hfiMin: parseFloat(event.target.value) })
                 }
@@ -72,7 +72,7 @@ const FireBehaviourIndicesStep = ({ fireWatch, setFireWatch }: FireBehaviourIndi
                 label="Maximum"
                 size="small"
                 type="number"
-                value={isNaN(fireWatch.hfiMax) ? '' : fireWatch.hfiMax}
+                value={Number.isNaN(fireWatch.hfiMax) ? '' : fireWatch.hfiMax}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   handleFormUpdate({ hfiMax: parseFloat(event.target.value) })
                 }

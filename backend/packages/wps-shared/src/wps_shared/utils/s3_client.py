@@ -97,6 +97,7 @@ class S3Client:
         await self.client.copy_object(
             Bucket=self.bucket, CopySource={"Bucket": self.bucket, "Key": old_key}, Key=new_key
         )
+        logger.info("Copied object from %s to %s", old_key, new_key)
 
     async def delete_object(self, key: str):
         await self.client.delete_object(Bucket=self.bucket, Key=key)

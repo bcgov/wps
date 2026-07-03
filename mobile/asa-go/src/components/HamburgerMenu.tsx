@@ -1,46 +1,34 @@
-import {
-  Box,
-  Drawer,
-  IconButton,
-  List,
-  ListItemButton,
-  Stack,
-  Typography,
-} from "@mui/material";
-import { Menu as MenuIcon, Close as CloseIcon } from "@mui/icons-material";
-import { useRef, useState } from "react";
-import { getFeedback } from "@sentry/react";
+import { Close as CloseIcon, Menu as MenuIcon } from '@mui/icons-material'
+import { Box, Drawer, IconButton, List, ListItemButton, Stack, Typography } from '@mui/material'
+import { getFeedback } from '@sentry/react'
+import { useRef, useState } from 'react'
 
 export interface HamburgerMenuProps {
-  drawerTop: number;
-  drawerHeight: number;
-  testId?: string;
+  drawerTop: number
+  drawerHeight: number
+  testId?: string
 }
 
-export const HamburgerMenu = ({
-  drawerTop,
-  drawerHeight,
-  testId,
-}: HamburgerMenuProps) => {
-  const [open, setOpen] = useState(false);
-  const pendingFeedbackForm = useRef<{ appendToDom: () => void; open: () => void } | null>(null);
+export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenuProps) => {
+  const [open, setOpen] = useState(false)
+  const pendingFeedbackForm = useRef<{ appendToDom: () => void; open: () => void } | null>(null)
 
   const handleListButtonClick = async (url: string) => {
-    setOpen(false);
-    if (url === "sentry:feedback") {
-      const feedback = getFeedback();
+    setOpen(false)
+    if (url === 'sentry:feedback') {
+      const feedback = getFeedback()
       if (feedback) {
-        pendingFeedbackForm.current = await feedback.createForm();
+        pendingFeedbackForm.current = await feedback.createForm()
       }
     } else {
-      window.open(url, "_blank", "noopener,noreferrer");
+      window.open(url, '_blank', 'noopener,noreferrer')
     }
-  };
+  }
 
   return (
     <div data-testid={testId}>
       <IconButton aria-label="open menu" onClick={() => setOpen(true)}>
-        <MenuIcon fontSize="large" sx={{ color: "white" }} />
+        <MenuIcon fontSize="large" sx={{ color: 'white' }} />
       </IconButton>
       <Drawer
         anchor="right"
@@ -50,45 +38,42 @@ export const HamburgerMenu = ({
           transition: {
             onExited: () => {
               if (pendingFeedbackForm.current) {
-                pendingFeedbackForm.current.appendToDom();
-                pendingFeedbackForm.current.open();
-                pendingFeedbackForm.current = null;
+                pendingFeedbackForm.current.appendToDom()
+                pendingFeedbackForm.current.open()
+                pendingFeedbackForm.current = null
               }
-            },
+            }
           },
           paper: {
             sx: {
               top: `${drawerTop}px`,
               height: `${drawerHeight}px`,
-              backgroundColor: "lightGrey",
+              backgroundColor: 'lightGrey',
               borderTopLeftRadius: 16,
-              borderBottomLeftRadius: 16,
-            },
-          },
+              borderBottomLeftRadius: 16
+            }
+          }
         }}
       >
-        <Stack
-          spacing={1}
-          sx={{ width: 250, padding: "16px" }}
-        >
+        <Stack spacing={1} sx={{ width: 250, padding: '16px' }}>
           <Box
             sx={{
-              alignItems: "center",
-              display: "flex",
-              justifyContent: "space-between",
+              alignItems: 'center',
+              display: 'flex',
+              justifyContent: 'space-between'
             }}
           >
             <IconButton
               onClick={() => setOpen(false)}
               sx={{
-                cursor: "pointer",
-                backgroundColor: "transparent",
-                transition: "background-color 0.2s",
-                alignSelf: "flex-end",
-                marginLeft: "auto",
-                "&:hover": {
-                  backgroundColor: "#f0f0f0",
-                },
+                cursor: 'pointer',
+                backgroundColor: 'transparent',
+                transition: 'background-color 0.2s',
+                alignSelf: 'flex-end',
+                marginLeft: 'auto',
+                '&:hover': {
+                  backgroundColor: '#f0f0f0'
+                }
               }}
               aria-label="close settings"
             >
@@ -97,36 +82,36 @@ export const HamburgerMenu = ({
           </Box>
           <List
             sx={{
-              width: "100%",
-              "& .MuiListItemButton-root": {
-                width: "100%",
-                justifyContent: "flex-end",
-              },
+              width: '100%',
+              '& .MuiListItemButton-root': {
+                width: '100%',
+                justifyContent: 'flex-end'
+              }
             }}
           >
             {[
-              { url: "https://psu.nrs.gov.bc.ca/", title: "Home" },
+              { url: 'https://psu.nrs.gov.bc.ca/', title: 'Home' },
               {
-                url: "https://www2.gov.bc.ca/gov/content/home/disclaimer",
-                title: "Disclaimer",
+                url: 'https://www2.gov.bc.ca/gov/content/home/disclaimer',
+                title: 'Disclaimer'
               },
               {
-                url: "https://www2.gov.bc.ca/gov/content/home/privacy",
-                title: "Privacy",
+                url: 'https://www2.gov.bc.ca/gov/content/home/privacy',
+                title: 'Privacy'
               },
               {
-                url: "https://www2.gov.bc.ca/gov/content/home/accessible-government",
-                title: "Accessibility",
+                url: 'https://www2.gov.bc.ca/gov/content/home/accessible-government',
+                title: 'Accessibility'
               },
               {
-                url: "https://www2.gov.bc.ca/gov/content/home/copyright",
-                title: "Copyright",
+                url: 'https://www2.gov.bc.ca/gov/content/home/copyright',
+                title: 'Copyright'
               },
               {
-                url: "sentry:feedback",
-                title: "Submit Feedback",
-              },
-            ].map((item) => (
+                url: 'sentry:feedback',
+                title: 'Submit Feedback'
+              }
+            ].map(item => (
               <ListItemButton
                 divider
                 key={`hamburger-menu-${item.title}`}
@@ -139,5 +124,5 @@ export const HamburgerMenu = ({
         </Stack>
       </Drawer>
     </div>
-  );
-};
+  )
+}

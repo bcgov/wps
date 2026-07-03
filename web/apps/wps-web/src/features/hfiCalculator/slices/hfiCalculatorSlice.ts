@@ -1,28 +1,29 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-import { AppThunk } from 'app/store'
-import { logError } from '@wps/utils/error'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import {
-  loadDefaultHFIResult,
-  setNewFireStarts,
-  setFuelType,
-  getPrepDateRange,
-  setStationSelected,
-  getPDF,
+  type FireCentre,
+  type FireStartRange,
+  type FuelType,
+  type FuelTypesResponse,
   getFuelTypes,
-  FuelType,
-  FireCentre,
-  FuelTypesResponse,
-  updateStations,
-  FireStartRange,
-  PrepDateRange,
-  PlanningAreaResult,
-  HFIResultResponse
+  getPDF,
+  getPrepDateRange,
+  type HFIResultResponse,
+  loadDefaultHFIResult,
+  type PlanningAreaResult,
+  type PrepDateRange,
+  setFuelType,
+  setNewFireStarts,
+  setStationSelected,
+  updateStations
 } from '@wps/api/hfiCalculatorAPI'
-
-import { AddStationOptions, StationAdminRow } from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
+import { logError } from '@wps/utils/error'
+import { getErrorMessage } from '@wps/utils/getError'
+import type { AppThunk } from 'app/store'
+import type {
+  AddStationOptions,
+  StationAdminRow
+} from 'features/hfiCalculator/components/stationAdmin/ManageStationsModal'
 import { isUndefined } from 'lodash'
-import axios from 'axios'
 
 export interface HFICalculatorState {
   pdfLoading: boolean
@@ -82,6 +83,7 @@ const dailiesSlice = createSlice({
     },
     loadStationUpdateStart(state: HFICalculatorState) {
       state.stationsUpdateLoading = true
+      state.stationsUpdatedError = null
     },
     loadStationUpdateEnd(state: HFICalculatorState) {
       state.stationsUpdateLoading = false
@@ -275,20 +277,20 @@ export const fetchAddOrUpdateStations =
     fireCentreId: number,
     addedStations: Required<StationAdminRow>[],
     removedStations: Required<Pick<StationAdminRow, 'planningAreaId' | 'rowId' | 'station'>>[]
-  ): AppThunk =>
+  ): AppThunk<Promise<boolean>> =>
   async dispatch => {
     try {
       dispatch(loadStationUpdateStart())
       await updateStations(fireCentreId, addedStations, removedStations)
       dispatch(loadStationUpdateEnd())
       dispatch(setChangeSaved(true))
+      return true
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        dispatch(getHFIResultFailed(err.response?.data.detail))
-      } else {
-        dispatch(getHFIResultFailed((err as Error).toString()))
-      }
+      dispatch(loadStationUpdateEnd())
+      const errorMessage = getErrorMessage(err)
+      dispatch(setStationsUpdatedFailed(errorMessage))
       logError(err)
+      return false
     }
   }
 

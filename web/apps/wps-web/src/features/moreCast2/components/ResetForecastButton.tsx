@@ -1,5 +1,5 @@
-import React from 'react'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material'
+import React from 'react'
 
 export interface ResetForecastButtonProps {
   className?: string
@@ -58,7 +58,7 @@ const ResetForecastButton = ({
         </DialogActions>
       </Dialog>
     </>
-  );
+  )
 }
 
 export default React.memo(ResetForecastButton)

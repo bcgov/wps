@@ -1,31 +1,28 @@
-import Flag from "@/components/profile/FillableFlag";
-import { Grid, Typography } from "@mui/material";
-import React from "react";
+import { Grid, Typography } from '@mui/material'
+import React from 'react'
+import Flag from '@/components/profile/FillableFlag'
 
 interface ElevationFlagProps {
-  percent: number;
-  testId?: string;
+  percent: number
+  testId?: string
 }
 
 const ElevationFlag = ({ percent, testId }: ElevationFlagProps) => {
-  const uniqueId = React.useId();
+  const uniqueId = React.useId()
 
   return (
-    <Grid
-      size={6}
-      sx={{ alignItems: "center", display: "flex", justifyContent: "flex-end" }}
-    >
+    <Grid size={6} sx={{ alignItems: 'center', display: 'flex', justifyContent: 'flex-end' }}>
       <Typography
         sx={{
-          fontSize: "1.2rem",
-          fontWeight: "bold",
+          fontSize: '1.2rem',
+          fontWeight: 'bold',
           marginRight: 1,
           textShadow: `
             -1px -1px 0 #F3F3F3,
             1px -1px 0 #F3F3F3,
             -1px  1px 0 #F3F3F3,
             1px  1px 0 #F3F3F3
-          `,
+          `
         }}
         data-testid={testId}
       >
@@ -33,7 +30,7 @@ const ElevationFlag = ({ percent, testId }: ElevationFlagProps) => {
       </Typography>
       <Flag maskId={`elevation-flag-${uniqueId}`} percent={percent} />
     </Grid>
-  );
-};
+  )
+}
 
-export default React.memo(ElevationFlag);
+export default React.memo(ElevationFlag)

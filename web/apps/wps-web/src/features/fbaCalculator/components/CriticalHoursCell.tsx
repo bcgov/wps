@@ -1,6 +1,5 @@
-import { CriticalHoursHFI } from '@wps/api/fbaCalcAPI'
+import type { CriticalHoursHFI } from '@wps/api/fbaCalcAPI'
 import { DataTableCell } from 'features/hfiCalculator/components/StyledPlanningAreaComponents'
-import React from 'react'
 
 const PREFIX = 'CriticalHoursCell'
 

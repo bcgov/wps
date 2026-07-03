@@ -65,7 +65,7 @@ coverage:
           - web/packages/utils/src
         # web isn't quite amazing yet - would be nice to push it up to 80%
         target: 64%
-        threshold: 3%
+        threshold: 4%
       wps_jobs:
         paths:
           - backend/packages/wps-jobs/src

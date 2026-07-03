@@ -1,5 +1,5 @@
-import React from 'react'
 import { styled } from '@mui/material/styles'
+import type React from 'react'
 import { theme } from './theme'
 
 const PREFIX = 'ErrorMessage'

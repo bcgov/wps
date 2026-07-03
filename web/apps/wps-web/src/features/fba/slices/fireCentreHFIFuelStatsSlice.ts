@@ -1,8 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-
-import { AppThunk } from 'app/store'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { type FireCentreHFIStats, getFireCentreHFIStats, type RunType } from '@wps/api/fbaAPI'
 import { logError } from '@wps/utils/error'
-import { FireCentreHFIStats, getFireCentreHFIStats, RunType } from '@wps/api/fbaAPI'
+import type { AppThunk } from 'app/store'
 
 export interface FireCentreHFIFuelStatsState {
   error: string | null

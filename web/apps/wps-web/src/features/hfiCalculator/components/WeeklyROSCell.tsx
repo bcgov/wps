@@ -1,5 +1,5 @@
 import { styled, TableCell } from '@mui/material'
-import { StationDaily } from '@wps/api/hfiCalculatorAPI'
+import type { StationDaily } from '@wps/api/hfiCalculatorAPI'
 import { UNSELECTED_STATION_COLOR } from '@wps/ui/theme'
 import { DECIMAL_PLACES } from 'features/hfiCalculator/constants'
 import React from 'react'

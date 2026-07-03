@@ -1,5 +1,5 @@
-import axios from './axios'
 import { DateTime } from 'luxon'
+import axios from './axios'
 
 enum SnowSource {
   VIIRS = 'viirs'

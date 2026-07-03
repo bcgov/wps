@@ -1,5 +1,5 @@
-import WebGLTileLayer from 'ol/layer/WebGLTile'
-import { RasterType, RASTER_CONFIG, FUEL_TYPE_COLORS } from './rasterConfig'
+import type WebGLTileLayer from 'ol/layer/WebGLTile'
+import { FUEL_TYPE_COLORS, RASTER_CONFIG, type RasterType } from './rasterConfig'
 import { isNodataValue } from './sfmsFeatureStylers'
 
 export type RasterValue = number | string | null
@@ -40,14 +40,9 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
 
   // For fuel type, convert numeric value to fuel code
   if (rasterType === 'fuel') {
-    // Filter out nodata and invalid values (99, 102, -10000)
-    if (roundedValue === 99 || roundedValue === 102 || roundedValue === -10000) {
-      return { value: null, label: defaultLabel }
-    }
-
     const fuelType = FUEL_TYPE_COLORS.find(f => f.value === roundedValue)
     return {
-      value: fuelType ? fuelType.fuelCode : roundedValue.toString(),
+      value: fuelType ? fuelType.fuelCode : null,
       label: defaultLabel
     }
   }

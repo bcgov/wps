@@ -1,5 +1,4 @@
 import { Slider as S, styled } from '@mui/material'
-import React from 'react'
 
 import { theme } from './theme'
 

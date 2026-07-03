@@ -2,6 +2,11 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
+    server: {
+      deps: {
+        inline: ['react-transition-group', /@mui\//]
+      }
+    },
     globals: true,
     environment: 'jsdom',
     setupFiles: ['src/setupTests.ts'],
@@ -10,7 +15,7 @@ export default defineConfig({
       provider: 'v8',
       reportsDirectory: './coverage',
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.test.{ts,tsx}', 'src/setupTests.ts']
+      exclude: ['src/**/*.test.{ts,tsx}', 'src/setupTests.ts', '**/node_modules/**']
     }
   }
 })

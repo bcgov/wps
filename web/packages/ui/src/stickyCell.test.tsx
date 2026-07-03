@@ -1,4 +1,4 @@
-import { TableContainer, Table, TableBody, TableRow } from '@mui/material'
+import { Table, TableBody, TableContainer, TableRow } from '@mui/material'
 import { render, screen } from '@testing-library/react'
 import StickyCell from './StickyCell'
 import { theme } from './theme'

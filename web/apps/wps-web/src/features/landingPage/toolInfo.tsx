@@ -11,8 +11,6 @@ import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
 import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
-import React from 'react'
-
 import {
   C_HAINES_NAME,
   C_HAINES_ROUTE,
@@ -37,6 +35,7 @@ import {
   WEATHER_TOOLKIT_NAME,
   WEATHER_TOOLKIT_ROUTE
 } from '@wps/utils/constants'
+import type React from 'react'
 
 const ICON_FONT_SIZE = 'large'
 export interface ToolInfo {

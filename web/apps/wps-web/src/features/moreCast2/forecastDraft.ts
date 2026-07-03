@@ -1,4 +1,4 @@
-import { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
+import type { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { getRowsMap, isForecastRow } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 

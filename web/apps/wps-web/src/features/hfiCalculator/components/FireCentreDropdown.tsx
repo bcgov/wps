@@ -1,9 +1,9 @@
-import React from 'react'
-import { styled } from '@mui/material/styles'
-import Autocomplete from '@mui/material/Autocomplete'
 import { TextField } from '@mui/material'
-import { FireCentre } from '@wps/api/hfiCalculatorAPI'
+import Autocomplete from '@mui/material/Autocomplete'
+import { styled } from '@mui/material/styles'
+import type { FireCentre } from '@wps/api/hfiCalculatorAPI'
 import { isNull } from 'lodash'
+import React from 'react'
 
 const PREFIX = 'FireCentreDropdown'
 

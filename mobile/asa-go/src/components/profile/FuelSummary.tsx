@@ -1,136 +1,115 @@
-import { useMemo } from "react";
-import { FireShape, FireZoneFuelStats } from "api/fbaAPI";
-import { Box, Typography } from "@mui/material";
-import { groupBy } from "lodash";
+import { Box, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import {
   DataGridPro,
-  GridColDef,
-  GridColumnHeaderParams,
-  GridRenderCellParams,
-} from "@mui/x-data-grid-pro";
-import { styled } from "@mui/material/styles";
-import CriticalHours from "@/components/profile/CriticalHours";
-import FuelDistribution from "@/components/profile/FuelDistribution";
+  type GridColDef,
+  type GridColumnHeaderParams,
+  type GridRenderCellParams
+} from '@mui/x-data-grid-pro'
+import type { FireShape, FireZoneFuelStats } from 'api/fbaAPI'
+import { groupBy } from 'lodash'
+import { useMemo } from 'react'
+import CriticalHours from '@/components/profile/CriticalHours'
+import FuelDistribution from '@/components/profile/FuelDistribution'
 
 export interface FuelTypeInfoSummary {
-  area: number;
-  criticalHoursStart?: number;
-  criticalHoursEnd?: number;
-  id: number;
-  code: string;
-  description: string;
-  percent?: number;
-  selected: boolean;
+  area: number
+  criticalHoursStart?: number
+  criticalHoursEnd?: number
+  id: number
+  code: string
+  description: string
+  percent?: number
+  selected: boolean
 }
 
 interface FuelSummaryProps {
-  fireZoneFuelStats: Record<number, FireZoneFuelStats[]>;
-  selectedFireZoneUnit: FireShape | undefined;
+  fireZoneFuelStats: Record<number, FireZoneFuelStats[]>
+  selectedFireZoneUnit: FireShape | undefined
 }
 
-const StyledHeader = styled("div")(({ theme }) => ({
-  whiteSpace: "normal",
-  wordWrap: "break-word",
-  fontWeight: "700",
+const StyledHeader = styled('div')(({ theme }) => ({
+  whiteSpace: 'normal',
+  wordWrap: 'break-word',
+  fontWeight: '700',
   color: theme.palette.primary.main,
-  fontSize: "14px",
-}));
+  fontSize: '14px'
+}))
 
 // Column definitions for fire zone unit fuel summary table
 const columns: GridColDef[] = [
   {
-    field: "code",
-    headerClassName: "fuel-summary-header-code",
-    headerName: "Fuel Type",
+    field: 'code',
+    headerClassName: 'fuel-summary-header-code',
+    headerName: 'Fuel Type',
     sortable: false,
     minWidth: 100,
     flex: 1,
-    renderHeader: (params: GridColumnHeaderParams) => (
-      <StyledHeader>{params.colDef.headerName}</StyledHeader>
-    ),
+    renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => (
       <Typography
         sx={{
-          fontSize: "0.75rem",
-          display: "flex",
-          fontWeight: "bold",
-          whiteSpace: "normal",
-          wordBreak: "break-word",
+          fontSize: '0.75rem',
+          display: 'flex',
+          fontWeight: 'bold',
+          whiteSpace: 'normal',
+          wordBreak: 'break-word'
         }}
       >
         {params.row[params.field]}
       </Typography>
-    ),
+    )
   },
   {
-    field: "area",
+    field: 'area',
     flex: 2,
-    headerClassName: "fuel-summary-header-area",
-    headerName: "% Under Advisory",
+    headerClassName: 'fuel-summary-header-area',
+    headerName: '% Under Advisory',
     sortable: false,
-    headerAlign: "center",
-    renderHeader: (params: GridColumnHeaderParams) => (
-      <StyledHeader>{params.colDef.headerName}</StyledHeader>
-    ),
+    headerAlign: 'center',
+    renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => {
-      return (
-        <FuelDistribution
-          code={params.row["code"]}
-          percent={params.row["percent"]}
-        />
-      );
-    },
+      return <FuelDistribution code={params.row.code} percent={params.row.percent} />
+    }
   },
   {
-    field: "criticalHours",
-    headerClassName: "fuel-summary-header-ch",
-    headerName: "Critical Hours",
+    field: 'criticalHours',
+    headerClassName: 'fuel-summary-header-ch',
+    headerName: 'Critical Hours',
     minWidth: 110,
     flex: 1,
     sortable: false,
-    renderHeader: (params: GridColumnHeaderParams) => (
-      <StyledHeader>{params.colDef.headerName}</StyledHeader>
-    ),
+    renderHeader: (params: GridColumnHeaderParams) => <StyledHeader>{params.colDef.headerName}</StyledHeader>,
     renderCell: (params: GridRenderCellParams) => {
-      return (
-        <CriticalHours
-          start={params.row["criticalHoursStart"]}
-          end={params.row["criticalHoursEnd"]}
-        />
-      );
-    },
-  },
-];
+      return <CriticalHours start={params.row.criticalHoursStart} end={params.row.criticalHoursEnd} />
+    }
+  }
+]
 
-const FuelSummary = ({
-  fireZoneFuelStats,
-  selectedFireZoneUnit,
-}: FuelSummaryProps) => {
+const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryProps) => {
   const fuelTypeInfoRollup = useMemo<FuelTypeInfoSummary[]>(() => {
     if (!fireZoneFuelStats || !selectedFireZoneUnit) {
-      return [];
+      return []
     }
 
-    const shapeId = selectedFireZoneUnit.fire_shape_id;
-    const fuelDetails = fireZoneFuelStats[shapeId];
+    const shapeId = selectedFireZoneUnit.fire_shape_id
+    const fuelDetails = fireZoneFuelStats[shapeId]
 
-    if (!fuelDetails) return [];
+    if (!fuelDetails) return []
 
-    const rollUp: FuelTypeInfoSummary[] = [];
+    const rollUp: FuelTypeInfoSummary[] = []
 
-    const groupedFuelDetails = groupBy(fuelDetails, "fuel_type.fuel_type_id");
+    const groupedFuelDetails = groupBy(fuelDetails, 'fuel_type.fuel_type_id')
 
     for (const key in groupedFuelDetails) {
-      const groupedFuelDetail = groupedFuelDetails[key];
+      const groupedFuelDetail = groupedFuelDetails[key]
       if (groupedFuelDetail.length) {
-        const area = groupedFuelDetail.reduce((acc, { area }) => acc + area, 0);
+        const area = groupedFuelDetail.reduce((acc, { area }) => acc + area, 0)
 
-        const fuelType = groupedFuelDetail[0].fuel_type;
-        const startTime =
-          groupedFuelDetail[0].critical_hours.start_time ?? undefined;
-        const endTime =
-          groupedFuelDetail[0].critical_hours.end_time ?? undefined;
-        const fuel_area = groupedFuelDetail[0].fuel_area;
+        const fuelType = groupedFuelDetail[0].fuel_type
+        const startTime = groupedFuelDetail[0].critical_hours.start_time ?? undefined
+        const endTime = groupedFuelDetail[0].critical_hours.end_time ?? undefined
+        const fuel_area = groupedFuelDetail[0].fuel_area
 
         rollUp.push({
           area,
@@ -140,13 +119,13 @@ const FuelSummary = ({
           criticalHoursEnd: endTime,
           id: fuelType.fuel_type_id,
           percent: fuel_area ? (area / fuel_area) * 100 : 0,
-          selected: false,
-        });
+          selected: false
+        })
       }
     }
 
-    return rollUp;
-  }, [fireZoneFuelStats, selectedFireZoneUnit]);
+    return rollUp
+  }, [fireZoneFuelStats, selectedFireZoneUnit])
 
   return (
     <Box>
@@ -164,34 +143,34 @@ const FuelSummary = ({
           hideFooter={true}
           initialState={{
             sorting: {
-              sortModel: [{ field: "area", sort: "desc" }],
-            },
+              sortModel: [{ field: 'area', sort: 'desc' }]
+            }
           }}
           rows={fuelTypeInfoRollup}
           showCellVerticalBorder
           showColumnVerticalBorder
           sx={{
-            backgroundColor: "white",
-            overflow: "hidden",
-            "& .MuiDataGrid-sortIcon": {
-              display: "none",
+            backgroundColor: 'white',
+            overflow: 'hidden',
+            '& .MuiDataGrid-sortIcon': {
+              display: 'none'
             },
-            "& .MuiDataGrid-cell": {
-              display: "flex",
-              alignItems: "center",
+            '& .MuiDataGrid-cell': {
+              display: 'flex',
+              alignItems: 'center'
             },
-            "& .MuiDataGrid-columnHeader": {
+            '& .MuiDataGrid-columnHeader': {
               paddingX: 0.5,
-              border: "none",
+              border: 'none'
             },
-            "& .fuel-summary-header-area": {
-              paddingX: 0,
-            },
+            '& .fuel-summary-header-area': {
+              paddingX: 0
+            }
           }}
         ></DataGridPro>
       )}
     </Box>
-  );
-};
+  )
+}
 
-export default FuelSummary;
+export default FuelSummary

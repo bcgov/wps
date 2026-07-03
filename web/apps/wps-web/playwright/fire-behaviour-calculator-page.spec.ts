@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { test, expect, type Page } from './fixtures'
+import { expect, type Page, test } from './fixtures'
 
 const FBA_ROUTE = '/fire-behaviour-calculator'
 const fixturesDir = path.join(import.meta.dirname, 'fixtures')
@@ -27,6 +27,12 @@ async function selectFuelType(page: Page, fuelType: string, rowId: number) {
   await input.fill(fuelType)
   await page.getByRole('option').first().waitFor()
   await input.press('Enter')
+}
+
+async function selectFuelTypeAndWaitForFBAResponse(page: Page, fuelType: string, rowId: number) {
+  const fbaResponse = page.waitForResponse(r => r.url().includes('/api/fba-calc/stations'))
+  await selectFuelType(page, fuelType, rowId)
+  await fbaResponse
 }
 
 async function setGrassCure(page: Page, value: string, rowId: number) {
@@ -95,7 +101,7 @@ test.describe('FireCalc Page', () => {
       fuel_type: C1.name,
       percentage_conifer: C1.percentage_conifer,
       crown_base_height: C1.crown_base_height,
-      grass_cure: Number.parseInt(grassCure)
+      grass_cure: Number.parseInt(grassCure, 10)
     })
     await expectRowCount(page, 1)
     await expect(page).toHaveURL(new RegExp(`s=${stationCode}&f=${C1.name.toLowerCase()}&c=${grassCure}`))
@@ -122,7 +128,7 @@ test.describe('FireCalc Page', () => {
       fuel_type: C1.name,
       percentage_conifer: C1.percentage_conifer,
       crown_base_height: C1.crown_base_height,
-      grass_cure: Number.parseInt(grassCure),
+      grass_cure: Number.parseInt(grassCure, 10),
       wind_speed: Number.parseFloat(windSpeed)
     })
     await expectRowCount(page, 1)
@@ -338,8 +344,7 @@ test.describe('FireCalc Page', () => {
       await addRow(page)
       await setGrassCure(page, '1', 1)
       await selectStation(page, 322, 1)
-      await selectFuelType(page, 'C4', 1)
-      await page.waitForResponse(r => r.url().includes('/api/fba-calc/stations'))
+      await selectFuelTypeAndWaitForFBAResponse(page, 'C4', 1)
       await expect(page.getByTestId('filter-columns-btn')).toBeEnabled()
     })
 
@@ -352,14 +357,12 @@ test.describe('FireCalc Page', () => {
       await addRow(page)
       await setGrassCure(page, '1', 1)
       await selectStation(page, 322, 1)
-      await selectFuelType(page, 'C4', 1)
+      await selectFuelTypeAndWaitForFBAResponse(page, 'C4', 1)
 
       await addRow(page)
       await setGrassCure(page, '1', 1)
       await selectStation(page, 209, 2)
-      await selectFuelType(page, 'C1', 2)
-
-      await page.waitForResponse(r => r.url().includes('/api/fba-calc/stations'))
+      await selectFuelTypeAndWaitForFBAResponse(page, 'C1', 2)
       await expect(page.getByTestId('filter-columns-btn')).toBeEnabled()
 
       await page.getByTestId('filter-columns-btn').click()

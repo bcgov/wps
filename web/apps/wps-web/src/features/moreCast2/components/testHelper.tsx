@@ -1,5 +1,5 @@
-import morecastInputValidSlice, { ValidInputState } from '@/features/moreCast2/slices/validInputSlice'
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import morecastInputValidSlice, { type ValidInputState } from '@/features/moreCast2/slices/validInputSlice'
 
 export const buildTestStore = (initialState: ValidInputState) => {
   const rootReducer = combineReducers({

@@ -15,8 +15,7 @@ from sqlalchemy.orm.session import Session
 
 from wps_shared import config
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryShapeFuels
-from wps_shared.geospatial.fuel_raster import get_versioned_fuel_raster_key
-from wps_shared.sfms.raster_addresser import RasterKeyAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 
 # revision identifiers, used by Alembic.
 revision = "e94f982e723c"
@@ -148,9 +147,7 @@ def depopulate_advisory_shape_fuels_by_year(session: Session, year):
 
 def calculate_fuel_type_areas_for_year(session: Session, year: int):
     fuel_type_raster = get_fuel_type_raster(session, year)
-    fuel_raster_key = get_versioned_fuel_raster_key(
-        RasterKeyAddresser(), fuel_type_raster.object_store_path
-    )
+    fuel_raster_key = BaseRasterAddresser().gdal_path(S3Key(fuel_type_raster.object_store_path))
     shape_type_id = get_fire_zone_unit_shape_type_id(session)
     zones = get_fire_zone_units(session, shape_type_id)
     sfms_fuel_types_dict = get_sfms_fuel_types_id_dict(session)

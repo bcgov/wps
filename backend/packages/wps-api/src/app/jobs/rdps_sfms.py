@@ -26,6 +26,7 @@ from wps_shared.db.database import get_write_session_scope
 from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.weather_models import CompletedWithSomeExceptions, ModelEnum, download
+from wps_shared.weather_models.eccc_url_fetcher import ECCCUrlFetcher
 from wps_shared.weather_models.model_run_urls import get_regional_model_run_download_urls
 from wps_shared.weather_models.rdps import RDPS_VARIABLE_NAMES, model_run_for_hour
 from wps_shared.wps_logging import configure_logging
@@ -74,7 +75,7 @@ class RDPSGrib:
         return f"weather_models/{(ModelEnum.RDPS).lower()}/{self.date_key}/{model_run_hour:02d}/{weather_param}/{file_name}"
 
     async def _process_model_run_urls(
-        self, model_run_hour: int, weather_param: str, urls: list[str]
+        self, model_run_hour: int, weather_param: str, urls: list[str], fetcher: ECCCUrlFetcher
     ):
         """Process the urls for a model run."""
         for url in urls:
@@ -94,6 +95,7 @@ class RDPSGrib:
                             "REDIS_CACHE_ENV_CANADA",
                             ModelEnum.RDPS,
                             "REDIS_ENV_CANADA_CACHE_EXPIRY",
+                            fetcher,
                         )
                         if downloaded:
                             self.files_downloaded += 1
@@ -111,23 +113,24 @@ class RDPSGrib:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
-            except Exception as exception:
+            except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
                 # We intentionally catch a broad exception, as we want to try and download as much
                 # as we can.
-                logger.error("unexpected exception processing %s", url, exc_info=exception)
+                logger.exception("unexpected exception processing %s", url)
 
     async def _process_model_run(self, model_run_hour: int):
         """Process a particular RDPS model run"""
         logger.info(f"Processing RDPS model run {model_run_hour}Z")
+        fetcher = ECCCUrlFetcher(self.now, model_run_hour)
         for key, value in RDPS_VARIABLE_NAMES.items():
             urls = list(
                 get_regional_model_run_download_urls(
                     self.now, model_run_hour, [value], MAX_MODEL_RUN_HOUR
                 )
             )
-            await self._process_model_run_urls(model_run_hour, key, urls)
+            await self._process_model_run_urls(model_run_hour, key, urls, fetcher)
 
     async def process(self):
         """Entry point for downloading and processing RDPS weather model grib files"""
@@ -136,14 +139,13 @@ class RDPSGrib:
                 await self._process_model_run(hour)
                 if self.files_downloaded > 0:
                     create_model_run_for_sfms(self.session, ModelEnum.RDPS, self.now, hour)
-            except Exception as exception:
+            except Exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
                 self.exception_count += 1
-                logger.error(
+                logger.exception(
                     "unexpected exception processing RDPS model run %d",
                     hour,
-                    exc_info=exception,
                 )
 
     async def apply_retention_policy(self, days_to_retain: int):
@@ -214,9 +216,7 @@ def main():
         sys.exit(os.EX_OK)
     except Exception as exception:
         # Exit non 0 - failure.
-        logger.error(
-            "An error occurred while downloading and storing RDPS data.", exc_info=exception
-        )
+        logger.exception("An error occurred while downloading and storing RDPS data.")
         rc_message = ":scream: Encountered an error while processing RDPS data."
         send_chatops_notification(rc_message, exception)
         sys.exit(os.EX_SOFTWARE)

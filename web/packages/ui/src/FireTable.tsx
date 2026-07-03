@@ -1,7 +1,7 @@
-import { Paper, Table, TableContainer, ThemeProvider, StyledEngineProvider } from '@mui/material'
+import { Paper, StyledEngineProvider, Table, TableContainer, ThemeProvider } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { fireTableTheme } from './theme'
 import React from 'react'
+import { fireTableTheme } from './theme'
 
 const PREFIX = 'FireTable'
 

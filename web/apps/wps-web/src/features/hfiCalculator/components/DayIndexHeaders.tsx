@@ -1,4 +1,4 @@
-import { TableCell, styled } from '@mui/material'
+import { styled, TableCell } from '@mui/material'
 import { range } from 'lodash'
 import React from 'react'
 

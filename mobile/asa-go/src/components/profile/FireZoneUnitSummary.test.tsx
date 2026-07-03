@@ -1,214 +1,192 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
-import { useSelector } from "react-redux";
-import FireZoneUnitSummary from "@/components/profile/FireZoneUnitSummary";
-import { FireShape, FireZoneTPIStats } from "@/api/fbaAPI";
-import type { FireCentre } from "@/types/fireCentre";
-import { DateTime } from "luxon";
-import { ThemeProvider } from "@mui/material/styles";
-import { theme } from "@/theme";
+import { ThemeProvider } from '@mui/material/styles'
+import { configureStore } from '@reduxjs/toolkit'
+import { render, screen } from '@testing-library/react'
+import { DateTime } from 'luxon'
+import { Provider, useSelector } from 'react-redux'
+import { describe, expect, it, vi } from 'vitest'
+import type { FireShape, FireZoneTPIStats } from '@/api/fbaAPI'
+import FireZoneUnitSummary from '@/components/profile/FireZoneUnitSummary'
+import { theme } from '@/theme'
+import type { FireCentre } from '@/types/fireCentre'
 
 // Mock child components
-vi.mock("@/components/profile/FuelSummary", () => ({
-  default: ({
-    selectedFireZoneUnit,
-  }: {
-    selectedFireZoneUnit: FireShape | undefined;
-  }) => (
+vi.mock('@/components/profile/FuelSummary', () => ({
+  default: ({ selectedFireZoneUnit }: { selectedFireZoneUnit: FireShape | undefined }) => (
     <div data-testid="fuel-summary">
-      {selectedFireZoneUnit
-        ? `Fuel Summary for ${selectedFireZoneUnit.mof_fire_zone_name}`
-        : "No fuel summary"}
+      {selectedFireZoneUnit ? `Fuel Summary for ${selectedFireZoneUnit.mof_fire_zone_name}` : 'No fuel summary'}
     </div>
-  ),
-}));
+  )
+}))
 
-vi.mock("@/components/profile/ElevationStatus", () => ({
+vi.mock('@/components/profile/ElevationStatus', () => ({
   default: ({ tpiStats }: { tpiStats: Required<FireZoneTPIStats> }) => (
-    <div data-testid="elevation-status">
-      {`Elevation Status for zone ${tpiStats.fire_zone_id}`}
-    </div>
-  ),
-}));
+    <div data-testid="elevation-status">{`Elevation Status for zone ${tpiStats.fire_zone_id}`}</div>
+  )
+}))
 
 // Mock hooks
-vi.mock("@/hooks/datahooks", () => ({
+vi.mock('@/hooks/datahooks', () => ({
   useFilteredHFIStatsForDate: vi.fn(),
-  useTPIStatsForDate: vi.fn(),
-}));
+  useTPIStatsForDate: vi.fn()
+}))
 
 // Mock react-redux
-vi.mock("react-redux", async () => {
-  const actual = await vi.importActual("react-redux");
+vi.mock('react-redux', async () => {
+  const actual = await vi.importActual('react-redux')
   return {
     ...actual,
-    useSelector: vi.fn(),
-  };
-});
+    useSelector: vi.fn()
+  }
+})
 
-describe("FireZoneUnitSummary", () => {
-  const testDate = DateTime.fromISO("2025-08-25");
+describe('FireZoneUnitSummary', () => {
+  const testDate = DateTime.fromISO('2025-08-25')
   const mockFireCentre: FireCentre = {
     id: 1,
-    name: "Test Fire Centre",
-  };
+    name: 'Test Fire Centre'
+  }
 
   const mockFireZoneUnit: FireShape = {
     fire_shape_id: 1,
-    mof_fire_zone_name: "Test Zone",
-    mof_fire_centre_name: "Test Centre",
-    area_sqm: 1000,
-  };
+    mof_fire_zone_name: 'Test Zone',
+    mof_fire_centre_name: 'Test Centre',
+    area_sqm: 1000
+  }
 
   const createMockStore = () => {
     return configureStore({
       reducer: {
-        test: (state = {}) => state,
+        test: (state = {}) => state
       },
-      preloadedState: {},
-    });
-  };
+      preloadedState: {}
+    })
+  }
 
-  const renderWithProvider = (
-    component: React.ReactElement,
-    store = createMockStore(),
-  ) => {
+  const renderWithProvider = (component: React.ReactElement<any>, store = createMockStore()) => {
     return render(
       <Provider store={store}>
         <ThemeProvider theme={theme}>{component}</ThemeProvider>
-      </Provider>,
-    );
-  };
+      </Provider>
+    )
+  }
 
   beforeEach(() => {
     // Reset all mocks before each test
-    vi.clearAllMocks();
+    vi.clearAllMocks()
 
     // Setup default useSelector return values
-    vi.mocked(useSelector).mockImplementation((selector) => {
-      const selectorStr = selector.toString();
-      if (selectorStr.includes("selectFilteredFireCentreHFIFuelStats")) {
-        return {};
+    vi.mocked(useSelector).mockImplementation(selector => {
+      const selectorStr = selector.toString()
+      if (selectorStr.includes('selectFilteredFireCentreHFIFuelStats')) {
+        return {}
       }
-      if (selectorStr.includes("selectFireCentreTPIStats")) {
-        return { fireCentreTPIStats: null };
+      if (selectorStr.includes('selectFireCentreTPIStats')) {
+        return { fireCentreTPIStats: null }
       }
-      return {};
-    });
-  });
+      return {}
+    })
+  })
 
-  it("should render empty div when selectedFireZoneUnit is undefined", () => {
+  it('should render empty div when selectedFireZoneUnit is undefined', () => {
     renderWithProvider(
-      <FireZoneUnitSummary
-        selectedFireCentre={mockFireCentre}
-        selectedFireZoneUnit={undefined}
-        date={testDate}
-      />,
-    );
+      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={undefined} date={testDate} />
+    )
 
-    const emptyDiv = screen.getByTestId("fire-zone-unit-summary-empty");
-    expect(emptyDiv).toBeInTheDocument();
-  });
+    const emptyDiv = screen.getByTestId('fire-zone-unit-summary-empty')
+    expect(emptyDiv).toBeInTheDocument()
+  })
 
-  it("should render fire zone unit summary when selectedFireZoneUnit is provided", () => {
+  it('should render fire zone unit summary when selectedFireZoneUnit is provided', () => {
     renderWithProvider(
       <FireZoneUnitSummary
         selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />,
-    );
+      />
+    )
 
-    const summary = screen.getByTestId("fire-zone-unit-summary");
-    expect(summary).toBeInTheDocument();
-  });
+    const summary = screen.getByTestId('fire-zone-unit-summary')
+    expect(summary).toBeInTheDocument()
+  })
 
-  it("should display the fire zone name as title", () => {
+  it('should display the fire zone name as title', () => {
     renderWithProvider(
       <FireZoneUnitSummary
         selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />,
-    );
+      />
+    )
 
-    const title = screen.getByTestId("fire-zone-title-tabs");
-    expect(title).toBeInTheDocument();
-    expect(title).toHaveTextContent("Test Zone");
-  });
+    const title = screen.getByTestId('fire-zone-title-tabs')
+    expect(title).toBeInTheDocument()
+    expect(title).toHaveTextContent('Test Zone')
+  })
 
-  it("should render FuelSummary component", () => {
+  it('should render FuelSummary component', () => {
     renderWithProvider(
       <FireZoneUnitSummary
         selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />,
-    );
+      />
+    )
 
-    const fuelSummary = screen.getByTestId("fuel-summary");
-    expect(fuelSummary).toBeInTheDocument();
-    expect(fuelSummary).toHaveTextContent("Fuel Summary for Test Zone");
-  });
+    const fuelSummary = screen.getByTestId('fuel-summary')
+    expect(fuelSummary).toBeInTheDocument()
+    expect(fuelSummary).toHaveTextContent('Fuel Summary for Test Zone')
+  })
 
-  it("should show no elevation information message when TPI stats are incomplete", () => {
+  it('should show no elevation information message when TPI stats are incomplete', () => {
     renderWithProvider(
       <FireZoneUnitSummary
         selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />,
-    );
+      />
+    )
 
-    expect(
-      screen.getByText("No elevation information available."),
-    ).toBeInTheDocument();
-  });
+    expect(screen.getByText('No elevation information available.')).toBeInTheDocument()
+  })
 
-  it("should have correct styling", () => {
+  it('should have correct styling', () => {
     renderWithProvider(
       <FireZoneUnitSummary
         selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />,
-    );
+      />
+    )
 
-    const summary = screen.getByTestId("fire-zone-unit-summary");
+    const summary = screen.getByTestId('fire-zone-unit-summary')
     expect(summary).toHaveStyle({
-      width: "100%",
-    });
+      width: '100%'
+    })
     // The backgroundColor and overflowY are applied via MUI's sx prop
     // so we just verify the component renders with the correct structure
-    expect(summary).toBeInTheDocument();
-  });
+    expect(summary).toBeInTheDocument()
+  })
 
-  it("should render Stack container with correct props", () => {
+  it('should render Stack container with correct props', () => {
     const { container } = renderWithProvider(
       <FireZoneUnitSummary
         selectedFireCentre={mockFireCentre}
         selectedFireZoneUnit={mockFireZoneUnit}
         date={testDate}
-      />,
-    );
+      />
+    )
 
-    const stackContainer = container.querySelector(".MuiStack-root");
-    expect(stackContainer).toBeInTheDocument();
-  });
+    const stackContainer = container.querySelector('.MuiStack-root')
+    expect(stackContainer).toBeInTheDocument()
+  })
 
-  it("should handle missing fire center", () => {
+  it('should handle missing fire center', () => {
     renderWithProvider(
-      <FireZoneUnitSummary
-        selectedFireCentre={undefined}
-        selectedFireZoneUnit={undefined}
-        date={testDate}
-      />,
-    );
+      <FireZoneUnitSummary selectedFireCentre={undefined} selectedFireZoneUnit={undefined} date={testDate} />
+    )
 
-    const defaultMessage = screen.getByTestId("default-message");
-    expect(defaultMessage).toBeInTheDocument();
-    expect(defaultMessage).toHaveTextContent("Please select a fire centre.");
-  });
-});
+    const defaultMessage = screen.getByTestId('default-message')
+    expect(defaultMessage).toBeInTheDocument()
+    expect(defaultMessage).toHaveTextContent('Please select a fire centre.')
+  })
+})

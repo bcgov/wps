@@ -8,7 +8,15 @@ interface FillableFlagProps {
 const FillableFlag = ({ maskId, percent }: FillableFlagProps) => {
   const fillWidth = (percent / 100) * 120
   return (
-    <svg width="120" height="43" viewBox="0 0 120 43" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
+    <svg
+      width="120"
+      height="43"
+      viewBox="0 0 120 43"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label={`Flag filled to ${percent} percent`}
+    >
       <defs>
         <mask id={`mask-${maskId}`}>
           <rect x="0" y="0" width={`${fillWidth}`} height="43" fill="white" />

@@ -1,183 +1,160 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import * as Sentry from '@sentry/capacitor'
+import { jwtDecode } from 'jwt-decode'
+import { isUndefined } from 'lodash'
+import type { AppDispatch, AppThunk } from '@/store'
+import { Keycloak } from '../../../keycloak/src'
+import type { KeycloakTokenResponse } from '../../../keycloak/src/definitions'
 
-import { AppThunk } from "@/store";
-import { jwtDecode } from "jwt-decode";
-import { isUndefined } from "lodash";
-import { Keycloak } from "../../../keycloak/src";
-import * as Sentry from "@sentry/capacitor";
-
-export type AuthSessionMode = "login" | "guest" | "authenticated";
+export type AuthSessionMode = 'login' | 'guest' | 'authenticated'
 
 export interface AuthState {
-  sessionMode: AuthSessionMode;
-  authenticating: boolean;
-  tokenRefreshed: boolean;
-  token: string | undefined;
-  idToken: string | undefined;
-  idir: string | undefined;
-  email: string | undefined;
-  error: string | null;
+  sessionMode: AuthSessionMode
+  authenticating: boolean
+  token: string | undefined
+  idToken: string | undefined
+  idir: string | undefined
+  email: string | undefined
+  error: string | null
 }
 
 export const initialState: AuthState = {
-  sessionMode: "login",
+  sessionMode: 'login',
   authenticating: false,
-  tokenRefreshed: false,
   token: undefined,
   idToken: undefined,
   idir: undefined,
   email: undefined,
-  error: null,
-};
+  error: null
+}
 
 const authSlice = createSlice({
-  name: "authentication",
+  name: 'authentication',
   initialState,
   reducers: {
     continueAsGuest(state: AuthState) {
-      state.sessionMode = "guest";
-      state.authenticating = false;
-      state.token = undefined;
-      state.idToken = undefined;
-      state.idir = undefined;
-      state.error = null;
+      state.sessionMode = 'guest'
+      state.authenticating = false
+      state.token = undefined
+      state.idToken = undefined
+      state.idir = undefined
+      state.email = undefined
+      state.error = null
     },
     authenticateStart(state: AuthState) {
-      state.authenticating = true;
-      state.sessionMode = "login";
-      state.error = null;
+      state.authenticating = true
+      state.sessionMode = 'login'
+      state.error = null
     },
     authenticateFinished(
       state: AuthState,
       action: PayloadAction<{
-        token: string | undefined;
-        idToken: string | undefined;
-      }>,
+        token: string | undefined
+        idToken: string | undefined
+      }>
     ) {
-      const userDetails = decodeUserDetails(action.payload.token);
-      state.idir = userDetails?.idir;
-      state.email = userDetails?.email;
-      state.authenticating = false;
-      state.sessionMode = "authenticated";
-      state.token = action.payload.token;
-      state.idToken = action.payload.idToken;
+      const userDetails = decodeUserDetails(action.payload.token)
+      state.idir = userDetails?.idir
+      state.email = userDetails?.email
+      state.authenticating = false
+      state.sessionMode = 'authenticated'
+      state.token = action.payload.token
+      state.idToken = action.payload.idToken
     },
-    authenticateError(state: AuthState, action: PayloadAction<string>) {
-      state.authenticating = false;
-      state.sessionMode = "login";
-      state.error = action.payload;
-    },
-    refreshTokenFinished(
-      state: AuthState,
-      action: PayloadAction<{
-        tokenRefreshed: boolean;
-        token: string | undefined;
-        idToken: string | undefined;
-      }>,
-    ) {
-      const userDetails = decodeUserDetails(action.payload.token);
-      state.idir = userDetails?.idir;
-      state.email = userDetails?.email;
-      state.token = action.payload.token;
-      state.idToken = action.payload.idToken;
-      state.tokenRefreshed = action.payload.tokenRefreshed;
-      if (!isUndefined(action.payload.token)) {
-        state.sessionMode = "authenticated";
+    authenticateError(_state: AuthState, action: PayloadAction<string>) {
+      return {
+        ...initialState,
+        error: action.payload
       }
     },
-    resetAuthentication(state: AuthState) {
-      state.sessionMode = "login";
-      state.idToken = undefined;
-      state.token = undefined;
-      state.idir = undefined;
-    },
-  },
-});
+    resetAuthentication() {
+      return { ...initialState }
+    }
+  }
+})
 
-export const {
-  continueAsGuest,
-  authenticateStart,
-  authenticateFinished,
-  authenticateError,
-  refreshTokenFinished,
-  resetAuthentication,
-} = authSlice.actions;
+export const { continueAsGuest, authenticateStart, authenticateFinished, authenticateError, resetAuthentication } =
+  authSlice.actions
 
-export default authSlice.reducer;
+export default authSlice.reducer
 
-export const authenticate = (): AppThunk => (dispatch) => {
-  dispatch(authenticateStart());
+let tokenRefreshListenerActive = false
 
-  const realm = import.meta.env.VITE_KEYCLOAK_REALM;
-  const authUrl = `${
-    import.meta.env.VITE_KEYCLOAK_AUTH_URL
-  }/realms/${realm}/protocol/openid-connect/auth`;
-  const tokenUrl = `${
-    import.meta.env.VITE_KEYCLOAK_AUTH_URL
-  }/realms/${realm}/protocol/openid-connect/token`;
+export const continueAsGuestSession = () => async (dispatch: AppDispatch) => {
+  try {
+    await Keycloak.clearAuthState()
+  } catch {
+    // keep guest mode available even if native auth storage cleanup fails
+  }
+  dispatch(continueAsGuest())
+  setSentryUserFromToken(undefined)
+}
 
-  const customRedirectUri = "ca.bc.gov.asago://auth/callback";
+const registerTokenRefreshListener = (dispatch: AppDispatch) => {
+  if (!tokenRefreshListenerActive) {
+    tokenRefreshListenerActive = true
+    Keycloak.addListener('tokenRefresh', (tokenResponse: KeycloakTokenResponse) => {
+      if (tokenResponse.refreshToken) {
+        dispatch(
+          authenticateFinished({
+            token: tokenResponse.accessToken,
+            idToken: tokenResponse.idToken
+          })
+        )
+        setSentryUserFromToken(tokenResponse.accessToken)
+      }
+    })
+  }
+}
+
+export const authenticate = (): AppThunk => dispatch => {
+  dispatch(authenticateStart())
+  registerTokenRefreshListener(dispatch)
+
+  const realm = import.meta.env.VITE_KEYCLOAK_REALM
+  const authUrl = `${import.meta.env.VITE_KEYCLOAK_AUTH_URL}/realms/${realm}/protocol/openid-connect/auth`
+  const tokenUrl = `${import.meta.env.VITE_KEYCLOAK_AUTH_URL}/realms/${realm}/protocol/openid-connect/token`
+
+  const customRedirectUri = 'ca.bc.gov.asago://auth/callback'
   Keycloak.authenticate({
     authorizationBaseUrl: authUrl,
     clientId: import.meta.env.VITE_KEYCLOAK_CLIENT,
     redirectUrl: customRedirectUri,
-    accessTokenEndpoint: tokenUrl,
+    accessTokenEndpoint: tokenUrl
   })
-    .then((result) => {
+    .then(result => {
       if (result.isAuthenticated) {
         dispatch(
           authenticateFinished({
             token: result.accessToken,
-            idToken: result.idToken,
-          }),
-        );
-        const userDetails = decodeUserDetails(result.accessToken);
-        Sentry.setUser(userDetails ? { email: userDetails.email } : null);
+            idToken: result.idToken
+          })
+        )
+        setSentryUserFromToken(result.accessToken)
       } else {
-        dispatch(authenticateError(JSON.stringify(result.error)));
+        dispatch(authenticateError(JSON.stringify(result.error)))
       }
     })
-    .catch((error) => {
-      dispatch(authenticateError(JSON.stringify(error)));
-    });
-
-  // Handle token refresh callback function
-  const handleTokenRefresh = (tokenResponse: {
-    accessToken: string;
-    idToken: string;
-    refreshToken?: string;
-    tokenType?: string;
-    expiresIn?: number;
-    scope?: string;
-  }) => {
-    if (tokenResponse.refreshToken) {
-      dispatch(
-        refreshTokenFinished({
-          tokenRefreshed: true,
-          token: tokenResponse.accessToken,
-          idToken: tokenResponse.idToken,
-        }),
-      );
-      const userDetails = decodeUserDetails(tokenResponse.accessToken);
-      Sentry.setUser(userDetails ? { email: userDetails.email } : null);
-    }
-  };
-
-  // Set up event listener for token refresh events (works for both web and iOS)
-  Keycloak.addListener("tokenRefresh", handleTokenRefresh);
-};
+    .catch(error => {
+      dispatch(authenticateError(JSON.stringify(error)))
+    })
+}
 
 export const decodeUserDetails = (token: string | undefined) => {
   if (isUndefined(token)) {
-    return undefined;
+    return undefined
   }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const decodedToken: any = jwtDecode(token);
-    return { idir: decodedToken.idir_username, email: decodedToken.email };
+    const decodedToken: any = jwtDecode(token)
+    return { idir: decodedToken.idir_username, email: decodedToken.email }
   } catch (e) {
     // Handle invalid token or missing claims
-    console.error(e);
-    return undefined;
+    console.error(e)
+    return undefined
   }
-};
+}
+
+export const setSentryUserFromToken = (token: string | undefined) => {
+  const userDetails = decodeUserDetails(token)
+  Sentry.setUser(userDetails ? { email: userDetails.email } : null)
+}

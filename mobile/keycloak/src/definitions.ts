@@ -4,13 +4,21 @@ export interface KeycloakPlugin {
    * @param {KeycloakOptions} options
    * @returns {Promise<KeycloakAuthResponse>} the authentication response
    */
-  authenticate(options: KeycloakOptions): Promise<KeycloakAuthResponse>;
+  authenticate(options: KeycloakOptions): Promise<KeycloakAuthResponse>
+  /**
+   * Refresh the stored native authentication state without launching browser auth.
+   */
+  refreshAuthState(): Promise<KeycloakAuthResponse>
+  /**
+   * Clear any stored native authentication state.
+   */
+  clearAuthState(): Promise<void>
   /**
    * Add a listener for plugin events, specifically for token refreshes.
    * @param {string} eventName
    * @param {Function} listenerFunc
    */
-  addListener(eventName: string, listenerFunc: (data: any) => void): Promise<void>;
+  addListener(eventName: string, listenerFunc: (data: any) => void): Promise<void>
 }
 
 export interface KeycloakOptions {
@@ -19,112 +27,116 @@ export interface KeycloakOptions {
    *
    * required!
    */
-  clientId: string;
+  clientId: string
   /**
    * The base url for retrieving tokens depending on the response type from a OAuth 2 provider. e.g. https://accounts.google.com/o/oauth2/auth
    *
    * required!
    */
-  authorizationBaseUrl: string;
+  authorizationBaseUrl: string
   /**
    * Url to  which the oauth provider redirects after authentication.
    *
    * required!
    */
-  redirectUrl: string;
+  redirectUrl: string
   /**
    * Url for retrieving the access_token by the authorization code flow.
    *
    * required!
    */
-  accessTokenEndpoint: string;
+  accessTokenEndpoint: string
 }
 
 export interface KeycloakRefreshOptions {
   /**
    * The app id (client id) you get from the oauth provider like Google, Facebook,...
    */
-  clientId: string;
+  clientId: string
   /**
    * Url for retrieving the access_token.
    */
-  accessTokenEndpoint: string;
+  accessTokenEndpoint: string
   /**
    * The refresh token that will be used to obtain the new access token.
    */
-  refreshToken: string;
+  refreshToken: string
 }
 
 export interface KeycloakAuthResponse {
   /**
    * Indicates whether authentication was successful
    */
-  isAuthenticated: boolean;
+  isAuthenticated: boolean
   /**
    * The access token (if authentication was successful)
    */
-  accessToken?: string;
+  accessToken?: string
   /**
    * The refresh token (if provided by the server)
    */
-  refreshToken?: string;
+  refreshToken?: string
   /**
    * The ID token (if provided by the server and requested in scope)
    */
-  idToken?: string;
+  idToken?: string
   /**
    * Token type, typically "Bearer"
    */
-  tokenType?: string;
+  tokenType?: string
   /**
    * Token expiration time in seconds
    */
-  expiresIn?: number;
+  expiresIn?: number
   /**
    * The scope granted by the authorization server
    */
-  scope?: string;
+  scope?: string
   /**
    * Error code (if authentication failed)
    */
-  error?: string;
+  error?: string
   /**
    * Error description (if authentication failed)
    */
-  errorDescription?: string;
+  errorDescription?: string
   /**
    * The redirect URL used
    */
-  redirectUrl?: string;
+  redirectUrl?: string
   /**
    * Additional response data
    */
-  [key: string]: any;
+  [key: string]: any
 }
 
 export interface KeycloakTokenResponse {
   /**
    * The new access token
    */
-  accessToken: string;
+  accessToken: string
+  /**
+   * The ID token, if provided by the server.
+   */
+  idToken?: string
   /**
    * The new refresh token (if provided)
    */
-  refreshToken?: string;
+  refreshToken?: string
   /**
    * Token type, typically "Bearer"
    */
-  tokenType?: string;
+  tokenType?: string
   /**
    * Token expiration time in seconds
    */
-  expiresIn?: number;
+  expiresIn?: number
   /**
    * The scope granted by the authorization server
    */
-  scope?: string;
+  scope?: string
   /**
    * Additional token response data
    */
-  [key: string]: any;
+  [key: string]: any
 }

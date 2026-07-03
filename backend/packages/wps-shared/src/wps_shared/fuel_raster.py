@@ -13,20 +13,16 @@ from wps_shared.utils.time import get_utc_now
 logger = logging.getLogger(__name__)
 
 
-async def find_latest_version(
+async def find_next_available_version(
     s3_client: S3Client, raster_addresser: BaseRasterAddresser, now: datetime, version: int
-):
+) -> int:
     current_version = version
-    key = raster_addresser.get_fuel_raster_key(now, current_version)
-    exists = await s3_client.all_objects_exist(key)
-    while exists:
-        current_version += 1
+    while True:
         key = raster_addresser.get_fuel_raster_key(now, current_version)
-        exists = await s3_client.all_objects_exist(key)
+        exists = await s3_client.object_exists(key)
         if not exists:
-            current_version -= 1
-
-    return current_version
+            return current_version
+        current_version += 1
 
 
 async def process_fuel_type_raster(
@@ -34,8 +30,8 @@ async def process_fuel_type_raster(
 ):
     """
     This function performs the following steps:
-    1. Finds the latest version of the fuel raster for the given start datetime.
-    2. Copies the unprocessed raster object to a new key with an incremented version. The object already needs to exist in S3 storage at `sfms/static/`.
+    1. Finds the next available version of the fuel raster for the given start datetime.
+    2. Copies the unprocessed raster object to the new versioned key. The object already needs to exist in S3 storage at `sfms/static/`.
     3. Validates the content hash of the copied raster.
     4. If validation fails, deletes the new raster object and raises an error.
     5. If validation succeeds, extracts raster dimensions and returns metadata to the caller.
@@ -49,10 +45,9 @@ async def process_fuel_type_raster(
         ValueError: If the content hash validation fails or the raster cannot be stored.
     """
     async with S3Client() as s3_client:
-        current_version = await find_latest_version(
-            s3_client, BaseRasterAddresser(), start_datetime, 1
+        new_version = await find_next_available_version(
+            s3_client, raster_addresser, start_datetime, 1
         )
-        new_version = current_version + 1
         unprocessed_key = raster_addresser.get_unprocessed_fuel_raster_key(unprocessed_object_name)
         new_key = raster_addresser.get_fuel_raster_key(start_datetime, new_version)
 

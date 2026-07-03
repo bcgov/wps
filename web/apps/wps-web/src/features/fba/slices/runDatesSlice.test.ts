@@ -1,6 +1,16 @@
+import { combineReducers } from '@reduxjs/toolkit'
+import {
+  getAllRunDates,
+  getMostRecentRunDate,
+  getSFMSBounds,
+  RunType,
+  type SFMSBounds,
+  type SFMSBoundsResponse
+} from '@wps/api/fbaAPI'
+import { logError } from '@wps/utils/error'
 import { DateTime } from 'luxon'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
+import type { AppDispatch } from '@/app/store'
 import reducer, {
   fetchSFMSBounds,
   fetchSFMSRunDates,
@@ -11,22 +21,10 @@ import reducer, {
   getSFMSBoundsStart,
   getSFMSBoundsSuccess,
   initialState,
-  selectLatestSFMSBounds,
-  selectEarliestSFMSBounds
+  selectEarliestSFMSBounds,
+  selectLatestSFMSBounds
 } from '@/features/fba/slices/runDatesSlice'
-
 import { createTestStore } from '@/test/testUtils'
-import { AppDispatch } from '@/app/store'
-import { combineReducers } from '@reduxjs/toolkit'
-import {
-  getAllRunDates,
-  getMostRecentRunDate,
-  getSFMSBounds,
-  RunType,
-  SFMSBoundsResponse,
-  type SFMSBounds
-} from '@wps/api/fbaAPI'
-import { logError } from '@wps/utils/error'
 
 const runDatesReducer = combineReducers({ runDates: reducer })
 
