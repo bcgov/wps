@@ -74,7 +74,7 @@ jobs:
         run: |
           xcodebuild test \
             -scheme "Keycloak" \
-            -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
+            -destination "platform=iOS Simulator,name=iPhone 17" \
             -enableCodeCoverage YES \
             -resultBundlePath ${{ runner.temp }}/keycloak.xcresult
       - name: Upload iOS coverage to Codecov

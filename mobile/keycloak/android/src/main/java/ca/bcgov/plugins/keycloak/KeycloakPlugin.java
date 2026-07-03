@@ -43,6 +43,14 @@ public class KeycloakPlugin extends Plugin {
                     Log.d(TAG, "Notifying JavaScript of token refresh");
                     notifyListeners("tokenRefresh", tokens);
                 }
+
+                @Override
+                public void onTokenRefreshFailed(String error) {
+                    Log.d(TAG, "Notifying JavaScript of token refresh failure");
+                    JSObject errorResponse = new JSObject();
+                    errorResponse.put("error", error);
+                    notifyListeners("tokenRefreshFailed", errorResponse);
+                }
             }
         );
 
@@ -70,9 +78,19 @@ public class KeycloakPlugin extends Plugin {
     @Override
     protected void handleOnResume() {
         super.handleOnResume();
-        // MainActivity now handles all authorization responses via onCreate/onNewIntent
-        // This handler is left empty to avoid duplicate processing
-        Log.d(TAG, "App resumed - MainActivity handles authorization responses");
+        if (implementation != null) {
+            implementation.resumeAutomaticRefresh();
+        }
+        Log.d(TAG, "App resumed - automatic token refresh resumed");
+    }
+
+    @Override
+    protected void handleOnPause() {
+        if (implementation != null) {
+            implementation.pauseAutomaticRefresh();
+        }
+        Log.d(TAG, "App paused - automatic token refresh paused");
+        super.handleOnPause();
     }
 
     @Override
@@ -81,6 +99,17 @@ public class KeycloakPlugin extends Plugin {
         // MainActivity now handles all authorization responses via onNewIntent
         // This handler is left empty to avoid duplicate processing
         Log.d(TAG, "New intent received - MainActivity handles authorization responses");
+    }
+
+    @PluginMethod
+    public void clearAuthState(PluginCall call) {
+        implementation.clearStoredAuthState();
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void refreshAuthState(PluginCall call) {
+        implementation.refreshStoredAuthState(call);
     }
 
     @PluginMethod
@@ -110,6 +139,20 @@ public class KeycloakPlugin extends Plugin {
             return;
         }
 
+        if (
+            implementation.authenticateWithStoredState(
+                call,
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        authenticate(call);
+                    }
+                }
+            )
+        ) {
+            return;
+        }
+
         try {
             // Create service configuration
             AuthorizationServiceConfiguration serviceConfig = new AuthorizationServiceConfiguration(
@@ -126,7 +169,7 @@ public class KeycloakPlugin extends Plugin {
             );
 
             authRequestBuilder
-                .setScope("openid profile")
+                .setScope("openid profile offline_access")
                 .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier());
 
             AuthorizationRequest authRequest = authRequestBuilder.build();
@@ -136,7 +179,7 @@ public class KeycloakPlugin extends Plugin {
             Log.d(TAG, "Authorization URL: " + authorizationBaseUrl);
             Log.d(TAG, "Token Endpoint: " + accessTokenEndpoint);
             Log.d(TAG, "Redirect URL: " + redirectUrl);
-            Log.d(TAG, "Scope: openid profile");
+            Log.d(TAG, "Scope: openid profile offline_access");
 
             // Store the call and request for later completion
             implementation.setCurrentCall(call);
