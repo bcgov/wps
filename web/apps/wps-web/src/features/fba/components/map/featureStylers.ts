@@ -1,5 +1,4 @@
 import type { FireShape, FireShapeStatusDetail } from '@wps/api/fbaAPI'
-import type { FireCentre } from '@wps/types/fireCentre'
 import { AdvisoryStatus } from '@wps/utils/constants'
 import { isUndefined, lowerCase, range, startCase } from 'lodash'
 import type * as ol from 'ol'
@@ -9,7 +8,6 @@ import { Fill, Stroke, Text } from 'ol/style'
 import CircleStyle from 'ol/style/Circle'
 import Style from 'ol/style/Style'
 
-const GREY_FILL = 'rgba(128, 128, 128, 0.8)'
 const EMPTY_FILL = 'rgba(0, 0, 0, 0.0)'
 export const ADVISORY_ORANGE_FILL = 'rgba(255, 147, 38, 0.4)'
 export const ADVISORY_RED_FILL = 'rgba(128, 0, 0, 0.4)'
@@ -36,33 +34,6 @@ export const fireCentreLabelStyler = (feature: RenderFeature | ol.Feature<Geomet
   return new Style({
     text: fireCentreTextStyler(feature)
   })
-}
-
-export const fireCentreStyler = (selectedFireCentre: FireCentre | undefined) => {
-  return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const fireCentreId = feature.getProperties().MOF_FIRE_CENTRE_NAME
-    const isSelected = selectedFireCentre && fireCentreId === selectedFireCentre.name
-
-    const fillColour = isSelected ? new Fill({ color: EMPTY_FILL }) : new Fill({ color: GREY_FILL })
-
-    return new Style({
-      fill: selectedFireCentre ? fillColour : undefined
-    })
-  }
-}
-
-export const fireCentreLineStyler = (selectedFireCentre: FireCentre | undefined) => {
-  return (feature: RenderFeature | ol.Feature<Geometry>): Style => {
-    const fireCentreId = feature.getProperties().MOF_FIRE_CENTRE_NAME
-    const isSelected = selectedFireCentre && fireCentreId === selectedFireCentre.name
-
-    return new Style({
-      stroke: new Stroke({
-        color: 'black',
-        width: isSelected ? 8 : 3
-      })
-    })
-  }
 }
 
 export const fireShapeStyler = (fireZoneStatuses: FireShapeStatusDetail[], showZoneStatus: boolean) => {
