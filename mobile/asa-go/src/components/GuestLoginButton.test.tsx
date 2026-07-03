@@ -2,7 +2,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { useDispatch } from 'react-redux'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
-import PublicLoginButton from '@/components/PublicLoginButton'
+import PublicLoginButton from '@/components/GuestLoginButton'
 import { continueAsGuestSession } from '@/slices/authenticationSlice'
 
 vi.mock('react-redux', async () => {
