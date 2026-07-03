@@ -6,6 +6,14 @@ export interface KeycloakPlugin {
    */
   authenticate(options: KeycloakOptions): Promise<KeycloakAuthResponse>
   /**
+   * Refresh the stored native authentication state without launching browser auth.
+   */
+  refreshAuthState(): Promise<KeycloakAuthResponse>
+  /**
+   * Clear any stored native authentication state.
+   */
+  clearAuthState(): Promise<void>
+  /**
    * Add a listener for plugin events, specifically for token refreshes.
    * @param {string} eventName
    * @param {Function} listenerFunc
@@ -107,6 +115,10 @@ export interface KeycloakTokenResponse {
    * The new access token
    */
   accessToken: string
+  /**
+   * The ID token, if provided by the server.
+   */
+  idToken?: string
   /**
    * The new refresh token (if provided)
    */

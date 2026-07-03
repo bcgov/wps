@@ -141,7 +141,6 @@ describe('pushNotificationSlice', () => {
             error: null,
             idir: 'test-user',
             authenticating: false,
-            tokenRefreshed: false,
             token: undefined,
             idToken: undefined,
             email: undefined
@@ -212,7 +211,6 @@ describe('pushNotificationSlice', () => {
             error: null,
             idir: 'test-user',
             authenticating: false,
-            tokenRefreshed: false,
             token: undefined,
             idToken: undefined,
             email: undefined
