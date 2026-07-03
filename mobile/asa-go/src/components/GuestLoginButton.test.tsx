@@ -36,13 +36,13 @@ describe('PublicLoginButton', () => {
   it('renders the continue as guest button', () => {
     renderComponent()
 
-    expect(screen.getByRole('button', { name: /continue as guest/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /log in as guest/i })).toBeInTheDocument()
   })
 
   it('dispatches continueAsGuestSession on click', () => {
     renderComponent()
 
-    fireEvent.click(screen.getByRole('button', { name: /continue as guest/i }))
+    fireEvent.click(screen.getByRole('button', { name: /log in as guest/i }))
 
     expect(mockDispatch).toHaveBeenCalledWith(continueAsGuestSession())
   })
