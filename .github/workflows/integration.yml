@@ -21,7 +21,7 @@ jobs:
       image: ghcr.io/bcgov/wps/wps-api-base:06-16-2026
       options: --user 0
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/python-setup
       - name: Lint (api/wps_shared/wps_jobs)
         working-directory: ./backend
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-24.04
     container: *api-base-image
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: ./.github/actions/python-setup
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-24.04
     container: *api-base-image
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: ./.github/actions/python-setup
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-24.04
     container: *api-base-image
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Install ecCodes library
@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-24.04
     container: *api-base-image
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: ./.github/actions/python-setup
@@ -122,7 +122,7 @@ jobs:
     runs-on: ubuntu-24.04
     container: *api-base-image
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: ./.github/actions/python-setup
@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-24.04
     container: *api-base-image
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: ./.github/actions/python-setup
@@ -162,7 +162,7 @@ jobs:
         node-version: [24.x]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Use Node.js ${{ matrix.node-version }}
@@ -216,7 +216,7 @@ jobs:
       ]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v8
       - name: Upload test coverage to Codecov
@@ -233,7 +233,7 @@ jobs:
         python-version: [3.12.3]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup Python ${{ matrix.python-version }} (api)
