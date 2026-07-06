@@ -6,10 +6,12 @@ enforced by the APS Kong gateway (key-auth plugin). Tests verify routing,
 S3 key construction, and error handling.
 """
 
+from datetime import date
 from unittest.mock import AsyncMock, MagicMock
 
 import app.sfms_fwi_main
 import pytest
+from app.routers.sfms_fwi import _find_uploaded_hffmc_key
 from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
 
@@ -51,6 +53,8 @@ def mock_list_hffmc_uploads(monkeypatch):
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.__aenter__", _aenter)
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.__aexit__", _aexit)
 
+        return mock_s3.list_objects_v2
+
     return _install
 
 
@@ -61,6 +65,43 @@ def _make_mock_dataset(extract_value=None):
     mock_ds.__exit__ = lambda s, *a: None
     mock_ds.extract_value_at_point.return_value = extract_value
     return mock_ds
+
+
+@pytest.mark.anyio
+class TestFindUploadedHffmcKey:
+    """Tests for the _find_uploaded_hffmc_key helper."""
+
+    async def test_returns_matching_key(self, mock_list_hffmc_uploads):
+        mock_list_hffmc_uploads(
+            [
+                "sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110204.tif",
+                "sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif",
+                "sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110216.tif",
+            ]
+        )
+        result = await _find_uploaded_hffmc_key(date(2025, 11, 2), 12)
+        assert result == "sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"
+
+    async def test_returns_none_when_hour_not_uploaded(self, mock_list_hffmc_uploads):
+        mock_list_hffmc_uploads(
+            ["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110204.tif"]
+        )
+        result = await _find_uploaded_hffmc_key(date(2025, 11, 2), 12)
+        assert result is None
+
+    async def test_returns_none_when_no_uploads_for_date(self, mock_list_hffmc_uploads):
+        mock_list_hffmc_uploads([])
+        result = await _find_uploaded_hffmc_key(date(2025, 11, 2), 12)
+        assert result is None
+
+    async def test_queries_for_date_directly_with_no_conversion(self, mock_list_hffmc_uploads):
+        mock_list_objects_v2 = mock_list_hffmc_uploads(
+            ["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110204.tif"]
+        )
+        result = await _find_uploaded_hffmc_key(date(2025, 11, 2), 4)
+        assert result == "sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110204.tif"
+        _, kwargs = mock_list_objects_v2.call_args
+        assert kwargs["Prefix"] == "sfms/uploads/hourlies/2025-11-02"
 
 
 class TestDailyFWIRasterDownload:
@@ -121,8 +162,7 @@ class TestHourlyFFMCRasterDownload:
 
     @pytest.mark.usefixtures("mock_stream_object")
     def test_downloads_hourly_ffmc_raster(self, mock_list_hffmc_uploads):
-        # hour=12 UTC is 05:00 PDT the same day
-        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110205.tif"])
+        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert response.status_code == 200
@@ -145,8 +185,7 @@ class TestHourlyFFMCRasterDownload:
         assert response.status_code == 422
 
     def test_uses_hffmc_key_path(self, monkeypatch, mock_list_hffmc_uploads):
-        # hour=12 UTC is 05:00 PDT the same day
-        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110205.tif"])
+        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
         captured_keys = []
 
         async def _capture_key(key, byte_range=None, chunk_size=65536):
@@ -162,7 +201,7 @@ class TestHourlyFFMCRasterDownload:
         client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert len(captured_keys) == 1
         assert "sfms/uploads/hourlies" in captured_keys[0]
-        assert "fine_fuel_moisture_code2025110205.tif" in captured_keys[0]
+        assert "fine_fuel_moisture_code2025110212.tif" in captured_keys[0]
 
 
 class TestDailyFWIValueAtPoint:
@@ -231,8 +270,7 @@ class TestHourlyFFMCValueAtPoint:
     """Tests for GET /sfms/daily-fwi/{for_date}/hffmc/value."""
 
     def test_returns_value_at_point(self, monkeypatch, mock_list_hffmc_uploads):
-        # hour=12 UTC is 05:00 PDT the same day
-        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110205.tif"])
+        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
         monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3))
 
@@ -257,8 +295,7 @@ class TestHourlyFFMCValueAtPoint:
         assert response.status_code == 404
 
     def test_uses_uploaded_hffmc_key(self, monkeypatch, mock_list_hffmc_uploads):
-        # hour=12 UTC is 05:00 PDT the same day
-        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110205.tif"])
+        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
         captured_keys = []
 
         async def _capture_key(key):
@@ -272,7 +309,7 @@ class TestHourlyFFMCValueAtPoint:
         client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
         assert len(captured_keys) == 1
         assert "sfms/uploads/hourlies" in captured_keys[0]
-        assert "fine_fuel_moisture_code2025110205.tif" in captured_keys[0]
+        assert "fine_fuel_moisture_code2025110212.tif" in captured_keys[0]
 
 
 class TestMainAPIDoesNotServeDailyFWI:

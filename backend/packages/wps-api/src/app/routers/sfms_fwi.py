@@ -17,7 +17,6 @@ from pydantic import BaseModel, Field
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIParameter
 from wps_shared.utils.s3_client import S3Client
-from wps_shared.utils.time import convert_utc_to_pdt
 
 from app.routers.object_store_proxy import _proxy, read_object
 from app.sfms.raster_addresser import RasterKeyAddresser
@@ -42,7 +41,7 @@ _LAT_DESC = "Latitude in WGS84"
 _LON_DESC = "Longitude in WGS84"
 _LAT_EXAMPLE = 49.0
 _LON_EXAMPLE = -123.0
-_HOUR_DESC = "UTC hour (0-23)"
+_HOUR_DESC = "Hour of the raster (0-23, PST/PDT -- matches the SFMS upload filename convention)"
 _HOUR_EXAMPLE = 12
 
 # 20:00 UTC is always the same calendar day in America/Vancouver time regardless of
@@ -100,6 +99,25 @@ async def _load_raster(key: str) -> bytes:
         raise HTTPException(status_code=502, detail=f"S3 error: {error_code}")
 
 
+async def _find_uploaded_hffmc_key(for_date: date, hour: int) -> str | None:
+    """Find the uploaded hFFMC key for the given date and hour by listing the
+    date's upload prefix and matching on the hour suffix, the same discovery
+    approach GET /sfms/hourlies uses. for_date and hour are taken as-is -- the
+    same PST/PDT terms SFMS itself uses to name the file -- with no timezone
+    conversion."""
+    dt = datetime(for_date.year, for_date.month, for_date.day, hour)
+    hour_suffix = f"{dt.hour:02d}.tif"
+    async with S3Client() as s3_client:
+        response = await s3_client.client.list_objects_v2(
+            Bucket=s3_client.bucket,
+            Prefix=f"sfms/uploads/hourlies/{for_date}",
+        )
+    return next(
+        (obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith(hour_suffix)),
+        None,
+    )
+
+
 # /value routes must be defined before the bare download routes to avoid
 # the variable {parameter} segment swallowing the literal "value" segment.
 
@@ -118,7 +136,8 @@ async def get_hourly_ffmc_value_at_point(
 ):
     """
     Sample the hourly FFMC (fine fuel moisture code) actuals raster at a single
-    WGS84 lat/lon coordinate, for the given date and UTC hour.
+    WGS84 lat/lon coordinate, for the given date and hour (PST/PDT, matching the
+    SFMS upload filename convention).
 
     The raster returned is the actual raster uploaded by the existing/legacy SFMS system run by
     geospatial, not a WPS-calculated ones.
@@ -127,18 +146,7 @@ async def get_hourly_ffmc_value_at_point(
     a nodata pixel, rather than a 404 -- a 404 means the raster itself doesn't exist
     for that date/hour.
     """
-    datetime_utc = datetime(for_date.year, for_date.month, for_date.day, hour, tzinfo=timezone.utc)
-    datetime_pdt = convert_utc_to_pdt(datetime_utc)
-    hour_suffix = f"{datetime_pdt.hour:02d}.tif"
-    async with S3Client() as s3_client:
-        response = await s3_client.client.list_objects_v2(
-            Bucket=s3_client.bucket,
-            Prefix=f"sfms/uploads/hourlies/{datetime_pdt.date().isoformat()}",
-        )
-    key = next(
-        (obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith(hour_suffix)),
-        None,
-    )
+    key = await _find_uploaded_hffmc_key(for_date, hour)
     if key is None:
         raise HTTPException(
             status_code=404, detail=f"No hFFMC raster found for {for_date} hour {hour}"
@@ -208,25 +216,15 @@ async def get_hourly_ffmc_raster(
 ):
     """
     Download the hourly FFMC (fine fuel moisture code) actuals raster, as a
-    GeoTIFF, for the given date and UTC hour.
+    GeoTIFF, for the given date and hour (PST/PDT, matching the SFMS upload
+    filename convention).
 
     The raster returned is the actual raster uploaded by the existing/legacy SFMS system run by
     geospatial, not a WPS-calculated ones.
 
     Supports HTTP range requests (a `Range` header returns a 206 partial response).
     """
-    datetime_utc = datetime(for_date.year, for_date.month, for_date.day, hour, tzinfo=timezone.utc)
-    datetime_pdt = convert_utc_to_pdt(datetime_utc)
-    hour_suffix = f"{datetime_pdt.hour:02d}.tif"
-    async with S3Client() as s3_client:
-        response = await s3_client.client.list_objects_v2(
-            Bucket=s3_client.bucket,
-            Prefix=f"sfms/uploads/hourlies/{datetime_pdt.date().isoformat()}",
-        )
-    key = next(
-        (obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith(hour_suffix)),
-        None,
-    )
+    key = await _find_uploaded_hffmc_key(for_date, hour)
     if key is None:
         raise HTTPException(
             status_code=404, detail=f"No hFFMC raster found for {for_date} hour {hour}"
