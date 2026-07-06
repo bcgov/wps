@@ -249,6 +249,7 @@ jobs:
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
           suffix: ${{ env.SUFFIX }}
+          host: api-gov-bc-ca.test.api.gov.bc.ca
 
   scan-dev:
     name: ZAP Baseline Scan Dev

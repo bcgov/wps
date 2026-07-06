@@ -73,8 +73,9 @@ jobs:
           SUFFIX: ${{ env.SUFFIX }}
         run: |
           set -euo pipefail
-          APS_HOST="api.gov.bc.ca"
+          APS_HOST="api-gov-bc-ca.test.api.gov.bc.ca"
 
+          gwa config set host "${APS_HOST}"
           gwa login \
             --client-id="${GWA_CLIENT_ID}" \
             --client-secret="${GWA_CLIENT_SECRET}"
