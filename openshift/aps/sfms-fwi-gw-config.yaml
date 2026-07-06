@@ -17,28 +17,55 @@ services:
         paths:
           - /api/sfms/daily-fwi
         strip_path: false
-    plugins:
-      # Require a valid API key issued through the APS portal.
-      # Consumers register at https://api.gov.bc.ca to receive a key.
-      - name: key-auth
+        plugins:
+          # Require a valid API key issued through the APS portal.
+          # Consumers register at https://api.gov.bc.ca to receive a key.
+          - name: key-auth
+            tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
+            config:
+              key_names:
+                - X-API-Key
+              # Strip the key before forwarding to the upstream so credentials
+              # are not logged or exposed in backend access logs.
+              hide_credentials: true
+          # Rate-limit per registered consumer so one key cannot monopolise the service.
+          - name: rate-limiting
+            tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
+            config:
+              policy: local
+              limit_by: consumer
+              minute: 60
+              second: null
+              hour: null
+              day: null
+              month: null
+              year: null
+              fault_tolerant: true
+              hide_client_headers: false
+      # Separate, unauthenticated route for this service's own FastAPI-generated
+      # docs, since the main WPS API's /api/docs no longer includes these
+      # endpoints. No key-auth here — docs should be publicly accessible.
+      - name: ${FWI_SERVICE_NAME}-docs
         tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
-        config:
-          key_names:
-            - X-API-Key
-          # Strip the key before forwarding to the upstream so credentials
-          # are not logged or exposed in backend access logs.
-          hide_credentials: true
-      # Rate-limit per registered consumer so one key cannot monopolise the service.
-      - name: rate-limiting
-        tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
-        config:
-          policy: local
-          limit_by: consumer
-          minute: 60
-          second: null
-          hour: null
-          day: null
-          month: null
-          year: null
-          fault_tolerant: true
-          hide_client_headers: false
+        hosts:
+          - ${GW_HOST}
+        paths:
+          - /api/docs
+          - /api/openapi.json
+          - /api/redoc
+        strip_path: false
+        plugins:
+          # IP-based (not consumer-based) since there's no API key on this route.
+          - name: rate-limiting
+            tags: [ns.${APS_NAMESPACE}.fwi-${SUFFIX}]
+            config:
+              policy: local
+              limit_by: ip
+              minute: 60
+              second: null
+              hour: null
+              day: null
+              month: null
+              year: null
+              fault_tolerant: true
+              hide_client_headers: false
