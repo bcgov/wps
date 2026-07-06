@@ -208,7 +208,7 @@ class TestDailyFWIValueAtPoint:
     """Tests for GET /sfms/daily-fwi/{for_date}/{parameter}/value."""
 
     def test_returns_value_at_point(self, monkeypatch):
-        monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes"))
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5))
 
         client = TestClient(app.sfms_fwi_main.app)
@@ -221,7 +221,7 @@ class TestDailyFWIValueAtPoint:
         assert data["longitude"] == pytest.approx(-123.0)
 
     def test_returns_null_value_when_outside_raster(self, monkeypatch):
-        monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes"))
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(None))
 
         client = TestClient(app.sfms_fwi_main.app)
@@ -230,10 +230,10 @@ class TestDailyFWIValueAtPoint:
         assert response.json()["value"] is None
 
     def test_returns_404_when_raster_missing(self, monkeypatch):
-        async def _raise_not_found(key):
+        async def _raise_not_found(self, key):
             raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
 
-        monkeypatch.setattr("app.routers.sfms_fwi.read_object", _raise_not_found)
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _raise_not_found)
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
         assert response.status_code == 404
@@ -251,11 +251,11 @@ class TestDailyFWIValueAtPoint:
     def test_uses_actual_run_type_in_s3_key(self, monkeypatch):
         captured_keys = []
 
-        async def _capture_key(key):
+        async def _capture_key(self, key):
             captured_keys.append(key)
             return b"fake-bytes"
 
-        monkeypatch.setattr("app.routers.sfms_fwi.read_object", _capture_key)
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _capture_key)
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5))
 
         client = TestClient(app.sfms_fwi_main.app)
@@ -271,7 +271,7 @@ class TestHourlyFFMCValueAtPoint:
 
     def test_returns_value_at_point(self, monkeypatch, mock_list_hffmc_uploads):
         mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
-        monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes"))
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3))
 
         client = TestClient(app.sfms_fwi_main.app)
@@ -298,11 +298,11 @@ class TestHourlyFFMCValueAtPoint:
         mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
         captured_keys = []
 
-        async def _capture_key(key):
+        async def _capture_key(self, key):
             captured_keys.append(key)
             return b"fake-bytes"
 
-        monkeypatch.setattr("app.routers.sfms_fwi.read_object", _capture_key)
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _capture_key)
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3))
 
         client = TestClient(app.sfms_fwi_main.app)

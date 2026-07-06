@@ -18,7 +18,7 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIParameter
 from wps_shared.utils.s3_client import S3Client
 
-from app.routers.object_store_proxy import _proxy, read_object
+from app.routers.object_store_proxy import _proxy
 from app.sfms.raster_addresser import RasterKeyAddresser
 
 logger = logging.getLogger(__name__)
@@ -91,7 +91,8 @@ class FWIValueResponse(BaseModel):
 
 async def _load_raster(key: str) -> bytes:
     try:
-        return await read_object(key)
+        async with S3Client() as s3_client:
+            return await s3_client.read_object(key)
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         if error_code == "NoSuchKey":

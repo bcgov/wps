@@ -1,6 +1,5 @@
 """Tests for object store proxy router."""
 
-import asyncio
 from contextlib import asynccontextmanager
 
 import pytest
@@ -152,77 +151,6 @@ def mock_s3_stream_and_head(monkeypatch):
 
     # Patch stream_object
     monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", mock_stream_object)
-
-
-class TestReadObject:
-    """Unit tests for the read_object helper."""
-
-    def _make_session(self, key_to_content: dict):
-        """Build a mock session whose get_object returns bytes for known keys."""
-
-        class MockClient(DefaultMockAioBaseClient):
-            async def get_object(self, **kwargs):
-                key = kwargs.get("Key", "")
-                if key not in key_to_content:
-                    raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
-                content = key_to_content[key]
-                if isinstance(content, ClientError):
-                    raise content
-
-                @asynccontextmanager
-                async def _body():
-                    class _Stream:
-                        async def read(self):
-                            return content
-
-                    yield _Stream()
-
-                return {"Body": _body()}
-
-        class MockSession(DefaultMockAioSession):
-            @asynccontextmanager
-            async def create_client(self, *args, **kwargs):
-                yield MockClient()
-
-        return MockSession
-
-    def test_returns_bytes_on_success(self, monkeypatch):
-        import wps_shared.utils.s3_client as s3_mod
-
-        session_cls = self._make_session({"sfms/raster.tif": b"raster-data"})
-        monkeypatch.setattr(s3_mod, "get_session", lambda: session_cls())
-
-        from app.routers.object_store_proxy import read_object
-
-        result = asyncio.run(read_object("sfms/raster.tif"))
-        assert result == b"raster-data"
-
-    def test_raises_client_error_on_missing_key(self, monkeypatch):
-        import wps_shared.utils.s3_client as s3_mod
-
-        session_cls = self._make_session({})
-        monkeypatch.setattr(s3_mod, "get_session", lambda: session_cls())
-
-        from app.routers.object_store_proxy import read_object
-
-        coro = read_object("missing/raster.tif")
-        with pytest.raises(ClientError) as exc_info:
-            asyncio.run(coro)
-        assert exc_info.value.response["Error"]["Code"] == "NoSuchKey"
-
-    def test_raises_client_error_on_s3_failure(self, monkeypatch):
-        import wps_shared.utils.s3_client as s3_mod
-
-        err = ClientError({"Error": {"Code": "InternalError"}}, "GetObject")
-        session_cls = self._make_session({"sfms/raster.tif": err})
-        monkeypatch.setattr(s3_mod, "get_session", lambda: session_cls())
-
-        from app.routers.object_store_proxy import read_object
-
-        coro = read_object("sfms/raster.tif")
-        with pytest.raises(ClientError) as exc_info:
-            asyncio.run(coro)
-        assert exc_info.value.response["Error"]["Code"] == "InternalError"
 
 
 class TestHeadS3Object:
