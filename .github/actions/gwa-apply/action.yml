@@ -1,5 +1,5 @@
 name: GWA Apply
-description: Authenticate and apply APS resources (DraftDataset, Product, etc.) with gwa. Requires ./.github/actions/gwa-setup to have run earlier in the job.
+description: Apply APS resources (DraftDataset, Product, etc.) with gwa. Requires ./.github/actions/gwa-setup to have run earlier in the job.
 
 inputs:
   gateway-id:
