@@ -32,6 +32,28 @@ def mock_stream_object(monkeypatch):
     monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", _mock)
 
 
+@pytest.fixture()
+def mock_list_hffmc_uploads(monkeypatch):
+    """Mock S3Client's list_objects_v2 for the hffmc upload-listing lookup."""
+
+    def _install(keys):
+        mock_s3 = AsyncMock()
+        mock_s3.list_objects_v2 = AsyncMock(return_value={"Contents": [{"Key": k} for k in keys]})
+
+        async def _aenter(self):
+            self.client = mock_s3
+            self.bucket = "some_bucket"
+            return self
+
+        async def _aexit(self, *args):
+            return None
+
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.__aenter__", _aenter)
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.__aexit__", _aexit)
+
+    return _install
+
+
 def _make_mock_dataset(extract_value=None):
     """Return a mock WPSDataset suitable for use as a context manager."""
     mock_ds = MagicMock()
@@ -89,20 +111,28 @@ class TestDailyFWIRasterDownload:
         client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/ffmc")
         assert len(captured_keys) == 1
-        assert "sfms_ng" in captured_keys[0]
+        assert "sfms/uploads" in captured_keys[0]
         assert "actual" in captured_keys[0]
-        assert "ffmc_20251102.tif" in captured_keys[0]
+        assert "ffmc20251102.tif" in captured_keys[0]
 
 
 class TestHourlyFFMCRasterDownload:
     """Tests for GET /sfms/daily-fwi/{for_date}/hffmc."""
 
     @pytest.mark.usefixtures("mock_stream_object")
-    def test_downloads_hourly_ffmc_raster(self):
+    def test_downloads_hourly_ffmc_raster(self, mock_list_hffmc_uploads):
+        # hour=12 UTC is 05:00 PDT the same day
+        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110205.tif"])
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert response.status_code == 200
         assert response.content == b"fake-tif-content"
+
+    def test_returns_404_when_no_upload_for_hour(self, mock_list_hffmc_uploads):
+        mock_list_hffmc_uploads([])
+        client = TestClient(app.sfms_fwi_main.app)
+        response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
+        assert response.status_code == 404
 
     def test_missing_hour_returns_422(self):
         client = TestClient(app.sfms_fwi_main.app)
@@ -114,8 +144,9 @@ class TestHourlyFFMCRasterDownload:
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=25")
         assert response.status_code == 422
 
-    @pytest.mark.usefixtures("mock_stream_object")
-    def test_uses_hffmc_key_path(self, monkeypatch):
+    def test_uses_hffmc_key_path(self, monkeypatch, mock_list_hffmc_uploads):
+        # hour=12 UTC is 05:00 PDT the same day
+        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110205.tif"])
         captured_keys = []
 
         async def _capture_key(key, byte_range=None, chunk_size=65536):
@@ -130,8 +161,8 @@ class TestHourlyFFMCRasterDownload:
         client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert len(captured_keys) == 1
-        assert "hourlies" in captured_keys[0]
-        assert "fine_fuel_moisture_code" in captured_keys[0]
+        assert "sfms/uploads/hourlies" in captured_keys[0]
+        assert "fine_fuel_moisture_code2025110205.tif" in captured_keys[0]
 
 
 class TestDailyFWIValueAtPoint:
@@ -191,15 +222,17 @@ class TestDailyFWIValueAtPoint:
         client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/ffmc/value?lat=49.0&lon=-123.0")
         assert len(captured_keys) == 1
-        assert "sfms_ng" in captured_keys[0]
+        assert "sfms/uploads" in captured_keys[0]
         assert "actual" in captured_keys[0]
-        assert "ffmc_20251102.tif" in captured_keys[0]
+        assert "ffmc20251102.tif" in captured_keys[0]
 
 
 class TestHourlyFFMCValueAtPoint:
     """Tests for GET /sfms/daily-fwi/{for_date}/hffmc/value."""
 
-    def test_returns_value_at_point(self, monkeypatch):
+    def test_returns_value_at_point(self, monkeypatch, mock_list_hffmc_uploads):
+        # hour=12 UTC is 05:00 PDT the same day
+        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110205.tif"])
         monkeypatch.setattr("app.routers.sfms_fwi.read_object", AsyncMock(return_value=b"fake-bytes"))
         monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3))
 
@@ -216,6 +249,30 @@ class TestHourlyFFMCValueAtPoint:
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc/value?lat=49.0&lon=-123.0")
         assert response.status_code == 422
+
+    def test_returns_404_when_no_upload_for_hour(self, mock_list_hffmc_uploads):
+        mock_list_hffmc_uploads([])
+        client = TestClient(app.sfms_fwi_main.app)
+        response = client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
+        assert response.status_code == 404
+
+    def test_uses_uploaded_hffmc_key(self, monkeypatch, mock_list_hffmc_uploads):
+        # hour=12 UTC is 05:00 PDT the same day
+        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110205.tif"])
+        captured_keys = []
+
+        async def _capture_key(key):
+            captured_keys.append(key)
+            return b"fake-bytes"
+
+        monkeypatch.setattr("app.routers.sfms_fwi.read_object", _capture_key)
+        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3))
+
+        client = TestClient(app.sfms_fwi_main.app)
+        client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
+        assert len(captured_keys) == 1
+        assert "sfms/uploads/hourlies" in captured_keys[0]
+        assert "fine_fuel_moisture_code2025110205.tif" in captured_keys[0]
 
 
 class TestMainAPIDoesNotServeDailyFWI:
