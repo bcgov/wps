@@ -52,7 +52,7 @@ jobs:
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
 
       - name: Render and publish ASA Go APS gateway config
-        uses: ./.github/actions/gw-config-publish
+        uses: ./.github/actions/aps-publish
         with:
           config-name: asa-go
           render-script: openshift/scripts/render_asa_go_gateway_config.sh
@@ -62,7 +62,7 @@ jobs:
           suffix: prod
 
       - name: Render and publish SFMS FWI APS gateway config
-        uses: ./.github/actions/gw-config-publish
+        uses: ./.github/actions/aps-publish
         with:
           config-name: sfms-fwi
           render-script: openshift/scripts/render_sfms_fwi_gateway_config.sh

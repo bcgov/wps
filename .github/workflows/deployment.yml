@@ -221,7 +221,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Render and publish ASA Go APS gateway config
-        uses: ./.github/actions/gw-config-publish
+        uses: ./.github/actions/aps-publish
         with:
           config-name: asa-go
           render-script: openshift/scripts/render_asa_go_gateway_config.sh
@@ -231,7 +231,7 @@ jobs:
           suffix: ${{ env.SUFFIX }}
 
       - name: Render and publish SFMS FWI APS gateway config
-        uses: ./.github/actions/gw-config-publish
+        uses: ./.github/actions/aps-publish
         with:
           config-name: sfms-fwi
           render-script: openshift/scripts/render_sfms_fwi_gateway_config.sh

@@ -1,4 +1,4 @@
-name: Gateway Config Publish
+name: APS Publish
 description: Render, publish, and upload an APS gateway configuration
 
 inputs:
