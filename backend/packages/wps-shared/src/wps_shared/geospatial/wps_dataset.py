@@ -449,8 +449,14 @@ class WPSDataset:
 
         x, y, _ = osr.CoordinateTransformation(wgs84, src_srs).TransformPoint(lon, lat)
 
-        col = int((x - geotransform[0]) / geotransform[1])
-        row = int((y - geotransform[3]) / geotransform[5])
+        # Use GDAL's own inverse transform rather than manual division: it handles
+        # rotated/sheared geotransforms, and floor() (vs int() truncation) correctly
+        # sends points fractionally outside the raster (e.g. col == -0.0003) to a
+        # negative pixel coordinate instead of rounding them into bounds at 0.
+        inverse_geotransform = gdal.InvGeoTransform(geotransform)
+        pixel_x, pixel_y = gdal.ApplyGeoTransform(inverse_geotransform, x, y)
+        col = math.floor(pixel_x)
+        row = math.floor(pixel_y)
 
         if row < 0 or row >= self.ds.RasterYSize or col < 0 or col >= self.ds.RasterXSize:
             return None
