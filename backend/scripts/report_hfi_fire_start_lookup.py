@@ -1,4 +1,9 @@
-"""Print HFI fire start range to prep level lookup tables from the database."""
+"""Print HFI fire start range to prep level lookup tables from the database.
+
+Run from the ./backend with:
+    uv run python scripts/report_hfi_fire_start_lookup.py
+
+"""
 
 from collections import defaultdict
 from dataclasses import dataclass, field
