@@ -20,7 +20,7 @@ jobs:
     name: Prepare Dev Database
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
 
       - uses: ./.github/actions/oc-login
@@ -54,7 +54,7 @@ jobs:
             docker_file: Dockerfile.jobs
             path_bc: openshift/templates/wps_jobs/wps_jobs_build.yaml
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
 
       - uses: ./.github/actions/oc-login
@@ -78,7 +78,7 @@ jobs:
     name: Configure nats server name
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
 
       - uses: ./.github/actions/oc-login
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [build-image, configure-nats-server-name]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
 
       - uses: ./.github/actions/oc-login
@@ -123,7 +123,7 @@ jobs:
       ]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
 
       - uses: ./.github/actions/oc-login
@@ -201,7 +201,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [build-image, prepare-dev-database, deploy-dev]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
 
       - uses: ./.github/actions/oc-login
