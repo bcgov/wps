@@ -15,9 +15,8 @@ inputs:
     description: Config suffix used for dataset/product naming (e.g. pr-123 or prod)
     required: true
   host:
-    description: APS host override (set to api-gov-bc-ca.test.api.gov.bc.ca for the test portal)
-    required: false
-    default: ''
+    description: APS host (api.gov.bc.ca for production, api-gov-bc-ca.test.api.gov.bc.ca for the test portal)
+    required: true
 
 runs:
   using: composite

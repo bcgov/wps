@@ -11,7 +11,7 @@ on:
       - "mobile/**"
 
 env:
-  APS_GATEWAY_ID: gw-313f6
+  APS_TEST_GATEWAY_ID: gw-11008
   SUFFIX: pr-${{ github.event.number }}
 
 jobs:
@@ -226,28 +226,30 @@ jobs:
         with:
           config-name: asa-go
           render-script: openshift/scripts/render_asa_go_gateway_config.sh
-          gateway-id: ${{ env.APS_GATEWAY_ID }}
-          client-id: ${{ secrets.GWA_ACCT_ID }}
-          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
           suffix: ${{ env.SUFFIX }}
+          host: api-gov-bc-ca.test.api.gov.bc.ca
 
       - name: Render and publish SFMS FWI APS gateway config
         uses: ./.github/actions/aps-publish
         with:
           config-name: sfms-fwi
           render-script: openshift/scripts/render_sfms_fwi_gateway_config.sh
-          gateway-id: ${{ env.APS_GATEWAY_ID }}
-          client-id: ${{ secrets.GWA_ACCT_ID }}
-          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
           suffix: ${{ env.SUFFIX }}
           qualifier-prefix: fwi-
+          host: api-gov-bc-ca.test.api.gov.bc.ca
 
       - name: Publish SFMS FWI dataset and product to test API Directory
         uses: ./.github/actions/sfms-fwi-aps-apply
         with:
-          gateway-id: ${{ env.APS_GATEWAY_ID }}
-          client-id: ${{ secrets.GWA_ACCT_ID }}
-          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
           suffix: ${{ env.SUFFIX }}
           host: api-gov-bc-ca.test.api.gov.bc.ca
 

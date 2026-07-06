@@ -15,9 +15,8 @@ inputs:
     description: Newline-separated list of resource files to apply with gwa apply -i
     required: true
   host:
-    description: APS host override (set to api-gov-bc-ca.test.api.gov.bc.ca for the test portal)
-    required: false
-    default: ''
+    description: APS host (api.gov.bc.ca for production, api-gov-bc-ca.test.api.gov.bc.ca for the test portal)
+    required: true
 
 runs:
   using: composite
@@ -33,9 +32,7 @@ runs:
       run: |
         set -euo pipefail
 
-        if [ -n "${HOST}" ]; then
-          gwa config set host "${HOST}"
-        fi
+        gwa config set host "${HOST}"
         gwa config set --gateway "${GATEWAY_ID}"
         gwa login \
           --client-id="${GWA_CLIENT_ID}" \

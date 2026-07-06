@@ -19,6 +19,9 @@ inputs:
       Qualifier used with publish-gateway. Qualifiers allow one gateway to hold
       multiple independent config sets without pruning other service configs.
     required: true
+  host:
+    description: APS host (api.gov.bc.ca for production, api-gov-bc-ca.test.api.gov.bc.ca for the test portal)
+    required: true
 
 runs:
   using: composite
@@ -31,9 +34,11 @@ runs:
         GWA_CLIENT_SECRET: ${{ inputs.client-secret }}
         CONFIG_PATH: ${{ inputs.config-path }}
         QUALIFIER: ${{ inputs.qualifier }}
+        HOST: ${{ inputs.host }}
       run: |
         set -euo pipefail
 
+        gwa config set host "${HOST}"
         gwa config set --gateway "${GATEWAY_ID}"
         gwa login \
           --client-id="${GWA_CLIENT_ID}" \

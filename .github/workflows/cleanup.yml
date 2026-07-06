@@ -10,7 +10,7 @@ on:
       - main
 
 env:
-  APS_GATEWAY_ID: gw-313f6
+  APS_TEST_GATEWAY_ID: gw-11008
   SUFFIX: pr-${{ github.event.number }}
 
 jobs:
@@ -37,11 +37,12 @@ jobs:
       - name: Publish ASA Go APS cleanup config
         uses: ./.github/actions/gwa-publish
         with:
-          gateway-id: ${{ env.APS_GATEWAY_ID }}
-          client-id: ${{ secrets.GWA_ACCT_ID }}
-          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
           config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
           qualifier: ${{ env.SUFFIX }}
+          host: api-gov-bc-ca.test.api.gov.bc.ca
 
       - name: Upload ASA Go APS cleanup config
         uses: actions/upload-artifact@v7
@@ -52,11 +53,12 @@ jobs:
       - name: Publish SFMS FWI APS cleanup config
         uses: ./.github/actions/gwa-publish
         with:
-          gateway-id: ${{ env.APS_GATEWAY_ID }}
-          client-id: ${{ secrets.GWA_ACCT_ID }}
-          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
           config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
           qualifier: fwi-${{ env.SUFFIX }}
+          host: api-gov-bc-ca.test.api.gov.bc.ca
 
       - name: Upload SFMS FWI APS cleanup config
         uses: actions/upload-artifact@v7
@@ -67,9 +69,9 @@ jobs:
       - name: Delete SFMS FWI dataset and product from API Directory
         shell: bash
         env:
-          GATEWAY_ID: ${{ env.APS_GATEWAY_ID }}
-          GWA_CLIENT_ID: ${{ secrets.GWA_ACCT_ID }}
-          GWA_CLIENT_SECRET: ${{ secrets.GWA_ACCT_SECRET }}
+          GATEWAY_ID: ${{ env.APS_TEST_GATEWAY_ID }}
+          GWA_CLIENT_ID: ${{ secrets.GWA_TEST_ACCT_ID }}
+          GWA_CLIENT_SECRET: ${{ secrets.GWA_TEST_ACCT_SECRET }}
           SUFFIX: ${{ env.SUFFIX }}
         run: |
           set -euo pipefail

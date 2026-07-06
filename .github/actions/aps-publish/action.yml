@@ -24,6 +24,9 @@ inputs:
     description: Optional prefix prepended to the suffix to form the gwa publish-gateway qualifier (e.g. "fwi-")
     required: false
     default: ""
+  host:
+    description: APS host (api.gov.bc.ca for production, api-gov-bc-ca.test.api.gov.bc.ca for the test portal)
+    required: true
 
 runs:
   using: composite
@@ -58,6 +61,7 @@ runs:
         client-secret: ${{ inputs.client-secret }}
         config-path: .github/tmp/${{ inputs.config-name }}-gw-config-${{ inputs.suffix }}.yaml
         qualifier: ${{ inputs.qualifier-prefix }}${{ inputs.suffix }}
+        host: ${{ inputs.host }}
 
     - name: Upload ${{ inputs.config-name }} APS gateway config
       uses: actions/upload-artifact@v7

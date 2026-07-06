@@ -62,6 +62,7 @@ jobs:
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
           suffix: prod
+          host: api.gov.bc.ca
 
       - name: Render and publish SFMS FWI APS gateway config
         uses: ./.github/actions/aps-publish
@@ -73,6 +74,7 @@ jobs:
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
           suffix: prod
           qualifier-prefix: fwi-
+          host: api.gov.bc.ca
 
       - name: Publish SFMS FWI dataset and product to API Directory
         uses: ./.github/actions/sfms-fwi-aps-apply
@@ -81,6 +83,7 @@ jobs:
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
           suffix: prod
+          host: api.gov.bc.ca
 
   set_deployment_status_success:
     name: Set production deployment successful
