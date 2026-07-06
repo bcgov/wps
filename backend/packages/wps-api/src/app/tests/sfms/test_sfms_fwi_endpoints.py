@@ -89,8 +89,9 @@ class TestDailyFWIRasterDownload:
         client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/ffmc")
         assert len(captured_keys) == 1
+        assert "sfms_ng" in captured_keys[0]
         assert "actual" in captured_keys[0]
-        assert "ffmc20251102.tif" in captured_keys[0]
+        assert "ffmc_20251102.tif" in captured_keys[0]
 
 
 class TestHourlyFFMCRasterDownload:
@@ -176,6 +177,23 @@ class TestDailyFWIValueAtPoint:
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/notaparam/value?lat=49.0&lon=-123.0")
         assert response.status_code == 422
+
+    def test_uses_actual_run_type_in_s3_key(self, monkeypatch):
+        captured_keys = []
+
+        async def _capture_key(key):
+            captured_keys.append(key)
+            return b"fake-bytes"
+
+        monkeypatch.setattr("app.routers.sfms_fwi.read_object", _capture_key)
+        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5))
+
+        client = TestClient(app.sfms_fwi_main.app)
+        client.get(f"{BASE_URL}/2025-11-02/ffmc/value?lat=49.0&lon=-123.0")
+        assert len(captured_keys) == 1
+        assert "sfms_ng" in captured_keys[0]
+        assert "actual" in captured_keys[0]
+        assert "ffmc_20251102.tif" in captured_keys[0]
 
 
 class TestHourlyFFMCValueAtPoint:

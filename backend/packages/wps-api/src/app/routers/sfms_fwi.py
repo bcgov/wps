@@ -15,9 +15,9 @@ from botocore.exceptions import ClientError
 from fastapi import APIRouter, HTTPException, Path, Query, Request
 from pydantic import BaseModel
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.run_type import RunType
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.sfms.raster_addresser import FWIParameter
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from app.routers.object_store_proxy import _proxy, read_object
 from app.sfms.raster_addresser import RasterKeyAddresser
 
@@ -28,6 +28,10 @@ router = APIRouter(
     tags=["SFMS Daily FWI"],
 )
 
+# Daily FWI params (dc, dmc, bui, ffmc, isi, fwi) are produced by the current SFMS-NG
+# pipeline (app.jobs.sfms_daily_actuals / sfms_run_pipeline) under the sfms_ng/ prefix.
+# Hourly FFMC has no SFMS-NG equivalent yet, so it stays on the legacy calculated path.
+_ng_addresser = SFMSNGRasterAddresser()
 _addresser = RasterKeyAddresser()
 
 _FOR_DATE_DESC = "Date of the raster (YYYY-MM-DD)"
@@ -111,7 +115,8 @@ async def get_daily_fwi_value_at_point(
     lon: Annotated[float, Query(ge=-180, le=180, description="Longitude in WGS84")],
 ):
     """Return the daily FWI actuals raster value at a specific lat/lon coordinate."""
-    key = _addresser.get_calculated_index_key(datetime(for_date.year, for_date.month, for_date.day, tzinfo=timezone.utc), parameter, RunType.ACTUAL)
+    datetime_utc = datetime(for_date.year, for_date.month, for_date.day, tzinfo=timezone.utc)
+    key = _ng_addresser.get_actual_index_key(datetime_utc, parameter)
     logger.info("Sampling %s raster at (%s, %s) from %s", parameter.value, lat, lon, key)
 
     raster_bytes = await _load_raster(key)
@@ -150,6 +155,7 @@ async def get_daily_fwi_raster(
     ],
 ):
     """Download the daily FWI actuals raster for the given date and parameter."""
-    key = _addresser.get_calculated_index_key(datetime(for_date.year, for_date.month, for_date.day, tzinfo=timezone.utc), parameter, RunType.ACTUAL)
+    datetime_utc = datetime(for_date.year, for_date.month, for_date.day, tzinfo=timezone.utc)
+    key = _ng_addresser.get_actual_index_key(datetime_utc, parameter)
     logger.info("Streaming daily FWI raster: %s", key)
     return await _proxy(key, request.headers.get("range"), S3Client.stream_object)
