@@ -30,7 +30,7 @@ jobs:
     env:
       HOMEBREW_NO_INSTALL_CLEANUP: "1"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Run setup/mac.sh
         # Runners have passwordless sudo, so the wkhtmltopdf .pkg / Rosetta steps run
