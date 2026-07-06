@@ -16,7 +16,7 @@ vi.mock('@wps/utils/vectorLayerUtils', async () => {
   }
 })
 
-vi.mock('features/map/fireCentreLayerDefinitions', () => ({
+vi.mock('@/features/map/fireCentreLayer', () => ({
   getFireCentreLinePMTilesLayer: vi.fn()
 }))
 
