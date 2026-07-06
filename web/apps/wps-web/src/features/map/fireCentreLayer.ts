@@ -23,7 +23,7 @@ export const createPMTilesVectorSource = (filename: string) =>
 
 export const createFireCentrePMTilesSource = () => createPMTilesVectorSource(FIRE_CENTRES_PMTILES_FILENAME)
 
-export const getFireCentrePMTilesLayer = ({
+export const getFireCentreHighlightPMTilesLayer = ({
   selectedFireCentre,
   source = createFireCentrePMTilesSource(),
   zIndex = DEFAULT_FIRE_CENTRE_Z_INDEX
@@ -52,7 +52,7 @@ export const getFireCentrePMTilesLayers = ({
   zIndex = DEFAULT_FIRE_CENTRE_Z_INDEX
 }: FireCentrePMTilesLayerOptions = {}) => {
   const source = createFireCentrePMTilesSource()
-  const fireCentreLayer = getFireCentrePMTilesLayer({ selectedFireCentre, source, zIndex })
+  const fireCentreLayer = getFireCentreHighlightPMTilesLayer({ selectedFireCentre, source, zIndex })
   const fireCentreLineLayer = getFireCentreLinePMTilesLayer({ selectedFireCentre, source, zIndex: zIndex + 1 })
 
   return { fireCentreLayer, fireCentreLineLayer }
