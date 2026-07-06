@@ -89,7 +89,7 @@
     "@types/babel__preset-env": "^7",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.6.0",
+    "@types/node": "^26.0.0",
     "@types/react-is": "^19",
     "@types/recharts": "^1.8.23",
     "@vitejs/plugin-react": "^4.3.1",
