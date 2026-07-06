@@ -39,14 +39,18 @@ runs:
         CONFIG_NAME: ${{ inputs.config-name }}
       run: |
         set -euo pipefail
-        # Prod uses the bare vanity host and prod namespace; PRs are suffixed, live in
-        # dev, and are served under the test tenant's own public domain (test.api.gov.bc.ca),
-        # not the production one -- these route to different gateways entirely.
+        # Prod uses the bare vanity host and prod namespace; PRs are suffixed and live in
+        # dev. The test tenant serves traffic on its own public domain, derived by
+        # replacing every dot in the production-style hostname with a dash and
+        # appending .test.api.gov.bc.ca (the same transform api.gov.bc.ca undergoes to
+        # become the test portal's api-gov-bc-ca.test.api.gov.bc.ca management host) --
+        # confirmed against `gwa status --hosts` output, not just inferred.
         if [ "${SUFFIX}" = "prod" ]; then
           export GW_HOST="psu.api.gov.bc.ca"
           export PROJECT_NAMESPACE="e1e498-prod"
         else
-          export GW_HOST="psu-${SUFFIX}.test.api.gov.bc.ca"
+          PROD_STYLE_HOST="psu-${SUFFIX}.api.gov.bc.ca"
+          export GW_HOST="$(echo "${PROD_STYLE_HOST}" | tr '.' '-').test.api.gov.bc.ca"
           export PROJECT_NAMESPACE="e1e498-dev"
         fi
         CONFIG_PATH=".github/tmp/${CONFIG_NAME}-gw-config-${SUFFIX}.yaml"

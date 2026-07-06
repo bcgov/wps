@@ -40,9 +40,9 @@ PRODUCT_TEMPLATE="${PRODUCT_TEMPLATE:-$(dirname "$0")/../aps/sfms-fwi-product.ya
 
 # DISPLAY_SUFFIX is empty for prod so directory titles stay clean.
 # ENV_TIER is the APS product environment tier shown to consumers (fixed set: dev/test/sandbox/prod).
-# DOCS_HOST must match the same test-vs-prod public domain split as GW_HOST in
-# aps-publish/action.yml -- PR builds are served under the test tenant's own
-# domain (test.api.gov.bc.ca), not production's.
+# DOCS_HOST must match the same GW_HOST transform used in aps-publish/action.yml: the
+# test tenant's public domain is the production-style hostname with every dot replaced
+# by a dash, then .test.api.gov.bc.ca appended -- confirmed against `gwa status --hosts`.
 if [ "${SUFFIX}" = "prod" ]; then
 	DISPLAY_SUFFIX=""
 	ENV_TIER="prod"
@@ -50,7 +50,8 @@ if [ "${SUFFIX}" = "prod" ]; then
 else
 	DISPLAY_SUFFIX=" (${SUFFIX})"
 	ENV_TIER="dev"
-	DOCS_HOST="psu-${SUFFIX}.test.api.gov.bc.ca"
+	PROD_STYLE_HOST="psu-${SUFFIX}.api.gov.bc.ca"
+	DOCS_HOST="$(echo "${PROD_STYLE_HOST}" | tr '.' '-').test.api.gov.bc.ca"
 fi
 
 mkdir -p "${OUTPUT_DIR}"
