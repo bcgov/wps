@@ -40,9 +40,11 @@ PRODUCT_TEMPLATE="${PRODUCT_TEMPLATE:-$(dirname "$0")/../aps/sfms-fwi-product.ya
 
 # DISPLAY_SUFFIX is empty for prod so directory titles stay clean.
 # ENV_TIER is the APS product environment tier shown to consumers (fixed set: dev/test/sandbox/prod).
-# DOCS_HOST must match the same GW_HOST transform used in aps-publish/action.yml: the
-# test tenant's public domain is the production-style hostname with every dot replaced
-# by a dash, then .test.api.gov.bc.ca appended -- confirmed against `gwa status --hosts`.
+# DOCS_HOST is plain descriptive text embedded in the dataset notes' markdown link, not a
+# Kong route hosts: field -- unlike GW_HOST (see aps-publish/action.yml), nothing on the
+# platform auto-remaps it, so it must be computed here as the final, already-test-ified
+# public domain: the production-style hostname with every dot replaced by a dash, then
+# .test.api.gov.bc.ca appended -- confirmed against a real working /api/docs URL.
 if [ "${SUFFIX}" = "prod" ]; then
 	DISPLAY_SUFFIX=""
 	ENV_TIER="prod"
