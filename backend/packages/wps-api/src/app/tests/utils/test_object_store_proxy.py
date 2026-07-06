@@ -2,11 +2,10 @@
 
 from contextlib import asynccontextmanager
 
+import app.main
 import pytest
 from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
-
-import app.main
 from wps_shared.tests.common import DefaultMockAioBaseClient, DefaultMockAioSession
 
 
@@ -14,6 +13,7 @@ from wps_shared.tests.common import DefaultMockAioBaseClient, DefaultMockAioSess
 def test_origin():
     """Fixture providing test origin for CORS - uses first configured ORIGIN from env."""
     import os
+
     origins = os.getenv("ORIGINS", "testorigin")
     # Return first origin from comma-separated list
     return origins.split(",")[0].strip() if origins else "testorigin"
@@ -63,8 +63,6 @@ def mock_s3_stream_and_head(monkeypatch):
             }
 
     # Replace the default mock with our extended version
-    from wps_shared.tests.common import DefaultMockAioSession
-    from contextlib import asynccontextmanager
 
     class ExtendedMockAioSession(DefaultMockAioSession):
         """Extended session that returns our extended client."""
