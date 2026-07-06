@@ -12,6 +12,7 @@ from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 
 import aiofiles
+import requests
 import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
 from wps_shared.chatops_notification import send_chatops_notification
@@ -57,6 +58,7 @@ class RDPSGrib:
         """Prep variables"""
         self.files_downloaded = 0
         self.exception_count = 0
+        self.connection_error_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
         self.date_key = self.now.date().isoformat()
@@ -113,6 +115,9 @@ class RDPSGrib:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
+            except (requests.ConnectionError, requests.Timeout) as exc:
+                self.connection_error_count += 1
+                logger.warning("Connection error for %s: %s", url, exc)
             except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
@@ -196,6 +201,11 @@ class RDPSJob:
             seconds,
             execution_time,
         )
+        if rdps_grib.connection_error_count > 0:
+            logger.warning(
+                "%d connection error(s) during RDPS SFMS run (hourly retries will catch missed files)",
+                rdps_grib.connection_error_count,
+            )
         # check if we encountered any exceptions.
         if rdps_grib.exception_count > 0:
             # if there were any exceptions, return a non-zero status.
