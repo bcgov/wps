@@ -95,8 +95,9 @@ async def get_ready():
 async def get_health():
     """A simple endpoint for OpenShift healthchecks.
 
-    This service only reads from the object store — it has no database
-    dependency, so being up is being healthy."""
+    Request handling only reads from the object store, with no per-request
+    database dependency, so being up is being healthy. (Postgres is still
+    configured for this service's startup migrations.)"""
     return {"healthy": True, "message": "ok"}
 
 
