@@ -88,13 +88,14 @@ Gateway config — publish empty config under the FWI qualifier:
 gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier fwi-<suffix>
 ```
 
-Dataset and Product — delete from the API Directory:
+Dataset and Product — delete from the API Directory (test portal, since PR datasets/products are never published to production):
 
 ```bash
+gwa config set host api-gov-bc-ca.test.api.gov.bc.ca
 gwa login
 gwa config set --gateway <gateway-id>
 TOKEN=$(grep 'api_key:' ~/.gwa-config.yaml | awk '{print $2}')
-BASE="https://api.gov.bc.ca/ds/api/v3/gateways/<gateway-id>"
+BASE="https://api-gov-bc-ca.test.api.gov.bc.ca/ds/api/v3/gateways/<gateway-id>"
 
 # Dataset: delete by name
 curl -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-<suffix>" -H "Authorization: Bearer ${TOKEN}"
