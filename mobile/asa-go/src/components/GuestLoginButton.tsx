@@ -10,7 +10,7 @@ const PublicLoginButton = () => {
   }
   return (
     <Button onClick={handleClick} sx={{ color: 'white', textDecoration: 'underline' }}>
-      Continue as guest
+      Log in as Guest
     </Button>
   )
 }
