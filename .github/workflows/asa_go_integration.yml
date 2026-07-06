@@ -16,7 +16,7 @@ jobs:
     name: Lint JS
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
       - name: Lint ASA Go
@@ -36,7 +36,7 @@ jobs:
     name: Test JS
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
       - name: Test with Coverage
@@ -59,7 +59,7 @@ jobs:
     name: Test iOS
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
       - name: Sync Capacitor iOS
@@ -92,7 +92,7 @@ jobs:
     name: Test Android
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
       - name: Create google-services.json
