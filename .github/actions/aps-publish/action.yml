@@ -40,12 +40,9 @@ runs:
       run: |
         set -euo pipefail
         # Prod uses the bare vanity host and prod namespace; PRs are suffixed and live in
-        # dev. Do NOT dash/test-ify this host manually: the APS platform itself remaps
-        # whatever prod-style host is given here to the test tenant's real public domain
-        # once gwa is configured against the test gateway (host/--gateway set by the
-        # caller). Applying that transform ourselves double-applies it, since gwa applies
-        # its own remap on top -- confirmed against a real CI run's `gwa publish-gateway`
-        # diff output publishing a doubled host.
+        # dev. Once gwa is configured against the test gateway, it remaps whatever
+        # prod-style host it's given to the test tenant's real public domain on publish,
+        # so GW_HOST here is always the plain prod-style form.
         if [ "${SUFFIX}" = "prod" ]; then
           export GW_HOST="psu.api.gov.bc.ca"
           export PROJECT_NAMESPACE="e1e498-prod"
