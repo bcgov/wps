@@ -1,12 +1,9 @@
 """Print HFI fire start range to prep level lookup tables from the database."""
 
-from __future__ import annotations
-
 from collections import defaultdict
 from dataclasses import dataclass, field
 
 from sqlalchemy.orm import Session
-
 from wps_shared.db.database import get_read_session_scope
 from wps_shared.db.models.hfi_calc import (
     FireCentreFireStartRange,
