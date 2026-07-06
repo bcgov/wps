@@ -2,15 +2,15 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import * as Sentry from '@sentry/capacitor'
 import { jwtDecode } from 'jwt-decode'
 import { isUndefined } from 'lodash'
-import type { AppThunk } from '@/store'
+import type { AppDispatch, AppThunk } from '@/store'
 import { Keycloak } from '../../../keycloak/src'
+import type { KeycloakTokenResponse } from '../../../keycloak/src/definitions'
 
 export type AuthSessionMode = 'login' | 'guest' | 'authenticated'
 
 export interface AuthState {
   sessionMode: AuthSessionMode
   authenticating: boolean
-  tokenRefreshed: boolean
   token: string | undefined
   idToken: string | undefined
   idir: string | undefined
@@ -21,7 +21,6 @@ export interface AuthState {
 export const initialState: AuthState = {
   sessionMode: 'login',
   authenticating: false,
-  tokenRefreshed: false,
   token: undefined,
   idToken: undefined,
   idir: undefined,
@@ -39,6 +38,7 @@ const authSlice = createSlice({
       state.token = undefined
       state.idToken = undefined
       state.idir = undefined
+      state.email = undefined
       state.error = null
     },
     authenticateStart(state: AuthState) {
@@ -61,51 +61,55 @@ const authSlice = createSlice({
       state.token = action.payload.token
       state.idToken = action.payload.idToken
     },
-    authenticateError(state: AuthState, action: PayloadAction<string>) {
-      state.authenticating = false
-      state.sessionMode = 'login'
-      state.error = action.payload
-    },
-    refreshTokenFinished(
-      state: AuthState,
-      action: PayloadAction<{
-        tokenRefreshed: boolean
-        token: string | undefined
-        idToken: string | undefined
-      }>
-    ) {
-      const userDetails = decodeUserDetails(action.payload.token)
-      state.idir = userDetails?.idir
-      state.email = userDetails?.email
-      state.token = action.payload.token
-      state.idToken = action.payload.idToken
-      state.tokenRefreshed = action.payload.tokenRefreshed
-      if (!isUndefined(action.payload.token)) {
-        state.sessionMode = 'authenticated'
+    authenticateError(_state: AuthState, action: PayloadAction<string>) {
+      return {
+        ...initialState,
+        error: action.payload
       }
     },
-    resetAuthentication(state: AuthState) {
-      state.sessionMode = 'login'
-      state.idToken = undefined
-      state.token = undefined
-      state.idir = undefined
+    resetAuthentication() {
+      return { ...initialState }
     }
   }
 })
 
-export const {
-  continueAsGuest,
-  authenticateStart,
-  authenticateFinished,
-  authenticateError,
-  refreshTokenFinished,
-  resetAuthentication
-} = authSlice.actions
+export const { continueAsGuest, authenticateStart, authenticateFinished, authenticateError, resetAuthentication } =
+  authSlice.actions
 
 export default authSlice.reducer
 
+let tokenRefreshListenerActive = false
+
+export const continueAsGuestSession = () => async (dispatch: AppDispatch) => {
+  try {
+    await Keycloak.clearAuthState()
+  } catch {
+    // keep guest mode available even if native auth storage cleanup fails
+  }
+  dispatch(continueAsGuest())
+  setSentryUserFromToken(undefined)
+}
+
+const registerTokenRefreshListener = (dispatch: AppDispatch) => {
+  if (!tokenRefreshListenerActive) {
+    tokenRefreshListenerActive = true
+    Keycloak.addListener('tokenRefresh', (tokenResponse: KeycloakTokenResponse) => {
+      if (tokenResponse.refreshToken) {
+        dispatch(
+          authenticateFinished({
+            token: tokenResponse.accessToken,
+            idToken: tokenResponse.idToken
+          })
+        )
+        setSentryUserFromToken(tokenResponse.accessToken)
+      }
+    })
+  }
+}
+
 export const authenticate = (): AppThunk => dispatch => {
   dispatch(authenticateStart())
+  registerTokenRefreshListener(dispatch)
 
   const realm = import.meta.env.VITE_KEYCLOAK_REALM
   const authUrl = `${import.meta.env.VITE_KEYCLOAK_AUTH_URL}/realms/${realm}/protocol/openid-connect/auth`
@@ -126,8 +130,7 @@ export const authenticate = (): AppThunk => dispatch => {
             idToken: result.idToken
           })
         )
-        const userDetails = decodeUserDetails(result.accessToken)
-        Sentry.setUser(userDetails ? { email: userDetails.email } : null)
+        setSentryUserFromToken(result.accessToken)
       } else {
         dispatch(authenticateError(JSON.stringify(result.error)))
       }
@@ -135,31 +138,6 @@ export const authenticate = (): AppThunk => dispatch => {
     .catch(error => {
       dispatch(authenticateError(JSON.stringify(error)))
     })
-
-  // Handle token refresh callback function
-  const handleTokenRefresh = (tokenResponse: {
-    accessToken: string
-    idToken: string
-    refreshToken?: string
-    tokenType?: string
-    expiresIn?: number
-    scope?: string
-  }) => {
-    if (tokenResponse.refreshToken) {
-      dispatch(
-        refreshTokenFinished({
-          tokenRefreshed: true,
-          token: tokenResponse.accessToken,
-          idToken: tokenResponse.idToken
-        })
-      )
-      const userDetails = decodeUserDetails(tokenResponse.accessToken)
-      Sentry.setUser(userDetails ? { email: userDetails.email } : null)
-    }
-  }
-
-  // Set up event listener for token refresh events (works for both web and iOS)
-  Keycloak.addListener('tokenRefresh', handleTokenRefresh)
 }
 
 export const decodeUserDetails = (token: string | undefined) => {
@@ -174,4 +152,9 @@ export const decodeUserDetails = (token: string | undefined) => {
     console.error(e)
     return undefined
   }
+}
+
+export const setSentryUserFromToken = (token: string | undefined) => {
+  const userDetails = decodeUserDetails(token)
+  Sentry.setUser(userDetails ? { email: userDetails.email } : null)
 }

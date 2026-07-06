@@ -18,7 +18,7 @@ jobs:
     name: Delete non-DB resources associated with pr
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
       - uses: ./.github/actions/gwa-setup
 
@@ -128,7 +128,7 @@ jobs:
     needs: cleanup-non-db
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
 
       - uses: ./.github/actions/oc-login
