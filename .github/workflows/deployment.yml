@@ -219,6 +219,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/gwa-setup
 
       - name: Render and publish ASA Go APS gateway config
         uses: ./.github/actions/aps-publish

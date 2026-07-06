@@ -1,5 +1,5 @@
 name: SFMS FWI APS Apply
-description: Render and apply the SFMS Daily FWI DraftDataset and Product to the API Directory
+description: Render and apply the SFMS Daily FWI DraftDataset and Product to the API Directory. Requires ./.github/actions/gwa-setup to have run earlier in the job.
 
 inputs:
   gateway-id:

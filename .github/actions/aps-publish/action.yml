@@ -1,5 +1,5 @@
 name: APS Publish
-description: Render, publish, and upload an APS gateway configuration
+description: Render, publish, and upload an APS gateway configuration. Requires ./.github/actions/gwa-setup to have run earlier in the job.
 
 inputs:
   config-name:

@@ -20,6 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/oc-setup
+      - uses: ./.github/actions/gwa-setup
 
       - name: Set ASA Go APS config path
         id: asa_go_aps_config

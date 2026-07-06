@@ -1,5 +1,5 @@
 name: GWA Publish
-description: Install gwa, authenticate, and publish APS gateway configuration
+description: Authenticate and publish APS gateway configuration with gwa. Requires ./.github/actions/gwa-setup to have run earlier in the job.
 
 inputs:
   gateway-id:
@@ -23,16 +23,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install GWA CLI
-      shell: bash
-      run: |
-        set -euo pipefail
-        GWA_BIN_DIR="${RUNNER_TEMP}/gwa-bin"
-        mkdir -p "${GWA_BIN_DIR}"
-        curl -L "https://github.com/bcgov/gwa-cli/releases/download/v3.0.7/gwa_Linux_x86_64.tgz" \
-          | tar -zxf - -C "${GWA_BIN_DIR}"
-        echo "${GWA_BIN_DIR}" >> "${GITHUB_PATH}"
-
     - name: Login and publish gateway config
       shell: bash
       env:

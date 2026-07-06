@@ -51,6 +51,8 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
 
+      - uses: ./.github/actions/gwa-setup
+
       - name: Render and publish ASA Go APS gateway config
         uses: ./.github/actions/aps-publish
         with:
