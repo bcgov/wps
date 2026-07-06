@@ -1,5 +1,5 @@
 name: GWA Publish
-description: Authenticate and publish APS gateway configuration with gwa. Requires ./.github/actions/gwa-setup to have run earlier in the job.
+description: Publish APS gateway configuration with gwa. Requires ./.github/actions/gwa-setup to have run earlier in the job.
 
 inputs:
   gateway-id:
