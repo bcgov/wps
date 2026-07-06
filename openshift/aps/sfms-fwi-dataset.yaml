@@ -10,7 +10,7 @@ notes: |
   temperature, relative humidity, wind speed, and 24-hour precipitation observations at
   BC weather stations.
 
-  Visit the [SFMS Daily FWI API specification](https://psu.api.gov.bc.ca/api/docs) for
+  Visit the [SFMS Daily FWI API specification](https://${DOCS_HOST}/api/docs) for
   endpoint details and [Canada’s Fire Weather Index System page](https://natural-resources.canada.ca/forests-forestry/wildland-fires/canada-fire-weather-index-system)
   for background on how FWI is used operationally.
 

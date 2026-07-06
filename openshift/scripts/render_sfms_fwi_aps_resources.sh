@@ -40,12 +40,17 @@ PRODUCT_TEMPLATE="${PRODUCT_TEMPLATE:-$(dirname "$0")/../aps/sfms-fwi-product.ya
 
 # DISPLAY_SUFFIX is empty for prod so directory titles stay clean.
 # ENV_TIER is the APS product environment tier shown to consumers (fixed set: dev/test/sandbox/prod).
+# DOCS_HOST must match the same test-vs-prod public domain split as GW_HOST in
+# aps-publish/action.yml -- PR builds are served under the test tenant's own
+# domain (test.api.gov.bc.ca), not production's.
 if [ "${SUFFIX}" = "prod" ]; then
 	DISPLAY_SUFFIX=""
 	ENV_TIER="prod"
+	DOCS_HOST="psu.api.gov.bc.ca"
 else
 	DISPLAY_SUFFIX=" (${SUFFIX})"
 	ENV_TIER="dev"
+	DOCS_HOST="psu-${SUFFIX}.test.api.gov.bc.ca"
 fi
 
 mkdir -p "${OUTPUT_DIR}"
@@ -56,8 +61,9 @@ PRODUCT_OUT="${OUTPUT_DIR}/sfms-fwi-product-${SUFFIX}.yaml"
 export SUFFIX
 export DISPLAY_SUFFIX
 export ENV_TIER
+export DOCS_HOST
 
-envsubst '${SUFFIX} ${DISPLAY_SUFFIX}' <"${DATASET_TEMPLATE}" >"${DATASET_OUT}"
+envsubst '${SUFFIX} ${DISPLAY_SUFFIX} ${DOCS_HOST}' <"${DATASET_TEMPLATE}" >"${DATASET_OUT}"
 envsubst '${SUFFIX} ${DISPLAY_SUFFIX} ${ENV_TIER}' <"${PRODUCT_TEMPLATE}" >"${PRODUCT_OUT}"
 
 echo "${DATASET_OUT}"
