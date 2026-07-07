@@ -146,9 +146,9 @@ describe('useWxChartCache', () => {
     act(() => rerender({ modelRunDate: MODEL_RUN_DATE }))
 
     await waitFor(() =>
-      expect(vi.mocked(weatherToolkitAPI.getWxChart).mock.calls.filter(([calledKey]) => calledKey === key).length).toBe(
-        keyCallsAfterFirstFetch + 1
-      )
+      expect(
+        vi.mocked(weatherToolkitAPI.getWxChart).mock.calls.filter(([calledKey]) => calledKey === key)
+      ).toHaveLength(keyCallsAfterFirstFetch + 1)
     )
     await waitFor(() => expect(result.current.cache.get(key)).toBe(fakeObjectUrl))
   })
