@@ -25,6 +25,12 @@ vi.mock('pmtiles', () => ({
 // Mock ol/source/GeoTIFF to prevent background network fetches that cause unhandled rejections
 vi.mock('ol/source/GeoTIFF', () => ({
   default: class MockGeoTIFF {
+    options: unknown
+
+    constructor(options: unknown) {
+      this.options = options
+    }
+
     getState() {
       return 'ready'
     }
@@ -129,6 +135,16 @@ describe('layerDefinitions', () => {
       const layer = getFireWeatherRasterLayer(rasterDate, 'fwi', 'test-token')
 
       expect(layer.getZIndex()).toBe(52)
+    })
+
+    it('should use GeoTIFF nodata metadata for fire weather rasters', () => {
+      const rasterDate = DateTime.fromISO('2025-11-02')
+      const layer = getFireWeatherRasterLayer(rasterDate, 'fwi', 'test-token')
+      const source = layer.getSource() as unknown as {
+        options: { sources: Array<{ url: string; nodata?: number }> }
+      }
+
+      expect(source.options.sources[0]).not.toHaveProperty('nodata')
     })
 
     it('should have lower zIndex than snow layer', () => {
