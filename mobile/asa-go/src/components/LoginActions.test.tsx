@@ -26,7 +26,6 @@ const mockAuthState = (authenticating: boolean, error: string | null = null) =>
   vi.spyOn(selectors, 'selectAuthentication').mockReturnValue({
     authenticating,
     error,
-    tokenRefreshed: false,
     idToken: undefined,
     idir: undefined,
     token: undefined,

@@ -2,8 +2,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { useDispatch } from 'react-redux'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
-import PublicLoginButton from '@/components/PublicLoginButton'
-import { continueAsGuest } from '@/slices/authenticationSlice'
+import PublicLoginButton from '@/components/GuestLoginButton'
+import { continueAsGuestSession } from '@/slices/authenticationSlice'
 
 vi.mock('react-redux', async () => {
   const actual = await vi.importActual('react-redux')
@@ -14,7 +14,7 @@ vi.mock('react-redux', async () => {
 })
 
 vi.mock('@/slices/authenticationSlice', () => ({
-  continueAsGuest: vi.fn(() => ({ type: 'CONTINUE_AS_GUEST' }))
+  continueAsGuestSession: vi.fn(() => ({ type: 'CONTINUE_AS_GUEST_SESSION' }))
 }))
 
 describe('PublicLoginButton', () => {
@@ -36,14 +36,14 @@ describe('PublicLoginButton', () => {
   it('renders the continue as guest button', () => {
     renderComponent()
 
-    expect(screen.getByRole('button', { name: /continue as guest/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /log in as guest/i })).toBeInTheDocument()
   })
 
-  it('dispatches continueAsGuest on click', () => {
+  it('dispatches continueAsGuestSession on click', () => {
     renderComponent()
 
-    fireEvent.click(screen.getByRole('button', { name: /continue as guest/i }))
+    fireEvent.click(screen.getByRole('button', { name: /log in as guest/i }))
 
-    expect(mockDispatch).toHaveBeenCalledWith(continueAsGuest())
+    expect(mockDispatch).toHaveBeenCalledWith(continueAsGuestSession())
   })
 })
