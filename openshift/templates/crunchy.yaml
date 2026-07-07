@@ -42,6 +42,22 @@ parameters:
     description: Maximum amount of memory the container can use.
     displayName: Memory Limit
     value: 1Gi
+  - name: EPHEMERAL_STORAGE_REQUEST
+    description: Ephemeral storage requested by each database pod.
+    displayName: Ephemeral Storage Request
+    value: 256Mi
+  - name: EPHEMERAL_STORAGE_LIMIT
+    description: Ephemeral storage limit for each database pod.
+    displayName: Ephemeral Storage Limit
+    value: 2Gi
+  - name: PGBOUNCER_EPHEMERAL_STORAGE_REQUEST
+    description: Ephemeral storage requested by pgBouncer.
+    displayName: pgBouncer Ephemeral Storage Request
+    value: 128Mi
+  - name: PGBOUNCER_EPHEMERAL_STORAGE_LIMIT
+    description: Ephemeral storage limit for pgBouncer.
+    displayName: pgBouncer Ephemeral Storage Limit
+    value: 512Mi
   - name: REPLICAS
     description: Number of database replicas
     displayName: Replicas
@@ -94,8 +110,10 @@ objects:
           resources:
             requests:
               cpu: ${CPU_REQUEST}
+              ephemeral-storage: ${EPHEMERAL_STORAGE_REQUEST}
               memory: ${MEMORY_REQUEST}
             limits:
+              ephemeral-storage: ${EPHEMERAL_STORAGE_LIMIT}
               memory: 32Gi
           dataVolumeClaimSpec:
             accessModes:
@@ -162,7 +180,9 @@ objects:
           resources:
             limits:
               cpu: 500m
+              ephemeral-storage: ${PGBOUNCER_EPHEMERAL_STORAGE_LIMIT}
               memory: 3Gi
             requests:
               cpu: 100m
+              ephemeral-storage: ${PGBOUNCER_EPHEMERAL_STORAGE_REQUEST}
               memory: 1Gi
