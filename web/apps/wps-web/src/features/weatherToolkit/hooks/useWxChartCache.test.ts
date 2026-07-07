@@ -130,12 +130,15 @@ describe('useWxChartCache', () => {
   })
 
   it('removes a key from the fetching set after a successful fetch so it can be re-fetched if needed', async () => {
+    const key = buildChartKey(MODEL, MODEL_RUN_DATE, MODEL_RUN_HOUR, 0)
     const { result, rerender } = renderHook(
       ({ modelRunDate }: { modelRunDate: DateTime }) => useWxChartCache(MODEL, modelRunDate, MODEL_RUN_HOUR, 0),
       { initialProps: { modelRunDate: MODEL_RUN_DATE } }
     )
-    await waitFor(() => expect(result.current.cache.size).toBeGreaterThan(0))
-    const callCountAfterFirst = vi.mocked(weatherToolkitAPI.getWxChart).mock.calls.length
+    await waitFor(() => expect(result.current.cache.get(key)).toBe(fakeObjectUrl))
+    const keyCallsAfterFirstFetch = vi
+      .mocked(weatherToolkitAPI.getWxChart)
+      .mock.calls.filter(([calledKey]) => calledKey === key).length
 
     // Change params to clear the cache, then restore original params — the key
     // should be re-fetched rather than silently skipped due to a stale fetching entry.
@@ -143,10 +146,11 @@ describe('useWxChartCache', () => {
     act(() => rerender({ modelRunDate: MODEL_RUN_DATE }))
 
     await waitFor(() =>
-      expect(vi.mocked(weatherToolkitAPI.getWxChart).mock.calls.length).toBeGreaterThan(callCountAfterFirst)
+      expect(vi.mocked(weatherToolkitAPI.getWxChart).mock.calls.filter(([calledKey]) => calledKey === key).length).toBe(
+        keyCallsAfterFirstFetch + 1
+      )
     )
-    const key = buildChartKey(MODEL, MODEL_RUN_DATE, MODEL_RUN_HOUR, 0)
-    expect(result.current.cache.get(key)).toBe(fakeObjectUrl)
+    await waitFor(() => expect(result.current.cache.get(key)).toBe(fakeObjectUrl))
   })
 
   it('does not fetch the same key twice', async () => {
