@@ -71,7 +71,7 @@ export const getFireWeatherRasterLayer = (
   }
 
   const source = new GeoTIFF({
-    sources: [{ url, nodata: -3.4028235e38 }],
+    sources: [{ url }],
     sourceOptions: {
       headers
     },
