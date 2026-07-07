@@ -13,6 +13,8 @@ export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
 // GeoTIFF nodata is -3.4028235e+38, use threshold for floating-point reliability
 // Note: JavaScript treats number literals like 1, 1.0, and 1 as identical values.
 export const NODATA_THRESHOLD = 10000000000
+const RASTER_BAND = 1
+const ALPHA_BAND = 2
 
 // Helper function to check if a raster value is nodata
 export const isNodataValue = (value: number): boolean => {
@@ -65,28 +67,39 @@ export const snowStyler = (feature: RenderFeature | ol.Feature<Geometry>): Style
   return snowStyle
 }
 
-type ColourCaseCondition = ['==', ['band', number], number]
+type ColourCaseCondition =
+  | ['==', ['band', number], number]
+  | ['<=', ['band', number], number]
+  | ['>', ['band', number], number]
+  | ['<', ['band', number], number]
+  | ['>=', ['band', number], number]
 type ColourCaseColour = [number, number, number, number]
 type ColourCases = Array<ColourCaseCondition | ColourCaseColour>
 
+// use alpha as a validity flag because normalize:false may expose valid alpha as 255, not 1
+const transparentWhenSourceAlphaIsEmpty = (): ColourCases => [
+  ['<=', ['band', ALPHA_BAND], 0],
+  [0, 0, 0, 0]
+]
+
 export const fuelCOGColourExpression = () => {
-  const colourCases: ColourCases = []
+  const colourCases: ColourCases = transparentWhenSourceAlphaIsEmpty()
 
   // Handle nodata values - make them transparent
   // 99 = non-fuel areas, 102 = water/non-vegetated, -10000 = primary nodata
   colourCases.push(
-    ['==', ['band', 1], 99],
+    ['==', ['band', RASTER_BAND], 99],
     [0, 0, 0, 0],
-    ['==', ['band', 1], 102],
+    ['==', ['band', RASTER_BAND], 102],
     [0, 0, 0, 0],
-    ['==', ['band', 1], -10000],
+    ['==', ['band', RASTER_BAND], -10000],
     [0, 0, 0, 0]
   )
 
   // Add color cases for valid fuel types (1-14)
   FUEL_TYPE_COLORS.forEach(({ value, rgb }) => {
     const [r, g, b] = rgb
-    colourCases.push(['==', ['band', 1], value], [r, g, b, 1])
+    colourCases.push(['==', ['band', RASTER_BAND], value], [r, g, b, 1])
   })
 
   // Fallback for any other values - transparent
@@ -98,14 +111,17 @@ export const fuelCOGColourExpression = () => {
 // Generate color expression dynamically from color breaks
 export const getFireWeatherColourExpression = (rasterType: string) => {
   const colorBreaks = RASTER_COLOR_BREAKS[rasterType as RasterType]
-  const expression: any[] = ['case']
+  const expression: Array<string | ColourCaseCondition | ColourCaseColour> = [
+    'case',
+    ...transparentWhenSourceAlphaIsEmpty()
+  ]
 
   // Handle nodata values - GeoTIFF nodata is -3.4028235e+38
   // Use threshold checks for floating-point reliability
   expression.push(
-    ['>', ['band', 1], NODATA_THRESHOLD],
+    ['>', ['band', RASTER_BAND], NODATA_THRESHOLD],
     [0, 0, 0, 0], // Very large positive values (nodata): transparent
-    ['<', ['band', 1], -NODATA_THRESHOLD],
+    ['<', ['band', RASTER_BAND], -NODATA_THRESHOLD],
     [0, 0, 0, 0] // Very large negative values (nodata): transparent
   )
 
@@ -115,9 +131,9 @@ export const getFireWeatherColourExpression = (rasterType: string) => {
 
     if (colorBreak.max === null) {
       // Last break (no max) - use >= min
-      expression.push(['>=', ['band', 1], colorBreak.min], [r, g, b, 1])
+      expression.push(['>=', ['band', RASTER_BAND], colorBreak.min], [r, g, b, 1])
     } else {
-      expression.push(['<', ['band', 1], colorBreak.max], [r, g, b, 1])
+      expression.push(['<', ['band', RASTER_BAND], colorBreak.max], [r, g, b, 1])
     }
   })
 
