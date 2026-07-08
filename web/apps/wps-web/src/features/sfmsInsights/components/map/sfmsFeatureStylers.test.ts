@@ -63,7 +63,7 @@ describe('fuelCOGColourExpression', () => {
     expect(expr[0]).toBe('case')
   })
 
-  it('should make pixels with empty source alpha transparent', () => {
+  it('should make pixels with a zero alpha band transparent', () => {
     const expr = fuelCOGColourExpression()
 
     expect(expr[1]).toEqual(['==', ['band', 2], 0])
@@ -117,7 +117,7 @@ describe('fuelCOGColourExpression', () => {
 })
 
 describe('getFireWeatherColourExpression', () => {
-  it('should make pixels with empty source alpha transparent before applying color breaks', () => {
+  it('should make pixels with a zero alpha band transparent before applying color breaks', () => {
     const expr = getFireWeatherColourExpression('fwi')
 
     expect(expr[0]).toBe('case')

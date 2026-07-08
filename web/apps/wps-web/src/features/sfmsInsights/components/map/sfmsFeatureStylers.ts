@@ -78,13 +78,13 @@ type ColourCases = Array<ColourCaseCondition | ColourCaseColour>
 
 // alpha is transparency: 0 is fully transparent, and any nonzero value is visible.
 // use it as a validity flag because normalize:false may expose valid alpha as 255, not 1
-const transparentWhenSourceAlphaIsEmpty = (): ColourCases => [
+const transparentWhenAlphaBandIsZero = (): ColourCases => [
   ['==', ['band', ALPHA_BAND], 0],
   [0, 0, 0, 0]
 ]
 
 export const fuelCOGColourExpression = () => {
-  const colourCases: ColourCases = transparentWhenSourceAlphaIsEmpty()
+  const colourCases: ColourCases = transparentWhenAlphaBandIsZero()
 
   // Handle nodata values - make them transparent
   // 99 = non-fuel areas, 102 = water/non-vegetated, -10000 = primary nodata
@@ -114,7 +114,7 @@ export const getFireWeatherColourExpression = (rasterType: string) => {
   const colorBreaks = RASTER_COLOR_BREAKS[rasterType as RasterType]
   const expression: Array<string | ColourCaseCondition | ColourCaseColour> = [
     'case',
-    ...transparentWhenSourceAlphaIsEmpty()
+    ...transparentWhenAlphaBandIsZero()
   ]
 
   // Handle nodata values - GeoTIFF nodata is -3.4028235e+38
