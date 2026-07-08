@@ -41,7 +41,7 @@ _LAT_DESC = "Latitude in WGS84"
 _LON_DESC = "Longitude in WGS84"
 _LAT_EXAMPLE = 49.0
 _LON_EXAMPLE = -123.0
-_HOUR_DESC = "Hour of the raster (0-23, PST/PDT -- matches the SFMS upload filename convention)"
+_HOUR_DESC = "Hour of the raster (0-23, PDT -- matches the SFMS upload filename convention)"
 _HOUR_EXAMPLE = 12
 
 # 20:00 UTC is always the same calendar day in America/Vancouver time regardless of
@@ -104,7 +104,7 @@ async def _find_uploaded_hffmc_key(for_date: date, hour: int) -> str | None:
     """Find the uploaded hFFMC key for the given date and hour by listing the
     date's upload prefix and matching on the hour suffix, the same discovery
     approach GET /sfms/hourlies uses. for_date and hour are taken as-is -- the
-    same PST/PDT terms SFMS itself uses to name the file -- with no timezone
+    same PDT terms SFMS itself uses to name the file -- with no timezone
     conversion."""
     dt = datetime(for_date.year, for_date.month, for_date.day, hour)
     hour_suffix = f"{dt.hour:02d}.tif"
@@ -137,7 +137,7 @@ async def get_hourly_ffmc_value_at_point(
 ):
     """
     Sample the hourly FFMC (fine fuel moisture code) actuals raster at a single
-    WGS84 lat/lon coordinate, for the given date and hour (PST/PDT, matching the
+    WGS84 lat/lon coordinate, for the given date and hour (PDT, matching the
     SFMS upload filename convention).
 
     The raster returned is the actual raster uploaded by the existing/legacy SFMS system run by
@@ -217,7 +217,7 @@ async def get_hourly_ffmc_raster(
 ):
     """
     Download the hourly FFMC (fine fuel moisture code) actuals raster, as a
-    GeoTIFF, for the given date and hour (PST/PDT, matching the SFMS upload
+    GeoTIFF, for the given date and hour (PDT, matching the SFMS upload
     filename convention).
 
     The raster returned is the actual raster uploaded by the existing/legacy SFMS system run by
