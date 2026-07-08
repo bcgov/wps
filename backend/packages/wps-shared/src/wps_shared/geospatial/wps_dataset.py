@@ -1,3 +1,4 @@
+import math
 import uuid
 from contextlib import ExitStack, contextmanager
 from typing import Iterator, List, Optional, Tuple, Union
@@ -433,6 +434,41 @@ class WPSDataset:
 
     def as_gdal_ds(self) -> gdal.Dataset:
         return self.ds
+
+    def extract_value_at_point(self, lat: float, lon: float) -> Optional[float]:
+        """Return the raster value at a WGS84 lat/lon coordinate, or None if out of bounds or nodata."""
+        geotransform = self.ds.GetGeoTransform()
+
+        src_srs = osr.SpatialReference()
+        src_srs.ImportFromWkt(self.ds.GetProjection())
+        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+        wgs84 = osr.SpatialReference()
+        wgs84.ImportFromEPSG(4326)
+        wgs84.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+        x, y, _ = osr.CoordinateTransformation(wgs84, src_srs).TransformPoint(lon, lat)
+
+        # Use GDAL's own inverse transform rather than manual division: it handles
+        # rotated/sheared geotransforms, and floor() (vs int() truncation) correctly
+        # sends points fractionally outside the raster (e.g. col == -0.0003) to a
+        # negative pixel coordinate instead of rounding them into bounds at 0.
+        inverse_geotransform = gdal.InvGeoTransform(geotransform)
+        pixel_x, pixel_y = gdal.ApplyGeoTransform(inverse_geotransform, x, y)
+        col = math.floor(pixel_x)
+        row = math.floor(pixel_y)
+
+        if row < 0 or row >= self.ds.RasterYSize or col < 0 or col >= self.ds.RasterXSize:
+            return None
+
+        band = self.ds.GetRasterBand(1)
+        nodata = band.GetNoDataValue()
+        value = float(band.ReadAsArray(col, row, 1, 1)[0][0])
+
+        if nodata is not None and math.isclose(value, nodata, rel_tol=1e-9):
+            return None
+
+        return value
 
     def close(self):
         self.ds = None

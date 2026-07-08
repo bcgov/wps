@@ -10,7 +10,7 @@ on:
       - main
 
 env:
-  APS_GATEWAY_ID: gw-313f6
+  APS_TEST_GATEWAY_ID: gw-11008
   SUFFIX: pr-${{ github.event.number }}
 
 jobs:
@@ -20,6 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
+      - uses: ./.github/actions/gwa-setup
 
       - name: Set ASA Go APS config path
         id: asa_go_aps_config
@@ -36,17 +37,67 @@ jobs:
       - name: Publish ASA Go APS cleanup config
         uses: ./.github/actions/gwa-publish
         with:
-          gateway-id: ${{ env.APS_GATEWAY_ID }}
-          client-id: ${{ secrets.GWA_ACCT_ID }}
-          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
           config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
           qualifier: ${{ env.SUFFIX }}
+          host: api-gov-bc-ca.test.api.gov.bc.ca
 
       - name: Upload ASA Go APS cleanup config
         uses: actions/upload-artifact@v7
         with:
           name: asa-go-aps-gateway-config-cleanup-pr-${{ github.event.number }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+
+      - name: Publish SFMS FWI APS cleanup config
+        uses: ./.github/actions/gwa-publish
+        with:
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
+          config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+          qualifier: fwi-${{ env.SUFFIX }}
+          host: api-gov-bc-ca.test.api.gov.bc.ca
+
+      - name: Upload SFMS FWI APS cleanup config
+        uses: actions/upload-artifact@v7
+        with:
+          name: sfms-fwi-aps-gateway-config-cleanup-pr-${{ github.event.number }}
+          path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+
+      - name: Delete SFMS FWI dataset and product from API Directory
+        shell: bash
+        env:
+          GATEWAY_ID: ${{ env.APS_TEST_GATEWAY_ID }}
+          GWA_CLIENT_ID: ${{ secrets.GWA_TEST_ACCT_ID }}
+          GWA_CLIENT_SECRET: ${{ secrets.GWA_TEST_ACCT_SECRET }}
+          SUFFIX: ${{ env.SUFFIX }}
+        run: |
+          set -euo pipefail
+          APS_HOST="api-gov-bc-ca.test.api.gov.bc.ca"
+
+          gwa config set host "${APS_HOST}"
+          gwa login \
+            --client-id="${GWA_CLIENT_ID}" \
+            --client-secret="${GWA_CLIENT_SECRET}"
+
+          TOKEN=$(grep 'api_key:' "${HOME}/.gwa-config.yaml" | awk '{print $2}')
+          BASE="https://${APS_HOST}/ds/api/v3/gateways/${GATEWAY_ID}"
+
+          curl -sf -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-${SUFFIX}" \
+            -H "Authorization: Bearer ${TOKEN}" || echo "Dataset not found or already deleted"
+
+          PRODUCT_NAME="SFMS Daily Fire Weather Index (${SUFFIX})"
+          PRODUCT_APP_ID=$(curl -sf "${BASE}/products" \
+            -H "Authorization: Bearer ${TOKEN}" | \
+            jq -r --arg name "${PRODUCT_NAME}" '.[] | select(.name==$name) | .appId // empty')
+          if [ -n "${PRODUCT_APP_ID}" ]; then
+            curl -sf -X DELETE "${BASE}/products/${PRODUCT_APP_ID}" \
+              -H "Authorization: Bearer ${TOKEN}" || echo "Product delete failed"
+          else
+            echo "Product not found or already deleted"
+          fi
 
       - uses: ./.github/actions/oc-login
         with:
