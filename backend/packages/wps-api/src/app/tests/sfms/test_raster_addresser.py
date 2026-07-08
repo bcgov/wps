@@ -3,9 +3,8 @@ from unittest.mock import AsyncMock, MagicMock
 from zoneinfo import ZoneInfo
 
 import pytest
-from pytest_mock import MockerFixture
-
 from app.sfms.raster_addresser import RasterKeyAddresser, WeatherParameter
+from pytest_mock import MockerFixture
 from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 
 sfms_timezone = ZoneInfo("America/Vancouver")
@@ -49,28 +48,58 @@ def test_get_weather_data_keys(addresser: RasterKeyAddresser):
     result = addresser.get_weather_data_keys(TEST_DATETIME_1, TEST_DATETIME_TO_CALC, 20)
     assert len(result) == 4
     temp_key, rh_key, wind_speed_key, precip_key = result
-    assert temp_key == "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT020H.grib2"
-    assert rh_key == "weather_models/rdps/2024-10-10/00/rh/20241010T00Z_MSC_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT020H.grib2"
-    assert wind_speed_key == "weather_models/rdps/2024-10-10/00/wind_speed/20241010T00Z_MSC_RDPS_WindSpeed_AGL-10m_RLatLon0.09_PT020H.grib2"
-    assert precip_key == "weather_models/rdps/2024-10-10/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_20z.tif"
+    assert (
+        temp_key
+        == "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT020H.grib2"
+    )
+    assert (
+        rh_key
+        == "weather_models/rdps/2024-10-10/00/rh/20241010T00Z_MSC_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT020H.grib2"
+    )
+    assert (
+        wind_speed_key
+        == "weather_models/rdps/2024-10-10/00/wind_speed/20241010T00Z_MSC_RDPS_WindSpeed_AGL-10m_RLatLon0.09_PT020H.grib2"
+    )
+    assert (
+        precip_key
+        == "weather_models/rdps/2024-10-10/12/precip/COMPUTED_reg_APCP_SFC_0_ps10km_20241010_20z.tif"
+    )
 
 
 def test_get_weather_data_keys_legacy(addresser: RasterKeyAddresser):
     result = addresser.get_weather_data_keys_legacy(TEST_DATETIME_1, 20)
     assert len(result) == 3
     temp_key, rh_key, wind_speed_key = result
-    assert temp_key == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P020.grib2"
-    assert rh_key == "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P020.grib2"
-    assert wind_speed_key == "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P020.grib2"
+    assert (
+        temp_key
+        == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P020.grib2"
+    )
+    assert (
+        rh_key
+        == "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P020.grib2"
+    )
+    assert (
+        wind_speed_key
+        == "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P020.grib2"
+    )
 
 
 def test_get_weather_data_keys_hffmc_legacy(addresser: RasterKeyAddresser):
     result = addresser.get_weather_data_keys_hffmc_legacy(RDPS_MODEL_RUN_00_START, HOUR_OFFSET)
     assert len(result) == 3
     temp_key, rh_key, wind_speed_key = result
-    assert temp_key == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P003.grib2"
-    assert rh_key == "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P003.grib2"
-    assert wind_speed_key == "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P003.grib2"
+    assert (
+        temp_key
+        == "weather_models/rdps/2024-10-10/00/temp/CMC_reg_TMP_TGL_2_ps10km_2024101000_P003.grib2"
+    )
+    assert (
+        rh_key
+        == "weather_models/rdps/2024-10-10/00/rh/CMC_reg_RH_TGL_2_ps10km_2024101000_P003.grib2"
+    )
+    assert (
+        wind_speed_key
+        == "weather_models/rdps/2024-10-10/00/wind_speed/CMC_reg_WIND_TGL_10_ps10km_2024101000_P003.grib2"
+    )
 
 
 def test_get_uploaded_hffmc_key_00_hour(addresser: RasterKeyAddresser):
@@ -105,7 +134,9 @@ def test_get_weather_data_keys_hffmc(addresser: RasterKeyAddresser):
 
 
 def test_get_model_data_key_hffmc(addresser: RasterKeyAddresser):
-    result = addresser.get_model_data_key_hffmc(RDPS_MODEL_RUN_00_START, HOUR_OFFSET, WeatherParameter.TEMP)
+    result = addresser.get_model_data_key_hffmc(
+        RDPS_MODEL_RUN_00_START, HOUR_OFFSET, WeatherParameter.TEMP
+    )
     assert (
         result
         == "weather_models/rdps/2024-10-10/00/temp/20241010T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT003H.grib2"
@@ -127,7 +158,10 @@ def test_get_calculated_hffmc_index_key(addresser: RasterKeyAddresser):
             SFMSInterpolatedWeatherParameter.TEMP,
             "sfms/interpolated/temperature/2024/01/15/temperature_20240115.tif",
         ),
-        (SFMSInterpolatedWeatherParameter.RH, "sfms/interpolated/relative_humidity/2024/01/15/relative_humidity_20240115.tif"),
+        (
+            SFMSInterpolatedWeatherParameter.RH,
+            "sfms/interpolated/relative_humidity/2024/01/15/relative_humidity_20240115.tif",
+        ),
         (
             SFMSInterpolatedWeatherParameter.WIND_SPEED,
             "sfms/interpolated/wind_speed/2024/01/15/wind_speed_20240115.tif",
@@ -186,9 +220,13 @@ def _make_s3(*, new_keys_exist: bool, legacy_keys_exist: bool = False) -> MagicM
 
 
 @pytest.mark.anyio
-async def test_resolve_weather_data_keys_returns_new_format_when_available(addresser: RasterKeyAddresser):
+async def test_resolve_weather_data_keys_returns_new_format_when_available(
+    addresser: RasterKeyAddresser,
+):
     mock_s3 = _make_s3(new_keys_exist=True)
-    result = await addresser.resolve_weather_data_keys(mock_s3, RDPS_MODEL_RUN_00_START, CALC_DATETIME, HOUR_OFFSET)
+    result = await addresser.resolve_weather_data_keys(
+        mock_s3, RDPS_MODEL_RUN_00_START, CALC_DATETIME, HOUR_OFFSET
+    )
     assert result is not None
     temp_key, rh_key, wind_speed_key, _ = result
     assert "MSC_RDPS_AirTemp_AGL-2m" in temp_key
@@ -200,7 +238,9 @@ async def test_resolve_weather_data_keys_returns_new_format_when_available(addre
 @pytest.mark.anyio
 async def test_resolve_weather_data_keys_falls_back_to_legacy(addresser: RasterKeyAddresser):
     mock_s3 = _make_s3(new_keys_exist=False, legacy_keys_exist=True)
-    result = await addresser.resolve_weather_data_keys(mock_s3, RDPS_MODEL_RUN_00_START, CALC_DATETIME, HOUR_OFFSET)
+    result = await addresser.resolve_weather_data_keys(
+        mock_s3, RDPS_MODEL_RUN_00_START, CALC_DATETIME, HOUR_OFFSET
+    )
     assert result is not None
     temp_key, rh_key, wind_speed_key, precip_key = result
     assert "CMC_reg_TMP" in temp_key
@@ -210,17 +250,25 @@ async def test_resolve_weather_data_keys_falls_back_to_legacy(addresser: RasterK
 
 
 @pytest.mark.anyio
-async def test_resolve_weather_data_keys_returns_none_when_both_absent(addresser: RasterKeyAddresser):
+async def test_resolve_weather_data_keys_returns_none_when_both_absent(
+    addresser: RasterKeyAddresser,
+):
     mock_s3 = _make_s3(new_keys_exist=False, legacy_keys_exist=False)
-    result = await addresser.resolve_weather_data_keys(mock_s3, RDPS_MODEL_RUN_00_START, CALC_DATETIME, HOUR_OFFSET)
+    result = await addresser.resolve_weather_data_keys(
+        mock_s3, RDPS_MODEL_RUN_00_START, CALC_DATETIME, HOUR_OFFSET
+    )
     assert result is None
     assert mock_s3.all_objects_exist.call_count == 2
 
 
 @pytest.mark.anyio
-async def test_resolve_weather_data_keys_hffmc_returns_new_format_when_available(addresser: RasterKeyAddresser):
+async def test_resolve_weather_data_keys_hffmc_returns_new_format_when_available(
+    addresser: RasterKeyAddresser,
+):
     mock_s3 = _make_s3(new_keys_exist=True)
-    result = await addresser.resolve_weather_data_keys_hffmc(mock_s3, RDPS_MODEL_RUN_00_START, HOUR_OFFSET)
+    result = await addresser.resolve_weather_data_keys_hffmc(
+        mock_s3, RDPS_MODEL_RUN_00_START, HOUR_OFFSET
+    )
     assert result is not None
     temp_key, rh_key, wind_speed_key, _ = result
     assert "MSC_RDPS_AirTemp_AGL-2m" in temp_key
@@ -232,7 +280,9 @@ async def test_resolve_weather_data_keys_hffmc_returns_new_format_when_available
 @pytest.mark.anyio
 async def test_resolve_weather_data_keys_hffmc_falls_back_to_legacy(addresser: RasterKeyAddresser):
     mock_s3 = _make_s3(new_keys_exist=False, legacy_keys_exist=True)
-    result = await addresser.resolve_weather_data_keys_hffmc(mock_s3, RDPS_MODEL_RUN_00_START, HOUR_OFFSET)
+    result = await addresser.resolve_weather_data_keys_hffmc(
+        mock_s3, RDPS_MODEL_RUN_00_START, HOUR_OFFSET
+    )
     assert result is not None
     temp_key, rh_key, wind_speed_key, precip_key = result
     assert "CMC_reg_TMP" in temp_key
@@ -242,8 +292,12 @@ async def test_resolve_weather_data_keys_hffmc_falls_back_to_legacy(addresser: R
 
 
 @pytest.mark.anyio
-async def test_resolve_weather_data_keys_hffmc_returns_none_when_both_absent(addresser: RasterKeyAddresser):
+async def test_resolve_weather_data_keys_hffmc_returns_none_when_both_absent(
+    addresser: RasterKeyAddresser,
+):
     mock_s3 = _make_s3(new_keys_exist=False, legacy_keys_exist=False)
-    result = await addresser.resolve_weather_data_keys_hffmc(mock_s3, RDPS_MODEL_RUN_00_START, HOUR_OFFSET)
+    result = await addresser.resolve_weather_data_keys_hffmc(
+        mock_s3, RDPS_MODEL_RUN_00_START, HOUR_OFFSET
+    )
     assert result is None
     assert mock_s3.all_objects_exist.call_count == 2

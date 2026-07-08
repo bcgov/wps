@@ -45,6 +45,10 @@ echo Deploy ASA Go API
 PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_asa_go_api.sh prod ${RUN_TYPE}
 echo Allow APS to reach ASA Go API
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_asa_go_gateway_networkpolicy.sh prod ${RUN_TYPE}
+echo Deploy SFMS Daily FWI API
+PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_sfms_fwi_api.sh prod ${RUN_TYPE}
+echo Allow APS to reach SFMS Daily FWI API
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_fwi_gateway_networkpolicy.sh prod ${RUN_TYPE}
 
 echo ECCC Consumer
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.sh prod ${RUN_TYPE}

@@ -149,6 +149,69 @@ async def test_get_fuel_raster_hash_mismatch(mocker: MockerFixture):
 
 
 @pytest.mark.anyio
+async def test_read_object_returns_bytes_on_success(mocker: MockerFixture):
+    sample_data = b"raster-data"
+
+    mock_stream = AsyncMock()
+    mock_stream.read.return_value = sample_data
+    mock_body_context = MagicMock()
+    mock_body_context.__aenter__.return_value = mock_stream
+
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {"Body": mock_body_context}
+
+    mock_client_context = MagicMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    async with S3Client() as s3:
+        result = await s3.read_object("sfms/raster.tif")
+
+    assert result == sample_data
+
+
+@pytest.mark.anyio
+async def test_read_object_raises_client_error_on_missing_key(mocker: MockerFixture):
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.side_effect = ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
+
+    mock_client_context = MagicMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    async with S3Client() as s3:
+        with pytest.raises(ClientError) as exc_info:
+            await s3.read_object("missing/raster.tif")
+
+    assert exc_info.value.response["Error"]["Code"] == "NoSuchKey"
+
+
+@pytest.mark.anyio
+async def test_read_object_raises_client_error_on_s3_failure(mocker: MockerFixture):
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.side_effect = ClientError({"Error": {"Code": "InternalError"}}, "GetObject")
+
+    mock_client_context = MagicMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    async with S3Client() as s3:
+        with pytest.raises(ClientError) as exc_info:
+            await s3.read_object("sfms/raster.tif")
+
+    assert exc_info.value.response["Error"]["Code"] == "InternalError"
+
+
+@pytest.mark.anyio
 async def test_stream_object(mocker: MockerFixture):
     """Test streaming an object without byte range."""
     sample_data = b"test data chunk 1" + b"test data chunk 2"

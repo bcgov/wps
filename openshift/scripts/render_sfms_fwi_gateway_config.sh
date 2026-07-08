@@ -1,6 +1,6 @@
 #!/bin/sh -l
 #
-#% ASA Go APS gateway config render helper
+#% SFMS Daily FWI APS gateway config render helper
 #%
 #%   Render the declarative APS gateway config for a specific environment.
 #%
@@ -11,11 +11,11 @@
 #%
 #% Examples:
 #%
-#%   PROJECT_NAMESPACE=e1e498-dev APS_NAMESPACE=dev GW_HOST=asa-go-pr-0.example.ca \
+#%   PROJECT_NAMESPACE=e1e498-dev APS_NAMESPACE=dev GW_HOST=sfms-fwi-pr-0.api.gov.bc.ca \
 #%   ${THIS_FILE} pr-0
 #%
-#%   PROJECT_NAMESPACE=e1e498-prod APS_NAMESPACE=prod GW_HOST=asa-go.example.ca \
-#%   ${THIS_FILE} prod /tmp/asa-go-gw-config-prod.yaml
+#%   PROJECT_NAMESPACE=e1e498-prod APS_NAMESPACE=gw-313f6 GW_HOST=sfms-fwi.api.gov.bc.ca \
+#%   ${THIS_FILE} prod /tmp/sfms-fwi-gw-config-prod.yaml
 #
 
 set -euo pipefail
@@ -23,11 +23,10 @@ IFS=$'\n\t'
 
 THIS_FILE="$(dirname "$0")/$(basename "$0")"
 SUFFIX="${1:-}"
-OUTPUT_PATH="${2:-$(dirname "$0")/../aps/rendered/asa-go-gw-config-${SUFFIX}.yaml}"
-TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/asa-go-gw-config.yaml}"
+OUTPUT_PATH="${2:-$(dirname "$0")/../aps/rendered/sfms-fwi-gw-config-${SUFFIX}.yaml}"
+TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/sfms-fwi-gw-config.yaml}"
 
 [ -n "${SUFFIX}" ] || {
-	# print the script header as usage text when no suffix is provided.
 	sed -n \
 		-e "s|\${THIS_FILE}|${THIS_FILE}|g" \
 		-e 's|^#%||p' \
@@ -55,8 +54,7 @@ TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/asa-go-gw-config.yaml}"
 	exit 1
 }
 
-# keep the defaults here so the template can be rendered with only the required inputs.
-ASA_GO_SERVICE_NAME="${ASA_GO_SERVICE_NAME:-psu-asa-${SUFFIX}}"
+FWI_SERVICE_NAME="${FWI_SERVICE_NAME:-psu-sfms-fwi-${SUFFIX}}"
 
 mkdir -p "$(dirname "${OUTPUT_PATH}")"
 
@@ -64,11 +62,10 @@ export SUFFIX
 export PROJECT_NAMESPACE
 export APS_NAMESPACE
 export GW_HOST
-export ASA_GO_SERVICE_NAME
+export FWI_SERVICE_NAME
 
-# only substitute the placeholders this template owns, so unrelated ${...} text is left alone.
 envsubst \
-	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${GW_HOST} ${ASA_GO_SERVICE_NAME}' \
+	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${GW_HOST} ${FWI_SERVICE_NAME}' \
 	<"${TEMPLATE_PATH}" >"${OUTPUT_PATH}"
 
 echo "${OUTPUT_PATH}"

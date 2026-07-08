@@ -1,0 +1,51 @@
+name: SFMS FWI APS Apply
+description: Render and apply the SFMS Daily FWI DraftDataset and Product to the API Directory. Requires ./.github/actions/gwa-setup to have run earlier in the job.
+
+inputs:
+  gateway-id:
+    description: APS gateway id
+    required: true
+  client-id:
+    description: APS service account client id
+    required: true
+  client-secret:
+    description: APS service account client secret
+    required: true
+  suffix:
+    description: Config suffix used for dataset/product naming (e.g. pr-123 or prod)
+    required: true
+  host:
+    description: APS host (api.gov.bc.ca for production, api-gov-bc-ca.test.api.gov.bc.ca for the test portal)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Render SFMS FWI dataset and product
+      shell: bash
+      env:
+        SUFFIX: ${{ inputs.suffix }}
+      run: |
+        set -euo pipefail
+        OUTPUT_DIR=".github/tmp/sfms-fwi-aps-resources-${SUFFIX}"
+        mkdir -p "${OUTPUT_DIR}"
+        bash "${{ github.workspace }}/openshift/scripts/render_sfms_fwi_aps_resources.sh" \
+          "${SUFFIX}" \
+          "${OUTPUT_DIR}"
+
+    - name: Apply SFMS FWI dataset and product
+      uses: ./.github/actions/gwa-apply
+      with:
+        gateway-id: ${{ inputs.gateway-id }}
+        client-id: ${{ inputs.client-id }}
+        client-secret: ${{ inputs.client-secret }}
+        host: ${{ inputs.host }}
+        files: |
+          .github/tmp/sfms-fwi-aps-resources-${{ inputs.suffix }}/sfms-fwi-dataset-${{ inputs.suffix }}.yaml
+          .github/tmp/sfms-fwi-aps-resources-${{ inputs.suffix }}/sfms-fwi-product-${{ inputs.suffix }}.yaml
+
+    - name: Upload rendered resources
+      uses: actions/upload-artifact@v7
+      with:
+        name: sfms-fwi-aps-resources-${{ inputs.suffix }}
+        path: .github/tmp/sfms-fwi-aps-resources-${{ inputs.suffix }}/

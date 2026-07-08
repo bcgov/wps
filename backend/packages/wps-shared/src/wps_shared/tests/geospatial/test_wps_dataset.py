@@ -489,6 +489,45 @@ class TestGetLatLonCoords:
             assert len(xi) == 0
 
 
+class TestExtractValueAtPoint:
+    """Tests for WPSDataset.extract_value_at_point."""
+
+    # 10x10 WGS84 raster covering lon -130..-120, lat 49..59; each pixel is 1 degree
+    _EXTENT = (-130, -120, 49, 59)
+
+    def test_returns_value_at_valid_point(self):
+        gdal_ds = create_test_dataset("test.tif", 10, 10, self._EXTENT, 4326, fill_value=42.0)
+        with WPSDataset(ds_path=None, ds=gdal_ds) as ds:
+            assert ds.extract_value_at_point(lat=53.5, lon=-125.5) == pytest.approx(42.0)
+
+    def test_returns_none_when_point_outside_raster(self):
+        gdal_ds = create_test_dataset("test.tif", 10, 10, self._EXTENT, 4326, fill_value=1.0)
+        with WPSDataset(ds_path=None, ds=gdal_ds) as ds:
+            assert ds.extract_value_at_point(lat=0.0, lon=0.0) is None
+
+    def test_returns_none_when_point_fractionally_outside_raster(self):
+        """A point just past the raster's edge must not be truncated into bounds.
+
+        Regression test: the pixel coordinate here computes to a small negative
+        number (e.g. -0.0005). int() truncation rounds that toward zero into column
+        0 (wrongly in-bounds); floor() correctly keeps it negative and out of bounds.
+        """
+        gdal_ds = create_test_dataset("test.tif", 10, 10, self._EXTENT, 4326, fill_value=99.0)
+        with WPSDataset(ds_path=None, ds=gdal_ds) as ds:
+            assert ds.extract_value_at_point(lat=53.5, lon=-130.0005) is None
+
+    def test_returns_none_when_pixel_is_nodata(self):
+        gdal_ds = create_test_dataset("test.tif", 10, 10, self._EXTENT, 4326, fill_value=1.0, no_data_value=-9999.0)
+        gdal_ds.GetRasterBand(1).WriteArray(np.array([[-9999.0]], dtype=np.float32), xoff=4, yoff=5)
+        with WPSDataset(ds_path=None, ds=gdal_ds) as ds:
+            assert ds.extract_value_at_point(lat=53.5, lon=-125.5) is None
+
+    def test_returns_value_at_corner_pixel(self):
+        gdal_ds = create_test_dataset("test.tif", 10, 10, self._EXTENT, 4326, fill_value=7.0)
+        with WPSDataset(ds_path=None, ds=gdal_ds) as ds:
+            assert ds.extract_value_at_point(lat=58.5, lon=-129.5) == pytest.approx(7.0)
+
+
 class TestApplyMask:
     """Tests for WPSDataset.apply_mask method."""
 
