@@ -27,6 +27,7 @@ describe('getRasterTooltipData', () => {
       ['large positive nodata', new Float32Array([NODATA_THRESHOLD + 1000]), 'fwi' as const],
       ['GeoTIFF nodata', new Float32Array([-3.4028235e38]), 'dmc' as const],
       ['large negative nodata', new Float32Array([-NODATA_THRESHOLD - 1000]), 'dc' as const],
+      ['transparent alpha band', new Float32Array([0, 0]), 'fwi' as const],
       ['positive infinity', new Float32Array([Infinity]), 'ffmc' as const],
       ['negative infinity', new Float32Array([-Infinity]), 'bui' as const]
     ])('%s', (_description, data, rasterType) => {
@@ -39,6 +40,7 @@ describe('getRasterTooltipData', () => {
   describe('should return rounded value for valid data', () => {
     it.each([
       ['zero', new Float32Array([0]), undefined, 0, 'FWI'],
+      ['zero with visible alpha band', new Float32Array([0, 255]), 'fwi' as const, 0, 'FWI'],
       ['small integer', new Float32Array([5]), 'fwi' as const, 5, 'FWI'],
       ['decimal value rounds down', new Float32Array([42.3]), 'dmc' as const, 42, 'DMC'],
       ['decimal value rounds up', new Float32Array([42.7]), 'dc' as const, 43, 'DC'],

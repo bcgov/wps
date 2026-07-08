@@ -12,6 +12,8 @@ export interface RasterTooltipResult {
   pixelCoords: [number, number]
 }
 
+const ALPHA_BAND_INDEX = 1
+
 /**
  * Extracts raster value from layer data and determines if it should be displayed
  * This function is pure and can be tested in isolation
@@ -25,6 +27,13 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
   }
 
   const rawValue = data[0]
+  const alphaValue = data[ALPHA_BAND_INDEX]
+
+  // openlayers appends an alpha band when GeoTIFF nodata exists; alpha 0 means
+  // the pixel is transparent even when the raster band itself reads back as 0.
+  if (data.length > ALPHA_BAND_INDEX && alphaValue === 0) {
+    return { value: null, label: defaultLabel }
+  }
 
   // Check for NaN (can occur when undefined is coerced to number)
   if (Number.isNaN(rawValue)) {
