@@ -59,6 +59,14 @@ cd mobile/asa-go/android
 ./gradlew assembleProdDebug
 ```
 
+Running `./gradlew` from a terminal (rather than through Android Studio) requires `JAVA_HOME` to be set explicitly — Android Studio uses its bundled JBR automatically, but the CLI doesn't find it on its own. Point it at the JBR inside your Android Studio install, e.g.:
+
+```bash
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+```
+
+(adjust the path if Android Studio was installed elsewhere, e.g. via JetBrains Toolbox). Using a different JDK (e.g. a Homebrew `openjdk`) can produce a different build than Android Studio itself would.
+
 #### Running on a physical Android device against your local API
 
 Get your local machine IP: `ipconfig getifaddr en0`
