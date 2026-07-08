@@ -6,8 +6,6 @@ import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } f
 import { selectProvincialSummaryZones, selectRunDates } from 'app/rootReducer'
 import {
   fireCentreLabelStyler,
-  fireCentreLineStyler,
-  fireCentreStyler,
   fireShapeLabelStyler,
   fireShapeLineStyler,
   fireShapeStyler,
@@ -18,6 +16,7 @@ import ScalebarContainer from 'features/fba/components/map/ScaleBarContainer'
 import { extentsMap } from 'features/fba/fireCentreExtents'
 import { fireZoneExtentsMap } from 'features/fba/fireZoneUnitExtents'
 import { buildPMTilesURL } from 'features/fba/pmtilesBuilder'
+import { fireCentreLineStyler, fireCentreStyler } from 'features/map/fireCentreStylers'
 import { cloneDeep, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { Map as OlMap, View } from 'ol'
@@ -27,16 +26,11 @@ import { boundingExtent } from 'ol/extent'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import type MapBrowserEvent from 'ol/MapBrowserEvent'
 import { PMTilesVectorSource } from 'ol-pmtiles'
+import { createPMTilesVectorSource, getFireCentrePMTilesLayers } from '@/features/map/fireCentreLayer'
 import { BASEMAP_LAYER_NAME } from '@/features/sfmsInsights/components/map/layerDefinitions'
 import 'ol/ol.css'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
-import {
-  BASEMAP_STYLE_URL,
-  BASEMAP_TILE_URL,
-  HILLSHADE_STYLE_URL,
-  HILLSHADE_TILE_URL,
-  PMTILES_BUCKET
-} from '@wps/utils/env'
+import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL, HILLSHADE_STYLE_URL, HILLSHADE_TILE_URL } from '@wps/utils/env'
 import { fromLonLat } from 'ol/proj'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -68,11 +62,6 @@ const removeLayerByName = (map: OlMap, layerName: string) => {
   }
 }
 
-const createPMTilesVectorSource = (filename: string) =>
-  new PMTilesVectorSource({
-    url: `${PMTILES_BUCKET}${filename}`
-  })
-
 const FBAMap = (props: FBAMapProps) => {
   const { forDate, selectedFireCentre, selectedFireShape, setSelectedFireShape, runType, zoomSource, setZoomSource } =
     props
@@ -94,29 +83,13 @@ const FBAMap = (props: FBAMapProps) => {
   const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
 
   // stable OpenLayers sources and layers
-  const fireCentreVectorSource = useMemo(() => createPMTilesVectorSource('fireCentres.pmtiles'), [])
   const fireShapeVectorSource = useMemo(() => createPMTilesVectorSource('fireZoneUnits.pmtiles'), [])
   const fireCentreLabelVectorSource = useMemo(() => createPMTilesVectorSource('fireCentreLabels.pmtiles'), [])
   const fireShapeLabelVectorSource = useMemo(() => createPMTilesVectorSource('fireZoneUnitLabels.pmtiles'), [])
 
-  const fireCentreVTL = useMemo(
-    () =>
-      new VectorTileLayer({
-        source: fireCentreVectorSource,
-        style: fireCentreStyler(undefined),
-        zIndex: 51
-      }),
-    [fireCentreVectorSource]
-  )
-
-  const fireCentreLineVTL = useMemo(
-    () =>
-      new VectorTileLayer({
-        source: fireCentreVectorSource,
-        style: fireCentreLineStyler(undefined),
-        zIndex: 52
-      }),
-    [fireCentreVectorSource]
+  const { fireCentreLayer: fireCentreVTL, fireCentreLineLayer: fireCentreLineVTL } = useMemo(
+    () => getFireCentrePMTilesLayers(),
+    []
   )
 
   const fireShapeVTL = useMemo(
@@ -283,7 +256,7 @@ const FBAMap = (props: FBAMapProps) => {
       const latestHFILayer = new VectorTileLayer({
         source: hfiSource,
         style: hfiStyler,
-        zIndex: 100,
+        zIndex: 54,
         minZoom: 4,
         properties: { name: hfiLayerName },
         visible: showHFI

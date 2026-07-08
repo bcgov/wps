@@ -16,6 +16,30 @@ vi.mock('@wps/utils/vectorLayerUtils', async () => {
   }
 })
 
+vi.mock('ol-pmtiles', () => ({
+  PMTilesVectorSource: class MockPMTilesVectorSource {
+    addEventListener() {}
+
+    removeEventListener() {}
+
+    on() {
+      return this
+    }
+
+    once() {
+      return this
+    }
+
+    un() {
+      return this
+    }
+
+    getState() {
+      return 'ready'
+    }
+  }
+}))
+
 describe('FBAMap', () => {
   class ResizeObserver {
     observe() {
