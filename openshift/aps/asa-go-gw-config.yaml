@@ -13,7 +13,7 @@ services:
       - name: ${ASA_GO_SERVICE_NAME}
         tags: [ns.${APS_NAMESPACE}.${SUFFIX}]
         hosts:
-          - ${ASA_GO_HOST}
+          - ${GW_HOST}
         paths:
           - /api/asa-go
         strip_path: false

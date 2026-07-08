@@ -1,5 +1,5 @@
-name: GWA Publish
-description: Publish APS gateway configuration with gwa. Requires ./.github/actions/gwa-setup to have run earlier in the job.
+name: GWA Apply
+description: Apply APS resources (DraftDataset, Product, etc.) with gwa. Requires ./.github/actions/gwa-setup to have run earlier in the job.
 
 inputs:
   gateway-id:
@@ -11,13 +11,8 @@ inputs:
   client-secret:
     description: APS service account client secret
     required: true
-  config-path:
-    description: Path to the gateway config file to publish
-    required: true
-  qualifier:
-    description:
-      Qualifier used with publish-gateway. Qualifiers allow one gateway to hold
-      multiple independent config sets without pruning other service configs.
+  files:
+    description: Newline-separated list of resource files to apply with gwa apply -i
     required: true
   host:
     description: APS host (api.gov.bc.ca for production, api-gov-bc-ca.test.api.gov.bc.ca for the test portal)
@@ -26,14 +21,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Login and publish gateway config
+    - name: Apply APS resources
       shell: bash
       env:
         GATEWAY_ID: ${{ inputs.gateway-id }}
         GWA_CLIENT_ID: ${{ inputs.client-id }}
         GWA_CLIENT_SECRET: ${{ inputs.client-secret }}
-        CONFIG_PATH: ${{ inputs.config-path }}
-        QUALIFIER: ${{ inputs.qualifier }}
+        FILES: ${{ inputs.files }}
         HOST: ${{ inputs.host }}
       run: |
         set -euo pipefail
@@ -44,4 +38,8 @@ runs:
           --client-id="${GWA_CLIENT_ID}" \
           --client-secret="${GWA_CLIENT_SECRET}"
 
-        gwa publish-gateway "${CONFIG_PATH}" --qualifier "${QUALIFIER}"
+        while IFS= read -r file; do
+          if [ -n "${file}" ]; then
+            gwa apply -i "${file}"
+          fi
+        done <<< "${FILES}"

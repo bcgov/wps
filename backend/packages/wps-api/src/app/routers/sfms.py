@@ -135,13 +135,17 @@ async def upload_hourlies(file: UploadFile, request: Request, _=Depends(sfms_aut
     return Response(status_code=200)
 
 
-@router.get("/hourlies", response_model=HourlyTIFs)
+@router.get("/hourlies", response_model=HourlyTIFs, deprecated=True)
 async def get_hourlies(for_date: date):
     """
+    Deprecated: use GET /api/sfms/daily-fwi/{for_date}/hffmc (or .../hffmc/value)
+    instead, which serves the same uploaded hFFMC rasters via the APS gateway
+    with key-auth rather than as unauthenticated public object-store URLs.
+
     Retrieve hourly FFMC TIF files for the given date.
     Files are named in the format: "fine_fuel_moisture_codeYYYYMMDDHH.tif", where HH is the two digit day hour in PST.
     """
-    logger.info("sfms/hourlies")
+    logger.warning("Deprecated endpoint sfms/hourlies called, use /sfms/daily-fwi/{for_date}/hffmc instead")
 
     async with get_client() as (client, bucket):
         logger.info('Retrieving hourlies for "%s"', for_date)

@@ -90,6 +90,12 @@ class S3Client:
     async def get_object(self, key: str):
         return await self.client.get_object(Bucket=self.bucket, Key=key)
 
+    async def read_object(self, key: str) -> bytes:
+        """Read an S3 object fully into memory. Raises ClientError on S3 failures."""
+        response = await self.get_object(key)
+        async with response["Body"] as stream:
+            return await stream.read()
+
     async def put_object(self, key: str, body: Any):
         await self.client.put_object(Bucket=self.bucket, Key=key, Body=body)
 

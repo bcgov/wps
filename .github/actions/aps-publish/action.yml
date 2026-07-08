@@ -1,7 +1,13 @@
 name: APS Publish
-description: Render, publish, and upload the APS gateway configuration
+description: Render, publish, and upload an APS gateway configuration. Requires ./.github/actions/gwa-setup to have run earlier in the job.
 
 inputs:
+  config-name:
+    description: Short name used for the rendered config path and artifact name (e.g. asa-go, sfms-fwi)
+    required: true
+  render-script:
+    description: Repo-relative render script; must accept [SUFFIX] [OUTPUT_PATH] args and read APS_NAMESPACE, PROJECT_NAMESPACE, and GW_HOST from the environment
+    required: true
   gateway-id:
     description: APS gateway id
     required: true
@@ -11,45 +17,57 @@ inputs:
   client-secret:
     description: APS service account client secret
     required: true
-  project-namespace:
-    description: OpenShift namespace that contains the upstream ASA Go service
-    required: true
-  host:
-    description: Public APS hostname for the rendered route
-    required: true
   suffix:
-    description: Config suffix used for service naming, tag scope, and gwa qualifier
+    description: Config suffix used for service naming, tag scope, and the gwa qualifier
+    required: true
+  qualifier-prefix:
+    description: Optional prefix prepended to the suffix to form the gwa publish-gateway qualifier (e.g. "fwi-")
+    required: false
+    default: ""
+  host:
+    description: APS host (api.gov.bc.ca for production, api-gov-bc-ca.test.api.gov.bc.ca for the test portal)
     required: true
 
 runs:
   using: composite
   steps:
-    - name: Render ASA Go APS gateway config
+    - name: Render ${{ inputs.config-name }} APS gateway config
       shell: bash
       env:
         APS_NAMESPACE: ${{ inputs.gateway-id }}
-        PROJECT_NAMESPACE: ${{ inputs.project-namespace }}
-        ASA_GO_HOST: ${{ inputs.host }}
         SUFFIX: ${{ inputs.suffix }}
+        CONFIG_NAME: ${{ inputs.config-name }}
       run: |
         set -euo pipefail
-        CONFIG_PATH=".github/tmp/asa-go-gw-config-${SUFFIX}.yaml"
+        # Prod uses the bare vanity host and prod namespace; PRs are suffixed and live in
+        # dev. Once gwa is configured against the test gateway, it remaps whatever
+        # prod-style host it's given to the test tenant's real public domain on publish,
+        # so GW_HOST here is always the plain prod-style form.
+        if [ "${SUFFIX}" = "prod" ]; then
+          export GW_HOST="psu.api.gov.bc.ca"
+          export PROJECT_NAMESPACE="e1e498-prod"
+        else
+          export GW_HOST="psu-${SUFFIX}.api.gov.bc.ca"
+          export PROJECT_NAMESPACE="e1e498-dev"
+        fi
+        CONFIG_PATH=".github/tmp/${CONFIG_NAME}-gw-config-${SUFFIX}.yaml"
         mkdir -p "$(dirname "${CONFIG_PATH}")"
-        bash "${{ github.workspace }}/openshift/scripts/render_asa_go_gateway_config.sh" \
+        bash "${{ github.workspace }}/${{ inputs.render-script }}" \
           "${SUFFIX}" \
           "${CONFIG_PATH}"
 
-    - name: Publish ASA Go APS gateway config
+    - name: Publish ${{ inputs.config-name }} APS gateway config
       uses: ./.github/actions/gwa-publish
       with:
         gateway-id: ${{ inputs.gateway-id }}
         client-id: ${{ inputs.client-id }}
         client-secret: ${{ inputs.client-secret }}
-        config-path: .github/tmp/asa-go-gw-config-${{ inputs.suffix }}.yaml
-        qualifier: ${{ inputs.suffix }}
+        config-path: .github/tmp/${{ inputs.config-name }}-gw-config-${{ inputs.suffix }}.yaml
+        qualifier: ${{ inputs.qualifier-prefix }}${{ inputs.suffix }}
+        host: ${{ inputs.host }}
 
-    - name: Upload ASA Go APS gateway config
+    - name: Upload ${{ inputs.config-name }} APS gateway config
       uses: actions/upload-artifact@v7
       with:
-        name: asa-go-aps-gateway-config-${{ inputs.suffix }}
-        path: .github/tmp/asa-go-gw-config-${{ inputs.suffix }}.yaml
+        name: ${{ inputs.config-name }}-aps-gateway-config-${{ inputs.suffix }}
+        path: .github/tmp/${{ inputs.config-name }}-gw-config-${{ inputs.suffix }}.yaml

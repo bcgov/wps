@@ -61,6 +61,23 @@
             }
         },
         {
+            "name": "api (sfms-fwi)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.sfms_fwi_main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8082"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
+        },
+        {
             "name": "nats",
             "type": "debugpy",
             "request": "launch",
