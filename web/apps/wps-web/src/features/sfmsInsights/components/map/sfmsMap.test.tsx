@@ -3,6 +3,7 @@ import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import type { Mock } from 'vitest'
+import { getFireCentreLinePMTilesLayer } from '@/features/map/fireCentreLayer'
 import * as layerDefinitions from '@/features/sfmsInsights/components/map/layerDefinitions'
 import type { RasterError } from '@/features/sfmsInsights/components/map/layerManager'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
@@ -14,6 +15,10 @@ vi.mock('@wps/utils/vectorLayerUtils', async () => {
     createVectorTileLayer: vi.fn()
   }
 })
+
+vi.mock('@/features/map/fireCentreLayer', () => ({
+  getFireCentreLinePMTilesLayer: vi.fn()
+}))
 
 type LoadingChangeFn = (isLoading: boolean, error?: RasterError) => void
 const mockLayerManagerInstances: Array<{ onLoadingChange?: LoadingChangeFn; setMap: Mock; updateLayer: Mock }> = []
@@ -61,6 +66,7 @@ describe('SFMSMap', () => {
     getMinZoom: vi.fn(() => 4)
   }
   const mockFireWeatherLayer = createLayerMock('fwiRaster')
+  const mockFireCentreLineLayer = createLayerMock('fireCentreLineVector')
 
   const makeStore = (token = 'test-token') =>
     createTestStore({
@@ -87,12 +93,19 @@ describe('SFMSMap', () => {
     ;(createVectorTileLayer as Mock).mockResolvedValue(createLayerMock('base'))
     ;(layerDefinitions.getSnowPMTilesLayer as Mock).mockReturnValue(mockSnowLayer)
     ;(layerDefinitions.getRasterLayer as Mock).mockReturnValue(mockFireWeatherLayer)
+    ;(getFireCentreLinePMTilesLayer as Mock).mockReturnValue(mockFireCentreLineLayer)
   })
 
   it('should render the map', () => {
     const { getByTestId } = renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} />)
     const map = getByTestId('sfms-map')
     expect(map).toBeVisible()
+  })
+
+  it('should create only the persistent fire centre boundary layer above raster layers', () => {
+    renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} />)
+
+    expect(getFireCentreLinePMTilesLayer).toHaveBeenCalledWith({ zIndex: 54 })
   })
 
   it('should not add snow layer when snowDate is null', () => {

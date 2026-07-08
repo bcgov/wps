@@ -16,6 +16,7 @@ import type { DateTime } from 'luxon'
 import { Map as OlMap, View } from 'ol'
 import { defaults as defaultControls } from 'ol/control'
 import { boundingExtent } from 'ol/extent'
+import { getFireCentreLinePMTilesLayer } from '@/features/map/fireCentreLayer'
 import { LayerManager, type RasterError } from '@/features/sfmsInsights/components/map/layerManager'
 import RasterErrorNotification from '@/features/sfmsInsights/components/map/RasterErrorNotification'
 import {
@@ -25,7 +26,7 @@ import {
 import 'ol/ol.css'
 import { selectToken } from 'app/rootReducer'
 import { fromLonLat } from 'ol/proj'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
 const MapContext = React.createContext<OlMap | null>(null)
@@ -67,11 +68,12 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
 
   const rasterLayerManagerRef = useRef(new LayerManager({ onLoadingChange: handleLoadingChange, trackLoading: true }))
   const snowLayerManagerRef = useRef(new LayerManager({ trackLoading: false }))
+  const fireCentreLineLayer = useMemo(() => getFireCentreLinePMTilesLayer({ zIndex: 54 }), [])
 
   useEffect(() => {
     const mapObject = new OlMap({
       target: mapRef.current,
-      layers: [],
+      layers: [fireCentreLineLayer],
       controls: defaultControls(),
       view: new View({
         zoom: 5,
@@ -100,7 +102,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
     return () => {
       mapObject.setTarget('')
     }
-  }, [])
+  }, [fireCentreLineLayer])
 
   useEffect(() => {
     snowLayerManagerRef.current.updateLayer(!isNull(snowDate) && showSnow ? getSnowPMTilesLayer(snowDate, token) : null)
