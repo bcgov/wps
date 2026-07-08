@@ -6,6 +6,7 @@ import {
   EMPTY_FILL,
   fuelCOGColourExpression,
   getColorForRasterValue,
+  getFireWeatherColourExpression,
   isNodataValue,
   NODATA_THRESHOLD,
   SNOW_FILL,
@@ -62,10 +63,17 @@ describe('fuelCOGColourExpression', () => {
     expect(expr[0]).toBe('case')
   })
 
+  it('should make pixels with a zero alpha band transparent', () => {
+    const expr = fuelCOGColourExpression()
+
+    expect(expr[1]).toEqual(['==', ['band', 2], 0])
+    expect(expr[2]).toEqual([0, 0, 0, 0])
+  })
+
   it('should include all raster values and their corresponding colors', () => {
     const expr = fuelCOGColourExpression()
-    // Expected: 'case' + (3 nodata cases * 2) + (14 fuel types * 2) + fallback = 1 + 6 + 28 + 1 = 36
-    const expectedLength = 1 + 3 * 2 + FUEL_TYPE_COLORS.length * 2 + 1
+    // expected: 'case' + alpha guard + (3 nodata cases * 2) + (14 fuel types * 2) + fallback.
+    const expectedLength = 1 + 2 + 3 * 2 + FUEL_TYPE_COLORS.length * 2 + 1
     expect(expr.length).toBe(expectedLength)
 
     // Check nodata values are transparent (99, 102, -10000)
@@ -105,6 +113,23 @@ describe('fuelCOGColourExpression', () => {
     const expr = fuelCOGColourExpression()
     const fallback = expr[expr.length - 1]
     expect(fallback).toEqual([0, 0, 0, 0])
+  })
+})
+
+describe('getFireWeatherColourExpression', () => {
+  it('should make pixels with a zero alpha band transparent before applying color breaks', () => {
+    const expr = getFireWeatherColourExpression('fwi')
+
+    expect(expr[0]).toBe('case')
+    expect(expr[1]).toEqual(['==', ['band', 2], 0])
+    expect(expr[2]).toEqual([0, 0, 0, 0])
+  })
+
+  it('should still handle large nodata sentinels explicitly', () => {
+    const expr = getFireWeatherColourExpression('fwi')
+
+    expect(expr).toContainEqual(['>', ['band', 1], NODATA_THRESHOLD])
+    expect(expr).toContainEqual(['<', ['band', 1], -NODATA_THRESHOLD])
   })
 })
 

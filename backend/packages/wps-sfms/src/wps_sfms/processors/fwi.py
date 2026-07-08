@@ -30,6 +30,7 @@ from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeath
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 
+from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
 from wps_sfms.sfmsng_raster_addresser import FWIInputs
 
@@ -49,6 +50,10 @@ class FWIDatasets:
 class FWIResult(NamedTuple):
     values: np.ndarray
     nodata_value: float
+
+
+def create_sfms_nodata_output_array(reference: np.ndarray) -> np.ndarray:
+    return np.full(reference.shape, SFMS_NO_DATA, dtype=reference.dtype)
 
 
 class FWICalculator(ABC):
@@ -92,7 +97,7 @@ class FFMCCalculator(FWICalculator):
         wind_ds = datasets.weather[SFMSInterpolatedWeatherParameter.WIND_SPEED]
         ffmc_prev_ds = datasets.index[FWIParameter.FFMC]
 
-        ffmc_prev, nodata_value = ffmc_prev_ds.replace_nodata_with(np.nan)
+        ffmc_prev, _ = ffmc_prev_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
         rh, _ = rh_ds.replace_nodata_with(np.nan)
         prec, _ = precip_ds.replace_nodata_with(np.nan)
@@ -100,7 +105,7 @@ class FFMCCalculator(FWICalculator):
 
         mask = np.isnan(ffmc_prev) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec) | np.isnan(ws)
         valid = ~mask
-        values = np.full(ffmc_prev.shape, nodata_value, dtype=ffmc_prev.dtype)
+        values = create_sfms_nodata_output_array(ffmc_prev)
 
         start = perf_counter()
         values[valid] = vectorized_ffmc(
@@ -108,7 +113,7 @@ class FFMCCalculator(FWICalculator):
         )
         logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
 
-        return FWIResult(values, nodata_value)
+        return FWIResult(values, SFMS_NO_DATA)
 
 
 class DMCCalculator(MonthlyFWICalculator):
@@ -128,14 +133,14 @@ class DMCCalculator(MonthlyFWICalculator):
         dmc_prev_ds = datasets.index[FWIParameter.DMC]
 
         lat, mon = self._lat_month_arrays(dmc_prev_ds)
-        dmc_prev, nodata_value = dmc_prev_ds.replace_nodata_with(np.nan)
+        dmc_prev, _ = dmc_prev_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
         rh, _ = rh_ds.replace_nodata_with(np.nan)
         prec, _ = precip_ds.replace_nodata_with(np.nan)
 
         mask = np.isnan(dmc_prev) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
         valid = ~mask
-        values = np.full(dmc_prev.shape, nodata_value, dtype=dmc_prev.dtype)
+        values = create_sfms_nodata_output_array(dmc_prev)
 
         start = perf_counter()
         values[valid] = vectorized_dmc(
@@ -143,7 +148,7 @@ class DMCCalculator(MonthlyFWICalculator):
         )
         logger.info("%f seconds to calculate vectorized dmc", perf_counter() - start)
 
-        return FWIResult(values, nodata_value)
+        return FWIResult(values, SFMS_NO_DATA)
 
 
 class DCCalculator(MonthlyFWICalculator):
@@ -163,14 +168,14 @@ class DCCalculator(MonthlyFWICalculator):
         dc_prev_ds = datasets.index[FWIParameter.DC]
 
         lat, mon = self._lat_month_arrays(dc_prev_ds)
-        dc_prev, nodata_value = dc_prev_ds.replace_nodata_with(np.nan)
+        dc_prev, _ = dc_prev_ds.replace_nodata_with(np.nan)
         temp, _ = temp_ds.replace_nodata_with(np.nan)
         rh, _ = rh_ds.replace_nodata_with(np.nan)
         prec, _ = precip_ds.replace_nodata_with(np.nan)
 
         mask = np.isnan(dc_prev) | np.isnan(temp) | np.isnan(rh) | np.isnan(prec)
         valid = ~mask
-        values = np.full(dc_prev.shape, nodata_value, dtype=dc_prev.dtype)
+        values = create_sfms_nodata_output_array(dc_prev)
 
         start = perf_counter()
         values[valid] = vectorized_dc(
@@ -178,7 +183,7 @@ class DCCalculator(MonthlyFWICalculator):
         )
         logger.info("%f seconds to calculate vectorized dc", perf_counter() - start)
 
-        return FWIResult(values, nodata_value)
+        return FWIResult(values, SFMS_NO_DATA)
 
 
 class ISICalculator(FWICalculator):
@@ -191,18 +196,18 @@ class ISICalculator(FWICalculator):
         ffmc_ds = datasets.index[FWIParameter.FFMC]
         wind_ds = datasets.weather[SFMSInterpolatedWeatherParameter.WIND_SPEED]
 
-        ffmc, nodata_value = ffmc_ds.replace_nodata_with(np.nan)
+        ffmc, _ = ffmc_ds.replace_nodata_with(np.nan)
         ws, _ = wind_ds.replace_nodata_with(np.nan)
 
         mask = np.isnan(ffmc) | np.isnan(ws)
         valid = ~mask
-        values = np.full(ffmc.shape, nodata_value, dtype=ffmc.dtype)
+        values = create_sfms_nodata_output_array(ffmc)
 
         start = perf_counter()
         values[valid] = vectorized_isi(ffmc[valid], ws[valid], False)
         logger.info("%f seconds to calculate vectorized isi", perf_counter() - start)
 
-        return FWIResult(values, nodata_value)
+        return FWIResult(values, SFMS_NO_DATA)
 
 
 class BUICalculator(FWICalculator):
@@ -214,18 +219,18 @@ class BUICalculator(FWICalculator):
         dmc_ds = datasets.index[FWIParameter.DMC]
         dc_ds = datasets.index[FWIParameter.DC]
 
-        dmc, nodata_value = dmc_ds.replace_nodata_with(np.nan)
+        dmc, _ = dmc_ds.replace_nodata_with(np.nan)
         dc, _ = dc_ds.replace_nodata_with(np.nan)
 
         mask = np.isnan(dmc) | np.isnan(dc)
         valid = ~mask
-        values = np.full(dmc.shape, nodata_value, dtype=dmc.dtype)
+        values = create_sfms_nodata_output_array(dmc)
 
         start = perf_counter()
         values[valid] = vectorized_bui(dmc[valid], dc[valid])
         logger.info("%f seconds to calculate vectorized bui", perf_counter() - start)
 
-        return FWIResult(values, nodata_value)
+        return FWIResult(values, SFMS_NO_DATA)
 
 
 class FWIFinalCalculator(FWICalculator):
@@ -237,18 +242,18 @@ class FWIFinalCalculator(FWICalculator):
         isi_ds = datasets.index[FWIParameter.ISI]
         bui_ds = datasets.index[FWIParameter.BUI]
 
-        isi, nodata_value = isi_ds.replace_nodata_with(np.nan)
+        isi, _ = isi_ds.replace_nodata_with(np.nan)
         bui, _ = bui_ds.replace_nodata_with(np.nan)
 
         mask = np.isnan(isi) | np.isnan(bui)
         valid = ~mask
-        values = np.full(isi.shape, nodata_value, dtype=isi.dtype)
+        values = create_sfms_nodata_output_array(isi)
 
         start = perf_counter()
         values[valid] = vectorized_fwi(isi[valid], bui[valid])
         logger.info("%f seconds to calculate vectorized fwi", perf_counter() - start)
 
-        return FWIResult(values, nodata_value)
+        return FWIResult(values, SFMS_NO_DATA)
 
 
 class FWIProcessor:

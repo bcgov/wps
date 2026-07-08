@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import numpy as np
@@ -14,6 +15,7 @@ from wps_shared.tests.geospatial.dataset_common import (
     create_test_dataset,
 )
 from wps_shared.utils.s3_client import S3Client
+from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.processors.fwi import (
     BUICalculator,
     DCCalculator,
@@ -115,6 +117,31 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
 
         assert publish_spy.call_count == 1
         assert publish_spy.await_args.kwargs["output_key"] == fwi_inputs.output_key
+
+
+@pytest.mark.anyio
+async def test_fwi_processor_publishes_sfms_nodata_metadata(mocker: MockerFixture):
+    processor = FWIProcessor(TEST_DATETIME)
+    fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
+    _, mock_input_dataset_context = create_mock_input_dataset_context(5)
+    captured_nodata = None
+
+    async def capture_publish_dataset(*, dataset, output_key, **_kwargs):
+        nonlocal captured_nodata
+        captured_nodata = dataset.as_gdal_ds().GetRasterBand(1).GetNoDataValue()
+        return SimpleNamespace(output_key=output_key, cog_key=None)
+
+    mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
+    mocker.patch("wps_sfms.processors.fwi.publish_dataset", side_effect=capture_publish_dataset)
+
+    async with S3Client() as mock_s3_client:
+        mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
+
+        await processor.calculate_index(
+            mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs
+        )
+
+    assert captured_nodata == pytest.approx(SFMS_NO_DATA)
 
 
 @pytest.mark.anyio
@@ -411,12 +438,15 @@ class TestFWINodeataPropagation:
     # 2x2 WGS84 grid over southern BC (lat ~48–50, lon ~-121–-119)
     EXTENT = (-121.0, -119.0, 48.0, 50.0)
 
-    def make_ds(self, fill: float, nodata_at: tuple | None = None) -> WPSDataset:
+    def make_ds(
+        self, fill: float, nodata_at: tuple | None = None, nodata_value: float | None = None
+    ) -> WPSDataset:
         """2x2 dataset filled with *fill*; optionally set one pixel to NODATA."""
-        gdal_ds = create_test_dataset("test.tif", 2, 2, self.EXTENT, 4326, no_data_value=self.NODATA)
+        nodata = self.NODATA if nodata_value is None else nodata_value
+        gdal_ds = create_test_dataset("test.tif", 2, 2, self.EXTENT, 4326, no_data_value=nodata)
         arr = np.full((2, 2), fill, dtype=np.float32)
         if nodata_at is not None:
-            arr[nodata_at] = self.NODATA
+            arr[nodata_at] = nodata
         gdal_ds.GetRasterBand(1).WriteArray(arr)
         return WPSDataset(ds_path=None, ds=gdal_ds)
 
@@ -435,7 +465,9 @@ class TestFWINodeataPropagation:
     )
     def test_nodata_propagates(self, calculator: FWICalculator, prev_value, nodata_input):
         nodata_pixel = (0, 0)
-        prev_ds = self.make_ds(prev_value, nodata_at=nodata_pixel if nodata_input == "prev_fwi" else None)
+        prev_ds = self.make_ds(
+            prev_value, nodata_at=nodata_pixel if nodata_input == "prev_fwi" else None
+        )
         temp_ds = self.make_ds(20.0, nodata_at=nodata_pixel if nodata_input == "temp" else None)
         rh_ds = self.make_ds(50.0, nodata_at=nodata_pixel if nodata_input == "rh" else None)
         precip_ds = self.make_ds(0.0, nodata_at=nodata_pixel if nodata_input == "precip" else None)
@@ -449,13 +481,35 @@ class TestFWINodeataPropagation:
         }
         index_datasets = {calculator.reference_index_param: prev_ds}
 
-        result = calculator.calculate(
-            FWIDatasets(index=index_datasets, weather=weather_datasets)
-        )
+        result = calculator.calculate(FWIDatasets(index=index_datasets, weather=weather_datasets))
 
-        assert np.isnan(result.nodata_value)
-        assert np.isnan(result.values[0, 0]), "nodata pixel must propagate as NaN"
+        assert result.nodata_value == pytest.approx(SFMS_NO_DATA)
+        assert result.values[0, 0] == pytest.approx(SFMS_NO_DATA)
         # All other pixels must have been computed (not NaN)
         assert not np.isnan(result.values[0, 1])
         assert not np.isnan(result.values[1, 0])
         assert not np.isnan(result.values[1, 1])
+
+    def test_nan_nodata_input_is_normalized_to_sfms_nodata_output(self):
+        nodata_pixel = (0, 0)
+        prev_ds = self.make_ds(85.0, nodata_at=nodata_pixel, nodata_value=np.nan)
+        temp_ds = self.make_ds(20.0)
+        rh_ds = self.make_ds(50.0)
+        precip_ds = self.make_ds(0.0)
+        wind_ds = self.make_ds(10.0)
+
+        result = FFMCCalculator().calculate(
+            FWIDatasets(
+                index={FWIParameter.FFMC: prev_ds},
+                weather={
+                    SFMSInterpolatedWeatherParameter.TEMP: temp_ds,
+                    SFMSInterpolatedWeatherParameter.RH: rh_ds,
+                    SFMSInterpolatedWeatherParameter.PRECIP: precip_ds,
+                    SFMSInterpolatedWeatherParameter.WIND_SPEED: wind_ds,
+                },
+            )
+        )
+
+        assert result.nodata_value == pytest.approx(SFMS_NO_DATA)
+        assert result.values[0, 0] == pytest.approx(SFMS_NO_DATA)
+        assert not np.isnan(result.values[0, 1])
