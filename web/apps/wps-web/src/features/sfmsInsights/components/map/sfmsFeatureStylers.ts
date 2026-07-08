@@ -76,9 +76,10 @@ type ColourCaseCondition =
 type ColourCaseColour = [number, number, number, number]
 type ColourCases = Array<ColourCaseCondition | ColourCaseColour>
 
-// use alpha as a validity flag because normalize:false may expose valid alpha as 255, not 1
+// alpha is transparency: 0 is fully transparent, and any nonzero value is visible.
+// use it as a validity flag because normalize:false may expose valid alpha as 255, not 1
 const transparentWhenSourceAlphaIsEmpty = (): ColourCases => [
-  ['<=', ['band', ALPHA_BAND], 0],
+  ['==', ['band', ALPHA_BAND], 0],
   [0, 0, 0, 0]
 ]
 
