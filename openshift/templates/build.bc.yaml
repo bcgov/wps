@@ -19,7 +19,7 @@ parameters:
     description: Application name (wps - wildfire predictive services)
     value: wps
   - name: MODULE_NAME
-    description: Module name (api, web, c-haines, etc. etc.)
+    description: Module name (api, web, etc. etc.)
     value: api
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-### or prod

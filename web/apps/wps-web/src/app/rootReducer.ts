@@ -2,8 +2,6 @@ import selectedStationGroupsMembersSlice from 'commonSlices/selectedStationGroup
 import stationGroupsSlice from 'commonSlices/stationGroupsSlice'
 import { combineReducers, createSelector } from '@reduxjs/toolkit'
 import authReducer from 'features/auth/slices/authenticationSlice'
-import cHainesModelRunReducer from 'features/cHaines/slices/cHainesModelRunsSlice'
-import cHainesPredictionReducer from 'features/cHaines/slices/cHainesPredictionsSlice'
 import fireCentreHFIFuelStatsSlice from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
 import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice'
 import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
@@ -30,8 +28,6 @@ const rootReducer = combineReducers({
   percentileStations: stationReducer,
   fireWeatherStations: stationReducer,
   percentiles: percentilesReducer,
-  cHainesModelRuns: cHainesModelRunReducer,
-  cHainesPredictions: cHainesPredictionReducer,
   authentication: authReducer,
   hfiCalculatorDailies: hfiCalculatorDailiesReducer,
   hfiStations: hfiStationsReducer,
@@ -64,8 +60,6 @@ export const selectPercentileStations = (state: RootState) => state.percentileSt
 export const selectHFIDailies = (state: RootState) => state.hfiCalculatorDailies
 export const selectFireWeatherStations = (state: RootState) => state.fireWeatherStations
 export const selectPercentiles = (state: RootState) => state.percentiles
-export const selectCHainesModelRuns = (state: RootState) => state.cHainesModelRuns
-export const selectChainesPredictions = (state: RootState) => state.cHainesPredictions
 export const selectAuthentication = (state: RootState) => state.authentication
 export const selectToken = (state: RootState) => state.authentication.token
 export const selectFireBehaviourCalcResult = (state: RootState) => state.fbaCalculatorResults
