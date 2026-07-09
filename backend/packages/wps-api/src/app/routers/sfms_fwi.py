@@ -1,12 +1,14 @@
 """Daily FWI Raster Endpoints
 
 Provides endpoints to download and query SFMS daily FWI actuals rasters
-(FFMC, DMC, DC, ISI, FWI, BUI) and hourly FFMC rasters.
+(FFMC, DMC, DC, ISI, FWI, BUI) and hourly FFMC rasters. Values can be sampled
+one parameter at a time, or all daily FWI parameters at once for a lat/lon.
 
 Access is controlled by the APS Kong gateway (key-auth). Consumers register
 for an API key at https://api.gov.bc.ca.
 """
 
+import asyncio
 import logging
 from datetime import date, datetime, timezone
 from typing import Annotated
@@ -89,6 +91,20 @@ class FWIValueResponse(BaseModel):
     )
 
 
+class DailyFWIValuesResponse(BaseModel):
+    date: str = Field(description="Date of the rasters the values were sampled from (YYYY-MM-DD)")
+    latitude: float = Field(description="Latitude of the sampled point, as provided in the request")
+    longitude: float = Field(
+        description="Longitude of the sampled point, as provided in the request"
+    )
+    ffmc: float | None = Field(description="Fine Fuel Moisture Code")
+    dmc: float | None = Field(description="Duff Moisture Code")
+    dc: float | None = Field(description="Drought Code")
+    isi: float | None = Field(description="Initial Spread Index")
+    bui: float | None = Field(description="Buildup Index")
+    fwi: float | None = Field(description="Fire Weather Index")
+
+
 async def _load_raster(key: str) -> bytes:
     try:
         async with S3Client() as s3_client:
@@ -119,8 +135,60 @@ async def _find_uploaded_hffmc_key(for_date: date, hour: int) -> str | None:
     )
 
 
-# /value routes must be defined before the bare download routes to avoid
-# the variable {parameter} segment swallowing the literal "value" segment.
+async def _sample_daily_fwi_value(
+    for_date: date, parameter: FWIParameter, lat: float, lon: float
+) -> float | None:
+    """Load the uploaded daily FWI actuals raster for the given date/parameter and
+    return its value at the WGS84 lat/lon point (None if outside the extent or on a
+    nodata pixel). Raises 404 via _load_raster if the raster itself doesn't exist."""
+    key = _addresser.get_uploaded_index_key(_for_date_to_utc(for_date), parameter)
+    logger.info("Sampling %s raster at (%s, %s) from %s", parameter.value, lat, lon, key)
+
+    raster_bytes = await _load_raster(key)
+    ds = WPSDataset.from_bytes(raster_bytes)
+    with ds:
+        return ds.extract_value_at_point(lat, lon)
+
+
+# The /value and /values routes must be defined before the bare download routes so
+# the literal path segments aren't swallowed by the variable {parameter} segment.
+
+
+@router.get(
+    "/{for_date}/values",
+    response_model=DailyFWIValuesResponse,
+    responses=_VALUE_RESPONSES,
+    summary="Get all daily FWI values at a point",
+)
+async def get_daily_fwi_values_at_point(
+    for_date: Annotated[date, Path(description=_FOR_DATE_DESC, examples=[_FOR_DATE_EXAMPLE])],
+    lat: Annotated[float, Query(ge=-90, le=90, description=_LAT_DESC, examples=[_LAT_EXAMPLE])],
+    lon: Annotated[float, Query(ge=-180, le=180, description=_LON_DESC, examples=[_LON_EXAMPLE])],
+):
+    """
+    Sample every daily FWI actuals raster (ffmc, dmc, dc, isi, bui, fwi) at a single
+    WGS84 lat/lon coordinate for the given date, returning all values in one response.
+
+    This is a convenience over the per-parameter `/{parameter}/value` route: it saves
+    callers from issuing six separate requests for the same point and date.
+
+    The raster values returned are from the actual rasters uploaded
+    by the existing/legacy SFMS system run by geospatial.
+
+    Each value is `null` if the coordinate falls outside the raster's extent or on a
+    nodata pixel. A 404 means any of the daily FWI rasters themselves don't exist for that date.
+    """
+    values = await asyncio.gather(
+        *(_sample_daily_fwi_value(for_date, parameter, lat, lon) for parameter in FWIParameter)
+    )
+    by_parameter = {parameter.value: value for parameter, value in zip(FWIParameter, values)}
+
+    return DailyFWIValuesResponse(
+        date=for_date.isoformat(),
+        latitude=lat,
+        longitude=lon,
+        **by_parameter,
+    )
 
 
 @router.get(
@@ -140,8 +208,8 @@ async def get_hourly_ffmc_value_at_point(
     WGS84 lat/lon coordinate, for the given date and hour (PDT, matching the
     SFMS upload filename convention).
 
-    The raster returned is the actual raster uploaded by the existing/legacy SFMS system run by
-    geospatial, not a WPS-calculated ones.
+    The raster value returned is from the actual raster uploaded
+    by the existing/legacy SFMS system run by geospatial.
 
     Returns `value: null` if the coordinate falls outside the raster's extent or on
     a nodata pixel, rather than a 404 -- a 404 means the raster itself doesn't exist
@@ -184,17 +252,14 @@ async def get_daily_fwi_value_at_point(
     Sample the daily FWI actuals raster at a single WGS84 lat/lon coordinate, for
     the given date and parameter (dc, dmc, bui, ffmc, isi, or fwi).
 
+    The raster value returned is from the actual raster uploaded
+    by the existing/legacy SFMS system run by geospatial.
+
     Returns `value: null` if the coordinate falls outside the raster's extent or on
     a nodata pixel, rather than a 404 -- a 404 means the raster itself doesn't exist
     for that date/parameter.
     """
-    key = _addresser.get_uploaded_index_key(_for_date_to_utc(for_date), parameter)
-    logger.info("Sampling %s raster at (%s, %s) from %s", parameter.value, lat, lon, key)
-
-    raster_bytes = await _load_raster(key)
-    ds = WPSDataset.from_bytes(raster_bytes)
-    with ds:
-        value = ds.extract_value_at_point(lat, lon)
+    value = await _sample_daily_fwi_value(for_date, parameter, lat, lon)
 
     return FWIValueResponse(
         date=for_date.isoformat(),
@@ -220,8 +285,8 @@ async def get_hourly_ffmc_raster(
     GeoTIFF, for the given date and hour (PDT, matching the SFMS upload
     filename convention).
 
-    The raster returned is the actual raster uploaded by the existing/legacy SFMS system run by
-    geospatial, not a WPS-calculated ones.
+    The raster returned is the actual raster uploaded
+    by the existing/legacy SFMS system run by geospatial.
 
     Supports HTTP range requests (a `Range` header returns a 206 partial response).
     """
@@ -248,8 +313,8 @@ async def get_daily_fwi_raster(
     Download the daily FWI actuals raster for the given date and
     parameter (dc, dmc, bui, ffmc, isi, or fwi).
 
-    The raster returned is the actual raster uploaded by the existing/legacy SFMS system run by
-    geospatial.
+    The raster returned is the actual raster uploaded
+    by the existing/legacy SFMS system run by geospatial.
 
     Supports HTTP range requests (a `Range` header returns a 206 partial response).
     """
