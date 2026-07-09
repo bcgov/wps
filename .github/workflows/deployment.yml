@@ -264,22 +264,3 @@ jobs:
           target: "https://wps-pr-${{ github.event.number }}-e1e498-dev.apps.silver.devops.gov.bc.ca"
           rules_file_name: ".zap/rules.tsv"
           cmd_options: "-I"
-
-  deploy-c-haines:
-    name: Deploy c-haines cronjob
-    if: github.triggering_actor != 'renovate'
-    runs-on: ubuntu-24.04
-    needs: [build-image, prepare-dev-database, deploy-dev]
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/oc-setup
-
-      - uses: ./.github/actions/oc-login
-        with:
-          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
-          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
-          oc-namespace: e1e498-dev
-
-      - name: C-Haines Cronjob
-        shell: bash
-        run: bash openshift/scripts/oc_provision_c_haines_cronjob.sh ${SUFFIX} apply

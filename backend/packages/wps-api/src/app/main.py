@@ -21,7 +21,6 @@ from wps_shared.wps_logging import configure_logging
 from app import health, hourlies
 from app.percentile import get_precalculated_percentiles
 from app.routers import (
-    c_haines,
     fba,
     fba_calc,
     fcm,
@@ -129,7 +128,6 @@ api.middleware("http")(catch_exception_middleware)
 
 api.include_router(forecasts.router, tags=["Forecasts"])
 api.include_router(weather_models.router, tags=["Weather Models"])
-api.include_router(c_haines.router, tags=["C Haines"])
 api.include_router(stations.router, tags=["Stations"])
 api.include_router(hfi_calc.router, tags=["HFI"])
 api.include_router(fba_calc.router, tags=["FBA Calc"])
