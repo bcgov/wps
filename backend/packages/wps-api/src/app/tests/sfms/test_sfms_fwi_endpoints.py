@@ -162,7 +162,9 @@ class TestHourlyFFMCRasterDownload:
 
     @pytest.mark.usefixtures("mock_stream_object")
     def test_downloads_hourly_ffmc_raster(self, mock_list_hffmc_uploads):
-        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
+        mock_list_hffmc_uploads(
+            ["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"]
+        )
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert response.status_code == 200
@@ -185,7 +187,9 @@ class TestHourlyFFMCRasterDownload:
         assert response.status_code == 422
 
     def test_uses_hffmc_key_path(self, monkeypatch, mock_list_hffmc_uploads):
-        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
+        mock_list_hffmc_uploads(
+            ["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"]
+        )
         captured_keys = []
 
         async def _capture_key(key, byte_range=None, chunk_size=65536):
@@ -208,8 +212,12 @@ class TestDailyFWIValueAtPoint:
     """Tests for GET /sfms/daily-fwi/{for_date}/{parameter}/value."""
 
     def test_returns_value_at_point(self, monkeypatch):
-        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes"))
-        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5))
+        monkeypatch.setattr(
+            "wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes")
+        )
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5)
+        )
 
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
@@ -221,8 +229,12 @@ class TestDailyFWIValueAtPoint:
         assert data["longitude"] == pytest.approx(-123.0)
 
     def test_returns_null_value_when_outside_raster(self, monkeypatch):
-        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes"))
-        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(None))
+        monkeypatch.setattr(
+            "wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes")
+        )
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(None)
+        )
 
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=0.0&lon=0.0")
@@ -237,6 +249,16 @@ class TestDailyFWIValueAtPoint:
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
         assert response.status_code == 404
+
+    def test_returns_502_on_s3_error(self, monkeypatch):
+        async def _raise_s3_error(self, key):
+            raise ClientError({"Error": {"Code": "InternalError"}}, "GetObject")
+
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _raise_s3_error)
+        client = TestClient(app.sfms_fwi_main.app)
+        response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
+        assert response.status_code == 502
+        assert "InternalError" in response.json()["detail"]
 
     def test_missing_lat_lon_returns_422(self):
         client = TestClient(app.sfms_fwi_main.app)
@@ -256,7 +278,9 @@ class TestDailyFWIValueAtPoint:
             return b"fake-bytes"
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _capture_key)
-        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5))
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5)
+        )
 
         client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/ffmc/value?lat=49.0&lon=-123.0")
@@ -266,13 +290,108 @@ class TestDailyFWIValueAtPoint:
         assert "ffmc20251102.tif" in captured_keys[0]
 
 
+class TestDailyFWIValuesAtPoint:
+    """Tests for GET /sfms/daily-fwi/{for_date}/values (all parameters at once)."""
+
+    def test_returns_all_parameters(self, monkeypatch):
+        monkeypatch.setattr(
+            "wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes")
+        )
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5)
+        )
+
+        client = TestClient(app.sfms_fwi_main.app)
+        response = client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["date"] == "2025-11-02"
+        assert data["latitude"] == pytest.approx(49.0)
+        assert data["longitude"] == pytest.approx(-123.0)
+        for param in ("ffmc", "dmc", "dc", "isi", "bui", "fwi"):
+            assert data[param] == pytest.approx(42.5)
+
+    def test_returns_null_values_when_outside_raster(self, monkeypatch):
+        monkeypatch.setattr(
+            "wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes")
+        )
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(None)
+        )
+
+        client = TestClient(app.sfms_fwi_main.app)
+        response = client.get(f"{BASE_URL}/2025-11-02/values?lat=0.0&lon=0.0")
+        assert response.status_code == 200
+        data = response.json()
+        for param in ("ffmc", "dmc", "dc", "isi", "bui", "fwi"):
+            assert data[param] is None
+
+    def test_returns_404_when_raster_missing(self, monkeypatch):
+        async def _raise_not_found(self, key):
+            raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
+
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _raise_not_found)
+        client = TestClient(app.sfms_fwi_main.app)
+        response = client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0")
+        assert response.status_code == 404
+
+    @pytest.mark.parametrize("missing_param", ("dc", "dmc", "bui", "ffmc", "isi", "fwi"))
+    def test_returns_404_when_single_raster_missing(self, monkeypatch, missing_param):
+        """All-or-nothing: any one missing parameter raster 404s the whole request
+        rather than returning the other five values with one null."""
+
+        async def _raise_for_missing(self, key):
+            if f"{missing_param}20251102.tif" in key:
+                raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
+            return b"fake-bytes"
+
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _raise_for_missing)
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5)
+        )
+
+        client = TestClient(app.sfms_fwi_main.app)
+        response = client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0")
+        assert response.status_code == 404
+
+    def test_missing_lat_lon_returns_422(self):
+        client = TestClient(app.sfms_fwi_main.app)
+        response = client.get(f"{BASE_URL}/2025-11-02/values")
+        assert response.status_code == 422
+
+    def test_samples_all_six_uploaded_actual_keys(self, monkeypatch):
+        captured_keys = []
+
+        async def _capture_key(self, key):
+            captured_keys.append(key)
+            return b"fake-bytes"
+
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _capture_key)
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(1.0)
+        )
+
+        client = TestClient(app.sfms_fwi_main.app)
+        client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0")
+        assert len(captured_keys) == 6
+        assert all("sfms/uploads" in key and "actual" in key for key in captured_keys)
+        for param in ("dc", "dmc", "bui", "ffmc", "isi", "fwi"):
+            assert any(f"{param}20251102.tif" in key for key in captured_keys)
+
+
 class TestHourlyFFMCValueAtPoint:
     """Tests for GET /sfms/daily-fwi/{for_date}/hffmc/value."""
 
     def test_returns_value_at_point(self, monkeypatch, mock_list_hffmc_uploads):
-        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
-        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes"))
-        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3))
+        mock_list_hffmc_uploads(
+            ["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"]
+        )
+        monkeypatch.setattr(
+            "wps_shared.utils.s3_client.S3Client.read_object", AsyncMock(return_value=b"fake-bytes")
+        )
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3)
+        )
 
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
@@ -295,7 +414,9 @@ class TestHourlyFFMCValueAtPoint:
         assert response.status_code == 404
 
     def test_uses_uploaded_hffmc_key(self, monkeypatch, mock_list_hffmc_uploads):
-        mock_list_hffmc_uploads(["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"])
+        mock_list_hffmc_uploads(
+            ["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"]
+        )
         captured_keys = []
 
         async def _capture_key(self, key):
@@ -303,7 +424,9 @@ class TestHourlyFFMCValueAtPoint:
             return b"fake-bytes"
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _capture_key)
-        monkeypatch.setattr("app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3))
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3)
+        )
 
         client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
