@@ -7,10 +7,8 @@ const PercentileCalculatorPageWithDisclaimer = lazy(
   () => import('features/percentileCalculator/pages/PercentileCalculatorPageWithDisclaimer')
 )
 const HfiCalculatorPage = lazy(() => import('features/hfiCalculator/pages/HfiCalculatorPage'))
-const CHainesPage = lazy(() => import('features/cHaines/pages/CHainesPage'))
 
 import {
-  C_HAINES_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
   FIRE_WATCH_ROUTE,
@@ -63,14 +61,6 @@ const WPSRoutes: React.FunctionComponent = () => {
               <AuthWrapper>
                 <HfiCalculatorPage />
               </AuthWrapper>
-            }
-          />
-          <Route
-            path={C_HAINES_ROUTE}
-            element={
-              <React.StrictMode>
-                <CHainesPage />
-              </React.StrictMode>
             }
           />
           <Route

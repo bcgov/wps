@@ -25,7 +25,6 @@ graph LR
         redis["REDIS</br>[Software System]"]
 
         subgraph Openshift Cronjobs
-            c-haines["C-Haines</br>[Container: Python]</br>Periodically fetch weather data, process and store relevant subset."]
             env-canada["Env. Canada Weather</br>[Container: Python]</br> Periodically fetch weather data, process and store relevant subset."]
             backup["Backup process</br>[Container: Python]"]
         end
@@ -36,7 +35,7 @@ graph LR
     end
 
     subgraph "S3 Compliant, OCIO Object Storage Service"
-        s3[("Object Storage</br>[Container: S3 Compliant]</br>C-Haines, SFMS, Backups etc.")]
+        s3[("Object Storage</br>[Container: S3 Compliant]</br>SFMS, Backups etc.")]
     end
 
     subgraph WildfireServers
@@ -57,9 +56,6 @@ graph LR
     FrontEnd-.->|"Uses</br>[HTTPS]"|pg_tileserv
     FrontEnd-. "Authenticate</br>[HTTPS]" .->sso
     FrontEnd-. "Read</br>[HTTPS]" .->s3
-    c-haines-. "[S3/HTTPS]" .->s3
-    c-haines-. "Cache Env. Canada GRIB files" .->redis
-    c-haines-. "Download files</br>[GRIB2/HTTPS]" .->datamart
     env-canada-. "Store weather data</br>[psycopg]" .->Database
     env-canada-. "Cache Env. Canada GRIB files" .->redis
     env-canada-. "Download files</br>[GRIB2/HTTPS]" .->datamart

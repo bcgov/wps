@@ -40,7 +40,7 @@ FILENAME="dump_db.tar"
 # --clean clean (drop) database objects before recreating
 # -Fc output file format (custom, directory, tar, plain text (default))
 # --exclude-table-data get the table definitions, but not the data
-PG_DUMP="pg_dump --file=/tmp/${FILENAME} --clean -Fc ${DATABASE} --exclude-table-data=model_run_grid_subset_predictions --exclude-table-data=weather_station_model_predictions --exclude-table-data=c_haines_polygons"
+PG_DUMP="pg_dump --file=/tmp/${FILENAME} --clean -Fc ${DATABASE} --exclude-table-data=model_run_grid_subset_predictions --exclude-table-data=weather_station_model_predictions"
 # command to dump database on pod.
 BACKUP_COMMAND="${RSH} ${PG_DUMP}"
 

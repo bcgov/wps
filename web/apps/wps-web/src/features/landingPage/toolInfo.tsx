@@ -4,7 +4,6 @@ import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
 import InsightsIcon from '@mui/icons-material/Insights'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
-import PublicIcon from '@mui/icons-material/Public'
 import WatchIcon from '@mui/icons-material/Watch'
 import WhatshotIcon from '@mui/icons-material/Whatshot'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
@@ -12,8 +11,6 @@ import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
 import {
-  C_HAINES_NAME,
-  C_HAINES_ROUTE,
   FBP_GO_NAME,
   FBP_GO_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
@@ -64,19 +61,6 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
     </Typography>
   ),
   icon: <LocalFireDepartmentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
-}
-
-export const cHainesInfo: ToolInfo = {
-  name: C_HAINES_NAME,
-  route: C_HAINES_ROUTE,
-  description: (
-    <Typography>
-      A provincial map that animates forecasted atmospheric stability and potential for pyro-convection in the form of
-      the Continuous Haines Index.
-    </Typography>
-  ),
-  icon: <PublicIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: false
 }
 
@@ -217,6 +201,5 @@ export const toolInfos = [
   fireWatchInfo,
   sfmsInsightsInfo,
   percentileCalcInfo,
-  cHainesInfo,
   weatherToolkitInfo
 ]
