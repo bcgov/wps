@@ -168,7 +168,7 @@ jobs:
     needs: [build-image, prepare-dev-database]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
 
       - uses: ./.github/actions/oc-login
@@ -193,7 +193,7 @@ jobs:
     needs: [build-image, prepare-dev-database]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
 
       - uses: ./.github/actions/oc-login
@@ -218,7 +218,7 @@ jobs:
     needs: [deploy-asa-go-dev, deploy-sfms-fwi-dev]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/gwa-setup
 
       - name: Render and publish ASA Go APS gateway config
