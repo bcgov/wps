@@ -323,95 +323,42 @@ def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
     assert noaa_instance.exception_count == 2
 
 
-# How a finished run is judged, over every combination of the three counters it is judged on.
-#
-# NoFilesProcessed            -> warning to chatops, exits EX_OK (an outage at NOAA).
-# CompletedWithSomeExceptions -> exits EX_SOFTWARE (something we can act on).
-# None                        -> no raise, exits EX_OK (success, or nothing new to do).
-#
-# The rule the corner cases turn on: a real exception always beats an outage, because
-# NoFilesProcessed is excused as "the retries will get it" and a genuine bug must not be.
-EXIT_DECISION_CASES = [
-    # files_processed, connection_errors, exceptions, expected
-    (10, 0, 0, None),  # clean run
-    (0, 0, 0, None),  # nothing new to do: everything already processed, or not published yet
-    (10, 5, 0, None),  # partial outage, but we still got files: retries pick up the rest
-    (0, 5, 0, NoFilesProcessed),  # total outage, nothing else wrong
-    (0, 5, 3, CompletedWithSomeExceptions),  # outage AND a real bug: the bug wins
-    (0, 0, 3, CompletedWithSomeExceptions),  # nothing processed, purely our own fault
-    (10, 0, 3, CompletedWithSomeExceptions),  # partial success with real exceptions
-    (10, 5, 3, CompletedWithSomeExceptions),  # everything at once: still a real failure
-]
+# The verdict rules themselves live on the shared runner and are tested in
+# test_model_job_runner.py. All this job has to get right is the wiring.
 
 
-# What main() does about each verdict process_models() can reach.
-#
-# raised_by_process_models, exit_code, chatops_severity (None = no notification at all)
-MAIN_OUTCOME_CASES = [
-    # A clean run: succeed quietly.
-    (None, os.EX_OK, None),
-    # An outage at NOAA: tell us, but don't fail the job - the hourly retries recover it.
-    (NoFilesProcessed("no files processed"), os.EX_OK, "warning"),
-    # Real exceptions on some URLs: fail the job. Deliberately no chatops (pre-existing).
-    (CompletedWithSomeExceptions(), os.EX_SOFTWARE, None),
-    # Anything we didn't see coming: fail loudly.
-    (ValueError("boom"), os.EX_SOFTWARE, "critical"),
-]
-
-
-@pytest.mark.parametrize("raised,exit_code,severity", MAIN_OUTCOME_CASES)
-def test_main_outcomes(raised, exit_code, severity, mocker, monkeypatch):
-    """Pin the exit code and chatops severity main() produces for every verdict."""
-    monkeypatch.setattr(sys, "argv", ["argv", "GFS"])
-    monkeypatch.setattr(noaa, "apply_data_retention_policy", MagicMock())
-
-    def process_models():
-        if raised is not None:
-            raise raised
-
-    monkeypatch.setattr(noaa, "process_models", process_models)
-    chatops_spy = mocker.patch.object(noaa, "send_chatops_notification")
-
-    with pytest.raises(SystemExit) as excinfo:
-        noaa.main()
-
-    assert excinfo.value.code == exit_code
-
-    if severity is None:
-        chatops_spy.assert_not_called()
-    else:
-        chatops_spy.assert_called_once()
-        # severity is only passed explicitly for the outage path; otherwise it defaults.
-        assert chatops_spy.call_args.kwargs.get("severity", "critical") == severity
-        # The message must name the model - it used to be a broken f-string that
-        # posted the literal text "{sys.argv[1]}" to chatops.
-        assert "GFS" in chatops_spy.call_args.args[0]
-
-
-@pytest.mark.parametrize(
-    "files_processed,connection_errors,exceptions,expected", EXIT_DECISION_CASES
-)
-def test_process_models_exit_decision(
-    files_processed, connection_errors, exceptions, expected, monkeypatch
-):
-    """Pin how process_models() judges a finished run, for every counter combination."""
+def test_process_models_delegates_the_verdict_to_judge_run(monkeypatch: pytest.MonkeyPatch):
+    """process_models() must hand its counters to judge_run and return the result."""
     monkeypatch.setattr("wps_shared.db.database.get_write_session_scope", MagicMock())
     monkeypatch.setattr(noaa, "ModelValueProcessor", MagicMock())
     monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock())
 
     def finished_run(self):
-        self.files_processed = files_processed
-        self.connection_error_count = connection_errors
-        self.exception_count = exceptions
+        self.files_processed = 7
+        self.connection_error_count = 2
+        self.exception_count = 0
 
     monkeypatch.setattr(noaa.NOAA, "process", finished_run)
+    judge_run = MagicMock(return_value=7)
+    monkeypatch.setattr(noaa, "judge_run", judge_run)
     monkeypatch.setattr(sys, "argv", ["argv", "GFS"])
 
-    if expected is None:
-        assert noaa.process_models() == files_processed
-    else:
-        with pytest.raises(expected):
-            noaa.process_models()
+    assert noaa.process_models() == 7
+
+    job = judge_run.call_args.args[0]
+    assert (job.files_processed, job.connection_error_count, job.exception_count) == (7, 2, 0)
+    assert judge_run.call_args.kwargs == {"source": "NOAA", "model": "GFS"}
+
+
+def test_main_delegates_to_the_shared_runner(monkeypatch: pytest.MonkeyPatch):
+    """main() must hand process_models to the runner, tagged with this job's source."""
+    run_model_job = MagicMock()
+    monkeypatch.setattr(noaa, "run_model_job", run_model_job)
+    monkeypatch.setattr(sys, "argv", ["argv", "GFS"])
+
+    noaa.main()
+
+    run_model_job.assert_called_once_with(noaa.process_models, source="NOAA", model="GFS")
 
 
 def test_process_model_run_urls_connection_error_increments_connection_count(monkeypatch):
