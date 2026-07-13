@@ -399,10 +399,13 @@ def main():
         process_models()
         apply_data_retention_policy()
     except NoFilesProcessed as exc:
+        # An outage on both HPFX and DD isn't something we can act on, and the hourly
+        # retries pick up whatever we missed. Notify at warning severity and exit
+        # cleanly so it doesn't surface as a failed job.
         logger.warning("%s", exc)
         rc_message = f":warning: No files processed for {sys.argv[1]} model data from Env Canada — hourly retries will attempt recovery"
-        send_chatops_notification(rc_message, exc)
-        sys.exit(os.EX_SOFTWARE)
+        send_chatops_notification(rc_message, exc, severity="warning")
+        sys.exit(os.EX_OK)
     except CompletedWithSomeExceptions:
         logger.warning("completed processing with some exceptions")
         sys.exit(os.EX_SOFTWARE)

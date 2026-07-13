@@ -17,8 +17,14 @@ logger = logging.getLogger(__name__)
 webhook_max_char_len = 2000
 
 
-def send_chatops_notification(text: str, exc_info: Exception) -> str | None:
+def send_chatops_notification(
+    text: str, exc_info: Exception, severity: str = "critical"
+) -> str | None:
     """Sends message with specified text to configured chatops webhook.
+
+    Use a severity of "warning" for conditions we expect and recover from on our own
+    (e.g. an upstream outage that the next scheduled run will pick up), and leave it at
+    "critical" for anything that needs someone to look at it now.
 
     We don't want this method to raise any exceptions, as we don't want to
     unintentionally break any kind of error management flow. (We only use
@@ -48,7 +54,7 @@ def send_chatops_notification(text: str, exc_info: Exception) -> str | None:
             },
             json={
                 "title": config.get("HOSTNAME"),
-                "severity": "critical",
+                "severity": severity,
                 "body": full_message,
                 "url": pod_logs_url,
                 "urlLabel": "View Logs",
