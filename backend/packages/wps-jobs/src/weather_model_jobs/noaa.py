@@ -431,7 +431,13 @@ def process_models():
             "%d connection error(s) during run (hourly retries will catch missed files)",
             noaa.connection_error_count,
         )
-    if noaa.files_processed == 0 and noaa.connection_error_count > 0:
+    # Only an outage if nothing else went wrong. A real exception in the mix means the job
+    # failed for a reason we can act on, and must not be excused as an upstream outage.
+    if (
+        noaa.files_processed == 0
+        and noaa.connection_error_count > 0
+        and noaa.exception_count == 0
+    ):
         raise NoFilesProcessed(f"no files processed for {sys.argv[1]} — possible outage at NOAA")
     # check if we encountered any exceptions.
     if noaa.exception_count > 0:

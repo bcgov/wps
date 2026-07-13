@@ -388,7 +388,13 @@ def process_models():
     )
     if env_canada.connection_error_count > 0:
         logger.warning("%d connection error(s) during run (hourly retries will catch missed files)", env_canada.connection_error_count)
-    if env_canada.files_processed == 0 and env_canada.connection_error_count > 0:
+    # Only an outage if nothing else went wrong. A real exception in the mix means the job
+    # failed for a reason we can act on, and must not be excused as an upstream outage.
+    if (
+        env_canada.files_processed == 0
+        and env_canada.connection_error_count > 0
+        and env_canada.exception_count == 0
+    ):
         raise NoFilesProcessed(f"no files processed for {sys.argv[1]} — possible outage on HPFX and DD")
     if env_canada.exception_count > 0:
         raise CompletedWithSomeExceptions()

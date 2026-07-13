@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
@@ -23,7 +24,11 @@ from wps_shared.db.models.weather_models import (
     PredictionModelRunTimestamp,
     ProcessedModelRunUrl,
 )
-from wps_shared.weather_models import ModelEnum
+from wps_shared.weather_models import (
+    CompletedWithSomeExceptions,
+    ModelEnum,
+    NoFilesProcessed,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +312,53 @@ def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
     noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
 
     assert noaa_instance.exception_count == 2
+
+
+# How a finished run is judged, over every combination of the three counters it is judged on.
+#
+# NoFilesProcessed            -> warning to chatops, exits EX_OK (an outage at NOAA).
+# CompletedWithSomeExceptions -> exits EX_SOFTWARE (something we can act on).
+# None                        -> no raise, exits EX_OK (success, or nothing new to do).
+#
+# The rule the corner cases turn on: a real exception always beats an outage, because
+# NoFilesProcessed is excused as "the retries will get it" and a genuine bug must not be.
+EXIT_DECISION_CASES = [
+    # files_processed, connection_errors, exceptions, expected
+    (10, 0, 0, None),  # clean run
+    (0, 0, 0, None),  # nothing new to do: everything already processed, or not published yet
+    (10, 5, 0, None),  # partial outage, but we still got files: retries pick up the rest
+    (0, 5, 0, NoFilesProcessed),  # total outage, nothing else wrong
+    (0, 5, 3, CompletedWithSomeExceptions),  # outage AND a real bug: the bug wins
+    (0, 0, 3, CompletedWithSomeExceptions),  # nothing processed, purely our own fault
+    (10, 0, 3, CompletedWithSomeExceptions),  # partial success with real exceptions
+    (10, 5, 3, CompletedWithSomeExceptions),  # everything at once: still a real failure
+]
+
+
+@pytest.mark.parametrize(
+    "files_processed,connection_errors,exceptions,expected", EXIT_DECISION_CASES
+)
+def test_process_models_exit_decision(
+    files_processed, connection_errors, exceptions, expected, monkeypatch
+):
+    """Pin how process_models() judges a finished run, for every counter combination."""
+    monkeypatch.setattr("wps_shared.db.database.get_write_session_scope", MagicMock())
+    monkeypatch.setattr(noaa, "ModelValueProcessor", MagicMock())
+    monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock())
+
+    def finished_run(self):
+        self.files_processed = files_processed
+        self.connection_error_count = connection_errors
+        self.exception_count = exceptions
+
+    monkeypatch.setattr(noaa.NOAA, "process", finished_run)
+    monkeypatch.setattr(sys, "argv", ["argv", "GFS"])
+
+    if expected is None:
+        assert noaa.process_models() == files_processed
+    else:
+        with pytest.raises(expected):
+            noaa.process_models()
 
 
 def test_process_model_run_urls_connection_error_increments_connection_count(monkeypatch):
