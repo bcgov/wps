@@ -344,6 +344,50 @@ EXIT_DECISION_CASES = [
 ]
 
 
+# What main() does about each verdict process_models() can reach.
+#
+# raised_by_process_models, exit_code, chatops_severity (None = no notification at all)
+MAIN_OUTCOME_CASES = [
+    # A clean run: succeed quietly.
+    (None, os.EX_OK, None),
+    # An outage at NOAA: tell us, but don't fail the job - the hourly retries recover it.
+    (NoFilesProcessed("no files processed"), os.EX_OK, "warning"),
+    # Real exceptions on some URLs: fail the job. Deliberately no chatops (pre-existing).
+    (CompletedWithSomeExceptions(), os.EX_SOFTWARE, None),
+    # Anything we didn't see coming: fail loudly.
+    (ValueError("boom"), os.EX_SOFTWARE, "critical"),
+]
+
+
+@pytest.mark.parametrize("raised,exit_code,severity", MAIN_OUTCOME_CASES)
+def test_main_outcomes(raised, exit_code, severity, mocker, monkeypatch):
+    """Pin the exit code and chatops severity main() produces for every verdict."""
+    monkeypatch.setattr(sys, "argv", ["argv", "GFS"])
+    monkeypatch.setattr(noaa, "apply_data_retention_policy", MagicMock())
+
+    def process_models():
+        if raised is not None:
+            raise raised
+
+    monkeypatch.setattr(noaa, "process_models", process_models)
+    chatops_spy = mocker.patch.object(noaa, "send_chatops_notification")
+
+    with pytest.raises(SystemExit) as excinfo:
+        noaa.main()
+
+    assert excinfo.value.code == exit_code
+
+    if severity is None:
+        chatops_spy.assert_not_called()
+    else:
+        chatops_spy.assert_called_once()
+        # severity is only passed explicitly for the outage path; otherwise it defaults.
+        assert chatops_spy.call_args.kwargs.get("severity", "critical") == severity
+        # The message must name the model - it used to be a broken f-string that
+        # posted the literal text "{sys.argv[1]}" to chatops.
+        assert "GFS" in chatops_spy.call_args.args[0]
+
+
 @pytest.mark.parametrize(
     "files_processed,connection_errors,exceptions,expected", EXIT_DECISION_CASES
 )

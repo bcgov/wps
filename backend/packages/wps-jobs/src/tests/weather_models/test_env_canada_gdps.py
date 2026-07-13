@@ -254,6 +254,48 @@ EXIT_DECISION_CASES = [
 ]
 
 
+# What main() does about each verdict process_models() can reach.
+#
+# raised_by_process_models, exit_code, chatops_severity (None = no notification at all)
+MAIN_OUTCOME_CASES = [
+    # A clean run: succeed quietly.
+    (None, os.EX_OK, None),
+    # An outage on HPFX and DD: tell us, but don't fail the job - hourly retries recover it.
+    (NoFilesProcessed("no files processed"), os.EX_OK, "warning"),
+    # Real exceptions on some URLs: fail the job. Deliberately no chatops (pre-existing).
+    (CompletedWithSomeExceptions(), os.EX_SOFTWARE, None),
+    # Anything we didn't see coming: fail loudly.
+    (ValueError("boom"), os.EX_SOFTWARE, "critical"),
+]
+
+
+@pytest.mark.parametrize("raised,exit_code,severity", MAIN_OUTCOME_CASES)
+def test_main_outcomes(raised, exit_code, severity, mocker, monkeypatch: pytest.MonkeyPatch):
+    """Pin the exit code and chatops severity main() produces for every verdict."""
+    monkeypatch.setattr(sys, "argv", ["argv", "GDPS"])
+    monkeypatch.setattr(env_canada, "apply_data_retention_policy", MagicMock())
+
+    def process_models():
+        if raised is not None:
+            raise raised
+
+    monkeypatch.setattr(env_canada, "process_models", process_models)
+    chatops_spy = mocker.patch.object(env_canada, "send_chatops_notification")
+
+    with pytest.raises(SystemExit) as excinfo:
+        env_canada.main()
+
+    assert excinfo.value.code == exit_code
+
+    if severity is None:
+        chatops_spy.assert_not_called()
+    else:
+        chatops_spy.assert_called_once()
+        # severity is only passed explicitly for the outage path; otherwise it defaults.
+        assert chatops_spy.call_args.kwargs.get("severity", "critical") == severity
+        assert "GDPS" in chatops_spy.call_args.args[0]
+
+
 @pytest.mark.parametrize(
     "files_processed,connection_errors,exceptions,expected", EXIT_DECISION_CASES
 )
