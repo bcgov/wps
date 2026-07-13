@@ -251,6 +251,15 @@ def _make_noaa(monkeypatch, model_type=ModelEnum.GFS):
     return noaa.NOAA(MagicMock(), model_type)
 
 
+def _raise(exception):
+    """Return a process_url stand-in that always raises *exception*."""
+
+    def process_url(url):
+        raise exception
+
+    return process_url
+
+
 def test_process_model_run_urls_403_is_warned_not_raised(monkeypatch):
     """403 HTTPError should be logged as a warning and not increment exception_count."""
     noaa_instance = _make_noaa(monkeypatch)
@@ -258,7 +267,7 @@ def test_process_model_run_urls_403_is_warned_not_raised(monkeypatch):
     mock_response.status_code = 403
     http_error = HTTPError(response=mock_response)
 
-    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+    monkeypatch.setattr(noaa_instance, "process_url", _raise(http_error))
 
     noaa_instance.process_model_run_urls(["https://example.com/grib1"])
 
@@ -272,7 +281,7 @@ def test_process_model_run_urls_404_is_warned_not_raised(monkeypatch):
     mock_response.status_code = 404
     http_error = HTTPError(response=mock_response)
 
-    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+    monkeypatch.setattr(noaa_instance, "process_url", _raise(http_error))
 
     noaa_instance.process_model_run_urls(["https://example.com/grib1"])
 
@@ -286,7 +295,7 @@ def test_process_model_run_urls_500_http_error_is_reraised(monkeypatch):
     mock_response.status_code = 500
     http_error = HTTPError(response=mock_response)
 
-    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+    monkeypatch.setattr(noaa_instance, "process_url", _raise(http_error))
 
     with pytest.raises(HTTPError):
         noaa_instance.process_model_run_urls(["https://example.com/grib1"])
@@ -297,7 +306,7 @@ def test_process_model_run_urls_http_error_without_response_is_reraised(monkeypa
     noaa_instance = _make_noaa(monkeypatch)
     http_error = HTTPError(response=None)
 
-    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(http_error))
+    monkeypatch.setattr(noaa_instance, "process_url", _raise(http_error))
 
     with pytest.raises(HTTPError):
         noaa_instance.process_model_run_urls(["https://example.com/grib1"])
@@ -307,7 +316,7 @@ def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
     """Non-HTTP exceptions should increment exception_count for each URL and not raise."""
     noaa_instance = _make_noaa(monkeypatch)
 
-    monkeypatch.setattr(noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(ValueError("boom")))
+    monkeypatch.setattr(noaa_instance, "process_url", _raise(ValueError("boom")))
 
     noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
 
@@ -365,11 +374,7 @@ def test_process_model_run_urls_connection_error_increments_connection_count(mon
     """A NOMADS outage is not a bug on our side: it must not land in exception_count."""
     noaa_instance = _make_noaa(monkeypatch)
 
-    monkeypatch.setattr(
-        noaa_instance,
-        "process_url",
-        lambda url: (_ for _ in ()).throw(requests.ConnectionError()),
-    )
+    monkeypatch.setattr(noaa_instance, "process_url", _raise(requests.ConnectionError()))
 
     noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
 
@@ -381,9 +386,7 @@ def test_process_model_run_urls_timeout_increments_connection_count(monkeypatch)
     """Timeouts are the other half of an outage and are counted the same way."""
     noaa_instance = _make_noaa(monkeypatch)
 
-    monkeypatch.setattr(
-        noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(requests.Timeout())
-    )
+    monkeypatch.setattr(noaa_instance, "process_url", _raise(requests.Timeout()))
 
     noaa_instance.process_model_run_urls(["https://example.com/grib1"])
 
