@@ -255,7 +255,7 @@ def test_viirs_snow_job_fail(mocker: MockerFixture, monkeypatch: pytest.MonkeyPa
         raise OSError("Error")
 
     monkeypatch.setattr(ViirsSnowJob, "_get_last_processed_date", mock__get_last_processed_date)
-    rocket_chat_spy = mocker.spy(viirs_snow, "send_chatops_notification")
+    chatops_spy = mocker.spy(viirs_snow, "send_chatops_notification")
     # mock sys.argv with a random path, otherwise argparser will pickup the sys.argv args from pytest
     mocker.patch("sys.argv", ["/test"])
 
@@ -264,7 +264,7 @@ def test_viirs_snow_job_fail(mocker: MockerFixture, monkeypatch: pytest.MonkeyPa
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
-    assert rocket_chat_spy.call_count == 1
+    assert chatops_spy.call_count == 1
 
 
 def test_viirs_snow_job_exits_without_error_when_no_work_required(
@@ -333,11 +333,11 @@ def test_viirs_snow_job_fails_on_earthdata_access_auth_failure(
     # mock sys.argv with a random path, otherwise argparser will pickup the sys.argv args from pytest
     mocker.patch("sys.argv", ["/test"])
 
-    rocket_chat_spy = mocker.spy(viirs_snow, "send_chatops_notification")
+    chatops_spy = mocker.spy(viirs_snow, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
         viirs_snow.main()
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
-    assert rocket_chat_spy.call_count == 1
+    assert chatops_spy.call_count == 1

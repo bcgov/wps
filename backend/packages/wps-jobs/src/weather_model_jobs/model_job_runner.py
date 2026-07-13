@@ -72,11 +72,11 @@ def run_model_job(process_models: Callable[[], int], source: str, model: str):
         # whatever we missed. Notify at warning severity and exit cleanly so it doesn't
         # surface as a failed job.
         logger.warning("%s", exc)
-        rc_message = (
+        chatops_message = (
             f":warning: No files processed for {model} model data from {source} "
             "— hourly retries will attempt recovery"
         )
-        send_chatops_notification(rc_message, exc, severity="warning")
+        send_chatops_notification(chatops_message, exc, severity="warning")
         sys.exit(os.EX_OK)
     except CompletedWithSomeExceptions:
         logger.warning("completed processing with some exceptions")
@@ -84,8 +84,8 @@ def run_model_job(process_models: Callable[[], int], source: str, model: str):
     except Exception as exception:
         # We catch and log any exceptions we may have missed.
         logger.exception("unexpected exception processing")
-        rc_message = f":poop: Encountered error retrieving {model} model data from {source}"
-        send_chatops_notification(rc_message, exception)
+        chatops_message = f":poop: Encountered error retrieving {model} model data from {source}"
+        send_chatops_notification(chatops_message, exception)
         sys.exit(os.EX_SOFTWARE)
     # We assume success if we get to this point.
     sys.exit(os.EX_OK)

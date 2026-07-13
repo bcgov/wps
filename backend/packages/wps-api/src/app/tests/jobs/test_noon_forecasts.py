@@ -38,11 +38,11 @@ def test_noon_forecasts_bot_fail(mocker: MockerFixture, monkeypatch, mock_wfwx_a
     """
 
     mock_wfwx_api.get_noon_forecasts_all_stations = mocker.AsyncMock(side_effect=Exception())
-    rocket_chat_spy = mocker.spy(noon_forecasts, "send_chatops_notification")
+    chatops_spy = mocker.spy(noon_forecasts, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
         noon_forecasts.main()
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
-    assert rocket_chat_spy.call_count == 1
+    assert chatops_spy.call_count == 1

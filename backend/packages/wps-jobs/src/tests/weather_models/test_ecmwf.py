@@ -283,7 +283,7 @@ def test_main_success(mocker: MockerFixture, monkeypatch):
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
     mocker.patch.object(weather_model_jobs.ecmwf, "exit_process", side_effect=raise_system_exit)
-    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
+    chatops_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
         weather_model_jobs.ecmwf.main()
@@ -291,7 +291,7 @@ def test_main_success(mocker: MockerFixture, monkeypatch):
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_OK
     # Assert that rocket chat was called.
-    assert rocket_chat_spy.call_count == 0
+    assert chatops_spy.call_count == 0
 
 
 def test_main_fail(mocker: MockerFixture, monkeypatch):
@@ -300,7 +300,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     def mock_process_models():
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
+    chatops_spy = mocker.spy(weather_model_jobs.ecmwf, "send_chatops_notification")
     monkeypatch.setattr(weather_model_jobs.ecmwf, "process_models", mock_process_models)
     mocker.patch.object(weather_model_jobs.ecmwf, "exit_process", side_effect=raise_system_exit)
 
@@ -310,7 +310,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
-    assert rocket_chat_spy.call_count == 1
+    assert chatops_spy.call_count == 1
 
 
 @pytest.mark.anyio

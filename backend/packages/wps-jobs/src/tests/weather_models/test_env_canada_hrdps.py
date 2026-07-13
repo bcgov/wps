@@ -155,7 +155,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
         raise Exception()
 
     # chatops now lives on the shared runner, which is what env_canada.main() delegates to.
-    rocket_chat_spy = mocker.patch.object(model_job_runner, "send_chatops_notification")
+    chatops_spy = mocker.patch.object(model_job_runner, "send_chatops_notification")
     monkeypatch.setattr(weather_model_jobs.env_canada, "process_models", mock_process_models)
 
     with pytest.raises(SystemExit) as excinfo:
@@ -164,7 +164,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
-    assert rocket_chat_spy.call_count == 1
+    assert chatops_spy.call_count == 1
 
 
 def test_parse_high_res_model_url_correct_format():
