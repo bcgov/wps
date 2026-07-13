@@ -309,6 +309,36 @@ def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
     assert noaa_instance.exception_count == 2
 
 
+def test_process_model_run_urls_connection_error_increments_connection_count(monkeypatch):
+    """A NOMADS outage is not a bug on our side: it must not land in exception_count."""
+    noaa_instance = _make_noaa(monkeypatch)
+
+    monkeypatch.setattr(
+        noaa_instance,
+        "process_url",
+        lambda url: (_ for _ in ()).throw(requests.ConnectionError()),
+    )
+
+    noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
+
+    assert noaa_instance.connection_error_count == 2
+    assert noaa_instance.exception_count == 0
+
+
+def test_process_model_run_urls_timeout_increments_connection_count(monkeypatch):
+    """Timeouts are the other half of an outage and are counted the same way."""
+    noaa_instance = _make_noaa(monkeypatch)
+
+    monkeypatch.setattr(
+        noaa_instance, "process_url", lambda url: (_ for _ in ()).throw(requests.Timeout())
+    )
+
+    noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+
+    assert noaa_instance.connection_error_count == 1
+    assert noaa_instance.exception_count == 0
+
+
 def test_process_model_run_urls_403_does_not_stop_remaining_urls(monkeypatch):
     """A 403 on one URL should not prevent subsequent URLs from being processed."""
     noaa_instance = _make_noaa(monkeypatch)

@@ -9,6 +9,7 @@ from typing import Generator
 from urllib.parse import parse_qs, urlsplit
 from zoneinfo import ZoneInfo
 
+import requests
 import wps_shared.db.database
 import wps_shared.utils.time as time_utils
 from requests import HTTPError
@@ -33,6 +34,7 @@ from wps_shared.db.crud.weather_models import (
 from wps_shared.weather_models import (
     CompletedWithSomeExceptions,
     ModelEnum,
+    NoFilesProcessed,
     ProjectionEnum,
     download,
 )
@@ -278,6 +280,7 @@ class NOAA:
         self.files_downloaded = 0
         self.files_processed = 0
         self.exception_count = 0
+        self.connection_error_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor()
@@ -340,6 +343,11 @@ class NOAA:
                     )
                 else:
                     raise http_error
+            except (requests.ConnectionError, requests.Timeout) as exc:
+                # NOMADS being unreachable isn't a bug on our side - track it separately from
+                # real exceptions so a NOMADS outage doesn't look like broken code.
+                self.connection_error_count += 1
+                logger.warning("Connection error for %s: %s", url, exc)
             except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
@@ -418,6 +426,13 @@ def process_models():
         seconds,
         execution_time,
     )
+    if noaa.connection_error_count > 0:
+        logger.warning(
+            "%d connection error(s) during run (hourly retries will catch missed files)",
+            noaa.connection_error_count,
+        )
+    if noaa.files_processed == 0 and noaa.connection_error_count > 0:
+        raise NoFilesProcessed(f"no files processed for {sys.argv[1]} — possible outage at NOAA")
     # check if we encountered any exceptions.
     if noaa.exception_count > 0:
         # if there were any exceptions, return a non-zero status.
@@ -430,13 +445,21 @@ def main():
     try:
         process_models()
         apply_data_retention_policy()
+    except NoFilesProcessed as exc:
+        # An outage at NOAA isn't something we can act on, and the hourly retries pick up
+        # whatever we missed. Notify at warning severity and exit cleanly so it doesn't
+        # surface as a failed job.
+        logger.warning("%s", exc)
+        rc_message = f":warning: No files processed for {sys.argv[1]} model data from NOAA — hourly retries will attempt recovery"
+        send_chatops_notification(rc_message, exc, severity="warning")
+        sys.exit(os.EX_OK)
     except CompletedWithSomeExceptions:
         logger.warning("completed processing with some exceptions")
         sys.exit(os.EX_SOFTWARE)
     except Exception as exception:
         # We catch and log any exceptions we may have missed.
         logger.exception("unexpected exception processing")
-        rc_message = ":poop: Encountered error retrieving {sys.argv[1]} model data from NOAA"
+        rc_message = f":poop: Encountered error retrieving {sys.argv[1]} model data from NOAA"
         send_chatops_notification(rc_message, exception)
         # Exit with a failure code.
         sys.exit(os.EX_SOFTWARE)
