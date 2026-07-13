@@ -113,3 +113,32 @@ class TestGet:
         session.get.return_value = _resp(200)
         ECCCUrlFetcher(NOW, MODEL_RUN_HOUR, session=session).get(DD_URL)
         session.get.assert_called_once()
+
+
+class TestConnectionSummary:
+    def _fetcher_with_responses(self, responses) -> ECCCUrlFetcher:
+        f = _fetcher()
+        f._session = MagicMock()
+        f._session.get.side_effect = responses
+        return f
+
+    def test_summarises_a_host_that_failed_every_attempt(self, caplog):
+        """The case from the outage: hpfx unreachable, dd serving 404s."""
+        f = self._fetcher_with_responses([requests.ConnectionError(), _resp(404)] * 2)
+        f.get(DD_URL)
+        f.get(DD_URL)
+
+        with caplog.at_level("WARNING"):
+            f.log_connection_summary()
+
+        assert "hpfx.collab.science.gc.ca: 2/2 requests failed to connect" in caplog.text
+        assert "dd.weather.gc.ca" not in caplog.text
+
+    def test_silent_when_no_connection_failures(self, caplog):
+        f = self._fetcher_with_responses([_resp(200)])
+        f.get(DD_URL)
+
+        with caplog.at_level("WARNING"):
+            f.log_connection_summary()
+
+        assert caplog.text == ""

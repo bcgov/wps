@@ -323,6 +323,8 @@ class EnvCanada:
         # Process all the urls.
         self.process_model_run_urls(urls, fetcher)
 
+        fetcher.log_connection_summary()
+
         # Having completed processing, check if we're all done.
         if check_if_model_run_complete(self.session, urls):
             logger.info(
