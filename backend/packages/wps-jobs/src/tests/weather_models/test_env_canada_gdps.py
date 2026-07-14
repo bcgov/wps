@@ -24,7 +24,11 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
 )
 from wps_shared.tests.common import default_mock_client_get
-from wps_shared.weather_models import ModelEnum, NoFilesProcessed
+from wps_shared.weather_models import (
+    CompletedWithSomeExceptions,
+    ModelEnum,
+    NoFilesProcessed,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -227,3 +231,43 @@ def test_process_models_raises_no_files_processed_when_all_downloads_fail(
     sys.argv = ["argv", "GDPS"]
     with pytest.raises(NoFilesProcessed):
         env_canada.process_models()
+
+
+# The verdict rules themselves live on the shared runner and are tested in
+# test_model_job_runner.py. All this job has to get right is the wiring.
+
+
+def test_process_models_delegates_the_verdict_to_judge_run(monkeypatch: pytest.MonkeyPatch):
+    """process_models() must hand its counters to judge_run and return the result."""
+    monkeypatch.setattr("wps_shared.db.database.get_write_session_scope", MagicMock())
+    monkeypatch.setattr(env_canada, "ModelValueProcessor", MagicMock())
+    monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock())
+
+    def finished_run(self):
+        self.files_processed = 7
+        self.connection_error_count = 2
+        self.exception_count = 0
+
+    monkeypatch.setattr(env_canada.EnvCanada, "process", finished_run)
+    judge_run = MagicMock(return_value=7)
+    monkeypatch.setattr(env_canada, "judge_run", judge_run)
+    monkeypatch.setattr(sys, "argv", ["argv", "GDPS"])
+
+    assert env_canada.process_models() == 7
+
+    job = judge_run.call_args.args[0]
+    assert (job.files_processed, job.connection_error_count, job.exception_count) == (7, 2, 0)
+    assert judge_run.call_args.kwargs == {"source": "Env Canada", "model": "GDPS"}
+
+
+def test_main_delegates_to_the_shared_runner(monkeypatch: pytest.MonkeyPatch):
+    """main() must hand process_models to the runner, tagged with this job's source."""
+    run_model_job = MagicMock()
+    monkeypatch.setattr(env_canada, "run_model_job", run_model_job)
+    monkeypatch.setattr(sys, "argv", ["argv", "GDPS"])
+
+    env_canada.main()
+
+    run_model_job.assert_called_once_with(
+        env_canada.process_models, source="Env Canada", model="GDPS"
+    )

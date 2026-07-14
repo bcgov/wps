@@ -45,6 +45,12 @@ def test_body_severity(mock_post):
     assert body["severity"] == "critical"
 
 
+def test_body_severity_override(mock_post):
+    send_chatops_notification("test", Exception("err"), severity="warning")
+    body = mock_post.call_args.kwargs["json"]
+    assert body["severity"] == "warning"
+
+
 def test_body_url_label(mock_post):
     send_chatops_notification("test", Exception("err"))
     body = mock_post.call_args.kwargs["json"]

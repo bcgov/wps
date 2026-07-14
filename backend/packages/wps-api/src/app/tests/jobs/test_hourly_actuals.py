@@ -40,11 +40,11 @@ def test_hourly_actuals_job_fail(mocker: MockerFixture, mock_wfwx_api):
 
     mock_wfwx_api.get_hourly_actuals_all_stations = mocker.AsyncMock(side_effect=Exception())
     mocker.patch("app.jobs.hourly_actuals.WfwxApi", return_value=mock_wfwx_api)
-    rocket_chat_spy = mocker.spy(hourly_actuals, "send_chatops_notification")
+    chatops_spy = mocker.spy(hourly_actuals, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
         hourly_actuals.main()
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
-    assert rocket_chat_spy.call_count == 1
+    assert chatops_spy.call_count == 1
