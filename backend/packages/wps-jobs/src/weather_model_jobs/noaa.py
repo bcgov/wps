@@ -9,13 +9,13 @@ from typing import Generator
 from urllib.parse import parse_qs, urlsplit
 from zoneinfo import ZoneInfo
 
+import requests
 import wps_shared.db.database
 import wps_shared.utils.time as time_utils
 from requests import HTTPError
 from sqlalchemy.orm import Session
 from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
-    apply_data_retention_policy,
     check_if_model_run_complete,
     flag_file_as_processed,
 )
@@ -23,7 +23,7 @@ from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
-from wps_shared.chatops_notification import send_chatops_notification
+from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from wps_shared.db.crud.weather_models import (
     get_prediction_model,
     get_prediction_run,
@@ -31,7 +31,6 @@ from wps_shared.db.crud.weather_models import (
     update_prediction_run,
 )
 from wps_shared.weather_models import (
-    CompletedWithSomeExceptions,
     ModelEnum,
     ProjectionEnum,
     download,
@@ -43,6 +42,8 @@ if __name__ == "__main__":
     configure_logging()
 
 logger = logging.getLogger(__name__)
+
+SOURCE = "NOAA"
 
 # ---- GFS static variables -------------#
 GFS_GRID = "0p25"  # 0.25 degree grid
@@ -278,6 +279,7 @@ class NOAA:
         self.files_downloaded = 0
         self.files_processed = 0
         self.exception_count = 0
+        self.connection_error_count = 0
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor()
@@ -340,6 +342,11 @@ class NOAA:
                     )
                 else:
                     raise http_error
+            except (requests.ConnectionError, requests.Timeout) as exc:
+                # NOMADS being unreachable isn't a bug on our side - track it separately from
+                # real exceptions so a NOMADS outage doesn't look like broken code.
+                self.connection_error_count += 1
+                logger.warning("Connection error for %s: %s", url, exc)
             except Exception:
                 self.exception_count += 1
                 # We catch and log exceptions, but keep trying to download.
@@ -418,30 +425,12 @@ def process_models():
         seconds,
         execution_time,
     )
-    # check if we encountered any exceptions.
-    if noaa.exception_count > 0:
-        # if there were any exceptions, return a non-zero status.
-        raise CompletedWithSomeExceptions()
-    return noaa.files_processed
+    return judge_run(noaa, source=SOURCE, model=sys.argv[1])
 
 
 def main():
     """main script - process and download models, then do exception handling"""
-    try:
-        process_models()
-        apply_data_retention_policy()
-    except CompletedWithSomeExceptions:
-        logger.warning("completed processing with some exceptions")
-        sys.exit(os.EX_SOFTWARE)
-    except Exception as exception:
-        # We catch and log any exceptions we may have missed.
-        logger.exception("unexpected exception processing")
-        rc_message = ":poop: Encountered error retrieving {sys.argv[1]} model data from NOAA"
-        send_chatops_notification(rc_message, exception)
-        # Exit with a failure code.
-        sys.exit(os.EX_SOFTWARE)
-    # We assume success if we get to this point.
-    sys.exit(os.EX_OK)
+    run_model_job(process_models, source=SOURCE, model=sys.argv[1])
 
 
 if __name__ == "__main__":

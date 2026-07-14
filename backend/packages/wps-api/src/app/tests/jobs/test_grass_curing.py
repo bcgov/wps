@@ -70,12 +70,12 @@ def test_grass_curing_job_fail(mocker: MockerFixture, monkeypatch):
         raise OSError("Error")
 
     monkeypatch.setattr(GrassCuringJob, '_run_grass_curing', mock__run_grass_curing)
-    rocket_chat_spy = mocker.spy(grass_curing, 'send_chatops_notification')
+    chatops_spy = mocker.spy(grass_curing, 'send_chatops_notification')
 
     with pytest.raises(SystemExit) as excinfo:
         grass_curing.main()
     assert excinfo.value.code == os.EX_SOFTWARE
-    assert rocket_chat_spy.call_count == 1
+    assert chatops_spy.call_count == 1
 
 
 def test_grass_curing_job_exits_without_error_when_no_work_required(monkeypatch):
@@ -154,13 +154,13 @@ def test_main_exits_cleanly_when_file_not_found(mocker: MockerFixture, monkeypat
         raise GrassCuringFileNotFoundException("not found")
 
     monkeypatch.setattr(GrassCuringJob, "_run_grass_curing", mock__run_grass_curing)
-    rocket_chat_spy = mocker.spy(grass_curing, "send_chatops_notification")
+    chatops_spy = mocker.spy(grass_curing, "send_chatops_notification")
 
     with pytest.raises(SystemExit) as excinfo:
         grass_curing.main()
 
     assert excinfo.value.code == os.EX_OK
-    assert rocket_chat_spy.call_count == 0
+    assert chatops_spy.call_count == 0
 
 
 def test_yield_value_for_stations_returns_correct_pixel_values():

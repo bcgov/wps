@@ -15,7 +15,6 @@ import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
 from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
-    apply_data_retention_policy,
     check_if_model_run_complete,
     flag_file_as_processed,
 )
@@ -23,7 +22,7 @@ from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
-from wps_shared.chatops_notification import send_chatops_notification
+from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from wps_shared.db.crud.weather_models import (
     get_prediction_model,
     get_prediction_run,
@@ -31,9 +30,7 @@ from wps_shared.db.crud.weather_models import (
     update_prediction_run,
 )
 from wps_shared.weather_models import (
-    CompletedWithSomeExceptions,
     ModelEnum,
-    NoFilesProcessed,
     ProjectionEnum,
     UnhandledPredictionModelType,
     adjust_model_day,
@@ -51,6 +48,8 @@ if __name__ == "__main__":
     configure_logging()
 
 logger = logging.getLogger(__name__)
+
+SOURCE = "Env Canada"
 
 
 def parse_gdps_msc_filename(url: str):
@@ -323,6 +322,8 @@ class EnvCanada:
         # Process all the urls.
         self.process_model_run_urls(urls, fetcher)
 
+        fetcher.log_connection_summary()
+
         # Having completed processing, check if we're all done.
         if check_if_model_run_complete(self.session, urls):
             logger.info(
@@ -384,37 +385,12 @@ def process_models():
         seconds,
         execution_time,
     )
-    if env_canada.connection_error_count > 0:
-        logger.warning("%d connection error(s) during run (hourly retries will catch missed files)", env_canada.connection_error_count)
-    if env_canada.files_processed == 0 and env_canada.connection_error_count > 0:
-        raise NoFilesProcessed(f"no files processed for {sys.argv[1]} — possible outage on HPFX and DD")
-    if env_canada.exception_count > 0:
-        raise CompletedWithSomeExceptions()
-    return env_canada.files_processed
+    return judge_run(env_canada, source=SOURCE, model=sys.argv[1])
 
 
 def main():
     """main script - process and download models, then do exception handling"""
-    try:
-        process_models()
-        apply_data_retention_policy()
-    except NoFilesProcessed as exc:
-        logger.warning("%s", exc)
-        rc_message = f":warning: No files processed for {sys.argv[1]} model data from Env Canada — hourly retries will attempt recovery"
-        send_chatops_notification(rc_message, exc)
-        sys.exit(os.EX_SOFTWARE)
-    except CompletedWithSomeExceptions:
-        logger.warning("completed processing with some exceptions")
-        sys.exit(os.EX_SOFTWARE)
-    except Exception as exception:
-        # We catch and log any exceptions we may have missed.
-        logger.exception("unexpected exception processing")
-        rc_message = f":poop: Encountered error retrieving {sys.argv[1]} model data from Env Canada"
-        send_chatops_notification(rc_message, exception)
-        # Exit with a failure code.
-        sys.exit(os.EX_SOFTWARE)
-    # We assume success if we get to this point.
-    sys.exit(os.EX_OK)
+    run_model_job(process_models, source=SOURCE, model=sys.argv[1])
 
 
 if __name__ == "__main__":

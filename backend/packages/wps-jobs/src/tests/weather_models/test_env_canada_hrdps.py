@@ -18,6 +18,7 @@ import wps_shared.utils.time as time_utils
 import wps_shared.db.database
 import wps_shared.db.crud.weather_models
 import weather_model_jobs.env_canada
+from weather_model_jobs import model_job_runner
 import weather_model_jobs.common_model_fetchers
 import weather_model_jobs.utils.process_grib
 from wps_shared.weather_models import ProjectionEnum
@@ -153,7 +154,8 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     def mock_process_models():
         raise Exception()
 
-    rocket_chat_spy = mocker.spy(weather_model_jobs.env_canada, "send_chatops_notification")
+    # chatops now lives on the shared runner, which is what env_canada.main() delegates to.
+    chatops_spy = mocker.patch.object(model_job_runner, "send_chatops_notification")
     monkeypatch.setattr(weather_model_jobs.env_canada, "process_models", mock_process_models)
 
     with pytest.raises(SystemExit) as excinfo:
@@ -162,7 +164,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
-    assert rocket_chat_spy.call_count == 1
+    assert chatops_spy.call_count == 1
 
 
 def test_parse_high_res_model_url_correct_format():

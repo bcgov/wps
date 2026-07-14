@@ -13,7 +13,10 @@ authoritative source with guaranteed 24/7 Internet redundancy.
 from __future__ import annotations
 
 import logging
+import time
+from collections import Counter
 from datetime import datetime
+from urllib.parse import urlsplit
 
 import requests
 
@@ -56,6 +59,9 @@ class ECCCUrlFetcher:
         self._date_str = adjust_model_day(now, model_run_hour).strftime("%Y%m%d")
         self._timeout = timeout
         self._session = session or requests.Session()
+        self._attempts: Counter[str] = Counter()
+        self._connection_failures: Counter[str] = Counter()
+        self._seconds_lost: Counter[str] = Counter()
 
     def candidates(self, dd_url: str) -> list[str]:
         """Return the ordered list of URLs to try for *dd_url*."""
@@ -88,10 +94,17 @@ class ECCCUrlFetcher:
         last_exc: Exception | None = None
 
         for url in urls:
+            host = urlsplit(url).netloc
+            self._attempts[host] += 1
+            started = time.monotonic()
             try:
                 response = self._session.get(url, timeout=self._timeout)
             except requests.RequestException as exc:
-                logger.warning("Connection failed for %s: %s", url, exc)
+                # Not a warning: a single host failing is the case the fallback exists to
+                # handle. The run-level summary reports how often it happened.
+                self._connection_failures[host] += 1
+                self._seconds_lost[host] += time.monotonic() - started
+                logger.debug("Connection failed for %s: %s", url, exc)
                 last_exc = exc
                 continue
 
@@ -111,3 +124,21 @@ class ECCCUrlFetcher:
             raise last_exc
 
         return None
+
+    def log_connection_summary(self) -> None:
+        """Log per-host connection failures for the requests made so far.
+
+        A host failing every attempt means we paid the full timeout on each one, which is
+        the difference between a slow run and a run that never finishes in its window.
+        """
+        for host, attempts in self._attempts.items():
+            failures = self._connection_failures[host]
+            if not failures:
+                continue
+            logger.warning(
+                "%s: %d/%d requests failed to connect, %.0f seconds spent on timeouts",
+                host,
+                failures,
+                attempts,
+                self._seconds_lost[host],
+            )
