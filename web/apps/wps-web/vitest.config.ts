@@ -18,7 +18,7 @@ export default mergeConfig(
         exclude: ['**/node_modules/**']
       },
       include: ['src/**/*.{spec,test}.{js,jsx,ts,tsx}'],
-      exclude: ['src/features/auth/slices/authenticationSlice.test.ts', 'src/test/testUtils.ts'],
+      exclude: ['src/test/testUtils.ts'],
       globals: true,
       environment: 'jsdom',
       setupFiles: ['src/setupTests.ts']

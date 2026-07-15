@@ -1,10 +1,10 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { KC_AUTH_URL, KC_CLIENT, KC_REALM, SM_LOGOUT_URL, TEST_AUTH } from '@wps/utils/env'
+import { TEST_AUTH } from '@wps/utils/env'
 import { logError } from '@wps/utils/error'
 import type { AppThunk } from 'app/store'
 import { getKeycloakInstance, kcInitOptions } from 'features/auth/keycloak'
 import { ROLES } from 'features/auth/roles'
-import { jwtDecode } from 'jwt-decode'
+import type { KeycloakTokenParsed } from 'keycloak-js'
 import { isUndefined } from 'lodash'
 
 export interface AuthState {
@@ -44,14 +44,15 @@ const authSlice = createSlice({
         isAuthenticated: boolean
         token: string | undefined
         idToken: string | undefined
+        tokenParsed: KeycloakTokenParsed | undefined
       }>
     ) {
       state.authenticating = false
       state.isAuthenticated = action.payload.isAuthenticated
       state.token = action.payload.token
       state.idToken = action.payload.idToken
-      state.roles = decodeRoles(action.payload.token)
-      const userDetails = decodeUserDetails(action.payload.token)
+      state.roles = decodeRoles(action.payload.tokenParsed)
+      const userDetails = decodeUserDetails(action.payload.tokenParsed)
       state.idir = userDetails?.idir
       state.email = userDetails?.email
     },
@@ -67,124 +68,85 @@ const authSlice = createSlice({
         tokenRefreshed: boolean
         token: string | undefined
         idToken: string | undefined
+        tokenParsed: KeycloakTokenParsed | undefined
       }>
     ) {
       state.token = action.payload.token
       state.idToken = action.payload.idToken
       state.tokenRefreshed = action.payload.tokenRefreshed
-      state.roles = decodeRoles(action.payload.token)
-      const userDetails = decodeUserDetails(action.payload.token)
+      state.roles = decodeRoles(action.payload.tokenParsed)
+      const userDetails = decodeUserDetails(action.payload.tokenParsed)
       state.idir = userDetails?.idir
       state.email = userDetails?.email
-    },
-    signoutFinished(state: AuthState) {
-      state.authenticating = false
-      state.isAuthenticated = false
-      state.token = undefined
-      state.idToken = undefined
-      state.roles = []
-    },
-    signoutError(state: AuthState, action: PayloadAction<string>) {
-      state.authenticating = false
-      state.isAuthenticated = false
-      state.error = action.payload
-      state.token = undefined
-      state.idToken = undefined
-      state.roles = []
     }
   }
 })
 
-export const {
-  authenticateStart,
-  authenticateFinished,
-  authenticateError,
-  refreshTokenFinished,
-  signoutFinished,
-  signoutError
-} = authSlice.actions
+export const { authenticateStart, authenticateFinished, authenticateError, refreshTokenFinished } = authSlice.actions
 
 export default authSlice.reducer
 
-export const decodeRoles = (token: string | undefined) => {
-  if (isUndefined(token)) {
-    return []
-  }
+export const decodeRoles = (tokenParsed: KeycloakTokenParsed | undefined) => {
   if (TEST_AUTH || window.Playwright) {
     return Object.values(ROLES.HFI)
   }
-  const decodedToken: any = jwtDecode(token)
-  try {
-    if (!isUndefined(decodedToken.client_roles)) {
-      return decodedToken.client_roles
-    }
-    return []
-  } catch (_e) {
-    // User has no roles
+  if (isUndefined(tokenParsed) || isUndefined(tokenParsed.client_roles)) {
     return []
   }
+  return tokenParsed.client_roles
 }
 
-export const decodeUserDetails = (token: string | undefined) => {
-  if (isUndefined(token)) {
-    return undefined
-  }
+export const decodeUserDetails = (tokenParsed: KeycloakTokenParsed | undefined) => {
   if (TEST_AUTH || window.Playwright) {
     return { idir: 'test@idir', email: 'test@example.com' }
   }
-  const decodedToken: any = jwtDecode(token)
-  try {
-    return { idir: decodedToken.idir_username, email: decodedToken.email }
-  } catch (_e) {
-    // No idir username
+  if (isUndefined(tokenParsed)) {
     return undefined
   }
+  return { idir: tokenParsed.idir_username, email: tokenParsed.email }
 }
 
 export const testAuthenticate =
   (isAuthenticated: boolean, token: string, idToken: string): AppThunk =>
   dispatch => {
-    dispatch(authenticateFinished({ isAuthenticated, token, idToken }))
+    dispatch(authenticateFinished({ isAuthenticated, token, idToken, tokenParsed: undefined }))
   }
 
-export const authenticate = (): AppThunk => dispatch => {
+export const authenticate = (): AppThunk<Promise<void>> => async dispatch => {
   dispatch(authenticateStart())
 
   const keycloak = getKeycloakInstance()
-  keycloak
-    .init(kcInitOptions)
-    .then(isAuthenticated => {
-      dispatch(authenticateFinished({ isAuthenticated, token: keycloak?.token, idToken: keycloak?.idToken }))
-    })
-    .catch(err => {
-      logError(err)
-      dispatch(authenticateError('Failed to authenticate.'))
-    })
+  try {
+    const isAuthenticated = await keycloak.init(kcInitOptions)
+    dispatch(
+      authenticateFinished({
+        isAuthenticated,
+        token: keycloak.token,
+        idToken: keycloak.idToken,
+        tokenParsed: keycloak.tokenParsed
+      })
+    )
+  } catch (err) {
+    logError(err)
+    dispatch(authenticateError('Failed to authenticate.'))
+  }
 
   keycloak.onTokenExpired = () => {
-    keycloak
-      ?.updateToken(0)
-      .then(tokenRefreshed => {
-        dispatch(refreshTokenFinished({ tokenRefreshed, token: keycloak?.token, idToken: keycloak?.idToken }))
-      })
-      .catch(() => {
+    void (async () => {
+      try {
+        const tokenRefreshed = await keycloak.updateToken(0)
+        dispatch(
+          refreshTokenFinished({
+            tokenRefreshed,
+            token: keycloak.token,
+            idToken: keycloak.idToken,
+            tokenParsed: keycloak.tokenParsed
+          })
+        )
+      } catch {
         // Restart the authentication flow
-        dispatch(authenticate())
-      })
+        void dispatch(authenticate())
+      }
+    })()
   }
 }
-
-export const signout =
-  (idToken?: string): AppThunk =>
-  async dispatch => {
-    try {
-      const postLogoutRedirectURI = window.location.href
-      const keycloakLogoutUrl = encodeURIComponent(
-        `${KC_AUTH_URL}/realms/${KC_REALM}/protocol/openid-connect/logout?client_id=${KC_CLIENT}&id_token_hint=${idToken}&post_logout_redirect_uri=${postLogoutRedirectURI}`
-      )
-      const logoutURL = `${SM_LOGOUT_URL}${keycloakLogoutUrl}`
-      window.location.href = logoutURL
-    } catch (e) {
-      return dispatch(signoutError(`Failed to sign out: ${e}`))
-    }
-  }

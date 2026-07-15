@@ -31,7 +31,7 @@ const AuthWrapper = ({ children }: Props) => {
     if (TEST_AUTH || window.Playwright) {
       dispatch(testAuthenticate(true, 'test token', 'test id token'))
     } else {
-      dispatch(authenticate())
+      void dispatch(authenticate())
       dispatch(setAxiosRequestInterceptors())
     }
   }, [dispatch])

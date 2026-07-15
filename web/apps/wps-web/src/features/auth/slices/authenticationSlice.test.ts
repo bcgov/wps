@@ -1,52 +1,52 @@
+import { combineReducers } from '@reduxjs/toolkit'
+import { getKeycloakInstance } from 'features/auth/keycloak'
 import { ROLES } from 'features/auth/roles'
 import authReducer, {
+  authenticate,
   authenticateError,
   authenticateFinished,
   authenticateStart,
   decodeRoles,
   decodeUserDetails,
   initialState,
-  refreshTokenFinished,
-  signoutError,
-  signoutFinished
+  refreshTokenFinished
 } from 'features/auth/slices/authenticationSlice'
-import * as jwt from 'jwt-decode'
-import sinon from 'sinon'
+import type Keycloak from 'keycloak-js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AppDispatch } from '@/app/store'
+import { createTestStore } from '@/test/testUtils'
+
+vi.mock('features/auth/keycloak', () => ({
+  getKeycloakInstance: vi.fn(),
+  kcInitOptions: {}
+}))
+
+const authenticationReducer = combineReducers({ authentication: authReducer })
 
 describe('authenticationSlice', () => {
-  let sandbox: sinon.SinonSandbox
-  beforeEach(() => {
-    sandbox = sinon.createSandbox()
-  })
-  afterEach(() => {
-    sandbox.restore()
-  })
   const testToken = 'testToken'
   const idir_username = 'test@idir'
   const email = 'test@example.com'
-  const decodedAllRoles = {
+  const tokenParsedAllRoles = {
     idir_username,
     email,
     client_roles: Object.values(ROLES.HFI)
   }
-  const decodedNoRoles = {
+  const tokenParsedNoRoles = {
     idir_username,
     email,
     client_roles: []
   }
   it('should return all roles of a user from a token', () => {
-    sandbox.stub(jwt, 'jwtDecode').returns(decodedAllRoles)
-    const roles = decodeRoles(testToken)
+    const roles = decodeRoles(tokenParsedAllRoles)
     expect(roles).toEqual(Object.values(ROLES.HFI))
   })
   it('should return no roles if user token has none defined', () => {
-    sandbox.stub(jwt, 'jwtDecode').returns(decodedNoRoles)
-    const roles = decodeRoles(testToken)
+    const roles = decodeRoles(tokenParsedNoRoles)
     expect(roles).toEqual([])
   })
   it('should return idir username from token', () => {
-    sandbox.stub(jwt, 'jwtDecode').returns(decodedNoRoles)
-    const userDetails = decodeUserDetails(testToken)
+    const userDetails = decodeUserDetails(tokenParsedNoRoles)
     expect(userDetails).toEqual({ idir: idir_username, email })
   })
   describe('reducer', () => {
@@ -64,9 +64,16 @@ describe('authenticationSlice', () => {
       })
     })
     it('should set token with roles correctly when authentication finishes', () => {
-      sandbox.stub(jwt, 'jwtDecode').returns(decodedAllRoles)
       expect(
-        authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken, idToken: testToken }))
+        authReducer(
+          initialState,
+          authenticateFinished({
+            isAuthenticated: true,
+            token: testToken,
+            idToken: testToken,
+            tokenParsed: tokenParsedAllRoles
+          })
+        )
       ).toEqual({
         ...initialState,
         authenticating: false,
@@ -79,9 +86,16 @@ describe('authenticationSlice', () => {
       })
     })
     it('should set token without roles correctly when authentication finishes', () => {
-      sandbox.stub(jwt, 'jwtDecode').returns(decodedNoRoles)
       expect(
-        authReducer(initialState, authenticateFinished({ isAuthenticated: true, token: testToken, idToken: testToken }))
+        authReducer(
+          initialState,
+          authenticateFinished({
+            isAuthenticated: true,
+            token: testToken,
+            idToken: testToken,
+            tokenParsed: tokenParsedNoRoles
+          })
+        )
       ).toEqual({
         ...initialState,
         authenticating: false,
@@ -104,9 +118,16 @@ describe('authenticationSlice', () => {
       })
     })
     it('should set state correctly when token refreshes with roles', () => {
-      sandbox.stub(jwt, 'jwtDecode').returns(decodedAllRoles)
       expect(
-        authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken, idToken: testToken }))
+        authReducer(
+          initialState,
+          refreshTokenFinished({
+            tokenRefreshed: true,
+            token: testToken,
+            idToken: testToken,
+            tokenParsed: tokenParsedAllRoles
+          })
+        )
       ).toEqual({
         ...initialState,
         authenticating: false,
@@ -119,9 +140,16 @@ describe('authenticationSlice', () => {
       })
     })
     it('should set state correctly when token refreshes without roles', () => {
-      sandbox.stub(jwt, 'jwtDecode').returns(decodedNoRoles)
       expect(
-        authReducer(initialState, refreshTokenFinished({ tokenRefreshed: true, token: testToken, idToken: testToken }))
+        authReducer(
+          initialState,
+          refreshTokenFinished({
+            tokenRefreshed: true,
+            token: testToken,
+            idToken: testToken,
+            tokenParsed: tokenParsedNoRoles
+          })
+        )
       ).toEqual({
         ...initialState,
         authenticating: false,
@@ -133,54 +161,130 @@ describe('authenticationSlice', () => {
         roles: []
       })
     })
-    describe('signout', () => {
-      it('should unset isAuthenticated, roles and token states when signout is dispatched ', () => {
-        sandbox.stub(jwt, 'jwtDecode').returns(decodedAllRoles)
-        const signedInState = {
-          authenticating: false,
-          isAuthenticated: true,
-          tokenRefreshed: false,
-          token: testToken,
-          idToken: testToken,
-          idir: 'test@idir',
-          email,
-          roles: Object.values(ROLES.HFI),
-          error: null
-        }
+  })
 
-        expect(authReducer(signedInState, signoutFinished())).toEqual({
-          ...signedInState,
-          authenticating: false,
-          isAuthenticated: false,
-          token: undefined,
-          idToken: undefined,
-          roles: []
-        })
+  describe('authenticate thunk', () => {
+    const tokenParsed = {
+      idir_username: 'test@idir',
+      email: 'test@example.com',
+      client_roles: Object.values(ROLES.HFI)
+    }
+
+    const createMockKeycloak = (overrides: Partial<Keycloak> = {}): Keycloak =>
+      ({
+        token: 'access-token',
+        idToken: 'id-token',
+        tokenParsed,
+        init: vi.fn(),
+        updateToken: vi.fn(),
+        onTokenExpired: undefined,
+        ...overrides
+      }) as unknown as Keycloak
+
+    beforeEach(() => {
+      vi.mocked(getKeycloakInstance).mockReset()
+    })
+
+    it('dispatches authenticateStart immediately', () => {
+      const keycloak = createMockKeycloak({ init: vi.fn().mockReturnValue(new Promise(() => {})) })
+      vi.mocked(getKeycloakInstance).mockReturnValue(keycloak)
+      const store = createTestStore({ authentication: initialState }, authenticationReducer)
+      const dispatch = store.dispatch as AppDispatch
+
+      dispatch(authenticate())
+
+      expect(store.getState().authentication.authenticating).toBe(true)
+    })
+
+    it('dispatches authenticateFinished with the parsed token on successful init', async () => {
+      const keycloak = createMockKeycloak({ init: vi.fn().mockResolvedValue(true) })
+      vi.mocked(getKeycloakInstance).mockReturnValue(keycloak)
+      const store = createTestStore({ authentication: initialState }, authenticationReducer)
+      const dispatch = store.dispatch as AppDispatch
+
+      await dispatch(authenticate())
+
+      expect(store.getState().authentication).toEqual({
+        ...initialState,
+        authenticating: false,
+        isAuthenticated: true,
+        token: 'access-token',
+        idToken: 'id-token',
+        idir: 'test@idir',
+        email: 'test@example.com',
+        roles: Object.values(ROLES.HFI)
       })
-      it('should unset isAuthenticated, roles, token and set error states when signout is dispatched and fails ', () => {
-        sandbox.stub(jwt, 'jwtDecode').returns(decodedAllRoles)
-        const signedInState = {
-          authenticating: false,
-          isAuthenticated: true,
-          tokenRefreshed: false,
-          token: testToken,
-          idToken: testToken,
-          idir: 'test@idir',
-          email,
-          roles: Object.values(ROLES.HFI),
-          error: null
-        }
-        const error = 'error'
+    })
 
-        expect(authReducer(signedInState, signoutError(error))).toEqual({
-          ...signedInState,
-          authenticating: false,
-          isAuthenticated: false,
-          token: undefined,
-          idToken: undefined,
-          roles: [],
-          error: error
-        })
+    it('dispatches authenticateError when init rejects', async () => {
+      const keycloak = createMockKeycloak({ init: vi.fn().mockRejectedValue(new Error('boom')) })
+      vi.mocked(getKeycloakInstance).mockReturnValue(keycloak)
+      const store = createTestStore({ authentication: initialState }, authenticationReducer)
+      const dispatch = store.dispatch as AppDispatch
+
+      await dispatch(authenticate())
+
+      expect(store.getState().authentication).toEqual({
+        ...initialState,
+        authenticating: false,
+        isAuthenticated: false,
+        error: 'Failed to authenticate.',
+        roles: []
+      })
+    })
+
+    it('dispatches refreshTokenFinished when the token refreshes successfully', async () => {
+      const keycloak = createMockKeycloak({
+        init: vi.fn().mockResolvedValue(true),
+        updateToken: vi.fn().mockResolvedValue(true)
+      })
+      vi.mocked(getKeycloakInstance).mockReturnValue(keycloak)
+      const store = createTestStore({ authentication: initialState }, authenticationReducer)
+      const dispatch = store.dispatch as AppDispatch
+      await dispatch(authenticate())
+
+      expect(keycloak.onTokenExpired).toBeInstanceOf(Function)
+      keycloak.onTokenExpired?.()
+      // onTokenExpired fires the refresh fire-and-forget, so wait for it to settle
+      await vi.waitFor(() => expect(store.getState().authentication.tokenRefreshed).toBe(true))
+
+      expect(store.getState().authentication).toEqual({
+        ...initialState,
+        authenticating: false,
+        isAuthenticated: true,
+        tokenRefreshed: true,
+        token: 'access-token',
+        idToken: 'id-token',
+        idir: 'test@idir',
+        email: 'test@example.com',
+        roles: Object.values(ROLES.HFI)
+      })
+    })
+
+    it('restarts the authentication flow when the token refresh fails', async () => {
+      const keycloak = createMockKeycloak({
+        init: vi.fn().mockResolvedValue(true),
+        updateToken: vi.fn().mockRejectedValue(new Error('refresh failed'))
+      })
+      vi.mocked(getKeycloakInstance).mockReturnValue(keycloak)
+      const store = createTestStore({ authentication: initialState }, authenticationReducer)
+      const dispatch = store.dispatch as AppDispatch
+      await dispatch(authenticate())
+
+      keycloak.onTokenExpired?.()
+      // the restart is dispatched fire-and-forget from the catch handler, so wait for it to settle
+      await vi.waitFor(() => expect(keycloak.init).toHaveBeenCalledTimes(2))
+
+      expect(getKeycloakInstance).toHaveBeenCalledTimes(2)
+      expect(store.getState().authentication).toEqual({
+        ...initialState,
+        authenticating: false,
+        isAuthenticated: true,
+        token: 'access-token',
+        idToken: 'id-token',
+        idir: 'test@idir',
+        email: 'test@example.com',
+        roles: Object.values(ROLES.HFI)
       })
     })
   })
