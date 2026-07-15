@@ -36,7 +36,10 @@ objects:
               # firing once and going silent - that's intentional, not a bug.
               expr: |
                 kube_pod_container_status_last_terminated_reason{namespace="${NAMESPACE}", reason="OOMKilled"} == 1
-              for: 0s
+              # Require the condition to hold across more than one evaluation before firing, so a
+              # single missed/delayed scrape (kube-state-metrics restart, scrape timeout, API
+              # server blip) can't cause a spurious or flapping fire.
+              for: 2m
               labels:
                 namespace: ${NAMESPACE}
                 severity: ${SEVERITY}
