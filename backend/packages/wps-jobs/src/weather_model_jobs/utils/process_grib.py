@@ -208,6 +208,10 @@ class GribFileProcessor:
         setattr(prediction, variable_name, value)
         session.add(prediction)
         session.commit()
+        # This is called once per station per grib file (and multiple times per station for
+        # multi-variable files), so without expunging, the session's identity map accumulates
+        # every committed row for the life of the run and the process grows unbounded.
+        session.expunge(prediction)
 
     def process_env_can_grib_file(self, session: Session, dataset, grib_info: ModelRunInfo, prediction_run: PredictionModelRunTimestamp):
         # for GDPS, RDPS, HRDPS models, always only ever 1 raster band in the dataset

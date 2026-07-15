@@ -6,6 +6,7 @@ import pytest
 from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
     accumulate_nam_precipitation,
+    flag_file_as_processed,
 )
 from wps_shared.db.models.weather_models import ModelRunGridSubsetPrediction
 from wps_shared.schemas.stations import WeatherStation
@@ -300,6 +301,49 @@ def test_process_prediction_populates_fields_and_accumulates_correct_precip(
 
     # Should add to session
     mock_session.add.assert_called_with(mock_station_prediction)
+
+
+@patch("weather_model_jobs.common_model_fetchers.get_processed_file_record")
+@patch(
+    "weather_model_jobs.common_model_fetchers.time_utils.get_utc_now",
+    return_value=datetime(2025, 6, 5, 13, 0, 0),
+)
+def test_flag_file_as_processed_expunges_new_record_after_commit(
+    mock_get_utc_now, mock_get_processed_file_record, mock_session
+):
+    """A newly created ProcessedModelRunUrl is committed and then expunged, so the session's
+    identity map doesn't accumulate one entry per file for the life of the run."""
+    mock_get_processed_file_record.return_value = None
+
+    flag_file_as_processed("http://example.com/some.grib2", mock_session)
+
+    mock_session.commit.assert_called_once()
+    mock_session.expunge.assert_called_once()
+    added_record = mock_session.add.call_args[0][0]
+    expunged_record = mock_session.expunge.call_args[0][0]
+    assert added_record is expunged_record
+    assert added_record.url == "http://example.com/some.grib2"
+
+    call_names = [call[0] for call in mock_session.mock_calls]
+    assert call_names.index("commit") < call_names.index("expunge")
+
+
+@patch("weather_model_jobs.common_model_fetchers.get_processed_file_record")
+@patch(
+    "weather_model_jobs.common_model_fetchers.time_utils.get_utc_now",
+    return_value=datetime(2025, 6, 5, 13, 0, 0),
+)
+def test_flag_file_as_processed_expunges_existing_record_after_commit(
+    mock_get_utc_now, mock_get_processed_file_record, mock_session
+):
+    """Same as above, but for the re-processed (already existing) record path."""
+    existing_record = MagicMock()
+    mock_get_processed_file_record.return_value = existing_record
+
+    flag_file_as_processed("http://example.com/some.grib2", mock_session)
+
+    mock_session.commit.assert_called_once()
+    mock_session.expunge.assert_called_once_with(existing_record)
 
 
 @patch("weather_model_jobs.common_model_fetchers.get_weather_station_model_prediction")

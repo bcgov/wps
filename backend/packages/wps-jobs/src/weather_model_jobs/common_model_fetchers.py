@@ -71,6 +71,9 @@ def flag_file_as_processed(url: str, session: Session):
     processed_file.update_date = time_utils.get_utc_now()
     session.add(processed_file)
     session.commit()
+    # Called once per file for the life of the run - expunge so the session's identity map
+    # doesn't grow unbounded across hundreds of files.
+    session.expunge(processed_file)
 
 
 def check_if_model_run_complete(session: Session, urls):

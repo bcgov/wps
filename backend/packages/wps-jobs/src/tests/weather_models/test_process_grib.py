@@ -1,5 +1,7 @@
 import math
 import os
+from datetime import datetime
+from unittest.mock import MagicMock
 
 import pytest
 from aiohttp import ClientSession
@@ -75,3 +77,57 @@ def test_read_single_raster_value(monkeypatch: pytest.MonkeyPatch):
     assert math.isclose(value, 21.893, abs_tol=0.001)
 
     del dataset
+
+
+def _make_mock_session_with_no_existing_prediction():
+    session = MagicMock()
+    session.query.return_value.filter.return_value.filter.return_value.filter.return_value.first.return_value = None
+    return session
+
+
+def test_store_prediction_value_expunges_new_prediction_after_commit():
+    """A new prediction is committed and then expunged from the session, so the session's
+    identity map doesn't accumulate one entry per station per grib file for the life of the
+    run."""
+    processor = process_grib.GribFileProcessor.__new__(process_grib.GribFileProcessor)
+    session = _make_mock_session_with_no_existing_prediction()
+    prediction_model_run = MagicMock()
+    prediction_model_run.id = 42
+    grib_info = process_grib.ModelRunInfo(
+        model_enum=ModelEnum.GDPS,
+        variable_name="AirTemp_AGL-2m",
+        prediction_timestamp=datetime(2026, 6, 2, 0, 0, 0),
+    )
+
+    processor.store_prediction_value(995, 21.9, prediction_model_run, grib_info, session)
+
+    session.commit.assert_called_once()
+    session.expunge.assert_called_once()
+    (expunged_prediction,) = session.expunge.call_args[0]
+    added_prediction = session.add.call_args[0][0]
+    assert expunged_prediction is added_prediction
+    assert math.isclose(expunged_prediction.tmp_tgl_2, 21.9, abs_tol=0.001)
+
+    # commit must happen before expunge, otherwise the row would be dropped before it's saved.
+    call_names = [call[0] for call in session.mock_calls]
+    assert call_names.index("commit") < call_names.index("expunge")
+
+
+def test_store_prediction_value_expunges_existing_prediction_after_commit():
+    """Same as above, but for the update-an-existing-row path."""
+    processor = process_grib.GribFileProcessor.__new__(process_grib.GribFileProcessor)
+    existing_prediction = MagicMock()
+    session = MagicMock()
+    session.query.return_value.filter.return_value.filter.return_value.filter.return_value.first.return_value = existing_prediction
+    prediction_model_run = MagicMock()
+    prediction_model_run.id = 42
+    grib_info = process_grib.ModelRunInfo(
+        model_enum=ModelEnum.GDPS,
+        variable_name="AirTemp_AGL-2m",
+        prediction_timestamp=datetime(2026, 6, 2, 0, 0, 0),
+    )
+
+    processor.store_prediction_value(995, 21.9, prediction_model_run, grib_info, session)
+
+    session.commit.assert_called_once()
+    session.expunge.assert_called_once_with(existing_prediction)
