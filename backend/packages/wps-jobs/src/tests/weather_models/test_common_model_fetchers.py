@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy
 import pytest
+from sqlalchemy.exc import IntegrityError
 from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
     accumulate_nam_precipitation,
@@ -344,6 +345,26 @@ def test_flag_file_as_processed_expunges_existing_record_after_commit(
 
     mock_session.commit.assert_called_once()
     mock_session.expunge.assert_called_once_with(existing_record)
+
+
+@patch("weather_model_jobs.common_model_fetchers.get_processed_file_record")
+@patch(
+    "weather_model_jobs.common_model_fetchers.time_utils.get_utc_now",
+    return_value=datetime(2025, 6, 5, 13, 0, 0),
+)
+def test_flag_file_as_processed_does_not_expunge_if_commit_raises(
+    mock_get_utc_now, mock_get_processed_file_record, mock_session
+):
+    """If commit() fails, the record was never durably saved, so we must not expunge it - and
+    the exception must propagate rather than being swallowed."""
+    mock_get_processed_file_record.return_value = None
+    mock_session.commit.side_effect = IntegrityError("statement", {}, Exception("boom"))
+
+    with pytest.raises(IntegrityError):
+        flag_file_as_processed("http://example.com/some.grib2", mock_session)
+
+    mock_session.commit.assert_called_once()
+    mock_session.expunge.assert_not_called()
 
 
 @patch("weather_model_jobs.common_model_fetchers.get_weather_station_model_prediction")

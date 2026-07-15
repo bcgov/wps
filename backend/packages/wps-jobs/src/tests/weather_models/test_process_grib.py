@@ -7,6 +7,7 @@ import pytest
 from aiohttp import ClientSession
 from osgeo import gdal
 from pyproj import CRS
+from sqlalchemy.exc import IntegrityError
 from weather_model_jobs.utils import process_grib
 from wps_shared.geospatial.geospatial import NAD83_CRS
 from wps_shared.tests.common import default_mock_client_get
@@ -79,9 +80,16 @@ def test_read_single_raster_value(monkeypatch: pytest.MonkeyPatch):
     del dataset
 
 
-def _make_mock_session_with_no_existing_prediction():
+def _make_mock_session_with_query_result(result):
+    """Build a mock session whose session.query(...).filter(...)... .first() returns `result`,
+    no matter how many .filter() calls are chained in between - filter() always returns the
+    same query mock, so the test doesn't need to know (or update alongside) the exact chain
+    depth used in store_prediction_value.
+    """
     session = MagicMock()
-    session.query.return_value.filter.return_value.filter.return_value.filter.return_value.first.return_value = None
+    query_mock = session.query.return_value
+    query_mock.filter.return_value = query_mock
+    query_mock.first.return_value = result
     return session
 
 
@@ -90,7 +98,7 @@ def test_store_prediction_value_expunges_new_prediction_after_commit():
     identity map doesn't accumulate one entry per station per grib file for the life of the
     run."""
     processor = process_grib.GribFileProcessor.__new__(process_grib.GribFileProcessor)
-    session = _make_mock_session_with_no_existing_prediction()
+    session = _make_mock_session_with_query_result(None)
     prediction_model_run = MagicMock()
     prediction_model_run.id = 42
     grib_info = process_grib.ModelRunInfo(
@@ -117,8 +125,7 @@ def test_store_prediction_value_expunges_existing_prediction_after_commit():
     """Same as above, but for the update-an-existing-row path."""
     processor = process_grib.GribFileProcessor.__new__(process_grib.GribFileProcessor)
     existing_prediction = MagicMock()
-    session = MagicMock()
-    session.query.return_value.filter.return_value.filter.return_value.filter.return_value.first.return_value = existing_prediction
+    session = _make_mock_session_with_query_result(existing_prediction)
     prediction_model_run = MagicMock()
     prediction_model_run.id = 42
     grib_info = process_grib.ModelRunInfo(
@@ -131,3 +138,24 @@ def test_store_prediction_value_expunges_existing_prediction_after_commit():
 
     session.commit.assert_called_once()
     session.expunge.assert_called_once_with(existing_prediction)
+
+
+def test_store_prediction_value_does_not_expunge_if_commit_raises():
+    """If commit() fails, the prediction was never durably saved, so we must not expunge it -
+    and the exception must propagate rather than being swallowed."""
+    processor = process_grib.GribFileProcessor.__new__(process_grib.GribFileProcessor)
+    session = _make_mock_session_with_query_result(None)
+    session.commit.side_effect = IntegrityError("statement", {}, Exception("boom"))
+    prediction_model_run = MagicMock()
+    prediction_model_run.id = 42
+    grib_info = process_grib.ModelRunInfo(
+        model_enum=ModelEnum.GDPS,
+        variable_name="AirTemp_AGL-2m",
+        prediction_timestamp=datetime(2026, 6, 2, 0, 0, 0),
+    )
+
+    with pytest.raises(IntegrityError):
+        processor.store_prediction_value(995, 21.9, prediction_model_run, grib_info, session)
+
+    session.commit.assert_called_once()
+    session.expunge.assert_not_called()
