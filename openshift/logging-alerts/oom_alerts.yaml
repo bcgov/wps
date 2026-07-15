@@ -1,0 +1,42 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: oom-alerts-template
+parameters:
+  - name: NAMESPACE
+    description: Namespace to watch for OOMKilled pods, and to deploy the PrometheusRule into
+    required: true
+  - name: SEVERITY
+    description: Alertmanager severity label
+    value: critical
+objects:
+  - apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      labels:
+        app: "oom-alerts"
+      name: oom-alerts
+      namespace: ${NAMESPACE}
+    spec:
+      groups:
+        - name: OOMAlerts
+          interval: 1m
+          rules:
+            - alert: PodOOMKilled
+              annotations:
+                description: >-
+                  {{ $labels.pod }} (container {{ $labels.container }}) was OOMKilled. This
+                  does not produce an application-level log line, so this metric is the only
+                  signal - check the container's memory limit against its actual usage.
+                summary: A pod in ${NAMESPACE} was OOMKilled
+              # kube_pod_container_status_last_terminated_reason is a gauge that stays at 1 for
+              # as long as the terminated pod object exists (bounded by failedJobsHistoryLimit
+              # for job pods, or until the next restart for long-running deployments), so this
+              # will keep firing/re-notifying (per Alertmanager's repeat_interval) rather than
+              # firing once and going silent - that's intentional, not a bug.
+              expr: |
+                kube_pod_container_status_last_terminated_reason{namespace="${NAMESPACE}", reason="OOMKilled"} == 1
+              for: 0s
+              labels:
+                namespace: ${NAMESPACE}
+                severity: ${SEVERITY}
