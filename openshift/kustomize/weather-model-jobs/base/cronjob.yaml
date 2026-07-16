@@ -3,8 +3,8 @@ apiVersion: template.openshift.io/v1
 metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
-    description: "Scheduled task to download and process weather data from the MSC Datamart through http protocol."
-    tags: "cronjob,env-canada,rdps"
+    description: "Scheduled task to download and process a weather model."
+    tags: "cronjob,weather-model"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}-${SUFFIX}
@@ -21,7 +21,7 @@ parameters:
   - name: PROJ_TOOLS
     value: e1e498-tools
   - name: JOB_NAME
-    value: env-canada
+    required: true
   - name: IMAGE_REGISTRY
     required: true
     value: image-registry.openshift-image-registry.svc:5000
@@ -45,9 +45,6 @@ objects:
     metadata:
       name: ${JOB_NAME}
     spec:
-      # Don't run on the hour - as a courtesy to env canada, pick a random
-      # number so that not everyone hits env. canada at the same time.
-      # Run cronjob every 2nd hour because one run takes > 1 hour.
       schedule: ${SCHEDULE}
       # We use the "Forbid" policy, because cronjobs can take a long time to run, and it's possible
       # that a job will still be running when the next one is scheduled. If one job is still running,
@@ -70,16 +67,8 @@ objects:
                 - name: ${JOB_NAME}
                   image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
                   imagePullPolicy: "Always"
-                  command:
-                    [
-                      "uv",
-                      "run",
-                      "--no-sync",
-                      "python",
-                      "-m",
-                      "weather_model_jobs.env_canada",
-                      "RDPS",
-                    ]
+                  # Replaced per-overlay with the job's actual module + model args.
+                  command: ["uv", "run", "--no-sync", "python", "-m", "REPLACE_ME"]
                   env:
                     - name: UV_NO_CACHE
                       value: "1"
@@ -132,8 +121,6 @@ objects:
                           key: env.openshift-console-url
                     - name: PROJECT_NAMESPACE
                       value: ${PROJECT_NAMESPACE}
-                    - name: WFWX_MAX_PAGE_SIZE
-                      value: ${WFWX_MAX_PAGE_SIZE}
                     - name: WFWX_AUTH_URL
                       valueFrom:
                         configMapKeyRef:
@@ -189,11 +176,6 @@ objects:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
                           key: env.redis-dailies-by-station-code-expiry
-                    - name: REDIS_CACHE_ENV_CANADA
-                      valueFrom:
-                        configMapKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: env.redis-cache-env-canada
                     - name: DATA_RETENTION_THRESHOLD
                       valueFrom:
                         configMapKeyRef:

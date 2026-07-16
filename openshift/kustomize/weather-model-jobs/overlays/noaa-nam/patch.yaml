@@ -1,0 +1,16 @@
+- op: replace
+  path: /objects/0/spec/jobTemplate/spec/template/spec/containers/0/command
+  value: ["uv", "run", "--no-sync", "python", "-m", "weather_model_jobs.noaa", "NAM"]
+- op: add
+  path: /objects/0/spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: WFWX_MAX_PAGE_SIZE
+    value: ${WFWX_MAX_PAGE_SIZE}
+- op: add
+  path: /objects/0/spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: REDIS_CACHE_NOAA
+    valueFrom:
+      configMapKeyRef:
+        name: ${GLOBAL_NAME}
+        key: env.redis-cache-noaa

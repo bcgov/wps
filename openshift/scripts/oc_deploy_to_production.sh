@@ -58,20 +58,20 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_s3_data_retention.s
 echo Fuel Grid Install
 PROJ_TARGET=${PROJ_TARGET} FUEL_RASTER_YEAR=2026 FUEL_GRID_INSTALL_SUSPEND=true bash $(dirname ${0})/oc_provision_fuel_grid_install_job.sh prod ${RUN_TYPE}
 echo Env Canada Subscriber
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh prod ${RUN_TYPE}
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh prod ${RUN_TYPE} 
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_rdps_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CRONJOB_SOURCE=openshift/kustomize/weather-model-jobs/overlays/env-canada-gdps JOB_PREFIX=env-canada-gdps DEFAULT_SCHEDULE="$((9 + RANDOM % 50)) * * * *" bash $(dirname ${0})/oc_provision_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CRONJOB_SOURCE=openshift/kustomize/weather-model-jobs/overlays/env-canada-hrdps JOB_PREFIX=env-canada-hrdps DEFAULT_SCHEDULE="$((13 + RANDOM % 46)) * * * *" bash $(dirname ${0})/oc_provision_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CRONJOB_SOURCE=openshift/kustomize/weather-model-jobs/overlays/env-canada-rdps JOB_PREFIX=env-canada-rdps DEFAULT_SCHEDULE="$((24 + RANDOM % 35)) */2 * * *" bash $(dirname ${0})/oc_provision_cronjob.sh prod ${RUN_TYPE}
 echo NOAA Subscriber
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh prod ${RUN_TYPE}
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CRONJOB_SOURCE=openshift/kustomize/weather-model-jobs/overlays/noaa-gfs JOB_PREFIX=noaa-gfs DEFAULT_SCHEDULE="$((7 + RANDOM % 49)) */4 * * *" bash $(dirname ${0})/oc_provision_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CRONJOB_SOURCE=openshift/kustomize/weather-model-jobs/overlays/noaa-nam JOB_PREFIX=noaa-nam DEFAULT_SCHEDULE="$((3 + RANDOM % 54)) * * * *" bash $(dirname ${0})/oc_provision_cronjob.sh prod ${RUN_TYPE}
 echo ECMWF Subscriber
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ecmwf_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CRONJOB_SOURCE=openshift/templates/ecmwf.cronjob.yaml JOB_PREFIX=ecmwf DEFAULT_SCHEDULE="$((13 + RANDOM % 46)) * * * *" bash $(dirname ${0})/oc_provision_cronjob.sh prod ${RUN_TYPE}
 echo VIIRS Snow
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_viirs_snow_cronjob.sh prod ${RUN_TYPE}
 echo Grass Curing
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_grass_curing_cronjob.sh prod ${RUN_TYPE}
 echo RDPS for SFMS
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_rdps_sfms_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} CRONJOB_SOURCE=openshift/templates/rdps_sfms.cronjob.yaml JOB_PREFIX=rdps-sfms DEFAULT_SCHEDULE="$((23 + RANDOM % 36)) * * * *" bash $(dirname ${0})/oc_provision_cronjob.sh prod ${RUN_TYPE}
 echo SFMS Raster Calculations
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_calculations_cronjob.sh prod ${RUN_TYPE}
 echo SFMS Daily Actuals
