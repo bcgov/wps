@@ -19,7 +19,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_min_wind_speed_hfi_thresholds,
     get_most_recent_run_datetime_for_date,
     get_most_recent_run_datetime_for_date_range,
-    get_precomputed_stats_for_shape,
+    get_precomputed_stats_for_shapes,
     get_provincial_rollup,
     get_run_datetimes,
     get_sfms_bounds,
@@ -85,30 +85,39 @@ async def get_all_zone_data_for_source_ids(
         min_wind_stats = get_zone_wind_stats_for_source_id(wind_speed_stats, hfi_thresholds_by_id)
         zone_wind_stats_by_source_id[source_id] = min_wind_stats
 
-    all_zone_data: dict[int, FireZoneHFIStats] = {}
-    for zone_source_id in zone_source_ids:
-        # get HFI/fuels data for specific zone
-        hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
+    # get HFI/fuels data for all zones in a single batched query
+    stats_by_zone = {}
+    if zone_source_ids:
+        stats_by_zone = await get_precomputed_stats_for_shapes(
             session,
             run_type=RunTypeEnum(run_type.value),
             for_date=for_date,
             run_datetime=run_datetime,
-            source_identifier=zone_source_id,
+            source_identifiers=zone_source_ids,
             fuel_type_raster_id=fuel_type_raster.id,
         )
 
-        if hfi_fuel_type_ids_for_zone is None or len(hfi_fuel_type_ids_for_zone) == 0:
-            # Handle the situation where data for the current year was actually processed with
-            # last year's fuel grid
-            prev_fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year - 1)
-            hfi_fuel_type_ids_for_zone = await get_precomputed_stats_for_shape(
+    # Handle the situation where data for the current year was actually processed with
+    # last year's fuel grid
+    missing_zone_source_ids = [
+        zone_source_id for zone_source_id in zone_source_ids if not stats_by_zone.get(str(zone_source_id))
+    ]
+    if missing_zone_source_ids:
+        prev_fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year - 1)
+        stats_by_zone.update(
+            await get_precomputed_stats_for_shapes(
                 session,
                 run_type=RunTypeEnum(run_type.value),
                 for_date=for_date,
                 run_datetime=run_datetime,
-                source_identifier=zone_source_id,
+                source_identifiers=missing_zone_source_ids,
                 fuel_type_raster_id=prev_fuel_type_raster.id,
             )
+        )
+
+    all_zone_data: dict[int, FireZoneHFIStats] = {}
+    for zone_source_id in zone_source_ids:
+        hfi_fuel_type_ids_for_zone = stats_by_zone.get(str(zone_source_id), [])
 
         zone_fuel_stats = []
         hfi_fuel_type_ids_for_zone_set = list(set(hfi_fuel_type_ids_for_zone))

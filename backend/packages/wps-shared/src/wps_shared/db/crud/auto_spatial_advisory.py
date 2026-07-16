@@ -293,17 +293,23 @@ async def get_min_wind_speed_hfi_thresholds(
     return advisory_wind_speed_by_source_id
 
 
-async def get_precomputed_stats_for_shape(
+async def get_precomputed_stats_for_shapes(
     session: AsyncSession,
     run_type: RunTypeEnum,
     run_datetime: datetime,
     for_date: date,
-    source_identifier: int,
+    source_identifiers: List[str],
     fuel_type_raster_id: int,
-) -> List[Row]:
+) -> dict[str, List[Row]]:
+    """
+    Retrieve precomputed HFI/fuel stats for a batch of fire zone shapes in a single query,
+    keyed by shape source_identifier. Zones with no matching rows are simply absent from the
+    returned dict.
+    """
     perf_start = perf_counter()
     stmt = (
         select(
+            Shape.source_identifier,
             CriticalHours.start_hour,
             CriticalHours.end_hour,
             AdvisoryFuelStats.fuel_type,
@@ -341,7 +347,7 @@ async def get_precomputed_stats_for_shape(
             isouter=True,
         )
         .where(
-            Shape.source_identifier == str(source_identifier),
+            Shape.source_identifier.in_([str(source_identifier) for source_identifier in source_identifiers]),
             RunParameters.run_type == run_type.value,
             RunParameters.run_datetime == run_datetime,
             RunParameters.for_date == for_date,
@@ -353,8 +359,16 @@ async def get_precomputed_stats_for_shape(
     all_results = result.all()
     perf_end = perf_counter()
     delta = perf_end - perf_start
-    logger.info("%f delta count before and after advisory stats query", delta)
-    return all_results
+    logger.info(
+        "%f delta count before and after batched advisory stats query (%d zones)",
+        delta,
+        len(source_identifiers),
+    )
+
+    stats_by_source_id: dict[str, List[Row]] = defaultdict(list)
+    for row in all_results:
+        stats_by_source_id[row.source_identifier].append(row[1:])
+    return stats_by_source_id
 
 
 async def get_fuel_type_stats_in_advisory_area(
