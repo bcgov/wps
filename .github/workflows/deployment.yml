@@ -162,6 +162,11 @@ jobs:
           END_HOUR=48 STEP=6 MODEL=GDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
           END_HOUR=15 STEP=3 MODEL=RDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
 
+      - name: Logging alerts
+        shell: bash
+        run: |
+          oc process -f openshift/logging-alerts/oom_alerts.yaml -p NAMESPACE=e1e498-dev -p SEVERITY=warning | oc apply -f -
+
   deploy-asa-go-dev:
     name: Deploy ASA Go API to Dev
     if: github.triggering_actor != 'renovate'
