@@ -58,6 +58,7 @@ objects:
             cronjob: ${JOB_NAME}
             app: ${APP_LABEL}
         spec:
+          backoffLimit: 6
           template:
             spec:
               containers:
