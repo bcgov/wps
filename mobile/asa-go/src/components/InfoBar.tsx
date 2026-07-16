@@ -9,17 +9,40 @@ interface StatusStyle {
 }
 
 interface InfoBarProps {
-  lastUpdated: string | null
+  validUntil?: string | null
   viewingDate: DateTime
   status: StatusEnum
   Icon: string
   statusText?: string
 }
 
-const InfoBar = ({ lastUpdated, viewingDate, status, statusText, Icon }: InfoBarProps) => {
+const getValidUntilString = (validUntil?: string | null) => {
+  if (!validUntil) {
+    return 'n/a'
+  }
+
+  const validUntilDateTime = DateTime.fromISO(validUntil)
+  if (!validUntilDateTime.isValid) {
+    return 'n/a'
+  }
+
+  const today = DateTime.now().startOf('day')
+  const validUntilDay = validUntilDateTime.startOf('day')
+
+  if (validUntilDay.equals(today)) {
+    return `${validUntilDateTime.toFormat('HH:mm')} Today`
+  }
+
+  if (validUntilDay.equals(today.plus({ days: 1 }))) {
+    return `${validUntilDateTime.toFormat('HH:mm')} Tomorrow`
+  }
+
+  return validUntilDateTime.toFormat('MMM d, HH:mm')
+}
+
+const InfoBar = ({ validUntil, viewingDate, status, statusText, Icon }: InfoBarProps) => {
   const theme = useTheme()
-  const lastCheckedString = lastUpdated ? DateTime.fromISO(lastUpdated).toFormat('MMM d, T') : 'n/a'
-  const message = `Viewing: ${viewingDate.toFormat('EEE, MMM d')}. Upd: ${lastCheckedString}.`
+  const message = `Viewing: ${viewingDate.toFormat('EEE, MMM d')}. Valid until: ${getValidUntilString(validUntil)}.`
 
   const statusMap: Record<StatusEnum, StatusStyle> = {
     [StatusEnum.INFO]: {

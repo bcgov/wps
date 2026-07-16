@@ -123,6 +123,7 @@ export interface RunParameter {
   for_date: string
   run_datetime: string
   run_type: RunType
+  valid_until?: string
 }
 
 export interface RunParametersResponse {

@@ -1,33 +1,57 @@
 import { render, screen } from '@testing-library/react'
 import { DateTime } from 'luxon'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { StatusEnum } from '@/utils/constants'
 import InfoBar from './InfoBar'
 
 const viewingDate = DateTime.fromISO('2024-07-15')
 
 describe('InfoBar', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders viewing date in correct format', () => {
-    render(<InfoBar lastUpdated={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
+    render(<InfoBar viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
     expect(screen.getByText(/Mon, Jul 15\./)).toBeInTheDocument()
   })
 
-  it('renders last updated date when provided', () => {
-    render(
-      <InfoBar lastUpdated="2024-07-15T14:30:00" viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />
-    )
-    expect(screen.getByText(/Upd: Jul 15,/)).toBeInTheDocument()
+  it('renders valid until as today when the expiry is today', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2024-07-15T12:00:00'))
+    const validUntil = DateTime.fromISO('2024-07-15T18:00:00').toUTC().toISO()
+
+    render(<InfoBar validUntil={validUntil} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
+    expect(screen.getByText(/Valid until: 18:00 Today\./)).toBeInTheDocument()
   })
 
-  it('renders n/a when lastUpdated is null', () => {
-    render(<InfoBar lastUpdated={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
-    expect(screen.getByText(/Upd: n\/a\./)).toBeInTheDocument()
+  it('renders valid until as tomorrow when the expiry is tomorrow', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2024-07-15T12:00:00'))
+    const validUntil = DateTime.fromISO('2024-07-16T08:00:00').toUTC().toISO()
+
+    render(<InfoBar validUntil={validUntil} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
+    expect(screen.getByText(/Valid until: 08:00 Tomorrow\./)).toBeInTheDocument()
+  })
+
+  it('renders valid until as a date when the expiry date is in the past', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2024-07-15T12:00:00'))
+    const validUntil = DateTime.fromISO('2024-07-14T18:00:00').toUTC().toISO()
+
+    render(<InfoBar validUntil={validUntil} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
+    expect(screen.getByText(/Valid until: Jul 14, 18:00\./)).toBeInTheDocument()
+  })
+
+  it('renders n/a when validUntil is null', () => {
+    render(<InfoBar validUntil={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
+    expect(screen.getByText(/Valid until: n\/a\./)).toBeInTheDocument()
   })
 
   it('renders statusText when provided', () => {
     render(
       <InfoBar
-        lastUpdated={null}
+        validUntil={null}
         viewingDate={viewingDate}
         status={StatusEnum.WARNING}
         Icon="icon.svg"
@@ -38,25 +62,25 @@ describe('InfoBar', () => {
   })
 
   it('renders when statusText is omitted', () => {
-    render(<InfoBar lastUpdated={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
+    render(<InfoBar validUntil={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
     expect(screen.queryByText(/Viewing/)).toBeInTheDocument()
   })
 
   it('renders when statusText is empty string', () => {
     render(
-      <InfoBar lastUpdated={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" statusText="" />
+      <InfoBar validUntil={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" statusText="" />
     )
     expect(screen.queryByText(/Viewing/)).toBeInTheDocument()
   })
 
   it('renders an img with the correct src', () => {
-    render(<InfoBar lastUpdated={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="network-icon.svg" />)
+    render(<InfoBar validUntil={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="network-icon.svg" />)
     const img = screen.getByRole('img')
     expect(img).toHaveAttribute('src', 'network-icon.svg')
   })
 
   it('renders Viewing: label', () => {
-    render(<InfoBar lastUpdated={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
+    render(<InfoBar validUntil={null} viewingDate={viewingDate} status={StatusEnum.INFO} Icon="icon.svg" />)
     expect(screen.queryByText(/Viewing:/)).toBeInTheDocument()
   })
 })
