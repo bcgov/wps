@@ -99,3 +99,4 @@ PROJ_TARGET=${PROJ_TARGET} END_HOUR=84 STEP=3 MODEL=RDPS bash $(dirname ${0})/oc
 echo Logging alerts
 oc apply -f $(dirname ${0})/../logging-alerts/nats_alerts.yaml
 oc apply -f $(dirname ${0})/../logging-alerts/sfms_alerts.yaml
+oc process -f $(dirname ${0})/../logging-alerts/oom_alerts.yaml -p NAMESPACE=e1e498-prod -p SEVERITY=critical | oc apply -f -
