@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
-import { fbpGoInfo, percentileCalcInfo, toolInfos } from 'features/landingPage/toolInfo'
+import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import LandingPageRework, { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './LandingPageRework'
@@ -43,15 +43,17 @@ describe('LandingPageRework', () => {
     renderPage()
 
     const accessSection = screen.getByRole('region', { name: 'BCWS Access Only' })
-    const publicRoutes = [fbpGoInfo.route, percentileCalcInfo.route]
+    const publicRoutes = [fbpGoInfo.route, percentileCalcInfo.route, weatherToolkitInfo.route]
     for (const tool of toolInfos.filter(toolInfo => !publicRoutes.includes(toolInfo.route))) {
       expect(within(accessSection).getByRole('heading', { name: tool.name })).toBeInTheDocument()
     }
     expect(within(accessSection).queryByText(fbpGoInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(percentileCalcInfo.name)).not.toBeInTheDocument()
+    expect(within(accessSection).queryByText(weatherToolkitInfo.name)).not.toBeInTheDocument()
     const publicSection = screen.getByRole('region', { name: 'Public Access' })
     expect(within(publicSection).getByText(fbpGoInfo.name)).toBeInTheDocument()
     expect(within(publicSection).getByText(percentileCalcInfo.name)).toBeInTheDocument()
+    expect(within(publicSection).getByText(weatherToolkitInfo.name)).toBeInTheDocument()
     expect(screen.getAllByText('Managed by: Predictive Services Unit')).toHaveLength(toolInfos.length)
   })
 
