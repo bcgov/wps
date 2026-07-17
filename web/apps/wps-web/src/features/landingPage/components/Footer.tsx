@@ -26,7 +26,11 @@ const FooterLinks = styled('div', {
   paddingLeft: theme.spacing(1),
   paddingTop: theme.spacing(2),
   [theme.breakpoints.down('sm')]: {
-    flexDirection: 'column'
+    columnGap: theme.spacing(2),
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    padding: theme.spacing(1),
+    rowGap: theme.spacing(0.5)
   }
 })
 
@@ -38,14 +42,22 @@ const StyledLink = styled(Link)(({ theme }) => ({
   color: '#FFFFFF',
   paddingLeft: theme.spacing(1),
   paddingRight: theme.spacing(1),
-  textDecoration: 'none'
+  textDecoration: 'none',
+  [theme.breakpoints.down('sm')]: {
+    paddingBottom: theme.spacing(0.5),
+    paddingTop: theme.spacing(0.5)
+  }
 }))
 
 const StyledA = styled('a')(({ theme }) => ({
   color: '#FFFFFF',
   paddingLeft: theme.spacing(1),
   paddingRight: theme.spacing(1),
-  textDecoration: 'none'
+  textDecoration: 'none',
+  [theme.breakpoints.down('sm')]: {
+    paddingBottom: theme.spacing(0.5),
+    paddingTop: theme.spacing(0.5)
+  }
 }))
 
 const Footer: React.FunctionComponent = () => {
