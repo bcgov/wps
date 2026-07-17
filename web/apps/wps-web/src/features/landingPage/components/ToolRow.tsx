@@ -7,8 +7,8 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
+import { ICON_TILE_RADIUS, TOOL_ROW_RADIUS } from '../landingPageConfig'
 import FavouriteButton from './FavouriteButton'
-import { ICON_TILE_RADIUS, TOOL_ROW_RADIUS } from './landingPagePreviewConfig'
 
 interface ToolRowProps {
   isFavourite: boolean

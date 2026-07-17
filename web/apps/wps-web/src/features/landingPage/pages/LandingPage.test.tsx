@@ -4,8 +4,8 @@ import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
 import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { wxDataViewerInfo } from './ExternalToolInfos'
-import LandingPagePreview, { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './LandingPagePreview'
+import { wxDataViewerInfo } from '../ExternalToolInfos'
+import LandingPage, { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './LandingPage'
 
 vi.mock('@wps/utils/env', async importOriginal => {
   const actual = await importOriginal<typeof import('@wps/utils/env')>()
@@ -18,11 +18,11 @@ vi.mock('@wps/utils/env', async importOriginal => {
 const renderPage = () =>
   render(
     <MemoryRouter>
-      <LandingPagePreview />
+      <LandingPage />
     </MemoryRouter>
   )
 
-describe('LandingPagePreview', () => {
+describe('LandingPage', () => {
   beforeEach(() => {
     localStorage.clear()
   })

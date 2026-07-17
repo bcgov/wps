@@ -1,4 +1,4 @@
-import { LANDING_PAGE_FAVOURITES_STORAGE_KEY, landingPagePreviewTools } from './landingPagePreviewConfig'
+import { LANDING_PAGE_FAVOURITES_STORAGE_KEY, landingPageTools } from './landingPageConfig'
 
 export const readFavouriteRoutes = () => {
   try {
@@ -12,7 +12,7 @@ export const readFavouriteRoutes = () => {
       return []
     }
 
-    return landingPagePreviewTools.filter(tool => parsedValue.includes(tool.route)).map(tool => tool.route)
+    return landingPageTools.filter(tool => parsedValue.includes(tool.route)).map(tool => tool.route)
   } catch {
     return []
   }

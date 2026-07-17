@@ -1,50 +1,100 @@
-import { Box } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import { LANDING_BACKGROUND_COLOUR } from '@wps/ui/theme'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined'
+import StarIcon from '@mui/icons-material/Star'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import Stack from '@mui/material/Stack'
 import { LANDING_PAGE_DOC_TITLE } from '@wps/utils/constants'
 import Footer from 'features/landingPage/components/Footer'
-import Sidebar from 'features/landingPage/components/Sidebar'
-import ToolCards from 'features/landingPage/components/ToolCards'
-import type React from 'react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { readFavouriteRoutes, storeFavouriteRoutes } from '@/features/landingPage/favouritesStorage'
+import LandingPageHeader from '../components/LandingPageHeader'
+import QuickAccessDrawer from '../components/QuickAccessDrawer'
+import ToolSection from '../components/ToolSection'
+import {
+  BCWS_SECTION_ID,
+  bcwsTools,
+  FAVOURITES_SECTION_ID,
+  LANDING_PAGE_FAVOURITES_STORAGE_KEY,
+  landingPageTools,
+  PUBLIC_SECTION_ID,
+  publicTools
+} from '../landingPageConfig'
 
-const LandingPage: React.FunctionComponent = () => {
-  const theme = useTheme()
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
+export { LANDING_PAGE_FAVOURITES_STORAGE_KEY }
+
+const LandingPage = () => {
+  const [favouriteRoutes, setFavouriteRoutes] = useState<string[]>(readFavouriteRoutes)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const favouriteTools = landingPageTools.filter(tool => favouriteRoutes.includes(tool.route))
+  const visibleBcwsTools = bcwsTools.filter(tool => !favouriteRoutes.includes(tool.route))
+  const visiblePublicTools = publicTools.filter(tool => !favouriteRoutes.includes(tool.route))
 
   useEffect(() => {
     document.title = LANDING_PAGE_DOC_TITLE
   }, [])
 
+  useEffect(() => {
+    storeFavouriteRoutes(favouriteRoutes)
+  }, [favouriteRoutes])
+
+  const toggleFavourite = (route: string) => {
+    setFavouriteRoutes(current =>
+      current.includes(route) ? current.filter(favouriteRoute => favouriteRoute !== route) : [...current, route]
+    )
+  }
+
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        maxHeight: '100vh',
-        minHeight: '100vh',
-        overflow: 'hidden'
-      }}
-    >
-      <Box sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1, overflow: 'hidden' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            overflowY: 'auto',
-            [theme.breakpoints.up('sm')]: {
-              minWidth: '265px',
-              maxWidth: '265px',
-              width: '265px'
-            }
-          }}
-        >
-          <Sidebar />
-        </Box>
-        <Box sx={{ bgcolor: LANDING_BACKGROUND_COLOUR, display: 'flex', flexGrow: 1, overflowY: 'auto' }}>
-          {!isSmall && <ToolCards />}
-        </Box>
-      </Box>
+    <Box sx={{ bgcolor: 'grey.50', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <QuickAccessDrawer
+        bcwsTools={visibleBcwsTools}
+        favouriteRoutes={favouriteRoutes}
+        favouriteTools={favouriteTools}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onToggleFavourite={toggleFavourite}
+        publicTools={visiblePublicTools}
+      />
+
+      <Container component="main" sx={{ flex: 1, py: { xs: 3, sm: 5 }, maxWidth: { xs: '100%', md: '75%', xl: 1200 } }}>
+        <LandingPageHeader onOpenQuickAccess={() => setIsDrawerOpen(true)} />
+
+        <Stack spacing={5}>
+          {favouriteTools.length > 0 && (
+            <ToolSection
+              backgroundColor="#eef3ee"
+              headingId={FAVOURITES_SECTION_ID}
+              icon={<StarIcon sx={{ color: 'warning.main', fontSize: 18 }} />}
+              isFavourite={route => favouriteRoutes.includes(route)}
+              onToggleFavourite={toggleFavourite}
+              title="My Favourites"
+              tools={favouriteTools}
+            />
+          )}
+          {visibleBcwsTools.length > 0 && (
+            <ToolSection
+              backgroundColor="#d9e8f5"
+              headingId={BCWS_SECTION_ID}
+              icon={<LockOutlinedIcon sx={{ fontSize: 18 }} />}
+              isFavourite={route => favouriteRoutes.includes(route)}
+              onToggleFavourite={toggleFavourite}
+              title="BCWS Access Only"
+              tools={visibleBcwsTools}
+            />
+          )}
+          {visiblePublicTools.length > 0 && (
+            <ToolSection
+              backgroundColor="#fff4e5"
+              headingId={PUBLIC_SECTION_ID}
+              icon={<PublicOutlinedIcon sx={{ color: 'success.main', fontSize: 18 }} />}
+              isFavourite={route => favouriteRoutes.includes(route)}
+              onToggleFavourite={toggleFavourite}
+              title="Public Access"
+              tools={visiblePublicTools}
+            />
+          )}
+        </Stack>
+      </Container>
       <Footer />
     </Box>
   )

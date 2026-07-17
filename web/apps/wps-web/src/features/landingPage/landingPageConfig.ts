@@ -13,6 +13,6 @@ export const TOOL_ROW_RADIUS = '16px'
 export const TECH_SERVICES_EMAIL = 'BCWS.TechServices@gov.bc.ca'
 
 export const publicTools = [fbpGoInfo, percentileCalcInfo, weatherToolkitInfo, wxDataViewerInfo]
-export const landingPagePreviewTools = [...toolInfos, ...externalToolInfos]
+export const landingPageTools = [...toolInfos, ...externalToolInfos]
 
 export const bcwsTools = toolInfos.filter(tool => !publicTools.includes(tool))

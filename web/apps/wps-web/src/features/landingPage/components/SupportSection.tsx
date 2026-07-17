@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { TECH_SERVICES_EMAIL } from './landingPagePreviewConfig'
+import { TECH_SERVICES_EMAIL } from '../landingPageConfig'
 
 const SupportSection = () => (
   <Box sx={{ borderTop: 1, borderColor: 'divider', mt: 'auto', p: 2 }}>
