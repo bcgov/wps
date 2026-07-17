@@ -33,12 +33,16 @@ import {
 import type React from 'react'
 
 const ICON_FONT_SIZE = 'large'
+const PREDICTIVE_SERVICES_UNIT = 'Predictive Services Unit'
+
 export interface ToolInfo {
   name: string
   route: string
   description: React.ReactNode | string
   icon: React.ReactNode
   isBeta: boolean
+  managedBy: string
+  isExternal?: boolean
 }
 
 export const fireBehaviourAdvisoryInfo: ToolInfo = {
@@ -61,7 +65,8 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
     </Typography>
   ),
   icon: <LocalFireDepartmentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  isBeta: false,
+  managedBy: PREDICTIVE_SERVICES_UNIT
 }
 
 export const fireBehaviourCalcInfo: ToolInfo = {
@@ -74,7 +79,8 @@ export const fireBehaviourCalcInfo: ToolInfo = {
     </Typography>
   ),
   icon: <WhatshotOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  isBeta: false,
+  managedBy: PREDICTIVE_SERVICES_UNIT
 }
 
 export const hfiCalcInfo: ToolInfo = {
@@ -87,7 +93,8 @@ export const hfiCalcInfo: ToolInfo = {
     </Typography>
   ),
   icon: <CalculateOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  isBeta: false,
+  managedBy: PREDICTIVE_SERVICES_UNIT
 }
 
 export const moreCastInfo: ToolInfo = {
@@ -100,7 +107,8 @@ export const moreCastInfo: ToolInfo = {
     </Typography>
   ),
   icon: <AirOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  isBeta: false,
+  managedBy: PREDICTIVE_SERVICES_UNIT
 }
 
 export const percentileCalcInfo: ToolInfo = {
@@ -113,7 +121,8 @@ export const percentileCalcInfo: ToolInfo = {
     </Typography>
   ),
   icon: <PercentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  isBeta: false,
+  managedBy: PREDICTIVE_SERVICES_UNIT
 }
 
 export const fbpGoInfo: ToolInfo = {
@@ -133,7 +142,8 @@ export const fbpGoInfo: ToolInfo = {
     </Typography>
   ),
   icon: <img alt="FBP Go logo" style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
-  isBeta: false
+  isBeta: false,
+  managedBy: PREDICTIVE_SERVICES_UNIT
 }
 
 export const sfmsInsightsInfo: ToolInfo = {
@@ -146,7 +156,8 @@ export const sfmsInsightsInfo: ToolInfo = {
     </Typography>
   ),
   icon: <InsightsIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: true
+  isBeta: true,
+  managedBy: PREDICTIVE_SERVICES_UNIT
 }
 
 export const fireWatchInfo: ToolInfo = {
@@ -179,7 +190,8 @@ export const fireWatchInfo: ToolInfo = {
       />
     </Box>
   ),
-  isBeta: true
+  isBeta: true,
+  managedBy: PREDICTIVE_SERVICES_UNIT
 }
 
 export const weatherToolkitInfo: ToolInfo = {
@@ -187,7 +199,8 @@ export const weatherToolkitInfo: ToolInfo = {
   route: WEATHER_TOOLKIT_ROUTE,
   description: <Typography>A tool for visualizing GDPS and RDPS 4-Panel Charts.</Typography>,
   icon: <BorderAllIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: true
+  isBeta: true,
+  managedBy: PREDICTIVE_SERVICES_UNIT
 }
 
 // The order of items in this array determines the order of items as they appear in the landing page

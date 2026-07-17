@@ -7,7 +7,7 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
 import FavouriteButton from './FavouriteButton'
-import { getManagingTeam, ICON_TILE_RADIUS, TOOL_ROW_RADIUS } from './landingPagePreviewConfig'
+import { ICON_TILE_RADIUS, TOOL_ROW_RADIUS } from './landingPagePreviewConfig'
 
 interface ToolRowProps {
   isFavourite: boolean
@@ -16,8 +16,7 @@ interface ToolRowProps {
 }
 
 const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
-  const isExternal = tool.route.startsWith('http')
-  const managingTeam = getManagingTeam(tool)
+  const isExternal = tool.isExternal === true
 
   return (
     <Paper
@@ -59,7 +58,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
             </Stack>
           </Stack>
           <Typography color="text.secondary" sx={{ display: 'block', mt: 0.75 }} variant="caption">
-            Managed by: {managingTeam}
+            Managed by: {tool.managedBy}
           </Typography>
         </Box>
       </Stack>

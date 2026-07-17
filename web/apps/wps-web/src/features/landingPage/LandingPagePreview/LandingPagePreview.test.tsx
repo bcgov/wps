@@ -4,6 +4,7 @@ import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
 import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { wxDataViewerInfo } from './ExternalToolInfos'
 import LandingPagePreview, { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './LandingPagePreview'
 
 vi.mock('@wps/utils/env', async importOriginal => {
@@ -43,18 +44,42 @@ describe('LandingPagePreview', () => {
     renderPage()
 
     const accessSection = screen.getByRole('region', { name: 'BCWS Access Only' })
-    const publicRoutes = [fbpGoInfo.route, percentileCalcInfo.route, weatherToolkitInfo.route]
+    const publicRoutes = [fbpGoInfo.route, percentileCalcInfo.route, weatherToolkitInfo.route, wxDataViewerInfo.route]
     for (const tool of toolInfos.filter(toolInfo => !publicRoutes.includes(toolInfo.route))) {
       expect(within(accessSection).getByRole('heading', { name: tool.name })).toBeInTheDocument()
     }
     expect(within(accessSection).queryByText(fbpGoInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(percentileCalcInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(weatherToolkitInfo.name)).not.toBeInTheDocument()
+    expect(within(accessSection).queryByText(wxDataViewerInfo.name)).not.toBeInTheDocument()
     const publicSection = screen.getByRole('region', { name: 'Public Access' })
     expect(within(publicSection).getByText(fbpGoInfo.name)).toBeInTheDocument()
     expect(within(publicSection).getByText(percentileCalcInfo.name)).toBeInTheDocument()
     expect(within(publicSection).getByText(weatherToolkitInfo.name)).toBeInTheDocument()
+    expect(within(publicSection).getByText(wxDataViewerInfo.name)).toBeInTheDocument()
     expect(screen.getAllByText('Managed by: Predictive Services Unit')).toHaveLength(toolInfos.length)
+    expect(screen.getByText('Managed by: TBD')).toBeInTheDocument()
+  })
+
+  it('only opens explicitly external tools in a new tab', () => {
+    renderPage()
+
+    const publicSection = screen.getByRole('region', { name: 'Public Access' })
+    const fbpGoCard = within(publicSection).getByRole('heading', { name: fbpGoInfo.name }).closest('article')
+    const wxDataViewerCard = within(publicSection)
+      .getByRole('heading', { name: wxDataViewerInfo.name })
+      .closest('article')
+
+    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).not.toHaveAttribute('target')
+    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).not.toHaveAttribute('rel')
+    expect(within(wxDataViewerCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
+      'target',
+      '_blank'
+    )
+    expect(within(wxDataViewerCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
+      'rel',
+      'noreferrer'
+    )
   })
 
   it('moves a favourited tool out of its access section and persists it', async () => {
@@ -91,10 +116,8 @@ describe('LandingPagePreview', () => {
     await user.click(screen.getByRole('button', { name: 'Open quick access' }))
 
     expect(await screen.findByText('SUPPORT')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'BCWS.PredictiveServices@gov.bc.ca' })).toHaveAttribute(
-      'href',
-      'mailto:BCWS.PredictiveServices@gov.bc.ca'
-    )
+    expect(screen.getByText(/please use the Submit Feedback in-app functionality/)).toBeInTheDocument()
+    expect(screen.getByText('After-hours support:')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'BCWS.TechServices@gov.bc.ca' })).toHaveAttribute(
       'href',
       'mailto:BCWS.TechServices@gov.bc.ca'

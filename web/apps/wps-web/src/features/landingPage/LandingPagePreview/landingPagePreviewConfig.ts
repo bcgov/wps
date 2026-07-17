@@ -1,10 +1,5 @@
-import {
-  fbpGoInfo,
-  percentileCalcInfo,
-  type ToolInfo,
-  toolInfos,
-  weatherToolkitInfo
-} from 'features/landingPage/toolInfo'
+import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
+import { externalToolInfos, wxDataViewerInfo } from './ExternalToolInfos'
 
 export const BCWS_SECTION_ID = 'bcws-access-only-heading'
 export const FAVOURITES_SECTION_ID = 'favourites-heading'
@@ -15,16 +10,9 @@ export const ICON_TILE_RADIUS = '14px'
 export const SECTION_RADIUS = '18px'
 export const TOOL_ROW_RADIUS = '16px'
 
-export const DEFAULT_MANAGING_TEAM = 'Predictive Services Unit'
-export const PREDICTIVE_SERVICES_EMAIL = 'BCWS.PredictiveServices@gov.bc.ca'
 export const TECH_SERVICES_EMAIL = 'BCWS.TechServices@gov.bc.ca'
 
-export const publicTools = [fbpGoInfo, percentileCalcInfo, weatherToolkitInfo]
+export const publicTools = [fbpGoInfo, percentileCalcInfo, weatherToolkitInfo, wxDataViewerInfo]
+export const landingPagePreviewTools = [...toolInfos, ...externalToolInfos]
 
-const publicToolRoutes = new Set(publicTools.map(tool => tool.route))
-
-export const bcwsTools = toolInfos.filter(tool => !publicToolRoutes.has(tool.route))
-
-const managingTeamsByRoute: Partial<Record<ToolInfo['route'], string>> = {}
-
-export const getManagingTeam = (tool: ToolInfo) => managingTeamsByRoute[tool.route] ?? DEFAULT_MANAGING_TEAM
+export const bcwsTools = toolInfos.filter(tool => !publicTools.includes(tool))

@@ -5,15 +5,15 @@ import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import Footer from 'features/landingPage/components/Footer'
-import { toolInfos } from 'features/landingPage/toolInfo'
 import { useEffect, useState } from 'react'
-import { readFavouriteRoutes, storeFavouriteRoutes } from './favouritesStorage'
+import { readFavouriteRoutes, storeFavouriteRoutes } from '@/features/landingPage/LandingPagePreview/favouritesStorage'
 import LandingPageHeader from './LandingPageHeader'
 import {
   BCWS_SECTION_ID,
   bcwsTools,
   FAVOURITES_SECTION_ID,
   LANDING_PAGE_FAVOURITES_STORAGE_KEY,
+  landingPagePreviewTools,
   PUBLIC_SECTION_ID,
   publicTools
 } from './landingPagePreviewConfig'
@@ -25,7 +25,7 @@ export { LANDING_PAGE_FAVOURITES_STORAGE_KEY }
 const LandingPagePreview = () => {
   const [favouriteRoutes, setFavouriteRoutes] = useState<string[]>(readFavouriteRoutes)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const favouriteTools = toolInfos.filter(tool => favouriteRoutes.includes(tool.route))
+  const favouriteTools = landingPagePreviewTools.filter(tool => favouriteRoutes.includes(tool.route))
   const visibleBcwsTools = bcwsTools.filter(tool => !favouriteRoutes.includes(tool.route))
   const visiblePublicTools = publicTools.filter(tool => !favouriteRoutes.includes(tool.route))
 
