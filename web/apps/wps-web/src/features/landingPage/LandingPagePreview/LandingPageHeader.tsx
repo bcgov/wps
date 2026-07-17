@@ -40,8 +40,8 @@ const LandingPageHeader = ({ onOpenQuickAccess }: LandingPageHeaderProps) => (
       <Box
         alt="B.C. Wildfire Service"
         component="img"
-        src="/images/bc-wilderfire-service-logo.png"
-        sx={{ display: 'block', height: 'auto', maxWidth: 220, width: '65vw' }}
+        src="/images/BCWS-Mark_H2_rgb_pos.png"
+        sx={{ display: 'block', height: 'auto', maxWidth: 300, width: '65vw' }}
       />
     </Stack>
 
