@@ -10,15 +10,23 @@ import FavouriteButton from './FavouriteButton'
 
 interface QuickAccessListProps {
   favouriteRoutes: string[]
+  headingColor: string
   onNavigate: () => void
   onToggleFavourite: (route: string) => void
   title: string
   tools: ToolInfo[]
 }
 
-const QuickAccessList = ({ favouriteRoutes, onNavigate, onToggleFavourite, title, tools }: QuickAccessListProps) => (
+const QuickAccessList = ({
+  favouriteRoutes,
+  headingColor,
+  onNavigate,
+  onToggleFavourite,
+  title,
+  tools
+}: QuickAccessListProps) => (
   <Box>
-    <Typography color="primary" sx={{ fontSize: '0.75rem', fontWeight: 700, px: 2, pb: 0.5, pt: 1.5 }}>
+    <Typography sx={{ color: headingColor, fontSize: '0.875rem', fontWeight: 700, px: 2, pb: 0.5, pt: 1.5 }}>
       {title.toUpperCase()}
     </Typography>
     <List disablePadding>

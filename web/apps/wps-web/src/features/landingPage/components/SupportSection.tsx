@@ -6,7 +6,7 @@ import { TECH_SERVICES_EMAIL } from '../landingPageConfig'
 
 const SupportSection = () => (
   <Box sx={{ borderTop: 1, borderColor: 'divider', mt: 'auto', p: 2 }}>
-    <Typography color="primary" sx={{ fontSize: '0.75rem', fontWeight: 700, mb: 1.5 }}>
+    <Typography color="primary" sx={{ fontSize: '0.875rem', fontWeight: 700, mb: 1.5 }}>
       SUPPORT
     </Typography>
     <Stack spacing={1.5}>

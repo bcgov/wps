@@ -6,7 +6,7 @@ import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import type { ToolInfo } from 'features/landingPage/toolInfo'
+import { BCWS_TOOL_ICON_COLOUR, PUBLIC_TOOL_ICON_COLOUR, type ToolInfo } from 'features/landingPage/toolInfo'
 import QuickAccessList from './QuickAccessList'
 import SupportSection from './SupportSection'
 
@@ -56,6 +56,7 @@ const QuickAccessDrawer = ({
         {favouriteTools.length > 0 && (
           <QuickAccessList
             favouriteRoutes={favouriteRoutes}
+            headingColor="warning.dark"
             onNavigate={onClose}
             onToggleFavourite={onToggleFavourite}
             title="My Favourites"
@@ -67,6 +68,7 @@ const QuickAccessDrawer = ({
             <Divider />
             <QuickAccessList
               favouriteRoutes={favouriteRoutes}
+              headingColor={BCWS_TOOL_ICON_COLOUR}
               onNavigate={onClose}
               onToggleFavourite={onToggleFavourite}
               title="BCWS Access Only"
@@ -79,6 +81,7 @@ const QuickAccessDrawer = ({
             <Divider />
             <QuickAccessList
               favouriteRoutes={favouriteRoutes}
+              headingColor={PUBLIC_TOOL_ICON_COLOUR}
               onNavigate={onClose}
               onToggleFavourite={onToggleFavourite}
               title="Public Access"

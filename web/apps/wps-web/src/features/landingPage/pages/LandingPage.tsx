@@ -6,6 +6,7 @@ import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import { LANDING_PAGE_DOC_TITLE } from '@wps/utils/constants'
 import Footer from 'features/landingPage/components/Footer'
+import { BCWS_TOOL_ICON_COLOUR, PUBLIC_TOOL_ICON_COLOUR } from 'features/landingPage/toolInfo'
 import { useEffect, useState } from 'react'
 import { readFavouriteRoutes, storeFavouriteRoutes } from '@/features/landingPage/favouritesStorage'
 import LandingPageHeader from '../components/LandingPageHeader'
@@ -75,7 +76,7 @@ const LandingPage = () => {
             <ToolSection
               backgroundColor="#d9e8f5"
               headingId={BCWS_SECTION_ID}
-              icon={<LockOutlinedIcon sx={{ fontSize: 18 }} />}
+              icon={<LockOutlinedIcon sx={{ color: BCWS_TOOL_ICON_COLOUR, fontSize: 18 }} />}
               isFavourite={route => favouriteRoutes.includes(route)}
               onToggleFavourite={toggleFavourite}
               title="BCWS Access Only"
@@ -86,7 +87,7 @@ const LandingPage = () => {
             <ToolSection
               backgroundColor="#fff4e5"
               headingId={PUBLIC_SECTION_ID}
-              icon={<PublicOutlinedIcon sx={{ color: 'success.main', fontSize: 18 }} />}
+              icon={<PublicOutlinedIcon sx={{ color: PUBLIC_TOOL_ICON_COLOUR, fontSize: 18 }} />}
               isFavourite={route => favouriteRoutes.includes(route)}
               onToggleFavourite={toggleFavourite}
               title="Public Access"

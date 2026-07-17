@@ -1,6 +1,6 @@
 import AreaChartOutlinedIcon from '@mui/icons-material/AreaChartOutlined'
 import Typography from '@mui/material/Typography'
-import type { ToolInfo } from 'features/landingPage/toolInfo'
+import { PUBLIC_TOOL_ICON_COLOUR, type ToolInfo } from 'features/landingPage/toolInfo'
 
 export const WX_DATA_VIEWER_ROUTE = 'https://huggingface.co/spaces/ssidds/WX_data_viewer'
 export const WX_DATA_VIEWER_MANAGING_TEAM = 'TBD'
@@ -16,7 +16,7 @@ export const wxDataViewerInfo: ToolInfo = {
       long-term fire analyst and risk landscape polygons based on climatology.
     </Typography>
   ),
-  icon: <AreaChartOutlinedIcon color="primary" fontSize="large" />,
+  icon: <AreaChartOutlinedIcon fontSize="large" htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
   isBeta: false,
   managedBy: WX_DATA_VIEWER_MANAGING_TEAM,
   isExternal: true
