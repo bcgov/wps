@@ -1,4 +1,4 @@
-import AirOutlinedIcon from '@mui/icons-material/AirOutlined'
+import AreaChartOutlinedIcon from '@mui/icons-material/AreaChartOutlined'
 import Typography from '@mui/material/Typography'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
 
@@ -15,7 +15,7 @@ export const wxDataViewerInfo: ToolInfo = {
       long-term fire analyst and risk landscape polygons based on climatology.
     </Typography>
   ),
-  icon: <AirOutlinedIcon color="primary" fontSize="large" />,
+  icon: <AreaChartOutlinedIcon color="primary" fontSize="large" />,
   isBeta: false,
   managedBy: WX_DATA_VIEWER_MANAGING_TEAM,
   isExternal: true

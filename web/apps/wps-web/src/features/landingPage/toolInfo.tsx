@@ -1,9 +1,9 @@
 import AirOutlinedIcon from '@mui/icons-material/AirOutlined'
 import BorderAllIcon from '@mui/icons-material/BorderAll'
 import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
-import InsightsIcon from '@mui/icons-material/Insights'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
+import TravelExploreOutlinedIcon from '@mui/icons-material/TravelExploreOutlined'
 import WatchIcon from '@mui/icons-material/Watch'
 import WhatshotIcon from '@mui/icons-material/Whatshot'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
@@ -155,7 +155,7 @@ export const sfmsInsightsInfo: ToolInfo = {
       wildfire-related data.
     </Typography>
   ),
-  icon: <InsightsIcon color="primary" fontSize={ICON_FONT_SIZE} />,
+  icon: <TravelExploreOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
   isBeta: true,
   managedBy: PREDICTIVE_SERVICES_UNIT
 }
