@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
-import { fbpGoInfo, toolInfos } from 'features/landingPage/toolInfo'
+import { fbpGoInfo, percentileCalcInfo, toolInfos } from 'features/landingPage/toolInfo'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import LandingPageRework, { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './LandingPageRework'
@@ -39,16 +39,20 @@ describe('LandingPageRework', () => {
     expect(screen.getByText('Collaboard', { selector: 'a' })).toBeInTheDocument()
   })
 
-  it('shows FBP Go publicly and the remaining tools in the BCWS access section', () => {
+  it('shows public tools publicly and the remaining tools in the BCWS access section', () => {
     renderPage()
 
     const accessSection = screen.getByRole('region', { name: 'BCWS Access Only' })
-    for (const tool of toolInfos.filter(toolInfo => toolInfo.route !== fbpGoInfo.route)) {
+    const publicRoutes = [fbpGoInfo.route, percentileCalcInfo.route]
+    for (const tool of toolInfos.filter(toolInfo => !publicRoutes.includes(toolInfo.route))) {
       expect(within(accessSection).getByRole('heading', { name: tool.name })).toBeInTheDocument()
     }
     expect(within(accessSection).queryByText(fbpGoInfo.name)).not.toBeInTheDocument()
-    expect(within(screen.getByRole('region', { name: 'Public Access' })).getByText(fbpGoInfo.name)).toBeInTheDocument()
-    expect(screen.getAllByText('Managed by: (Team Name)')).toHaveLength(toolInfos.length)
+    expect(within(accessSection).queryByText(percentileCalcInfo.name)).not.toBeInTheDocument()
+    const publicSection = screen.getByRole('region', { name: 'Public Access' })
+    expect(within(publicSection).getByText(fbpGoInfo.name)).toBeInTheDocument()
+    expect(within(publicSection).getByText(percentileCalcInfo.name)).toBeInTheDocument()
+    expect(screen.getAllByText('Managed by: Predictive Services Unit')).toHaveLength(toolInfos.length)
   })
 
   it('moves a favourited tool out of its access section and persists it', async () => {

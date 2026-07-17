@@ -25,7 +25,7 @@ import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { MS_TEAMS_SPRINT_REVIEW_URL, SPRINT_REVIEW_BOARD_URL } from '@wps/utils/env'
 import Footer from 'features/landingPage/components/Footer'
-import { fbpGoInfo, type ToolInfo, toolInfos } from 'features/landingPage/toolInfo'
+import { fbpGoInfo, percentileCalcInfo, type ToolInfo, toolInfos } from 'features/landingPage/toolInfo'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 
@@ -36,10 +36,13 @@ export const LANDING_PAGE_FAVOURITES_STORAGE_KEY = 'wps-landing-page-favourites'
 const ICON_TILE_RADIUS = '14px'
 const SECTION_RADIUS = '18px'
 const TOOL_ROW_RADIUS = '16px'
+const DEFAULT_MANAGING_TEAM = 'Predictive Services Unit'
 const PREDICTIVE_SERVICES_EMAIL = 'BCWS.PredictiveServices@gov.bc.ca'
 const TECH_SERVICES_EMAIL = 'BCWS.TechServices@gov.bc.ca'
-const publicTools = [fbpGoInfo]
-const bcwsTools = toolInfos.filter(tool => tool.route !== fbpGoInfo.route)
+const publicTools = [fbpGoInfo, percentileCalcInfo]
+const publicToolRoutes = new Set(publicTools.map(tool => tool.route))
+const bcwsTools = toolInfos.filter(tool => !publicToolRoutes.has(tool.route))
+const managingTeamsByRoute: Partial<Record<ToolInfo['route'], string>> = {}
 
 const readFavouriteRoutes = () => {
   try {
@@ -94,6 +97,7 @@ interface ToolRowProps {
 
 const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
   const isExternal = tool.route.startsWith('http')
+  const managingTeam = managingTeamsByRoute[tool.route] ?? DEFAULT_MANAGING_TEAM
 
   return (
     <Paper
@@ -105,7 +109,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
         borderRadius: TOOL_ROW_RADIUS,
         display: 'grid',
         gap: { xs: 2, sm: 0 },
-        gridTemplateColumns: { xs: '1fr', sm: 'minmax(240px, 0.9fr) minmax(280px, 1.4fr) auto' },
+        gridTemplateColumns: { xs: '1fr', sm: 'minmax(260px, 0.85fr) minmax(360px, 1.65fr) auto' },
         p: 2
       }}
     >
@@ -135,7 +139,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
             </Stack>
           </Stack>
           <Typography color="text.secondary" sx={{ display: 'block', mt: 0.75 }} variant="caption">
-            Managed by: (Team Name)
+            Managed by: {managingTeam}
           </Typography>
         </Box>
       </Stack>
