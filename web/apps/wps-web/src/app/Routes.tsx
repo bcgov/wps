@@ -25,6 +25,7 @@ import { NoMatchPage } from 'features/NoMatchPage'
 const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/FireBehaviourCalculatorPage'))
 const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBehaviourAdvisoryPage'))
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
+const LandingPageRework = lazy(() => import('features/landingPage/Landing_page_rework/LandingPageRework'))
 const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'))
 
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
@@ -33,6 +34,7 @@ import { SFMSInsightsPage } from '@/features/sfmsInsights/pages/SFMSInsightsPage
 import WeatherToolkitPage from '@/features/weatherToolkit/pages/WeatherToolkitPage'
 
 const shouldShowDisclaimer = HIDE_DISCLAIMER === 'false' || HIDE_DISCLAIMER === undefined
+const LANDING_PAGE_REWORK_ROUTE = '/landing-page-rework'
 
 const WPSRoutes: React.FunctionComponent = () => {
   return (
@@ -47,6 +49,7 @@ const WPSRoutes: React.FunctionComponent = () => {
               </React.StrictMode>
             }
           />
+          <Route path={LANDING_PAGE_REWORK_ROUTE} element={<LandingPageRework />} />
           <Route
             path={PERCENTILE_CALC_ROUTE}
             element={
