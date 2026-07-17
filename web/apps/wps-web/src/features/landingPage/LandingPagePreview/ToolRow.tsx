@@ -2,6 +2,7 @@ import LaunchIcon from '@mui/icons-material/Launch'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
+import Link from '@mui/material/Link'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -29,6 +30,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
         display: 'grid',
         gap: { xs: 2, sm: 0 },
         gridTemplateColumns: { xs: '1fr', sm: 'minmax(260px, 0.85fr) minmax(360px, 1.65fr) auto' },
+        minHeight: { sm: 120 },
         p: 2
       }}
     >
@@ -50,14 +52,22 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
         <Box sx={{ minWidth: 0, width: '100%' }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <Typography component="h3" sx={{ fontWeight: 700, lineHeight: 1.35 }} variant="body1">
-              {tool.name}
+              <Link
+                color="inherit"
+                href={tool.route}
+                rel={isExternal ? 'noreferrer' : undefined}
+                target={isExternal ? '_blank' : undefined}
+                underline="hover"
+              >
+                {tool.name}
+              </Link>
             </Typography>
             <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flex: '0 0 auto' }}>
               {tool.isBeta && <Chip color="primary" label="Beta" size="small" variant="outlined" />}
               <FavouriteButton isFavourite={isFavourite} onToggle={onToggleFavourite} toolName={tool.name} />
             </Stack>
           </Stack>
-          <Typography color="text.secondary" sx={{ display: 'block', mt: 0.75 }} variant="caption">
+          <Typography color="text.secondary" sx={{ display: 'block', mt: 2 }} variant="caption">
             Managed by: {tool.managedBy}
           </Typography>
         </Box>
