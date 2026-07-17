@@ -69,9 +69,16 @@ describe('LandingPagePreview', () => {
     const wxDataViewerCard = within(publicSection)
       .getByRole('heading', { name: wxDataViewerInfo.name })
       .closest('article')
+    const fbpGoTitleLink = within(fbpGoCard as HTMLElement).getByRole('link', { name: fbpGoInfo.name })
+    const wxDataViewerTitleLink = within(wxDataViewerCard as HTMLElement).getByRole('link', {
+      name: wxDataViewerInfo.name
+    })
 
     expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).not.toHaveAttribute('target')
     expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).not.toHaveAttribute('rel')
+    expect(fbpGoTitleLink).toHaveAttribute('href', fbpGoInfo.route)
+    expect(fbpGoTitleLink).not.toHaveAttribute('target')
+    expect(fbpGoTitleLink).not.toHaveAttribute('rel')
     expect(within(wxDataViewerCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
       'target',
       '_blank'
@@ -80,6 +87,9 @@ describe('LandingPagePreview', () => {
       'rel',
       'noreferrer'
     )
+    expect(wxDataViewerTitleLink).toHaveAttribute('href', wxDataViewerInfo.route)
+    expect(wxDataViewerTitleLink).toHaveAttribute('target', '_blank')
+    expect(wxDataViewerTitleLink).toHaveAttribute('rel', 'noreferrer')
   })
 
   it('moves a favourited tool out of its access section and persists it', async () => {
