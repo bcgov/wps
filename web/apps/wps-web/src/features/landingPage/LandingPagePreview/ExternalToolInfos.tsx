@@ -10,8 +10,9 @@ export const wxDataViewerInfo: ToolInfo = {
   route: WX_DATA_VIEWER_ROUTE,
   description: (
     <Typography>
-      A data exploration tool for reviewing weather observations, model output, and related datasets in support of
-      operational analysis.
+      A near real time (-1 day) and historical hourly visualizer of BCWS weather station data. Plots actuals and
+      climatology, produces wind and initial spread index roses for specific stations and time periods, and calculates
+      long-term fire analyst and risk landscape polygons based on climatology.
     </Typography>
   ),
   icon: <AirOutlinedIcon color="primary" fontSize="large" />,
