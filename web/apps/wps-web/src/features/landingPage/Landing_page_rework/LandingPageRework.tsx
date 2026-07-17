@@ -388,20 +388,41 @@ const LandingPageRework = () => {
       </Drawer>
 
       <Container component="main" maxWidth="md" sx={{ flex: 1, py: { xs: 3, sm: 5 } }}>
-        <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start', mb: { xs: 4, sm: 5 } }}>
-          <Tooltip title="Open quick access">
-            <IconButton aria-label="Open quick access" onClick={() => setIsDrawerOpen(true)} sx={{ mt: 0.5 }}>
-              <MenuIcon />
-            </IconButton>
-          </Tooltip>
-          <Box>
+        <Box
+          component="header"
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            mb: { xs: 4, sm: 5 },
+            pb: { xs: 3, sm: 4 }
+          }}
+        >
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{ alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', mb: 3 }}
+          >
+            <Tooltip title="Open quick access">
+              <Button
+                aria-label="Open quick access"
+                onClick={() => setIsDrawerOpen(true)}
+                startIcon={<MenuIcon />}
+                sx={{ alignSelf: { xs: 'stretch', sm: 'center' } }}
+                variant="outlined"
+              >
+                Quick Access
+              </Button>
+            </Tooltip>
             <Box
               alt="B.C. Wildfire Service"
               component="img"
               src="/images/bc-wilderfire-service-logo.png"
-              sx={{ display: 'block', height: 'auto', mb: 2, maxWidth: 220, width: '65vw' }}
+              sx={{ display: 'block', height: 'auto', maxWidth: 220, width: '65vw' }}
             />
-            <Typography component="h1" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' }, fontWeight: 700 }}>
+          </Stack>
+
+          <Stack spacing={1.25}>
+            <Typography component="h1" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' }, fontWeight: 700 }}>
               Predictive Services Tools &amp; Applications
             </Typography>
             <Typography color="text.secondary" sx={{ mt: 1.5, maxWidth: 760 }} variant="body2">
@@ -421,8 +442,8 @@ const LandingPageRework = () => {
               </Link>{' '}
               to your calendar and bookmarks.
             </Typography>
-          </Box>
-        </Stack>
+          </Stack>
+        </Box>
 
         <Stack spacing={5}>
           {favouriteTools.length > 0 && (
