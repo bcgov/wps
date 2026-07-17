@@ -8,6 +8,7 @@ export const WX_DATA_VIEWER_MANAGING_TEAM = 'TBD'
 export const wxDataViewerInfo: ToolInfo = {
   name: 'WX Data Viewer',
   route: WX_DATA_VIEWER_ROUTE,
+  subheading: 'Weather station actuals, climatology, and wind analysis',
   description: (
     <Typography>
       A near real time (-1 day) and historical hourly visualizer of BCWS weather station data. Plots actuals and

@@ -49,9 +49,13 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
         >
           {tool.icon}
         </Box>
-        <Box sx={{ minWidth: 0, width: '100%' }}>
+        <Box sx={{ minWidth: 0, width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <Typography component="h3" sx={{ fontWeight: 700, lineHeight: 1.35 }} variant="body1">
+            <Typography
+              component="h3"
+              sx={{ fontWeight: 700, lineHeight: 1.35, pt: 1, pb: { sm: 1, md: 3 } }}
+              variant="body1"
+            >
               <Link
                 color="inherit"
                 href={tool.route}
@@ -67,7 +71,10 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
               <FavouriteButton isFavourite={isFavourite} onToggle={onToggleFavourite} toolName={tool.name} />
             </Stack>
           </Stack>
-          <Typography color="text.secondary" sx={{ display: 'block', mt: 2 }} variant="caption">
+          {/* <Typography color="text.primary" sx={{ display: 'block', mt: 1.25 }} variant="body2">
+            {tool.subheading}
+          </Typography> */}
+          <Typography color="text.secondary" sx={{ display: 'block', mt: 'auto', pt: 1 }} variant="caption">
             Managed by: {tool.managedBy}
           </Typography>
         </Box>
