@@ -34,6 +34,6 @@ runs:
       working-directory: ./backend
       shell: bash
       run: |
-        uv sync --all-extras
+        uv sync --all-extras --locked
         uv pip install setuptools
         uv pip install --no-build-isolation gdal==$(gdal-config --version)
