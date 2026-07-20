@@ -201,6 +201,7 @@ class LatestSFMSRunParameter(BaseModel):
     for_date: date
     run_type: SFMSRunType
     run_datetime: datetime
+    valid_until: datetime
 
 
 class LatestSFMSRunParameterResponse(BaseModel):
@@ -211,6 +212,7 @@ class SFMSRunParameter(BaseModel):
     for_date: date
     run_type: SFMSRunType
     run_datetime: datetime
+    valid_until: datetime
 
 
 class LatestSFMSRunParameterRangeResponse(BaseModel):

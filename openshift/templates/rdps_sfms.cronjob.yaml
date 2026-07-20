@@ -48,12 +48,17 @@ objects:
       # If we were to use Forbid, and a cronjob gets stuck, then we'd stop gathering data until someone
       # noticed. We don't want that.
       concurrencyPolicy: "Replace"
+      # Keep failed jobs (and their pods) around longer than the default (1) so there's
+      # enough history to debug a failure before it gets garbage collected.
+      failedJobsHistoryLimit: 5
+      successfulJobsHistoryLimit: 3
       jobTemplate:
         metadata:
           labels:
             cronjob: ${JOB_NAME}
             app: ${APP_LABEL}
         spec:
+          backoffLimit: 6
           template:
             spec:
               containers:
