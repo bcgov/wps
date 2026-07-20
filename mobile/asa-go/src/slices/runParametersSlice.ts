@@ -132,5 +132,10 @@ const runParametersAreEqual = (a: RunParameter | undefined, b: RunParameter | un
   if (isNil(a) || isNil(b)) {
     return isNil(a) && isNil(b)
   }
-  return a.for_date === b.for_date && a.run_datetime === b.run_datetime && a.run_type === b.run_type
+  return (
+    a.for_date === b.for_date &&
+    a.run_datetime === b.run_datetime &&
+    a.run_type === b.run_type &&
+    a.valid_until === b.valid_until
+  )
 }

@@ -35,7 +35,6 @@ import { initSubscriptions } from '@/slices/settingsSlice'
 import {
   type AppDispatch,
   selectFireCentres,
-  selectLastUpdated,
   selectNetworkStatus,
   selectPendingNotificationData,
   selectProvincialSummaries,
@@ -71,7 +70,6 @@ const App = () => {
   const { subscriptionsInitialized } = useSelector(selectSettings)
   const provincialSummaries = useSelector(selectProvincialSummaries)
   const pendingNotificationData = useSelector(selectPendingNotificationData)
-  const lastUpdated = useSelector(selectLastUpdated)
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest)
@@ -247,7 +245,7 @@ const App = () => {
           status={networkStatus.connected ? StatusEnum.INFO : StatusEnum.WARNING}
           statusText={networkStatus.connected ? '' : 'Offline.'}
           viewingDate={dateOfInterest}
-          lastUpdated={lastUpdated}
+          validUntil={runParameter?.valid_until}
           Icon={networkStatus.connected ? InfoIcon : NetworkIcon}
         />
         <GuestDisclaimerBanner />

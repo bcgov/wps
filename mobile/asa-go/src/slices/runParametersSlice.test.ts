@@ -108,6 +108,25 @@ describe('fetchSFMSRunParameters thunk', () => {
     expect(store.getState().data.lastUpdated).not.toBeNull()
   })
 
+  it('dispatches success when online API response adds valid_until to current run parameters', async () => {
+    const runParametersWithValidUntil = {
+      [todayKey]: { ...mockRunParameters[todayKey], valid_until: '2025-08-27T15:00:00Z' },
+      [tomorrowKey]: { ...mockRunParameters[tomorrowKey], valid_until: '2025-08-28T15:00:00Z' }
+    }
+    ;(getMostRecentRunParameters as Mock).mockResolvedValue(runParametersWithValidUntil)
+    ;(writeToFileSystem as Mock).mockResolvedValue(undefined)
+    const store = createTestStore({
+      runParameters: { ...initialState, runParameters: mockRunParameters },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      }
+    })
+
+    await store.dispatch(fetchSFMSRunParameters())
+
+    expect(store.getState().runParameters.runParameters).toEqual(runParametersWithValidUntil)
+  })
+
   it("dispatches success when online and API returns only today's run parameters", async () => {
     ;(getMostRecentRunParameters as Mock).mockResolvedValue(mockTodayOnlyRunParameters)
     ;(writeToFileSystem as Mock).mockResolvedValue(undefined)

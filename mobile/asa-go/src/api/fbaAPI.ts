@@ -123,6 +123,8 @@ export interface RunParameter {
   for_date: string
   run_datetime: string
   run_type: RunType
+  // keep valid_until optional until all apps in the wild are updated to app version 1.2.0 or later.
+  valid_until?: string
 }
 
 export interface RunParametersResponse {
