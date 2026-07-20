@@ -8,6 +8,7 @@ from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_centre_info,
+    get_most_recent_run_datetime_for_date_range,
     get_provincial_rollup,
     mark_run_parameter_complete,
 )
@@ -125,6 +126,44 @@ async def test_mark_run_parameter_complete(async_session, session_factory):
         )
         updated_param = result.scalar_one()
         assert updated_param.complete is True
+
+
+@pytest.mark.anyio
+async def test_get_most_recent_run_datetime_for_date_range_ignores_incomplete_runs(async_session):
+    today = datetime(2025, 8, 1, tzinfo=timezone.utc).date()
+    tomorrow = datetime(2025, 8, 2, tzinfo=timezone.utc).date()
+    older_complete_run_datetime = datetime(2025, 8, 1, 15, tzinfo=timezone.utc)
+    newer_incomplete_run_datetime = datetime(2025, 8, 1, 20, tzinfo=timezone.utc)
+    tomorrow_run_datetime = datetime(2025, 8, 2, 15, tzinfo=timezone.utc)
+    async_session.add_all(
+        [
+            RunParameters(
+                run_type=RunType.FORECAST.value,
+                run_datetime=older_complete_run_datetime,
+                for_date=today,
+                complete=True,
+            ),
+            RunParameters(
+                run_type=RunType.FORECAST.value,
+                run_datetime=newer_incomplete_run_datetime,
+                for_date=today,
+                complete=False,
+            ),
+            RunParameters(
+                run_type=RunType.FORECAST.value,
+                run_datetime=tomorrow_run_datetime,
+                for_date=tomorrow,
+                complete=True,
+            ),
+        ]
+    )
+    await async_session.commit()
+
+    result = await get_most_recent_run_datetime_for_date_range(async_session, today, tomorrow)
+
+    result_by_date = {row.for_date: row for row in result}
+    assert result_by_date[today].run_datetime == older_complete_run_datetime
+    assert result_by_date[tomorrow].run_datetime == tomorrow_run_datetime
 
 
 @pytest.mark.anyio
