@@ -9,17 +9,41 @@ interface StatusStyle {
 }
 
 interface InfoBarProps {
-  lastUpdated: string | null
+  validUntil?: string | null
   viewingDate: DateTime
   status: StatusEnum
   Icon: string
   statusText?: string
 }
 
-const InfoBar = ({ lastUpdated, viewingDate, status, statusText, Icon }: InfoBarProps) => {
+const getValidUntilDateTime = (validUntil?: string | null) =>
+  validUntil ? DateTime.fromISO(validUntil) : DateTime.invalid('missing validUntil')
+
+const getValidUntilString = (validUntil?: string | null) => {
+  const validUntilDateTime = getValidUntilDateTime(validUntil)
+  if (!validUntilDateTime.isValid) {
+    return 'n/a'
+  }
+
+  const today = DateTime.now().startOf('day')
+  const validUntilDay = validUntilDateTime.startOf('day')
+
+  if (validUntilDay.equals(today)) {
+    return `${validUntilDateTime.toFormat('HH:mm')} Today`
+  }
+
+  if (validUntilDay.equals(today.plus({ days: 1 }))) {
+    return `${validUntilDateTime.toFormat('HH:mm')} Tomorrow`
+  }
+
+  return validUntilDateTime.toFormat('MMM d, HH:mm')
+}
+
+const InfoBar = ({ validUntil, viewingDate, status, statusText, Icon }: InfoBarProps) => {
   const theme = useTheme()
-  const lastCheckedString = lastUpdated ? DateTime.fromISO(lastUpdated).toFormat('MMM d, T') : 'n/a'
-  const message = `Viewing: ${viewingDate.toFormat('EEE, MMM d')}. Upd: ${lastCheckedString}.`
+  const message = `Viewing: ${viewingDate.toFormat('EEE, MMM d')}. Valid until: ${getValidUntilString(validUntil)}.`
+  const validUntilDateTime = getValidUntilDateTime(validUntil)
+  const isExpired = validUntilDateTime.isValid && validUntilDateTime < DateTime.now()
 
   const statusMap: Record<StatusEnum, StatusStyle> = {
     [StatusEnum.INFO]: {
@@ -33,24 +57,31 @@ const InfoBar = ({ lastUpdated, viewingDate, status, statusText, Icon }: InfoBar
       border: theme.palette.warning.dark
     }
   }
+  const statusStyle = isExpired
+    ? {
+        backgroundColor: theme.palette.error.main,
+        fontColor: theme.palette.error.contrastText,
+        border: theme.palette.error.dark
+      }
+    : statusMap[status]
 
   return (
     <Box
       component="span"
       sx={{
-        backgroundColor: statusMap[status].backgroundColor,
-        color: statusMap[status].fontColor,
+        backgroundColor: statusStyle.backgroundColor,
+        color: statusStyle.fontColor,
         padding: theme.spacing(0.5),
         display: 'inline-flex',
         alignItems: 'center',
-        borderLeftColor: statusMap[status].border,
+        borderLeftColor: statusStyle.border,
         borderLeftStyle: 'solid',
         borderLeftWidth: '4px'
       }}
     >
-      <Box component="img" src={Icon} sx={{ color: statusMap[status].fontColor, px: theme.spacing(1) }} />
+      <Box component="img" src={Icon} sx={{ color: statusStyle.fontColor, px: theme.spacing(1) }} />
       {statusText && (
-        <Typography component="span" variant="body2" sx={{ color: statusMap[status].fontColor }}>
+        <Typography component="span" variant="body2" sx={{ color: statusStyle.fontColor }}>
           {`${statusText}\u00A0`}
         </Typography>
       )}
