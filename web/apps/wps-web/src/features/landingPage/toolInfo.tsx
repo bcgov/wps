@@ -34,7 +34,7 @@ import type React from 'react'
 
 const ICON_FONT_SIZE = 'large'
 const PREDICTIVE_SERVICES_UNIT = 'Predictive Services Unit'
-export const BCWS_TOOL_ICON_COLOUR = '#ea580c'
+export const BCPS_TOOL_ICON_COLOUR = '#ea580c'
 export const PUBLIC_TOOL_ICON_COLOUR = '#0d9488'
 
 export interface ToolInfo {
@@ -68,7 +68,7 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
       &nbsp;stores.
     </Typography>
   ),
-  icon: <LocalFireDepartmentIcon fontSize={ICON_FONT_SIZE} htmlColor={BCWS_TOOL_ICON_COLOUR} />,
+  icon: <LocalFireDepartmentIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
   isBeta: false,
   managedBy: PREDICTIVE_SERVICES_UNIT
 }
@@ -83,7 +83,7 @@ export const fireBehaviourCalcInfo: ToolInfo = {
       user-specified fuel types.
     </Typography>
   ),
-  icon: <WhatshotOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCWS_TOOL_ICON_COLOUR} />,
+  icon: <WhatshotOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
   isBeta: false,
   managedBy: PREDICTIVE_SERVICES_UNIT
 }
@@ -98,7 +98,7 @@ export const hfiCalcInfo: ToolInfo = {
       and fire occurrence.
     </Typography>
   ),
-  icon: <CalculateOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCWS_TOOL_ICON_COLOUR} />,
+  icon: <CalculateOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
   isBeta: false,
   managedBy: PREDICTIVE_SERVICES_UNIT
 }
@@ -113,7 +113,7 @@ export const moreCastInfo: ToolInfo = {
       with other applications.
     </Typography>
   ),
-  icon: <AirOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCWS_TOOL_ICON_COLOUR} />,
+  icon: <AirOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
   isBeta: false,
   managedBy: PREDICTIVE_SERVICES_UNIT
 }
@@ -165,7 +165,7 @@ export const sfmsInsightsInfo: ToolInfo = {
       wildfire-related data.
     </Typography>
   ),
-  icon: <TravelExploreOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCWS_TOOL_ICON_COLOUR} />,
+  icon: <TravelExploreOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
   isBeta: true,
   managedBy: PREDICTIVE_SERVICES_UNIT
 }
@@ -187,9 +187,9 @@ export const fireWatchInfo: ToolInfo = {
         position: 'relative'
       }}
     >
-      <WatchIcon sx={{ fontSize: 40 }} htmlColor={BCWS_TOOL_ICON_COLOUR} />
+      <WatchIcon sx={{ fontSize: 40 }} htmlColor={BCPS_TOOL_ICON_COLOUR} />
       <WhatshotIcon
-        htmlColor={BCWS_TOOL_ICON_COLOUR}
+        htmlColor={BCPS_TOOL_ICON_COLOUR}
         sx={{
           fontSize: 16,
           position: 'absolute',

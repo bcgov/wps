@@ -6,14 +6,14 @@ import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import { LANDING_PAGE_DOC_TITLE } from '@wps/utils/constants'
 import Footer from 'features/landingPage/components/Footer'
-import { BCWS_TOOL_ICON_COLOUR, PUBLIC_TOOL_ICON_COLOUR } from 'features/landingPage/toolInfo'
+import { BCPS_TOOL_ICON_COLOUR, PUBLIC_TOOL_ICON_COLOUR } from 'features/landingPage/toolInfo'
 import { useEffect, useState } from 'react'
 import { readFavouriteRoutes, storeFavouriteRoutes } from '@/features/landingPage/favouritesStorage'
 import LandingPageHeader from '../components/LandingPageHeader'
 import QuickAccessDrawer from '../components/QuickAccessDrawer'
 import ToolSection from '../components/ToolSection'
 import {
-  BCWS_SECTION_ID,
+  BCPS_SECTION_ID,
   bcwsTools,
   FAVOURITES_SECTION_ID,
   LANDING_PAGE_FAVOURITES_STORAGE_KEY,
@@ -75,11 +75,11 @@ const LandingPage = () => {
           {visibleBcwsTools.length > 0 && (
             <ToolSection
               backgroundColor="#d9e8f5"
-              headingId={BCWS_SECTION_ID}
-              icon={<LockOutlinedIcon sx={{ color: BCWS_TOOL_ICON_COLOUR, fontSize: 18 }} />}
+              headingId={BCPS_SECTION_ID}
+              icon={<LockOutlinedIcon sx={{ color: BCPS_TOOL_ICON_COLOUR, fontSize: 18 }} />}
               isFavourite={route => favouriteRoutes.includes(route)}
               onToggleFavourite={toggleFavourite}
-              title="BCWS Access Only"
+              title="BCPS Access Only"
               tools={visibleBcwsTools}
             />
           )}

@@ -1,7 +1,7 @@
 import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
 import { externalToolInfos, wxDataViewerInfo } from './ExternalToolInfos'
 
-export const BCWS_SECTION_ID = 'bcws-access-only-heading'
+export const BCPS_SECTION_ID = 'bcps-access-only-heading'
 export const FAVOURITES_SECTION_ID = 'favourites-heading'
 export const PUBLIC_SECTION_ID = 'public-access-heading'
 export const LANDING_PAGE_FAVOURITES_STORAGE_KEY = 'wps-landing-page-favourites'
