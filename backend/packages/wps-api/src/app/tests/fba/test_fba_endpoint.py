@@ -257,12 +257,18 @@ async def mock_get_sfms_bounds_no_data(*_, **__):
 async def mock_get_most_recent_run_datetime_for_date_range(*_, **__):
     for_date_1 = date(2025, 8, 25)
     for_date_2 = date(2025, 8, 26)
-    run_datetime = datetime(2025, 8, 25)
+    run_datetime = datetime(2025, 8, 25, tzinfo=timezone.utc)
     run_parameter_1 = SFMSRunParameter(
-        for_date=for_date_1, run_datetime=run_datetime, run_type=SFMSRunType.FORECAST
+        for_date=for_date_1,
+        run_datetime=run_datetime,
+        run_type=SFMSRunType.FORECAST,
+        valid_until=datetime(2025, 8, 25, 1, tzinfo=timezone.utc),
     )
     run_parameter_2 = SFMSRunParameter(
-        for_date=for_date_2, run_datetime=run_datetime, run_type=SFMSRunType.FORECAST
+        for_date=for_date_2,
+        run_datetime=run_datetime,
+        run_type=SFMSRunType.FORECAST,
+        valid_until=datetime(2025, 8, 25, 1, tzinfo=timezone.utc),
     )
     return [run_parameter_1, run_parameter_2]
 
