@@ -9,4 +9,5 @@ export const TOOL_ROW_RADIUS = '16px'
 export const FAVOURITES_COLOUR = '#3f743f'
 export const PUBLIC_TOOL_ICON_COLOUR = '#FF6900'
 
+export const BCWS_PREDICTIVE_SERVICES_EMAIL = 'BCWS.PredictiveServices@gov.bc.ca'
 export const TECH_SERVICES_EMAIL = 'BCWS.TechServices@gov.bc.ca'

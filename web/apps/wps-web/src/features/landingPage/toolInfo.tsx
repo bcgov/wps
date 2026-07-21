@@ -31,10 +31,9 @@ import {
   WEATHER_TOOLKIT_ROUTE
 } from '@wps/utils/constants'
 import type React from 'react'
-import { PUBLIC_TOOL_ICON_COLOUR } from './landingPageConfig'
+import { BCWS_PREDICTIVE_SERVICES_EMAIL, PUBLIC_TOOL_ICON_COLOUR } from './landingPageConfig'
 
 const ICON_FONT_SIZE = 'large'
-const BCWS_PREDICTIVE_SERVICES_EMAIL = 'BCWS.PredictiveServices@gov.bc.ca'
 
 export interface ManagedByInfo {
   name: string

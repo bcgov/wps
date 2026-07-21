@@ -3,6 +3,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { theme } from '@wps/ui/theme'
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { BCWS_PREDICTIVE_SERVICES_EMAIL } from '../landingPageConfig'
 
 const PREFIX = 'Footer'
 
@@ -88,7 +89,7 @@ const Footer: React.FunctionComponent = () => {
         <StyledLink
           to="#"
           onClick={e => {
-            window.location.href = 'mailto:BCWS.PredictiveServices@gov.bc.ca'
+            window.location.href = `mailto:${BCWS_PREDICTIVE_SERVICES_EMAIL}`
             e.preventDefault()
           }}
         >
