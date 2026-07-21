@@ -9,6 +9,8 @@ on:
       - main
     paths-ignore:
       - "mobile/**"
+      - ".github/workflows/asa_go_android_build.yml"
+      - ".github/workflows/asa_go_ios_build_deploy.yml"
 
 env:
   APS_TEST_GATEWAY_ID: gw-11008
