@@ -67,9 +67,7 @@ router = APIRouter(
 )
 
 
-def get_advisory_valid_until(
-    run_type: RunType | RunTypeEnum | str, run_datetime: datetime
-) -> datetime:
+def get_advisory_valid_until(run_type: RunType, run_datetime: datetime) -> datetime:
     """
     Advisories are valid until the next expected replacement data. Actuals expire at local
     midnight. Forecasts expire the same day at 18:00 when run before 17:30 local time,
@@ -77,9 +75,7 @@ def get_advisory_valid_until(
     """
     ensure_timezone(run_datetime)
     local_run_datetime = run_datetime.astimezone(vancouver_tz)
-    run_type_value = getattr(run_type, "value", run_type)
-
-    if run_type_value == RunType.ACTUAL.value:
+    if run_type.value == RunType.ACTUAL.value:
         return (
             (local_run_datetime + timedelta(days=1))
             .replace(hour=0, minute=0, second=0, microsecond=0)
@@ -266,7 +262,7 @@ async def get_latest_sfms_run_datetime_for_date(
             run_datetime=latest_run_parameter.run_datetime,
             run_type=latest_run_parameter.run_type,
             valid_until=get_advisory_valid_until(
-                latest_run_parameter.run_type, latest_run_parameter.run_datetime
+                RunType(latest_run_parameter.run_type), latest_run_parameter.run_datetime
             ),
         )
         return LatestSFMSRunParameterResponse(run_parameter=run_parameter)
@@ -376,7 +372,7 @@ async def get_latest_sfms_run_datetime_for_date_range(
                 for_date=row.for_date,
                 run_type=row.run_type,
                 run_datetime=row.run_datetime,
-                valid_until=get_advisory_valid_until(row.run_type, row.run_datetime),
+                valid_until=get_advisory_valid_until(RunType(row.run_type), row.run_datetime),
             )
             latest_run_parameters[row.for_date] = run_parameter
         return LatestSFMSRunParameterRangeResponse(run_parameters=latest_run_parameters)
