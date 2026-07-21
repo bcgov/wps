@@ -170,7 +170,7 @@ def test_connection_error_increments_connection_error_count_not_exception_count(
     fetcher = MagicMock()
     fetcher.get.side_effect = requests.ConnectionError("HPFX and DD both unreachable")
 
-    canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
+    canada = env_canada.EnvCanada(MagicMock(spec=Session), MagicMock(spec=requests.Session), ModelEnum.GDPS)
     canada.process_model_run_urls(
         ["https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"],
         fetcher,
@@ -188,7 +188,7 @@ def test_http_error_increments_exception_count_not_connection_error_count(monkey
     fetcher = MagicMock()
     fetcher.get.side_effect = requests.HTTPError("503 Server Error")
 
-    canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
+    canada = env_canada.EnvCanada(MagicMock(spec=Session), MagicMock(spec=requests.Session), ModelEnum.GDPS)
     canada.process_model_run_urls(
         ["https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"],
         fetcher,

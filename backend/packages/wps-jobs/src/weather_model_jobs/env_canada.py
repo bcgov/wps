@@ -243,7 +243,7 @@ class EnvCanada:
     Canada.
     """
 
-    def __init__(self, session: Session, model_type: ModelEnum):
+    def __init__(self, session: Session, http_session: requests.Session, model_type: ModelEnum):
         """Prep variables"""
         self.files_downloaded = 0
         self.files_processed = 0
@@ -254,6 +254,10 @@ class EnvCanada:
         self.grib_processor = GribFileProcessor()
         self.model_type: ModelEnum = model_type
         self.session = session
+        # Shared across every model-run hour, rather than letting each hour's ECCCUrlFetcher
+        # open its own -- reuses pooled connections instead of paying TLS setup/teardown once
+        # per hour. Caller owns its lifecycle (construction and closing).
+        self.http_session = http_session
         # set projection based on model_type
         if self.model_type == ModelEnum.GDPS:
             self.projection = ProjectionEnum.LATLON_15X_15
@@ -317,7 +321,7 @@ class EnvCanada:
         # Get the urls for the current model run.
         urls = get_model_run_urls(self.now, self.model_type, model_run_hour)
 
-        fetcher = ECCCUrlFetcher(self.now, model_run_hour)
+        fetcher = ECCCUrlFetcher(self.now, model_run_hour, session=self.http_session)
 
         # Process all the urls.
         self.process_model_run_urls(urls, fetcher)
@@ -362,8 +366,8 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    with wps_shared.db.database.get_write_session_scope() as session:
-        env_canada = EnvCanada(session, model_type)
+    with wps_shared.db.database.get_write_session_scope() as session, requests.Session() as http_session:
+        env_canada = EnvCanada(session, http_session, model_type)
         env_canada.process()
 
         # interpolate and machine learn everything that needs interpolating.

@@ -18,6 +18,12 @@ from weather_model_jobs.utils.wind_direction_utils import calculate_wind_dir_fro
 
 logger = logging.getLogger(__name__)
 
+# Explicit, deterministic bound on GDAL's global raster block cache. GDAL 3.13.1 does compute
+# its own default from the cgroup memory limit when one is present (verified: ~51MB under a
+# real 1Gi container), so this isn't a confirmed fix for any specific incident -- it just
+# removes reliance on that auto-detection behaving the same way across GDAL versions/environments.
+gdal.SetCacheMax(128 * 1024 * 1024)  # 128MB
+
 GFS_000_HOURS_RASTER_BANDS = {"tmp_tgl_2": 2, "rh_tgl_2": 3, "u_comp_wind_10m": 4, "v_comp_wind_10m": 5}
 GFS_003_HOURS_RASTER_BANDS = {"tmp_tgl_2": 2, "rh_tgl_2": 3, "u_comp_wind_10m": 4, "v_comp_wind_10m": 5, "apcp_sfc_0": 6, "cumulative_apcp_sfc_0": 7}
 
