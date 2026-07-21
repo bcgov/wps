@@ -106,7 +106,7 @@ def test_public_latest_sfms_run_datetime_range_endpoint(
                 "for_date": "2025-08-26",
                 "run_datetime": "2025-08-27T00:31:00Z",
                 "run_type": RunType.FORECAST.value,
-                "valid_until": "2025-08-27T15:00:00Z",
+                "valid_until": "2025-08-27T15:30:00Z",
             }
         }
     }
