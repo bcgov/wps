@@ -43,7 +43,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
         display: 'grid',
         gap: { xs: 2, sm: 0 },
         gridTemplateColumns: { xs: '1fr', sm: 'minmax(260px, 0.85fr) minmax(360px, 1.65fr) auto' },
-        minHeight: { sm: 120 },
+        minHeight: { sm: 110 },
         p: 2
       }}
     >
