@@ -32,9 +32,25 @@ import {
 import type React from 'react'
 
 const ICON_FONT_SIZE = 'large'
-const PREDICTIVE_SERVICES_UNIT = 'Predictive Services Unit'
+const BCWS_PREDICTIVE_SERVICES_EMAIL = 'BCWS.PredictiveServices@gov.bc.ca'
 export const BCPS_TOOL_ICON_COLOUR = '#ea580c'
 export const PUBLIC_TOOL_ICON_COLOUR = '#0d9488'
+
+export interface ManagedByInfo {
+  name: string
+  href?: string
+  opensFeedback?: boolean
+}
+
+const CSBC_PREDICTIVE_SERVICES_MANAGED_BY: ManagedByInfo = {
+  name: 'CSBC - Predictive Services',
+  opensFeedback: true
+}
+
+export const BCWS_PREDICTIVE_SERVICES_MANAGED_BY: ManagedByInfo = {
+  name: 'BCWS - Predictive Services',
+  href: `mailto:${BCWS_PREDICTIVE_SERVICES_EMAIL}`
+}
 
 export interface ToolInfo {
   name: string
@@ -43,7 +59,7 @@ export interface ToolInfo {
   description: React.ReactNode | string
   icon: React.ReactNode
   isBeta: boolean
-  managedBy: string
+  managedBy: ManagedByInfo
   isExternal?: boolean
 }
 
@@ -75,7 +91,7 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
     />
   ),
   isBeta: false,
-  managedBy: PREDICTIVE_SERVICES_UNIT
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const fireBehaviourCalcInfo: ToolInfo = {
@@ -90,7 +106,7 @@ export const fireBehaviourCalcInfo: ToolInfo = {
   ),
   icon: <WhatshotOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
   isBeta: false,
-  managedBy: PREDICTIVE_SERVICES_UNIT
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const hfiCalcInfo: ToolInfo = {
@@ -105,7 +121,7 @@ export const hfiCalcInfo: ToolInfo = {
   ),
   icon: <CalculateOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
   isBeta: false,
-  managedBy: PREDICTIVE_SERVICES_UNIT
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const moreCastInfo: ToolInfo = {
@@ -120,7 +136,7 @@ export const moreCastInfo: ToolInfo = {
   ),
   icon: <AirOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
   isBeta: false,
-  managedBy: PREDICTIVE_SERVICES_UNIT
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const percentileCalcInfo: ToolInfo = {
@@ -135,7 +151,7 @@ export const percentileCalcInfo: ToolInfo = {
   ),
   icon: <PercentIcon fontSize={ICON_FONT_SIZE} htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
   isBeta: false,
-  managedBy: PREDICTIVE_SERVICES_UNIT
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const fbpGoInfo: ToolInfo = {
@@ -157,7 +173,7 @@ export const fbpGoInfo: ToolInfo = {
   ),
   icon: <img alt="FBP Go logo" style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
   isBeta: false,
-  managedBy: PREDICTIVE_SERVICES_UNIT
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const sfmsInsightsInfo: ToolInfo = {
@@ -171,7 +187,7 @@ export const sfmsInsightsInfo: ToolInfo = {
   ),
   icon: <TravelExploreOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
   isBeta: true,
-  managedBy: PREDICTIVE_SERVICES_UNIT
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const fireWatchInfo: ToolInfo = {
@@ -205,7 +221,7 @@ export const fireWatchInfo: ToolInfo = {
     </Box>
   ),
   isBeta: true,
-  managedBy: PREDICTIVE_SERVICES_UNIT
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const weatherToolkitInfo: ToolInfo = {
@@ -215,7 +231,7 @@ export const weatherToolkitInfo: ToolInfo = {
   description: <Typography>A tool for visualizing GDPS and RDPS 4-Panel Charts.</Typography>,
   icon: <BorderAllIcon fontSize={ICON_FONT_SIZE} htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
   isBeta: true,
-  managedBy: PREDICTIVE_SERVICES_UNIT
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 // The order of items in this array determines their order in the landing page sections and quick access menu.

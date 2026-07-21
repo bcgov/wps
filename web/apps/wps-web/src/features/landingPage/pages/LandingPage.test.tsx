@@ -1,11 +1,22 @@
+import { getFeedback } from '@sentry/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
-import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
+import {
+  BCWS_PREDICTIVE_SERVICES_MANAGED_BY,
+  fbpGoInfo,
+  percentileCalcInfo,
+  toolInfos,
+  weatherToolkitInfo
+} from 'features/landingPage/toolInfo'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { wxDataViewerInfo, wxWeatherAlertsInfo } from '../ExternalToolInfos'
 import LandingPage, { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './LandingPage'
+
+vi.mock('@sentry/react', () => ({
+  getFeedback: vi.fn()
+}))
 
 vi.mock('@wps/utils/env', async importOriginal => {
   const actual = await importOriginal<typeof import('@wps/utils/env')>()
@@ -22,9 +33,12 @@ const renderPage = () =>
     </MemoryRouter>
   )
 
+const mockGetFeedback = vi.mocked(getFeedback)
+
 describe('LandingPage', () => {
   beforeEach(() => {
     localStorage.clear()
+    vi.clearAllMocks()
   })
 
   it('shows the access and collaboration information in the header', async () => {
@@ -72,8 +86,31 @@ describe('LandingPage', () => {
       'src',
       '/images/asa-go-logo.png'
     )
-    expect(screen.getAllByText('Managed by: Predictive Services Unit')).toHaveLength(toolInfos.length)
-    expect(screen.getAllByText('Managed by: TBD')).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: 'CSBC - Predictive Services' })).toHaveLength(toolInfos.length)
+    const bcwsManagedByLinks = screen.getAllByRole('link', { name: BCWS_PREDICTIVE_SERVICES_MANAGED_BY.name })
+    expect(bcwsManagedByLinks).toHaveLength(2)
+    for (const managedByLink of bcwsManagedByLinks) {
+      expect(managedByLink).toHaveAttribute('href', BCWS_PREDICTIVE_SERVICES_MANAGED_BY.href)
+    }
+  })
+
+  it('opens the feedback form from the CSBC managed by link', async () => {
+    const user = userEvent.setup()
+    const mockForm = {
+      appendToDom: vi.fn(),
+      open: vi.fn()
+    }
+    const mockCreateForm = vi.fn().mockResolvedValue(mockForm)
+    mockGetFeedback.mockReturnValue({ createForm: mockCreateForm } as unknown as ReturnType<typeof getFeedback>)
+    renderPage()
+
+    await user.click(screen.getAllByRole('link', { name: 'CSBC - Predictive Services' })[0])
+
+    await waitFor(() => {
+      expect(mockCreateForm).toHaveBeenCalled()
+      expect(mockForm.appendToDom).toHaveBeenCalled()
+      expect(mockForm.open).toHaveBeenCalled()
+    })
   })
 
   it('only opens explicitly external tools in a new tab', () => {

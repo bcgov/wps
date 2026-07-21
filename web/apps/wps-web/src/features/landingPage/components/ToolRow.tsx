@@ -6,7 +6,9 @@ import Link from '@mui/material/Link'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import { getFeedback } from '@sentry/react'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
+import type React from 'react'
 import { TOOL_ROW_RADIUS } from '../landingPageConfig'
 import FavouriteButton from './FavouriteButton'
 import ToolIconTile from './ToolIconTile'
@@ -19,6 +21,17 @@ interface ToolRowProps {
 
 const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
   const isExternal = tool.isExternal === true
+  const openFeedbackForm = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    const feedback = getFeedback()
+    if (!feedback) {
+      return
+    }
+
+    const form = await feedback.createForm()
+    form.appendToDom()
+    form.open()
+  }
 
   return (
     <Paper
@@ -63,7 +76,14 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
             {tool.subheading}
           </Typography> */}
           <Typography color="text.secondary" sx={{ display: 'block', mt: 'auto', pt: 1 }} variant="caption">
-            Managed by: {tool.managedBy}
+            Managed by:{' '}
+            <Link
+              href={tool.managedBy.href ?? '#'}
+              onClick={tool.managedBy.opensFeedback ? openFeedbackForm : undefined}
+              underline="hover"
+            >
+              {tool.managedBy.name}
+            </Link>
           </Typography>
         </Box>
       </Stack>

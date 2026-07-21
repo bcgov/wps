@@ -1,12 +1,14 @@
 import AreaChartOutlinedIcon from '@mui/icons-material/AreaChartOutlined'
 import CellTowerIcon from '@mui/icons-material/CellTower'
 import Typography from '@mui/material/Typography'
-import { PUBLIC_TOOL_ICON_COLOUR, type ToolInfo } from 'features/landingPage/toolInfo'
+import {
+  BCWS_PREDICTIVE_SERVICES_MANAGED_BY,
+  PUBLIC_TOOL_ICON_COLOUR,
+  type ToolInfo
+} from 'features/landingPage/toolInfo'
 
 export const WX_DATA_VIEWER_ROUTE = 'https://huggingface.co/spaces/ssidds/WX_data_viewer'
 export const WX_WEATHER_ALERTS_ROUTE = 'https://riodeoro.github.io/wx-network-alerts/'
-export const WX_DATA_VIEWER_MANAGING_TEAM = 'TBD'
-export const WX_WEATHER_ALERTS_MANAGING_TEAM = 'TBD'
 
 export const wxDataViewerInfo: ToolInfo = {
   name: 'WX Data Viewer',
@@ -20,7 +22,7 @@ export const wxDataViewerInfo: ToolInfo = {
   ),
   icon: <AreaChartOutlinedIcon fontSize="large" htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
   isBeta: false,
-  managedBy: WX_DATA_VIEWER_MANAGING_TEAM,
+  managedBy: BCWS_PREDICTIVE_SERVICES_MANAGED_BY,
   isExternal: true
 }
 
@@ -33,7 +35,7 @@ export const wxWeatherAlertsInfo: ToolInfo = {
   ),
   icon: <CellTowerIcon fontSize="large" htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
   isBeta: false,
-  managedBy: WX_WEATHER_ALERTS_MANAGING_TEAM,
+  managedBy: BCWS_PREDICTIVE_SERVICES_MANAGED_BY,
   isExternal: true
 }
 
