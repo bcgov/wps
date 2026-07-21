@@ -108,7 +108,13 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
       <Button
         href={tool.route}
         rel={isExternal ? 'noreferrer' : undefined}
-        sx={{ alignSelf: 'center', justifySelf: { xs: 'stretch', sm: 'end' }, ml: { sm: 1 }, whiteSpace: 'nowrap' }}
+        sx={{
+          alignSelf: 'center',
+          borderRadius: '10px',
+          justifySelf: { xs: 'stretch', sm: 'end' },
+          ml: { sm: 1 },
+          whiteSpace: 'nowrap'
+        }}
         target={isExternal ? '_blank' : undefined}
         variant="contained"
       >
