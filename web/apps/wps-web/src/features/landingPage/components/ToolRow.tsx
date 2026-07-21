@@ -71,9 +71,6 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
               <FavouriteButton isFavourite={isFavourite} onToggle={onToggleFavourite} toolName={tool.name} />
             </Stack>
           </Stack>
-          {/* <Typography color="text.primary" sx={{ display: 'block', mt: 1.25 }} variant="body2">
-            {tool.subheading}
-          </Typography> */}
           <Typography color="text.secondary" sx={{ display: 'block', mt: 'auto', pt: 1 }} variant="caption">
             Managed by:{' '}
             <Link
@@ -96,8 +93,8 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
           minWidth: 0,
           px: { sm: 2 },
           '& .MuiTypography-root': {
-            color: 'inherit',
-            fontSize: '0.875rem',
+            color: 'black',
+            fontSize: { sm: '0.875rem', md: '0.9rem' },
             lineHeight: 1.55
           }
         }}
