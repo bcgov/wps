@@ -1,5 +1,5 @@
 import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
-import { externalToolInfos, wxDataViewerInfo } from './ExternalToolInfos'
+import { externalToolInfos, wxDataViewerInfo, wxWeatherAlertsInfo } from './ExternalToolInfos'
 
 export const BCPS_SECTION_ID = 'bcps-access-only-heading'
 export const FAVOURITES_SECTION_ID = 'favourites-heading'
@@ -12,7 +12,7 @@ export const TOOL_ROW_RADIUS = '16px'
 
 export const TECH_SERVICES_EMAIL = 'BCWS.TechServices@gov.bc.ca'
 
-export const publicTools = [fbpGoInfo, percentileCalcInfo, weatherToolkitInfo, wxDataViewerInfo]
+export const publicTools = [fbpGoInfo, percentileCalcInfo, weatherToolkitInfo, wxDataViewerInfo, wxWeatherAlertsInfo]
 export const landingPageTools = [...toolInfos, ...externalToolInfos]
 
 export const bcwsTools = toolInfos.filter(tool => !publicTools.includes(tool))

@@ -4,7 +4,7 @@ import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
 import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { wxDataViewerInfo } from '../ExternalToolInfos'
+import { wxDataViewerInfo, wxWeatherAlertsInfo } from '../ExternalToolInfos'
 import LandingPage, { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './LandingPage'
 
 vi.mock('@wps/utils/env', async importOriginal => {
@@ -44,7 +44,13 @@ describe('LandingPage', () => {
     renderPage()
 
     const accessSection = screen.getByRole('region', { name: 'BCPS Access Only' })
-    const publicRoutes = [fbpGoInfo.route, percentileCalcInfo.route, weatherToolkitInfo.route, wxDataViewerInfo.route]
+    const publicRoutes = [
+      fbpGoInfo.route,
+      percentileCalcInfo.route,
+      weatherToolkitInfo.route,
+      wxDataViewerInfo.route,
+      wxWeatherAlertsInfo.route
+    ]
     for (const tool of toolInfos.filter(toolInfo => !publicRoutes.includes(toolInfo.route))) {
       expect(within(accessSection).getByRole('heading', { name: tool.name })).toBeInTheDocument()
     }
@@ -52,17 +58,22 @@ describe('LandingPage', () => {
     expect(within(accessSection).queryByText(percentileCalcInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(weatherToolkitInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(wxDataViewerInfo.name)).not.toBeInTheDocument()
+    expect(within(accessSection).queryByText(wxWeatherAlertsInfo.name)).not.toBeInTheDocument()
     const publicSection = screen.getByRole('region', { name: 'Public Access' })
     expect(within(publicSection).getByText(fbpGoInfo.name)).toBeInTheDocument()
     expect(within(publicSection).getByText(percentileCalcInfo.name)).toBeInTheDocument()
     expect(within(publicSection).getByText(weatherToolkitInfo.name)).toBeInTheDocument()
     expect(within(publicSection).getByText(wxDataViewerInfo.name)).toBeInTheDocument()
+    expect(within(publicSection).getByText(wxWeatherAlertsInfo.name)).toBeInTheDocument()
+    expect(
+      screen.getByText('A dashboard to visualize and monitor sensor performance using hourly weather observations.')
+    ).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Auto Spatial Advisory logo' })).toHaveAttribute(
       'src',
       '/images/asa-go-logo.png'
     )
     expect(screen.getAllByText('Managed by: Predictive Services Unit')).toHaveLength(toolInfos.length)
-    expect(screen.getByText('Managed by: TBD')).toBeInTheDocument()
+    expect(screen.getAllByText('Managed by: TBD')).toHaveLength(2)
   })
 
   it('only opens explicitly external tools in a new tab', () => {
@@ -73,9 +84,15 @@ describe('LandingPage', () => {
     const wxDataViewerCard = within(publicSection)
       .getByRole('heading', { name: wxDataViewerInfo.name })
       .closest('article')
+    const wxWeatherAlertsCard = within(publicSection)
+      .getByRole('heading', { name: wxWeatherAlertsInfo.name })
+      .closest('article')
     const fbpGoTitleLink = within(fbpGoCard as HTMLElement).getByRole('link', { name: fbpGoInfo.name })
     const wxDataViewerTitleLink = within(wxDataViewerCard as HTMLElement).getByRole('link', {
       name: wxDataViewerInfo.name
+    })
+    const wxWeatherAlertsTitleLink = within(wxWeatherAlertsCard as HTMLElement).getByRole('link', {
+      name: wxWeatherAlertsInfo.name
     })
 
     expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).not.toHaveAttribute('target')
@@ -94,6 +111,13 @@ describe('LandingPage', () => {
     expect(wxDataViewerTitleLink).toHaveAttribute('href', wxDataViewerInfo.route)
     expect(wxDataViewerTitleLink).toHaveAttribute('target', '_blank')
     expect(wxDataViewerTitleLink).toHaveAttribute('rel', 'noreferrer')
+    expect(within(wxWeatherAlertsCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
+      'target',
+      '_blank'
+    )
+    expect(wxWeatherAlertsTitleLink).toHaveAttribute('href', wxWeatherAlertsInfo.route)
+    expect(wxWeatherAlertsTitleLink).toHaveAttribute('target', '_blank')
+    expect(wxWeatherAlertsTitleLink).toHaveAttribute('rel', 'noreferrer')
   })
 
   it('moves a favourited tool out of its access section and persists it', async () => {
