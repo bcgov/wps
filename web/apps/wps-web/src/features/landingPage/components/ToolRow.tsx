@@ -37,17 +37,16 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
       component="article"
       variant="outlined"
       sx={{
-        alignItems: { sm: 'stretch' },
         borderColor: 'grey.300',
         borderRadius: TOOL_ROW_RADIUS,
         display: 'grid',
-        gap: { xs: 2, sm: 0 },
-        gridTemplateColumns: { xs: '1fr', sm: 'minmax(260px, 0.85fr) minmax(360px, 1.65fr) auto' },
-        minHeight: { sm: 110 },
+        gap: { xs: 2, md: 0 },
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(260px, 0.85fr) minmax(360px, 1.65fr) auto' },
+        minHeight: { md: 110 },
         p: 2
       }}
     >
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start', minWidth: 0, pr: { sm: 2 } }}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start', minWidth: 0, pr: { md: 2 } }}>
         <ToolIconTile icon={tool.icon} />
         <Box sx={{ minWidth: 0, width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -92,11 +91,11 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
       <Box
         sx={{
           borderColor: 'grey.200',
-          borderLeftStyle: { sm: 'solid' },
-          borderLeftWidth: { sm: 1 },
+          borderLeftStyle: { md: 'solid' },
+          borderLeftWidth: { md: 1 },
           color: 'text.secondary',
           minWidth: 0,
-          px: { sm: 2 },
+          px: { md: 2 },
           '& .MuiTypography-root': {
             color: 'black',
             fontSize: { xs: '0.8125rem', sm: '0.875rem', md: '0.9rem' },
@@ -113,8 +112,8 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
         sx={{
           alignSelf: 'center',
           borderRadius: '10px',
-          justifySelf: { xs: 'stretch', sm: 'end' },
-          ml: { sm: 1 },
+          justifySelf: { xs: 'stretch', md: 'end' },
+          ml: { md: 1 },
           whiteSpace: 'nowrap'
         }}
         target={isExternal ? '_blank' : undefined}
