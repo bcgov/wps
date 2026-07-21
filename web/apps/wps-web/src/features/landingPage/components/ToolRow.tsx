@@ -1,4 +1,3 @@
-import LaunchIcon from '@mui/icons-material/Launch'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
@@ -107,7 +106,6 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
       </Box>
 
       <Button
-        endIcon={<LaunchIcon fontSize="small" />}
         href={tool.route}
         rel={isExternal ? 'noreferrer' : undefined}
         sx={{ alignSelf: 'center', justifySelf: { xs: 'stretch', sm: 'end' }, ml: { sm: 1 }, whiteSpace: 'nowrap' }}

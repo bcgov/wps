@@ -6,7 +6,6 @@ import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
 import { LANDING_PAGE_DOC_TITLE } from '@wps/utils/constants'
 import Footer from 'features/landingPage/components/Footer'
-import { BCPS_TOOL_ICON_COLOUR, PUBLIC_TOOL_ICON_COLOUR } from 'features/landingPage/toolInfo'
 import { useEffect, useState } from 'react'
 import { readFavouriteRoutes, storeFavouriteRoutes } from '@/features/landingPage/favouritesStorage'
 import LandingPageHeader from '../components/LandingPageHeader'
@@ -14,13 +13,13 @@ import QuickAccessDrawer from '../components/QuickAccessDrawer'
 import ToolSection from '../components/ToolSection'
 import {
   BCPS_SECTION_ID,
-  bcwsTools,
+  FAVOURITES_COLOUR,
   FAVOURITES_SECTION_ID,
   LANDING_PAGE_FAVOURITES_STORAGE_KEY,
-  landingPageTools,
   PUBLIC_SECTION_ID,
-  publicTools
+  PUBLIC_TOOL_ICON_COLOUR
 } from '../landingPageConfig'
+import { bcwsTools, landingPageTools, publicTools } from '../landingPageTools'
 
 export { LANDING_PAGE_FAVOURITES_STORAGE_KEY }
 
@@ -63,9 +62,10 @@ const LandingPage = () => {
         <Stack spacing={5}>
           {favouriteTools.length > 0 && (
             <ToolSection
-              backgroundColor="#eef3ee"
+              backgroundColour="#eef3ee"
+              borderColour="#c2d4c2"
               headingId={FAVOURITES_SECTION_ID}
-              icon={<StarIcon sx={{ color: 'warning.main', fontSize: 18 }} />}
+              icon={<StarIcon sx={{ color: FAVOURITES_COLOUR, fontSize: 18 }} />}
               isFavourite={route => favouriteRoutes.includes(route)}
               onToggleFavourite={toggleFavourite}
               title="My Favourites"
@@ -74,9 +74,10 @@ const LandingPage = () => {
           )}
           {visibleBcwsTools.length > 0 && (
             <ToolSection
-              backgroundColor="#d9e8f5"
+              backgroundColour="#d9e8f5"
+              borderColour="#A8C5E0"
               headingId={BCPS_SECTION_ID}
-              icon={<LockOutlinedIcon sx={{ color: BCPS_TOOL_ICON_COLOUR, fontSize: 18 }} />}
+              icon={<LockOutlinedIcon sx={{ color: 'primary.main', fontSize: 18 }} />}
               isFavourite={route => favouriteRoutes.includes(route)}
               onToggleFavourite={toggleFavourite}
               title="BCPS Access Only"
@@ -85,7 +86,8 @@ const LandingPage = () => {
           )}
           {visiblePublicTools.length > 0 && (
             <ToolSection
-              backgroundColor="#fff4e5"
+              backgroundColour="#fff7ed"
+              borderColour="#FDDCB5"
               headingId={PUBLIC_SECTION_ID}
               icon={<PublicOutlinedIcon sx={{ color: PUBLIC_TOOL_ICON_COLOUR, fontSize: 18 }} />}
               isFavourite={route => favouriteRoutes.includes(route)}

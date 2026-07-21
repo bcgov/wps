@@ -9,6 +9,7 @@ import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
 import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
+import { theme } from '@wps/ui/theme'
 import {
   FBP_GO_NAME,
   FBP_GO_ROUTE,
@@ -30,11 +31,10 @@ import {
   WEATHER_TOOLKIT_ROUTE
 } from '@wps/utils/constants'
 import type React from 'react'
+import { PUBLIC_TOOL_ICON_COLOUR } from './landingPageConfig'
 
 const ICON_FONT_SIZE = 'large'
 const BCWS_PREDICTIVE_SERVICES_EMAIL = 'BCWS.PredictiveServices@gov.bc.ca'
-export const BCPS_TOOL_ICON_COLOUR = '#ea580c'
-export const PUBLIC_TOOL_ICON_COLOUR = '#0d9488'
 
 export interface ManagedByInfo {
   name: string
@@ -104,7 +104,7 @@ export const fireBehaviourCalcInfo: ToolInfo = {
       fuel types.
     </Typography>
   ),
-  icon: <WhatshotOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
+  icon: <WhatshotOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={theme.palette.primary.main} />,
   isBeta: false,
   managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
@@ -119,7 +119,7 @@ export const hfiCalcInfo: ToolInfo = {
       occurrence.
     </Typography>
   ),
-  icon: <CalculateOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
+  icon: <CalculateOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={theme.palette.primary.main} />,
   isBeta: false,
   managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
@@ -134,7 +134,7 @@ export const moreCastInfo: ToolInfo = {
       applications.
     </Typography>
   ),
-  icon: <AirOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
+  icon: <AirOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={theme.palette.primary.main} />,
   isBeta: false,
   managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
@@ -185,7 +185,7 @@ export const sfmsInsightsInfo: ToolInfo = {
       Provides an interactive map-based interface to analyze and understand critical wildfire-related data.
     </Typography>
   ),
-  icon: <TravelExploreOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
+  icon: <TravelExploreOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={theme.palette.primary.main} />,
   isBeta: true,
   managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
@@ -206,9 +206,9 @@ export const fireWatchInfo: ToolInfo = {
         position: 'relative'
       }}
     >
-      <WatchIcon sx={{ fontSize: 40 }} htmlColor={BCPS_TOOL_ICON_COLOUR} />
+      <WatchIcon sx={{ fontSize: 40 }} htmlColor={theme.palette.primary.main} />
       <WhatshotIcon
-        htmlColor={BCPS_TOOL_ICON_COLOUR}
+        htmlColor={theme.palette.primary.main}
         sx={{
           fontSize: 16,
           position: 'absolute',

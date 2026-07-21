@@ -7,7 +7,8 @@ import { SECTION_RADIUS } from '../landingPageConfig'
 import ToolRow from './ToolRow'
 
 interface ToolSectionProps {
-  backgroundColor: string
+  backgroundColour: string
+  borderColour?: string
   headingId: string
   icon: ReactNode
   isFavourite: (route: string) => boolean
@@ -17,7 +18,8 @@ interface ToolSectionProps {
 }
 
 const ToolSection = ({
-  backgroundColor,
+  backgroundColour,
+  borderColour,
   headingId,
   icon,
   isFavourite,
@@ -30,7 +32,7 @@ const ToolSection = ({
       <Box
         sx={{
           alignItems: 'center',
-          bgcolor: backgroundColor,
+          bgcolor: backgroundColour,
           borderRadius: '50%',
           color: 'primary.main',
           display: 'flex',
@@ -48,9 +50,9 @@ const ToolSection = ({
     <Stack
       spacing={1.5}
       sx={{
-        bgcolor: backgroundColor,
+        bgcolor: backgroundColour,
         border: 1,
-        borderColor: 'grey.300',
+        borderColor: borderColour || 'grey.300',
         borderRadius: SECTION_RADIUS,
         p: { xs: 1.5, sm: 2 }
       }}

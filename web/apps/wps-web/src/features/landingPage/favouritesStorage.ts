@@ -1,4 +1,5 @@
-import { LANDING_PAGE_FAVOURITES_STORAGE_KEY, landingPageTools } from './landingPageConfig'
+import { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './landingPageConfig'
+import { landingPageTools } from './landingPageTools'
 
 export const readFavouriteRoutes = () => {
   try {
