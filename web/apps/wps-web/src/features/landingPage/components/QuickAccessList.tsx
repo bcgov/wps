@@ -54,12 +54,9 @@ const QuickAccessList = ({
               target={isExternal ? '_blank' : undefined}
             >
               <ListItemIcon sx={{ minWidth: 46 }}>
-                <ToolIconTile icon={tool.icon} size={36} />
+                <ToolIconTile icon={tool.icon} iconScale={0.82} size={32} />
               </ListItemIcon>
-              <ListItemText
-                primary={tool.name}
-                slotProps={{ primary: { sx: { fontSize: '0.875rem', fontWeight: 600 } } }}
-              />
+              <ListItemText primary={tool.name} slotProps={{ primary: { sx: { fontSize: '14px' } } }} />
             </ListItemButton>
           </ListItem>
         )

@@ -4,10 +4,11 @@ import { ICON_TILE_RADIUS } from '../landingPageConfig'
 
 interface ToolIconTileProps {
   icon: ReactNode
+  iconScale?: number
   size?: number
 }
 
-const ToolIconTile = ({ icon, size = 48 }: ToolIconTileProps) => (
+const ToolIconTile = ({ icon, iconScale = 1, size = 48 }: ToolIconTileProps) => (
   <Box
     sx={{
       alignItems: 'center',
@@ -21,7 +22,7 @@ const ToolIconTile = ({ icon, size = 48 }: ToolIconTileProps) => (
       width: size
     }}
   >
-    {icon}
+    <Box sx={{ display: 'flex', transform: `scale(${iconScale})` }}>{icon}</Box>
   </Box>
 )
 
