@@ -73,7 +73,7 @@ def get_advisory_valid_until(
     """
     Advisories are valid until the next expected replacement data. Actuals expire at local
     midnight. Forecasts expire the same day at 18:00 when run before 17:30 local time,
-    otherwise they expire the following day at 08:00.
+    otherwise they expire the following day at 08:30.
     """
     ensure_timezone(run_datetime)
     local_run_datetime = run_datetime.astimezone(vancouver_tz)
@@ -92,7 +92,7 @@ def get_advisory_valid_until(
         valid_until = local_run_datetime.replace(hour=18, minute=0, second=0, microsecond=0)
     else:
         valid_until = (local_run_datetime + timedelta(days=1)).replace(
-            hour=8, minute=0, second=0, microsecond=0
+            hour=8, minute=30, second=0, microsecond=0
         )
 
     return valid_until.astimezone(timezone.utc)

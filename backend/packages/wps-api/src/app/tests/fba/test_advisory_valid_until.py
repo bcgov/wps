@@ -18,7 +18,7 @@ def test_get_advisory_valid_until_at_cutoff():
     run_datetime = datetime(2025, 8, 27, 0, 30, tzinfo=timezone.utc)
 
     assert get_advisory_valid_until(RunType.FORECAST, run_datetime) == datetime(
-        2025, 8, 27, 15, tzinfo=timezone.utc
+        2025, 8, 27, 15, 30, tzinfo=timezone.utc
     )
 
 
@@ -26,7 +26,7 @@ def test_get_advisory_valid_until_after_cutoff():
     run_datetime = datetime(2025, 8, 27, 0, 31, tzinfo=timezone.utc)
 
     assert get_advisory_valid_until(RunType.FORECAST, run_datetime) == datetime(
-        2025, 8, 27, 15, tzinfo=timezone.utc
+        2025, 8, 27, 15, 30, tzinfo=timezone.utc
     )
 
 
