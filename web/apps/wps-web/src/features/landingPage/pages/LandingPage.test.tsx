@@ -12,7 +12,8 @@ import {
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { wxDataViewerInfo, wxWeatherAlertsInfo } from '../ExternalToolInfos'
-import LandingPage, { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './LandingPage'
+import { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from '../landingPageConfig'
+import LandingPage from './LandingPage'
 
 vi.mock('@sentry/react', () => ({
   getFeedback: vi.fn()

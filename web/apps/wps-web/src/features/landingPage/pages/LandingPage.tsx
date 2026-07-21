@@ -15,13 +15,10 @@ import {
   BCPS_SECTION_ID,
   FAVOURITES_COLOUR,
   FAVOURITES_SECTION_ID,
-  LANDING_PAGE_FAVOURITES_STORAGE_KEY,
   PUBLIC_SECTION_ID,
   PUBLIC_TOOL_ICON_COLOUR
 } from '../landingPageConfig'
 import { bcwsTools, landingPageTools, publicTools } from '../landingPageTools'
-
-export { LANDING_PAGE_FAVOURITES_STORAGE_KEY }
 
 const LandingPage = () => {
   const [favouriteRoutes, setFavouriteRoutes] = useState<string[]>(readFavouriteRoutes)
