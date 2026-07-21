@@ -53,7 +53,12 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
           <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <Typography
               component="h3"
-              sx={{ fontWeight: 700, lineHeight: 1.35, pt: 1, pb: { sm: 1, md: 3 } }}
+              sx={{
+                fontWeight: 700,
+                lineHeight: 1.35,
+                pt: 1,
+                pb: { sm: 1, md: 3 }
+              }}
               variant="body1"
             >
               <Link
@@ -94,7 +99,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
           px: { sm: 2 },
           '& .MuiTypography-root': {
             color: 'black',
-            fontSize: { sm: '0.875rem', md: '0.9rem' },
+            fontSize: { xs: '0.8125rem', sm: '0.875rem', md: '0.9rem' },
             lineHeight: 1.55
           }
         }}
