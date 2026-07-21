@@ -7,8 +7,9 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
-import { ICON_TILE_RADIUS, TOOL_ROW_RADIUS } from '../landingPageConfig'
+import { TOOL_ROW_RADIUS } from '../landingPageConfig'
 import FavouriteButton from './FavouriteButton'
+import ToolIconTile from './ToolIconTile'
 
 interface ToolRowProps {
   isFavourite: boolean
@@ -35,20 +36,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
       }}
     >
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start', minWidth: 0, pr: { sm: 2 } }}>
-        <Box
-          sx={{
-            alignItems: 'center',
-            bgcolor: 'grey.50',
-            borderRadius: ICON_TILE_RADIUS,
-            display: 'flex',
-            flex: '0 0 auto',
-            height: 48,
-            justifyContent: 'center',
-            width: 48
-          }}
-        >
-          {tool.icon}
-        </Box>
+        <ToolIconTile icon={tool.icon} />
         <Box sx={{ minWidth: 0, width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <Typography

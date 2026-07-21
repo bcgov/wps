@@ -11,9 +11,8 @@ export const wxDataViewerInfo: ToolInfo = {
   subheading: 'Weather station actuals, climatology, and wind analysis',
   description: (
     <Typography>
-      A near real time (-1 day) and historical hourly visualizer of BCWS weather station data. Plots actuals and
-      climatology, produces wind and initial spread index roses for specific stations and time periods, and calculates
-      long-term fire analyst and risk landscape polygons based on climatology.
+      A near real time and historical hourly visualizer of BCWS weather station data. Plots actuals and climatology,
+      performs spread analysis, and calculates risk landscape polygons based on climatology.
     </Typography>
   ),
   icon: <AreaChartOutlinedIcon fontSize="large" htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,

@@ -7,6 +7,7 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
 import FavouriteButton from './FavouriteButton'
+import ToolIconTile from './ToolIconTile'
 
 interface QuickAccessListProps {
   favouriteRoutes: string[]
@@ -52,7 +53,9 @@ const QuickAccessList = ({
               sx={{ pr: 7 }}
               target={isExternal ? '_blank' : undefined}
             >
-              <ListItemIcon sx={{ minWidth: 42 }}>{tool.icon}</ListItemIcon>
+              <ListItemIcon sx={{ minWidth: 46 }}>
+                <ToolIconTile icon={tool.icon} size={36} />
+              </ListItemIcon>
               <ListItemText
                 primary={tool.name}
                 slotProps={{ primary: { sx: { fontSize: '0.875rem', fontWeight: 600 } } }}

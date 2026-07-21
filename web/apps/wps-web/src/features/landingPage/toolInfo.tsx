@@ -1,7 +1,6 @@
 import AirOutlinedIcon from '@mui/icons-material/AirOutlined'
 import BorderAllIcon from '@mui/icons-material/BorderAll'
 import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
 import TravelExploreOutlinedIcon from '@mui/icons-material/TravelExploreOutlined'
 import WatchIcon from '@mui/icons-material/Watch'
@@ -54,8 +53,8 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
   subheading: 'Provincial Fire Behaviour Advisories',
   description: (
     <Typography>
-      A spatial analysis tool that automates the continuous monitoring, updating, and communication of anticipated fire
-      behaviour that will challenge direct suppression efforts and put the safety of responders at risk.
+      An app for BC Wildland Firefighters that automates the continuous monitoring, updating, and communication of
+      anticipated fire behaviour.
       <br />
       Available for download from the&nbsp;
       <Link href="https://apps.apple.com/us/app/asa-go/id6741596129" rel="noreferrer" target="_blank">
@@ -68,7 +67,13 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
       &nbsp;stores.
     </Typography>
   ),
-  icon: <LocalFireDepartmentIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
+  icon: (
+    <img
+      alt={`${FIRE_BEHAVIOUR_ADVISORY_NAME} logo`}
+      src="/images/asa-go-logo.png"
+      style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+    />
+  ),
   isBeta: false,
   managedBy: PREDICTIVE_SERVICES_UNIT
 }
@@ -79,8 +84,8 @@ export const fireBehaviourCalcInfo: ToolInfo = {
   subheading: 'Fire Behaviour Calculator',
   description: (
     <Typography>
-      A tool that supports the calculation of fire behaviour metrics given forecast or actual weather conditions and
-      user-specified fuel types.
+      Supports the calculation of fire behaviour metrics given forecast or actual weather conditions and user-specified
+      fuel types.
     </Typography>
   ),
   icon: <WhatshotOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
@@ -94,8 +99,8 @@ export const hfiCalcInfo: ToolInfo = {
   subheading: 'Head Fire Intensity Calculator',
   description: (
     <Typography>
-      An application that informs preparedness levels throughout the province based on anticipated head fire intensities
-      and fire occurrence.
+      Informs preparedness levels throughout the province based on anticipated head fire intensities and fire
+      occurrence.
     </Typography>
   ),
   icon: <CalculateOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
@@ -109,8 +114,8 @@ export const moreCastInfo: ToolInfo = {
   subheading: 'Weather Models and Forecasting',
   description: (
     <Typography>
-      A system that enhances how the predictive services team creates weather forecasts and integrates this information
-      with other applications.
+      Enhances how the predictive services team creates weather forecasts and integrates this information with other
+      applications.
     </Typography>
   ),
   icon: <AirOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
@@ -124,8 +129,8 @@ export const percentileCalcInfo: ToolInfo = {
   subheading: 'Historical fire weather percentile comparisons',
   description: (
     <Typography>
-      A tool that helps users identify fire weather indices coinciding with historically uncommon fire danger at weather
-      stations located around the province.
+      Helps users identify fire weather indices coinciding with historically uncommon fire danger at weather stations
+      located around the province.
     </Typography>
   ),
   icon: <PercentIcon fontSize={ICON_FONT_SIZE} htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
@@ -139,7 +144,7 @@ export const fbpGoInfo: ToolInfo = {
   subheading: 'Mobile fire behaviour calculations for field use',
   description: (
     <Typography>
-      A mobile application for calculating fire behaviour in the field. Available for download from the&nbsp;
+      Calculates fire behaviour in the field. Available for download from the&nbsp;
       <Link href="https://apps.apple.com/app/fbp-go/id1605675034" rel="noreferrer" target="_blank">
         Apple
       </Link>
@@ -161,8 +166,7 @@ export const sfmsInsightsInfo: ToolInfo = {
   subheading: 'Map-based wildfire data exploration',
   description: (
     <Typography>
-      A visualization tool providing an interactive map-based interface to analyze and understand critical
-      wildfire-related data.
+      Provides an interactive map-based interface to analyze and understand critical wildfire-related data.
     </Typography>
   ),
   icon: <TravelExploreOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={BCPS_TOOL_ICON_COLOUR} />,
@@ -176,8 +180,7 @@ export const fireWatchInfo: ToolInfo = {
   subheading: 'Ten-day watch conditions for fire weather and behaviour',
   description: (
     <Typography>
-      A heads up application that indicates when specified fire weather and fire behaviour could occur over the next ten
-      days.
+      Indicates when specified fire weather and fire behaviour could occur over the next ten days.
     </Typography>
   ),
   icon: (

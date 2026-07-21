@@ -57,7 +57,7 @@ const LandingPage = () => {
         publicTools={visiblePublicTools}
       />
 
-      <Container component="main" sx={{ flex: 1, py: 2, maxWidth: { xs: '100%', md: '75%', xl: 1200 } }}>
+      <Container component="main" sx={{ flex: 1, py: 2, maxWidth: { xs: '100%', md: '70%', xl: 1200 } }}>
         <LandingPageHeader onOpenQuickAccess={() => setIsDrawerOpen(true)} />
 
         <Stack spacing={5}>

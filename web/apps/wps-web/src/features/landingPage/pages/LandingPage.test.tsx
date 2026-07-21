@@ -40,10 +40,10 @@ describe('LandingPage', () => {
     expect(screen.getByText('Collaboard', { selector: 'a' })).toBeInTheDocument()
   })
 
-  it('shows public tools publicly and the remaining tools in the BCWS access section', () => {
+  it('shows public tools publicly and the remaining tools in the BCPS access section', () => {
     renderPage()
 
-    const accessSection = screen.getByRole('region', { name: 'BCWS Access Only' })
+    const accessSection = screen.getByRole('region', { name: 'BCPS Access Only' })
     const publicRoutes = [fbpGoInfo.route, percentileCalcInfo.route, weatherToolkitInfo.route, wxDataViewerInfo.route]
     for (const tool of toolInfos.filter(toolInfo => !publicRoutes.includes(toolInfo.route))) {
       expect(within(accessSection).getByRole('heading', { name: tool.name })).toBeInTheDocument()
@@ -57,6 +57,10 @@ describe('LandingPage', () => {
     expect(within(publicSection).getByText(percentileCalcInfo.name)).toBeInTheDocument()
     expect(within(publicSection).getByText(weatherToolkitInfo.name)).toBeInTheDocument()
     expect(within(publicSection).getByText(wxDataViewerInfo.name)).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Auto Spatial Advisory logo' })).toHaveAttribute(
+      'src',
+      '/images/asa-go-logo.png'
+    )
     expect(screen.getAllByText('Managed by: Predictive Services Unit')).toHaveLength(toolInfos.length)
     expect(screen.getByText('Managed by: TBD')).toBeInTheDocument()
   })
@@ -96,7 +100,7 @@ describe('LandingPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const accessSection = screen.getByRole('region', { name: 'BCWS Access Only' })
+    const accessSection = screen.getByRole('region', { name: 'BCPS Access Only' })
     const tool = toolInfos[0]
     await user.click(within(accessSection).getByRole('button', { name: `Add ${tool.name} to favourites` }))
 
@@ -115,7 +119,7 @@ describe('LandingPage', () => {
 
     expect(within(screen.getByRole('region', { name: 'My Favourites' })).getByText(tool.name)).toBeInTheDocument()
     expect(
-      within(screen.getByRole('region', { name: 'BCWS Access Only' })).queryByText(tool.name)
+      within(screen.getByRole('region', { name: 'BCPS Access Only' })).queryByText(tool.name)
     ).not.toBeInTheDocument()
   })
 
