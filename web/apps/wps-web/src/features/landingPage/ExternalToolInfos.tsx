@@ -14,7 +14,7 @@ export const wxDataViewerInfo: ToolInfo = {
   description: (
     <Typography>
       A near real time and historical hourly visualizer of BCWS weather station data. Plots actuals and climatology,
-      performs spread analysis, and calculates risk landscape polygons based on climatology.
+      performs spread analysis, and calculates risk landscape polygons.
     </Typography>
   ),
   icon: <AreaChartOutlinedIcon fontSize="large" htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
