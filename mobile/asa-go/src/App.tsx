@@ -12,6 +12,7 @@ import InfoIcon from '@/assets/InfoIcon.svg'
 import NetworkIcon from '@/assets/NetworkIcon.svg'
 import { AppHeader } from '@/components/AppHeader'
 import BottomNavigationBar from '@/components/BottomNavigationBar'
+import GuestDisclaimerBanner from '@/components/GuestDisclaimerBanner'
 import InfoBar from '@/components/InfoBar'
 import ASAGoMap from '@/components/map/ASAGoMap'
 import Profile from '@/components/profile/Profile'
@@ -247,6 +248,7 @@ const App = () => {
           validUntil={runParameter?.valid_until}
           Icon={networkStatus.connected ? InfoIcon : NetworkIcon}
         />
+        <GuestDisclaimerBanner />
         <TabPanel value={tab} panel={NavPanel.MAP}>
           <ASAGoMap
             selectedFireShape={selectedFireShape}
