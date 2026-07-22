@@ -38,9 +38,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wx_4panel_charts.cr
 -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
 -p END_HOUR=${END_HOUR} \
 -p STEP=${STEP} \
--p MODEL=${MODEL} \
-${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
-${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"}"
+-p MODEL=${MODEL}"
 
 # Apply template (apply or use --dry-run)
 #

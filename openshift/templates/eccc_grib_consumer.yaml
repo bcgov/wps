@@ -18,12 +18,6 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: PROJ_TOOLS
-    value: e1e498-tools
-  - name: IMAGE_REGISTRY
-    description: Location where images are to be pulled
-    value: image-registry.openshift-image-registry.svc:5000
-    required: true
 objects:
   - apiVersion: apps/v1
     kind: Deployment
@@ -31,19 +25,6 @@ objects:
       name: ${APP_NAME}-${SUFFIX}-eccc-consumer
       labels:
         app: ${APP_NAME}-${SUFFIX}
-      annotations:
-        # These annotations trigger a new rollout if the weather image changes
-        image.openshift.io/triggers: |-
-          [
-            {
-              "from": {
-                "kind": "ImageStreamTag",
-                "name": "wps-weather-${SUFFIX}:${SUFFIX}",
-                "namespace": "${PROJ_TOOLS}"
-              },
-              "fieldPath": "spec.template.spec.containers[0].image"
-            }
-          ]
     spec:
       replicas: 1
       strategy:
@@ -60,7 +41,8 @@ objects:
         spec:
           containers:
             - name: ${APP_NAME}-eccc-consumer-${SUFFIX}
-              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-weather-${SUFFIX}:${SUFFIX}
+              image: ghcr.io/bcgov/wps-weather:${SUFFIX}
+              imagePullPolicy: Always
               command:
                 - uv
                 - run

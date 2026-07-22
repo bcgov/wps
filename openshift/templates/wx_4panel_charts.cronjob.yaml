@@ -18,13 +18,8 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: PROJ_TOOLS
-    value: e1e498-tools
   - name: JOB_NAME
     value: wx-4panel-chart
-  - name: IMAGE_REGISTRY
-    required: true
-    value: image-registry.openshift-image-registry.svc:5000
   - name: CRUNCHYDB_USER
     required: true
   - name: SCHEDULE
@@ -59,7 +54,7 @@ objects:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-weather-${SUFFIX}:${SUFFIX}
+                  image: ghcr.io/bcgov/wps-weather:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
                     [
