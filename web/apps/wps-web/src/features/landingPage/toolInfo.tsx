@@ -54,7 +54,6 @@ export const BCWS_PREDICTIVE_SERVICES_MANAGED_BY: ManagedByInfo = {
 export interface ToolInfo {
   name: string
   route: string
-  subheading: string
   description: React.ReactNode | string
   icon: React.ReactNode
   isBeta: boolean
@@ -65,7 +64,6 @@ export interface ToolInfo {
 export const fireBehaviourAdvisoryInfo: ToolInfo = {
   name: FIRE_BEHAVIOUR_ADVISORY_NAME,
   route: FIRE_BEHAVIOUR_ADVISORY_ROUTE,
-  subheading: 'Provincial Fire Behaviour Advisories',
   description: (
     <Typography>
       An app for BC Wildland Firefighters that automates the continuous monitoring, updating, and communication of
@@ -96,7 +94,6 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
 export const fireBehaviourCalcInfo: ToolInfo = {
   name: FIRE_BEHAVIOUR_CALC_NAME,
   route: FIRE_BEHAVIOR_CALC_ROUTE,
-  subheading: 'Fire Behaviour Calculator',
   description: (
     <Typography>
       Supports the calculation of fire behaviour metrics given forecast or actual weather conditions and user-specified
@@ -111,7 +108,6 @@ export const fireBehaviourCalcInfo: ToolInfo = {
 export const hfiCalcInfo: ToolInfo = {
   name: HFI_CALC_NAME,
   route: HFI_CALC_ROUTE,
-  subheading: 'Head Fire Intensity Calculator',
   description: (
     <Typography>
       Informs preparedness levels throughout the province based on anticipated head fire intensities and fire
@@ -126,7 +122,6 @@ export const hfiCalcInfo: ToolInfo = {
 export const moreCastInfo: ToolInfo = {
   name: MORE_CAST_NAME,
   route: MORECAST_ROUTE,
-  subheading: 'Weather Models and Forecasting',
   description: (
     <Typography>
       Enhances how the predictive services team creates weather forecasts and integrates this information with other
@@ -141,7 +136,6 @@ export const moreCastInfo: ToolInfo = {
 export const percentileCalcInfo: ToolInfo = {
   name: PERCENTILE_CALC_NAME,
   route: PERCENTILE_CALC_ROUTE,
-  subheading: 'Historical fire weather percentile comparisons',
   description: (
     <Typography>
       Helps users identify fire weather indices coinciding with historically uncommon fire danger at weather stations
@@ -156,7 +150,6 @@ export const percentileCalcInfo: ToolInfo = {
 export const fbpGoInfo: ToolInfo = {
   name: FBP_GO_NAME,
   route: FBP_GO_ROUTE,
-  subheading: 'Mobile fire behaviour calculations for field use',
   description: (
     <Typography>
       Calculates fire behaviour in the field. Available for download from the&nbsp;
@@ -178,7 +171,6 @@ export const fbpGoInfo: ToolInfo = {
 export const sfmsInsightsInfo: ToolInfo = {
   name: SFMS_INSIGHTS_NAME,
   route: SFMS_INSIGHTS_ROUTE,
-  subheading: 'Map-based wildfire data exploration',
   description: (
     <Typography>
       Provides an interactive map-based interface to analyze and understand critical wildfire-related data.
@@ -192,7 +184,6 @@ export const sfmsInsightsInfo: ToolInfo = {
 export const fireWatchInfo: ToolInfo = {
   name: FIRE_WATCH_NAME,
   route: FIRE_WATCH_ROUTE,
-  subheading: 'Ten-day watch conditions for fire weather and behaviour',
   description: (
     <Typography>
       Indicates when specified fire weather and fire behaviour could occur over the next ten days.
@@ -226,7 +217,6 @@ export const fireWatchInfo: ToolInfo = {
 export const weatherToolkitInfo: ToolInfo = {
   name: WEATHER_TOOLKIT_NAME,
   route: WEATHER_TOOLKIT_ROUTE,
-  subheading: 'GDPS and RDPS chart visualization',
   description: <Typography>A tool for visualizing GDPS and RDPS 4-Panel Charts.</Typography>,
   icon: <BorderAllIcon fontSize={ICON_FONT_SIZE} htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
   isBeta: true,
