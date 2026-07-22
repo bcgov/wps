@@ -15,16 +15,13 @@ const LandingPageHeader = ({ onOpenQuickAccess }: LandingPageHeaderProps) => (
   <Box
     component="header"
     sx={{
-      borderBottom: 1,
-      borderColor: 'divider',
-      mb: { xs: 4, sm: 5 },
-      pb: { xs: 3, sm: 4 }
+      mb: { xs: 4, sm: 5 }
     }}
   >
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
       spacing={2}
-      sx={{ alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', mb: 3 }}
+      sx={{ alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', mb: { xs: 2, sm: 1.5 } }}
     >
       <Tooltip title="Open quick access">
         <Button
@@ -49,11 +46,11 @@ const LandingPageHeader = ({ onOpenQuickAccess }: LandingPageHeaderProps) => (
       <Typography component="h1" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' }, fontWeight: 700 }}>
         Predictive Services Tools &amp; Applications
       </Typography>
-      <Typography color="text.secondary" sx={{ mt: 1.5, maxWidth: 760 }} variant="body2">
+      <Typography color="text.secondary" sx={{ mt: 1.5, maxWidth: 960 }} variant="body2">
         BCPS Access Only tools require a BC Government account, while Public Access apps are open to all users. Pin any
         app using the pushpin icon to save it to your personal <strong>My Favourites</strong> section.
       </Typography>
-      <Typography color="text.secondary" sx={{ mt: 1, maxWidth: 760 }} variant="body2">
+      <Typography color="text.secondary" sx={{ mt: 1, maxWidth: 960 }} variant="body2">
         Collaborate with us by adding our biweekly{' '}
         <Tooltip arrow describeChild placement="bottom" title="Wednesdays at 1:00 PM on non-pay weeks">
           <Link href={MS_TEAMS_SPRINT_REVIEW_URL} rel="noreferrer" target="_blank">
