@@ -72,7 +72,7 @@ const QuickAccessDrawer = ({
               headingColor="primary.main"
               onNavigate={onClose}
               onToggleFavourite={onToggleFavourite}
-              title="BCWS Access Only"
+              title="BCPS Access Only"
               tools={bcwsTools}
             />
           </>
