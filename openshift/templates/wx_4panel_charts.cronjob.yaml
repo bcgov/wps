@@ -54,7 +54,7 @@ objects:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: ghcr.io/bcgov/wps-weather:${SUFFIX}
+                  image: ghcr.io/bcgov/wps/wps-weather:${SUFFIX}
                   imagePullPolicy: "Always"
                   command:
                     [

@@ -17,24 +17,19 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
+      attestations: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and push WPS Weather image
-        uses: docker/build-push-action@v6
+        uses: bcgov/actions/builder-ghcr@v0.4.0
         with:
-          context: .
-          file: backend/packages/wps-weather/Dockerfile
-          push: true
-          tags: ghcr.io/bcgov/wps-weather:${{ env.SUFFIX }}
+          package: wps-weather
+          build_context: .
+          build_file: backend/packages/wps-weather/Dockerfile
+          tags: ${{ env.SUFFIX }}
 
   deployments:
     name: Deployments

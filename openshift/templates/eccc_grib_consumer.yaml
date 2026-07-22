@@ -41,7 +41,7 @@ objects:
         spec:
           containers:
             - name: ${APP_NAME}-eccc-consumer-${SUFFIX}
-              image: ghcr.io/bcgov/wps-weather:${SUFFIX}
+              image: ghcr.io/bcgov/wps/wps-weather:${SUFFIX}
               imagePullPolicy: Always
               command:
                 - uv
