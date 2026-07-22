@@ -46,7 +46,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: ./.github/actions/oc-setup
 
@@ -58,9 +58,14 @@ jobs:
 
       - name: Build Image via OpenShift
         shell: bash
+        env:
+          INPUT_BRANCH: ${{ inputs.branch }}
+          INPUT_MODULE_NAME: ${{ inputs.module_name }}
+          INPUT_DOCKER_FILE: ${{ inputs.docker_file }}
+          INPUT_PATH_BC: ${{ inputs.path_bc }}
         run: |
-          GIT_BRANCH=${{ inputs.branch }} \
-            MODULE_NAME=${{ inputs.module_name }} \
-            ${{ inputs.docker_file && format('DOCKER_FILE={0}', inputs.docker_file) || '' }} \
-            PATH_BC=${{ inputs.path_bc }} \
-            bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          GIT_BRANCH="${INPUT_BRANCH}" \
+            MODULE_NAME="${INPUT_MODULE_NAME}" \
+            ${INPUT_DOCKER_FILE:+DOCKER_FILE="${INPUT_DOCKER_FILE}"} \
+            PATH_BC="${INPUT_PATH_BC}" \
+            bash openshift/scripts/oc_build.sh "${SUFFIX}" apply
