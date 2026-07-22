@@ -29,6 +29,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   // @ts-expect-error
   private pmtiles_: PMTiles
   private loadPMTiles?: PMTilesInitializer
+  private hasTileLoadError = false
   private reloadKey = 0
 
   tileLoadFunction = (tile: Tile, url: string) => {
@@ -70,6 +71,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
       })
       .catch(err => {
         console.log(err)
+        this.hasTileLoadError = true
         // @ts-expect-error
         vtile.setFeatures([])
         // @ts-expect-error
@@ -137,6 +139,14 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     this.reloadKey += 1
     this.setUrl(`${PMTILES_TILE_URL}?reload=${this.reloadKey}`)
     this.refresh()
+    this.hasTileLoadError = false
+  }
+
+  async reloadPMTilesIfErrored() {
+    if (!this.hasTileLoadError && this.getState() !== 'error') {
+      return
+    }
+    await this.reloadPMTiles()
   }
 
   static async createBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {

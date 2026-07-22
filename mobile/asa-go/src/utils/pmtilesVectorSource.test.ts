@@ -71,6 +71,13 @@ class TestPMTiles implements PMTiles {
   }
 }
 
+class ErrorPMTiles extends TestPMTiles {
+  getZxy(z: number, x: number, y: number, signal?: AbortSignal): Promise<RangeResponse | undefined> {
+    console.log('getZxy called', z, x, y, signal)
+    return Promise.reject(new Error('Tile read failed'))
+  }
+}
+
 describe('pmTilesVectorSource', () => {
   let sandbox: sinon.SinonSandbox
   beforeEach(() => {
@@ -176,6 +183,63 @@ describe('pmTilesVectorSource', () => {
     sinon.assert.calledTwice(pmTilesCacheSpy.loadPMTiles)
     sinon.assert.calledOnce(refreshSpy)
     assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1')
+    assert(instance.getState() === 'ready')
+  })
+
+  it('should not reload pmtiles when tiles have not errored', async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
+    const pmTilesCacheSpy = sandbox.spy(testCache)
+    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
+      filename: 'test.pmtiles'
+    })
+    const refreshSpy = sandbox.spy(instance, 'refresh')
+
+    await instance.reloadPMTilesIfErrored()
+
+    sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles)
+    sinon.assert.notCalled(refreshSpy)
+  })
+
+  it('should reload pmtiles when a tile load has errored', async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new ErrorPMTiles())
+    const pmTilesCacheSpy = sandbox.spy(testCache)
+    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
+      filename: 'test.pmtiles'
+    })
+    const refreshSpy = sandbox.spy(instance, 'refresh')
+    const tile = {
+      extent: undefined,
+      projection: undefined,
+      setFeatures: sandbox.stub(),
+      setState: sandbox.stub()
+    }
+
+    instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    await instance.reloadPMTilesIfErrored()
+
+    sinon.assert.calledTwice(pmTilesCacheSpy.loadPMTiles)
+    sinon.assert.calledOnce(refreshSpy)
+    assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1')
+  })
+
+  it('should reload pmtiles when source initialization has errored', async () => {
+    const loadPMTiles = sandbox.stub()
+    loadPMTiles.onFirstCall().resolves(undefined)
+    loadPMTiles.onSecondCall().resolves(new TestPMTiles())
+    const testCache: IPMTilesCache = {
+      loadPMTiles,
+      loadHFIPMTiles: sandbox.stub()
+    }
+    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
+      filename: 'test.pmtiles'
+    })
+    const refreshSpy = sandbox.spy(instance, 'refresh')
+
+    await instance.reloadPMTilesIfErrored()
+
+    sinon.assert.calledTwice(loadPMTiles)
+    sinon.assert.calledOnce(refreshSpy)
     assert(instance.getState() === 'ready')
   })
 })

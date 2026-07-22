@@ -156,7 +156,7 @@ const ASAGoMap = ({
     [map]
   )
 
-  const reloadPMTilesSources = React.useCallback(async () => {
+  const reloadErroredPMTilesSources = React.useCallback(async () => {
     if (!map) return
 
     const sources = new Set<PMTilesFileVectorSource>()
@@ -170,7 +170,7 @@ const ASAGoMap = ({
         }
       })
 
-    await Promise.all(Array.from(sources).map(source => source.reloadPMTiles()))
+    await Promise.all(Array.from(sources).map(source => source.reloadPMTilesIfErrored()))
   }, [map])
 
   /**
@@ -239,8 +239,8 @@ const ASAGoMap = ({
     }
     wasInactiveRef.current = false
 
-    reloadPMTilesSources().catch(Sentry.captureException)
-  }, [isActive, reloadPMTilesSources])
+    reloadErroredPMTilesSources().catch(Sentry.captureException)
+  }, [isActive, reloadErroredPMTilesSources])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — layer refs are stable
   useEffect(() => {
