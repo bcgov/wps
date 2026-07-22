@@ -14,12 +14,10 @@ from wps_shared.db.models.auto_spatial_advisory import (
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.psu import FireCentre
-from wps_shared.schemas.auto_spatial_advisory import SFMSRunType
 from wps_shared.schemas.fba import (
     FireZoneHFIStats,
     HFIStatsResponse,
     HfiThreshold,
-    SFMSRunParameter,
 )
 
 mock_fire_centre_name = "PGFireCentre"
@@ -257,12 +255,16 @@ async def mock_get_sfms_bounds_no_data(*_, **__):
 async def mock_get_most_recent_run_datetime_for_date_range(*_, **__):
     for_date_1 = date(2025, 8, 25)
     for_date_2 = date(2025, 8, 26)
-    run_datetime = datetime(2025, 8, 25)
-    run_parameter_1 = SFMSRunParameter(
-        for_date=for_date_1, run_datetime=run_datetime, run_type=SFMSRunType.FORECAST
+    run_datetime = datetime(2025, 8, 25, tzinfo=timezone.utc)
+    run_parameter_1 = RunParameters(
+        for_date=for_date_1,
+        run_datetime=run_datetime,
+        run_type="forecast",
     )
-    run_parameter_2 = SFMSRunParameter(
-        for_date=for_date_2, run_datetime=run_datetime, run_type=SFMSRunType.FORECAST
+    run_parameter_2 = RunParameters(
+        for_date=for_date_2,
+        run_datetime=run_datetime,
+        run_type="forecast",
     )
     return [run_parameter_1, run_parameter_2]
 

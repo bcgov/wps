@@ -459,7 +459,9 @@ async def get_most_recent_run_datetime_for_date_range(
             .over(partition_by=RunParameters.for_date, order_by=desc(RunParameters.run_datetime))
             .label("row_num"),
         )
-        .where(RunParameters.for_date.between(start_date, end_date))
+        .where(
+            RunParameters.for_date.between(start_date, end_date), RunParameters.complete.is_(True)
+        )
         .subquery()
     )
 

@@ -72,6 +72,42 @@ def test_public_latest_sfms_run_datetime_endpoint(mock_latest_run_parameter, cli
             "for_date": "2025-08-26",
             "run_datetime": "2025-08-26T15:01:47.340947Z",
             "run_type": RunType.FORECAST.value,
+            "valid_until": "2025-08-27T01:00:00Z",
+        }
+    }
+
+
+@patch("app.routers.fba.get_most_recent_run_datetime_for_date_range")
+def test_public_latest_sfms_run_datetime_range_endpoint(
+    mock_latest_run_parameter_range, client: TestClient
+):
+    mock_latest_run_parameter_range.return_value = [
+        type(
+            "",
+            (),
+            {
+                "for_date": date(2025, 8, 26),
+                "run_datetime": datetime(2025, 8, 27, 0, 31, tzinfo=timezone.utc),
+                "run_type": RunType.FORECAST.value,
+            },
+        )()
+    ]
+
+    with patch(
+        "app.routers.asa_go.get_vancouver_now",
+        return_value=datetime(2025, 8, 26, 12, tzinfo=timezone.utc),
+    ):
+        response = client.get("/api/asa-go/fba/latest-sfms-run-parameters/2025-08-26/2025-08-26")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "run_parameters": {
+            "2025-08-26": {
+                "for_date": "2025-08-26",
+                "run_datetime": "2025-08-27T00:31:00Z",
+                "run_type": RunType.FORECAST.value,
+                "valid_until": "2025-08-27T15:30:00Z",
+            }
         }
     }
 
