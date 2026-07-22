@@ -18,6 +18,12 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
+  - name: WEATHER_IMAGE
+    description: >-
+      Full image reference for wps-weather. Computed by the deploy scripts: the GHCR build
+      by default, or the internal OpenShift ImageStream when the GHCR build/promotion
+      fallback path was used.
+    required: true
 objects:
   - apiVersion: apps/v1
     kind: Deployment
@@ -41,7 +47,7 @@ objects:
         spec:
           containers:
             - name: ${APP_NAME}-eccc-consumer-${SUFFIX}
-              image: ghcr.io/bcgov/wps/wps-weather:${SUFFIX}
+              image: ${WEATHER_IMAGE}
               imagePullPolicy: Always
               command:
                 - uv

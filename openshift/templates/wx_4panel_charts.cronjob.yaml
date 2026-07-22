@@ -32,6 +32,12 @@ parameters:
     required: true
   - name: MODEL
     required: true
+  - name: WEATHER_IMAGE
+    description: >-
+      Full image reference for wps-weather. Computed by the deploy scripts: the GHCR build
+      by default, or the internal OpenShift ImageStream when the GHCR build/promotion
+      fallback path was used.
+    required: true
 objects:
   - kind: CronJob
     apiVersion: batch/v1
@@ -54,7 +60,7 @@ objects:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: ghcr.io/bcgov/wps/wps-weather:${SUFFIX}
+                  image: ${WEATHER_IMAGE}
                   imagePullPolicy: "Always"
                   command:
                     [
