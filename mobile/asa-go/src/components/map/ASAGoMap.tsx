@@ -39,6 +39,7 @@ import {
 } from '@/featureStylers'
 import { fireZoneExtentsMap } from '@/fireZoneUnitExtents'
 import { useProvincialSummaryZonesForDate } from '@/hooks/dataHooks'
+import { useAppIsActive } from '@/hooks/useAppIsActive'
 import { useRunParameterForDate } from '@/hooks/useRunParameterForDate'
 import {
   BASEMAP_LAYER_NAME,
@@ -92,6 +93,7 @@ const ASAGoMap = ({
   // selectors & hooks
   const { position, error, loading } = useSelector(selectGeolocation)
   const { networkStatus } = useSelector(selectNetworkStatus)
+  const isActive = useAppIsActive()
 
   // hooks
   const fireShapeStatusDetails = useProvincialSummaryZonesForDate(date)
@@ -124,6 +126,7 @@ const ASAGoMap = ({
   )
 
   const toggleLayersRef = useRef<Record<string, VectorTileLayer | null>>({})
+  const wasInactiveRef = useRef(false)
 
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
@@ -152,6 +155,23 @@ const ASAGoMap = ({
     },
     [map]
   )
+
+  const reloadPMTilesSources = React.useCallback(async () => {
+    if (!map) return
+
+    const sources = new Set<PMTilesFileVectorSource>()
+    map
+      .getLayers()
+      .getArray()
+      .forEach(layer => {
+        const source = layer instanceof VectorTileLayer ? layer.getSource() : null
+        if (source instanceof PMTilesFileVectorSource) {
+          sources.add(source)
+        }
+      })
+
+    await Promise.all(Array.from(sources).map(source => source.reloadPMTiles()))
+  }, [map])
 
   /**
    *
@@ -208,6 +228,19 @@ const ASAGoMap = ({
       setCenterOnLocation(false) // Reset flag
     }
   }, [centerOnLocation, position, map])
+
+  useEffect(() => {
+    if (!isActive) {
+      wasInactiveRef.current = true
+      return
+    }
+    if (!wasInactiveRef.current) {
+      return
+    }
+    wasInactiveRef.current = false
+
+    reloadPMTilesSources().catch(Sentry.captureException)
+  }, [isActive, reloadPMTilesSources])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — layer refs are stable
   useEffect(() => {

@@ -21,9 +21,15 @@ export type HFIPMTilesFileVectorOptions = VectorTileSourceOptions &
     run_date: DateTime
   }
 
+type PMTilesInitializer = () => Promise<PMTiles | undefined>
+
+const PMTILES_TILE_URL = 'pmtiles://{z}/{x}/{y}'
+
 export class PMTilesFileVectorSource extends VectorTileSource {
   // @ts-expect-error
   private pmtiles_: PMTiles
+  private loadPMTiles?: PMTilesInitializer
+  private reloadKey = 0
 
   tileLoadFunction = (tile: Tile, url: string) => {
     const vtile = tile as unknown as VectorTileSource
@@ -75,7 +81,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     super({
       ...options,
       state: 'loading',
-      url: 'pmtiles://{z}/{x}/{y}', // only used for parsing out the z, x, y parameters when tile loading
+      url: PMTILES_TILE_URL, // only used for parsing out the z, x, y parameters when tile loading
       format: options.format || new MVT({ layerName: 'mvt:layer' })
     })
   }
@@ -91,10 +97,11 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async initStaticLayer(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
+    this.loadPMTiles = () => pmtilesCache.loadPMTiles(options.filename)
     try {
       console.log(`Attempting to read ${options.filename}`)
 
-      const pmtiles = await pmtilesCache.loadPMTiles(options.filename)
+      const pmtiles = await this.loadPMTiles()
 
       await this.initTileGrid(pmtiles)
     } catch (error) {
@@ -104,12 +111,12 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async initTileGrid(pmtiles?: PMTiles) {
-    if (!isUndefined(pmtiles)) {
-      this.pmtiles_ = pmtiles
-    } else {
+    if (isUndefined(pmtiles)) {
       throw new Error('Unable to initialize pmtiles')
     }
-    const header = await this.pmtiles_.getHeader()
+    const header = await pmtiles.getHeader()
+
+    this.pmtiles_ = pmtiles
 
     this.tileGrid = createXYZ({
       maxZoom: header.maxZoom,
@@ -121,6 +128,17 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     this.setState('ready')
   }
 
+  async reloadPMTiles() {
+    if (isUndefined(this.loadPMTiles)) {
+      return
+    }
+    const pmtiles = await this.loadPMTiles()
+    await this.initTileGrid(pmtiles)
+    this.reloadKey += 1
+    this.setUrl(`${PMTILES_TILE_URL}?reload=${this.reloadKey}`)
+    this.refresh()
+  }
+
   static async createBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
     const instance = new PMTilesFileVectorSource(options)
     await instance.initBasemapSource(pmtilesCache, options)
@@ -128,9 +146,10 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async initBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
+    this.loadPMTiles = () => pmtilesCache.loadPMTiles(options.filename)
     try {
       console.log('Attempting to download offline pmtiles basemap assets.')
-      const pmtiles = await pmtilesCache.loadPMTiles(options.filename)
+      const pmtiles = await this.loadPMTiles()
 
       await this.initTileGrid(pmtiles)
     } catch (error) {
@@ -148,15 +167,12 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async initHFILayer(pmtilesCache: IPMTilesCache, options: HFIPMTilesFileVectorOptions) {
+    this.loadPMTiles = () =>
+      pmtilesCache.loadHFIPMTiles(options.for_date, options.run_type, options.run_date, options.filename)
     try {
       console.log(`Attempting to read ${options.filename}`)
 
-      const pmtiles = await pmtilesCache.loadHFIPMTiles(
-        options.for_date,
-        options.run_type,
-        options.run_date,
-        options.filename
-      )
+      const pmtiles = await this.loadPMTiles()
       await this.initTileGrid(pmtiles)
     } catch (error) {
       console.error('Error loading PMTiles file:', error)

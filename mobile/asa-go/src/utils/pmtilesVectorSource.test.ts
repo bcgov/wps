@@ -162,4 +162,20 @@ describe('pmTilesVectorSource', () => {
     assert(tileGrid.getMinZoom() === testPMTilesHeader.minZoom)
     assert(instance.getState() === 'ready')
   })
+
+  it('should reload pmtiles and refresh cached tiles', async () => {
+    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
+    const pmTilesCacheSpy = sandbox.spy(testCache)
+    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
+      filename: 'test.pmtiles'
+    })
+    const refreshSpy = sandbox.spy(instance, 'refresh')
+
+    await instance.reloadPMTiles()
+
+    sinon.assert.calledTwice(pmTilesCacheSpy.loadPMTiles)
+    sinon.assert.calledOnce(refreshSpy)
+    assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1')
+    assert(instance.getState() === 'ready')
+  })
 })
