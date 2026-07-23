@@ -2,17 +2,12 @@ import { getFeedback } from '@sentry/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
-import {
-  BCWS_PREDICTIVE_SERVICES_MANAGED_BY,
-  fbpGoInfo,
-  percentileCalcInfo,
-  toolInfos,
-  weatherToolkitInfo
-} from 'features/landingPage/toolInfo'
+import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { wxDataViewerInfo, wxWeatherAlertsInfo } from '../ExternalToolInfos'
-import { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from '../landingPageConfig'
+import { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from '../favouritesStorage'
+import { BCWS_PREDICTIVE_SERVICES_MANAGED_BY } from '../managedBy'
 import LandingPage from './LandingPage'
 
 vi.mock('@sentry/react', () => ({

@@ -1,5 +1,6 @@
-import { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './landingPageConfig'
 import { landingPageTools } from './landingPageTools'
+
+export const LANDING_PAGE_FAVOURITES_STORAGE_KEY = 'wps-landing-page-favourites'
 
 export const readFavouriteRoutes = () => {
   try {

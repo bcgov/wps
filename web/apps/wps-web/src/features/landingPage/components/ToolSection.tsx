@@ -3,8 +3,9 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
 import type { ReactNode } from 'react'
-import { SECTION_RADIUS } from '../landingPageConfig'
 import ToolRow from './ToolRow'
+
+const SECTION_RADIUS = '18px'
 
 interface ToolSectionProps {
   backgroundColour: string

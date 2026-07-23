@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { readFavouriteRoutes, storeFavouriteRoutes } from './favouritesStorage'
-import { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from './landingPageConfig'
+import { LANDING_PAGE_FAVOURITES_STORAGE_KEY, readFavouriteRoutes, storeFavouriteRoutes } from './favouritesStorage'
 import { landingPageTools } from './landingPageTools'
 
 describe('favouritesStorage', () => {

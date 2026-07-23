@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box'
 import type { ReactNode } from 'react'
-import { ICON_TILE_RADIUS } from '../landingPageConfig'
+
+const ICON_TILE_RADIUS = '14px'
 
 interface ToolIconTileProps {
   icon: ReactNode

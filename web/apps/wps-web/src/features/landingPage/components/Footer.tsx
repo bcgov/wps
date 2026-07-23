@@ -3,7 +3,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { theme } from '@wps/ui/theme'
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { BCWS_PREDICTIVE_SERVICES_EMAIL } from '../landingPageConfig'
+import { BCWS_PREDICTIVE_SERVICES_CONTACT_HREF } from '../managedBy'
 
 const PREFIX = 'Footer'
 
@@ -89,7 +89,7 @@ const Footer: React.FunctionComponent = () => {
         <StyledLink
           to="#"
           onClick={e => {
-            window.location.href = `mailto:${BCWS_PREDICTIVE_SERVICES_EMAIL}`
+            window.location.href = BCWS_PREDICTIVE_SERVICES_CONTACT_HREF
             e.preventDefault()
           }}
         >

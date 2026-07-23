@@ -4,6 +4,7 @@ import StarIcon from '@mui/icons-material/Star'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Stack from '@mui/material/Stack'
+import { PUBLIC_TOOL_ICON_COLOUR } from '@wps/ui/theme'
 import { LANDING_PAGE_DOC_TITLE } from '@wps/utils/constants'
 import Footer from 'features/landingPage/components/Footer'
 import { useEffect, useState } from 'react'
@@ -11,14 +12,12 @@ import { readFavouriteRoutes, storeFavouriteRoutes } from '@/features/landingPag
 import LandingPageHeader from '../components/LandingPageHeader'
 import QuickAccessDrawer from '../components/QuickAccessDrawer'
 import ToolSection from '../components/ToolSection'
-import {
-  BCPS_SECTION_ID,
-  FAVOURITES_COLOUR,
-  FAVOURITES_SECTION_ID,
-  PUBLIC_SECTION_ID,
-  PUBLIC_TOOL_ICON_COLOUR
-} from '../landingPageConfig'
 import { bcwsTools, landingPageTools, publicTools } from '../landingPageTools'
+
+const BCPS_SECTION_ID = 'bcps-access-only-heading'
+const FAVOURITES_COLOUR = '#3f743f'
+const FAVOURITES_SECTION_ID = 'favourites-heading'
+const PUBLIC_SECTION_ID = 'public-access-heading'
 
 const LandingPage = () => {
   const [favouriteRoutes, setFavouriteRoutes] = useState<string[]>(readFavouriteRoutes)
@@ -45,6 +44,7 @@ const LandingPage = () => {
     <Box sx={{ bgcolor: 'grey.50', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <QuickAccessDrawer
         bcwsTools={visibleBcwsTools}
+        favouritesColour={FAVOURITES_COLOUR}
         favouriteRoutes={favouriteRoutes}
         favouriteTools={favouriteTools}
         isOpen={isDrawerOpen}

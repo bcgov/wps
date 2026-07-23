@@ -9,7 +9,7 @@ import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
 import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
-import { theme } from '@wps/ui/theme'
+import { PUBLIC_TOOL_ICON_COLOUR, theme } from '@wps/ui/theme'
 import {
   FBP_GO_NAME,
   FBP_GO_ROUTE,
@@ -31,25 +31,9 @@ import {
   WEATHER_TOOLKIT_ROUTE
 } from '@wps/utils/constants'
 import type React from 'react'
-import { BCWS_PREDICTIVE_SERVICES_EMAIL, PUBLIC_TOOL_ICON_COLOUR } from './landingPageConfig'
+import { CSBC_PREDICTIVE_SERVICES_MANAGED_BY, type ManagedByInfo } from './managedBy'
 
 const ICON_FONT_SIZE = 'large'
-
-export interface ManagedByInfo {
-  name: string
-  href?: string
-  opensFeedback?: boolean
-}
-
-const CSBC_PREDICTIVE_SERVICES_MANAGED_BY: ManagedByInfo = {
-  name: 'CSBC - Predictive Services',
-  opensFeedback: true
-}
-
-export const BCWS_PREDICTIVE_SERVICES_MANAGED_BY: ManagedByInfo = {
-  name: 'BCWS - Predictive Services',
-  href: `mailto:${BCWS_PREDICTIVE_SERVICES_EMAIL}`
-}
 
 export interface ToolInfo {
   name: string

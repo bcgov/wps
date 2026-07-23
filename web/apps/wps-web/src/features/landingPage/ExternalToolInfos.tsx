@@ -1,8 +1,9 @@
 import AreaChartOutlinedIcon from '@mui/icons-material/AreaChartOutlined'
 import CellTowerIcon from '@mui/icons-material/CellTower'
 import Typography from '@mui/material/Typography'
-import { BCWS_PREDICTIVE_SERVICES_MANAGED_BY, type ToolInfo } from 'features/landingPage/toolInfo'
-import { PUBLIC_TOOL_ICON_COLOUR } from './landingPageConfig'
+import { PUBLIC_TOOL_ICON_COLOUR } from '@wps/ui/theme'
+import { BCWS_PREDICTIVE_SERVICES_MANAGED_BY } from './managedBy'
+import type { ToolInfo } from './toolInfo'
 
 export const WX_DATA_VIEWER_ROUTE = 'https://huggingface.co/spaces/ssidds/WX_data_viewer'
 export const WX_WEATHER_ALERTS_ROUTE = 'https://riodeoro.github.io/wx-network-alerts/'

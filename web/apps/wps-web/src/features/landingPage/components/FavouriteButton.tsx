@@ -14,7 +14,7 @@ const FavouriteButton = ({ isFavourite, onToggle, toolName }: FavouriteButtonPro
   const label = `${action} ${toolName} ${isFavourite ? 'from' : 'to'} favourites`
 
   return (
-    <Tooltip title={label}>
+    <Tooltip title={label} placement="right-end">
       <IconButton aria-label={label} color={isFavourite ? 'primary' : 'default'} onClick={onToggle} size="small">
         {isFavourite ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
       </IconButton>

@@ -6,12 +6,13 @@ import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import { FAVOURITES_COLOUR, PUBLIC_TOOL_ICON_COLOUR } from 'features/landingPage/landingPageConfig'
+import { PUBLIC_TOOL_ICON_COLOUR } from '@wps/ui/theme'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
 import QuickAccessList from './QuickAccessList'
 import SupportSection from './SupportSection'
 
 interface QuickAccessDrawerProps {
+  favouritesColour: string
   favouriteRoutes: string[]
   favouriteTools: ToolInfo[]
   isOpen: boolean
@@ -22,6 +23,7 @@ interface QuickAccessDrawerProps {
 }
 
 const QuickAccessDrawer = ({
+  favouritesColour,
   favouriteRoutes,
   favouriteTools,
   isOpen,
@@ -57,7 +59,7 @@ const QuickAccessDrawer = ({
         {favouriteTools.length > 0 && (
           <QuickAccessList
             favouriteRoutes={favouriteRoutes}
-            headingColor={FAVOURITES_COLOUR}
+            headingColor={favouritesColour}
             onNavigate={onClose}
             onToggleFavourite={onToggleFavourite}
             title="My Favourites"

@@ -8,9 +8,10 @@ import Typography from '@mui/material/Typography'
 import { getFeedback } from '@sentry/react'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
 import type React from 'react'
-import { TOOL_ROW_RADIUS } from '../landingPageConfig'
 import FavouriteButton from './FavouriteButton'
 import ToolIconTile from './ToolIconTile'
+
+const TOOL_ROW_RADIUS = '16px'
 
 interface ToolRowProps {
   isFavourite: boolean
