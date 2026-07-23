@@ -177,6 +177,31 @@ describe('LandingPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent(percentileCalcInfo.route)
   })
 
+  it('uses router navigation for internal quick access links', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('button', { name: 'Open quick access' }))
+    const quickAccess = screen.getByRole('navigation', { name: 'Quick access' })
+
+    await user.click(within(quickAccess).getByRole('link', { name: percentileCalcInfo.name }))
+
+    expect(screen.getByTestId('location')).toHaveTextContent(percentileCalcInfo.route)
+  })
+
+  it('opens external quick access links in a new tab', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('button', { name: 'Open quick access' }))
+    const quickAccess = screen.getByRole('navigation', { name: 'Quick access' })
+    const wxDataViewerLink = within(quickAccess).getByRole('link', { name: wxDataViewerInfo.name })
+
+    expect(wxDataViewerLink).toHaveAttribute('href', wxDataViewerInfo.route)
+    expect(wxDataViewerLink).toHaveAttribute('target', '_blank')
+    expect(wxDataViewerLink).toHaveAttribute('rel', 'noreferrer')
+  })
+
   it('moves a favourited tool out of its access section and persists it', async () => {
     const user = userEvent.setup()
     renderPage()
