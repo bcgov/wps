@@ -5,8 +5,9 @@ import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
 import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { wxDataViewerInfo, wxWeatherAlertsInfo } from '../ExternalToolInfos'
+import { sfmsDailyFireWeatherIndexInfo, wxDataViewerInfo, wxWeatherAlertsInfo } from '../ExternalToolInfos'
 import { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from '../favouritesStorage'
+import { apiTools, bcpsTools, publicTools } from '../landingPageTools'
 import { BCWS_PREDICTIVE_SERVICES_MANAGED_BY } from '../managedBy'
 import LandingPage from './LandingPage'
 
@@ -60,18 +61,11 @@ describe('LandingPage', () => {
     expect(screen.getByText('Collaboard', { selector: 'a' })).toBeInTheDocument()
   })
 
-  it('shows public tools publicly and the remaining tools in the BCPS access section', () => {
+  it('shows tools in their configured sections', () => {
     renderPage()
 
     const accessSection = screen.getByRole('region', { name: 'BCPS Access Only' })
-    const publicRoutes = [
-      fbpGoInfo.route,
-      percentileCalcInfo.route,
-      weatherToolkitInfo.route,
-      wxDataViewerInfo.route,
-      wxWeatherAlertsInfo.route
-    ]
-    for (const tool of toolInfos.filter(toolInfo => !publicRoutes.includes(toolInfo.route))) {
+    for (const tool of bcpsTools) {
       expect(within(accessSection).getByRole('heading', { name: tool.name })).toBeInTheDocument()
     }
     expect(within(accessSection).queryByText(fbpGoInfo.name)).not.toBeInTheDocument()
@@ -79,20 +73,33 @@ describe('LandingPage', () => {
     expect(within(accessSection).queryByText(weatherToolkitInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(wxDataViewerInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(wxWeatherAlertsInfo.name)).not.toBeInTheDocument()
+    expect(within(accessSection).queryByText(sfmsDailyFireWeatherIndexInfo.name)).not.toBeInTheDocument()
     const publicSection = screen.getByRole('region', { name: 'Public Access' })
-    expect(within(publicSection).getByText(fbpGoInfo.name)).toBeInTheDocument()
-    expect(within(publicSection).getByText(percentileCalcInfo.name)).toBeInTheDocument()
-    expect(within(publicSection).getByText(weatherToolkitInfo.name)).toBeInTheDocument()
-    expect(within(publicSection).getByText(wxDataViewerInfo.name)).toBeInTheDocument()
-    expect(within(publicSection).getByText(wxWeatherAlertsInfo.name)).toBeInTheDocument()
+    for (const tool of publicTools) {
+      expect(within(publicSection).getByText(tool.name)).toBeInTheDocument()
+    }
+    expect(within(publicSection).queryByText(sfmsDailyFireWeatherIndexInfo.name)).not.toBeInTheDocument()
+    const apiSection = screen.getByRole('region', { name: 'API Access' })
+    for (const tool of apiTools) {
+      expect(within(apiSection).getByText(tool.name)).toBeInTheDocument()
+    }
+    const sfmsApiCard = within(apiSection)
+      .getByRole('heading', { name: sfmsDailyFireWeatherIndexInfo.name })
+      .closest('article')
     expect(
       screen.getByText('A dashboard to visualize and monitor sensor performance using hourly weather observations.')
     ).toBeInTheDocument()
+    expect(within(sfmsApiCard as HTMLElement).getByRole('link', { name: 'here' })).toHaveAttribute(
+      'href',
+      'https://wfapps.nrs.gov.bc.ca/pub/wfwx-info-war/sfms'
+    )
     expect(screen.getByRole('img', { name: 'Auto Spatial Advisory logo' })).toHaveAttribute(
       'src',
       '/images/asa-go-logo.png'
     )
-    expect(screen.getAllByRole('link', { name: 'CSBC - Predictive Services' })).toHaveLength(toolInfos.length)
+    expect(screen.getAllByRole('link', { name: 'CSBC - Predictive Services' })).toHaveLength(
+      toolInfos.length + apiTools.length
+    )
     const bcwsManagedByLinks = screen.getAllByRole('link', { name: BCWS_PREDICTIVE_SERVICES_MANAGED_BY.name })
     expect(bcwsManagedByLinks).toHaveLength(2)
     for (const managedByLink of bcwsManagedByLinks) {
@@ -130,12 +137,19 @@ describe('LandingPage', () => {
     const wxWeatherAlertsCard = within(publicSection)
       .getByRole('heading', { name: wxWeatherAlertsInfo.name })
       .closest('article')
+    const apiSection = screen.getByRole('region', { name: 'API Access' })
+    const sfmsDailyFireWeatherIndexCard = within(apiSection)
+      .getByRole('heading', { name: sfmsDailyFireWeatherIndexInfo.name })
+      .closest('article')
     const fbpGoTitleLink = within(fbpGoCard as HTMLElement).getByRole('link', { name: fbpGoInfo.name })
     const wxDataViewerTitleLink = within(wxDataViewerCard as HTMLElement).getByRole('link', {
       name: wxDataViewerInfo.name
     })
     const wxWeatherAlertsTitleLink = within(wxWeatherAlertsCard as HTMLElement).getByRole('link', {
       name: wxWeatherAlertsInfo.name
+    })
+    const sfmsDailyFireWeatherIndexTitleLink = within(sfmsDailyFireWeatherIndexCard as HTMLElement).getByRole('link', {
+      name: sfmsDailyFireWeatherIndexInfo.name
     })
 
     expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute('target', '_blank')
@@ -161,6 +175,13 @@ describe('LandingPage', () => {
     expect(wxWeatherAlertsTitleLink).toHaveAttribute('href', wxWeatherAlertsInfo.route)
     expect(wxWeatherAlertsTitleLink).toHaveAttribute('target', '_blank')
     expect(wxWeatherAlertsTitleLink).toHaveAttribute('rel', 'noreferrer')
+    expect(within(sfmsDailyFireWeatherIndexCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
+      'target',
+      '_blank'
+    )
+    expect(sfmsDailyFireWeatherIndexTitleLink).toHaveAttribute('href', sfmsDailyFireWeatherIndexInfo.route)
+    expect(sfmsDailyFireWeatherIndexTitleLink).toHaveAttribute('target', '_blank')
+    expect(sfmsDailyFireWeatherIndexTitleLink).toHaveAttribute('rel', 'noreferrer')
   })
 
   it('uses router navigation for internal tool links', async () => {

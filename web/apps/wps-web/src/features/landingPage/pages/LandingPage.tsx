@@ -1,3 +1,4 @@
+import CloudOutlinedIcon from '@mui/icons-material/CloudOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined'
 import StarIcon from '@mui/icons-material/Star'
@@ -5,7 +6,7 @@ import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import GlobalStyles from '@mui/material/GlobalStyles'
 import Stack from '@mui/material/Stack'
-import { PUBLIC_TOOL_ICON_COLOUR } from '@wps/ui/theme'
+import { API_ACCESS_COLOUR, PUBLIC_TOOL_ICON_COLOUR } from '@wps/ui/theme'
 import { LANDING_PAGE_DOC_TITLE } from '@wps/utils/constants'
 import Footer from 'features/landingPage/components/Footer'
 import { useEffect, useState } from 'react'
@@ -13,17 +14,19 @@ import { readFavouriteRoutes, storeFavouriteRoutes } from '@/features/landingPag
 import LandingPageHeader from '../components/LandingPageHeader'
 import QuickAccessDrawer from '../components/QuickAccessDrawer'
 import ToolSection from '../components/ToolSection'
-import { bcpsTools, landingPageTools, publicTools } from '../landingPageTools'
+import { apiTools, bcpsTools, landingPageTools, publicTools } from '../landingPageTools'
 
+const API_ACCESS_SECTION_ID = 'api-access-heading'
 const BCPS_SECTION_ID = 'bcps-access-only-heading'
-const FAVOURITES_COLOUR = '#3f743f'
 const FAVOURITES_SECTION_ID = 'favourites-heading'
 const PUBLIC_SECTION_ID = 'public-access-heading'
+const FAVOURITES_COLOUR = '#3f743f'
 
 const LandingPage = () => {
   const [favouriteRoutes, setFavouriteRoutes] = useState<string[]>(readFavouriteRoutes)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const favouriteTools = landingPageTools.filter(tool => favouriteRoutes.includes(tool.route))
+  const visibleApiTools = apiTools.filter(tool => !favouriteRoutes.includes(tool.route))
   const visibleBcpsTools = bcpsTools.filter(tool => !favouriteRoutes.includes(tool.route))
   const visiblePublicTools = publicTools.filter(tool => !favouriteRoutes.includes(tool.route))
 
@@ -45,6 +48,8 @@ const LandingPage = () => {
     <Box sx={{ bgcolor: 'grey.50', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <GlobalStyles styles={{ html: { scrollbarGutter: 'stable' } }} />
       <QuickAccessDrawer
+        apiAccessColour={API_ACCESS_COLOUR}
+        apiTools={visibleApiTools}
         bcpsTools={visibleBcpsTools}
         favouritesColour={FAVOURITES_COLOUR}
         favouriteRoutes={favouriteRoutes}
@@ -103,6 +108,18 @@ const LandingPage = () => {
               onToggleFavourite={toggleFavourite}
               title="Public Access"
               tools={visiblePublicTools}
+            />
+          )}
+          {visibleApiTools.length > 0 && (
+            <ToolSection
+              backgroundColour="#F9F6FF"
+              borderColour="#D4C2C2"
+              headingId={API_ACCESS_SECTION_ID}
+              icon={<CloudOutlinedIcon sx={{ color: API_ACCESS_COLOUR, fontSize: 18 }} />}
+              isFavourite={route => favouriteRoutes.includes(route)}
+              onToggleFavourite={toggleFavourite}
+              title="API Access"
+              tools={visibleApiTools}
             />
           )}
         </Stack>
