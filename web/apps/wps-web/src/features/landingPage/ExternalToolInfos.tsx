@@ -17,7 +17,7 @@ export const sfmsDailyFireWeatherIndexInfo: ToolInfo = {
   section: 'api',
   description: (
     <Typography>
-      Access the SFMS Fire Weather Index API through the API Services Portal. The available data can be viewed{' '}
+      Access the SFMS Fire Weather Index API through the API Services Portal. The available FWI data can be viewed{' '}
       <Link href="https://wfapps.nrs.gov.bc.ca/pub/wfwx-info-war/sfms" rel="noreferrer" target="_blank">
         here
       </Link>
