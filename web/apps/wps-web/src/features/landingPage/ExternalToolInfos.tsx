@@ -9,7 +9,7 @@ import type { ToolInfo } from './toolInfo'
 
 export const SFMS_DAILY_FIRE_WEATHER_INDEX_ROUTE = 'https://api.gov.bc.ca/devportal/api-directory/4336'
 export const WX_DATA_VIEWER_ROUTE = 'https://huggingface.co/spaces/ssidds/WX_data_viewer'
-export const WX_WEATHER_ALERTS_ROUTE = 'https://riodeoro.github.io/wx-network-alerts/'
+export const WX_NETWORK_ALERTS_ROUTE = 'https://riodeoro.github.io/wx-network-alerts/'
 
 export const sfmsDailyFireWeatherIndexInfo: ToolInfo = {
   name: 'SFMS Fire Weather Index',
@@ -46,9 +46,9 @@ export const wxDataViewerInfo: ToolInfo = {
   isExternal: true
 }
 
-export const wxWeatherAlertsInfo: ToolInfo = {
-  name: 'WX Weather Alerts',
-  route: WX_WEATHER_ALERTS_ROUTE,
+export const wxNetworkAlertsInfo: ToolInfo = {
+  name: 'WX Network Alerts',
+  route: WX_NETWORK_ALERTS_ROUTE,
   section: 'public',
   description: (
     <Typography>A dashboard to visualize and monitor sensor performance using hourly weather observations.</Typography>
@@ -59,4 +59,4 @@ export const wxWeatherAlertsInfo: ToolInfo = {
   isExternal: true
 }
 
-export const externalToolInfos = [wxDataViewerInfo, wxWeatherAlertsInfo, sfmsDailyFireWeatherIndexInfo]
+export const externalToolInfos = [wxDataViewerInfo, wxNetworkAlertsInfo, sfmsDailyFireWeatherIndexInfo]

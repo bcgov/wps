@@ -5,7 +5,7 @@ import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
 import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { sfmsDailyFireWeatherIndexInfo, wxDataViewerInfo, wxWeatherAlertsInfo } from '../ExternalToolInfos'
+import { sfmsDailyFireWeatherIndexInfo, wxDataViewerInfo, wxNetworkAlertsInfo } from '../ExternalToolInfos'
 import { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from '../favouritesStorage'
 import { apiTools, bcpsTools, publicTools } from '../landingPageTools'
 import { BCWS_PREDICTIVE_SERVICES_MANAGED_BY } from '../managedBy'
@@ -72,7 +72,7 @@ describe('LandingPage', () => {
     expect(within(accessSection).queryByText(percentileCalcInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(weatherToolkitInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(wxDataViewerInfo.name)).not.toBeInTheDocument()
-    expect(within(accessSection).queryByText(wxWeatherAlertsInfo.name)).not.toBeInTheDocument()
+    expect(within(accessSection).queryByText(wxNetworkAlertsInfo.name)).not.toBeInTheDocument()
     expect(within(accessSection).queryByText(sfmsDailyFireWeatherIndexInfo.name)).not.toBeInTheDocument()
     const publicSection = screen.getByRole('region', { name: 'Public Access' })
     for (const tool of publicTools) {
@@ -134,8 +134,8 @@ describe('LandingPage', () => {
     const wxDataViewerCard = within(publicSection)
       .getByRole('heading', { name: wxDataViewerInfo.name })
       .closest('article')
-    const wxWeatherAlertsCard = within(publicSection)
-      .getByRole('heading', { name: wxWeatherAlertsInfo.name })
+    const wxNetworkAlertsCard = within(publicSection)
+      .getByRole('heading', { name: wxNetworkAlertsInfo.name })
       .closest('article')
     const apiSection = screen.getByRole('region', { name: 'API Access' })
     const sfmsDailyFireWeatherIndexCard = within(apiSection)
@@ -145,8 +145,8 @@ describe('LandingPage', () => {
     const wxDataViewerTitleLink = within(wxDataViewerCard as HTMLElement).getByRole('link', {
       name: wxDataViewerInfo.name
     })
-    const wxWeatherAlertsTitleLink = within(wxWeatherAlertsCard as HTMLElement).getByRole('link', {
-      name: wxWeatherAlertsInfo.name
+    const wxNetworkAlertsTitleLink = within(wxNetworkAlertsCard as HTMLElement).getByRole('link', {
+      name: wxNetworkAlertsInfo.name
     })
     const sfmsDailyFireWeatherIndexTitleLink = within(sfmsDailyFireWeatherIndexCard as HTMLElement).getByRole('link', {
       name: sfmsDailyFireWeatherIndexInfo.name
@@ -168,13 +168,13 @@ describe('LandingPage', () => {
     expect(wxDataViewerTitleLink).toHaveAttribute('href', wxDataViewerInfo.route)
     expect(wxDataViewerTitleLink).toHaveAttribute('target', '_blank')
     expect(wxDataViewerTitleLink).toHaveAttribute('rel', 'noreferrer')
-    expect(within(wxWeatherAlertsCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
+    expect(within(wxNetworkAlertsCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
       'target',
       '_blank'
     )
-    expect(wxWeatherAlertsTitleLink).toHaveAttribute('href', wxWeatherAlertsInfo.route)
-    expect(wxWeatherAlertsTitleLink).toHaveAttribute('target', '_blank')
-    expect(wxWeatherAlertsTitleLink).toHaveAttribute('rel', 'noreferrer')
+    expect(wxNetworkAlertsTitleLink).toHaveAttribute('href', wxNetworkAlertsInfo.route)
+    expect(wxNetworkAlertsTitleLink).toHaveAttribute('target', '_blank')
+    expect(wxNetworkAlertsTitleLink).toHaveAttribute('rel', 'noreferrer')
     expect(within(sfmsDailyFireWeatherIndexCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
       'target',
       '_blank'
