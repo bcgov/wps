@@ -49,6 +49,10 @@ describe('LandingPage', () => {
 
     expect(screen.getByRole('heading', { name: 'Predictive Services Tools & Applications' })).toBeInTheDocument()
     expect(screen.getByText(/BCPS Access Only tools require a BC Government account/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'B.C. Wildfire Service' })).toHaveAttribute(
+      'href',
+      'https://www2.gov.bc.ca/gov/content/safety/wildfire-status'
+    )
     const sprintReviewsLink = screen.getByRole('link', { name: /Sprint Reviews/ })
     expect(sprintReviewsLink).toHaveAttribute('href', MS_TEAMS_SPRINT_REVIEW_URL)
     await user.hover(sprintReviewsLink)

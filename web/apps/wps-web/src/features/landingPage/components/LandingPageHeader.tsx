@@ -7,6 +7,8 @@ import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { MS_TEAMS_SPRINT_REVIEW_URL, SPRINT_REVIEW_BOARD_URL } from '@wps/utils/env'
 
+const BC_WILDFIRE_STATUS_URL = 'https://www2.gov.bc.ca/gov/content/safety/wildfire-status'
+
 interface LandingPageHeaderProps {
   onOpenQuickAccess: () => void
 }
@@ -34,12 +36,14 @@ const LandingPageHeader = ({ onOpenQuickAccess }: LandingPageHeaderProps) => (
           Quick Access
         </Button>
       </Tooltip>
-      <Box
-        alt="B.C. Wildfire Service"
-        component="img"
-        src="/images/BCWS-Mark_H2_rgb_pos.png"
-        sx={{ display: 'block', height: 'auto', maxWidth: 300, width: '65vw' }}
-      />
+      <Link href={BC_WILDFIRE_STATUS_URL} rel="noreferrer" target="_blank" underline="none">
+        <Box
+          alt="B.C. Wildfire Service"
+          component="img"
+          src="/images/BCWS-Mark_H2_rgb_pos.png"
+          sx={{ display: 'block', height: 'auto', maxWidth: 300, width: '65vw' }}
+        />
+      </Link>
     </Stack>
 
     <Stack spacing={1.25}>
