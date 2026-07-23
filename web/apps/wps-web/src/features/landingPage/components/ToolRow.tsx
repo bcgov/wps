@@ -1,13 +1,14 @@
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
-import Link from '@mui/material/Link'
+import MuiLink from '@mui/material/Link'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { getFeedback } from '@sentry/react'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
 import type React from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import FavouriteButton from './FavouriteButton'
 import ToolIconTile from './ToolIconTile'
 
@@ -61,15 +62,15 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
               }}
               variant="body1"
             >
-              <Link
-                color="inherit"
-                href={tool.route}
-                rel={isExternal ? 'noreferrer' : undefined}
-                target={isExternal ? '_blank' : undefined}
-                underline="hover"
-              >
-                {tool.name}
-              </Link>
+              {isExternal ? (
+                <MuiLink color="inherit" href={tool.route} rel="noreferrer" target="_blank" underline="hover">
+                  {tool.name}
+                </MuiLink>
+              ) : (
+                <MuiLink color="inherit" component={RouterLink} to={tool.route} underline="hover">
+                  {tool.name}
+                </MuiLink>
+              )}
             </Typography>
             <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flex: '0 0 auto' }}>
               {tool.isBeta && <Chip color="primary" label="Beta" size="small" variant="outlined" />}
@@ -78,13 +79,13 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
           </Stack>
           <Typography color="text.secondary" sx={{ display: 'block', mt: 'auto', pt: 1 }} variant="caption">
             Managed by:{' '}
-            <Link
+            <MuiLink
               href={tool.managedBy.href ?? '#'}
               onClick={tool.managedBy.opensFeedback ? openFeedbackForm : undefined}
               underline="hover"
             >
               {tool.managedBy.name}
-            </Link>
+            </MuiLink>
           </Typography>
         </Box>
       </Stack>
@@ -107,21 +108,38 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
         {tool.description}
       </Box>
 
-      <Button
-        href={tool.route}
-        rel={isExternal ? 'noreferrer' : undefined}
-        sx={{
-          alignSelf: 'center',
-          borderRadius: '10px',
-          justifySelf: { xs: 'stretch', md: 'end' },
-          ml: { md: 1 },
-          whiteSpace: 'nowrap'
-        }}
-        target={isExternal ? '_blank' : undefined}
-        variant="contained"
-      >
-        Open
-      </Button>
+      {isExternal ? (
+        <Button
+          href={tool.route}
+          rel="noreferrer"
+          sx={{
+            alignSelf: 'center',
+            borderRadius: '10px',
+            justifySelf: { xs: 'stretch', md: 'end' },
+            ml: { md: 1 },
+            whiteSpace: 'nowrap'
+          }}
+          target="_blank"
+          variant="contained"
+        >
+          Open
+        </Button>
+      ) : (
+        <Button
+          component={RouterLink}
+          sx={{
+            alignSelf: 'center',
+            borderRadius: '10px',
+            justifySelf: { xs: 'stretch', md: 'end' },
+            ml: { md: 1 },
+            whiteSpace: 'nowrap'
+          }}
+          to={tool.route}
+          variant="contained"
+        >
+          Open
+        </Button>
+      )}
     </Paper>
   )
 }

@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MS_TEAMS_SPRINT_REVIEW_URL } from '@wps/utils/env'
 import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from 'features/landingPage/toolInfo'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { wxDataViewerInfo, wxWeatherAlertsInfo } from '../ExternalToolInfos'
 import { LANDING_PAGE_FAVOURITES_STORAGE_KEY } from '../favouritesStorage'
@@ -22,10 +22,16 @@ vi.mock('@wps/utils/env', async importOriginal => {
   }
 })
 
+const LocationDisplay = () => {
+  const location = useLocation()
+  return <div data-testid="location">{location.pathname}</div>
+}
+
 const renderPage = () =>
   render(
     <MemoryRouter>
       <LandingPage />
+      <LocationDisplay />
     </MemoryRouter>
   )
 
@@ -151,6 +157,20 @@ describe('LandingPage', () => {
     expect(wxWeatherAlertsTitleLink).toHaveAttribute('href', wxWeatherAlertsInfo.route)
     expect(wxWeatherAlertsTitleLink).toHaveAttribute('target', '_blank')
     expect(wxWeatherAlertsTitleLink).toHaveAttribute('rel', 'noreferrer')
+  })
+
+  it('uses router navigation for internal tool links', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    const publicSection = screen.getByRole('region', { name: 'Public Access' })
+    const percentileCalculatorCard = within(publicSection)
+      .getByRole('heading', { name: percentileCalcInfo.name })
+      .closest('article')
+
+    await user.click(within(percentileCalculatorCard as HTMLElement).getByRole('link', { name: 'Open' }))
+
+    expect(screen.getByTestId('location')).toHaveTextContent(percentileCalcInfo.route)
   })
 
   it('moves a favourited tool out of its access section and persists it', async () => {
