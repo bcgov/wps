@@ -12,11 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
 
 # Minimal deps
-# Force IPv4: this build environment advertises IPv6 routes to the Ubuntu mirrors via DNS
-# that aren't actually reachable ("Network is unreachable"), which wastes every apt attempt
-# retrying dead IPv6 addresses before it can fall back to IPv4.
-RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 \
-    && apt-get update && apt-get install -y --no-install-recommends build-essential git python3-pip python3-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential git python3-pip python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 
