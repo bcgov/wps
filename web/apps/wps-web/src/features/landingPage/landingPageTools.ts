@@ -1,7 +1,7 @@
-import { externalToolInfos, wxDataViewerInfo, wxWeatherAlertsInfo } from './ExternalToolInfos'
-import { fbpGoInfo, percentileCalcInfo, toolInfos, weatherToolkitInfo } from './toolInfo'
+import { externalToolInfos } from './ExternalToolInfos'
+import { toolInfos } from './toolInfo'
 
-export const publicTools = [fbpGoInfo, percentileCalcInfo, weatherToolkitInfo, wxDataViewerInfo, wxWeatherAlertsInfo]
 export const landingPageTools = [...toolInfos, ...externalToolInfos]
 
-export const bcwsTools = toolInfos.filter(tool => !publicTools.includes(tool))
+export const publicTools = landingPageTools.filter(tool => tool.access === 'public')
+export const bcpsTools = landingPageTools.filter(tool => tool.access === 'bcps')

@@ -11,6 +11,7 @@ export const WX_WEATHER_ALERTS_ROUTE = 'https://riodeoro.github.io/wx-network-al
 export const wxDataViewerInfo: ToolInfo = {
   name: 'WX Data Viewer',
   route: WX_DATA_VIEWER_ROUTE,
+  access: 'public',
   description: (
     <Typography>
       A near real time and historical hourly visualizer of BCWS weather station data. Plots actuals and climatology,
@@ -26,6 +27,7 @@ export const wxDataViewerInfo: ToolInfo = {
 export const wxWeatherAlertsInfo: ToolInfo = {
   name: 'WX Weather Alerts',
   route: WX_WEATHER_ALERTS_ROUTE,
+  access: 'public',
   description: (
     <Typography>A dashboard to visualize and monitor sensor performance using hourly weather observations.</Typography>
   ),

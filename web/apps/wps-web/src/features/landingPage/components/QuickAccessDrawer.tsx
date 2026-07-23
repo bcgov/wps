@@ -19,7 +19,7 @@ interface QuickAccessDrawerProps {
   onClose: () => void
   onToggleFavourite: (route: string) => void
   publicTools: ToolInfo[]
-  bcwsTools: ToolInfo[]
+  bcpsTools: ToolInfo[]
 }
 
 const QuickAccessDrawer = ({
@@ -30,7 +30,7 @@ const QuickAccessDrawer = ({
   onClose,
   onToggleFavourite,
   publicTools,
-  bcwsTools
+  bcpsTools
 }: QuickAccessDrawerProps) => (
   <Drawer onClose={onClose} open={isOpen}>
     <Box
@@ -66,7 +66,7 @@ const QuickAccessDrawer = ({
             tools={favouriteTools}
           />
         )}
-        {bcwsTools.length > 0 && (
+        {bcpsTools.length > 0 && (
           <>
             <Divider />
             <QuickAccessList
@@ -75,7 +75,7 @@ const QuickAccessDrawer = ({
               onNavigate={onClose}
               onToggleFavourite={onToggleFavourite}
               title="BCPS Access Only"
-              tools={bcwsTools}
+              tools={bcpsTools}
             />
           </>
         )}

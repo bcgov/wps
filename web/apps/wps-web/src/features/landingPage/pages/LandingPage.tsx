@@ -12,7 +12,7 @@ import { readFavouriteRoutes, storeFavouriteRoutes } from '@/features/landingPag
 import LandingPageHeader from '../components/LandingPageHeader'
 import QuickAccessDrawer from '../components/QuickAccessDrawer'
 import ToolSection from '../components/ToolSection'
-import { bcwsTools, landingPageTools, publicTools } from '../landingPageTools'
+import { bcpsTools, landingPageTools, publicTools } from '../landingPageTools'
 
 const BCPS_SECTION_ID = 'bcps-access-only-heading'
 const FAVOURITES_COLOUR = '#3f743f'
@@ -23,7 +23,7 @@ const LandingPage = () => {
   const [favouriteRoutes, setFavouriteRoutes] = useState<string[]>(readFavouriteRoutes)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const favouriteTools = landingPageTools.filter(tool => favouriteRoutes.includes(tool.route))
-  const visibleBcwsTools = bcwsTools.filter(tool => !favouriteRoutes.includes(tool.route))
+  const visibleBcpsTools = bcpsTools.filter(tool => !favouriteRoutes.includes(tool.route))
   const visiblePublicTools = publicTools.filter(tool => !favouriteRoutes.includes(tool.route))
 
   useEffect(() => {
@@ -43,7 +43,7 @@ const LandingPage = () => {
   return (
     <Box sx={{ bgcolor: 'grey.50', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <QuickAccessDrawer
-        bcwsTools={visibleBcwsTools}
+        bcpsTools={visibleBcpsTools}
         favouritesColour={FAVOURITES_COLOUR}
         favouriteRoutes={favouriteRoutes}
         favouriteTools={favouriteTools}
@@ -79,7 +79,7 @@ const LandingPage = () => {
               tools={favouriteTools}
             />
           )}
-          {visibleBcwsTools.length > 0 && (
+          {visibleBcpsTools.length > 0 && (
             <ToolSection
               backgroundColour="#d9e8f5"
               borderColour="#A8C5E0"
@@ -88,7 +88,7 @@ const LandingPage = () => {
               isFavourite={route => favouriteRoutes.includes(route)}
               onToggleFavourite={toggleFavourite}
               title="BCPS Access Only"
-              tools={visibleBcwsTools}
+              tools={visibleBcpsTools}
             />
           )}
           {visiblePublicTools.length > 0 && (
