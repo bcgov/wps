@@ -1,15 +1,15 @@
 import AirOutlinedIcon from '@mui/icons-material/AirOutlined'
 import BorderAllIcon from '@mui/icons-material/BorderAll'
 import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
-import InsightsIcon from '@mui/icons-material/Insights'
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import PercentIcon from '@mui/icons-material/Percent'
+import TravelExploreOutlinedIcon from '@mui/icons-material/TravelExploreOutlined'
 import WatchIcon from '@mui/icons-material/Watch'
 import WhatshotIcon from '@mui/icons-material/Whatshot'
 import WhatshotOutlinedIcon from '@mui/icons-material/WhatshotOutlined'
 import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
+import { PUBLIC_TOOL_ICON_COLOUR, theme } from '@wps/ui/theme'
 import {
   FBP_GO_NAME,
   FBP_GO_ROUTE,
@@ -31,23 +31,31 @@ import {
   WEATHER_TOOLKIT_ROUTE
 } from '@wps/utils/constants'
 import type React from 'react'
+import { CSBC_PREDICTIVE_SERVICES_MANAGED_BY, type ManagedByInfo } from './managedBy'
 
 const ICON_FONT_SIZE = 'large'
+
+export type ToolAccess = 'bcps' | 'public'
+
 export interface ToolInfo {
   name: string
   route: string
+  access: ToolAccess
   description: React.ReactNode | string
   icon: React.ReactNode
   isBeta: boolean
+  managedBy: ManagedByInfo
+  isExternal?: boolean
 }
 
 export const fireBehaviourAdvisoryInfo: ToolInfo = {
   name: FIRE_BEHAVIOUR_ADVISORY_NAME,
   route: FIRE_BEHAVIOUR_ADVISORY_ROUTE,
+  access: 'bcps',
   description: (
     <Typography>
-      A spatial analysis tool that automates the continuous monitoring, updating, and communication of anticipated fire
-      behaviour that will challenge direct suppression efforts and put the safety of responders at risk.
+      An app for BC Wildland Firefighters that automates the continuous monitoring, updating, and communication of
+      anticipated fire behaviour.
       <br />
       Available for download from the&nbsp;
       <Link href="https://apps.apple.com/us/app/asa-go/id6741596129" rel="noreferrer" target="_blank">
@@ -60,68 +68,84 @@ export const fireBehaviourAdvisoryInfo: ToolInfo = {
       &nbsp;stores.
     </Typography>
   ),
-  icon: <LocalFireDepartmentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  icon: (
+    <img
+      alt={`${FIRE_BEHAVIOUR_ADVISORY_NAME} logo`}
+      src="/images/asa-go-logo.png"
+      style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+    />
+  ),
+  isBeta: false,
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const fireBehaviourCalcInfo: ToolInfo = {
   name: FIRE_BEHAVIOUR_CALC_NAME,
   route: FIRE_BEHAVIOR_CALC_ROUTE,
+  access: 'bcps',
   description: (
     <Typography>
-      A tool that supports the calculation of fire behaviour metrics given forecast or actual weather conditions and
-      user-specified fuel types.
+      Supports the calculation of fire behaviour metrics given forecast or actual weather conditions and user-specified
+      fuel types.
     </Typography>
   ),
-  icon: <WhatshotOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  icon: <WhatshotOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={theme.palette.primary.main} />,
+  isBeta: false,
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const hfiCalcInfo: ToolInfo = {
   name: HFI_CALC_NAME,
   route: HFI_CALC_ROUTE,
+  access: 'bcps',
   description: (
     <Typography>
-      An application that informs preparedness levels throughout the province based on anticipated head fire intensities
-      and fire occurrence.
+      Informs preparedness levels throughout the province based on anticipated head fire intensities and fire
+      occurrence.
     </Typography>
   ),
-  icon: <CalculateOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  icon: <CalculateOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={theme.palette.primary.main} />,
+  isBeta: false,
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const moreCastInfo: ToolInfo = {
   name: MORE_CAST_NAME,
   route: MORECAST_ROUTE,
+  access: 'bcps',
   description: (
     <Typography>
-      A system that enhances how the predictive services team creates weather forecasts and integrates this information
-      with other applications.
+      Enhances how the predictive services team creates weather forecasts and integrates this information with other
+      applications.
     </Typography>
   ),
-  icon: <AirOutlinedIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  icon: <AirOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={theme.palette.primary.main} />,
+  isBeta: false,
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const percentileCalcInfo: ToolInfo = {
   name: PERCENTILE_CALC_NAME,
   route: PERCENTILE_CALC_ROUTE,
+  access: 'public',
   description: (
     <Typography>
-      A tool that helps users identify fire weather indices coinciding with historically uncommon fire danger at weather
-      stations located around the province.
+      Helps users identify fire weather indices coinciding with historically uncommon fire danger at weather stations
+      located around the province.
     </Typography>
   ),
-  icon: <PercentIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: false
+  icon: <PercentIcon fontSize={ICON_FONT_SIZE} htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
+  isBeta: false,
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const fbpGoInfo: ToolInfo = {
   name: FBP_GO_NAME,
   route: FBP_GO_ROUTE,
+  access: 'public',
   description: (
     <Typography>
-      A mobile application for calculating fire behaviour in the field. Available for download from the&nbsp;
+      Calculates fire behaviour in the field. Available for download from the&nbsp;
       <Link href="https://apps.apple.com/app/fbp-go/id1605675034" rel="noreferrer" target="_blank">
         Apple
       </Link>
@@ -133,29 +157,33 @@ export const fbpGoInfo: ToolInfo = {
     </Typography>
   ),
   icon: <img alt="FBP Go logo" style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
-  isBeta: false
+  isBeta: false,
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY,
+  // keep browser navigation because FBP Go is a separately deployed app on the same prod host.
+  isExternal: true
 }
 
 export const sfmsInsightsInfo: ToolInfo = {
   name: SFMS_INSIGHTS_NAME,
   route: SFMS_INSIGHTS_ROUTE,
+  access: 'bcps',
   description: (
     <Typography>
-      A visualization tool providing an interactive map-based interface to analyze and understand critical
-      wildfire-related data.
+      Provides an interactive map-based interface to analyze and understand critical wildfire-related data.
     </Typography>
   ),
-  icon: <InsightsIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: true
+  icon: <TravelExploreOutlinedIcon fontSize={ICON_FONT_SIZE} htmlColor={theme.palette.primary.main} />,
+  isBeta: true,
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const fireWatchInfo: ToolInfo = {
   name: FIRE_WATCH_NAME,
   route: FIRE_WATCH_ROUTE,
+  access: 'bcps',
   description: (
     <Typography>
-      A heads up application that indicates when specified fire weather and fire behaviour could occur over the next ten
-      days.
+      Indicates when specified fire weather and fire behaviour could occur over the next ten days.
     </Typography>
   ),
   icon: (
@@ -165,12 +193,12 @@ export const fireWatchInfo: ToolInfo = {
         position: 'relative'
       }}
     >
-      <WatchIcon sx={{ fontSize: 40 }} color="primary" />
+      <WatchIcon sx={{ fontSize: 40 }} htmlColor={theme.palette.primary.main} />
       <WhatshotIcon
+        htmlColor={theme.palette.primary.main}
         sx={{
           fontSize: 16,
           position: 'absolute',
-          color: 'red',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
@@ -179,19 +207,21 @@ export const fireWatchInfo: ToolInfo = {
       />
     </Box>
   ),
-  isBeta: true
+  isBeta: true,
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
 export const weatherToolkitInfo: ToolInfo = {
   name: WEATHER_TOOLKIT_NAME,
   route: WEATHER_TOOLKIT_ROUTE,
+  access: 'public',
   description: <Typography>A tool for visualizing GDPS and RDPS 4-Panel Charts.</Typography>,
-  icon: <BorderAllIcon color="primary" fontSize={ICON_FONT_SIZE} />,
-  isBeta: true
+  icon: <BorderAllIcon fontSize={ICON_FONT_SIZE} htmlColor={PUBLIC_TOOL_ICON_COLOUR} />,
+  isBeta: true,
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
 }
 
-// The order of items in this array determines the order of items as they appear in the landing page
-// side bar and order of tiles.
+// The order of items in this array determines their order in the landing page sections and quick access menu.
 export const toolInfos = [
   fireBehaviourAdvisoryInfo,
   moreCastInfo,
