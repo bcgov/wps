@@ -84,6 +84,7 @@ export const fireTableTheme = createTheme({
 })
 
 export const BACKGROUND_COLOR = { backgroundColor: '#e9ecf5' }
+export const API_ACCESS_COLOUR = '#4700D4'
 export const PUBLIC_TOOL_ICON_COLOUR = '#FF6900'
 
 export const PLANNING_AREA = {

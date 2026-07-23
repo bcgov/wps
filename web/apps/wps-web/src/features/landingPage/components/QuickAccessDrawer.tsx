@@ -12,6 +12,8 @@ import QuickAccessList from './QuickAccessList'
 import SupportSection from './SupportSection'
 
 interface QuickAccessDrawerProps {
+  apiAccessColour: string
+  apiTools: ToolInfo[]
   favouritesColour: string
   favouriteRoutes: string[]
   favouriteTools: ToolInfo[]
@@ -23,6 +25,8 @@ interface QuickAccessDrawerProps {
 }
 
 const QuickAccessDrawer = ({
+  apiAccessColour,
+  apiTools,
   favouritesColour,
   favouriteRoutes,
   favouriteTools,
@@ -89,6 +93,19 @@ const QuickAccessDrawer = ({
               onToggleFavourite={onToggleFavourite}
               title="Public Access"
               tools={publicTools}
+            />
+          </>
+        )}
+        {apiTools.length > 0 && (
+          <>
+            <Divider />
+            <QuickAccessList
+              favouriteRoutes={favouriteRoutes}
+              headingColor={apiAccessColour}
+              onNavigate={onClose}
+              onToggleFavourite={onToggleFavourite}
+              title="API Access"
+              tools={apiTools}
             />
           </>
         )}
