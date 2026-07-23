@@ -30,14 +30,14 @@ const LandingPage = () => {
     document.title = LANDING_PAGE_DOC_TITLE
   }, [])
 
-  useEffect(() => {
-    storeFavouriteRoutes(favouriteRoutes)
-  }, [favouriteRoutes])
-
   const toggleFavourite = (route: string) => {
-    setFavouriteRoutes(current =>
-      current.includes(route) ? current.filter(favouriteRoute => favouriteRoute !== route) : [...current, route]
-    )
+    setFavouriteRoutes(current => {
+      const next = current.includes(route)
+        ? current.filter(favouriteRoute => favouriteRoute !== route)
+        : [...current, route]
+      storeFavouriteRoutes(next)
+      return next
+    })
   }
 
   return (
