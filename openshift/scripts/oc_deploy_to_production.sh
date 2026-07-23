@@ -34,12 +34,13 @@ MODULE_NAME=web bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 MODULE_NAME=jobs bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 
 # wps-weather lives on GHCR now, promoted via a registry-side copy rather than `oc tag`.
-# Tolerant of a missing PR image, same as the other modules -- wps-weather isn't always
-# rebuilt if nothing in it changed, in which case "prod" just keeps pointing at whatever
-# it already was. The resulting path is always ghcr.io/bcgov/wps/wps-weather:prod, which
-# the provisioning scripts below already default WEATHER_IMAGE to (since they're called
-# with SUFFIX=prod) -- nothing needs to be captured or passed through here.
-PACKAGE=wps-weather bash $(dirname ${0})/oc_promote_gh.sh ${SUFFIX} ${RUN_TYPE} || true
+# wps-weather isn't always rebuilt if nothing in it changed, in which case there's no PR
+# image to promote and oc_promote_gh.sh exits 0, leaving "prod" pointing at whatever it
+# already was. An actual promotion failure (registry/auth/network error) exits non-zero 
+#and fails this deploy like everything else here. The resulting path is always
+# ghcr.io/bcgov/wps/wps-weather:prod, which the provisioning scripts below
+# already default WEATHER_IMAGE to (since they're called with SUFFIX=prod).
+PACKAGE=wps-weather bash $(dirname ${0})/oc_promote_gh.sh ${SUFFIX} ${RUN_TYPE}
 
 echo Provision database
 PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=2 MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=15Gi REPLICAS=3 bash $(dirname ${0})/oc_provision_crunchy.sh prod ${RUN_TYPE}

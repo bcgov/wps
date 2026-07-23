@@ -11,7 +11,9 @@ source "$(dirname ${0})/common/common"
 #%
 #%   If the PR image doesn't exist on GHCR (e.g. this package wasn't changed in this
 #%   PR, so nothing was built), this leaves the existing "prod" tag alone and exits
-#%   non-zero -- it does not fall back to anything automatically.
+#%   0 -- there was nothing to promote, which is an expected outcome, not a failure.
+#%   Any non-zero exit means the promotion was attempted and failed (registry/auth/
+#%   network error), and should not be treated as tolerable.
 #%
 #%   Prints the resulting image reference to stdout as the only stdout output, so
 #%   callers can capture it via command substitution:
@@ -35,13 +37,16 @@ PR_IMAGE="ghcr.io/${GH_ORG}/${GH_REPO}/${PACKAGE}:${SUFFIX}"
 PROD_IMAGE="ghcr.io/${GH_ORG}/${GH_REPO}/${PACKAGE}:${TAG_PROD}"
 
 if ! docker manifest inspect "${PR_IMAGE}" >/dev/null 2>&1; then
-    echo "ERROR: GHCR image ${PR_IMAGE} not found -- nothing to promote." >&2
-    exit 1
+    echo "GHCR image ${PR_IMAGE} not found -- nothing to promote." >&2
+    exit 0
 fi
 
 if [ "${APPLY}" ]; then
     echo "Promoting GHCR image ${PR_IMAGE} -> ${PROD_IMAGE}" >&2
-    docker buildx imagetools create --tag "${PROD_IMAGE}" "${PR_IMAGE}" >&2
+    if ! docker buildx imagetools create --tag "${PROD_IMAGE}" "${PR_IMAGE}" >&2; then
+        echo "ERROR: failed to promote ${PR_IMAGE} -> ${PROD_IMAGE}" >&2
+        exit 1
+    fi
 else
     echo "Dry-run: would promote ${PR_IMAGE} -> ${PROD_IMAGE}" >&2
 fi
