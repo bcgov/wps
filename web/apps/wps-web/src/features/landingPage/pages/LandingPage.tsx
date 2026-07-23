@@ -3,6 +3,7 @@ import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined'
 import StarIcon from '@mui/icons-material/Star'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
+import GlobalStyles from '@mui/material/GlobalStyles'
 import Stack from '@mui/material/Stack'
 import { PUBLIC_TOOL_ICON_COLOUR } from '@wps/ui/theme'
 import { LANDING_PAGE_DOC_TITLE } from '@wps/utils/constants'
@@ -42,6 +43,7 @@ const LandingPage = () => {
 
   return (
     <Box sx={{ bgcolor: 'grey.50', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <GlobalStyles styles={{ html: { scrollbarGutter: 'stable' } }} />
       <QuickAccessDrawer
         bcpsTools={visibleBcpsTools}
         favouritesColour={FAVOURITES_COLOUR}

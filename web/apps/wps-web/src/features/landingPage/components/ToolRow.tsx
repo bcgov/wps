@@ -5,7 +5,7 @@ import MuiLink from '@mui/material/Link'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { getFeedback } from '@sentry/react'
+import { openFeedbackForm } from '@wps/ui/openFeedbackForm'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
 import type React from 'react'
 import { Link as RouterLink } from 'react-router-dom'
@@ -22,16 +22,9 @@ interface ToolRowProps {
 
 const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
   const isExternal = tool.isExternal === true
-  const openFeedbackForm = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleFeedbackLinkClick = async (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault()
-    const feedback = getFeedback()
-    if (!feedback) {
-      return
-    }
-
-    const form = await feedback.createForm()
-    form.appendToDom()
-    form.open()
+    await openFeedbackForm()
   }
 
   return (
@@ -81,7 +74,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
             Managed by:{' '}
             <MuiLink
               href={tool.managedBy.href ?? '#'}
-              onClick={tool.managedBy.opensFeedback ? openFeedbackForm : undefined}
+              onClick={tool.managedBy.opensFeedback ? handleFeedbackLinkClick : undefined}
               underline="hover"
             >
               {tool.managedBy.name}
