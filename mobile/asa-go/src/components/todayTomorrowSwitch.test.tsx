@@ -1,13 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { DateTime } from 'luxon'
 import { describe, expect, it, vi } from 'vitest'
-import { PST_UTC_OFFSET } from '@/utils/constants'
+import { getToday } from '@/utils/dataSliceUtils'
 import TodayTomorrowSwitch from './TodayTomorrowSwitch'
 
 describe('TodayTomorrowSwitch', () => {
   it('renders both buttons', () => {
     const mockSetDate = vi.fn()
-    const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+    const today = getToday()
 
     render(<TodayTomorrowSwitch date={today} setDate={mockSetDate} />)
 
@@ -17,7 +16,7 @@ describe('TodayTomorrowSwitch', () => {
 
   it('disables the NOW button when date is today', () => {
     const mockSetDate = vi.fn()
-    const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+    const today = getToday()
 
     render(<TodayTomorrowSwitch date={today} setDate={mockSetDate} />)
 
@@ -27,7 +26,7 @@ describe('TodayTomorrowSwitch', () => {
 
   it('disables the TMR button when date is tomorrow', () => {
     const mockSetDate = vi.fn()
-    const tomorrow = DateTime.now().plus({ days: 1 }).setZone(`UTC${PST_UTC_OFFSET}`)
+    const tomorrow = getToday().plus({ days: 1 })
 
     render(<TodayTomorrowSwitch date={tomorrow} setDate={mockSetDate} />)
 
@@ -37,7 +36,7 @@ describe('TodayTomorrowSwitch', () => {
 
   it('clicking TMR updates the date to tomorrow', () => {
     const mockSetDate = vi.fn()
-    const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+    const today = getToday()
 
     render(<TodayTomorrowSwitch date={today} setDate={mockSetDate} />)
 
@@ -49,7 +48,7 @@ describe('TodayTomorrowSwitch', () => {
 
   it('clicking NOW updates the date to today', () => {
     const mockSetDate = vi.fn()
-    const tomorrow = DateTime.now().plus({ days: 1 }).setZone(`UTC${PST_UTC_OFFSET}`)
+    const tomorrow = getToday().plus({ days: 1 })
 
     render(<TodayTomorrowSwitch date={tomorrow} setDate={mockSetDate} />)
 
@@ -60,7 +59,7 @@ describe('TodayTomorrowSwitch', () => {
   })
 
   it('updates internal state when date prop changes', () => {
-    const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+    const today = getToday()
     const tomorrow = today.plus({ day: 1 })
     const setDateMock = vi.fn()
 

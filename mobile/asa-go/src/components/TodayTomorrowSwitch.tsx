@@ -2,7 +2,7 @@ import { Box, Button, styled } from '@mui/material'
 import type { DateTime } from 'luxon'
 import { MAP_BUTTON_GREY } from '@/theme'
 import { BORDER_RADIUS, BUTTON_HEIGHT } from '@/utils/constants'
-import { today } from '@/utils/dataSliceUtils'
+import { getToday } from '@/utils/dataSliceUtils'
 
 interface TodayTomorrowSwitchProps {
   border?: boolean
@@ -36,7 +36,8 @@ const StyledTextContainer = styled(Box)({
 const TodayTomorrowSwitch = ({ border = false, date, setDate }: TodayTomorrowSwitchProps) => {
   const borderStyle = border ? `1px solid ${MAP_BUTTON_GREY}` : 'none'
 
-  const isToday = date.day === today.day
+  const today = getToday()
+  const isToday = date.toISODate() === today.toISODate()
 
   const handleDayChange = (newValue: number) => {
     // newValue: 0 = today, 1 = tomorrow

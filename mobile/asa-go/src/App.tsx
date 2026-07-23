@@ -45,7 +45,7 @@ import {
 import { theme } from '@/theme'
 import type { FireCentre } from '@/types/fireCentre'
 import { NavPanel, StatusEnum } from '@/utils/constants'
-import { today } from '@/utils/dataSliceUtils'
+import { getToday } from '@/utils/dataSliceUtils'
 import { PMTilesCache } from '@/utils/pmtilesCache'
 import { clearStaleHFIPMTiles } from '@/utils/storage'
 
@@ -60,7 +60,7 @@ const App = () => {
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP)
   const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
-  const [dateOfInterest, setDateOfInterest] = useState<DateTime>(today)
+  const [dateOfInterest, setDateOfInterest] = useState<DateTime>(() => getToday())
 
   // selected redux state
   const { fireCentres } = useSelector(selectFireCentres)
@@ -171,7 +171,7 @@ const App = () => {
 
     const advisoryDate = DateTime.fromISO(pendingNotificationData.advisory_date)
     const notificationDateKey = advisoryDate.toISODate()
-    const todayKey = today.toISODate()
+    const todayKey = getToday().toISODate()
 
     // Only process notifications whose date matches today
     if (!notificationDateKey || notificationDateKey !== todayKey) {
