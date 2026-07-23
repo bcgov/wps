@@ -158,7 +158,9 @@ export const fbpGoInfo: ToolInfo = {
   ),
   icon: <img alt="FBP Go logo" style={{ height: '36px', width: '36px' }} src="/images/fbpgo_maskable.png" />,
   isBeta: false,
-  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY
+  managedBy: CSBC_PREDICTIVE_SERVICES_MANAGED_BY,
+  // keep browser navigation because FBP Go is a separately deployed app on the same prod host.
+  isExternal: true
 }
 
 export const sfmsInsightsInfo: ToolInfo = {

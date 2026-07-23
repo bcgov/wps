@@ -138,11 +138,11 @@ describe('LandingPage', () => {
       name: wxWeatherAlertsInfo.name
     })
 
-    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).not.toHaveAttribute('target')
-    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).not.toHaveAttribute('rel')
+    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute('target', '_blank')
+    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute('rel', 'noreferrer')
     expect(fbpGoTitleLink).toHaveAttribute('href', fbpGoInfo.route)
-    expect(fbpGoTitleLink).not.toHaveAttribute('target')
-    expect(fbpGoTitleLink).not.toHaveAttribute('rel')
+    expect(fbpGoTitleLink).toHaveAttribute('target', '_blank')
+    expect(fbpGoTitleLink).toHaveAttribute('rel', 'noreferrer')
     expect(within(wxDataViewerCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
       'target',
       '_blank'
@@ -195,8 +195,12 @@ describe('LandingPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Open quick access' }))
     const quickAccess = screen.getByRole('navigation', { name: 'Quick access' })
+    const fbpGoLink = within(quickAccess).getByRole('link', { name: /FBP Go/ })
     const wxDataViewerLink = within(quickAccess).getByRole('link', { name: wxDataViewerInfo.name })
 
+    expect(fbpGoLink).toHaveAttribute('href', fbpGoInfo.route)
+    expect(fbpGoLink).toHaveAttribute('target', '_blank')
+    expect(fbpGoLink).toHaveAttribute('rel', 'noreferrer')
     expect(wxDataViewerLink).toHaveAttribute('href', wxDataViewerInfo.route)
     expect(wxDataViewerLink).toHaveAttribute('target', '_blank')
     expect(wxDataViewerLink).toHaveAttribute('rel', 'noreferrer')
