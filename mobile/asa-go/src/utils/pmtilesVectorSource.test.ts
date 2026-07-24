@@ -10,10 +10,13 @@ import {
   TileType
 } from 'pmtiles'
 import sinon from 'sinon'
-import { assert } from 'vitest'
+import { assert, vi } from 'vitest'
 import { RunType } from '@/api/fbaAPI'
 import type { IPMTilesCache } from '@/utils/pmtilesCache'
 import { PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
+
+const mockCaptureException = vi.hoisted(() => vi.fn())
+vi.mock('@sentry/capacitor', () => ({ captureException: mockCaptureException }))
 
 const testPMTilesHeader: Header = {
   specVersion: 0,
@@ -82,6 +85,7 @@ describe('pmTilesVectorSource', () => {
   let sandbox: sinon.SinonSandbox
   beforeEach(() => {
     sandbox = sinon.createSandbox()
+    mockCaptureException.mockClear()
   })
   afterEach(() => {
     sandbox.restore()
@@ -200,9 +204,14 @@ describe('pmTilesVectorSource', () => {
     sinon.assert.notCalled(refreshSpy)
   })
 
-  it('should reload pmtiles when a tile load has errored', async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new ErrorPMTiles())
-    const pmTilesCacheSpy = sandbox.spy(testCache)
+  it('should reload pmtiles when a tile load errors', async () => {
+    const loadPMTiles = sandbox.stub()
+    loadPMTiles.onFirstCall().resolves(new ErrorPMTiles())
+    loadPMTiles.onSecondCall().resolves(new TestPMTiles())
+    const testCache: IPMTilesCache = {
+      loadPMTiles,
+      loadHFIPMTiles: sandbox.stub()
+    }
     const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
       filename: 'test.pmtiles'
     })
@@ -215,12 +224,44 @@ describe('pmTilesVectorSource', () => {
     }
 
     instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0')
+    await vi.waitFor(() => sinon.assert.calledTwice(loadPMTiles))
+
+    sinon.assert.calledTwice(loadPMTiles)
+    sinon.assert.calledOnce(refreshSpy)
+    expect(mockCaptureException).toHaveBeenCalledOnce()
+    assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1')
+  })
+
+  it('should only retry a tile load error once until retries are enabled again', async () => {
+    const loadPMTiles = sandbox.stub()
+    loadPMTiles.onFirstCall().resolves(new ErrorPMTiles())
+    loadPMTiles.onSecondCall().resolves(new ErrorPMTiles())
+    loadPMTiles.onThirdCall().resolves(new TestPMTiles())
+    const testCache: IPMTilesCache = {
+      loadPMTiles,
+      loadHFIPMTiles: sandbox.stub()
+    }
+    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
+      filename: 'test.pmtiles'
+    })
+    const tile = {
+      extent: undefined,
+      projection: undefined,
+      setFeatures: sandbox.stub(),
+      setState: sandbox.stub()
+    }
+
+    instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0')
+    await vi.waitFor(() => sinon.assert.calledTwice(loadPMTiles))
+
+    instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0?reload=1')
     await new Promise(resolve => setTimeout(resolve, 0))
+    sinon.assert.calledTwice(loadPMTiles)
+    expect(mockCaptureException).toHaveBeenCalledOnce()
+
     await instance.reloadPMTilesIfErrored()
 
-    sinon.assert.calledTwice(pmTilesCacheSpy.loadPMTiles)
-    sinon.assert.calledOnce(refreshSpy)
-    assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1')
+    sinon.assert.calledThrice(loadPMTiles)
   })
 
   it('should reload pmtiles when source initialization has errored', async () => {

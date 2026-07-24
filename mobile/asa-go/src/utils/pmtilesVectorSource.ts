@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/capacitor'
 import { isUndefined } from 'lodash'
 import type { DateTime } from 'luxon'
 import type { Tile } from 'ol'
@@ -30,6 +31,9 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   private pmtiles_: PMTiles
   private loadPMTiles?: PMTilesInitializer
   private hasTileLoadError = false
+  private tileErrorReloadAvailable = true
+  // prevent one failing source from reporting a Sentry event for every requested tile
+  private tileErrorReported = false
   private reloadKey = 0
 
   tileLoadFunction = (tile: Tile, url: string) => {
@@ -70,8 +74,12 @@ export class PMTilesFileVectorSource extends VectorTileSource {
         }
       })
       .catch(err => {
-        console.log(err)
         this.hasTileLoadError = true
+        if (!this.tileErrorReported) {
+          this.tileErrorReported = true
+          Sentry.captureException(err)
+        }
+        this.retryPMTilesAfterError().catch(Sentry.captureException)
         // @ts-expect-error
         vtile.setFeatures([])
         // @ts-expect-error
@@ -142,11 +150,26 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     this.hasTileLoadError = false
   }
 
+  private async retryPMTilesAfterError() {
+    if (!this.tileErrorReloadAvailable) {
+      return
+    }
+    // allow one automatic attempt until foregrounding rearms retries
+    this.tileErrorReloadAvailable = false
+    await this.reloadPMTiles()
+  }
+
+  private enableTileErrorReload() {
+    this.tileErrorReloadAvailable = true
+    this.tileErrorReported = false
+  }
+
   async reloadPMTilesIfErrored() {
+    this.enableTileErrorReload()
     if (!this.hasTileLoadError && this.getState() !== 'error') {
       return
     }
-    await this.reloadPMTiles()
+    await this.retryPMTilesAfterError()
   }
 
   static async createBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
