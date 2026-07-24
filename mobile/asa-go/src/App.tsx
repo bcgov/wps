@@ -105,6 +105,22 @@ const App = () => {
     dispatch(initSubscriptions(deviceId))
   }, [deviceId, networkStatus.connected, registeredFcmToken, subscriptionsInitialized, dispatch])
 
+  useEffect(() => {
+    if (!isActive) return
+
+    const today = getToday()
+    const todayKey = today.toISODate()
+    if (isNull(todayKey)) return
+
+    setDateOfInterest(currentDate => {
+      const currentDateKey = currentDate.toISODate()
+      if (isNull(currentDateKey) || currentDateKey >= todayKey) {
+        return currentDate
+      }
+      return today
+    })
+  }, [isActive])
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — listener setup runs once on mount
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status

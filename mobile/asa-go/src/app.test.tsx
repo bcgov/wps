@@ -1,5 +1,6 @@
 import { useMediaQuery } from '@mui/material'
 import { act, render, screen, waitFor } from '@testing-library/react'
+import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RunType } from '@/api/fbaAPI'
@@ -9,6 +10,9 @@ import { initialState as pushNotificationInitialState } from '@/slices/pushNotif
 import type { NavPanel } from '@/utils/constants'
 import App from './App'
 import { createTestStore } from './testUtils'
+
+const mockGetToday = vi.hoisted(() => vi.fn())
+const mockUseAppIsActive = vi.hoisted(() => vi.fn())
 
 // Mock MUI useMediaQuery to control screen size detection
 vi.mock('@mui/material', async () => {
@@ -84,8 +88,8 @@ vi.mock('@/components/SideNavigation', () => ({
 }))
 
 vi.mock('@/components/InfoBar', () => ({
-  default: ({ statusText, status }: { statusText?: string; status: string }) => (
-    <div data-testid="info-bar" data-status={status}>
+  default: ({ statusText, status, viewingDate }: { statusText?: string; status: string; viewingDate: DateTime }) => (
+    <div data-testid="info-bar" data-status={status} data-viewing-date={viewingDate.toISODate()}>
       {statusText && <span>{statusText}</span>}
     </div>
   )
@@ -93,7 +97,7 @@ vi.mock('@/components/InfoBar', () => ({
 
 // Mock hooks
 vi.mock('@/hooks/useAppIsActive', () => ({
-  useAppIsActive: () => true
+  useAppIsActive: mockUseAppIsActive
 }))
 
 vi.mock('@/hooks/useRunParameterForDate', () => ({
@@ -142,16 +146,17 @@ vi.mock('@/api/pushNotificationsAPI', () => ({
 
 vi.mock('@/utils/dataSliceUtils', async () => {
   const actual = await vi.importActual('@/utils/dataSliceUtils')
-  const { DateTime } = await vi.importActual<typeof import('luxon')>('luxon')
   return {
     ...actual,
-    getToday: () => DateTime.fromISO('2025-07-02')
+    getToday: mockGetToday
   }
 })
 
 describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetToday.mockReturnValue(DateTime.fromISO('2025-07-02'))
+    mockUseAppIsActive.mockReturnValue(true)
     vi.mocked(useIsPortrait).mockReturnValue(true)
     vi.mocked(useMediaQuery).mockReturnValue(false)
     vi.mocked(usePushNotifications).mockReturnValue({
@@ -191,6 +196,31 @@ describe('App', () => {
     // Verify the app container is present
     const appContainer = document.getElementById('asa-go-app')
     expect(appContainer).toBeInTheDocument()
+  })
+
+  it('advances the selected date when the app resumes on a new ASA Go day', async () => {
+    mockUseAppIsActive.mockReturnValue(false)
+    const store = createTestStore()
+
+    const { rerender } = render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    expect(screen.getByTestId('info-bar')).toHaveAttribute('data-viewing-date', '2025-07-02')
+
+    mockGetToday.mockReturnValue(DateTime.fromISO('2025-07-03'))
+    mockUseAppIsActive.mockReturnValue(true)
+    rerender(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('info-bar')).toHaveAttribute('data-viewing-date', '2025-07-03')
+    })
   })
 
   it('initializes with correct styling', () => {
