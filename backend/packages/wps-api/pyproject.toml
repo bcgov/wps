@@ -7,6 +7,7 @@ requires-python = ">=3.12.3,<4.0"
 dependencies = [
     "wps-shared",
     "wps-sfms",
+    "cffdrs-vec",
     "fastapi>=0,<1",
     "requests>=2,<3",
     "aiodns>=4,<5",
@@ -68,7 +69,8 @@ dev = [
 wps-shared = { workspace = true }
 wps-sfms = { workspace = true }
 wps-wf1 = { workspace = true }
-cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "4f773456dec253fbd32933813f15c2e13cc08931" }
+cffdrs-vec = { workspace = true }
+cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "b52b27686f236b15d002ff49df85cd828a398ff2" }
 
 [tool.hatch.metadata]
 allow-direct-references = true
