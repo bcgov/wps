@@ -1,0 +1,71 @@
+name: Build via OpenShift (manual)
+
+# Manual, on-demand alternative to the default GHCR-based builds (e.g. deploy_wps_weather.yml
+# for wps-weather). Not triggered automatically by anything -- use this only if GHCR (or the
+# GitHub Actions build step) is unavailable and you need to build/store an image via
+# OpenShift's own BuildConfig instead. Works for any module built via oc_build.sh, not just
+# wps-weather.
+#
+# Resulting image:
+#   image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-<module_name>-pr-<N>:pr-<N>
+#
+# For modules whose deploy templates read their image from a parameter (e.g. wps-weather's
+# WEATHER_IMAGE), override that parameter with the above when calling the provisioning
+# script, e.g.:
+#
+#   WEATHER_IMAGE=image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-weather-pr-123:pr-123 \
+#     bash openshift/scripts/oc_provision_eccc_grib_consumer.sh pr-123 apply
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to build (SUFFIX will be pr-<number>)
+        required: true
+      branch:
+        description: Git branch to build from
+        required: true
+      module_name:
+        description: Module name (api, web, jobs, weather, etc.)
+        required: true
+      docker_file:
+        description: Dockerfile path (optional, module-dependent default in build.bc.yaml if omitted)
+        required: false
+      path_bc:
+        description: BuildConfig template path
+        required: false
+        default: openshift/templates/build.bc.yaml
+
+env:
+  SUFFIX: pr-${{ inputs.pr_number }}
+
+jobs:
+  build-image:
+    name: Build ${{ inputs.module_name }} Image via OpenShift
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: ./.github/actions/oc-setup
+
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_TOOL_TOKEN }}
+          oc-namespace: e1e498-tools
+
+      - name: Build Image via OpenShift
+        shell: bash
+        env:
+          INPUT_BRANCH: ${{ inputs.branch }}
+          INPUT_MODULE_NAME: ${{ inputs.module_name }}
+          INPUT_DOCKER_FILE: ${{ inputs.docker_file }}
+          INPUT_PATH_BC: ${{ inputs.path_bc }}
+        run: |
+          GIT_BRANCH="${INPUT_BRANCH}" \
+            MODULE_NAME="${INPUT_MODULE_NAME}" \
+            ${INPUT_DOCKER_FILE:+DOCKER_FILE="${INPUT_DOCKER_FILE}"} \
+            PATH_BC="${INPUT_PATH_BC}" \
+            bash openshift/scripts/oc_build.sh "${SUFFIX}" apply

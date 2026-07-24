@@ -33,6 +33,9 @@ const getValidUntilString = (validUntil?: string | null) => {
   }
 
   if (validUntilDay.equals(today.plus({ days: 1 }))) {
+    if (validUntilDateTime.hour === 0 && validUntilDateTime.minute === 0) {
+      return 'Midnight Tonight'
+    }
     return `${validUntilDateTime.toFormat('HH:mm')} Tomorrow`
   }
 

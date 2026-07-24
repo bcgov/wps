@@ -15,8 +15,7 @@ export const FFMC_VALUES_DECIMAL = 1
 export const ISI_VALUES_DECIMAL = 1
 
 export const PACIFIC_IANA_TIMEZONE = 'Canada/Pacific'
-export const PST_UTC_OFFSET = -8
-export const PST_ISO_TIMEZONE = 'T00:00-08:00'
+export const ASA_GO_TIMEZONE = 'UTC-7'
 
 // Map center
 export const CENTER_OF_BC = [-125, 54.5]

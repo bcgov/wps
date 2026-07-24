@@ -33,7 +33,8 @@ vi.mock(import('@/hooks/dataHooks'), async importOriginal => {
 
 import { useFilteredHFIStatsForDate } from '@/hooks/dataHooks'
 import { useRunParameterForDate } from '@/hooks/useRunParameterForDate'
-import { AdvisoryStatus, PST_UTC_OFFSET } from '@/utils/constants'
+import { AdvisoryStatus } from '@/utils/constants'
+import { getToday } from '@/utils/dataSliceUtils'
 
 const TEST_FOR_DATE = '2025-07-14'
 const TEST_FOR_DATE_LUXON = DateTime.fromISO(TEST_FOR_DATE)
@@ -430,7 +431,7 @@ describe('AdvisoryText', () => {
     const todayRunParameter = cloneDeep(testRunParameter)
     ;(useRunParameterForDate as Mock).mockReturnValue({
       ...todayRunParameter,
-      for_date: DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).toISODate()
+      for_date: getToday().toISODate()
     })
     ;(useFilteredHFIStatsForDate as Mock).mockReturnValue({})
     const store = buildTestStore(

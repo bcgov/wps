@@ -6,7 +6,7 @@ import { getNotificationSettings } from 'api/pushNotificationsAPI'
 import { isNil, isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import type { AppThunk } from '@/store'
-import { today } from '@/utils/dataSliceUtils'
+import { getToday } from '@/utils/dataSliceUtils'
 import { retryWithBackoff } from '@/utils/retryWithBackoff'
 import {
   FIRE_CENTRE_INFO_CACHE_EXPIRATION,
@@ -111,6 +111,7 @@ export const savePinnedFireCentre =
 
 export const fetchFireCentreInfo = (): AppThunk => async (dispatch, getState) => {
   // Check for cached fire centers data. If the data is not stale save it in redux state.
+  const today = getToday()
   const cachedFireCentreInfo = await readFromFilesystem(Filesystem, FIRE_CENTRE_INFO_KEY)
   const networkStatus = getState().networkStatus
   if (!isNull(cachedFireCentreInfo)) {

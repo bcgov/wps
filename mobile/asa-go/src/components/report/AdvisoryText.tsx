@@ -15,7 +15,7 @@ import {
   formatCriticalHoursTimeText,
   getMinStartAndMaxEndTime
 } from '@/utils/criticalHoursStartEndTime'
-import { today } from '@/utils/dataSliceUtils'
+import { getToday } from '@/utils/dataSliceUtils'
 
 export interface AdvisoryTextProps {
   selectedFireCentre: FireCentre | undefined
@@ -173,7 +173,7 @@ const AdvisoryText = ({ selectedFireCentre, selectedFireZoneUnit, date }: Adviso
 
   const renderAdvisoryText = () => {
     const zoneTitle = `${selectedFireZoneUnit?.mof_fire_zone_name}:\n\n`
-    const forToday = runParameter?.for_date === today.toISODate()
+    const forToday = runParameter?.for_date === getToday().toISODate()
     const displayForDate = forToday
       ? 'today'
       : DateTime.fromISO(runParameter!.for_date).toLocaleString({

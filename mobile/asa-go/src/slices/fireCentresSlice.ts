@@ -5,7 +5,7 @@ import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import type { AppThunk } from '@/store'
 import type { FireCentre } from '@/types/fireCentre'
-import { today } from '@/utils/dataSliceUtils'
+import { getToday } from '@/utils/dataSliceUtils'
 import { FIRE_CENTRES_CACHE_EXPIRATION, FIRE_CENTRES_KEY, readFromFilesystem, writeToFileSystem } from '@/utils/storage'
 
 export interface FireCentresState {
@@ -47,6 +47,7 @@ export default fireCentresSlice.reducer
 
 export const fetchFireCentres = (): AppThunk => async (dispatch, getState) => {
   // Check for cached fire centers data. If the data is not stale save it in redux state.
+  const today = getToday()
   const cachedFireCentres = await readFromFilesystem(Filesystem, FIRE_CENTRES_KEY)
   const networkStatus = getState().networkStatus
   if (!isNull(cachedFireCentres)) {

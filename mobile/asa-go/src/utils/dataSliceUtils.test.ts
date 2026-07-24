@@ -1,5 +1,4 @@
-import { DateTime } from 'luxon'
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import {
   type FireShapeStatusDetail,
   getHFIStats,
@@ -14,6 +13,9 @@ import {
   fetchProvincialSummaries,
   fetchProvincialSummary,
   fetchTpiStatsForRunParameter,
+  getToday,
+  getTodayKey,
+  getTomorrowKey,
   runParametersMatch,
   shapeDataForCaching
 } from '@/utils/dataSliceUtils'
@@ -35,14 +37,45 @@ const mockRunParameter: RunParameter = {
   for_date: '2025-11-21'
 }
 
-const today = DateTime.now()
+const today = getToday()
 const todayKey = today.toISODate()
 const tomorrowKey = today.plus({ days: 1 }).toISODate()
 
 describe('Utility Functions', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
+
+  describe('getToday', () => {
+    it('uses the fixed ASA Go UTC-7 timezone', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-07-23T07:30:00Z'))
+
+      const today = getToday()
+
+      expect(today.zoneName).toBe('UTC-7')
+      expect(today.toISODate()).toBe('2026-07-23')
+      expect(today.offset).toBe(-420)
+    })
+
+    it('recalculates date keys after Vancouver midnight', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-07-23T06:59:00Z'))
+
+      expect(getTodayKey()).toBe('2026-07-22')
+      expect(getTomorrowKey()).toBe('2026-07-23')
+
+      vi.setSystemTime(new Date('2026-07-23T07:01:00Z'))
+
+      expect(getTodayKey()).toBe('2026-07-23')
+      expect(getTomorrowKey()).toBe('2026-07-24')
+    })
+  })
+
   describe('runParametersMatch', () => {
     it('returns true when runParameters match cached data', () => {
       const runParameters = {

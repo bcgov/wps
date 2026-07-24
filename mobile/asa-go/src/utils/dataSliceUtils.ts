@@ -9,14 +9,17 @@ import {
   getTPIStats,
   type RunParameter
 } from '@/api/fbaAPI'
-import { PST_UTC_OFFSET } from '@/utils/constants'
+import { ASA_GO_TIMEZONE } from '@/utils/constants'
 import type { CacheableData, CacheableDataType } from '@/utils/storage'
 
-export const today = DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+export const getToday = () => DateTime.now().setZone(ASA_GO_TIMEZONE)
+
 export const getTodayKey = () => {
+  const today = getToday()
   return today.isValid ? today.toISODate() : ''
 }
 export const getTomorrowKey = () => {
+  const today = getToday()
   return today.isValid ? today.plus({ days: 1 }).toISODate() : ''
 }
 

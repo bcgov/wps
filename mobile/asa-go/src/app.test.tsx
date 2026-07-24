@@ -145,7 +145,7 @@ vi.mock('@/utils/dataSliceUtils', async () => {
   const { DateTime } = await vi.importActual<typeof import('luxon')>('luxon')
   return {
     ...actual,
-    today: DateTime.fromISO('2025-07-02')
+    getToday: () => DateTime.fromISO('2025-07-02')
   }
 })
 
