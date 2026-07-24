@@ -18,13 +18,8 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
-  - name: PROJ_TOOLS
-    value: e1e498-tools
   - name: JOB_NAME
     value: wx-4panel-chart
-  - name: IMAGE_REGISTRY
-    required: true
-    value: image-registry.openshift-image-registry.svc:5000
   - name: CRUNCHYDB_USER
     required: true
   - name: SCHEDULE
@@ -36,6 +31,12 @@ parameters:
   - name: STEP
     required: true
   - name: MODEL
+    required: true
+  - name: WEATHER_IMAGE
+    description: >-
+      Full image reference for wps-weather. Computed by the deploy scripts: the GHCR build
+      by default, or the internal OpenShift ImageStream when the GHCR build/promotion
+      fallback path was used.
     required: true
 objects:
   - kind: CronJob
@@ -59,7 +60,7 @@ objects:
             spec:
               containers:
                 - name: ${JOB_NAME}
-                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/wps-weather-${SUFFIX}:${SUFFIX}
+                  image: ${WEATHER_IMAGE}
                   imagePullPolicy: "Always"
                   command:
                     [

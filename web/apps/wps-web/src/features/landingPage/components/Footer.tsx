@@ -3,6 +3,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { theme } from '@wps/ui/theme'
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { BCWS_PREDICTIVE_SERVICES_CONTACT_HREF } from '../managedBy'
 
 const PREFIX = 'Footer'
 
@@ -26,7 +27,11 @@ const FooterLinks = styled('div', {
   paddingLeft: theme.spacing(1),
   paddingTop: theme.spacing(2),
   [theme.breakpoints.down('sm')]: {
-    flexDirection: 'column'
+    columnGap: theme.spacing(2),
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    padding: theme.spacing(1),
+    rowGap: theme.spacing(0.5)
   }
 })
 
@@ -38,14 +43,22 @@ const StyledLink = styled(Link)(({ theme }) => ({
   color: '#FFFFFF',
   paddingLeft: theme.spacing(1),
   paddingRight: theme.spacing(1),
-  textDecoration: 'none'
+  textDecoration: 'none',
+  [theme.breakpoints.down('sm')]: {
+    paddingBottom: theme.spacing(0.5),
+    paddingTop: theme.spacing(0.5)
+  }
 }))
 
 const StyledA = styled('a')(({ theme }) => ({
   color: '#FFFFFF',
   paddingLeft: theme.spacing(1),
   paddingRight: theme.spacing(1),
-  textDecoration: 'none'
+  textDecoration: 'none',
+  [theme.breakpoints.down('sm')]: {
+    paddingBottom: theme.spacing(0.5),
+    paddingTop: theme.spacing(0.5)
+  }
 }))
 
 const Footer: React.FunctionComponent = () => {
@@ -76,7 +89,7 @@ const Footer: React.FunctionComponent = () => {
         <StyledLink
           to="#"
           onClick={e => {
-            window.location.href = 'mailto:BCWS.PredictiveServices@gov.bc.ca'
+            window.location.href = BCWS_PREDICTIVE_SERVICES_CONTACT_HREF
             e.preventDefault()
           }}
         >
