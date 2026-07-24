@@ -17,12 +17,20 @@ behave very differently from each other and from the plain cffdrs scalar API:
   (numba's own lazy compiler rejects it while inferring types for the first call). Callers must
   convert "missing" to NaN, not None, before calling into cffdrs_vec.
 
-Each FunctionSpec's `prepare` builds ready-to-call arguments (arrays, or bare bools for the
-trailing lat_adjust/fbp_mod flags) before any exception is expected, so the `with pytest.raises`
-blocks below contain nothing but the single call under test - see python:S5778.
-"""
+nan_args/none_args are already call-ready: each is the exact positional argument list `fn` is
+called with (arrays, except for the trailing lat_adjust/fbp_mod bool on dc/dmc/isi, which is
+passed bare - that's how it's actually broadcast against the array arguments; see
+cffdrs_vec/fwi.py's callers), with one position holding NaN/None. Which position doesn't matter
+(every function needs both float-only branches to still work), so each case just fixes it
+wherever's convenient. call_reference takes the same nan_args list and unwraps whatever it needs
+to call the plain, unjitted cffdrs function.
 
-from collections import namedtuple
+multi_output marks the 2 guvectorize-based functions (slope_adjustment, rate_of_spread_extended),
+which return a tuple of arrays instead of one array.
+
+Argument-array construction always happens before entering `with pytest.raises`, so those blocks
+contain nothing but the single call under test - see python:S5778.
+"""
 
 import cffdrs
 import cffdrs.back_rate_of_spread
@@ -42,6 +50,7 @@ import numba
 import numpy as np
 import pytest
 from cffdrs.constants import FUEL_TYPE_CODES
+
 from cffdrs_vec import fbp, fwi
 
 # vectorize-based functions raise numba's own TypingError (lazy compilation rejects a None/object
@@ -49,315 +58,521 @@ from cffdrs_vec import fbp, fwi
 # casting rejects a None/object array with a plain TypeError before numba is even involved.
 NONE_INPUT_ERRORS = (TypeError, numba.TypingError)
 
-C1 = FUEL_TYPE_CODES["C1"]
 C6 = FUEL_TYPE_CODES["C6"]
+NAN = float("nan")
 
-FunctionSpec = namedtuple(
-    "FunctionSpec", ["id", "fn", "prepare", "extract", "call_reference", "args", "swap_index"]
-)
-
-
-def _wrap_all(args):
-    """Wrap every argument as a 1-element array - the default calling convention."""
-    return [np.array([value]) for value in args]
-
-
-def _wrap_all_but_last(args):
-    """Same as _wrap_all, but the trailing lat_adjust/fbp_mod flag stays a bare bool - that's how
-    it's actually broadcast against the array arguments (see cffdrs_vec/fwi.py's callers).
-    """
-    return [np.array([value]) for value in args[:-1]] + [args[-1]]
-
-
-def _extract_single(result):
-    return (result[0],)
-
-
-def _extract_multi(result):
-    return tuple(field[0] for field in result)
-
-
-SPECS = [
+# name, fn, multi_output, call_reference, nan_args, none_args
+CASES = [
     # --- cffdrs_vec.fwi ---
-    FunctionSpec(
+    (
         "bui",
         fwi.vectorized_bui,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.buildup_index(a[0], a[1]),),
-        [100.0, 200.0],
-        0,
+        False,
+        lambda a: (cffdrs.buildup_index(float(a[0][0]), float(a[1][0])),),
+        [np.array([NAN]), np.array([200.0])],
+        [np.array([None]), np.array([200.0])],
     ),
-    FunctionSpec(
+    (
         "dc",
         fwi.vectorized_dc,
-        _wrap_all_but_last,
-        _extract_single,
-        lambda a: (cffdrs.drought_code(a[0], a[1], a[2], a[3], a[4], a[5], a[6]),),
-        [200.0, 20.0, 40.0, 0.0, 55.0, 7, True],
-        1,
+        False,
+        lambda a: (
+            cffdrs.drought_code(
+                float(a[0][0]),
+                float(a[1][0]),
+                float(a[2][0]),
+                float(a[3][0]),
+                float(a[4][0]),
+                int(a[5][0]),
+                a[6],
+            ),
+        ),
+        [
+            np.array([200.0]),
+            np.array([NAN]),
+            np.array([40.0]),
+            np.array([0.0]),
+            np.array([55.0]),
+            np.array([7]),
+            True,
+        ],
+        [
+            np.array([200.0]),
+            np.array([None]),
+            np.array([40.0]),
+            np.array([0.0]),
+            np.array([55.0]),
+            np.array([7]),
+            True,
+        ],
     ),
-    FunctionSpec(
+    (
         "dmc",
         fwi.vectorized_dmc,
-        _wrap_all_but_last,
-        _extract_single,
-        lambda a: (cffdrs.duff_moisture_code(a[0], a[1], a[2], a[3], a[4], a[5], a[6]),),
-        [50.0, 20.0, 40.0, 0.0, 55.0, 7, True],
-        1,
+        False,
+        lambda a: (
+            cffdrs.duff_moisture_code(
+                float(a[0][0]),
+                float(a[1][0]),
+                float(a[2][0]),
+                float(a[3][0]),
+                float(a[4][0]),
+                int(a[5][0]),
+                a[6],
+            ),
+        ),
+        [
+            np.array([50.0]),
+            np.array([NAN]),
+            np.array([40.0]),
+            np.array([0.0]),
+            np.array([55.0]),
+            np.array([7]),
+            True,
+        ],
+        [
+            np.array([50.0]),
+            np.array([None]),
+            np.array([40.0]),
+            np.array([0.0]),
+            np.array([55.0]),
+            np.array([7]),
+            True,
+        ],
     ),
-    FunctionSpec(
+    (
         "ffmc",
         fwi.vectorized_ffmc,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.fine_fuel_moisture_code(a[0], a[1], a[2], a[3], a[4]),),
-        [88.0, 20.0, 40.0, 15.0, 0.0],
-        1,
+        False,
+        lambda a: (
+            cffdrs.fine_fuel_moisture_code(
+                float(a[0][0]), float(a[1][0]), float(a[2][0]), float(a[3][0]), float(a[4][0])
+            ),
+        ),
+        [np.array([88.0]), np.array([NAN]), np.array([40.0]), np.array([15.0]), np.array([0.0])],
+        [np.array([88.0]), np.array([None]), np.array([40.0]), np.array([15.0]), np.array([0.0])],
     ),
-    FunctionSpec(
+    (
         "isi",
         fwi.vectorized_isi,
-        _wrap_all_but_last,
-        _extract_single,
-        lambda a: (cffdrs.initial_spread_index(a[0], a[1], a[2]),),
-        [88.0, 15.0, True],
-        0,
+        False,
+        lambda a: (cffdrs.initial_spread_index(float(a[0][0]), float(a[1][0]), a[2]),),
+        [np.array([NAN]), np.array([15.0]), True],
+        [np.array([None]), np.array([15.0]), True],
     ),
-    FunctionSpec(
+    (
         "fwi",
         fwi.vectorized_fwi,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.fire_weather_index(a[0], a[1]),),
-        [10.0, 40.0],
-        0,
+        False,
+        lambda a: (cffdrs.fire_weather_index(float(a[0][0]), float(a[1][0])),),
+        [np.array([NAN]), np.array([40.0])],
+        [np.array([None]), np.array([40.0])],
     ),
     # --- cffdrs_vec.fbp: self-contained (no fuel_type_code) ---
-    FunctionSpec(
+    (
         "critical_surface_intensity",
         fbp.vectorized_critical_surface_intensity,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.cfb_calc.critical_surface_intensity(a[0], a[1]),),
-        [100.0, 3.0],
-        0,
+        False,
+        lambda a: (cffdrs.cfb_calc.critical_surface_intensity(float(a[0][0]), float(a[1][0])),),
+        [np.array([NAN]), np.array([3.0])],
+        [np.array([None]), np.array([3.0])],
     ),
-    FunctionSpec(
+    (
         "crown_fraction_burned",
         fbp.vectorized_crown_fraction_burned,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.cfb_calc.crown_fraction_burned(a[0], a[1]),),
-        [5.0, 1.0],
-        0,
+        False,
+        lambda a: (cffdrs.cfb_calc.crown_fraction_burned(float(a[0][0]), float(a[1][0])),),
+        [np.array([NAN]), np.array([1.0])],
+        [np.array([None]), np.array([1.0])],
     ),
-    FunctionSpec(
+    (
         "crown_rate_of_spread_c6",
         fbp.vectorized_crown_rate_of_spread_c6,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.c6_calc.crown_rate_of_spread_c6(a[0], a[1]),),
-        [10.0, 100.0],
-        0,
+        False,
+        lambda a: (cffdrs.c6_calc.crown_rate_of_spread_c6(float(a[0][0]), float(a[1][0])),),
+        [np.array([NAN]), np.array([100.0])],
+        [np.array([None]), np.array([100.0])],
     ),
-    FunctionSpec(
+    (
         "intermediate_surface_rate_of_spread_c6",
         fbp.vectorized_intermediate_surface_rate_of_spread_c6,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.c6_calc.intermediate_surface_rate_of_spread_c6(a[0]),),
-        [10.0],
-        0,
+        False,
+        lambda a: (cffdrs.c6_calc.intermediate_surface_rate_of_spread_c6(float(a[0][0])),),
+        [np.array([NAN])],
+        [np.array([None])],
     ),
-    FunctionSpec(
+    (
         "fire_intensity",
         fbp.vectorized_fire_intensity,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.fire_intensity.fire_intensity(a[0], a[1]),),
-        [2.0, 5.0],
-        0,
+        False,
+        lambda a: (cffdrs.fire_intensity.fire_intensity(float(a[0][0]), float(a[1][0])),),
+        [np.array([NAN]), np.array([5.0])],
+        [np.array([None]), np.array([5.0])],
     ),
-    FunctionSpec(
+    (
         "foliar_moisture_content",
         fbp.vectorized_foliar_moisture_content,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.foliar_moisture_content.foliar_moisture_content(a[0], a[1], a[2], a[3], a[4]),),
-        [55.0, 120.0, 500.0, 180.0, 0.0],
-        0,
+        False,
+        lambda a: (
+            cffdrs.foliar_moisture_content.foliar_moisture_content(
+                float(a[0][0]), float(a[1][0]), float(a[2][0]), float(a[3][0]), float(a[4][0])
+            ),
+        ),
+        [np.array([NAN]), np.array([120.0]), np.array([500.0]), np.array([180.0]), np.array([0.0])],
+        [
+            np.array([None]),
+            np.array([120.0]),
+            np.array([500.0]),
+            np.array([180.0]),
+            np.array([0.0]),
+        ],
     ),
-    FunctionSpec(
+    (
         "surface_fire_rate_of_spread",
         fbp.vectorized_surface_fire_rate_of_spread,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.cfb_calc.surface_fire_rate_of_spread(a[0], a[1]),),
-        [100.0, 2.0],
-        0,
+        False,
+        lambda a: (cffdrs.cfb_calc.surface_fire_rate_of_spread(float(a[0][0]), float(a[1][0])),),
+        [np.array([NAN]), np.array([2.0])],
+        [np.array([None]), np.array([2.0])],
     ),
-    FunctionSpec(
+    (
         "surface_rate_of_spread_c6",
         fbp.vectorized_surface_rate_of_spread_c6,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.c6_calc.surface_rate_of_spread_c6(a[0], a[1]),),
-        [10.0, 40.0],
-        0,
+        False,
+        lambda a: (cffdrs.c6_calc.surface_rate_of_spread_c6(float(a[0][0]), float(a[1][0])),),
+        [np.array([NAN]), np.array([40.0])],
+        [np.array([None]), np.array([40.0])],
     ),
-    FunctionSpec(
+    (
         "crown_fraction_burned_c6",
         fbp.vectorized_crown_fraction_burned_c6,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.c6_calc.crown_fraction_burned_c6(a[0], a[1], a[2]),),
-        [8.0, 4.0, 1.0],
-        0,
+        False,
+        lambda a: (
+            cffdrs.c6_calc.crown_fraction_burned_c6(float(a[0][0]), float(a[1][0]), float(a[2][0])),
+        ),
+        [np.array([NAN]), np.array([4.0]), np.array([1.0])],
+        [np.array([None]), np.array([4.0]), np.array([1.0])],
     ),
     # --- cffdrs_vec.fbp: fuel_type_code first, then floats ---
-    FunctionSpec(
+    (
         "distance_at_time",
         fbp.vectorized_distance_at_time,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.distance_at_time.distance_at_time("C6", a[1], a[2], a[3]),),
-        [C6, 5.0, 30.0, 0.5],
-        1,
+        False,
+        lambda a: (
+            cffdrs.distance_at_time.distance_at_time(
+                "C6", float(a[1][0]), float(a[2][0]), float(a[3][0])
+            ),
+        ),
+        [np.array([C6]), np.array([NAN]), np.array([30.0]), np.array([0.5])],
+        [np.array([C6]), np.array([None]), np.array([30.0]), np.array([0.5])],
     ),
-    FunctionSpec(
+    (
         "length_to_breadth",
         fbp.vectorized_length_to_breadth,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.length_to_breadth.length_to_breadth("C6", a[1]),),
-        [C6, 15.0],
-        1,
+        False,
+        lambda a: (cffdrs.length_to_breadth.length_to_breadth("C6", float(a[1][0])),),
+        [np.array([C6]), np.array([NAN])],
+        [np.array([C6]), np.array([None])],
     ),
-    FunctionSpec(
+    (
         "length_to_breadth_at_time",
         fbp.vectorized_length_to_breadth_at_time,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.length_to_breadth_at_time.length_to_breadth_at_time("C6", a[1], a[2], a[3]),),
-        [C6, 1.5, 30.0, 0.5],
-        1,
+        False,
+        lambda a: (
+            cffdrs.length_to_breadth_at_time.length_to_breadth_at_time(
+                "C6", float(a[1][0]), float(a[2][0]), float(a[3][0])
+            ),
+        ),
+        [np.array([C6]), np.array([NAN]), np.array([30.0]), np.array([0.5])],
+        [np.array([C6]), np.array([None]), np.array([30.0]), np.array([0.5])],
     ),
-    FunctionSpec(
+    (
         "rate_of_spread_at_time",
         fbp.vectorized_rate_of_spread_at_time,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.rate_of_spread_at_time.rate_of_spread_at_time("C6", a[1], a[2], a[3]),),
-        [C6, 5.0, 30.0, 0.5],
-        1,
+        False,
+        lambda a: (
+            cffdrs.rate_of_spread_at_time.rate_of_spread_at_time(
+                "C6", float(a[1][0]), float(a[2][0]), float(a[3][0])
+            ),
+        ),
+        [np.array([C6]), np.array([NAN]), np.array([30.0]), np.array([0.5])],
+        [np.array([C6]), np.array([None]), np.array([30.0]), np.array([0.5])],
     ),
-    FunctionSpec(
+    (
         "surface_fuel_consumption",
         fbp.vectorized_surface_fuel_consumption,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.surface_fuel_consumption.surface_fuel_consumption("C6", a[1], a[2], a[3], a[4]),),
-        [C6, 88.0, 40.0, 50.0, 0.35],
-        1,
+        False,
+        lambda a: (
+            cffdrs.surface_fuel_consumption.surface_fuel_consumption(
+                "C6", float(a[1][0]), float(a[2][0]), float(a[3][0]), float(a[4][0])
+            ),
+        ),
+        [np.array([C6]), np.array([NAN]), np.array([40.0]), np.array([50.0]), np.array([0.35])],
+        [np.array([C6]), np.array([None]), np.array([40.0]), np.array([50.0]), np.array([0.35])],
     ),
-    FunctionSpec(
+    (
         "total_fuel_consumption",
         fbp.vectorized_total_fuel_consumption,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.total_fuel_consumption.total_fuel_consumption("C6", a[1], a[2], a[3], a[4], a[5]),),
-        [C6, 1.0, 0.5, 2.0, 50.0, 30.0],
-        1,
+        False,
+        lambda a: (
+            cffdrs.total_fuel_consumption.total_fuel_consumption(
+                "C6", float(a[1][0]), float(a[2][0]), float(a[3][0]), float(a[4][0]), float(a[5][0])
+            ),
+        ),
+        [
+            np.array([C6]),
+            np.array([NAN]),
+            np.array([0.5]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+        ],
+        [
+            np.array([C6]),
+            np.array([None]),
+            np.array([0.5]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+        ],
     ),
-    FunctionSpec(
+    (
         "rate_of_spread",
         fbp.vectorized_rate_of_spread,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.rate_of_spread.rate_of_spread("C6", a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]),),
-        [C6, 10.0, 40.0, 100.0, 2.0, 50.0, 30.0, 80.0, 3.0],
-        1,
+        False,
+        lambda a: (
+            cffdrs.rate_of_spread.rate_of_spread(
+                "C6",
+                float(a[1][0]),
+                float(a[2][0]),
+                float(a[3][0]),
+                float(a[4][0]),
+                float(a[5][0]),
+                float(a[6][0]),
+                float(a[7][0]),
+                float(a[8][0]),
+            ),
+        ),
+        [
+            np.array([C6]),
+            np.array([NAN]),
+            np.array([40.0]),
+            np.array([100.0]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+            np.array([80.0]),
+            np.array([3.0]),
+        ],
+        [
+            np.array([C6]),
+            np.array([None]),
+            np.array([40.0]),
+            np.array([100.0]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+            np.array([80.0]),
+            np.array([3.0]),
+        ],
     ),
-    FunctionSpec(
+    (
         "back_rate_of_spread",
         fbp.vectorized_back_rate_of_spread,
-        _wrap_all,
-        _extract_single,
-        lambda a: (cffdrs.back_rate_of_spread.back_rate_of_spread("C6", a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]),),
-        [C6, 88.0, 40.0, 15.0, 100.0, 2.0, 50.0, 30.0, 80.0, 3.0],
-        1,
+        False,
+        lambda a: (
+            cffdrs.back_rate_of_spread.back_rate_of_spread(
+                "C6",
+                float(a[1][0]),
+                float(a[2][0]),
+                float(a[3][0]),
+                float(a[4][0]),
+                float(a[5][0]),
+                float(a[6][0]),
+                float(a[7][0]),
+                float(a[8][0]),
+                float(a[9][0]),
+            ),
+        ),
+        [
+            np.array([C6]),
+            np.array([NAN]),
+            np.array([40.0]),
+            np.array([15.0]),
+            np.array([100.0]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+            np.array([80.0]),
+            np.array([3.0]),
+        ],
+        [
+            np.array([C6]),
+            np.array([None]),
+            np.array([40.0]),
+            np.array([15.0]),
+            np.array([100.0]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+            np.array([80.0]),
+            np.array([3.0]),
+        ],
     ),
     # --- cffdrs_vec.fbp: multi-output (guvectorize) ---
-    FunctionSpec(
+    (
         "slope_adjustment",
         fbp.vectorized_slope_adjustment,
-        _wrap_all,
-        _extract_multi,
-        lambda a: (
-            lambda r: (r.wsv, r.raz)
-        )(
+        True,
+        lambda a: (lambda r: (r.wsv, r.raz))(
             cffdrs.slope_calc.slope_adjustment(
-                "C6", a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11], a[12], a[13]
+                "C6",
+                float(a[1][0]),
+                float(a[2][0]),
+                float(a[3][0]),
+                float(a[4][0]),
+                float(a[5][0]),
+                float(a[6][0]),
+                float(a[7][0]),
+                float(a[8][0]),
+                float(a[9][0]),
+                float(a[10][0]),
+                float(a[11][0]),
+                float(a[12][0]),
+                float(a[13][0]),
             )
         ),
-        [C6, 88.0, 40.0, 15.0, 1.2, 20.0, 0.5, 100.0, 2.0, 50.0, 30.0, 80.0, 3.0, 10.0],
-        1,
+        [
+            np.array([C6]),
+            np.array([NAN]),
+            np.array([40.0]),
+            np.array([15.0]),
+            np.array([1.2]),
+            np.array([20.0]),
+            np.array([0.5]),
+            np.array([100.0]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+            np.array([80.0]),
+            np.array([3.0]),
+            np.array([10.0]),
+        ],
+        [
+            np.array([C6]),
+            np.array([None]),
+            np.array([40.0]),
+            np.array([15.0]),
+            np.array([1.2]),
+            np.array([20.0]),
+            np.array([0.5]),
+            np.array([100.0]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+            np.array([80.0]),
+            np.array([3.0]),
+            np.array([10.0]),
+        ],
     ),
-    FunctionSpec(
+    (
         "rate_of_spread_extended",
         fbp.vectorized_rate_of_spread_extended,
-        _wrap_all,
-        _extract_multi,
-        lambda a: (
-            lambda r: (r.ros, r.cfb, r.csi, r.rso)
-        )(
-            cffdrs.rate_of_spread.rate_of_spread_extended("C6", a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8])
+        True,
+        lambda a: (lambda r: (r.ros, r.cfb, r.csi, r.rso))(
+            cffdrs.rate_of_spread.rate_of_spread_extended(
+                "C6",
+                float(a[1][0]),
+                float(a[2][0]),
+                float(a[3][0]),
+                float(a[4][0]),
+                float(a[5][0]),
+                float(a[6][0]),
+                float(a[7][0]),
+                float(a[8][0]),
+            )
         ),
-        [C6, 10.0, 40.0, 100.0, 2.0, 50.0, 30.0, 80.0, 3.0],
-        1,
+        [
+            np.array([C6]),
+            np.array([NAN]),
+            np.array([40.0]),
+            np.array([100.0]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+            np.array([80.0]),
+            np.array([3.0]),
+        ],
+        [
+            np.array([C6]),
+            np.array([None]),
+            np.array([40.0]),
+            np.array([100.0]),
+            np.array([2.0]),
+            np.array([50.0]),
+            np.array([30.0]),
+            np.array([80.0]),
+            np.array([3.0]),
+        ],
     ),
 ]
 
+CASE_IDS = [case[0] for case in CASES]
 
-@pytest.mark.parametrize("spec", SPECS, ids=[s.id for s in SPECS])
-def test_nan_propagates_like_reference(spec):
-    args = list(spec.args)
-    args[spec.swap_index] = float("nan")
 
-    vec_result = spec.extract(spec.fn(*spec.prepare(args)))
-    ref_result = spec.call_reference(args)
+@pytest.mark.parametrize(
+    "name,fn,multi_output,call_reference,nan_args,none_args", CASES, ids=CASE_IDS
+)
+def test_nan_propagates_like_reference(name, fn, multi_output, call_reference, nan_args, none_args):
+    result = fn(*nan_args)
+    vec_result = tuple(field[0] for field in result) if multi_output else (result[0],)
+    ref_result = call_reference(nan_args)
 
     np.testing.assert_allclose(vec_result, ref_result, equal_nan=True)
 
 
-@pytest.mark.parametrize("spec", SPECS, ids=[s.id for s in SPECS])
-def test_none_raises_clearly(spec):
-    args = list(spec.args)
-    args[spec.swap_index] = None
-    prepared = spec.prepare(args)
-
+@pytest.mark.parametrize(
+    "name,fn,multi_output,call_reference,nan_args,none_args", CASES, ids=CASE_IDS
+)
+def test_none_raises_clearly(name, fn, multi_output, call_reference, nan_args, none_args):
     with pytest.raises(NONE_INPUT_ERRORS):
-        spec.fn(*prepared)
+        fn(*none_args)
 
 
 def test_none_fuel_type_code_raises_clearly_vectorize_based():
     """fuel_type_code itself is also rejected as None, not just the float positions above -
     checked once each for a vectorize-based and a guvectorize-based function, since that's
     the mechanism that actually determines which exception type is raised (see module docstring).
+
+    The args are built here, not inline in the `with` block, so that block contains only the one
+    call under test - see python:S5778.
     """
-    prepared = [
-        np.array([None]), np.array([10.0]), np.array([40.0]), np.array([100.0]), np.array([2.0]),
-        np.array([50.0]), np.array([30.0]), np.array([80.0]), np.array([3.0]),
+    args = [
+        np.array([None]),
+        np.array([10.0]),
+        np.array([40.0]),
+        np.array([100.0]),
+        np.array([2.0]),
+        np.array([50.0]),
+        np.array([30.0]),
+        np.array([80.0]),
+        np.array([3.0]),
     ]
     with pytest.raises(NONE_INPUT_ERRORS):
-        fbp.vectorized_rate_of_spread(*prepared)
+        fbp.vectorized_rate_of_spread(*args)
 
 
 def test_none_fuel_type_code_raises_clearly_guvectorize_based():
-    prepared = [
-        np.array([None]), np.array([10.0]), np.array([40.0]), np.array([100.0]), np.array([2.0]),
-        np.array([50.0]), np.array([30.0]), np.array([80.0]), np.array([3.0]),
+    args = [
+        np.array([None]),
+        np.array([10.0]),
+        np.array([40.0]),
+        np.array([100.0]),
+        np.array([2.0]),
+        np.array([50.0]),
+        np.array([30.0]),
+        np.array([80.0]),
+        np.array([3.0]),
     ]
     with pytest.raises(NONE_INPUT_ERRORS):
-        fbp.vectorized_rate_of_spread_extended(*prepared)
+        fbp.vectorized_rate_of_spread_extended(*args)
