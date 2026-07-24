@@ -141,15 +141,10 @@ const App = () => {
       const hfiFilesToKeep: string[] = []
       for (const value of Object.values(runParameters)) {
         const pmtilesCache = new PMTilesCache(Filesystem)
-        pmtilesCache.loadHFIPMTiles(
-          DateTime.fromISO(value.for_date),
-          value.run_type,
-          DateTime.fromISO(value.run_datetime),
-          'hfi.pmtiles'
-        )
-        hfiFilesToKeep.push(
-          pmtilesCache.getHFIFileName(value.for_date, value.run_type, value.run_datetime, 'hfi.pmtiles')
-        )
+        const forDate = DateTime.fromISO(value.for_date)
+        const runDate = DateTime.fromISO(value.run_datetime)
+        pmtilesCache.loadHFIPMTiles(forDate, value.run_type, runDate, 'hfi.pmtiles')
+        hfiFilesToKeep.push(pmtilesCache.getHFICachedFileName(forDate, value.run_type, runDate, 'hfi.pmtiles'))
       }
       clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
     }
