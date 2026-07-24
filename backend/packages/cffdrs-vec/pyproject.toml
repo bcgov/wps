@@ -13,6 +13,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "gdal==3.13.1",
+    "hypothesis>=6.150.2",
 ]
 
 [tool.uv.sources]

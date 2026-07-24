@@ -543,12 +543,14 @@ dependencies = [
 [package.optional-dependencies]
 dev = [
     { name = "gdal" },
+    { name = "hypothesis" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "cffdrs", git = "https://github.com/cffdrs/cffdrs_py.git?rev=b52b27686f236b15d002ff49df85cd828a398ff2" },
     { name = "gdal", marker = "extra == 'dev'", specifier = "==3.13.1" },
+    { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.150.2" },
     { name = "numba", specifier = ">=0,<1" },
     { name = "numpy", specifier = ">=1,<3" },
 ]
