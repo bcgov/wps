@@ -1,10 +1,11 @@
 import { ThemeProvider } from '@mui/material/styles'
 import { configureStore } from '@reduxjs/toolkit'
 import { render, screen } from '@testing-library/react'
-import { Provider, useSelector } from 'react-redux'
+import { Provider } from 'react-redux'
 import { describe, expect, it, vi } from 'vitest'
 import type { FireShape, FireZoneTPIStats } from '@/api/fbaAPI'
 import FireZoneUnitSummary from '@/components/profile/FireZoneUnitSummary'
+import dateOfInterestReducer from '@/slices/dateOfInterestSlice'
 import { theme } from '@/theme'
 import type { FireCentre } from '@/types/fireCentre'
 
@@ -24,19 +25,10 @@ vi.mock('@/components/profile/ElevationStatus', () => ({
 }))
 
 // Mock hooks
-vi.mock('@/hooks/datahooks', () => ({
+vi.mock('@/hooks/dataHooks', () => ({
   useFilteredHFIStatsForDate: vi.fn(),
   useTPIStatsForDate: vi.fn()
 }))
-
-// Mock react-redux
-vi.mock('react-redux', async () => {
-  const actual = await vi.importActual('react-redux')
-  return {
-    ...actual,
-    useSelector: vi.fn()
-  }
-})
 
 describe('FireZoneUnitSummary', () => {
   const mockFireCentre: FireCentre = {
@@ -54,9 +46,8 @@ describe('FireZoneUnitSummary', () => {
   const createMockStore = () => {
     return configureStore({
       reducer: {
-        test: (state = {}) => state
-      },
-      preloadedState: {}
+        dateOfInterest: dateOfInterestReducer
+      }
     })
   }
 
@@ -71,18 +62,6 @@ describe('FireZoneUnitSummary', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks()
-
-    // Setup default useSelector return values
-    vi.mocked(useSelector).mockImplementation(selector => {
-      const selectorStr = selector.toString()
-      if (selectorStr.includes('selectFilteredFireCentreHFIFuelStats')) {
-        return {}
-      }
-      if (selectorStr.includes('selectFireCentreTPIStats')) {
-        return { fireCentreTPIStats: null }
-      }
-      return {}
-    })
   })
 
   it('should render empty div when selectedFireZoneUnit is undefined', () => {
