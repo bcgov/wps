@@ -26,7 +26,7 @@ import type {
   WriteFileOptions,
   WriteFileResult
 } from '@capacitor/filesystem'
-import { DateTime } from 'luxon'
+import { DateTime, Settings } from 'luxon'
 import sinon from 'sinon'
 import { RunType } from '@/api/fbaAPI'
 import { PMTilesCache } from '@/utils/pmtilesCache'
@@ -111,6 +111,7 @@ describe('pmtilesCache', () => {
   })
   afterEach(() => {
     sandbox.restore()
+    Settings.defaultZone = 'system'
   })
 
   it('should attempt to load stored static pmtiles', async () => {
@@ -164,5 +165,25 @@ describe('pmtilesCache', () => {
     )
     sinon.assert.calledThrice(stubFetch)
     sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch)
+  })
+
+  it('uses the ASA Go timezone for hfi run date filenames', async () => {
+    Settings.defaultZone = 'Pacific/Auckland'
+    const mockFs = new MockFilesystem()
+
+    const stubRead = sandbox.stub(mockFs, 'readFile')
+    stubRead.resolves({ data: btoa('mocked file content') })
+    const testCache = new PMTilesCache(mockFs)
+
+    await testCache.loadHFIPMTiles(
+      DateTime.fromISO('2025-08-27'),
+      RunType.FORECAST,
+      DateTime.fromISO('2025-08-27T15:30:00Z'),
+      'hfi.pmtiles'
+    )
+
+    sinon.assert.calledWithMatch(stubRead, {
+      path: '2025-08-27_FORECAST_2025-08-27_hfi.pmtiles'
+    })
   })
 })
