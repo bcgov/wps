@@ -1,6 +1,7 @@
 import type { DateTime } from 'luxon'
 import type { RunType } from '@/api/fbaAPI'
 import { PMTILES_BUCKET } from '@/utils/env'
+import { getHFIRunDateKey } from '@/utils/pmtilesUtils'
 
 /**
  *
@@ -10,7 +11,8 @@ import { PMTILES_BUCKET } from '@/utils/env'
  * @returns pmtiles blob
  */
 export const fetchHFIPMTiles = async (for_date: DateTime, run_type: RunType, run_date: DateTime): Promise<Blob> => {
-  const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_type.toLowerCase()}/${run_date.toISODate()}/hfi${for_date.toISODate({
+  const runDateKey = getHFIRunDateKey(run_date)
+  const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_type.toLowerCase()}/${runDateKey}/hfi${for_date.toISODate({
     format: 'basic'
   })}.pmtiles`
 
