@@ -264,16 +264,15 @@ describe('ASAGoMap', () => {
     expect(loadMapViewStateMock).toHaveBeenCalled()
   })
 
-  it('styles zones using provincial summary data for the store date of interest', async () => {
+  it('styles zones using provincial summary data for the store date of interest, and re-styles when the date changes to one with no data', async () => {
     const fireShapeStylerSpy = vi.spyOn(featureStylers, 'fireShapeStyler')
-    const runParameter = { for_date: '2025-08-01', run_datetime: '2025-08-01T00:00:00Z', run_type: RunType.FORECAST }
     const store = createTestStore({
       dateOfInterest: { dateKey: '2025-08-01' },
       data: {
         ...dataInitialState,
         provincialSummaries: {
           '2025-08-01': {
-            runParameter,
+            runParameter: { for_date: '2025-08-01', run_datetime: '2025-08-01T00:00:00Z', run_type: RunType.FORECAST },
             data: [
               {
                 fire_shape_id: 1,
@@ -296,43 +295,6 @@ describe('ASAGoMap', () => {
     await waitFor(() => {
       expect(fireShapeStylerSpy).toHaveBeenCalledWith(
         expect.arrayContaining([expect.objectContaining({ fire_shape_id: 1, status: AdvisoryStatus.WARNING })]),
-        expect.any(Boolean)
-      )
-    })
-  })
-
-  it('re-styles zones when the store date of interest changes to a date with no provincial summary data', async () => {
-    const fireShapeStylerSpy = vi.spyOn(featureStylers, 'fireShapeStyler')
-    const runParameter = { for_date: '2025-08-01', run_datetime: '2025-08-01T00:00:00Z', run_type: RunType.FORECAST }
-    const store = createTestStore({
-      dateOfInterest: { dateKey: '2025-08-01' },
-      data: {
-        ...dataInitialState,
-        provincialSummaries: {
-          '2025-08-01': {
-            runParameter,
-            data: [
-              {
-                fire_shape_id: 1,
-                fire_shape_name: 'Zone-1',
-                fire_centre_name: 'Test Fire Centre',
-                status: AdvisoryStatus.WARNING
-              }
-            ]
-          }
-        }
-      }
-    })
-
-    render(
-      <Provider store={store}>
-        <ASAGoMap {...defaultProps} />
-      </Provider>
-    )
-
-    await waitFor(() => {
-      expect(fireShapeStylerSpy).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.objectContaining({ fire_shape_id: 1 })]),
         expect.any(Boolean)
       )
     })

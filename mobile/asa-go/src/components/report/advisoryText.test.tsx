@@ -678,7 +678,7 @@ describe('AdvisoryText', () => {
     await waitFor(() => expect(screen.queryByTestId('advisory-message-warning')).toBeInTheDocument())
 
     act(() => {
-      store.dispatch(setDateOfInterest(DateTime.fromISO(TEST_FOR_DATE).plus({ days: 1 }).toISODate()!))
+      store.dispatch(setDateOfInterest('2025-07-15'))
     })
 
     await waitFor(() => {
