@@ -34,16 +34,17 @@ def _read_raster(name: str) -> np.ndarray:
     return array[0]  # single-row raster - drop back to a 1-D, one-value-per-case array
 
 
-class RasterCases:
-    """Same array attributes as GLCX10Cases (see calculate_primary_output()'s docstring), but
-    read from the GeoTIFF fixtures instead of the CSVs.
+class RPackageRasterCases:
+    """Same array attributes as RPackageGLCX10Cases (see calculate_primary_output()'s docstring),
+    but read from the GeoTIFF fixtures instead of the CSVs.
     """
 
     def __init__(self):
         raster = {name: _read_raster(name) for name in INPUT_RASTER_NAMES}
 
         # fuel type names aren't stored in the rasters (only the numeric code is) - needed here
-        # only to look up PC/PDF/CBH/CFL defaults, same as GLCX10Cases does from the CSV directly.
+        # only to look up PC/PDF/CBH/CFL defaults, same as RPackageGLCX10Cases does from the CSV
+        # directly.
         input_rows = load_rows("cffdrs_r_test_fbp_inputs.csv")
         fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
 
@@ -69,7 +70,7 @@ class RasterCases:
 
 @pytest.fixture(scope="module")
 def raster_cases():
-    return RasterCases()
+    return RPackageRasterCases()
 
 
 @pytest.fixture(scope="module")

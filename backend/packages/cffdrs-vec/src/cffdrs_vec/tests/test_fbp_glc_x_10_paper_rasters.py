@@ -18,7 +18,7 @@ from cffdrs_vec.tests._glc_x_10_data import (
     CBH_DEFAULT,
     CFL_DEFAULT,
     FIRE_TYPE_BY_FD_CODE,
-    GLCX10PaperCases,
+    PaperGLCX10Cases,
     INPUT_RASTER_NAMES,
     OUTPUT_RASTER_NAMES,
     PAPER_RASTER_DIR,
@@ -38,7 +38,7 @@ def _read_raster(name: str) -> np.ndarray:
 
 
 class PaperRasterCases:
-    """Same array attributes as GLCX10PaperCases (see calculate_primary_output()'s docstring), but
+    """Same array attributes as PaperGLCX10Cases (see calculate_primary_output()'s docstring), but
     read from the GeoTIFF fixtures instead of the CSVs.
     """
 
@@ -46,7 +46,7 @@ class PaperRasterCases:
         raster = {name: _read_raster(name) for name in INPUT_RASTER_NAMES}
 
         # fuel type names aren't stored in the rasters (only the numeric code is) - needed here
-        # only to look up PC/PDF/CBH/CFL defaults, same as GLCX10PaperCases does from the CSV
+        # only to look up PC/PDF/CBH/CFL defaults, same as PaperGLCX10Cases does from the CSV
         # directly.
         input_rows = load_rows("glc_x_10_paper_inputs.csv")
         fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
@@ -68,7 +68,7 @@ class PaperRasterCases:
         self.pdf = with_default(raster["pdf"], fuel_types, PDF_DEFAULT)
         self.cc = np.nan_to_num(raster["cc"])
         # Table 4 has no CBH/CFL columns at all, so these rasters are always nodata - always
-        # defaulted on read, same as GLCX10PaperCases.
+        # defaulted on read, same as PaperGLCX10Cases.
         self.cbh = with_default(raster["cbh"], fuel_types, CBH_DEFAULT)
         self.cfl = with_default(raster["cfl"], fuel_types, CFL_DEFAULT)
 
@@ -88,7 +88,7 @@ def test_raster_inputs_match_csv_inputs(raster_cases):
     the CSVs it was generated from - this would fail if the CSVs were updated without
     regenerating rasters.
     """
-    csv_cases = GLCX10PaperCases()
+    csv_cases = PaperGLCX10Cases()
     np.testing.assert_allclose(raster_cases.fuel_type_codes, csv_cases.fuel_type_codes)
     np.testing.assert_allclose(raster_cases.ffmc, csv_cases.ffmc)
     np.testing.assert_allclose(raster_cases.bui, csv_cases.bui)

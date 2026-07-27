@@ -15,7 +15,7 @@ package, hence vendored here rather than depended on at runtime).
 The glc_x_10_paper_*.csv files are a second, independent transcription: extracted directly from
 Tables 4-6 of the published PDF (Fo123-2-10-2009-eng.pdf) via `pdftotext -layout`, without going
 through the R package at all. They exist to cross-validate the R-sourced CSVs above against the
-actual paper rather than trusting that chain of custody - see GLCX10PaperCases. Two cells in
+actual paper rather than trusting that chain of custody - see PaperGLCX10Cases. Two cells in
 Table 4 (GS, rows 2/4) and several cells in Table 5 (row 4, and SF for row 2) contain two
 overlapping/stacked values in the PDF's text layer, an apparent uncorrected draft artifact; the
 later-positioned (second) value was used in both cases.
@@ -223,7 +223,7 @@ class RPackageGLCX10Cases:
         self.expected_fire_type = [FIRE_TYPE_BY_FD_CODE[output_by_id[i]["FD"]] for i in self.ids]
 
 
-class GLCX10PaperCases:
+class PaperGLCX10Cases:
     """All 20 GLC-X-10 cases loaded from glc_x_10_paper_inputs.csv / glc_x_10_paper_primary_outputs.csv
     - a direct transcription of the paper's own Tables 4/5, independent of the R-cffdrs-sourced
     CSVs GLCX10Cases reads. Exposes the same attributes as GLCX10Cases so calculate_primary_output()
@@ -289,9 +289,10 @@ def calculate_primary_output(cases):
     """Mirrors cffdrs.fire_behaviour_prediction._fire_behaviour_prediction's Primary output,
     composed from cffdrs_vec.fbp's vectorized functions over the whole batch at once.
 
-    `cases` just needs the same array attributes GLCX10Cases has (fuel_type_codes, lat, lon, elv,
-    ffmc, bui, ws, wd_rad, gs, dj, d0, aspect_rad, gfl, pc, pdf, cc, cbh, cfl) - RasterCases in
-    test_fbp_glc_x_10_rasters.py builds the same shape from GeoTIFFs instead of the CSVs.
+    `cases` just needs the same array attributes RPackageGLCX10Cases has (fuel_type_codes, lat,
+    lon, elv, ffmc, bui, ws, wd_rad, gs, dj, d0, aspect_rad, gfl, pc, pdf, cc, cbh, cfl) -
+    RPackageRasterCases in test_fbp_glc_x_10_rasters.py builds the same shape from GeoTIFFs
+    instead of the CSVs.
     """
     n = len(cases.fuel_type_codes)
 

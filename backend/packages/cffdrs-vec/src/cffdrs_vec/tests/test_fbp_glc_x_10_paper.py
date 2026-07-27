@@ -24,12 +24,12 @@ bit-for-bit reproduction of a since-superseded formula.
 import numpy as np
 import pytest
 
-from cffdrs_vec.tests._glc_x_10_data import GLCX10PaperCases, calculate_primary_output
+from cffdrs_vec.tests._glc_x_10_data import PaperGLCX10Cases, calculate_primary_output
 
 
 @pytest.fixture(scope="module")
 def cases():
-    return GLCX10PaperCases()
+    return PaperGLCX10Cases()
 
 
 def test_fbp_glc_x_10_paper_ros(cases):
