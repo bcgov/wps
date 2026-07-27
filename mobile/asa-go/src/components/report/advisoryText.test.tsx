@@ -675,15 +675,13 @@ describe('AdvisoryText', () => {
       </Provider>
     )
 
-    await waitFor(() => expect(screen.queryByTestId('advisory-message-warning')).toBeInTheDocument())
+    expect(await screen.findByTestId('advisory-message-warning')).toBeInTheDocument()
 
     act(() => {
       store.dispatch(setDateOfInterest('2025-07-15'))
     })
 
-    await waitFor(() => {
-      expect(screen.queryByTestId('advisory-message-warning')).not.toBeInTheDocument()
-      expect(screen.queryByTestId('no-advisory-message')).toBeInTheDocument()
-    })
+    expect(await screen.findByTestId('no-advisory-message')).toBeInTheDocument()
+    expect(screen.queryByTestId('advisory-message-warning')).not.toBeInTheDocument()
   })
 })
