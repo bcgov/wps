@@ -1,9 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { DateTime } from 'luxon'
+import type { DateTime } from 'luxon'
+import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FireShape, FireShapeStatusDetail } from '@/api/fbaAPI'
 import FireZoneUnitTabs from '@/components/report/FireZoneUnitTabs'
 import { useFireCentreDetails } from '@/hooks/useFireCentreDetails'
+import { createTestStore } from '@/testUtils'
 import type { FireCentre } from '@/types/fireCentre'
 import { AdvisoryStatus } from '@/utils/constants'
 
@@ -56,15 +58,17 @@ describe('FireZoneUnitTabs', () => {
   })
 
   it('renders tabs and children', () => {
+    const store = createTestStore()
     render(
-      <FireZoneUnitTabs
-        selectedFireCentre={mockFireCentre}
-        selectedFireZoneUnit={mockFireShape}
-        setSelectedFireZoneUnit={setSelectedFireZoneUnit}
-        date={DateTime.now()}
-      >
-        <div data-testid="child-content">Child Content</div>
-      </FireZoneUnitTabs>
+      <Provider store={store}>
+        <FireZoneUnitTabs
+          selectedFireCentre={mockFireCentre}
+          selectedFireZoneUnit={mockFireShape}
+          setSelectedFireZoneUnit={setSelectedFireZoneUnit}
+        >
+          <div data-testid="child-content">Child Content</div>
+        </FireZoneUnitTabs>
+      </Provider>
     )
 
     expect(screen.getByTestId('zone-1-tab')).toBeInTheDocument()
@@ -73,15 +77,17 @@ describe('FireZoneUnitTabs', () => {
   })
 
   it('calls setSelectedFireZoneUnit when a tab is clicked', () => {
+    const store = createTestStore()
     render(
-      <FireZoneUnitTabs
-        selectedFireCentre={mockFireCentre}
-        selectedFireZoneUnit={mockFireShape}
-        setSelectedFireZoneUnit={setSelectedFireZoneUnit}
-        date={DateTime.now()}
-      >
-        <div />
-      </FireZoneUnitTabs>
+      <Provider store={store}>
+        <FireZoneUnitTabs
+          selectedFireCentre={mockFireCentre}
+          selectedFireZoneUnit={mockFireShape}
+          setSelectedFireZoneUnit={setSelectedFireZoneUnit}
+        >
+          <div />
+        </FireZoneUnitTabs>
+      </Provider>
     )
 
     const tab = screen.getByTestId('zone-2-tab')

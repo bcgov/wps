@@ -1,11 +1,11 @@
 import { ThemeProvider } from '@mui/material/styles'
 import { configureStore } from '@reduxjs/toolkit'
 import { render, screen } from '@testing-library/react'
-import { DateTime } from 'luxon'
-import { Provider, useSelector } from 'react-redux'
+import { Provider } from 'react-redux'
 import { describe, expect, it, vi } from 'vitest'
 import type { FireShape, FireZoneTPIStats } from '@/api/fbaAPI'
 import FireZoneUnitSummary from '@/components/profile/FireZoneUnitSummary'
+import dateOfInterestReducer from '@/slices/dateOfInterestSlice'
 import { theme } from '@/theme'
 import type { FireCentre } from '@/types/fireCentre'
 
@@ -25,22 +25,12 @@ vi.mock('@/components/profile/ElevationStatus', () => ({
 }))
 
 // Mock hooks
-vi.mock('@/hooks/datahooks', () => ({
+vi.mock('@/hooks/dataHooks', () => ({
   useFilteredHFIStatsForDate: vi.fn(),
   useTPIStatsForDate: vi.fn()
 }))
 
-// Mock react-redux
-vi.mock('react-redux', async () => {
-  const actual = await vi.importActual('react-redux')
-  return {
-    ...actual,
-    useSelector: vi.fn()
-  }
-})
-
 describe('FireZoneUnitSummary', () => {
-  const testDate = DateTime.fromISO('2025-08-25')
   const mockFireCentre: FireCentre = {
     id: 1,
     name: 'Test Fire Centre'
@@ -56,9 +46,8 @@ describe('FireZoneUnitSummary', () => {
   const createMockStore = () => {
     return configureStore({
       reducer: {
-        test: (state = {}) => state
-      },
-      preloadedState: {}
+        dateOfInterest: dateOfInterestReducer
+      }
     })
   }
 
@@ -73,24 +62,10 @@ describe('FireZoneUnitSummary', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks()
-
-    // Setup default useSelector return values
-    vi.mocked(useSelector).mockImplementation(selector => {
-      const selectorStr = selector.toString()
-      if (selectorStr.includes('selectFilteredFireCentreHFIFuelStats')) {
-        return {}
-      }
-      if (selectorStr.includes('selectFireCentreTPIStats')) {
-        return { fireCentreTPIStats: null }
-      }
-      return {}
-    })
   })
 
   it('should render empty div when selectedFireZoneUnit is undefined', () => {
-    renderWithProvider(
-      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={undefined} date={testDate} />
-    )
+    renderWithProvider(<FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={undefined} />)
 
     const emptyDiv = screen.getByTestId('fire-zone-unit-summary-empty')
     expect(emptyDiv).toBeInTheDocument()
@@ -98,11 +73,7 @@ describe('FireZoneUnitSummary', () => {
 
   it('should render fire zone unit summary when selectedFireZoneUnit is provided', () => {
     renderWithProvider(
-      <FireZoneUnitSummary
-        selectedFireCentre={mockFireCentre}
-        selectedFireZoneUnit={mockFireZoneUnit}
-        date={testDate}
-      />
+      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />
     )
 
     const summary = screen.getByTestId('fire-zone-unit-summary')
@@ -111,11 +82,7 @@ describe('FireZoneUnitSummary', () => {
 
   it('should display the fire zone name as title', () => {
     renderWithProvider(
-      <FireZoneUnitSummary
-        selectedFireCentre={mockFireCentre}
-        selectedFireZoneUnit={mockFireZoneUnit}
-        date={testDate}
-      />
+      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />
     )
 
     const title = screen.getByTestId('fire-zone-title-tabs')
@@ -125,11 +92,7 @@ describe('FireZoneUnitSummary', () => {
 
   it('should render FuelSummary component', () => {
     renderWithProvider(
-      <FireZoneUnitSummary
-        selectedFireCentre={mockFireCentre}
-        selectedFireZoneUnit={mockFireZoneUnit}
-        date={testDate}
-      />
+      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />
     )
 
     const fuelSummary = screen.getByTestId('fuel-summary')
@@ -139,11 +102,7 @@ describe('FireZoneUnitSummary', () => {
 
   it('should show no elevation information message when TPI stats are incomplete', () => {
     renderWithProvider(
-      <FireZoneUnitSummary
-        selectedFireCentre={mockFireCentre}
-        selectedFireZoneUnit={mockFireZoneUnit}
-        date={testDate}
-      />
+      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />
     )
 
     expect(screen.getByText('No elevation information available.')).toBeInTheDocument()
@@ -151,11 +110,7 @@ describe('FireZoneUnitSummary', () => {
 
   it('should have correct styling', () => {
     renderWithProvider(
-      <FireZoneUnitSummary
-        selectedFireCentre={mockFireCentre}
-        selectedFireZoneUnit={mockFireZoneUnit}
-        date={testDate}
-      />
+      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />
     )
 
     const summary = screen.getByTestId('fire-zone-unit-summary')
@@ -169,11 +124,7 @@ describe('FireZoneUnitSummary', () => {
 
   it('should render Stack container with correct props', () => {
     const { container } = renderWithProvider(
-      <FireZoneUnitSummary
-        selectedFireCentre={mockFireCentre}
-        selectedFireZoneUnit={mockFireZoneUnit}
-        date={testDate}
-      />
+      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />
     )
 
     const stackContainer = container.querySelector('.MuiStack-root')
@@ -181,9 +132,7 @@ describe('FireZoneUnitSummary', () => {
   })
 
   it('should handle missing fire center', () => {
-    renderWithProvider(
-      <FireZoneUnitSummary selectedFireCentre={undefined} selectedFireZoneUnit={undefined} date={testDate} />
-    )
+    renderWithProvider(<FireZoneUnitSummary selectedFireCentre={undefined} selectedFireZoneUnit={undefined} />)
 
     const defaultMessage = screen.getByTestId('default-message')
     expect(defaultMessage).toBeInTheDocument()

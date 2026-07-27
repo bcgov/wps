@@ -1,82 +1,85 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import type { DateTime } from 'luxon'
+import { Provider } from 'react-redux'
+import { describe, expect, it } from 'vitest'
+import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import { createTestStore } from '@/testUtils'
 import { getToday } from '@/utils/dataSliceUtils'
 import TodayTomorrowSwitch from './TodayTomorrowSwitch'
 
+const renderSwitch = (date: DateTime) => {
+  const dateKey = date.toISODate()!
+  const store = createTestStore({ dateOfInterest: { dateKey } })
+  render(
+    <Provider store={store}>
+      <TodayTomorrowSwitch />
+    </Provider>
+  )
+  return store
+}
+
 describe('TodayTomorrowSwitch', () => {
   it('renders both buttons', () => {
-    const mockSetDate = vi.fn()
-    const today = getToday()
-
-    render(<TodayTomorrowSwitch date={today} setDate={mockSetDate} />)
+    renderSwitch(getToday())
 
     expect(screen.getByText('NOW')).toBeInTheDocument()
     expect(screen.getByText('TMR')).toBeInTheDocument()
   })
 
   it('disables the NOW button when date is today', () => {
-    const mockSetDate = vi.fn()
-    const today = getToday()
-
-    render(<TodayTomorrowSwitch date={today} setDate={mockSetDate} />)
+    renderSwitch(getToday())
 
     expect(screen.getByText('NOW').closest('button')).toBeDisabled()
     expect(screen.getByText('TMR').closest('button')).not.toBeDisabled()
   })
 
   it('disables the TMR button when date is tomorrow', () => {
-    const mockSetDate = vi.fn()
-    const tomorrow = getToday().plus({ days: 1 })
-
-    render(<TodayTomorrowSwitch date={tomorrow} setDate={mockSetDate} />)
+    renderSwitch(getToday().plus({ days: 1 }))
 
     expect(screen.getByText('TMR').closest('button')).toBeDisabled()
     expect(screen.getByText('NOW').closest('button')).not.toBeDisabled()
   })
 
-  it('clicking TMR updates the date to tomorrow', () => {
-    const mockSetDate = vi.fn()
+  it('clicking TMR updates the selected date to tomorrow', () => {
     const today = getToday()
+    const store = renderSwitch(today)
 
-    render(<TodayTomorrowSwitch date={today} setDate={mockSetDate} />)
+    fireEvent.click(screen.getByText('TMR').closest('button')!)
 
-    const tmrButton = screen.getByText('TMR').closest('button')!
-    fireEvent.click(tmrButton)
-
-    expect(mockSetDate).toHaveBeenCalledWith(today.plus({ day: 1 }))
+    expect(store.getState().dateOfInterest.dateKey).toBe(today.plus({ days: 1 }).toISODate())
   })
 
-  it('clicking NOW updates the date to today', () => {
-    const mockSetDate = vi.fn()
-    const tomorrow = getToday().plus({ days: 1 })
+  it('clicking NOW updates the selected date to today', () => {
+    const today = getToday()
+    const store = renderSwitch(today.plus({ days: 1 }))
 
-    render(<TodayTomorrowSwitch date={tomorrow} setDate={mockSetDate} />)
+    fireEvent.click(screen.getByText('NOW').closest('button')!)
 
-    const nowButton = screen.getByText('NOW').closest('button')!
-    fireEvent.click(nowButton)
-
-    expect(mockSetDate).toHaveBeenCalledWith(tomorrow.plus({ day: -1 }))
+    expect(store.getState().dateOfInterest.dateKey).toBe(today.toISODate())
   })
 
-  it('updates internal state when date prop changes', () => {
+  it('clicking NOW from a stale date selects today instead of subtracting another day', () => {
     const today = getToday()
-    const tomorrow = today.plus({ day: 1 })
-    const setDateMock = vi.fn()
+    const store = renderSwitch(today.minus({ days: 1 }))
 
-    const { rerender } = render(<TodayTomorrowSwitch date={today} setDate={setDateMock} />)
+    expect(screen.getByText('TMR').closest('button')).not.toBeDisabled()
+    fireEvent.click(screen.getByText('NOW').closest('button')!)
 
-    // Initially, NOW button should be disabled (today selected)
-    const nowButton = screen.getByRole('button', { name: /NOW/i })
-    const tmrButton = screen.getByRole('button', { name: /TMR/i })
+    expect(store.getState().dateOfInterest.dateKey).toBe(today.toISODate())
+  })
 
-    expect(nowButton).toBeDisabled()
-    expect(tmrButton).not.toBeDisabled()
+  it('updates when the selected date changes in the store', () => {
+    const today = getToday()
+    const store = renderSwitch(today)
 
-    // Re-render with tomorrow's date
-    rerender(<TodayTomorrowSwitch date={tomorrow} setDate={setDateMock} />)
+    expect(screen.getByRole('button', { name: /NOW/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /TMR/i })).not.toBeDisabled()
 
-    // NOW should now be enabled, TMR should be disabled
-    expect(nowButton).not.toBeDisabled()
-    expect(tmrButton).toBeDisabled()
+    act(() => {
+      store.dispatch(setDateOfInterest(today.plus({ days: 1 }).toISODate()!))
+    })
+
+    expect(screen.getByRole('button', { name: /NOW/i })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: /TMR/i })).toBeDisabled()
   })
 })
