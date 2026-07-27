@@ -1,6 +1,5 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ASAGoMap, { type ASAGoMapProps } from '@/components/map/ASAGoMap'
@@ -52,8 +51,6 @@ describe('ASAGoMap', () => {
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
     setSelectedFireCentre: vi.fn(),
-    date: DateTime.fromISO('2024-12-15'),
-    setDate: vi.fn(),
     setTab: vi.fn()
   }
 

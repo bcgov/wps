@@ -26,6 +26,12 @@ import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useRunParameterForDate } from '@/hooks/useRunParameterForDate'
 import { fetchAndCacheData } from '@/slices/dataSlice'
+import {
+  resetDateOfInterestIfStale,
+  selectDateOfInterest,
+  selectDateOfInterestKey,
+  setDateOfInterest
+} from '@/slices/dateOfInterestSlice'
 import { fetchFireCentres } from '@/slices/fireCentresSlice'
 import { startWatchingLocation, stopWatchingLocation } from '@/slices/geolocationSlice'
 import { updateNetworkStatus } from '@/slices/networkStatusSlice'
@@ -60,7 +66,6 @@ const App = () => {
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP)
   const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
-  const [dateOfInterest, setDateOfInterest] = useState<DateTime>(() => getToday())
 
   // selected redux state
   const { fireCentres } = useSelector(selectFireCentres)
@@ -70,12 +75,13 @@ const App = () => {
   const { subscriptionsInitialized } = useSelector(selectSettings)
   const provincialSummaries = useSelector(selectProvincialSummaries)
   const pendingNotificationData = useSelector(selectPendingNotificationData)
+  const dateOfInterest = useSelector(selectDateOfInterest)
+  const dateOfInterestKey = useSelector(selectDateOfInterestKey)
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest)
   const { initPushNotifications } = usePushNotifications()
   const deviceId = useDeviceId()
-  const dateOfInterestKey = dateOfInterest.toISODate()
 
   const selectedFireCentreName = selectedFireShape?.mof_fire_centre_name
   const matchingFireCentre = selectedFireCentreName
@@ -108,19 +114,8 @@ const App = () => {
 
   useEffect(() => {
     if (!isActive) return
-
-    const today = getToday()
-    const todayKey = today.toISODate()
-    if (isNull(todayKey)) return
-
-    setDateOfInterest(currentDate => {
-      const currentDateKey = currentDate.toISODate()
-      if (isNull(currentDateKey) || currentDateKey >= todayKey) {
-        return currentDate
-      }
-      return today
-    })
-  }, [isActive])
+    dispatch(resetDateOfInterestIfStale())
+  }, [isActive, dispatch])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — listener setup runs once on mount
   useEffect(() => {
@@ -204,7 +199,7 @@ const App = () => {
     if (!matchingCentre || !matchingShape) return
 
     // Reacting to an external system event (push notification tap); setState calls here are intentional.
-    setDateOfInterest(advisoryDate)
+    dispatch(setDateOfInterest(notificationDateKey))
     setFireCentre(matchingCentre)
     setSelectedFireShape({
       fire_shape_id: matchingShape.fire_shape_id,
@@ -270,16 +265,12 @@ const App = () => {
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
             setSelectedFireCentre={setFireCentre}
-            date={dateOfInterest}
-            setDate={setDateOfInterest}
             setTab={setTab}
             testId="asa-go-map"
           />
         </TabPanel>
         <TabPanel value={tab} panel={NavPanel.PROFILE}>
           <Profile
-            date={dateOfInterest}
-            setDate={setDateOfInterest}
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
             selectedFireZoneUnit={selectedFireShape}
@@ -288,8 +279,6 @@ const App = () => {
         </TabPanel>
         <TabPanel value={tab} panel={NavPanel.ADVISORY}>
           <Advisory
-            date={dateOfInterest}
-            setDate={setDateOfInterest}
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
             selectedFireZoneUnit={selectedFireShape}

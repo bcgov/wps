@@ -1,5 +1,5 @@
 import { useMediaQuery } from '@mui/material'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -7,6 +7,7 @@ import axios from '@/api/axios'
 import { RunType } from '@/api/fbaAPI'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { initialState as pushNotificationInitialState } from '@/slices/pushNotificationSlice'
 import type { NavPanel } from '@/utils/constants'
 import App from './App'
@@ -66,18 +67,7 @@ vi.mock('@/components/BottomNavigationBar', () => ({
 }))
 
 vi.mock('@/components/map/ASAGoMap', () => ({
-  default: ({ setDate }: { setDate: React.Dispatch<React.SetStateAction<DateTime>> }) => (
-    <div data-testid="asa-go-map">
-      ASA Go Map
-      <button
-        type="button"
-        data-testid="change-date"
-        onClick={() => setDate(currentDate => currentDate.plus({ days: 1 }))}
-      >
-        Change date
-      </button>
-    </div>
-  )
+  default: () => <div data-testid="asa-go-map">ASA Go Map</div>
 }))
 
 vi.mock('@/components/profile/Profile', () => ({
@@ -160,7 +150,9 @@ vi.mock('@/utils/dataSliceUtils', async () => {
   const actual = await vi.importActual('@/utils/dataSliceUtils')
   return {
     ...actual,
-    getToday: mockGetToday
+    getToday: mockGetToday,
+    getTodayKey: () => mockGetToday()?.toISODate() ?? '2025-07-02',
+    getTomorrowKey: () => mockGetToday()?.plus({ days: 1 }).toISODate() ?? '2025-07-03'
   }
 })
 
@@ -267,7 +259,9 @@ describe('App', () => {
       .mocked(axios.get)
       .mock.calls.filter(([url]) => url.startsWith('fba/latest-sfms-run-parameters/')).length
 
-    fireEvent.click(screen.getByTestId('change-date'))
+    act(() => {
+      store.dispatch(setDateOfInterest('2025-07-03'))
+    })
 
     await waitFor(() => {
       const requestsAfterDateChange = vi

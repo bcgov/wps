@@ -1,13 +1,13 @@
 import { Box, Button, styled } from '@mui/material'
-import type { DateTime } from 'luxon'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectDateOfInterest, setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import type { AppDispatch } from '@/store'
 import { MAP_BUTTON_GREY } from '@/theme'
 import { BORDER_RADIUS, BUTTON_HEIGHT } from '@/utils/constants'
 import { getToday } from '@/utils/dataSliceUtils'
 
 interface TodayTomorrowSwitchProps {
   border?: boolean
-  date: DateTime
-  setDate: React.Dispatch<React.SetStateAction<DateTime>>
 }
 
 const BUTTON_WIDTH = 60
@@ -33,7 +33,9 @@ const StyledTextContainer = styled(Box)({
   justifyContent: 'center'
 })
 
-const TodayTomorrowSwitch = ({ border = false, date, setDate }: TodayTomorrowSwitchProps) => {
+const TodayTomorrowSwitch = ({ border = false }: TodayTomorrowSwitchProps) => {
+  const dispatch: AppDispatch = useDispatch()
+  const date = useSelector(selectDateOfInterest)
   const borderStyle = border ? `1px solid ${MAP_BUTTON_GREY}` : 'none'
 
   const today = getToday()
@@ -42,7 +44,8 @@ const TodayTomorrowSwitch = ({ border = false, date, setDate }: TodayTomorrowSwi
 
   const handleDayChange = (newValue: number) => {
     // newValue: 0 = today, 1 = tomorrow
-    setDate(today.plus({ days: newValue }))
+    const dateKey = today.plus({ days: newValue }).toISODate()
+    if (dateKey) dispatch(setDateOfInterest(dateKey))
   }
 
   return (

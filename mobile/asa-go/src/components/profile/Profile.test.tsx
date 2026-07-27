@@ -1,6 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { render, screen } from '@testing-library/react'
-import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { describe, expect, it, vi } from 'vitest'
 import type { FireShape } from '@/api/fbaAPI'
@@ -29,7 +28,7 @@ vi.mock('@/components/report/FireZoneUnitTabs', () => ({
 }))
 
 vi.mock('@/components/TodayTomorrowSwitch', () => ({
-  default: ({ date }: { date: DateTime }) => <div data-testid="today-tomorrow-switch">{date.toISODate()}</div>
+  default: () => <div data-testid="today-tomorrow-switch">Today/Tomorrow</div>
 }))
 
 // Mock theme constants
@@ -50,8 +49,6 @@ vi.mock('@mui/material/styles', async importOriginal => {
 })
 
 describe('Profile', () => {
-  const mockDate = DateTime.fromISO('2023-06-15')
-  const mockSetDate = vi.fn()
   const mockSetSelectedFireCentre = vi.fn()
   const mockSetSelectedFireZoneUnit = vi.fn()
 
@@ -99,8 +96,6 @@ describe('Profile', () => {
   })
 
   const defaultProps: ProfileProps = {
-    date: mockDate,
-    setDate: mockSetDate,
     selectedFireCentre: undefined,
     setSelectedFireCentre: mockSetSelectedFireCentre,
     selectedFireZoneUnit: undefined,
@@ -113,12 +108,11 @@ describe('Profile', () => {
     expect(screen.getByTestId('asa-go-profile')).toBeInTheDocument()
   })
 
-  it('should render TodayTomorrowSwitch with correct date', () => {
+  it('should render TodayTomorrowSwitch', () => {
     renderWithProvider(<Profile {...defaultProps} />)
 
     const todayTomorrowSwitch = screen.getByTestId('today-tomorrow-switch')
     expect(todayTomorrowSwitch).toBeInTheDocument()
-    expect(todayTomorrowSwitch).toHaveTextContent('2023-06-15')
   })
 
   it('should render FireCenterDropdown', () => {
@@ -186,8 +180,6 @@ describe('Profile', () => {
 
   it('should pass all props correctly to child components', () => {
     const propsWithAllValues: ProfileProps = {
-      date: mockDate,
-      setDate: mockSetDate,
       selectedFireCentre: mockFireCentre,
       setSelectedFireCentre: mockSetSelectedFireCentre,
       selectedFireZoneUnit: mockFireZoneUnit,

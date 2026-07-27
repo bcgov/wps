@@ -1,5 +1,4 @@
 import { Box, useTheme } from '@mui/material'
-import type { DateTime } from 'luxon'
 import { useSelector } from 'react-redux'
 import type { FireShape } from '@/api/fbaAPI'
 import FireCenterDropdown from '@/components/FireCenterDropdown'
@@ -10,8 +9,6 @@ import { selectFireCentres } from '@/store'
 import type { FireCentre } from '@/types/fireCentre'
 
 interface AdvisoryProps {
-  date: DateTime
-  setDate: React.Dispatch<React.SetStateAction<DateTime>>
   selectedFireCentre: FireCentre | undefined
   setSelectedFireCentre: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
   selectedFireZoneUnit: FireShape | undefined
@@ -19,8 +16,6 @@ interface AdvisoryProps {
 }
 
 const Advisory = ({
-  date,
-  setDate,
   selectedFireCentre,
   setSelectedFireCentre,
   selectedFireZoneUnit,
@@ -48,7 +43,7 @@ const Advisory = ({
         }}
       >
         <Box sx={{ alignItems: 'center', display: 'flex', pr: theme.spacing(1) }}>
-          <TodayTomorrowSwitch border date={date} setDate={setDate} />
+          <TodayTomorrowSwitch border />
         </Box>
         <Box sx={{ display: 'flex', flexGrow: 1, pt: theme.spacing(1) }}>
           <FireCenterDropdown
@@ -73,13 +68,8 @@ const Advisory = ({
           selectedFireCentre={selectedFireCentre}
           selectedFireZoneUnit={selectedFireZoneUnit}
           setSelectedFireZoneUnit={setSelectedFireZoneUnit}
-          date={date}
         >
-          <AdvisoryText
-            selectedFireCentre={selectedFireCentre}
-            selectedFireZoneUnit={selectedFireZoneUnit}
-            date={date}
-          />
+          <AdvisoryText selectedFireCentre={selectedFireCentre} selectedFireZoneUnit={selectedFireZoneUnit} />
         </FireZoneUnitTabs>
       </Box>
     </Box>

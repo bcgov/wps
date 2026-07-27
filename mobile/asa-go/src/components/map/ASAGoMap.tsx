@@ -49,6 +49,7 @@ import {
   LOCAL_BASEMAP_LAYER_NAME,
   ZONE_STATUS_LAYER_NAME
 } from '@/layerDefinitions'
+import { selectDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { startWatchingLocation } from '@/slices/geolocationSlice'
 import { type AppDispatch, selectGeolocation, selectNetworkStatus } from '@/store'
 import type { FireCentre } from '@/types/fireCentre'
@@ -73,8 +74,6 @@ export interface ASAGoMapProps {
   selectedFireShape: FireShape | undefined
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
   setSelectedFireCentre: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
-  date: DateTime
-  setDate: React.Dispatch<React.SetStateAction<DateTime>>
   setTab: React.Dispatch<React.SetStateAction<NavPanel>>
 }
 
@@ -83,8 +82,6 @@ const ASAGoMap = ({
   selectedFireShape,
   setSelectedFireShape,
   setSelectedFireCentre,
-  date,
-  setDate,
   setTab
 }: ASAGoMapProps) => {
   const dispatch: AppDispatch = useDispatch()
@@ -92,6 +89,7 @@ const ASAGoMap = ({
   // selectors & hooks
   const { position, error, loading } = useSelector(selectGeolocation)
   const { networkStatus } = useSelector(selectNetworkStatus)
+  const date = useSelector(selectDateOfInterest)
 
   // hooks
   const fireShapeStatusDetails = useProvincialSummaryZonesForDate(date)
@@ -515,7 +513,7 @@ const ASAGoMap = ({
             testid="location-button"
             loading={loading}
           />
-          <TodayTomorrowSwitch date={date} setDate={setDate} />
+          <TodayTomorrowSwitch />
         </Box>
 
         <LegendPopover
