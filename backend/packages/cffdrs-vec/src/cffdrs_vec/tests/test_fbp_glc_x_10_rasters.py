@@ -44,7 +44,7 @@ class RasterCases:
 
         # fuel type names aren't stored in the rasters (only the numeric code is) - needed here
         # only to look up PC/PDF/CBH/CFL defaults, same as GLCX10Cases does from the CSV directly.
-        input_rows = load_rows("glc_x_10_inputs.csv")
+        input_rows = load_rows("cffdrs_r_test_fbp_inputs.csv")
         fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
 
         self.fuel_type_codes = raster["fuel_type_code"].astype(np.int64)
@@ -127,7 +127,7 @@ def test_fbp_glc_x_10_rasters_fire_type(raster_cases, expected):
     _, _, cfb, _, _, _, fire_type = calculate_primary_output(raster_cases)
     # Rasters are pixel-ordered by input row order, so look up FD the same way, by id, rather
     # than assuming the outputs CSV happens to already be in that same order.
-    ids = [row["id"] for row in load_rows("glc_x_10_inputs.csv")]
-    output_by_id = {row["ID"]: row for row in load_rows("glc_x_10_primary_outputs.csv")}
+    ids = [row["id"] for row in load_rows("cffdrs_r_test_fbp_inputs.csv")]
+    output_by_id = {row["ID"]: row for row in load_rows("cffdrs_r_test_fbp_primary_outputs.csv")}
     expected_fire_type = [FIRE_TYPE_BY_FD_CODE[output_by_id[i]["FD"]] for i in ids]
     assert list(fire_type) == expected_fire_type

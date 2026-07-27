@@ -1,7 +1,8 @@
 """
-Generates the GeoTIFF fixtures under fixtures/glc_x_10/ from the vendored GLC-X-10 CSVs
-(data/glc_x_10_inputs.csv, data/glc_x_10_primary_outputs.csv) - one small raster per input/output
-variable, each holding all 20 published test cases as pixels in a single 1x20 row, in case order
+Generates the GeoTIFF fixtures under fixtures/glc_x_10/ from the vendored R cffdrs test CSVs
+(data/cffdrs_r_test_fbp_inputs.csv, data/cffdrs_r_test_fbp_primary_outputs.csv - see
+_glc_x_10_data.py for exact provenance) - one small raster per input/output variable, each
+holding all 20 published GLC-X-10 test cases as pixels in a single 1x20 row, in case order
 (column 0 = case 1, ..., column 19 = case 20). Same one-raster-per-variable layout as the existing
 bui20240528.tif/dc20240528.tif/dmc20240528.tif FWI fixtures.
 
@@ -54,8 +55,8 @@ def _write_raster(name: str, values: list) -> None:
 def main() -> None:
     RASTER_DIR.mkdir(parents=True, exist_ok=True)
 
-    input_rows = load_rows("glc_x_10_inputs.csv")
-    output_by_id = {row["ID"]: row for row in load_rows("glc_x_10_primary_outputs.csv")}
+    input_rows = load_rows("cffdrs_r_test_fbp_inputs.csv")
+    output_by_id = {row["ID"]: row for row in load_rows("cffdrs_r_test_fbp_primary_outputs.csv")}
     ids = [row["id"] for row in input_rows]
     fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
 

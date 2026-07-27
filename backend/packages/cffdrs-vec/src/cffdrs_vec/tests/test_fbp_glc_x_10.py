@@ -3,9 +3,10 @@ Validates cffdrs_vec.fbp (and cffdrs_vec.fwi.vectorized_isi) against the 20 publ
 test cases from GLC-X-10 (Wotton et al. 2009), Table 4 (inputs) and Table 5 (primary outputs).
 See https://github.com/bcgov/wps/issues/4893.
 
-The input/output CSVs are vendored from cffdrs_py's own test fixtures
-(cffdrs/tests/data/test_fbp.csv, fbp_01.csv, fbp_04.csv) - the same GLC-X-10 dataset, but not
-included in the installed package, so it's copied here rather than depended on at runtime.
+The input/output CSVs (see _glc_x_10_data.py for exact provenance) are the R cffdrs package's own
+digitized transcription of the paper's Tables 4/5, copied here by way of cffdrs_py's own copy of
+those same files - not included in the installed cffdrs_py package, so vendored here rather than
+depended on at runtime.
 test_fbp_glc_x_10_rasters.py runs the same cases and the same calculate_primary_output()
 (shared via _glc_x_10_data.py) through GeoTIFF rasters instead, to prove the array pipeline also
 works end-to-end through real raster I/O.
