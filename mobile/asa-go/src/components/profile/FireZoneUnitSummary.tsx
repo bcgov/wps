@@ -2,24 +2,25 @@ import { Box, Stack, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { FireShape } from 'api/fbaAPI'
 import { isNil } from 'lodash'
-import type { DateTime } from 'luxon'
 import React, { useMemo } from 'react'
+import { useSelector } from 'react-redux'
 import ElevationStatus from '@/components/profile/ElevationStatus'
 import FuelSummary from '@/components/profile/FuelSummary'
 import { AdvisoryTypography } from '@/components/report/AdvisoryTypography'
 import DefaultText from '@/components/report/DefaultText'
 import { useFilteredHFIStatsForDate, useTPIStatsForDate } from '@/hooks/dataHooks'
+import { selectDateOfInterest } from '@/slices/dateOfInterestSlice'
 import type { FireCentre } from '@/types/fireCentre'
 import { hasRequiredFields } from '@/utils/profileUtils'
 
 interface FireZoneUnitSummaryProps {
-  date: DateTime
   selectedFireCentre: FireCentre | undefined
   selectedFireZoneUnit: FireShape | undefined
 }
 
-const FireZoneUnitSummary = ({ date, selectedFireCentre, selectedFireZoneUnit }: FireZoneUnitSummaryProps) => {
+const FireZoneUnitSummary = ({ selectedFireCentre, selectedFireZoneUnit }: FireZoneUnitSummaryProps) => {
   const theme = useTheme()
+  const date = useSelector(selectDateOfInterest)
 
   // hooks
   const filteredFireZoneUnitHFIStats = useFilteredHFIStatsForDate(date)

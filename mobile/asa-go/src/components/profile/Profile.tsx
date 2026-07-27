@@ -1,5 +1,4 @@
 import { Box, useTheme } from '@mui/material'
-import type { DateTime } from 'luxon'
 import { useSelector } from 'react-redux'
 import type { FireShape } from '@/api/fbaAPI'
 import FireCenterDropdown from '@/components/FireCenterDropdown'
@@ -10,8 +9,6 @@ import { selectFireCentres } from '@/store'
 import type { FireCentre } from '@/types/fireCentre'
 
 export interface ProfileProps {
-  date: DateTime
-  setDate: React.Dispatch<React.SetStateAction<DateTime>>
   selectedFireCentre: FireCentre | undefined
   setSelectedFireCentre: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
   selectedFireZoneUnit: FireShape | undefined
@@ -19,8 +16,6 @@ export interface ProfileProps {
 }
 
 const Profile = ({
-  date,
-  setDate,
   selectedFireCentre,
   setSelectedFireCentre,
   selectedFireZoneUnit,
@@ -49,7 +44,7 @@ const Profile = ({
         }}
       >
         <Box sx={{ alignItems: 'center', display: 'flex', pr: theme.spacing(1) }}>
-          <TodayTomorrowSwitch border={true} date={date} setDate={setDate} />
+          <TodayTomorrowSwitch border={true} />
         </Box>
         <Box sx={{ display: 'flex', flexGrow: 1, pt: theme.spacing(1) }}>
           <FireCenterDropdown
@@ -75,13 +70,8 @@ const Profile = ({
           selectedFireCentre={selectedFireCentre}
           selectedFireZoneUnit={selectedFireZoneUnit}
           setSelectedFireZoneUnit={setSelectedFireZoneUnit}
-          date={date}
         >
-          <FireZoneUnitSummary
-            selectedFireCentre={selectedFireCentre}
-            selectedFireZoneUnit={selectedFireZoneUnit}
-            date={date}
-          />
+          <FireZoneUnitSummary selectedFireCentre={selectedFireCentre} selectedFireZoneUnit={selectedFireZoneUnit} />
         </FireZoneUnitTabs>
       </Box>
     </Box>
