@@ -15,6 +15,9 @@ import { createTestStore } from './testUtils'
 
 const mockGetToday = vi.hoisted(() => vi.fn())
 const mockUseAppIsActive = vi.hoisted(() => vi.fn())
+const mockFetchHFIStats = vi.hoisted(() => vi.fn())
+const mockFetchProvincialSummaries = vi.hoisted(() => vi.fn())
+const mockFetchTpiStats = vi.hoisted(() => vi.fn())
 
 // Mock MUI useMediaQuery to control screen size detection
 vi.mock('@mui/material', async () => {
@@ -55,6 +58,23 @@ vi.mock('@capacitor/filesystem', () => ({
   Encoding: { UTF8: 'utf8' }
 }))
 
+vi.mock('@/utils/pmtilesCache', () => ({
+  PMTilesCache: class {
+    loadHFIPMTiles = vi.fn()
+    getHFICachedFileName = vi.fn(() => 'hfi.pmtiles')
+  }
+}))
+
+vi.mock('@/utils/storage', async () => {
+  const actual = await vi.importActual('@/utils/storage')
+  return {
+    ...actual,
+    clearStaleHFIPMTiles: vi.fn(),
+    readFromFilesystem: vi.fn().mockResolvedValue(null),
+    writeToFileSystem: vi.fn().mockResolvedValue(undefined)
+  }
+})
+
 // Mock components
 vi.mock('@/components/AppHeader', () => ({
   AppHeader: () => <div data-testid="app-header">App Header</div>
@@ -90,8 +110,23 @@ vi.mock('@/components/SideNavigation', () => ({
 }))
 
 vi.mock('@/components/InfoBar', () => ({
-  default: ({ statusText, status, viewingDate }: { statusText?: string; status: string; viewingDate: DateTime }) => (
-    <div data-testid="info-bar" data-status={status} data-viewing-date={viewingDate.toISODate()}>
+  default: ({
+    statusText,
+    status,
+    viewingDate,
+    validUntil
+  }: {
+    statusText?: string
+    status: string
+    viewingDate: DateTime
+    validUntil?: string
+  }) => (
+    <div
+      data-testid="info-bar"
+      data-status={status}
+      data-valid-until={validUntil}
+      data-viewing-date={viewingDate.toISODate()}
+    >
       {statusText && <span>{statusText}</span>}
     </div>
   )
@@ -100,10 +135,6 @@ vi.mock('@/components/InfoBar', () => ({
 // Mock hooks
 vi.mock('@/hooks/useAppIsActive', () => ({
   useAppIsActive: mockUseAppIsActive
-}))
-
-vi.mock('@/hooks/useRunParameterForDate', () => ({
-  useRunParameterForDate: () => undefined
 }))
 
 vi.mock('@/hooks/usePushNotifications', () => ({
@@ -150,6 +181,9 @@ vi.mock('@/utils/dataSliceUtils', async () => {
   const actual = await vi.importActual('@/utils/dataSliceUtils')
   return {
     ...actual,
+    fetchHFIStats: mockFetchHFIStats,
+    fetchProvincialSummaries: mockFetchProvincialSummaries,
+    fetchTpiStats: mockFetchTpiStats,
     getToday: mockGetToday,
     getTodayKey: () => mockGetToday()?.toISODate() ?? '2025-07-02',
     getTomorrowKey: () => mockGetToday()?.plus({ days: 1 }).toISODate() ?? '2025-07-03'
@@ -167,6 +201,18 @@ describe('App', () => {
       initPushNotifications: vi.fn().mockResolvedValue(undefined),
       retryRegistration: vi.fn().mockResolvedValue(undefined)
     })
+    vi.mocked(axios.get).mockImplementation((url: string) => {
+      if (url === 'psu/fire-centres') {
+        return Promise.resolve({ data: { fire_centres: [] } })
+      }
+      if (url.startsWith('fba/latest-sfms-run-parameters/')) {
+        return Promise.resolve({ data: { run_parameters: {} } })
+      }
+      return Promise.resolve({ data: {} })
+    })
+    mockFetchHFIStats.mockResolvedValue({})
+    mockFetchProvincialSummaries.mockResolvedValue({})
+    mockFetchTpiStats.mockResolvedValue({})
   })
 
   it('renders all main components in initial state', () => {
@@ -202,8 +248,68 @@ describe('App', () => {
     expect(appContainer).toBeInTheDocument()
   })
 
-  it('advances the selected date and refreshes run parameters when the app resumes on a new ASA Go day', async () => {
-    const store = createTestStore()
+  it('selects the new day forecast and loads its data when the app resumes after midnight', async () => {
+    const july2Actual = {
+      for_date: '2025-07-02',
+      run_datetime: '2025-07-02T12:00:00-07:00',
+      run_type: RunType.ACTUAL,
+      valid_until: '2025-07-03T00:00:00-07:00'
+    }
+    const july3Forecast = {
+      for_date: '2025-07-03',
+      run_datetime: '2025-07-02T18:00:00-07:00',
+      run_type: RunType.FORECAST,
+      valid_until: '2025-07-04T00:00:00-07:00'
+    }
+    const july4Forecast = {
+      for_date: '2025-07-04',
+      run_datetime: '2025-07-03T18:00:00-07:00',
+      run_type: RunType.FORECAST,
+      valid_until: '2025-07-05T00:00:00-07:00'
+    }
+    const beforeMidnightRunParameters = {
+      '2025-07-02': july2Actual,
+      '2025-07-03': july3Forecast
+    }
+    const afterMidnightRunParameters = {
+      '2025-07-03': { ...july3Forecast },
+      '2025-07-04': july4Forecast
+    }
+
+    vi.mocked(axios.get).mockImplementation((url: string) => {
+      if (url === 'fba/latest-sfms-run-parameters/2025-07-02/2025-07-03') {
+        return Promise.resolve({ data: { run_parameters: beforeMidnightRunParameters } })
+      }
+      if (url === 'fba/latest-sfms-run-parameters/2025-07-03/2025-07-04') {
+        return Promise.resolve({ data: { run_parameters: afterMidnightRunParameters } })
+      }
+      if (url === 'psu/fire-centres') {
+        return Promise.resolve({ data: { fire_centres: [] } })
+      }
+      return Promise.resolve({ data: {} })
+    })
+    mockFetchProvincialSummaries.mockImplementation(
+      async (todayKey: string, tomorrowKey: string, runParameters: typeof afterMidnightRunParameters) => ({
+        [todayKey]: {
+          runParameter: runParameters[todayKey as keyof typeof runParameters],
+          data: [{ fire_shape_id: 1, fire_shape_name: `${todayKey} data`, fire_centre_name: 'Test', status: null }]
+        },
+        [tomorrowKey]: {
+          runParameter: runParameters[tomorrowKey as keyof typeof runParameters],
+          data: []
+        }
+      })
+    )
+
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      },
+      runParameters: {
+        error: null,
+        runParameters: beforeMidnightRunParameters
+      }
+    })
 
     const { rerender } = render(
       <Provider store={store}>
@@ -211,11 +317,12 @@ describe('App', () => {
       </Provider>
     )
 
-    expect(screen.getByTestId('info-bar')).toHaveAttribute('data-viewing-date', '2025-07-02')
-    await act(async () => {})
-    const requestsBeforeResume = vi
-      .mocked(axios.get)
-      .mock.calls.filter(([url]) => url.startsWith('fba/latest-sfms-run-parameters/')).length
+    await waitFor(() => {
+      expect(screen.getByTestId('info-bar')).toHaveAttribute('data-viewing-date', '2025-07-02')
+      expect(screen.getByTestId('info-bar')).toHaveAttribute('data-valid-until', july2Actual.valid_until)
+    })
+    await waitFor(() => expect(mockFetchProvincialSummaries).toHaveBeenCalled())
+    const dataRequestsBeforeResume = mockFetchProvincialSummaries.mock.calls.length
 
     mockUseAppIsActive.mockReturnValue(false)
     rerender(
@@ -234,11 +341,16 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('info-bar')).toHaveAttribute('data-viewing-date', '2025-07-03')
+      expect(screen.getByTestId('info-bar')).toHaveAttribute('data-valid-until', july3Forecast.valid_until)
     })
-    const requestsAfterResume = vi
-      .mocked(axios.get)
-      .mock.calls.filter(([url]) => url.startsWith('fba/latest-sfms-run-parameters/')).length
-    expect(requestsAfterResume).toBeGreaterThan(requestsBeforeResume)
+    await waitFor(() => {
+      expect(mockFetchProvincialSummaries.mock.calls.length).toBeGreaterThan(dataRequestsBeforeResume)
+      expect(mockFetchProvincialSummaries).toHaveBeenCalledWith('2025-07-03', '2025-07-04', afterMidnightRunParameters)
+      expect(store.getState().data.provincialSummaries?.['2025-07-03']).toEqual({
+        runParameter: july3Forecast,
+        data: [{ fire_shape_id: 1, fire_shape_name: '2025-07-03 data', fire_centre_name: 'Test', status: null }]
+      })
+    })
   })
 
   it('refreshes run parameters when the selected date changes', async () => {
