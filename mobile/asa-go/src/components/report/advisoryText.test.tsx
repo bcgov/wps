@@ -1,5 +1,5 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { cloneDeep } from 'lodash'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
@@ -13,7 +13,7 @@ import {
 } from '@/api/fbaAPI'
 import AdvisoryText from '@/components/report/AdvisoryText'
 import dataSlice, { type DataState, initialState as dataInitialState } from '@/slices/dataSlice'
-import dateOfInterestSlice from '@/slices/dateOfInterestSlice'
+import dateOfInterestSlice, { setDateOfInterest } from '@/slices/dateOfInterestSlice'
 import runParametersSlice, {
   type RunParametersState,
   initialState as runParametersInitialState
@@ -663,5 +663,27 @@ describe('AdvisoryText', () => {
       </Provider>
     )
     await waitFor(() => expect(screen.queryByTestId('advisory-message-slash')).toBeInTheDocument())
+  })
+
+  it('re-derives the provincial summary shown when the store date of interest changes', async () => {
+    ;(useRunParameterForDate as Mock).mockReturnValue(testRunParameter)
+    ;(useFilteredHFIStatsForDate as Mock).mockReturnValue(mockFireZoneHFIStatsDictionary)
+    const store = getInitialStore()
+    render(
+      <Provider store={store}>
+        <AdvisoryText selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />
+      </Provider>
+    )
+
+    await waitFor(() => expect(screen.queryByTestId('advisory-message-warning')).toBeInTheDocument())
+
+    act(() => {
+      store.dispatch(setDateOfInterest(DateTime.fromISO(TEST_FOR_DATE).plus({ days: 1 }).toISO()!))
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('advisory-message-warning')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('no-advisory-message')).toBeInTheDocument()
+    })
   })
 })
