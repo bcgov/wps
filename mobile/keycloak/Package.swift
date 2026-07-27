@@ -10,7 +10,7 @@ let package = Package(
             targets: ["KeycloakPlugin"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "7.6.7"),
+        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "7.6.8"),
         .package(url: "https://github.com/openid/AppAuth-iOS.git", from: "2.1.0"),
     ],
     targets: [
