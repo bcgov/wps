@@ -1,5 +1,5 @@
 import { useMediaQuery } from '@mui/material'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -66,7 +66,18 @@ vi.mock('@/components/BottomNavigationBar', () => ({
 }))
 
 vi.mock('@/components/map/ASAGoMap', () => ({
-  default: () => <div data-testid="asa-go-map">ASA Go Map</div>
+  default: ({ setDate }: { setDate: React.Dispatch<React.SetStateAction<DateTime>> }) => (
+    <div data-testid="asa-go-map">
+      ASA Go Map
+      <button
+        type="button"
+        data-testid="change-date"
+        onClick={() => setDate(currentDate => currentDate.plus({ days: 1 }))}
+      >
+        Change date
+      </button>
+    </div>
+  )
 }))
 
 vi.mock('@/components/profile/Profile', () => ({
@@ -236,6 +247,34 @@ describe('App', () => {
       .mocked(axios.get)
       .mock.calls.filter(([url]) => url.startsWith('fba/latest-sfms-run-parameters/')).length
     expect(requestsAfterResume).toBeGreaterThan(requestsBeforeResume)
+  })
+
+  it('refreshes run parameters when the selected date changes', async () => {
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    await act(async () => {})
+    const requestsBeforeDateChange = vi
+      .mocked(axios.get)
+      .mock.calls.filter(([url]) => url.startsWith('fba/latest-sfms-run-parameters/')).length
+
+    fireEvent.click(screen.getByTestId('change-date'))
+
+    await waitFor(() => {
+      const requestsAfterDateChange = vi
+        .mocked(axios.get)
+        .mock.calls.filter(([url]) => url.startsWith('fba/latest-sfms-run-parameters/')).length
+      expect(requestsAfterDateChange).toBeGreaterThan(requestsBeforeDateChange)
+    })
   })
 
   it('initializes with correct styling', () => {

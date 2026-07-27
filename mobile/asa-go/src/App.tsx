@@ -75,6 +75,7 @@ const App = () => {
   const runParameter = useRunParameterForDate(dateOfInterest)
   const { initPushNotifications } = usePushNotifications()
   const deviceId = useDeviceId()
+  const dateOfInterestKey = dateOfInterest.toISODate()
 
   const selectedFireCentreName = selectedFireShape?.mof_fire_centre_name
   const matchingFireCentre = selectedFireCentreName
@@ -142,10 +143,10 @@ const App = () => {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetchSFMSRunParameters is a stable action creator
   useEffect(() => {
-    if (isActive) {
+    if (isActive && !isNull(dateOfInterestKey)) {
       dispatch(fetchSFMSRunParameters())
     }
-  }, [isActive, networkStatus.connected, dispatch])
+  }, [isActive, dateOfInterestKey, networkStatus.connected, dispatch])
 
   useEffect(() => {
     dispatch(fetchFireCentres())
