@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import gc
 import logging
 import os
 import sys
@@ -212,9 +213,20 @@ class FourPanelChartRunner:
                 logger.info(f"Saved: {output_key}")
         finally:
             plt.close(fig)
+            # matplotlib Figure/Axes/Artist objects form reference cycles that plain
+            # refcounting can't break and only the cyclic GC can. Confirmed via profiling.
+            # without this, RSS climbs ~365-420MB per panel across a run (gc.collect() finds
+            # 20,000+ collectable objects per panel); with it, RSS is flat after the first panel.
+            gc.collect()
 
     async def _make_4panel_charts(
-        self, model: ECCCModel, init_ymd: str, init_hh: str, start_hour: int, end_hour: int, step: int
+        self,
+        model: ECCCModel,
+        init_ymd: str,
+        init_hh: str,
+        start_hour: int,
+        end_hour: int,
+        step: int,
     ):
         _model_cfgs = {
             ECCCModel.GDPS: (CFG_500_GDPS, CFG_MSLP_GDPS, CFG_700_GDPS, CFG_PCPN_GDPS, gdps_fname),

@@ -16,24 +16,20 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+      packages: write
+      id-token: write
+      attestations: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-      - uses: ./.github/actions/oc-setup
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: ./.github/actions/oc-login
+      - name: Build and push WPS Weather image
+        uses: bcgov/actions/builder-ghcr@0992e41cd11c5370b77f9e6066effe63efe9f8c9 # v0.4.0
         with:
-          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
-          oc-token: ${{ secrets.OC4_TOOL_TOKEN }}
-          oc-namespace: e1e498-tools
-      - name: Build WPS Weather Image
-        shell: bash
-        run: |
-          GIT_BRANCH=${GITHUB_HEAD_REF} \
-            MODULE_NAME=weather \
-            DOCKER_FILE=backend/packages/wps-weather/Dockerfile \
-            PATH_BC=openshift/templates/build.bc.yaml \
-            bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+          package: wps-weather
+          build_context: .
+          build_file: backend/packages/wps-weather/Dockerfile
+          tags: ${{ env.SUFFIX }}
 
   deployments:
     name: Deployments
@@ -43,7 +39,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: ./.github/actions/oc-setup
 

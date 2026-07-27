@@ -237,7 +237,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache poetry installer
