@@ -28,12 +28,13 @@ point/rounding noise.
 
 import numpy as np
 import pytest
-from cffdrs_vec.tests._glc_x_10_data import GLCX10Cases, calculate_primary_output
+
+from cffdrs_vec.tests._glc_x_10_data import RPackageGLCX10Cases, calculate_primary_output
 
 
 @pytest.fixture(scope="module")
 def cases():
-    return GLCX10Cases()
+    return RPackageGLCX10Cases()
 
 
 def test_fbp_glc_x_10_ros(cases):
