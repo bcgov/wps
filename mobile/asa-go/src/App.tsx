@@ -26,6 +26,12 @@ import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useRunParameterForDate } from '@/hooks/useRunParameterForDate'
 import { fetchAndCacheData } from '@/slices/dataSlice'
+import {
+  resetDateOfInterestIfStale,
+  selectDateOfInterest,
+  selectDateOfInterestKey,
+  setDateOfInterest
+} from '@/slices/dateOfInterestSlice'
 import { fetchFireCentres } from '@/slices/fireCentresSlice'
 import { startWatchingLocation, stopWatchingLocation } from '@/slices/geolocationSlice'
 import { updateNetworkStatus } from '@/slices/networkStatusSlice'
@@ -60,7 +66,6 @@ const App = () => {
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP)
   const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
-  const [dateOfInterest, setDateOfInterest] = useState<DateTime>(() => getToday())
 
   // selected redux state
   const { fireCentres } = useSelector(selectFireCentres)
@@ -70,6 +75,8 @@ const App = () => {
   const { subscriptionsInitialized } = useSelector(selectSettings)
   const provincialSummaries = useSelector(selectProvincialSummaries)
   const pendingNotificationData = useSelector(selectPendingNotificationData)
+  const dateOfInterest = useSelector(selectDateOfInterest)
+  const dateOfInterestKey = useSelector(selectDateOfInterestKey)
 
   // hooks
   const runParameter = useRunParameterForDate(dateOfInterest)
@@ -105,6 +112,11 @@ const App = () => {
     dispatch(initSubscriptions(deviceId))
   }, [deviceId, networkStatus.connected, registeredFcmToken, subscriptionsInitialized, dispatch])
 
+  useEffect(() => {
+    if (!isActive) return
+    dispatch(resetDateOfInterestIfStale())
+  }, [isActive, dispatch])
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — listener setup runs once on mount
   useEffect(() => {
     // Network status is disconnected by default in the networkStatusSlice. Update the status
@@ -126,11 +138,10 @@ const App = () => {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetchSFMSRunParameters is a stable action creator
   useEffect(() => {
-    const doiISODate = dateOfInterest.toISODate()
-    if (isActive && !isNull(doiISODate)) {
+    if (isActive && !isNull(dateOfInterestKey)) {
       dispatch(fetchSFMSRunParameters())
     }
-  }, [isActive, dateOfInterest, networkStatus.connected, dispatch])
+  }, [isActive, dateOfInterestKey, networkStatus.connected, dispatch])
 
   useEffect(() => {
     dispatch(fetchFireCentres())
@@ -183,7 +194,7 @@ const App = () => {
     if (!matchingCentre || !matchingShape) return
 
     // Reacting to an external system event (push notification tap); setState calls here are intentional.
-    setDateOfInterest(advisoryDate)
+    dispatch(setDateOfInterest(notificationDateKey))
     setFireCentre(matchingCentre)
     setSelectedFireShape({
       fire_shape_id: matchingShape.fire_shape_id,
@@ -249,16 +260,12 @@ const App = () => {
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
             setSelectedFireCentre={setFireCentre}
-            date={dateOfInterest}
-            setDate={setDateOfInterest}
             setTab={setTab}
             testId="asa-go-map"
           />
         </TabPanel>
         <TabPanel value={tab} panel={NavPanel.PROFILE}>
           <Profile
-            date={dateOfInterest}
-            setDate={setDateOfInterest}
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
             selectedFireZoneUnit={selectedFireShape}
@@ -267,8 +274,6 @@ const App = () => {
         </TabPanel>
         <TabPanel value={tab} panel={NavPanel.ADVISORY}>
           <Advisory
-            date={dateOfInterest}
-            setDate={setDateOfInterest}
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
             selectedFireZoneUnit={selectedFireShape}

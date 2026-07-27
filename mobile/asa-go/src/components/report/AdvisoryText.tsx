@@ -2,11 +2,13 @@ import { Box, useTheme } from '@mui/material'
 import { isEmpty, isNil, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { useMemo } from 'react'
+import { useSelector } from 'react-redux'
 import type { FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@/api/fbaAPI'
 import { AdvisoryTypography } from '@/components/report/AdvisoryTypography'
 import DefaultText from '@/components/report/DefaultText'
 import { useFilteredHFIStatsForDate, useProvincialSummaryForDate } from '@/hooks/dataHooks'
 import { useRunParameterForDate } from '@/hooks/useRunParameterForDate'
+import { selectDateOfInterest } from '@/slices/dateOfInterestSlice'
 import type { FireCentre } from '@/types/fireCentre'
 import { getTopFuelsByArea, getTopFuelsByProportion, getZoneMinWindStatsText } from '@/utils/advisoryTextUtils'
 import { AdvisoryStatus } from '@/utils/constants'
@@ -20,11 +22,11 @@ import { getToday } from '@/utils/dataSliceUtils'
 export interface AdvisoryTextProps {
   selectedFireCentre: FireCentre | undefined
   selectedFireZoneUnit: FireShape | undefined
-  date: DateTime
 }
 
-const AdvisoryText = ({ selectedFireCentre, selectedFireZoneUnit, date }: AdvisoryTextProps) => {
+const AdvisoryText = ({ selectedFireCentre, selectedFireZoneUnit }: AdvisoryTextProps) => {
   const theme = useTheme()
+  const date = useSelector(selectDateOfInterest)
 
   // hooks
   const provincialSummary = useProvincialSummaryForDate(date)

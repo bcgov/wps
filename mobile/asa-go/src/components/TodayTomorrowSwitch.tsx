@@ -1,13 +1,13 @@
 import { Box, Button, styled } from '@mui/material'
-import type { DateTime } from 'luxon'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectDateOfInterest, setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import type { AppDispatch } from '@/store'
 import { MAP_BUTTON_GREY } from '@/theme'
 import { BORDER_RADIUS, BUTTON_HEIGHT } from '@/utils/constants'
 import { getToday } from '@/utils/dataSliceUtils'
 
 interface TodayTomorrowSwitchProps {
   border?: boolean
-  date: DateTime
-  setDate: React.Dispatch<React.SetStateAction<DateTime>>
 }
 
 const BUTTON_WIDTH = 60
@@ -33,22 +33,19 @@ const StyledTextContainer = styled(Box)({
   justifyContent: 'center'
 })
 
-const TodayTomorrowSwitch = ({ border = false, date, setDate }: TodayTomorrowSwitchProps) => {
+const TodayTomorrowSwitch = ({ border = false }: TodayTomorrowSwitchProps) => {
+  const dispatch: AppDispatch = useDispatch()
+  const date = useSelector(selectDateOfInterest)
   const borderStyle = border ? `1px solid ${MAP_BUTTON_GREY}` : 'none'
 
   const today = getToday()
   const isToday = date.toISODate() === today.toISODate()
+  const isTomorrow = date.toISODate() === today.plus({ days: 1 }).toISODate()
 
   const handleDayChange = (newValue: number) => {
     // newValue: 0 = today, 1 = tomorrow
-    const shouldBeToday = newValue === 0
-
-    if (isToday !== shouldBeToday) {
-      // If we need to go to today but we're on tomorrow, subtract a day
-      // If we need to go to tomorrow but we're on today, add a day
-      const duration = shouldBeToday ? -1 : 1
-      setDate(date.plus({ day: duration }))
-    }
+    const dateKey = today.plus({ days: newValue }).toISODate()
+    if (dateKey) dispatch(setDateOfInterest(dateKey))
   }
 
   return (
@@ -72,11 +69,11 @@ const TodayTomorrowSwitch = ({ border = false, date, setDate }: TodayTomorrowSwi
           NOW
         </StyledTextContainer>
       </StyledButton>
-      <StyledButton disabled={!isToday} onClick={() => handleDayChange(1)}>
+      <StyledButton disabled={isTomorrow} onClick={() => handleDayChange(1)}>
         <StyledTextContainer
           sx={{
-            backgroundColor: isToday ? 'white' : MAP_BUTTON_GREY,
-            color: isToday ? MAP_BUTTON_GREY : 'white'
+            backgroundColor: isTomorrow ? MAP_BUTTON_GREY : 'white',
+            color: isTomorrow ? 'white' : MAP_BUTTON_GREY
           }}
         >
           TMR
