@@ -48,14 +48,28 @@ describe('TodayTomorrowSwitch', () => {
 
   it('clicking NOW updates the date to today', () => {
     const mockSetDate = vi.fn()
-    const tomorrow = getToday().plus({ days: 1 })
+    const today = getToday()
+    const tomorrow = today.plus({ days: 1 })
 
     render(<TodayTomorrowSwitch date={tomorrow} setDate={mockSetDate} />)
 
     const nowButton = screen.getByText('NOW').closest('button')!
     fireEvent.click(nowButton)
 
-    expect(mockSetDate).toHaveBeenCalledWith(tomorrow.plus({ day: -1 }))
+    expect(mockSetDate.mock.calls[0][0].toISODate()).toBe(today.toISODate())
+  })
+
+  it('clicking NOW from a stale date uses today instead of subtracting another day', () => {
+    const mockSetDate = vi.fn()
+    const today = getToday()
+    const yesterday = today.minus({ days: 1 })
+
+    render(<TodayTomorrowSwitch date={yesterday} setDate={mockSetDate} />)
+
+    expect(screen.getByText('TMR').closest('button')).not.toBeDisabled()
+    fireEvent.click(screen.getByText('NOW').closest('button')!)
+
+    expect(mockSetDate.mock.calls[0][0].toISODate()).toBe(today.toISODate())
   })
 
   it('updates internal state when date prop changes', () => {

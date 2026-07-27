@@ -38,17 +38,11 @@ const TodayTomorrowSwitch = ({ border = false, date, setDate }: TodayTomorrowSwi
 
   const today = getToday()
   const isToday = date.toISODate() === today.toISODate()
+  const isTomorrow = date.toISODate() === today.plus({ days: 1 }).toISODate()
 
   const handleDayChange = (newValue: number) => {
     // newValue: 0 = today, 1 = tomorrow
-    const shouldBeToday = newValue === 0
-
-    if (isToday !== shouldBeToday) {
-      // If we need to go to today but we're on tomorrow, subtract a day
-      // If we need to go to tomorrow but we're on today, add a day
-      const duration = shouldBeToday ? -1 : 1
-      setDate(date.plus({ day: duration }))
-    }
+    setDate(today.plus({ days: newValue }))
   }
 
   return (
@@ -72,11 +66,11 @@ const TodayTomorrowSwitch = ({ border = false, date, setDate }: TodayTomorrowSwi
           NOW
         </StyledTextContainer>
       </StyledButton>
-      <StyledButton disabled={!isToday} onClick={() => handleDayChange(1)}>
+      <StyledButton disabled={isTomorrow} onClick={() => handleDayChange(1)}>
         <StyledTextContainer
           sx={{
-            backgroundColor: isToday ? 'white' : MAP_BUTTON_GREY,
-            color: isToday ? MAP_BUTTON_GREY : 'white'
+            backgroundColor: isTomorrow ? MAP_BUTTON_GREY : 'white',
+            color: isTomorrow ? 'white' : MAP_BUTTON_GREY
           }}
         >
           TMR

@@ -142,11 +142,10 @@ const App = () => {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetchSFMSRunParameters is a stable action creator
   useEffect(() => {
-    const doiISODate = dateOfInterest.toISODate()
-    if (isActive && !isNull(doiISODate)) {
+    if (isActive) {
       dispatch(fetchSFMSRunParameters())
     }
-  }, [isActive, dateOfInterest, networkStatus.connected, dispatch])
+  }, [isActive, networkStatus.connected, dispatch])
 
   useEffect(() => {
     dispatch(fetchFireCentres())

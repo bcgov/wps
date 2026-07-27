@@ -3,6 +3,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import axios from '@/api/axios'
 import { RunType } from '@/api/fbaAPI'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
@@ -198,8 +199,7 @@ describe('App', () => {
     expect(appContainer).toBeInTheDocument()
   })
 
-  it('advances the selected date when the app resumes on a new ASA Go day', async () => {
-    mockUseAppIsActive.mockReturnValue(false)
+  it('advances the selected date and refreshes run parameters when the app resumes on a new ASA Go day', async () => {
     const store = createTestStore()
 
     const { rerender } = render(
@@ -209,6 +209,17 @@ describe('App', () => {
     )
 
     expect(screen.getByTestId('info-bar')).toHaveAttribute('data-viewing-date', '2025-07-02')
+    await act(async () => {})
+    const requestsBeforeResume = vi
+      .mocked(axios.get)
+      .mock.calls.filter(([url]) => url.startsWith('fba/latest-sfms-run-parameters/')).length
+
+    mockUseAppIsActive.mockReturnValue(false)
+    rerender(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
 
     mockGetToday.mockReturnValue(DateTime.fromISO('2025-07-03'))
     mockUseAppIsActive.mockReturnValue(true)
@@ -221,6 +232,10 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('info-bar')).toHaveAttribute('data-viewing-date', '2025-07-03')
     })
+    const requestsAfterResume = vi
+      .mocked(axios.get)
+      .mock.calls.filter(([url]) => url.startsWith('fba/latest-sfms-run-parameters/')).length
+    expect(requestsAfterResume).toBeGreaterThan(requestsBeforeResume)
   })
 
   it('initializes with correct styling', () => {
