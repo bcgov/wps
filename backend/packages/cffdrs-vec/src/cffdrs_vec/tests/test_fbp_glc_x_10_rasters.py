@@ -1,0 +1,133 @@
+"""
+Same 20 published GLC-X-10 FBP System test cases and the same calculate_primary_output() as
+test_fbp_glc_x_10.py, but sourced from the GeoTIFF fixtures under fixtures/glc_x_10/ (generated
+by generate_glc_x_10_rasters.py) instead of the CSVs directly - proving cffdrs_vec.fbp's
+vectorized functions also work correctly when driven by real GDAL raster reads (float32 storage,
+WPSDataset's nodata handling) rather than plain float64 arrays parsed straight from CSV.
+See https://github.com/bcgov/wps/issues/4893.
+"""
+
+import numpy as np
+import pytest
+from wps_shared.geospatial.wps_dataset import WPSDataset
+
+from cffdrs_vec.tests._glc_x_10_data import (
+    CBH_DEFAULT,
+    CFL_DEFAULT,
+    FIRE_TYPE_BY_FD_CODE,
+    INPUT_RASTER_NAMES,
+    OUTPUT_RASTER_NAMES,
+    PC_DEFAULT,
+    PDF_DEFAULT,
+    RASTER_DIR,
+    GLCX10Cases,
+    calculate_primary_output,
+    load_rows,
+    normalize_fuel_type,
+    with_default,
+)
+
+
+def _read_raster(name: str) -> np.ndarray:
+    with WPSDataset(str(RASTER_DIR / f"{name}.tif")) as ds:
+        array, _nodata = ds.replace_nodata_with(np.nan)
+    return array[0]  # single-row raster - drop back to a 1-D, one-value-per-case array
+
+
+class RasterCases:
+    """Same array attributes as GLCX10Cases (see calculate_primary_output()'s docstring), but
+    read from the GeoTIFF fixtures instead of the CSVs.
+    """
+
+    def __init__(self):
+        raster = {name: _read_raster(name) for name in INPUT_RASTER_NAMES}
+
+        # fuel type names aren't stored in the rasters (only the numeric code is) - needed here
+        # only to look up PC/PDF/CBH/CFL defaults, same as GLCX10Cases does from the CSV directly.
+        input_rows = load_rows("glc_x_10_inputs.csv")
+        fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
+
+        self.fuel_type_codes = raster["fuel_type_code"].astype(np.int64)
+        self.lat = raster["lat"]
+        self.lon = raster["lon"]
+        self.elv = np.nan_to_num(raster["elv"])
+        self.ffmc = raster["ffmc"]
+        self.bui = raster["bui"]
+        self.ws = raster["ws"]
+        self.wd_rad = np.radians(np.nan_to_num(raster["wd"]))
+        self.gs = raster["gs"]
+        self.dj = raster["dj"]
+        self.d0 = np.nan_to_num(raster["d0"])
+        self.aspect_rad = np.radians(np.nan_to_num(raster["aspect"]))
+        self.gfl = np.nan_to_num(raster["gfl"])
+        self.pc = with_default(raster["pc"], fuel_types, PC_DEFAULT)
+        self.pdf = with_default(raster["pdf"], fuel_types, PDF_DEFAULT)
+        self.cc = np.nan_to_num(raster["cc"])
+        self.cbh = with_default(raster["cbh"], fuel_types, CBH_DEFAULT)
+        self.cfl = with_default(raster["cfl"], fuel_types, CFL_DEFAULT)
+
+
+@pytest.fixture(scope="module")
+def raster_cases():
+    return RasterCases()
+
+
+@pytest.fixture(scope="module")
+def expected():
+    return {name: _read_raster(name) for name in OUTPUT_RASTER_NAMES}
+
+
+def test_raster_inputs_match_csv_inputs(raster_cases):
+    """Sanity check that generate_glc_x_10_rasters.py's output hasn't drifted from the CSVs it
+    was generated from - this would fail if the CSVs were updated without regenerating rasters.
+    """
+    csv_cases = GLCX10Cases()
+    np.testing.assert_allclose(raster_cases.fuel_type_codes, csv_cases.fuel_type_codes)
+    np.testing.assert_allclose(raster_cases.ffmc, csv_cases.ffmc)
+    np.testing.assert_allclose(raster_cases.bui, csv_cases.bui)
+    np.testing.assert_allclose(raster_cases.cbh, csv_cases.cbh)
+    np.testing.assert_allclose(raster_cases.cfl, csv_cases.cfl)
+
+
+def test_fbp_glc_x_10_rasters_ros(raster_cases, expected):
+    ros, _, _, _, _, _, _ = calculate_primary_output(raster_cases)
+    np.testing.assert_allclose(ros, expected["ros"], rtol=1e-3, err_msg="ROS")
+
+
+def test_fbp_glc_x_10_rasters_hfi(raster_cases, expected):
+    _, hfi, _, _, _, _, _ = calculate_primary_output(raster_cases)
+    np.testing.assert_allclose(hfi, expected["hfi"], rtol=1e-3, err_msg="HFI")
+
+
+def test_fbp_glc_x_10_rasters_cfb(raster_cases, expected):
+    _, _, cfb, _, _, _, _ = calculate_primary_output(raster_cases)
+    np.testing.assert_allclose(cfb, expected["cfb"], atol=1e-3, err_msg="CFB")
+
+
+def test_fbp_glc_x_10_rasters_sfc(raster_cases, expected):
+    _, _, _, sfc, _, _, _ = calculate_primary_output(raster_cases)
+    np.testing.assert_allclose(sfc, expected["sfc"], rtol=1e-3, err_msg="SFC")
+
+
+def test_fbp_glc_x_10_rasters_tfc(raster_cases, expected):
+    _, _, _, _, tfc, _, _ = calculate_primary_output(raster_cases)
+    np.testing.assert_allclose(tfc, expected["tfc"], rtol=1e-3, err_msg="TFC")
+
+
+def test_fbp_glc_x_10_rasters_raz(raster_cases, expected):
+    _, _, _, _, _, raz, _ = calculate_primary_output(raster_cases)
+    # _fire_behaviour_prediction wraps the angle with an exact `raz_deg == 360 -> 0` check. Float32
+    # raster storage rounds just enough that one case lands on 360.00001 instead of 0 - the same
+    # angle, but not an exact match - so compare the circular (mod-360) distance instead.
+    circular_diff = np.abs((raz - expected["raz"] + 180) % 360 - 180)
+    np.testing.assert_allclose(circular_diff, np.zeros_like(circular_diff), atol=0.1, err_msg="RAZ")
+
+
+def test_fbp_glc_x_10_rasters_fire_type(raster_cases, expected):
+    _, _, cfb, _, _, _, fire_type = calculate_primary_output(raster_cases)
+    # Rasters are pixel-ordered by input row order, so look up FD the same way, by id, rather
+    # than assuming the outputs CSV happens to already be in that same order.
+    ids = [row["id"] for row in load_rows("glc_x_10_inputs.csv")]
+    output_by_id = {row["ID"]: row for row in load_rows("glc_x_10_primary_outputs.csv")}
+    expected_fire_type = [FIRE_TYPE_BY_FD_CODE[output_by_id[i]["FD"]] for i in ids]
+    assert list(fire_type) == expected_fire_type

@@ -14,10 +14,12 @@ dependencies = [
 dev = [
     "gdal==3.13.1",
     "hypothesis>=6.150.2",
+    "wps-shared",
 ]
 
 [tool.uv.sources]
 cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "b52b27686f236b15d002ff49df85cd828a398ff2" }
+wps-shared = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
