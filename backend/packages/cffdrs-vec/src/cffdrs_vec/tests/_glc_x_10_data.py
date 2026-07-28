@@ -172,9 +172,15 @@ def load_rows(filename: str) -> list[dict]:
 
 
 def read_raster(raster_dir: Path, name: str) -> np.ndarray:
+    """Returns the raster's full 2-D (row, column) array, same shape a real production raster
+    would have - calculate_primary_output()'s vectorized functions are shape-preserving, so
+    nothing downstream needs to flatten this the way a real 2-D SFMS grid wouldn't be flattened
+    either. Our fixtures happen to be 1 row x 20 columns (one column per GLC-X-10 case), but
+    nothing here assumes that.
+    """
     with WPSDataset(str(raster_dir / f"{name}.tif")) as ds:
         array, _nodata = ds.replace_nodata_with(np.nan)
-    return array[0]  # single-row raster - drop back to a 1-D, one-value-per-case array
+    return array
 
 
 def raster_projection_wkt() -> str:
@@ -543,9 +549,12 @@ def calculate_primary_output(inputs: GLCX10Inputs):
     composed from cffdrs_vec.fbp's vectorized functions over the whole batch at once.
 
     `inputs` just needs GLCX10Inputs's fields - GLCX10Source.load_raster_inputs() builds the same
-    shape from GeoTIFFs instead of the CSVs.
+    shape from GeoTIFFs instead of the CSVs. Every array here is shape-preserving, 1-D or 2-D
+    alike (a real production raster grid would stay 2-D end to end, same as SFMS's own FWI job
+    does - no flatten/reshape needed), so this uses `.shape` throughout rather than `len()`,
+    which would silently only measure a 2-D array's first axis.
     """
-    n = len(inputs.fuel_type_codes)
+    shape = inputs.fuel_type_codes.shape
 
     # Corrections to reorient Wind Azimuth (WAZ) and Uphill slope azimuth (SAZ) - Eq. matches
     # _fire_behaviour_prediction exactly.
@@ -580,7 +589,7 @@ def calculate_primary_output(inputs: GLCX10Inputs):
         inputs.pdf,
         inputs.cc,
         inputs.cbh,
-        np.zeros(n),
+        np.zeros(shape),
     )
     slope_active = (inputs.gs > 0) & (inputs.ffmc > 0)
     wsv = np.where(slope_active, wsv0, inputs.ws)
@@ -611,7 +620,7 @@ def calculate_primary_output(inputs: GLCX10Inputs):
     raz_deg = np.degrees(raz)
     raz_deg = np.where(raz_deg == 360, 0.0, raz_deg)
 
-    fire_type = np.full(n, "IC", dtype=object)
+    fire_type = np.full(shape, "IC", dtype=object)
     fire_type[cfb < 0.1] = "SUR"
     fire_type[cfb >= 0.9] = "CC"
 

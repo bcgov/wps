@@ -45,49 +45,14 @@ from cffdrs_vec.tests._glc_x_10_data import GLC_X_10_SOURCES, calculate_primary_
 
 
 @pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_ros(source):
+def test_fbp_glc_x_10(source):
     inputs, expected = source.load()
-    ros, _, _, _, _, _, _ = calculate_primary_output(inputs)
+    ros, hfi, cfb, sfc, tfc, raz, fire_type = calculate_primary_output(inputs)
+
     np.testing.assert_allclose(ros, expected.ros, rtol=source.rtol_ros_hfi, err_msg="ROS")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_hfi(source):
-    inputs, expected = source.load()
-    _, hfi, _, _, _, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(hfi, expected.hfi, rtol=source.rtol_ros_hfi, err_msg="HFI")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_cfb(source):
-    inputs, expected = source.load()
-    _, _, cfb, _, _, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(cfb, expected.cfb, atol=source.atol_cfb, err_msg="CFB")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_sfc(source):
-    inputs, expected = source.load()
-    _, _, _, sfc, _, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(sfc, expected.sfc, rtol=1e-3, err_msg="SFC")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_tfc(source):
-    inputs, expected = source.load()
-    _, _, _, _, tfc, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(tfc, expected.tfc, rtol=1e-3, err_msg="TFC")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_raz(source):
-    inputs, expected = source.load()
-    _, _, _, _, _, raz, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(raz, expected.raz, atol=0.1, err_msg="RAZ")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_fire_type(source):
-    inputs, expected = source.load()
-    _, _, _, _, _, _, fire_type = calculate_primary_output(inputs)
     assert list(fire_type) == expected.fire_type

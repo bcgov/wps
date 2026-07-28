@@ -22,73 +22,45 @@ def test_raster_inputs_match_csv_inputs(source):
     """Sanity check that generate_glc_x_10_rasters.py's output hasn't drifted from the CSVs it
     was generated from - this would fail if the CSVs were updated without regenerating rasters.
     """
+    # raster_inputs comes back 2-D (eg. (1, 20), same shape a real raster grid would have);
+    # csv_inputs is flat, one value per case - flatten the raster side to compare them.
     raster_inputs = source.load_raster_inputs()
     csv_inputs, _expected = source.load()
-    np.testing.assert_allclose(raster_inputs.fuel_type_codes, csv_inputs.fuel_type_codes)
-    np.testing.assert_allclose(raster_inputs.ffmc, csv_inputs.ffmc)
-    np.testing.assert_allclose(raster_inputs.bui, csv_inputs.bui)
-    np.testing.assert_allclose(raster_inputs.cbh, csv_inputs.cbh)
-    np.testing.assert_allclose(raster_inputs.cfl, csv_inputs.cfl)
+    np.testing.assert_allclose(raster_inputs.fuel_type_codes.flatten(), csv_inputs.fuel_type_codes)
+    np.testing.assert_allclose(raster_inputs.ffmc.flatten(), csv_inputs.ffmc)
+    np.testing.assert_allclose(raster_inputs.bui.flatten(), csv_inputs.bui)
+    np.testing.assert_allclose(raster_inputs.cbh.flatten(), csv_inputs.cbh)
+    np.testing.assert_allclose(raster_inputs.cfl.flatten(), csv_inputs.cfl)
 
 
 @pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_rasters_ros(source):
+def test_fbp_glc_x_10_rasters(source):
     inputs = source.load_raster_inputs()
-    expected = source.read_raster_output("ros")
-    ros, _, _, _, _, _, _ = calculate_primary_output(inputs)
-    np.testing.assert_allclose(ros, expected, rtol=source.rtol_ros_hfi, err_msg="ROS")
+    ros, hfi, cfb, sfc, tfc, raz, fire_type = calculate_primary_output(inputs)
 
+    np.testing.assert_allclose(
+        ros, source.read_raster_output("ros"), rtol=source.rtol_ros_hfi, err_msg="ROS"
+    )
+    np.testing.assert_allclose(
+        hfi, source.read_raster_output("hfi"), rtol=source.rtol_ros_hfi, err_msg="HFI"
+    )
+    np.testing.assert_allclose(
+        cfb, source.read_raster_output("cfb"), atol=source.atol_cfb, err_msg="CFB"
+    )
+    np.testing.assert_allclose(sfc, source.read_raster_output("sfc"), rtol=1e-3, err_msg="SFC")
+    np.testing.assert_allclose(tfc, source.read_raster_output("tfc"), rtol=1e-3, err_msg="TFC")
 
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_rasters_hfi(source):
-    inputs = source.load_raster_inputs()
-    expected = source.read_raster_output("hfi")
-    _, hfi, _, _, _, _, _ = calculate_primary_output(inputs)
-    np.testing.assert_allclose(hfi, expected, rtol=source.rtol_ros_hfi, err_msg="HFI")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_rasters_cfb(source):
-    inputs = source.load_raster_inputs()
-    expected = source.read_raster_output("cfb")
-    _, _, cfb, _, _, _, _ = calculate_primary_output(inputs)
-    np.testing.assert_allclose(cfb, expected, atol=source.atol_cfb, err_msg="CFB")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_rasters_sfc(source):
-    inputs = source.load_raster_inputs()
-    expected = source.read_raster_output("sfc")
-    _, _, _, sfc, _, _, _ = calculate_primary_output(inputs)
-    np.testing.assert_allclose(sfc, expected, rtol=1e-3, err_msg="SFC")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_rasters_tfc(source):
-    inputs = source.load_raster_inputs()
-    expected = source.read_raster_output("tfc")
-    _, _, _, _, tfc, _, _ = calculate_primary_output(inputs)
-    np.testing.assert_allclose(tfc, expected, rtol=1e-3, err_msg="TFC")
-
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_rasters_raz(source):
-    inputs = source.load_raster_inputs()
-    expected = source.read_raster_output("raz")
-    _, _, _, _, _, raz, _ = calculate_primary_output(inputs)
     # _fire_behaviour_prediction wraps the angle with an exact `raz_deg == 360 -> 0` check. Float32
     # raster storage rounds just enough that one case can land on 360.00001 instead of 0 - the same
     # angle, but not an exact match - so compare the circular (mod-360) distance instead.
-    circular_diff = np.abs((raz - expected + 180) % 360 - 180)
+    expected_raz = source.read_raster_output("raz")
+    circular_diff = np.abs((raz - expected_raz + 180) % 360 - 180)
     np.testing.assert_allclose(circular_diff, np.zeros_like(circular_diff), atol=0.1, err_msg="RAZ")
 
-
-@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
-def test_fbp_glc_x_10_rasters_fire_type(source):
-    inputs = source.load_raster_inputs()
-    _, _, cfb, _, _, _, fire_type = calculate_primary_output(inputs)
     # fire_type isn't stored in a raster (it's derived from cfb, not read directly) - source.load()
     # already builds the same by-id lookup against the output CSV that this needs, in the same
-    # input-row/pixel order, so there's nothing raster-specific left to redo here.
+    # input-row/pixel order, so there's nothing raster-specific left to redo here. fire_type comes
+    # back 2-D (same shape as the raster-sourced inputs, eg. (1, 20)), so flatten it to compare
+    # against expected.fire_type's flat, one-value-per-case list.
     _, expected = source.load()
-    assert list(fire_type) == expected.fire_type
+    assert fire_type.flatten().tolist() == expected.fire_type
