@@ -48,7 +48,11 @@ RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-shared/pyproject.toml \
     /app/packages/wps-wf1/pyproject.toml \
     /app/packages/wps-sfms/pyproject.toml && \
-    chmod -R a-w /app/packages/cffdrs-vec/src /app/packages/wps-shared/src /app/packages/wps-sfms/src /app/packages/wps-wf1/src
+    chmod -R a-w \
+    /app/packages/cffdrs-vec/src \
+    /app/packages/wps-shared/src \
+    /app/packages/wps-sfms/src \
+    /app/packages/wps-wf1/src
 
 # Switch back to non-root user
 USER $USERNAME

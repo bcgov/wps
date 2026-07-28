@@ -41,7 +41,13 @@ COPY packages/wps-shared/README.md /app/packages/wps-shared/
 COPY packages/wps-shared/src /app/packages/wps-shared/src
 COPY packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
 COPY packages/wps-sfms/src /app/packages/wps-sfms/src
-RUN chmod -R a-w /app/pyproject.toml /app/uv.lock /app/packages/wps-api /app/packages/cffdrs-vec /app/packages/wps-shared /app/packages/wps-sfms
+RUN chmod -R a-w \
+    /app/pyproject.toml \
+    /app/uv.lock \
+    /app/packages/wps-api \
+    /app/packages/cffdrs-vec \
+    /app/packages/wps-shared \
+    /app/packages/wps-sfms
 
 # Install dependencies
 RUN uv sync --package wps-api
