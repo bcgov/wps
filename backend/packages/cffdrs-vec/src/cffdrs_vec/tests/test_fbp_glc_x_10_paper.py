@@ -1,9 +1,7 @@
 """
 Validates cffdrs_vec.fbp against the 20 published FBP System test cases from GLC-X-10 (Wotton et
 al. 2009), Tables 4 (inputs) and 5 (primary outputs) - transcribed directly from the PDF via
-`pdftotext -layout`, independent of the R-cffdrs-sourced CSVs test_fbp_glc_x_10.py uses. See
-_glc_x_10_data.py for exact provenance and how the two overlapping-text cells in the PDF were
-resolved, and https://github.com/bcgov/wps/issues/4893.
+`pdftotext -layout`, independent of the R-cffdrs-sourced CSVs test_fbp_glc_x_10.py uses.
 
 Structurally identical to test_fbp_glc_x_10.py (same calculate_primary_output composition) - the
 point of this file is the independent data source, not a different code path. If this ever
@@ -15,7 +13,7 @@ ROS, HFI and CFB use looser tolerances than test_fbp_glc_x_10.py's: cffdrs_vec (
 cffdrs package) is consistently ~0.3-0.6% off the paper's own published values for these three
 outputs specifically, while SFC/TFC/RAZ/fire type match to within the same tight tolerance used
 elsewhere. That's consistent with refinements made to the FBP rate-of-spread/CFB equations in the
-years since this 2009 paper was published, not a defect in this port - cffdrs_vec was already
+years since this 2009 paper was published. `cffdrs_vec` was already
 cross-checked against the current cffdrs package itself via hypothesis fuzz testing
 (test_fbp_hypothesis.py), so the goal here is catching gross regressions against the paper, not
 bit-for-bit reproduction of a since-superseded formula.

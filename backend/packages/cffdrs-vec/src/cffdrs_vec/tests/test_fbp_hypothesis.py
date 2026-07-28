@@ -7,7 +7,7 @@ across the input space rather than just a handful of fixed examples.
 fuel_type is fuzzed by sampling real cffdrs fuel type names (including NF/WA, the non-fuel and
 unknown codes) rather than random ints, so the different fuel-type branches (M1-M4 blends,
 O1A/O1B grass curing, C6's separate crown/surface split, NF/WA short-circuits) all actually get
-exercised - a raw int strategy would mostly land on values with no meaning at all.
+exercised.
 
 deadline=None on every test: the first hypothesis example triggers numba's (comparatively slow)
 JIT compilation of the vectorized function; subsequent examples reuse the compiled dispatcher and
@@ -31,9 +31,10 @@ import cffdrs.surface_fuel_consumption
 import cffdrs.total_fuel_consumption
 import numpy as np
 from cffdrs.constants import FUEL_TYPE_CODES
-from cffdrs_vec import fbp
 from hypothesis import given, settings
 from hypothesis import strategies as st
+
+from cffdrs_vec import fbp
 
 # (name, code) pairs, so fuel_type is fuzzed over every real cffdrs fuel type - including NF/WA -
 # rather than arbitrary ints that would mostly land on nothing meaningful.
@@ -127,7 +128,9 @@ def test_vectorized_foliar_moisture_content_matches_reference(lat, lon, elv, day
     actual = fbp.vectorized_foliar_moisture_content(
         np.array([lat]), np.array([lon]), np.array([elv]), np.array([day_of_year]), np.array([d0])
     )[0]
-    expected = cffdrs.foliar_moisture_content.foliar_moisture_content(lat, lon, elv, day_of_year, d0)
+    expected = cffdrs.foliar_moisture_content.foliar_moisture_content(
+        lat, lon, elv, day_of_year, d0
+    )
     np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-9)
 
 
@@ -192,7 +195,9 @@ def test_vectorized_surface_rate_of_spread_c6_matches_reference(rsi, bui):
 @given(rsc=rsc, rss=rss, rso=rso)
 @settings(deadline=None, max_examples=200)
 def test_vectorized_crown_fraction_burned_c6_matches_reference(rsc, rss, rso):
-    actual = fbp.vectorized_crown_fraction_burned_c6(np.array([rsc]), np.array([rss]), np.array([rso]))[0]
+    actual = fbp.vectorized_crown_fraction_burned_c6(
+        np.array([rsc]), np.array([rss]), np.array([rso])
+    )[0]
     expected = cffdrs.c6_calc.crown_fraction_burned_c6(rsc, rss, rso)
     np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-9)
 
@@ -202,7 +207,12 @@ def test_vectorized_crown_fraction_burned_c6_matches_reference(rsc, rss, rso):
 def test_vectorized_total_fuel_consumption_matches_reference(fuel_type, cfl, cfb, sfc, pc, pdf):
     name, code = fuel_type
     actual = fbp.vectorized_total_fuel_consumption(
-        np.array([code]), np.array([cfl]), np.array([cfb]), np.array([sfc]), np.array([pc]), np.array([pdf])
+        np.array([code]),
+        np.array([cfl]),
+        np.array([cfb]),
+        np.array([sfc]),
+        np.array([pc]),
+        np.array([pdf]),
     )[0]
     expected = cffdrs.total_fuel_consumption.total_fuel_consumption(name, cfl, cfb, sfc, pc, pdf)
     np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-9)
@@ -210,7 +220,9 @@ def test_vectorized_total_fuel_consumption_matches_reference(fuel_type, cfl, cfb
 
 @given(fuel_type=fuel_type, isi=isi, bui=bui, fmc=fmc, sfc=sfc, pc=pc, pdf=pdf, cc=cc, cbh=cbh)
 @settings(deadline=None, max_examples=200)
-def test_vectorized_rate_of_spread_matches_reference(fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh):
+def test_vectorized_rate_of_spread_matches_reference(
+    fuel_type, isi, bui, fmc, sfc, pc, pdf, cc, cbh
+):
     name, code = fuel_type
     actual = fbp.vectorized_rate_of_spread(
         np.array([code]),
@@ -323,7 +335,9 @@ def test_vectorized_rate_of_spread_extended_matches_reference(
         np.array([cc]),
         np.array([cbh]),
     )
-    expected = cffdrs.rate_of_spread.rate_of_spread_extended(name, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
+    expected = cffdrs.rate_of_spread.rate_of_spread_extended(
+        name, isi, bui, fmc, sfc, pc, pdf, cc, cbh
+    )
     np.testing.assert_allclose(ros_arr[0], expected.ros, rtol=1e-6, atol=1e-9)
     np.testing.assert_allclose(cfb_arr[0], expected.cfb, rtol=1e-6, atol=1e-9)
     np.testing.assert_allclose(csi_arr[0], expected.csi, rtol=1e-6, atol=1e-9)
