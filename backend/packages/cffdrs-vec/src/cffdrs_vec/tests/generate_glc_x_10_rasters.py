@@ -13,7 +13,7 @@ data/glc_x_10_paper_primary_outputs.csv) - see _glc_x_10_data.py for exact prove
 Blank CSV cells (eg. CBH/CFL/PC, left for cffdrs to default) are written as SFMS_NO_DATA, not 0 or
 NaN, so reading them back through WPSDataset.replace_nodata_with(np.nan) round-trips to exactly
 the same "missing" signal _glc_x_10_data.parse_float() gives when reading the CSV directly - see
-test_fbp_glc_x_10_rasters.py / test_fbp_glc_x_10_paper_rasters.py.
+test_fbp_glc_x_10_rasters.py.
 
 Not a test_*.py module - this is a one-off generator, run directly:
     uv run --package wps-api python -m cffdrs_vec.tests.generate_glc_x_10_rasters
