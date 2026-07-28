@@ -3,12 +3,12 @@ Validates cffdrs_vec.fbp (and cffdrs_vec.fwi.vectorized_isi) against the 20 publ
 test cases from GLC-X-10 (Wotton et al. 2009), Table 4 (inputs) and Table 5 (primary outputs).
 See https://github.com/bcgov/wps/issues/4893.
 
-Parametrized over two independent data sources (see _glc_x_10_data.py for exact provenance of
-each):
-- "r_package" (load_r_package_cases): the R cffdrs package's own digitized transcription of the
-  paper's Tables 4/5, vendored here by way of cffdrs_py's own copy of those same files.
-- "paper" (load_paper_cases): transcribed independently, straight from the published PDF via
-  `pdftotext -layout`, with no R package in the chain at all.
+Parametrized over two independent data sources (see _glc_x_10_data.py's GLCX10Source for exact
+provenance of each):
+- "r_package": the R cffdrs package's own digitized transcription of the paper's Tables 4/5,
+  vendored here by way of cffdrs_py's own copy of those same files.
+- "paper": transcribed independently, straight from the published PDF via `pdftotext -layout`,
+  with no R package in the chain at all.
 If these two ever disagree, the R-sourced CSVs and the paper have actually diverged and that's
 worth investigating; both staying green is the cross-validation working as intended.
 test_fbp_glc_x_10_rasters.py runs the same two sources and the same calculate_primary_output()
@@ -22,13 +22,14 @@ cffdrs's own cffdrs.fire_behaviour_prediction._fire_behaviour_prediction orchest
 its Primary output, but over batched arrays covering all 20 cases at once rather than one case
 at a time - this is what these functions are for.
 
-ROS, HFI and CFB use a looser tolerance for "paper" than "r_package": cffdrs_vec (like the current
-R cffdrs package) is consistently ~0.3-0.6% off the paper's own published values for these three
-outputs specifically, while SFC/TFC/RAZ/fire type match tightly for both sources. That's
-consistent with refinements made to the FBP rate-of-spread/CFB equations in the years since this
-2009 paper was published. cffdrs_vec was already cross-checked against the current cffdrs package
-itself via hypothesis fuzz testing (test_fbp_hypothesis.py), so the goal here is catching gross
-regressions against the paper, not bit-for-bit reproduction of a since-superseded formula.
+ROS, HFI and CFB use a looser tolerance for "paper" than "r_package" (GLCX10Source.rtol_ros_hfi/
+atol_cfb): cffdrs_vec (like the current R cffdrs package) is consistently ~0.3-0.6% off the
+paper's own published values for these three outputs specifically, while SFC/TFC/RAZ/fire type
+match tightly for both sources. That's consistent with refinements made to the FBP
+rate-of-spread/CFB equations in the years since this 2009 paper was published. cffdrs_vec was
+already cross-checked against the current cffdrs package itself via hypothesis fuzz testing
+(test_fbp_hypothesis.py), so the goal here is catching gross regressions against the paper, not
+bit-for-bit reproduction of a since-superseded formula.
 
 Note: an earlier version of this test validated app.fire_behaviour.prediction's *scalar*
 calculate_fire_behaviour_prediction_using_cffdrs instead, and needed to xfail 17 of the 20 cases
@@ -40,77 +41,53 @@ functions directly with every published input.
 import numpy as np
 import pytest
 
-from cffdrs_vec.tests._glc_x_10_data import (
-    calculate_primary_output,
-    load_paper_cases,
-    load_r_package_cases,
-)
+from cffdrs_vec.tests._glc_x_10_data import GLC_X_10_SOURCES, calculate_primary_output
 
 
-@pytest.mark.parametrize(
-    "load_cases,rtol",
-    [(load_r_package_cases, 1e-3), (load_paper_cases, 1e-2)],
-    ids=["r_package", "paper"],
-)
-def test_fbp_glc_x_10_ros(load_cases, rtol):
-    inputs, expected = load_cases()
+@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
+def test_fbp_glc_x_10_ros(source):
+    inputs, expected = source.load()
     ros, _, _, _, _, _, _ = calculate_primary_output(inputs)
-    np.testing.assert_allclose(ros, expected.ros, rtol=rtol, err_msg="ROS")
+    np.testing.assert_allclose(ros, expected.ros, rtol=source.rtol_ros_hfi, err_msg="ROS")
 
 
-@pytest.mark.parametrize(
-    "load_cases,rtol",
-    [(load_r_package_cases, 1e-3), (load_paper_cases, 1e-2)],
-    ids=["r_package", "paper"],
-)
-def test_fbp_glc_x_10_hfi(load_cases, rtol):
-    inputs, expected = load_cases()
+@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
+def test_fbp_glc_x_10_hfi(source):
+    inputs, expected = source.load()
     _, hfi, _, _, _, _, _ = calculate_primary_output(inputs)
-    np.testing.assert_allclose(hfi, expected.hfi, rtol=rtol, err_msg="HFI")
+    np.testing.assert_allclose(hfi, expected.hfi, rtol=source.rtol_ros_hfi, err_msg="HFI")
 
 
-@pytest.mark.parametrize(
-    "load_cases,atol",
-    [(load_r_package_cases, 1e-3), (load_paper_cases, 3e-3)],
-    ids=["r_package", "paper"],
-)
-def test_fbp_glc_x_10_cfb(load_cases, atol):
-    inputs, expected = load_cases()
+@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
+def test_fbp_glc_x_10_cfb(source):
+    inputs, expected = source.load()
     _, _, cfb, _, _, _, _ = calculate_primary_output(inputs)
-    np.testing.assert_allclose(cfb, expected.cfb, atol=atol, err_msg="CFB")
+    np.testing.assert_allclose(cfb, expected.cfb, atol=source.atol_cfb, err_msg="CFB")
 
 
-@pytest.mark.parametrize(
-    "load_cases", [load_r_package_cases, load_paper_cases], ids=["r_package", "paper"]
-)
-def test_fbp_glc_x_10_sfc(load_cases):
-    inputs, expected = load_cases()
+@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
+def test_fbp_glc_x_10_sfc(source):
+    inputs, expected = source.load()
     _, _, _, sfc, _, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(sfc, expected.sfc, rtol=1e-3, err_msg="SFC")
 
 
-@pytest.mark.parametrize(
-    "load_cases", [load_r_package_cases, load_paper_cases], ids=["r_package", "paper"]
-)
-def test_fbp_glc_x_10_tfc(load_cases):
-    inputs, expected = load_cases()
+@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
+def test_fbp_glc_x_10_tfc(source):
+    inputs, expected = source.load()
     _, _, _, _, tfc, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(tfc, expected.tfc, rtol=1e-3, err_msg="TFC")
 
 
-@pytest.mark.parametrize(
-    "load_cases", [load_r_package_cases, load_paper_cases], ids=["r_package", "paper"]
-)
-def test_fbp_glc_x_10_raz(load_cases):
-    inputs, expected = load_cases()
+@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
+def test_fbp_glc_x_10_raz(source):
+    inputs, expected = source.load()
     _, _, _, _, _, raz, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(raz, expected.raz, atol=0.1, err_msg="RAZ")
 
 
-@pytest.mark.parametrize(
-    "load_cases", [load_r_package_cases, load_paper_cases], ids=["r_package", "paper"]
-)
-def test_fbp_glc_x_10_fire_type(load_cases):
-    inputs, expected = load_cases()
+@pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
+def test_fbp_glc_x_10_fire_type(source):
+    inputs, expected = source.load()
     _, _, _, _, _, _, fire_type = calculate_primary_output(inputs)
     assert list(fire_type) == expected.fire_type
