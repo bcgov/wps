@@ -14,13 +14,15 @@ not included in the installed cffdrs_py package, hence vendored here rather than
 The glc_x_10_paper_*.csv files are a second, independent transcription: extracted directly from
 Tables 4-6 of the published PDF (Fo123-2-10-2009-eng.pdf) via `pdftotext -layout`, without going
 through the R package at all. They exist to cross-validate the R-sourced CSVs above against the
-actual paper rather than trusting that chain of custody; see PaperGLCX10Cases.
+actual paper rather than trusting that chain of custody; see load_glc_x_10_cases.
 
 """
 
 import csv
+import functools
 import math
 from pathlib import Path
+from typing import NamedTuple
 
 import numpy as np
 from cffdrs.constants import D1, FUEL_TYPE_CODES, O1A, O1B, S1, S2, S3
@@ -163,184 +165,245 @@ def load_rows(filename: str) -> list[dict]:
         return list(csv.DictReader(f))
 
 
-class RPackageGLCX10Cases:
-    """All 20 GLC-X-10 cases loaded as batched arrays, plus the published Table 5 outputs."""
-
-    def __init__(self):
-        input_rows = load_rows("cffdrs_r_test_fbp_inputs.csv")
-        output_by_id = {
-            row["ID"]: row for row in load_rows("cffdrs_r_test_fbp_primary_outputs.csv")
-        }
-
-        self.ids = [row["id"] for row in input_rows]
-        self.fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
-        self.fuel_type_codes = np.array(
-            [FUEL_TYPE_CODES[ft] for ft in self.fuel_types], dtype=np.int64
-        )
-
-        self.lat = np.array([parse_float(row["LAT"]) for row in input_rows])
-        self.lon = np.array([parse_float(row["LONG"]) for row in input_rows])
-        self.elv = np.nan_to_num(np.array([parse_float(row["ELV"]) for row in input_rows]))
-        self.ffmc = np.array([parse_float(row["FFMC"]) for row in input_rows])
-        self.bui = np.array([parse_float(row["BUI"]) for row in input_rows])
-        self.ws = np.array([parse_float(row["WS"]) for row in input_rows])
-        self.wd_rad = np.radians(
-            np.nan_to_num(np.array([parse_float(row["WD"]) for row in input_rows]))
-        )
-        self.gs = np.array([parse_float(row["GS"]) for row in input_rows])
-        self.dj = np.array([parse_float(row["Dj"]) for row in input_rows])
-        self.d0 = np.nan_to_num(np.array([parse_float(row["D0"]) for row in input_rows]))
-        self.aspect_rad = np.radians(
-            np.nan_to_num(np.array([parse_float(row["Aspect"]) for row in input_rows]))
-        )
-        self.gfl = np.nan_to_num(np.array([parse_float(row["GFL"]) for row in input_rows]))
-
-        self.pc = with_default(
-            np.array([parse_float(row["PC"]) for row in input_rows]), self.fuel_types, PC_DEFAULT
-        )
-        self.pdf = with_default(
-            np.array([parse_float(row["PDF"]) for row in input_rows]), self.fuel_types, PDF_DEFAULT
-        )
-        self.cc = np.nan_to_num(np.array([parse_float(row["cc"]) for row in input_rows]))
-        self.cbh = with_default(
-            np.array([parse_float(row["CBH"]) for row in input_rows]), self.fuel_types, CBH_DEFAULT
-        )
-        self.cfl = with_default(
-            np.array([parse_float(row["CFL"]) for row in input_rows]), self.fuel_types, CFL_DEFAULT
-        )
-
-        self.expected_ros = np.array([float(output_by_id[i]["ROS"]) for i in self.ids])
-        self.expected_hfi = np.array([float(output_by_id[i]["HFI"]) for i in self.ids])
-        self.expected_cfb = np.array([float(output_by_id[i]["CFB"]) for i in self.ids])
-        self.expected_sfc = np.array([float(output_by_id[i]["SFC"]) for i in self.ids])
-        self.expected_tfc = np.array([float(output_by_id[i]["TFC"]) for i in self.ids])
-        self.expected_raz = np.array([float(output_by_id[i]["RAZ"]) for i in self.ids])
-        self.expected_fire_type = [FIRE_TYPE_BY_FD_CODE[output_by_id[i]["FD"]] for i in self.ids]
+# Column names differ (and one field is fully renamed - see below), but every other CSV shape is
+# the same for both sources: an input CSV with a "FuelType" column, and an output CSV with
+# ROS/HFI/CFB/SFC/TFC/RAZ/FD columns keyed by the same id.
+R_PACKAGE_COLUMNS = {
+    "lat": "LAT", "lon": "LONG", "elv": "ELV", "ffmc": "FFMC", "bui": "BUI", "ws": "WS",
+    "wd": "WD", "gs": "GS", "dj": "Dj", "d0": "D0", "gfl": "GFL", "pc": "PC", "pdf": "PDF",
+    "cc": "cc",
+}
+PAPER_COLUMNS = {
+    "lat": "Lat", "lon": "Long", "elv": "Elev", "ffmc": "FFMC", "bui": "BUI", "ws": "WS",
+    "wd": "WDIR", "gs": "GS", "dj": "Dj", "d0": "D0", "gfl": "GFL", "pc": "PC", "pdf": "PDF",
+    "cc": "C",
+}
 
 
-class PaperGLCX10Cases:
-    """All 20 GLC-X-10 cases loaded from glc_x_10_paper_inputs.csv / glc_x_10_paper_primary_outputs.csv
-    - a direct transcription of the paper's own Tables 4/5, independent of the R-cffdrs-sourced
-    CSVs GLCX10Cases reads. Exposes the same attributes as GLCX10Cases so calculate_primary_output()
-    works unchanged on either.
+class GLCX10Inputs(NamedTuple):
+    """One field per array calculate_primary_output() needs - RasterCases in
+    test_fbp_glc_x_10_rasters.py builds the same shape from GeoTIFFs instead of the CSVs.
     """
 
-    def __init__(self):
-        input_rows = load_rows("glc_x_10_paper_inputs.csv")
-        output_by_case = {
-            row["TestCase"]: row for row in load_rows("glc_x_10_paper_primary_outputs.csv")
-        }
+    fuel_type_codes: np.ndarray
+    lat: np.ndarray
+    lon: np.ndarray
+    elv: np.ndarray
+    ffmc: np.ndarray
+    bui: np.ndarray
+    ws: np.ndarray
+    wd_rad: np.ndarray
+    gs: np.ndarray
+    dj: np.ndarray
+    d0: np.ndarray
+    aspect_rad: np.ndarray
+    gfl: np.ndarray
+    pc: np.ndarray
+    pdf: np.ndarray
+    cc: np.ndarray
+    cbh: np.ndarray
+    cfl: np.ndarray
 
-        self.ids = [row["TestCase"] for row in input_rows]
-        self.fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
-        self.fuel_type_codes = np.array(
-            [FUEL_TYPE_CODES[ft] for ft in self.fuel_types], dtype=np.int64
+
+class GLCX10ExpectedOutputs(NamedTuple):
+    """The published Table 5 outputs, in the same case order as the GLCX10Inputs they go with."""
+
+    ros: np.ndarray
+    hfi: np.ndarray
+    cfb: np.ndarray
+    sfc: np.ndarray
+    tfc: np.ndarray
+    raz: np.ndarray
+    fire_type: list
+
+
+def load_glc_x_10_cases(
+    source, input_csv, output_csv, id_input_col, id_output_col, columns
+) -> tuple[GLCX10Inputs, GLCX10ExpectedOutputs]:
+    """Loads all 20 GLC-X-10 cases as batched arrays, plus the published Table 5 outputs.
+
+    Shared loader for both data sources (see R_PACKAGE_COLUMNS/PAPER_COLUMNS above for where
+    they're just a column rename) - load_r_package_cases/load_paper_cases below bind `source` so
+    each is still a plain zero-arg callable.
+
+    Aspect and CBH/CFL are handled as an explicit `source` branch rather than folded into the
+    column map, because they're not just differently-named columns:
+    - the paper gives SAZ (upslope azimuth) directly rather than cffdrs's own Aspect
+      (downslope-facing direction) input convention; SAZ = Aspect + 180 deg (see fbp.r comments),
+      so the paper source has to invert it, not just rename it.
+    - Table 4 (the paper's own table) has no CBH/CFL columns at all - cffdrs's own per-fuel-type
+      defaults always apply, there's no column to read.
+    """
+    input_rows = load_rows(input_csv)
+    output_by_id = {row[id_output_col]: row for row in load_rows(output_csv)}
+
+    ids = [row[id_input_col] for row in input_rows]
+    fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
+    fuel_type_codes = np.array([FUEL_TYPE_CODES[ft] for ft in fuel_types], dtype=np.int64)
+
+    lat = np.array([parse_float(row[columns["lat"]]) for row in input_rows])
+    lon = np.array([parse_float(row[columns["lon"]]) for row in input_rows])
+    elv = np.nan_to_num(np.array([parse_float(row[columns["elv"]]) for row in input_rows]))
+    ffmc = np.array([parse_float(row[columns["ffmc"]]) for row in input_rows])
+    bui = np.array([parse_float(row[columns["bui"]]) for row in input_rows])
+    ws = np.array([parse_float(row[columns["ws"]]) for row in input_rows])
+    # Blank only for case 4 (both sources), where WS=0 makes wind direction physically
+    # irrelevant.
+    wd_rad = np.radians(
+        np.nan_to_num(np.array([parse_float(row[columns["wd"]]) for row in input_rows]))
+    )
+    gs = np.array([parse_float(row[columns["gs"]]) for row in input_rows])
+    dj = np.array([parse_float(row[columns["dj"]]) for row in input_rows])
+    d0 = np.nan_to_num(np.array([parse_float(row[columns["d0"]]) for row in input_rows]))
+    gfl = np.nan_to_num(np.array([parse_float(row[columns["gfl"]]) for row in input_rows]))
+    pc = with_default(
+        np.array([parse_float(row[columns["pc"]]) for row in input_rows]), fuel_types, PC_DEFAULT
+    )
+    pdf = with_default(
+        np.array([parse_float(row[columns["pdf"]]) for row in input_rows]),
+        fuel_types,
+        PDF_DEFAULT,
+    )
+    cc = np.nan_to_num(np.array([parse_float(row[columns["cc"]]) for row in input_rows]))
+
+    if source == "r_package":
+        aspect_rad = np.radians(
+            np.nan_to_num(np.array([parse_float(row["Aspect"]) for row in input_rows]))
         )
-
-        self.lat = np.array([parse_float(row["Lat"]) for row in input_rows])
-        self.lon = np.array([parse_float(row["Long"]) for row in input_rows])
-        self.elv = np.nan_to_num(np.array([parse_float(row["Elev"]) for row in input_rows]))
-        self.ffmc = np.array([parse_float(row["FFMC"]) for row in input_rows])
-        self.bui = np.array([parse_float(row["BUI"]) for row in input_rows])
-        self.ws = np.array([parse_float(row["WS"]) for row in input_rows])
-        # WDIR is blank only for case 4, where WS=0 makes wind direction physically irrelevant -
-        # same as the R CSV's WD=NA for that row.
-        self.wd_rad = np.radians(
-            np.nan_to_num(np.array([parse_float(row["WDIR"]) for row in input_rows]))
+        cbh = with_default(
+            np.array([parse_float(row["CBH"]) for row in input_rows]), fuel_types, CBH_DEFAULT
         )
-        self.gs = np.array([parse_float(row["GS"]) for row in input_rows])
-        self.dj = np.array([parse_float(row["Dj"]) for row in input_rows])
-        self.d0 = np.nan_to_num(np.array([parse_float(row["D0"]) for row in input_rows]))
-
-        # The paper gives SAZ (upslope azimuth) directly rather than cffdrs's own Aspect
-        # (downslope-facing direction) input convention; SAZ = Aspect + 180 deg (see fbp.r
-        # comments), so invert that here. Blank only for case 14, where GS=0 makes slope
-        # direction physically irrelevant.
+        cfl = with_default(
+            np.array([parse_float(row["CFL"]) for row in input_rows]), fuel_types, CFL_DEFAULT
+        )
+    elif source == "paper":
+        # Blank only for case 14, where GS=0 makes slope direction physically irrelevant.
         saz_deg = np.nan_to_num(np.array([parse_float(row["SAZ"]) for row in input_rows]))
-        self.aspect_rad = np.radians((saz_deg - 180) % 360)
+        aspect_rad = np.radians((saz_deg - 180) % 360)
+        cbh = np.array([CBH_DEFAULT[ft] for ft in fuel_types])
+        cfl = np.array([CFL_DEFAULT[ft] for ft in fuel_types])
+    else:
+        raise ValueError(f"Unknown source: {source!r}")
 
-        self.gfl = np.nan_to_num(np.array([parse_float(row["GFL"]) for row in input_rows]))
-        self.pc = with_default(
-            np.array([parse_float(row["PC"]) for row in input_rows]), self.fuel_types, PC_DEFAULT
-        )
-        self.pdf = with_default(
-            np.array([parse_float(row["PDF"]) for row in input_rows]), self.fuel_types, PDF_DEFAULT
-        )
-        self.cc = np.nan_to_num(np.array([parse_float(row["C"]) for row in input_rows]))
-        # Table 4 has no CBH/CFL columns at all - cffdrs's own per-fuel-type defaults apply.
-        self.cbh = np.array([CBH_DEFAULT[ft] for ft in self.fuel_types])
-        self.cfl = np.array([CFL_DEFAULT[ft] for ft in self.fuel_types])
+    inputs = GLCX10Inputs(
+        fuel_type_codes=fuel_type_codes,
+        lat=lat,
+        lon=lon,
+        elv=elv,
+        ffmc=ffmc,
+        bui=bui,
+        ws=ws,
+        wd_rad=wd_rad,
+        gs=gs,
+        dj=dj,
+        d0=d0,
+        aspect_rad=aspect_rad,
+        gfl=gfl,
+        pc=pc,
+        pdf=pdf,
+        cc=cc,
+        cbh=cbh,
+        cfl=cfl,
+    )
+    expected = GLCX10ExpectedOutputs(
+        ros=np.array([float(output_by_id[i]["ROS"]) for i in ids]),
+        hfi=np.array([float(output_by_id[i]["HFI"]) for i in ids]),
+        cfb=np.array([float(output_by_id[i]["CFB"]) for i in ids]),
+        sfc=np.array([float(output_by_id[i]["SFC"]) for i in ids]),
+        tfc=np.array([float(output_by_id[i]["TFC"]) for i in ids]),
+        raz=np.array([float(output_by_id[i]["RAZ"]) for i in ids]),
+        fire_type=[FIRE_TYPE_BY_FD_CODE[output_by_id[i]["FD"]] for i in ids],
+    )
+    return inputs, expected
 
-        self.expected_ros = np.array([float(output_by_case[i]["ROS"]) for i in self.ids])
-        self.expected_hfi = np.array([float(output_by_case[i]["HFI"]) for i in self.ids])
-        self.expected_cfb = np.array([float(output_by_case[i]["CFB"]) for i in self.ids])
-        self.expected_sfc = np.array([float(output_by_case[i]["SFC"]) for i in self.ids])
-        self.expected_tfc = np.array([float(output_by_case[i]["TFC"]) for i in self.ids])
-        self.expected_raz = np.array([float(output_by_case[i]["RAZ"]) for i in self.ids])
-        self.expected_fire_type = [FIRE_TYPE_BY_FD_CODE[output_by_case[i]["FD"]] for i in self.ids]
+
+load_r_package_cases = functools.partial(
+    load_glc_x_10_cases,
+    "r_package",
+    "cffdrs_r_test_fbp_inputs.csv",
+    "cffdrs_r_test_fbp_primary_outputs.csv",
+    "id",
+    "ID",
+    R_PACKAGE_COLUMNS,
+)
+load_paper_cases = functools.partial(
+    load_glc_x_10_cases,
+    "paper",
+    "glc_x_10_paper_inputs.csv",
+    "glc_x_10_paper_primary_outputs.csv",
+    "TestCase",
+    "TestCase",
+    PAPER_COLUMNS,
+)
 
 
-def calculate_primary_output(cases):
+def calculate_primary_output(inputs: GLCX10Inputs):
     """Mirrors cffdrs.fire_behaviour_prediction._fire_behaviour_prediction's Primary output,
     composed from cffdrs_vec.fbp's vectorized functions over the whole batch at once.
 
-    `cases` just needs the same array attributes RPackageGLCX10Cases/PaperGLCX10Cases have
-    (fuel_type_codes, lat, lon, elv, ffmc, bui, ws, wd_rad, gs, dj, d0, aspect_rad, gfl, pc, pdf,
-    cc, cbh, cfl) - RasterCases in test_fbp_glc_x_10_rasters.py builds the same shape from
-    GeoTIFFs instead of the CSVs.
+    `inputs` just needs GLCX10Inputs's fields - RasterCases in test_fbp_glc_x_10_rasters.py builds
+    the same shape from GeoTIFFs instead of the CSVs.
     """
-    n = len(cases.fuel_type_codes)
+    n = len(inputs.fuel_type_codes)
 
     # Corrections to reorient Wind Azimuth (WAZ) and Uphill slope azimuth (SAZ) - Eq. matches
     # _fire_behaviour_prediction exactly.
-    waz = cases.wd_rad + math.pi
+    waz = inputs.wd_rad + math.pi
     waz = np.where(waz > 2 * math.pi, waz - 2 * math.pi, waz)
-    saz = cases.aspect_rad + math.pi
+    saz = inputs.aspect_rad + math.pi
     saz = np.where(saz > 2 * math.pi, saz - 2 * math.pi, saz)
 
     fmc = fbp.vectorized_foliar_moisture_content(
-        cases.lat, cases.lon, cases.elv, cases.dj, cases.d0
+        inputs.lat, inputs.lon, inputs.elv, inputs.dj, inputs.d0
     )
-    no_crown = np.isin(cases.fuel_type_codes, NO_CROWN_FUEL_TYPE_CODES)
+    no_crown = np.isin(inputs.fuel_type_codes, NO_CROWN_FUEL_TYPE_CODES)
     fmc = np.where(no_crown, 0.0, fmc)
 
     sfc = fbp.vectorized_surface_fuel_consumption(
-        cases.fuel_type_codes, cases.ffmc, cases.bui, cases.pc, cases.gfl
+        inputs.fuel_type_codes, inputs.ffmc, inputs.bui, inputs.pc, inputs.gfl
     )
 
     # slope_adjustment()'s isi parameter is unused by the underlying formula (it derives its own
     # zero-wind ISI internally), so any placeholder value works here.
     wsv0, raz0 = fbp.vectorized_slope_adjustment(
-        cases.fuel_type_codes,
-        cases.ffmc,
-        cases.bui,
-        cases.ws,
+        inputs.fuel_type_codes,
+        inputs.ffmc,
+        inputs.bui,
+        inputs.ws,
         waz,
-        cases.gs,
+        inputs.gs,
         saz,
         fmc,
         sfc,
-        cases.pc,
-        cases.pdf,
-        cases.cc,
-        cases.cbh,
+        inputs.pc,
+        inputs.pdf,
+        inputs.cc,
+        inputs.cbh,
         np.zeros(n),
     )
-    slope_active = (cases.gs > 0) & (cases.ffmc > 0)
-    wsv = np.where(slope_active, wsv0, cases.ws)
+    slope_active = (inputs.gs > 0) & (inputs.ffmc > 0)
+    wsv = np.where(slope_active, wsv0, inputs.ws)
     raz = np.where(slope_active, raz0, waz)
 
     # All 20 published cases leave ISI as "not observed" (0), so it's always derived from the
     # slope-adjusted wind speed here, same as _fire_behaviour_prediction does.
-    isi = vectorized_isi(cases.ffmc, wsv, True)
+    isi = vectorized_isi(inputs.ffmc, wsv, True)
 
     ros, cfb, _csi, _rso = fbp.vectorized_rate_of_spread_extended(
-        cases.fuel_type_codes, isi, cases.bui, fmc, sfc, cases.pc, cases.pdf, cases.cc, cases.cbh
+        inputs.fuel_type_codes,
+        isi,
+        inputs.bui,
+        fmc,
+        sfc,
+        inputs.pc,
+        inputs.pdf,
+        inputs.cc,
+        inputs.cbh,
     )
-    cfb = np.where(cases.cfl > 0, cfb, 0.0)
+    cfb = np.where(inputs.cfl > 0, cfb, 0.0)
 
     tfc = fbp.vectorized_total_fuel_consumption(
-        cases.fuel_type_codes, cases.cfl, cfb, sfc, cases.pc, cases.pdf
+        inputs.fuel_type_codes, inputs.cfl, cfb, sfc, inputs.pc, inputs.pdf
     )
     hfi = fbp.vectorized_fire_intensity(tfc, ros)
 

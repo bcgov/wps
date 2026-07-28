@@ -5,9 +5,9 @@ See https://github.com/bcgov/wps/issues/4893.
 
 Parametrized over two independent data sources (see _glc_x_10_data.py for exact provenance of
 each):
-- "r_package" (RPackageGLCX10Cases): the R cffdrs package's own digitized transcription of the
+- "r_package" (load_r_package_cases): the R cffdrs package's own digitized transcription of the
   paper's Tables 4/5, vendored here by way of cffdrs_py's own copy of those same files.
-- "paper" (PaperGLCX10Cases): transcribed independently, straight from the published PDF via
+- "paper" (load_paper_cases): transcribed independently, straight from the published PDF via
   `pdftotext -layout`, with no R package in the chain at all.
 If these two ever disagree, the R-sourced CSVs and the paper have actually diverged and that's
 worth investigating; both staying green is the cross-validation working as intended.
@@ -41,76 +41,76 @@ import numpy as np
 import pytest
 
 from cffdrs_vec.tests._glc_x_10_data import (
-    PaperGLCX10Cases,
-    RPackageGLCX10Cases,
     calculate_primary_output,
+    load_paper_cases,
+    load_r_package_cases,
 )
 
 
 @pytest.mark.parametrize(
-    "cases_cls,rtol",
-    [(RPackageGLCX10Cases, 1e-3), (PaperGLCX10Cases, 1e-2)],
+    "load_cases,rtol",
+    [(load_r_package_cases, 1e-3), (load_paper_cases, 1e-2)],
     ids=["r_package", "paper"],
 )
-def test_fbp_glc_x_10_ros(cases_cls, rtol):
-    cases = cases_cls()
-    ros, _, _, _, _, _, _ = calculate_primary_output(cases)
-    np.testing.assert_allclose(ros, cases.expected_ros, rtol=rtol, err_msg="ROS")
+def test_fbp_glc_x_10_ros(load_cases, rtol):
+    inputs, expected = load_cases()
+    ros, _, _, _, _, _, _ = calculate_primary_output(inputs)
+    np.testing.assert_allclose(ros, expected.ros, rtol=rtol, err_msg="ROS")
 
 
 @pytest.mark.parametrize(
-    "cases_cls,rtol",
-    [(RPackageGLCX10Cases, 1e-3), (PaperGLCX10Cases, 1e-2)],
+    "load_cases,rtol",
+    [(load_r_package_cases, 1e-3), (load_paper_cases, 1e-2)],
     ids=["r_package", "paper"],
 )
-def test_fbp_glc_x_10_hfi(cases_cls, rtol):
-    cases = cases_cls()
-    _, hfi, _, _, _, _, _ = calculate_primary_output(cases)
-    np.testing.assert_allclose(hfi, cases.expected_hfi, rtol=rtol, err_msg="HFI")
+def test_fbp_glc_x_10_hfi(load_cases, rtol):
+    inputs, expected = load_cases()
+    _, hfi, _, _, _, _, _ = calculate_primary_output(inputs)
+    np.testing.assert_allclose(hfi, expected.hfi, rtol=rtol, err_msg="HFI")
 
 
 @pytest.mark.parametrize(
-    "cases_cls,atol",
-    [(RPackageGLCX10Cases, 1e-3), (PaperGLCX10Cases, 3e-3)],
+    "load_cases,atol",
+    [(load_r_package_cases, 1e-3), (load_paper_cases, 3e-3)],
     ids=["r_package", "paper"],
 )
-def test_fbp_glc_x_10_cfb(cases_cls, atol):
-    cases = cases_cls()
-    _, _, cfb, _, _, _, _ = calculate_primary_output(cases)
-    np.testing.assert_allclose(cfb, cases.expected_cfb, atol=atol, err_msg="CFB")
+def test_fbp_glc_x_10_cfb(load_cases, atol):
+    inputs, expected = load_cases()
+    _, _, cfb, _, _, _, _ = calculate_primary_output(inputs)
+    np.testing.assert_allclose(cfb, expected.cfb, atol=atol, err_msg="CFB")
 
 
 @pytest.mark.parametrize(
-    "cases_cls", [RPackageGLCX10Cases, PaperGLCX10Cases], ids=["r_package", "paper"]
+    "load_cases", [load_r_package_cases, load_paper_cases], ids=["r_package", "paper"]
 )
-def test_fbp_glc_x_10_sfc(cases_cls):
-    cases = cases_cls()
-    _, _, _, sfc, _, _, _ = calculate_primary_output(cases)
-    np.testing.assert_allclose(sfc, cases.expected_sfc, rtol=1e-3, err_msg="SFC")
+def test_fbp_glc_x_10_sfc(load_cases):
+    inputs, expected = load_cases()
+    _, _, _, sfc, _, _, _ = calculate_primary_output(inputs)
+    np.testing.assert_allclose(sfc, expected.sfc, rtol=1e-3, err_msg="SFC")
 
 
 @pytest.mark.parametrize(
-    "cases_cls", [RPackageGLCX10Cases, PaperGLCX10Cases], ids=["r_package", "paper"]
+    "load_cases", [load_r_package_cases, load_paper_cases], ids=["r_package", "paper"]
 )
-def test_fbp_glc_x_10_tfc(cases_cls):
-    cases = cases_cls()
-    _, _, _, _, tfc, _, _ = calculate_primary_output(cases)
-    np.testing.assert_allclose(tfc, cases.expected_tfc, rtol=1e-3, err_msg="TFC")
+def test_fbp_glc_x_10_tfc(load_cases):
+    inputs, expected = load_cases()
+    _, _, _, _, tfc, _, _ = calculate_primary_output(inputs)
+    np.testing.assert_allclose(tfc, expected.tfc, rtol=1e-3, err_msg="TFC")
 
 
 @pytest.mark.parametrize(
-    "cases_cls", [RPackageGLCX10Cases, PaperGLCX10Cases], ids=["r_package", "paper"]
+    "load_cases", [load_r_package_cases, load_paper_cases], ids=["r_package", "paper"]
 )
-def test_fbp_glc_x_10_raz(cases_cls):
-    cases = cases_cls()
-    _, _, _, _, _, raz, _ = calculate_primary_output(cases)
-    np.testing.assert_allclose(raz, cases.expected_raz, atol=0.1, err_msg="RAZ")
+def test_fbp_glc_x_10_raz(load_cases):
+    inputs, expected = load_cases()
+    _, _, _, _, _, raz, _ = calculate_primary_output(inputs)
+    np.testing.assert_allclose(raz, expected.raz, atol=0.1, err_msg="RAZ")
 
 
 @pytest.mark.parametrize(
-    "cases_cls", [RPackageGLCX10Cases, PaperGLCX10Cases], ids=["r_package", "paper"]
+    "load_cases", [load_r_package_cases, load_paper_cases], ids=["r_package", "paper"]
 )
-def test_fbp_glc_x_10_fire_type(cases_cls):
-    cases = cases_cls()
-    _, _, _, _, _, _, fire_type = calculate_primary_output(cases)
-    assert list(fire_type) == cases.expected_fire_type
+def test_fbp_glc_x_10_fire_type(load_cases):
+    inputs, expected = load_cases()
+    _, _, _, _, _, _, fire_type = calculate_primary_output(inputs)
+    assert list(fire_type) == expected.fire_type

@@ -110,10 +110,10 @@ def _paper_columns() -> tuple[dict, dict]:
 
     # The paper gives SAZ (upslope azimuth) directly rather than cffdrs's own Aspect
     # (downslope-facing direction) input convention; SAZ = Aspect + 180 deg (see fbp.r comments),
-    # so invert that here - same order of operations as PaperGLCX10Cases (nan_to_num blank SAZ,
-    # case 14 only, to 0 *before* the mod-360 conversion), so the CSV-direct and raster-sourced
-    # paths resolve to the exact same aspect value even though it doesn't affect any result
-    # (case 14 has GS=0, so slope direction is never actually used).
+    # so invert that here, the same order of operations as load_glc_x_10_cases's "paper" branch
+    # (nan_to_num blank SAZ, case 14 only, to 0 *before* the mod-360 conversion), so the
+    # CSV-direct and raster-sourced paths resolve to the exact same aspect value even though it
+    # doesn't affect any result (case 14 has GS=0, so slope direction is never actually used).
     saz = np.nan_to_num(np.array([parse_float(row["SAZ"]) for row in input_rows]))
     aspect = (saz - 180) % 360
 

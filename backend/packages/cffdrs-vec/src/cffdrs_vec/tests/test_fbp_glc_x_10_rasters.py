@@ -25,9 +25,10 @@ from cffdrs_vec.tests._glc_x_10_data import (
     PC_DEFAULT,
     PDF_DEFAULT,
     RASTER_DIR,
-    PaperGLCX10Cases,
-    RPackageGLCX10Cases,
+    GLCX10Inputs,
     calculate_primary_output,
+    load_paper_cases,
+    load_r_package_cases,
     load_rows,
     normalize_fuel_type,
     with_default,
@@ -40,60 +41,59 @@ def _read_raster(raster_dir, name: str) -> np.ndarray:
     return array[0]  # single-row raster - drop back to a 1-D, one-value-per-case array
 
 
-class RasterCases:
-    """Same array attributes as RPackageGLCX10Cases/PaperGLCX10Cases (see
-    calculate_primary_output()'s docstring), but read from `raster_dir`'s GeoTIFF fixtures
-    instead of `input_csv`.
+def load_raster_inputs(raster_dir, input_csv) -> GLCX10Inputs:
+    """Same GLCX10Inputs shape load_glc_x_10_cases() returns, but read from `raster_dir`'s
+    GeoTIFF fixtures instead of `input_csv`.
     """
+    raster = {name: _read_raster(raster_dir, name) for name in INPUT_RASTER_NAMES}
 
-    def __init__(self, raster_dir, input_csv):
-        raster = {name: _read_raster(raster_dir, name) for name in INPUT_RASTER_NAMES}
+    # fuel type names aren't stored in the rasters (only the numeric code is) - needed here
+    # only to look up PC/PDF/CBH/CFL defaults, same as load_glc_x_10_cases() does from the CSV
+    # directly.
+    input_rows = load_rows(input_csv)
+    fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
 
-        # fuel type names aren't stored in the rasters (only the numeric code is) - needed here
-        # only to look up PC/PDF/CBH/CFL defaults, same as RPackageGLCX10Cases/PaperGLCX10Cases
-        # do from the CSV directly.
-        input_rows = load_rows(input_csv)
-        fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
-
-        self.fuel_type_codes = raster["fuel_type_code"].astype(np.int64)
-        self.lat = raster["lat"]
-        self.lon = raster["lon"]
-        self.elv = np.nan_to_num(raster["elv"])
-        self.ffmc = raster["ffmc"]
-        self.bui = raster["bui"]
-        self.ws = raster["ws"]
-        self.wd_rad = np.radians(np.nan_to_num(raster["wd"]))
-        self.gs = raster["gs"]
-        self.dj = raster["dj"]
-        self.d0 = np.nan_to_num(raster["d0"])
-        self.aspect_rad = np.radians(np.nan_to_num(raster["aspect"]))
-        self.gfl = np.nan_to_num(raster["gfl"])
-        self.pc = with_default(raster["pc"], fuel_types, PC_DEFAULT)
-        self.pdf = with_default(raster["pdf"], fuel_types, PDF_DEFAULT)
-        self.cc = np.nan_to_num(raster["cc"])
-        self.cbh = with_default(raster["cbh"], fuel_types, CBH_DEFAULT)
-        self.cfl = with_default(raster["cfl"], fuel_types, CFL_DEFAULT)
+    return GLCX10Inputs(
+        fuel_type_codes=raster["fuel_type_code"].astype(np.int64),
+        lat=raster["lat"],
+        lon=raster["lon"],
+        elv=np.nan_to_num(raster["elv"]),
+        ffmc=raster["ffmc"],
+        bui=raster["bui"],
+        ws=raster["ws"],
+        wd_rad=np.radians(np.nan_to_num(raster["wd"])),
+        gs=raster["gs"],
+        dj=raster["dj"],
+        d0=np.nan_to_num(raster["d0"]),
+        aspect_rad=np.radians(np.nan_to_num(raster["aspect"])),
+        gfl=np.nan_to_num(raster["gfl"]),
+        pc=with_default(raster["pc"], fuel_types, PC_DEFAULT),
+        pdf=with_default(raster["pdf"], fuel_types, PDF_DEFAULT),
+        cc=np.nan_to_num(raster["cc"]),
+        cbh=with_default(raster["cbh"], fuel_types, CBH_DEFAULT),
+        cfl=with_default(raster["cfl"], fuel_types, CFL_DEFAULT),
+    )
 
 
 @pytest.mark.parametrize(
-    "raster_dir,input_csv,csv_cases_cls",
+    "raster_dir,input_csv,load_cases",
     [
-        (RASTER_DIR, "cffdrs_r_test_fbp_inputs.csv", RPackageGLCX10Cases),
-        (PAPER_RASTER_DIR, "glc_x_10_paper_inputs.csv", PaperGLCX10Cases),
+        (RASTER_DIR, "cffdrs_r_test_fbp_inputs.csv", load_r_package_cases),
+        (PAPER_RASTER_DIR, "glc_x_10_paper_inputs.csv", load_paper_cases),
     ],
     ids=["r_package", "paper"],
 )
-def test_raster_inputs_match_csv_inputs(raster_dir, input_csv, csv_cases_cls):
+def test_raster_inputs_match_csv_inputs(raster_dir, input_csv, load_cases):
     """Sanity check that generate_glc_x_10_rasters.py's output hasn't drifted from the CSVs it
     was generated from - this would fail if the CSVs were updated without regenerating rasters.
     """
-    raster_cases = RasterCases(raster_dir, input_csv)
-    csv_cases = csv_cases_cls()
-    np.testing.assert_allclose(raster_cases.fuel_type_codes, csv_cases.fuel_type_codes)
-    np.testing.assert_allclose(raster_cases.ffmc, csv_cases.ffmc)
-    np.testing.assert_allclose(raster_cases.bui, csv_cases.bui)
-    np.testing.assert_allclose(raster_cases.cbh, csv_cases.cbh)
-    np.testing.assert_allclose(raster_cases.cfl, csv_cases.cfl)
+    raster_inputs = load_raster_inputs(raster_dir, input_csv)
+    csv_inputs, _expected = load_cases()
+    np.testing.assert_allclose(raster_inputs.fuel_type_codes, csv_inputs.fuel_type_codes)
+    np.testing.assert_allclose(raster_inputs.ffmc, csv_inputs.ffmc)
+    np.testing.assert_allclose(raster_inputs.bui, csv_inputs.bui)
+    np.testing.assert_allclose(raster_inputs.cbh, csv_inputs.cbh)
+    np.testing.assert_allclose(raster_inputs.cfl, csv_inputs.cfl)
 
 
 @pytest.mark.parametrize(
@@ -105,9 +105,9 @@ def test_raster_inputs_match_csv_inputs(raster_dir, input_csv, csv_cases_cls):
     ids=["r_package", "paper"],
 )
 def test_fbp_glc_x_10_rasters_ros(raster_dir, input_csv, rtol):
-    raster_cases = RasterCases(raster_dir, input_csv)
+    inputs = load_raster_inputs(raster_dir, input_csv)
     expected = _read_raster(raster_dir, "ros")
-    ros, _, _, _, _, _, _ = calculate_primary_output(raster_cases)
+    ros, _, _, _, _, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(ros, expected, rtol=rtol, err_msg="ROS")
 
 
@@ -120,9 +120,9 @@ def test_fbp_glc_x_10_rasters_ros(raster_dir, input_csv, rtol):
     ids=["r_package", "paper"],
 )
 def test_fbp_glc_x_10_rasters_hfi(raster_dir, input_csv, rtol):
-    raster_cases = RasterCases(raster_dir, input_csv)
+    inputs = load_raster_inputs(raster_dir, input_csv)
     expected = _read_raster(raster_dir, "hfi")
-    _, hfi, _, _, _, _, _ = calculate_primary_output(raster_cases)
+    _, hfi, _, _, _, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(hfi, expected, rtol=rtol, err_msg="HFI")
 
 
@@ -135,9 +135,9 @@ def test_fbp_glc_x_10_rasters_hfi(raster_dir, input_csv, rtol):
     ids=["r_package", "paper"],
 )
 def test_fbp_glc_x_10_rasters_cfb(raster_dir, input_csv, atol):
-    raster_cases = RasterCases(raster_dir, input_csv)
+    inputs = load_raster_inputs(raster_dir, input_csv)
     expected = _read_raster(raster_dir, "cfb")
-    _, _, cfb, _, _, _, _ = calculate_primary_output(raster_cases)
+    _, _, cfb, _, _, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(cfb, expected, atol=atol, err_msg="CFB")
 
 
@@ -150,9 +150,9 @@ def test_fbp_glc_x_10_rasters_cfb(raster_dir, input_csv, atol):
     ids=["r_package", "paper"],
 )
 def test_fbp_glc_x_10_rasters_sfc(raster_dir, input_csv):
-    raster_cases = RasterCases(raster_dir, input_csv)
+    inputs = load_raster_inputs(raster_dir, input_csv)
     expected = _read_raster(raster_dir, "sfc")
-    _, _, _, sfc, _, _, _ = calculate_primary_output(raster_cases)
+    _, _, _, sfc, _, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(sfc, expected, rtol=1e-3, err_msg="SFC")
 
 
@@ -165,9 +165,9 @@ def test_fbp_glc_x_10_rasters_sfc(raster_dir, input_csv):
     ids=["r_package", "paper"],
 )
 def test_fbp_glc_x_10_rasters_tfc(raster_dir, input_csv):
-    raster_cases = RasterCases(raster_dir, input_csv)
+    inputs = load_raster_inputs(raster_dir, input_csv)
     expected = _read_raster(raster_dir, "tfc")
-    _, _, _, _, tfc, _, _ = calculate_primary_output(raster_cases)
+    _, _, _, _, tfc, _, _ = calculate_primary_output(inputs)
     np.testing.assert_allclose(tfc, expected, rtol=1e-3, err_msg="TFC")
 
 
@@ -180,9 +180,9 @@ def test_fbp_glc_x_10_rasters_tfc(raster_dir, input_csv):
     ids=["r_package", "paper"],
 )
 def test_fbp_glc_x_10_rasters_raz(raster_dir, input_csv):
-    raster_cases = RasterCases(raster_dir, input_csv)
+    inputs = load_raster_inputs(raster_dir, input_csv)
     expected = _read_raster(raster_dir, "raz")
-    _, _, _, _, _, raz, _ = calculate_primary_output(raster_cases)
+    _, _, _, _, _, raz, _ = calculate_primary_output(inputs)
     # _fire_behaviour_prediction wraps the angle with an exact `raz_deg == 360 -> 0` check. Float32
     # raster storage rounds just enough that one case can land on 360.00001 instead of 0 - the same
     # angle, but not an exact match - so compare the circular (mod-360) distance instead.
@@ -213,8 +213,8 @@ def test_fbp_glc_x_10_rasters_raz(raster_dir, input_csv):
 def test_fbp_glc_x_10_rasters_fire_type(
     raster_dir, input_csv, output_csv, id_input_col, id_output_col
 ):
-    raster_cases = RasterCases(raster_dir, input_csv)
-    _, _, cfb, _, _, _, fire_type = calculate_primary_output(raster_cases)
+    inputs = load_raster_inputs(raster_dir, input_csv)
+    _, _, cfb, _, _, _, fire_type = calculate_primary_output(inputs)
     # Rasters are pixel-ordered by input row order, so look up FD the same way, by id, rather
     # than assuming the outputs CSV happens to already be in that same order.
     ids = [row[id_input_col] for row in load_rows(input_csv)]
