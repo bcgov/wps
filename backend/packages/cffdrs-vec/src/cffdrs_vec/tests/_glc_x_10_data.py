@@ -235,6 +235,28 @@ class GLCX10ExpectedOutputs(NamedTuple):
     fire_type: list
 
 
+class PrimaryOutput(NamedTuple):
+    """calculate_primary_output()'s result - the Primary output fields _fire_behaviour_prediction
+    itself returns (ros, hfi, cfb, sfc, tfc, raz, fire_type), plus the intermediate values its
+    composition passes from one step to the next (fmc, wsv, isi, csi, rso) that Table 5 also
+    happens to publish, so tests can check each step against the paper rather than only the
+    final result.
+    """
+
+    ros: np.ndarray
+    hfi: np.ndarray
+    cfb: np.ndarray
+    sfc: np.ndarray
+    tfc: np.ndarray
+    raz: np.ndarray
+    fire_type: np.ndarray
+    fmc: np.ndarray
+    wsv: np.ndarray
+    isi: np.ndarray
+    csi: np.ndarray
+    rso: np.ndarray
+
+
 class GLCX10Source(ABC):
     """One of the two independent GLC-X-10 data sources - knows how to load its own CSV-sourced
     inputs/expected-outputs and its own GeoTIFF-sourced inputs, and how loose a tolerance its
@@ -466,8 +488,19 @@ class RPackageSource(GLCX10Source):
     # input CSV with a "FuelType" column, and an output CSV with ROS/HFI/CFB/SFC/TFC/RAZ/FD
     # columns keyed by the same id.
     columns = {
-        "lat": "LAT", "lon": "LONG", "elv": "ELV", "ffmc": "FFMC", "bui": "BUI", "ws": "WS",
-        "wd": "WD", "gs": "GS", "dj": "Dj", "d0": "D0", "gfl": "GFL", "pc": "PC", "pdf": "PDF",
+        "lat": "LAT",
+        "lon": "LONG",
+        "elv": "ELV",
+        "ffmc": "FFMC",
+        "bui": "BUI",
+        "ws": "WS",
+        "wd": "WD",
+        "gs": "GS",
+        "dj": "Dj",
+        "d0": "D0",
+        "gfl": "GFL",
+        "pc": "PC",
+        "pdf": "PDF",
         "cc": "cc",
     }
     rtol_ros_hfi = 1e-3
@@ -506,8 +539,19 @@ class PaperSource(GLCX10Source):
     id_output_col = "TestCase"
     raster_dir = Path(__file__).parent / "fixtures" / "glc_x_10_paper"
     columns = {
-        "lat": "Lat", "lon": "Long", "elv": "Elev", "ffmc": "FFMC", "bui": "BUI", "ws": "WS",
-        "wd": "WDIR", "gs": "GS", "dj": "Dj", "d0": "D0", "gfl": "GFL", "pc": "PC", "pdf": "PDF",
+        "lat": "Lat",
+        "lon": "Long",
+        "elv": "Elev",
+        "ffmc": "FFMC",
+        "bui": "BUI",
+        "ws": "WS",
+        "wd": "WDIR",
+        "gs": "GS",
+        "dj": "Dj",
+        "d0": "D0",
+        "gfl": "GFL",
+        "pc": "PC",
+        "pdf": "PDF",
         "cc": "C",
     }
     rtol_ros_hfi = 1e-2
@@ -544,34 +588,32 @@ PAPER = PaperSource()
 GLC_X_10_SOURCES = [R_PACKAGE, PAPER]
 
 
-def calculate_primary_output(inputs: GLCX10Inputs):
-    """Mirrors cffdrs.fire_behaviour_prediction._fire_behaviour_prediction's Primary output,
-    composed from cffdrs_vec.fbp's vectorized functions over the whole batch at once.
+def foliar_moisture_content(inputs: GLCX10Inputs) -> np.ndarray:
+    fmc = fbp.vectorized_foliar_moisture_content(
+        inputs.lat, inputs.lon, inputs.elv, inputs.dj, inputs.d0
+    )
+    no_crown = np.isin(inputs.fuel_type_codes, NO_CROWN_FUEL_TYPE_CODES)
+    return np.where(no_crown, 0.0, fmc)
 
-    `inputs` just needs GLCX10Inputs's fields - GLCX10Source.load_raster_inputs() builds the same
-    shape from GeoTIFFs instead of the CSVs. Every array here is shape-preserving, 1-D or 2-D
-    alike (a real production raster grid would stay 2-D end to end, same as SFMS's own FWI job
-    does - no flatten/reshape needed), so this uses `.shape` throughout rather than `len()`,
-    which would silently only measure a 2-D array's first axis.
+
+def surface_fuel_consumption(inputs: GLCX10Inputs) -> np.ndarray:
+    return fbp.vectorized_surface_fuel_consumption(
+        inputs.fuel_type_codes, inputs.ffmc, inputs.bui, inputs.pc, inputs.gfl
+    )
+
+
+def slope_adjustment(
+    inputs: GLCX10Inputs, fmc: np.ndarray, sfc: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    """Returns (wsv, raz) - the net effective wind speed and direction (radians), once slope is
+    accounted for.
     """
-    shape = inputs.fuel_type_codes.shape
-
     # Corrections to reorient Wind Azimuth (WAZ) and Uphill slope azimuth (SAZ) - Eq. matches
     # _fire_behaviour_prediction exactly.
     waz = inputs.wd_rad + math.pi
     waz = np.where(waz > 2 * math.pi, waz - 2 * math.pi, waz)
     saz = inputs.aspect_rad + math.pi
     saz = np.where(saz > 2 * math.pi, saz - 2 * math.pi, saz)
-
-    fmc = fbp.vectorized_foliar_moisture_content(
-        inputs.lat, inputs.lon, inputs.elv, inputs.dj, inputs.d0
-    )
-    no_crown = np.isin(inputs.fuel_type_codes, NO_CROWN_FUEL_TYPE_CODES)
-    fmc = np.where(no_crown, 0.0, fmc)
-
-    sfc = fbp.vectorized_surface_fuel_consumption(
-        inputs.fuel_type_codes, inputs.ffmc, inputs.bui, inputs.pc, inputs.gfl
-    )
 
     # slope_adjustment()'s isi parameter is unused by the underlying formula (it derives its own
     # zero-wind ISI internally), so any placeholder value works here.
@@ -589,17 +631,26 @@ def calculate_primary_output(inputs: GLCX10Inputs):
         inputs.pdf,
         inputs.cc,
         inputs.cbh,
-        np.zeros(shape),
+        np.zeros(inputs.fuel_type_codes.shape),
     )
     slope_active = (inputs.gs > 0) & (inputs.ffmc > 0)
     wsv = np.where(slope_active, wsv0, inputs.ws)
     raz = np.where(slope_active, raz0, waz)
+    return wsv, raz
 
-    # All 20 published cases leave ISI as "not observed" (0), so it's always derived from the
-    # slope-adjusted wind speed here, same as _fire_behaviour_prediction does.
-    isi = vectorized_isi(inputs.ffmc, wsv, True)
 
-    ros, cfb, _csi, _rso = fbp.vectorized_rate_of_spread_extended(
+def initial_spread_index(inputs: GLCX10Inputs, wsv: np.ndarray) -> np.ndarray:
+    """All 20 published cases leave ISI as "not observed" (0), so it's always derived from the
+    slope-adjusted wind speed here, same as _fire_behaviour_prediction does.
+    """
+    return vectorized_isi(inputs.ffmc, wsv, True)
+
+
+def rate_of_spread_extended(
+    inputs: GLCX10Inputs, isi: np.ndarray, fmc: np.ndarray, sfc: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Returns (ros, cfb, csi, rso)."""
+    ros, cfb, csi, rso = fbp.vectorized_rate_of_spread_extended(
         inputs.fuel_type_codes,
         isi,
         inputs.bui,
@@ -611,17 +662,58 @@ def calculate_primary_output(inputs: GLCX10Inputs):
         inputs.cbh,
     )
     cfb = np.where(inputs.cfl > 0, cfb, 0.0)
+    return ros, cfb, csi, rso
 
-    tfc = fbp.vectorized_total_fuel_consumption(
+
+def total_fuel_consumption(inputs: GLCX10Inputs, cfb: np.ndarray, sfc: np.ndarray) -> np.ndarray:
+    return fbp.vectorized_total_fuel_consumption(
         inputs.fuel_type_codes, inputs.cfl, cfb, sfc, inputs.pc, inputs.pdf
     )
-    hfi = fbp.vectorized_fire_intensity(tfc, ros)
+
+
+def fire_intensity(tfc: np.ndarray, ros: np.ndarray) -> np.ndarray:
+    return fbp.vectorized_fire_intensity(tfc, ros)
+
+
+def classify_fire_type(cfb: np.ndarray) -> np.ndarray:
+    fire_type = np.full(cfb.shape, "IC", dtype=object)
+    fire_type[cfb < 0.1] = "SUR"
+    fire_type[cfb >= 0.9] = "CC"
+    return fire_type
+
+
+def calculate_primary_output(inputs: GLCX10Inputs) -> PrimaryOutput:
+    """Mirrors cffdrs.fire_behaviour_prediction._fire_behaviour_prediction's Primary output,
+    composed from the step functions above (each mirroring one piece of that same orchestration)
+    over the whole batch/grid at once - the call graph below *is* the dependency graph, no
+    separate graph structure needed for a chain this shallow.
+
+    `inputs` just needs GLCX10Inputs's fields, GLCX10Source.load_raster_inputs() builds the same
+    shape from GeoTIFFs instead of the CSVs. Every step is shape-preserving, 1-D or 2-D alike (a
+    real production raster grid would stay 2-D end to end, same as SFMS's own FWI job does).
+    """
+    fmc = foliar_moisture_content(inputs)
+    sfc = surface_fuel_consumption(inputs)
+    wsv, raz = slope_adjustment(inputs, fmc, sfc)
+    isi = initial_spread_index(inputs, wsv)
+    ros, cfb, csi, rso = rate_of_spread_extended(inputs, isi, fmc, sfc)
+    tfc = total_fuel_consumption(inputs, cfb, sfc)
+    hfi = fire_intensity(tfc, ros)
 
     raz_deg = np.degrees(raz)
     raz_deg = np.where(raz_deg == 360, 0.0, raz_deg)
 
-    fire_type = np.full(shape, "IC", dtype=object)
-    fire_type[cfb < 0.1] = "SUR"
-    fire_type[cfb >= 0.9] = "CC"
-
-    return ros, hfi, cfb, sfc, tfc, raz_deg, fire_type
+    return PrimaryOutput(
+        ros=ros,
+        hfi=hfi,
+        cfb=cfb,
+        sfc=sfc,
+        tfc=tfc,
+        raz=raz_deg,
+        fire_type=classify_fire_type(cfb),
+        fmc=fmc,
+        wsv=wsv,
+        isi=isi,
+        csi=csi,
+        rso=rso,
+    )

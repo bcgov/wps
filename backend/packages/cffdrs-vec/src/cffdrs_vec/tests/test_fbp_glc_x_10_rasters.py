@@ -36,25 +36,29 @@ def test_raster_inputs_match_csv_inputs(source):
 @pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
 def test_fbp_glc_x_10_rasters(source):
     inputs = source.load_raster_inputs()
-    ros, hfi, cfb, sfc, tfc, raz, fire_type = calculate_primary_output(inputs)
+    result = calculate_primary_output(inputs)
 
     np.testing.assert_allclose(
-        ros, source.read_raster_output("ros"), rtol=source.rtol_ros_hfi, err_msg="ROS"
+        result.ros, source.read_raster_output("ros"), rtol=source.rtol_ros_hfi, err_msg="ROS"
     )
     np.testing.assert_allclose(
-        hfi, source.read_raster_output("hfi"), rtol=source.rtol_ros_hfi, err_msg="HFI"
+        result.hfi, source.read_raster_output("hfi"), rtol=source.rtol_ros_hfi, err_msg="HFI"
     )
     np.testing.assert_allclose(
-        cfb, source.read_raster_output("cfb"), atol=source.atol_cfb, err_msg="CFB"
+        result.cfb, source.read_raster_output("cfb"), atol=source.atol_cfb, err_msg="CFB"
     )
-    np.testing.assert_allclose(sfc, source.read_raster_output("sfc"), rtol=1e-3, err_msg="SFC")
-    np.testing.assert_allclose(tfc, source.read_raster_output("tfc"), rtol=1e-3, err_msg="TFC")
+    np.testing.assert_allclose(
+        result.sfc, source.read_raster_output("sfc"), rtol=1e-3, err_msg="SFC"
+    )
+    np.testing.assert_allclose(
+        result.tfc, source.read_raster_output("tfc"), rtol=1e-3, err_msg="TFC"
+    )
 
     # _fire_behaviour_prediction wraps the angle with an exact `raz_deg == 360 -> 0` check. Float32
     # raster storage rounds just enough that one case can land on 360.00001 instead of 0 - the same
     # angle, but not an exact match - so compare the circular (mod-360) distance instead.
     expected_raz = source.read_raster_output("raz")
-    circular_diff = np.abs((raz - expected_raz + 180) % 360 - 180)
+    circular_diff = np.abs((result.raz - expected_raz + 180) % 360 - 180)
     np.testing.assert_allclose(circular_diff, np.zeros_like(circular_diff), atol=0.1, err_msg="RAZ")
 
     # fire_type isn't stored in a raster (it's derived from cfb, not read directly) - source.load()
@@ -63,4 +67,4 @@ def test_fbp_glc_x_10_rasters(source):
     # back 2-D (same shape as the raster-sourced inputs, eg. (1, 20)), so flatten it to compare
     # against expected.fire_type's flat, one-value-per-case list.
     _, expected = source.load()
-    assert fire_type.flatten().tolist() == expected.fire_type
+    assert result.fire_type.flatten().tolist() == expected.fire_type

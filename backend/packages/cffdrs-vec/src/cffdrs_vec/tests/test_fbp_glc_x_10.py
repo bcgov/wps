@@ -30,12 +30,6 @@ rate-of-spread/CFB equations in the years since this 2009 paper was published. c
 already cross-checked against the current cffdrs package itself via hypothesis fuzz testing
 (test_fbp_hypothesis.py), so the goal here is catching gross regressions against the paper, not
 bit-for-bit reproduction of a since-superseded formula.
-
-Note: an earlier version of this test validated app.fire_behaviour.prediction's *scalar*
-calculate_fire_behaviour_prediction_using_cffdrs instead, and needed to xfail 17 of the 20 cases
-because that wrapper hardcodes ground slope to 0, doesn't accept a D0 override, and hardcodes
-grass fuel load to 0.35. None of those gaps exist here: this test calls the underlying cffdrs
-functions directly with every published input.
 """
 
 import numpy as np
@@ -47,12 +41,12 @@ from cffdrs_vec.tests._glc_x_10_data import GLC_X_10_SOURCES, calculate_primary_
 @pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
 def test_fbp_glc_x_10(source):
     inputs, expected = source.load()
-    ros, hfi, cfb, sfc, tfc, raz, fire_type = calculate_primary_output(inputs)
+    result = calculate_primary_output(inputs)
 
-    np.testing.assert_allclose(ros, expected.ros, rtol=source.rtol_ros_hfi, err_msg="ROS")
-    np.testing.assert_allclose(hfi, expected.hfi, rtol=source.rtol_ros_hfi, err_msg="HFI")
-    np.testing.assert_allclose(cfb, expected.cfb, atol=source.atol_cfb, err_msg="CFB")
-    np.testing.assert_allclose(sfc, expected.sfc, rtol=1e-3, err_msg="SFC")
-    np.testing.assert_allclose(tfc, expected.tfc, rtol=1e-3, err_msg="TFC")
-    np.testing.assert_allclose(raz, expected.raz, atol=0.1, err_msg="RAZ")
-    assert list(fire_type) == expected.fire_type
+    np.testing.assert_allclose(result.ros, expected.ros, rtol=source.rtol_ros_hfi, err_msg="ROS")
+    np.testing.assert_allclose(result.hfi, expected.hfi, rtol=source.rtol_ros_hfi, err_msg="HFI")
+    np.testing.assert_allclose(result.cfb, expected.cfb, atol=source.atol_cfb, err_msg="CFB")
+    np.testing.assert_allclose(result.sfc, expected.sfc, rtol=1e-3, err_msg="SFC")
+    np.testing.assert_allclose(result.tfc, expected.tfc, rtol=1e-3, err_msg="TFC")
+    np.testing.assert_allclose(result.raz, expected.raz, atol=0.1, err_msg="RAZ")
+    assert list(result.fire_type) == expected.fire_type
