@@ -1,12 +1,12 @@
 import { ThemeProvider } from '@mui/material/styles'
-import { configureStore } from '@reduxjs/toolkit'
 import { act, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { describe, expect, it, vi } from 'vitest'
 import type { FireShape, FireZoneTPIStats } from '@/api/fbaAPI'
 import FireZoneUnitSummary from '@/components/profile/FireZoneUnitSummary'
 import { useFilteredHFIStatsForDate, useTPIStatsForDate } from '@/hooks/dataHooks'
-import dateOfInterestReducer, { setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import { createTestStore } from '@/testUtils'
 import { theme } from '@/theme'
 import type { FireCentre } from '@/types/fireCentre'
 
@@ -44,16 +44,7 @@ describe('FireZoneUnitSummary', () => {
     area_sqm: 1000
   }
 
-  const createMockStore = (dateKey?: string) => {
-    return configureStore({
-      reducer: {
-        dateOfInterest: dateOfInterestReducer
-      },
-      ...(dateKey ? { preloadedState: { dateOfInterest: { dateKey } } } : {})
-    })
-  }
-
-  const renderWithProvider = (component: React.ReactElement<any>, store = createMockStore()) => {
+  const renderWithProvider = (component: React.ReactElement<any>, store = createTestStore()) => {
     return render(
       <Provider store={store}>
         <ThemeProvider theme={theme}>{component}</ThemeProvider>
@@ -142,7 +133,7 @@ describe('FireZoneUnitSummary', () => {
   })
 
   it('passes the date of interest from the store to the data hooks', () => {
-    const store = createMockStore('2025-08-01')
+    const store = createTestStore({ dateOfInterest: { dateKey: '2025-08-01' } })
     renderWithProvider(
       <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />,
       store
@@ -155,7 +146,7 @@ describe('FireZoneUnitSummary', () => {
   })
 
   it('re-derives the date passed to the data hooks when the store date changes', () => {
-    const store = createMockStore('2025-08-01')
+    const store = createTestStore({ dateOfInterest: { dateKey: '2025-08-01' } })
     renderWithProvider(
       <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />,
       store

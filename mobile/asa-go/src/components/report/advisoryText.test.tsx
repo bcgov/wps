@@ -1,4 +1,3 @@
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { cloneDeep } from 'lodash'
 import { DateTime } from 'luxon'
@@ -12,12 +11,10 @@ import {
   RunType
 } from '@/api/fbaAPI'
 import AdvisoryText from '@/components/report/AdvisoryText'
-import dataSlice, { type DataState, initialState as dataInitialState } from '@/slices/dataSlice'
-import dateOfInterestSlice, { setDateOfInterest } from '@/slices/dateOfInterestSlice'
-import runParametersSlice, {
-  type RunParametersState,
-  initialState as runParametersInitialState
-} from '@/slices/runParametersSlice'
+import { type DataState, initialState as dataInitialState } from '@/slices/dataSlice'
+import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import { type RunParametersState, initialState as runParametersInitialState } from '@/slices/runParametersSlice'
+import { createTestStore } from '@/testUtils'
 import type { FireCentre } from '@/types/fireCentre'
 
 // Mock hooks
@@ -231,22 +228,12 @@ const runParametersTestStateNoForDateState = {
   }
 }
 
-const buildTestStore = (dataInitialState: DataState, runParametersInitialState: RunParametersState) => {
-  const rootReducer = combineReducers({
-    data: dataSlice,
-    runParameters: runParametersSlice,
-    dateOfInterest: dateOfInterestSlice
+const buildTestStore = (dataInitialState: DataState, runParametersInitialState: RunParametersState) =>
+  createTestStore({
+    data: dataInitialState,
+    runParameters: runParametersInitialState,
+    dateOfInterest: { dateKey: TEST_FOR_DATE }
   })
-  const testStore = configureStore({
-    reducer: rootReducer,
-    preloadedState: {
-      data: dataInitialState,
-      runParameters: runParametersInitialState,
-      dateOfInterest: { dateKey: TEST_FOR_DATE }
-    }
-  })
-  return testStore
-}
 
 describe('AdvisoryText', () => {
   const testStore = buildTestStore(
