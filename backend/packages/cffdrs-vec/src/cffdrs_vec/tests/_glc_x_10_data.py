@@ -26,14 +26,19 @@ from typing import NamedTuple
 
 import numpy as np
 from cffdrs.constants import D1, FUEL_TYPE_CODES, O1A, O1B, S1, S2, S3
+from osgeo import osr
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 from cffdrs_vec import fbp
 from cffdrs_vec.fwi import vectorized_isi
 
 DATA_DIR = Path(__file__).parent / "data"
-RASTER_DIR = Path(__file__).parent / "fixtures" / "glc_x_10"
-PAPER_RASTER_DIR = Path(__file__).parent / "fixtures" / "glc_x_10_paper"
+
+SFMS_NO_DATA = -3.4028235e38
+# 1 row x 20 columns, one pixel per case, in an arbitrary-but-valid location/resolution - the
+# geospatial placement is meaningless here (LAT/LONG are separate data layers, not implied by
+# pixel position), it just needs to be internally consistent across all rasters.
+RASTER_GEOTRANSFORM = (-140.0, 1.0, 0.0, 60.0, 0.0, -1.0)
 
 # Fuel types with no crown to burn - _fire_behaviour_prediction always zeroes FMC for these.
 NO_CROWN_FUEL_TYPE_CODES = (D1, S1, S2, S3, O1A, O1B)
@@ -172,6 +177,21 @@ def read_raster(raster_dir: Path, name: str) -> np.ndarray:
     return array[0]  # single-row raster - drop back to a 1-D, one-value-per-case array
 
 
+def raster_projection_wkt() -> str:
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    return srs.ExportToWkt()
+
+
+def write_raster(raster_dir: Path, name: str, values: list) -> None:
+    array = np.array([values], dtype=np.float32)  # shape (1, 20)
+    array = np.where(np.isnan(array), SFMS_NO_DATA, array)
+    with WPSDataset.from_array(
+        array, RASTER_GEOTRANSFORM, raster_projection_wkt(), SFMS_NO_DATA
+    ) as ds:
+        ds.export_to_geotiff(str(raster_dir / f"{name}.tif"))
+
+
 class GLCX10Inputs(NamedTuple):
     """One field per array calculate_primary_output() needs - GLCX10Source.load_raster_inputs()
     builds the same shape from GeoTIFFs instead of the CSVs.
@@ -241,6 +261,17 @@ class GLCX10Source(ABC):
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Returns (aspect_rad, cbh, cfl) - the 3 fields that aren't just a column rename between
         sources (see RPackageSource/PaperSource for why each has to override this).
+        """
+
+    @abstractmethod
+    def _raster_aspect_cbh_cfl(
+        self, input_rows: list[dict]
+    ) -> tuple[list[float], list[float], list[float]]:
+        """Returns (aspect_deg, cbh, cfl) as raw per-case value lists ready to write straight to
+        a raster - unlike _aspect_rad_cbh_cfl() above, missing values stay NaN here rather than
+        being filled with a default, so the raster round-trip (write here, then default-fill on
+        read in load_raster_inputs()) can prove that same default-filling logic actually works
+        when driven by a raster read, not just a CSV read.
         """
 
     def load(self) -> tuple[GLCX10Inputs, GLCX10ExpectedOutputs]:
@@ -350,6 +381,65 @@ class GLCX10Source(ABC):
     def read_raster_output(self, name: str) -> np.ndarray:
         return read_raster(self.raster_dir, name)
 
+    def generate_rasters(self) -> None:
+        """Writes this source's GeoTIFF fixtures under self.raster_dir - one small (1 row x 20
+        case) raster per input/output variable, in case order (column 0 = case 1, ..., column 19
+        = case 20). Same one-raster-per-variable layout as the existing
+        bui20240528.tif/dc20240528.tif/dmc20240528.tif FWI fixtures.
+
+        Blank CSV cells (eg. CBH/CFL/PC, left for cffdrs to default) are written as SFMS_NO_DATA,
+        not 0 or NaN, so reading them back through WPSDataset.replace_nodata_with(np.nan)
+        round-trips to exactly the same "missing" signal parse_float() gives when reading the CSV
+        directly - see load_raster_inputs().
+
+        Run via generate_glc_x_10_rasters.py; the output is committed to the repo like the other
+        raster fixtures, so this only needs re-running if the source CSVs change.
+        """
+        input_rows = load_rows(self.input_csv)
+        output_by_id = {row[self.id_output_col]: row for row in load_rows(self.output_csv)}
+        ids = [row[self.id_input_col] for row in input_rows]
+        fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
+        columns = self.columns
+
+        aspect_deg, cbh, cfl = self._raster_aspect_cbh_cfl(input_rows)
+
+        input_columns = {
+            "fuel_type_code": [float(FUEL_TYPE_CODES[ft]) for ft in fuel_types],
+            "lat": [parse_float(row[columns["lat"]]) for row in input_rows],
+            "lon": [parse_float(row[columns["lon"]]) for row in input_rows],
+            "elv": [parse_float(row[columns["elv"]]) for row in input_rows],
+            "ffmc": [parse_float(row[columns["ffmc"]]) for row in input_rows],
+            "bui": [parse_float(row[columns["bui"]]) for row in input_rows],
+            "ws": [parse_float(row[columns["ws"]]) for row in input_rows],
+            "wd": [parse_float(row[columns["wd"]]) for row in input_rows],
+            "gs": [parse_float(row[columns["gs"]]) for row in input_rows],
+            "dj": [parse_float(row[columns["dj"]]) for row in input_rows],
+            "d0": [parse_float(row[columns["d0"]]) for row in input_rows],
+            "aspect": aspect_deg,
+            "pc": [parse_float(row[columns["pc"]]) for row in input_rows],
+            "pdf": [parse_float(row[columns["pdf"]]) for row in input_rows],
+            "cc": [parse_float(row[columns["cc"]]) for row in input_rows],
+            "gfl": [parse_float(row[columns["gfl"]]) for row in input_rows],
+            "cbh": cbh,
+            "cfl": cfl,
+        }
+        assert list(input_columns) == INPUT_RASTER_NAMES
+
+        output_columns = {
+            "ros": [float(output_by_id[i]["ROS"]) for i in ids],
+            "hfi": [float(output_by_id[i]["HFI"]) for i in ids],
+            "cfb": [float(output_by_id[i]["CFB"]) for i in ids],
+            "sfc": [float(output_by_id[i]["SFC"]) for i in ids],
+            "tfc": [float(output_by_id[i]["TFC"]) for i in ids],
+            "raz": [float(output_by_id[i]["RAZ"]) for i in ids],
+        }
+        assert list(output_columns) == OUTPUT_RASTER_NAMES
+
+        self.raster_dir.mkdir(parents=True, exist_ok=True)
+        for name, values in {**input_columns, **output_columns}.items():
+            write_raster(self.raster_dir, name, values)
+            print(f"wrote {self.raster_dir / f'{name}.tif'}")
+
 
 class RPackageSource(GLCX10Source):
     """The CFFDRS working group's own digitized transcription of the paper's Tables 4/5. Copied
@@ -364,7 +454,7 @@ class RPackageSource(GLCX10Source):
     output_csv = "cffdrs_r_test_fbp_primary_outputs.csv"
     id_input_col = "id"
     id_output_col = "ID"
-    raster_dir = RASTER_DIR
+    raster_dir = Path(__file__).parent / "fixtures" / "glc_x_10"
     # Column names differ from PaperSource's (and one field is fully renamed - see
     # _aspect_rad_cbh_cfl below), but every other CSV shape is the same for both sources: an
     # input CSV with a "FuelType" column, and an output CSV with ROS/HFI/CFB/SFC/TFC/RAZ/FD
@@ -389,6 +479,12 @@ class RPackageSource(GLCX10Source):
         )
         return aspect_rad, cbh, cfl
 
+    def _raster_aspect_cbh_cfl(self, input_rows):
+        aspect_deg = [parse_float(row["Aspect"]) for row in input_rows]
+        cbh = [parse_float(row["CBH"]) for row in input_rows]
+        cfl = [parse_float(row["CFL"]) for row in input_rows]
+        return aspect_deg, cbh, cfl
+
 
 class PaperSource(GLCX10Source):
     """A second, independent transcription: extracted directly from Tables 4-6 of the published
@@ -402,7 +498,7 @@ class PaperSource(GLCX10Source):
     output_csv = "glc_x_10_paper_primary_outputs.csv"
     id_input_col = "TestCase"
     id_output_col = "TestCase"
-    raster_dir = PAPER_RASTER_DIR
+    raster_dir = Path(__file__).parent / "fixtures" / "glc_x_10_paper"
     columns = {
         "lat": "Lat", "lon": "Long", "elv": "Elev", "ffmc": "FFMC", "bui": "BUI", "ws": "WS",
         "wd": "WDIR", "gs": "GS", "dj": "Dj", "d0": "D0", "gfl": "GFL", "pc": "PC", "pdf": "PDF",
@@ -423,6 +519,18 @@ class PaperSource(GLCX10Source):
         cbh = np.array([CBH_DEFAULT[ft] for ft in fuel_types])
         cfl = np.array([CFL_DEFAULT[ft] for ft in fuel_types])
         return aspect_rad, cbh, cfl
+
+    def _raster_aspect_cbh_cfl(self, input_rows):
+        # Same nan_to_num-before-subtracting-180 order of operations as _aspect_rad_cbh_cfl
+        # above, so the CSV-direct and raster-sourced paths resolve to the exact same aspect
+        # value for case 14 (blank SAZ) even though it doesn't affect any result (case 14 has
+        # GS=0, so slope direction is never actually used).
+        saz_deg = np.nan_to_num(np.array([parse_float(row["SAZ"]) for row in input_rows]))
+        aspect_deg = list((saz_deg - 180) % 360)
+        # Table 4 has no CBH/CFL columns at all - always missing, always defaulted on read.
+        cbh = [float("nan")] * len(input_rows)
+        cfl = [float("nan")] * len(input_rows)
+        return aspect_deg, cbh, cfl
 
 
 R_PACKAGE = RPackageSource()
