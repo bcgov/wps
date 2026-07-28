@@ -21,12 +21,14 @@ vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
       showSnow,
       snowDate,
       rasterDate,
-      rasterType
+      rasterType,
+      runType
     }: {
       showSnow: boolean
       snowDate: DateTime | null
       rasterDate: DateTime | null
       rasterType: string
+      runType: string
     }) => (
       <div
         data-testid="sfms-map"
@@ -34,6 +36,7 @@ vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
         data-snow-date={snowDate?.toISO() ?? 'null'}
         data-raster-date={rasterDate?.toISO() ?? 'null'}
         data-raster-type={rasterType}
+        data-run-type={runType}
       >
         Mock SFMS Map
       </div>
@@ -136,6 +139,10 @@ describe('SFMSInsightsPage', () => {
         actual: {
           minimum: '2025-01-01',
           maximum: '2025-11-02'
+        },
+        forecast: {
+          minimum: '2025-11-03',
+          maximum: '2025-11-05'
         }
       }
     }
@@ -192,6 +199,51 @@ describe('SFMSInsightsPage', () => {
 
     const map = screen.getByTestId('sfms-map')
     expect(map).toHaveAttribute('data-raster-type', 'fuel')
+  })
+
+  it('should show actuals by default', async () => {
+    renderWithStore()
+    await waitForPageLoad()
+
+    expect(screen.getByRole('combobox', { name: 'Source' })).toHaveTextContent('Actual')
+    expect(screen.getByTestId('sfms-map')).toHaveAttribute('data-run-type', 'actual')
+  })
+
+  it('should switch to the latest forecast date and forecast raster data', async () => {
+    renderWithStore()
+    await waitForPageLoad()
+
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Source' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Forecast' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('current-date')).toHaveTextContent('2025-11-05')
+      expect(screen.getByTestId('historical-min-date')).toHaveTextContent('2025-11-03')
+      expect(screen.getByTestId('historical-max-date')).toHaveTextContent('2025-11-05')
+      expect(screen.getByTestId('sfms-map')).toHaveAttribute('data-run-type', 'forecast')
+    })
+  })
+
+  it('should disable dated raster controls when forecasts are unavailable', async () => {
+    renderWithStore({
+      '2025': {
+        actual: {
+          minimum: '2025-01-01',
+          maximum: '2025-11-02'
+        }
+      }
+    })
+    await waitForPageLoad()
+
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Source' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Forecast' }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('current-date')).toHaveTextContent('null')
+      expect(screen.getByTestId('date-picker')).toHaveAttribute('data-disabled', 'true')
+      expect(screen.getByTestId('raster-type-dropdown')).toHaveAttribute('data-raster-data-available', 'false')
+      expect(screen.getByTestId('sfms-map')).toHaveAttribute('data-run-type', 'forecast')
+    })
   })
 
   it('should set date picker max date based on SFMS bounds', async () => {
@@ -385,7 +437,7 @@ describe('SFMSInsightsPage', () => {
     expect(minDate.textContent).toBe('2025-05-01')
   })
 
-  it('should set rasterDate to today when latestBounds is null', async () => {
+  it('should disable date selection when SFMS bounds are unavailable', async () => {
     renderWithStore(null)
 
     // Wait for fetch to complete
@@ -394,8 +446,8 @@ describe('SFMSInsightsPage', () => {
     })
 
     const currentDate = screen.getByTestId('current-date')
-    // Should default to today's date (mocked as 2025-11-02)
-    expect(currentDate.textContent).toBe('2025-11-02')
+    expect(currentDate.textContent).toBe('null')
+    expect(screen.getByTestId('date-picker')).toHaveAttribute('data-disabled', 'true')
 
     // Min/max dates should use default values
     const minDate = screen.getByTestId('historical-min-date')
@@ -404,7 +456,7 @@ describe('SFMSInsightsPage', () => {
     expect(maxDate.textContent).toBe('2025-11-12')
   })
 
-  it('should set rasterDate to today when latestBounds.maximum is empty', async () => {
+  it('should disable date selection when latestBounds.maximum is empty', async () => {
     renderWithStore({
       '2025': {
         actual: {
@@ -419,15 +471,15 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
-    // Should default to today's date (mocked as 2025-11-02)
-    expect(currentDate.textContent).toBe('2025-11-02')
+    expect(currentDate.textContent).toBe('null')
+    expect(datePicker).toHaveAttribute('data-disabled', 'true')
 
     // minDate should be set from bounds
     const minDate = screen.getByTestId('historical-min-date')
     expect(minDate.textContent).toBe('2025-05-01')
   })
 
-  it('should not set minDate when earliestBounds.minimum is empty', async () => {
+  it('should limit minDate to the latest date when earliestBounds.minimum is empty', async () => {
     renderWithStore({
       '2025': {
         actual: {
@@ -440,11 +492,10 @@ describe('SFMSInsightsPage', () => {
 
     const minDate = screen.getByTestId('historical-min-date')
 
-    // minDate should use default value since earliestBounds.minimum is empty
-    expect(minDate.textContent).toBe('2025-01-01')
+    expect(minDate.textContent).toBe('2025-10-15')
   })
 
-  it('should set rasterDate to today when all years have empty maximum', async () => {
+  it('should disable date selection when all years have empty maximum', async () => {
     renderWithStore({
       '2024': {
         actual: {
@@ -465,8 +516,8 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
-    // Should default to today's date (mocked as 2025-11-02)
-    expect(currentDate.textContent).toBe('2025-11-02')
+    expect(currentDate.textContent).toBe('null')
+    expect(datePicker).toHaveAttribute('data-disabled', 'true')
 
     // minDate should be set from 2024 bounds
     const minDate = screen.getByTestId('historical-min-date')

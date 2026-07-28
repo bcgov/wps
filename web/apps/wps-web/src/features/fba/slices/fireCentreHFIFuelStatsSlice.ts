@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { type FireCentreHFIStats, getFireCentreHFIStats, type RunType } from '@wps/api/fbaAPI'
+import { type FireCentreHFIStats, getFireCentreHFIStats } from '@wps/api/fbaAPI'
+import type { RunType } from '@wps/api/runType'
 import { logError } from '@wps/utils/error'
 import type { AppThunk } from 'app/store'
 

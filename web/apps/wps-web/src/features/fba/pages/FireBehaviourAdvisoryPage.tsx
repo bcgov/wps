@@ -1,5 +1,6 @@
 import { Box, FormControl, Grid, styled } from '@mui/material'
-import { type FireShape, RunType } from '@wps/api/fbaAPI'
+import type { FireShape } from '@wps/api/fbaAPI'
+import { RunType } from '@wps/api/runType'
 import { getStations, StationSource } from '@wps/api/stationAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import AboutDataPopover from '@wps/ui/AboutDataPopover'
@@ -52,7 +53,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
       ? DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
       : DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`).plus({ days: 1 })
   )
-  const [runType, setRunType] = useState(RunType.FORECAST)
+  const [runType, setRunType] = useState<RunType>(RunType.FORECAST)
   // Set some reasonable historical min and max dates for ASA (used by the DatePicker).
   const [historicalMinDate, setHistoricalMinDate] = useState<DateTime>(
     DateTime.fromObject({ year: 2022, month: 4, day: 1 })
@@ -67,11 +68,10 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
 
   const updateDatePickerOptions = useCallback(() => {
     const dates: DateTime[] = []
-    const runTypeLower = runType.toLocaleLowerCase()
     if (!isNull(sfmsBounds) && !isEmpty(sfmsBounds)) {
       for (const key of Object.keys(sfmsBounds)) {
-        const minValue = sfmsBounds[key]?.[runTypeLower]?.minimum
-        const maxValue = sfmsBounds[key]?.[runTypeLower]?.maximum
+        const minValue = sfmsBounds[key]?.[runType]?.minimum
+        const maxValue = sfmsBounds[key]?.[runType]?.maximum
         if (minValue && maxValue) {
           const minDate = DateTime.fromISO(minValue)
           const maxDate = DateTime.fromISO(maxValue)
@@ -84,8 +84,8 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
         setHistoricalMaxDate(dates[dates.length - 1].plus({ days: 1 }))
       }
     }
-    const currentYearMin = sfmsBounds?.[dateOfInterestYear]?.[runTypeLower]?.minimum ?? `${dateOfInterestYear}-04-01`
-    const currentYearMax = sfmsBounds?.[dateOfInterestYear]?.[runTypeLower]?.maximum ?? `${dateOfInterestYear}-10-31`
+    const currentYearMin = sfmsBounds?.[dateOfInterestYear]?.[runType]?.minimum ?? `${dateOfInterestYear}-04-01`
+    const currentYearMax = sfmsBounds?.[dateOfInterestYear]?.[runType]?.maximum ?? `${dateOfInterestYear}-10-31`
     setCurrentYearMinDate(DateTime.fromISO(currentYearMin))
     setCurrentYearMaxDate(DateTime.fromISO(currentYearMax))
   }, [dateOfInterestYear, runType, sfmsBounds])

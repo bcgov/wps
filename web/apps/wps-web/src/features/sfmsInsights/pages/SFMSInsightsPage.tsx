@@ -1,4 +1,5 @@
 import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
+import { RunType } from '@wps/api/runType'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
 import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
@@ -9,12 +10,14 @@ import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import type { RootState } from '@/app/rootReducer'
 import type { AppDispatch } from '@/app/store'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
 import Footer from '@/features/landingPage/components/Footer'
 import type { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 import SFMSMap from '@/features/sfmsInsights/components/map/SFMSMap'
 import RasterTypeDropdown from '@/features/sfmsInsights/components/RasterTypeDropdown'
+import RunTypeDropdown from '@/features/sfmsInsights/components/RunTypeDropdown'
 import { SfmsInsightsAboutDataContent } from '@/features/sfmsInsights/components/SfmsInsightsAboutDataContent'
 import {
   fetchSFMSInsightsBounds,
@@ -26,20 +29,28 @@ import {
 
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const sfmsBounds = useSelector(selectSFMSInsightsBounds)
-  const sfmsBoundsLoading = useSelector(selectSFMSInsightsBoundsLoading)
-  const latestBounds = useSelector(selectLatestSFMSInsightsBounds)
-  const earliestBounds = useSelector(selectEarliestSFMSInsightsBounds)
+
+  // state
+  const [runType, setRunType] = useState<RunType>(RunType.ACTUAL)
+  const [rasterType, setRasterType] = useState<RasterType>('fuel')
+  const [rasterDate, setRasterDate] = useState<DateTime | null>(null)
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
-  const [rasterDate, setRasterDate] = useState<DateTime | null>(getDateTimeNowPST())
-  const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
+  const [showSnow, setShowSnow] = useState<boolean>(true)
   const [minDate, setMinDate] = useState<DateTime>(
     DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPST().year })
   )
+  const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
 
-  const [rasterType, setRasterType] = useState<RasterType>('fuel')
-  const [showSnow, setShowSnow] = useState<boolean>(true)
+  // selectors
+  const sfmsBounds = useSelector(selectSFMSInsightsBounds)
+  const sfmsBoundsLoading = useSelector(selectSFMSInsightsBoundsLoading)
+  const latestBounds = useSelector((state: RootState) => selectLatestSFMSInsightsBounds(state, runType))
+  const earliestBounds = useSelector((state: RootState) => selectEarliestSFMSInsightsBounds(state, runType))
 
+  // derived values
+  const rasterDataAvailable = !!latestBounds?.maximum
+
+  // effects
   useEffect(() => {
     if (sfmsBounds !== undefined || sfmsBoundsLoading) {
       return
@@ -49,18 +60,23 @@ export const SFMSInsightsPage = () => {
   }, [dispatch, sfmsBounds, sfmsBoundsLoading])
 
   useEffect(() => {
-    if (earliestBounds?.minimum) {
-      setMinDate(DateTime.fromISO(earliestBounds.minimum))
+    if (!latestBounds?.maximum) {
+      setRasterDate(null)
+      return
     }
-  }, [earliestBounds])
+
+    const latestDate = DateTime.fromISO(latestBounds.maximum)
+    setMaxDate(latestDate)
+    setRasterDate(latestDate)
+  }, [latestBounds])
 
   useEffect(() => {
-    if (latestBounds?.maximum) {
-      const latestDate = DateTime.fromISO(latestBounds.maximum)
-      setMaxDate(latestDate)
-      setRasterDate(currentDate => (currentDate?.toISODate() === latestDate.toISODate() ? currentDate : latestDate))
+    if (earliestBounds?.minimum) {
+      setMinDate(DateTime.fromISO(earliestBounds.minimum))
+    } else if (latestBounds?.maximum) {
+      setMinDate(DateTime.fromISO(latestBounds.maximum))
     }
-  }, [latestBounds])
+  }, [earliestBounds, latestBounds])
 
   useEffect(() => {
     // Only fetch snow data once rasterDate is set
@@ -81,6 +97,12 @@ export const SFMSInsightsPage = () => {
 
     fetchLastProcessedSnow(rasterDate)
   }, [rasterDate])
+
+  // handlers
+  const updateRunType = (newRunType: RunType) => {
+    setRasterDate(null)
+    setRunType(newRunType)
+  }
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -113,6 +135,7 @@ export const SFMSInsightsPage = () => {
               <StyledFormControl>
                 <ASADatePicker
                   date={rasterDate}
+                  disabled={!rasterDataAvailable}
                   updateDate={setRasterDate}
                   historicalMinDate={minDate}
                   historicalMaxDate={maxDate}
@@ -124,10 +147,15 @@ export const SFMSInsightsPage = () => {
           )}
           <Grid>
             <StyledFormControl>
+              <RunTypeDropdown selectedRunType={runType} setSelectedRunType={updateRunType} />
+            </StyledFormControl>
+          </Grid>
+          <Grid>
+            <StyledFormControl>
               <RasterTypeDropdown
                 selectedRasterType={rasterType}
                 setSelectedRasterType={setRasterType}
-                rasterDataAvailable={!!latestBounds?.maximum}
+                rasterDataAvailable={rasterDataAvailable}
               />
             </StyledFormControl>
           </Grid>
@@ -147,7 +175,13 @@ export const SFMSInsightsPage = () => {
         </Grid>
       </Box>
       <Box sx={{ flex: 1, position: 'relative' }}>
-        <SFMSMap snowDate={snowDate} rasterDate={rasterDate} rasterType={rasterType} showSnow={showSnow} />
+        <SFMSMap
+          snowDate={snowDate}
+          rasterDate={rasterDate}
+          rasterType={rasterType}
+          runType={runType}
+          showSnow={showSnow}
+        />
       </Box>
       <Footer />
     </Box>

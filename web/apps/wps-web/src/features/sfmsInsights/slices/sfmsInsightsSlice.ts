@@ -1,5 +1,7 @@
 import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { getSFMSInsightsBounds, type SFMSBounds, type SFMSBoundsResponse } from '@wps/api/sfmsAPI'
+import { RunType } from '@wps/api/runType'
+import { getSFMSInsightsBounds } from '@wps/api/sfmsAPI'
+import type { SFMSBounds, SFMSBoundsResponse } from '@wps/api/sfmsBounds'
 import { logError } from '@wps/utils/error'
 import type { AppThunk } from 'app/store'
 
@@ -62,15 +64,16 @@ export const selectSFMSInsightsBoundsLoading = createSelector(
   sfmsInsights => sfmsInsights.sfmsBoundsLoading
 )
 
-const findActualBoundsInOrder = (
+const findBoundsInOrder = (
   sfmsBounds: SFMSBounds | null | undefined,
+  runType: RunType,
   sortFn: (a: string, b: string) => number,
   hasValue: (bounds: { minimum: string; maximum: string }) => boolean
 ) => {
   if (!sfmsBounds) return null
 
   for (const year of Object.keys(sfmsBounds).sort(sortFn)) {
-    const bounds = sfmsBounds[year]?.actual
+    const bounds = sfmsBounds[year]?.[runType]
     if (bounds && hasValue(bounds)) {
       return bounds
     }
@@ -78,18 +81,20 @@ const findActualBoundsInOrder = (
   return null
 }
 
-export const selectLatestSFMSInsightsBounds = createSelector([selectSFMSInsightsBounds], sfmsBounds =>
-  findActualBoundsInOrder(
-    sfmsBounds,
+type SFMSInsightsRootState = { sfmsInsights: SFMSInsightsState }
+
+export const selectLatestSFMSInsightsBounds = (state: SFMSInsightsRootState, runType: RunType = RunType.ACTUAL) =>
+  findBoundsInOrder(
+    selectSFMSInsightsBounds(state),
+    runType,
     (a, b) => b.localeCompare(a),
     bounds => !!bounds.maximum
   )
-)
 
-export const selectEarliestSFMSInsightsBounds = createSelector([selectSFMSInsightsBounds], sfmsBounds =>
-  findActualBoundsInOrder(
-    sfmsBounds,
+export const selectEarliestSFMSInsightsBounds = (state: SFMSInsightsRootState, runType: RunType = RunType.ACTUAL) =>
+  findBoundsInOrder(
+    selectSFMSInsightsBounds(state),
+    runType,
     (a, b) => a.localeCompare(b),
     bounds => !!bounds.minimum
   )
-)

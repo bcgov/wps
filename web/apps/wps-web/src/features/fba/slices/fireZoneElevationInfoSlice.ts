@@ -2,9 +2,9 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import {
   type ElevationInfoByThreshold,
   type FireZoneElevationInfoResponse,
-  getFireZoneElevationInfo,
-  type RunType
+  getFireZoneElevationInfo
 } from '@wps/api/fbaAPI'
+import type { RunType } from '@wps/api/runType'
 import { logError } from '@wps/utils/error'
 import type { AppThunk } from 'app/store'
 

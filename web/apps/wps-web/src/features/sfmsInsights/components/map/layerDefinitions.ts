@@ -1,3 +1,4 @@
+import { RunType } from '@wps/api/runType'
 import { BC_EXTENT } from '@wps/utils/constants'
 import { API_BASE_URL } from '@wps/utils/env'
 import type { DateTime } from 'luxon'
@@ -19,11 +20,15 @@ export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
 
-export const getSFMSNGActualRasterPath = (date: DateTime, rasterType: SFMSNGRasterType) => {
+export const getSFMSNGRasterPath = (
+  date: DateTime,
+  rasterType: SFMSNGRasterType,
+  runType: RunType = RunType.ACTUAL
+) => {
   const dateString = date.toISODate() ?? ''
   const datePath = dateString.replaceAll('-', '/')
   const dateStringBasic = dateString.replaceAll('-', '')
-  return `sfms_ng/actual/${datePath}/${rasterType}_${dateStringBasic}_cog.tif`
+  return `sfms_ng/${runType}/${datePath}/${rasterType}_${dateStringBasic}_cog.tif`
 }
 
 export const getSnowPMTilesLayer = (snowDate: DateTime, token?: string) => {
@@ -59,9 +64,10 @@ export const getFireWeatherRasterLayer = (
   date: DateTime,
   rasterType: SFMSNGRasterType,
   token: string | undefined,
+  runType: RunType = RunType.ACTUAL,
   layerName: string = FWI_LAYER_NAME
 ) => {
-  const path = getSFMSNGActualRasterPath(date, rasterType)
+  const path = getSFMSNGRasterPath(date, rasterType, runType)
   const url = `${API_BASE_URL}/object-store-proxy/${path}`
 
   // Prepare headers for authentication
@@ -136,7 +142,12 @@ export const getFuelCOGTiles = (token?: string) => {
  * Get the appropriate raster layer based on type
  * Handles both fire weather rasters (date-dependent) and fuel raster (static)
  */
-export const getRasterLayer = (date: DateTime | null, rasterType: RasterType, token: string | undefined) => {
+export const getRasterLayer = (
+  date: DateTime | null,
+  rasterType: RasterType,
+  token: string | undefined,
+  runType: RunType = RunType.ACTUAL
+) => {
   if (rasterType === 'fuel') {
     return getFuelCOGTiles(token)
   }
@@ -144,5 +155,5 @@ export const getRasterLayer = (date: DateTime | null, rasterType: RasterType, to
     console.error('date is required for fire weather rasters')
     return null
   }
-  return getFireWeatherRasterLayer(date, rasterType, token)
+  return getFireWeatherRasterLayer(date, rasterType, token, runType)
 }

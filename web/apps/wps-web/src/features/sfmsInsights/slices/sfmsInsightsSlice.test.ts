@@ -1,5 +1,7 @@
 import { combineReducers } from '@reduxjs/toolkit'
-import { getSFMSInsightsBounds, type SFMSBounds, type SFMSBoundsResponse } from '@wps/api/sfmsAPI'
+import { RunType } from '@wps/api/runType'
+import { getSFMSInsightsBounds } from '@wps/api/sfmsAPI'
+import type { SFMSBounds, SFMSBoundsResponse } from '@wps/api/sfmsBounds'
 import { logError } from '@wps/utils/error'
 import type { AppDispatch } from '@/app/store'
 import { createTestStore } from '@/test/testUtils'
@@ -129,6 +131,10 @@ describe('SFMS Insights bounds selectors', () => {
       actual: {
         minimum: '2025-01-01',
         maximum: '2025-11-02'
+      },
+      forecast: {
+        minimum: '2025-11-03',
+        maximum: '2025-11-05'
       }
     }
   }
@@ -157,6 +163,24 @@ describe('SFMS Insights bounds selectors', () => {
     expect(selectEarliestSFMSInsightsBounds(state)).toEqual({
       minimum: '2024-01-01',
       maximum: '2024-12-31'
+    })
+  })
+
+  it('selectors return forecast bounds when forecasts are selected', () => {
+    const state = {
+      sfmsInsights: {
+        ...initialState,
+        sfmsBounds: fullSfmsBounds
+      }
+    }
+
+    expect(selectLatestSFMSInsightsBounds(state, RunType.FORECAST)).toEqual({
+      minimum: '2025-11-03',
+      maximum: '2025-11-05'
+    })
+    expect(selectEarliestSFMSInsightsBounds(state, RunType.FORECAST)).toEqual({
+      minimum: '2025-11-03',
+      maximum: '2025-11-05'
     })
   })
 
