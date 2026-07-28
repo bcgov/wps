@@ -12,9 +12,11 @@ vectorized_bui = vectorize(buildup_index)
 vectorized_dc = vectorize(drought_code)
 vectorized_dmc = vectorize(duff_moisture_code)
 vectorized_ffmc = vectorize(fine_fuel_moisture_code)
-# initial_spread_index() now delegates to _initial_spread_index() for its actual
-# formula (see cffdrs' vectorization-ready convention); the public wrapper only adds
-# range-validating raise ValueError guards, which numba can't compile through, so we
-# vectorize the private leaf function directly instead.
+# initial_spread_index() is the only one of the six where cffdrs itself split validation from
+# computation into two functions: the public wrapper just validates, then delegates to
+# _initial_spread_index() for the formula. numba's nopython mode can't compile a call into a
+# second function it hasn't itself compiled, so vectorizing the public wrapper fails; the other
+# five are each one self-contained function (guards + math, no delegation), so they vectorize
+# fine, guards included.
 vectorized_isi = vectorize(_initial_spread_index)
 vectorized_fwi = vectorize(fire_weather_index)
