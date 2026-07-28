@@ -1,11 +1,16 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { RunType } from '@/api/fbaAPI'
 import ASAGoMap, { type ASAGoMapProps } from '@/components/map/ASAGoMap'
 import * as mapView from '@/components/map/mapView'
+import * as featureStylers from '@/featureStylers'
+import { initialState as dataInitialState } from '@/slices/dataSlice'
+import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { geolocationInitialState } from '@/slices/geolocationSlice'
 import { createLayerMock, createTestStore, setupOpenLayersMocks } from '@/testUtils'
+import { AdvisoryStatus } from '@/utils/constants'
 
 vi.mock('@capacitor/filesystem', () => ({
   Filesystem: {
@@ -257,5 +262,51 @@ describe('ASAGoMap', () => {
     )
 
     expect(loadMapViewStateMock).toHaveBeenCalled()
+  })
+
+  it('styles zones using provincial summary data for the store date of interest, and re-styles when the date changes to one with no data', async () => {
+    const fireShapeStylerSpy = vi.spyOn(featureStylers, 'fireShapeStyler')
+    const store = createTestStore({
+      dateOfInterest: { dateKey: '2025-08-01' },
+      data: {
+        ...dataInitialState,
+        provincialSummaries: {
+          '2025-08-01': {
+            runParameter: { for_date: '2025-08-01', run_datetime: '2025-08-01T00:00:00Z', run_type: RunType.FORECAST },
+            data: [
+              {
+                fire_shape_id: 1,
+                fire_shape_name: 'Zone-1',
+                fire_centre_name: 'Test Fire Centre',
+                status: AdvisoryStatus.WARNING
+              }
+            ]
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    )
+
+    await waitFor(() => {
+      expect(fireShapeStylerSpy).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ fire_shape_id: 1, status: AdvisoryStatus.WARNING })]),
+        expect.any(Boolean)
+      )
+    })
+
+    fireShapeStylerSpy.mockClear()
+
+    act(() => {
+      store.dispatch(setDateOfInterest('2025-08-02'))
+    })
+
+    await waitFor(() => {
+      expect(fireShapeStylerSpy).toHaveBeenCalledWith(undefined, expect.any(Boolean))
+    })
   })
 })
