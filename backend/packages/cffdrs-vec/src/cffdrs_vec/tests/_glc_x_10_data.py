@@ -27,6 +27,7 @@ from typing import NamedTuple
 import numpy as np
 from cffdrs.constants import D1, FUEL_TYPE_CODES, O1A, O1B, S1, S2, S3
 from osgeo import osr
+from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 from cffdrs_vec import fbp
@@ -45,85 +46,34 @@ NO_CROWN_FUEL_TYPE_CODES = (D1, S1, S2, S3, O1A, O1B)
 
 FIRE_TYPE_BY_FD_CODE = {"S": "SUR", "I": "IC", "C": "CC"}
 
-# Table 7 (FCFDG 1992) CBH/CFL defaults, used because the GLC-X-10 dataset leaves CBH/CFL blank
-# for every case (relying on cffdrs's own per-fuel-type defaults). Matches
-# wps_shared.fuel_types.FUEL_TYPE_DEFAULTS exactly.
-CBH_DEFAULT = {
-    "C1": 2,
-    "C2": 3,
-    "C3": 8,
-    "C4": 4,
-    "C5": 18,
-    "C6": 7,
-    "C7": 10,
-    "D1": 0,
-    "M1": 6,
-    "M2": 6,
-    "M3": 6,
-    "M4": 6,
-    "S1": 0,
-    "S2": 0,
-    "S3": 0,
-    "O1A": 0,
-    "O1B": 0,
-}
-CFL_DEFAULT = {
-    "C1": 0.75,
-    "C2": 0.8,
-    "C3": 1.15,
-    "C4": 1.2,
-    "C5": 1.2,
-    "C6": 1.8,
-    "C7": 0.5,
-    "D1": 0,
-    "M1": 0.8,
-    "M2": 0.8,
-    "M3": 0.8,
-    "M4": 0.8,
-    "S1": 0,
-    "S2": 0,
-    "S3": 0,
-    "O1A": 0,
-    "O1B": 0,
-}
-PC_DEFAULT = {
-    "C1": 100,
-    "C2": 100,
-    "C3": 100,
-    "C4": 100,
-    "C5": 100,
-    "C6": 100,
-    "C7": 100,
-    "D1": 0,
-    "M1": 50,
-    "M2": 50,
-    "M3": 0,
-    "M4": 0,
-    "S1": 0,
-    "S2": 0,
-    "S3": 0,
-    "O1A": 0,
-    "O1B": 0,
-}
-PDF_DEFAULT = {
-    "C1": 0,
-    "C2": 0,
-    "C3": 0,
-    "C4": 0,
-    "C5": 0,
-    "C6": 0,
-    "C7": 0,
-    "D1": 0,
-    "M1": 0,
-    "M2": 0,
-    "M3": 30,
-    "M4": 30,
-    "S1": 0,
-    "S2": 0,
-    "S3": 0,
-    "O1A": 0,
-    "O1B": 0,
-}
+# The fuel types covered by the GLC-X-10 paper - a subset of FUEL_TYPE_DEFAULTS (which also
+# carries D2, C7B and the M2_25 variant, none of which appear in this dataset).
+PAPER_FUEL_TYPE_CODES = (
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "D1",
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "S1",
+    "S2",
+    "S3",
+    "O1A",
+    "O1B",
+)
+
+# Table 7 (FCFDG 1992) CBH/CFL/PC/PDF defaults, used because the GLC-X-10 dataset leaves them
+# blank for every case (relying on cffdrs's own per-fuel-type defaults).
+CBH_DEFAULT = {ft: FUEL_TYPE_DEFAULTS[ft]["CBH"] for ft in PAPER_FUEL_TYPE_CODES}
+CFL_DEFAULT = {ft: FUEL_TYPE_DEFAULTS[ft]["CFL"] for ft in PAPER_FUEL_TYPE_CODES}
+PC_DEFAULT = {ft: FUEL_TYPE_DEFAULTS[ft]["PC"] for ft in PAPER_FUEL_TYPE_CODES}
+PDF_DEFAULT = {ft: FUEL_TYPE_DEFAULTS[ft]["PDF"] for ft in PAPER_FUEL_TYPE_CODES}
 
 # Raster fixture variable names, in the order generate_glc_x_10_rasters.py writes them - shared so
 # the generator and the raster-reading test can't drift apart on file naming.
