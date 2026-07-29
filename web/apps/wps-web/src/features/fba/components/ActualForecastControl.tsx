@@ -1,6 +1,6 @@
 import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material'
 import { RunType } from '@wps/api/runType'
-import { theme } from '@wps/ui/theme'
+import { CONTROL_HEIGHT } from '@wps/ui/theme'
 import { isNull } from 'lodash'
 import React from 'react'
 
@@ -17,13 +17,15 @@ const ActualForecastControl = ({ runType, setRunType }: ActualForecastControlPro
   return (
     <FormControl
       variant="outlined"
-      sx={{
+      sx={theme => ({
+        height: CONTROL_HEIGHT,
         border: '1px solid rgba(0, 0, 0, 0.23)',
-        borderRadius: '4px',
-        padding: '8px 12px 4px',
+        borderRadius: `${theme.shape.borderRadius}px`,
+        padding: '0 12px',
+        justifyContent: 'center',
         position: 'relative',
         margin: theme.spacing(1)
-      }}
+      })}
     >
       <FormLabel
         sx={{

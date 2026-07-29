@@ -13,6 +13,7 @@ import { styled } from '@mui/material/styles'
 import type { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import DateRangePickerWrapper from '@wps/ui/dateRangePicker/DateRangePickerWrapper'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
+import { theme } from '@wps/ui/theme'
 import { isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
@@ -30,7 +31,7 @@ export interface PrepDateRangeSelectorProps {
   setDateRange: (newDateRange: DateRange) => void
 }
 
-export const dateRangePickerTheme = createTheme({
+export const dateRangePickerTheme = createTheme(theme, {
   components: {
     MuiOutlinedInput: {
       styleOverrides: {
@@ -95,7 +96,7 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={dateRangePickerTheme}>
           <Button
-            sx={{ textTransform: 'capitalize' }}
+            sx={{ typography: 'body1', textTransform: 'capitalize' }}
             data-testid="date-range-picker-button"
             onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
           >

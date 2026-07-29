@@ -3,7 +3,12 @@ import type { GridCellParams, GridColumnHeaderParams } from '@mui/x-data-grid-pr
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
+export const CONTROL_HEIGHT = 44
+
 export const theme = createTheme({
+  shape: {
+    borderRadius: 6
+  },
   palette: {
     primary: {
       light: '#3E5C93',
@@ -37,6 +42,11 @@ export const theme = createTheme({
     }
   },
   components: {
+    MuiAutocomplete: {
+      defaultProps: {
+        size: 'small'
+      }
+    },
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
@@ -49,6 +59,39 @@ export const theme = createTheme({
         root: {
           fontSize: '1em'
         }
+      }
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          '&.MuiInputLabel-outlined.MuiInputLabel-sizeSmall:not(.MuiInputLabel-shrink)': {
+            top: '50%',
+            transform: 'translate(14px, -50%) scale(1)'
+          }
+        }
+      }
+    },
+    MuiOutlinedInput: {
+      defaultProps: {
+        size: 'small'
+      },
+      styleOverrides: {
+        root: {
+          '&:not(.MuiInputBase-multiline)': {
+            height: CONTROL_HEIGHT,
+            alignItems: 'center'
+          }
+        }
+      }
+    },
+    MuiSelect: {
+      defaultProps: {
+        size: 'small'
+      }
+    },
+    MuiTextField: {
+      defaultProps: {
+        size: 'small'
       }
     }
   }
