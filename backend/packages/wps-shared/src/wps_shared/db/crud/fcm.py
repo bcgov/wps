@@ -19,6 +19,24 @@ async def get_device_by_device_id(session: AsyncSession, device_id: str) -> Devi
     return await session.scalar(select(DeviceToken).where(DeviceToken.device_id == device_id))
 
 
+async def get_active_device_by_device_id(
+    session: AsyncSession, device_id: str, for_update: bool = False
+) -> DeviceToken | None:
+    """Return the most recently updated active token for a device.
+
+    When for_update is True, lock matching active token rows until the transaction finishes so
+    concurrent subscription replacements for the same device cannot interleave.
+    """
+    statement = (
+        select(DeviceToken)
+        .where(DeviceToken.device_id == device_id, DeviceToken.is_active.is_(True))
+        .order_by(DeviceToken.updated_at.desc(), DeviceToken.id.desc())
+    )
+    if for_update:
+        statement = statement.with_for_update()
+    return await session.scalar(statement)
+
+
 async def get_device_by_token(session: AsyncSession, token: str) -> DeviceToken | None:
     return await session.scalar(select(DeviceToken).where(DeviceToken.token == token))
 
@@ -74,8 +92,9 @@ async def get_notification_settings_for_device(session: AsyncSession, device_id:
     """Return the subscribed fire zone source identifiers for the given device_id."""
     result = await session.execute(
         select(NotificationSettings.fire_shape_source_id)
+        .distinct()
         .join(DeviceToken, NotificationSettings.device_token_id == DeviceToken.id)
-        .where(DeviceToken.device_id == device_id)
+        .where(DeviceToken.device_id == device_id, DeviceToken.is_active.is_(True))
     )
     return list(result.scalars().all())
 
@@ -87,7 +106,7 @@ async def upsert_notification_settings(
 
     Returns False if the device_id is not found, True otherwise.
     """
-    device_token = await get_device_by_device_id(session, device_id)
+    device_token = await get_active_device_by_device_id(session, device_id, for_update=True)
     if device_token is None:
         return False
 
@@ -95,7 +114,7 @@ async def upsert_notification_settings(
         delete(NotificationSettings).where(NotificationSettings.device_token_id == device_token.id)
     )
 
-    for fire_zone_source_id in fire_zone_source_ids:
+    for fire_zone_source_id in dict.fromkeys(fire_zone_source_ids):
         session.add(
             NotificationSettings(
                 device_token_id=device_token.id, fire_shape_source_id=fire_zone_source_id
@@ -112,6 +131,6 @@ async def get_device_tokens_for_zone(session: AsyncSession, fire_shape_source_id
         .where(
             NotificationSettings.fire_shape_source_id == fire_shape_source_id,
             DeviceToken.is_active == True,
-        )  # noqa: E712
+        )
     )
     return list(result.scalars().all())
