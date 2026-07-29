@@ -1,35 +1,13 @@
 """
-Checks how every cffdrs_vec.fwi/fbp vectorized_* function handles NaN and None, since they
-behave very differently from each other and from the plain cffdrs scalar API:
+Checks how every cffdrs_vec.fwi/fbp vectorized_* function handles NaN and None:
 
 - NaN propagates through these functions exactly like it does through the plain, unjitted cffdrs
-  reference function (arithmetic NaN propagation, comparisons against NaN evaluating False) -
-  numba's default "python" error model matches CPython here, so this is mostly a check that
-  nothing in the jitted/cloned pipeline (eg. a fuel-type branch keyed on a NaN-derived comparison)
-  quietly does something different.
-
-- None is not accepted at all, unlike cffdrs's own scalar functions, several of which treat None
-  as a "value not available" sentinel and either return None or raise a friendly CFFDRSException
-  (see app.fire_behaviour.cffdrs, which wraps cffdrs for exactly this reason). numba's nopython
-  mode can't type a NoneType/object array, so passing one raises immediately - a plain TypeError
-  for guvectorize-based functions (rejected by numpy's own ufunc casting before numba gets
-  involved, since guvectorize is eagerly compiled) or a numba.TypingError for vectorize-based ones
-  (numba's own lazy compiler rejects it while inferring types for the first call). Callers must
-  convert "missing" to NaN, not None, before calling into cffdrs_vec.
-
-nan_args/none_args are already call-ready: each is the exact positional argument list `fn` is
-called with (arrays, except for the trailing lat_adjust/fbp_mod bool on dc/dmc/isi, which is
-passed bare - that's how it's actually broadcast against the array arguments; see
-cffdrs_vec/fwi.py's callers), with one position holding NaN/None. Which position doesn't matter
-(every function needs both float-only branches to still work), so each case just fixes it
-wherever's convenient. call_reference takes the same nan_args list and unwraps whatever it needs
-to call the plain, unjitted cffdrs function.
-
-multi_output marks the 2 guvectorize-based functions (slope_adjustment, rate_of_spread_extended),
-which return a tuple of arrays instead of one array.
-
-Argument-array construction always happens before entering `with pytest.raises`, so those blocks
-contain nothing but the single call under test - see python:S5778.
+  reference function (arithmetic NaN propagation, comparisons against NaN evaluating False).
+- None is never accepted: numba's nopython mode can't type a NoneType/object array, so passing
+  one raises immediately (see NONE_INPUT_ERRORS below for which exception type, depending on
+  function). This differs from cffdrs's own scalar functions, several of which treat None as a
+  "value not available" sentinel (see app.fire_behaviour.cffdrs, which wraps cffdrs for exactly
+  that reason). Callers must convert "missing" to NaN, not None, before calling into cffdrs_vec.
 """
 
 import cffdrs
@@ -61,7 +39,16 @@ NONE_INPUT_ERRORS = (TypeError, numba.TypingError)
 C6 = FUEL_TYPE_CODES["C6"]
 NAN = float("nan")
 
-# name, fn, multi_output, call_reference, nan_args, none_args
+# Each case is (name, fn, multi_output, call_reference, nan_args, none_args):
+# - nan_args/none_args are `fn`'s exact positional argument list (arrays, except the trailing
+#   lat_adjust/fbp_mod bool on dc/dmc/isi, passed bare - that's how it's actually broadcast
+#   against the array arguments; see fwi.py's callers), with one position holding NaN/None. Which
+#   position doesn't matter (every function needs both float-only branches to still work), so
+#   each case just picks whichever's convenient.
+# - call_reference takes nan_args and unwraps whatever it needs to call the plain, unjitted
+#   cffdrs function.
+# - multi_output marks the 2 guvectorize-based functions (slope_adjustment,
+#   rate_of_spread_extended), which return a tuple of arrays instead of one.
 CASES = [
     # --- cffdrs_vec.fwi ---
     (
