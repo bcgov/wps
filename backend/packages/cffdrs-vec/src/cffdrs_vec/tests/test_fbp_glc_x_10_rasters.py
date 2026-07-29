@@ -6,9 +6,7 @@ load_raster_inputs()) instead of the CSVs directly, showing cffdrs_vec.fbp's vec
 also work correctly when driven by real GDAL raster reads (float32 storage, WPSDataset's nodata
 handling) rather than plain float64 arrays parsed straight from CSV.
 
-Parametrized over the same GLCX10Source objects as test_fbp_glc_x_10.py (see _glc_x_10_data.py),
-so the tolerance divergence between them (paper's ROS/HFI/CFB need looser tolerance, see
-test_fbp_glc_x_10.py for why) lives in exactly one place.
+Parametrized over the same GLCX10Source objects as test_fbp_glc_x_10.py (see _glc_x_10_data.py).
 """
 
 import numpy as np
