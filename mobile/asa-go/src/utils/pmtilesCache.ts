@@ -3,6 +3,7 @@ import type { DateTime } from 'luxon'
 import { FileSource, PMTiles } from 'pmtiles'
 import type { RunType } from '@/api/fbaAPI'
 import { fetchHFIPMTiles, fetchStaticPMTiles } from '@/api/pmtilesAPI'
+import { getHFIRunDateKey } from '@/utils/pmtilesUtils'
 
 const base64ToBlob = (base64: string, contentType = 'application/octet-stream') => {
   const byteCharacters = atob(base64.split(',')[1]) // Remove Base64 prefix
@@ -148,11 +149,14 @@ export class PMTilesCache implements IPMTilesCache {
     filename: string,
     fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
   ) => {
-    const cachedFilename = this.getHFIFileName(for_date.toISODate()!, run_type, run_date.toISODate()!, filename)
+    const cachedFilename = this.getHFICachedFileName(for_date, run_type, run_date, filename)
     const fetchAndStore =
       fetchAndStoreCallback ?? fetchAndStoreHFIPMTiles(for_date, run_type, run_date, cachedFilename, this.fileSystem)
     return this.loadPMTiles(cachedFilename, fetchAndStore)
   }
+
+  public readonly getHFICachedFileName = (for_date: DateTime, run_type: string, run_date: DateTime, filename: string) =>
+    this.getHFIFileName(for_date.toISODate()!, run_type, getHFIRunDateKey(run_date), filename)
 
   public readonly getHFIFileName = (for_date: string, run_type: string, run_date: string, filename: string) => {
     return `${for_date}_${run_type}_${run_date}_${filename}`

@@ -1,10 +1,11 @@
 import { Tab, Tabs } from '@mui/material'
 import { Box } from '@mui/system'
 import { isEmpty } from 'lodash'
-import type { DateTime } from 'luxon'
 import { useCallback, useEffect, useMemo } from 'react'
+import { useSelector } from 'react-redux'
 import type { FireShape } from '@/api/fbaAPI'
 import { useFireCentreDetails } from '@/hooks/useFireCentreDetails'
+import { selectDateOfInterest } from '@/slices/dateOfInterestSlice'
 import type { FireCentre } from '@/types/fireCentre'
 import { calculateStatusColour } from '@/utils/calculateZoneStatus'
 
@@ -13,16 +14,15 @@ export interface FireZoneUnitTabsProps {
   selectedFireZoneUnit: FireShape | undefined
   setSelectedFireZoneUnit: React.Dispatch<React.SetStateAction<FireShape | undefined>>
   children: React.ReactNode
-  date: DateTime
 }
 
 const FireZoneUnitTabs = ({
   children,
   selectedFireCentre,
   selectedFireZoneUnit,
-  setSelectedFireZoneUnit,
-  date
+  setSelectedFireZoneUnit
 }: FireZoneUnitTabsProps) => {
+  const date = useSelector(selectDateOfInterest)
   const sortedGroupedFireZoneUnits = useFireCentreDetails(selectedFireCentre, date)
 
   const tabNumber = useMemo(() => {

@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react'
-import { DateTime } from 'luxon'
 import { useSelector } from 'react-redux'
 import { vi } from 'vitest'
 import type { FireCenterDropdownProps } from '@/components/FireCenterDropdown'
@@ -10,7 +9,7 @@ import type { FireCentre } from '@/types/fireCentre'
 
 // Mock child components with proper props
 vi.mock('@/components/TodayTomorrowSwitch', () => ({
-  default: ({ date }: { date: DateTime }) => <div data-testid="today-tomorrow-switch">Date: {date.toISODate()}</div>
+  default: () => <div data-testid="today-tomorrow-switch">Today/Tomorrow</div>
 }))
 
 vi.mock('@/components/FireCenterDropdown', () => ({
@@ -42,9 +41,6 @@ describe('Advisory Component', () => {
     { name: 'Center 2', id: 2 }
   ]
 
-  const mockDate: DateTime = DateTime.fromISO('2025-07-15')
-
-  const setDate = vi.fn()
   const setSelectedFireCentre = vi.fn()
   const setSelectedFireZoneUnit = vi.fn()
 
@@ -55,8 +51,6 @@ describe('Advisory Component', () => {
   it('renders all key sections and child components', () => {
     render(
       <Advisory
-        date={mockDate}
-        setDate={setDate}
         selectedFireCentre={mockFireCentres[0]}
         setSelectedFireCentre={setSelectedFireCentre}
         selectedFireZoneUnit={undefined}
@@ -66,7 +60,7 @@ describe('Advisory Component', () => {
 
     expect(screen.getByTestId('asa-go-advisory')).toBeInTheDocument()
     expect(screen.getByTestId('advisory-control-container')).toBeInTheDocument()
-    expect(screen.getByTestId('today-tomorrow-switch')).toHaveTextContent('2025-07-15')
+    expect(screen.getByTestId('today-tomorrow-switch')).toBeInTheDocument()
     expect(screen.getByTestId('fire-center-dropdown')).toHaveTextContent('Options: 2')
     expect(screen.getByTestId('fire-zone-tabs')).toBeInTheDocument()
     expect(screen.getByTestId('advisory-text')).toHaveTextContent('Advisory Text Content')
