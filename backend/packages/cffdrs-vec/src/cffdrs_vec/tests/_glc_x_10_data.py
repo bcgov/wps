@@ -151,6 +151,24 @@ def write_raster(raster_dir: Path, name: str, values: list) -> None:
 class GLCX10Inputs(NamedTuple):
     """One field per array calculate_primary_output() needs - GLCX10Source.load_raster_inputs()
     builds the same shape from GeoTIFFs instead of the CSVs.
+
+    The field names below are the CFFDRS system's own abbreviations (same ones cffdrs_vec.fbp and
+    the R cffdrs package use), spelled out here so they don't have to be reverse-engineered:
+      elv        - Elevation (m)
+      ffmc       - Fine Fuel Moisture Code
+      bui        - Buildup Index
+      ws         - Wind Speed (km/h)
+      wd_rad     - Wind Direction (radians)
+      gs         - Ground Slope (%)
+      dj         - Day of year (Julian date)
+      d0         - Julian date of minimum Foliar Moisture Content (0 if unknown)
+      aspect_rad - Slope Aspect (radians)
+      gfl        - Grass Fuel Load (kg/m^2)
+      pc         - Percent Conifer (%)
+      pdf        - Percent Dead Balsam Fir (%)
+      cc         - Degree of Curing, grass fuel types only (%)
+      cbh        - Crown Base Height (m)
+      cfl        - Crown Fuel Load (kg/m^2)
     """
 
     fuel_type_codes: np.ndarray
@@ -174,7 +192,16 @@ class GLCX10Inputs(NamedTuple):
 
 
 class GLCX10ExpectedOutputs(NamedTuple):
-    """The published Table 5 outputs, in the same case order as the GLCX10Inputs they go with."""
+    """The published Table 5 outputs, in the same case order as the GLCX10Inputs they go with.
+
+    ros        - Rate of Spread (m/min)
+    hfi        - Head Fire Intensity (kW/m)
+    cfb        - Crown Fraction Burned (0-1)
+    sfc        - Surface Fuel Consumption (kg/m^2)
+    tfc        - Total Fuel Consumption (kg/m^2)
+    raz        - net effective spread direction after wind/slope adjustment (degrees)
+    fire_type  - "S"/"I"/"C" for Surface/Intermittent-crown/Crowning
+    """
 
     ros: np.ndarray
     hfi: np.ndarray
@@ -187,10 +214,15 @@ class GLCX10ExpectedOutputs(NamedTuple):
 
 class PrimaryOutput(NamedTuple):
     """calculate_primary_output()'s result - the Primary output fields _fire_behaviour_prediction
-    itself returns (ros, hfi, cfb, sfc, tfc, raz, fire_type), plus the intermediate values its
-    composition passes from one step to the next (fmc, wsv, isi, csi, rso) that Table 5 also
-    happens to publish, so tests can check each step against the paper rather than only the
-    final result.
+    itself returns (ros, hfi, cfb, sfc, tfc, raz, fire_type; see GLCX10ExpectedOutputs above),
+    plus the intermediate values its composition passes from one step to the next that Table 5
+    also happens to publish, so tests can check each step against the paper rather than only the
+    final result:
+      fmc - Foliar Moisture Content (%)
+      wsv - Wind Speed Vector, effective wind speed after slope adjustment (km/h)
+      isi - Initial Spread Index (wind/wsv-adjusted)
+      csi - Critical Surface fire Intensity needed to initiate crowning (kW/m)
+      rso - critical Rate of Spread needed to sustain crowning (m/min)
     """
 
     ros: np.ndarray
