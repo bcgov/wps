@@ -121,7 +121,7 @@ async def upsert_notification_settings(
         delete(NotificationSettings).where(NotificationSettings.device_token_id == device_token.id)
     )
 
-    for fire_zone_source_id in dict.fromkeys(fire_zone_source_ids):
+    for fire_zone_source_id in set(fire_zone_source_ids):
         session.add(
             NotificationSettings(
                 device_token_id=device_token.id, fire_shape_source_id=fire_zone_source_id
