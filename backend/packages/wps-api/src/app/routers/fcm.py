@@ -30,7 +30,10 @@ router = APIRouter(
 )
 
 
-@router.post("/register")
+@router.post(
+    "/register",
+    responses={409: {"description": "Token is already registered to another device."}},
+)
 async def register_device(request: RegisterDeviceRequest):
     """Register or update the FCM token for a device.
 
