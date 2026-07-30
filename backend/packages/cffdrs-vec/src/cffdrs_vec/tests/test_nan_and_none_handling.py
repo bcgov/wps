@@ -36,17 +36,19 @@ from cffdrs_vec import fbp, fwi
 # casting rejects a None/object array with a plain TypeError before numba is even involved.
 NONE_INPUT_ERRORS = (TypeError, numba.TypingError)
 
-# Each case is (name, fn, call_reference, nan_args, none_args):
-# - nan_args/none_args are `fn`'s exact positional argument list (arrays, except the trailing
-#   lat_adjust/fbp_mod bool on dc/dmc/isi, passed bare - that's how it's actually broadcast
-#   against the array arguments; see fwi.py's callers), with one position holding NaN/None. Which
-#   position doesn't matter (every function needs both float-only branches to still work), so
-#   each case just picks whichever's convenient.
-# - call_reference takes nan_args and unwraps whatever it needs to call the plain, unjitted
-#   cffdrs function.
-# `fn.nout` (numba's vectorize/guvectorize wrappers are ufunc-like) tells the tests below whether
-# `fn(*args)` returns one array or a tuple of arrays - slope_adjustment/rate_of_spread_extended
-# are the only 2 guvectorize-based cases, with nout 2 and 4 respectively.
+# Each case is (fn_name, vectorized_fn, reference_fn, nan_args, none_args):
+# - vectorized_fn is the cffdrs_vec function under test.
+# - nan_args/none_args are vectorized_fn's exact positional argument list (arrays, except the
+#   trailing lat_adjust/fbp_mod bool on dc/dmc/isi, passed bare - that's how it's actually
+#   broadcast against the array arguments; see fwi.py's callers), with one position holding
+#   NaN/None. Which position doesn't matter (every function needs both float-only branches to
+#   still work), so each case just picks whichever's convenient.
+# - reference_fn takes nan_args and unwraps whatever it needs to call the plain, unjitted cffdrs
+#   function, as the oracle vectorized_fn's result gets checked against.
+# `vectorized_fn.nout` (numba's vectorize/guvectorize wrappers are ufunc-like) tells the tests
+# below whether `vectorized_fn(*args)` returns one array or a tuple of arrays -
+# slope_adjustment/rate_of_spread_extended are the only 2 guvectorize-based cases, with nout 2
+# and 4 respectively.
 CASES = [
     # --- cffdrs_vec.fwi ---
     (
@@ -498,19 +500,23 @@ CASES = [
 CASE_IDS = [case[0] for case in CASES]
 
 
-@pytest.mark.parametrize("name,fn,call_reference,nan_args,none_args", CASES, ids=CASE_IDS)
-def test_nan_propagates_like_reference(name, fn, call_reference, nan_args, none_args):
-    result = fn(*nan_args)
-    vec_result = tuple(field[0] for field in result) if fn.nout > 1 else (result[0],)
-    ref_result = call_reference(nan_args)
+@pytest.mark.parametrize(
+    "fn_name,vectorized_fn,reference_fn,nan_args,none_args", CASES, ids=CASE_IDS
+)
+def test_nan_propagates_like_reference(fn_name, vectorized_fn, reference_fn, nan_args, none_args):
+    result = vectorized_fn(*nan_args)
+    vec_result = tuple(field[0] for field in result) if vectorized_fn.nout > 1 else (result[0],)
+    ref_result = reference_fn(nan_args)
 
     np.testing.assert_allclose(vec_result, ref_result, equal_nan=True)
 
 
-@pytest.mark.parametrize("name,fn,call_reference,nan_args,none_args", CASES, ids=CASE_IDS)
-def test_none_raises_clearly(name, fn, call_reference, nan_args, none_args):
+@pytest.mark.parametrize(
+    "fn_name,vectorized_fn,reference_fn,nan_args,none_args", CASES, ids=CASE_IDS
+)
+def test_none_raises_clearly(fn_name, vectorized_fn, reference_fn, nan_args, none_args):
     with pytest.raises(NONE_INPUT_ERRORS):
-        fn(*none_args)
+        vectorized_fn(*none_args)
 
 
 def test_none_fuel_type_code_raises_clearly_vectorize_based():
