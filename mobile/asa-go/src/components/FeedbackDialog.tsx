@@ -9,17 +9,18 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  Snackbar,
   TextField,
   Typography,
   useMediaQuery
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { sendFeedback } from '@sentry/react'
-import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { type SyntheticEvent, useEffect, useRef, useState } from 'react'
+import NotificationSnackbar from '@/components/NotificationSnackbar'
 
 interface FeedbackDialogProps {
   defaultEmail?: string
+  isOnline: boolean
   onClose: () => void
   open: boolean
 }
@@ -30,7 +31,7 @@ const inputSx = {
   }
 }
 
-export const FeedbackDialog = ({ defaultEmail, onClose, open }: FeedbackDialogProps) => {
+export const FeedbackDialog = ({ defaultEmail, isOnline, onClose, open }: FeedbackDialogProps) => {
   const theme = useTheme()
   const isFullScreen = useMediaQuery(theme.breakpoints.down('lg'))
   const submissionId = useRef(0)
@@ -58,8 +59,11 @@ export const FeedbackDialog = ({ defaultEmail, onClose, open }: FeedbackDialogPr
     onClose()
   }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!isOnline) {
+      return
+    }
     const trimmedMessage = message.trim()
     if (!trimmedMessage) {
       setError('Please enter a description.')
@@ -139,6 +143,11 @@ export const FeedbackDialog = ({ defaultEmail, onClose, open }: FeedbackDialogPr
           sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}
         >
           <DialogContent dividers sx={{ minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain' }}>
+            {!isOnline && (
+              <Alert severity="warning" sx={{ marginBottom: 2 }}>
+                Feedback is unavailable while offline.
+              </Alert>
+            )}
             {error && (
               <Alert severity="error" sx={{ marginBottom: 2 }}>
                 {error}
@@ -146,6 +155,7 @@ export const FeedbackDialog = ({ defaultEmail, onClose, open }: FeedbackDialogPr
             )}
             <TextField
               autoComplete="name"
+              disabled={!isOnline || isSubmitting}
               fullWidth
               label="Name"
               margin="normal"
@@ -155,6 +165,7 @@ export const FeedbackDialog = ({ defaultEmail, onClose, open }: FeedbackDialogPr
             />
             <TextField
               autoComplete="email"
+              disabled={!isOnline || isSubmitting}
               fullWidth
               label="Email"
               margin="normal"
@@ -164,6 +175,7 @@ export const FeedbackDialog = ({ defaultEmail, onClose, open }: FeedbackDialogPr
               value={email}
             />
             <TextField
+              disabled={!isOnline || isSubmitting}
               fullWidth
               label="Description"
               margin="normal"
@@ -185,23 +197,20 @@ export const FeedbackDialog = ({ defaultEmail, onClose, open }: FeedbackDialogPr
             }}
           >
             <Button onClick={handleClose}>Cancel</Button>
-            <Button disabled={isSubmitting} type="submit" variant="contained">
+            <Button disabled={!isOnline || isSubmitting} type="submit" variant="contained">
               {isSubmitting && <CircularProgress aria-hidden size={18} sx={{ marginRight: 1 }} />}
               {isSubmitting ? 'Sending…' : 'Send Feedback'}
             </Button>
           </DialogActions>
         </Box>
       </Dialog>
-      <Snackbar
-        anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
+      <NotificationSnackbar
         autoHideDuration={4000}
+        message="Thank you for your feedback."
         onClose={() => setShowSuccess(false)}
         open={showSuccess}
-      >
-        <Alert onClose={() => setShowSuccess(false)} severity="success" variant="filled">
-          Thank you for your feedback.
-        </Alert>
-      </Snackbar>
+        severity="success"
+      />
     </>
   )
 }

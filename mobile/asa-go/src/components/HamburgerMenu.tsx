@@ -3,7 +3,7 @@ import { Box, Drawer, IconButton, List, ListItemButton, Stack, Typography } from
 import { useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { FeedbackDialog } from '@/components/FeedbackDialog'
-import { selectAuthentication } from '@/store'
+import { selectAuthentication, selectNetworkStatus } from '@/store'
 
 export interface HamburgerMenuProps {
   drawerTop: number
@@ -16,6 +16,7 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const pendingFeedbackDialog = useRef(false)
   const { email } = useSelector(selectAuthentication)
+  const { networkStatus } = useSelector(selectNetworkStatus)
 
   const handleListButtonClick = (url: string) => {
     setOpen(false)
@@ -38,9 +39,12 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
         slotProps={{
           transition: {
             onExited: () => {
-              if (pendingFeedbackDialog.current) {
+              if (!pendingFeedbackDialog.current) {
+                return
+              }
+              pendingFeedbackDialog.current = false
+              if (networkStatus.connected) {
                 setFeedbackOpen(true)
-                pendingFeedbackDialog.current = false
               }
             }
           },
@@ -109,10 +113,12 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
               },
               {
                 url: 'sentry:feedback',
-                title: 'Submit Feedback'
+                title: 'Submit Feedback',
+                disabled: !networkStatus.connected
               }
             ].map(item => (
               <ListItemButton
+                disabled={item.disabled}
                 divider
                 key={`hamburger-menu-${item.title}`}
                 onClick={() => handleListButtonClick(item.url)}
@@ -123,7 +129,12 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
           </List>
         </Stack>
       </Drawer>
-      <FeedbackDialog defaultEmail={email} onClose={() => setFeedbackOpen(false)} open={feedbackOpen} />
+      <FeedbackDialog
+        defaultEmail={email}
+        isOnline={networkStatus.connected}
+        onClose={() => setFeedbackOpen(false)}
+        open={feedbackOpen}
+      />
     </div>
   )
 }

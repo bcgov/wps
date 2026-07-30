@@ -16,7 +16,7 @@ describe('FeedbackDialog', () => {
   })
 
   it('prefills the authenticated email and keeps close controls available', () => {
-    render(<FeedbackDialog defaultEmail="user@example.com" onClose={vi.fn()} open />)
+    render(<FeedbackDialog defaultEmail="user@example.com" isOnline onClose={vi.fn()} open />)
 
     expect(screen.getByRole('textbox', { name: 'Email' })).toHaveValue('user@example.com')
     expect(screen.getByRole('button', { name: 'close feedback' })).toBeInTheDocument()
@@ -24,7 +24,7 @@ describe('FeedbackDialog', () => {
   })
 
   it('keeps the description label above the outline when focus changes', () => {
-    render(<FeedbackDialog onClose={vi.fn()} open />)
+    render(<FeedbackDialog isOnline onClose={vi.fn()} open />)
     const description = screen.getByRole('textbox', { name: 'Description' })
     const label = document.querySelector(`label[for="${description.id}"]`)
 
@@ -41,7 +41,7 @@ describe('FeedbackDialog', () => {
     const onClose = vi.fn()
     const user = userEvent.setup()
     mockSendFeedback.mockResolvedValue('event-id')
-    render(<FeedbackDialog defaultEmail="user@example.com" onClose={onClose} open />)
+    render(<FeedbackDialog defaultEmail="user@example.com" isOnline onClose={onClose} open />)
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), { target: { value: 'A User' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), {
@@ -67,7 +67,7 @@ describe('FeedbackDialog', () => {
     const onClose = vi.fn()
     const user = userEvent.setup()
     mockSendFeedback.mockRejectedValue(new Error('network error'))
-    render(<FeedbackDialog onClose={onClose} open />)
+    render(<FeedbackDialog isOnline onClose={onClose} open />)
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), {
       target: { value: 'Unable to load.' }
@@ -82,11 +82,23 @@ describe('FeedbackDialog', () => {
 
   it('closes without submitting when cancelled', () => {
     const onClose = vi.fn()
-    render(<FeedbackDialog onClose={onClose} open />)
+    render(<FeedbackDialog isOnline onClose={onClose} open />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
     expect(onClose).toHaveBeenCalled()
+    expect(mockSendFeedback).not.toHaveBeenCalled()
+  })
+
+  it('disables the form while offline', () => {
+    render(<FeedbackDialog isOnline={false} onClose={vi.fn()} open />)
+
+    expect(screen.getByText('Feedback is unavailable while offline.')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Name' })).toBeDisabled()
+    expect(screen.getByRole('textbox', { name: 'Email' })).toBeDisabled()
+    expect(screen.getByRole('textbox', { name: 'Description' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Send Feedback' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeEnabled()
     expect(mockSendFeedback).not.toHaveBeenCalled()
   })
 })

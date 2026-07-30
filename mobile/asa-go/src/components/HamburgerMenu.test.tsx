@@ -14,13 +14,19 @@ vi.mock('@sentry/capacitor', () => ({}))
 describe('HamburgerMenu', () => {
   const defaultProps = { drawerTop: 60, drawerHeight: 740 }
 
-  const renderMenu = () =>
+  const renderMenu = (connected = true) =>
     render(
       <Provider
         store={createTestStore({
           authentication: {
             ...authenticationInitialState,
             email: 'user@example.com'
+          },
+          networkStatus: {
+            networkStatus: {
+              connected,
+              connectionType: connected ? 'wifi' : 'none'
+            }
           }
         })}
       >
@@ -69,5 +75,16 @@ describe('HamburgerMenu', () => {
     await vi.waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Submit Feedback' })).not.toBeInTheDocument()
     })
+  })
+
+  it('disables feedback while offline', async () => {
+    renderMenu(false)
+    fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
+
+    const submitFeedback = await screen.findByRole('button', { name: 'Submit Feedback' })
+    expect(submitFeedback).toHaveAttribute('aria-disabled', 'true')
+    fireEvent.click(submitFeedback)
+
+    expect(screen.queryByRole('dialog', { name: 'Submit Feedback' })).not.toBeInTheDocument()
   })
 })
