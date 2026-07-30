@@ -23,17 +23,17 @@ describe('FeedbackDialog', () => {
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
   })
 
-  it('keeps the description label above the outline when focus changes', () => {
+  it.each(['Name', 'Description'])('keeps the %s label above the outline when focus changes', fieldName => {
     render(<FeedbackDialog isOnline onClose={vi.fn()} open />)
-    const description = screen.getByRole('textbox', { name: 'Description' })
-    const label = document.querySelector(`label[for="${description.id}"]`)
+    const field = screen.getByRole('textbox', { name: fieldName })
+    const label = document.querySelector(`label[for="${field.id}"]`)
 
     expect(label).toHaveAttribute('data-shrink', 'true')
-    fireEvent.focus(description)
+    fireEvent.focus(field)
     expect(label).toHaveAttribute('data-shrink', 'true')
-    fireEvent.blur(description)
+    fireEvent.blur(field)
     expect(label).toHaveAttribute('data-shrink', 'true')
-    fireEvent.focus(description)
+    fireEvent.focus(field)
     expect(label).toHaveAttribute('data-shrink', 'true')
   })
 

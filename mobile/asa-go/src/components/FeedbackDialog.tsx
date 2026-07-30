@@ -31,6 +31,8 @@ const inputSx = {
   }
 }
 
+const floatedLabelSlotProps = { inputLabel: { shrink: true } }
+
 export const FeedbackDialog = ({ defaultEmail, isOnline, onClose, open }: FeedbackDialogProps) => {
   const theme = useTheme()
   const isFullScreen = useMediaQuery(theme.breakpoints.down('lg'))
@@ -160,6 +162,7 @@ export const FeedbackDialog = ({ defaultEmail, isOnline, onClose, open }: Feedba
               label="Name"
               margin="normal"
               onChange={event => setName(event.target.value)}
+              slotProps={floatedLabelSlotProps}
               sx={inputSx}
               value={name}
             />
@@ -183,7 +186,7 @@ export const FeedbackDialog = ({ defaultEmail, isOnline, onClose, open }: Feedba
               multiline
               onChange={event => setMessage(event.target.value)}
               required
-              slotProps={{ inputLabel: { shrink: true } }}
+              slotProps={floatedLabelSlotProps}
               sx={inputSx}
               value={message}
             />
