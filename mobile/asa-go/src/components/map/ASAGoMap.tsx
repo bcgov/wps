@@ -154,9 +154,10 @@ const ASAGoMap = ({
     [map]
   )
 
-  const reloadErroredPMTilesSources = React.useCallback(async () => {
+  const refreshPMTilesSources = React.useCallback(async () => {
     if (!map) return
 
+    // refresh cached tiles after resume without rereading large PMTiles files
     const sources = new Set<PMTilesFileVectorSource>()
     map
       .getLayers()
@@ -168,7 +169,7 @@ const ASAGoMap = ({
         }
       })
 
-    await Promise.all(Array.from(sources).map(source => source.reloadPMTilesIfErrored()))
+    await Promise.all(Array.from(sources).map(source => source.refreshPMTiles()))
   }, [map])
 
   /**
@@ -237,8 +238,8 @@ const ASAGoMap = ({
     }
     wasInactiveRef.current = false
 
-    reloadErroredPMTilesSources().catch(Sentry.captureException)
-  }, [isActive, reloadErroredPMTilesSources])
+    refreshPMTilesSources().catch(Sentry.captureException)
+  }, [isActive, refreshPMTilesSources])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — layer refs are stable
   useEffect(() => {

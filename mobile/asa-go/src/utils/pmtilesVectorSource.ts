@@ -7,6 +7,7 @@ import type RenderFeature from 'ol/render/Feature'
 import VectorTileSource, { type Options as VectorTileSourceOptions } from 'ol/source/VectorTile'
 import TileState from 'ol/TileState'
 import { createXYZ } from 'ol/tilegrid'
+import type VectorTile from 'ol/VectorTile'
 import type { PMTiles } from 'pmtiles'
 import type { RunType } from '@/api/fbaAPI'
 import type { IPMTilesCache } from '@/utils/pmtilesCache'
@@ -25,19 +26,23 @@ export type HFIPMTilesFileVectorOptions = VectorTileSourceOptions &
 type PMTilesInitializer = () => Promise<PMTiles | undefined>
 
 const PMTILES_TILE_URL = 'pmtiles://{z}/{x}/{y}'
+const PMTILES_TILE_LOAD_TIMEOUT_MS = 10_000
 
 export class PMTilesFileVectorSource extends VectorTileSource {
-  // @ts-expect-error
-  private pmtiles_: PMTiles
+  private pmtiles_!: PMTiles
   private loadPMTiles?: PMTilesInitializer
-  private hasTileLoadError = false
+  private filename = 'unknown'
+  // allow one reader recreation before treating another tile failure as unrecoverable
   private tileErrorReloadAvailable = true
-  // prevent one failing source from reporting a Sentry event for every requested tile
+  // collapse the burst of tile failures from a broken reader into one recovery attempt
+  private tileErrorReloadInProgress = false
+  // report at most one failed recovery per source until the app foregrounds again
   private tileErrorReported = false
+  // change the source URL after reload so OpenLayers does not reuse errored tile objects
   private reloadKey = 0
 
   tileLoadFunction = (tile: Tile, url: string) => {
-    const vtile = tile as unknown as VectorTileSource
+    const vectorTile = tile as VectorTile<RenderFeature>
     const re = new RegExp(/pmtiles:\/\/(\d+)\/(\d+)\/(\d+)/)
     const result = url.match(re)
 
@@ -50,41 +55,89 @@ export class PMTilesFileVectorSource extends VectorTileSource {
 
     tile.setState(TileState.LOADING) // Set state to LOADING
 
-    // Use the PMTiles getZxy method to fetch the tile data
-    this.pmtiles_
-      .getZxy(z, x, y)
+    // retain the reader identity so late failures from a replaced reader can be ignored
+    const pmtiles = this.pmtiles_
+    this.loadTile(pmtiles, z, x, y)
       .then(tile_result => {
         if (tile_result) {
           const format = new MVT({ layerName: 'mvt:layer' }) // Create the MVT format
           const features = format.readFeatures(tile_result.data, {
-            // @ts-expect-error
-            extent: vtile.extent,
-            // @ts-expect-error
-            featureProjection: vtile.projection
+            extent: vectorTile.extent,
+            featureProjection: vectorTile.projection
           })
-          // @ts-expect-error
-          vtile.setFeatures(features) // Set the features on the tile (which can now handle vector data)
-          // @ts-expect-error
-          vtile.setState(TileState.LOADED) // Mark the tile as loaded
+          vectorTile.setFeatures(features) // Set the features on the tile (which can now handle vector data)
+          vectorTile.setState(TileState.LOADED) // Mark the tile as loaded
         } else {
-          // @ts-expect-error
-          vtile.setFeatures([])
-          // @ts-expect-error
-          vtile.setState(TileState.EMPTY) // Mark the tile as empty if no data is found
+          vectorTile.setFeatures([])
+          vectorTile.setState(TileState.EMPTY) // Mark the tile as empty if no data is found
         }
       })
       .catch(err => {
-        this.hasTileLoadError = true
-        if (!this.tileErrorReported) {
-          this.tileErrorReported = true
-          Sentry.captureException(err)
-        }
-        this.retryPMTilesAfterError().catch(Sentry.captureException)
-        // @ts-expect-error
-        vtile.setFeatures([])
-        // @ts-expect-error
-        vtile.setState(TileState.ERROR) // Mark the tile as error if the loading fails
+        this.handleTileLoadError(err, pmtiles, z, x, y)
+        vectorTile.setFeatures([])
+        vectorTile.setState(TileState.ERROR) // Mark the tile as error if the loading fails
       })
+  }
+
+  private async loadTile(pmtiles: PMTiles, z: number, x: number, y: number) {
+    const abortController = new AbortController()
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    // bound local reads because a suspended webview may never settle the original promise
+    const timeout = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        const error = new Error(`PMTiles tile load timed out after ${PMTILES_TILE_LOAD_TIMEOUT_MS}ms`)
+        reject(error)
+        abortController.abort(error)
+      }, PMTILES_TILE_LOAD_TIMEOUT_MS)
+    })
+
+    try {
+      return await Promise.race([pmtiles.getZxy(z, x, y, abortController.signal), timeout])
+    } finally {
+      if (!isUndefined(timeoutId)) {
+        clearTimeout(timeoutId)
+      }
+    }
+  }
+
+  private handleTileLoadError(error: unknown, pmtiles: PMTiles, z: number, x: number, y: number) {
+    if (this.tileErrorReported) {
+      return
+    }
+    // concurrent or stale failures are covered by the recovery already underway
+    if (this.tileErrorReloadInProgress || pmtiles !== this.pmtiles_) {
+      return
+    }
+    if (!this.tileErrorReloadAvailable) {
+      // the replacement reader also failed, so the automatic recovery did not work
+      this.captureTileLoadError(error, z, x, y)
+      return
+    }
+
+    // defer reporting the first failure until the single recovery attempt has failed
+    this.tileErrorReloadInProgress = true
+    this.retryPMTilesAfterError()
+      .catch(reloadError => this.captureTileLoadError(reloadError, z, x, y))
+      .finally(() => {
+        this.tileErrorReloadInProgress = false
+      })
+  }
+
+  private captureTileLoadError(error: unknown, z: number, x: number, y: number) {
+    if (this.tileErrorReported) {
+      return
+    }
+    this.tileErrorReported = true
+    Sentry.withScope(scope => {
+      scope.setContext('pmtilesTile', {
+        filename: this.filename,
+        z,
+        x,
+        y,
+        sourceState: this.getState()
+      })
+      Sentry.captureException(error)
+    })
   }
 
   constructor(options: VectorTileSourceOptions<RenderFeature>) {
@@ -107,6 +160,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async initStaticLayer(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
+    this.filename = options.filename
     this.loadPMTiles = () => pmtilesCache.loadPMTiles(options.filename)
     try {
       console.log(`Attempting to read ${options.filename}`)
@@ -147,7 +201,6 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     this.reloadKey += 1
     this.setUrl(`${PMTILES_TILE_URL}?reload=${this.reloadKey}`)
     this.refresh()
-    this.hasTileLoadError = false
   }
 
   private async retryPMTilesAfterError() {
@@ -164,12 +217,14 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     this.tileErrorReported = false
   }
 
-  async reloadPMTilesIfErrored() {
+  async refreshPMTiles() {
+    // foregrounding rearms recovery and clears any stuck OpenLayers tile states
     this.enableTileErrorReload()
-    if (!this.hasTileLoadError && this.getState() !== 'error') {
-      return
+    this.refresh()
+    if (this.getState() === 'error') {
+      // initialization errors cannot trigger a tile read, so retry them directly
+      await this.retryPMTilesAfterError()
     }
-    await this.retryPMTilesAfterError()
   }
 
   static async createBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
@@ -179,6 +234,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async initBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
+    this.filename = options.filename
     this.loadPMTiles = () => pmtilesCache.loadPMTiles(options.filename)
     try {
       console.log('Attempting to download offline pmtiles basemap assets.')
@@ -200,6 +256,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async initHFILayer(pmtilesCache: IPMTilesCache, options: HFIPMTilesFileVectorOptions) {
+    this.filename = options.filename
     this.loadPMTiles = () =>
       pmtilesCache.loadHFIPMTiles(options.for_date, options.run_type, options.run_date, options.filename)
     try {

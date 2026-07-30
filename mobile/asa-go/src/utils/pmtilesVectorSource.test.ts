@@ -15,8 +15,15 @@ import { RunType } from '@/api/fbaAPI'
 import type { IPMTilesCache } from '@/utils/pmtilesCache'
 import { PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
 
-const mockCaptureException = vi.hoisted(() => vi.fn())
-vi.mock('@sentry/capacitor', () => ({ captureException: mockCaptureException }))
+const { mockCaptureException, mockSetContext } = vi.hoisted(() => ({
+  mockCaptureException: vi.fn(),
+  mockSetContext: vi.fn()
+}))
+vi.mock('@sentry/capacitor', () => ({
+  captureException: mockCaptureException,
+  withScope: (callback: (scope: { setContext: typeof mockSetContext }) => unknown) =>
+    callback({ setContext: mockSetContext })
+}))
 
 const testPMTilesHeader: Header = {
   specVersion: 0,
@@ -81,11 +88,21 @@ class ErrorPMTiles extends TestPMTiles {
   }
 }
 
+class HangingPMTiles extends TestPMTiles {
+  signal?: AbortSignal
+
+  getZxy(_z: number, _x: number, _y: number, signal?: AbortSignal): Promise<RangeResponse | undefined> {
+    this.signal = signal
+    return new Promise(() => {})
+  }
+}
+
 describe('pmTilesVectorSource', () => {
   let sandbox: sinon.SinonSandbox
   beforeEach(() => {
     sandbox = sinon.createSandbox()
     mockCaptureException.mockClear()
+    mockSetContext.mockClear()
   })
   afterEach(() => {
     sandbox.restore()
@@ -190,7 +207,7 @@ describe('pmTilesVectorSource', () => {
     assert(instance.getState() === 'ready')
   })
 
-  it('should not reload pmtiles when tiles have not errored', async () => {
+  it('should refresh cached tiles without reloading pmtiles', async () => {
     const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
     const pmTilesCacheSpy = sandbox.spy(testCache)
     const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
@@ -198,13 +215,13 @@ describe('pmTilesVectorSource', () => {
     })
     const refreshSpy = sandbox.spy(instance, 'refresh')
 
-    await instance.reloadPMTilesIfErrored()
+    await instance.refreshPMTiles()
 
     sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles)
-    sinon.assert.notCalled(refreshSpy)
+    sinon.assert.calledOnce(refreshSpy)
   })
 
-  it('should reload pmtiles when a tile load errors', async () => {
+  it('should reload pmtiles without reporting when recovery succeeds', async () => {
     const loadPMTiles = sandbox.stub()
     loadPMTiles.onFirstCall().resolves(new ErrorPMTiles())
     loadPMTiles.onSecondCall().resolves(new TestPMTiles())
@@ -224,12 +241,14 @@ describe('pmTilesVectorSource', () => {
     }
 
     instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0')
+    instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0')
     await vi.waitFor(() => sinon.assert.calledTwice(loadPMTiles))
+    await vi.waitFor(() => assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1'))
 
     sinon.assert.calledTwice(loadPMTiles)
     sinon.assert.calledOnce(refreshSpy)
-    expect(mockCaptureException).toHaveBeenCalledOnce()
-    assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1')
+    expect(mockCaptureException).not.toHaveBeenCalled()
+    expect(mockSetContext).not.toHaveBeenCalled()
   })
 
   it('should only retry a tile load error once until retries are enabled again', async () => {
@@ -253,15 +272,26 @@ describe('pmTilesVectorSource', () => {
 
     instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0')
     await vi.waitFor(() => sinon.assert.calledTwice(loadPMTiles))
+    await vi.waitFor(() => assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1'))
 
     instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0?reload=1')
     await new Promise(resolve => setTimeout(resolve, 0))
     sinon.assert.calledTwice(loadPMTiles)
     expect(mockCaptureException).toHaveBeenCalledOnce()
+    expect(mockSetContext).toHaveBeenCalledWith('pmtilesTile', {
+      filename: 'test.pmtiles',
+      z: 0,
+      x: 0,
+      y: 0,
+      sourceState: 'ready'
+    })
 
-    await instance.reloadPMTilesIfErrored()
+    await instance.refreshPMTiles()
+    instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0?reload=1')
+    await vi.waitFor(() => sinon.assert.calledThrice(loadPMTiles))
 
     sinon.assert.calledThrice(loadPMTiles)
+    expect(mockCaptureException).toHaveBeenCalledOnce()
   })
 
   it('should reload pmtiles when source initialization has errored', async () => {
@@ -277,10 +307,52 @@ describe('pmTilesVectorSource', () => {
     })
     const refreshSpy = sandbox.spy(instance, 'refresh')
 
-    await instance.reloadPMTilesIfErrored()
+    await instance.refreshPMTiles()
 
     sinon.assert.calledTwice(loadPMTiles)
-    sinon.assert.calledOnce(refreshSpy)
+    sinon.assert.calledTwice(refreshSpy)
     assert(instance.getState() === 'ready')
+  })
+
+  it('should report when recovery from a timed out tile load fails', async () => {
+    vi.useFakeTimers()
+    try {
+      const hangingPMTiles = new HangingPMTiles()
+      const reloadError = new Error('Reader reload failed')
+      const loadPMTiles = sandbox.stub()
+      loadPMTiles.onFirstCall().resolves(hangingPMTiles)
+      loadPMTiles.onSecondCall().rejects(reloadError)
+      const testCache: IPMTilesCache = {
+        loadPMTiles,
+        loadHFIPMTiles: sandbox.stub()
+      }
+      const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
+        filename: 'test.pmtiles'
+      })
+      const tile = {
+        extent: undefined,
+        projection: undefined,
+        setFeatures: sandbox.stub(),
+        setState: sandbox.stub()
+      }
+
+      instance.tileLoadFunction(tile as never, 'pmtiles://1/2/3')
+      await vi.advanceTimersByTimeAsync(10_000)
+      await Promise.resolve()
+
+      sinon.assert.calledTwice(loadPMTiles)
+      assert(hangingPMTiles.signal?.aborted)
+      expect(mockCaptureException).toHaveBeenCalledOnce()
+      expect(mockCaptureException).toHaveBeenCalledWith(reloadError)
+      expect(mockSetContext).toHaveBeenCalledWith('pmtilesTile', {
+        filename: 'test.pmtiles',
+        z: 1,
+        x: 2,
+        y: 3,
+        sourceState: 'ready'
+      })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
