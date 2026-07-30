@@ -21,7 +21,7 @@ import pytest
 from cffdrs.constants import FUEL_TYPE_CODES
 from cffdrs.fire_behaviour_prediction import fire_behaviour_prediction
 
-from cffdrs_vec import fbp
+from cffdrs_vec.fbp import FBPOutput, vectorized_fire_behaviour_prediction
 from cffdrs_vec.tests._glc_x_10_data import GLC_X_10_SOURCES
 
 # fire_behaviour_prediction()'s public "All" output represents Fire Type as a string ("S"/"I"/"C"),
@@ -64,7 +64,7 @@ def test_vectorized_fire_behaviour_prediction_matches_fire_behaviour_prediction(
     accel = np.array([i.accel for i in fbp_inputs], dtype=np.int64)
     buieff = np.array([i.bui_eff for i in fbp_inputs], dtype=np.int64)
 
-    result = fbp.vectorized_fire_behaviour_prediction(
+    result = vectorized_fire_behaviour_prediction(
         fuel_type_codes,
         ffmc,
         bui,
@@ -97,7 +97,7 @@ def test_vectorized_fire_behaviour_prediction_matches_fire_behaviour_prediction(
     wsv0 = np.array([fire_behaviour_prediction(i, output="WSV0") for i in fbp_inputs])
     raz0 = np.array([fire_behaviour_prediction(i, output="RAZ0") for i in fbp_inputs])
 
-    for field in fbp.FBPOutput._fields:
+    for field in FBPOutput._fields:
         if field == "wsv0":
             reference = wsv0
         elif field == "raz0":

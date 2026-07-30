@@ -32,7 +32,7 @@ gross regressions against the paper, not bit-for-bit reproduction of a since-sup
 import numpy as np
 import pytest
 
-from cffdrs_vec import fbp
+from cffdrs_vec.fbp import vectorized_fire_behaviour_prediction
 from cffdrs_vec.tests._glc_x_10_data import FIRE_TYPE_BY_FD_CODE_INT, GLC_X_10_SOURCES
 
 
@@ -43,7 +43,7 @@ def test_fbp_glc_x_10(source):
     zeros = np.zeros(shape)
     int_zeros = np.zeros(shape, dtype=np.int64)
 
-    result = fbp.vectorized_fire_behaviour_prediction(
+    result = vectorized_fire_behaviour_prediction(
         inputs.fuel_type_codes,
         inputs.ffmc,
         inputs.bui,
@@ -105,7 +105,7 @@ def test_fbp_glc_x_10_rasters(source):
     zeros = np.zeros(shape)
     int_zeros = np.zeros(shape, dtype=np.int64)
 
-    result = fbp.vectorized_fire_behaviour_prediction(
+    result = vectorized_fire_behaviour_prediction(
         inputs.fuel_type_codes,
         inputs.ffmc,
         inputs.bui,
