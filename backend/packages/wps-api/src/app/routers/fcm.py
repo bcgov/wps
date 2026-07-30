@@ -30,13 +30,8 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/register",
-    response_model=DeviceRequestResponse,
-    response_description="Device registered successfully.",
-    responses={409: {"description": "Token is already registered to another device."}},
-)
-async def register_device(request: RegisterDeviceRequest) -> DeviceRequestResponse:
+@router.post("/register")
+async def register_device(request: RegisterDeviceRequest):
     """Register or update the FCM token for a device.
 
     Flow:
@@ -93,13 +88,8 @@ async def register_device(request: RegisterDeviceRequest) -> DeviceRequestRespon
         return DeviceRequestResponse(success=True)
 
 
-@router.post(
-    "/unregister",
-    response_model=DeviceRequestResponse,
-    response_description="Device unregistered successfully.",
-    responses={404: {"description": "Token not found."}},
-)
-async def unregister_device(request: UnregisterDeviceRequest) -> DeviceRequestResponse:
+@router.post("/unregister", responses={404: {"description": "Token not found."}})
+async def unregister_device(request: UnregisterDeviceRequest):
     """
     Mark a token inactive (e.g., user logged out or uninstalled).
     """
@@ -112,11 +102,7 @@ async def unregister_device(request: UnregisterDeviceRequest) -> DeviceRequestRe
         return DeviceRequestResponse(success=True)
 
 
-@router.get(
-    "/notification-settings",
-    response_model=NotificationSettingsResponse,
-    response_description="Notification settings retrieved successfully.",
-)
+@router.get("/notification-settings")
 async def get_notification_settings(device_id: str) -> NotificationSettingsResponse:
     """
     Return the fire zone source identifiers the device is subscribed to for notifications.
@@ -127,12 +113,7 @@ async def get_notification_settings(device_id: str) -> NotificationSettingsRespo
         return NotificationSettingsResponse(fire_zone_source_ids=fire_zone_source_ids)
 
 
-@router.post(
-    "/notification-settings",
-    response_model=NotificationSettingsResponse,
-    response_description="Notification settings updated successfully.",
-    responses={404: {"description": "Device not found."}},
-)
+@router.post("/notification-settings", responses={404: {"description": "Device not found."}})
 async def update_notification_settings(
     request: NotificationSettingsRequest,
 ) -> NotificationSettingsResponse:
