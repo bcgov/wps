@@ -7,8 +7,8 @@ from wps_shared.db.crud.fcm import (
     get_device_by_token,
     get_notification_settings_for_device,
     save_device_token,
-    upsert_notification_settings,
     update_device_token_is_active,
+    upsert_notification_settings,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.fcm import DeviceToken
@@ -32,20 +32,48 @@ router = APIRouter(
 
 @router.post("/register")
 async def register_device(request: RegisterDeviceRequest):
-    """
-    Upsert a device token for a device_id.
+    """Register or update the FCM token for a device.
+
+    Flow:
+    - If the device exists, update its row. This preserves its notification settings.
+    - If only the token exists, reuse that row with the new device ID.
+    - If neither exists, create a row.
+    - If the device and token belong to different rows, return 409.
+
+    The last case should be uncommon, but legacy data or an unusual token reassignment could cause
+    it. We cannot safely know which row and notification settings to keep, so the guard prevents us
+    from silently deleting or overwriting a user's data. Hopefully we never run into this, it's there
+    as a safety measure.
     """
     logger.info("/device/register")
     async with get_async_write_session_scope() as session:
-        existing = await get_device_by_token(session, request.token)
-        if existing is None:
-            existing = await get_device_by_device_id(session, request.device_id)
-        if existing:
-            existing.is_active = True
-            existing.token = request.token
-            existing.device_id = request.device_id
-            existing.updated_at = get_utc_now()
-            existing.user_id = request.user_id
+        device_token = await get_device_by_device_id(session, request.device_id, for_update=True)
+        token_match = await get_device_by_token(session, request.token, for_update=True)
+
+        if (
+            device_token is not None
+            and token_match is not None
+            and device_token.id != token_match.id
+        ):
+            logger.error(
+                "Device registration conflict: device_id row %s differs from token row %s",
+                device_token.id,
+                token_match.id,
+            )
+            raise HTTPException(
+                status_code=409,
+                detail="Token is already registered to another device",
+            )
+        elif device_token is None:
+            device_token = token_match
+
+        if device_token:
+            device_token.is_active = True
+            device_token.token = request.token
+            device_token.device_id = request.device_id
+            device_token.platform = request.platform
+            device_token.updated_at = get_utc_now()
+            device_token.user_id = request.user_id
             logger.info(f"Updated existing DeviceToken record for token: {request.token}")
         else:
             device_token = DeviceToken(
@@ -98,7 +126,9 @@ async def update_notification_settings(
             session, request.device_id, request.fire_zone_source_ids
         )
         if not found:
-            logger.error("Notification settings update for unknown device_id: %s", request.device_id)
+            logger.error(
+                "Notification settings update for unknown device_id: %s", request.device_id
+            )
             raise HTTPException(status_code=404, detail=f"Device not found: {request.device_id}")
         await session.flush()
         fire_zone_source_ids = await get_notification_settings_for_device(

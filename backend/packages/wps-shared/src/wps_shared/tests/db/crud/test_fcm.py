@@ -3,6 +3,7 @@ from datetime import date, datetime, timezone
 import pytest
 from geoalchemy2 import WKTElement
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
@@ -123,7 +124,7 @@ async def test_save_device_token(async_session: AsyncSession):
     mock_fcm_token2 = "qwertyuiopasdfg"
     device_token = DeviceToken(
         user_id="test_idir2",
-        device_id=mock_device_id,
+        device_id="second_device_id",
         platform=PlatformEnum.ios.value,
         token=mock_fcm_token2,
         is_active=True,
@@ -141,7 +142,7 @@ async def test_save_device_token(async_session: AsyncSession):
     assert saved.platform == PlatformEnum.ios.value
     assert saved.token == mock_fcm_token2
     assert saved.is_active is True
-    assert saved.device_id == mock_device_id
+    assert saved.device_id == "second_device_id"
 
 
 @pytest.mark.anyio
@@ -157,24 +158,24 @@ async def test_get_device_by_device_id(async_session: AsyncSession):
 
 
 @pytest.mark.anyio
-async def test_get_active_device_by_device_id_ignores_inactive_tokens(
+async def test_device_id_is_unique(
     async_session: AsyncSession,
 ):
-    inactive_device_token = DeviceToken(
+    duplicate_device_token = DeviceToken(
         user_id="test_idir",
         device_id=mock_device_id,
         platform=PlatformEnum.android,
-        token="inactive-token-123",
+        token="duplicate-device-token-123",
         is_active=False,
         created_at=now,
         updated_at=now,
     )
-    async_session.add(inactive_device_token)
-    await async_session.commit()
+    async_session.add(duplicate_device_token)
 
-    device_token = await get_active_device_by_device_id(async_session, mock_device_id)
+    with pytest.raises(IntegrityError):
+        await async_session.commit()
 
-    assert device_token.token == mock_fcm_token
+    await async_session.rollback()
 
 
 @pytest.mark.anyio
@@ -217,42 +218,22 @@ async def test_get_notification_settings_no_subscriptions(async_session: AsyncSe
 
 
 @pytest.mark.anyio
-async def test_get_notification_settings_excludes_inactive_device_tokens(
+async def test_get_notification_settings_excludes_inactive_device(
     async_session: AsyncSession,
 ):
     active_device_token = await get_active_device_by_device_id(async_session, mock_device_id)
-    inactive_device_token = DeviceToken(
-        user_id="test_idir",
-        device_id=mock_device_id,
-        platform=PlatformEnum.android,
-        token="inactive-token-123",
-        is_active=False,
-        created_at=now,
-        updated_at=now,
+    async_session.add(
+        NotificationSettings(
+            device_token_id=active_device_token.id,
+            fire_shape_source_id=mock_fire_shape_source_identifier,
+        )
     )
-    async_session.add(inactive_device_token)
-    await async_session.flush()
-    async_session.add_all(
-        [
-            NotificationSettings(
-                device_token_id=active_device_token.id,
-                fire_shape_source_id=mock_fire_shape_source_identifier,
-            ),
-            NotificationSettings(
-                device_token_id=inactive_device_token.id,
-                fire_shape_source_id=mock_fire_shape_source_identifier,
-            ),
-            NotificationSettings(
-                device_token_id=inactive_device_token.id,
-                fire_shape_source_id=mock_fire_shape_source_identifier_2,
-            ),
-        ]
-    )
+    active_device_token.is_active = False
     await async_session.commit()
 
     result = await get_notification_settings_for_device(async_session, mock_device_id)
 
-    assert result == [mock_fire_shape_source_identifier]
+    assert result == []
 
 
 @pytest.mark.anyio
@@ -292,47 +273,18 @@ async def test_upsert_notification_settings_deduplicates_source_ids(
 
 
 @pytest.mark.anyio
-async def test_upsert_notification_settings_only_replaces_active_token_settings(
+async def test_upsert_notification_settings_does_not_update_inactive_device(
     async_session: AsyncSession,
 ):
-    inactive_device_token = DeviceToken(
-        user_id="test_idir",
-        device_id=mock_device_id,
-        platform=PlatformEnum.android,
-        token="inactive-token-123",
-        is_active=False,
-        created_at=now,
-        updated_at=now,
-    )
-    async_session.add(inactive_device_token)
-    await async_session.flush()
-    async_session.add(
-        NotificationSettings(
-            device_token_id=inactive_device_token.id,
-            fire_shape_source_id=mock_fire_shape_source_identifier,
-        )
-    )
+    device_token = await get_active_device_by_device_id(async_session, mock_device_id)
+    device_token.is_active = False
     await async_session.commit()
 
     found = await upsert_notification_settings(
         async_session, mock_device_id, [mock_fire_shape_source_identifier_2]
     )
-    await async_session.commit()
 
-    settings = await async_session.execute(
-        select(NotificationSettings).order_by(NotificationSettings.device_token_id)
-    )
-    settings_by_token_id = {
-        setting.device_token_id: setting.fire_shape_source_id
-        for setting in settings.scalars().all()
-    }
-    active_device_token = await get_active_device_by_device_id(async_session, mock_device_id)
-
-    assert found is True
-    assert settings_by_token_id == {
-        active_device_token.id: mock_fire_shape_source_identifier_2,
-        inactive_device_token.id: mock_fire_shape_source_identifier,
-    }
+    assert found is False
 
 
 @pytest.mark.anyio
