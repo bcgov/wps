@@ -36,10 +36,7 @@ from cffdrs_vec import fbp, fwi
 # casting rejects a None/object array with a plain TypeError before numba is even involved.
 NONE_INPUT_ERRORS = (TypeError, numba.TypingError)
 
-C6 = FUEL_TYPE_CODES["C6"]
-NAN = float("nan")
-
-# Each case is (name, fn, multi_output, call_reference, nan_args, none_args):
+# Each case is (name, fn, call_reference, nan_args, none_args):
 # - nan_args/none_args are `fn`'s exact positional argument list (arrays, except the trailing
 #   lat_adjust/fbp_mod bool on dc/dmc/isi, passed bare - that's how it's actually broadcast
 #   against the array arguments; see fwi.py's callers), with one position holding NaN/None. Which
@@ -47,22 +44,21 @@ NAN = float("nan")
 #   each case just picks whichever's convenient.
 # - call_reference takes nan_args and unwraps whatever it needs to call the plain, unjitted
 #   cffdrs function.
-# - multi_output marks the 2 guvectorize-based functions (slope_adjustment,
-#   rate_of_spread_extended), which return a tuple of arrays instead of one.
+# `fn.nout` (numba's vectorize/guvectorize wrappers are ufunc-like) tells the tests below whether
+# `fn(*args)` returns one array or a tuple of arrays - slope_adjustment/rate_of_spread_extended
+# are the only 2 guvectorize-based cases, with nout 2 and 4 respectively.
 CASES = [
     # --- cffdrs_vec.fwi ---
     (
         "bui",
         fwi.vectorized_bui,
-        False,
         lambda a: (cffdrs.buildup_index(float(a[0][0]), float(a[1][0])),),
-        [np.array([NAN]), np.array([200.0])],
+        [np.array([np.nan]), np.array([200.0])],
         [np.array([None]), np.array([200.0])],
     ),
     (
         "dc",
         fwi.vectorized_dc,
-        False,
         lambda a: (
             cffdrs.drought_code(
                 float(a[0][0]),
@@ -76,7 +72,7 @@ CASES = [
         ),
         [
             np.array([200.0]),
-            np.array([NAN]),
+            np.array([np.nan]),
             np.array([40.0]),
             np.array([0.0]),
             np.array([55.0]),
@@ -96,7 +92,6 @@ CASES = [
     (
         "dmc",
         fwi.vectorized_dmc,
-        False,
         lambda a: (
             cffdrs.duff_moisture_code(
                 float(a[0][0]),
@@ -110,7 +105,7 @@ CASES = [
         ),
         [
             np.array([50.0]),
-            np.array([NAN]),
+            np.array([np.nan]),
             np.array([40.0]),
             np.array([0.0]),
             np.array([55.0]),
@@ -130,82 +125,79 @@ CASES = [
     (
         "ffmc",
         fwi.vectorized_ffmc,
-        False,
         lambda a: (
             cffdrs.fine_fuel_moisture_code(
                 float(a[0][0]), float(a[1][0]), float(a[2][0]), float(a[3][0]), float(a[4][0])
             ),
         ),
-        [np.array([88.0]), np.array([NAN]), np.array([40.0]), np.array([15.0]), np.array([0.0])],
+        [np.array([88.0]), np.array([np.nan]), np.array([40.0]), np.array([15.0]), np.array([0.0])],
         [np.array([88.0]), np.array([None]), np.array([40.0]), np.array([15.0]), np.array([0.0])],
     ),
     (
         "isi",
         fwi.vectorized_isi,
-        False,
         lambda a: (cffdrs.initial_spread_index(float(a[0][0]), float(a[1][0]), a[2]),),
-        [np.array([NAN]), np.array([15.0]), True],
+        [np.array([np.nan]), np.array([15.0]), True],
         [np.array([None]), np.array([15.0]), True],
     ),
     (
         "fwi",
         fwi.vectorized_fwi,
-        False,
         lambda a: (cffdrs.fire_weather_index(float(a[0][0]), float(a[1][0])),),
-        [np.array([NAN]), np.array([40.0])],
+        [np.array([np.nan]), np.array([40.0])],
         [np.array([None]), np.array([40.0])],
     ),
     # --- cffdrs_vec.fbp: self-contained (no fuel_type_code) ---
     (
         "critical_surface_intensity",
         fbp.vectorized_critical_surface_intensity,
-        False,
         lambda a: (cffdrs.cfb_calc.critical_surface_intensity(float(a[0][0]), float(a[1][0])),),
-        [np.array([NAN]), np.array([3.0])],
+        [np.array([np.nan]), np.array([3.0])],
         [np.array([None]), np.array([3.0])],
     ),
     (
         "crown_fraction_burned",
         fbp.vectorized_crown_fraction_burned,
-        False,
         lambda a: (cffdrs.cfb_calc.crown_fraction_burned(float(a[0][0]), float(a[1][0])),),
-        [np.array([NAN]), np.array([1.0])],
+        [np.array([np.nan]), np.array([1.0])],
         [np.array([None]), np.array([1.0])],
     ),
     (
         "crown_rate_of_spread_c6",
         fbp.vectorized_crown_rate_of_spread_c6,
-        False,
         lambda a: (cffdrs.c6_calc.crown_rate_of_spread_c6(float(a[0][0]), float(a[1][0])),),
-        [np.array([NAN]), np.array([100.0])],
+        [np.array([np.nan]), np.array([100.0])],
         [np.array([None]), np.array([100.0])],
     ),
     (
         "intermediate_surface_rate_of_spread_c6",
         fbp.vectorized_intermediate_surface_rate_of_spread_c6,
-        False,
         lambda a: (cffdrs.c6_calc.intermediate_surface_rate_of_spread_c6(float(a[0][0])),),
-        [np.array([NAN])],
+        [np.array([np.nan])],
         [np.array([None])],
     ),
     (
         "fire_intensity",
         fbp.vectorized_fire_intensity,
-        False,
         lambda a: (cffdrs.fire_intensity.fire_intensity(float(a[0][0]), float(a[1][0])),),
-        [np.array([NAN]), np.array([5.0])],
+        [np.array([np.nan]), np.array([5.0])],
         [np.array([None]), np.array([5.0])],
     ),
     (
         "foliar_moisture_content",
         fbp.vectorized_foliar_moisture_content,
-        False,
         lambda a: (
             cffdrs.foliar_moisture_content.foliar_moisture_content(
                 float(a[0][0]), float(a[1][0]), float(a[2][0]), float(a[3][0]), float(a[4][0])
             ),
         ),
-        [np.array([NAN]), np.array([120.0]), np.array([500.0]), np.array([180.0]), np.array([0.0])],
+        [
+            np.array([np.nan]),
+            np.array([120.0]),
+            np.array([500.0]),
+            np.array([180.0]),
+            np.array([0.0]),
+        ],
         [
             np.array([None]),
             np.array([120.0]),
@@ -217,105 +209,108 @@ CASES = [
     (
         "surface_fire_rate_of_spread",
         fbp.vectorized_surface_fire_rate_of_spread,
-        False,
         lambda a: (cffdrs.cfb_calc.surface_fire_rate_of_spread(float(a[0][0]), float(a[1][0])),),
-        [np.array([NAN]), np.array([2.0])],
+        [np.array([np.nan]), np.array([2.0])],
         [np.array([None]), np.array([2.0])],
     ),
     (
         "surface_rate_of_spread_c6",
         fbp.vectorized_surface_rate_of_spread_c6,
-        False,
         lambda a: (cffdrs.c6_calc.surface_rate_of_spread_c6(float(a[0][0]), float(a[1][0])),),
-        [np.array([NAN]), np.array([40.0])],
+        [np.array([np.nan]), np.array([40.0])],
         [np.array([None]), np.array([40.0])],
     ),
     (
         "crown_fraction_burned_c6",
         fbp.vectorized_crown_fraction_burned_c6,
-        False,
         lambda a: (
             cffdrs.c6_calc.crown_fraction_burned_c6(float(a[0][0]), float(a[1][0]), float(a[2][0])),
         ),
-        [np.array([NAN]), np.array([4.0]), np.array([1.0])],
+        [np.array([np.nan]), np.array([4.0]), np.array([1.0])],
         [np.array([None]), np.array([4.0]), np.array([1.0])],
     ),
     # --- cffdrs_vec.fbp: fuel_type_code first, then floats ---
     (
         "distance_at_time",
         fbp.vectorized_distance_at_time,
-        False,
         lambda a: (
             cffdrs.distance_at_time.distance_at_time(
                 "C6", float(a[1][0]), float(a[2][0]), float(a[3][0])
             ),
         ),
-        [np.array([C6]), np.array([NAN]), np.array([30.0]), np.array([0.5])],
-        [np.array([C6]), np.array([None]), np.array([30.0]), np.array([0.5])],
+        [np.array([FUEL_TYPE_CODES["C6"]]), np.array([np.nan]), np.array([30.0]), np.array([0.5])],
+        [np.array([FUEL_TYPE_CODES["C6"]]), np.array([None]), np.array([30.0]), np.array([0.5])],
     ),
     (
         "length_to_breadth",
         fbp.vectorized_length_to_breadth,
-        False,
         lambda a: (cffdrs.length_to_breadth.length_to_breadth("C6", float(a[1][0])),),
-        [np.array([C6]), np.array([NAN])],
-        [np.array([C6]), np.array([None])],
+        [np.array([FUEL_TYPE_CODES["C6"]]), np.array([np.nan])],
+        [np.array([FUEL_TYPE_CODES["C6"]]), np.array([None])],
     ),
     (
         "length_to_breadth_at_time",
         fbp.vectorized_length_to_breadth_at_time,
-        False,
         lambda a: (
             cffdrs.length_to_breadth_at_time.length_to_breadth_at_time(
                 "C6", float(a[1][0]), float(a[2][0]), float(a[3][0])
             ),
         ),
-        [np.array([C6]), np.array([NAN]), np.array([30.0]), np.array([0.5])],
-        [np.array([C6]), np.array([None]), np.array([30.0]), np.array([0.5])],
+        [np.array([FUEL_TYPE_CODES["C6"]]), np.array([np.nan]), np.array([30.0]), np.array([0.5])],
+        [np.array([FUEL_TYPE_CODES["C6"]]), np.array([None]), np.array([30.0]), np.array([0.5])],
     ),
     (
         "rate_of_spread_at_time",
         fbp.vectorized_rate_of_spread_at_time,
-        False,
         lambda a: (
             cffdrs.rate_of_spread_at_time.rate_of_spread_at_time(
                 "C6", float(a[1][0]), float(a[2][0]), float(a[3][0])
             ),
         ),
-        [np.array([C6]), np.array([NAN]), np.array([30.0]), np.array([0.5])],
-        [np.array([C6]), np.array([None]), np.array([30.0]), np.array([0.5])],
+        [np.array([FUEL_TYPE_CODES["C6"]]), np.array([np.nan]), np.array([30.0]), np.array([0.5])],
+        [np.array([FUEL_TYPE_CODES["C6"]]), np.array([None]), np.array([30.0]), np.array([0.5])],
     ),
     (
         "surface_fuel_consumption",
         fbp.vectorized_surface_fuel_consumption,
-        False,
         lambda a: (
             cffdrs.surface_fuel_consumption.surface_fuel_consumption(
                 "C6", float(a[1][0]), float(a[2][0]), float(a[3][0]), float(a[4][0])
             ),
         ),
-        [np.array([C6]), np.array([NAN]), np.array([40.0]), np.array([50.0]), np.array([0.35])],
-        [np.array([C6]), np.array([None]), np.array([40.0]), np.array([50.0]), np.array([0.35])],
+        [
+            np.array([FUEL_TYPE_CODES["C6"]]),
+            np.array([np.nan]),
+            np.array([40.0]),
+            np.array([50.0]),
+            np.array([0.35]),
+        ],
+        [
+            np.array([FUEL_TYPE_CODES["C6"]]),
+            np.array([None]),
+            np.array([40.0]),
+            np.array([50.0]),
+            np.array([0.35]),
+        ],
     ),
     (
         "total_fuel_consumption",
         fbp.vectorized_total_fuel_consumption,
-        False,
         lambda a: (
             cffdrs.total_fuel_consumption.total_fuel_consumption(
                 "C6", float(a[1][0]), float(a[2][0]), float(a[3][0]), float(a[4][0]), float(a[5][0])
             ),
         ),
         [
-            np.array([C6]),
-            np.array([NAN]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
+            np.array([np.nan]),
             np.array([0.5]),
             np.array([2.0]),
             np.array([50.0]),
             np.array([30.0]),
         ],
         [
-            np.array([C6]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
             np.array([None]),
             np.array([0.5]),
             np.array([2.0]),
@@ -326,7 +321,6 @@ CASES = [
     (
         "rate_of_spread",
         fbp.vectorized_rate_of_spread,
-        False,
         lambda a: (
             cffdrs.rate_of_spread.rate_of_spread(
                 "C6",
@@ -341,8 +335,8 @@ CASES = [
             ),
         ),
         [
-            np.array([C6]),
-            np.array([NAN]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
+            np.array([np.nan]),
             np.array([40.0]),
             np.array([100.0]),
             np.array([2.0]),
@@ -352,7 +346,7 @@ CASES = [
             np.array([3.0]),
         ],
         [
-            np.array([C6]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
             np.array([None]),
             np.array([40.0]),
             np.array([100.0]),
@@ -366,7 +360,6 @@ CASES = [
     (
         "back_rate_of_spread",
         fbp.vectorized_back_rate_of_spread,
-        False,
         lambda a: (
             cffdrs.back_rate_of_spread.back_rate_of_spread(
                 "C6",
@@ -382,8 +375,8 @@ CASES = [
             ),
         ),
         [
-            np.array([C6]),
-            np.array([NAN]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
+            np.array([np.nan]),
             np.array([40.0]),
             np.array([15.0]),
             np.array([100.0]),
@@ -394,7 +387,7 @@ CASES = [
             np.array([3.0]),
         ],
         [
-            np.array([C6]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
             np.array([None]),
             np.array([40.0]),
             np.array([15.0]),
@@ -410,7 +403,6 @@ CASES = [
     (
         "slope_adjustment",
         fbp.vectorized_slope_adjustment,
-        True,
         lambda a: (lambda r: (r.wsv, r.raz))(
             cffdrs.slope_calc.slope_adjustment(
                 "C6",
@@ -430,8 +422,8 @@ CASES = [
             )
         ),
         [
-            np.array([C6]),
-            np.array([NAN]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
+            np.array([np.nan]),
             np.array([40.0]),
             np.array([15.0]),
             np.array([1.2]),
@@ -446,7 +438,7 @@ CASES = [
             np.array([10.0]),
         ],
         [
-            np.array([C6]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
             np.array([None]),
             np.array([40.0]),
             np.array([15.0]),
@@ -465,7 +457,6 @@ CASES = [
     (
         "rate_of_spread_extended",
         fbp.vectorized_rate_of_spread_extended,
-        True,
         lambda a: (lambda r: (r.ros, r.cfb, r.csi, r.rso))(
             cffdrs.rate_of_spread.rate_of_spread_extended(
                 "C6",
@@ -480,8 +471,8 @@ CASES = [
             )
         ),
         [
-            np.array([C6]),
-            np.array([NAN]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
+            np.array([np.nan]),
             np.array([40.0]),
             np.array([100.0]),
             np.array([2.0]),
@@ -491,7 +482,7 @@ CASES = [
             np.array([3.0]),
         ],
         [
-            np.array([C6]),
+            np.array([FUEL_TYPE_CODES["C6"]]),
             np.array([None]),
             np.array([40.0]),
             np.array([100.0]),
@@ -507,21 +498,17 @@ CASES = [
 CASE_IDS = [case[0] for case in CASES]
 
 
-@pytest.mark.parametrize(
-    "name,fn,multi_output,call_reference,nan_args,none_args", CASES, ids=CASE_IDS
-)
-def test_nan_propagates_like_reference(name, fn, multi_output, call_reference, nan_args, none_args):
+@pytest.mark.parametrize("name,fn,call_reference,nan_args,none_args", CASES, ids=CASE_IDS)
+def test_nan_propagates_like_reference(name, fn, call_reference, nan_args, none_args):
     result = fn(*nan_args)
-    vec_result = tuple(field[0] for field in result) if multi_output else (result[0],)
+    vec_result = tuple(field[0] for field in result) if fn.nout > 1 else (result[0],)
     ref_result = call_reference(nan_args)
 
     np.testing.assert_allclose(vec_result, ref_result, equal_nan=True)
 
 
-@pytest.mark.parametrize(
-    "name,fn,multi_output,call_reference,nan_args,none_args", CASES, ids=CASE_IDS
-)
-def test_none_raises_clearly(name, fn, multi_output, call_reference, nan_args, none_args):
+@pytest.mark.parametrize("name,fn,call_reference,nan_args,none_args", CASES, ids=CASE_IDS)
+def test_none_raises_clearly(name, fn, call_reference, nan_args, none_args):
     with pytest.raises(NONE_INPUT_ERRORS):
         fn(*none_args)
 
