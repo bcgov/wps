@@ -38,11 +38,14 @@ NONE_INPUT_ERRORS = (TypeError, numba.TypingError)
 
 # Each case is (fn_name, vectorized_fn, reference_fn, nan_args, none_args):
 # - vectorized_fn is the cffdrs_vec function under test.
-# - nan_args/none_args are vectorized_fn's exact positional argument list (arrays, except the
-#   trailing lat_adjust/fbp_mod bool on dc/dmc/isi, passed bare - that's how it's actually
-#   broadcast against the array arguments; see fwi.py's callers), with one position holding
-#   NaN/None. Which position doesn't matter (every function needs both float-only branches to
-#   still work), so each case just picks whichever's convenient.
+# - nan_args/none_args are vectorized_fn's exact positional argument list. Every argument is a
+#   1-element array, EXCEPT the trailing lat_adjust/fbp_mod bool that dc/dmc/isi take, which is a
+#   bare Python bool instead - that matches how production code actually calls them (see
+#   fwi_processor.py's vectorized_dc/dmc/isi calls): numpy broadcasts a bare scalar against array
+#   arguments fine, so real callers never bother wrapping it in an array either.
+# - Exactly one argument position holds NaN (or None) instead of its normal value. Which position
+#   is arbitrary, the test just needs some float argument to be missing, not a specific one, so
+#   each case picks whichever's convenient to write.
 # - reference_fn takes nan_args and unwraps whatever it needs to call the plain, unjitted cffdrs
 #   function, as the oracle vectorized_fn's result gets checked against.
 # `vectorized_fn.nout` (numba's vectorize/guvectorize wrappers are ufunc-like) tells the tests
