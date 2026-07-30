@@ -14,9 +14,11 @@ import {
   useMediaQuery
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { sendFeedback } from '@sentry/react'
-import { type SyntheticEvent, useEffect, useRef, useState } from 'react'
+import { type SyntheticEvent, useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import NotificationSnackbar from '@/components/NotificationSnackbar'
+import { resetFeedbackSubmission, setFeedbackError, submitFeedback } from '@/slices/feedbackSlice'
+import { type AppDispatch, selectFeedback } from '@/store'
 
 interface FeedbackDialogProps {
   defaultEmail?: string
@@ -36,12 +38,11 @@ const floatedLabelSlotProps = { inputLabel: { shrink: true } }
 export const FeedbackDialog = ({ defaultEmail, isOnline, onClose, open }: FeedbackDialogProps) => {
   const theme = useTheme()
   const isFullScreen = useMediaQuery(theme.breakpoints.down('lg'))
-  const submissionId = useRef(0)
+  const dispatch: AppDispatch = useDispatch()
+  const { error, isSubmitting, submitted } = useSelector(selectFeedback)
   const [name, setName] = useState('')
   const [email, setEmail] = useState(defaultEmail ?? '')
   const [message, setMessage] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
   useEffect(() => {
@@ -49,55 +50,42 @@ export const FeedbackDialog = ({ defaultEmail, isOnline, onClose, open }: Feedba
       setName('')
       setEmail(defaultEmail ?? '')
       setMessage('')
-      setError(null)
-      setIsSubmitting(false)
+      dispatch(resetFeedbackSubmission())
     }
-  }, [defaultEmail, open])
+  }, [defaultEmail, dispatch, open])
+
+  useEffect(() => {
+    if (!submitted) {
+      return
+    }
+    setShowSuccess(true)
+    dispatch(resetFeedbackSubmission())
+    onClose()
+  }, [dispatch, onClose, submitted])
 
   const handleClose = () => {
-    submissionId.current += 1
-    setIsSubmitting(false)
-    setError(null)
+    dispatch(resetFeedbackSubmission())
     onClose()
   }
 
-  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!isOnline) {
       return
     }
     const trimmedMessage = message.trim()
     if (!trimmedMessage) {
-      setError('Please enter a description.')
+      dispatch(setFeedbackError('Please enter a description.'))
       return
     }
 
-    const currentSubmissionId = ++submissionId.current
-    setError(null)
-    setIsSubmitting(true)
-
-    try {
-      await sendFeedback(
-        {
-          message: trimmedMessage,
-          name: name.trim() || undefined,
-          email: email.trim() || undefined
-        },
-        { includeReplay: true }
-      )
-      if (submissionId.current !== currentSubmissionId) {
-        return
-      }
-      setIsSubmitting(false)
-      setShowSuccess(true)
-      onClose()
-    } catch {
-      if (submissionId.current !== currentSubmissionId) {
-        return
-      }
-      setIsSubmitting(false)
-      setError("We couldn't send your feedback. Please check your connection and try again.")
-    }
+    dispatch(
+      submitFeedback({
+        message: trimmedMessage,
+        name: name.trim() || undefined,
+        email: email.trim() || undefined
+      })
+    )
   }
 
   return (

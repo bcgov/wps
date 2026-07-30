@@ -1,8 +1,11 @@
 import { sendFeedback } from '@sentry/react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ComponentProps } from 'react'
+import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 import { FeedbackDialog } from '@/components/FeedbackDialog'
+import { createTestStore } from '@/testUtils'
 
 vi.mock('@sentry/react', () => ({
   sendFeedback: vi.fn()
@@ -10,13 +13,20 @@ vi.mock('@sentry/react', () => ({
 
 const mockSendFeedback = vi.mocked(sendFeedback)
 
+const renderFeedbackDialog = (props: Partial<ComponentProps<typeof FeedbackDialog>> = {}) =>
+  render(
+    <Provider store={createTestStore()}>
+      <FeedbackDialog isOnline onClose={vi.fn()} open {...props} />
+    </Provider>
+  )
+
 describe('FeedbackDialog', () => {
   afterEach(() => {
     vi.clearAllMocks()
   })
 
   it('prefills the authenticated email and keeps close controls available', () => {
-    render(<FeedbackDialog defaultEmail="user@example.com" isOnline onClose={vi.fn()} open />)
+    renderFeedbackDialog({ defaultEmail: 'user@example.com' })
 
     expect(screen.getByRole('textbox', { name: 'Email' })).toHaveValue('user@example.com')
     expect(screen.getByRole('button', { name: 'close feedback' })).toBeInTheDocument()
@@ -24,7 +34,7 @@ describe('FeedbackDialog', () => {
   })
 
   it.each(['Name', 'Description'])('keeps the %s label above the outline when focus changes', fieldName => {
-    render(<FeedbackDialog isOnline onClose={vi.fn()} open />)
+    renderFeedbackDialog()
     const field = screen.getByRole('textbox', { name: fieldName })
     const label = document.querySelector(`label[for="${field.id}"]`)
 
@@ -41,7 +51,7 @@ describe('FeedbackDialog', () => {
     const onClose = vi.fn()
     const user = userEvent.setup()
     mockSendFeedback.mockResolvedValue('event-id')
-    render(<FeedbackDialog defaultEmail="user@example.com" isOnline onClose={onClose} open />)
+    renderFeedbackDialog({ defaultEmail: 'user@example.com', onClose })
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), { target: { value: 'A User' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), {
@@ -67,7 +77,7 @@ describe('FeedbackDialog', () => {
     const onClose = vi.fn()
     const user = userEvent.setup()
     mockSendFeedback.mockRejectedValue(new Error('network error'))
-    render(<FeedbackDialog isOnline onClose={onClose} open />)
+    renderFeedbackDialog({ onClose })
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), {
       target: { value: 'Unable to load.' }
@@ -82,7 +92,7 @@ describe('FeedbackDialog', () => {
 
   it('closes without submitting when cancelled', () => {
     const onClose = vi.fn()
-    render(<FeedbackDialog isOnline onClose={onClose} open />)
+    renderFeedbackDialog({ onClose })
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
@@ -91,7 +101,7 @@ describe('FeedbackDialog', () => {
   })
 
   it('disables the form while offline', () => {
-    render(<FeedbackDialog isOnline={false} onClose={vi.fn()} open />)
+    renderFeedbackDialog({ isOnline: false })
 
     expect(screen.getByText('Feedback is unavailable while offline.')).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Name' })).toBeDisabled()
