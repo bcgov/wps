@@ -18,7 +18,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "b52b27686f236b15d002ff49df85cd828a398ff2" }
+cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "17e07fe11476483d37a56dc5f7b9d0a367b64046" }
 wps-shared = { workspace = true }
 
 [build-system]

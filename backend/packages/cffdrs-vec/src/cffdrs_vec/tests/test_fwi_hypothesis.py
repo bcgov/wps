@@ -74,7 +74,11 @@ def test_vectorized_dmc_matches_reference(dmc, temp, rh, precip, lat, month, lat
 @settings(deadline=None, max_examples=200)
 def test_vectorized_ffmc_matches_reference(ffmc, temp, rh, wind_speed, precip):
     actual = fwi.vectorized_ffmc(
-        np.array([ffmc]), np.array([temp]), np.array([rh]), np.array([wind_speed]), np.array([precip])
+        np.array([ffmc]),
+        np.array([temp]),
+        np.array([rh]),
+        np.array([wind_speed]),
+        np.array([precip]),
     )[0]
     expected = cffdrs.fine_fuel_moisture_code(ffmc, temp, rh, wind_speed, precip)
     np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-9)
