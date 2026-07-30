@@ -27,15 +27,13 @@ async def get_device_by_device_id(
 async def get_active_device_by_device_id(
     session: AsyncSession, device_id: str, for_update: bool = False
 ) -> DeviceToken | None:
-    """Return the most recently updated active token for a device.
+    """Return the active token row for a device.
 
-    When for_update is True, lock matching active token rows until the transaction finishes so
+    When for_update is True, lock the active token row until the transaction finishes so
     concurrent subscription replacements for the same device cannot interleave.
     """
-    statement = (
-        select(DeviceToken)
-        .where(DeviceToken.device_id == device_id, DeviceToken.is_active.is_(True))
-        .order_by(DeviceToken.updated_at.desc(), DeviceToken.id.desc())
+    statement = select(DeviceToken).where(
+        DeviceToken.device_id == device_id, DeviceToken.is_active.is_(True)
     )
     if for_update:
         statement = statement.with_for_update()
@@ -102,7 +100,6 @@ async def get_notification_settings_for_device(session: AsyncSession, device_id:
     """Return the subscribed fire zone source identifiers for the given device_id."""
     result = await session.execute(
         select(NotificationSettings.fire_shape_source_id)
-        .distinct()
         .join(DeviceToken, NotificationSettings.device_token_id == DeviceToken.id)
         .where(DeviceToken.device_id == device_id, DeviceToken.is_active.is_(True))
     )
