@@ -1,56 +1,56 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 import { HamburgerMenu } from '@/components/HamburgerMenu'
+import { initialState as authenticationInitialState } from '@/slices/authenticationSlice'
+import { createTestStore } from '@/testUtils'
 
 vi.mock('@sentry/react', () => ({
-  getFeedback: vi.fn()
+  sendFeedback: vi.fn()
 }))
 
 vi.mock('@sentry/capacitor', () => ({}))
 
-import { getFeedback } from '@sentry/react'
-
-const mockGetFeedback = vi.mocked(getFeedback)
-
 describe('HamburgerMenu', () => {
   const defaultProps = { drawerTop: 60, drawerHeight: 740 }
+
+  const renderMenu = () =>
+    render(
+      <Provider
+        store={createTestStore({
+          authentication: {
+            ...authenticationInitialState,
+            email: 'user@example.com'
+          }
+        })}
+      >
+        <HamburgerMenu {...defaultProps} />
+      </Provider>
+    )
 
   afterEach(() => {
     vi.clearAllMocks()
   })
 
   it('renders the menu button', () => {
-    mockGetFeedback.mockReturnValue(undefined)
-    render(<HamburgerMenu {...defaultProps} />)
+    renderMenu()
     expect(screen.getByRole('button', { name: /open menu/i })).toBeInTheDocument()
   })
 
-  it('opens the Sentry feedback dialog when Submit Feedback is clicked', async () => {
-    const mockForm = { appendToDom: vi.fn(), open: vi.fn() }
-    const mockCreateForm = vi.fn().mockResolvedValue(mockForm)
-    mockGetFeedback.mockReturnValue({ createForm: mockCreateForm } as unknown as ReturnType<typeof getFeedback>)
-
-    render(<HamburgerMenu {...defaultProps} />)
+  it('opens the feedback dialog when Submit Feedback is clicked', async () => {
+    renderMenu()
     fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
 
-    const submitFeedback = await screen.findByText('Submit Feedback')
-    fireEvent.click(submitFeedback)
+    fireEvent.click(await screen.findByText('Submit Feedback'))
 
-    await vi.waitFor(
-      () => {
-        expect(mockCreateForm).toHaveBeenCalled()
-        expect(mockForm.appendToDom).toHaveBeenCalled()
-        expect(mockForm.open).toHaveBeenCalled()
-      },
-      { timeout: 1000 }
-    )
+    expect(await screen.findByRole('dialog', { name: 'Submit Feedback' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveValue('user@example.com')
   })
 
   it('opens external links in a new tab', async () => {
     const mockOpen = vi.spyOn(globalThis, 'open').mockImplementation(() => null)
-    mockGetFeedback.mockReturnValue(undefined)
 
-    render(<HamburgerMenu {...defaultProps} />)
+    renderMenu()
     fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
 
     const homeLink = await screen.findByText('Home')
@@ -60,34 +60,14 @@ describe('HamburgerMenu', () => {
     mockOpen.mockRestore()
   })
 
-  it('does not open the feedback form when the drawer closes without Submit Feedback being clicked', async () => {
-    const mockForm = { appendToDom: vi.fn(), open: vi.fn() }
-    const mockCreateForm = vi.fn().mockResolvedValue(mockForm)
-    mockGetFeedback.mockReturnValue({ createForm: mockCreateForm } as unknown as ReturnType<typeof getFeedback>)
-
-    render(<HamburgerMenu {...defaultProps} />)
+  it('does not open the feedback dialog when the drawer closes without Submit Feedback being clicked', async () => {
+    renderMenu()
     fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
 
-    const closeButton = await screen.findByRole('button', { name: /close settings/i })
-    fireEvent.click(closeButton)
+    fireEvent.click(await screen.findByRole('button', { name: /close settings/i }))
 
-    await vi.waitFor(
-      () => {
-        expect(mockCreateForm).not.toHaveBeenCalled()
-        expect(mockForm.appendToDom).not.toHaveBeenCalled()
-        expect(mockForm.open).not.toHaveBeenCalled()
-      },
-      { timeout: 1000 }
-    )
-  })
-
-  it('does not throw when getFeedback returns undefined and Submit Feedback is clicked', async () => {
-    mockGetFeedback.mockReturnValue(undefined)
-
-    render(<HamburgerMenu {...defaultProps} />)
-    fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
-
-    const submitFeedback = await screen.findByText('Submit Feedback')
-    expect(() => fireEvent.click(submitFeedback)).not.toThrow()
+    await vi.waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Submit Feedback' })).not.toBeInTheDocument()
+    })
   })
 })
