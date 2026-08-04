@@ -29,6 +29,8 @@ WORKDIR /app
 COPY ./backend/pyproject.toml /app/
 COPY ./backend/uv.lock /app/
 COPY ./backend/packages/wps-api/pyproject.toml /app/packages/wps-api/
+COPY ./backend/packages/cffdrs-vec/pyproject.toml /app/packages/cffdrs-vec/
+COPY ./backend/packages/cffdrs-vec/src /app/packages/cffdrs-vec/src
 COPY ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
@@ -42,10 +44,15 @@ USER 0
 # Set configuration files to read-only for security
 RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-api/pyproject.toml \
+    /app/packages/cffdrs-vec/pyproject.toml \
     /app/packages/wps-shared/pyproject.toml \
     /app/packages/wps-wf1/pyproject.toml \
     /app/packages/wps-sfms/pyproject.toml && \
-    chmod -R a-w /app/packages/wps-shared/src /app/packages/wps-sfms/src /app/packages/wps-wf1/src
+    chmod -R a-w \
+    /app/packages/cffdrs-vec/src \
+    /app/packages/wps-shared/src \
+    /app/packages/wps-sfms/src \
+    /app/packages/wps-wf1/src
 
 # Switch back to non-root user
 USER $USERNAME
@@ -76,6 +83,7 @@ WORKDIR /app
 # Copy workspace and package configuration
 COPY --from=builder /app/pyproject.toml /app/
 COPY --from=builder /app/packages/wps-api/pyproject.toml /app/packages/wps-api/
+COPY --from=builder /app/packages/cffdrs-vec/pyproject.toml /app/packages/cffdrs-vec/
 COPY --from=builder /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY --from=builder /app/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
 COPY --from=builder /app/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
@@ -97,7 +105,8 @@ COPY ./backend/packages/wps-api/alembic.ini /app
 COPY ./backend/packages/wps-api/prestart.sh /app
 COPY ./backend/packages/wps-api/start.sh /app
 
-# Make uv happy by copying wps_shared and wps_sfms
+# Make uv happy by copying cffdrs_vec, wps_shared and wps_sfms
+COPY ./backend/packages/cffdrs-vec/src /app/packages/cffdrs-vec/src
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
 COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
@@ -122,6 +131,7 @@ USER 0
 RUN chmod -R a-w \
     /app/pyproject.toml \
     /app/packages/wps-api/pyproject.toml \
+    /app/packages/cffdrs-vec/src \
     /app/packages/wps-shared/src \
     /app/packages/wps-sfms/src \
     /app/packages/wps-wf1/src \

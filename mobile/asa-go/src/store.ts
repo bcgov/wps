@@ -15,6 +15,7 @@ export type AppThunk = ThunkAction<void, RootState, undefined, Action>
 export const selectFireCentres = (state: RootState) => state.fireCentres
 export const selectGeolocation = (state: RootState) => state.geolocation
 export const selectAuthentication = (state: RootState) => state.authentication
+export const selectFeedback = (state: RootState) => state.feedback
 export const selectNetworkStatus = (state: RootState) => state.networkStatus
 export const selectToken = (state: RootState) => state.authentication.token
 export const selectRunParameters = (state: RootState) => state.runParameters.runParameters

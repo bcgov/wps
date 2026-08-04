@@ -1,7 +1,7 @@
 import { Alert, type AlertColor, Snackbar } from '@mui/material'
 import type { SnackbarOrigin } from '@mui/material/Snackbar'
 
-interface NotificationErrorSnackbarProps {
+interface NotificationSnackbarProps {
   open: boolean
   onClose: () => void
   message: string
@@ -10,14 +10,14 @@ interface NotificationErrorSnackbarProps {
   autoHideDuration?: number | null
 }
 
-const NotificationErrorSnackbar = ({
+const NotificationSnackbar = ({
   open,
   onClose,
   message,
   anchorOrigin = { vertical: 'top', horizontal: 'center' },
   severity = 'error',
   autoHideDuration = 6000
-}: NotificationErrorSnackbarProps) => (
+}: NotificationSnackbarProps) => (
   <Snackbar
     open={open}
     autoHideDuration={autoHideDuration}
@@ -45,4 +45,4 @@ const NotificationErrorSnackbar = ({
   </Snackbar>
 )
 
-export default NotificationErrorSnackbar
+export default NotificationSnackbar
