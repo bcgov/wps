@@ -48,13 +48,18 @@ RUN chmod -R a-w /app/packages/wps-shared/src \
 USER $USERNAME
 
 # Install dependencies using uv
-# --extra profiling pulls in memray, used to capture memory allocation profiles
-# for OOM investigation (bcgov/wps#5637). It's gated behind MEMRAY_ENABLED at
-# runtime, so its presence here doesn't change default (non-profiling) behaviour.
-# --no-build-package memray requires a prebuilt wheel for memray specifically,
-# rather than falling back to building its sdist (which would run its PEP 517
-# build backend / setup scripts as part of the image build).
-RUN uv sync --frozen --no-dev --package wps-jobs --extra profiling --no-build-package memray
+RUN uv sync --frozen --no-dev --package wps-jobs
+
+# Install memray, used to capture memory allocation profiles for OOM investigation
+# (bcgov/wps#5637). It's gated behind MEMRAY_ENABLED at runtime, so its presence here
+# doesn't change default (non-profiling) behaviour. --no-build requires a prebuilt
+# wheel, refusing to fall back to building its sdist (which would run its PEP 517
+# build backend / setup scripts as part of the image build). This is a separate step
+# (rather than the wps-jobs "profiling" extra) so --no-build only applies to memray,
+# not to the local workspace packages above which have no wheel and must be built
+# from source. Keep this version in sync with the "profiling" extra in
+# packages/wps-jobs/pyproject.toml and its resolution in uv.lock.
+RUN uv pip install --no-build "memray==1.19.3"
 
 # Install setuptools required for GDAL build
 RUN uv pip install setuptools
