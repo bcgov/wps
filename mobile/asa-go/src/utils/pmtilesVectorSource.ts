@@ -28,7 +28,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   private tileErrorReloadInProgress = false
   // report at most one failed recovery per source until the app foregrounds again
   private tileErrorReported = false
-  // change the source URL after reload so OpenLayers does not reuse errored tile objects
+  // track tile generations so OpenLayers does not reuse stale or errored tile objects
   private reloadKey = 0
 
   tileLoadFunction = (tile: Tile, url: string) => {
@@ -134,7 +134,8 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     super({
       ...options,
       state: 'loading',
-      url: PMTILES_TILE_URL, // only used for parsing out the z, x, y parameters when tile loading
+      // provide tile coordinates and an identity that can change when cached tiles must be replaced
+      url: PMTILES_TILE_URL,
       format: options.format || new MVT({ layerName: 'mvt:layer' })
     })
     this.filename = options.filename

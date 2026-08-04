@@ -156,7 +156,7 @@ const ASAGoMap = ({
   const refreshPMTilesSources = React.useCallback(async () => {
     if (!map) return
 
-    // refresh cached tiles after resume without rereading large PMTiles files
+    // reload visible tiles after resume while reusing already-open PMTiles files
     const sources = new Set<PMTilesFileVectorSource>()
     map
       .getLayers()
