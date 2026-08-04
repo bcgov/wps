@@ -3,14 +3,24 @@ from time import perf_counter
 from typing import Optional
 
 import numpy as np
-
-from wps_shared.fwi import vectorized_bui, vectorized_dc, vectorized_dmc, vectorized_ffmc, vectorized_fwi, vectorized_isi
+from cffdrs_vec.fwi import (
+    vectorized_bui,
+    vectorized_dc,
+    vectorized_dmc,
+    vectorized_ffmc,
+    vectorized_fwi,
+    vectorized_isi,
+)
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 logger = logging.getLogger(__name__)
 
 
-def check_weather_values(rh_array: Optional[np.ndarray] = None, precip_array: Optional[np.ndarray] = None, ws_array: Optional[np.ndarray] = None) -> None:
+def check_weather_values(
+    rh_array: Optional[np.ndarray] = None,
+    precip_array: Optional[np.ndarray] = None,
+    ws_array: Optional[np.ndarray] = None,
+) -> None:
     """
     Logs errors if any weather condition values are out of acceptable ranges.
 
@@ -32,7 +42,14 @@ def check_weather_values(rh_array: Optional[np.ndarray] = None, precip_array: Op
         logger.error(f"Wind speed contains negative values (min: {min_ws})")
 
 
-def calculate_dc(dc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset, latitude: np.ndarray, month: np.ndarray):
+def calculate_dc(
+    dc_ds: WPSDataset,
+    temp_ds: WPSDataset,
+    rh_ds: WPSDataset,
+    precip_ds: WPSDataset,
+    latitude: np.ndarray,
+    month: np.ndarray,
+):
     dc_array, _ = dc_ds.replace_nodata_with(0)
     temp_array, _ = temp_ds.replace_nodata_with(0)
     rh_array, _ = rh_ds.replace_nodata_with(0)
@@ -51,7 +68,14 @@ def calculate_dc(dc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, prec
     return dc_values, nodata_value
 
 
-def calculate_dmc(dmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset, latitude: np.ndarray, month: np.ndarray):
+def calculate_dmc(
+    dmc_ds: WPSDataset,
+    temp_ds: WPSDataset,
+    rh_ds: WPSDataset,
+    precip_ds: WPSDataset,
+    latitude: np.ndarray,
+    month: np.ndarray,
+):
     dmc_array, _ = dmc_ds.replace_nodata_with(0)
     temp_array, _ = temp_ds.replace_nodata_with(0)
     rh_array, _ = rh_ds.replace_nodata_with(0)
@@ -60,7 +84,9 @@ def calculate_dmc(dmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, pr
     check_weather_values(rh_array, precip_array)
 
     start = perf_counter()
-    dmc_values = vectorized_dmc(dmc_array, temp_array, rh_array, precip_array, latitude, month, True)
+    dmc_values = vectorized_dmc(
+        dmc_array, temp_array, rh_array, precip_array, latitude, month, True
+    )
     logger.info("%f seconds to calculate vectorized dmc", perf_counter() - start)
 
     nodata_mask, nodata_value = dmc_ds.get_nodata_mask()
@@ -85,7 +111,13 @@ def calculate_bui(dmc_ds: WPSDataset, dc_ds: WPSDataset):
     return bui_values, nodata_value
 
 
-def calculate_ffmc(previous_ffmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPSDataset, precip_ds: WPSDataset, wind_speed_ds: WPSDataset):
+def calculate_ffmc(
+    previous_ffmc_ds: WPSDataset,
+    temp_ds: WPSDataset,
+    rh_ds: WPSDataset,
+    precip_ds: WPSDataset,
+    wind_speed_ds: WPSDataset,
+):
     previous_ffmc_array, _ = previous_ffmc_ds.replace_nodata_with(0)
     temp_array, _ = temp_ds.replace_nodata_with(0)
     rh_array, _ = rh_ds.replace_nodata_with(0)
@@ -95,7 +127,9 @@ def calculate_ffmc(previous_ffmc_ds: WPSDataset, temp_ds: WPSDataset, rh_ds: WPS
     check_weather_values(rh_array, precip_array, wind_speed_array)
 
     start = perf_counter()
-    ffmc_values = vectorized_ffmc(previous_ffmc_array, temp_array, rh_array, wind_speed_array, precip_array)
+    ffmc_values = vectorized_ffmc(
+        previous_ffmc_array, temp_array, rh_array, wind_speed_array, precip_array
+    )
     logger.info("%f seconds to calculate vectorized ffmc", perf_counter() - start)
 
     nodata_mask, nodata_value = previous_ffmc_ds.get_nodata_mask()
