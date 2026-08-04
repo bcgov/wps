@@ -27,17 +27,10 @@ from typing import NamedTuple
 import numpy as np
 from cffdrs.constants import FUEL_TYPE_CODES
 from cffdrs.models import FBPInput
-from osgeo import osr
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 DATA_DIR = Path(__file__).parent / "data"
-
-SFMS_NO_DATA = -3.4028235e38
-# 1 row x 20 columns, one pixel per case, in an arbitrary-but-valid location/resolution - the
-# geospatial placement is meaningless here (LAT/LONG are separate data layers, not implied by
-# pixel position), it just needs to be internally consistent across all rasters.
-RASTER_GEOTRANSFORM = (-140.0, 1.0, 0.0, 60.0, 0.0, -1.0)
 
 FIRE_TYPE_BY_FD_CODE = {"S": "SUR", "I": "IC", "C": "CC"}
 # vectorized_fire_behaviour_prediction's fd_code output uses cffdrs's own FD_SURFACE/
@@ -130,21 +123,6 @@ def read_raster(raster_dir: Path, name: str) -> np.ndarray:
     return array
 
 
-def raster_projection_wkt() -> str:
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(4326)
-    return srs.ExportToWkt()
-
-
-def write_raster(raster_dir: Path, name: str, values: list) -> None:
-    array = np.array([values], dtype=np.float32)  # shape (1, 20)
-    array = np.where(np.isnan(array), SFMS_NO_DATA, array)
-    with WPSDataset.from_array(
-        array, RASTER_GEOTRANSFORM, raster_projection_wkt(), SFMS_NO_DATA
-    ) as ds:
-        ds.export_to_geotiff(str(raster_dir / f"{name}.tif"))
-
-
 class GLCX10Inputs(NamedTuple):
     """One field per array fbp.vectorized_fire_behaviour_prediction needs - GLCX10Source.
     load_raster_inputs() builds the same shape from GeoTIFFs instead of the CSVs.
@@ -210,16 +188,16 @@ class GLCX10ExpectedOutputs(NamedTuple):
 
 
 class GLCX10Source(ABC):
-    """One of the two independent GLC-X-10 data sources - knows how to load its own CSV-sourced
-    inputs/expected-outputs and its own GeoTIFF-sourced inputs, and how loose a tolerance its
-    ROS/HFI/CFB comparisons need (see test_fbp_glc_x_10.py for why "paper" needs a looser one
-    than "r_package"). RPackageSource and PaperSource below are the two concrete sources; nothing
-    else should subclass this.
+    """Abstract base for the two independent GLC-X-10 data sources: RPackageSource and
+    PaperSource below (the only two subclasses. A source knows how to load its own CSV-sourced
+    inputs/expected-outputs (load()), its own GeoTIFF-sourced inputs (load_raster_inputs()),
+    and how loose a tolerance its ROS/HFI/CFB comparisons need (rtol_ros_hfi/atol_cfb.
+    See test_fbp_glc_x_10.py for why "paper" needs a looser one than "r_package").
 
-    Parametrize tests on the GLCX10Source instance itself (`@pytest.mark.parametrize("source",
-    GLC_X_10_SOURCES, ...)`), not on its individual fields/methods - a test only ever reads the
-    one or two it actually needs, so nothing forces every test to declare ones it doesn't use
-    (unlike exploding a source into separate parametrize columns would).
+    Tests should parametrize on the GLCX10Source instance itself (`@pytest.mark.parametrize(
+    "source", GLC_X_10_SOURCES, ...)`) rather than on its individual fields/methods, so each test
+    only has to read the one or two attributes it actually needs instead of every test being
+    forced to declare all of them as separate parametrize columns.
     """
 
     name: str
@@ -244,11 +222,11 @@ class GLCX10Source(ABC):
         """
 
     @abstractmethod
-    def _raster_aspect_cbh_cfl(
+    def raster_aspect_cbh_cfl(
         self, input_rows: list[dict]
     ) -> tuple[list[float], list[float], list[float]]:
         """Returns (aspect_deg, cbh, cfl) as raw per-case value lists ready to write straight to
-        a raster - unlike _aspect_rad_cbh_cfl() above, missing values stay NaN here rather than
+        a raster. Unlike _aspect_rad_cbh_cfl() above, missing values stay NaN here rather than
         being filled with a default, so the raster round-trip (write here, then default-fill on
         read in load_raster_inputs()) can prove that same default-filling logic actually works
         when driven by a raster read, not just a CSV read.
@@ -359,7 +337,7 @@ class GLCX10Source(ABC):
         )
 
     def to_fbp_inputs(self) -> list[FBPInput]:
-        """One FBPInput per case, in the same order as load()'s arrays - used by
+        """One FBPInput per case, in the same order as load()'s arrays used by
         test_fbp_matches_cffdrs.py to call cffdrs's own, real fire_behaviour_prediction() once per
         case, as the ground truth fbp.vectorized_fire_behaviour_prediction gets checked against.
         Doesn't go through any of cffdrs_vec's own vectorized/jitted code at all.
@@ -376,7 +354,7 @@ class GLCX10Source(ABC):
         ids = [row[self.id_input_col] for row in input_rows]
         fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
         columns = self.columns
-        aspect_deg, raw_cbh, raw_cfl = self._raster_aspect_cbh_cfl(input_rows)
+        aspect_deg, raw_cbh, raw_cfl = self.raster_aspect_cbh_cfl(input_rows)
         pc = with_default(
             np.array([parse_float(row[columns["pc"]]) for row in input_rows]),
             fuel_types,
@@ -417,65 +395,6 @@ class GLCX10Source(ABC):
 
     def read_raster_output(self, name: str) -> np.ndarray:
         return read_raster(self.raster_dir, name)
-
-    def generate_rasters(self) -> None:
-        """Writes this source's GeoTIFF fixtures under self.raster_dir - one small (1 row x 20
-        case) raster per input/output variable, in case order (column 0 = case 1, ..., column 19
-        = case 20). Same one-raster-per-variable layout as the existing
-        bui20240528.tif/dc20240528.tif/dmc20240528.tif FWI fixtures.
-
-        Blank CSV cells (eg. CBH/CFL/PC, left for cffdrs to default) are written as SFMS_NO_DATA,
-        not 0 or NaN, so reading them back through WPSDataset.replace_nodata_with(np.nan)
-        round-trips to exactly the same "missing" signal parse_float() gives when reading the CSV
-        directly - see load_raster_inputs().
-
-        Run via generate_glc_x_10_rasters.py; the output is committed to the repo like the other
-        raster fixtures, so this only needs re-running if the source CSVs change.
-        """
-        input_rows = load_rows(self.input_csv)
-        output_by_id = {row[self.id_output_col]: row for row in load_rows(self.output_csv)}
-        ids = [row[self.id_input_col] for row in input_rows]
-        fuel_types = [normalize_fuel_type(row["FuelType"]) for row in input_rows]
-        columns = self.columns
-
-        aspect_deg, cbh, cfl = self._raster_aspect_cbh_cfl(input_rows)
-
-        input_columns = {
-            "fuel_type_code": [float(FUEL_TYPE_CODES[ft]) for ft in fuel_types],
-            "lat": [parse_float(row[columns["lat"]]) for row in input_rows],
-            "lon": [parse_float(row[columns["lon"]]) for row in input_rows],
-            "elv": [parse_float(row[columns["elv"]]) for row in input_rows],
-            "ffmc": [parse_float(row[columns["ffmc"]]) for row in input_rows],
-            "bui": [parse_float(row[columns["bui"]]) for row in input_rows],
-            "ws": [parse_float(row[columns["ws"]]) for row in input_rows],
-            "wd": [parse_float(row[columns["wd"]]) for row in input_rows],
-            "gs": [parse_float(row[columns["gs"]]) for row in input_rows],
-            "dj": [parse_float(row[columns["dj"]]) for row in input_rows],
-            "d0": [parse_float(row[columns["d0"]]) for row in input_rows],
-            "aspect": aspect_deg,
-            "pc": [parse_float(row[columns["pc"]]) for row in input_rows],
-            "pdf": [parse_float(row[columns["pdf"]]) for row in input_rows],
-            "cc": [parse_float(row[columns["cc"]]) for row in input_rows],
-            "gfl": [parse_float(row[columns["gfl"]]) for row in input_rows],
-            "cbh": cbh,
-            "cfl": cfl,
-        }
-        assert list(input_columns) == INPUT_RASTER_NAMES
-
-        output_columns = {
-            "ros": [float(output_by_id[i]["ROS"]) for i in ids],
-            "hfi": [float(output_by_id[i]["HFI"]) for i in ids],
-            "cfb": [float(output_by_id[i]["CFB"]) for i in ids],
-            "sfc": [float(output_by_id[i]["SFC"]) for i in ids],
-            "tfc": [float(output_by_id[i]["TFC"]) for i in ids],
-            "raz": [float(output_by_id[i]["RAZ"]) for i in ids],
-        }
-        assert list(output_columns) == OUTPUT_RASTER_NAMES
-
-        self.raster_dir.mkdir(parents=True, exist_ok=True)
-        for name, values in {**input_columns, **output_columns}.items():
-            write_raster(self.raster_dir, name, values)
-            print(f"wrote {self.raster_dir / f'{name}.tif'}")
 
 
 class RPackageSource(GLCX10Source):
@@ -527,7 +446,7 @@ class RPackageSource(GLCX10Source):
         )
         return aspect_rad, cbh, cfl
 
-    def _raster_aspect_cbh_cfl(self, input_rows):
+    def raster_aspect_cbh_cfl(self, input_rows):
         aspect_deg = [parse_float(row["Aspect"]) for row in input_rows]
         cbh = [parse_float(row["CBH"]) for row in input_rows]
         cfl = [parse_float(row["CFL"]) for row in input_rows]
@@ -579,7 +498,7 @@ class PaperSource(GLCX10Source):
         cfl = np.array([CFL_DEFAULT[ft] for ft in fuel_types])
         return aspect_rad, cbh, cfl
 
-    def _raster_aspect_cbh_cfl(self, input_rows):
+    def raster_aspect_cbh_cfl(self, input_rows):
         # Same nan_to_num-before-subtracting-180 order of operations as _aspect_rad_cbh_cfl
         # above, so the CSV-direct and raster-sourced paths resolve to the exact same aspect
         # value for case 14 (blank SAZ) even though it doesn't affect any result (case 14 has
