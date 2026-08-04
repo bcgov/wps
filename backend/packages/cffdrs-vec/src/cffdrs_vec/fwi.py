@@ -1,4 +1,11 @@
-from cffdrs import buildup_index, drought_code, duff_moisture_code, fine_fuel_moisture_code, fire_weather_index, initial_spread_index
+from cffdrs import (
+    buildup_index,
+    drought_code,
+    duff_moisture_code,
+    fine_fuel_moisture_code,
+    fire_weather_index,
+    initial_spread_index,
+)
 from numba import vectorize
 
 vectorized_bui = vectorize(buildup_index)
