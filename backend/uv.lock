@@ -1260,9 +1260,9 @@ wheels = [
 
 [[package]]
 name = "gdal"
-version = "3.13.1"
+version = "3.13.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/92/55/0ae08a59293443bbbb8b692d1f4b6d9ca54562c359a48d0426684ac9ea06/gdal-3.13.1.tar.gz", hash = "sha256:94bb64d729ce73ceb75a314a15cba92696cdd854d99b6bf6b88a7b551227db74", size = 940649, upload-time = "2026-06-05T10:50:14.929Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/da/b29ca833b2dab4f58451ab4f89dc0d29610de7089a8a3fd0d1676a9bde02/gdal-3.13.2.tar.gz", hash = "sha256:495acc5162636068ee151fc699fbaf702ac0849da1956f55566b771d00c8ee42", size = 940413, upload-time = "2026-07-22T12:42:45.178Z" }
 
 [[package]]
 name = "geoalchemy2"
@@ -4752,7 +4752,7 @@ requires-dist = [
     { name = "earthaccess", specifier = ">=0.15.1" },
     { name = "fastapi", specifier = ">=0,<1" },
     { name = "firebase-admin", specifier = ">=7.3.0" },
-    { name = "gdal", specifier = "==3.13.1" },
+    { name = "gdal", specifier = "==3.13.2" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "greenlet", specifier = ">=3.0.0,<4" },
@@ -4828,7 +4828,7 @@ requires-dist = [
     { name = "affine", specifier = ">=2.4.0,<3" },
     { name = "aiofiles", specifier = ">=25.0.0,<26" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
-    { name = "gdal", specifier = "==3.13.1" },
+    { name = "gdal", specifier = "==3.13.2" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "herbie-data", specifier = ">=2025.11.1,<2026" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
@@ -4909,7 +4909,7 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "cffdrs", specifier = ">=0,<1" },
     { name = "fastapi", specifier = ">=0.115.11,<1" },
-    { name = "gdal", specifier = "==3.13.1" },
+    { name = "gdal", specifier = "==3.13.2" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
     { name = "numba", specifier = ">=0,<1" },
