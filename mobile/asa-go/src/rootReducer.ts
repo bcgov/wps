@@ -2,6 +2,7 @@ import { combineReducers } from '@reduxjs/toolkit'
 import authenticateSlice from '@/slices/authenticationSlice'
 import dataSlice from '@/slices/dataSlice'
 import dateOfInterestSlice from '@/slices/dateOfInterestSlice'
+import feedbackSlice from '@/slices/feedbackSlice'
 import fireCentresSlice from '@/slices/fireCentresSlice'
 import geolocationSlice from '@/slices/geolocationSlice'
 import networkStatusSlice from '@/slices/networkStatusSlice'
@@ -15,6 +16,7 @@ export const rootReducer = combineReducers({
   geolocation: geolocationSlice,
   runParameters: runParametersSlice,
   authentication: authenticateSlice,
+  feedback: feedbackSlice,
   data: dataSlice,
   dateOfInterest: dateOfInterestSlice,
   settings: settingsSlice,

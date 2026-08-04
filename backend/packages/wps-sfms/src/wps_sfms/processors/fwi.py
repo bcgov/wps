@@ -15,8 +15,7 @@ from time import perf_counter
 from typing import Callable, ContextManager, Iterator, List, Mapping, NamedTuple
 
 import numpy as np
-from osgeo import gdal
-from wps_shared.fwi import (
+from cffdrs_vec.fwi import (
     vectorized_bui,
     vectorized_dc,
     vectorized_dmc,
@@ -24,6 +23,7 @@ from wps_shared.fwi import (
     vectorized_fwi,
     vectorized_isi,
 )
+from osgeo import gdal
 from wps_shared.geospatial.geospatial import rasters_match
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
