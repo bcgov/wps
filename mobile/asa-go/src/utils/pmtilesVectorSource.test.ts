@@ -219,6 +219,7 @@ describe('pmTilesVectorSource', () => {
 
     sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles)
     sinon.assert.calledOnce(refreshSpy)
+    assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1')
   })
 
   it('should reload pmtiles without reporting when recovery succeeds', async () => {
@@ -310,7 +311,7 @@ describe('pmTilesVectorSource', () => {
     await instance.refreshPMTiles()
 
     sinon.assert.calledTwice(loadPMTiles)
-    sinon.assert.calledTwice(refreshSpy)
+    sinon.assert.calledOnce(refreshSpy)
     assert(instance.getState() === 'ready')
   })
 

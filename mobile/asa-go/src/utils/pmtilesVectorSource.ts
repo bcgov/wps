@@ -198,6 +198,11 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     }
     const pmtiles = await this.loadPMTiles()
     await this.initTileGrid(pmtiles)
+    this.invalidateTiles()
+  }
+
+  private invalidateTiles() {
+    // change the synthetic URL so OpenLayers cannot reuse source tiles from the previous generation
     this.reloadKey += 1
     this.setUrl(`${PMTILES_TILE_URL}?reload=${this.reloadKey}`)
     this.refresh()
@@ -218,13 +223,14 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async refreshPMTiles() {
-    // foregrounding rearms recovery and clears any stuck OpenLayers tile states
+    // foregrounding rearms recovery and replaces any stuck OpenLayers tile states
     this.enableTileErrorReload()
-    this.refresh()
     if (this.getState() === 'error') {
       // initialization errors cannot trigger a tile read, so retry them directly
       await this.retryPMTilesAfterError()
+      return
     }
+    this.invalidateTiles()
   }
 
   static async createBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
