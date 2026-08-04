@@ -394,7 +394,7 @@ describe('App', () => {
 
     const appContainer = document.getElementById('asa-go-app')
     expect(appContainer).toHaveStyle({
-      height: '100vh',
+      height: `${window.innerHeight}px`,
       padding: '0',
       margin: '0',
       display: 'flex',
