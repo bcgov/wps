@@ -1,7 +1,9 @@
 import { Close as CloseIcon, Menu as MenuIcon } from '@mui/icons-material'
 import { Box, Drawer, IconButton, List, ListItemButton, Stack, Typography } from '@mui/material'
-import { getFeedback } from '@sentry/react'
 import { useRef, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { FeedbackDialog } from '@/components/FeedbackDialog'
+import { selectAuthentication, selectNetworkStatus } from '@/store'
 
 export interface HamburgerMenuProps {
   drawerTop: number
@@ -11,15 +13,15 @@ export interface HamburgerMenuProps {
 
 export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenuProps) => {
   const [open, setOpen] = useState(false)
-  const pendingFeedbackForm = useRef<{ appendToDom: () => void; open: () => void } | null>(null)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const pendingFeedbackDialog = useRef(false)
+  const { email } = useSelector(selectAuthentication)
+  const { networkStatus } = useSelector(selectNetworkStatus)
 
-  const handleListButtonClick = async (url: string) => {
+  const handleListButtonClick = (url: string) => {
     setOpen(false)
     if (url === 'sentry:feedback') {
-      const feedback = getFeedback()
-      if (feedback) {
-        pendingFeedbackForm.current = await feedback.createForm()
-      }
+      pendingFeedbackDialog.current = true
     } else {
       window.open(url, '_blank', 'noopener,noreferrer')
     }
@@ -37,10 +39,12 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
         slotProps={{
           transition: {
             onExited: () => {
-              if (pendingFeedbackForm.current) {
-                pendingFeedbackForm.current.appendToDom()
-                pendingFeedbackForm.current.open()
-                pendingFeedbackForm.current = null
+              if (!pendingFeedbackDialog.current) {
+                return
+              }
+              pendingFeedbackDialog.current = false
+              if (networkStatus.connected) {
+                setFeedbackOpen(true)
               }
             }
           },
@@ -109,10 +113,12 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
               },
               {
                 url: 'sentry:feedback',
-                title: 'Submit Feedback'
+                title: 'Submit Feedback',
+                disabled: !networkStatus.connected
               }
             ].map(item => (
               <ListItemButton
+                disabled={item.disabled}
                 divider
                 key={`hamburger-menu-${item.title}`}
                 onClick={() => handleListButtonClick(item.url)}
@@ -123,6 +129,12 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
           </List>
         </Stack>
       </Drawer>
+      <FeedbackDialog
+        defaultEmail={email}
+        isOnline={networkStatus.connected}
+        onClose={() => setFeedbackOpen(false)}
+        open={feedbackOpen}
+      />
     </div>
   )
 }

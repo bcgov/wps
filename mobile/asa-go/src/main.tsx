@@ -2,7 +2,7 @@ import { CssBaseline } from '@mui/material'
 import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles'
 import * as Sentry from '@sentry/capacitor'
 import * as SentryReact from '@sentry/react'
-import { ErrorBoundary, feedbackIntegration } from '@sentry/react'
+import { ErrorBoundary } from '@sentry/react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
@@ -16,21 +16,7 @@ Sentry.init(
   {
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      feedbackIntegration({
-        autoInject: false,
-        colorScheme: 'light',
-        enableScreenshot: true,
-        themeLight: {
-          submitBackground: theme.palette.primary.main,
-          submitBorder: theme.palette.primary.main,
-          submitForeground: theme.palette.primary.contrastText,
-          accentBackground: theme.palette.secondary.main,
-          accentForeground: theme.palette.secondary.contrastText
-        }
-      })
-    ],
+    integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.1
   },
   SentryReact.init

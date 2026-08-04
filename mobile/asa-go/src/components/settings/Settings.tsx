@@ -3,7 +3,7 @@ import { isNil } from 'lodash'
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { FireCentreInfo } from '@/api/fbaAPI'
-import NotificationErrorSnackbar from '@/components/NotificationErrorSnackbar'
+import NotificationSnackbar from '@/components/NotificationSnackbar'
 import SubscriptionAccordion from '@/components/settings/SubscriptionAccordion'
 import { useAppIsActive } from '@/hooks/useAppIsActive'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
@@ -223,7 +223,7 @@ const Settings = ({ activeTab }: SettingsProps) => {
           </Typography>
         </Box>
       </Box>
-      <NotificationErrorSnackbar
+      <NotificationSnackbar
         open={isRegistrationFailed && networkStatus.connected && !registrationErrorDismissed}
         onClose={() => setRegistrationErrorDismissed(true)}
         message="Unable to register this device for notifications. Retrying automatically."
