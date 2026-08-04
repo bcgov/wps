@@ -32,6 +32,8 @@ import { expect } from 'vitest'
 import { RunType } from '@/api/fbaAPI'
 import { PMTilesCache } from '@/utils/pmtilesCache'
 
+const cachedPMTilesData = `data:application/octet-stream;base64,${btoa('mocked file content')}`
+
 class MockFilesystem implements FilesystemPlugin {
   readFile(options: ReadFileOptions): Promise<ReadFileResult> {
     console.log('Method not implemented.', options)
@@ -119,7 +121,7 @@ describe('pmtilesCache', () => {
     const mockFs = new MockFilesystem()
 
     const stubRead = sandbox.stub(mockFs, 'readFile')
-    stubRead.resolves({ data: btoa('mocked file content') })
+    stubRead.resolves({ data: cachedPMTilesData })
     const testCache = new PMTilesCache(mockFs)
     await testCache.loadPMTiles('test.pmtiles')
     sinon.assert.calledOnce(stubRead)
@@ -154,7 +156,7 @@ describe('pmtilesCache', () => {
     const mockFs = new MockFilesystem()
 
     const stubRead = sandbox.stub(mockFs, 'readFile')
-    stubRead.resolves({ data: btoa('mocked file content') })
+    stubRead.resolves({ data: cachedPMTilesData })
     const testCache = new PMTilesCache(mockFs)
     await testCache.loadHFIPMTiles(
       DateTime.fromISO('2016-05-25T09:08:34.123'),
@@ -189,7 +191,7 @@ describe('pmtilesCache', () => {
     const mockFs = new MockFilesystem()
 
     const stubRead = sandbox.stub(mockFs, 'readFile')
-    stubRead.resolves({ data: btoa('mocked file content') })
+    stubRead.resolves({ data: cachedPMTilesData })
     const testCache = new PMTilesCache(mockFs)
 
     await testCache.loadHFIPMTiles(
