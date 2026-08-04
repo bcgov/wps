@@ -63,6 +63,6 @@ describe('CriticalHours', () => {
     render(<CriticalHours start={10} end={15} />)
 
     const element = screen.getByTestId('critical-hours')
-    expect(element).toHaveStyle({ fontSize: '0.75rem' })
+    expect(element).toHaveStyle({ fontSize: '12px' })
   })
 })
