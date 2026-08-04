@@ -616,11 +616,45 @@ def vectorized_fire_behaviour_prediction(
     split in two only because a single guvectorize call can't fit all 70 input+output operands
     (see the comment above _FBP_PRIMARY_FIELDS).
 
-    Inputs are the exact same already-clamped/radians-converted scalars _fire_behaviour_prediction
-    itself takes (see its own docstring for why) - callers building these from an FBPInput-style
-    source need to replicate FBPInput.__post_init__'s clamping/unit-conversion themselves, once,
-    over the whole batch, the same way cffdrs_vec.tests._glc_x_10_data.GLCX10Source.load() does
-    for test_fbp_glc_x_10.py.
+    :param fuel_type_code: The Fire Behaviour Prediction fuel type code (see
+        cffdrs.constants.FUEL_TYPE_CODES)
+    :param ffmc: Fine Fuel Moisture Code
+    :param bui: Buildup Index
+    :param ws: Wind Speed (km/h)
+    :param wd_rad: Wind direction, i.e. the compass bearing the wind is blowing from (radians)
+    :param gs: Ground/terrain slope (%)
+    :param aspect_rad: Aspect of the slope, i.e. the compass bearing the slope faces (radians)
+    :param pc: Percent Conifer (%), only meaningful for the mixedwood fuel types M1/M2
+    :param pdf: Percent Dead Balsam Fir (%), only meaningful for the mixedwood-dead fuel types
+        M3/M4
+    :param cc: Percent Cured Grass (%), only meaningful for the grass fuel types O1A/O1B
+    :param gfl: Grass Fuel Load (kg/m^2)
+    :param cbh: Crown Base Height (m), falls back to a fuel-type default (or, for C6, a value
+        derived from sd/sh) when <= 0, > 50, or NaN; see cffdrs.crown_base_height
+    :param cfl: Crown Fuel Load (kg/m^2), falls back to a fuel-type default when invalid; see
+        cffdrs.crown_fuel_load
+    :param fmc: Foliar Moisture Content (%), computed from lat/lon/elv/dj/d0 when <= 0, > 120,
+        or NaN
+    :param isi: Initial Spread Index, computed from ffmc and the net effective wind speed when
+        <= 0
+    :param lat: Latitude (decimal degrees), only used to compute fmc when fmc isn't supplied
+    :param lon: Longitude (decimal degrees), only used to compute fmc when fmc isn't supplied
+    :param elv: Elevation (m), only used to compute fmc when fmc isn't supplied
+    :param dj: Day of year ("Julian date"), only used to compute fmc when fmc isn't supplied
+    :param d0: Julian date of minimum foliar moisture content, only used to compute fmc when
+        fmc isn't supplied
+    :param sd: Stand density (stems/ha), only used for C6's crown base height fallback when cbh
+        is invalid
+    :param sh: Stand height (m), only used for C6's crown base height fallback when cbh is
+        invalid
+    :param hr: Hours since ignition, used for time-dependent (accel=1) rate of spread; negative
+        values flip the sign of the returned cfb.
+    :param theta_rad: Bearing of interest for the point rate of spread outputs tros/trost
+        (radians)
+    :param accel: 1 to use time-dependent (accelerating) rate of spread based on hr, 0 for
+        equilibrium rate of spread
+    :param buieff: 1 to apply the Buildup Effect to rate of spread (using bui), any other value
+        disables it
     """
     cfb, cfc, fd_code, hfi, raz, ros, sfc, tfc = _vectorized_fbp_primary(
         fuel_type_code,
