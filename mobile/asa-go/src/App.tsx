@@ -3,6 +3,7 @@ import { type ConnectionStatus, Network } from '@capacitor/network'
 import { StatusBar } from '@capacitor/status-bar'
 import { Box, useMediaQuery } from '@mui/material'
 import { LicenseInfo } from '@mui/x-license'
+import * as Sentry from '@sentry/capacitor'
 import { isNil, isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
@@ -52,7 +53,7 @@ import { theme } from '@/theme'
 import type { FireCentre } from '@/types/fireCentre'
 import { NavPanel, StatusEnum } from '@/utils/constants'
 import { getToday } from '@/utils/dataSliceUtils'
-import { PMTilesCache } from '@/utils/pmtilesCache'
+import { pmtilesCache } from '@/utils/pmtilesCache'
 import { clearStaleHFIPMTiles } from '@/utils/storage'
 
 const App = () => {
@@ -150,14 +151,21 @@ const App = () => {
   useEffect(() => {
     if (!isNil(runParameters)) {
       const hfiFilesToKeep: string[] = []
+      const hfiPreloads: Promise<unknown>[] = []
       for (const value of Object.values(runParameters)) {
-        const pmtilesCache = new PMTilesCache(Filesystem)
         const forDate = DateTime.fromISO(value.for_date)
         const runDate = DateTime.fromISO(value.run_datetime)
-        pmtilesCache.loadHFIPMTiles(forDate, value.run_type, runDate, 'hfi.pmtiles')
+        hfiPreloads.push(pmtilesCache.loadHFIPMTiles(forDate, value.run_type, runDate, 'hfi.pmtiles'))
         hfiFilesToKeep.push(pmtilesCache.getHFICachedFileName(forDate, value.run_type, runDate, 'hfi.pmtiles'))
       }
-      clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
+      // report once for the batch so an offline launch does not create one event per HFI file
+      void Promise.all(hfiPreloads).catch(error => {
+        Sentry.withScope(scope => {
+          scope.setContext('hfiPMTilesPreload', { filenames: hfiFilesToKeep })
+          Sentry.captureException(error)
+        })
+      })
+      void clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
     }
   }, [runParameters])
 

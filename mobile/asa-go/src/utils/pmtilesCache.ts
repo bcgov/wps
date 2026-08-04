@@ -1,4 +1,4 @@
-import { Directory, Encoding, type FilesystemPlugin, type ReadFileResult } from '@capacitor/filesystem'
+import { Directory, Encoding, Filesystem, type FilesystemPlugin, type ReadFileResult } from '@capacitor/filesystem'
 import type { DateTime } from 'luxon'
 import { FileSource, PMTiles } from 'pmtiles'
 import type { RunType } from '@/api/fbaAPI'
@@ -39,87 +39,60 @@ const toPMTiles = (file: ReadFileResult, filename: string) => {
   return pmtiles
 }
 
-const fetchAndStoreStaticPMTiles = (filename: string, fileSystem: FilesystemPlugin) => {
-  return async () => {
-    try {
-      const blob = await fetchStaticPMTiles(filename)
-      const serialized = await serialize(blob)
-
-      await fileSystem.writeFile({
-        path: filename,
-        data: serialized,
-        directory: Directory.Data,
-        encoding: Encoding.UTF8
-      })
-
-      const file = await fileSystem.readFile({
-        path: filename,
-        directory: Directory.Data,
-        encoding: Encoding.UTF8
-      })
-
-      return toPMTiles(file, filename)
-    } catch (error) {
-      console.error('Error storing PMTiles:', error)
-    }
-  }
-}
-
-const fetchAndStoreHFIPMTiles = (
-  for_date: DateTime,
-  run_type: RunType,
-  run_date: DateTime,
+const fetchAndStorePMTiles = async (
   filename: string,
-  fileSystem: FilesystemPlugin
+  fileSystem: FilesystemPlugin,
+  fetchPMTiles: () => Promise<Blob>
 ) => {
-  return async () => {
-    try {
-      const blob = await fetchHFIPMTiles(for_date, run_type, run_date)
-      const serialized = await serialize(blob)
+  const blob = await fetchPMTiles()
+  const serialized = await serialize(blob)
 
-      await fileSystem.writeFile({
-        path: filename,
-        data: serialized,
-        directory: Directory.Data,
-        encoding: Encoding.UTF8
-      })
+  await fileSystem.writeFile({
+    path: filename,
+    data: serialized,
+    directory: Directory.Data,
+    encoding: Encoding.UTF8
+  })
 
-      const file = await fileSystem.readFile({
-        path: filename,
-        directory: Directory.Data,
-        encoding: Encoding.UTF8
-      })
+  const file = await fileSystem.readFile({
+    path: filename,
+    directory: Directory.Data,
+    encoding: Encoding.UTF8
+  })
 
-      return toPMTiles(file, filename)
-    } catch (error) {
-      console.error('Error storing PMTiles:', error)
-    }
-  }
+  return toPMTiles(file, filename)
 }
 
-export interface IPMTilesCache {
-  loadPMTiles: (
-    filename: string,
-    fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
-  ) => Promise<PMTiles | undefined>
-  loadHFIPMTiles: (
-    for_date: DateTime,
-    run_type: RunType,
-    run_date: DateTime,
-    filename: string
-  ) => Promise<PMTiles | undefined>
-}
+export class PMTilesCache {
+  private readonly pendingLoads = new Map<string, Promise<PMTiles>>()
 
-export class PMTilesCache implements IPMTilesCache {
   constructor(
     private readonly fileSystem: FilesystemPlugin,
     private retries: number = 3
   ) {}
-  public readonly loadPMTiles = async (
+
+  public readonly loadPMTiles = (filename: string, fetchAndStoreCallback?: () => Promise<PMTiles>) => {
+    const pendingLoad = this.pendingLoads.get(filename)
+    if (pendingLoad) {
+      return pendingLoad
+    }
+
+    // share an in-flight read so preloading and map setup cannot write the same file concurrently
+    const load = this.loadPMTilesFromStorage(filename, fetchAndStoreCallback).finally(() => {
+      this.pendingLoads.delete(filename)
+    })
+    this.pendingLoads.set(filename, load)
+    return load
+  }
+
+  private readonly loadPMTilesFromStorage = async (
     filename: string,
-    fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
+    fetchAndStoreCallback?: () => Promise<PMTiles>
   ) => {
-    const fetchAndStore = fetchAndStoreCallback ?? fetchAndStoreStaticPMTiles(filename, this.fileSystem)
+    const fetchAndStore =
+      fetchAndStoreCallback ??
+      (() => fetchAndStorePMTiles(filename, this.fileSystem, () => fetchStaticPMTiles(filename)))
+    let lastError: unknown
     try {
       const file = await this.fileSystem.readFile({
         path: filename,
@@ -129,17 +102,18 @@ export class PMTilesCache implements IPMTilesCache {
 
       return toPMTiles(file, filename)
     } catch (e) {
+      lastError = e
       console.log('Error reading file, attempting to re-fetch', e)
-      let retriesLeft = this.retries
-      while (retriesLeft-- > 0) {
+      for (let attempt = 1; attempt <= this.retries; attempt += 1) {
         try {
-          const pmTiles = await fetchAndStore()
-          return pmTiles
+          return await fetchAndStore()
         } catch (error) {
-          console.log(`Re-fetch attempted, ${retriesLeft + 1} retries left:`, error)
+          lastError = error
+          console.log(`Re-fetch failed, ${this.retries - attempt} retries left:`, error)
         }
       }
     }
+    throw lastError
   }
 
   public readonly loadHFIPMTiles = async (
@@ -147,11 +121,12 @@ export class PMTilesCache implements IPMTilesCache {
     run_type: RunType,
     run_date: DateTime,
     filename: string,
-    fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
+    fetchAndStoreCallback?: () => Promise<PMTiles>
   ) => {
     const cachedFilename = this.getHFICachedFileName(for_date, run_type, run_date, filename)
     const fetchAndStore =
-      fetchAndStoreCallback ?? fetchAndStoreHFIPMTiles(for_date, run_type, run_date, cachedFilename, this.fileSystem)
+      fetchAndStoreCallback ??
+      (() => fetchAndStorePMTiles(cachedFilename, this.fileSystem, () => fetchHFIPMTiles(for_date, run_type, run_date)))
     return this.loadPMTiles(cachedFilename, fetchAndStore)
   }
 
@@ -162,3 +137,5 @@ export class PMTilesCache implements IPMTilesCache {
     return `${for_date}_${run_type}_${run_date}_${filename}`
   }
 }
+
+export const pmtilesCache = new PMTilesCache(Filesystem)

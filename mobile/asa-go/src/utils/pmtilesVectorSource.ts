@@ -1,6 +1,5 @@
 import * as Sentry from '@sentry/capacitor'
 import { isUndefined } from 'lodash'
-import type { DateTime } from 'luxon'
 import type { Tile } from 'ol'
 import { MVT } from 'ol/format'
 import type RenderFeature from 'ol/render/Feature'
@@ -9,29 +8,20 @@ import TileState from 'ol/TileState'
 import { createXYZ } from 'ol/tilegrid'
 import type VectorTile from 'ol/VectorTile'
 import type { PMTiles } from 'pmtiles'
-import type { RunType } from '@/api/fbaAPI'
-import type { IPMTilesCache } from '@/utils/pmtilesCache'
 
 export type PMTilesFileVectorOptions = VectorTileSourceOptions & {
   filename: string
 }
 
-export type HFIPMTilesFileVectorOptions = VectorTileSourceOptions &
-  PMTilesFileVectorOptions & {
-    for_date: DateTime
-    run_type: RunType
-    run_date: DateTime
-  }
-
-type PMTilesInitializer = () => Promise<PMTiles | undefined>
+export type PMTilesLoader = () => Promise<PMTiles>
 
 const PMTILES_TILE_URL = 'pmtiles://{z}/{x}/{y}'
 const PMTILES_TILE_LOAD_TIMEOUT_MS = 10_000
 
 export class PMTilesFileVectorSource extends VectorTileSource {
   private pmtiles_!: PMTiles
-  private loadPMTiles?: PMTilesInitializer
-  private filename = 'unknown'
+  private readonly loadPMTiles: PMTilesLoader
+  private readonly filename: string
   // allow one reader recreation before treating another tile failure as unrecoverable
   private tileErrorReloadAvailable = true
   // collapse the burst of tile failures from a broken reader into one recovery attempt
@@ -140,33 +130,27 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     })
   }
 
-  constructor(options: VectorTileSourceOptions<RenderFeature>) {
+  private constructor(options: PMTilesFileVectorOptions, loadPMTiles: PMTilesLoader) {
     super({
       ...options,
       state: 'loading',
       url: PMTILES_TILE_URL, // only used for parsing out the z, x, y parameters when tile loading
       format: options.format || new MVT({ layerName: 'mvt:layer' })
     })
+    this.filename = options.filename
+    this.loadPMTiles = loadPMTiles
   }
 
-  // Static async factory method
-  static async createStaticLayer(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
-    const instance = new PMTilesFileVectorSource(options)
-
-    // Perform asynchronous initialization (e.g., loading PMTiles)
-    await instance.initStaticLayer(pmtilesCache, options)
-
+  static async create(options: PMTilesFileVectorOptions, loadPMTiles: PMTilesLoader) {
+    const instance = new PMTilesFileVectorSource(options, loadPMTiles)
+    await instance.initialize()
     return instance
   }
 
-  async initStaticLayer(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
-    this.filename = options.filename
-    this.loadPMTiles = () => pmtilesCache.loadPMTiles(options.filename)
+  private async initialize() {
     try {
-      console.log(`Attempting to read ${options.filename}`)
-
+      console.log(`Attempting to read ${this.filename}`)
       const pmtiles = await this.loadPMTiles()
-
       await this.initTileGrid(pmtiles)
     } catch (error) {
       console.error('Error loading PMTiles file:', error)
@@ -174,10 +158,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     }
   }
 
-  async initTileGrid(pmtiles?: PMTiles) {
-    if (isUndefined(pmtiles)) {
-      throw new Error('Unable to initialize pmtiles')
-    }
+  private async initTileGrid(pmtiles: PMTiles) {
     const header = await pmtiles.getHeader()
 
     this.pmtiles_ = pmtiles
@@ -193,9 +174,6 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   }
 
   async reloadPMTiles() {
-    if (isUndefined(this.loadPMTiles)) {
-      return
-    }
     const pmtiles = await this.loadPMTiles()
     await this.initTileGrid(pmtiles)
     this.invalidateTiles()
@@ -231,48 +209,5 @@ export class PMTilesFileVectorSource extends VectorTileSource {
       return
     }
     this.invalidateTiles()
-  }
-
-  static async createBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
-    const instance = new PMTilesFileVectorSource(options)
-    await instance.initBasemapSource(pmtilesCache, options)
-    return instance
-  }
-
-  async initBasemapSource(pmtilesCache: IPMTilesCache, options: PMTilesFileVectorOptions) {
-    this.filename = options.filename
-    this.loadPMTiles = () => pmtilesCache.loadPMTiles(options.filename)
-    try {
-      console.log('Attempting to download offline pmtiles basemap assets.')
-      const pmtiles = await this.loadPMTiles()
-
-      await this.initTileGrid(pmtiles)
-    } catch (error) {
-      console.error('Error loading PMTiles file:', error)
-      this.setState('error')
-    }
-  }
-
-  static async createHFILayer(pmtilesCache: IPMTilesCache, options: HFIPMTilesFileVectorOptions) {
-    const instance = new PMTilesFileVectorSource(options)
-
-    await instance.initHFILayer(pmtilesCache, options)
-
-    return instance
-  }
-
-  async initHFILayer(pmtilesCache: IPMTilesCache, options: HFIPMTilesFileVectorOptions) {
-    this.filename = options.filename
-    this.loadPMTiles = () =>
-      pmtilesCache.loadHFIPMTiles(options.for_date, options.run_type, options.run_date, options.filename)
-    try {
-      console.log(`Attempting to read ${options.filename}`)
-
-      const pmtiles = await this.loadPMTiles()
-      await this.initTileGrid(pmtiles)
-    } catch (error) {
-      console.error('Error loading PMTiles file:', error)
-      this.setState('error')
-    }
   }
 }

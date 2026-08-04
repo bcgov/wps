@@ -59,9 +59,9 @@ vi.mock('@capacitor/filesystem', () => ({
 }))
 
 vi.mock('@/utils/pmtilesCache', () => ({
-  PMTilesCache: class {
-    loadHFIPMTiles = vi.fn()
-    getHFICachedFileName = vi.fn(() => 'hfi.pmtiles')
+  pmtilesCache: {
+    loadHFIPMTiles: vi.fn().mockResolvedValue(undefined),
+    getHFICachedFileName: vi.fn(() => 'hfi.pmtiles')
   }
 }))
 

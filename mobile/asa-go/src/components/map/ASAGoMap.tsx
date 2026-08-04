@@ -1,4 +1,3 @@
-import { Filesystem } from '@capacitor/filesystem'
 import GpsOffIcon from '@mui/icons-material/GpsOff'
 import LayersIcon from '@mui/icons-material/Layers'
 import MyLocationIcon from '@mui/icons-material/MyLocation'
@@ -55,7 +54,7 @@ import { startWatchingLocation } from '@/slices/geolocationSlice'
 import { type AppDispatch, selectGeolocation, selectNetworkStatus } from '@/store'
 import type { FireCentre } from '@/types/fireCentre'
 import { NavPanel } from '@/utils/constants'
-import { PMTilesCache } from '@/utils/pmtilesCache'
+import { pmtilesCache } from '@/utils/pmtilesCache'
 import { PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
 import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
@@ -373,27 +372,18 @@ const ASAGoMap = ({
     setMap(mapObject)
 
     const loadPMTiles = async () => {
-      const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(new PMTilesCache(Filesystem), {
-        filename: 'fireCentres.pmtiles'
-      })
-
-      const fireCentreLabelVectorSource = await PMTilesFileVectorSource.createStaticLayer(
-        new PMTilesCache(Filesystem),
-        {
-          filename: 'fireCentreLabels.pmtiles'
-        }
-      )
-
-      const fireZoneSource = await PMTilesFileVectorSource.createStaticLayer(new PMTilesCache(Filesystem), {
-        filename: 'fireZoneUnits.pmtiles'
-      })
+      const createStaticSource = (filename: string) =>
+        PMTilesFileVectorSource.create({ filename }, () => pmtilesCache.loadPMTiles(filename))
+      const [fireCentresSource, fireCentreLabelVectorSource, fireZoneSource, fireZoneLabelVectorSource] =
+        await Promise.all([
+          createStaticSource('fireCentres.pmtiles'),
+          createStaticSource('fireCentreLabels.pmtiles'),
+          createStaticSource('fireZoneUnits.pmtiles'),
+          createStaticSource('fireZoneUnitLabels.pmtiles')
+        ])
 
       fireZoneFileLayer.setSource(fireZoneSource)
       fireZoneHighlightFileLayer.setSource(fireZoneSource)
-
-      const fireZoneLabelVectorSource = await PMTilesFileVectorSource.createStaticLayer(new PMTilesCache(Filesystem), {
-        filename: 'fireZoneUnitLabels.pmtiles'
-      })
       if (mapObject) {
         const fireCentreFileLayer = new VectorTileLayer({
           source: fireCentresSource,

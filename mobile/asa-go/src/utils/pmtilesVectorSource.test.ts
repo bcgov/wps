@@ -1,4 +1,3 @@
-import { DateTime } from 'luxon'
 import {
   type Cache,
   Compression,
@@ -11,8 +10,6 @@ import {
 } from 'pmtiles'
 import sinon from 'sinon'
 import { assert, vi } from 'vitest'
-import { RunType } from '@/api/fbaAPI'
-import type { IPMTilesCache } from '@/utils/pmtilesCache'
 import { PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
 
 const { mockCaptureException, mockSetContext } = vi.hoisted(() => ({
@@ -55,35 +52,34 @@ class TestPMTiles implements PMTiles {
   source!: Source
   cache!: Cache
   decompress!: DecompressFunc
+
   getHeader(): Promise<Header> {
-    console.log('getHeader called')
     return Promise.resolve(testPMTilesHeader)
   }
-  getZxyAttempt(z: number, x: number, y: number, signal?: AbortSignal): Promise<RangeResponse | undefined> {
-    console.log('getZxyAttempt called', z, x, y, signal)
+
+  getZxyAttempt(_z: number, _x: number, _y: number, _signal?: AbortSignal): Promise<RangeResponse | undefined> {
     return Promise.resolve(undefined)
   }
-  getZxy(z: number, x: number, y: number, signal?: AbortSignal): Promise<RangeResponse | undefined> {
-    console.log('getZxy called', z, x, y, signal)
+
+  getZxy(_z: number, _x: number, _y: number, _signal?: AbortSignal): Promise<RangeResponse | undefined> {
     return Promise.resolve(undefined)
   }
+
   getMetadataAttempt(): Promise<unknown> {
-    console.log('getMetadataAttempt called')
     return Promise.resolve()
   }
+
   getMetadata(): Promise<unknown> {
-    console.log('getMetadata called')
     return Promise.resolve()
   }
-  getTileJson(baseTilesUrl: string): Promise<unknown> {
-    console.log('getTileJSON called', baseTilesUrl)
+
+  getTileJson(_baseTilesUrl: string): Promise<unknown> {
     return Promise.resolve()
   }
 }
 
 class ErrorPMTiles extends TestPMTiles {
-  getZxy(z: number, x: number, y: number, signal?: AbortSignal): Promise<RangeResponse | undefined> {
-    console.log('getZxy called', z, x, y, signal)
+  getZxy(_z: number, _x: number, _y: number, _signal?: AbortSignal): Promise<RangeResponse | undefined> {
     return Promise.reject(new Error('Tile read failed'))
   }
 }
@@ -97,186 +93,96 @@ class HangingPMTiles extends TestPMTiles {
   }
 }
 
+const buildTile = (sandbox: sinon.SinonSandbox) => ({
+  extent: undefined,
+  projection: undefined,
+  setFeatures: sandbox.stub(),
+  setState: sandbox.stub()
+})
+
 describe('pmTilesVectorSource', () => {
   let sandbox: sinon.SinonSandbox
+
   beforeEach(() => {
     sandbox = sinon.createSandbox()
     mockCaptureException.mockClear()
     mockSetContext.mockClear()
   })
+
   afterEach(() => {
     sandbox.restore()
   })
 
-  const buildPMTilesTestCache = (pmtiles?: PMTiles) => {
-    return {
-      loadPMTiles: (
-        filename: string,
-        fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
-      ): Promise<PMTiles | undefined> => {
-        console.log('loadPMTiles called', filename, fetchAndStoreCallback)
-        return Promise.resolve(pmtiles)
-      },
-      loadHFIPMTiles: (
-        for_date: DateTime,
-        run_type: RunType,
-        run_date: DateTime,
-        filename: string
-      ): Promise<PMTiles | undefined> => {
-        console.log('loadPMTiles called', for_date, run_type, run_date, filename)
-        return Promise.resolve(pmtiles)
-      }
-    }
-  }
-  it('should attempt to load static pmtiles upon creation', async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
-    const pmTilesCacheSpy = sandbox.spy(testCache)
+  it('loads pmtiles and initializes the tile grid on creation', async () => {
+    const loadPMTiles = sandbox.stub().resolves(new TestPMTiles())
 
-    await PMTilesFileVectorSource.createStaticLayer(testCache, {
-      filename: 'test.pmtiles'
-    })
-    sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles)
-    sinon.assert.notCalled(pmTilesCacheSpy.loadHFIPMTiles)
-  })
-
-  it('should attempt to load hfi pmtiles upon creation', async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
-    const pmTilesCacheSpy = sandbox.spy(testCache)
-
-    await PMTilesFileVectorSource.createHFILayer(testCache, {
-      filename: 'test.pmtiles',
-      for_date: DateTime.fromISO('2016-05-25T09:08:34.123'),
-      run_type: RunType.FORECAST,
-      run_date: DateTime.fromISO('2016-05-25T09:08:34.123')
-    })
-    sinon.assert.calledOnce(pmTilesCacheSpy.loadHFIPMTiles)
-    sinon.assert.notCalled(pmTilesCacheSpy.loadPMTiles)
-  })
-
-  it('should attempt to load basemap pmtiles upon creation', async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
-    const pmTilesCacheSpy = sandbox.spy(testCache)
-
-    await PMTilesFileVectorSource.createBasemapSource(testCache, {
-      filename: 'test.pmtiles'
-    })
-    sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles)
-    sinon.assert.notCalled(pmTilesCacheSpy.loadHFIPMTiles)
-  })
-
-  it('should set tile status ready once initialized', async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
-    const instance = await PMTilesFileVectorSource.createHFILayer(testCache, {
-      filename: 'test.pmtiles',
-      for_date: DateTime.fromISO('2016-05-25T09:08:34.123'),
-      run_type: RunType.FORECAST,
-      run_date: DateTime.fromISO('2016-05-25T09:08:34.123')
-    })
+    const instance = await PMTilesFileVectorSource.create({ filename: 'test.pmtiles' }, loadPMTiles)
     const tileGrid = instance.getTileGrid()
+
+    sinon.assert.calledOnce(loadPMTiles)
     assert(tileGrid !== null)
     assert(tileGrid.getMaxZoom() === testPMTilesHeader.maxZoom)
     assert(tileGrid.getMinZoom() === testPMTilesHeader.minZoom)
     assert(instance.getState() === 'ready')
   })
 
-  it('should set tile status ready once basemap initialized', async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
-    const instance = await PMTilesFileVectorSource.createBasemapSource(testCache, {
-      filename: 'test.pmtiles'
-    })
-    const tileGrid = instance.getTileGrid()
-    assert(tileGrid !== null)
-    assert(tileGrid.getMaxZoom() === testPMTilesHeader.maxZoom)
-    assert(tileGrid.getMinZoom() === testPMTilesHeader.minZoom)
-    assert(instance.getState() === 'ready')
-  })
-
-  it('should reload pmtiles and refresh cached tiles', async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
-    const pmTilesCacheSpy = sandbox.spy(testCache)
-    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
-      filename: 'test.pmtiles'
-    })
+  it('reloads pmtiles and invalidates cached tiles', async () => {
+    const loadPMTiles = sandbox.stub().resolves(new TestPMTiles())
+    const instance = await PMTilesFileVectorSource.create({ filename: 'test.pmtiles' }, loadPMTiles)
     const refreshSpy = sandbox.spy(instance, 'refresh')
 
     await instance.reloadPMTiles()
 
-    sinon.assert.calledTwice(pmTilesCacheSpy.loadPMTiles)
+    sinon.assert.calledTwice(loadPMTiles)
     sinon.assert.calledOnce(refreshSpy)
     assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1')
     assert(instance.getState() === 'ready')
   })
 
-  it('should refresh cached tiles without reloading pmtiles', async () => {
-    const testCache: IPMTilesCache = buildPMTilesTestCache(new TestPMTiles())
-    const pmTilesCacheSpy = sandbox.spy(testCache)
-    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
-      filename: 'test.pmtiles'
-    })
+  it('invalidates cached tiles on foreground without reloading pmtiles', async () => {
+    const loadPMTiles = sandbox.stub().resolves(new TestPMTiles())
+    const instance = await PMTilesFileVectorSource.create({ filename: 'test.pmtiles' }, loadPMTiles)
     const refreshSpy = sandbox.spy(instance, 'refresh')
 
     await instance.refreshPMTiles()
 
-    sinon.assert.calledOnce(pmTilesCacheSpy.loadPMTiles)
+    sinon.assert.calledOnce(loadPMTiles)
     sinon.assert.calledOnce(refreshSpy)
     assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1')
   })
 
-  it('should reload pmtiles without reporting when recovery succeeds', async () => {
+  it('reloads pmtiles without reporting when tile recovery succeeds', async () => {
     const loadPMTiles = sandbox.stub()
     loadPMTiles.onFirstCall().resolves(new ErrorPMTiles())
     loadPMTiles.onSecondCall().resolves(new TestPMTiles())
-    const testCache: IPMTilesCache = {
-      loadPMTiles,
-      loadHFIPMTiles: sandbox.stub()
-    }
-    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
-      filename: 'test.pmtiles'
-    })
+    const instance = await PMTilesFileVectorSource.create({ filename: 'test.pmtiles' }, loadPMTiles)
     const refreshSpy = sandbox.spy(instance, 'refresh')
-    const tile = {
-      extent: undefined,
-      projection: undefined,
-      setFeatures: sandbox.stub(),
-      setState: sandbox.stub()
-    }
+    const tile = buildTile(sandbox)
 
     instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0')
     instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0')
     await vi.waitFor(() => sinon.assert.calledTwice(loadPMTiles))
     await vi.waitFor(() => assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1'))
 
-    sinon.assert.calledTwice(loadPMTiles)
     sinon.assert.calledOnce(refreshSpy)
     expect(mockCaptureException).not.toHaveBeenCalled()
     expect(mockSetContext).not.toHaveBeenCalled()
   })
 
-  it('should only retry a tile load error once until retries are enabled again', async () => {
+  it('only retries a tile error once until foregrounding enables recovery again', async () => {
     const loadPMTiles = sandbox.stub()
     loadPMTiles.onFirstCall().resolves(new ErrorPMTiles())
     loadPMTiles.onSecondCall().resolves(new ErrorPMTiles())
     loadPMTiles.onThirdCall().resolves(new TestPMTiles())
-    const testCache: IPMTilesCache = {
-      loadPMTiles,
-      loadHFIPMTiles: sandbox.stub()
-    }
-    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
-      filename: 'test.pmtiles'
-    })
-    const tile = {
-      extent: undefined,
-      projection: undefined,
-      setFeatures: sandbox.stub(),
-      setState: sandbox.stub()
-    }
+    const instance = await PMTilesFileVectorSource.create({ filename: 'test.pmtiles' }, loadPMTiles)
+    const tile = buildTile(sandbox)
 
     instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0')
     await vi.waitFor(() => sinon.assert.calledTwice(loadPMTiles))
-    await vi.waitFor(() => assert(instance.getUrls()?.[0] === 'pmtiles://{z}/{x}/{y}?reload=1'))
 
     instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0?reload=1')
     await new Promise(resolve => setTimeout(resolve, 0))
+
     sinon.assert.calledTwice(loadPMTiles)
     expect(mockCaptureException).toHaveBeenCalledOnce()
     expect(mockSetContext).toHaveBeenCalledWith('pmtilesTile', {
@@ -288,24 +194,17 @@ describe('pmTilesVectorSource', () => {
     })
 
     await instance.refreshPMTiles()
-    instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0?reload=1')
+    instance.tileLoadFunction(tile as never, 'pmtiles://0/0/0?reload=2')
     await vi.waitFor(() => sinon.assert.calledThrice(loadPMTiles))
 
-    sinon.assert.calledThrice(loadPMTiles)
     expect(mockCaptureException).toHaveBeenCalledOnce()
   })
 
-  it('should reload pmtiles when source initialization has errored', async () => {
+  it('retries source initialization when foregrounding', async () => {
     const loadPMTiles = sandbox.stub()
-    loadPMTiles.onFirstCall().resolves(undefined)
+    loadPMTiles.onFirstCall().rejects(new Error('Initial load failed'))
     loadPMTiles.onSecondCall().resolves(new TestPMTiles())
-    const testCache: IPMTilesCache = {
-      loadPMTiles,
-      loadHFIPMTiles: sandbox.stub()
-    }
-    const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
-      filename: 'test.pmtiles'
-    })
+    const instance = await PMTilesFileVectorSource.create({ filename: 'test.pmtiles' }, loadPMTiles)
     const refreshSpy = sandbox.spy(instance, 'refresh')
 
     await instance.refreshPMTiles()
@@ -315,7 +214,7 @@ describe('pmTilesVectorSource', () => {
     assert(instance.getState() === 'ready')
   })
 
-  it('should report when recovery from a timed out tile load fails', async () => {
+  it('reports when recovery from a timed out tile load fails', async () => {
     vi.useFakeTimers()
     try {
       const hangingPMTiles = new HangingPMTiles()
@@ -323,19 +222,8 @@ describe('pmTilesVectorSource', () => {
       const loadPMTiles = sandbox.stub()
       loadPMTiles.onFirstCall().resolves(hangingPMTiles)
       loadPMTiles.onSecondCall().rejects(reloadError)
-      const testCache: IPMTilesCache = {
-        loadPMTiles,
-        loadHFIPMTiles: sandbox.stub()
-      }
-      const instance = await PMTilesFileVectorSource.createStaticLayer(testCache, {
-        filename: 'test.pmtiles'
-      })
-      const tile = {
-        extent: undefined,
-        projection: undefined,
-        setFeatures: sandbox.stub(),
-        setState: sandbox.stub()
-      }
+      const instance = await PMTilesFileVectorSource.create({ filename: 'test.pmtiles' }, loadPMTiles)
+      const tile = buildTile(sandbox)
 
       instance.tileLoadFunction(tile as never, 'pmtiles://1/2/3')
       await vi.advanceTimersByTimeAsync(10_000)

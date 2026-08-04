@@ -28,6 +28,7 @@ import type {
 } from '@capacitor/filesystem'
 import { DateTime, Settings } from 'luxon'
 import sinon from 'sinon'
+import { expect } from 'vitest'
 import { RunType } from '@/api/fbaAPI'
 import { PMTilesCache } from '@/utils/pmtilesCache'
 
@@ -130,9 +131,23 @@ describe('pmtilesCache', () => {
 
     const stubFetch = sandbox.stub().rejects(new Error('Fetch failed'))
     const testCache = new PMTilesCache(mockFs)
-    await testCache.loadPMTiles('test.pmtiles', stubFetch)
+    await expect(testCache.loadPMTiles('test.pmtiles', stubFetch)).rejects.toThrow('Fetch failed')
     sinon.assert.calledThrice(stubFetch)
     sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch)
+  })
+
+  it('shares an in-flight load for the same filename', async () => {
+    const mockFs = new MockFilesystem()
+    const stubRead = sandbox.stub(mockFs, 'readFile').rejects(new Error('Read failed'))
+    const stubFetch = sandbox.stub().resolves({})
+    const testCache = new PMTilesCache(mockFs)
+
+    const firstLoad = testCache.loadPMTiles('test.pmtiles', stubFetch)
+    const secondLoad = testCache.loadPMTiles('test.pmtiles', stubFetch)
+    await Promise.all([firstLoad, secondLoad])
+
+    sinon.assert.calledOnce(stubRead)
+    sinon.assert.calledOnce(stubFetch)
   })
 
   it('should attempt to load stored hfi pmtiles', async () => {
@@ -156,13 +171,15 @@ describe('pmtilesCache', () => {
 
     const stubFetch = sandbox.stub().rejects(new Error('Fetch failed'))
     const testCache = new PMTilesCache(mockFs)
-    await testCache.loadHFIPMTiles(
-      DateTime.fromISO('2016-05-25T09:08:34.123'),
-      RunType.FORECAST,
-      DateTime.fromISO('2016-05-25T09:08:34.123'),
-      'test.pmtiles',
-      stubFetch
-    )
+    await expect(
+      testCache.loadHFIPMTiles(
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        RunType.FORECAST,
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        'test.pmtiles',
+        stubFetch
+      )
+    ).rejects.toThrow('Fetch failed')
     sinon.assert.calledThrice(stubFetch)
     sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch)
   })
