@@ -3,12 +3,12 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.fcm import (
-    get_device_by_device_id,
-    get_device_by_token,
+    DeviceTokenConflictError,
+    get_device_token_for_registration,
     get_notification_settings_for_device,
     save_device_token,
-    upsert_notification_settings,
     update_device_token_is_active,
+    upsert_notification_settings,
 )
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.fcm import DeviceToken
@@ -30,33 +30,52 @@ router = APIRouter(
 )
 
 
-@router.post("/register")
+@router.post(
+    "/register",
+    responses={409: {"description": "Token is already registered to another device."}},
+)
 async def register_device(request: RegisterDeviceRequest):
-    """
-    Upsert a device token for a device_id.
+    """Register or update the FCM token for a device.
+
+    Flow:
+    - Find and lock rows matching the incoming device ID or token.
+    - If neither value matches, create a new row.
+    - If one row matches either or both values, update that row. This handles FCM token rotation and
+      iOS development installs that reuse a token with a new device ID while preserving settings.
+    - If the device ID and token match two different rows, return 409. We cannot safely choose which
+      row and notification settings to keep, so the conflict guard prevents silent data loss.
     """
     logger.info("/device/register")
     async with get_async_write_session_scope() as session:
-        existing = await get_device_by_token(session, request.token)
-        if existing is None:
-            existing = await get_device_by_device_id(session, request.device_id)
-        if existing:
-            existing.is_active = True
-            existing.token = request.token
-            existing.device_id = request.device_id
-            existing.updated_at = get_utc_now()
-            existing.user_id = request.user_id
-            logger.info(f"Updated existing DeviceToken record for token: {request.token}")
-        else:
-            device_token = DeviceToken(
+        try:
+            existing_row = await get_device_token_for_registration(
+                session, request.device_id, request.token
+            )
+        except DeviceTokenConflictError as exc:
+            logger.error("%s", exc)
+            raise HTTPException(
+                status_code=409,
+                detail="Token is already registered to another device",
+            ) from exc
+
+        if existing_row is None:
+            new_device_token = DeviceToken(
                 user_id=request.user_id,
                 device_id=request.device_id,
                 token=request.token,
                 platform=request.platform,
                 is_active=True,
             )
-            save_device_token(session, device_token)
+            save_device_token(session, new_device_token)
             logger.info("Successfully created new DeviceToken record.")
+        else:
+            existing_row.is_active = True
+            existing_row.token = request.token
+            existing_row.device_id = request.device_id
+            existing_row.platform = request.platform
+            existing_row.updated_at = get_utc_now()
+            existing_row.user_id = request.user_id
+            logger.info(f"Updated existing DeviceToken record for token: {request.token}")
         return DeviceRequestResponse(success=True)
 
 
@@ -98,7 +117,9 @@ async def update_notification_settings(
             session, request.device_id, request.fire_zone_source_ids
         )
         if not found:
-            logger.error("Notification settings update for unknown device_id: %s", request.device_id)
+            logger.error(
+                "Notification settings update for unknown device_id: %s", request.device_id
+            )
             raise HTTPException(status_code=404, detail=f"Device not found: {request.device_id}")
         await session.flush()
         fire_zone_source_ids = await get_notification_settings_for_device(

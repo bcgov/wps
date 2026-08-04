@@ -17,7 +17,10 @@ class DeviceToken(Base):
     """Storage of Firebase Cloud Messaging tokens and client details."""
 
     __tablename__ = "device_token"
-    __table_args__ = {"comment": "Device token management."}
+    __table_args__ = (
+        UniqueConstraint("device_id", name="uq_device_token_device_id"),
+        {"comment": "Device token management."},
+    )
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(String, index=True, nullable=False)
     user_id = Column(String, nullable=True)  # Optional storage of IDIR for logged in users
@@ -33,7 +36,11 @@ class NotificationSettings(Base):
 
     __tablename__ = "notification_settings"
     __table_args__ = (
-        UniqueConstraint("device_token_id", "fire_shape_source_id", name="notification_settings_device_token_id_fire_shape_source_id_key"),
+        UniqueConstraint(
+            "device_token_id",
+            "fire_shape_source_id",
+            name="notification_settings_device_token_id_fire_shape_source_id_key",
+        ),
         {"comment": "Zone-level notification subscriptions per device."},
     )
     id = Column(Integer, primary_key=True, index=True)
