@@ -1,9 +1,12 @@
 import { createTheme } from '@mui/material/styles'
 import type { GridCellParams, GridColumnHeaderParams } from '@mui/x-data-grid-pro'
+import type {} from '@mui/x-date-pickers/themeAugmentation'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
 export const CONTROL_HEIGHT = 44
+// offset MUI's 40px small label position by half the custom height difference
+const CONTROL_LABEL_Y_OFFSET = 9 + (CONTROL_HEIGHT - 40) / 2
 
 export const theme = createTheme({
   shape: {
@@ -65,8 +68,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           '&.MuiInputLabel-outlined.MuiInputLabel-sizeSmall:not(.MuiInputLabel-shrink)': {
-            top: '50%',
-            transform: 'translate(14px, -50%) scale(1)'
+            transform: `translate(14px, ${CONTROL_LABEL_Y_OFFSET}px) scale(1)`
           }
         }
       }
@@ -82,6 +84,18 @@ export const theme = createTheme({
             alignItems: 'center'
           }
         }
+      }
+    },
+    MuiPickersOutlinedInput: {
+      styleOverrides: {
+        root: {
+          height: CONTROL_HEIGHT
+        }
+      }
+    },
+    MuiPickersTextField: {
+      defaultProps: {
+        size: 'small'
       }
     },
     MuiSelect: {
