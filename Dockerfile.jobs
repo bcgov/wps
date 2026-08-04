@@ -48,7 +48,10 @@ RUN chmod -R a-w /app/packages/wps-shared/src \
 USER $USERNAME
 
 # Install dependencies using uv
-RUN uv sync --frozen --no-dev --package wps-jobs
+# --extra profiling pulls in memray, used to capture memory allocation profiles
+# for OOM investigation (bcgov/wps#5637). It's gated behind MEMRAY_ENABLED at
+# runtime, so its presence here doesn't change default (non-profiling) behaviour.
+RUN uv sync --frozen --no-dev --package wps-jobs --extra profiling
 
 # Install setuptools required for GDAL build
 RUN uv pip install setuptools
