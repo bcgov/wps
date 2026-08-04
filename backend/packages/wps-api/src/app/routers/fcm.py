@@ -38,8 +38,8 @@ async def register_device(request: RegisterDeviceRequest):
     """Register or update the FCM token for a device.
 
     Flow:
-    - If the device exists, update its row. This preserves its notification settings.
-    - If only the token exists, reuse that row with the new device ID.
+    - If the device exists, update its row with the incoming token.
+    - If the token matches a row but the device ID does not, update that row with the new device ID.
     - If neither exists, create a row.
     - If the device and token belong to different rows, return 409.
 
@@ -50,44 +50,45 @@ async def register_device(request: RegisterDeviceRequest):
     """
     logger.info("/device/register")
     async with get_async_write_session_scope() as session:
-        device_token = await get_device_by_device_id(session, request.device_id, for_update=True)
+        device_id_match = await get_device_by_device_id(session, request.device_id, for_update=True)
         token_match = await get_device_by_token(session, request.token, for_update=True)
 
-        if (
-            device_token is not None
-            and token_match is not None
-            and device_token.id != token_match.id
-        ):
-            logger.error(
-                "Device registration conflict: device_id row %s differs from token row %s",
-                device_token.id,
-                token_match.id,
-            )
-            raise HTTPException(
-                status_code=409,
-                detail="Token is already registered to another device",
-            )
-        elif device_token is None:
+        if device_id_match is not None:
+            # a new token is normal during rotation; only a token on another row conflicts
+            if token_match is not None and token_match.id != device_id_match.id:
+                logger.error(
+                    "Device registration conflict: device_id row %s differs from token row %s",
+                    device_id_match.id,
+                    token_match.id,
+                )
+                raise HTTPException(
+                    status_code=409,
+                    detail="Token is already registered to another device",
+                )
+            device_token = device_id_match
+        elif token_match is not None:
             device_token = token_match
-
-        if device_token:
-            device_token.is_active = True
-            device_token.token = request.token
-            device_token.device_id = request.device_id
-            device_token.platform = request.platform
-            device_token.updated_at = get_utc_now()
-            device_token.user_id = request.user_id
-            logger.info(f"Updated existing DeviceToken record for token: {request.token}")
         else:
-            device_token = DeviceToken(
-                user_id=request.user_id,
-                device_id=request.device_id,
-                token=request.token,
-                platform=request.platform,
-                is_active=True,
+            save_device_token(
+                session,
+                DeviceToken(
+                    user_id=request.user_id,
+                    device_id=request.device_id,
+                    token=request.token,
+                    platform=request.platform,
+                    is_active=True,
+                ),
             )
-            save_device_token(session, device_token)
             logger.info("Successfully created new DeviceToken record.")
+            return DeviceRequestResponse(success=True)
+
+        device_token.is_active = True
+        device_token.token = request.token
+        device_token.device_id = request.device_id
+        device_token.platform = request.platform
+        device_token.updated_at = get_utc_now()
+        device_token.user_id = request.user_id
+        logger.info(f"Updated existing DeviceToken record for token: {request.token}")
         return DeviceRequestResponse(success=True)
 
 

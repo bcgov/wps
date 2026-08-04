@@ -126,7 +126,7 @@ def test_register_device_token_found_updates_row():
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_register_device_device_id_found_updates_token():
+def test_register_device_rotates_new_token_on_existing_device():
     """Token not found but device_id matches — updates the token on that row."""
     client = TestClient(app.main.app)
     existing = _make_device(token="old-token", device_id="test_device_id")
