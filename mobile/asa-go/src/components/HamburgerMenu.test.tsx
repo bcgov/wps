@@ -1,8 +1,10 @@
+import { sendFeedback } from '@sentry/react'
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 import { HamburgerMenu } from '@/components/HamburgerMenu'
-import { initialState as authenticationInitialState } from '@/slices/authenticationSlice'
+import { type AuthState, initialState as authenticationInitialState } from '@/slices/authenticationSlice'
 import { createTestStore } from '@/testUtils'
 
 vi.mock('@sentry/react', () => ({
@@ -13,15 +15,17 @@ vi.mock('@sentry/capacitor', () => ({}))
 
 describe('HamburgerMenu', () => {
   const defaultProps = { drawerTop: 60, drawerHeight: 740 }
+  const authenticatedState: AuthState = {
+    ...authenticationInitialState,
+    email: 'user@example.com',
+    sessionMode: 'authenticated'
+  }
 
-  const renderMenu = (connected = true) =>
+  const renderMenu = (connected = true, authentication = authenticatedState) =>
     render(
       <Provider
         store={createTestStore({
-          authentication: {
-            ...authenticationInitialState,
-            email: 'user@example.com'
-          },
+          authentication,
           networkStatus: {
             networkStatus: {
               connected,
@@ -51,6 +55,36 @@ describe('HamburgerMenu', () => {
 
     expect(await screen.findByRole('dialog', { name: 'Submit Feedback' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Email' })).toHaveValue('user@example.com')
+  })
+
+  it('allows a public user to send feedback without a prefilled email', async () => {
+    const mockSendFeedback = vi.mocked(sendFeedback).mockResolvedValue('event-id')
+    const user = userEvent.setup()
+    renderMenu(true, {
+      ...authenticationInitialState,
+      sessionMode: 'guest'
+    })
+
+    await user.click(screen.getByRole('button', { name: /open menu/i }))
+    await user.click(await screen.findByText('Submit Feedback'))
+
+    expect(await screen.findByRole('dialog', { name: 'Submit Feedback' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveValue('')
+
+    await user.type(screen.getByRole('textbox', { name: 'Description' }), 'Public user feedback.')
+    await user.click(screen.getByRole('button', { name: 'Send Feedback' }))
+
+    await vi.waitFor(() => {
+      expect(mockSendFeedback).toHaveBeenCalledWith(
+        {
+          email: undefined,
+          message: 'Public user feedback.',
+          name: undefined
+        },
+        { includeReplay: true }
+      )
+    })
+    expect(await screen.findByText('Thank you for your feedback.')).toBeInTheDocument()
   })
 
   it('opens external links in a new tab', async () => {
