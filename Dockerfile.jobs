@@ -51,7 +51,10 @@ USER $USERNAME
 # --extra profiling pulls in memray, used to capture memory allocation profiles
 # for OOM investigation (bcgov/wps#5637). It's gated behind MEMRAY_ENABLED at
 # runtime, so its presence here doesn't change default (non-profiling) behaviour.
-RUN uv sync --frozen --no-dev --package wps-jobs --extra profiling
+# --no-build-package memray requires a prebuilt wheel for memray specifically,
+# rather than falling back to building its sdist (which would run its PEP 517
+# build backend / setup scripts as part of the image build).
+RUN uv sync --frozen --no-dev --package wps-jobs --extra profiling --no-build-package memray
 
 # Install setuptools required for GDAL build
 RUN uv pip install setuptools
