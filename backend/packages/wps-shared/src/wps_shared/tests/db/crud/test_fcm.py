@@ -8,9 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.future import select
 from testcontainers.postgres import PostgresContainer
 from wps_shared.db.crud.fcm import (
+    DeviceTokenConflictError,
     deactivate_device_tokens,
     get_active_device_by_device_id,
     get_device_by_device_id,
+    get_device_token_for_registration,
     get_device_tokens_for_zone,
     get_notification_settings_for_device,
     save_device_token,
@@ -155,6 +157,49 @@ async def test_get_device_by_device_id(async_session: AsyncSession):
     assert device_token.platform == PlatformEnum.android
     assert device_token.token == mock_fcm_token
     assert device_token.is_active is True
+
+
+@pytest.mark.anyio
+async def test_get_device_token_for_registration(async_session: AsyncSession):
+    same_row_match = await get_device_token_for_registration(
+        async_session, mock_device_id, mock_fcm_token
+    )
+    device_id_match = await get_device_token_for_registration(
+        async_session, mock_device_id, "new-fcm-token-123"
+    )
+    token_match = await get_device_token_for_registration(
+        async_session, "new-device-id", mock_fcm_token
+    )
+    no_match = await get_device_token_for_registration(
+        async_session, "unknown-device-id", "unknown-fcm-token"
+    )
+
+    assert same_row_match.id == device_id_match.id == token_match.id
+    assert no_match is None
+
+
+@pytest.mark.anyio
+async def test_get_device_token_for_registration_rejects_different_rows(
+    async_session: AsyncSession,
+):
+    token_match = DeviceToken(
+        user_id="test_idir",
+        device_id="second-device-id",
+        platform=PlatformEnum.ios,
+        token="second-device-token-123",
+        is_active=True,
+        created_at=now,
+        updated_at=now,
+    )
+    async_session.add(token_match)
+    await async_session.commit()
+
+    device_id_match = await get_device_by_device_id(async_session, mock_device_id)
+    with pytest.raises(DeviceTokenConflictError) as exc_info:
+        await get_device_token_for_registration(async_session, mock_device_id, token_match.token)
+
+    assert exc_info.value.device_id_row_id == device_id_match.id
+    assert exc_info.value.token_row_id == token_match.id
 
 
 @pytest.mark.anyio

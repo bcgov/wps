@@ -3,8 +3,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.fcm import (
-    get_device_by_device_id,
-    get_device_by_token,
+    DeviceTokenConflictError,
+    get_device_token_for_registration,
     get_notification_settings_for_device,
     save_device_token,
     update_device_token_is_active,
@@ -38,57 +38,44 @@ async def register_device(request: RegisterDeviceRequest):
     """Register or update the FCM token for a device.
 
     Flow:
-    - If the device exists, update its row with the incoming token.
-    - If the token matches a row but the device ID does not, update that row with the new device ID.
-    - If neither exists, create a row.
-    - If the device and token belong to different rows, return 409.
-
-    The last case should be uncommon, but legacy data or an unusual token reassignment could cause
-    it. We cannot safely know which row and notification settings to keep, so the guard prevents us
-    from silently deleting or overwriting a user's data. Hopefully we never run into this, it's there
-    as a safety measure.
+    - Find and lock rows matching the incoming device ID or token.
+    - If neither value matches, create a new row.
+    - If one row matches either or both values, update that row. This handles FCM token rotation and
+      iOS development installs that reuse a token with a new device ID while preserving settings.
+    - If the device ID and token match two different rows, return 409. We cannot safely choose which
+      row and notification settings to keep, so the conflict guard prevents silent data loss.
     """
     logger.info("/device/register")
     async with get_async_write_session_scope() as session:
-        device_id_match = await get_device_by_device_id(session, request.device_id, for_update=True)
-        token_match = await get_device_by_token(session, request.token, for_update=True)
-
-        if device_id_match is not None:
-            # a new token is normal during rotation; only a token on another row conflicts
-            if token_match is not None and token_match.id != device_id_match.id:
-                logger.error(
-                    "Device registration conflict: device_id row %s differs from token row %s",
-                    device_id_match.id,
-                    token_match.id,
-                )
-                raise HTTPException(
-                    status_code=409,
-                    detail="Token is already registered to another device",
-                )
-            device_token = device_id_match
-        elif token_match is not None:
-            device_token = token_match
-        else:
-            save_device_token(
-                session,
-                DeviceToken(
-                    user_id=request.user_id,
-                    device_id=request.device_id,
-                    token=request.token,
-                    platform=request.platform,
-                    is_active=True,
-                ),
+        try:
+            existing_row = await get_device_token_for_registration(
+                session, request.device_id, request.token
             )
-            logger.info("Successfully created new DeviceToken record.")
-            return DeviceRequestResponse(success=True)
+        except DeviceTokenConflictError as exc:
+            logger.error("%s", exc)
+            raise HTTPException(
+                status_code=409,
+                detail="Token is already registered to another device",
+            ) from exc
 
-        device_token.is_active = True
-        device_token.token = request.token
-        device_token.device_id = request.device_id
-        device_token.platform = request.platform
-        device_token.updated_at = get_utc_now()
-        device_token.user_id = request.user_id
-        logger.info(f"Updated existing DeviceToken record for token: {request.token}")
+        if existing_row is None:
+            new_device_token = DeviceToken(
+                user_id=request.user_id,
+                device_id=request.device_id,
+                token=request.token,
+                platform=request.platform,
+                is_active=True,
+            )
+            save_device_token(session, new_device_token)
+            logger.info("Successfully created new DeviceToken record.")
+        else:
+            existing_row.is_active = True
+            existing_row.token = request.token
+            existing_row.device_id = request.device_id
+            existing_row.platform = request.platform
+            existing_row.updated_at = get_utc_now()
+            existing_row.user_id = request.user_id
+            logger.info(f"Updated existing DeviceToken record for token: {request.token}")
         return DeviceRequestResponse(success=True)
 
 

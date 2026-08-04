@@ -6,11 +6,11 @@ from unittest.mock import patch
 import app.main
 import pytest
 from fastapi.testclient import TestClient
+from wps_shared.db.crud.fcm import DeviceTokenConflictError
 from wps_shared.db.models.fcm import PlatformEnum
 
 DB_SESSION = "app.routers.fcm.get_async_write_session_scope"
-GET_DEVICE_BY_TOKEN = "app.routers.fcm.get_device_by_token"
-GET_DEVICE_BY_DEVICE_ID = "app.routers.fcm.get_device_by_device_id"
+GET_DEVICE_TOKEN_FOR_REGISTRATION = "app.routers.fcm.get_device_token_for_registration"
 SAVE_DEVICE_TOKEN = "app.routers.fcm.save_device_token"
 GET_NOTIFICATION_SETTINGS = "app.routers.fcm.get_notification_settings_for_device"
 UPSERT_NOTIFICATION_SETTINGS = "app.routers.fcm.upsert_notification_settings"
@@ -76,8 +76,7 @@ def test_register_device_new_token_and_device_id():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_TOKEN, return_value=None),
-            patch(GET_DEVICE_BY_DEVICE_ID, return_value=None),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=None),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
             response = client.post(
@@ -104,8 +103,7 @@ def test_register_device_token_found_updates_row():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_DEVICE_ID, return_value=None),
-            patch(GET_DEVICE_BY_TOKEN, return_value=existing),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=existing),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
             response = client.post(
@@ -134,8 +132,7 @@ def test_register_device_rotates_new_token_on_existing_device():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_TOKEN, return_value=None),
-            patch(GET_DEVICE_BY_DEVICE_ID, return_value=existing),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=existing),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
             response = client.post(
@@ -163,8 +160,7 @@ def test_register_device_existing_device_and_token_updates_same_row():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_DEVICE_ID, return_value=existing),
-            patch(GET_DEVICE_BY_TOKEN, return_value=existing),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=existing),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
             response = client.post(
@@ -186,14 +182,14 @@ def test_register_device_existing_device_and_token_updates_same_row():
 def test_register_device_rejects_conflicting_token_row():
     """A conflicting token and device mapping is rejected without changing either row."""
     client = TestClient(app.main.app)
-    device_match = _make_device(id=1, token="old-token")
-    token_match = _make_device(id=2, device_id="old-device-id", token="new-token-123")
 
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_DEVICE_ID, return_value=device_match),
-            patch(GET_DEVICE_BY_TOKEN, return_value=token_match),
+            patch(
+                GET_DEVICE_TOKEN_FOR_REGISTRATION,
+                side_effect=DeviceTokenConflictError(1, 2),
+            ),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
             response = client.post(
@@ -208,8 +204,6 @@ def test_register_device_rejects_conflicting_token_row():
 
             assert response.status_code == 409
             assert response.json() == {"detail": "Token is already registered to another device"}
-            assert device_match.token == "old-token"
-            assert token_match.device_id == "old-device-id"
             mock_save.assert_not_called()
 
 
@@ -260,8 +254,7 @@ def test_register_device_without_user_id():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_TOKEN, return_value=None),
-            patch(GET_DEVICE_BY_DEVICE_ID, return_value=None),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=None),
             patch(SAVE_DEVICE_TOKEN),
         ):
             response = client.post(API_DEVICE_REGISTER, json=request_data)
