@@ -11,20 +11,19 @@ import type { PMTiles } from 'pmtiles'
 import type { RunType } from '@/api/fbaAPI'
 import type { IPMTilesCache } from '@/utils/pmtilesCache'
 
-export type PMTilesFileVectorOptions = VectorTileSourceOptions & {
+export type PMTilesFileVectorOptions = VectorTileSourceOptions<RenderFeature> & {
   filename: string
 }
 
-export type HFIPMTilesFileVectorOptions = VectorTileSourceOptions &
-  PMTilesFileVectorOptions & {
-    for_date: DateTime
-    run_type: RunType
-    run_date: DateTime
-  }
+export type HFIPMTilesFileVectorOptions = PMTilesFileVectorOptions & {
+  for_date: DateTime
+  run_type: RunType
+  run_date: DateTime
+}
 
 const PMTILES_TILE_URL = 'pmtiles://{z}/{x}/{y}'
 
-export class PMTilesFileVectorSource extends VectorTileSource {
+export class PMTilesFileVectorSource extends VectorTileSource<RenderFeature> {
   private pmtiles_!: PMTiles
   private tileGeneration = 0
 
