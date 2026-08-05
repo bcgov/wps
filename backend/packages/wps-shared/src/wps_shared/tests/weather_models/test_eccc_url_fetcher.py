@@ -69,7 +69,7 @@ class TestGet:
         f = self._fetcher_with_responses([_resp(200)])
         result = f.get(DD_URL)
         assert result is not None
-        f._session.get.assert_called_once_with(HPFX_URL, timeout=60)
+        f._session.get.assert_called_once_with(HPFX_URL, timeout=60, stream=True)
 
     def test_falls_back_to_dd_on_hpfx_connection_error(self):
         f = self._fetcher_with_responses([requests.ConnectionError("HPFX down"), _resp(200)])
@@ -106,7 +106,7 @@ class TestGet:
         f._session = MagicMock()
         f._session.get.return_value = _resp(200)
         f.get(DD_URL)
-        f._session.get.assert_called_once_with(HPFX_URL, timeout=30)
+        f._session.get.assert_called_once_with(HPFX_URL, timeout=30, stream=True)
 
     def test_custom_session_is_used(self):
         session = MagicMock()

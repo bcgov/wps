@@ -98,7 +98,9 @@ class ECCCUrlFetcher:
             self._attempts[host] += 1
             started = time.monotonic()
             try:
-                response = self._session.get(url, timeout=self._timeout)
+                # stream=True: don't buffer the whole grib file into memory here - the
+                # caller streams it straight to disk (bcgov/wps#5637).
+                response = self._session.get(url, timeout=self._timeout, stream=True)
             except requests.RequestException as exc:
                 # Not a warning: a single host failing is the case the fallback exists to
                 # handle. The run-level summary reports how often it happened.
@@ -114,10 +116,12 @@ class ECCCUrlFetcher:
 
             if response.status_code == 404:
                 logger.debug("404 %s", url)
+                response.close()
                 last_exc = None
                 continue
 
             logger.warning("HTTP %d for %s", response.status_code, url)
+            response.close()
             last_exc = requests.HTTPError(response=response)
 
         if last_exc is not None:

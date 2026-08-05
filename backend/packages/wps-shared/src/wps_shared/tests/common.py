@@ -91,6 +91,13 @@ class MockResponse:
         """Return json response"""
         return self._json
 
+    def iter_content(self, chunk_size=1):
+        """Mimic requests.Response.iter_content for streaming downloads"""
+        return iter((self.content,)) if self.content else iter(())
+
+    def close(self):
+        """Mimic requests.Response.close"""
+
 
 class MockAsyncResponse:
     """Stubbed async response object."""

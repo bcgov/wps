@@ -11,6 +11,13 @@ class MockResponse:
         self.status_code = status_code
         self.content = content
 
+    def iter_content(self, chunk_size=1):
+        """Mimic requests.Response.iter_content for streaming downloads"""
+        return iter((self.content,)) if self.content else iter(())
+
+    def close(self):
+        """Mimic requests.Response.close"""
+
 
 def mock_get_model_run_predictions(*args):
     result = [

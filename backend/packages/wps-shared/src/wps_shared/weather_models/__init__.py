@@ -135,11 +135,15 @@ def download(
     if fetcher is not None:
         response = fetcher.get(url)
     else:
-        raw = requests.get(url, timeout=60)
+        # stream=True: don't buffer the whole grib file into memory here - it's streamed
+        # straight to disk below instead (bcgov/wps#5637).
+        raw = requests.get(url, timeout=60, stream=True)
         if raw.status_code == 404:
             logger.info("404 error for %s", url)
+            raw.close()
             return None
         if raw.status_code != 200:
+            raw.close()
             raw.raise_for_status()
         response = raw
 
@@ -148,7 +152,9 @@ def download(
         return None
 
     with open(target, "wb") as file_object:
-        file_object.write(response.content)
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if chunk:
+                file_object.write(chunk)
     if cache:
         try:
             with open(target, "rb") as file_object:
