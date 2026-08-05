@@ -49,6 +49,12 @@ parameters:
     value: 512Mi
   - name: MEMORY_LIMIT
     value: 1Gi
+  - name: MALLOC_ARENA_MAX
+    description: >-
+      glibc malloc arena cap, for OOM investigation (bcgov/wps#5637). Left
+      unset (empty) by default, which glibc treats as "no limit" (unchanged
+      default behaviour).
+    value: ""
 objects:
   - kind: CronJob
     apiVersion: batch/v1
@@ -97,6 +103,8 @@ objects:
                       value: "1"
                     - name: MEMRAY_ENABLED
                       value: ${MEMRAY_ENABLED}
+                    - name: MALLOC_ARENA_MAX
+                      value: ${MALLOC_ARENA_MAX}
                     - name: POSTGRES_READ_USER
                       valueFrom:
                         secretKeyRef:
