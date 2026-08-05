@@ -6,6 +6,7 @@ import type RenderFeature from 'ol/render/Feature'
 import VectorTileSource, { type Options as VectorTileSourceOptions } from 'ol/source/VectorTile'
 import TileState from 'ol/TileState'
 import { createXYZ } from 'ol/tilegrid'
+import type VectorTile from 'ol/VectorTile'
 import type { PMTiles } from 'pmtiles'
 import type { RunType } from '@/api/fbaAPI'
 import type { IPMTilesCache } from '@/utils/pmtilesCache'
@@ -24,12 +25,11 @@ export type HFIPMTilesFileVectorOptions = VectorTileSourceOptions &
 const PMTILES_TILE_URL = 'pmtiles://{z}/{x}/{y}'
 
 export class PMTilesFileVectorSource extends VectorTileSource {
-  // @ts-expect-error
-  private pmtiles_: PMTiles
+  private pmtiles_!: PMTiles
   private tileGeneration = 0
 
   tileLoadFunction = (tile: Tile, url: string) => {
-    const vtile = tile as unknown as VectorTileSource
+    const vectorTile = tile as VectorTile<RenderFeature>
     const re = new RegExp(/pmtiles:\/\/(\d+)\/(\d+)\/(\d+)/)
     const result = url.match(re)
 
@@ -49,28 +49,20 @@ export class PMTilesFileVectorSource extends VectorTileSource {
         if (tile_result) {
           const format = new MVT({ layerName: 'mvt:layer' }) // Create the MVT format
           const features = format.readFeatures(tile_result.data, {
-            // @ts-expect-error
-            extent: vtile.extent,
-            // @ts-expect-error
-            featureProjection: vtile.projection
+            extent: vectorTile.extent,
+            featureProjection: vectorTile.projection
           })
-          // @ts-expect-error
-          vtile.setFeatures(features) // Set the features on the tile (which can now handle vector data)
-          // @ts-expect-error
-          vtile.setState(TileState.LOADED) // Mark the tile as loaded
+          vectorTile.setFeatures(features) // Set the features on the tile (which can now handle vector data)
+          vectorTile.setState(TileState.LOADED) // Mark the tile as loaded
         } else {
-          // @ts-expect-error
-          vtile.setFeatures([])
-          // @ts-expect-error
-          vtile.setState(TileState.EMPTY) // Mark the tile as empty if no data is found
+          vectorTile.setFeatures([])
+          vectorTile.setState(TileState.EMPTY) // Mark the tile as empty if no data is found
         }
       })
       .catch(err => {
         console.log(err)
-        // @ts-expect-error
-        vtile.setFeatures([])
-        // @ts-expect-error
-        vtile.setState(TileState.ERROR) // Mark the tile as error if the loading fails
+        vectorTile.setFeatures([])
+        vectorTile.setState(TileState.ERROR) // Mark the tile as error if the loading fails
       })
   }
 
