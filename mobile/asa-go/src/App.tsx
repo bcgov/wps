@@ -53,7 +53,7 @@ import { theme } from '@/theme'
 import type { FireCentre } from '@/types/fireCentre'
 import { NavPanel, StatusEnum } from '@/utils/constants'
 import { getToday } from '@/utils/dataSliceUtils'
-import { pmtilesCache } from '@/utils/pmtilesCache'
+import { pmtilesStore } from '@/utils/pmtilesStore'
 import { clearStaleHFIPMTiles } from '@/utils/storage'
 
 const App = () => {
@@ -150,21 +150,16 @@ const App = () => {
 
   useEffect(() => {
     if (!isNil(runParameters)) {
+      // preload persistent HFI files only; map layers create readers when they open an archive
       const hfiFilesToKeep: string[] = []
-      const hfiPreloads: Promise<unknown>[] = []
       for (const value of Object.values(runParameters)) {
         const forDate = DateTime.fromISO(value.for_date)
         const runDate = DateTime.fromISO(value.run_datetime)
-        hfiPreloads.push(pmtilesCache.loadHFIPMTiles(forDate, value.run_type, runDate, 'hfi.pmtiles'))
-        hfiFilesToKeep.push(pmtilesCache.getHFICachedFileName(forDate, value.run_type, runDate, 'hfi.pmtiles'))
+        void pmtilesStore
+          .ensureHFIPMTiles(forDate, value.run_type, runDate, 'hfi.pmtiles')
+          .catch(Sentry.captureException)
+        hfiFilesToKeep.push(pmtilesStore.getHFICachedFileName(forDate, value.run_type, runDate, 'hfi.pmtiles'))
       }
-      // report once for the batch so an offline launch does not create one event per HFI file
-      void Promise.all(hfiPreloads).catch(error => {
-        Sentry.withScope(scope => {
-          scope.setContext('hfiPMTilesPreload', { filenames: hfiFilesToKeep })
-          Sentry.captureException(error)
-        })
-      })
       void clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
     }
   }, [runParameters])

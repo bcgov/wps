@@ -54,7 +54,7 @@ import { startWatchingLocation } from '@/slices/geolocationSlice'
 import { type AppDispatch, selectGeolocation, selectNetworkStatus } from '@/store'
 import type { FireCentre } from '@/types/fireCentre'
 import { NavPanel } from '@/utils/constants'
-import { pmtilesCache } from '@/utils/pmtilesCache'
+import { pmtilesStore } from '@/utils/pmtilesStore'
 import { PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
 import 'ol/ol.css'
 import { fromLonLat } from 'ol/proj'
@@ -156,7 +156,7 @@ const ASAGoMap = ({
   const refreshPMTilesSources = React.useCallback(async () => {
     if (!map) return
 
-    // reload visible tiles after resume while reusing already-open PMTiles files
+    // give each mapped archive a fresh reader and OpenLayers tile generation after resume
     const sources = new Set<PMTilesFileVectorSource>()
     map
       .getLayers()
@@ -373,7 +373,7 @@ const ASAGoMap = ({
 
     const loadPMTiles = async () => {
       const createStaticSource = (filename: string) =>
-        PMTilesFileVectorSource.create({ filename }, () => pmtilesCache.loadPMTiles(filename))
+        PMTilesFileVectorSource.create({ filename }, () => pmtilesStore.openPMTiles(filename))
       const [fireCentresSource, fireCentreLabelVectorSource, fireZoneSource, fireZoneLabelVectorSource] =
         await Promise.all([
           createStaticSource('fireCentres.pmtiles'),

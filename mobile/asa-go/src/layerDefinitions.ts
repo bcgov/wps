@@ -7,7 +7,7 @@ import type { RunType } from '@/api/fbaAPI'
 import { localBasemapStyle } from '@/components/map/localBasemapStyle'
 import { hfiStyler } from '@/featureStylers'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@/utils/env'
-import { pmtilesCache } from '@/utils/pmtilesCache'
+import { pmtilesStore } from '@/utils/pmtilesStore'
 import { type PMTilesFileVectorOptions, PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
 
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
@@ -44,7 +44,7 @@ export const createBasemapLayer = async () => {
 export const createLocalBasemapVectorLayer = async () => {
   const filename = 'bc_20250326_z6.pmtiles'
   const localBasemapSource = await PMTilesFileVectorSource.create({ filename }, () =>
-    pmtilesCache.loadPMTiles(filename)
+    pmtilesStore.openPMTiles(filename)
   )
   const localBasemapLayer = new VectorTileLayer({
     source: localBasemapSource,
@@ -57,7 +57,7 @@ export const createLocalBasemapVectorLayer = async () => {
 
 export const createHFILayer = async (options: HFILayerOptions, visible: boolean = true): Promise<VectorTileLayer> => {
   const hfiVectorSource = await PMTilesFileVectorSource.create({ filename: options.filename }, () =>
-    pmtilesCache.loadHFIPMTiles(options.for_date, options.run_type, options.run_date, options.filename)
+    pmtilesStore.openHFIPMTiles(options.for_date, options.run_type, options.run_date, options.filename)
   )
   return new VectorTileLayer({
     source: hfiVectorSource,

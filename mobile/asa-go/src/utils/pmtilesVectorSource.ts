@@ -8,25 +8,27 @@ import TileState from 'ol/TileState'
 import { createXYZ } from 'ol/tilegrid'
 import type VectorTile from 'ol/VectorTile'
 import type { PMTiles } from 'pmtiles'
+import type { PMTilesArchive } from '@/utils/pmtilesStore'
 
 export type PMTilesFileVectorOptions = VectorTileSourceOptions & {
   filename: string
 }
 
-export type PMTilesLoader = () => Promise<PMTiles>
+export type PMTilesArchiveLoader = () => Promise<PMTilesArchive>
 
 const PMTILES_TILE_URL = 'pmtiles://{z}/{x}/{y}'
 const PMTILES_TILE_LOAD_TIMEOUT_MS = 10_000
 
+/**
+ * adapts a persistent PMTiles archive session to an OpenLayers vector tile source.
+ * foreground refreshes replace both the PMTiles reader cache and OpenLayers tile generation.
+ */
 export class PMTilesFileVectorSource extends VectorTileSource {
   private pmtiles_!: PMTiles
-  private readonly loadPMTiles: PMTilesLoader
+  private archive?: PMTilesArchive
+  private readonly loadArchive: PMTilesArchiveLoader
   private readonly filename: string
-  // allow one reader recreation before treating another tile failure as unrecoverable
-  private tileErrorReloadAvailable = true
-  // collapse the burst of tile failures from a broken reader into one recovery attempt
-  private tileErrorReloadInProgress = false
-  // report at most one failed recovery per source until the app foregrounds again
+  // collapse a burst of tile failures into one diagnostic event per reader generation
   private tileErrorReported = false
   // track tile generations so OpenLayers does not reuse stale or errored tile objects
   private reloadKey = 0
@@ -63,7 +65,10 @@ export class PMTilesFileVectorSource extends VectorTileSource {
         }
       })
       .catch(err => {
-        this.handleTileLoadError(err, pmtiles, z, x, y)
+        if (pmtiles === this.pmtiles_ && !this.tileErrorReported) {
+          this.tileErrorReported = true
+          this.captureTileLoadError(err, z, x, y)
+        }
         vectorTile.setFeatures([])
         vectorTile.setState(TileState.ERROR) // Mark the tile as error if the loading fails
       })
@@ -90,34 +95,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     }
   }
 
-  private handleTileLoadError(error: unknown, pmtiles: PMTiles, z: number, x: number, y: number) {
-    if (this.tileErrorReported) {
-      return
-    }
-    // concurrent or stale failures are covered by the recovery already underway
-    if (this.tileErrorReloadInProgress || pmtiles !== this.pmtiles_) {
-      return
-    }
-    if (!this.tileErrorReloadAvailable) {
-      // the replacement reader also failed, so the automatic recovery did not work
-      this.captureTileLoadError(error, z, x, y)
-      return
-    }
-
-    // defer reporting the first failure until the single recovery attempt has failed
-    this.tileErrorReloadInProgress = true
-    this.retryPMTilesAfterError()
-      .catch(reloadError => this.captureTileLoadError(reloadError, z, x, y))
-      .finally(() => {
-        this.tileErrorReloadInProgress = false
-      })
-  }
-
   private captureTileLoadError(error: unknown, z: number, x: number, y: number) {
-    if (this.tileErrorReported) {
-      return
-    }
-    this.tileErrorReported = true
     Sentry.withScope(scope => {
       scope.setContext('pmtilesTile', {
         filename: this.filename,
@@ -130,7 +108,7 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     })
   }
 
-  private constructor(options: PMTilesFileVectorOptions, loadPMTiles: PMTilesLoader) {
+  private constructor(options: PMTilesFileVectorOptions, loadArchive: PMTilesArchiveLoader) {
     super({
       ...options,
       state: 'loading',
@@ -139,11 +117,11 @@ export class PMTilesFileVectorSource extends VectorTileSource {
       format: options.format || new MVT({ layerName: 'mvt:layer' })
     })
     this.filename = options.filename
-    this.loadPMTiles = loadPMTiles
+    this.loadArchive = loadArchive
   }
 
-  static async create(options: PMTilesFileVectorOptions, loadPMTiles: PMTilesLoader) {
-    const instance = new PMTilesFileVectorSource(options, loadPMTiles)
+  static async create(options: PMTilesFileVectorOptions, loadArchive: PMTilesArchiveLoader) {
+    const instance = new PMTilesFileVectorSource(options, loadArchive)
     await instance.initialize()
     return instance
   }
@@ -151,12 +129,17 @@ export class PMTilesFileVectorSource extends VectorTileSource {
   private async initialize() {
     try {
       console.log(`Attempting to read ${this.filename}`)
-      const pmtiles = await this.loadPMTiles()
-      await this.initTileGrid(pmtiles)
+      await this.loadAndInitializeArchive()
     } catch (error) {
       console.error('Error loading PMTiles file:', error)
       this.setState('error')
     }
+  }
+
+  private async loadAndInitializeArchive() {
+    const archive = await this.loadArchive()
+    this.archive = archive
+    await this.initTileGrid(archive.createReader())
   }
 
   private async initTileGrid(pmtiles: PMTiles) {
@@ -174,12 +157,6 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     this.setState('ready')
   }
 
-  async reloadPMTiles() {
-    const pmtiles = await this.loadPMTiles()
-    await this.initTileGrid(pmtiles)
-    this.invalidateTiles()
-  }
-
   private invalidateTiles() {
     // change the synthetic URL so OpenLayers cannot reuse source tiles from the previous generation
     this.reloadKey += 1
@@ -187,27 +164,15 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     this.refresh()
   }
 
-  private async retryPMTilesAfterError() {
-    if (!this.tileErrorReloadAvailable) {
-      return
-    }
-    // allow one automatic attempt until foregrounding rearms retries
-    this.tileErrorReloadAvailable = false
-    await this.reloadPMTiles()
-  }
-
-  private enableTileErrorReload() {
-    this.tileErrorReloadAvailable = true
-    this.tileErrorReported = false
-  }
-
   async refreshPMTiles() {
-    // foregrounding rearms recovery and replaces any stuck OpenLayers tile states
-    this.enableTileErrorReload()
-    if (this.getState() === 'error') {
-      // initialization errors cannot trigger a tile read, so retry them directly
-      await this.retryPMTilesAfterError()
-      return
+    // foreground recovery reuses the in-memory file and never rereads persistent storage
+    this.tileErrorReported = false
+    if (this.archive) {
+      // create a clean PMTiles promise cache while retaining the already-decoded file
+      this.pmtiles_ = this.archive.createReader()
+      this.setState('ready')
+    } else {
+      await this.loadAndInitializeArchive()
     }
     this.invalidateTiles()
   }

@@ -10,22 +10,33 @@ import { getHFIRunDateKey } from '@/utils/pmtilesUtils'
  * @param run_date The date of the run to process. (when was the hfi file created?)
  * @returns pmtiles blob
  */
-export const fetchHFIPMTiles = async (for_date: DateTime, run_type: RunType, run_date: DateTime): Promise<Blob> => {
+export const fetchHFIPMTiles = async (
+  for_date: DateTime,
+  run_type: RunType,
+  run_date: DateTime,
+  signal?: AbortSignal
+): Promise<Blob> => {
   const runDateKey = getHFIRunDateKey(run_date)
   const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_type.toLowerCase()}/${runDateKey}/hfi${for_date.toISODate({
     format: 'basic'
   })}.pmtiles`
 
-  const response = await fetch(PMTilesURL)
+  const response = signal ? await fetch(PMTilesURL, { signal }) : await fetch(PMTilesURL)
+  if (!response.ok) {
+    throw new Error(`Unable to download HFI PMTiles: ${response.status} ${response.statusText}`)
+  }
   const blob = await response.blob()
 
   return blob
 }
 
-export const fetchStaticPMTiles = async (filename: string): Promise<Blob> => {
+export const fetchStaticPMTiles = async (filename: string, signal?: AbortSignal): Promise<Blob> => {
   const PMTilesURL = `${PMTILES_BUCKET}${filename}`
 
-  const response = await fetch(PMTilesURL)
+  const response = signal ? await fetch(PMTilesURL, { signal }) : await fetch(PMTilesURL)
+  if (!response.ok) {
+    throw new Error(`Unable to download static PMTiles: ${response.status} ${response.statusText}`)
+  }
   const blob = await response.blob()
 
   return blob

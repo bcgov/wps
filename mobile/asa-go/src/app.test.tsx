@@ -58,9 +58,9 @@ vi.mock('@capacitor/filesystem', () => ({
   Encoding: { UTF8: 'utf8' }
 }))
 
-vi.mock('@/utils/pmtilesCache', () => ({
-  pmtilesCache: {
-    loadHFIPMTiles: vi.fn().mockResolvedValue(undefined),
+vi.mock('@/utils/pmtilesStore', () => ({
+  pmtilesStore: {
+    ensureHFIPMTiles: vi.fn().mockResolvedValue(undefined),
     getHFICachedFileName: vi.fn(() => 'hfi.pmtiles')
   }
 }))
