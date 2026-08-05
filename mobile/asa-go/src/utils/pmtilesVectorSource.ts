@@ -21,9 +21,12 @@ export type HFIPMTilesFileVectorOptions = VectorTileSourceOptions &
     run_date: DateTime
   }
 
+const PMTILES_TILE_URL = 'pmtiles://{z}/{x}/{y}'
+
 export class PMTilesFileVectorSource extends VectorTileSource {
   // @ts-expect-error
   private pmtiles_: PMTiles
+  private tileGeneration = 0
 
   tileLoadFunction = (tile: Tile, url: string) => {
     const vtile = tile as unknown as VectorTileSource
@@ -75,9 +78,15 @@ export class PMTilesFileVectorSource extends VectorTileSource {
     super({
       ...options,
       state: 'loading',
-      url: 'pmtiles://{z}/{x}/{y}', // only used for parsing out the z, x, y parameters when tile loading
+      url: PMTILES_TILE_URL,
       format: options.format || new MVT({ layerName: 'mvt:layer' })
     })
+  }
+
+  reloadTiles() {
+    // changing the URL gives OpenLayers new tile identities without reopening the PMTiles file
+    this.tileGeneration += 1
+    this.setUrl(`${PMTILES_TILE_URL}?reload=${this.tileGeneration}`)
   }
 
   // Static async factory method
