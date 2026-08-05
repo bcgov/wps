@@ -1,11 +1,12 @@
 import { ThemeProvider } from '@mui/material/styles'
-import { configureStore } from '@reduxjs/toolkit'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { describe, expect, it, vi } from 'vitest'
 import type { FireShape, FireZoneTPIStats } from '@/api/fbaAPI'
 import FireZoneUnitSummary from '@/components/profile/FireZoneUnitSummary'
-import dateOfInterestReducer from '@/slices/dateOfInterestSlice'
+import { useFilteredHFIStatsForDate, useTPIStatsForDate } from '@/hooks/dataHooks'
+import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import { createTestStore } from '@/testUtils'
 import { theme } from '@/theme'
 import type { FireCentre } from '@/types/fireCentre'
 
@@ -43,15 +44,7 @@ describe('FireZoneUnitSummary', () => {
     area_sqm: 1000
   }
 
-  const createMockStore = () => {
-    return configureStore({
-      reducer: {
-        dateOfInterest: dateOfInterestReducer
-      }
-    })
-  }
-
-  const renderWithProvider = (component: React.ReactElement<any>, store = createMockStore()) => {
+  const renderWithProvider = (component: React.ReactElement<any>, store = createTestStore()) => {
     return render(
       <Provider store={store}>
         <ThemeProvider theme={theme}>{component}</ThemeProvider>
@@ -137,5 +130,38 @@ describe('FireZoneUnitSummary', () => {
     const defaultMessage = screen.getByTestId('default-message')
     expect(defaultMessage).toBeInTheDocument()
     expect(defaultMessage).toHaveTextContent('Please select a fire centre.')
+  })
+
+  it('passes the date of interest from the store to the data hooks', () => {
+    const store = createTestStore({ dateOfInterest: { dateKey: '2025-08-01' } })
+    renderWithProvider(
+      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />,
+      store
+    )
+
+    const hfiDate = vi.mocked(useFilteredHFIStatsForDate).mock.calls.at(-1)?.[0]
+    const tpiDate = vi.mocked(useTPIStatsForDate).mock.calls.at(-1)?.[0]
+    expect(hfiDate?.toISODate()).toBe('2025-08-01')
+    expect(tpiDate?.toISODate()).toBe('2025-08-01')
+  })
+
+  it('re-derives the date passed to the data hooks when the store date changes', () => {
+    const store = createTestStore({ dateOfInterest: { dateKey: '2025-08-01' } })
+    renderWithProvider(
+      <FireZoneUnitSummary selectedFireCentre={mockFireCentre} selectedFireZoneUnit={mockFireZoneUnit} />,
+      store
+    )
+
+    vi.mocked(useFilteredHFIStatsForDate).mockClear()
+    vi.mocked(useTPIStatsForDate).mockClear()
+
+    act(() => {
+      store.dispatch(setDateOfInterest('2025-08-02'))
+    })
+
+    const hfiDate = vi.mocked(useFilteredHFIStatsForDate).mock.calls.at(-1)?.[0]
+    const tpiDate = vi.mocked(useTPIStatsForDate).mock.calls.at(-1)?.[0]
+    expect(hfiDate?.toISODate()).toBe('2025-08-02')
+    expect(tpiDate?.toISODate()).toBe('2025-08-02')
   })
 })

@@ -176,7 +176,7 @@ jobs:
             **/node_modules
             ~/.cache/ms-playwright
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - uses: rharkor/caching-for-turbo@75f8ebf4a43d2c60b23bc2a27082cfea94ffdad9 # v2.5.0
+      - uses: rharkor/caching-for-turbo@2238fae6eb9a9936f92356f54cb3660200d105e7 # v2.5.1
       - name: enable corepack
         run: corepack enable
       - name: use new yarn

@@ -16,7 +16,7 @@ import {
 import { useCallback, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { FireCentreInfo } from '@/api/fbaAPI'
-import NotificationErrorSnackbar from '@/components/NotificationErrorSnackbar'
+import NotificationSnackbar from '@/components/NotificationSnackbar'
 import SubscriptionOption from '@/components/settings/SubscriptionOption'
 import { useNotificationSettings } from '@/hooks/useNotificationSettings'
 import { savePinnedFireCentre } from '@/slices/settingsSlice'
@@ -116,11 +116,7 @@ const SubscriptionAccordion = ({ defaultExpanded, disabled, fireCentreInfo }: Su
       }}
       aria-disabled={disabled ? true : undefined}
     >
-      <NotificationErrorSnackbar
-        open={updateError}
-        onClose={clearUpdateError}
-        message={subscriptionUpdateErrorMessage}
-      />
+      <NotificationSnackbar open={updateError} onClose={clearUpdateError} message={subscriptionUpdateErrorMessage} />
       <Accordion
         aria-label={`accordion-${fireCentreInfo.fire_centre_name}`}
         defaultExpanded={defaultExpanded}
