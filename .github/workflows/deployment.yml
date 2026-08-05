@@ -142,14 +142,13 @@ jobs:
         run: |
           FUEL_RASTER_YEAR=2026 bash openshift/scripts/oc_provision_fuel_grid_install_job.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
-          # MEMRAY_ENABLED/MEMORY_LIMIT: temporary for OOM investigation (bcgov/wps#5637).
-          # Revert to the plain (no env var) invocation once the investigation is done.
-          MEMRAY_ENABLED=true MEMORY_LIMIT=2Gi bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
-          # MALLOC_ARENA_MAX=2: testing whether glibc arena fragmentation explains the
-          # linear RSS growth OpenShift reports (bcgov/wps#5637). Remove once confirmed
-          # either way.
-          MEMRAY_ENABLED=true MEMORY_LIMIT=2Gi MALLOC_ARENA_MAX=2 bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
-          MEMRAY_ENABLED=true MEMORY_LIMIT=2Gi bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
+          # MEMRAY_ENABLED/MEMORY_LIMIT/MALLOC_ARENA_MAX: temporary for OOM investigation
+          # (bcgov/wps#5637). MALLOC_ARENA_MAX=2 on HRDPS specifically tests whether glibc
+          # arena fragmentation explains the linear RSS growth OpenShift reports. Revert to
+          # the plain (no env var) invocation once the investigation is done.
+          MODEL=GDPS MEMRAY_ENABLED=true MEMORY_LIMIT=2Gi bash openshift/scripts/oc_provision_ec_cronjob.sh ${SUFFIX} apply
+          MODEL=HRDPS MEMRAY_ENABLED=true MEMORY_LIMIT=2Gi MALLOC_ARENA_MAX=2 bash openshift/scripts/oc_provision_ec_cronjob.sh ${SUFFIX} apply
+          MODEL=RDPS MEMRAY_ENABLED=true MEMORY_LIMIT=2Gi bash openshift/scripts/oc_provision_ec_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
           bash openshift/scripts/oc_provision_ecmwf_cronjob.sh ${SUFFIX} apply

@@ -4,7 +4,7 @@ metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
     description: "Scheduled task to download and process weather data from the MSC Datamart through http protocol."
-    tags: "cronjob,env-canada,hrdps"
+    tags: "cronjob,env-canada"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
   app: ${NAME}-${SUFFIX}
@@ -22,6 +22,9 @@ parameters:
     value: e1e498-tools
   - name: JOB_NAME
     value: env-canada
+  - name: MODEL
+    description: Env Canada model to download/process (HRDPS, GDPS, or RDPS)
+    required: true
   - name: IMAGE_REGISTRY
     required: true
     value: image-registry.openshift-image-registry.svc:5000
@@ -90,13 +93,13 @@ objects:
                     - "-c"
                     - |
                       if [ "$MEMRAY_ENABLED" = "true" ]; then
-                        OUTPUT_FILE=/data/memray-HRDPS-$(date -u +%Y%m%dT%H%M%SZ).bin
-                        uv run --no-sync memray run -f -o "$OUTPUT_FILE" -m weather_model_jobs.env_canada HRDPS
+                        OUTPUT_FILE=/data/memray-${MODEL}-$(date -u +%Y%m%dT%H%M%SZ).bin
+                        uv run --no-sync memray run -f -o "$OUTPUT_FILE" -m weather_model_jobs.env_canada ${MODEL}
                         EXIT_CODE=$?
-                        uv run --no-sync python -m weather_model_jobs.upload_memray_profile "$OUTPUT_FILE" HRDPS || true
+                        uv run --no-sync python -m weather_model_jobs.upload_memray_profile "$OUTPUT_FILE" ${MODEL} || true
                         exit $EXIT_CODE
                       else
-                        exec uv run --no-sync python -m weather_model_jobs.env_canada HRDPS
+                        exec uv run --no-sync python -m weather_model_jobs.env_canada ${MODEL}
                       fi
                   env:
                     - name: UV_NO_CACHE

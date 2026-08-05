@@ -10,27 +10,40 @@ source "$(dirname ${0})/common/common"
 #%
 #% Usage:
 #%
-#%    ${THIS_FILE} [SUFFIX] [apply]
+#%    MODEL=HRDPS|GDPS|RDPS ${THIS_FILE} [SUFFIX] [apply]
 #%
 #% Examples:
 #%
 #%   Provide a PR number. Defaults to a dry-run.
-#%   ${THIS_FILE} pr-0
+#%   MODEL=HRDPS ${THIS_FILE} pr-0
 #%
 #%   Apply when satisfied.
-#%   ${THIS_FILE} pr-0 apply
+#%   MODEL=HRDPS ${THIS_FILE} pr-0 apply
 #%
 
 # Target project override for Dev or Prod deployments
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
-# Set default cron schedule here
-SCHEDULE="${SCHEDULE:-$((13 + $RANDOM % 46)) * * * *}"
+# Use a random time if schedule not specified. RDPS runs can take over an hour, so it
+# gets its own schedule every 2 hours; HRDPS and GDPS each get their own random hourly
+# offset so they don't all hit Env Canada's servers at the same time.
+case "$MODEL" in
+  RDPS)
+    SCHEDULE="${SCHEDULE:-$((24 + $RANDOM % 35)) */2 * * *}"
+    ;;
+  HRDPS)
+    SCHEDULE="${SCHEDULE:-$((13 + $RANDOM % 46)) * * * *}"
+    ;;
+  *)
+    SCHEDULE="${SCHEDULE:-$((9 + $RANDOM % 50)) * * * *}"
+    ;;
+esac
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada_hrdps.cronjob.yaml \
--p JOB_NAME=env-canada-hrdps-${APP_NAME}-${SUFFIX} \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/env_canada.cronjob.yaml \
+-p JOB_NAME=env-canada-${MODEL,,}-${APP_NAME}-${SUFFIX} \
+-p MODEL=${MODEL} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
