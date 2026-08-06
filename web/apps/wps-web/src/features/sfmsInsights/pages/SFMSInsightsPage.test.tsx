@@ -224,7 +224,7 @@ describe('SFMSInsightsPage', () => {
     })
   })
 
-  it('should disable dated raster controls when forecasts are unavailable', async () => {
+  it('should keep date selection available when forecasts are unavailable', async () => {
     renderWithStore({
       '2025': {
         actual: {
@@ -240,7 +240,7 @@ describe('SFMSInsightsPage', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('current-date')).toHaveTextContent('2025-11-02')
-      expect(screen.getByTestId('date-picker')).toHaveAttribute('data-disabled', 'true')
+      expect(screen.getByTestId('date-picker')).not.toHaveAttribute('data-disabled')
       expect(screen.getByTestId('raster-type-dropdown')).toHaveAttribute('data-raster-data-available', 'false')
       expect(screen.getByTestId('sfms-map')).toHaveAttribute('data-run-type', 'forecast')
     })
@@ -437,7 +437,7 @@ describe('SFMSInsightsPage', () => {
     expect(minDate.textContent).toBe('2025-05-01')
   })
 
-  it('should disable date selection when SFMS bounds are unavailable', async () => {
+  it('should set rasterDate to today when latestBounds is null', async () => {
     renderWithStore(null)
 
     // Wait for fetch to complete
@@ -447,7 +447,7 @@ describe('SFMSInsightsPage', () => {
 
     const currentDate = screen.getByTestId('current-date')
     expect(currentDate.textContent).toBe('2025-11-02')
-    expect(screen.getByTestId('date-picker')).toHaveAttribute('data-disabled', 'true')
+    expect(screen.getByTestId('date-picker')).not.toHaveAttribute('data-disabled')
 
     // Min/max dates should use default values
     const minDate = screen.getByTestId('historical-min-date')
@@ -456,7 +456,7 @@ describe('SFMSInsightsPage', () => {
     expect(maxDate.textContent).toBe('2025-11-12')
   })
 
-  it('should disable date selection when latestBounds.maximum is empty', async () => {
+  it('should set rasterDate to today when latestBounds.maximum is empty', async () => {
     renderWithStore({
       '2025': {
         actual: {
@@ -472,7 +472,7 @@ describe('SFMSInsightsPage', () => {
 
     const currentDate = screen.getByTestId('current-date')
     expect(currentDate.textContent).toBe('2025-11-02')
-    expect(datePicker).toHaveAttribute('data-disabled', 'true')
+    expect(datePicker).not.toHaveAttribute('data-disabled')
 
     // minDate should be set from bounds
     const minDate = screen.getByTestId('historical-min-date')
@@ -495,7 +495,7 @@ describe('SFMSInsightsPage', () => {
     expect(minDate.textContent).toBe('2025-01-01')
   })
 
-  it('should disable date selection when all years have empty maximum', async () => {
+  it('should set rasterDate to today when all years have empty maximum', async () => {
     renderWithStore({
       '2024': {
         actual: {
@@ -517,7 +517,7 @@ describe('SFMSInsightsPage', () => {
 
     const currentDate = screen.getByTestId('current-date')
     expect(currentDate.textContent).toBe('2025-11-02')
-    expect(datePicker).toHaveAttribute('data-disabled', 'true')
+    expect(datePicker).not.toHaveAttribute('data-disabled')
 
     // minDate should be set from 2024 bounds
     const minDate = screen.getByTestId('historical-min-date')

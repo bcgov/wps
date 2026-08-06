@@ -136,7 +136,6 @@ export const SFMSInsightsPage = () => {
               <StyledFormControl>
                 <ASADatePicker
                   date={rasterDate}
-                  disabled={!rasterDataAvailable}
                   updateDate={setRasterDate}
                   historicalMinDate={minDate}
                   historicalMaxDate={maxDate}
