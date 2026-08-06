@@ -12,7 +12,7 @@ from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 
 import aiofiles
-import requests
+import aiohttp
 import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
 from wps_shared.chatops_notification import send_chatops_notification
@@ -91,7 +91,7 @@ class RDPSGrib:
                 else:
                     # download the file:
                     with tempfile.TemporaryDirectory() as temporary_path:
-                        downloaded = download(
+                        downloaded = await download(
                             url,
                             temporary_path,
                             "REDIS_CACHE_ENV_CANADA",
@@ -115,7 +115,7 @@ class RDPSGrib:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
-            except (requests.ConnectionError, requests.Timeout) as exc:
+            except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as exc:
                 self.connection_error_count += 1
                 logger.warning("Connection error for %s: %s", url, exc)
             except Exception:
@@ -128,14 +128,14 @@ class RDPSGrib:
     async def _process_model_run(self, model_run_hour: int):
         """Process a particular RDPS model run"""
         logger.info(f"Processing RDPS model run {model_run_hour}Z")
-        fetcher = ECCCUrlFetcher(self.now, model_run_hour)
-        for key, value in RDPS_VARIABLE_NAMES.items():
-            urls = list(
-                get_regional_model_run_download_urls(
-                    self.now, model_run_hour, [value], MAX_MODEL_RUN_HOUR
+        async with ECCCUrlFetcher(self.now, model_run_hour) as fetcher:
+            for key, value in RDPS_VARIABLE_NAMES.items():
+                urls = list(
+                    get_regional_model_run_download_urls(
+                        self.now, model_run_hour, [value], MAX_MODEL_RUN_HOUR
+                    )
                 )
-            )
-            await self._process_model_run_urls(model_run_hour, key, urls, fetcher)
+                await self._process_model_run_urls(model_run_hour, key, urls, fetcher)
 
     async def process(self):
         """Entry point for downloading and processing RDPS weather model grib files"""

@@ -1,11 +1,12 @@
 """Unit tests for the RDPS SFMS downloader job."""
 
+import asyncio
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 
+import aiohttp
 import pytest
-import requests
 from pytest_mock import MockerFixture
 from sqlalchemy.orm import Session
 from wps_shared.weather_models import CompletedWithSomeExceptions
@@ -49,9 +50,9 @@ def patch_job_dependencies(mocker: MockerFixture, fake_rdps_grib: FakeRDPSGrib):
 @pytest.mark.parametrize(
     ("download_error", "expected_connection_errors", "expected_exceptions"),
     [
-        (requests.ConnectionError("HPFX and DD both unreachable"), 1, 0),
-        (requests.Timeout("request timed out"), 1, 0),
-        (requests.HTTPError("503 Server Error"), 0, 1),
+        (aiohttp.ClientConnectionError("HPFX and DD both unreachable"), 1, 0),
+        (asyncio.TimeoutError("request timed out"), 1, 0),
+        (aiohttp.ClientResponseError(MagicMock(), (), status=503), 0, 1),
     ],
 )
 @pytest.mark.anyio
@@ -63,7 +64,7 @@ async def test_process_model_run_urls_classifies_download_errors(
 ):
     mocker.patch(f"{MODULE_PATH}.get_saved_model_run_for_sfms", return_value=None)
     fetcher = MagicMock()
-    fetcher.get.side_effect = download_error
+    fetcher.fetch = AsyncMock(side_effect=download_error)
 
     rdps_grib = rdps_sfms.RDPSGrib(MagicMock(spec=Session))
 
