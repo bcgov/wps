@@ -1,32 +1,9 @@
 import { createTheme } from '@mui/material/styles'
 import type { GridCellParams, GridColumnHeaderParams } from '@mui/x-data-grid-pro'
-import type { PickerComponents } from '@mui/x-date-pickers/themeAugmentation'
 // Theme documentation: https://material-ui.com/customization/palette/
 // Theme demo: https://material.io/resources/color/#!/?view.left=1&view.right=1&primary.color=003365&secondary.color=FBC02D
 // Do not export this directly for styling! theme should be accessed within makeStyles & withStyles. Use ErrorMessage.tsx as a reference
-export const CONTROL_HEIGHT = 44
-// offset MUI's 40px small label position by half the custom height difference
-const CONTROL_LABEL_Y_OFFSET = 9 + (CONTROL_HEIGHT - 40) / 2
-
-const pickerThemeComponents = {
-  MuiPickersOutlinedInput: {
-    styleOverrides: {
-      root: {
-        height: CONTROL_HEIGHT
-      }
-    }
-  },
-  MuiPickersTextField: {
-    defaultProps: {
-      size: 'small'
-    }
-  }
-} satisfies PickerComponents
-
 export const theme = createTheme({
-  shape: {
-    borderRadius: 6
-  },
   palette: {
     primary: {
       light: '#3E5C93',
@@ -60,12 +37,6 @@ export const theme = createTheme({
     }
   },
   components: {
-    ...pickerThemeComponents,
-    MuiAutocomplete: {
-      defaultProps: {
-        size: 'small'
-      }
-    },
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
@@ -78,38 +49,6 @@ export const theme = createTheme({
         root: {
           fontSize: '1em'
         }
-      }
-    },
-    MuiInputLabel: {
-      styleOverrides: {
-        root: {
-          '&.MuiInputLabel-outlined.MuiInputLabel-sizeSmall:not(.MuiInputLabel-shrink)': {
-            transform: `translate(14px, ${CONTROL_LABEL_Y_OFFSET}px) scale(1)`
-          }
-        }
-      }
-    },
-    MuiOutlinedInput: {
-      defaultProps: {
-        size: 'small'
-      },
-      styleOverrides: {
-        root: {
-          '&:not(.MuiInputBase-multiline)': {
-            height: CONTROL_HEIGHT,
-            alignItems: 'center'
-          }
-        }
-      }
-    },
-    MuiSelect: {
-      defaultProps: {
-        size: 'small'
-      }
-    },
-    MuiTextField: {
-      defaultProps: {
-        size: 'small'
       }
     }
   }

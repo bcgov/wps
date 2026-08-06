@@ -2,7 +2,6 @@ import { Box, createTheme, StyledEngineProvider, ThemeProvider } from '@mui/mate
 import { styled } from '@mui/material/styles'
 import DateRangeSelector from '@wps/ui/DateRangeSelector'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
-import { theme } from '@wps/ui/theme'
 import { DateTime } from 'luxon'
 import React from 'react'
 
@@ -23,7 +22,7 @@ export interface MoreCase2DateRangePickerProps {
   setDateRange: (newDateRange: DateRange) => void
 }
 
-export const dateRangePickerTheme = createTheme(theme, {
+export const dateRangePickerTheme = createTheme({
   components: {
     MuiOutlinedInput: {
       styleOverrides: {
@@ -66,7 +65,7 @@ const MoreCase2DateRangePicker = ({ dateRange, setDateRange }: MoreCase2DateRang
             maxDayOffset={11}
             dateDisplayFormat={'yyyy/MM/dd'}
             setDateRange={setDateRange}
-            size="small"
+            size="medium"
             label={'Date Range'}
           />
         </ThemeProvider>
