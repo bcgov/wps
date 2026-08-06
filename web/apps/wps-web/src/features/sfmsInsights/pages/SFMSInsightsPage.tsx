@@ -45,7 +45,7 @@ export const SFMSInsightsPage = () => {
   const sfmsBounds = useSelector(selectSFMSInsightsBounds)
   const sfmsBoundsLoading = useSelector(selectSFMSInsightsBoundsLoading)
   const combinedBounds = useSelector(selectCombinedSFMSInsightsBounds)
-  const latestActualBounds = useSelector((state: RootState) => selectLatestSFMSInsightsBounds(state))
+  const latestActualBounds = useSelector(selectLatestSFMSInsightsBounds)
   const latestSelectedBounds = useSelector((state: RootState) => selectLatestSFMSInsightsBounds(state, runType))
 
   // derived values
@@ -60,6 +60,7 @@ export const SFMSInsightsPage = () => {
     dispatch(fetchSFMSInsightsBounds())
   }, [dispatch, sfmsBounds, sfmsBoundsLoading])
 
+  // initialize from actual bounds so source changes do not move the date, while retaining today's fallback if empty
   useEffect(() => {
     if (latestActualBounds?.maximum) {
       const latestDate = DateTime.fromISO(latestActualBounds.maximum)
@@ -67,6 +68,7 @@ export const SFMSInsightsPage = () => {
     }
   }, [latestActualBounds])
 
+  // expose the combined actual and forecast range while preserving fallback limits when either bound is unavailable
   useEffect(() => {
     if (combinedBounds?.maximum) {
       setMaxDate(DateTime.fromISO(combinedBounds.maximum))

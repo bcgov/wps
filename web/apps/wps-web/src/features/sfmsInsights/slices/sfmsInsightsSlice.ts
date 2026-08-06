@@ -55,7 +55,10 @@ export const fetchSFMSInsightsBounds = (): AppThunk => async dispatch => {
   }
 }
 
-const selectSFMSInsights = (state: { sfmsInsights: SFMSInsightsState }) => state.sfmsInsights
+type SFMSInsightsRootState = { sfmsInsights: SFMSInsightsState }
+
+const selectSFMSInsights = (state: SFMSInsightsRootState) => state.sfmsInsights
+const selectRunType = (_state: SFMSInsightsRootState, runType: RunType = RunType.ACTUAL) => runType
 
 export const selectSFMSInsightsBounds = createSelector([selectSFMSInsights], sfmsInsights => sfmsInsights.sfmsBounds)
 
@@ -109,20 +112,24 @@ const findBoundsInOrder = (
   return null
 }
 
-type SFMSInsightsRootState = { sfmsInsights: SFMSInsightsState }
+export const selectLatestSFMSInsightsBounds = createSelector(
+  [selectSFMSInsightsBounds, selectRunType],
+  (sfmsBounds, runType) =>
+    findBoundsInOrder(
+      sfmsBounds,
+      runType,
+      (a, b) => b.localeCompare(a),
+      bounds => !!bounds.maximum
+    )
+)
 
-export const selectLatestSFMSInsightsBounds = (state: SFMSInsightsRootState, runType: RunType = RunType.ACTUAL) =>
-  findBoundsInOrder(
-    selectSFMSInsightsBounds(state),
-    runType,
-    (a, b) => b.localeCompare(a),
-    bounds => !!bounds.maximum
-  )
-
-export const selectEarliestSFMSInsightsBounds = (state: SFMSInsightsRootState, runType: RunType = RunType.ACTUAL) =>
-  findBoundsInOrder(
-    selectSFMSInsightsBounds(state),
-    runType,
-    (a, b) => a.localeCompare(b),
-    bounds => !!bounds.minimum
-  )
+export const selectEarliestSFMSInsightsBounds = createSelector(
+  [selectSFMSInsightsBounds, selectRunType],
+  (sfmsBounds, runType) =>
+    findBoundsInOrder(
+      sfmsBounds,
+      runType,
+      (a, b) => a.localeCompare(b),
+      bounds => !!bounds.minimum
+    )
+)
