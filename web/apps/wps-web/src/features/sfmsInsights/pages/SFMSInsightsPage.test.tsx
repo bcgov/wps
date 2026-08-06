@@ -446,6 +446,7 @@ describe('SFMSInsightsPage', () => {
     })
 
     const currentDate = screen.getByTestId('current-date')
+    // should default to today's date (mocked as 2025-11-02)
     expect(currentDate.textContent).toBe('2025-11-02')
     expect(screen.getByTestId('date-picker')).not.toHaveAttribute('data-disabled')
 
@@ -471,6 +472,7 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
+    // should default to today's date (mocked as 2025-11-02)
     expect(currentDate.textContent).toBe('2025-11-02')
     expect(datePicker).not.toHaveAttribute('data-disabled')
 
@@ -492,6 +494,7 @@ describe('SFMSInsightsPage', () => {
 
     const minDate = screen.getByTestId('historical-min-date')
 
+    // minDate should use default value since earliestBounds.minimum is empty
     expect(minDate.textContent).toBe('2025-01-01')
   })
 
@@ -516,6 +519,7 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
+    // should default to today's date (mocked as 2025-11-02)
     expect(currentDate.textContent).toBe('2025-11-02')
     expect(datePicker).not.toHaveAttribute('data-disabled')
 
