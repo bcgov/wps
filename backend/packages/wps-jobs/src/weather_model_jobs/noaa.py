@@ -1,5 +1,6 @@
 """A script that downloads weather models from NCEI NOAA HTTPS data server"""
 
+import asyncio
 import datetime
 import logging
 import os
@@ -7,7 +8,6 @@ import sys
 import tempfile
 from typing import Generator
 from urllib.parse import parse_qs, urlsplit
-from zoneinfo import ZoneInfo
 
 import requests
 import wps_shared.db.database
@@ -19,11 +19,11 @@ from weather_model_jobs.common_model_fetchers import (
     check_if_model_run_complete,
     flag_file_as_processed,
 )
+from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
-from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from wps_shared.db.crud.weather_models import (
     get_prediction_model,
     get_prediction_run,
@@ -291,7 +291,7 @@ class NOAA:
         elif self.model_type == ModelEnum.NAM:
             self.projection = ProjectionEnum.NAM_POLAR_STEREO
 
-    def process_url(self, url):
+    async def process_url(self, url):
         """Download and process a single grib file URL, skipping if already processed."""
         if get_processed_file_record(self.session, url):
             # NOTE: changing this to logger.debug causes too much noise in unit tests.
@@ -304,7 +304,7 @@ class NOAA:
         )
 
         with tempfile.TemporaryDirectory() as temporary_path:
-            downloaded = download(
+            downloaded = await download(
                 url,
                 temporary_path,
                 "REDIS_CACHE_NOAA",
@@ -320,11 +320,11 @@ class NOAA:
                 finally:
                     os.remove(downloaded)
 
-    def process_model_run_urls(self, urls):
+    async def process_model_run_urls(self, urls):
         """Process the urls for a model run."""
         for url in urls:
             try:
-                self.process_url(url)
+                await self.process_url(url)
             except HTTPError as http_error:
                 if http_error.response is not None and http_error.response.status_code in (
                     403,
@@ -354,7 +354,7 @@ class NOAA:
                 # as we can.
                 logger.exception("unexpected exception processing %s", url)
 
-    def process_model_run(self, model_run_hour):
+    async def process_model_run(self, model_run_hour):
         """Process a particular model run"""
         logger.info("Processing {} model run {}".format(self.model_type, model_run_hour))
 
@@ -365,7 +365,7 @@ class NOAA:
             urls = list(get_nam_model_run_download_urls(self.now, model_run_hour))
 
         # Process all the urls.
-        self.process_model_run_urls(urls)
+        await self.process_model_run_urls(urls)
 
         # Having completed processing, check if we're all done.
         if check_if_model_run_complete(self.session, urls):
@@ -377,11 +377,11 @@ class NOAA:
                 self.session, self.model_type, self.projection, self.now, model_run_hour
             )
 
-    def process(self):
+    async def process(self):
         """Entry point for downloading and processing weather model grib files"""
         for hour in get_gfs_and_nam_model_run_hours():
             try:
-                self.process_model_run(hour)
+                await self.process_model_run(hour)
             except Exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
@@ -404,7 +404,7 @@ def process_models():
 
     with wps_shared.db.database.get_write_session_scope() as session:
         noaa = NOAA(session, model_type)
-        noaa.process()
+        asyncio.run(noaa.process())
 
         # interpolate and machine learn everything that needs interpolating.
         model_value_processor = ModelValueProcessor(session)

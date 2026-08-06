@@ -1,35 +1,34 @@
 """Unit tests for app/env_canada.py"""
 
+import datetime
+import logging
 import os
 import sys
-import logging
 from typing import Optional
+
 import pytest
-import requests
-import datetime
+import weather_model_jobs.common_model_fetchers
+import weather_model_jobs.env_canada
+import weather_model_jobs.utils.process_grib
+import wps_shared.db.crud.weather_models
+import wps_shared.db.database
+import wps_shared.utils.time as time_utils
 from aiohttp import ClientSession
-from sqlalchemy.orm import Session
 from pytest_mock import MockerFixture
+from sqlalchemy.orm import Session
+from tests.weather_models.test_models_common import make_fake_fetcher_factory
+from weather_model_jobs import model_job_runner
+from wps_shared.db.models.weather_models import (
+    PredictionModel,
+    PredictionModelRunTimestamp,
+    ProcessedModelRunUrl,
+)
+from wps_shared.tests.common import default_mock_client_get
+from wps_shared.weather_models import ProjectionEnum
 from wps_shared.weather_models.model_run_urls import (
     HRDPS_GRIB_LAYERS,
     get_high_res_model_run_download_urls,
 )
-import wps_shared.utils.time as time_utils
-import wps_shared.db.database
-import wps_shared.db.crud.weather_models
-import weather_model_jobs.env_canada
-from weather_model_jobs import model_job_runner
-import weather_model_jobs.common_model_fetchers
-import weather_model_jobs.utils.process_grib
-from wps_shared.weather_models import ProjectionEnum
-from wps_shared.db.models.weather_models import (
-    PredictionModel,
-    ProcessedModelRunUrl,
-    PredictionModelRunTimestamp,
-)
-from wps_shared.tests.common import default_mock_client_get
-from tests.weather_models.test_env_canada_gdps import MockResponse
-
 
 logger = logging.getLogger(__name__)
 
@@ -113,18 +112,14 @@ def mock_get_processed_file_record(monkeypatch):
 @pytest.fixture()
 def mock_download(monkeypatch):
     """fixture for env_canada.download"""
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    filename = os.path.join(dirname, "20230317T18Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2")
+    with open(filename, "rb") as file:
+        content = file.read()
 
-    def mock_requests_get_hrdps(*args, **kwargs):
-        """mock env_canada download method for HRDPS"""
-        dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(
-            dirname, "20230317T18Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2"
-        )
-        with open(filename, "rb") as file:
-            content = file.read()
-        return MockResponse(status_code=200, content=content)
-
-    monkeypatch.setattr(requests.Session, "get", mock_requests_get_hrdps)
+    monkeypatch.setattr(
+        weather_model_jobs.env_canada, "ECCCUrlFetcher", make_fake_fetcher_factory(content)
+    )
 
 
 def test_get_hrdps_download_urls():

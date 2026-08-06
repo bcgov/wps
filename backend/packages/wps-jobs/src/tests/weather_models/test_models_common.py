@@ -4,19 +4,59 @@ from shapely import wkt
 from wps_shared.db.models.weather_models import ModelRunGridSubsetPrediction, ProcessedModelRunUrl
 from wps_shared.schemas.stations import Season, WeatherStation
 
+
 class MockResponse:
-    """Mocked out request.Response object"""
+    """Mocked out request.Response object (used by the NOAA download path, which has no
+    fetcher and stays on plain requests)."""
 
     def __init__(self, status_code, content=None):
         self.status_code = status_code
-        self.content = content
+        self._content = content
 
     def iter_content(self, chunk_size=1):
         """Mimic requests.Response.iter_content for streaming downloads"""
-        return iter((self.content,)) if self.content else iter(())
+        return iter((self._content,)) if self._content else iter(())
 
     def close(self):
         """Mimic requests.Response.close"""
+
+
+class FakeFetcher:
+    """Stand-in for ECCCUrlFetcher: writes canned content (or raises) instead of hitting
+    the network. Used by patching env_canada.ECCCUrlFetcher with make_fake_fetcher_factory(...)."""
+
+    def __init__(self, content: bytes = b"", ok: bool = True, raises: Exception | None = None):
+        self._content = content
+        self._ok = ok
+        self._raises = raises
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc_info):
+        return False
+
+    async def fetch(self, url, target):
+        if self._raises is not None:
+            raise self._raises
+        if self._ok:
+            with open(target, "wb") as file_object:
+                file_object.write(self._content)
+        return self._ok
+
+    def log_connection_summary(self):
+        pass
+
+
+def make_fake_fetcher_factory(
+    content: bytes = b"", ok: bool = True, raises: Exception | None = None
+):
+    """Return a callable usable as a drop-in replacement for ECCCUrlFetcher's constructor."""
+
+    def factory(*args, **kwargs):
+        return FakeFetcher(content, ok, raises)
+
+    return factory
 
 
 def mock_get_model_run_predictions(*args):

@@ -6,7 +6,6 @@ import sys
 from typing import Optional
 
 import pytest
-import requests
 import weather_model_jobs.common_model_fetchers
 import weather_model_jobs.env_canada
 import weather_model_jobs.utils.process_grib
@@ -14,7 +13,7 @@ import wps_shared.db.crud.weather_models
 import wps_shared.utils.time as time_utils
 from aiohttp import ClientSession
 from sqlalchemy.orm import Session
-from tests.weather_models.test_env_canada_gdps import MockResponse
+from tests.weather_models.test_models_common import make_fake_fetcher_factory
 from wps_shared.db.models.weather_models import (
     PredictionModel,
     PredictionModelRunTimestamp,
@@ -112,29 +111,16 @@ def mock_get_processed_file_record(monkeypatch):
 @pytest.fixture()
 def mock_download(monkeypatch):
     """fixture for env_canada.download"""
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    filename = os.path.join(
+        dirname, "20260602T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT000H.grib2"
+    )
+    with open(filename, "rb") as file:
+        content = file.read()
 
-    def mock_requests_get_rdps(*args, **kwargs):
-        """mock env_canada download method for RDPS"""
-        dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(
-            dirname, "20260602T00Z_MSC_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT000H.grib2"
-        )
-        with open(filename, "rb") as file:
-            content = file.read()
-        return MockResponse(status_code=200, content=content)
-
-    monkeypatch.setattr(requests.Session, "get", mock_requests_get_rdps)
-
-
-@pytest.fixture()
-def mock_download_fail(monkeypatch):
-    """fixture for env_canada.download"""
-
-    def mock_requests_get(*args, **kwargs):
-        """mock env_canada download method"""
-        return MockResponse(status_code=400)
-
-    monkeypatch.setattr(requests, "get", mock_requests_get)
+    monkeypatch.setattr(
+        weather_model_jobs.env_canada, "ECCCUrlFetcher", make_fake_fetcher_factory(content)
+    )
 
 
 def test_get_rdps_download_urls():

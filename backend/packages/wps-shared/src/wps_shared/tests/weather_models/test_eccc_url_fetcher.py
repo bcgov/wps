@@ -3,8 +3,8 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
+import aiohttp
 import pytest
-import requests
 
 from wps_shared.weather_models.eccc_url_fetcher import ECCCUrlFetcher
 
@@ -22,10 +22,34 @@ HPFX_URL = (
 )
 
 
-def _resp(status: int) -> MagicMock:
-    r = MagicMock(spec=requests.Response)
-    r.status_code = status
-    return r
+class _FakeResponse:
+    """Minimal stand-in for aiohttp.ClientResponse, usable as `async with ... as response:`."""
+
+    def __init__(self, status: int, body: bytes = b""):
+        self.status = status
+        self._body = body
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc_info):
+        return False
+
+    @property
+    def content(self):
+        return self
+
+    async def iter_chunked(self, chunk_size):
+        if self._body:
+            yield self._body
+
+    def raise_for_status(self):
+        if self.status >= 400:
+            raise aiohttp.ClientResponseError(MagicMock(), (), status=self.status)
+
+
+def _resp(status: int, body: bytes = b"") -> _FakeResponse:
+    return _FakeResponse(status, body)
 
 
 def _fetcher(now=NOW, hour=MODEL_RUN_HOUR) -> ECCCUrlFetcher:
@@ -58,75 +82,94 @@ class TestCandidates:
         assert "/20260623/" in f._to_hpfx(DD_URL)
 
 
-class TestGet:
+class TestFetch:
+    pytestmark = pytest.mark.anyio
+
     def _fetcher_with_responses(self, responses) -> ECCCUrlFetcher:
         f = _fetcher()
         f._session = MagicMock()
         f._session.get.side_effect = responses
         return f
 
-    def test_returns_hpfx_response_on_success(self):
-        f = self._fetcher_with_responses([_resp(200)])
-        result = f.get(DD_URL)
-        assert result is not None
-        f._session.get.assert_called_once_with(HPFX_URL, timeout=60, stream=True)
+    async def test_returns_true_and_writes_body_on_success(self, tmp_path):
+        target = tmp_path / "out.grib2"
+        f = self._fetcher_with_responses([_resp(200, b"grib bytes")])
+        result = await f.fetch(DD_URL, str(target))
+        assert result is True
+        assert target.read_bytes() == b"grib bytes"
+        f._session.get.assert_called_once_with(HPFX_URL, timeout=aiohttp.ClientTimeout(total=60))
 
-    def test_falls_back_to_dd_on_hpfx_connection_error(self):
-        f = self._fetcher_with_responses([requests.ConnectionError("HPFX down"), _resp(200)])
-        result = f.get(DD_URL)
-        assert result is not None
+    async def test_falls_back_to_dd_on_hpfx_connection_error(self, tmp_path):
+        target = tmp_path / "out.grib2"
+        f = self._fetcher_with_responses(
+            [aiohttp.ClientConnectionError("HPFX down"), _resp(200, b"data")]
+        )
+        result = await f.fetch(DD_URL, str(target))
+        assert result is True
         assert f._session.get.call_count == 2
 
-    def test_falls_back_to_dd_on_hpfx_404(self):
-        f = self._fetcher_with_responses([_resp(404), _resp(200)])
-        result = f.get(DD_URL)
-        assert result is not None
+    async def test_falls_back_to_dd_on_hpfx_404(self, tmp_path):
+        target = tmp_path / "out.grib2"
+        f = self._fetcher_with_responses([_resp(404), _resp(200, b"data")])
+        result = await f.fetch(DD_URL, str(target))
+        assert result is True
         assert f._session.get.call_count == 2
 
-    def test_falls_back_to_dd_on_hpfx_5xx(self):
-        f = self._fetcher_with_responses([_resp(503), _resp(200)])
-        assert f.get(DD_URL) is not None
+    async def test_falls_back_to_dd_on_hpfx_5xx(self, tmp_path):
+        target = tmp_path / "out.grib2"
+        f = self._fetcher_with_responses([_resp(503), _resp(200, b"data")])
+        assert await f.fetch(DD_URL, str(target)) is True
 
-    def test_returns_none_when_all_candidates_404(self):
+    async def test_returns_false_when_all_candidates_404(self, tmp_path):
+        target = tmp_path / "out.grib2"
         f = self._fetcher_with_responses([_resp(404), _resp(404)])
-        assert f.get(DD_URL) is None
+        assert await f.fetch(DD_URL, str(target)) is False
 
-    def test_raises_connection_error_when_all_candidates_fail(self):
-        f = self._fetcher_with_responses([requests.ConnectionError(), requests.ConnectionError()])
-        with pytest.raises(requests.ConnectionError):
-            f.get(DD_URL)
+    async def test_raises_connection_error_when_all_candidates_fail(self, tmp_path):
+        target = tmp_path / "out.grib2"
+        f = self._fetcher_with_responses(
+            [aiohttp.ClientConnectionError(), aiohttp.ClientConnectionError()]
+        )
+        with pytest.raises(aiohttp.ClientConnectionError):
+            await f.fetch(DD_URL, str(target))
 
-    def test_raises_http_error_when_last_candidate_returns_5xx(self):
+    async def test_raises_http_error_when_last_candidate_returns_5xx(self, tmp_path):
+        target = tmp_path / "out.grib2"
         f = self._fetcher_with_responses([_resp(404), _resp(503)])
-        with pytest.raises(requests.HTTPError):
-            f.get(DD_URL)
+        with pytest.raises(aiohttp.ClientResponseError):
+            await f.fetch(DD_URL, str(target))
 
-    def test_custom_timeout_is_passed_to_session(self):
+    async def test_custom_timeout_is_passed_to_session(self, tmp_path):
+        target = tmp_path / "out.grib2"
         f = ECCCUrlFetcher(NOW, MODEL_RUN_HOUR, timeout=30)
         f._session = MagicMock()
-        f._session.get.return_value = _resp(200)
-        f.get(DD_URL)
-        f._session.get.assert_called_once_with(HPFX_URL, timeout=30, stream=True)
+        f._session.get.return_value = _resp(200, b"data")
+        await f.fetch(DD_URL, str(target))
+        f._session.get.assert_called_once_with(HPFX_URL, timeout=aiohttp.ClientTimeout(total=30))
 
-    def test_custom_session_is_used(self):
+    async def test_custom_session_is_used(self, tmp_path):
+        target = tmp_path / "out.grib2"
         session = MagicMock()
-        session.get.return_value = _resp(200)
-        ECCCUrlFetcher(NOW, MODEL_RUN_HOUR, session=session).get(DD_URL)
+        session.get.return_value = _resp(200, b"data")
+        await ECCCUrlFetcher(NOW, MODEL_RUN_HOUR, session=session).fetch(DD_URL, str(target))
         session.get.assert_called_once()
 
 
 class TestConnectionSummary:
+    pytestmark = pytest.mark.anyio
+
     def _fetcher_with_responses(self, responses) -> ECCCUrlFetcher:
         f = _fetcher()
         f._session = MagicMock()
         f._session.get.side_effect = responses
         return f
 
-    def test_summarises_a_host_that_failed_every_attempt(self, caplog):
+    async def test_summarises_a_host_that_failed_every_attempt(self, caplog, tmp_path):
         """The case from the outage: hpfx unreachable, dd serving 404s."""
-        f = self._fetcher_with_responses([requests.ConnectionError(), _resp(404)] * 2)
-        f.get(DD_URL)
-        f.get(DD_URL)
+        target = tmp_path / "out.grib2"
+        f = self._fetcher_with_responses([aiohttp.ClientConnectionError(), _resp(404)] * 2)
+        await f.fetch(DD_URL, str(target))
+        await f.fetch(DD_URL, str(target))
 
         with caplog.at_level("WARNING"):
             f.log_connection_summary()
@@ -134,9 +177,10 @@ class TestConnectionSummary:
         assert "hpfx.collab.science.gc.ca: 2/2 requests failed to connect" in caplog.text
         assert "dd.weather.gc.ca" not in caplog.text
 
-    def test_silent_when_no_connection_failures(self, caplog):
-        f = self._fetcher_with_responses([_resp(200)])
-        f.get(DD_URL)
+    async def test_silent_when_no_connection_failures(self, caplog, tmp_path):
+        target = tmp_path / "out.grib2"
+        f = self._fetcher_with_responses([_resp(200, b"data")])
+        await f.fetch(DD_URL, str(target))
 
         with caplog.at_level("WARNING"):
             f.log_connection_summary()

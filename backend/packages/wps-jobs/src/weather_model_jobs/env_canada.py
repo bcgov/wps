@@ -2,6 +2,7 @@
 https://app.zenhub.com/workspaces/wildfire-predictive-services-5e321393e038fba5bbe203b8/issues/bcgov/wps/1601
 """
 
+import asyncio
 import datetime
 import logging
 import os
@@ -9,7 +10,7 @@ import sys
 import tempfile
 from urllib.parse import urlparse
 
-import requests
+import aiohttp
 import wps_shared.db.database
 import wps_shared.utils.time as time_utils
 from sqlalchemy.orm import Session
@@ -18,11 +19,11 @@ from weather_model_jobs.common_model_fetchers import (
     check_if_model_run_complete,
     flag_file_as_processed,
 )
+from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
-from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from wps_shared.db.crud.weather_models import (
     get_prediction_model,
     get_prediction_run,
@@ -264,7 +265,7 @@ class EnvCanada:
         else:
             raise UnhandledPredictionModelType(f"Unknown model type: {self.model_type}")
 
-    def process_model_run_urls(self, urls, fetcher: ECCCUrlFetcher):
+    async def process_model_run_urls(self, urls, fetcher: ECCCUrlFetcher):
         """Process the urls for a model run."""
         for url in urls:
             try:
@@ -279,7 +280,7 @@ class EnvCanada:
                     model_info = parse_env_canada_filename(url)
                     # download the file:
                     with tempfile.TemporaryDirectory() as temporary_path:
-                        downloaded = download(
+                        downloaded = await download(
                             url,
                             temporary_path,
                             "REDIS_CACHE_ENV_CANADA",
@@ -300,7 +301,7 @@ class EnvCanada:
                             finally:
                                 # delete the file when done.
                                 os.remove(downloaded)
-            except (requests.ConnectionError, requests.Timeout) as exc:
+            except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as exc:
                 self.connection_error_count += 1
                 logger.warning("Connection error for %s: %s", url, exc)
             except Exception:
@@ -310,19 +311,18 @@ class EnvCanada:
                 # as we can.
                 logger.exception("unexpected exception processing %s", url)
 
-    def process_model_run(self, model_run_hour):
+    async def process_model_run(self, model_run_hour):
         """Process a particular model run"""
         logger.info("Processing {} model run {:02d}".format(self.model_type, model_run_hour))
 
         # Get the urls for the current model run.
         urls = get_model_run_urls(self.now, self.model_type, model_run_hour)
 
-        fetcher = ECCCUrlFetcher(self.now, model_run_hour)
+        async with ECCCUrlFetcher(self.now, model_run_hour) as fetcher:
+            # Process all the urls.
+            await self.process_model_run_urls(urls, fetcher)
 
-        # Process all the urls.
-        self.process_model_run_urls(urls, fetcher)
-
-        fetcher.log_connection_summary()
+            fetcher.log_connection_summary()
 
         # Having completed processing, check if we're all done.
         if check_if_model_run_complete(self.session, urls):
@@ -336,11 +336,11 @@ class EnvCanada:
                 self.session, self.model_type, self.projection, self.now, model_run_hour
             )
 
-    def process(self):
+    async def process(self):
         """Entry point for downloading and processing weather model grib files"""
         for hour in get_env_canada_model_run_hours(self.model_type):
             try:
-                self.process_model_run(hour)
+                await self.process_model_run(hour)
             except Exception:
                 # We catch and log exceptions, but keep trying to process.
                 # We intentionally catch a broad exception, as we want to try to process as much as we can.
@@ -364,7 +364,7 @@ def process_models():
 
     with wps_shared.db.database.get_write_session_scope() as session:
         env_canada = EnvCanada(session, model_type)
-        env_canada.process()
+        asyncio.run(env_canada.process())
 
         # interpolate and machine learn everything that needs interpolating.
         model_value_processor = ModelValueProcessor(session)

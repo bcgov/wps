@@ -3,20 +3,19 @@
 import logging
 import os
 import sys
+from unittest.mock import AsyncMock, MagicMock
 
+import aiohttp
 import pytest
-import requests
 import wps_shared.db.crud.weather_models
 import wps_shared.utils.time as time_utils
 from aiohttp import ClientSession
 from sqlalchemy.orm import Session
 from tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 from tests.weather_models.test_models_common import (
-    MockResponse,
+    make_fake_fetcher_factory,
     mock_get_stations,
 )
-from unittest.mock import MagicMock
-
 from weather_model_jobs import common_model_fetchers, env_canada, machine_learning
 from wps_shared.db.models.weather_models import (
     PredictionModel,
@@ -108,29 +107,12 @@ def mock_database(monkeypatch):
 @pytest.fixture()
 def mock_download(monkeypatch):
     """fixture for env_canada.download"""
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    filename = os.path.join(dirname, "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2")
+    with open(filename, "rb") as file:
+        content = file.read()
 
-    def mock_requests_get_gdps(*args, **kwargs):
-        """mock env_canada download method for GDPS"""
-        dirname = os.path.dirname(os.path.realpath(__file__))
-        filename = os.path.join(
-            dirname, "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2"
-        )
-        with open(filename, "rb") as file:
-            content = file.read()
-        return MockResponse(status_code=200, content=content)
-
-    monkeypatch.setattr(requests.Session, "get", mock_requests_get_gdps)
-
-
-@pytest.fixture()
-def mock_download_fail(monkeypatch):
-    """fixture for env_canada.download"""
-
-    def mock_requests_get(*args, **kwargs):
-        """mock env_canada download method"""
-        return MockResponse(status_code=400)
-
-    monkeypatch.setattr(requests, "get", mock_requests_get)
+    monkeypatch.setattr(env_canada, "ECCCUrlFetcher", make_fake_fetcher_factory(content))
 
 
 @pytest.fixture()
@@ -162,17 +144,22 @@ def test_process_gdps(
     assert env_canada.process_models() == 1
 
 
-def test_connection_error_increments_connection_error_count_not_exception_count(monkeypatch):
+@pytest.mark.anyio
+async def test_connection_error_increments_connection_error_count_not_exception_count(monkeypatch):
     """Connection failures from the fetcher should not count as unexpected exceptions."""
     monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
     monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: None)
 
     fetcher = MagicMock()
-    fetcher.get.side_effect = requests.ConnectionError("HPFX and DD both unreachable")
+    fetcher.fetch = AsyncMock(
+        side_effect=aiohttp.ClientConnectionError("HPFX and DD both unreachable")
+    )
 
     canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
-    canada.process_model_run_urls(
-        ["https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"],
+    await canada.process_model_run_urls(
+        [
+            "https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"
+        ],
         fetcher,
     )
 
@@ -180,17 +167,20 @@ def test_connection_error_increments_connection_error_count_not_exception_count(
     assert canada.exception_count == 0
 
 
-def test_http_error_increments_exception_count_not_connection_error_count(monkeypatch):
+@pytest.mark.anyio
+async def test_http_error_increments_exception_count_not_connection_error_count(monkeypatch):
     """HTTP errors (e.g. 503) from the fetcher are unexpected and must count as exceptions."""
     monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
     monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: None)
 
     fetcher = MagicMock()
-    fetcher.get.side_effect = requests.HTTPError("503 Server Error")
+    fetcher.fetch = AsyncMock(side_effect=aiohttp.ClientResponseError(MagicMock(), (), status=503))
 
     canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
-    canada.process_model_run_urls(
-        ["https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"],
+    await canada.process_model_run_urls(
+        [
+            "https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"
+        ],
         fetcher,
     )
 
@@ -224,10 +214,12 @@ def test_process_models_raises_no_files_processed_when_all_downloads_fail(
 ):
     """process_models() raises NoFilesProcessed when every download fails with a connection error."""
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: None)
     monkeypatch.setattr(
-        env_canada, "get_processed_file_record", lambda session, url: None
+        env_canada,
+        "ECCCUrlFetcher",
+        make_fake_fetcher_factory(raises=aiohttp.ClientConnectionError()),
     )
-    monkeypatch.setattr(requests.Session, "get", MagicMock(side_effect=requests.ConnectionError()))
     sys.argv = ["argv", "GDPS"]
     with pytest.raises(NoFilesProcessed):
         env_canada.process_models()
@@ -243,7 +235,7 @@ def test_process_models_delegates_the_verdict_to_judge_run(monkeypatch: pytest.M
     monkeypatch.setattr(env_canada, "ModelValueProcessor", MagicMock())
     monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock())
 
-    def finished_run(self):
+    async def finished_run(self):
         self.files_processed = 7
         self.connection_error_count = 2
         self.exception_count = 0

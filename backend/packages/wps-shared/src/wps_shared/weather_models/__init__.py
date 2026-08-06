@@ -99,7 +99,7 @@ def _filename_from_url(url: str, model_name: str) -> str:
     return original
 
 
-def download(
+async def download(
     url: str,
     path: str,
     config_cache_var: str,
@@ -112,7 +112,6 @@ def download(
     NOTE: was using wget library initially, but has the drawback of not being able to control where the
     temporary files are stored. This is problematic, as giving the application write access to /app
     is a security concern.
-    TODO: Would be nice to make this an async
     """
     target = os.path.join(os.getcwd(), path, _filename_from_url(url, model_name))
 
@@ -133,7 +132,9 @@ def download(
 
     logger.warning("Downloading %s", url)
     if fetcher is not None:
-        response = fetcher.get(url)
+        if not await fetcher.fetch(url, target):
+            logger.info("404 for all candidates: %s", url)
+            return None
     else:
         # stream=True: don't buffer the whole grib file into memory here - it's streamed
         # straight to disk below instead (bcgov/wps#5637).
@@ -145,16 +146,11 @@ def download(
         if raw.status_code != 200:
             raw.close()
             raw.raise_for_status()
-        response = raw
+        with open(target, "wb") as file_object:
+            for chunk in raw.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    file_object.write(chunk)
 
-    if response is None:
-        logger.info("404 for all candidates: %s", url)
-        return None
-
-    with open(target, "wb") as file_object:
-        for chunk in response.iter_content(chunk_size=1024 * 1024):
-            if chunk:
-                file_object.write(chunk)
     if cache:
         try:
             with open(target, "rb") as file_object:

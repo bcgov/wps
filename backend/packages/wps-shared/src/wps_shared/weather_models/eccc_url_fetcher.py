@@ -12,13 +12,14 @@ authoritative source with guaranteed 24/7 Internet redundancy.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from collections import Counter
 from datetime import datetime
 from urllib.parse import urlsplit
 
-import requests
+import aiohttp
 
 from wps_shared.weather_models import adjust_model_day
 
@@ -30,7 +31,14 @@ _DD_TODAY_SEGMENT = "/today/"
 
 class ECCCUrlFetcher:
     """
-    Fetches ECCC GRIB2 files with automatic server fallback.
+    Fetches ECCC GRIB2 files with automatic server fallback, streaming each one
+    straight to disk.
+
+    Used as an async context manager so the underlying aiohttp session is always
+    cleaned up, regardless of which candidate succeeds, fails, or raises:
+
+        async with ECCCUrlFetcher(now, model_run_hour) as fetcher:
+            await fetcher.fetch(url, target_path)
 
     Candidate order:
       1. hpfx.collab.science.gc.ca  — 10× bandwidth, best-effort uptime
@@ -46,7 +54,8 @@ class ECCCUrlFetcher:
     timeout:
         Per-request timeout in seconds.
     session:
-        Optional shared requests.Session (caller owns lifecycle).
+        Optional shared aiohttp.ClientSession (caller owns lifecycle). If omitted,
+        a session is created on __aenter__ and closed on __aexit__.
     """
 
     def __init__(
@@ -54,14 +63,24 @@ class ECCCUrlFetcher:
         now: datetime,
         model_run_hour: int,
         timeout: int = 60,
-        session: requests.Session | None = None,
+        session: aiohttp.ClientSession | None = None,
     ) -> None:
         self._date_str = adjust_model_day(now, model_run_hour).strftime("%Y%m%d")
         self._timeout = timeout
-        self._session = session or requests.Session()
+        self._session = session
+        self._owns_session = session is None
         self._attempts: Counter[str] = Counter()
         self._connection_failures: Counter[str] = Counter()
         self._seconds_lost: Counter[str] = Counter()
+
+    async def __aenter__(self) -> "ECCCUrlFetcher":
+        if self._session is None:
+            self._session = aiohttp.ClientSession()
+        return self
+
+    async def __aexit__(self, *exc_info) -> None:
+        if self._owns_session and self._session is not None:
+            await self._session.close()
 
     def candidates(self, dd_url: str) -> list[str]:
         """Return the ordered list of URLs to try for *dd_url*."""
@@ -72,22 +91,22 @@ class ECCCUrlFetcher:
         _, _, after_today = dd_url.partition(_DD_TODAY_SEGMENT)
         return f"{_HPFX_BASE}/{self._date_str}/WXO-DD/{after_today}"
 
-    def get(self, dd_url: str) -> requests.Response | None:
+    async def fetch(self, dd_url: str, target: str) -> bool:
         """
-        Fetch *dd_url*, trying each candidate in priority order.
+        Fetch *dd_url*, trying each candidate in priority order, streaming the
+        response straight to *target* on disk.
 
         Returns
         -------
-        requests.Response
-            The first successful (HTTP 200) response.
-        None
-            If every candidate returns HTTP 404 (file not yet published).
+        bool
+            True if a candidate returned HTTP 200 and was written to *target*.
+            False if every candidate returned HTTP 404 (file not yet published).
 
         Raises
         ------
-        requests.HTTPError
+        aiohttp.ClientResponseError
             If the final candidate returns a non-404 HTTP error.
-        requests.ConnectionError / requests.Timeout
+        aiohttp.ClientConnectionError / asyncio.TimeoutError
             If every candidate raises a connection-level error and none succeed.
         """
         urls = self.candidates(dd_url)
@@ -98,10 +117,27 @@ class ECCCUrlFetcher:
             self._attempts[host] += 1
             started = time.monotonic()
             try:
-                # stream=True: don't buffer the whole grib file into memory here - the
-                # caller streams it straight to disk (bcgov/wps#5637).
-                response = self._session.get(url, timeout=self._timeout, stream=True)
-            except requests.RequestException as exc:
+                async with self._session.get(
+                    url, timeout=aiohttp.ClientTimeout(total=self._timeout)
+                ) as response:
+                    if response.status == 200:
+                        with open(target, "wb") as file_object:
+                            async for chunk in response.content.iter_chunked(1024 * 1024):
+                                file_object.write(chunk)
+                        logger.info("Downloaded %s", url)
+                        return True
+
+                    if response.status == 404:
+                        logger.debug("404 %s", url)
+                        last_exc = None
+                        continue
+
+                    logger.warning("HTTP %d for %s", response.status, url)
+                    try:
+                        response.raise_for_status()
+                    except aiohttp.ClientResponseError as exc:
+                        last_exc = exc
+            except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as exc:
                 # Not a warning: a single host failing is the case the fallback exists to
                 # handle. The run-level summary reports how often it happened.
                 self._connection_failures[host] += 1
@@ -110,24 +146,10 @@ class ECCCUrlFetcher:
                 last_exc = exc
                 continue
 
-            if response.status_code == 200:
-                logger.info("Downloaded %s", url)
-                return response
-
-            if response.status_code == 404:
-                logger.debug("404 %s", url)
-                response.close()
-                last_exc = None
-                continue
-
-            logger.warning("HTTP %d for %s", response.status_code, url)
-            response.close()
-            last_exc = requests.HTTPError(response=response)
-
         if last_exc is not None:
             raise last_exc
 
-        return None
+        return False
 
     def log_connection_summary(self) -> None:
         """Log per-host connection failures for the requests made so far.
