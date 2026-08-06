@@ -6,11 +6,11 @@ from unittest.mock import patch
 import app.main
 import pytest
 from fastapi.testclient import TestClient
+from wps_shared.db.crud.fcm import DeviceTokenConflictError
 from wps_shared.db.models.fcm import PlatformEnum
 
 DB_SESSION = "app.routers.fcm.get_async_write_session_scope"
-GET_DEVICE_BY_TOKEN = "app.routers.fcm.get_device_by_token"
-GET_DEVICE_BY_DEVICE_ID = "app.routers.fcm.get_device_by_device_id"
+GET_DEVICE_TOKEN_FOR_REGISTRATION = "app.routers.fcm.get_device_token_for_registration"
 SAVE_DEVICE_TOKEN = "app.routers.fcm.save_device_token"
 GET_NOTIFICATION_SETTINGS = "app.routers.fcm.get_notification_settings_for_device"
 UPSERT_NOTIFICATION_SETTINGS = "app.routers.fcm.upsert_notification_settings"
@@ -56,7 +56,15 @@ def test_endpoints_unauthorized(method, endpoint, kwargs, client: TestClient):
 
 
 def _make_device(**kwargs):
-    defaults = {"is_active": False, "device_id": "test_device_id", "token": "existing-fcm-token", "updated_at": datetime(2026, 1, 1), "user_id": None}
+    defaults = {
+        "id": 1,
+        "is_active": False,
+        "device_id": "test_device_id",
+        "token": "existing-fcm-token",
+        "platform": PlatformEnum.android.value,
+        "updated_at": datetime(2026, 1, 1),
+        "user_id": None,
+    }
     return type("", (object,), {**defaults, **kwargs})()
 
 
@@ -68,11 +76,18 @@ def test_register_device_new_token_and_device_id():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_TOKEN, return_value=None),
-            patch(GET_DEVICE_BY_DEVICE_ID, return_value=None),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=None),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
-            response = client.post(API_DEVICE_REGISTER, json={"user_id": "test-user-123", "device_id": "test_device_id", "token": "test-fcm-token-456", "platform": "android"})
+            response = client.post(
+                API_DEVICE_REGISTER,
+                json={
+                    "user_id": "test-user-123",
+                    "device_id": "test_device_id",
+                    "token": "test-fcm-token-456",
+                    "platform": "android",
+                },
+            )
 
             assert response.status_code == 200
             assert response.json()["success"] == True
@@ -88,19 +103,28 @@ def test_register_device_token_found_updates_row():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_TOKEN, return_value=existing),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=existing),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
-            response = client.post(API_DEVICE_REGISTER, json={"user_id": "test-user-123", "device_id": "new_device_id", "token": "existing-fcm-token", "platform": "android"})
+            response = client.post(
+                API_DEVICE_REGISTER,
+                json={
+                    "user_id": "test-user-123",
+                    "device_id": "new_device_id",
+                    "token": "existing-fcm-token",
+                    "platform": "android",
+                },
+            )
 
             assert response.status_code == 200
             assert existing.is_active == True
             assert existing.device_id == "new_device_id"
+            assert existing.platform == PlatformEnum.android.value
             mock_save.assert_not_called()
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-def test_register_device_device_id_found_updates_token():
+def test_register_device_rotates_new_token_on_existing_device():
     """Token not found but device_id matches — updates the token on that row."""
     client = TestClient(app.main.app)
     existing = _make_device(token="old-token", device_id="test_device_id")
@@ -108,15 +132,78 @@ def test_register_device_device_id_found_updates_token():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_TOKEN, return_value=None),
-            patch(GET_DEVICE_BY_DEVICE_ID, return_value=existing),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=existing),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
         ):
-            response = client.post(API_DEVICE_REGISTER, json={"user_id": "test-user-123", "device_id": "test_device_id", "token": "new-rotated-token-xyz", "platform": "android"})
+            response = client.post(
+                API_DEVICE_REGISTER,
+                json={
+                    "user_id": "test-user-123",
+                    "device_id": "test_device_id",
+                    "token": "new-rotated-token-xyz",
+                    "platform": "android",
+                },
+            )
 
             assert response.status_code == 200
             assert existing.token == "new-rotated-token-xyz"
             assert existing.is_active == True
+            mock_save.assert_not_called()
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_register_device_existing_device_and_token_updates_same_row():
+    """An idempotent registration keeps the existing canonical row."""
+    client = TestClient(app.main.app)
+    existing = _make_device()
+
+    with patch(DB_SESSION) as mock_session_scope:
+        mock_session_scope.return_value.__aenter__.return_value
+        with (
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=existing),
+            patch(SAVE_DEVICE_TOKEN) as mock_save,
+        ):
+            response = client.post(
+                API_DEVICE_REGISTER,
+                json={
+                    "user_id": "test-user-123",
+                    "device_id": "test_device_id",
+                    "token": "existing-fcm-token",
+                    "platform": "android",
+                },
+            )
+
+            assert response.status_code == 200
+            assert existing.is_active is True
+            mock_save.assert_not_called()
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_register_device_rejects_conflicting_token_row():
+    """A conflicting token and device mapping is rejected without changing either row."""
+    client = TestClient(app.main.app)
+
+    with patch(DB_SESSION) as mock_session_scope:
+        mock_session_scope.return_value.__aenter__.return_value
+        with (
+            patch(
+                GET_DEVICE_TOKEN_FOR_REGISTRATION,
+                side_effect=DeviceTokenConflictError(1, 2),
+            ),
+            patch(SAVE_DEVICE_TOKEN) as mock_save,
+        ):
+            response = client.post(
+                API_DEVICE_REGISTER,
+                json={
+                    "user_id": "test-user-123",
+                    "device_id": "test_device_id",
+                    "token": "new-token-123",
+                    "platform": "android",
+                },
+            )
+
+            assert response.status_code == 409
+            assert response.json() == {"detail": "Token is already registered to another device"}
             mock_save.assert_not_called()
 
 
@@ -167,8 +254,7 @@ def test_register_device_without_user_id():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_BY_TOKEN, return_value=None),
-            patch(GET_DEVICE_BY_DEVICE_ID, return_value=None),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=None),
             patch(SAVE_DEVICE_TOKEN),
         ):
             response = client.post(API_DEVICE_REGISTER, json=request_data)
@@ -261,11 +347,19 @@ def test_post_notification_settings_flushes_before_read():
     with patch(DB_SESSION) as mock_session_scope:
         mock_session = mock_session_scope.return_value.__aenter__.return_value
         call_order = []
-        async def mock_flush(): call_order.append("flush")
+
+        async def mock_flush():
+            call_order.append("flush")
+
         mock_session.flush = mock_flush
         with (
-            patch(UPSERT_NOTIFICATION_SETTINGS, side_effect=lambda *_: call_order.append("upsert") or True),
-            patch(GET_NOTIFICATION_SETTINGS, side_effect=lambda *_: call_order.append("read") or ["5"]),
+            patch(
+                UPSERT_NOTIFICATION_SETTINGS,
+                side_effect=lambda *_: call_order.append("upsert") or True,
+            ),
+            patch(
+                GET_NOTIFICATION_SETTINGS, side_effect=lambda *_: call_order.append("read") or ["5"]
+            ),
         ):
             response = client.post(
                 API_NOTIFICATION_SETTINGS,

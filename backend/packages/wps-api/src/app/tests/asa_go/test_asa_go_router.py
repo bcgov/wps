@@ -10,7 +10,7 @@ from wps_shared.run_type import RunType
 
 DB_SESSION = "app.routers.fcm.get_async_write_session_scope"
 READ_DB_SESSION = "app.routers.fcm.get_async_read_session_scope"
-GET_DEVICE_TOKEN = "app.routers.fcm.get_device_by_device_id"
+GET_DEVICE_TOKEN_FOR_REGISTRATION = "app.routers.fcm.get_device_token_for_registration"
 SAVE_DEVICE_TOKEN = "app.routers.fcm.save_device_token"
 UPDATE_DEVICE_TOKEN = "app.routers.fcm.update_device_token_is_active"
 GET_NOTIFICATION_SETTINGS = "app.routers.fcm.get_notification_settings_for_device"
@@ -157,7 +157,7 @@ def test_public_register_device_endpoint(client: TestClient):
     with patch(DB_SESSION) as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value
         with (
-            patch(GET_DEVICE_TOKEN, return_value=None),
+            patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=None),
             patch(SAVE_DEVICE_TOKEN),
         ):
             response = client.post("/api/asa-go/device/register", json=request_data)

@@ -1,6 +1,7 @@
-import pytest
 import numpy as np
-from wps_shared.fwi import vectorized_dc
+import pytest
+
+from cffdrs_vec.fwi import vectorized_dc
 
 
 def create_numpy_array(value) -> np.ndarray:

@@ -8,7 +8,7 @@ import { Box, Button, CircularProgress, IconButton, Typography, useMediaQuery, u
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { FireShape } from '@/api/fbaAPI'
-import NotificationErrorSnackbar from '@/components/NotificationErrorSnackbar'
+import NotificationSnackbar from '@/components/NotificationSnackbar'
 import { SwipeableBottomDrawer } from '@/components/SwipeableBottomDrawer'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { useIsTablet } from '@/hooks/useIsTablet'
@@ -100,12 +100,8 @@ const FireShapeActionsDrawer = ({
 
   return (
     <>
-      <NotificationErrorSnackbar
-        open={updateError}
-        onClose={clearUpdateError}
-        message={subscriptionUpdateErrorMessage}
-      />
-      <NotificationErrorSnackbar
+      <NotificationSnackbar open={updateError} onClose={clearUpdateError} message={subscriptionUpdateErrorMessage} />
+      <NotificationSnackbar
         open={isRegistrationFailed && networkStatus.connected && !registrationErrorDismissed}
         onClose={() => setRegistrationErrorDismissed(true)}
         message="Unable to register this device for notifications. Retrying automatically."
