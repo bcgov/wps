@@ -5,7 +5,7 @@ import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { StyledFormControl } from '@wps/ui/StyledFormControl'
 import { SFMS_INSIGHTS_NAME } from '@wps/utils/constants'
-import { getDateTimeNowPST } from '@wps/utils/date'
+import { getDateTimeNowPDT } from '@wps/utils/date'
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import { useEffect, useState } from 'react'
@@ -33,13 +33,13 @@ export const SFMSInsightsPage = () => {
   // state
   const [runType, setRunType] = useState<RunType>(RunType.ACTUAL)
   const [rasterType, setRasterType] = useState<RasterType>('fuel')
-  const [rasterDate, setRasterDate] = useState<DateTime | null>(null)
+  const [rasterDate, setRasterDate] = useState<DateTime | null>(getDateTimeNowPDT())
   const [snowDate, setSnowDate] = useState<DateTime | null>(null)
   const [showSnow, setShowSnow] = useState<boolean>(true)
   const [minDate, setMinDate] = useState<DateTime>(
-    DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPST().year })
+    DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPDT().year })
   )
-  const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPST().plus({ days: 10 }))
+  const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPDT().plus({ days: 10 }))
 
   // selectors
   const sfmsBounds = useSelector(selectSFMSInsightsBounds)
@@ -61,22 +61,23 @@ export const SFMSInsightsPage = () => {
 
   useEffect(() => {
     if (!latestBounds?.maximum) {
-      setRasterDate(null)
+      // keep current snow and the static fuel grid available before seasonal FWI processing starts
+      const today = getDateTimeNowPDT()
+      setRasterDate(currentDate => (currentDate?.toISODate() === today.toISODate() ? currentDate : today))
+      setRasterType('fuel')
       return
     }
 
     const latestDate = DateTime.fromISO(latestBounds.maximum)
     setMaxDate(latestDate)
-    setRasterDate(latestDate)
+    setRasterDate(currentDate => (currentDate?.toISODate() === latestDate.toISODate() ? currentDate : latestDate))
   }, [latestBounds])
 
   useEffect(() => {
     if (earliestBounds?.minimum) {
       setMinDate(DateTime.fromISO(earliestBounds.minimum))
-    } else if (latestBounds?.maximum) {
-      setMinDate(DateTime.fromISO(latestBounds.maximum))
     }
-  }, [earliestBounds, latestBounds])
+  }, [earliestBounds])
 
   useEffect(() => {
     // Only fetch snow data once rasterDate is set

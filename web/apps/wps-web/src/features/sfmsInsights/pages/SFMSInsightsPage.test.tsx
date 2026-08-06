@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
-import { getDateTimeNowPST } from '@wps/utils/date'
+import { getDateTimeNowPDT } from '@wps/utils/date'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import type { Mock } from 'vitest'
@@ -12,7 +12,7 @@ vi.mock('@wps/api/snow', () => ({
 }))
 
 vi.mock('@wps/utils/date', () => ({
-  getDateTimeNowPST: vi.fn()
+  getDateTimeNowPDT: vi.fn()
 }))
 
 vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
@@ -179,8 +179,8 @@ describe('SFMSInsightsPage', () => {
       processedDate: DateTime.fromISO('2025-11-02'),
       snowSource: 'viirs'
     })
-    // Mock getDateTimeNowPST to return a date in 2025
-    ;(getDateTimeNowPST as Mock).mockReturnValue(dateTimeNow)
+    // mock getDateTimeNowPDT to return a date in 2025
+    ;(getDateTimeNowPDT as Mock).mockReturnValue(dateTimeNow)
   })
 
   it('should load rasterDate from SFMS bounds in store', async () => {
@@ -239,7 +239,7 @@ describe('SFMSInsightsPage', () => {
     fireEvent.click(screen.getByRole('option', { name: 'Forecast' }))
 
     await waitFor(() => {
-      expect(screen.getByTestId('current-date')).toHaveTextContent('null')
+      expect(screen.getByTestId('current-date')).toHaveTextContent('2025-11-02')
       expect(screen.getByTestId('date-picker')).toHaveAttribute('data-disabled', 'true')
       expect(screen.getByTestId('raster-type-dropdown')).toHaveAttribute('data-raster-data-available', 'false')
       expect(screen.getByTestId('sfms-map')).toHaveAttribute('data-run-type', 'forecast')
@@ -446,7 +446,7 @@ describe('SFMSInsightsPage', () => {
     })
 
     const currentDate = screen.getByTestId('current-date')
-    expect(currentDate.textContent).toBe('null')
+    expect(currentDate.textContent).toBe('2025-11-02')
     expect(screen.getByTestId('date-picker')).toHaveAttribute('data-disabled', 'true')
 
     // Min/max dates should use default values
@@ -471,7 +471,7 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
-    expect(currentDate.textContent).toBe('null')
+    expect(currentDate.textContent).toBe('2025-11-02')
     expect(datePicker).toHaveAttribute('data-disabled', 'true')
 
     // minDate should be set from bounds
@@ -479,7 +479,7 @@ describe('SFMSInsightsPage', () => {
     expect(minDate.textContent).toBe('2025-05-01')
   })
 
-  it('should limit minDate to the latest date when earliestBounds.minimum is empty', async () => {
+  it('should not set minDate when earliestBounds.minimum is empty', async () => {
     renderWithStore({
       '2025': {
         actual: {
@@ -492,7 +492,7 @@ describe('SFMSInsightsPage', () => {
 
     const minDate = screen.getByTestId('historical-min-date')
 
-    expect(minDate.textContent).toBe('2025-10-15')
+    expect(minDate.textContent).toBe('2025-01-01')
   })
 
   it('should disable date selection when all years have empty maximum', async () => {
@@ -516,7 +516,7 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
-    expect(currentDate.textContent).toBe('null')
+    expect(currentDate.textContent).toBe('2025-11-02')
     expect(datePicker).toHaveAttribute('data-disabled', 'true')
 
     // minDate should be set from 2024 bounds
