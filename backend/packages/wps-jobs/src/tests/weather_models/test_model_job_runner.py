@@ -138,6 +138,22 @@ def test_judge_run_warns_about_connection_errors(caplog):
     assert "5 connection error(s)" in caplog.text
 
 
+def test_judge_run_can_suppress_no_files_verdict():
+    """A caller can delay the ChatOps-producing verdict while retaining a clean exit."""
+    job = FakeJob(files_processed=0, connection_error_count=5, exception_count=0)
+
+    assert (
+        judge_run(job, source=SOURCE, model=MODEL, raise_on_no_files=False) == job.files_processed
+    )
+
+
+def test_suppressing_no_files_verdict_does_not_hide_exceptions():
+    job = FakeJob(files_processed=0, connection_error_count=5, exception_count=1)
+
+    with pytest.raises(CompletedWithSomeExceptions):
+        judge_run(job, source=SOURCE, model=MODEL, raise_on_no_files=False)
+
+
 def test_sys_argv_is_not_read_by_the_runner():
     """The runner takes the model as an argument - it must not reach back into sys.argv."""
     original = sys.argv
