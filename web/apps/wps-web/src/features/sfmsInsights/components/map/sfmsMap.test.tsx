@@ -186,7 +186,7 @@ describe('SFMSMap', () => {
     )
   })
 
-  it('should request a new layer when runType changes', () => {
+  it('should request a new layer for the same date when runType changes', () => {
     const store = makeStore()
     const rasterDate = DateTime.fromISO('2025-11-02')
     const { rerender } = render(

@@ -64,6 +64,34 @@ export const selectSFMSInsightsBoundsLoading = createSelector(
   sfmsInsights => sfmsInsights.sfmsBoundsLoading
 )
 
+const getEarliestDate = (current: string, candidate: string) => {
+  if (!candidate) return current
+  if (!current || candidate < current) return candidate
+  return current
+}
+
+const getLatestDate = (current: string, candidate: string) => {
+  if (!candidate) return current
+  if (!current || candidate > current) return candidate
+  return current
+}
+
+export const selectCombinedSFMSInsightsBounds = createSelector([selectSFMSInsightsBounds], sfmsBounds => {
+  if (!sfmsBounds) return null
+
+  let minimum = ''
+  let maximum = ''
+
+  for (const yearBounds of Object.values(sfmsBounds)) {
+    for (const sourceBounds of Object.values(yearBounds)) {
+      minimum = getEarliestDate(minimum, sourceBounds.minimum)
+      maximum = getLatestDate(maximum, sourceBounds.maximum)
+    }
+  }
+
+  return minimum || maximum ? { minimum, maximum } : null
+})
+
 const findBoundsInOrder = (
   sfmsBounds: SFMSBounds | null | undefined,
   runType: RunType,

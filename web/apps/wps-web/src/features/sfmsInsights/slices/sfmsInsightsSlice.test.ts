@@ -11,6 +11,7 @@ import reducer, {
   getSFMSInsightsBoundsStart,
   getSFMSInsightsBoundsSuccess,
   initialState,
+  selectCombinedSFMSInsightsBounds,
   selectEarliestSFMSInsightsBounds,
   selectLatestSFMSInsightsBounds
 } from './sfmsInsightsSlice'
@@ -138,6 +139,40 @@ describe('SFMS Insights bounds selectors', () => {
       }
     }
   }
+
+  it('selectCombinedSFMSInsightsBounds returns the full Actual and Forecast date range', () => {
+    const state = {
+      sfmsInsights: {
+        ...initialState,
+        sfmsBounds: fullSfmsBounds
+      }
+    }
+
+    expect(selectCombinedSFMSInsightsBounds(state)).toEqual({
+      minimum: '2024-01-01',
+      maximum: '2025-11-05'
+    })
+  })
+
+  it('selectCombinedSFMSInsightsBounds ignores empty boundary values', () => {
+    const state = {
+      sfmsInsights: {
+        ...initialState,
+        sfmsBounds: {
+          '2025': {
+            actual: { minimum: '2025-01-01', maximum: '' },
+            forecast: { minimum: '', maximum: '2025-01-03' }
+          }
+        }
+      }
+    }
+
+    expect(selectCombinedSFMSInsightsBounds(state)).toEqual({
+      minimum: '2025-01-01',
+      maximum: '2025-01-03'
+    })
+  })
+
   it('selectLatestSFMSInsightsBounds returns actual bounds from most recent year', () => {
     const state = {
       sfmsInsights: {
@@ -254,5 +289,6 @@ describe('SFMS Insights bounds selectors', () => {
 
     expect(selectLatestSFMSInsightsBounds(state)).toBeNull()
     expect(selectEarliestSFMSInsightsBounds(state)).toBeNull()
+    expect(selectCombinedSFMSInsightsBounds(state)).toBeNull()
   })
 })

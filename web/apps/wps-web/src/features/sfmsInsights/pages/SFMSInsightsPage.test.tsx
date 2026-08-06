@@ -209,7 +209,7 @@ describe('SFMSInsightsPage', () => {
     expect(screen.getByTestId('sfms-map')).toHaveAttribute('data-run-type', 'actual')
   })
 
-  it('should switch to the latest forecast date and forecast raster data', async () => {
+  it('should keep the selected date when switching to forecast raster data', async () => {
     renderWithStore()
     await waitForPageLoad()
 
@@ -217,10 +217,11 @@ describe('SFMSInsightsPage', () => {
     fireEvent.click(screen.getByRole('option', { name: 'Forecast' }))
 
     await waitFor(() => {
-      expect(screen.getByTestId('current-date')).toHaveTextContent('2025-11-05')
-      expect(screen.getByTestId('historical-min-date')).toHaveTextContent('2025-11-03')
+      expect(screen.getByTestId('current-date')).toHaveTextContent('2025-11-02')
+      expect(screen.getByTestId('historical-min-date')).toHaveTextContent('2024-01-01')
       expect(screen.getByTestId('historical-max-date')).toHaveTextContent('2025-11-05')
       expect(screen.getByTestId('sfms-map')).toHaveAttribute('data-run-type', 'forecast')
+      expect(getMostRecentProcessedSnowByDate).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -250,7 +251,7 @@ describe('SFMSInsightsPage', () => {
     renderWithStore()
     await waitForPageLoad()
 
-    // The date picker should be rendered with max date from SFMS bounds (2025-11-02)
+    // the date picker should use the combined maximum bound (2025-11-05)
     const datePicker = screen.getByTestId('date-picker')
     expect(datePicker).toBeInTheDocument()
   })
@@ -395,15 +396,15 @@ describe('SFMSInsightsPage', () => {
     })
   })
 
-  it('should set maxDate from latestSFMSBounds.maximum', async () => {
+  it('should set maxDate from combined Actual and Forecast bounds', async () => {
     renderWithStore()
     await waitForPageLoad()
 
     const maxDate = screen.getByTestId('historical-max-date')
-    expect(maxDate.textContent).toBe('2025-11-02')
+    expect(maxDate.textContent).toBe('2025-11-05')
   })
 
-  it('should set minDate from earliestSFMSBounds.minimum', async () => {
+  it('should set minDate from combined Actual and Forecast bounds', async () => {
     renderWithStore()
     await waitForPageLoad()
 
@@ -419,10 +420,10 @@ describe('SFMSInsightsPage', () => {
     const maxDate = screen.getByTestId('current-year-max-date')
 
     expect(minDate.textContent).toBe('2024-01-01')
-    expect(maxDate.textContent).toBe('2025-11-02')
+    expect(maxDate.textContent).toBe('2025-11-05')
   })
 
-  it('should update min bounds when latestBounds changes', async () => {
+  it('should update minDate when combined bounds change', async () => {
     renderWithStore({
       '2025': {
         actual: {

@@ -21,7 +21,7 @@ import RunTypeDropdown from '@/features/sfmsInsights/components/RunTypeDropdown'
 import { SfmsInsightsAboutDataContent } from '@/features/sfmsInsights/components/SfmsInsightsAboutDataContent'
 import {
   fetchSFMSInsightsBounds,
-  selectEarliestSFMSInsightsBounds,
+  selectCombinedSFMSInsightsBounds,
   selectLatestSFMSInsightsBounds,
   selectSFMSInsightsBounds,
   selectSFMSInsightsBoundsLoading
@@ -44,11 +44,12 @@ export const SFMSInsightsPage = () => {
   // selectors
   const sfmsBounds = useSelector(selectSFMSInsightsBounds)
   const sfmsBoundsLoading = useSelector(selectSFMSInsightsBoundsLoading)
-  const latestBounds = useSelector((state: RootState) => selectLatestSFMSInsightsBounds(state, runType))
-  const earliestBounds = useSelector((state: RootState) => selectEarliestSFMSInsightsBounds(state, runType))
+  const combinedBounds = useSelector(selectCombinedSFMSInsightsBounds)
+  const latestActualBounds = useSelector((state: RootState) => selectLatestSFMSInsightsBounds(state))
+  const latestSelectedBounds = useSelector((state: RootState) => selectLatestSFMSInsightsBounds(state, runType))
 
   // derived values
-  const rasterDataAvailable = !!latestBounds?.maximum
+  const rasterDataAvailable = !!latestSelectedBounds?.maximum
 
   // effects
   useEffect(() => {
@@ -60,24 +61,20 @@ export const SFMSInsightsPage = () => {
   }, [dispatch, sfmsBounds, sfmsBoundsLoading])
 
   useEffect(() => {
-    if (!latestBounds?.maximum) {
-      // keep current snow and the static fuel grid available before seasonal FWI processing starts
-      const today = getDateTimeNowPDT()
-      setRasterDate(currentDate => (currentDate?.toISODate() === today.toISODate() ? currentDate : today))
-      setRasterType('fuel')
-      return
+    if (latestActualBounds?.maximum) {
+      const latestDate = DateTime.fromISO(latestActualBounds.maximum)
+      setRasterDate(currentDate => (currentDate?.toISODate() === latestDate.toISODate() ? currentDate : latestDate))
     }
-
-    const latestDate = DateTime.fromISO(latestBounds.maximum)
-    setMaxDate(latestDate)
-    setRasterDate(currentDate => (currentDate?.toISODate() === latestDate.toISODate() ? currentDate : latestDate))
-  }, [latestBounds])
+  }, [latestActualBounds])
 
   useEffect(() => {
-    if (earliestBounds?.minimum) {
-      setMinDate(DateTime.fromISO(earliestBounds.minimum))
+    if (combinedBounds?.maximum) {
+      setMaxDate(DateTime.fromISO(combinedBounds.maximum))
     }
-  }, [earliestBounds])
+    if (combinedBounds?.minimum) {
+      setMinDate(DateTime.fromISO(combinedBounds.minimum))
+    }
+  }, [combinedBounds])
 
   useEffect(() => {
     // Only fetch snow data once rasterDate is set
@@ -98,12 +95,6 @@ export const SFMSInsightsPage = () => {
 
     fetchLastProcessedSnow(rasterDate)
   }, [rasterDate])
-
-  // handlers
-  const updateRunType = (newRunType: RunType) => {
-    setRasterDate(null)
-    setRunType(newRunType)
-  }
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -147,7 +138,7 @@ export const SFMSInsightsPage = () => {
           )}
           <Grid>
             <StyledFormControl>
-              <RunTypeDropdown selectedRunType={runType} setSelectedRunType={updateRunType} />
+              <RunTypeDropdown selectedRunType={runType} setSelectedRunType={setRunType} />
             </StyledFormControl>
           </Grid>
           <Grid>
