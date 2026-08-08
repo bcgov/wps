@@ -13,7 +13,7 @@ runs:
         curl -s https://api64.ipify.org
 
     - name: Install OpenShift CLI tools
-      uses: redhat-actions/openshift-tools-installer@v1
+      uses: redhat-actions/openshift-tools-installer@v2
       with:
         oc: "4.14"
         skip_cache: true
