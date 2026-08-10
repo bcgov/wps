@@ -102,7 +102,7 @@ rules:
       - patch
 ```
 
-## Used token to create appropraite token in github
+## Used token to create appropriate token in github
 
 - Create service account in tools
 

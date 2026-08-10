@@ -46,7 +46,7 @@ In the rare case where the multi-instance primary cluster is unrecoverable a rep
 ![Repo-based Standby Architecture](repo-standby-overview.png)
 Source: <https://access.crunchydata.com/documentation/postgres-operator/latest/architecture/disaster-recovery#repo-based-standby>
 
-When the repo-standby is spun, it reads and applies the WAL in order to replicate the state of the database and runs as it's own cluster, separate from the primary.
+When the repo-standby is spun up, it reads and applies the WAL in order to replicate the state of the database and runs as its own cluster, separate from the primary.
 
 Spin up the Repo-Standby Cluster with:
 `PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> bash openshift/scripts/oc_provision_crunchy_standby.sh <suffix> apply`
@@ -56,9 +56,9 @@ Spin up the Repo-Standby Cluster with:
 ##### Promoting a Standby Cluster
 
 Once a standby is stood up, it can be promoted to be the primary cluster. **Note: only do this if the existing primary has been shut down first.**
-You can shutdown the primary cluster with this command:  
+You can shut down the primary cluster with this command:  
 `kubectl patch postgrescluster/<cluster-name> --type merge --patch '{"spec":{"shutdown": true}}'`  
-You can determine that the cluster is fully shutdown when there are no StatefulSet pods running for that cluster.
+You can determine that the cluster is fully shut down when there are no StatefulSet pods running for that cluster.
 
 Promote the standby cluster by editing the [crunchy_standby.yaml](../../openshift/templates/crunchy_standby.yaml) to set the `standby` field to `false`.
 You can determine that promotion has completed when the logs of the standby StatefulSet show a leader has been elected.
@@ -67,7 +67,7 @@ More details here: <https://access.crunchydata.com/documentation/postgres-operat
 
 ##### Database user privileges
 
-The promoted standby cluster created it's own secrets for connecting to pgbouncer and it has created a new user in the database with the same name as the cluster. Ex. if the standby cluster is named "wps-crunchy-16-20241210", the user will have the same name (this user won't be created until the standby is promoted).
+The promoted standby cluster created its own secrets for connecting to pgbouncer and it has created a new user in the database with the same name as the cluster. Ex. if the standby cluster is named "wps-crunchy-16-20241210", the user will have the same name (this user won't be created until the standby is promoted).
 Once the standby has been promoted, the easiest way to update user privileges is to reassign table ownership from the old user to the new user:  
 `REASSIGN OWNED BY "<old-user>" TO "<new-user>";`  
 Use `\du` in psql to see users in the database.
@@ -92,7 +92,7 @@ PROJ_TARGET=<namespace-license-plate> BUCKET=<s3-bucket> CPU_REQUEST=75m MEMORY_
 
 ##### Set superuser permissions in new cluster via OpenShift web GUI
 
-Login to the OpenShift UI and use `patronictl list` to identify the new cluster's leader pod. The role to update will be something like `wps-crunchydb-16-<suffix>`. You can confirm the role by exploring the pg_roles table with:
+Log in to the OpenShift UI and use `patronictl list` to identify the new cluster's leader pod. The role to update will be something like `wps-crunchydb-16-<suffix>`. You can confirm the role by exploring the pg_roles table with:
 `psql -c "SELECT * FROM pg_roles"`.
 Access the terminal of the leader pod and execute:
 `psql -c 'ALTER ROLE "<wps-crunchydb-username>" SUPERUSER'`
@@ -124,7 +124,7 @@ PGPASSWORD=$PGPASSWORD psql -U $PGUSER -d wps -h localhost < wps-crunchydb-sql-d
 ##### Remove superuser privileges from pguser
 
 This step is required as pgbouncer will not connect to the cluster/database with a superuser.
-Login to the OpenShift UI and use `patronictl list` to identify the new cluster's leader pod. Access the terminal of the leader pod and execute:
+Log in to the OpenShift UI and use `patronictl list` to identify the new cluster's leader pod. Access the terminal of the leader pod and execute:
 `psql -c 'ALTER ROLE "<wps-crunchydb-username>" NOSUPERUSER'`
 
 ##### Update the prod deployment to use the new crunchydb cluster and pguser secret

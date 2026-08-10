@@ -8,7 +8,7 @@ This information was pulled from the sample HFI calculator spreadsheet "__20 HFI
 
 Information for fuel type layer C6 is missing from the sample workbook.
 
-These formulae are based on the formulae used in the sample workbook. The formulae listed in this document should be verified against other sources to confirm that formula interpolation has been performed correctly, and that the formula used in the reference workbook are correct. (Given the complex nature of some of the formulae, it is highly possible that mistakes have been made somewhere.)
+These formulae are based on the formulae used in the sample workbook. The formulae listed in this document should be verified against other sources to confirm that formula interpolation has been performed correctly, and that the formulae used in the reference workbook are correct. (Given the complex nature of some of the formulae, it is highly possible that mistakes have been made somewhere.)
 
 ## Missing Data (that we definitely need)
 

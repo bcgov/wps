@@ -14,7 +14,7 @@ The durable consumer we care about is `hfi_classify`.
 
 ### 1. Check existing config
 
-First, login to the openshift cli and start a temporary NATS toolbox pod
+First, log in to the openshift cli and start a temporary NATS toolbox pod
 
 ```bash
 oc -n <namespace> run nats-box --rm -it --restart=Never --image=natsio/nats-box -- sh

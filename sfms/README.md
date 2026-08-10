@@ -6,7 +6,7 @@ This project contains a script that is intended to be run on the SFMS windows se
 
 The python script in this project, `sfms.py` is targeted at python 2.7, since the SFMS server is running python 2.7.
 
-The python script, `sfms.py` does not require any external dependencies. [Python 2.7 is deprected](https://www.python.org/doc/sunset-python-2/) so we can't rely on pip being able to install any external dependencies.
+The python script, `sfms.py` does not require any external dependencies. [Python 2.7 is deprecated](https://www.python.org/doc/sunset-python-2/) so we can't rely on pip being able to install any external dependencies.
 
 ## Run
 
@@ -20,10 +20,10 @@ python sfms.py config.ini
 
 ## Configuration
 
-The `config.ini` must be specifed, and has three fields that need to be configured:
+The `config.ini` must be specified, and has three fields that need to be configured:
 
 - secret: This is a shared secret (password) between the SFMS server and the PSU API. If the secret does not match, then the PSU API will reject the request.
-- source: this the directory where the geotiffs are located. All *.tif and *.tiff files in this directory will be uploaded.
+- source: this is the directory where the geotiffs are located. All *.tif and *.tiff files in this directory will be uploaded.
 - url: this is the url of the PSU API endpoint to which the script will post the geotiffs.
 
 e.g.:
@@ -53,7 +53,7 @@ On M1, `pyenv install 2.7.18` fails, and will never pass (they're not going to b
 
 #### TODO: `pyenv install 2.7.18` and all subsequent commands above worked fine on my M1. Maybe it has been fixed after all?? Confirm with other devs
 
-You CAN however try run a universal binary in x86_64 mode, and get it to work that way!
+You CAN however try to run a universal binary in x86_64 mode, and get it to work that way!
 
 ```bash
 arch -x86_64 /bin/bash 

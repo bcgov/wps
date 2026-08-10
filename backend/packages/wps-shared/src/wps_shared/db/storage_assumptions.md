@@ -7,7 +7,7 @@
 
 ## Assumptions
 
-- Optimization by a factor of 10 on env-canada job should be feasable.
+- Optimization by a factor of 10 on env-canada job should be feasible.
 - Compression ratio for backup will remain consistent.
 - Forecast data has very little room for optimization.
 
