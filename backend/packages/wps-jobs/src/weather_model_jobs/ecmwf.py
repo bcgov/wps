@@ -133,7 +133,11 @@ class ECMWF:
                     status_code not in RETRYABLE_HTTP_STATUS_CODES
                     or attempt == MAX_DOWNLOAD_ATTEMPTS - 1
                 ):
-                    raise
+                    error_detail = f"HTTP {status_code}" if status_code else str(exception)
+                    raise RuntimeError(
+                        f"ECMWF forecast {url} failed on attempt "
+                        f"{attempt + 1}/{MAX_DOWNLOAD_ATTEMPTS}: {error_detail}"
+                    ) from exception
 
                 delay = INITIAL_RETRY_DELAY_SECONDS * 2**attempt
                 delay += random.uniform(0, INITIAL_RETRY_DELAY_SECONDS)

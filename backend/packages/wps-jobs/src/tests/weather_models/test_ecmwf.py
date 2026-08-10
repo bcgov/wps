@@ -246,7 +246,9 @@ def test_ecmwf_retries_503_with_backoff(mock_herbie_instance, mocker: MockerFixt
     mock_repository.mark_url_as_processed.assert_called_once()
 
 
-def test_ecmwf_stops_retrying_503_after_max_attempts(mock_herbie_instance, mocker: MockerFixture):
+def test_ecmwf_stops_retrying_503_after_max_attempts(
+    mock_herbie_instance, mocker: MockerFixture, caplog
+):
     response = MagicMock(status_code=503)
     http_error = RuntimeError("503 Server Error: Slow Down")
     http_error.response = response
@@ -274,6 +276,7 @@ def test_ecmwf_stops_retrying_503_after_max_attempts(mock_herbie_instance, mocke
     assert ecmwf.files_processed == 0
     assert ecmwf.exception_count == 1
     mock_repository.mark_url_as_processed.assert_not_called()
+    assert "ECMWF forecast /path/to/mock/file.grib failed on attempt 4/4: HTTP 503" in caplog.text
 
 
 def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerFixture):
