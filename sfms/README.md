@@ -31,7 +31,7 @@ e.g.:
 ```config.ini
 secret=secret
 source=/home/user/sfms
-destination=https://psu.nrs.gov.bc.ca/api/sfms/upload
+url=https://psu.nrs.gov.bc.ca/api/sfms/upload
 ```
 
 ## Developer notes
