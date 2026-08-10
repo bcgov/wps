@@ -44,7 +44,7 @@ yarn build
    - Set `$ANDROID_HOME` to the path of the Android SDK
 3. Go to `mobile/asa-go`
 4. Run `APP_ENV=dev yarn cap:sync:android:dev` or `APP_ENV=prod yarn cap:sync:android:prod`
-5. If you are building from Android Studio, open the [`android`](/Users/breedwar/projects/other/wps/mobile/asa-go/android) project and choose the matching build variant in the `Build Variants` tool window:
+5. If you are building from Android Studio, open the [`android`](android) project and choose the matching build variant in the `Build Variants` tool window:
    - `devDebug` or `devRelease` after a dev sync
    - `prodDebug` or `prodRelease` after a prod sync
 6. Build and run with live reload: `APP_ENV=dev ionic capacitor run android -l --external` or `APP_ENV=prod ionic capacitor run android -l --external`
