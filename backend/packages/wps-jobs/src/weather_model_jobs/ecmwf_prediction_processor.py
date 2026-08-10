@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 from weather_model_jobs import ModelEnum
+from weather_model_jobs.ecmwf_hours import get_ecmwf_forecast_hours
 from weather_model_jobs.machine_learning import StationMachineLearning
 from weather_model_jobs.utils.interpolate import (
     SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION,
@@ -64,6 +65,13 @@ class ECMWFPredictionProcessor:
         self, model_run: PredictionModelRunTimestamp, station: WeatherStation
     ):
         """Process the model run for the provided station."""
+        # Get all the predictions associated to this particular model run.
+        model_run_predictions: List[ModelRunPrediction] = (
+            self.model_run_repository.get_model_run_predictions_for_station(station.code, model_run)
+        )
+        if not self._has_expected_timestamp_coverage(model_run, station, model_run_predictions):
+            return
+
         # Extract the coordinate.
         coordinate = [station.long, station.lat]
         machine = StationMachineLearning(
@@ -74,11 +82,6 @@ class ECMWFPredictionProcessor:
             max_learn_date=model_run.prediction_run_timestamp,
         )
         machine.learn()
-
-        # Get all the predictions associated to this particular model run.
-        model_run_predictions: List[ModelRunPrediction] = (
-            self.model_run_repository.get_model_run_predictions_for_station(station.code, model_run)
-        )
 
         # Iterate through all the predictions.
         prev_prediction: ModelRunPrediction | None = None
@@ -109,6 +112,36 @@ class ECMWFPredictionProcessor:
             self.model_run_repository.store_weather_station_model_prediction(station_prediction)
 
             prev_prediction = prediction
+
+    @staticmethod
+    def _has_expected_timestamp_coverage(
+        model_run: PredictionModelRunTimestamp,
+        station: WeatherStation,
+        predictions: List[ModelRunPrediction],
+    ) -> bool:
+        expected_timestamps = {
+            model_run.prediction_run_timestamp + timedelta(hours=hour)
+            for hour in get_ecmwf_forecast_hours()
+        }
+        actual_timestamps = {prediction.prediction_timestamp for prediction in predictions}
+        missing_timestamps = expected_timestamps - actual_timestamps
+        unexpected_timestamps = actual_timestamps - expected_timestamps
+
+        if not missing_timestamps and not unexpected_timestamps:
+            return True
+
+        logger.error(
+            "Skipping incomplete ECMWF predictions for model run %s, station %s:%s: "
+            "expected=%s, actual=%s, missing=%s, unexpected=%s",
+            model_run.id,
+            station.code,
+            station.name,
+            len(expected_timestamps),
+            len(actual_timestamps),
+            len(missing_timestamps),
+            len(unexpected_timestamps),
+        )
+        return False
 
     def _should_interpolate(
         self, prev_prediction: ModelRunPrediction, prediction: ModelRunPrediction

@@ -77,6 +77,7 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     # Mock methods
     processor._apply_bias_adjustments = MagicMock()
     processor._apply_interpolated_bias_adjustments = MagicMock()
+    mocker.patch.object(processor, "_has_expected_timestamp_coverage", return_value=True)
 
     # Call the method
     processor._process_model_run_for_station(model_run, station)
@@ -97,6 +98,47 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     # 2nd call to initialize_station_prediction constructs the noon prediction, and does not use prev or next prediction
     assert initialize_station_prediction_spy.call_args_list[1][0][1] != model_run_predictions[0]
     assert initialize_station_prediction_spy.call_args_list[1][0][1] != model_run_predictions[1]
+
+
+def test_process_model_run_for_station_skips_incomplete_coverage(
+    setup_processor, mocker: MockerFixture, caplog
+):
+    processor, model_run_repository = setup_processor
+    station = WeatherStation(code=6216, long=-121.0, lat=51.0, name="QD 15 CHASM")
+    model_run = MagicMock(spec=PredictionModelRunTimestamp)
+    model_run.id = 34817
+    model_run.prediction_run_timestamp = datetime(2026, 8, 8, tzinfo=timezone.utc)
+    model_run_predictions = [
+        ModelRunPrediction(
+            prediction_timestamp=model_run.prediction_run_timestamp + timedelta(hours=hour)
+        )
+        for hour in [69, 75, 81, 84, 144, 162]
+    ]
+    model_run_repository.get_model_run_predictions_for_station.return_value = model_run_predictions
+    station_machine_learning = mocker.patch(
+        "weather_model_jobs.ecmwf_prediction_processor.StationMachineLearning"
+    )
+
+    processor._process_model_run_for_station(model_run, station)
+
+    station_machine_learning.assert_not_called()
+    model_run_repository.store_weather_station_model_prediction.assert_not_called()
+    assert "expected=65, actual=6, missing=59, unexpected=0" in caplog.text
+
+
+def test_expected_timestamp_coverage_accepts_complete_run(setup_processor):
+    processor, _ = setup_processor
+    station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
+    model_run = MagicMock(spec=PredictionModelRunTimestamp)
+    model_run.prediction_run_timestamp = datetime(2026, 8, 8, tzinfo=timezone.utc)
+    predictions = [
+        ModelRunPrediction(
+            prediction_timestamp=model_run.prediction_run_timestamp + timedelta(hours=hour)
+        )
+        for hour in weather_model_jobs.ecmwf_prediction_processor.get_ecmwf_forecast_hours()
+    ]
+
+    assert processor._has_expected_timestamp_coverage(model_run, station, predictions)
 
 
 @pytest.mark.parametrize(
