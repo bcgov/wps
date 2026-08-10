@@ -246,7 +246,7 @@ def test_ecmwf_retries_503_with_backoff(mock_herbie_instance, mocker: MockerFixt
     mock_repository.mark_url_as_processed.assert_called_once()
 
 
-def test_ecmwf_stops_retrying_503_after_max_attempts(
+def test_ecmwf_stops_retrying_503_after_max_retries(
     mock_herbie_instance, mocker: MockerFixture, caplog
 ):
     response = MagicMock(status_code=503)
@@ -271,12 +271,12 @@ def test_ecmwf_stops_retrying_503_after_max_attempts(
     ecmwf = ECMWF("/tmp", stations, mock_repository)
     ecmwf.process_model_run(0)
 
-    assert transformer.call_count == weather_model_jobs.ecmwf.MAX_DOWNLOAD_ATTEMPTS
+    assert transformer.call_count == 4
     assert [call.args[0] for call in sleep.call_args_list] == [2, 4, 8]
     assert ecmwf.files_processed == 0
     assert ecmwf.exception_count == 1
     mock_repository.mark_url_as_processed.assert_not_called()
-    assert "ECMWF forecast /path/to/mock/file.grib failed on attempt 4/4: HTTP 503" in caplog.text
+    assert "ECMWF forecast /path/to/mock/file.grib failed after 3 retries: HTTP 503" in caplog.text
 
 
 def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerFixture):

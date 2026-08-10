@@ -40,7 +40,7 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 RETRYABLE_HTTP_STATUS_CODES = {429, 503}
-MAX_DOWNLOAD_ATTEMPTS = 4
+MAX_DOWNLOAD_RETRIES = 3
 INITIAL_RETRY_DELAY_SECONDS = 2
 
 
@@ -124,31 +124,31 @@ class ECMWF:
         prediction_run: PredictionModelRunTimestamp,
         url: str,
     ):
-        for attempt in range(MAX_DOWNLOAD_ATTEMPTS):
+        retries = 0
+        while True:
             try:
                 return self._process_forecast(herbie_instance, model_info, prediction_run)
             except Exception as exception:
                 status_code = self._get_http_status_code(exception)
                 if (
                     status_code not in RETRYABLE_HTTP_STATUS_CODES
-                    or attempt == MAX_DOWNLOAD_ATTEMPTS - 1
+                    or retries == MAX_DOWNLOAD_RETRIES
                 ):
                     error_detail = f"HTTP {status_code}" if status_code else str(exception)
                     raise RuntimeError(
-                        f"ECMWF forecast {url} failed on attempt "
-                        f"{attempt + 1}/{MAX_DOWNLOAD_ATTEMPTS}: {error_detail}"
+                        f"ECMWF forecast {url} failed after {retries} retries: {error_detail}"
                     ) from exception
 
-                delay = INITIAL_RETRY_DELAY_SECONDS * 2**attempt
+                delay = INITIAL_RETRY_DELAY_SECONDS * 2**retries
                 delay += random.uniform(0, INITIAL_RETRY_DELAY_SECONDS)
+                retries += 1
                 logger.warning(
-                    "ECMWF request for %s returned HTTP %s; retrying in %.1f seconds "
-                    "(attempt %s/%s)",
+                    "ECMWF request for %s returned HTTP %s; retrying in %.1f seconds (retry %s/%s)",
                     url,
                     status_code,
                     delay,
-                    attempt + 2,
-                    MAX_DOWNLOAD_ATTEMPTS,
+                    retries,
+                    MAX_DOWNLOAD_RETRIES,
                 )
                 time.sleep(delay)
 
