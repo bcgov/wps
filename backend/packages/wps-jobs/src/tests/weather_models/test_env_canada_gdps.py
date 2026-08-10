@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
 
 import pytest
 import requests
@@ -16,8 +17,6 @@ from tests.weather_models.test_models_common import (
     MockResponse,
     mock_get_stations,
 )
-from unittest.mock import MagicMock
-
 from weather_model_jobs import common_model_fetchers, env_canada, machine_learning
 from wps_shared.db.models.weather_models import (
     PredictionModel,
@@ -26,7 +25,6 @@ from wps_shared.db.models.weather_models import (
 )
 from wps_shared.tests.common import default_mock_client_get
 from wps_shared.weather_models import (
-    CompletedWithSomeExceptions,
     ModelEnum,
     NoFilesProcessed,
 )
@@ -35,17 +33,17 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.parametrize("model_run_hour", [0, 6, 12, 18])
-def test_no_files_warning_is_due_four_hours_after_model_run(model_run_hour: int):
+def test_no_files_warning_is_due_n_hours_after_model_run(model_run_hour: int):
     model_run = datetime(2026, 6, 2, model_run_hour, tzinfo=timezone.utc)
 
     assert not env_canada.is_no_files_warning_due(
         model_run,
-        model_run + timedelta(hours=3, minutes=59),
+        model_run + env_canada.NO_FILES_WARNING_DELAY - timedelta(minutes=1),
         model_run_hour,
     )
     assert env_canada.is_no_files_warning_due(
         model_run,
-        model_run + timedelta(hours=4),
+        model_run + env_canada.NO_FILES_WARNING_DELAY,
         model_run_hour,
     )
 
@@ -58,20 +56,21 @@ def test_no_files_warning_uses_the_run_targeted_when_the_job_started():
 
 
 @pytest.mark.parametrize(
-    ("complete", "warning_time", "expected_overdue"),
+    ("complete", "elapsed", "expected_overdue"),
     [
-        (True, datetime(2026, 6, 2, 16, tzinfo=timezone.utc), False),
-        (False, datetime(2026, 6, 2, 15, 59, tzinfo=timezone.utc), False),
-        (False, datetime(2026, 6, 2, 16, tzinfo=timezone.utc), True),
+        (True, env_canada.NO_FILES_WARNING_DELAY, False),
+        (False, env_canada.NO_FILES_WARNING_DELAY - timedelta(minutes=1), False),
+        (False, env_canada.NO_FILES_WARNING_DELAY, True),
     ],
 )
-def test_model_run_must_be_incomplete_and_four_hours_old_to_warn(
+def test_model_run_must_be_incomplete_and_past_warning_delay_to_warn(
     monkeypatch: pytest.MonkeyPatch,
     complete: bool,
-    warning_time: datetime,
+    elapsed: timedelta,
     expected_overdue: bool,
 ):
     model_run = datetime(2026, 6, 2, 12, tzinfo=timezone.utc)
+    warning_time = model_run + elapsed
     monkeypatch.setattr(time_utils, "get_utc_now", lambda: model_run)
     monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
     monkeypatch.setattr(env_canada, "get_model_run_urls", lambda *args: ["url"])

@@ -50,7 +50,7 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 SOURCE = "Env Canada"
-NO_FILES_WARNING_DELAY = datetime.timedelta(hours=4)
+NO_FILES_WARNING_DELAY = datetime.timedelta(hours=5)
 
 
 def is_no_files_warning_due(
