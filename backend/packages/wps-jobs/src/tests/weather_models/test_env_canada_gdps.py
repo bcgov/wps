@@ -3,6 +3,8 @@
 import logging
 import os
 import sys
+from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
 
 import pytest
 import requests
@@ -15,8 +17,6 @@ from tests.weather_models.test_models_common import (
     MockResponse,
     mock_get_stations,
 )
-from unittest.mock import MagicMock
-
 from weather_model_jobs import common_model_fetchers, env_canada, machine_learning
 from wps_shared.db.models.weather_models import (
     PredictionModel,
@@ -25,12 +25,66 @@ from wps_shared.db.models.weather_models import (
 )
 from wps_shared.tests.common import default_mock_client_get
 from wps_shared.weather_models import (
-    CompletedWithSomeExceptions,
     ModelEnum,
     NoFilesProcessed,
 )
 
 logger = logging.getLogger(__name__)
+
+
+@pytest.mark.parametrize("model_run_hour", [0, 6, 12, 18])
+def test_no_files_warning_is_due_n_hours_after_model_run(model_run_hour: int):
+    model_run = datetime(2026, 6, 2, model_run_hour, tzinfo=timezone.utc)
+
+    assert not env_canada.is_no_files_warning_due(
+        model_run,
+        model_run + env_canada.NO_FILES_WARNING_DELAY - timedelta(minutes=1),
+        model_run_hour,
+    )
+    assert env_canada.is_no_files_warning_due(
+        model_run,
+        model_run + env_canada.NO_FILES_WARNING_DELAY,
+        model_run_hour,
+    )
+
+
+def test_no_files_warning_uses_the_run_targeted_when_the_job_started():
+    job_started = datetime(2026, 6, 2, 17, tzinfo=timezone.utc)
+    job_finished = datetime(2026, 6, 2, 18, 30, tzinfo=timezone.utc)
+
+    assert env_canada.is_no_files_warning_due(job_started, job_finished, 12)
+
+
+@pytest.mark.parametrize(
+    ("complete", "elapsed", "expected_overdue"),
+    [
+        (True, env_canada.NO_FILES_WARNING_DELAY, False),
+        (False, env_canada.NO_FILES_WARNING_DELAY - timedelta(minutes=1), False),
+        (False, env_canada.NO_FILES_WARNING_DELAY, True),
+    ],
+)
+def test_model_run_must_be_incomplete_and_past_warning_delay_to_warn(
+    monkeypatch: pytest.MonkeyPatch,
+    complete: bool,
+    elapsed: timedelta,
+    expected_overdue: bool,
+):
+    model_run = datetime(2026, 6, 2, 12, tzinfo=timezone.utc)
+    warning_time = model_run + elapsed
+    monkeypatch.setattr(time_utils, "get_utc_now", lambda: model_run)
+    monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
+    monkeypatch.setattr(env_canada, "get_model_run_urls", lambda *args: ["url"])
+    monkeypatch.setattr(env_canada, "ECCCUrlFetcher", lambda *args: MagicMock())
+    monkeypatch.setattr(env_canada, "check_if_model_run_complete", lambda *args: complete)
+    monkeypatch.setattr(env_canada, "mark_prediction_model_run_processed", MagicMock())
+
+    canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
+    canada.process_model_run_urls = MagicMock()
+    monkeypatch.setattr(time_utils, "get_utc_now", lambda: warning_time)
+
+    canada.process_model_run(12)
+
+    assert canada.has_overdue_incomplete_model_run is expected_overdue
 
 
 @pytest.fixture()
@@ -172,7 +226,9 @@ def test_connection_error_increments_connection_error_count_not_exception_count(
 
     canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
     canada.process_model_run_urls(
-        ["https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"],
+        [
+            "https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"
+        ],
         fetcher,
     )
 
@@ -190,7 +246,9 @@ def test_http_error_increments_exception_count_not_connection_error_count(monkey
 
     canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
     canada.process_model_run_urls(
-        ["https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"],
+        [
+            "https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"
+        ],
         fetcher,
     )
 
@@ -224,10 +282,13 @@ def test_process_models_raises_no_files_processed_when_all_downloads_fail(
 ):
     """process_models() raises NoFilesProcessed when every download fails with a connection error."""
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
-    monkeypatch.setattr(
-        env_canada, "get_processed_file_record", lambda session, url: None
-    )
+    monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: None)
     monkeypatch.setattr(requests.Session, "get", MagicMock(side_effect=requests.ConnectionError()))
+    monkeypatch.setattr(
+        time_utils,
+        "get_utc_now",
+        lambda: datetime(2026, 6, 2, 4, tzinfo=timezone.utc),
+    )
     sys.argv = ["argv", "GDPS"]
     with pytest.raises(NoFilesProcessed):
         env_canada.process_models()
@@ -237,7 +298,11 @@ def test_process_models_raises_no_files_processed_when_all_downloads_fail(
 # test_model_job_runner.py. All this job has to get right is the wiring.
 
 
-def test_process_models_delegates_the_verdict_to_judge_run(monkeypatch: pytest.MonkeyPatch):
+@pytest.mark.parametrize("raise_on_no_files", [False, True])
+def test_process_models_delegates_the_verdict_to_judge_run(
+    monkeypatch: pytest.MonkeyPatch,
+    raise_on_no_files: bool,
+):
     """process_models() must hand its counters to judge_run and return the result."""
     monkeypatch.setattr("wps_shared.db.database.get_write_session_scope", MagicMock())
     monkeypatch.setattr(env_canada, "ModelValueProcessor", MagicMock())
@@ -247,6 +312,7 @@ def test_process_models_delegates_the_verdict_to_judge_run(monkeypatch: pytest.M
         self.files_processed = 7
         self.connection_error_count = 2
         self.exception_count = 0
+        self.has_overdue_incomplete_model_run = raise_on_no_files
 
     monkeypatch.setattr(env_canada.EnvCanada, "process", finished_run)
     judge_run = MagicMock(return_value=7)
@@ -257,7 +323,11 @@ def test_process_models_delegates_the_verdict_to_judge_run(monkeypatch: pytest.M
 
     job = judge_run.call_args.args[0]
     assert (job.files_processed, job.connection_error_count, job.exception_count) == (7, 2, 0)
-    assert judge_run.call_args.kwargs == {"source": "Env Canada", "model": "GDPS"}
+    assert judge_run.call_args.kwargs == {
+        "source": "Env Canada",
+        "model": "GDPS",
+        "raise_on_no_files": raise_on_no_files,
+    }
 
 
 def test_main_delegates_to_the_shared_runner(monkeypatch: pytest.MonkeyPatch):
