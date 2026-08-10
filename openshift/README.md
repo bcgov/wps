@@ -14,7 +14,7 @@ Needed if you want to test the nats service from the cli
 
 See: https://github.com/nats-io/natscli
 
-#####Homebrew install:
+##### Homebrew install:
 
 ```bash
 brew tap nats-io/nats-tools

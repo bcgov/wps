@@ -28,7 +28,7 @@ Source: <https://access.crunchydata.com/documentation/postgres-operator/latest/a
     - **Differential Backup**: taken daily at 1am, except on Sundays
     - **Manual Backup**: are enabled through the `manual` configured property
 
-      - **Trigger a manual backup**, by annotating the primary cluster with: `kubectl annotate -n <namespace-license-plate> postgrescluster <postgres-cluster> --overwritepostgres-operator.crunchydata.com/pgbackrest-backup="$( date '+%F\_%H:%M:%S' )"`
+      - **Trigger a manual backup**, by annotating the primary cluster with: `kubectl annotate -n <namespace-license-plate> postgrescluster <postgres-cluster> --overwrite postgres-operator.crunchydata.com/pgbackrest-backup="$( date '+%F\_%H:%M:%S' )"`
 
     - To see the status of a backup look in the condition block of the result of`oc describe postgrescluster <postgres-cluster>`, e.g.:
 
