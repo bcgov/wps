@@ -18,11 +18,11 @@ from weather_model_jobs.common_model_fetchers import (
     check_if_model_run_complete,
     flag_file_as_processed,
 )
+from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
-from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from wps_shared.db.crud.weather_models import (
     get_prediction_model,
     get_prediction_run,
@@ -50,6 +50,23 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 SOURCE = "Env Canada"
+NO_FILES_WARNING_DELAY = datetime.timedelta(hours=5)
+
+
+def is_no_files_warning_due(
+    model_run_reference: datetime.datetime,
+    warning_time: datetime.datetime,
+    model_run_hour: int,
+) -> bool:
+    """Return whether a specific scheduled model run is old enough to warn about."""
+    model_run_timestamp = adjust_model_day(model_run_reference, model_run_hour).replace(
+        hour=model_run_hour,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+    should_warn = warning_time >= model_run_timestamp + NO_FILES_WARNING_DELAY
+    return should_warn
 
 
 def parse_gdps_msc_filename(url: str):
@@ -249,6 +266,7 @@ class EnvCanada:
         self.files_processed = 0
         self.exception_count = 0
         self.connection_error_count = 0
+        self.has_overdue_incomplete_model_run = False
         # We always work in UTC:
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor()
@@ -335,6 +353,12 @@ class EnvCanada:
             mark_prediction_model_run_processed(
                 self.session, self.model_type, self.projection, self.now, model_run_hour
             )
+        elif is_no_files_warning_due(
+            self.now,
+            time_utils.get_utc_now(),
+            model_run_hour,
+        ):
+            self.has_overdue_incomplete_model_run = True
 
     def process(self):
         """Entry point for downloading and processing weather model grib files"""
@@ -385,7 +409,12 @@ def process_models():
         seconds,
         execution_time,
     )
-    return judge_run(env_canada, source=SOURCE, model=sys.argv[1])
+    return judge_run(
+        env_canada,
+        source=SOURCE,
+        model=sys.argv[1],
+        raise_on_no_files=env_canada.has_overdue_incomplete_model_run,
+    )
 
 
 def main():

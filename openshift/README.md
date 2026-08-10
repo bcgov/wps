@@ -14,7 +14,7 @@ Needed if you want to test the nats service from the cli
 
 See: https://github.com/nats-io/natscli
 
-#####Homebrew install:
+##### Homebrew install:
 
 ```bash
 brew tap nats-io/nats-tools
@@ -102,7 +102,7 @@ rules:
       - patch
 ```
 
-## Used token to create appropraite token in github
+## Used token to create appropriate token in github
 
 - Create service account in tools
 

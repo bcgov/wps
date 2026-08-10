@@ -1,5 +1,5 @@
 [![Issues](https://img.shields.io/github/issues/bcgov/wps.svg?style=for-the-badge)](/../../issues)
-[![MIT License](https://img.shields.io/github/license/bcgov/wps.svg?style=for-the-badge)](/LICENSE)
+[![Apache 2.0 License](https://img.shields.io/github/license/bcgov/wps.svg?style=for-the-badge)](/LICENSE)
 [![Lifecycle](https://img.shields.io/badge/Lifecycle-Stable-97ca00?style=for-the-badge)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
 [![codecov](https://codecov.io/gh/bcgov/wps/branch/main/graph/badge.svg?token=QZh80UTLpT)](https://codecov.io/gh/bcgov/wps)
 
@@ -60,7 +60,7 @@ Refer to [web/README.md](web/README.md)
 
 ## License
 
-[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) License - see the [LICENSE.md](https://github.com/bcgov/wps/blob/main/LICENSE)
+[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) License - see the [LICENSE](https://github.com/bcgov/wps/blob/main/LICENSE)
 
 ## Contributing
 
@@ -71,8 +71,8 @@ Your Github PR is required to pass all our CI checks, including our test coverag
 ### Resources
 
 - [Issues](https://github.com/bcgov/wps/issues)
-- [PEP8](https://github.com/python/peps/blob/master/pep-0008.txt) and [PEP20](https://github.com/python/peps/blob/master/pep-0020.txt) coding conventions, but with 110 character line breaks
-- [Code of Conduct](https://github.com/bcgov/wps/blob/master/CONDUCT.md)
+- [PEP8](https://peps.python.org/pep-0008/) and [PEP20](https://peps.python.org/pep-0020/) coding conventions, but with 110 character line breaks
+- [Code of Conduct](https://github.com/bcgov/wps/blob/main/CONDUCT.md)
 
 ## Acknowledgments
 

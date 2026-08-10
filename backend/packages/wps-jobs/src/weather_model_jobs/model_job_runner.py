@@ -35,13 +35,20 @@ class ModelJob(Protocol):
     exception_count: int
 
 
-def judge_run(job: ModelJob, source: str, model: str) -> int:
+def judge_run(
+    job: ModelJob,
+    source: str,
+    model: str,
+    *,
+    raise_on_no_files: bool = True,
+) -> int:
     """Judge a finished run, raising if it didn't go well. Returns the files processed.
 
     Raises
     ------
     NoFilesProcessed
-        Connection failures wiped out the run and nothing else went wrong: an outage.
+        Connection failures wiped out the run, nothing else went wrong, and the caller has
+        enabled the no-files verdict.
     CompletedWithSomeExceptions
         At least one URL failed for a reason that isn't an outage.
     """
@@ -53,7 +60,12 @@ def judge_run(job: ModelJob, source: str, model: str) -> int:
 
     # Only an outage if nothing else went wrong. A real exception in the mix means the job
     # failed for a reason we can act on, and must not be excused as an upstream outage.
-    if job.files_processed == 0 and job.connection_error_count > 0 and job.exception_count == 0:
+    if (
+        raise_on_no_files
+        and job.files_processed == 0
+        and job.connection_error_count > 0
+        and job.exception_count == 0
+    ):
         raise NoFilesProcessed(f"no files processed for {model} — possible outage at {source}")
 
     if job.exception_count > 0:

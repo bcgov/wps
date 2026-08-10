@@ -206,9 +206,77 @@ def test_ecmwf_process(mock_herbie_instance, mocker: MockerFixture):
     ecmwf.process()
 
     assert mock_repo.get_or_create_prediction_run_calls == 2  # For hours 0 and 12
-    # For each hour (0 and 12) get all the forecast hours (2 * (len(range(0, 145, 3)) + len(range(150, 241, 6)))
-    assert ecmwf.files_downloaded == num_forecast_hours * 2
+    # counters describe the most recently processed model run rather than accumulating across runs
+    assert ecmwf.files_downloaded == num_forecast_hours
+    assert ecmwf.files_processed == num_forecast_hours
     assert ecmwf.exception_count == 0
+
+
+def test_ecmwf_retries_503_with_backoff(mock_herbie_instance, mocker: MockerFixture):
+    response = MagicMock(status_code=503)
+    http_error = RuntimeError("503 Server Error: Slow Down")
+    http_error.response = response
+    wrapped_error = RuntimeError("Processing failed")
+    wrapped_error.__cause__ = http_error
+
+    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", return_value=iter([0]))
+    transformer = mocker.patch(
+        "weather_model_jobs.ecmwf.get_ecmwf_transformer",
+        side_effect=[wrapped_error, MagicMock()],
+    )
+    mocker.patch("weather_model_jobs.ecmwf.get_stations_dataframe", return_value=MagicMock())
+    mocker.patch.object(ECMWFModelProcessor, "process_grib_data", return_value=MagicMock())
+    mocker.patch.object(ECMWF, "store_processed_result")
+    mocker.patch("weather_model_jobs.ecmwf.random.uniform", return_value=0)
+    sleep = mocker.patch("weather_model_jobs.ecmwf.time.sleep")
+
+    mock_repository = MagicMock(spec=ModelRunRepository)
+    mock_repository.session = MagicMock()
+    mock_repository.get_or_create_prediction_run.return_value.complete = False
+    mock_repository.get_processed_url.return_value = None
+    stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
+
+    ecmwf = ECMWF("/tmp", stations, mock_repository)
+    ecmwf.process_model_run(0)
+
+    assert transformer.call_count == 2
+    sleep.assert_called_once_with(2)
+    assert ecmwf.files_processed == 1
+    assert ecmwf.exception_count == 0
+    mock_repository.mark_url_as_processed.assert_called_once()
+
+
+def test_ecmwf_stops_retrying_503_after_max_retries(
+    mock_herbie_instance, mocker: MockerFixture, caplog
+):
+    response = MagicMock(status_code=503)
+    http_error = RuntimeError("503 Server Error: Slow Down")
+    http_error.response = response
+    wrapped_error = RuntimeError("Processing failed")
+    wrapped_error.__cause__ = http_error
+
+    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", return_value=iter([0]))
+    transformer = mocker.patch(
+        "weather_model_jobs.ecmwf.get_ecmwf_transformer", side_effect=wrapped_error
+    )
+    mocker.patch("weather_model_jobs.ecmwf.random.uniform", return_value=0)
+    sleep = mocker.patch("weather_model_jobs.ecmwf.time.sleep")
+
+    mock_repository = MagicMock(spec=ModelRunRepository)
+    mock_repository.session = MagicMock()
+    mock_repository.get_or_create_prediction_run.return_value.complete = False
+    mock_repository.get_processed_url.return_value = None
+    stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
+
+    ecmwf = ECMWF("/tmp", stations, mock_repository)
+    ecmwf.process_model_run(0)
+
+    assert transformer.call_count == 4
+    assert [call.args[0] for call in sleep.call_args_list] == [2, 4, 8]
+    assert ecmwf.files_processed == 0
+    assert ecmwf.exception_count == 1
+    mock_repository.mark_url_as_processed.assert_not_called()
+    assert "ECMWF forecast /path/to/mock/file.grib failed after 3 retries: HTTP 503" in caplog.text
 
 
 def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerFixture):
