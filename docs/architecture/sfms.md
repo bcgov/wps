@@ -25,7 +25,7 @@ subgraph Openshift
 
     APIPostGIS[("PostGIS for API<br/>Used for analysis")]
     Queue[("NATS Queue")]
-    TileServerPostGIS[("PostGIS for tile servers</br>Opimized for server data to tile servers. Not used for analysis.")]
+    TileServerPostGIS[("PostGIS for tile servers</br>Optimized for server data to tile servers. Not used for analysis.")]
     Workers["[Container: Pods, Python]</br>Workers. Pull jobs from queue and do work.</br>e.g. calculate area in zone that exceeds 4000 hectares."]
 
     API-."Put jobs on Queue".->Queue

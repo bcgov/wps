@@ -33,7 +33,7 @@ Some of the core functionalities of Morecast (versions 1 and 2) require that we 
 
 ## GRIB Files
 
-All weather model produce outputs in GRIB file format. [Refer here for a description of what a GRIB file is](https://weather.gc.ca/grib/what_is_GRIB_e.html).
+All weather models produce outputs in GRIB file format. [Refer here for a description of what a GRIB file is](https://weather.gc.ca/grib/what_is_GRIB_e.html).
 
 A GRIB file contains one or more raster bands, in which weather data is presented in a grid format. Each raster band corresponds to one weather variable. (For example, temperature data points will be stored in a different raster band to wind speed data points.) When we fetch a specific raster band from a data grid (using gdal's `GetRasterBand(<band_id>)`), we get a 2-dimensional array of numeric values (usually floats) containing the values for the relevant weather variable. In order to coalesce the points on the data grid with geographic locations (such as lat/long coordinates), a geographic coordinate transformation must be applied. This coordinate transformation is performed in our backend, using metadata supplied by the source of the GRIB file.
 
@@ -103,7 +103,7 @@ NAM model data is published on a Polar Stereographic projection at a 32km resolu
 
 ##### Model Run Cycles
 
-The NAM model makes predictions for every hour for the first 36 hours, and then on a 3-hourly schedule to 84 hours [https://mag.ncep.noaa.gov/model-guidance-model-parameter.php?group=Model%20Guidance&model=NAM&area=NAMER&ps=area#]. As with the GFS model, we sometimes need to fetch data for 2 different hour offsets and then perform linear interpolation in order to have a weather prediction for 12:00 PST. The file naming convention that NAM uses indicates the model runtime as hours in UTC, and indexes that hour as 00. All subsequent hours in the model run are referenced as offsets of the 00 hour index. This means that for the 00:00 UTC model cycle, 20:00 UTC (or 12:00 PST) is referenced as hour 20; but for the 12:00 UTC model cycle, 20:00 UTC is referenced as hour 8 (20:00 - 12:00). Therefore, to fetch the noon PST data we need, the NAM cronjob pulls the following model hours. noon hours are equivalent to 20:00 UTC. before_noon hours are 18:00 UTC and used for linear interpolation along with after_noon hours which are 21:00 UTC. Accumulation hours represent the prediction hours required in oorder to calcaulte accumulative precipitation throughout the model run.
+The NAM model makes predictions for every hour for the first 36 hours, and then on a 3-hourly schedule to 84 hours [https://mag.ncep.noaa.gov/model-guidance-model-parameter.php?group=Model%20Guidance&model=NAM&area=NAMER&ps=area#]. As with the GFS model, we sometimes need to fetch data for 2 different hour offsets and then perform linear interpolation in order to have a weather prediction for 12:00 PST. The file naming convention that NAM uses indicates the model runtime as hours in UTC, and indexes that hour as 00. All subsequent hours in the model run are referenced as offsets of the 00 hour index. This means that for the 00:00 UTC model cycle, 20:00 UTC (or 12:00 PST) is referenced as hour 20; but for the 12:00 UTC model cycle, 20:00 UTC is referenced as hour 8 (20:00 - 12:00). Therefore, to fetch the noon PST data we need, the NAM cronjob pulls the following model hours. noon hours are equivalent to 20:00 UTC. before_noon hours are 18:00 UTC and used for linear interpolation along with after_noon hours which are 21:00 UTC. Accumulation hours represent the prediction hours required in order to calculate accumulative precipitation throughout the model run.
 
 - For the 00:00 UTC model run time:
   - accumulation_hours = 0, 12, 24, 36, 48, 60
@@ -130,7 +130,7 @@ Note that the accumulation hours are required in order for us to calculate the c
 
 #### Relevant Weather Variables
 
-To be consistent with the weather variables that we pull from the Environment Canada models, for GFS we use comparable weather variables. There is a slight exception for wind direction and speed: Env Canada models output the separate U and V components for wind, but they also output the calculated wind speed and direction using those U, V components. NOAA only outputs the U,V components for wind - we must do the wind direction and wind speed calculations ourselves. The NOAA grib files for GFS contain two layers related to cumulative precipitation. Both layers are named 'apcp_sfc_0' but accumulate precipitation differently. Raster band 6 accumulates precip in 3 hour increments for odd hours and six hour increments for even hours, but we actually ignore this band. We use band 7 which accumulats precipitation across the model run.
+To be consistent with the weather variables that we pull from the Environment Canada models, for GFS we use comparable weather variables. There is a slight exception for wind direction and speed: Env Canada models output the separate U and V components for wind, but they also output the calculated wind speed and direction using those U, V components. NOAA only outputs the U,V components for wind - we must do the wind direction and wind speed calculations ourselves. The NOAA grib files for GFS contain two layers related to cumulative precipitation. Both layers are named 'apcp_sfc_0' but accumulate precipitation differently. Raster band 6 accumulates precip in 3 hour increments for odd hours and six hour increments for even hours, but we actually ignore this band. We use band 7 which accumulates precipitation across the model run.
 
 The NAM grib file does not contain a band for cumulative precipitation since the start of the model. This requires us to use band 6 which accumulates precipitation slightly differently for model run hours 00 and 12 versus 06 and 18. The 00 and 12 hour model runs contain cumulative precipitation in 12 hour cycles.
 
@@ -157,7 +157,7 @@ For the 00 and 12 hour model runs:
 | 51 | 48 - 51 |
 | ... | ... - ... |
 
-For the 06 and 18 hour model runs precipitation accumlates in 3 hour intervals:
+For the 06 and 18 hour model runs precipitation accumulates in 3 hour intervals:
 
 | Hour from start | Cumulative precip hours |
 | --------------- | ----------------------- |

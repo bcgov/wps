@@ -11,7 +11,7 @@ graph LR
 
     wso2["WSO2 API Gateway"]
 
-    sso["Red Hat SSO / Keycloak</br>[Idendity Provider]</br>https://oidc.gov.bc.ca"]
+    sso["Red Hat SSO / Keycloak</br>[Identity Provider]</br>https://oidc.gov.bc.ca"]
 
     subgraph Wildfire Predictive Services Unit Web Application
         FrontEnd["PSU Single Page Application</br>[Container: Javascript, React]"]
