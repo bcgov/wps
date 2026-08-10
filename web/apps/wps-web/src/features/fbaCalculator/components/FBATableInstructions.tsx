@@ -19,7 +19,7 @@ const FBATableInstructions = () => {
     <Root data-testid={'fba-instructions'} className={classes.content}>
       <p>Add a row to get started.</p>
       <p>
-        Build custom lists of weather stations by fire center, zone or fuel type. Bookmark the URL to save your custom
+        Build custom lists of weather stations by fire centre, zone or fuel type. Bookmark the URL to save your custom
         list.
       </p>
     </Root>

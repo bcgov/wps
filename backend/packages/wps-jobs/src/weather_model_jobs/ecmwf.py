@@ -1,7 +1,9 @@
 import asyncio
 import logging
 import os
+import random
 import tempfile
+import time
 from datetime import datetime, timedelta
 from typing import List
 
@@ -16,6 +18,7 @@ from weather_model_jobs import (
     ModelRunProcessResult,
     ProjectionEnum,
 )
+from weather_model_jobs.ecmwf_hours import get_ecmwf_forecast_hours
 from weather_model_jobs.ecmwf_model_processor import TEMP, ECMWFModelProcessor
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from weather_model_jobs.utils.process_grib import PredictionModelNotFound
@@ -36,21 +39,16 @@ if __name__ == "__main__":
 
 logger = logging.getLogger(__name__)
 
+RETRYABLE_HTTP_STATUS_CODES = {429, 503}
+MAX_DOWNLOAD_RETRIES = 3
+INITIAL_RETRY_DELAY_SECONDS = 2
+
 
 def get_model_run_hours(model_type: ModelEnum):
     """Yield model run hours for model"""
     if model_type == ModelEnum.ECMWF:
         for hour in [0, 12]:
             yield hour
-
-
-def get_ecmwf_forecast_hours():
-    # Yield hours from 0 to 144 by 3-hour intervals
-    for h in range(0, 145, 3):
-        yield h
-    # Yield hours from 150 to 240 by 6-hour intervals
-    for h in range(150, 241, 6):
-        yield h
 
 
 def get_stations_dataframe(
@@ -101,8 +99,63 @@ class ECMWF:
         self.exception_count = 0
         self.ecmwf_processor = ECMWFModelProcessor(working_directory)
 
+    @staticmethod
+    def _get_http_status_code(exception: Exception) -> int | None:
+        error = exception.__cause__ or exception
+        return getattr(getattr(error, "response", None), "status_code", None)
+
+    def _process_forecast(
+        self,
+        herbie_instance: Herbie,
+        model_info: ModelRunInfo,
+        prediction_run: PredictionModelRunTimestamp,
+    ):
+        transformer = get_ecmwf_transformer(self.working_directory, herbie_instance)
+        stations_df = get_stations_dataframe(transformer, self.stations)
+        process_result = self.ecmwf_processor.process_grib_data(
+            herbie_instance, model_info, stations_df
+        )
+        self.store_processed_result(self.stations, prediction_run, process_result)
+
+    def _process_forecast_with_retry(
+        self,
+        herbie_instance: Herbie,
+        model_info: ModelRunInfo,
+        prediction_run: PredictionModelRunTimestamp,
+        url: str,
+    ):
+        retries = 0
+        while True:
+            try:
+                return self._process_forecast(herbie_instance, model_info, prediction_run)
+            except Exception as exception:
+                status_code = self._get_http_status_code(exception)
+                if (
+                    status_code not in RETRYABLE_HTTP_STATUS_CODES
+                    or retries == MAX_DOWNLOAD_RETRIES
+                ):
+                    error_detail = f"HTTP {status_code}" if status_code else str(exception)
+                    raise RuntimeError(
+                        f"ECMWF forecast {url} failed after {retries} retries: {error_detail}"
+                    ) from exception
+
+                delay = INITIAL_RETRY_DELAY_SECONDS * 2**retries
+                delay += random.uniform(0, INITIAL_RETRY_DELAY_SECONDS)
+                retries += 1
+                logger.warning(
+                    "ECMWF request for %s returned HTTP %s; retrying in %.1f seconds (retry %s/%s)",
+                    url,
+                    status_code,
+                    delay,
+                    retries,
+                    MAX_DOWNLOAD_RETRIES,
+                )
+                time.sleep(delay)
+
     def process_model_run(self, model_run_hour):
         """Process a particular model run"""
+        self.files_downloaded = 0
+        self.files_processed = 0
         logger.info("Processing {} model run {:02d}".format(self.model_type, model_run_hour))
 
         model_datetime = self.now.replace(hour=model_run_hour, minute=0, second=0, microsecond=0)
@@ -164,12 +217,12 @@ class ECMWF:
                     continue
 
                 try:
-                    transformer = get_ecmwf_transformer(self.working_directory, H)
-                    stations_df = get_stations_dataframe(transformer, self.stations)
-                    process_result = self.ecmwf_processor.process_grib_data(
-                        H, model_info, stations_df
+                    self._process_forecast_with_retry(
+                        H,
+                        model_info,
+                        prediction_run=prediction_run,
+                        url=url,
                     )
-                    self.store_processed_result(self.stations, prediction_run, process_result)
 
                     self.files_processed += 1
                     self.model_run_repository.mark_url_as_processed(url)

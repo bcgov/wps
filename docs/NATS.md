@@ -14,7 +14,7 @@ The durable consumer we care about is `hfi_classify`.
 
 ### 1. Check existing config
 
-First, login to the openshift cli and start a temporary NATS toolbox pod
+First, log in to the openshift cli and start a temporary NATS toolbox pod
 
 ```bash
 oc -n <namespace> run nats-box --rm -it --restart=Never --image=natsio/nats-box -- sh
@@ -34,7 +34,7 @@ Look for:
 
 Or anything else that should be changed in the config
 
-### 4. Delete the durable consumer so the app can recreate it
+### 2. Delete the durable consumer so the app can recreate it
 
 Scale the NATS consumer pods down to 0.
 
@@ -44,11 +44,11 @@ Inside the toolbox shell:
 nats --server nats://consumer:consumer@wps-prod-nats:4222 consumer rm wps-prodsfms hfi_classify
 ```
 
-### 5. Scale the consumer deployment back up
+### 3. Scale the consumer deployment back up
 
 Scale the pods back up with UI or CLI.
 
-### 6. Verify the recreated consumer config
+### 4. Verify the recreated consumer config
 
 ```bash
 nats --server nats://consumer:consumer@wps-prod-nats:4222 consumer info wps-prodsfms hfi_classify
@@ -98,8 +98,8 @@ lima nerdctl run -p 4222:4222 -ti nats:latest -js
 ##### 3. Open up a new terminal and run the api:
 
 ```bash
-cd {path_to_repo}/wps/api
-make run
+cd {path_to_repo}/wps/backend/packages/wps-api
+uv run --package wps-api python -m app.main
 ```
 
 ##### 4. Run the nats consumer from VS Code, click the debug button on the sidebar, choose the 'nats' option from the drop-down and click the play button.
