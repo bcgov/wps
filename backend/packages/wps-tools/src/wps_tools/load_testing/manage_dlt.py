@@ -9,6 +9,7 @@ Usage:
 import argparse
 import json
 import logging
+import subprocess
 import sys
 from pathlib import Path
 from typing import cast, get_args
@@ -17,6 +18,7 @@ import boto3
 from botocore.exceptions import ClientError, WaiterError
 from mypy_boto3_cloudformation.client import CloudFormationClient
 from mypy_boto3_cloudformation.type_defs import ParameterTypeDef, StackResourceTypeDef, StackTypeDef
+from mypy_boto3_ec2.client import EC2Client
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_s3.literals import BucketLocationConstraintType
 from mypy_boto3_s3.type_defs import DeleteMarkerEntryTypeDef, ObjectIdentifierTypeDef, ObjectVersionTypeDef
@@ -64,6 +66,27 @@ def create_parser() -> argparse.ArgumentParser:
         "--existing-subnet-b", help="Second existing subnet ID (required with --existing-vpc-id)"
     )
     deploy_parser.add_argument(
+        "--subnet-a-name",
+        default="Prod-App-A",
+        help=(
+            "If none of --existing-vpc-id/--existing-subnet-a/--existing-subnet-b are given, look up a "
+            "subnet by this Name tag and use it (default: Prod-App-A). See --create-vpc to disable."
+        ),
+    )
+    deploy_parser.add_argument(
+        "--subnet-b-name", default="Prod-App-B", help="Second subnet Name tag for the auto-lookup above"
+    )
+    deploy_parser.add_argument(
+        "--create-vpc",
+        action="store_true",
+        help="Let CloudFormation create its own VPC instead of auto-resolving an existing one by name",
+    )
+    deploy_parser.add_argument(
+        "--skip-sso-login",
+        action="store_true",
+        help="Don't run 'aws sso login' before deploying (it's a no-op if your session is already valid)",
+    )
+    deploy_parser.add_argument(
         "--template-bucket",
         help=(
             "S3 bucket to stage the template in (required if the template is over "
@@ -96,6 +119,48 @@ def create_parser() -> argparse.ArgumentParser:
     teardown_parser.add_argument("--yes", action="store_true", help="Skip the confirmation prompt")
 
     return parser
+
+
+def ensure_sso_login(aws_profile: str | None) -> None:
+    """Run `aws sso login` for the given profile. A no-op (fast) if the session is already valid;
+    otherwise opens a browser and blocks until the user completes it there."""
+    if not aws_profile:
+        return
+    logger.info("Ensuring SSO session is active for profile %s (opens a browser if needed)...", aws_profile)
+    subprocess.run(["aws", "sso", "login", "--profile", aws_profile], check=True)
+
+
+def find_subnet_by_name(ec2_client: EC2Client, name: str) -> tuple[str, str]:
+    """Returns (subnet_id, vpc_id) for the subnet with this exact Name tag."""
+    response = ec2_client.describe_subnets(Filters=[{"Name": "tag:Name", "Values": [name]}])
+    subnets = response.get("Subnets", [])
+    if not subnets:
+        raise RuntimeError(f"No subnet found named {name!r}")
+    if len(subnets) > 1:
+        ids = [s["SubnetId"] for s in subnets]
+        raise RuntimeError(f"Multiple subnets named {name!r}: {ids}")
+
+    subnet = subnets[0]
+    subnet_id = subnet.get("SubnetId")
+    vpc_id = subnet.get("VpcId")
+    if not subnet_id or not vpc_id:
+        raise RuntimeError(f"Subnet named {name!r} is missing SubnetId/VpcId: {subnet}")
+    return subnet_id, vpc_id
+
+
+def resolve_existing_vpc(
+    ec2_client: EC2Client, subnet_a_name: str, subnet_b_name: str
+) -> tuple[str, str, str]:
+    """Returns (vpc_id, subnet_a_id, subnet_b_id) by looking up two subnets by Name tag."""
+    subnet_a_id, vpc_id_a = find_subnet_by_name(ec2_client, subnet_a_name)
+    subnet_b_id, vpc_id_b = find_subnet_by_name(ec2_client, subnet_b_name)
+
+    if vpc_id_a != vpc_id_b:
+        raise RuntimeError(
+            f"{subnet_a_name} and {subnet_b_name} are in different VPCs ({vpc_id_a} vs {vpc_id_b})"
+        )
+
+    return vpc_id_a, subnet_a_id, subnet_b_id
 
 
 def build_parameters(
@@ -284,17 +349,42 @@ def run_deploy(args: argparse.Namespace) -> None:
         logger.error("Template not found: %s", template_path)
         sys.exit(1)
 
+    if not args.skip_sso_login:
+        try:
+            ensure_sso_login(args.aws_profile)
+        except subprocess.CalledProcessError as e:
+            logger.error("aws sso login failed: %s", e)
+            sys.exit(1)
+
     session = boto3.Session(profile_name=args.aws_profile, region_name=args.region)
     region = resolve_region(session)
     cfn: CloudFormationClient = session.client("cloudformation")
+
+    existing_vpc_id = args.existing_vpc_id
+    existing_subnet_a = args.existing_subnet_a
+    existing_subnet_b = args.existing_subnet_b
+    if not args.create_vpc and not existing_vpc_id and not existing_subnet_a and not existing_subnet_b:
+        ec2: EC2Client = session.client("ec2")
+        try:
+            existing_vpc_id, existing_subnet_a, existing_subnet_b = resolve_existing_vpc(
+                ec2, args.subnet_a_name, args.subnet_b_name
+            )
+        except RuntimeError as e:
+            logger.error(
+                "%s. Pass --existing-vpc-id/--existing-subnet-a/--existing-subnet-b explicitly, or "
+                "--create-vpc to let CloudFormation create its own VPC.",
+                e,
+            )
+            sys.exit(1)
+        logger.info("Using existing VPC %s (subnets %s, %s)", existing_vpc_id, existing_subnet_a, existing_subnet_b)
 
     try:
         parameters = build_parameters(
             args.admin_name,
             args.admin_email,
-            args.existing_vpc_id,
-            args.existing_subnet_a,
-            args.existing_subnet_b,
+            existing_vpc_id,
+            existing_subnet_a,
+            existing_subnet_b,
         )
     except ValueError as e:
         logger.error(e)
