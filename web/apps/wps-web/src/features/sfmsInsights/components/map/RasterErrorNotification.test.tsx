@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { RunType } from '@wps/api/runType'
 import { describe, expect, it, vi } from 'vitest'
 import type { RasterError } from './layerManager'
 import RasterErrorNotification, { getAlertSeverity } from './RasterErrorNotification'
@@ -26,14 +27,28 @@ describe('RasterErrorNotification', () => {
     expect(getAlertSeverity('unknown')).toBe('warning')
   })
 
-  it('should display correct message for not_found error', () => {
+  it('should identify unavailable actual data without ruling out forecast data', () => {
     const error: RasterError = {
       type: 'not_found',
       message: 'Test message'
     }
-    render(<RasterErrorNotification error={error} onClose={vi.fn()} rasterLabel="FWI" />)
+    render(<RasterErrorNotification error={error} onClose={vi.fn()} rasterLabel="FWI" runType={RunType.ACTUAL} />)
 
-    expect(screen.getByText(/FWI data not available for this date/i)).toBeInTheDocument()
+    expect(
+      screen.getByText('Actual FWI data is not available for this date. Forecast data may be available.')
+    ).toBeInTheDocument()
+  })
+
+  it('should identify unavailable forecast data', () => {
+    const error: RasterError = {
+      type: 'not_found',
+      message: 'Test message'
+    }
+    render(<RasterErrorNotification error={error} onClose={vi.fn()} rasterLabel="FWI" runType={RunType.FORECAST} />)
+
+    expect(
+      screen.getByText('Forecast FWI data is not available for this date. It may not be generated yet.')
+    ).toBeInTheDocument()
   })
 
   it('should display correct message for forbidden error', () => {

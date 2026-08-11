@@ -1,5 +1,5 @@
 import { fireEvent, render } from '@testing-library/react'
-import { RunType } from '@wps/api/fbaAPI'
+import { RunType } from '@wps/api/runType'
 import { vi } from 'vitest'
 import ActualForecastControl from './ActualForecastControl'
 

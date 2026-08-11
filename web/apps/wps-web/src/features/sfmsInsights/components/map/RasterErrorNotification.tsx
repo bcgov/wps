@@ -1,4 +1,5 @@
 import { Alert, type AlertColor, Snackbar } from '@mui/material'
+import { RunType } from '@wps/api/runType'
 import React from 'react'
 import type { RasterError } from '@/features/sfmsInsights/components/map/layerManager'
 
@@ -6,6 +7,7 @@ interface RasterErrorNotificationProps {
   error: RasterError | null
   onClose: () => void
   rasterLabel?: string
+  runType?: RunType
 }
 
 export const getAlertSeverity = (errorType: RasterError['type']): AlertColor => {
@@ -19,9 +21,15 @@ export const getAlertSeverity = (errorType: RasterError['type']): AlertColor => 
   }
 }
 
-const getErrorMessage = (error: RasterError, rasterLabel: string): string => {
+const getErrorMessage = (error: RasterError, rasterLabel: string, runType?: RunType): string => {
   switch (error.type) {
     case 'not_found':
+      if (runType === RunType.ACTUAL) {
+        return `Actual ${rasterLabel} data is not available for this date. Forecast data may be available.`
+      }
+      if (runType === RunType.FORECAST) {
+        return `Forecast ${rasterLabel} data is not available for this date. It may not be generated yet.`
+      }
       return `${rasterLabel} data not available for this date. It may not be generated yet.`
     case 'forbidden':
       return `Access denied to ${rasterLabel} data. Please check your authentication.`
@@ -32,13 +40,13 @@ const getErrorMessage = (error: RasterError, rasterLabel: string): string => {
   }
 }
 
-const RasterErrorNotification = ({ error, onClose, rasterLabel = 'Raster' }: RasterErrorNotificationProps) => {
+const RasterErrorNotification = ({ error, onClose, rasterLabel = 'Raster', runType }: RasterErrorNotificationProps) => {
   if (!error) {
     return null
   }
 
   const severity = getAlertSeverity(error.type)
-  const message = getErrorMessage(error, rasterLabel)
+  const message = getErrorMessage(error, rasterLabel, runType)
 
   return (
     <Snackbar

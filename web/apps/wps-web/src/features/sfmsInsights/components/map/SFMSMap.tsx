@@ -1,5 +1,6 @@
 import { Box, CircularProgress } from '@mui/material'
 import { ErrorBoundary } from '@sentry/react'
+import { RunType } from '@wps/api/runType'
 import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
 import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
@@ -36,10 +37,17 @@ interface SFMSMapProps {
   snowDate: DateTime | null
   rasterDate: DateTime | null
   rasterType?: RasterType
+  runType?: RunType
   showSnow?: boolean
 }
 
-const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: SFMSMapProps) => {
+const SFMSMap = ({
+  snowDate,
+  rasterDate,
+  rasterType = 'fwi',
+  runType = RunType.ACTUAL,
+  showSnow = true
+}: SFMSMapProps) => {
   const token = useSelector(selectToken)
   const [map, setMap] = useState<OlMap | null>(null)
   const [rasterTooltipData, setRasterTooltipData] = useState<RasterTooltipData>({
@@ -114,11 +122,11 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
 
     // Only load raster layer if we have a date (for fire weather) or if type is fuel (date-independent)
     if (rasterDate || rasterType === 'fuel') {
-      rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token))
+      rasterLayerManagerRef.current.updateLayer(getRasterLayer(rasterDate, rasterType, token, runType))
     } else {
       rasterLayerManagerRef.current.updateLayer(null)
     }
-  }, [rasterDate, rasterType, token])
+  }, [rasterDate, rasterType, runType, token])
 
   return (
     <ErrorBoundary>
@@ -164,6 +172,7 @@ const SFMSMap = ({ snowDate, rasterDate, rasterType = 'fwi', showSnow = true }: 
             error={rasterError}
             onClose={handleErrorClose}
             rasterLabel={RASTER_CONFIG[rasterType].label}
+            runType={runType}
           />
         </Box>
       </MapContext.Provider>

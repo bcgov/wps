@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import { RunType } from '@wps/api/runType'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
@@ -148,7 +149,8 @@ describe('SFMSMap', () => {
     expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(
       DateTime.fromISO('2025-11-03'),
       'fwi',
-      'test-token'
+      'test-token',
+      'actual'
     )
   })
 
@@ -159,7 +161,7 @@ describe('SFMSMap', () => {
 
   it('should request raster layer for fuel type even when rasterDate is null', () => {
     renderWithStore(<SFMSMap snowDate={null} rasterDate={null} rasterType="fuel" />)
-    expect(layerDefinitions.getRasterLayer).toHaveBeenCalledWith(null, 'fuel', 'test-token')
+    expect(layerDefinitions.getRasterLayer).toHaveBeenCalledWith(null, 'fuel', 'test-token', 'actual')
   })
 
   it('should request new layer when rasterType changes', () => {
@@ -179,8 +181,27 @@ describe('SFMSMap', () => {
     expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(
       DateTime.fromISO('2025-11-02'),
       'ffmc',
-      'test-token'
+      'test-token',
+      'actual'
     )
+  })
+
+  it('should request a new layer for the same date when runType changes', () => {
+    const store = makeStore()
+    const rasterDate = DateTime.fromISO('2025-11-02')
+    const { rerender } = render(
+      <Provider store={store}>
+        <SFMSMap snowDate={null} rasterDate={rasterDate} runType={RunType.ACTUAL} />
+      </Provider>
+    )
+
+    rerender(
+      <Provider store={store}>
+        <SFMSMap snowDate={null} rasterDate={rasterDate} runType={RunType.FORECAST} />
+      </Provider>
+    )
+
+    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(rasterDate, 'fwi', 'test-token', RunType.FORECAST)
   })
 
   it('should clear error when rasterDate changes', () => {
@@ -242,7 +263,12 @@ describe('SFMSMap', () => {
       </Provider>
     )
 
-    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(DateTime.fromISO('2025-11-02'), 'fwi', 'new-token')
+    expect(layerDefinitions.getRasterLayer).toHaveBeenLastCalledWith(
+      DateTime.fromISO('2025-11-02'),
+      'fwi',
+      'new-token',
+      'actual'
+    )
   })
 
   it('should update snow layer when snowDate changes', () => {

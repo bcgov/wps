@@ -1,4 +1,4 @@
-import type { RunType } from '@wps/api/fbaAPI'
+import type { RunType } from '@wps/api/runType'
 import { PMTILES_BUCKET } from '@wps/utils/env'
 import type { DateTime } from 'luxon'
 
@@ -10,7 +10,7 @@ import type { DateTime } from 'luxon'
  * @returns a URL to the PMTiles stored in our s3 bucket
  */
 export const buildPMTilesURL = (for_date: DateTime, run_type: RunType, run_date: DateTime): string => {
-  const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_type.toLowerCase()}/${run_date.toISODate()}/hfi${for_date.toISODate({
+  const PMTilesURL = `${PMTILES_BUCKET}hfi/${run_type}/${run_date.toISODate()}/hfi${for_date.toISODate({
     format: 'basic'
   })}.pmtiles`
 

@@ -1,5 +1,6 @@
 import { Box } from '@mui/material'
-import { type FireShape, RunType } from '@wps/api/fbaAPI'
+import type { FireShape } from '@wps/api/fbaAPI'
+import { RunType } from '@wps/api/runType'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { ErrorBoundary } from '@wps/ui/ErrorBoundary'
 import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
