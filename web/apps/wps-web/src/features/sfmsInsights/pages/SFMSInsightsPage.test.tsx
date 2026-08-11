@@ -251,7 +251,7 @@ describe('SFMSInsightsPage', () => {
     renderWithStore()
     await waitForPageLoad()
 
-    // the date picker should use the combined maximum bound (2025-11-05)
+    // The date picker should use the combined maximum bound (2025-11-05)
     const datePicker = screen.getByTestId('date-picker')
     expect(datePicker).toBeInTheDocument()
   })
@@ -447,7 +447,7 @@ describe('SFMSInsightsPage', () => {
     })
 
     const currentDate = screen.getByTestId('current-date')
-    // should default to today's date (mocked as 2025-11-02)
+    // Should default to today's date (mocked as 2025-11-02)
     expect(currentDate.textContent).toBe('2025-11-02')
     expect(screen.getByTestId('date-picker')).not.toHaveAttribute('data-disabled')
 
@@ -473,7 +473,7 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
-    // should default to today's date (mocked as 2025-11-02)
+    // Should default to today's date (mocked as 2025-11-02)
     expect(currentDate.textContent).toBe('2025-11-02')
     expect(datePicker).not.toHaveAttribute('data-disabled')
 
@@ -520,7 +520,7 @@ describe('SFMSInsightsPage', () => {
     expect(datePicker).toBeInTheDocument()
 
     const currentDate = screen.getByTestId('current-date')
-    // should default to today's date (mocked as 2025-11-02)
+    // Should default to today's date (mocked as 2025-11-02)
     expect(currentDate.textContent).toBe('2025-11-02')
     expect(datePicker).not.toHaveAttribute('data-disabled')
 
