@@ -28,7 +28,7 @@ uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt 
 # 3. Run a k6 test (paths are relative to backend/, matching --project above)
 uv run --project packages/wps-tools python -m wps_tools.load_testing.run_k6_test \
   packages/wps-tools/src/wps_tools/load_testing/k6_scripts/smoke_test.js \
-  --stack-name distributed-load-testing --region ca-central-1
+  --stack-name distributed-load-testing --region ca-central-1 --aws-profile <profile-name>
 
 # 4. Tear down when done
 uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt teardown \
