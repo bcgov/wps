@@ -1,10 +1,12 @@
 import pytest
 
-from wps_tools.load_testing.deploy_dlt import (
+from wps_tools.load_testing.manage_dlt import (
     build_aws_exports,
+    build_delete_batch,
     build_parameters,
     build_template_bucket_name,
     build_template_url,
+    filter_bucket_names,
 )
 
 
@@ -84,3 +86,35 @@ def test_build_template_url():
 
 def test_build_template_bucket_name():
     assert build_template_bucket_name("123456789012", "ca-central-1") == "dlt-template-staging-123456789012-ca-central-1"
+
+
+def test_filter_bucket_names():
+    resources = [
+        {"ResourceType": "AWS::S3::Bucket", "PhysicalResourceId": "my-scenarios-bucket"},
+        {"ResourceType": "AWS::S3::Bucket", "PhysicalResourceId": "my-console-assets-bucket"},
+        {"ResourceType": "AWS::IAM::Role", "PhysicalResourceId": "some-role"},
+        {"ResourceType": "AWS::DynamoDB::Table", "PhysicalResourceId": "some-table"},
+    ]
+
+    assert filter_bucket_names(resources) == ["my-scenarios-bucket", "my-console-assets-bucket"]
+
+
+def test_filter_bucket_names_skips_missing_physical_id():
+    resources = [{"ResourceType": "AWS::S3::Bucket", "PhysicalResourceId": None}]
+
+    assert filter_bucket_names(resources) == []
+
+
+def test_build_delete_batch():
+    versions = [{"Key": "a.txt", "VersionId": "v1"}, {"Key": "b.txt", "VersionId": "v1"}]
+    delete_markers = [{"Key": "c.txt", "VersionId": "v2"}]
+
+    assert build_delete_batch(versions, delete_markers) == [
+        {"Key": "a.txt", "VersionId": "v1"},
+        {"Key": "b.txt", "VersionId": "v1"},
+        {"Key": "c.txt", "VersionId": "v2"},
+    ]
+
+
+def test_build_delete_batch_empty():
+    assert build_delete_batch([], []) == []

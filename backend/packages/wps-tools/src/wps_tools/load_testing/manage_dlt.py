@@ -1,8 +1,9 @@
 """
-Deploy the Distributed Load Testing on AWS (headless) CloudFormation stack.
+Deploy or delete the Distributed Load Testing on AWS (headless) CloudFormation stack.
 
 Usage:
-    python3 -m wps_tools.load_testing.deploy_dlt --admin-name "Your Name" --admin-email you@example.com
+    python3 -m wps_tools.load_testing.manage_dlt deploy --admin-name "Your Name" --admin-email you@example.com
+    python3 -m wps_tools.load_testing.manage_dlt teardown --region ca-central-1
 """
 
 import argparse
@@ -13,11 +14,12 @@ from pathlib import Path
 from typing import cast, get_args
 
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, WaiterError
 from mypy_boto3_cloudformation.client import CloudFormationClient
-from mypy_boto3_cloudformation.type_defs import ParameterTypeDef, StackTypeDef
+from mypy_boto3_cloudformation.type_defs import ParameterTypeDef, StackResourceTypeDef, StackTypeDef
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_s3.literals import BucketLocationConstraintType
+from mypy_boto3_s3.type_defs import DeleteMarkerEntryTypeDef, ObjectIdentifierTypeDef, ObjectVersionTypeDef
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -36,23 +38,32 @@ CFN_INLINE_TEMPLATE_LIMIT_BYTES = 51_200
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument(
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--stack-name", default="distributed-load-testing", help="CloudFormation stack name")
+    common.add_argument("--region", help="AWS region (default: your profile's default region)")
+    common.add_argument("--aws-profile", help="AWS named profile to use")
+
+    deploy_parser = subparsers.add_parser("deploy", parents=[common], help="Deploy the stack")
+    deploy_parser.add_argument(
         "--template",
         default=str(DEFAULT_TEMPLATE_FILE),
         help=f"Path to the CloudFormation template (default: bundled {DEFAULT_TEMPLATE_FILE.name})",
     )
-    parser.add_argument("--admin-name", required=True, help="Admin user name for the Cognito account")
-    parser.add_argument("--admin-email", required=True, help="Admin user email for the Cognito account")
-    parser.add_argument("--stack-name", default="distributed-load-testing", help="CloudFormation stack name")
-    parser.add_argument(
+    deploy_parser.add_argument("--admin-name", required=True, help="Admin user name for the Cognito account")
+    deploy_parser.add_argument("--admin-email", required=True, help="Admin user email for the Cognito account")
+    deploy_parser.add_argument(
         "--existing-vpc-id",
         help="Use an existing VPC instead of creating one (required if your account's SCPs block ec2:CreateVpc)",
     )
-    parser.add_argument("--existing-subnet-a", help="First existing subnet ID (required with --existing-vpc-id)")
-    parser.add_argument("--existing-subnet-b", help="Second existing subnet ID (required with --existing-vpc-id)")
-    parser.add_argument("--aws-profile", help="AWS named profile to use")
-    parser.add_argument("--region", help="AWS region to deploy into")
-    parser.add_argument(
+    deploy_parser.add_argument(
+        "--existing-subnet-a", help="First existing subnet ID (required with --existing-vpc-id)"
+    )
+    deploy_parser.add_argument(
+        "--existing-subnet-b", help="Second existing subnet ID (required with --existing-vpc-id)"
+    )
+    deploy_parser.add_argument(
         "--template-bucket",
         help=(
             "S3 bucket to stage the template in (required if the template is over "
@@ -60,17 +71,30 @@ def create_parser() -> argparse.ArgumentParser:
             "with --create-template-bucket, a name is derived from your account ID and region."
         ),
     )
-    parser.add_argument(
+    deploy_parser.add_argument(
         "--create-template-bucket",
         action="store_true",
         help="Create --template-bucket (or a derived name) if it doesn't already exist",
     )
-    parser.add_argument(
+    deploy_parser.add_argument(
         "--aws-exports-file",
         default="aws-exports.json",
         help="Where to write the 'dlt configure --from-file' config after deploy (default: aws-exports.json)",
     )
-    parser.add_argument("--skip-aws-exports", action="store_true", help="Don't write the aws-exports.json file")
+    deploy_parser.add_argument("--skip-aws-exports", action="store_true", help="Don't write the aws-exports.json file")
+
+    teardown_parser = subparsers.add_parser("teardown", parents=[common], help="Delete the stack")
+    teardown_parser.add_argument(
+        "--empty-buckets",
+        action="store_true",
+        help=(
+            "Empty S3 buckets created by the stack first (e.g. ScenariosBucket, which holds every "
+            "uploaded script and test result). CloudFormation can't delete a non-empty bucket, so this "
+            "is almost always required after any real usage -- but it's opt-in since it's destructive."
+        ),
+    )
+    teardown_parser.add_argument("--yes", action="store_true", help="Skip the confirmation prompt")
+
     return parser
 
 
@@ -191,19 +215,77 @@ def deploy_stack(
     return stack
 
 
-def main() -> None:
-    args = create_parser().parse_args()
+def filter_bucket_names(resources: list[StackResourceTypeDef]) -> list[str]:
+    return [
+        r["PhysicalResourceId"]
+        for r in resources
+        if r["ResourceType"] == "AWS::S3::Bucket" and r.get("PhysicalResourceId")
+    ]
 
+
+def build_delete_batch(
+    versions: list[ObjectVersionTypeDef], delete_markers: list[DeleteMarkerEntryTypeDef]
+) -> list[ObjectIdentifierTypeDef]:
+    return [{"Key": v["Key"], "VersionId": v["VersionId"]} for v in [*versions, *delete_markers]]
+
+
+def empty_bucket(s3_client: S3Client, bucket: str) -> None:
+    logger.info("Emptying bucket %s", bucket)
+    paginator = s3_client.get_paginator("list_object_versions")
+    for page in paginator.paginate(Bucket=bucket):
+        batch = build_delete_batch(page.get("Versions", []), page.get("DeleteMarkers", []))
+        if batch:
+            s3_client.delete_objects(Bucket=bucket, Delete={"Objects": batch})
+
+
+def get_failure_reasons(cfn_client: CloudFormationClient, stack_name: str) -> list[str]:
+    events = cfn_client.describe_stack_events(StackName=stack_name)["StackEvents"]
+    return [
+        f"{e['LogicalResourceId']}: {e.get('ResourceStatusReason', '')}"
+        for e in events
+        if e["ResourceStatus"].endswith("FAILED")
+    ]
+
+
+def teardown_stack(
+    cfn_client: CloudFormationClient, s3_client: S3Client, stack_name: str, empty_buckets: bool
+) -> None:
+    if empty_buckets:
+        resources = cfn_client.describe_stack_resources(StackName=stack_name)["StackResources"]
+        for bucket in filter_bucket_names(resources):
+            empty_bucket(s3_client, bucket)
+
+    logger.info("Deleting stack %s", stack_name)
+    cfn_client.delete_stack(StackName=stack_name)
+
+    logger.info("Waiting for stack delete to complete...")
+    waiter = cfn_client.get_waiter("stack_delete_complete")
+    try:
+        waiter.wait(StackName=stack_name)
+    except WaiterError as e:
+        reasons = get_failure_reasons(cfn_client, stack_name)
+        reason_text = "\n".join(reasons) if reasons else str(e)
+        raise RuntimeError(
+            f"Stack deletion failed:\n{reason_text}\n\n"
+            "If this is because an S3 bucket isn't empty, retry with --empty-buckets."
+        ) from e
+
+
+def resolve_region(session: boto3.Session) -> str:
+    if not session.region_name:
+        logger.error("--region (or a default region on your profile) is required")
+        sys.exit(1)
+    return session.region_name
+
+
+def run_deploy(args: argparse.Namespace) -> None:
     template_path = Path(args.template)
     if not template_path.is_file():
         logger.error("Template not found: %s", template_path)
         sys.exit(1)
 
     session = boto3.Session(profile_name=args.aws_profile, region_name=args.region)
-    if not session.region_name:
-        logger.error("--region (or a default region on your profile) is required")
-        sys.exit(1)
-    region = session.region_name
+    region = resolve_region(session)
     cfn: CloudFormationClient = session.client("cloudformation")
 
     try:
@@ -256,6 +338,45 @@ def main() -> None:
     aws_exports_path.write_text(json.dumps(aws_exports, indent=2) + "\n")
     logger.info("Wrote %s", aws_exports_path)
     logger.info("Run: dlt configure --from-file %s", aws_exports_path)
+
+
+def run_teardown(args: argparse.Namespace) -> None:
+    session = boto3.Session(profile_name=args.aws_profile, region_name=args.region)
+    region = resolve_region(session)
+    cfn: CloudFormationClient = session.client("cloudformation")
+
+    try:
+        cfn.describe_stacks(StackName=args.stack_name)
+    except ClientError as e:
+        if "does not exist" in str(e):
+            logger.info("Stack %s does not exist (already deleted?)", args.stack_name)
+            return
+        logger.error(e)
+        sys.exit(1)
+
+    if not args.yes:
+        response = input(f"Delete stack '{args.stack_name}' in {region}? This is permanent. [y/N] ")
+        if response.strip().lower() != "y":
+            logger.info("Aborted.")
+            return
+
+    s3: S3Client = session.client("s3")
+
+    try:
+        teardown_stack(cfn, s3, args.stack_name, args.empty_buckets)
+    except RuntimeError as e:
+        logger.error(e)
+        sys.exit(1)
+
+    logger.info("Stack %s deleted.", args.stack_name)
+
+
+def main() -> None:
+    args = create_parser().parse_args()
+    if args.command == "deploy":
+        run_deploy(args)
+    else:
+        run_teardown(args)
 
 
 if __name__ == "__main__":

@@ -137,7 +137,12 @@ def build_scenario_payload(
         "testDescription": test_description,
         "testType": "k6",
         "fileType": "script",
-        "showLive": True,
+        # Required despite being optional in the create-scenario validation schema: the backend's
+        # DynamoDB update (updateTestDBEntry) references a ":sl" (showLive) placeholder in its
+        # UpdateExpression unconditionally, so omitting this field entirely causes a 500
+        # ("Invalid UpdateExpression... attribute value: :sl") even though creation validates fine.
+        # We don't use the web console, so this is never actually true -- just present.
+        "showLive": False,
         "testTaskConfigs": [{"region": region, "taskCount": task_count, "concurrency": concurrency}],
         # Informational in the console (real Fargate quota check); the API only requires
         # dltAvailableTasks to be present, so this just reflects what we're requesting.

@@ -28,6 +28,7 @@ def test_build_scenario_payload():
     assert payload["testId"] == "my-test-1234"
     assert payload["testType"] == "k6"
     assert payload["fileType"] == "script"
+    assert payload["showLive"] is False
     assert payload["testTaskConfigs"] == [{"region": "ca-central-1", "taskCount": 2, "concurrency": 10}]
 
     [execution] = payload["testScenario"]["execution"]
