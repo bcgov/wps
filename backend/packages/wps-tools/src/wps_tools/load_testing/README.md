@@ -1,9 +1,7 @@
 # Load testing
 
 Tooling for the [Distributed Load Testing on AWS](https://aws.amazon.com/solutions/implementations/distributed-load-testing-on-aws/)
-solution (SO0062), deployed headless (backend only, no web console) via the
-bundled `distributed-load-testing-on-aws-headless.template`. `manage_dlt.py`
-handles the stack (deploy/teardown); `run_k6_test.py` runs a k6 test against it.
+solution (SO0062), deployed headless (backend only, no web console) via the bundled `distributed-load-testing-on-aws-headless.template`. `manage_dlt.py` handles the stack (deploy/teardown); `run_k6_test.py` runs a k6 test against it.
 
 ## Quick start
 
@@ -12,31 +10,40 @@ handles the stack (deploy/teardown); `run_k6_test.py` runs a k6 test against it.
 aws configure sso   # first time only, names a profile
 aws sso login --profile <profile-name>
 
-# 2. Deploy the stack (see "Gotchas" below if this fails)
+# 2. Find an existing VPC + two subnets, different AZs (your account's SCPs likely
+#    block the stack from creating its own VPC -- see Gotchas). Pick an "App" tier
+#    subnet if your landing zone has one; not Mgmt/Data/TgwAttach.
+aws ec2 describe-vpcs --region ca-central-1 --profile <profile-name> \
+  --query "Vpcs[].[VpcId,CidrBlock,Tags[?Key=='Name'].Value|[0]]" --output table
+aws ec2 describe-subnets --region ca-central-1 --profile <profile-name> --filters Name=vpc-id,Values=<vpc-id> \
+  --query "Subnets[].[SubnetId,AvailabilityZone,CidrBlock,Tags[?Key=='Name'].Value|[0]]" --output table
+
+# 3. Deploy the stack
 uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt deploy \
   --admin-name YourName --admin-email you@example.com \
   --region ca-central-1 --aws-profile <profile-name> \
-  --create-template-bucket
+  --create-template-bucket \
+  --existing-vpc-id <vpc-id> --existing-subnet-a <subnet-a-id> --existing-subnet-b <subnet-b-id>
 
-# 3. Install the dlt CLI and point it at the stack (aws-exports.json is written by step 2)
+# 4. Install the dlt CLI and point it at the stack (aws-exports.json is written by step 3)
 curl -sLo /usr/local/bin/dlt \
   https://raw.githubusercontent.com/aws-solutions/distributed-load-testing-on-aws/main/deployment/cli/dlt-cli.mjs
 chmod +x /usr/local/bin/dlt
 dlt configure --from-file aws-exports.json
 
-# 4. Set a permanent password (the admin user always starts in FORCE_CHANGE_PASSWORD) and log in
+# 5. Set a permanent password (the admin user always starts in FORCE_CHANGE_PASSWORD) and log in
 aws cognito-idp admin-set-user-password \
   --user-pool-id "$(jq -r .UserPoolId aws-exports.json)" \
   --username YourName --password 'Some-Strong-Password1' --permanent \
   --region ca-central-1 --profile <profile-name>
 dlt login --srp --username YourName --password 'Some-Strong-Password1'
 
-# 5. Run a k6 test (paths are relative to backend/, matching --project above)
+# 6. Run a k6 test (paths are relative to backend/, matching --project above)
 uv run --project packages/wps-tools python -m wps_tools.load_testing.run_k6_test \
   packages/wps-tools/src/wps_tools/load_testing/k6_scripts/smoke_test.js \
   --stack-name distributed-load-testing --region ca-central-1
 
-# 6. Tear down when done
+# 7. Tear down when done
 uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt teardown \
   --region ca-central-1 --aws-profile <profile-name> --empty-buckets
 ```
@@ -49,16 +56,6 @@ becomes the literal Cognito login username, so keep it a single token.
 
 These aren't obvious from the commands alone -- each cost real debugging time:
 
-- **VPC creation blocked by your account's Service Control Policy** (e.g. BC
-  Gov's landing zone denies `ec2:CreateVpc`/`ec2:CreateInternetGateway`).
-  Deploy fails with `ROLLBACK_COMPLETE`. Fix: tear down, then redeploy with
-  `--existing-vpc-id <vpc> --existing-subnet-a <subnet> --existing-subnet-b <subnet>`
-  (two subnets, different AZs -- an "App" tier subnet if your landing zone
-  has one; not Mgmt/Data/TgwAttach). Find candidates with
-  `aws ec2 describe-vpcs`/`describe-subnets` (see `--help` for the exact query).
-- **Cognito usernames are case-sensitive.** `--username` at login must match
-  `--admin-name` at deploy exactly, including case (step 4 in Quick Start
-  handles this for you as long as you reuse the same `YourName`).
 - **k6 scripts must make at least one real HTTP call.** Taurus (which wraps
   k6 on the Fargate task) only captures request-level metrics; a script that
   never calls `http.get`/`http.post`/etc produces an empty results file, and
@@ -93,13 +90,13 @@ dlt token status                  # is your session still valid?
 dlt runs latest <testId>          # most recent run's status + stats
 ```
 
-**Stack deploy failures** -- why did CloudFormation roll back:
+**Stack deploy failures**: why did CloudFormation roll back:
 ```bash
 aws cloudformation describe-stack-events --stack-name <name> --region <region> --profile <profile> \
   --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[LogicalResourceId,ResourceStatusReason]" --output table
 ```
 
-**Container output** -- what k6/Taurus actually did (log group name has a
+**Container output**: what k6/Taurus actually did (log group name has a
 CDK-generated suffix, so look it up first):
 ```bash
 aws logs describe-log-groups --region <region> --profile <profile> \
@@ -114,7 +111,7 @@ aws logs get-log-events --region <region> --profile <profile> \
   --query "events[].message" --output text
 ```
 
-**Lambda errors** (API 500s, orchestration failures) -- physical function
+**Lambda errors** (API 500s, orchestration failures), physical function
 names have a CDK-generated suffix that changes on redeploy, so find the log
 group by a distinguishing substring rather than hardcoding the full name:
 ```bash
@@ -131,7 +128,7 @@ Useful substrings: `APIServices` (handles `POST /scenarios`, `GET
 region), `TestClea` (post-run cleanup), `Stabiliz` (waits for the ECS
 service to stabilize, or reports why it didn't).
 
-**Orchestration** -- did a run actually start once, or race twice:
+**Orchestration**: did a run actually start once, or race twice:
 ```bash
 SM_ARN=$(aws stepfunctions list-state-machines --region <region> --profile <profile> \
   --query "stateMachines[?contains(name, 'DLTStepFunctionTaskRunner')].stateMachineArn | [0]" --output text)
@@ -139,7 +136,7 @@ aws stepfunctions list-executions --region <region> --profile <profile> --state-
   --query "executions[?contains(name, '<testId>')].{name:name,status:status,startDate:startDate}" --output table
 ```
 
-**ECS** -- did Fargate actually launch anything:
+**ECS**: did Fargate actually launch anything:
 ```bash
 aws ecs list-tasks --region <region> --profile <profile> --cluster <stack-name> --desired-status STOPPED
 aws ecs describe-tasks --region <region> --profile <profile> --cluster <stack-name> --tasks <task-arn> \
@@ -154,7 +151,7 @@ aws cloudtrail lookup-events --region <region> --profile <profile> \
   --query "Events[].{Time:EventTime,User:Username,EventName:EventName}" --output table
 ```
 
-**Raw result artifacts** (k6 stdout/stderr, Taurus log, metrics CSV) --
+**Raw result artifacts** (k6 stdout/stderr, Taurus log, metrics CSV):
 pull directly from S3 instead of/alongside `dlt runs download`:
 ```bash
 aws s3 cp s3://<ScenariosBucket>/results/<testId>/<runPrefix>/k6-<uuid>-<region>.out - \
