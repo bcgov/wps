@@ -14,28 +14,36 @@ aws sso login --profile <profile-name>
 
 # 2. Deploy the stack (see "Gotchas" below if this fails)
 uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt deploy \
-  --admin-name "Your Name" --admin-email you@example.com \
+  --admin-name YourName --admin-email you@example.com \
   --region ca-central-1 --aws-profile <profile-name> \
   --create-template-bucket
 
-# 3. Install and configure the dlt CLI
+# 3. Install the dlt CLI and point it at the stack (aws-exports.json is written by step 2)
 curl -sLo /usr/local/bin/dlt \
   https://raw.githubusercontent.com/aws-solutions/distributed-load-testing-on-aws/main/deployment/cli/dlt-cli.mjs
 chmod +x /usr/local/bin/dlt
-dlt configure --from-file aws-exports.json   # written by step 2
-dlt login --srp --username "Your Name" --password '<see Gotchas below>'
+dlt configure --from-file aws-exports.json
 
-# 4. Run a k6 test (paths are relative to backend/, matching --project above)
+# 4. Set a permanent password (the admin user always starts in FORCE_CHANGE_PASSWORD) and log in
+aws cognito-idp admin-set-user-password \
+  --user-pool-id "$(jq -r .UserPoolId aws-exports.json)" \
+  --username YourName --password 'Some-Strong-Password1' --permanent \
+  --region ca-central-1 --profile <profile-name>
+dlt login --srp --username YourName --password 'Some-Strong-Password1'
+
+# 5. Run a k6 test (paths are relative to backend/, matching --project above)
 uv run --project packages/wps-tools python -m wps_tools.load_testing.run_k6_test \
   packages/wps-tools/src/wps_tools/load_testing/k6_scripts/smoke_test.js \
   --stack-name distributed-load-testing --region ca-central-1
 
-# 5. Tear down when done
+# 6. Tear down when done
 uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt teardown \
   --region ca-central-1 --aws-profile <profile-name> --empty-buckets
 ```
 
-Every command supports `--help` for the full flag list.
+Every command supports `--help` for the full flag list. `YourName` and
+`Some-Strong-Password1` are placeholders -- use your own; `--admin-name`
+becomes the literal Cognito login username, so keep it a single token.
 
 ## Gotchas
 
@@ -48,17 +56,9 @@ These aren't obvious from the commands alone -- each cost real debugging time:
   (two subnets, different AZs -- an "App" tier subnet if your landing zone
   has one; not Mgmt/Data/TgwAttach). Find candidates with
   `aws ec2 describe-vpcs`/`describe-subnets` (see `--help` for the exact query).
-- **First `dlt login` fails**: `Error: A new password is required...`. The
-  admin user starts in Cognito's `FORCE_CHANGE_PASSWORD` state, and the CLI
-  doesn't handle that challenge. Fix:
-  ```bash
-  aws cognito-idp admin-set-user-password \
-    --user-pool-id <UserPoolId, from aws-exports.json> \
-    --username <same as --admin-name -- case-sensitive> \
-    --password '<a-strong-password>' --permanent \
-    --region ca-central-1 --profile <profile-name>
-  ```
-  Then retry `dlt login --srp --username <name> --password '<that password>'`.
+- **Cognito usernames are case-sensitive.** `--username` at login must match
+  `--admin-name` at deploy exactly, including case (step 4 in Quick Start
+  handles this for you as long as you reuse the same `YourName`).
 - **k6 scripts must make at least one real HTTP call.** Taurus (which wraps
   k6 on the Fargate task) only captures request-level metrics; a script that
   never calls `http.get`/`http.post`/etc produces an empty results file, and
