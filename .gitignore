@@ -163,3 +163,6 @@ Pods
 # Push notification config
 google-services.json
 GoogleService-Info.plist
+
+# aws config
+aws-exports.json
