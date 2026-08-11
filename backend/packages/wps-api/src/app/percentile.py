@@ -30,6 +30,16 @@ def get_precalculated_percentiles(request: wps_shared.schemas.percentiles.Percen
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail='The year range is not currently supported.')
 
+    # Not every station in the weather station list has pre-calculated percentiles, so check up
+    # front rather than failing part way through the loop below with a FileNotFoundError.
+    missing = [code for code in request.stations
+               if not os.path.isfile(os.path.join(foldername, f"{code}.json"))]
+    if missing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='No percentile data available for station code(s): '
+                   f'{", ".join(str(code) for code in missing)}.')
+
     response = wps_shared.schemas.percentiles.CalculatedResponse(percentile=90, year_range=wps_shared.schemas.percentiles.YearRange(start=year_range_start, end=year_range_end))
 
     bui = []

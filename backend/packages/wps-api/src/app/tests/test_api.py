@@ -38,6 +38,18 @@ def test_percentile_no_stations_errors(monkeypatch: pytest.MonkeyPatch):
     assert response.status_code == 400
 
 
+def test_percentile_station_without_data_errors(monkeypatch: pytest.MonkeyPatch):
+    """Test to check for a station that has no pre-calculated percentile data. Not every station
+    returned by the weather station list has pre-calculated values, and requesting one is expected
+    to get back a 400 error naming the station, not a 500."""
+    client = TestClient(app.main.app)
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    response = client.post(PERCENTILE_URL, headers={"Content-Type": "application/json"}, json={"stations": ["331", "1142"], "percentile": 90, "year_range": {"start": 2014, "end": 2023}})
+    assert response.status_code == 400
+    assert "1142" in response.json()["detail"]
+    assert "331" not in response.json()["detail"]
+
+
 def test_percentile_no_invalid_year_errors(monkeypatch: pytest.MonkeyPatch):
     """Test to check for invalid year range. If an invalid year range is specified, the requested
     behaviour is to get back a 400 error."""
