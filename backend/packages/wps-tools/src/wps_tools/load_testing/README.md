@@ -43,6 +43,13 @@ the literal Cognito login username, so keep it a single token.
 
 These aren't obvious from the commands alone -- each cost real debugging time:
 
+- **SSO sessions expire mid-work.** `deploy` runs `aws sso login` for you,
+  but `teardown` and `run_k6_test.py` don't -- if your session expires
+  between deploying and running/tearing down later (a normal gap in a real
+  working session), you'll hit `botocore.exceptions.TokenRetrievalError:
+  ... Token has expired and refresh failed`, not the simpler
+  `NoCredentialsError` you'd get with no profile configured at all. Fix:
+  `aws sso login --profile <profile-name>`, then retry the same command.
 - **VPC creation is usually blocked by your account's Service Control
   Policy** (e.g. BC Gov's landing zone denies
   `ec2:CreateVpc`/`ec2:CreateInternetGateway`), which would otherwise fail
