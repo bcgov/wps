@@ -7,7 +7,7 @@ requires-python = ">=3.12.3,<4.0"
 dependencies = [
     "python-decouple>=3.6,<4",
     "boto3>=1.34,<2",
-    "boto3-stubs[cloudformation,ec2,s3]>=1.34,<2",
+    "boto3-stubs[cloudformation,cognito-idp,ec2,s3]>=1.34,<2",
     "aiobotocore>=2.4.1,<3",
     "types-aiobotocore[s3]>=2.4.1,<3",
     "pandas>=1.5.2,<3",

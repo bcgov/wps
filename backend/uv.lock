@@ -475,6 +475,9 @@ wheels = [
 cloudformation = [
     { name = "mypy-boto3-cloudformation" },
 ]
+cognito-idp = [
+    { name = "mypy-boto3-cognito-idp" },
+]
 ec2 = [
     { name = "mypy-boto3-ec2" },
 ]
@@ -2588,6 +2591,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fe/fb/23525da8851dccef6e45cc9f334b89766fcc56cd5cf6d2f21dc3772e4586/mypy_boto3_cloudformation-1.43.62.tar.gz", hash = "sha256:75c066d1a172497f6eee629ed7e4479787da4e4929194eb979fea87311805e19", size = 61529, upload-time = "2026-07-31T19:54:19.21Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/aa/16/20f3558271bba4b6a8d69f877e0a9344b3d8466141b8569d4beebcdc1fe4/mypy_boto3_cloudformation-1.43.62-py3-none-any.whl", hash = "sha256:b32adb4eadeced1d6085f48bc58e621eab1bf96e9616258432e291d59b5530cc", size = 72472, upload-time = "2026-07-31T19:54:17.372Z" },
+]
+
+[[package]]
+name = "mypy-boto3-cognito-idp"
+version = "1.43.56"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9c/23/489e6ab48587f76f9dd263292b605e3490db7e9aea4a6f80363bb950ee01/mypy_boto3_cognito_idp-1.43.56.tar.gz", hash = "sha256:d6e9cb2ba284fa8d3b51da334b56ae5c559f9b5c25c0f200c64473464088c9a6", size = 55023, upload-time = "2026-07-24T20:10:15.502Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/35/3e/552d48ab267b271157d738a7703f31eaaaf8380acbb9ac03c855191c4abb/mypy_boto3_cognito_idp-1.43.56-py3-none-any.whl", hash = "sha256:0ec9a68ed61c8e2e0997c00b1ea2e7cf7bded296be72ae978d6ab346c9c4dd4d", size = 61346, upload-time = "2026-07-24T20:10:12.284Z" },
 ]
 
 [[package]]
@@ -5050,7 +5062,7 @@ dependencies = [
     { name = "aiobotocore" },
     { name = "aiohttp" },
     { name = "boto3" },
-    { name = "boto3-stubs", extra = ["cloudformation", "ec2", "s3"] },
+    { name = "boto3-stubs", extra = ["cloudformation", "cognito-idp", "ec2", "s3"] },
     { name = "matplotlib" },
     { name = "pandas" },
     { name = "python-decouple" },
@@ -5063,7 +5075,7 @@ requires-dist = [
     { name = "aiobotocore", specifier = ">=2.4.1,<3" },
     { name = "aiohttp", specifier = ">=3.13.2" },
     { name = "boto3", specifier = ">=1.34,<2" },
-    { name = "boto3-stubs", extras = ["cloudformation", "ec2", "s3"], specifier = ">=1.34,<2" },
+    { name = "boto3-stubs", extras = ["cloudformation", "cognito-idp", "ec2", "s3"], specifier = ">=1.34,<2" },
     { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "pandas", specifier = ">=1.5.2,<3" },
     { name = "python-decouple", specifier = ">=3.6,<4" },

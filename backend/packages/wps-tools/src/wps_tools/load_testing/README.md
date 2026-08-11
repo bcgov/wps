@@ -3,7 +3,8 @@
 Tooling for the [Distributed Load Testing on AWS](https://aws.amazon.com/solutions/implementations/distributed-load-testing-on-aws/)
 solution (SO0062), deployed headless (backend only, no web console) via the
 bundled `distributed-load-testing-on-aws-headless.template`. `manage_dlt.py`
-handles the stack (deploy/teardown); `run_k6_test.py` runs a k6 test against it.
+handles the full stack lifecycle -- deploying it, installing/configuring the
+`dlt` CLI, and tearing down -- and `run_k6_test.py` runs a k6 test against it.
 
 ## Quick start
 
@@ -11,40 +12,32 @@ handles the stack (deploy/teardown); `run_k6_test.py` runs a k6 test against it.
 # 1. AWS credentials (SSO, common for gov.bc.ca accounts; one-time setup)
 aws configure sso   # first time only, names a profile
 
-# 2. Deploy the stack. Runs `aws sso login` for you (opens a browser if needed)
-#    and resolves an existing VPC/subnets automatically -- see "Gotchas" if
-#    your account doesn't have Prod-App-A/Prod-App-B subnets.
+# 2. Deploy the stack. This one command runs `aws sso login` for you (opens a
+#    browser if needed), resolves an existing VPC/subnets automatically (see
+#    "Gotchas" if your account doesn't have Prod-App-A/Prod-App-B subnets),
+#    installs and configures the dlt CLI, sets --admin-password (12+ chars,
+#    at least one uppercase, one lowercase, one digit, one symbol) as the
+#    admin user's permanent password, and logs in. You're ready to run a
+#    test after this single step.
 uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt deploy \
   --admin-name YourName --admin-email you@example.com \
+  --admin-password 'Wps-Loadtest1!' \
   --region ca-central-1 --aws-profile <profile-name> \
   --create-template-bucket
 
-# 3. Install the dlt CLI and point it at the stack (aws-exports.json is written by step 2)
-curl -sLo /usr/local/bin/dlt \
-  https://raw.githubusercontent.com/aws-solutions/distributed-load-testing-on-aws/main/deployment/cli/dlt-cli.mjs
-chmod +x /usr/local/bin/dlt
-dlt configure --from-file aws-exports.json
-
-# 4. Set a permanent password (the admin user always starts in FORCE_CHANGE_PASSWORD) and log in
-aws cognito-idp admin-set-user-password \
-  --user-pool-id "$(jq -r .UserPoolId aws-exports.json)" \
-  --username YourName --password 'Some-Strong-Password1' --permanent \
-  --region ca-central-1 --profile <profile-name>
-dlt login --srp --username YourName --password 'Some-Strong-Password1'
-
-# 5. Run a k6 test (paths are relative to backend/, matching --project above)
+# 3. Run a k6 test (paths are relative to backend/, matching --project above)
 uv run --project packages/wps-tools python -m wps_tools.load_testing.run_k6_test \
   packages/wps-tools/src/wps_tools/load_testing/k6_scripts/smoke_test.js \
   --stack-name distributed-load-testing --region ca-central-1
 
-# 6. Tear down when done
+# 4. Tear down when done
 uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt teardown \
   --region ca-central-1 --aws-profile <profile-name> --empty-buckets
 ```
 
 Every command supports `--help` for the full flag list. `YourName` and
-`Some-Strong-Password1` are placeholders -- use your own; `--admin-name`
-becomes the literal Cognito login username, so keep it a single token.
+`Wps-Loadtest1!` are placeholders -- use your own; `--admin-name` becomes
+the literal Cognito login username, so keep it a single token.
 
 ## Gotchas
 
@@ -68,9 +61,13 @@ These aren't obvious from the commands alone -- each cost real debugging time:
   ```
   If you hit `ROLLBACK_COMPLETE` anyway, tear down first -- CloudFormation
   won't let you redeploy over a failed stack in place.
-- **Cognito usernames are case-sensitive.** `--username` at login must match
-  `--admin-name` at deploy exactly, including case (step 4 in Quick Start
-  handles this for you as long as you reuse the same `YourName`).
+- **Cognito usernames are case-sensitive.** The admin user starts in
+  `FORCE_CHANGE_PASSWORD` state, and `dlt login` doesn't handle that
+  challenge itself -- `deploy` works around it by setting a permanent
+  password directly (`admin_set_user_password` with `Permanent=True`) and
+  logging in, all using the exact `--admin-name` value as the username, so
+  this is handled for you as long as nothing downstream retypes it with
+  different casing.
 - **k6 scripts must make at least one real HTTP call.** Taurus (which wraps
   k6 on the Fargate task) only captures request-level metrics; a script that
   never calls `http.get`/`http.post`/etc produces an empty results file, and

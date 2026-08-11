@@ -2,7 +2,8 @@
 Deploy or delete the Distributed Load Testing on AWS (headless) CloudFormation stack.
 
 Usage:
-    python3 -m wps_tools.load_testing.manage_dlt deploy --admin-name "Your Name" --admin-email you@example.com
+    python3 -m wps_tools.load_testing.manage_dlt deploy --admin-name "Your Name" \
+        --admin-email you@example.com --admin-password '<a-strong-password>'
     python3 -m wps_tools.load_testing.manage_dlt teardown --region ca-central-1
 """
 
@@ -15,9 +16,11 @@ from pathlib import Path
 from typing import cast, get_args
 
 import boto3
+import requests
 from botocore.exceptions import ClientError, WaiterError
 from mypy_boto3_cloudformation.client import CloudFormationClient
 from mypy_boto3_cloudformation.type_defs import ParameterTypeDef, StackResourceTypeDef, StackTypeDef
+from mypy_boto3_cognito_idp.client import CognitoIdentityProviderClient
 from mypy_boto3_ec2.client import EC2Client
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_s3.literals import BucketLocationConstraintType
@@ -105,6 +108,27 @@ def create_parser() -> argparse.ArgumentParser:
         help="Where to write the 'dlt configure --from-file' config after deploy (default: aws-exports.json)",
     )
     deploy_parser.add_argument("--skip-aws-exports", action="store_true", help="Don't write the aws-exports.json file")
+    deploy_parser.add_argument(
+        "--dlt-cli-path",
+        default=str(Path.home() / ".local" / "bin" / "dlt"),
+        help="Where to install/find the dlt CLI (default: ~/.local/bin/dlt -- avoids needing sudo)",
+    )
+    deploy_parser.add_argument(
+        "--admin-password",
+        required=True,
+        help=(
+            "Permanent password for the admin user (must satisfy the pool's policy: 12+ chars, "
+            "upper/lower/digit/symbol)"
+        ),
+    )
+    deploy_parser.add_argument(
+        "--skip-dlt-setup",
+        action="store_true",
+        help=(
+            "Don't install/configure the dlt CLI, set a permanent admin password, or log in "
+            "(implied by --skip-aws-exports, since dlt configure needs that file)"
+        ),
+    )
 
     teardown_parser = subparsers.add_parser("teardown", parents=[common], help="Delete the stack")
     teardown_parser.add_argument(
@@ -128,6 +152,34 @@ def ensure_sso_login(aws_profile: str | None) -> None:
         return
     logger.info("Ensuring SSO session is active for profile %s (opens a browser if needed)...", aws_profile)
     subprocess.run(["aws", "sso", "login", "--profile", aws_profile], check=True)
+
+
+DLT_CLI_URL = "https://raw.githubusercontent.com/aws-solutions/distributed-load-testing-on-aws/main/deployment/cli/dlt-cli.mjs"
+
+
+def install_dlt_cli(dest: Path) -> None:
+    if dest.is_file():
+        logger.info("dlt CLI already installed at %s", dest)
+        return
+    logger.info("Installing dlt CLI to %s", dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    response = requests.get(DLT_CLI_URL)
+    response.raise_for_status()
+    dest.write_bytes(response.content)
+    dest.chmod(0o755)
+
+
+def set_permanent_password(
+    cognito_client: CognitoIdentityProviderClient, user_pool_id: str, username: str, password: str
+) -> None:
+    logger.info("Setting a permanent password for %s", username)
+    cognito_client.admin_set_user_password(
+        UserPoolId=user_pool_id, Username=username, Password=password, Permanent=True
+    )
+
+
+def run_dlt_command(dlt_path: Path, args: list[str]) -> None:
+    subprocess.run([str(dlt_path), *args], check=True)
 
 
 def find_subnet_by_name(ec2_client: EC2Client, name: str) -> tuple[str, str]:
@@ -418,16 +470,46 @@ def run_deploy(args: argparse.Namespace) -> None:
 
     print(json.dumps(stack, indent=2, default=str))
 
-    if args.skip_aws_exports:
-        return
-
     outputs = {o["OutputKey"]: o["OutputValue"] for o in stack.get("Outputs", [])}
     aws_exports = build_aws_exports(outputs, region)
+
+    if args.skip_aws_exports:
+        return
 
     aws_exports_path = Path(args.aws_exports_file)
     aws_exports_path.write_text(json.dumps(aws_exports, indent=2) + "\n")
     logger.info("Wrote %s", aws_exports_path)
-    logger.info("Run: dlt configure --from-file %s", aws_exports_path)
+
+    if args.skip_dlt_setup:
+        logger.info("Run: dlt configure --from-file %s", aws_exports_path)
+        return
+
+    dlt_path = Path(args.dlt_cli_path).expanduser()
+    try:
+        install_dlt_cli(dlt_path)
+        run_dlt_command(dlt_path, ["configure", "--from-file", str(aws_exports_path)])
+
+        cognito: CognitoIdentityProviderClient = session.client("cognito-idp")
+        set_permanent_password(cognito, aws_exports["UserPoolId"], args.admin_name, args.admin_password)
+
+        run_dlt_command(
+            dlt_path, ["login", "--srp", "--username", args.admin_name, "--password", args.admin_password]
+        )
+    except (subprocess.CalledProcessError, requests.RequestException, ClientError) as e:
+        logger.error(
+            "dlt CLI setup failed: %s. Fix the issue and finish manually with: dlt configure --from-file %s",
+            e,
+            aws_exports_path,
+        )
+        sys.exit(1)
+
+    logger.info("Logged in as %s. Run a test with:", args.admin_name)
+    logger.info(
+        "  uv run --project packages/wps-tools python -m wps_tools.load_testing.run_k6_test "
+        "<script.js> --stack-name %s --region %s",
+        args.stack_name,
+        region,
+    )
 
 
 def run_teardown(args: argparse.Namespace) -> None:
