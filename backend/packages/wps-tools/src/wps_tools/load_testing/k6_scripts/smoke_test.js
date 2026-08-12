@@ -12,7 +12,7 @@ export const options = {
   duration: "10s",
 };
 
-export default function () {
+export default function smokeTest() {
   const res = http.get("https://test.k6.io/");
   check(res, { "status is 200": (r) => r.status === 200 });
   sleep(1);
