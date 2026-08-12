@@ -1,0 +1,34 @@
+groups:
+  - name: wps-postgresql
+    rules:
+      - alert: PostgreSQLLongRunningTransactionObservedIdle
+        expr: |
+          max by (kube_namespace_name, datname, usename) (
+            pg_stat_activity_max_tx_duration{
+              kube_namespace_name="e1e498-prod",
+              datname="wps",
+              state=~"idle in transaction.*"
+            }
+          ) > 1800
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: PostgreSQL transaction older than 30 minutes observed idle
+          description: A long-running PostgreSQL transaction was observed in the idle-in-transaction state.
+
+      - alert: PostgreSQLSessionsWaitingOnLocks
+        expr: |
+          sum by (kube_namespace_name, datname) (
+            pg_stat_activity_count{
+              kube_namespace_name="e1e498-prod",
+              datname="wps",
+              wait_event_type="Lock"
+            }
+          ) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: PostgreSQL sessions waiting on locks
+          description: One or more PostgreSQL sessions have been waiting on database locks for at least five minutes.

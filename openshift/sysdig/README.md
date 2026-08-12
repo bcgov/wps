@@ -16,3 +16,54 @@ oc project e1e498-tools
 # edit the sample sysdig-team resource and apply the manifest
 oc apply -f sysdig.yaml
 ```
+
+## PostgreSQL alerts
+
+The PostgreSQL alert rules are defined in
+[`openshift/postgresql-alerts.yaml`](openshift/postgresql-alerts.yaml).
+
+To add the alerts to Sysdig:
+
+1. Log in to Sysdig Monitor.
+2. Go to **Alerts**.
+3. Select **Upload Prometheus Rules**.
+4. Paste the contents of `openshift/postgresql-alerts.yaml` into the YAML editor and upload
+   the rules.
+5. Edit each imported alert.
+6. Under **Notifications**, add the **WPS Sysdig Alerts** email notification channel.
+7. Save the alert.
+
+The notification channel must be added separately to each imported alert.
+
+## PostgreSQL exporter deployment
+
+The PostgreSQL exporter is deployed from
+[`../templates/postgresql_exporter.yaml`](../templates/postgresql_exporter.yaml) using
+[`../scripts/oc_provision_postgresql_exporter.sh`](../scripts/oc_provision_postgresql_exporter.sh).
+The script defaults to a client-side dry run.
+
+Before deploying, confirm that the Crunchy operator has created the `sysdig-monitor` user and its
+generated secret. The user also needs the PostgreSQL monitoring role:
+
+```sql
+GRANT pg_monitor TO "sysdig-monitor";
+```
+
+To preview and deploy an exporter for a pull request database in `e1e498-dev`:
+
+```sh
+bash openshift/scripts/oc_provision_postgresql_exporter.sh pr-5691
+bash openshift/scripts/oc_provision_postgresql_exporter.sh pr-5691 apply
+```
+
+Replace `pr-5691` with the required pull request suffix.
+
+To preview and deploy the production exporter in `e1e498-prod`:
+
+```sh
+bash openshift/scripts/oc_provision_postgresql_exporter.sh prod
+bash openshift/scripts/oc_provision_postgresql_exporter.sh prod apply
+```
+
+The exporter connects to the selected Crunchy cluster through its stable primary service and reads
+credentials from the operator-managed `sysdig-monitor` secret.
