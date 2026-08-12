@@ -41,6 +41,26 @@ DEFAULT_TEMPLATE_FILE = Path(__file__).parent / "distributed-load-testing-on-aws
 CFN_INLINE_TEMPLATE_LIMIT_BYTES = 51_200
 
 
+def cli_safe_value(value: str) -> str:
+    """argparse type= validator for values that get passed as arguments to the `aws`/`dlt`
+    subprocess (e.g. a profile name, username, password). A value starting with '-' would be
+    interpreted by that downstream CLI as a different flag rather than as this argument's
+    value, so reject it here instead of at the subprocess boundary."""
+    if value.startswith("-"):
+        raise argparse.ArgumentTypeError(f"must not start with '-' (got {value!r})")
+    return value
+
+
+def resolved_path(value: str) -> Path:
+    """argparse type= validator for CLI-supplied filesystem paths. Resolves to an absolute,
+    canonical path and rejects the target itself being a symlink, guarding against a symlink
+    planted at that exact location redirecting a read/write to an unintended file."""
+    path = Path(value).expanduser()
+    if path.is_symlink():
+        raise argparse.ArgumentTypeError(f"{path} is a symlink, refusing to use it")
+    return path.resolve()
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -48,15 +68,18 @@ def create_parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--stack-name", default="distributed-load-testing", help="CloudFormation stack name")
     common.add_argument("--region", help="AWS region (default: your profile's default region)")
-    common.add_argument("--aws-profile", help="AWS named profile to use")
+    common.add_argument("--aws-profile", type=cli_safe_value, help="AWS named profile to use")
 
     deploy_parser = subparsers.add_parser("deploy", parents=[common], help="Deploy the stack")
     deploy_parser.add_argument(
         "--template",
+        type=resolved_path,
         default=str(DEFAULT_TEMPLATE_FILE),
         help=f"Path to the CloudFormation template (default: bundled {DEFAULT_TEMPLATE_FILE.name})",
     )
-    deploy_parser.add_argument("--admin-name", required=True, help="Admin user name for the Cognito account")
+    deploy_parser.add_argument(
+        "--admin-name", type=cli_safe_value, required=True, help="Admin user name for the Cognito account"
+    )
     deploy_parser.add_argument("--admin-email", required=True, help="Admin user email for the Cognito account")
     deploy_parser.add_argument(
         "--existing-vpc-id",
@@ -104,17 +127,20 @@ def create_parser() -> argparse.ArgumentParser:
     )
     deploy_parser.add_argument(
         "--aws-exports-file",
+        type=resolved_path,
         default="aws-exports.json",
         help="Where to write the 'dlt configure --from-file' config after deploy (default: aws-exports.json)",
     )
     deploy_parser.add_argument("--skip-aws-exports", action="store_true", help="Don't write the aws-exports.json file")
     deploy_parser.add_argument(
         "--dlt-cli-path",
+        type=resolved_path,
         default=str(Path.home() / ".local" / "bin" / "dlt"),
         help="Where to install/find the dlt CLI (default: ~/.local/bin/dlt -- avoids needing sudo)",
     )
     deploy_parser.add_argument(
         "--admin-password",
+        type=cli_safe_value,
         required=True,
         help=(
             "Permanent password for the admin user (must satisfy the pool's policy: 12+ chars, "
@@ -396,7 +422,7 @@ def resolve_region(session: boto3.Session) -> str:
 
 
 def run_deploy(args: argparse.Namespace) -> None:
-    template_path = Path(args.template)
+    template_path: Path = args.template  # already resolved + symlink-checked by resolved_path
     if not template_path.is_file():
         logger.error("Template not found: %s", template_path)
         sys.exit(1)
@@ -476,7 +502,7 @@ def run_deploy(args: argparse.Namespace) -> None:
     if args.skip_aws_exports:
         return
 
-    aws_exports_path = Path(args.aws_exports_file)
+    aws_exports_path: Path = args.aws_exports_file  # already resolved + symlink-checked by resolved_path
     aws_exports_path.write_text(json.dumps(aws_exports, indent=2) + "\n")
     logger.info("Wrote %s", aws_exports_path)
 
@@ -484,7 +510,7 @@ def run_deploy(args: argparse.Namespace) -> None:
         logger.info("Run: dlt configure --from-file %s", aws_exports_path)
         return
 
-    dlt_path = Path(args.dlt_cli_path).expanduser()
+    dlt_path: Path = args.dlt_cli_path  # already resolved + symlink-checked by resolved_path
     try:
         install_dlt_cli(dlt_path)
         run_dlt_command(dlt_path, ["configure", "--from-file", str(aws_exports_path)])

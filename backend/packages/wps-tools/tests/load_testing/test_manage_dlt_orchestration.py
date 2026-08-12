@@ -80,6 +80,25 @@ def test_create_parser_deploy_requires_admin_password():
         create_parser().parse_args(["deploy", "--admin-name", "Jane", "--admin-email", "jane@example.com"])
 
 
+def test_create_parser_rejects_flag_like_admin_name():
+    with pytest.raises(SystemExit):
+        parse_deploy_args("--admin-name", "--not-a-name")
+
+
+def test_create_parser_rejects_flag_like_aws_profile():
+    with pytest.raises(SystemExit):
+        parse_deploy_args("--aws-profile", "--not-a-profile")
+
+
+def test_create_parser_resolves_template_path(tmp_path):
+    template_file = tmp_path / "small.template"
+    template_file.write_text("{}")
+
+    args = parse_deploy_args("--template", str(template_file))
+
+    assert args.template == template_file.resolve()
+
+
 def test_create_parser_teardown_defaults():
     args = create_parser().parse_args(["teardown"])
 

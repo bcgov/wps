@@ -1,3 +1,6 @@
+import argparse
+from pathlib import Path
+
 import pytest
 
 from wps_tools.load_testing.manage_dlt import (
@@ -6,7 +9,9 @@ from wps_tools.load_testing.manage_dlt import (
     build_parameters,
     build_template_bucket_name,
     build_template_url,
+    cli_safe_value,
     filter_bucket_names,
+    resolved_path,
 )
 
 
@@ -118,3 +123,32 @@ def test_build_delete_batch():
 
 def test_build_delete_batch_empty():
     assert build_delete_batch([], []) == []
+
+
+def test_cli_safe_value_passes_through_normal_values():
+    assert cli_safe_value("my-profile") == "my-profile"
+
+
+def test_cli_safe_value_rejects_flag_like_values():
+    with pytest.raises(argparse.ArgumentTypeError, match="must not start with"):
+        cli_safe_value("--endpoint-url=http://evil.example")
+
+
+def test_resolved_path_resolves_relative_paths(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    assert resolved_path("some-file.json") == tmp_path.resolve() / "some-file.json"
+
+
+def test_resolved_path_expands_home():
+    assert resolved_path("~/dlt") == (Path.home() / "dlt").resolve()
+
+
+def test_resolved_path_rejects_symlinks(tmp_path):
+    real_file = tmp_path / "real.json"
+    real_file.write_text("{}")
+    symlink = tmp_path / "link.json"
+    symlink.symlink_to(real_file)
+
+    with pytest.raises(argparse.ArgumentTypeError, match="symlink"):
+        resolved_path(str(symlink))
