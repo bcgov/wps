@@ -7,7 +7,7 @@ Auth: this script does not implement Cognito login itself. Run `dlt login`
 an ID token plus AWS Identity Pool credentials in ~/.dlt/credentials.json, which
 this script reads.
 
-Note: POST /scenarios starts the run immediately -- it is NOT a separate step
+Note: POST /scenarios starts the run immediately, it is NOT a separate step
 from `dlt scenarios start`. Do not call `dlt scenarios start` after this script
 runs; that creates a second, competing run of the same test that races the first
 one for the same ECS service name and both fail. This script polls for
@@ -56,24 +56,40 @@ class DltCredentials(TypedDict):
 
 
 def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("script", help="Path to the k6 script (.js) to upload")
-    parser.add_argument("--stack-name", help="CloudFormation stack name; resolves --api-endpoint and --scenarios-bucket")
+    parser.add_argument(
+        "--stack-name",
+        help="CloudFormation stack name; resolves --api-endpoint and --scenarios-bucket",
+    )
     parser.add_argument("--api-endpoint", help="API Gateway base URL (overrides stack lookup)")
     parser.add_argument("--scenarios-bucket", help="ScenariosBucket name (overrides stack lookup)")
     parser.add_argument("--test-id", help="defaults to <script name>-<timestamp>")
     parser.add_argument("--test-name", help="defaults to --test-id")
     parser.add_argument("--test-description", default="k6 test created by run_k6_test.py")
     parser.add_argument("--region", required=True, help="AWS region to run the load test task in")
-    parser.add_argument("--task-count", type=int, default=1, help="Fargate tasks in that region (default: 1)")
-    parser.add_argument("--concurrency", type=int, default=10, help="virtual users per task (default: 10)")
+    parser.add_argument(
+        "--task-count", type=int, default=1, help="Fargate tasks in that region (default: 1)"
+    )
+    parser.add_argument(
+        "--concurrency", type=int, default=10, help="virtual users per task (default: 10)"
+    )
     parser.add_argument("--ramp-up", default="30s", help="Taurus ramp-up (default: 30s)")
     parser.add_argument("--hold-for", default="2m", help="Taurus hold-for (default: 2m)")
-    parser.add_argument("--poll-interval", type=int, default=15, help="seconds between status checks (default: 15)")
     parser.add_argument(
-        "--max-wait", type=int, default=1800, help="give up waiting after this many seconds (default: 1800)"
+        "--poll-interval", type=int, default=15, help="seconds between status checks (default: 15)"
     )
-    parser.add_argument("--aws-profile", help="AWS named profile to use for CloudFormation/S3 calls")
+    parser.add_argument(
+        "--max-wait",
+        type=int,
+        default=1800,
+        help="give up waiting after this many seconds (default: 1800)",
+    )
+    parser.add_argument(
+        "--aws-profile", help="AWS named profile to use for CloudFormation/S3 calls"
+    )
     return parser
 
 
@@ -82,7 +98,9 @@ def extract_stack_outputs(outputs: dict[str, str]) -> tuple[str, str]:
     scenarios_bucket = outputs.get("ScenariosBucket")
 
     if not api_endpoint or not scenarios_bucket:
-        raise RuntimeError(f"Could not resolve DLTApiEndpoint/ScenariosBucket from stack outputs: {outputs}")
+        raise RuntimeError(
+            f"Could not resolve DLTApiEndpoint/ScenariosBucket from stack outputs: {outputs}"
+        )
 
     return api_endpoint, scenarios_bucket
 
@@ -108,7 +126,9 @@ def load_dlt_credentials() -> DltCredentials:
     return credentials
 
 
-def upload_script(script_path: Path, bucket: str, key: str, credentials: DltCredentials, region: str) -> None:
+def upload_script(
+    script_path: Path, bucket: str, key: str, credentials: DltCredentials, region: str
+) -> None:
     logger.info("Uploading %s to s3://%s/%s", script_path, bucket, key)
     s3: S3Client = boto3.client(
         "s3",
@@ -143,7 +163,9 @@ def build_scenario_payload(
         # ("Invalid UpdateExpression... attribute value: :sl") even though creation validates fine.
         # We don't use the web console, so this is never actually true -- just present.
         "showLive": False,
-        "testTaskConfigs": [{"region": region, "taskCount": task_count, "concurrency": concurrency}],
+        "testTaskConfigs": [
+            {"region": region, "taskCount": task_count, "concurrency": concurrency}
+        ],
         # Informational in the console (real Fargate quota check); the API only requires
         # dltAvailableTasks to be present, so this just reflects what we're requesting.
         "regionalTaskDetails": {region: {"dltAvailableTasks": task_count}},
@@ -167,14 +189,18 @@ def sanitize_test_id(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9-]", "-", value)
 
 
-def derive_test_names(script_path: Path, test_id: str | None, test_name: str | None) -> tuple[str, str, str]:
+def derive_test_names(
+    script_path: Path, test_id: str | None, test_name: str | None
+) -> tuple[str, str, str]:
     resolved_test_id = test_id or sanitize_test_id(f"{script_path.stem}-{int(time.time())}")
     resolved_test_name = test_name or resolved_test_id
     script_file_name = f"{resolved_test_id}{script_path.suffix}"
     return resolved_test_id, resolved_test_name, script_file_name
 
 
-def sign_request(method: str, url: str, region: str, credentials: DltCredentials, body: bytes) -> dict[str, str]:
+def sign_request(
+    method: str, url: str, region: str, credentials: DltCredentials, body: bytes
+) -> dict[str, str]:
     """SigV4-sign a request for API Gateway's AWS_IAM authorizer, using the Cognito Identity Pool's
     temporary credentials -- the /scenarios endpoint requires execute-api:Invoke, not a bearer token."""
     aws_credentials = Credentials(
@@ -182,12 +208,16 @@ def sign_request(method: str, url: str, region: str, credentials: DltCredentials
         secret_key=credentials["awsSecretAccessKey"],
         token=credentials["awsSessionToken"],
     )
-    request = AWSRequest(method=method, url=url, data=body, headers={"Content-Type": "application/json"})
+    request = AWSRequest(
+        method=method, url=url, data=body, headers={"Content-Type": "application/json"}
+    )
     SigV4Auth(aws_credentials, "execute-api", region).add_auth(request)
     return dict(request.headers)
 
 
-def create_scenario(api_endpoint: str, region: str, credentials: DltCredentials, payload: dict[str, Any]) -> None:
+def create_scenario(
+    api_endpoint: str, region: str, credentials: DltCredentials, payload: dict[str, Any]
+) -> None:
     test_id = payload["testId"]
     logger.info("Creating scenario %s", test_id)
     url = f"{api_endpoint.rstrip('/')}/scenarios"
@@ -196,7 +226,9 @@ def create_scenario(api_endpoint: str, region: str, credentials: DltCredentials,
 
     response = requests.post(url, data=body, headers=headers)
     if not response.ok:
-        raise RuntimeError(f"POST /scenarios failed with HTTP {response.status_code}: {response.text}")
+        raise RuntimeError(
+            f"POST /scenarios failed with HTTP {response.status_code}: {response.text}"
+        )
     logger.info("Scenario %s created.", test_id)
 
 
@@ -210,18 +242,27 @@ def is_terminal_status(status: str | None) -> bool:
     return status is not None and status.lower() in TERMINAL_STATUSES
 
 
-def get_scenario_status(api_endpoint: str, region: str, credentials: DltCredentials, test_id: str) -> str | None:
+def get_scenario_status(
+    api_endpoint: str, region: str, credentials: DltCredentials, test_id: str
+) -> str | None:
     url = f"{api_endpoint.rstrip('/')}/scenarios/{test_id}?history=false&latest=false"
     headers = sign_request("GET", url, region, credentials, b"")
     response = requests.get(url, headers=headers)
     if not response.ok:
-        raise RuntimeError(f"GET /scenarios/{test_id} failed with HTTP {response.status_code}: {response.text}")
+        raise RuntimeError(
+            f"GET /scenarios/{test_id} failed with HTTP {response.status_code}: {response.text}"
+        )
     status: str | None = response.json().get("status")
     return status
 
 
 def wait_for_completion(
-    api_endpoint: str, region: str, credentials: DltCredentials, test_id: str, poll_interval: int, max_wait: int
+    api_endpoint: str,
+    region: str,
+    credentials: DltCredentials,
+    test_id: str,
+    poll_interval: int,
+    max_wait: int,
 ) -> str | None:
     elapsed = 0
     while True:
@@ -251,11 +292,15 @@ def main() -> None:
         if not args.stack_name:
             logger.error("Provide --stack-name, or both --api-endpoint and --scenarios-bucket")
             sys.exit(1)
-        resolved_endpoint, resolved_bucket = resolve_stack_outputs(args.stack_name, args.aws_profile, args.region)
+        resolved_endpoint, resolved_bucket = resolve_stack_outputs(
+            args.stack_name, args.aws_profile, args.region
+        )
         api_endpoint = api_endpoint or resolved_endpoint
         scenarios_bucket = scenarios_bucket or resolved_bucket
 
-    test_id, test_name, script_file_name = derive_test_names(script_path, args.test_id, args.test_name)
+    test_id, test_name, script_file_name = derive_test_names(
+        script_path, args.test_id, args.test_name
+    )
 
     credentials = load_dlt_credentials()
 
@@ -284,7 +329,9 @@ def main() -> None:
 
     # create_scenario's POST /scenarios already started the run -- do not also call
     # `dlt scenarios start`, which would start a second, competing run of the same test.
-    status = wait_for_completion(api_endpoint, args.region, credentials, test_id, args.poll_interval, args.max_wait)
+    status = wait_for_completion(
+        api_endpoint, args.region, credentials, test_id, args.poll_interval, args.max_wait
+    )
     logger.info("Test %s finished with status: %s", test_id, status)
     if status is None or status.lower() not in {"complete", "success"}:
         sys.exit(1)
