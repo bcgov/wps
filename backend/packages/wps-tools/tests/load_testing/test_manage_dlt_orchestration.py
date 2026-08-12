@@ -1,7 +1,7 @@
 """
 Tests for manage_dlt's top-level orchestration: run_deploy/run_teardown (and, via
 create_parser().parse_args, the argparse wiring itself). These call the already
-directly-tested helpers (deploy_stack, build_aws_exports, install_dlt_cli, ...), so the
+directly-tested helpers (deploy_stack, build_aws_exports, _install_dlt_cli, ...), so the
 goal here isn't to re-verify those -- it's to cover run_deploy/run_teardown's own branching
 (template-size routing, VPC auto-resolution, --skip-* flags, error -> sys.exit paths) which
 unit tests on the helpers alone can't reach.

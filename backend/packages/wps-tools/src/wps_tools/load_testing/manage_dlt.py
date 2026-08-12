@@ -24,7 +24,11 @@ from mypy_boto3_cognito_idp.client import CognitoIdentityProviderClient
 from mypy_boto3_ec2.client import EC2Client
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_s3.literals import BucketLocationConstraintType
-from mypy_boto3_s3.type_defs import DeleteMarkerEntryTypeDef, ObjectIdentifierTypeDef, ObjectVersionTypeDef
+from mypy_boto3_s3.type_defs import (
+    DeleteMarkerEntryTypeDef,
+    ObjectIdentifierTypeDef,
+    ObjectVersionTypeDef,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -62,11 +66,15 @@ def resolved_path(value: str) -> Path:
 
 
 def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--stack-name", default="distributed-load-testing", help="CloudFormation stack name")
+    common.add_argument(
+        "--stack-name", default="distributed-load-testing", help="CloudFormation stack name"
+    )
     common.add_argument("--region", help="AWS region (default: your profile's default region)")
     common.add_argument("--aws-profile", type=cli_safe_value, help="AWS named profile to use")
 
@@ -78,9 +86,14 @@ def create_parser() -> argparse.ArgumentParser:
         help=f"Path to the CloudFormation template (default: bundled {DEFAULT_TEMPLATE_FILE.name})",
     )
     deploy_parser.add_argument(
-        "--admin-name", type=cli_safe_value, required=True, help="Admin user name for the Cognito account"
+        "--admin-name",
+        type=cli_safe_value,
+        required=True,
+        help="Admin user name for the Cognito account",
     )
-    deploy_parser.add_argument("--admin-email", required=True, help="Admin user email for the Cognito account")
+    deploy_parser.add_argument(
+        "--admin-email", required=True, help="Admin user email for the Cognito account"
+    )
     deploy_parser.add_argument(
         "--existing-vpc-id",
         help="Use an existing VPC instead of creating one (required if your account's SCPs block ec2:CreateVpc)",
@@ -100,7 +113,9 @@ def create_parser() -> argparse.ArgumentParser:
         ),
     )
     deploy_parser.add_argument(
-        "--subnet-b-name", default="Prod-App-B", help="Second subnet Name tag for the auto-lookup above"
+        "--subnet-b-name",
+        default="Prod-App-B",
+        help="Second subnet Name tag for the auto-lookup above",
     )
     deploy_parser.add_argument(
         "--create-vpc",
@@ -131,7 +146,9 @@ def create_parser() -> argparse.ArgumentParser:
         default="aws-exports.json",
         help="Where to write the 'dlt configure --from-file' config after deploy (default: aws-exports.json)",
     )
-    deploy_parser.add_argument("--skip-aws-exports", action="store_true", help="Don't write the aws-exports.json file")
+    deploy_parser.add_argument(
+        "--skip-aws-exports", action="store_true", help="Don't write the aws-exports.json file"
+    )
     deploy_parser.add_argument(
         "--dlt-cli-path",
         type=resolved_path,
@@ -171,19 +188,24 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def ensure_sso_login(aws_profile: str | None) -> None:
+def _ensure_sso_login(aws_profile: str | None) -> None:
     """Run `aws sso login` for the given profile. A no-op (fast) if the session is already valid;
     otherwise opens a browser and blocks until the user completes it there."""
     if not aws_profile:
         return
-    logger.info("Ensuring SSO session is active for profile %s (opens a browser if needed)...", aws_profile)
+    # Also validated by argparse's `type=cli_safe_value` on --aws-profile, but re-checked here
+    # since this function can be called directly, not only via the CLI.
+    aws_profile = cli_safe_value(aws_profile)
+    logger.info(
+        "Ensuring SSO session is active for profile %s (opens a browser if needed)...", aws_profile
+    )
     subprocess.run(["aws", "sso", "login", "--profile", aws_profile], check=True)
 
 
 DLT_CLI_URL = "https://raw.githubusercontent.com/aws-solutions/distributed-load-testing-on-aws/main/deployment/cli/dlt-cli.mjs"
 
 
-def install_dlt_cli(dest: Path) -> None:
+def _install_dlt_cli(dest: Path) -> None:
     if dest.is_file():
         logger.info("dlt CLI already installed at %s", dest)
         return
@@ -204,7 +226,18 @@ def set_permanent_password(
     )
 
 
-def run_dlt_command(dlt_path: Path, args: list[str]) -> None:
+# The only literal flags this module ever passes to the dlt CLI (see run_deploy's two
+# _run_dlt_command calls). Any other flag-like ("-"-prefixed) element in `args` would have to be
+# an unvalidated value slipping into a flag's position, e.g. an admin name/password that
+# somehow reached here without going through argparse's cli_safe_value check -- so reject it
+# rather than let the dlt CLI (mis)interpret it as a different flag.
+KNOWN_DLT_FLAGS = {"--srp", "--username", "--password", "--from-file"}
+
+
+def _run_dlt_command(dlt_path: Path, args: list[str]) -> None:
+    for arg in args:
+        if arg.startswith("-") and arg not in KNOWN_DLT_FLAGS:
+            raise ValueError(f"Refusing to run dlt with unexpected flag-like argument: {arg!r}")
     subprocess.run([str(dlt_path), *args], check=True)
 
 
@@ -255,7 +288,9 @@ def build_parameters(
 
     if existing_vpc_id or existing_subnet_a or existing_subnet_b:
         if not existing_vpc_id or not existing_subnet_a or not existing_subnet_b:
-            raise ValueError("--existing-vpc-id, --existing-subnet-a, and --existing-subnet-b must be used together")
+            raise ValueError(
+                "--existing-vpc-id, --existing-subnet-a, and --existing-subnet-b must be used together"
+            )
         parameters += [
             {"ParameterKey": "ExistingVPCId", "ParameterValue": existing_vpc_id},
             {"ParameterKey": "ExistingSubnetA", "ParameterValue": existing_subnet_a},
@@ -282,7 +317,9 @@ def build_aws_exports(outputs: dict[str, str], region: str) -> dict[str, str]:
         or not user_files_bucket
         or not solution_uuid
     ):
-        raise RuntimeError(f"Could not build aws-exports.json, missing expected stack outputs: {outputs}")
+        raise RuntimeError(
+            f"Could not build aws-exports.json, missing expected stack outputs: {outputs}"
+        )
 
     return {
         "ApiEndpoint": api_endpoint,
@@ -322,10 +359,14 @@ def ensure_template_bucket(s3_client: S3Client, bucket: str, region: str) -> Non
     if region not in get_args(BucketLocationConstraintType):
         raise ValueError(f"Not a valid S3 bucket region: {region}")
     location_constraint = cast(BucketLocationConstraintType, region)
-    s3_client.create_bucket(Bucket=bucket, CreateBucketConfiguration={"LocationConstraint": location_constraint})
+    s3_client.create_bucket(
+        Bucket=bucket, CreateBucketConfiguration={"LocationConstraint": location_constraint}
+    )
 
 
-def stage_template(s3_client: S3Client, bucket: str, stack_name: str, template_path: Path, region: str) -> str:
+def stage_template(
+    s3_client: S3Client, bucket: str, stack_name: str, template_path: Path, region: str
+) -> str:
     key = f"{stack_name}/{template_path.name}"
     logger.info("Uploading %s to s3://%s/%s", template_path, bucket, key)
     s3_client.upload_file(str(template_path), bucket, key)
@@ -340,7 +381,9 @@ def deploy_stack(
     template_body: str | None = None,
     template_url: str | None = None,
 ) -> StackTypeDef:
-    template_kwargs = {"TemplateURL": template_url} if template_url else {"TemplateBody": template_body}
+    template_kwargs = (
+        {"TemplateURL": template_url} if template_url else {"TemplateBody": template_body}
+    )
 
     logger.info("Creating stack %s", stack_name)
     cfn_client.create_stack(
@@ -429,7 +472,7 @@ def run_deploy(args: argparse.Namespace) -> None:
 
     if not args.skip_sso_login:
         try:
-            ensure_sso_login(args.aws_profile)
+            _ensure_sso_login(args.aws_profile)
         except subprocess.CalledProcessError as e:
             logger.error("aws sso login failed: %s", e)
             sys.exit(1)
@@ -441,7 +484,12 @@ def run_deploy(args: argparse.Namespace) -> None:
     existing_vpc_id = args.existing_vpc_id
     existing_subnet_a = args.existing_subnet_a
     existing_subnet_b = args.existing_subnet_b
-    if not args.create_vpc and not existing_vpc_id and not existing_subnet_a and not existing_subnet_b:
+    if (
+        not args.create_vpc
+        and not existing_vpc_id
+        and not existing_subnet_a
+        and not existing_subnet_b
+    ):
         ec2: EC2Client = session.client("ec2")
         try:
             existing_vpc_id, existing_subnet_a, existing_subnet_b = resolve_existing_vpc(
@@ -454,7 +502,12 @@ def run_deploy(args: argparse.Namespace) -> None:
                 e,
             )
             sys.exit(1)
-        logger.info("Using existing VPC %s (subnets %s, %s)", existing_vpc_id, existing_subnet_a, existing_subnet_b)
+        logger.info(
+            "Using existing VPC %s (subnets %s, %s)",
+            existing_vpc_id,
+            existing_subnet_a,
+            existing_subnet_b,
+        )
 
     try:
         parameters = build_parameters(
@@ -492,7 +545,9 @@ def run_deploy(args: argparse.Namespace) -> None:
         template_url = stage_template(s3, bucket, args.stack_name, template_path, region)
         stack = deploy_stack(cfn, args.stack_name, parameters, template_url=template_url)
     else:
-        stack = deploy_stack(cfn, args.stack_name, parameters, template_body=template_path.read_text())
+        stack = deploy_stack(
+            cfn, args.stack_name, parameters, template_body=template_path.read_text()
+        )
 
     print(json.dumps(stack, indent=2, default=str))
 
@@ -502,7 +557,9 @@ def run_deploy(args: argparse.Namespace) -> None:
     if args.skip_aws_exports:
         return
 
-    aws_exports_path: Path = args.aws_exports_file  # already resolved + symlink-checked by resolved_path
+    aws_exports_path: Path = (
+        args.aws_exports_file
+    )  # already resolved + symlink-checked by resolved_path
     aws_exports_path.write_text(json.dumps(aws_exports, indent=2) + "\n")
     logger.info("Wrote %s", aws_exports_path)
 
@@ -512,16 +569,19 @@ def run_deploy(args: argparse.Namespace) -> None:
 
     dlt_path: Path = args.dlt_cli_path  # already resolved + symlink-checked by resolved_path
     try:
-        install_dlt_cli(dlt_path)
-        run_dlt_command(dlt_path, ["configure", "--from-file", str(aws_exports_path)])
+        _install_dlt_cli(dlt_path)
+        _run_dlt_command(dlt_path, ["configure", "--from-file", str(aws_exports_path)])
 
         cognito: CognitoIdentityProviderClient = session.client("cognito-idp")
-        set_permanent_password(cognito, aws_exports["UserPoolId"], args.admin_name, args.admin_password)
-
-        run_dlt_command(
-            dlt_path, ["login", "--srp", "--username", args.admin_name, "--password", args.admin_password]
+        set_permanent_password(
+            cognito, aws_exports["UserPoolId"], args.admin_name, args.admin_password
         )
-    except (subprocess.CalledProcessError, requests.RequestException, ClientError) as e:
+
+        _run_dlt_command(
+            dlt_path,
+            ["login", "--srp", "--username", args.admin_name, "--password", args.admin_password],
+        )
+    except (subprocess.CalledProcessError, requests.RequestException, ClientError, ValueError) as e:
         logger.error(
             "dlt CLI setup failed: %s. Fix the issue and finish manually with: dlt configure --from-file %s",
             e,

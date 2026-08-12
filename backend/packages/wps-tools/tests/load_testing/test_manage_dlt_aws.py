@@ -26,14 +26,14 @@ from wps_tools.load_testing.manage_dlt import (
     DLT_CLI_URL,
     deploy_stack,
     empty_bucket,
-    ensure_sso_login,
+    _ensure_sso_login,
     ensure_template_bucket,
     find_subnet_by_name,
     get_failure_reasons,
-    install_dlt_cli,
+    _install_dlt_cli,
     resolve_existing_vpc,
     resolve_region,
-    run_dlt_command,
+    _run_dlt_command,
     set_permanent_password,
     stage_template,
     teardown_stack,
@@ -286,7 +286,7 @@ def test_resolve_region_exits_when_unresolvable():
 def test_ensure_sso_login_noop_without_profile(mocker):
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
 
-    ensure_sso_login(None)
+    _ensure_sso_login(None)
 
     subprocess_run.assert_not_called()
 
@@ -294,17 +294,50 @@ def test_ensure_sso_login_noop_without_profile(mocker):
 def test_ensure_sso_login_runs_aws_sso_login(mocker):
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
 
-    ensure_sso_login("my-profile")
+    _ensure_sso_login("my-profile")
 
     subprocess_run.assert_called_once_with(["aws", "sso", "login", "--profile", "my-profile"], check=True)
+
+
+def test_ensure_sso_login_rejects_flag_like_profile_even_called_directly(mocker):
+    """Defense in depth: argparse's type=cli_safe_value already rejects this on --aws-profile,
+    but this function can also be called directly (bypassing argparse), so it re-checks."""
+    subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
+
+    with pytest.raises(Exception, match="must not start with"):
+        _ensure_sso_login("--endpoint-url=http://evil.example")
+
+    subprocess_run.assert_not_called()
 
 
 def test_run_dlt_command(mocker):
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
 
-    run_dlt_command(Path("/tmp/dlt"), ["token", "status"])
+    _run_dlt_command(Path("/tmp/dlt"), ["token", "status"])
 
     subprocess_run.assert_called_once_with(["/tmp/dlt", "token", "status"], check=True)
+
+
+def test_run_dlt_command_allows_known_flags(mocker):
+    subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
+
+    _run_dlt_command(Path("/tmp/dlt"), ["login", "--srp", "--username", "conor", "--password", "hunter2"])
+
+    subprocess_run.assert_called_once_with(
+        ["/tmp/dlt", "login", "--srp", "--username", "conor", "--password", "hunter2"], check=True
+    )
+
+
+def test_run_dlt_command_rejects_unexpected_flag(mocker):
+    """Defense in depth: admin_name/admin_password are already validated by argparse's
+    type=cli_safe_value before reaching here, but this re-checks in case a value slipping into
+    a flag's position ever reaches _run_dlt_command by some other path."""
+    subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
+
+    with pytest.raises(ValueError, match="unexpected flag-like"):
+        _run_dlt_command(Path("/tmp/dlt"), ["login", "--srp", "--username", "--evil-flag"])
+
+    subprocess_run.assert_not_called()
 
 
 def test_install_dlt_cli_skips_when_already_present(tmp_path):
@@ -312,7 +345,7 @@ def test_install_dlt_cli_skips_when_already_present(tmp_path):
     dest.write_text("existing binary")
 
     with responses.RequestsMock():  # no routes registered -- any HTTP call would fail the test
-        install_dlt_cli(dest)
+        _install_dlt_cli(dest)
 
     assert dest.read_text() == "existing binary"
 
@@ -322,7 +355,7 @@ def test_install_dlt_cli_downloads_when_missing(tmp_path):
 
     with responses.RequestsMock() as rsps:
         rsps.add(responses.GET, DLT_CLI_URL, body=b"#!/usr/bin/env node\n", status=200)
-        install_dlt_cli(dest)
+        _install_dlt_cli(dest)
 
     assert dest.read_bytes() == b"#!/usr/bin/env node\n"
     assert dest.stat().st_mode & 0o777 == 0o755
