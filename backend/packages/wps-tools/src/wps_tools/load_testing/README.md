@@ -9,8 +9,11 @@ handles the full stack lifecycle -- deploying it, installing/configuring the
 ## Quick start
 
 ```bash
-# 1. AWS credentials (SSO, common for gov.bc.ca accounts; one-time setup)
-aws configure sso   # first time only, names a profile
+# 1. AWS credentials (SSO, common for gov.bc.ca accounts). Check for an
+#    existing profile first -- if you already have one for this account,
+#    skip this and just reuse its name as --aws-profile below.
+aws configure list-profiles
+aws configure sso   # only if you don't have one yet; walks through org SSO setup and names a profile
 
 # 2. Deploy the stack. This one command runs `aws sso login` for you (opens a
 #    browser if needed), resolves an existing VPC/subnets automatically (see
