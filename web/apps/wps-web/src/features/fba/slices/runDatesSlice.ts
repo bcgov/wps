@@ -1,5 +1,7 @@
 import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { getAllRunDates, getMostRecentRunDate, getSFMSBounds, type RunType, type SFMSBounds } from '@wps/api/fbaAPI'
+import { getAllRunDates, getMostRecentRunDate, getSFMSBounds } from '@wps/api/fbaAPI'
+import type { RunType } from '@wps/api/runType'
+import type { SFMSBounds } from '@wps/api/sfmsBounds'
 import { logError } from '@wps/utils/error'
 import type { AppThunk } from 'app/store'
 import type { DateTime } from 'luxon'

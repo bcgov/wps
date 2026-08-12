@@ -1,6 +1,6 @@
 import { isNull } from 'lodash'
 import { DateTime } from 'luxon'
-import { PST_ISO_TIMEZONE, PST_UTC_OFFSET } from './constants'
+import { PDT_UTC_OFFSET, PST_ISO_TIMEZONE, PST_UTC_OFFSET } from './constants'
 
 const UTC_NOON_HOUR = Math.abs(PST_UTC_OFFSET) + 12
 
@@ -57,4 +57,8 @@ export const pstFormatter = (fromDate: DateTime): string => {
 
 export const getDateTimeNowPST = (): DateTime => {
   return DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
+}
+
+export const getDateTimeNowPDT = (): DateTime => {
+  return DateTime.now().setZone(`UTC${PDT_UTC_OFFSET}`)
 }
