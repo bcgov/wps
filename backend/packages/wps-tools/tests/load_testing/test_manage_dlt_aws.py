@@ -330,34 +330,51 @@ def test_ensure_sso_login_rejects_flag_like_profile_even_called_directly(mocker)
     subprocess_run.assert_not_called()
 
 
-def test_run_dlt_command(mocker):
+def test_run_dlt_command(tmp_path, mocker):
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
+    dlt_path = tmp_path / "dlt"
 
-    _run_dlt_command(Path("/tmp/dlt"), ["token", "status"])
+    _run_dlt_command(dlt_path, ["token", "status"])
 
-    subprocess_run.assert_called_once_with(["/tmp/dlt", "token", "status"], check=True)
+    subprocess_run.assert_called_once_with([str(dlt_path.resolve()), "token", "status"], check=True)
 
 
-def test_run_dlt_command_allows_known_flags(mocker):
+def test_run_dlt_command_allows_known_flags(tmp_path, mocker):
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
+    dlt_path = tmp_path / "dlt"
 
-    _run_dlt_command(
-        Path("/tmp/dlt"), ["login", "--srp", "--username", "conor", "--password", "hunter2"]
-    )
+    _run_dlt_command(dlt_path, ["login", "--srp", "--username", "conor", "--password", "hunter2"])
 
     subprocess_run.assert_called_once_with(
-        ["/tmp/dlt", "login", "--srp", "--username", "conor", "--password", "hunter2"], check=True
+        [str(dlt_path.resolve()), "login", "--srp", "--username", "conor", "--password", "hunter2"],
+        check=True,
     )
 
 
-def test_run_dlt_command_rejects_unexpected_flag(mocker):
+def test_run_dlt_command_rejects_unexpected_flag(tmp_path, mocker):
     """Defense in depth: admin_name/admin_password are already validated by argparse's
     type=SafeArg before reaching here, but this re-checks in case a value slipping into
     a flag's position ever reaches _run_dlt_command by some other path."""
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
 
     with pytest.raises(ValueError, match="unexpected flag-like"):
-        _run_dlt_command(Path("/tmp/dlt"), ["login", "--srp", "--username", "--evil-flag"])
+        _run_dlt_command(tmp_path / "dlt", ["login", "--srp", "--username", "--evil-flag"])
+
+    subprocess_run.assert_not_called()
+
+
+def test_run_dlt_command_rejects_symlink_path(tmp_path, mocker):
+    """Defense in depth: --dlt-cli-path is already validated by argparse's
+    type=SafePath.validate, but this re-checks in case an unvalidated path ever reaches
+    _run_dlt_command by some other path."""
+    subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
+    real_file = tmp_path / "real-dlt"
+    real_file.write_text("existing binary")
+    symlink = tmp_path / "dlt-symlink"
+    symlink.symlink_to(real_file)
+
+    with pytest.raises(argparse.ArgumentTypeError, match="symlink"):
+        _run_dlt_command(symlink, ["token", "status"])
 
     subprocess_run.assert_not_called()
 

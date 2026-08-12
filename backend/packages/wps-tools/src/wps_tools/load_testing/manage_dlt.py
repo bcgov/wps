@@ -271,6 +271,9 @@ def set_permanent_password(
 
 
 def _run_dlt_command(dlt_path: Path, args: list[str]) -> None:
+    # Also validated by argparse's type=SafePath.validate on --dlt-cli-path, but re-checked here
+    # since this function can be called directly, not only via the CLI.
+    dlt_path = SafePath.validate(dlt_path)
     dlt_args = [DltArg(arg) for arg in args]
     subprocess.run([str(dlt_path), *dlt_args], check=True)
 
