@@ -20,7 +20,7 @@ source "$(dirname "${0}")/common/common"
 #%   ${THIS_FILE} prod apply
 #%
 
-if [ "${SUFFIX}" = "prod" ]; then
+if [[ "${SUFFIX}" == "prod" ]]; then
     PROJ_TARGET="${PROJ_PROD}"
 elif [[ "${SUFFIX}" =~ ^pr-[0-9]+$ ]]; then
     PROJ_TARGET="${PROJ_DEV}"
@@ -37,7 +37,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/postgresql_exporter
 ${EXPORTER_IMAGE:+\"-p EXPORTER_IMAGE=${EXPORTER_IMAGE}\"}"
 
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
+[[ -n "${APPLY}" ]] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
