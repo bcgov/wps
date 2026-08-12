@@ -69,3 +69,73 @@ To add the alerts to Sysdig:
 7. Save the alert.
 
 The notification channel must be added separately to each imported alert.
+
+### Investigating a PostgreSQL alert
+
+Connect to the affected database and run this query to show idle transactions, sessions waiting on
+locks, and the sessions blocking them.
+
+```sql
+WITH affected_sessions AS (
+    SELECT pid
+    FROM pg_stat_activity
+    WHERE datname = current_database()
+      AND (
+          state LIKE 'idle in transaction%'
+          OR wait_event_type = 'Lock'
+      )
+), relevant_sessions AS (
+    SELECT pid
+    FROM affected_sessions
+
+    UNION
+
+    SELECT unnest(pg_blocking_pids(pid))
+    FROM affected_sessions
+)
+SELECT
+    activity.pid,
+    activity.usename,
+    activity.application_name,
+    activity.client_addr,
+    activity.state,
+    now() - activity.xact_start AS transaction_age,
+    now() - activity.state_change AS state_age,
+    activity.wait_event_type,
+    activity.wait_event,
+    pg_blocking_pids(activity.pid) AS blocked_by,
+    left(activity.query, 500) AS query
+FROM pg_stat_activity AS activity
+JOIN relevant_sessions USING (pid)
+ORDER BY activity.xact_start NULLS LAST;
+```
+
+For an `idle in transaction` session, `query` is the last statement executed before the session
+became idle; it might not be the statement that originally opened the transaction.
+
+### Resolving a blocked or idle transaction
+
+Do not terminate a session based only on the alert. First use the diagnostic query above to confirm
+the PID, database user, query, transaction age, and whether other sessions are blocked by it.
+
+If the session is actively running a query that is safe to interrupt, request cancellation first:
+
+```sql
+SELECT pg_cancel_backend(<pid>);
+```
+
+Cancellation stops the current query but keeps the database connection open. If the session is
+stale and `idle in transaction`, or cancellation does not release the blocking transaction,
+terminate the connection:
+
+```sql
+SELECT pg_terminate_backend(<pid>);
+```
+
+Terminating a connection rolls back its open transaction and releases its locks. It can interrupt
+an application request and discard uncommitted work, so confirm the target PID immediately before
+running the command. Do not terminate the waiting sessions when a distinct blocking session has
+been identified.
+
+After cancellation or termination, rerun the diagnostic query and confirm that the blocking chain
+has cleared. Both functions return `true` when the signal was successfully sent.

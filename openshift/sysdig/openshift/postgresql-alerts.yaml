@@ -15,7 +15,10 @@ groups:
           severity: warning
         annotations:
           summary: PostgreSQL transaction older than 30 minutes observed idle
-          description: A long-running PostgreSQL transaction was observed in the idle-in-transaction state.
+          description: >-
+            A long-running PostgreSQL transaction was observed in the idle-in-transaction state.
+            Run the PostgreSQL alert diagnostic query in the WPS Sysdig README to identify the PID
+            and last SQL statement.
 
       - alert: PostgreSQLSessionsWaitingOnLocks
         expr: |
@@ -31,4 +34,7 @@ groups:
           severity: critical
         annotations:
           summary: PostgreSQL sessions waiting on locks
-          description: One or more PostgreSQL sessions have been waiting on database locks for at least five minutes.
+          description: >-
+            One or more PostgreSQL sessions have been waiting on database locks for at least five
+            minutes. Run the PostgreSQL alert diagnostic query in the WPS Sysdig README to identify
+            the blocked and blocking sessions.
