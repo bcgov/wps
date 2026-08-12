@@ -261,7 +261,7 @@ def _install_dlt_cli(dest: Path) -> None:
     dest.chmod(0o755)
 
 
-def set_permanent_password(
+def _set_permanent_password(
     cognito_client: CognitoIdentityProviderClient, user_pool_id: str, username: str, password: str
 ) -> None:
     logger.info("Setting a permanent password for %s", username)
@@ -418,17 +418,23 @@ def deploy_stack(
     template_body: str | None = None,
     template_url: str | None = None,
 ) -> StackTypeDef:
-    template_kwargs = (
-        {"TemplateURL": template_url} if template_url else {"TemplateBody": template_body}
-    )
-
     logger.info("Creating stack %s", stack_name)
-    cfn_client.create_stack(
-        StackName=stack_name,
-        Parameters=parameters,
-        Capabilities=["CAPABILITY_NAMED_IAM"],
-        **template_kwargs,
-    )
+    if template_url:
+        cfn_client.create_stack(
+            StackName=stack_name,
+            Parameters=parameters,
+            Capabilities=["CAPABILITY_NAMED_IAM"],
+            TemplateURL=template_url,
+        )
+    elif template_body:
+        cfn_client.create_stack(
+            StackName=stack_name,
+            Parameters=parameters,
+            Capabilities=["CAPABILITY_NAMED_IAM"],
+            TemplateBody=template_body,
+        )
+    else:
+        raise ValueError("deploy_stack requires either template_body or template_url")
 
     logger.info("Waiting for stack create to complete...")
     waiter = cfn_client.get_waiter("stack_create_complete")
@@ -610,7 +616,7 @@ def run_deploy(args: argparse.Namespace) -> None:
         _run_dlt_command(dlt_path, ["configure", "--from-file", str(aws_exports_path)])
 
         cognito: CognitoIdentityProviderClient = session.client("cognito-idp")
-        set_permanent_password(
+        _set_permanent_password(
             cognito, aws_exports["UserPoolId"], args.admin_name, args.admin_password
         )
 

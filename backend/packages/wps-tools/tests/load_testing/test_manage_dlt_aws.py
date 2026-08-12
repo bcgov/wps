@@ -35,7 +35,7 @@ from wps_tools.load_testing.manage_dlt import (
     get_failure_reasons,
     resolve_existing_vpc,
     resolve_region,
-    set_permanent_password,
+    _set_permanent_password,
     stage_template,
     teardown_stack,
 )
@@ -180,6 +180,13 @@ def test_deploy_stack_creates_and_returns_stack(aws):
     assert stack["StackStatus"] == "CREATE_COMPLETE"
 
 
+def test_deploy_stack_requires_body_or_url(aws):
+    cfn = aws.client("cloudformation")
+
+    with pytest.raises(ValueError, match="requires either template_body or template_url"):
+        deploy_stack(cfn, "test-stack", parameters=[])
+
+
 def test_teardown_stack_deletes(aws):
     cfn = aws.client("cloudformation")
     s3 = aws.client("s3")
@@ -215,7 +222,7 @@ def test_set_permanent_password(aws):
     pool_id = cognito.create_user_pool(PoolName="test-pool")["UserPool"]["Id"]
     cognito.admin_create_user(UserPoolId=pool_id, Username="conor", MessageAction="SUPPRESS")
 
-    set_permanent_password(cognito, pool_id, "conor", "Wps-Loadtest1!")  # should not raise
+    _set_permanent_password(cognito, pool_id, "conor", "Wps-Loadtest1!")  # should not raise
 
     user = cognito.admin_get_user(UserPoolId=pool_id, Username="conor")
     assert user["UserStatus"] in ("CONFIRMED", "FORCE_CHANGE_PASSWORD")

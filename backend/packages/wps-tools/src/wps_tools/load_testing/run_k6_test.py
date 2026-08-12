@@ -235,7 +235,8 @@ def create_scenario(
 # The backend has more transient statuses than any allowlist we've observed so far
 # (queued, provisioning, running, "cleaning up", "parsing results", ...), so treat only
 # these known-final statuses as terminal and everything else as still in progress.
-TERMINAL_STATUSES = {"complete", "success", "failed", "cancelled", "canceled"}
+SUCCESS_STATUSES = {"complete", "success"}
+TERMINAL_STATUSES = SUCCESS_STATUSES | {"failed", "cancelled", "canceled"}
 
 
 def is_terminal_status(status: str | None) -> bool:
@@ -333,7 +334,7 @@ def main() -> None:
         api_endpoint, args.region, credentials, test_id, args.poll_interval, args.max_wait
     )
     logger.info("Test %s finished with status: %s", test_id, status)
-    if status is None or status.lower() not in {"complete", "success"}:
+    if status is None or status.lower() not in SUCCESS_STATUSES:
         sys.exit(1)
 
 
