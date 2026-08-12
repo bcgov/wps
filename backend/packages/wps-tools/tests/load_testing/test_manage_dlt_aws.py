@@ -401,8 +401,9 @@ def test_install_dlt_cli_rejects_checksum_mismatch(tmp_path):
 
 
 def test_install_dlt_cli_rejects_symlink_dest_even_called_directly(tmp_path):
-    """Defense in depth: argparse's type=SafePath already rejects this on --dlt-cli-path,
-    but this function can also be called directly (bypassing argparse), so it re-checks."""
+    """argparse's type=SafePath.validate already rejects this on
+    --dlt-cli-path, but this function can also be called directly (bypassing argparse), so it
+    re-checks."""
     real_file = tmp_path / "real-dlt"
     real_file.write_text("existing binary")
     dest = tmp_path / "dlt-symlink"

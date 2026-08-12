@@ -144,11 +144,11 @@ def test_safe_arg_rejects_flag_like_values():
 def test_safe_path_resolves_relative_paths(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
-    assert SafePath("some-file.json") == tmp_path.resolve() / "some-file.json"
+    assert SafePath.validate("some-file.json") == tmp_path.resolve() / "some-file.json"
 
 
 def test_safe_path_expands_home():
-    assert SafePath("~/dlt") == (Path.home() / "dlt").resolve()
+    assert SafePath.validate("~/dlt") == (Path.home() / "dlt").resolve()
 
 
 def test_safe_path_rejects_symlinks(tmp_path):
@@ -158,4 +158,4 @@ def test_safe_path_rejects_symlinks(tmp_path):
     symlink.symlink_to(real_file)
 
     with pytest.raises(argparse.ArgumentTypeError, match="symlink"):
-        SafePath(str(symlink))
+        SafePath.validate(str(symlink))

@@ -64,15 +64,17 @@ class SafeArg(str):
 
 class SafePath(Path):
     """A Path resolved to an absolute, canonical form, guaranteed not to be a symlink at that
-    exact location, enforced in the constructor itself (not just by a validator function some
-    callers might forget to use), guarding against a symlink planted there redirecting a
-    read/write to an unintended file. Also usable directly as an argparse `type=`."""
+    exact location."""
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
-        candidate = Path(*args, **kwargs).expanduser()
+    @classmethod
+    def validate(cls, value: str | Path) -> "SafePath":
+        """argparse type= validator for CLI-supplied filesystem paths. Resolves to an absolute,
+        canonical path and rejects the target itself being a symlink, guarding against a
+        symlink planted at that exact location redirecting a read/write to an unintended file."""
+        candidate = Path(value).expanduser()
         if candidate.is_symlink():
             raise argparse.ArgumentTypeError(f"{candidate} is a symlink, refusing to use it")
-        super().__init__(candidate.resolve())
+        return cls(candidate.resolve())
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -91,7 +93,7 @@ def create_parser() -> argparse.ArgumentParser:
     deploy_parser = subparsers.add_parser("deploy", parents=[common], help="Deploy the stack")
     deploy_parser.add_argument(
         "--template",
-        type=SafePath,
+        type=SafePath.validate,
         default=str(DEFAULT_TEMPLATE_FILE),
         help=f"Path to the CloudFormation template (default: bundled {DEFAULT_TEMPLATE_FILE.name})",
     )
@@ -152,7 +154,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     deploy_parser.add_argument(
         "--aws-exports-file",
-        type=SafePath,
+        type=SafePath.validate,
         default="aws-exports.json",
         help="Where to write the 'dlt configure --from-file' config after deploy (default: aws-exports.json)",
     )
@@ -161,7 +163,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     deploy_parser.add_argument(
         "--dlt-cli-path",
-        type=SafePath,
+        type=SafePath.validate,
         default=str(Path.home() / ".local" / "bin" / "dlt"),
         help="Where to install/find the dlt CLI (default: ~/.local/bin/dlt -- avoids needing sudo)",
     )
@@ -224,9 +226,9 @@ DLT_CLI_SHA256 = "ea512550b5341a68fbc873c34190324d5762c77188b1f02b3f01d1af9ff095
 
 
 def _install_dlt_cli(dest: Path) -> None:
-    # Also validated by argparse's type=SafePath on --dlt-cli-path, but re-resolved here
+    # Also validated by argparse's type=SafePath.validate on --dlt-cli-path, but re-resolved here
     # since this function can be called directly, not only via the CLI.
-    dest = SafePath(dest)
+    dest = SafePath.validate(dest)
     if dest.is_file():
         logger.info("dlt CLI already installed at %s", dest)
         return
@@ -495,7 +497,7 @@ def resolve_region(session: boto3.Session) -> str:
 
 
 def run_deploy(args: argparse.Namespace) -> None:
-    template_path: Path = args.template  # already resolved + symlink-checked by SafePath
+    template_path: Path = args.template  # already resolved + symlink-checked by SafePath.validate
     if not template_path.is_file():
         logger.error("Template not found: %s", template_path)
         sys.exit(1)
@@ -587,7 +589,9 @@ def run_deploy(args: argparse.Namespace) -> None:
     if args.skip_aws_exports:
         return
 
-    aws_exports_path: Path = args.aws_exports_file  # already resolved + symlink-checked by SafePath
+    aws_exports_path: Path = (
+        args.aws_exports_file
+    )  # already resolved + symlink-checked by SafePath.validate
     aws_exports_path.write_text(json.dumps(aws_exports, indent=2) + "\n")
     logger.info("Wrote %s", aws_exports_path)
 
@@ -595,7 +599,7 @@ def run_deploy(args: argparse.Namespace) -> None:
         logger.info("Run: dlt configure --from-file %s", aws_exports_path)
         return
 
-    dlt_path: Path = args.dlt_cli_path  # already resolved + symlink-checked by SafePath
+    dlt_path: Path = args.dlt_cli_path  # already resolved + symlink-checked by SafePath.validate
     try:
         _install_dlt_cli(dlt_path)
         _run_dlt_command(dlt_path, ["configure", "--from-file", str(aws_exports_path)])
