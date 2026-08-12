@@ -50,24 +50,29 @@ CFN_INLINE_TEMPLATE_LIMIT_BYTES = 51_200
 _FLAG_LIKE_VALUE = re.compile(r"^-")
 
 
-def cli_safe_value(value: str) -> str:
-    """argparse type= validator for values that get passed as arguments to the `aws`/`dlt`
-    subprocess (e.g. a profile name, username, password). A value starting with '-' would be
-    interpreted by that downstream CLI as a different flag rather than as this argument's
-    value, so reject it here instead of at the subprocess boundary."""
-    if _FLAG_LIKE_VALUE.match(value):
-        raise argparse.ArgumentTypeError(f"must not start with '-' (got {value!r})")
-    return value
+class SafeArg(str):
+    """A str guaranteed not to start with '-', enforced in the constructor itself (not just by
+    a validator function some callers might forget to use). A value starting with '-' would be
+    interpreted as a different flag rather than as its intended value by a downstream CLI like
+    `aws`/`dlt`. Also usable directly as an argparse `type=`, since argparse just calls it."""
+
+    def __new__(cls, value: str) -> "SafeArg":
+        if _FLAG_LIKE_VALUE.match(value):
+            raise argparse.ArgumentTypeError(f"must not start with '-' (got {value!r})")
+        return super().__new__(cls, value)
 
 
-def resolved_path(value: str) -> Path:
-    """argparse type= validator for CLI-supplied filesystem paths. Resolves to an absolute,
-    canonical path and rejects the target itself being a symlink, guarding against a symlink
-    planted at that exact location redirecting a read/write to an unintended file."""
-    path = Path(value).expanduser()
-    if path.is_symlink():
-        raise argparse.ArgumentTypeError(f"{path} is a symlink, refusing to use it")
-    return path.resolve()
+class SafePath(Path):
+    """A Path resolved to an absolute, canonical form, guaranteed not to be a symlink at that
+    exact location, enforced in the constructor itself (not just by a validator function some
+    callers might forget to use), guarding against a symlink planted there redirecting a
+    read/write to an unintended file. Also usable directly as an argparse `type=`."""
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        candidate = Path(*args, **kwargs).expanduser()
+        if candidate.is_symlink():
+            raise argparse.ArgumentTypeError(f"{candidate} is a symlink, refusing to use it")
+        super().__init__(candidate.resolve())
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -81,18 +86,18 @@ def create_parser() -> argparse.ArgumentParser:
         "--stack-name", default="distributed-load-testing", help="CloudFormation stack name"
     )
     common.add_argument("--region", help="AWS region (default: your profile's default region)")
-    common.add_argument("--aws-profile", type=cli_safe_value, help="AWS named profile to use")
+    common.add_argument("--aws-profile", type=SafeArg, help="AWS named profile to use")
 
     deploy_parser = subparsers.add_parser("deploy", parents=[common], help="Deploy the stack")
     deploy_parser.add_argument(
         "--template",
-        type=resolved_path,
+        type=SafePath,
         default=str(DEFAULT_TEMPLATE_FILE),
         help=f"Path to the CloudFormation template (default: bundled {DEFAULT_TEMPLATE_FILE.name})",
     )
     deploy_parser.add_argument(
         "--admin-name",
-        type=cli_safe_value,
+        type=SafeArg,
         required=True,
         help="Admin user name for the Cognito account",
     )
@@ -147,7 +152,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     deploy_parser.add_argument(
         "--aws-exports-file",
-        type=resolved_path,
+        type=SafePath,
         default="aws-exports.json",
         help="Where to write the 'dlt configure --from-file' config after deploy (default: aws-exports.json)",
     )
@@ -156,13 +161,13 @@ def create_parser() -> argparse.ArgumentParser:
     )
     deploy_parser.add_argument(
         "--dlt-cli-path",
-        type=resolved_path,
+        type=SafePath,
         default=str(Path.home() / ".local" / "bin" / "dlt"),
         help="Where to install/find the dlt CLI (default: ~/.local/bin/dlt -- avoids needing sudo)",
     )
     deploy_parser.add_argument(
         "--admin-password",
-        type=cli_safe_value,
+        type=SafeArg,
         required=True,
         help=(
             "Permanent password for the admin user (must satisfy the pool's policy: 12+ chars, "
@@ -198,9 +203,9 @@ def _ensure_sso_login(aws_profile: str | None) -> None:
     otherwise opens a browser and blocks until the user completes it there."""
     if not aws_profile:
         return
-    # Also validated by argparse's `type=cli_safe_value` on --aws-profile, but re-checked here
+    # Also validated by argparse's `type=SafeArg` on --aws-profile, but re-checked here
     # since this function can be called directly, not only via the CLI.
-    aws_profile = cli_safe_value(aws_profile)
+    aws_profile = SafeArg(aws_profile)
     logger.info(
         "Ensuring SSO session is active for profile %s (opens a browser if needed)...", aws_profile
     )
@@ -219,9 +224,9 @@ DLT_CLI_SHA256 = "ea512550b5341a68fbc873c34190324d5762c77188b1f02b3f01d1af9ff095
 
 
 def _install_dlt_cli(dest: Path) -> None:
-    # Also validated by argparse's type=resolved_path on --dlt-cli-path, but re-resolved here
+    # Also validated by argparse's type=SafePath on --dlt-cli-path, but re-resolved here
     # since this function can be called directly, not only via the CLI.
-    dest = resolved_path(str(dest))
+    dest = SafePath(dest)
     if dest.is_file():
         logger.info("dlt CLI already installed at %s", dest)
         return
@@ -252,8 +257,10 @@ def set_permanent_password(
 # The only literal flags this module ever passes to the dlt CLI (see run_deploy's two
 # _run_dlt_command calls). Any other flag-like ("-"-prefixed) element in `args` would have to be
 # an unvalidated value slipping into a flag's position, e.g. an admin name/password that
-# somehow reached here without going through argparse's cli_safe_value check -- so reject it
-# rather than let the dlt CLI (mis)interpret it as a different flag.
+# somehow reached here without going through argparse's SafeArg check -- so reject it rather
+# than let the dlt CLI (mis)interpret it as a different flag. Note SafeArg itself can't be used
+# here: its constructor rejects anything starting with '-', but this list legitimately contains
+# literal flags like "--srp" alongside the values that must not look like one.
 KNOWN_DLT_FLAGS = {"--srp", "--username", "--password", "--from-file"}
 
 
@@ -488,7 +495,7 @@ def resolve_region(session: boto3.Session) -> str:
 
 
 def run_deploy(args: argparse.Namespace) -> None:
-    template_path: Path = args.template  # already resolved + symlink-checked by resolved_path
+    template_path: Path = args.template  # already resolved + symlink-checked by SafePath
     if not template_path.is_file():
         logger.error("Template not found: %s", template_path)
         sys.exit(1)
@@ -580,9 +587,7 @@ def run_deploy(args: argparse.Namespace) -> None:
     if args.skip_aws_exports:
         return
 
-    aws_exports_path: Path = (
-        args.aws_exports_file
-    )  # already resolved + symlink-checked by resolved_path
+    aws_exports_path: Path = args.aws_exports_file  # already resolved + symlink-checked by SafePath
     aws_exports_path.write_text(json.dumps(aws_exports, indent=2) + "\n")
     logger.info("Wrote %s", aws_exports_path)
 
@@ -590,7 +595,7 @@ def run_deploy(args: argparse.Namespace) -> None:
         logger.info("Run: dlt configure --from-file %s", aws_exports_path)
         return
 
-    dlt_path: Path = args.dlt_cli_path  # already resolved + symlink-checked by resolved_path
+    dlt_path: Path = args.dlt_cli_path  # already resolved + symlink-checked by SafePath
     try:
         _install_dlt_cli(dlt_path)
         _run_dlt_command(dlt_path, ["configure", "--from-file", str(aws_exports_path)])

@@ -23,19 +23,18 @@ import pytest
 import responses
 from botocore.exceptions import ClientError, WaiterError
 from moto import mock_aws
-
 from wps_tools.load_testing.manage_dlt import (
     DLT_CLI_URL,
+    _ensure_sso_login,
+    _install_dlt_cli,
+    _run_dlt_command,
     deploy_stack,
     empty_bucket,
-    _ensure_sso_login,
     ensure_template_bucket,
     find_subnet_by_name,
     get_failure_reasons,
-    _install_dlt_cli,
     resolve_existing_vpc,
     resolve_region,
-    _run_dlt_command,
     set_permanent_password,
     stage_template,
     teardown_stack,
@@ -68,16 +67,22 @@ def test_ensure_template_bucket_creates_when_missing(aws):
 
 def test_ensure_template_bucket_reuses_existing(aws):
     s3 = aws.client("s3")
-    s3.create_bucket(Bucket="already-there", CreateBucketConfiguration={"LocationConstraint": REGION})
+    s3.create_bucket(
+        Bucket="already-there", CreateBucketConfiguration={"LocationConstraint": REGION}
+    )
 
-    ensure_template_bucket(s3, "already-there", REGION)  # should not raise (e.g. BucketAlreadyOwnedByYou)
+    ensure_template_bucket(
+        s3, "already-there", REGION
+    )  # should not raise (e.g. BucketAlreadyOwnedByYou)
 
     s3.head_bucket(Bucket="already-there")
 
 
 def test_stage_template(aws, tmp_path):
     s3 = aws.client("s3")
-    s3.create_bucket(Bucket="staging-bucket", CreateBucketConfiguration={"LocationConstraint": REGION})
+    s3.create_bucket(
+        Bucket="staging-bucket", CreateBucketConfiguration={"LocationConstraint": REGION}
+    )
     template_file = tmp_path / "my.template"
     template_file.write_text(MINIMAL_TEMPLATE)
 
@@ -101,7 +106,9 @@ def test_empty_bucket_deletes_all_objects(aws):
 
 def test_empty_bucket_noop_when_already_empty(aws):
     s3 = aws.client("s3")
-    s3.create_bucket(Bucket="empty-bucket", CreateBucketConfiguration={"LocationConstraint": REGION})
+    s3.create_bucket(
+        Bucket="empty-bucket", CreateBucketConfiguration={"LocationConstraint": REGION}
+    )
 
     empty_bucket(s3, "empty-bucket")  # should not raise
 
@@ -232,7 +239,10 @@ def test_ensure_template_bucket_invalid_region_raises(aws):
 def test_ensure_template_bucket_reraises_non_404_errors():
     s3 = MagicMock()
     s3.head_bucket.side_effect = ClientError(
-        {"Error": {"Code": "403", "Message": "Forbidden"}, "ResponseMetadata": {"HTTPStatusCode": 403}},
+        {
+            "Error": {"Code": "403", "Message": "Forbidden"},
+            "ResponseMetadata": {"HTTPStatusCode": 403},
+        },
         "HeadBucket",
     )
 
@@ -244,7 +254,11 @@ def test_get_failure_reasons_filters_to_failed_events():
     cfn = MagicMock()
     cfn.describe_stack_events.return_value = {
         "StackEvents": [
-            {"LogicalResourceId": "Bucket", "ResourceStatus": "CREATE_FAILED", "ResourceStatusReason": "boom"},
+            {
+                "LogicalResourceId": "Bucket",
+                "ResourceStatus": "CREATE_FAILED",
+                "ResourceStatusReason": "boom",
+            },
             {"LogicalResourceId": "Role", "ResourceStatus": "CREATE_COMPLETE"},
         ]
     }
@@ -255,7 +269,9 @@ def test_get_failure_reasons_filters_to_failed_events():
 def test_teardown_stack_wraps_waiter_error_with_failure_reasons():
     cfn = MagicMock()
     cfn.get_waiter.return_value.wait.side_effect = WaiterError(
-        name="stack_delete_complete", reason="Waiter encountered a terminal failure state", last_response={}
+        name="stack_delete_complete",
+        reason="Waiter encountered a terminal failure state",
+        last_response={},
     )
     cfn.describe_stack_events.return_value = {
         "StackEvents": [
@@ -298,11 +314,13 @@ def test_ensure_sso_login_runs_aws_sso_login(mocker):
 
     _ensure_sso_login("my-profile")
 
-    subprocess_run.assert_called_once_with(["aws", "sso", "login", "--profile", "my-profile"], check=True)
+    subprocess_run.assert_called_once_with(
+        ["aws", "sso", "login", "--profile", "my-profile"], check=True
+    )
 
 
 def test_ensure_sso_login_rejects_flag_like_profile_even_called_directly(mocker):
-    """Defense in depth: argparse's type=cli_safe_value already rejects this on --aws-profile,
+    """argparse's type=SafeArg already rejects this on --aws-profile,
     but this function can also be called directly (bypassing argparse), so it re-checks."""
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
 
@@ -323,7 +341,9 @@ def test_run_dlt_command(mocker):
 def test_run_dlt_command_allows_known_flags(mocker):
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
 
-    _run_dlt_command(Path("/tmp/dlt"), ["login", "--srp", "--username", "conor", "--password", "hunter2"])
+    _run_dlt_command(
+        Path("/tmp/dlt"), ["login", "--srp", "--username", "conor", "--password", "hunter2"]
+    )
 
     subprocess_run.assert_called_once_with(
         ["/tmp/dlt", "login", "--srp", "--username", "conor", "--password", "hunter2"], check=True
@@ -332,7 +352,7 @@ def test_run_dlt_command_allows_known_flags(mocker):
 
 def test_run_dlt_command_rejects_unexpected_flag(mocker):
     """Defense in depth: admin_name/admin_password are already validated by argparse's
-    type=cli_safe_value before reaching here, but this re-checks in case a value slipping into
+    type=SafeArg before reaching here, but this re-checks in case a value slipping into
     a flag's position ever reaches _run_dlt_command by some other path."""
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
 
@@ -355,7 +375,9 @@ def test_install_dlt_cli_skips_when_already_present(tmp_path):
 def test_install_dlt_cli_downloads_when_missing(tmp_path, mocker):
     dest = tmp_path / "nested" / "dlt"
     body = b"#!/usr/bin/env node\n"
-    mocker.patch("wps_tools.load_testing.manage_dlt.DLT_CLI_SHA256", hashlib.sha256(body).hexdigest())
+    mocker.patch(
+        "wps_tools.load_testing.manage_dlt.DLT_CLI_SHA256", hashlib.sha256(body).hexdigest()
+    )
 
     with responses.RequestsMock() as rsps:
         rsps.add(responses.GET, DLT_CLI_URL, body=body, status=200)
@@ -379,7 +401,7 @@ def test_install_dlt_cli_rejects_checksum_mismatch(tmp_path):
 
 
 def test_install_dlt_cli_rejects_symlink_dest_even_called_directly(tmp_path):
-    """Defense in depth: argparse's type=resolved_path already rejects this on --dlt-cli-path,
+    """Defense in depth: argparse's type=SafePath already rejects this on --dlt-cli-path,
     but this function can also be called directly (bypassing argparse), so it re-checks."""
     real_file = tmp_path / "real-dlt"
     real_file.write_text("existing binary")
