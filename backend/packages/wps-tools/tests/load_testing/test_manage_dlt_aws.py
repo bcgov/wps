@@ -12,6 +12,7 @@ Functions/Lambda/custom-resource mix is far beyond what it can simulate. The syn
 template exists purely to exercise our own create/wait/describe and delete/wait orchestration.
 """
 
+import argparse
 import json
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -359,3 +360,16 @@ def test_install_dlt_cli_downloads_when_missing(tmp_path):
 
     assert dest.read_bytes() == b"#!/usr/bin/env node\n"
     assert dest.stat().st_mode & 0o777 == 0o755
+
+
+def test_install_dlt_cli_rejects_symlink_dest_even_called_directly(tmp_path):
+    """Defense in depth: argparse's type=resolved_path already rejects this on --dlt-cli-path,
+    but this function can also be called directly (bypassing argparse), so it re-checks."""
+    real_file = tmp_path / "real-dlt"
+    real_file.write_text("existing binary")
+    dest = tmp_path / "dlt-symlink"
+    dest.symlink_to(real_file)
+
+    with responses.RequestsMock():  # no routes registered -- any HTTP call would fail the test
+        with pytest.raises(argparse.ArgumentTypeError, match="symlink"):
+            _install_dlt_cli(dest)

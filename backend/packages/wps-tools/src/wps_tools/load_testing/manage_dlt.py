@@ -206,6 +206,9 @@ DLT_CLI_URL = "https://raw.githubusercontent.com/aws-solutions/distributed-load-
 
 
 def _install_dlt_cli(dest: Path) -> None:
+    # Also validated by argparse's type=resolved_path on --dlt-cli-path, but re-resolved here
+    # since this function can be called directly, not only via the CLI.
+    dest = resolved_path(str(dest))
     if dest.is_file():
         logger.info("dlt CLI already installed at %s", dest)
         return
