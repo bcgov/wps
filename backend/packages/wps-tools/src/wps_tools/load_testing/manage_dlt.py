@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import logging
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -46,12 +47,15 @@ DEFAULT_TEMPLATE_FILE = Path(__file__).parent / "distributed-load-testing-on-aws
 CFN_INLINE_TEMPLATE_LIMIT_BYTES = 51_200
 
 
+_FLAG_LIKE_VALUE = re.compile(r"^-")
+
+
 def cli_safe_value(value: str) -> str:
     """argparse type= validator for values that get passed as arguments to the `aws`/`dlt`
     subprocess (e.g. a profile name, username, password). A value starting with '-' would be
     interpreted by that downstream CLI as a different flag rather than as this argument's
     value, so reject it here instead of at the subprocess boundary."""
-    if value.startswith("-"):
+    if _FLAG_LIKE_VALUE.match(value):
         raise argparse.ArgumentTypeError(f"must not start with '-' (got {value!r})")
     return value
 
@@ -255,7 +259,7 @@ KNOWN_DLT_FLAGS = {"--srp", "--username", "--password", "--from-file"}
 
 def _run_dlt_command(dlt_path: Path, args: list[str]) -> None:
     for arg in args:
-        if arg.startswith("-") and arg not in KNOWN_DLT_FLAGS:
+        if _FLAG_LIKE_VALUE.match(arg) and arg not in KNOWN_DLT_FLAGS:
             raise ValueError(f"Refusing to run dlt with unexpected flag-like argument: {arg!r}")
     subprocess.run([str(dlt_path), *args], check=True)
 
