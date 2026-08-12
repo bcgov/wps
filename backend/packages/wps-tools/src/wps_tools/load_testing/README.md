@@ -42,6 +42,54 @@ Every command supports `--help` for the full flag list. `YourName` and
 `Wps-Loadtest1!` are placeholders -- use your own; `--admin-name` becomes
 the literal Cognito login username, so keep it a single token.
 
+## Architecture
+
+The stack is a vendored, CDK-synthesized CloudFormation template -- we deploy it as-is rather
+than authoring our own infra, since it bundles the orchestration Lambdas, Step Functions state
+machine, and IAM wiring pre-built. `manage_dlt.py`/`run_k6_test.py` are a thin client on top of it.
+
+```mermaid
+flowchart TD
+    Dev["manage_dlt.py / run_k6_test.py"]
+
+    subgraph Auth["Cognito"]
+        UserPool["User Pool (app login, SRP)"]
+        IdPool["Identity Pool (issues temp STS creds)"]
+    end
+
+    APILambda["API Gateway + APIServices Lambda<br/>(AWS_IAM authorizer)"]
+    DDB[("DynamoDB<br/>test config + status")]
+    SFN["Step Functions -> TaskRunner Lambda"]
+
+    subgraph Fargate["ECS Fargate (existing VPC/subnets)"]
+        Task["k6 + Taurus container"]
+    end
+
+    S3[("S3 ScenariosBucket<br/>public/ scripts in, results out")]
+
+    Dev -- "1. dlt login (SRP)" --> UserPool
+    Dev -- "2. exchange for AWS creds" --> IdPool
+    Dev -- "3. upload script" --> S3
+    Dev -- "4. SigV4-signed POST /scenarios" --> APILambda
+    APILambda --> DDB
+    APILambda -- "starts execution" --> SFN
+    SFN --> Task
+    Task -- "writes output" --> S3
+    Dev -- "5. poll GET /scenarios/{testId}" --> APILambda
+    Dev -- "6. download results" --> S3
+```
+
+Key points that shaped the client code:
+- **Auth is two-layer**: the User Pool (app login) is separate from the Identity Pool (issues
+  the temporary AWS credentials actually used to sign requests) -- `dlt login --srp` handles
+  both, caching the result to `~/.dlt/credentials.json`.
+- **`POST /scenarios` both creates and starts the run** -- not a separate step from
+  `dlt scenarios start`, which is why `run_k6_test.py` never calls the latter (see Gotchas).
+- **The API requires `execute-api:Invoke` via SigV4**, not a bearer token, despite also
+  carrying a Cognito ID token -- hence the manual request signing in `run_k6_test.py`.
+- **S3 upload is IAM-constrained** to `ScenariosBucket/public/*`, matching what the (unused)
+  web console's Amplify Storage client would use.
+
 ## Gotchas
 
 These aren't obvious from the commands alone -- each cost real debugging time:
