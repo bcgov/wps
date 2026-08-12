@@ -13,6 +13,7 @@ template exists purely to exercise our own create/wait/describe and delete/wait 
 """
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -351,15 +352,30 @@ def test_install_dlt_cli_skips_when_already_present(tmp_path):
     assert dest.read_text() == "existing binary"
 
 
-def test_install_dlt_cli_downloads_when_missing(tmp_path):
+def test_install_dlt_cli_downloads_when_missing(tmp_path, mocker):
     dest = tmp_path / "nested" / "dlt"
+    body = b"#!/usr/bin/env node\n"
+    mocker.patch("wps_tools.load_testing.manage_dlt.DLT_CLI_SHA256", hashlib.sha256(body).hexdigest())
 
     with responses.RequestsMock() as rsps:
-        rsps.add(responses.GET, DLT_CLI_URL, body=b"#!/usr/bin/env node\n", status=200)
+        rsps.add(responses.GET, DLT_CLI_URL, body=body, status=200)
         _install_dlt_cli(dest)
 
-    assert dest.read_bytes() == b"#!/usr/bin/env node\n"
+    assert dest.read_bytes() == body
     assert dest.stat().st_mode & 0o777 == 0o755
+
+
+def test_install_dlt_cli_rejects_checksum_mismatch(tmp_path):
+    """Guards against a compromised/rewritten upstream file being silently installed and
+    made executable -- content is verified against the pinned DLT_CLI_SHA256 before writing."""
+    dest = tmp_path / "dlt"
+
+    with responses.RequestsMock() as rsps:
+        rsps.add(responses.GET, DLT_CLI_URL, body=b"malicious content", status=200)
+        with pytest.raises(RuntimeError, match="unexpected SHA256"):
+            _install_dlt_cli(dest)
+
+    assert not dest.exists()
 
 
 def test_install_dlt_cli_rejects_symlink_dest_even_called_directly(tmp_path):

@@ -8,6 +8,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import logging
 import subprocess
@@ -202,7 +203,15 @@ def _ensure_sso_login(aws_profile: str | None) -> None:
     subprocess.run(["aws", "sso", "login", "--profile", aws_profile], check=True)
 
 
-DLT_CLI_URL = "https://raw.githubusercontent.com/aws-solutions/distributed-load-testing-on-aws/main/deployment/cli/dlt-cli.mjs"
+# Pinned to a specific commit (not `main`) and checksummed below so a compromised or rewritten
+# upstream file can't be silently downloaded and made executable -- `main` is a moving target
+# whose content we'd otherwise trust with no way to detect it changed underneath us.
+DLT_CLI_COMMIT = "8672ef3edaecf5c27982f125cc418ae29208b1fb"
+DLT_CLI_URL = (
+    "https://raw.githubusercontent.com/aws-solutions/distributed-load-testing-on-aws/"
+    f"{DLT_CLI_COMMIT}/deployment/cli/dlt-cli.mjs"
+)
+DLT_CLI_SHA256 = "ea512550b5341a68fbc873c34190324d5762c77188b1f02b3f01d1af9ff0957a"
 
 
 def _install_dlt_cli(dest: Path) -> None:
@@ -216,6 +225,13 @@ def _install_dlt_cli(dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     response = requests.get(DLT_CLI_URL)
     response.raise_for_status()
+    digest = hashlib.sha256(response.content).hexdigest()
+    if digest != DLT_CLI_SHA256:
+        raise RuntimeError(
+            f"dlt CLI download from {DLT_CLI_URL} has unexpected SHA256 {digest} "
+            f"(expected {DLT_CLI_SHA256}). Refusing to install -- if upstream genuinely updated "
+            "the pinned commit, verify the new file and update DLT_CLI_COMMIT/DLT_CLI_SHA256."
+        )
     dest.write_bytes(response.content)
     dest.chmod(0o755)
 

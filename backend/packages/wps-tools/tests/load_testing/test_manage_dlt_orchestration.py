@@ -11,6 +11,7 @@ login", the dlt CLI) and the dlt-cli.mjs download are the only things mocked dir
 those are genuinely external processes/hosts moto has no opinion on.
 """
 
+import hashlib
 import json
 import subprocess
 
@@ -23,6 +24,8 @@ from wps_tools.load_testing.manage_dlt import DLT_CLI_URL, create_parser, run_de
 
 REGION = "ca-central-1"
 ADMIN_PASSWORD = "Wps-Loadtest1!"
+DLT_CLI_BODY = b"#!/usr/bin/env node\n"
+DLT_CLI_BODY_SHA256 = hashlib.sha256(DLT_CLI_BODY).hexdigest()
 
 
 @pytest.fixture
@@ -257,6 +260,7 @@ def test_run_deploy_full_dlt_setup_success(aws, tmp_path, mocker):
     aws_exports_file = tmp_path / "aws-exports.json"
     dlt_cli_path = tmp_path / "dlt"
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
+    mocker.patch("wps_tools.load_testing.manage_dlt.DLT_CLI_SHA256", DLT_CLI_BODY_SHA256)
     args = parse_deploy_args(
         "--template",
         str(template_file),
@@ -274,7 +278,7 @@ def test_run_deploy_full_dlt_setup_success(aws, tmp_path, mocker):
     )
 
     with responses.RequestsMock() as rsps:
-        rsps.add(responses.GET, DLT_CLI_URL, body=b"#!/usr/bin/env node\n", status=200)
+        rsps.add(responses.GET, DLT_CLI_URL, body=DLT_CLI_BODY, status=200)
         run_deploy(args)
 
     assert dlt_cli_path.is_file()
@@ -295,6 +299,7 @@ def test_run_deploy_dlt_setup_failure_exits(aws, tmp_path, mocker):
         "wps_tools.load_testing.manage_dlt.subprocess.run",
         side_effect=subprocess.CalledProcessError(1, "dlt"),
     )
+    mocker.patch("wps_tools.load_testing.manage_dlt.DLT_CLI_SHA256", DLT_CLI_BODY_SHA256)
     args = parse_deploy_args(
         "--template",
         str(template_file),
@@ -312,7 +317,7 @@ def test_run_deploy_dlt_setup_failure_exits(aws, tmp_path, mocker):
     )
 
     with responses.RequestsMock() as rsps:
-        rsps.add(responses.GET, DLT_CLI_URL, body=b"#!/usr/bin/env node\n", status=200)
+        rsps.add(responses.GET, DLT_CLI_URL, body=DLT_CLI_BODY, status=200)
         with pytest.raises(SystemExit):
             run_deploy(args)
 
