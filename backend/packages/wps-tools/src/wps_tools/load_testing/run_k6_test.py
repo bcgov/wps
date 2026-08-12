@@ -37,6 +37,8 @@ from botocore.credentials import Credentials
 from mypy_boto3_cloudformation.client import CloudFormationClient
 from mypy_boto3_s3.client import S3Client
 
+from wps_tools.load_testing import REQUEST_TIMEOUT
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 ch = logging.StreamHandler()
@@ -224,7 +226,7 @@ def create_scenario(
     body = json.dumps(payload).encode()
     headers = sign_request("POST", url, region, credentials, body)
 
-    response = requests.post(url, data=body, headers=headers)
+    response = requests.post(url, data=body, headers=headers, timeout=REQUEST_TIMEOUT)
     if not response.ok:
         raise RuntimeError(
             f"POST /scenarios failed with HTTP {response.status_code}: {response.text}"
@@ -248,7 +250,7 @@ def get_scenario_status(
 ) -> str | None:
     url = f"{api_endpoint.rstrip('/')}/scenarios/{test_id}?history=false&latest=false"
     headers = sign_request("GET", url, region, credentials, b"")
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
     if not response.ok:
         raise RuntimeError(
             f"GET /scenarios/{test_id} failed with HTTP {response.status_code}: {response.text}"
@@ -265,18 +267,20 @@ def wait_for_completion(
     poll_interval: int,
     max_wait: int,
 ) -> str | None:
-    elapsed = 0
+    # A monotonic deadline (rather than incrementing a counter by poll_interval each loop)
+    # accounts for time actually spent in each request too, not just time spent sleeping --
+    # otherwise a slow-but-not-hanging API could make the real wait exceed --max-wait unnoticed.
+    deadline = time.monotonic() + max_wait
     while True:
         status = get_scenario_status(api_endpoint, region, credentials, test_id)
         logger.info("Test %s status: %s", test_id, status)
         if is_terminal_status(status):
             return status
-        if elapsed >= max_wait:
+        if time.monotonic() >= deadline:
             raise TimeoutError(
                 f"Test {test_id} did not reach a terminal status within {max_wait}s (last seen: {status})"
             )
         time.sleep(poll_interval)
-        elapsed += poll_interval
 
 
 def main() -> None:

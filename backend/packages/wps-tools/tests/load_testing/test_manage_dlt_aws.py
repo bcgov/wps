@@ -33,6 +33,7 @@ from wps_tools.load_testing.manage_dlt import (
     ensure_template_bucket,
     find_subnet_by_name,
     get_failure_reasons,
+    resolve_admin_password,
     resolve_existing_vpc,
     resolve_region,
     _set_permanent_password,
@@ -343,18 +344,37 @@ def test_run_dlt_command(tmp_path, mocker):
 
     _run_dlt_command(dlt_path, ["token", "status"])
 
-    subprocess_run.assert_called_once_with([str(dlt_path.resolve()), "token", "status"], check=True)
+    subprocess_run.assert_called_once_with(
+        [str(dlt_path.resolve()), "token", "status"], check=True, env=None
+    )
 
 
 def test_run_dlt_command_allows_known_flags(tmp_path, mocker):
     subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
     dlt_path = tmp_path / "dlt"
 
-    _run_dlt_command(dlt_path, ["login", "--srp", "--username", "conor", "--password", "hunter2"])
+    _run_dlt_command(dlt_path, ["login", "--srp", "--username", "conor"])
 
     subprocess_run.assert_called_once_with(
-        [str(dlt_path.resolve()), "login", "--srp", "--username", "conor", "--password", "hunter2"],
+        [str(dlt_path.resolve()), "login", "--srp", "--username", "conor"], check=True, env=None
+    )
+
+
+def test_run_dlt_command_passes_env_through(tmp_path, mocker):
+    """The password is passed via DLT_PASSWORD in the subprocess environment, not as a literal
+    --password <value> argument -- process arguments (unlike environment variables) are visible
+    to any user on the machine via `ps` for as long as the dlt process runs."""
+    subprocess_run = mocker.patch("wps_tools.load_testing.manage_dlt.subprocess.run")
+    dlt_path = tmp_path / "dlt"
+
+    _run_dlt_command(
+        dlt_path, ["login", "--srp", "--username", "conor"], env={"DLT_PASSWORD": "hunter2"}
+    )
+
+    subprocess_run.assert_called_once_with(
+        [str(dlt_path.resolve()), "login", "--srp", "--username", "conor"],
         check=True,
+        env={"DLT_PASSWORD": "hunter2"},
     )
 
 
@@ -436,3 +456,32 @@ def test_install_dlt_cli_rejects_symlink_dest_even_called_directly(tmp_path):
     with responses.RequestsMock():  # no routes registered -- any HTTP call would fail the test
         with pytest.raises(argparse.ArgumentTypeError, match="symlink"):
             _install_dlt_cli(dest)
+
+
+def test_resolve_admin_password_prefers_explicit(monkeypatch, mocker):
+    monkeypatch.setenv("DLT_PASSWORD", "from-env")
+    getpass_mock = mocker.patch("wps_tools.load_testing.manage_dlt.getpass.getpass")
+
+    assert resolve_admin_password("from-flag") == "from-flag"
+
+    getpass_mock.assert_not_called()
+
+
+def test_resolve_admin_password_falls_back_to_env(monkeypatch, mocker):
+    monkeypatch.setenv("DLT_PASSWORD", "from-env")
+    getpass_mock = mocker.patch("wps_tools.load_testing.manage_dlt.getpass.getpass")
+
+    assert resolve_admin_password(None) == "from-env"
+
+    getpass_mock.assert_not_called()
+
+
+def test_resolve_admin_password_prompts_as_last_resort(monkeypatch, mocker):
+    monkeypatch.delenv("DLT_PASSWORD", raising=False)
+    getpass_mock = mocker.patch(
+        "wps_tools.load_testing.manage_dlt.getpass.getpass", return_value="typed-interactively"
+    )
+
+    assert resolve_admin_password(None) == "typed-interactively"
+
+    getpass_mock.assert_called_once()

@@ -10,7 +10,7 @@ handles the full stack lifecycle -- deploying it, installing/configuring the
 
 ```bash
 # 1. AWS credentials (SSO, common for gov.bc.ca accounts). Check for an
-#    existing profile first -- if you already have one for this account,
+#    existing profile first, if you already have one for this account,
 #    skip this and just reuse its name as --aws-profile below.
 aws configure list-profiles
 aws configure sso   # only if you don't have one yet; walks through org SSO setup and names a profile
@@ -18,13 +18,12 @@ aws configure sso   # only if you don't have one yet; walks through org SSO setu
 # 2. Deploy the stack. This one command runs `aws sso login` for you (opens a
 #    browser if needed), resolves an existing VPC/subnets automatically (see
 #    "Gotchas" if your account doesn't have Prod-App-A/Prod-App-B subnets),
-#    installs and configures the dlt CLI, sets --admin-password (12+ chars,
-#    at least one uppercase, one lowercase, one digit, one symbol) as the
-#    admin user's permanent password, and logs in. You're ready to run a
-#    test after this single step.
+#    installs and configures the dlt CLI, sets a permanent admin password
+#    (12+ chars, upper/lower/digit/symbol -- prompted interactively below;
+#    set DLT_PASSWORD instead if you need this non-interactive), and logs
+#    in. You're ready to run a test after this single step.
 uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt deploy \
   --admin-name YourName --admin-email you@example.com \
-  --admin-password 'Wps-Loadtest1!' \
   --region ca-central-1 --aws-profile <profile-name> \
   --create-template-bucket
 
@@ -38,9 +37,9 @@ uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt 
   --region ca-central-1 --aws-profile <profile-name> --empty-buckets
 ```
 
-Every command supports `--help` for the full flag list. `YourName` and
-`Wps-Loadtest1!` are placeholders -- use your own; `--admin-name` becomes
-the literal Cognito login username, so keep it a single token.
+Every command supports `--help` for the full flag list. `YourName` is a
+placeholder -- use your own; `--admin-name` becomes the literal Cognito
+login username, so keep it a single token.
 
 ## Architecture
 
@@ -147,10 +146,29 @@ These aren't obvious from the commands alone -- each cost real debugging time:
   51,200-byte `TemplateBody` limit, so it's staged in S3 first. Use
   `--create-template-bucket` if you don't already have a bucket to use via
   `--template-bucket`.
-- **Teardown fails with `DELETE_FAILED`** if any bucket the stack created
-  (e.g. `ScenariosBucket`, holding every uploaded script and result) still
-  has objects in it -- CloudFormation won't delete a non-empty bucket. Pass
-  `--empty-buckets` to `teardown` (opt-in since it's destructive).
+- **Teardown does not actually delete most of the stack's resources.** The
+  template marks 28 resources `DeletionPolicy: Retain` -- 3 S3 buckets
+  (including `ScenariosBucket`), all 4 DynamoDB tables, 19 CloudWatch log
+  groups, an IAM role, and the API Gateway account. CloudFormation deletes
+  the *stack*, but leaves these behind, still accruing cost, and
+  `manage_dlt teardown` reports success either way -- that's accurate for
+  the stack, but not the same as "nothing is left running." Without
+  `--empty-buckets`, stack deletion also fails outright with
+  `DELETE_FAILED` if a bucket still has objects in it (CloudFormation won't
+  delete a non-empty bucket even to orphan it), so `--empty-buckets` empties
+  bucket *contents* first -- but the (now-empty) buckets, and everything
+  else in the Retain list, are still left behind either way. After
+  teardown, check for orphans with `aws s3 ls`, `aws dynamodb list-tables`,
+  and `aws logs describe-log-groups | grep DLT` (all `--profile <profile>`),
+  and delete manually if you want the account fully clean.
+- **Test telemetry is sent to AWS, with no opt-out.** Every test start/end
+  invokes a metrics Lambda that posts the AWS account ID, solution UUID,
+  test ID, test type, duration, and outcome to
+  `https://metrics.awssolutionsbuilder.com/generic` (a scheduled weekly
+  metrics Lambda sends the account ID too). This is baked into the template
+  unconditionally -- there's no `SendAnonymousUsageData`-style parameter to
+  disable it. Worth a security/privacy review before using this against a
+  government AWS account.
 
 ## Debugging
 
@@ -232,7 +250,8 @@ aws s3 cp s3://<ScenariosBucket>/results/<testId>/<runPrefix>/k6-<uuid>-<region>
 
 The command-line client shipped with the solution, distributed as a single
 bundled Node.js script. Auth via `--srp --username <name>` (password via
-`--password` or the `DLT_PASSWORD` env var) or `--iam` (ambient AWS
+the `DLT_PASSWORD` env var -- prefer this over `--password`, which is
+visible in shell history and process listings) or `--iam` (ambient AWS
 credentials). Both cache a Cognito ID token + Identity Pool STS credentials
 to `~/.dlt/credentials.json`, which `run_k6_test.py` reads directly.
 

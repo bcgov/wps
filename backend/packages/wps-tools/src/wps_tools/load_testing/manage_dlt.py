@@ -3,14 +3,17 @@ Deploy or delete the Distributed Load Testing on AWS (headless) CloudFormation s
 
 Usage:
     python3 -m wps_tools.load_testing.manage_dlt deploy --admin-name "Your Name" \
-        --admin-email you@example.com --admin-password '<a-strong-password>'
+        --admin-email you@example.com
+    # ^ prompts for the admin password (or set DLT_PASSWORD)
     python3 -m wps_tools.load_testing.manage_dlt teardown --region ca-central-1
 """
 
 import argparse
+import getpass
 import hashlib
 import json
 import logging
+import os
 import re
 import subprocess
 import sys
@@ -31,6 +34,8 @@ from mypy_boto3_s3.type_defs import (
     ObjectIdentifierTypeDef,
     ObjectVersionTypeDef,
 )
+
+from wps_tools.load_testing import REQUEST_TIMEOUT
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -79,7 +84,7 @@ class SafePath(Path):
 
 # The only literal flags this module ever passes to the dlt CLI (see run_deploy's two
 # _run_dlt_command calls).
-KNOWN_DLT_FLAGS = {"--srp", "--username", "--password", "--from-file"}
+KNOWN_DLT_FLAGS = {"--srp", "--username", "--from-file"}
 
 
 class DltArg(str):
@@ -184,10 +189,11 @@ def create_parser() -> argparse.ArgumentParser:
     deploy_parser.add_argument(
         "--admin-password",
         type=SafeArg,
-        required=True,
         help=(
             "Permanent password for the admin user (must satisfy the pool's policy: 12+ chars, "
-            "upper/lower/digit/symbol)"
+            "upper/lower/digit/symbol). Avoid this flag if you can -- it's visible in shell "
+            "history and this process's argument list for as long as deploy runs. Prefer the "
+            "DLT_PASSWORD environment variable, or omit both to be prompted interactively."
         ),
     )
     deploy_parser.add_argument(
@@ -248,7 +254,7 @@ def _install_dlt_cli(dest: Path) -> None:
         return
     logger.info("Installing dlt CLI to %s", dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    response = requests.get(DLT_CLI_URL)
+    response = requests.get(DLT_CLI_URL, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     digest = hashlib.sha256(response.content).hexdigest()
     if digest != DLT_CLI_SHA256:
@@ -270,12 +276,12 @@ def _set_permanent_password(
     )
 
 
-def _run_dlt_command(dlt_path: Path, args: list[str]) -> None:
+def _run_dlt_command(dlt_path: Path, args: list[str], *, env: dict[str, str] | None = None) -> None:
     # Also validated by argparse's type=SafePath.validate on --dlt-cli-path, but re-checked here
     # since this function can be called directly, not only via the CLI.
     dlt_path = SafePath.validate(dlt_path)
     dlt_args = [DltArg(arg) for arg in args]
-    subprocess.run([str(dlt_path), *dlt_args], check=True)
+    subprocess.run([str(dlt_path), *dlt_args], check=True, env=env)
 
 
 def find_subnet_by_name(ec2_client: EC2Client, name: str) -> tuple[str, str]:
@@ -507,6 +513,20 @@ def resolve_region(session: boto3.Session) -> str:
     return session.region_name
 
 
+def resolve_admin_password(explicit: str | None) -> SafeArg:
+    """Resolves the admin password from --admin-password, then the DLT_PASSWORD environment
+    variable (the same one `dlt login`/`dlt configure` already read), then an interactive
+    getpass prompt -- in that order. Avoids requiring the password as a literal CLI argument,
+    where it's visible in shell history and this process's argument list for as long as
+    deploy runs."""
+    password = explicit or os.environ.get("DLT_PASSWORD")
+    if not password:
+        password = getpass.getpass(
+            "Admin password (12+ chars, upper/lower/digit/symbol; or set DLT_PASSWORD): "
+        )
+    return SafeArg(password)
+
+
 def run_deploy(args: argparse.Namespace) -> None:
     template_path: Path = args.template  # already resolved + symlink-checked by SafePath.validate
     if not template_path.is_file():
@@ -611,18 +631,21 @@ def run_deploy(args: argparse.Namespace) -> None:
         return
 
     dlt_path: Path = args.dlt_cli_path  # already resolved + symlink-checked by SafePath.validate
+    admin_password = resolve_admin_password(args.admin_password)
     try:
         _install_dlt_cli(dlt_path)
         _run_dlt_command(dlt_path, ["configure", "--from-file", str(aws_exports_path)])
 
         cognito: CognitoIdentityProviderClient = session.client("cognito-idp")
-        _set_permanent_password(
-            cognito, aws_exports["UserPoolId"], args.admin_name, args.admin_password
-        )
+        _set_permanent_password(cognito, aws_exports["UserPoolId"], args.admin_name, admin_password)
 
+        # Password goes via DLT_PASSWORD in the subprocess environment, not `--password <value>`
+        # in argv -- process arguments (unlike environment variables) are visible to any user on
+        # the machine via `ps`, for as long as this dlt process runs.
         _run_dlt_command(
             dlt_path,
-            ["login", "--srp", "--username", args.admin_name, "--password", args.admin_password],
+            ["login", "--srp", "--username", args.admin_name],
+            env={**os.environ, "DLT_PASSWORD": admin_password},
         )
     except (subprocess.CalledProcessError, requests.RequestException, ClientError, ValueError) as e:
         logger.error(

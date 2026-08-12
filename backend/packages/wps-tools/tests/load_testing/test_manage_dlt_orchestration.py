@@ -78,9 +78,15 @@ def test_create_parser_deploy_defaults():
     assert args.skip_dlt_setup is False
 
 
-def test_create_parser_deploy_requires_admin_password():
-    with pytest.raises(SystemExit):
-        create_parser().parse_args(["deploy", "--admin-name", "Jane", "--admin-email", "jane@example.com"])
+def test_create_parser_deploy_admin_password_is_optional():
+    """--admin-password is opt-in, not required -- omitting it makes run_deploy prompt via
+    getpass (or read DLT_PASSWORD) instead of requiring the password on the command line,
+    where it would be visible in shell history and this process's argument list."""
+    args = create_parser().parse_args(
+        ["deploy", "--admin-name", "Jane", "--admin-email", "jane@example.com"]
+    )
+
+    assert args.admin_password is None
 
 
 def test_create_parser_rejects_flag_like_admin_name():
@@ -284,7 +290,9 @@ def test_run_deploy_full_dlt_setup_success(aws, tmp_path, mocker):
     assert dlt_cli_path.is_file()
     dlt_commands = [call.args[0][1:] for call in subprocess_run.call_args_list]
     assert ["configure", "--from-file", str(aws_exports_file)] in dlt_commands
-    assert ["login", "--srp", "--username", "Jane Doe", "--password", ADMIN_PASSWORD] in dlt_commands
+    login_call = next(call for call in subprocess_run.call_args_list if call.args[0][1] == "login")
+    assert login_call.args[0][1:] == ["login", "--srp", "--username", "Jane Doe"]
+    assert login_call.kwargs["env"]["DLT_PASSWORD"] == ADMIN_PASSWORD
     user = cognito.admin_get_user(UserPoolId=pool_id, Username="Jane Doe")
     assert user["UserStatus"] in ("CONFIRMED", "FORCE_CHANGE_PASSWORD")
 
