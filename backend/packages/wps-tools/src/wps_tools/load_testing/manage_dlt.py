@@ -77,6 +77,20 @@ class SafePath(Path):
         return cls(candidate.resolve())
 
 
+# The only literal flags this module ever passes to the dlt CLI (see run_deploy's two
+# _run_dlt_command calls).
+KNOWN_DLT_FLAGS = {"--srp", "--username", "--password", "--from-file"}
+
+
+class DltArg(str):
+    """A str that's either one of KNOWN_DLT_FLAGS or isn't a flag-like value."""
+
+    def __new__(cls, value: str) -> "DltArg":
+        if _FLAG_LIKE_VALUE.match(value) and value not in KNOWN_DLT_FLAGS:
+            raise ValueError(f"Refusing to run dlt with unexpected flag-like argument: {value!r}")
+        return super().__new__(cls, value)
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -256,21 +270,9 @@ def set_permanent_password(
     )
 
 
-# The only literal flags this module ever passes to the dlt CLI (see run_deploy's two
-# _run_dlt_command calls). Any other flag-like ("-"-prefixed) element in `args` would have to be
-# an unvalidated value slipping into a flag's position, e.g. an admin name/password that
-# somehow reached here without going through argparse's SafeArg check -- so reject it rather
-# than let the dlt CLI (mis)interpret it as a different flag. Note SafeArg itself can't be used
-# here: its constructor rejects anything starting with '-', but this list legitimately contains
-# literal flags like "--srp" alongside the values that must not look like one.
-KNOWN_DLT_FLAGS = {"--srp", "--username", "--password", "--from-file"}
-
-
 def _run_dlt_command(dlt_path: Path, args: list[str]) -> None:
-    for arg in args:
-        if _FLAG_LIKE_VALUE.match(arg) and arg not in KNOWN_DLT_FLAGS:
-            raise ValueError(f"Refusing to run dlt with unexpected flag-like argument: {arg!r}")
-    subprocess.run([str(dlt_path), *args], check=True)
+    dlt_args = [DltArg(arg) for arg in args]
+    subprocess.run([str(dlt_path), *dlt_args], check=True)
 
 
 def find_subnet_by_name(ec2_client: EC2Client, name: str) -> tuple[str, str]:

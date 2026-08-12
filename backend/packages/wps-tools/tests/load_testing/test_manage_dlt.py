@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 from wps_tools.load_testing.manage_dlt import (
+    DltArg,
     SafeArg,
     SafePath,
     build_aws_exports,
@@ -159,3 +160,16 @@ def test_safe_path_rejects_symlinks(tmp_path):
 
     with pytest.raises(argparse.ArgumentTypeError, match="symlink"):
         SafePath.validate(str(symlink))
+
+
+def test_dlt_arg_passes_through_normal_values():
+    assert DltArg("conor") == "conor"
+
+
+def test_dlt_arg_passes_through_known_flags():
+    assert DltArg("--srp") == "--srp"
+
+
+def test_dlt_arg_rejects_unknown_flag_like_values():
+    with pytest.raises(ValueError, match="unexpected flag-like"):
+        DltArg("--evil-flag")
