@@ -14,11 +14,7 @@ metadata:
           "fieldPath": "spec.template.spec.containers[0].image"
         }
       ]
-  resourceVersion: "3697714227"
   name: wps-redis
-  uid: 993faf9d-08fc-47cb-994f-4cb2055da786
-  creationTimestamp: "2021-06-18T18:50:06Z"
-  generation: 19
   labels:
     template: redis-ephemeral-template
     template.openshift.io/template-instance-owner: 31445217-3081-42d2-88f6-97ef32b19ff1
