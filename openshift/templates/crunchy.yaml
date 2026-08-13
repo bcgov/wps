@@ -88,6 +88,11 @@ objects:
           databases:
             - postgres
             - wps
+        - name: sysdig-monitor
+          databases:
+            - postgres
+            - wps
+          options: "NOSUPERUSER"
       instances:
         - name: crunchy
           replicas: ${{REPLICAS}}

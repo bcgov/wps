@@ -1,0 +1,40 @@
+groups:
+  - name: wps-postgresql
+    rules:
+      - alert: PostgreSQLLongRunningTransactionObservedIdle
+        expr: |
+          max by (kube_namespace_name, datname, usename) (
+            pg_stat_activity_max_tx_duration{
+              kube_namespace_name="e1e498-prod",
+              datname="wps",
+              state=~"idle in transaction.*"
+            }
+          ) > 14400
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: PostgreSQL transaction older than four hours observed idle
+          description: >-
+            A long-running PostgreSQL transaction was observed in the idle-in-transaction state.
+            Run the PostgreSQL alert diagnostic query in the WPS Sysdig README to identify the PID
+            and last SQL statement.
+
+      - alert: PostgreSQLSessionsWaitingOnLocks
+        expr: |
+          sum by (kube_namespace_name, datname) (
+            pg_stat_activity_count{
+              kube_namespace_name="e1e498-prod",
+              datname="wps",
+              wait_event_type="Lock"
+            }
+          ) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: PostgreSQL sessions waiting on locks
+          description: >-
+            One or more PostgreSQL sessions have been waiting on database locks for at least five
+            minutes. Run the PostgreSQL alert diagnostic query in the WPS Sysdig README to identify
+            the blocked and blocking sessions.
