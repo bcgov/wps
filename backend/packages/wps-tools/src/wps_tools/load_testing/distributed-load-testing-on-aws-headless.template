@@ -817,8 +817,6 @@
      "Status": "Enabled"
     }
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "cfn_nag": {
      "rules_to_suppress": [
@@ -1387,9 +1385,7 @@
     "VersioningConfiguration": {
      "Status": "Enabled"
     }
-   },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain"
+   }
   },
   "DLTConsoleResourcesConsoleBucketPolicyD5E3933D": {
    "Type": "AWS::S3::BucketPolicy",
@@ -1486,9 +1482,7 @@
     "VersioningConfiguration": {
      "Status": "Enabled"
     }
-   },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain"
+   }
   },
   "DLTTestRunnerStorageDLTScenariosBucketPolicy96221788": {
    "Type": "AWS::S3::BucketPolicy",
@@ -1610,8 +1604,6 @@
      "SSEEnabled": true
     }
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -1679,8 +1671,6 @@
      "SSEEnabled": true
     }
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -2252,8 +2242,6 @@
      }
     ]
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "cfn_nag": {
      "rules_to_suppress": [
@@ -2618,8 +2606,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "cfn_nag": {
      "rules_to_suppress": [
@@ -2791,8 +2777,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "cfn_nag": {
      "rules_to_suppress": [
@@ -3080,8 +3064,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -3236,8 +3218,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -3428,8 +3408,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -3670,8 +3648,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -3828,8 +3804,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -3973,8 +3947,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -4107,8 +4079,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -4263,8 +4233,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -4477,8 +4445,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -4680,8 +4646,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -4775,8 +4739,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -4945,8 +4907,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -4977,8 +4937,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "cfn_nag": {
      "rules_to_suppress": [
@@ -6035,8 +5993,6 @@
      "SSEEnabled": true
     }
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -6109,8 +6065,6 @@
      "SSEEnabled": true
     }
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
@@ -6658,8 +6612,6 @@
     },
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "cfn_nag": {
      "rules_to_suppress": [
@@ -6705,8 +6657,6 @@
    "Properties": {
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "cfn_nag": {
      "rules_to_suppress": [
@@ -6834,9 +6784,7 @@
       ]
      }
     ]
-   },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain"
+   }
   },
   "DLTApiAccount80CB63FF": {
    "Type": "AWS::ApiGateway::Account",
@@ -6850,9 +6798,7 @@
    },
    "DependsOn": [
     "DLTApi0C903EB5"
-   ],
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain"
+   ]
   },
   "DLTApiDeployment098FF888e92e7e9b497e439487fd9d2244bb069e": {
    "Type": "AWS::ApiGateway::Deployment",
@@ -9342,8 +9288,6 @@
    "Properties": {
     "RetentionInDays": 3653
    },
-   "UpdateReplacePolicy": "Retain",
-   "DeletionPolicy": "Retain",
    "Metadata": {
     "guard": {
      "SuppressedRules": [
