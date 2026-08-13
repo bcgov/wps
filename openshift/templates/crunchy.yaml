@@ -10,7 +10,7 @@ labels:
 parameters:
   - name: NAME
     description: |
-      The name of the application for labelling all artifacts.
+      The name  of the application for labelling all artifacts.
     displayName: Application Name
     required: true
   - description: Namespace in which database resides
