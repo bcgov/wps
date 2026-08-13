@@ -9,12 +9,12 @@ groups:
               datname="wps",
               state=~"idle in transaction.*"
             }
-          ) > 1800
+          ) > 14400
         for: 1m
         labels:
           severity: warning
         annotations:
-          summary: PostgreSQL transaction older than 30 minutes observed idle
+          summary: PostgreSQL transaction older than four hours observed idle
           description: >-
             A long-running PostgreSQL transaction was observed in the idle-in-transaction state.
             Run the PostgreSQL alert diagnostic query in the WPS Sysdig README to identify the PID
