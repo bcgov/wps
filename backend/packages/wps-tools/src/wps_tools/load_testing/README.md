@@ -146,21 +146,21 @@ These aren't obvious from the commands alone -- each cost real debugging time:
   51,200-byte `TemplateBody` limit, so it's staged in S3 first. Use
   `--create-template-bucket` if you don't already have a bucket to use via
   `--template-bucket`.
-- **Teardown does not actually delete most of the stack's resources.** The
-  template marks 28 resources `DeletionPolicy: Retain` -- 3 S3 buckets
-  (including `ScenariosBucket`), all 4 DynamoDB tables, 19 CloudWatch log
-  groups, an IAM role, and the API Gateway account. CloudFormation deletes
-  the *stack*, but leaves these behind, still accruing cost, and
-  `manage_dlt teardown` reports success either way -- that's accurate for
-  the stack, but not the same as "nothing is left running." Without
-  `--empty-buckets`, stack deletion also fails outright with
-  `DELETE_FAILED` if a bucket still has objects in it (CloudFormation won't
-  delete a non-empty bucket even to orphan it), so `--empty-buckets` empties
-  bucket *contents* first -- but the (now-empty) buckets, and everything
-  else in the Retain list, are still left behind either way. After
-  teardown, check for orphans with `aws s3 ls`, `aws dynamodb list-tables`,
-  and `aws logs describe-log-groups | grep DLT` (all `--profile <profile>`),
-  and delete manually if you want the account fully clean.
+- **Stack deletion fails outright if a bucket still has objects in it.**
+  CloudFormation won't delete a non-empty S3 bucket, so without
+  `--empty-buckets` (empties bucket *contents* first, not just the stack),
+  `teardown` fails with `DELETE_FAILED`. This is expected -- retry the same
+  command with `--empty-buckets` and it'll pick up where it left off.
+  Historically the template also marked 28 resources (3 S3 buckets, all 4
+  DynamoDB tables, 19 CloudWatch log groups, an IAM role) `DeletionPolicy:
+  Retain`, which orphaned them on every teardown regardless of
+  `--empty-buckets`; that's been removed, so a normal
+  `teardown --empty-buckets` now actually deletes everything the stack
+  created. If you're tearing down a stack deployed *before* that fix (or
+  one that's stuck in `DELETE_FAILED` from an old attempt), it may still
+  need a manual cleanup pass -- check with `aws s3 ls`, `aws dynamodb
+  list-tables`, and `aws logs describe-log-groups | grep DLT` (all
+  `--profile <profile>`).
 - **Test telemetry is sent to AWS, with no opt-out.** Every test start/end
   invokes a metrics Lambda that posts the AWS account ID, solution UUID,
   test ID, test type, duration, and outcome to
