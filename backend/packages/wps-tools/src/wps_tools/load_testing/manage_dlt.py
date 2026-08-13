@@ -24,7 +24,11 @@ import boto3
 import requests
 from botocore.exceptions import ClientError, WaiterError
 from mypy_boto3_cloudformation.client import CloudFormationClient
-from mypy_boto3_cloudformation.type_defs import ParameterTypeDef, StackResourceTypeDef, StackTypeDef
+from mypy_boto3_cloudformation.type_defs import (
+    ParameterTypeDef,
+    StackResourceSummaryTypeDef,
+    StackTypeDef,
+)
 from mypy_boto3_cognito_idp.client import CognitoIdentityProviderClient
 from mypy_boto3_ec2.client import EC2Client
 from mypy_boto3_s3.client import S3Client
@@ -450,7 +454,7 @@ def deploy_stack(
     return stack
 
 
-def filter_bucket_names(resources: list[StackResourceTypeDef]) -> list[str]:
+def filter_bucket_names(resources: list[StackResourceSummaryTypeDef]) -> list[str]:
     return [
         r["PhysicalResourceId"]
         for r in resources
@@ -467,10 +471,18 @@ def build_delete_batch(
 def empty_bucket(s3_client: S3Client, bucket: str) -> None:
     logger.info("Emptying bucket %s", bucket)
     paginator = s3_client.get_paginator("list_object_versions")
-    for page in paginator.paginate(Bucket=bucket):
-        batch = build_delete_batch(page.get("Versions", []), page.get("DeleteMarkers", []))
-        if batch:
-            s3_client.delete_objects(Bucket=bucket, Delete={"Objects": batch})
+    try:
+        for page in paginator.paginate(Bucket=bucket):
+            batch = build_delete_batch(page.get("Versions", []), page.get("DeleteMarkers", []))
+            if batch:
+                s3_client.delete_objects(Bucket=bucket, Delete={"Objects": batch})
+    except ClientError as e:
+        if e.response.get("Error", {}).get("Code") != "NoSuchBucket":
+            raise
+        # describe_stack_resources lists a bucket's PhysicalResourceId even after it's already
+        # been deleted (e.g. by an earlier, partially-successful teardown attempt that left the
+        # stack in DELETE_FAILED because a *different* bucket wasn't empty). Nothing to empty.
+        logger.info("Bucket %s no longer exists, nothing to empty", bucket)
 
 
 def get_failure_reasons(cfn_client: CloudFormationClient, stack_name: str) -> list[str]:
@@ -486,7 +498,15 @@ def teardown_stack(
     cfn_client: CloudFormationClient, s3_client: S3Client, stack_name: str, empty_buckets: bool
 ) -> None:
     if empty_buckets:
-        resources = cfn_client.describe_stack_resources(StackName=stack_name)["StackResources"]
+        # describe_stack_resources doesn't paginate and can silently drop resources on a large
+        # stack, list_stack_resources returns the same ResourceType/
+        # PhysicalResourceId fields filter_bucket_names needs, via a real paginator.
+        paginator = cfn_client.get_paginator("list_stack_resources")
+        resources = [
+            r
+            for page in paginator.paginate(StackName=stack_name)
+            for r in page["StackResourceSummaries"]
+        ]
         for bucket in filter_bucket_names(resources):
             empty_bucket(s3_client, bucket)
 

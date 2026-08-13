@@ -28,6 +28,7 @@ from wps_tools.load_testing.manage_dlt import (
     _ensure_sso_login,
     _install_dlt_cli,
     _run_dlt_command,
+    _set_permanent_password,
     deploy_stack,
     empty_bucket,
     ensure_template_bucket,
@@ -36,7 +37,6 @@ from wps_tools.load_testing.manage_dlt import (
     resolve_admin_password,
     resolve_existing_vpc,
     resolve_region,
-    _set_permanent_password,
     stage_template,
     teardown_stack,
 )
@@ -112,6 +112,26 @@ def test_empty_bucket_noop_when_already_empty(aws):
     )
 
     empty_bucket(s3, "empty-bucket")  # should not raise
+
+
+def test_empty_bucket_noop_when_bucket_already_deleted(aws):
+    """A stack's list_stack_resources can list a bucket's PhysicalResourceId even after it's
+    already been deleted, e.g. by an earlier, partially-successful teardown attempt that left
+    the stack DELETE_FAILED because a *different* bucket wasn't empty. Retrying
+    teardown --empty-buckets shouldn't blow up trying to empty a bucket that's already gone."""
+    s3 = aws.client("s3")
+
+    empty_bucket(s3, "never-existed-bucket")  # should not raise
+
+
+def test_empty_bucket_reraises_non_no_such_bucket_errors():
+    s3 = MagicMock()
+    s3.get_paginator.return_value.paginate.side_effect = ClientError(
+        {"Error": {"Code": "AccessDenied", "Message": "Forbidden"}}, "ListObjectVersions"
+    )
+
+    with pytest.raises(ClientError):
+        empty_bucket(s3, "some-bucket")
 
 
 def _create_subnet(ec2, name: str, vpc_id: str, cidr: str) -> str:
@@ -216,6 +236,37 @@ def test_teardown_stack_empties_buckets_first(aws):
 
     with pytest.raises(Exception, match="does not exist"):
         cfn.describe_stacks(StackName="to-delete-full")
+
+
+def test_teardown_stack_empties_buckets_from_every_page(mocker):
+    """describe_stack_resources doesn't paginate and can silently drop resources on a large
+    stack -- confirmed live: a real ScenariosBucket was missed entirely on a 241-resource stack,
+    so teardown --empty-buckets left it un-emptied and the delete failed. list_stack_resources's
+    paginator must be used instead, and buckets from every page emptied, not just the first."""
+    cfn = MagicMock()
+    cfn.get_paginator.return_value.paginate.return_value = [
+        {
+            "StackResourceSummaries": [
+                {"ResourceType": "AWS::S3::Bucket", "PhysicalResourceId": "bucket-page-one"}
+            ]
+        },
+        {
+            "StackResourceSummaries": [
+                {"ResourceType": "AWS::S3::Bucket", "PhysicalResourceId": "bucket-page-two"}
+            ]
+        },
+    ]
+    s3 = MagicMock()
+    empty_bucket_mock = mocker.patch("wps_tools.load_testing.manage_dlt.empty_bucket")
+
+    teardown_stack(cfn, s3, "my-stack", empty_buckets=True)
+
+    cfn.get_paginator.assert_called_once_with("list_stack_resources")
+    cfn.describe_stack_resources.assert_not_called()
+    assert empty_bucket_mock.call_args_list == [
+        mocker.call(s3, "bucket-page-one"),
+        mocker.call(s3, "bucket-page-two"),
+    ]
 
 
 def test_set_permanent_password(aws):
