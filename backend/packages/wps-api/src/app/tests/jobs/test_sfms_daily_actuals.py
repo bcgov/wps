@@ -14,17 +14,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
+from wps_sfms.processors.surface_fuel_consumption import SurfaceFuelConsumptionProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName, SFMSRunLogStatus
 from wps_shared.sfms.raster_addresser import FWIParameter
 
 from app.jobs.sfms_daily_actuals import (
-    _missing_seed_keys,
     is_fwi_interpolation_day,
     main,
     run_sfms_daily_actuals,
 )
+from app.jobs.sfms_run_pipeline import get_missing_fwi_seed_keys
 from app.tests.conftest import create_mock_sfms_actuals
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
@@ -63,6 +64,7 @@ class MockDailyActualsDeps(NamedTuple):
     wind_direction_processor: MagicMock
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
+    sfc_processor: MagicMock
     wfwx_api: MagicMock
     addresser: MagicMock
 
@@ -94,6 +96,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
 
     # Mock get_fuel_type_raster_by_year
     mock_fuel_type_raster = MagicMock()
+    mock_fuel_type_raster.year = 2024
     mock_fuel_type_raster.object_store_path = "sfms/fuel/2024/fuel.tif"
     mocker.patch(
         f"{MODULE_PATH}.get_fuel_type_raster_by_year",
@@ -151,6 +154,12 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_fwi_processor.calculate_index = AsyncMock(return_value=None)
     mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
 
+    mock_sfc_processor = MagicMock(spec=SurfaceFuelConsumptionProcessor)
+    mock_sfc_processor.process = AsyncMock(return_value=None)
+    mocker.patch(
+        f"{PIPELINE_PATH}.SurfaceFuelConsumptionProcessor", return_value=mock_sfc_processor
+    )
+
     # Keep the session root as a normal mock and only make the async methods AsyncMocks.
     # The session itself is used in async code, but some things it returns are still sync,
     # like `result.scalar()`. An AsyncMock root makes those look awaitable and causes noisy warnings.
@@ -175,6 +184,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         wind_direction_processor=mock_wind_direction_processor,
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
+        sfc_processor=mock_sfc_processor,
         wfwx_api=mock_wfwx_api,
         addresser=mock_addresser,
     )
@@ -283,19 +293,19 @@ class TestRunSfmsDailyActuals:
 
         await run_sfms_daily_actuals(target_date)
 
-        # Eleven tracked runs: 5 weather interpolations + 6 FWI calculations.
-        assert mock_dependencies.db_session.execute.call_count == 11
+        # twelve tracked runs: 5 weather + 6 FWI + 1 SFC calculation.
+        assert mock_dependencies.db_session.execute.call_count == 12
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):
         """Test that successful jobs are updated to success status."""
-        records = [MagicMock() for _ in range(11)]
+        records = [MagicMock() for _ in range(12)]
         mock_dependencies.db_session.get = AsyncMock(side_effect=records)
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert mock_dependencies.db_session.get.call_count == 11
+        assert mock_dependencies.db_session.get.call_count == 12
         for record in records:
             assert record.status == SFMSRunLogStatus.SUCCESS
             assert record.completed_at is not None
@@ -416,17 +426,17 @@ class TestMondayFWIInterpolation:
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 3
 
     @pytest.mark.anyio
-    async def test_monday_april_writes_eleven_run_log_entries(
+    async def test_monday_april_writes_twelve_run_log_entries(
         self, mock_dependencies: MockDailyActualsDeps
     ):
-        """Test that a Monday in April produces 11 run log entries."""
+        """Test that a Monday in April produces 12 run log entries."""
         # 2024-04-01 is the first Monday of April 2024
         target_date = datetime(2024, 4, 1, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
-        # 11 tracked runs: 5 weather + 3 FWI interpolation + 3 derived FWI calculations.
-        assert mock_dependencies.db_session.execute.call_count == 11
+        # twelve tracked runs: 5 weather + 3 interpolated FWI + 3 derived FWI + 1 SFC.
+        assert mock_dependencies.db_session.execute.call_count == 12
 
 
 class TestFWICalculationVsInterpolation:
@@ -450,7 +460,7 @@ class TestFWICalculationVsInterpolation:
             FWIParameter.BUI,
             FWIParameter.FWI,
         ]
-        mock_dependencies.s3_client.all_objects_exist.assert_not_called()
+        mock_dependencies.s3_client.object_exists.assert_awaited_once()
 
     @pytest.mark.anyio
     async def test_regular_day_runs_fwi_calculation_not_interpolation(
@@ -488,7 +498,7 @@ class TestFWICalculationVsInterpolation:
             (FWIParameter.DC, ["dc=actual_dc_20240703.tif"]),
         ],
     )
-    async def test_missing_seed_keys_returns_only_missing_keys(
+    async def test_get_missing_fwi_seed_keys_returns_only_missing_keys(
         self,
         mock_dependencies: MockDailyActualsDeps,
         missing_param: FWIParameter,
@@ -507,7 +517,7 @@ class TestFWICalculationVsInterpolation:
             side_effect=fake_all_objects_exist
         )
 
-        missing = await _missing_seed_keys(
+        missing = await get_missing_fwi_seed_keys(
             target_date,
             mock_dependencies.addresser,
             mock_dependencies.s3_client,
@@ -526,6 +536,7 @@ class TestFWICalculationVsInterpolation:
         await run_sfms_daily_actuals(target_date)
 
         mock_dependencies.fwi_processor.calculate_index.assert_not_called()
+        mock_dependencies.sfc_processor.process.assert_not_called()
         # Only weather interpolation jobs are tracked when the FWI chain is skipped.
         assert mock_dependencies.db_session.execute.call_count == 5
 
@@ -557,6 +568,7 @@ class TestFWICalculationVsInterpolation:
             SFMSRunLogJobName.ISI_CALCULATION,
             SFMSRunLogJobName.BUI_CALCULATION,
             SFMSRunLogJobName.FWI_CALCULATION,
+            SFMSRunLogJobName.SFC_CALCULATION,
         ]
 
     @pytest.mark.anyio
@@ -587,6 +599,7 @@ class TestFWICalculationVsInterpolation:
             SFMSRunLogJobName.ISI_CALCULATION,
             SFMSRunLogJobName.BUI_CALCULATION,
             SFMSRunLogJobName.FWI_CALCULATION,
+            SFMSRunLogJobName.SFC_CALCULATION,
         ]
 
 

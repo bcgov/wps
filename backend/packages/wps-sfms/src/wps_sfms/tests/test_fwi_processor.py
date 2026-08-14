@@ -9,7 +9,7 @@ from pytest_mock import MockerFixture
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
-from wps_sfms.sfmsng_raster_addresser import FWIInputs
+from wps_sfms.raster_inputs import FWIInputs
 from wps_shared.tests.geospatial.dataset_common import (
     create_mock_input_dataset_context,
     create_test_dataset,
@@ -100,6 +100,7 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
         new=AsyncMock(),
     )
     rasters_match_spy = mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
+    clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
 
     async with S3Client() as mock_s3_client:
         mock_all_objects_exist = AsyncMock(return_value=True)
@@ -117,6 +118,7 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
 
         assert publish_spy.call_count == 1
         assert publish_spy.await_args.kwargs["output_key"] == fwi_inputs.output_key
+        clear_cache.assert_called_once_with()
 
 
 @pytest.mark.anyio
@@ -419,6 +421,7 @@ async def test_fwi_processor_cog_failure_propagates(mocker: MockerFixture):
         "wps_sfms.processors.fwi.publish_dataset",
         side_effect=RuntimeError("COG generation failed"),
     )
+    clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
 
     async with S3Client() as mock_s3_client:
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
@@ -429,6 +432,7 @@ async def test_fwi_processor_cog_failure_propagates(mocker: MockerFixture):
             )
 
         publish_spy.assert_called_once()
+        clear_cache.assert_called_once_with()
 
 
 class TestFWINodeataPropagation:

@@ -38,6 +38,7 @@ at import time rather than silently computing wrong values.
 """
 
 import importlib.util
+from types import MappingProxyType
 from typing import NamedTuple
 
 import cffdrs.back_rate_of_spread
@@ -63,6 +64,11 @@ import cffdrs.surface_fuel_consumption as _surface_fuel_consumption_mod
 import cffdrs.total_fuel_consumption
 import numpy as np
 from numba import guvectorize, jit, vectorize
+
+
+# expose the codes consumed by the vectorized functions without making callers depend on
+# cffdrs's private module layout or duplicate its zero-based values.
+FUEL_TYPE_CODES = MappingProxyType(dict(_constants_mod.FUEL_TYPE_CODES))
 
 
 def _isolated_clone(module):

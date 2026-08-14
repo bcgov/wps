@@ -2,8 +2,8 @@
 
 from datetime import date, datetime, timedelta, timezone
 import logging
-from typing import AsyncGenerator, Optional, Tuple
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
+from typing import AsyncGenerator, Generator, Optional, Tuple
 from aiobotocore.client import AioBaseClient
 from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
@@ -88,6 +88,16 @@ def set_s3_gdal_config():
     gdal.SetConfigOption("CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE", "YES")
     # Set temp directory to /tmp for GDAL temp files (e.g., .ovr.tmp during COG creation)
     gdal.SetConfigOption("CPL_TMPDIR", "/tmp")
+
+
+@contextmanager
+def gdal_s3_context() -> Generator[None, None, None]:
+    """Configure GDAL for S3 access and clear its remote-file cache when finished."""
+    set_s3_gdal_config()
+    try:
+        yield
+    finally:
+        gdal.VSICurlClearCache()
 
 
 def extract_date_from_prefix(folder_prefix: str, base_prefix: str) -> Optional[date]:
