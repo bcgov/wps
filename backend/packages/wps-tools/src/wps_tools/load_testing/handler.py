@@ -13,6 +13,7 @@ this account's landing-zone routing at all.
 import json
 import os
 import subprocess
+import tempfile
 
 K6_BINARY = "/opt/k6"
 
@@ -29,11 +30,16 @@ def handler(event: dict, context) -> dict:
         )
     script_path = f"/var/task/{script_name}"
 
+    # Lambda's filesystem is read-only except /tmp, which is shared and world-writable, this creates
+    # a new, privately-owned (0700) subdirectory instead of writing
+    # HOME/the summary straight into the shared root.
+    work_dir = tempfile.mkdtemp()
+
     env = {
         **os.environ,
-        # Lambda's filesystem is read-only except /tmp -- k6 needs a writable $HOME for its
-        # own config/cache, which otherwise defaults somewhere unwritable and fails outright.
-        "HOME": "/tmp",
+        # k6 needs a writable $HOME for its own config/cache, which otherwise defaults
+        # somewhere unwritable and fails outright.
+        "HOME": work_dir,
         # Skip k6's own outbound update-check/telemetry ping on startup -- irrelevant here
         # and one less unrelated outbound call per cold start.
         "K6_DISABLE_USAGE_REPORT": "true",
@@ -42,7 +48,7 @@ def handler(event: dict, context) -> dict:
     if target_rps is not None:
         env["TARGET_RPS"] = str(target_rps)
 
-    summary_path = "/tmp/summary.json"
+    summary_path = os.path.join(work_dir, "summary.json")
     # Leave a buffer before Lambda's own timeout kills the invocation, so k6 gets a chance
     # to exit and write its summary rather than being hard-killed mid-write.
     remaining_seconds = context.get_remaining_time_in_millis() / 1000

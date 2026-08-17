@@ -583,7 +583,7 @@ def run_per_region(regions: list[str], task: Callable[[str], T]) -> tuple[dict[s
 
 
 def run_deploy(args: argparse.Namespace) -> None:
-    script_path = Path(args.script)
+    script_path = Path(args.script).resolve()
     if not script_path.is_file():
         logger.error("Script not found: %s", script_path)
         sys.exit(1)
