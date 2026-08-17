@@ -19,7 +19,8 @@ env:
 jobs:
   prepare-dev-database:
     name: Prepare Dev Database
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
@@ -37,7 +38,8 @@ jobs:
 
   build-image:
     name: Build ${{ matrix.name }} Image
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     strategy:
       fail-fast: false
       matrix:
@@ -78,7 +80,8 @@ jobs:
 
   configure-nats-server-name:
     name: Configure nats server name
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
@@ -96,7 +99,8 @@ jobs:
   deploy-dev-queue:
     name: Deploy Message Queue to Dev
     if: github.triggering_actor != 'renovate'
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     needs: [build-image, configure-nats-server-name]
     steps:
       - uses: actions/checkout@v7
@@ -123,7 +127,8 @@ jobs:
         deploy-dev-queue,
         configure-nats-server-name,
       ]
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
@@ -174,7 +179,8 @@ jobs:
     name: Deploy ASA Go API to Dev
     if: github.triggering_actor != 'renovate'
     needs: [build-image, prepare-dev-database]
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
@@ -199,7 +205,8 @@ jobs:
     name: Deploy SFMS FWI API to Dev
     if: github.triggering_actor != 'renovate'
     needs: [build-image, prepare-dev-database]
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup

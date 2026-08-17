@@ -16,7 +16,8 @@ env:
 jobs:
   cleanup-non-db:
     name: Delete non-DB resources associated with pr
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
@@ -129,7 +130,8 @@ jobs:
   cleanup-db:
     name: Delete DB resources associated with PR
     needs: cleanup-non-db
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
