@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react'
-import { RunType } from '@wps/api/fbaAPI'
+import { RunType } from '@wps/api/runType'
 import { createHillshadeVectorTileLayer, createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import store from 'app/store'
 import FBAMap from 'features/fba/components/map/FBAMap'

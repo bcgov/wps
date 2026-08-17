@@ -1,10 +1,6 @@
+import { RunType } from '@wps/api/runType'
 import { DateTime } from 'luxon'
-import {
-  getFireWeatherRasterLayer,
-  getRasterLayer,
-  getSFMSNGActualRasterPath,
-  getSnowPMTilesLayer
-} from './layerDefinitions'
+import { getFireWeatherRasterLayer, getRasterLayer, getSFMSNGRasterPath, getSnowPMTilesLayer } from './layerDefinitions'
 
 type Listener = (...args: unknown[]) => void
 
@@ -113,14 +109,22 @@ describe('layerDefinitions', () => {
     it('should generate SFMSNG actual COG paths for FWI rasters', () => {
       const rasterDate = DateTime.fromISO('2025-11-02')
 
-      expect(getSFMSNGActualRasterPath(rasterDate, 'fwi')).toBe('sfms_ng/actual/2025/11/02/fwi_20251102_cog.tif')
+      expect(getSFMSNGRasterPath(rasterDate, 'fwi')).toBe('sfms_ng/actual/2025/11/02/fwi_20251102_cog.tif')
     })
 
     it('should generate SFMSNG actual COG paths for weather rasters', () => {
       const rasterDate = DateTime.fromISO('2025-11-02')
 
-      expect(getSFMSNGActualRasterPath(rasterDate, 'relative_humidity')).toBe(
+      expect(getSFMSNGRasterPath(rasterDate, 'relative_humidity')).toBe(
         'sfms_ng/actual/2025/11/02/relative_humidity_20251102_cog.tif'
+      )
+    })
+
+    it('should generate SFMSNG forecast COG paths', () => {
+      const rasterDate = DateTime.fromISO('2025-11-05')
+
+      expect(getSFMSNGRasterPath(rasterDate, 'fwi', RunType.FORECAST)).toBe(
+        'sfms_ng/forecast/2025/11/05/fwi_20251105_cog.tif'
       )
     })
 
@@ -190,6 +194,15 @@ describe('layerDefinitions', () => {
       expect(layer).toBeDefined()
       expect(layer).not.toBeNull()
       expect(layer!.getProperties().rasterType).toBe('temperature')
+    })
+
+    it('should return a forecast fire weather layer when forecast data is selected', () => {
+      const date = DateTime.fromISO('2025-11-05')
+      const layer = getRasterLayer(date, 'fwi', 'test-token', RunType.FORECAST)
+
+      expect(layer).toBeDefined()
+      expect(layer).not.toBeNull()
+      expect(layer!.getProperties().rasterType).toBe('fwi')
     })
 
     it('should return null and log error when date is null for fire weather raster', () => {

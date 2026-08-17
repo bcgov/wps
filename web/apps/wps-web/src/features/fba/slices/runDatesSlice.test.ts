@@ -1,12 +1,7 @@
 import { combineReducers } from '@reduxjs/toolkit'
-import {
-  getAllRunDates,
-  getMostRecentRunDate,
-  getSFMSBounds,
-  RunType,
-  type SFMSBounds,
-  type SFMSBoundsResponse
-} from '@wps/api/fbaAPI'
+import { getAllRunDates, getMostRecentRunDate, getSFMSBounds } from '@wps/api/fbaAPI'
+import { RunType } from '@wps/api/runType'
+import type { SFMSBounds, SFMSBoundsResponse } from '@wps/api/sfmsBounds'
 import { logError } from '@wps/utils/error'
 import { DateTime } from 'luxon'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

@@ -76,6 +76,11 @@ objects:
       postgresVersion: 16
       postGISVersion: "3.3"
       openshift: true
+      patroni:
+        dynamicConfiguration:
+          postgresql:
+            parameters:
+              idle_in_transaction_session_timeout: "4h"
       metadata:
         name: ${CRUNCHY_NAME}-${SUFFIX}
         labels:
@@ -88,6 +93,11 @@ objects:
           databases:
             - postgres
             - wps
+        - name: sysdig-monitor
+          databases:
+            - postgres
+            - wps
+          options: "NOSUPERUSER"
       instances:
         - name: crunchy
           replicas: ${{REPLICAS}}

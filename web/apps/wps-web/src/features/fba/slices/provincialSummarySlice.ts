@@ -1,10 +1,6 @@
 import { createSelector, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import {
-  type FireShapeStatusDetail,
-  getProvincialSummary,
-  type ProvincialSummaryResponse,
-  type RunType
-} from '@wps/api/fbaAPI'
+import { type FireShapeStatusDetail, getProvincialSummary, type ProvincialSummaryResponse } from '@wps/api/fbaAPI'
+import type { RunType } from '@wps/api/runType'
 import { logError } from '@wps/utils/error'
 import type { RootState } from 'app/rootReducer'
 import type { AppThunk } from 'app/store'

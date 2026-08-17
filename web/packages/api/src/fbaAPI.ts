@@ -1,11 +1,8 @@
 import type { AdvisoryStatus } from '@wps/utils/constants'
 import type { DateTime } from 'luxon'
 import axios, { raster } from './axios'
-
-export enum RunType {
-  FORECAST = 'FORECAST',
-  ACTUAL = 'ACTUAL'
-}
+import type { RunType } from './runType'
+import type { SFMSBoundsResponse } from './sfmsBounds'
 
 export interface FireShape {
   fire_shape_id: number
@@ -109,44 +106,25 @@ export interface FireCentreHFIStats {
   }
 }
 
-export interface SFMSBoundsMinMax {
-  minimum: string
-  maximum: string
-}
-
-// Keys are 'actual' or 'forecast'
-export interface SFMSBoundsByRunType {
-  [key: string]: SFMSBoundsMinMax
-}
-
-// Keys are years (eg. 2024, 2024)
-export interface SFMSBounds {
-  [key: string]: SFMSBoundsByRunType
-}
-
-export interface SFMSBoundsResponse {
-  sfms_bounds: SFMSBounds
-}
-
 // Gets a summary of info about all fire zone units in the province
 export async function getProvincialSummary(
   run_type: RunType,
   run_datetime: string,
   for_date: string
 ): Promise<ProvincialSummaryResponse> {
-  const url = `/fba/provincial-summary/${run_type.toLowerCase()}/${encodeURI(run_datetime)}/${for_date}`
+  const url = `/fba/provincial-summary/${run_type}/${encodeURI(run_datetime)}/${for_date}`
   const { data } = await axios.get(url)
   return data
 }
 
 export async function getMostRecentRunDate(run_type: RunType, for_date: string): Promise<string> {
-  const url = `fba/sfms-run-datetimes/${run_type.toLowerCase()}/${for_date}`
+  const url = `fba/sfms-run-datetimes/${run_type}/${for_date}`
   const { data } = await axios.get(url)
   return data[0]
 }
 
 export async function getAllRunDates(run_type: RunType, for_date: string): Promise<DateTime[]> {
-  const url = `fba/sfms-run-datetimes/${run_type.toLowerCase()}/${for_date}`
+  const url = `fba/sfms-run-datetimes/${run_type}/${for_date}`
   const { data } = await axios.get(url)
   return data
 }
@@ -163,7 +141,7 @@ export async function getFireCentreHFIStats(
   run_datetime: string,
   fire_centre: string
 ): Promise<FireCentreHFIStats> {
-  const url = `fba/fire-centre-hfi-stats/${run_type.toLowerCase()}/${for_date}/${run_datetime}/${fire_centre}`
+  const url = `fba/fire-centre-hfi-stats/${run_type}/${for_date}/${run_datetime}/${fire_centre}`
   const { data } = await axios.get(url)
   return data
 }
@@ -174,7 +152,7 @@ export async function getFireZoneElevationInfo(
   run_datetime: string,
   for_date: string
 ): Promise<FireZoneElevationInfoResponse> {
-  const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
+  const url = `fba/fire-zone-elevation-info/${run_type}/${run_datetime}/${for_date}/${fire_zone_id}`
   const { data } = await axios.get(url)
   return data
 }
@@ -185,7 +163,7 @@ export async function getFireCentreTPIStats(
   run_datetime: string,
   for_date: string
 ): Promise<FireCentreTPIResponse> {
-  const url = `fba/fire-centre-tpi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_centre_name}`
+  const url = `fba/fire-centre-tpi-stats/${run_type}/${run_datetime}/${for_date}/${fire_centre_name}`
   const { data } = await axios.get(url)
   return data
 }

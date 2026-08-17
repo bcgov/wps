@@ -1,5 +1,5 @@
 import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material'
-import { RunType } from '@wps/api/fbaAPI'
+import { RunType } from '@wps/api/runType'
 import { theme } from '@wps/ui/theme'
 import { isNull } from 'lodash'
 import React from 'react'
