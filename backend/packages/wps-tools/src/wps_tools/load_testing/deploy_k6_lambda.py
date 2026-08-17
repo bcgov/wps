@@ -466,7 +466,8 @@ def run_fan_out(
                 # A single transient failure (e.g. a connection/DNS hiccup under high thread
                 # concurrency) must not discard every other invocation's result -- confirmed
                 # live: firing this many threads through one client can produce exactly that.
-                logger.error("Invocation failed: %s", e)
+                # .exception() (not .error()) so the traceback is captured, not just str(e).
+                logger.exception("Invocation failed")
                 results.append({"exit_code": None, "error": str(e)})
         return results
 
@@ -576,8 +577,8 @@ def run_per_region(regions: list[str], task: Callable[[str], T]) -> tuple[dict[s
             region = future_to_region[future]
             try:
                 results[region] = future.result()
-            except Exception as e:
-                logger.error("Region %s failed: %s", region, e)
+            except Exception:
+                logger.exception("Region %s failed", region)
                 failed.append(region)
     return results, failed
 
