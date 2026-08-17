@@ -3,9 +3,10 @@
 // one-minute burst instead of spread across an hour -- a burst-capacity / rate-limiter
 // resilience test, not a realistic traffic simulation.
 //
-// Each iteration replays the actual sequence of public (unauthenticated) GET requests the
+// Each iteration replays the actual sequence of public (unauthenticated) requests the
 // ASA Go mobile app makes on launch -- see mobile/asa-go/src/App.tsx (fetchFireCentres,
-// fetchSFMSRunParameters, fetchAndCacheData) and mobile/asa-go/src/utils/dataSliceUtils.ts:
+// fetchSFMSRunParameters, fetchAndCacheData, initSubscriptions) and
+// mobile/asa-go/src/utils/dataSliceUtils.ts:
 //   1. GET psu/fire-centres
 //   2. GET fba/fire-centre-info
 //   3. GET fba/latest-sfms-run-parameters/{today}/{tomorrow}
@@ -13,6 +14,13 @@
 //        GET fba/provincial-summary/{run_type}/{run_datetime}/{for_date}
 //        GET fba/hfi-stats/{run_type}/{run_datetime}/{for_date}
 //        GET fba/tpi-stats/{run_type}/{run_datetime}/{for_date}
+//   5. POST device/register, GET + POST device/notification-settings, POST device/unregister
+//      These write real rows to the DeviceToken/NotificationSettings tables 
+//      (register creates a row, unregister only deactivates it),
+//      so every device/token here is a synthetic, clearly-tagged "k6-loadtest-..." value,
+//      never a real device, and results accumulate in
+//      those tables across runs. Periodically clean up rows with device_id LIKE
+//      'k6-loadtest-%'.
 //
 // Target: https://psu.api.gov.bc.ca/api/asa-go (production).
 //
@@ -29,12 +37,15 @@
 import http from "k6/http";
 import { Counter } from "k6/metrics";
 import { check } from "k6";
+import exec from "k6/execution";
 
 const BASE_URL = "https://psu.api.gov.bc.ca/api/asa-go";
 
 // Requests per simulated app launch, assuming both today and tomorrow have a run parameter
-// (the common case in-season). Used only to calibrate the default iteration rate below.
-const REQUESTS_PER_ITERATION = 9;
+// (the common case in-season): 9 read requests plus the 4-request device lifecycle
+// (register, get settings, update settings, unregister). Used only to calibrate the default
+// iteration rate below.
+const REQUESTS_PER_ITERATION = 13;
 
 // Per-task target rate in iterations/second (one iteration == one simulated app launch).
 // Defaults to the gateway's per-IP limit (100 req/min) divided by the requests each
@@ -77,8 +88,7 @@ function isoDatePacific(offsetDays) {
 const TODAY_KEY = isoDatePacific(0);
 const TOMORROW_KEY = isoDatePacific(1);
 
-function get(path) {
-  const res = http.get(`${BASE_URL}/${path}`, { tags: { name: path.split("/")[0] } });
+function checkResponse(res) {
   if (res.status === 429) {
     rateLimited.add(1);
   }
@@ -87,6 +97,18 @@ function get(path) {
     "status is 429 (rate limited)": (r) => r.status === 429,
   });
   return res;
+}
+
+function get(path) {
+  return checkResponse(http.get(`${BASE_URL}/${path}`, { tags: { name: path.split("/")[0] } }));
+}
+
+function post(path, body) {
+  const res = http.post(`${BASE_URL}/${path}`, JSON.stringify(body), {
+    headers: { "Content-Type": "application/json" },
+    tags: { name: path.split("/")[0] },
+  });
+  return checkResponse(res);
 }
 
 function fetchDayStats(runParameter) {
@@ -98,6 +120,20 @@ function fetchDayStats(runParameter) {
   get(`fba/provincial-summary/${runTypeLower}/${encodeURI(run_datetime)}/${for_date}`);
   get(`fba/hfi-stats/${runTypeLower}/${run_datetime}/${for_date}`);
   get(`fba/tpi-stats/${runTypeLower}/${run_datetime}/${for_date}`);
+}
+
+// register -> read/update settings -> unregister, mirroring initSubscriptions (App.tsx) and
+// pushNotificationSlice.ts. Uses a synthetic, per-iteration device_id/token so this never
+// touches a real device's registration -- see the DeviceToken/NotificationSettings note above.
+function deviceLifecycle() {
+  const uniquePart = `${exec.vu.idInTest}-${exec.scenario.iterationInTest}-${Date.now()}`;
+  const deviceId = `k6-loadtest-${uniquePart}`;
+  const token = `k6-loadtest-token-${uniquePart}`;
+
+  post("device/register", { platform: "android", token, device_id: deviceId, user_id: null });
+  get(`device/notification-settings?device_id=${deviceId}`);
+  post("device/notification-settings", { device_id: deviceId, fire_zone_source_ids: ["1"] });
+  post("device/unregister", { token });
 }
 
 export default function peakBurst() {
@@ -116,4 +152,6 @@ export default function peakBurst() {
 
   fetchDayStats(runParameters[TODAY_KEY]);
   fetchDayStats(runParameters[TOMORROW_KEY]);
+
+  deviceLifecycle();
 }
