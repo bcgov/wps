@@ -17,6 +17,7 @@ from wps_tools.load_testing.teardown_k6_lambda import (
     delete_execution_role,
     delete_function_if_exists,
     delete_layer_versions,
+    delete_log_group_if_exists,
     empty_and_delete_bucket,
     run_teardown,
 )
@@ -70,6 +71,24 @@ def test_delete_function_if_exists_missing_is_noop(aws):
     lambda_client = aws.client("lambda")
 
     delete_function_if_exists(lambda_client, "does-not-exist")  # should not raise
+
+
+def test_delete_log_group_if_exists_deletes(aws):
+    logs_client = aws.client("logs")
+    logs_client.create_log_group(logGroupName="/aws/lambda/my-function")
+
+    delete_log_group_if_exists(logs_client, "my-function")
+
+    groups = logs_client.describe_log_groups(logGroupNamePrefix="/aws/lambda/my-function")[
+        "logGroups"
+    ]
+    assert groups == []
+
+
+def test_delete_log_group_if_exists_missing_is_noop(aws):
+    logs_client = aws.client("logs")
+
+    delete_log_group_if_exists(logs_client, "does-not-exist")  # should not raise
 
 
 def test_delete_layer_versions_removes_every_version(aws):
@@ -152,6 +171,7 @@ def test_run_teardown_skips_prompt_with_yes_flag(mocker):
         return_value=MagicMock(),
     )
     mocker.patch("wps_tools.load_testing.teardown_k6_lambda.delete_function_if_exists")
+    mocker.patch("wps_tools.load_testing.teardown_k6_lambda.delete_log_group_if_exists")
     mocker.patch("wps_tools.load_testing.teardown_k6_lambda.delete_layer_versions")
     mocker.patch("wps_tools.load_testing.teardown_k6_lambda.empty_and_delete_bucket")
     mocker.patch("wps_tools.load_testing.teardown_k6_lambda.delete_execution_role")

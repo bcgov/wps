@@ -1,7 +1,8 @@
 """
 Tears down every AWS resource deploy_k6_lambda.py and verify_ip_diversity.py can create: the
 k6-on-Lambda function, the IP-diversity probe function, the k6 runtime layer, the S3 bucket
-staging the layer zip, and the shared IAM execution role.
+staging the layer zip, the shared IAM execution role, and the CloudWatch Logs log groups
+Lambda auto-creates for each function on first invocation.
 
 Usage:
     python3 -m wps_tools.load_testing.teardown_k6_lambda --region ca-central-1
@@ -17,6 +18,7 @@ import boto3
 from botocore.exceptions import ClientError
 from mypy_boto3_iam.client import IAMClient
 from mypy_boto3_lambda.client import LambdaClient
+from mypy_boto3_logs.client import CloudWatchLogsClient
 from mypy_boto3_s3.client import S3Client
 
 from wps_tools.load_testing.deploy_k6_lambda import (
@@ -48,17 +50,16 @@ def create_parser() -> argparse.ArgumentParser:
     region_group = parser.add_mutually_exclusive_group(required=True)
     region_group.add_argument("--region", help="AWS region to tear down")
     region_group.add_argument(
-        "--regions", help="Comma-separated AWS regions to tear down (e.g. one per --regions "
-        "used at deploy time)"
+        "--regions",
+        help="Comma-separated AWS regions to tear down (e.g. one per --regions "
+        "used at deploy time)",
     )
     parser.add_argument("--aws-profile", help="AWS named profile to use")
     parser.add_argument("--function-name", default=DEFAULT_FUNCTION_NAME)
     parser.add_argument("--probe-function-name", default=DEFAULT_PROBE_FUNCTION_NAME)
     parser.add_argument("--layer-name", default=DEFAULT_LAYER_NAME)
     parser.add_argument("--role-name", default=DEFAULT_ROLE_NAME)
-    parser.add_argument(
-        "--yes", action="store_true", help="Skip the confirmation prompt"
-    )
+    parser.add_argument("--yes", action="store_true", help="Skip the confirmation prompt")
     return parser
 
 
@@ -68,6 +69,17 @@ def delete_function_if_exists(lambda_client: LambdaClient, function_name: str) -
         logger.info("Deleted function %s", function_name)
     except lambda_client.exceptions.ResourceNotFoundException:
         logger.info("Function %s does not exist, nothing to delete", function_name)
+
+
+def delete_log_group_if_exists(logs_client: CloudWatchLogsClient, function_name: str) -> None:
+    # Lambda auto-creates this on the function's first invocation; deleting the function
+    # itself leaves the log group behind.
+    log_group_name = f"/aws/lambda/{function_name}"
+    try:
+        logs_client.delete_log_group(logGroupName=log_group_name)
+        logger.info("Deleted log group %s", log_group_name)
+    except logs_client.exceptions.ResourceNotFoundException:
+        logger.info("Log group %s does not exist, nothing to delete", log_group_name)
 
 
 def delete_layer_versions(lambda_client: LambdaClient, layer_name: str) -> None:
@@ -127,7 +139,8 @@ def run_teardown(args: argparse.Namespace) -> None:
         response = input(
             f"Tear down k6 load-testing resources ({args.function_name}, "
             f"{args.probe_function_name}, layer {args.layer_name}, role {args.role_name}, "
-            f"and their S3 staging buckets) in {', '.join(regions)}? This is permanent. [y/N] "
+            f"their S3 staging buckets, and their CloudWatch log groups) in "
+            f"{', '.join(regions)}? This is permanent. [y/N] "
         )
         if response.strip().lower() != "y":
             logger.info("Aborted.")
@@ -140,9 +153,12 @@ def run_teardown(args: argparse.Namespace) -> None:
         session = boto3.Session(profile_name=args.aws_profile, region_name=region)
         lambda_client: LambdaClient = session.client("lambda")
         s3_client: S3Client = session.client("s3")
+        logs_client: CloudWatchLogsClient = session.client("logs")
 
         delete_function_if_exists(lambda_client, args.function_name)
         delete_function_if_exists(lambda_client, args.probe_function_name)
+        delete_log_group_if_exists(logs_client, args.function_name)
+        delete_log_group_if_exists(logs_client, args.probe_function_name)
         delete_layer_versions(lambda_client, args.layer_name)
         empty_and_delete_bucket(s3_client, build_layer_bucket_name(account_id, region))
 
