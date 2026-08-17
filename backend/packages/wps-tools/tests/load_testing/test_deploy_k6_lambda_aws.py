@@ -438,5 +438,6 @@ def test_run_deploy_continues_after_one_region_fails(mocker, tmp_path, caplog):
         run_deploy(args)
 
     assert set(calls) == {"client-ca-central-1", "client-ca-west-1"}
-    assert "Deployed" in caplog.text and "ca-central-1" in caplog.text
+    assert "Deployed" in caplog.text
+    assert "ca-central-1" in caplog.text
     assert "ca-west-1" in caplog.text
