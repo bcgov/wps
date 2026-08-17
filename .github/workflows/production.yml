@@ -46,7 +46,7 @@ jobs:
           echo -e "\nPublic IPv4(v6):"
           curl -s https://api64.ipify.org
       - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@144527c7d98999f2652264c048c7a9bd103f8a82 # v1
+        uses: redhat-actions/openshift-tools-installer@e3b32c2ab7b064b2ce189121c4a49f509a99a7b4 # v3
         with:
           oc: "4.14"
           skip_cache: true
