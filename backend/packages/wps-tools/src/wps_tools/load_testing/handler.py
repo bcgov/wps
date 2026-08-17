@@ -4,7 +4,7 @@ the k6 binary from the layer at /opt/k6.
 
 This function deliberately has no VPC configuration -- that's the entire reason it exists.
 Fargate tasks in this account's Prod-App-A/Prod-App-B subnets all egress through the same
-handful of NAT IPs behind a Transit Gateway (see ../k6_lambda/README.md), which makes them
+handful of NAT IPs behind a Transit Gateway (see README.md), which makes them
 useless for a test that needs many distinct source IPs. A Lambda function *without* VPC
 config uses AWS's own shared, region-wide Lambda networking instead, which isn't bound by
 this account's landing-zone routing at all.

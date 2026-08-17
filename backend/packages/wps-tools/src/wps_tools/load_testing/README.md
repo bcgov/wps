@@ -1,270 +1,92 @@
-# Load testing
+# k6-on-Lambda
 
-Tooling for the [Distributed Load Testing on AWS](https://aws.amazon.com/solutions/implementations/distributed-load-testing-on-aws/)
-solution (SO0062), deployed headless (backend only, no web console) via the
-bundled `distributed-load-testing-on-aws-headless.template`. `manage_dlt.py`
-handles the full stack lifecycle -- deploying it, installing/configuring the
-`dlt` CLI, and tearing down -- and `run_k6_test.py` runs a k6 test against it.
+Runs k6 itself *inside* an AWS Lambda function (via a layer), instead of on the now-removed
+DLT (Distributed Load Testing on AWS) stack's ECS Fargate tasks. Same k6 script, same checks,
+same rate-shaping but different execution substrate.
 
-## Quick start
+A Lambda function *without* VPC configuration bypasses this VPC's networking entirely and
+uses AWS's own shared, region-wide Lambda IP pool instead. Invocation **concurrency** becomes
+the analog of `--task-count`: each concurrent invocation is more likely to land on a distinct
+execution environment (and thus a distinct egress path) than serialized calls.
+
+## Verifying real IP diversity, before trusting it for the actual test
+
+Everything above is the theory: Lambda without VPC config *should* get its outbound IP from
+AWS's shared pool instead of this VPC's gateway-bound egress. It is something that can be validated,
+to some degree, via `verify_ip_diversity.py`, it deploys a
+tiny throwaway function (`ip_probe_handler.py`, no k6 layer, no bundled script) that just
+calls a public IP-echo service (`https://checkip.amazonaws.com`) and returns what it saw,
+fans out `--concurrency` invocations at once, and reports how many *distinct* IPs came back:
 
 ```bash
-# 1. AWS credentials (SSO, common for gov.bc.ca accounts). Check for an
-#    existing profile first, if you already have one for this account,
-#    skip this and just reuse its name as --aws-profile below.
-aws configure list-profiles
-aws configure sso   # only if you don't have one yet; walks through org SSO setup and names a profile
-
-# 2. Deploy the stack. This one command runs `aws sso login` for you (opens a
-#    browser if needed), resolves an existing VPC/subnets automatically (see
-#    "Gotchas" if your account doesn't have Prod-App-A/Prod-App-B subnets),
-#    installs and configures the dlt CLI, sets a permanent admin password
-#    (12+ chars, upper/lower/digit/symbol -- prompted interactively below;
-#    set DLT_PASSWORD instead if you need this non-interactive), and logs
-#    in. You're ready to run a test after this single step.
-uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt deploy \
-  --admin-name YourName --admin-email you@example.com \
-  --region ca-central-1 --aws-profile <profile-name> \
-  --create-template-bucket
-
-# 3. Run a k6 test (paths are relative to backend/, matching --project above)
-uv run --project packages/wps-tools python -m wps_tools.load_testing.run_k6_test \
-  packages/wps-tools/src/wps_tools/load_testing/k6_scripts/smoke_test.js \
-  --stack-name distributed-load-testing --region ca-central-1 --aws-profile <profile-name>
-
-# 4. Tear down when done
-uv run --project packages/wps-tools python -m wps_tools.load_testing.manage_dlt teardown \
-  --region ca-central-1 --aws-profile <profile-name> --empty-buckets
+uv run --project packages/wps-tools python -m wps_tools.load_testing.verify_ip_diversity \
+  --region ca-central-1 --concurrency 50
 ```
 
-Every command supports `--help` for the full flag list. `YourName` is a
-placeholder -- use your own; `--admin-name` becomes the literal Cognito
-login username, so keep it a single token.
+Running this shows that most lambdas (~80%) depending on concurrency, get assigned a unique IP.
+This is our best known option for load testing our public API without hitting our rate-limit-by-ip policy. 
 
-## Architecture
 
-The stack is a vendored, CDK-synthesized CloudFormation template -- we deploy it as-is rather
-than authoring our own infra, since it bundles the orchestration Lambdas, Step Functions state
-machine, and IAM wiring pre-built. `manage_dlt.py`/`run_k6_test.py` are a thin client on top of it.
+## Usage
 
-```mermaid
-flowchart TD
-    Dev["manage_dlt.py / run_k6_test.py"]
+```bash
+# Build the k6 layer, create the execution role, deploy the function to every listed region
+uv run --project packages/wps-tools python -m wps_tools.load_testing.deploy_k6_lambda \
+  deploy ../k6_scripts/asa_go_peak_burst.js --regions ca-central-1,ca-west-1,us-west-1,us-west-2
 
-    subgraph Auth["Cognito"]
-        UserPool["User Pool (app login, SRP)"]
-        IdPool["Identity Pool (issues temp STS creds)"]
-    end
-
-    APILambda["API Gateway + APIServices Lambda<br/>(AWS_IAM authorizer)"]
-    DDB[("DynamoDB<br/>test config + status")]
-    SFN["Step Functions -> TaskRunner Lambda"]
-
-    subgraph Fargate["ECS Fargate (existing VPC/subnets)"]
-        Task["k6 + Taurus container"]
-    end
-
-    S3[("S3 ScenariosBucket<br/>public/ scripts in, results out")]
-
-    Dev -- "1. dlt login (SRP)" --> UserPool
-    Dev -- "2. exchange for AWS creds" --> IdPool
-    Dev -- "3. upload script" --> S3
-    Dev -- "4. SigV4-signed POST /scenarios" --> APILambda
-    APILambda --> DDB
-    APILambda -- "starts execution" --> SFN
-    SFN --> Task
-    Task -- "writes output" --> S3
-    Dev -- "5. poll GET /scenarios/{testId}" --> APILambda
-    Dev -- "6. download results" --> S3
+# Fan out N concurrent invocations in EACH region (the --task-count analog)
+uv run --project packages/wps-tools python -m wps_tools.load_testing.deploy_k6_lambda \
+  run --function-name k6-lambda-load-gen --regions ca-central-1,ca-west-1,us-west-1,us-west-2 \
+  --concurrency 10
 ```
 
-Key points that shaped the client code:
-- **Auth is two-layer**: the User Pool (app login) is separate from the Identity Pool (issues
-  the temporary AWS credentials actually used to sign requests) -- `dlt login --srp` handles
-  both, caching the result to `~/.dlt/credentials.json`.
-- **`POST /scenarios` both creates and starts the run** -- not a separate step from
-  `dlt scenarios start`, which is why `run_k6_test.py` never calls the latter (see Gotchas).
-- **The API requires `execute-api:Invoke` via SigV4**, not a bearer token, despite also
-  carrying a Cognito ID token -- hence the manual request signing in `run_k6_test.py`.
-- **S3 upload is IAM-constrained** to `ScenariosBucket/public/*`, matching what the (unused)
-  web console's Amplify Storage client would use.
+Each AWS region has its own separate, non-overlapping shared IP pool -- confirmed directly
+against AWS's published `ip-ranges.json` (there's no dedicated `LAMBDA` service tag in it;
+non-VPC Lambda draws from the same region-scoped dynamic `AMAZON`/`EC2` pool as everything
+else). That's why `--regions` fans out across several rather than relying on `--concurrency`
+alone in one region:
+
+| region | dynamic pool size (unique IPv4 addresses) |
+|---|---|
+| ca-central-1 | ~1.49M |
+| ca-west-1 | ~0.80M |
+| us-west-1 | ~1.99M |
+| us-west-2 | ~11.06M |
+
+`deploy --regions ...` builds the k6 layer and reads the target script once, then deploys to
+every listed region in parallel (the IAM execution role is also created once and reused --
+IAM has no per-region endpoint, unlike the layer and function, which are regional).
+`run --regions ...` fires `--concurrency` invocations in **each** region in parallel, so total invocations scale with region count, and prints one aggregate summary plus a `by_region`
+breakdown. If any single region fails to deploy or run, the others still complete and the failure is reported rather than aborting the whole batch.
+
+A single `--region <region>` still works if you want to target just one -- `--region` and `--regions` are mutually exclusive, and one of them must always be given.
+
+Verify each new region's actual IP diversity with `verify_ip_diversity.py --region <region>`
+before trusting it for a real run -- same reasoning as the single-region case above.
 
 ## Gotchas
 
-These aren't obvious from the commands alone -- each cost real debugging time:
-
-- **SSO sessions expire mid-work.** `deploy` runs `aws sso login` for you,
-  but `teardown` and `run_k6_test.py` don't -- if your session expires
-  between deploying and running/tearing down later (a normal gap in a real
-  working session), you'll hit `botocore.exceptions.TokenRetrievalError:
-  ... Token has expired and refresh failed`, not the simpler
-  `NoCredentialsError` you'd get with no profile configured at all. Fix:
-  `aws sso login --profile <profile-name>`, then retry the same command.
-- **VPC creation is usually blocked by your account's Service Control
-  Policy** (e.g. BC Gov's landing zone denies
-  `ec2:CreateVpc`/`ec2:CreateInternetGateway`), which would otherwise fail
-  deploy with `ROLLBACK_COMPLETE`. `deploy` avoids this by default, looking
-  up subnets named `Prod-App-A`/`Prod-App-B` (override with
-  `--subnet-a-name`/`--subnet-b-name`, or pass
-  `--existing-vpc-id`/`--existing-subnet-a`/`--existing-subnet-b` directly
-  for full control). If your account doesn't have those subnets and you
-  actually want CloudFormation to create its own VPC, pass `--create-vpc`.
-  Find candidates with:
-  ```bash
-  aws ec2 describe-vpcs --region ca-central-1 --profile <profile-name> \
-    --query "Vpcs[].[VpcId,CidrBlock,Tags[?Key=='Name'].Value|[0]]" --output table
-  aws ec2 describe-subnets --region ca-central-1 --profile <profile-name> --filters Name=vpc-id,Values=<vpc-id> \
-    --query "Subnets[].[SubnetId,AvailabilityZone,CidrBlock,Tags[?Key=='Name'].Value|[0]]" --output table
-  ```
-  If you hit `ROLLBACK_COMPLETE` anyway, tear down first -- CloudFormation
-  won't let you redeploy over a failed stack in place.
-- **Cognito usernames are case-sensitive.** The admin user starts in
-  `FORCE_CHANGE_PASSWORD` state, and `dlt login` doesn't handle that
-  challenge itself -- `deploy` works around it by setting a permanent
-  password directly (`admin_set_user_password` with `Permanent=True`) and
-  logging in, all using the exact `--admin-name` value as the username, so
-  this is handled for you as long as nothing downstream retypes it with
-  different casing.
-- **k6 scripts must make at least one real HTTP call.** Taurus (which wraps
-  k6 on the Fargate task) only captures request-level metrics; a script that
-  never calls `http.get`/`http.post`/etc produces an empty results file, and
-  the run gets reported as failed even though k6 itself ran fine. Use
-  `k6_scripts/smoke_test.js` (hits `test.k6.io`, k6's own public test
-  endpoint) as a template.
-- **Never run `dlt scenarios start` after `run_k6_test.py`.** Creating a
-  scenario (`POST /scenarios`) starts the run immediately -- it's not a
-  separate step. Starting it again creates a second, competing run that
-  races the first for the same ECS service name, and both fail with
-  `Creation of service was not idempotent`. `run_k6_test.py` polls for
-  completion itself for exactly this reason.
-- **`showLive: false` must be sent explicitly, not omitted.** The backend's
-  DynamoDB update code references a `:sl` placeholder unconditionally; omit
-  the field and creation 500s with `Invalid UpdateExpression... attribute
-  value: :sl`, even though the field is optional per the validation schema.
-  A real backend bug, already handled in `run_k6_test.py`.
-- **The template can't be passed inline.** It's ~300KB, over CloudFormation's
-  51,200-byte `TemplateBody` limit, so it's staged in S3 first. Use
-  `--create-template-bucket` if you don't already have a bucket to use via
-  `--template-bucket`.
-- **Stack deletion fails outright if a bucket still has objects in it.**
-  CloudFormation won't delete a non-empty S3 bucket, so without
-  `--empty-buckets` (empties bucket *contents* first, not just the stack),
-  `teardown` fails with `DELETE_FAILED`. This is expected -- retry the same
-  command with `--empty-buckets` and it'll pick up where it left off.
-  Historically the template also marked 28 resources (3 S3 buckets, all 4
-  DynamoDB tables, 19 CloudWatch log groups, an IAM role) `DeletionPolicy:
-  Retain`, which orphaned them on every teardown regardless of
-  `--empty-buckets`; that's been removed, so a normal
-  `teardown --empty-buckets` now actually deletes everything the stack
-  created. If you're tearing down a stack deployed *before* that fix (or
-  one that's stuck in `DELETE_FAILED` from an old attempt), it may still
-  need a manual cleanup pass -- check with `aws s3 ls`, `aws dynamodb
-  list-tables`, and `aws logs describe-log-groups | grep DLT` (all
-  `--profile <profile>`).
-- **Test telemetry is sent to AWS, with no opt-out.** Every test start/end
-  invokes a metrics Lambda that posts the AWS account ID, solution UUID,
-  test ID, test type, duration, and outcome to
-  `https://metrics.awssolutionsbuilder.com/generic` (a scheduled weekly
-  metrics Lambda sends the account ID too). This is baked into the template
-  unconditionally -- there's no `SendAnonymousUsageData`-style parameter to
-  disable it. Worth a security/privacy review before using this against a
-  government AWS account.
-
-## Debugging
-
-Quick checks:
-```bash
-dlt token status                  # is your session still valid?
-dlt runs latest <testId>          # most recent run's status + stats
-```
-
-**Stack deploy failures**: why did CloudFormation roll back:
-```bash
-aws cloudformation describe-stack-events --stack-name <name> --region <region> --profile <profile> \
-  --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[LogicalResourceId,ResourceStatusReason]" --output table
-```
-
-**Container output**: what k6/Taurus actually did (log group name has a
-CDK-generated suffix, so look it up first):
-```bash
-aws logs describe-log-groups --region <region> --profile <profile> \
-  --query "logGroups[?contains(logGroupName, 'DLTEcs')].logGroupName" --output text
-
-aws logs describe-log-streams --region <region> --profile <profile> \
-  --log-group-name "<log group from above>" --order-by LastEventTime --descending --max-items 5 \
-  --query "logStreams[].logStreamName" --output text
-
-aws logs get-log-events --region <region> --profile <profile> \
-  --log-group-name "<log group>" --log-stream-name "<stream from above>" \
-  --query "events[].message" --output text
-```
-
-**Lambda errors** (API 500s, orchestration failures), physical function
-names have a CDK-generated suffix that changes on redeploy, so find the log
-group by a distinguishing substring rather than hardcoding the full name:
-```bash
-aws logs describe-log-groups --region <region> --profile <profile> \
-  --query "logGroups[?contains(logGroupName, '<substring, e.g. APIServices>')].logGroupName" --output text
-
-aws logs filter-log-events --region <region> --profile <profile> \
-  --log-group-name "<log group from above>" \
-  --start-time $(( $(date +%s) * 1000 - 300000 )) \
-  --query "events[].message" --output text
-```
-Useful substrings: `APIServices` (handles `POST /scenarios`, `GET
-/scenarios/{testId}`, etc.), `TaskRunn` (creates the ECS service per
-region), `TestClea` (post-run cleanup), `Stabiliz` (waits for the ECS
-service to stabilize, or reports why it didn't).
-
-**Orchestration**: did a run actually start once, or race twice:
-```bash
-SM_ARN=$(aws stepfunctions list-state-machines --region <region> --profile <profile> \
-  --query "stateMachines[?contains(name, 'DLTStepFunctionTaskRunner')].stateMachineArn | [0]" --output text)
-aws stepfunctions list-executions --region <region> --profile <profile> --state-machine-arn "$SM_ARN" \
-  --query "executions[?contains(name, '<testId>')].{name:name,status:status,startDate:startDate}" --output table
-```
-
-**ECS**: did Fargate actually launch anything:
-```bash
-aws ecs list-tasks --region <region> --profile <profile> --cluster <stack-name> --desired-status STOPPED
-aws ecs describe-tasks --region <region> --profile <profile> --cluster <stack-name> --tasks <task-arn> \
-  --query "tasks[].{stoppedReason:stoppedReason,containers:containers[].reason}"
-```
-
-**Who touched a resource** (e.g. what scaled an ECS service to zero):
-```bash
-aws cloudtrail lookup-events --region <region> --profile <profile> \
-  --lookup-attributes AttributeKey=ResourceName,AttributeValue=<resource-name> \
-  --start-time <ISO8601> --end-time <ISO8601> \
-  --query "Events[].{Time:EventTime,User:Username,EventName:EventName}" --output table
-```
-
-**Raw result artifacts** (k6 stdout/stderr, Taurus log, metrics CSV):
-pull directly from S3 instead of/alongside `dlt runs download`:
-```bash
-aws s3 cp s3://<ScenariosBucket>/results/<testId>/<runPrefix>/k6-<uuid>-<region>.out - \
-  --region <region> --profile <profile>
-```
-
-## `dlt` CLI reference
-
-The command-line client shipped with the solution, distributed as a single
-bundled Node.js script. Auth via `--srp --username <name>` (password via
-the `DLT_PASSWORD` env var -- prefer this over `--password`, which is
-visible in shell history and process listings) or `--iam` (ambient AWS
-credentials). Both cache a Cognito ID token + Identity Pool STS credentials
-to `~/.dlt/credentials.json`, which `run_k6_test.py` reads directly.
-
-| Command | What it does |
-| --- | --- |
-| `dlt configure [--from-file <file>]` | Sets up the API endpoint and Cognito IDs from `aws-exports.json` (written by `manage_dlt deploy`), or prompts for each value. |
-| `dlt login` / `dlt logout` | See auth modes above. |
-| `dlt token status` / `dlt token output [--type id\|access]` | Check or print the cached token. |
-| `dlt scenarios list` / `dlt scenarios get <testId>` | List/inspect scenarios. No `create` -- that's API-only, hence `run_k6_test.py`. |
-| `dlt scenarios start <testId> [--wait]` | Re-runs an *existing* scenario. **Don't use after `run_k6_test.py`** -- see Gotchas. |
-| `dlt runs latest <testId>` | Most recent run's aggregated stats. |
-| `dlt runs download <testId> <runId> --zip` | Downloads result artifacts as a zip. |
-
-Status vocabulary: `queued` → `provisioning` → `running` → `cleaning up` →
-`complete`/`failed` (terminal). `run_k6_test.py` polls until one of the
-known terminal statuses, bounded by `--max-wait`.
+- **Lambda's filesystem is read-only except `/tmp`.** `handler.py` sets `HOME=/tmp` on the k6
+  subprocess explicitly -- without it, k6 tries to write its own config/cache to an
+  unwritable default `$HOME` and fails outright.
+- **k6 pings home on startup by default.** `handler.py` sets `K6_DISABLE_USAGE_REPORT=true` to
+  skip k6's own update-check/telemetry call -- one less unrelated outbound request per cold
+  start, and avoids conflating that traffic with the actual test.
+- **Function timeout must exceed the k6 script's own total duration**, or invocations get
+  killed mid-run before k6 can write its summary. `--timeout-seconds` defaults to 150s against
+  `asa_go_peak_burst.js`'s ~105s (30s ramp + 60s hold + 15s ramp-down) -- adjust if you point
+  this at a different script.
+- **The bundled script's filename isn't rediscoverable from the function itself by default.**
+  `deploy` sets it as the `SCRIPT_NAME` environment variable; `handler.py` reads that as a
+  fallback when an invocation's event payload doesn't override it, and `run` reads it back via
+  `get_function` to fail fast with a clear error if you try to `run` before ever `deploy`ing.
+- **k6 omits a Counter metric entirely from `--summary-export` when it was never
+  incremented**, rather than including it with `count: 0` -- confirmed via the podman test
+  above (an invocation with zero 429s has no `rate_limited_responses` key in `metrics` at
+  all). `aggregate_summaries` relies on this and defaults every lookup accordingly; don't
+  "simplify" those `.get(..., {})` calls into direct indexing.
+- **`aggregate_summaries` is intentionally specific to `asa_go_peak_burst.js`'s own check
+  names and counter** (`status is 200`, `status is 429 (rate limited)`,
+  `rate_limited_responses`), not a generic k6-summary parser -- reasonable since this module
+  always runs one known script, but it'll silently report zeros if pointed at a script with
+  different check/counter names rather than erroring.

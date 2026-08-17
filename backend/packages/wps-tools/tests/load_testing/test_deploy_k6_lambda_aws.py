@@ -13,7 +13,7 @@ import boto3
 import pytest
 from botocore.exceptions import EndpointConnectionError
 from moto import mock_aws
-from wps_tools.load_testing.k6_lambda.deploy_k6_lambda import (
+from wps_tools.load_testing.deploy_k6_lambda import (
     BASIC_EXECUTION_POLICY_ARN,
     deploy_function,
     ensure_execution_role,
@@ -277,7 +277,7 @@ def test_run_run_continues_after_one_region_fails(mocker, capsys):
         return session
 
     mocker.patch(
-        "wps_tools.load_testing.k6_lambda.deploy_k6_lambda.boto3.Session",
+        "wps_tools.load_testing.deploy_k6_lambda.boto3.Session",
         side_effect=fake_session,
     )
 

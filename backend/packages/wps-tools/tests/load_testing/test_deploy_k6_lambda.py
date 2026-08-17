@@ -6,7 +6,7 @@ import zipfile
 import boto3
 import pytest
 import responses
-from wps_tools.load_testing.k6_lambda.deploy_k6_lambda import (
+from wps_tools.load_testing.deploy_k6_lambda import (
     K6_TARBALL_URL,
     aggregate_summaries,
     build_fan_out_lambda_client,
@@ -164,7 +164,7 @@ def _make_tarball(member_path: str, content: bytes) -> bytes:
 def test_download_k6_binary_extracts_and_verifies(mocker):
     tarball_bytes = _make_tarball("k6-v2.2.0-linux-amd64/k6", b"real k6 binary")
     digest = hashlib.sha256(tarball_bytes).hexdigest()
-    mocker.patch("wps_tools.load_testing.k6_lambda.deploy_k6_lambda.K6_TARBALL_SHA256", digest)
+    mocker.patch("wps_tools.load_testing.deploy_k6_lambda.K6_TARBALL_SHA256", digest)
 
     with responses.RequestsMock() as rsps:
         rsps.add(responses.GET, K6_TARBALL_URL, body=tarball_bytes, status=200)
@@ -185,7 +185,7 @@ def test_download_k6_binary_rejects_checksum_mismatch():
 def test_download_k6_binary_missing_member_raises(mocker):
     tarball_bytes = _make_tarball("some/other/path", b"wrong file")
     digest = hashlib.sha256(tarball_bytes).hexdigest()
-    mocker.patch("wps_tools.load_testing.k6_lambda.deploy_k6_lambda.K6_TARBALL_SHA256", digest)
+    mocker.patch("wps_tools.load_testing.deploy_k6_lambda.K6_TARBALL_SHA256", digest)
 
     with responses.RequestsMock() as rsps:
         rsps.add(responses.GET, K6_TARBALL_URL, body=tarball_bytes, status=200)

@@ -1,7 +1,7 @@
 import io
 import zipfile
 
-from wps_tools.load_testing.k6_lambda.verify_ip_diversity import (
+from wps_tools.load_testing.verify_ip_diversity import (
     build_probe_zip,
     summarize_ip_diversity,
 )

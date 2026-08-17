@@ -2,8 +2,8 @@
 Build and run a k6-on-Lambda load generator: k6 itself, running inside a Lambda function,
 invoked with high concurrency to get many distinct source IPs.
 
-The DLT (Distributed Load Testing on AWS) stack in ../manage_dlt.py runs
-its load-tester as ECS Fargate tasks inside this account's Prod-App-A/Prod-App-B subnets.
+The DLT (Distributed Load Testing on AWS) stack this replaced ran its load-tester as ECS
+Fargate tasks inside this account's Prod-App-A/Prod-App-B subnets.
 Those subnets have no Internet Gateway or NAT Gateway of their own -- 0.0.0.0/0 routes
 through a Transit Gateway to a centralized landing-zone egress account, so every Fargate
 task, regardless of --task-count, egresses through the same small, fixed set of NAT IPs.
@@ -17,15 +17,15 @@ Fargate. See README.md for the full picture, quotas to check, and known gotchas.
 Usage:
     # Fan out across multiple regions -- each has its own separate Lambda IP pool, so this
     # multiplies source-IP diversity beyond what --concurrency alone gets in one region:
-    python3 -m wps_tools.load_testing.k6_lambda.deploy_k6_lambda deploy \\
+    python3 -m wps_tools.load_testing.deploy_k6_lambda deploy \\
         ../k6_scripts/asa_go_peak_burst.js --regions ca-central-1,ca-west-1,us-west-1,us-west-2
-    python3 -m wps_tools.load_testing.k6_lambda.deploy_k6_lambda run \\
+    python3 -m wps_tools.load_testing.deploy_k6_lambda run \\
         --concurrency 250 --regions ca-central-1,ca-west-1,us-west-1,us-west-2
 
     # Or target a single region with --region instead:
-    python3 -m wps_tools.load_testing.k6_lambda.deploy_k6_lambda deploy \\
+    python3 -m wps_tools.load_testing.deploy_k6_lambda deploy \\
         ../k6_scripts/asa_go_peak_burst.js --region ca-central-1
-    python3 -m wps_tools.load_testing.k6_lambda.deploy_k6_lambda run \\
+    python3 -m wps_tools.load_testing.deploy_k6_lambda run \\
         --concurrency 250 --region ca-central-1
 """
 
@@ -60,8 +60,7 @@ logger.addHandler(ch)
 HANDLER_PATH = Path(__file__).parent / "handler.py"
 
 # Pinned to a specific release and checksummed below so a compromised or rewritten upstream
-# artifact can't be silently downloaded and made executable -- same rationale as
-# manage_dlt.py's DLT_CLI_SHA256 pin.
+# artifact can't be silently downloaded and made executable.
 K6_VERSION = "v2.2.0"
 K6_TARBALL_URL = f"https://github.com/grafana/k6/releases/download/{K6_VERSION}/k6-{K6_VERSION}-linux-amd64.tar.gz"
 K6_TARBALL_SHA256 = "b5a8003c86f35f5cd5ceef1490312c48e587696c94d998cefc6d7b3b4cb1597d"
@@ -134,7 +133,7 @@ def create_parser() -> argparse.ArgumentParser:
         type=int,
         default=10,
         help="Number of concurrent Lambda invocations to fire per region (default: 10 -- this "
-        "is the analog of manage_dlt.py's --task-count; start small). With --regions, this "
+        "is the analog of the removed DLT stack's --task-count; start small). With --regions, this "
         "many invocations are fired in EACH region, so total invocations scale with region "
         "count too",
     )
@@ -489,7 +488,7 @@ def run_deploy(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     logger.info(
-        "Run it with: python3 -m wps_tools.load_testing.k6_lambda.deploy_k6_lambda run "
+        "Run it with: python3 -m wps_tools.load_testing.deploy_k6_lambda run "
         "--function-name %s --%s %s --concurrency <N>",
         args.function_name,
         "regions" if args.regions else "region",

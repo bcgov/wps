@@ -9,7 +9,7 @@ invocations at once via the same run_fan_out used for real k6 runs, and reports 
 distinct IPs came back. Does not touch the actual load-test target or its rate limiter.
 
 Usage:
-    python3 -m wps_tools.load_testing.k6_lambda.verify_ip_diversity \\
+    python3 -m wps_tools.load_testing.verify_ip_diversity \\
         --region ca-central-1 --concurrency 50
 """
 
@@ -25,7 +25,7 @@ import boto3
 from mypy_boto3_iam.client import IAMClient
 from mypy_boto3_lambda.client import LambdaClient
 
-from wps_tools.load_testing.k6_lambda.deploy_k6_lambda import (
+from wps_tools.load_testing.deploy_k6_lambda import (
     DEFAULT_ROLE_NAME,
     build_fan_out_lambda_client,
     deploy_function,
