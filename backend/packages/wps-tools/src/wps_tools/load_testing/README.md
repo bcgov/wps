@@ -101,12 +101,12 @@ before trusting it for a real run -- same reasoning as the single-region case ab
   suggest; every metric this run observed had one of `count`/`value`/`avg`, none needed the
   bare-`rate` fallback branch.
 - **k6's `ramping-arrival-rate` executor requires an integer `stages[].target`.**
-  `asa_go_peak_burst.js`'s default `TARGET_RPS` (100 req/min ÷ 60 = 1.6666...) is not an
-  integer -- confirmed live: k6 refused to even parse the script
+  `asa_go_peak_burst.js`'s default `TARGET_RPS` (a fractional iterations/second value) is not
+  an integer -- confirmed live: k6 refused to even parse the script
   (`cannot unmarshal number 1.6666666666666667 ... of type int64`) until the scenario's
   `timeUnit` was changed to `60s` and the stage target computed as
-  `Math.round(TARGET_RPS * 60)`, which lands on exactly `100` for the default case (zero
-  rounding error) instead of rounding a fractional per-second target.
+  `Math.round(TARGET_RPS * 60)`, so it lands on a whole number of iterations per minute
+  instead of rounding a fractional per-second target.
 - **A Lambda layer's zip is extracted directly into `/opt/`, not merged under it.** An entry
   named `opt/k6` inside the zip therefore lands at `/opt/opt/k6`, not `/opt/k6` --
   confirmed live: `handler.py`'s `K6_BINARY = "/opt/k6"` got a `FileNotFoundError` until
