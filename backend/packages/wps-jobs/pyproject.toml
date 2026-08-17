@@ -12,7 +12,7 @@ dependencies = [
     "redis>=8,<9",
     "psycopg2-binary>=2.9.10,<3",
     "asyncpg>=0.30.0,<1",
-    "affine>=2.4.0,<3",
+    "affine>=3,<4",
     "numpy==2.3.*",
     "xarray>=2025.3.1,<2026",
     "herbie-data>=2025.11.1,<2026",
