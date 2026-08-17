@@ -83,10 +83,54 @@ before trusting it for a real run -- same reasoning as the single-region case ab
 - **k6 omits a Counter metric entirely from `--summary-export` when it was never
   incremented**, rather than including it with `count: 0` -- confirmed via the podman test
   above (an invocation with zero 429s has no `rate_limited_responses` key in `metrics` at
-  all). `aggregate_summaries` relies on this and defaults every lookup accordingly; don't
-  "simplify" those `.get(..., {})` calls into direct indexing.
-- **`aggregate_summaries` is intentionally specific to `asa_go_peak_burst.js`'s own check
-  names and counter** (`status is 200`, `status is 429 (rate limited)`,
-  `rate_limited_responses`), not a generic k6-summary parser -- reasonable since this module
-  always runs one known script, but it'll silently report zeros if pointed at a script with
-  different check/counter names rather than erroring.
+  all). `aggregate_summaries` relies on this: a Counter no invocation ever touched is simply
+  absent from the combined `metrics` output too, not defaulted to `count: 0`.
+- **`aggregate_summaries` combines every metric k6 reports, not just `http_reqs` and
+  `rate_limited_responses`** -- it detects each metric's shape (Counter/Gauge/Trend) from its
+  fields rather than hardcoding metric names, so built-ins like `http_req_duration`, `vus`,
+  `data_sent`, etc. and any custom metric a different script defines all show up under the
+  combined `metrics` output, and check names are aggregated by name too -- this now works for
+  any script, not just `asa_go_peak_burst.js`. Counters sum exactly; Gauges report the peak
+  (max) value seen; Trends report min-of-mins/max-of-maxes/an unweighted mean of `avg` (an
+  approximation, not a recomputed percentile, since `--summary-export` only gives each
+  invocation's own already-aggregated stats -- percentile fields like `p(90)` aren't
+  recombinable and are dropped rather than silently averaged into something meaningless).
+  Confirmed live against a real k6 v2.2.0 `--summary-export` (10 Lambda invocations against
+  production, 2026-08-17) -- notably `http_req_failed` and the built-in aggregate `checks`
+  pass rate are actually Gauge-shaped (`{"value": ...}`), not Rate-shaped as their names might
+  suggest; every metric this run observed had one of `count`/`value`/`avg`, none needed the
+  bare-`rate` fallback branch.
+- **k6's `ramping-arrival-rate` executor requires an integer `stages[].target`.**
+  `asa_go_peak_burst.js`'s default `TARGET_RPS` (100 req/min ÷ 60 = 1.6666...) is not an
+  integer -- confirmed live: k6 refused to even parse the script
+  (`cannot unmarshal number 1.6666666666666667 ... of type int64`) until the scenario's
+  `timeUnit` was changed to `60s` and the stage target computed as
+  `Math.round(TARGET_RPS * 60)`, which lands on exactly `100` for the default case (zero
+  rounding error) instead of rounding a fractional per-second target.
+- **A Lambda layer's zip is extracted directly into `/opt/`, not merged under it.** An entry
+  named `opt/k6` inside the zip therefore lands at `/opt/opt/k6`, not `/opt/k6` --
+  confirmed live: `handler.py`'s `K6_BINARY = "/opt/k6"` got a `FileNotFoundError` until
+  `build_layer_zip`'s zip entry was renamed from `"opt/k6"` to the top-level `"k6"`.
+- **The k6 binary zips to ~65MB, over Lambda's direct-upload limit for
+  `PublishLayerVersion`.** Confirmed live: passing it via `Content={"ZipFile": ...}` failed
+  with `RequestEntityTooLargeException` ("Request must be smaller than 70167211 bytes").
+  `publish_k6_layer` instead stages the zip in a dedicated per-region S3 bucket
+  (`ensure_layer_bucket`, named `k6-lambda-layer-<account-id>-<region>`, created on first use)
+  and references it via `Content={"S3Bucket": ..., "S3Key": ...}`, which supports layers up
+  to Lambda's real 250MB-unzipped limit.
+
+## Tearing everything down
+
+`teardown_k6_lambda.py` deletes every resource `deploy`/`run`/`verify_ip_diversity.py` can
+create in a region: both Lambda functions (the k6 load generator and the IP-diversity probe),
+every version of the k6 layer, the per-region S3 staging bucket (emptied first), and -- once,
+after every region -- the shared IAM execution role.
+
+```bash
+uv run --project packages/wps-tools python -m wps_tools.load_testing.teardown_k6_lambda \
+  --regions ca-central-1,ca-west-1,us-west-1,us-west-2
+```
+
+Prompts for confirmation unless `--yes` is passed. One region failing doesn't stop the others
+(same collect-and-continue handling as `deploy`/`run`), and the IAM role is still deleted
+even if a region-level resource failed to clean up.

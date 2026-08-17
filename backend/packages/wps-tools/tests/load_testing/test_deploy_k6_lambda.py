@@ -48,12 +48,15 @@ def test_build_fan_out_lambda_client_floors_pool_at_boto3_default():
 
 
 def test_build_layer_zip_contains_k6_with_exec_permission():
+    """The entry must be top-level ("k6"), not nested under "opt/" -- Lambda extracts a
+    layer's entire zip directly into /opt/, so an "opt/k6" entry would land at /opt/opt/k6,
+    not /opt/k6 where handler.py's K6_BINARY expects it. Confirmed live."""
     zip_bytes = build_layer_zip(b"fake k6 binary contents")
 
     with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zip_file:
-        assert zip_file.namelist() == ["opt/k6"]
-        assert zip_file.read("opt/k6") == b"fake k6 binary contents"
-        info = zip_file.getinfo("opt/k6")
+        assert zip_file.namelist() == ["k6"]
+        assert zip_file.read("k6") == b"fake k6 binary contents"
+        info = zip_file.getinfo("k6")
         assert (info.external_attr >> 16) & 0o755 == 0o755
 
 
@@ -104,8 +107,10 @@ def test_aggregate_summaries_sums_across_invocations():
         "invocations": 2,
         "succeeded_invocations": 2,
         "failed_invocations": 0,
-        "total_requests": 20,
-        "total_rate_limited": 4,
+        "metrics": {
+            "http_reqs": {"count": 20},
+            "rate_limited_responses": {"count": 4},
+        },
         "checks": {
             "status is 200": {"passes": 16, "fails": 4},
             "status is 429 (rate limited)": {"passes": 4, "fails": 16},
@@ -113,16 +118,17 @@ def test_aggregate_summaries_sums_across_invocations():
     }
 
 
-def test_aggregate_summaries_missing_counter_treated_as_zero():
+def test_aggregate_summaries_missing_counter_omitted_entirely():
     """Confirmed live (via podman against the real Lambda base image): k6 omits a Counter
     metric entirely from --summary-export when it was never incremented -- an invocation that
-    saw zero 429s has no 'rate_limited_responses' key in metrics at all, not count=0. This
-    guards against that being mishandled as a KeyError or silently wrong aggregation."""
+    saw zero 429s has no 'rate_limited_responses' key in metrics at all, not count=0. Since
+    aggregation only reports metrics k6 actually emitted, a Counter that no invocation ever
+    touched is simply absent from the aggregate too, not defaulted to count=0."""
     results = [
         {"exit_code": 0, "summary": _summary(http_reqs=5, checks_200=(5, 0), checks_429=(0, 5))}
     ]
 
-    assert aggregate_summaries(results)["total_rate_limited"] == 0
+    assert "rate_limited_responses" not in aggregate_summaries(results)["metrics"]
 
 
 def test_aggregate_summaries_skips_invocations_without_a_summary():
@@ -138,7 +144,7 @@ def test_aggregate_summaries_skips_invocations_without_a_summary():
 
     assert result["invocations"] == 2
     assert result["failed_invocations"] == 1
-    assert result["total_requests"] == 5
+    assert result["metrics"]["http_reqs"]["count"] == 5
 
 
 def test_aggregate_summaries_empty():
@@ -146,10 +152,103 @@ def test_aggregate_summaries_empty():
         "invocations": 0,
         "succeeded_invocations": 0,
         "failed_invocations": 0,
-        "total_requests": 0,
-        "total_rate_limited": 0,
+        "metrics": {},
         "checks": {},
     }
+
+
+def test_aggregate_summaries_combines_trend_metrics():
+    """Metrics like http_req_duration are Trend-shaped ({"avg":..., "min":..., "max":...}),
+    not Counter-shaped -- they can't just be summed. Combining takes min-of-mins,
+    max-of-maxes, and an unweighted mean of "avg"."""
+    results = [
+        {
+            "exit_code": 0,
+            "summary": {
+                "metrics": {"http_req_duration": {"avg": 100, "min": 50, "max": 200}},
+                "root_group": {"checks": {}},
+            },
+        },
+        {
+            "exit_code": 0,
+            "summary": {
+                "metrics": {"http_req_duration": {"avg": 200, "min": 20, "max": 500}},
+                "root_group": {"checks": {}},
+            },
+        },
+    ]
+
+    metrics = aggregate_summaries(results)["metrics"]
+
+    assert metrics["http_req_duration"] == {"avg": 150, "min": 20, "max": 500}
+
+
+def test_aggregate_summaries_combines_gauge_metrics():
+    """vus is Gauge-shaped ({"value": ...}) -- combining reports the peak (max) value seen
+    across invocations, not a sum (summing concurrent VU counts across separate invocations
+    would be meaningless)."""
+    results = [
+        {
+            "exit_code": 0,
+            "summary": {
+                "metrics": {"vus": {"value": 12, "min": 0, "max": 20}},
+                "root_group": {"checks": {}},
+            },
+        },
+        {
+            "exit_code": 0,
+            "summary": {
+                "metrics": {"vus": {"value": 30, "min": 0, "max": 30}},
+                "root_group": {"checks": {}},
+            },
+        },
+    ]
+
+    metrics = aggregate_summaries(results)["metrics"]
+
+    assert metrics["vus"] == {"value": 30, "min": 0, "max": 30}
+
+
+def test_aggregate_summaries_combines_http_req_failed_as_gauge():
+    """Confirmed live (real k6 v2.2.0 --summary-export, 10 Lambda invocations against
+    production): http_req_failed is actually Gauge-shaped ({"value": ...}), not Rate-shaped
+    as its name might suggest -- it has no "rate" field at all in this k6 version. Combining
+    therefore takes the max value seen, same as any other Gauge."""
+    results = [
+        {
+            "exit_code": 0,
+            "summary": {"metrics": {"http_req_failed": {"value": 0}}, "root_group": {"checks": {}}},
+        },
+        {
+            "exit_code": 0,
+            "summary": {"metrics": {"http_req_failed": {"value": 1}}, "root_group": {"checks": {}}},
+        },
+    ]
+
+    metrics = aggregate_summaries(results)["metrics"]
+
+    assert metrics["http_req_failed"] == {"value": 1}
+
+
+def test_aggregate_summaries_combines_bare_rate_metrics():
+    """The bare-"rate" fallback branch isn't known to be hit by any real k6 metric (see
+    _combine_metric's docstring) but still needs to behave sanely if k6 or a future version
+    ever emits one: an unweighted mean across invocations, since there's no per-invocation
+    total to weight by."""
+    results = [
+        {
+            "exit_code": 0,
+            "summary": {"metrics": {"some_rate": {"rate": 0.1}}, "root_group": {"checks": {}}},
+        },
+        {
+            "exit_code": 0,
+            "summary": {"metrics": {"some_rate": {"rate": 0.3}}, "root_group": {"checks": {}}},
+        },
+    ]
+
+    metrics = aggregate_summaries(results)["metrics"]
+
+    assert metrics["some_rate"]["rate"] == pytest.approx(0.2)
 
 
 def _make_tarball(member_path: str, content: bytes) -> bytes:

@@ -18,6 +18,7 @@ from wps_tools.load_testing.deploy_k6_lambda import (
     deploy_function,
     deploy_region,
     ensure_execution_role,
+    ensure_layer_bucket,
     invoke_once,
     publish_k6_layer,
     run_deploy,
@@ -82,10 +83,42 @@ def test_ensure_execution_role_reuses_existing(aws):
     assert attached == []
 
 
+def _ensure_bucket(aws: boto3.Session, bucket_name: str = "test-bucket"):
+    s3_client = aws.client("s3")
+    ensure_layer_bucket(s3_client, bucket_name, REGION)
+    return s3_client
+
+
+def test_ensure_layer_bucket_creates_when_missing(aws):
+    s3_client = aws.client("s3")
+
+    ensure_layer_bucket(s3_client, "my-new-bucket", REGION)
+
+    # head_bucket doesn't raise if the bucket exists
+    s3_client.head_bucket(Bucket="my-new-bucket")
+
+
+def test_ensure_layer_bucket_reuses_existing(aws):
+    s3_client = aws.client("s3")
+    ensure_layer_bucket(s3_client, "already-there", REGION)
+
+    ensure_layer_bucket(s3_client, "already-there", REGION)  # should not raise BucketAlreadyOwnedByYou
+
+    s3_client.head_bucket(Bucket="already-there")
+
+
+def test_ensure_layer_bucket_rejects_invalid_region(aws):
+    s3_client = aws.client("s3")
+
+    with pytest.raises(ValueError, match="Not a valid S3 bucket region"):
+        ensure_layer_bucket(s3_client, "my-bucket", "not-a-real-region")
+
+
 def test_publish_k6_layer(aws):
     lambda_client = aws.client("lambda")
+    s3_client = _ensure_bucket(aws)
 
-    layer_arn = publish_k6_layer(lambda_client, "my-layer", b"fake zip contents")
+    layer_arn = publish_k6_layer(lambda_client, s3_client, "test-bucket", "my-layer", b"fake zip contents")
 
     assert "my-layer" in layer_arn
     versions = lambda_client.list_layer_versions(LayerName="my-layer")["LayerVersions"]
@@ -97,8 +130,10 @@ def test_deploy_region_prunes_old_layer_versions_after_function_updated(aws):
     deploys accumulate versions without bound. Only the version just published should
     remain afterward."""
     lambda_client = aws.client("lambda")
+    s3_client = _ensure_bucket(aws)
     role_arn = _create_role(aws.client("iam"), "test-role")
     kwargs = dict(
+        layer_bucket="test-bucket",
         layer_name="my-layer",
         function_name="my-function",
         role_arn=role_arn,
@@ -107,8 +142,8 @@ def test_deploy_region_prunes_old_layer_versions_after_function_updated(aws):
         script_name="my_test.js",
     )
 
-    deploy_region(lambda_client, layer_zip=b"first zip contents", function_zip=_minimal_function_zip(), **kwargs)
-    deploy_region(lambda_client, layer_zip=b"second zip contents", function_zip=_minimal_function_zip(), **kwargs)
+    deploy_region(lambda_client, s3_client, layer_zip=b"first zip contents", function_zip=_minimal_function_zip(), **kwargs)
+    deploy_region(lambda_client, s3_client, layer_zip=b"second zip contents", function_zip=_minimal_function_zip(), **kwargs)
 
     versions = lambda_client.list_layer_versions(LayerName="my-layer")["LayerVersions"]
     assert [v["Version"] for v in versions] == [2]
@@ -119,8 +154,10 @@ def test_deploy_region_keeps_old_layer_version_if_function_deploy_fails(aws, moc
     through (e.g. a transient API error), the previously-deployed function is still
     configured to use the old layer version, so that version must not be deleted."""
     lambda_client = aws.client("lambda")
+    s3_client = _ensure_bucket(aws)
     role_arn = _create_role(aws.client("iam"), "test-role")
     kwargs = dict(
+        layer_bucket="test-bucket",
         layer_name="my-layer",
         function_name="my-function",
         role_arn=role_arn,
@@ -129,13 +166,13 @@ def test_deploy_region_keeps_old_layer_version_if_function_deploy_fails(aws, moc
         script_name="my_test.js",
     )
 
-    deploy_region(lambda_client, layer_zip=b"first zip contents", function_zip=_minimal_function_zip(), **kwargs)
+    deploy_region(lambda_client, s3_client, layer_zip=b"first zip contents", function_zip=_minimal_function_zip(), **kwargs)
 
     mocker.patch(
         "wps_tools.load_testing.deploy_k6_lambda.deploy_function", side_effect=RuntimeError("boom")
     )
     with pytest.raises(RuntimeError):
-        deploy_region(lambda_client, layer_zip=b"second zip contents", function_zip=_minimal_function_zip(), **kwargs)
+        deploy_region(lambda_client, s3_client, layer_zip=b"second zip contents", function_zip=_minimal_function_zip(), **kwargs)
 
     versions = lambda_client.list_layer_versions(LayerName="my-layer")["LayerVersions"]
     assert {v["Version"] for v in versions} == {1, 2}
@@ -153,8 +190,9 @@ def _minimal_function_zip() -> bytes:
 
 def test_deploy_function_creates_new(aws):
     lambda_client = aws.client("lambda")
+    s3_client = _ensure_bucket(aws)
     role_arn = _create_role(aws.client("iam"), "test-role")
-    layer_arn = publish_k6_layer(lambda_client, "test-layer", b"fake layer zip")
+    layer_arn = publish_k6_layer(lambda_client, s3_client, "test-bucket", "test-layer", b"fake layer zip")
 
     function_arn = deploy_function(
         lambda_client,
@@ -198,8 +236,9 @@ def test_deploy_function_without_layer(aws):
 
 def test_deploy_function_updates_existing(aws):
     lambda_client = aws.client("lambda")
+    s3_client = _ensure_bucket(aws)
     role_arn = _create_role(aws.client("iam"), "test-role")
-    layer_arn = publish_k6_layer(lambda_client, "test-layer", b"fake layer zip")
+    layer_arn = publish_k6_layer(lambda_client, s3_client, "test-bucket", "test-layer", b"fake layer zip")
     deploy_function(
         lambda_client,
         function_name="existing-function",
@@ -349,10 +388,22 @@ def test_run_deploy_continues_after_one_region_fails(mocker, tmp_path, caplog):
         "wps_tools.load_testing.deploy_k6_lambda.ensure_execution_role",
         return_value="arn:aws:iam::123456789012:role/test-role",
     )
+    # ensure_layer_bucket does real work against whatever client session.client("s3") returns
+    # below (a plain identity-marker string here, not a usable boto client) -- not what this
+    # test is exercising, so it's mocked out rather than given a full fake S3 client.
+    mocker.patch("wps_tools.load_testing.deploy_k6_lambda.ensure_layer_bucket")
 
     def fake_session(*, profile_name=None, region_name=None):
         session = MagicMock()
-        session.client.return_value = f"client-{region_name}"
+
+        def fake_client(service_name, **kwargs):
+            if service_name == "sts":
+                sts_client = MagicMock()
+                sts_client.get_caller_identity.return_value = {"Account": "123456789012"}
+                return sts_client
+            return f"client-{region_name}"
+
+        session.client.side_effect = fake_client
         return session
 
     mocker.patch(
@@ -361,7 +412,7 @@ def test_run_deploy_continues_after_one_region_fails(mocker, tmp_path, caplog):
 
     calls = []
 
-    def fake_deploy_region(lambda_client, **kwargs):
+    def fake_deploy_region(lambda_client, s3_client, **kwargs):
         calls.append(lambda_client)
         if lambda_client == "client-ca-west-1":
             raise RuntimeError("boom")

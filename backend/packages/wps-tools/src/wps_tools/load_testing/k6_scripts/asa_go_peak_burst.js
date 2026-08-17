@@ -29,17 +29,25 @@ const TARGET_RPS = Number(__ENV.TARGET_RPS) || 100 / 60;
 
 const rateLimited = new Counter("rate_limited_responses");
 
+// ramping-arrival-rate's stages[].target must be an integer (k6 rejects the whole script at
+// parse time otherwise -- confirmed live: the default TARGET_RPS, 100/60 = 1.6666..., failed
+// with "cannot unmarshal number 1.6666666666666667 ... of type int64"). timeUnit is 60s
+// rather than 1s so the default 100/60 req/s becomes an exact integer target (100) with zero
+// rounding error, instead of rounding a per-second target and drifting off the intended
+// 100 req/min calibration.
+const TARGET_PER_TIME_UNIT = Math.round(TARGET_RPS * 60);
+
 export const options = {
   scenarios: {
     peak_burst: {
       executor: "ramping-arrival-rate",
       startRate: 0,
-      timeUnit: "1s",
+      timeUnit: "60s",
       preAllocatedVUs: 20,
       maxVUs: 50,
       stages: [
-        { target: TARGET_RPS, duration: "30s" }, // ramp up
-        { target: TARGET_RPS, duration: "60s" }, // hold at peak for 1 minute
+        { target: TARGET_PER_TIME_UNIT, duration: "30s" }, // ramp up
+        { target: TARGET_PER_TIME_UNIT, duration: "60s" }, // hold at peak for 1 minute
         { target: 0, duration: "15s" }, // ramp down
       ],
     },

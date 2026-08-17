@@ -41,13 +41,16 @@ import zipfile
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import TypeVar
+from typing import TypeVar, cast, get_args
 
 import boto3
 import requests
 from botocore.config import Config
+from botocore.exceptions import ClientError
 from mypy_boto3_iam.client import IAMClient
 from mypy_boto3_lambda.client import LambdaClient
+from mypy_boto3_s3.client import S3Client
+from mypy_boto3_s3.literals import BucketLocationConstraintType
 
 from wps_tools.load_testing import REQUEST_TIMEOUT
 
@@ -179,7 +182,10 @@ def download_k6_binary() -> bytes:
 def build_layer_zip(k6_binary: bytes) -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        info = zipfile.ZipInfo("opt/k6")
+        # Lambda extracts a layer's *entire* zip directly into /opt/ -- an entry named
+        # "opt/k6" therefore lands at /opt/opt/k6, not /opt/k6 (confirmed live: handler.py's
+        # K6_BINARY = "/opt/k6" got FileNotFoundError until this was named "k6", top-level).
+        info = zipfile.ZipInfo("k6")
         info.external_attr = 0o755 << 16  # preserve the executable bit inside the zip
         zip_file.writestr(info, k6_binary)
     return buffer.getvalue()
@@ -211,11 +217,52 @@ def ensure_execution_role(iam_client: IAMClient, role_name: str) -> str:
     return role["Role"]["Arn"]
 
 
-def publish_k6_layer(lambda_client: LambdaClient, layer_name: str, zip_bytes: bytes) -> str:
-    logger.info("Publishing layer %s (%d bytes)", layer_name, len(zip_bytes))
+def build_layer_bucket_name(account_id: str, region: str) -> str:
+    return f"k6-lambda-layer-{account_id}-{region}"
+
+
+def ensure_layer_bucket(s3_client: S3Client, bucket: str, region: str) -> None:
+    try:
+        s3_client.head_bucket(Bucket=bucket)
+        logger.info("Using existing bucket %s", bucket)
+        return
+    except ClientError as e:
+        if e.response.get("ResponseMetadata", {}).get("HTTPStatusCode") != 404:
+            raise
+
+    logger.info("Creating bucket %s", bucket)
+    if region == "us-east-1":
+        # us-east-1 is the default region and doesn't take a LocationConstraint.
+        s3_client.create_bucket(Bucket=bucket)
+        return
+
+    if region not in get_args(BucketLocationConstraintType):
+        raise ValueError(f"Not a valid S3 bucket region: {region}")
+    location_constraint = cast(BucketLocationConstraintType, region)
+    s3_client.create_bucket(
+        Bucket=bucket, CreateBucketConfiguration={"LocationConstraint": location_constraint}
+    )
+
+
+def publish_k6_layer(
+    lambda_client: LambdaClient,
+    s3_client: S3Client,
+    bucket: str,
+    layer_name: str,
+    zip_bytes: bytes,
+) -> str:
+    # The k6 binary alone zips to ~65MB -- direct ZipFile upload only works up to Lambda's
+    # ~67MB API request-payload limit (confirmed live: PublishLayerVersion rejected a direct
+    # 65MB ZipFile with RequestEntityTooLargeException). Staging via S3 instead supports
+    # layers up to Lambda's real 250MB-unzipped limit.
+    key = f"{layer_name}.zip"
+    logger.info("Uploading layer zip to s3://%s/%s (%d bytes)", bucket, key, len(zip_bytes))
+    s3_client.put_object(Bucket=bucket, Key=key, Body=zip_bytes)
+
+    logger.info("Publishing layer %s", layer_name)
     response = lambda_client.publish_layer_version(
         LayerName=layer_name,
-        Content={"ZipFile": zip_bytes},
+        Content={"S3Bucket": bucket, "S3Key": key},
         CompatibleRuntimes=["python3.13"],
         CompatibleArchitectures=["x86_64"],
     )
@@ -245,7 +292,9 @@ def _layer_version_from_arn(layer_version_arn: str) -> int:
 
 def deploy_region(
     lambda_client: LambdaClient,
+    s3_client: S3Client,
     *,
+    layer_bucket: str,
     layer_name: str,
     layer_zip: bytes,
     function_name: str,
@@ -255,7 +304,7 @@ def deploy_region(
     timeout_seconds: int,
     script_name: str,
 ) -> str:
-    layer_arn = publish_k6_layer(lambda_client, layer_name, layer_zip)
+    layer_arn = publish_k6_layer(lambda_client, s3_client, layer_bucket, layer_name, layer_zip)
     function_arn = deploy_function(
         lambda_client,
         function_name=function_name,
@@ -422,48 +471,92 @@ def run_fan_out(
         return results
 
 
-def aggregate_summaries(results: list[dict]) -> dict:
-    """Sums k6's per-invocation --summary-export output across every invocation.
+def _combine_metric(values_list: list[dict]) -> dict:
+    """Combines one metric's per-invocation --summary-export stats into a single aggregate.
 
-    Schema confirmed by actually running this handler locally against the real AWS Lambda
-    Python base image via podman + its built-in Runtime Interface Emulator (see README.md),
-    not assumed: metrics are keyed by name under metrics.<name>.count for Counter-type
-    metrics (http_reqs, and our custom rate_limited_responses counter); per-check pass/fail
-    counts live under root_group.checks.<check name>.{passes,fails}.
+    Detects k6's metric shape from its fields rather than hardcoding each metric name, so
+    this covers every built-in metric (http_reqs, http_req_duration, vus, data_sent, ...) and
+    any custom metric a script defines, not just the ones this module used to name
+    explicitly. Confirmed live against a real k6 v2.2.0 --summary-export (10 Lambda
+    invocations against production, see README.md):
 
-    One important, confirmed-live gotcha this relies on: a Counter that's never incremented
-    (e.g. an invocation that saw zero 429s) is OMITTED from metrics entirely -- it does NOT
-    appear with count=0. Every metrics.get(...) below defaults missing keys to {} / 0 for
-    exactly this reason; a KeyError here would mean the happy path (no rate limiting hit)
-    breaks aggregation, which defeats the point of tracking it.
-
-    This is intentionally specific to asa_go_peak_burst.js's own checks/counter names, not a
-    generic k6-summary parser..
+    - Counter-like ({"count": ...}, e.g. http_reqs, iterations, data_sent, data_received):
+      counts sum exactly.
+    - Gauge-like ({"value": ...}, e.g. vus, vus_max, and -- confirmed live, NOT Rate-shaped
+      as its name might suggest -- http_req_failed and the built-in aggregate "checks" pass
+      rate): max value seen (the peak) across invocations, plus min/max of any per-invocation
+      min/max.
+    - Trend-like (has "avg", e.g. http_req_duration, http_req_waiting, http_req_blocked,
+      http_req_connecting, http_req_tls_handshaking, http_req_sending, http_req_receiving,
+      iteration_duration): min-of-mins, max-of-maxes, and an unweighted mean of "avg" -- an
+      approximation, not a true recomputed percentile, since --summary-export only gives each
+      invocation's own already-aggregated stats, not raw samples. Percentile fields (e.g.
+      "p(90)") aren't recombinable at all and are dropped rather than silently averaged into
+      something meaningless.
+    - Anything else (a bare "rate" with no "count" or "value"): unweighted mean. Not
+      confirmed live against any real k6 metric -- every metric this module has actually
+      observed with a "rate" field also had "value", and hit the Gauge branch above instead.
     """
-    total_requests = 0
-    total_rate_limited = 0
+    if any("count" in v for v in values_list):
+        return {"count": sum(v.get("count", 0) for v in values_list)}
+
+    if any("value" in v for v in values_list):
+        combined: dict = {"value": max(v["value"] for v in values_list if "value" in v)}
+    elif any("avg" in v for v in values_list):
+        avgs = [v["avg"] for v in values_list if "avg" in v]
+        combined = {"avg": sum(avgs) / len(avgs)}
+    else:
+        rates = [v["rate"] for v in values_list if "rate" in v]
+        return {"rate": sum(rates) / len(rates)} if rates else {}
+
+    mins = [v["min"] for v in values_list if "min" in v]
+    maxs = [v["max"] for v in values_list if "max" in v]
+    if mins:
+        combined["min"] = min(mins)
+    if maxs:
+        combined["max"] = max(maxs)
+    return combined
+
+
+def aggregate_summaries(results: list[dict]) -> dict:
+    """Combines k6's per-invocation --summary-export output across every invocation.
+
+    Schema confirmed live, not assumed: originally via podman + the AWS Lambda Python base
+    image's Runtime Interface Emulator (see README.md) for the Counter-shaped metrics
+    (http_reqs, rate_limited_responses) this module first tracked, and since extended to
+    every other built-in metric via a real deploy + run against production (10 Lambda
+    invocations, ca-central-1, 2026-08-17) -- see _combine_metric's docstring for the
+    per-shape details that run confirmed. Metrics are keyed by name under metrics.<name>,
+    and a Counter that's never incremented (e.g. an invocation that saw zero 429s) is
+    OMITTED from metrics entirely rather than appearing with count=0 -- _combine_metric and
+    the per-check aggregation below both default missing keys accordingly.
+
+    Per-check pass/fail counts live under root_group.checks.<check name>.{passes,fails} and
+    are aggregated by name, same as metrics -- so, unlike before, this now works for any
+    script's check/metric names, not just asa_go_peak_burst.js's.
+    """
+    per_metric: dict[str, list[dict]] = {}
     checks: dict[str, dict[str, int]] = {}
 
     for result in results:
         summary = result.get("summary")
         if not summary:
             continue
-        metrics = summary.get("metrics", {})
-        total_requests += metrics.get("http_reqs", {}).get("count", 0)
-        total_rate_limited += metrics.get("rate_limited_responses", {}).get("count", 0)
+        for name, values in summary.get("metrics", {}).items():
+            per_metric.setdefault(name, []).append(values)
 
         for name, check in summary.get("root_group", {}).get("checks", {}).items():
             bucket = checks.setdefault(name, {"passes": 0, "fails": 0})
             bucket["passes"] += check.get("passes", 0)
             bucket["fails"] += check.get("fails", 0)
 
+    metrics = {name: _combine_metric(values) for name, values in per_metric.items()}
     succeeded = sum(1 for r in results if r.get("exit_code") == 0)
     return {
         "invocations": len(results),
         "succeeded_invocations": succeeded,
         "failed_invocations": len(results) - succeeded,
-        "total_requests": total_requests,
-        "total_rate_limited": total_rate_limited,
+        "metrics": metrics,
         "checks": checks,
     }
 
@@ -507,12 +600,20 @@ def run_deploy(args: argparse.Namespace) -> None:
     # is a valid Role ARN for every region's function below. No need to recreate it per region.
     iam_session = boto3.Session(profile_name=args.aws_profile, region_name=regions[0])
     role_arn = ensure_execution_role(iam_session.client("iam"), args.role_name)
+    account_id = iam_session.client("sts").get_caller_identity()["Account"]
 
     def deploy_to_region(region: str) -> str:
         session = boto3.Session(profile_name=args.aws_profile, region_name=region)
         lambda_client: LambdaClient = session.client("lambda")
+        s3_client: S3Client = session.client("s3")
+        # The layer's S3 source must be in the same region as the Lambda call, so (unlike
+        # the IAM role) this can't be created once and reused across regions.
+        layer_bucket = build_layer_bucket_name(account_id, region)
+        ensure_layer_bucket(s3_client, layer_bucket, region)
         return deploy_region(
             lambda_client,
+            s3_client,
+            layer_bucket=layer_bucket,
             layer_name=args.layer_name,
             layer_zip=layer_zip,
             function_name=args.function_name,
