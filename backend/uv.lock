@@ -33,11 +33,14 @@ dev = [
 
 [[package]]
 name = "affine"
-version = "2.4.0"
+version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/69/98/d2f0bb06385069e799fc7d2870d9e078cfa0fa396dc8a2b81227d0da08b9/affine-2.4.0.tar.gz", hash = "sha256:a24d818d6a836c131976d22f8c27b8d3ca32d0af64c1d8d29deb7bafa4da1eea", size = 17132, upload-time = "2023-01-19T23:44:30.696Z" }
+dependencies = [
+    { name = "attrs" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6d/48/2642498353f0f2f7179fe5ee5337497551f74f25b0ac09299fea5fe3f3ac/affine-3.0.0.tar.gz", hash = "sha256:573514d5c37e98401a0ec34139c2b725d9f9ae4d074662f4b62a47d6a2ba9f06", size = 20678, upload-time = "2026-08-08T13:44:58.163Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/f7/85273299ab57117850cc0a936c64151171fac4da49bc6fba0dad984a7c5f/affine-2.4.0-py3-none-any.whl", hash = "sha256:8a3df80e2b2378aef598a83c1392efd47967afec4242021a0b06b4c7cbc61a92", size = 15662, upload-time = "2023-01-19T23:44:28.833Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/b2/8f8bfbee441896b5bd275fba49fbcd276ffbb640ecd2f7fc9160294e7295/affine-3.0.0-py3-none-any.whl", hash = "sha256:d1b15ed1877a4649a623468a97af6b2182889dc748d7f96d59d504e5c83c00bf", size = 10423, upload-time = "2026-08-08T13:44:57.161Z" },
 ]
 
 [[package]]
@@ -5248,7 +5251,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "affine", specifier = ">=2.3.1,<3" },
+    { name = "affine", specifier = ">=3,<4" },
     { name = "aiobotocore", specifier = "==2.15.1" },
     { name = "aiodns", specifier = ">=4,<5" },
     { name = "aiofiles", specifier = ">=25.0.0,<26" },
@@ -5335,7 +5338,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "affine", specifier = ">=2.4.0,<3" },
+    { name = "affine", specifier = ">=3,<4" },
     { name = "aiofiles", specifier = ">=25.0.0,<26" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "gdal", specifier = "==3.13.1" },
@@ -5412,7 +5415,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "affine", specifier = ">=2.4.0,<3" },
+    { name = "affine", specifier = ">=3,<4" },
     { name = "aiobotocore", specifier = "==2.15.1" },
     { name = "aiofiles", specifier = ">=25.0.0,<26" },
     { name = "aiohttp", specifier = ">=3,<4" },
