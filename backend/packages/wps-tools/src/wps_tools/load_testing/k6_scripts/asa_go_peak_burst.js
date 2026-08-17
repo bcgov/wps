@@ -132,7 +132,9 @@ function deviceLifecycle() {
 
   post("device/register", { platform: "android", token, device_id: deviceId, user_id: null });
   get(`device/notification-settings?device_id=${deviceId}`);
-  post("device/notification-settings", { device_id: deviceId, fire_zone_source_ids: ["1"] });
+  // an empty list is the only value guaranteed valid without looking up a real zone id,
+  // and still exercises the endpoint's read/delete path.
+  post("device/notification-settings", { device_id: deviceId, fire_zone_source_ids: [] });
   post("device/unregister", { token });
 }
 
