@@ -496,6 +496,12 @@ cognito-idp = [
 ec2 = [
     { name = "mypy-boto3-ec2" },
 ]
+iam = [
+    { name = "mypy-boto3-iam" },
+]
+lambda = [
+    { name = "mypy-boto3-lambda" },
+]
 s3 = [
     { name = "mypy-boto3-s3" },
 ]
@@ -2765,6 +2771,24 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/96/21/6c747a93212f910a938dc7d7113e3922e45516d78d37f2bce035a8cb09f2/mypy_boto3_ec2-1.43.67.tar.gz", hash = "sha256:25b24fb2fc7d56164aebfc00062a0e434e923b89b9378f004bb9fae6e390f41f", size = 463981, upload-time = "2026-08-07T19:35:40.763Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fb/47/4d56c9abc13ae8ac6f0ac0f79849bde2a0ab5567f4294203abc92e8c1a9c/mypy_boto3_ec2-1.43.67-py3-none-any.whl", hash = "sha256:5de1e6c0c8d0b51badcc88ce06a55ffdc1ca42b8cd4fcbf5e40255da7dee1757", size = 452403, upload-time = "2026-08-07T19:35:37.681Z" },
+]
+
+[[package]]
+name = "mypy-boto3-iam"
+version = "1.43.70"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/04/eb/fc615caf1a4ba6e28c874e286f0bb9f4af5af5b1b2b493e09d655f6bc0bc/mypy_boto3_iam-1.43.70.tar.gz", hash = "sha256:68bf4e6890ecaae76852d501090b8fd0b0438424009082a20bfe612f93de28fa", size = 91526, upload-time = "2026-08-12T19:27:46.787Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/12/5f/c55267013818a0bc582e9a0acdfa6ac882610deef956f1bf6ae6d6a8e4e1/mypy_boto3_iam-1.43.70-py3-none-any.whl", hash = "sha256:88363b6c33062c7e97813c73e9abb498e6a0aa7e53622925329aefefbc529ee7", size = 97195, upload-time = "2026-08-12T19:27:45.483Z" },
+]
+
+[[package]]
+name = "mypy-boto3-lambda"
+version = "1.43.60"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/77/7cebb2f0b88680cdf91eaa1c33fb88e0cbd27b4387fd352a8d7bcbc4c68d/mypy_boto3_lambda-1.43.60.tar.gz", hash = "sha256:c0f7e6d984c0fc5120966786915ef3012e9ccc9d382de412e0b71f309667851c", size = 52628, upload-time = "2026-07-30T20:11:07.342Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/ab/712f39d92c602931176661e00259e037f439a7982df11f3ce05ea4d01069/mypy_boto3_lambda-1.43.60-py3-none-any.whl", hash = "sha256:bc097cdcb8d4a87e2685551bbaf39e583f1b603b38a6b45c784df83847819971", size = 61105, upload-time = "2026-07-30T20:11:02.711Z" },
 ]
 
 [[package]]
@@ -5419,7 +5443,7 @@ dependencies = [
     { name = "aiobotocore" },
     { name = "aiohttp" },
     { name = "boto3" },
-    { name = "boto3-stubs", extra = ["cloudformation", "cognito-idp", "ec2", "s3"] },
+    { name = "boto3-stubs", extra = ["cloudformation", "cognito-idp", "ec2", "iam", "lambda", "s3"] },
     { name = "matplotlib" },
     { name = "pandas" },
     { name = "python-decouple" },
@@ -5432,7 +5456,7 @@ requires-dist = [
     { name = "aiobotocore", specifier = ">=2.4.1,<3" },
     { name = "aiohttp", specifier = ">=3.13.2" },
     { name = "boto3", specifier = ">=1.34,<2" },
-    { name = "boto3-stubs", extras = ["cloudformation", "cognito-idp", "ec2", "s3"], specifier = ">=1.34,<2" },
+    { name = "boto3-stubs", extras = ["cloudformation", "cognito-idp", "ec2", "iam", "lambda", "s3"], specifier = ">=1.34,<2" },
     { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "pandas", specifier = ">=1.5.2,<3" },
     { name = "python-decouple", specifier = ">=3.6,<4" },
