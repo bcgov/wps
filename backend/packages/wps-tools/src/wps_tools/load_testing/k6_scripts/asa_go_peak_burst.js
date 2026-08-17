@@ -49,8 +49,10 @@ const REQUESTS_PER_ITERATION = 13;
 
 // Per-task target rate in iterations/second (one iteration == one simulated app launch).
 // Defaults to the gateway's per-IP limit (100 req/min) divided by the requests each
-// iteration makes, i.e. ~1 app launch per IP every ~54s; override with TARGET_RPS to try a
-// different per-task rate.
+// iteration makes, i.e. ~1 app launch per IP every ~7.8s (100/60/13); override with
+// TARGET_RPS to try a different per-task rate. Math.round below then rounds that up to 8
+// iterations/60s (~1 launch per 7.5s), i.e. ~104 req/min, a few % over the 100/min limit
+// due to integer rounding.
 const TARGET_RPS = Number(__ENV.TARGET_RPS) || 100 / 60 / REQUESTS_PER_ITERATION;
 
 const rateLimited = new Counter("rate_limited_responses");
