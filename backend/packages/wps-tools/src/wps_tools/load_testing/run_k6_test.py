@@ -34,6 +34,7 @@ import requests
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 from botocore.credentials import Credentials
+from botocore.exceptions import ClientError
 from mypy_boto3_cloudformation.client import CloudFormationClient
 from mypy_boto3_s3.client import S3Client
 
@@ -194,7 +195,7 @@ def sanitize_test_id(value: str) -> str:
 def derive_test_names(
     script_path: Path, test_id: str | None, test_name: str | None
 ) -> tuple[str, str, str]:
-    resolved_test_id = test_id or sanitize_test_id(f"{script_path.stem}-{int(time.time())}")
+    resolved_test_id = sanitize_test_id(test_id or f"{script_path.stem}-{int(time.time())}")
     resolved_test_name = test_name or resolved_test_id
     script_file_name = f"{resolved_test_id}{script_path.suffix}"
     return resolved_test_id, resolved_test_name, script_file_name
@@ -297,9 +298,13 @@ def main() -> None:
         if not args.stack_name:
             logger.error("Provide --stack-name, or both --api-endpoint and --scenarios-bucket")
             sys.exit(1)
-        resolved_endpoint, resolved_bucket = resolve_stack_outputs(
-            args.stack_name, args.aws_profile, args.region
-        )
+        try:
+            resolved_endpoint, resolved_bucket = resolve_stack_outputs(
+                args.stack_name, args.aws_profile, args.region
+            )
+        except ClientError as e:
+            logger.error("Could not resolve stack %s: %s", args.stack_name, e)
+            sys.exit(1)
         api_endpoint = api_endpoint or resolved_endpoint
         scenarios_bucket = scenarios_bucket or resolved_bucket
 

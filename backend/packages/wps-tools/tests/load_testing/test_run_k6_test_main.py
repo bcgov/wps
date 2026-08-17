@@ -112,6 +112,23 @@ def test_main_missing_endpoint_args_exits(monkeypatch, tmp_path, dlt_credentials
         main()
 
 
+def test_main_nonexistent_stack_exits_cleanly(aws, tmp_path, monkeypatch, dlt_credentials_file):
+    """A stale/misspelled --stack-name must produce a clean sys.exit(1), not a raw
+    botocore ClientError traceback from describe_stacks."""
+    script = tmp_path / "smoke.js"
+    script.write_text("// k6 script")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["run_k6_test.py", str(script), "--stack-name", "does-not-exist", "--region", REGION],
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    assert exc_info.value.code == 1
+
+
 def _setup_stack_and_bucket(aws, bucket_name="test-scenarios-bucket"):
     cfn = aws.client("cloudformation")
     s3 = aws.client("s3")

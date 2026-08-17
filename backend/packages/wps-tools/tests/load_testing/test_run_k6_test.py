@@ -80,6 +80,19 @@ def test_derive_test_names_uses_provided_values():
     assert script_file_name == "explicit-id.js"
 
 
+def test_derive_test_names_sanitizes_explicit_test_id():
+    """An explicit --test-id isn't exempt from sanitize_test_id -- unsanitized, a value
+    containing '/' would flow straight into the S3 upload key and the /scenarios/{test_id}
+    status-polling URL path."""
+    test_id, test_name, script_file_name = derive_test_names(
+        Path("load-test.js"), test_id="my/test id", test_name=None
+    )
+
+    assert "/" not in test_id
+    assert " " not in test_id
+    assert script_file_name == f"{test_id}.js"
+
+
 def test_derive_test_names_defaults_from_script_name():
     test_id, test_name, script_file_name = derive_test_names(Path("load-test.js"), test_id=None, test_name=None)
 
