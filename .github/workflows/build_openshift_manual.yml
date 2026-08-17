@@ -41,7 +41,8 @@ env:
 jobs:
   build-image:
     name: Build ${{ inputs.module_name }} Image via OpenShift
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     permissions:
       contents: read
     steps:

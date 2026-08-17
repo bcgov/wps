@@ -17,7 +17,8 @@ env:
 jobs:
   deploy_to_production:
     name: Deploy to production
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
     permissions:
       contents: read
       pull-requests: read
