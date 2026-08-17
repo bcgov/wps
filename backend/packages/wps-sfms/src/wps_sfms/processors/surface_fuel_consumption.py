@@ -17,6 +17,7 @@ from wps_shared.utils.s3_client import S3Client
 from wps_sfms.fbp_fuel_types import (
     GRASS_FUEL_LOAD,
     NO_FUEL_TYPE_CODE,
+    NON_COMBUSTIBLE_FUEL_VALUES,
     PERCENT_CONIFER_GRID_VALUES,
     fuel_type_codes_from_grid,
 )
@@ -61,7 +62,7 @@ def _prepare_percent_conifer(fuel: np.ndarray, percent_conifer: np.ndarray) -> n
 def calculate_surface_fuel_consumption(
     datasets: SurfaceFuelConsumptionDatasets,
 ) -> SurfaceFuelConsumptionResult:
-    """Calculate SFC for every valid combustible pixel in matching input datasets."""
+    """Calculate SFC for combustible pixels and write zero for recognized non-fuel pixels."""
     fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
     ffmc, _ = datasets.ffmc.replace_nodata_with(np.nan)
     bui, _ = datasets.bui.replace_nodata_with(np.nan)
@@ -69,22 +70,31 @@ def calculate_surface_fuel_consumption(
 
     fuel_type_codes = fuel_type_codes_from_grid(fuel)
     calculation_percent_conifer = _prepare_percent_conifer(fuel, percent_conifer)
-    valid_mask = (fuel_type_codes != NO_FUEL_TYPE_CODE) & np.isfinite(ffmc) & np.isfinite(bui)
+
+    # CFFDRS clamps to a 0.000001 floor, so we're explicity setting the output to zero for non-combustible pixels.
+    non_combustible_mask = np.isin(fuel, tuple(NON_COMBUSTIBLE_FUEL_VALUES))
+    calculation_mask = (
+        ~non_combustible_mask
+        & (fuel_type_codes != NO_FUEL_TYPE_CODE)
+        & np.isfinite(ffmc)
+        & np.isfinite(bui)
+    )
     output = np.full(fuel.shape, SFMS_NO_DATA, dtype=np.float32)
-    if not np.any(valid_mask):
+    output[non_combustible_mask] = 0
+    if not np.any(calculation_mask):
         return SurfaceFuelConsumptionResult(output)
 
     start = perf_counter()
     calculated = vectorized_surface_fuel_consumption(
-        fuel_type_codes[valid_mask],
-        ffmc[valid_mask],
-        bui[valid_mask],
-        calculation_percent_conifer[valid_mask],
+        fuel_type_codes[calculation_mask],
+        ffmc[calculation_mask],
+        bui[calculation_mask],
+        calculation_percent_conifer[calculation_mask],
         GRASS_FUEL_LOAD,
     )
     logger.info("%f seconds to calculate vectorized SFC", perf_counter() - start)
 
-    output[valid_mask] = np.where(np.isfinite(calculated), calculated, SFMS_NO_DATA)
+    output[calculation_mask] = np.where(np.isfinite(calculated), calculated, SFMS_NO_DATA)
     return SurfaceFuelConsumptionResult(output)
 
 

@@ -89,15 +89,25 @@ def test_calculation_matches_cffdrs_reference(
     assert result.values[0, 0] == pytest.approx(expected)
 
 
-def test_non_fuel_and_source_nodata_become_sfms_nodata():
-    fuel = np.array([[99, 100, 102, NODATA]], dtype=np.float32)
+def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
+    fuel = np.array([[99, 102, NODATA]], dtype=np.float32)
     datasets = make_datasets(fuel)
 
     result = calculate_surface_fuel_consumption(datasets)
 
-    np.testing.assert_array_equal(
-        result.values, np.full(fuel.shape, SFMS_NO_DATA, dtype=np.float32)
+    np.testing.assert_array_equal(result.values, np.array([[0, 0, SFMS_NO_DATA]], dtype=np.float32))
+
+
+def test_non_fuel_becomes_zero_when_weather_is_nodata():
+    datasets = make_datasets(
+        np.array([[99, 102]], dtype=np.float32),
+        ffmc=np.full((1, 2), NODATA, dtype=np.float32),
+        bui=np.full((1, 2), NODATA, dtype=np.float32),
     )
+
+    result = calculate_surface_fuel_consumption(datasets)
+
+    np.testing.assert_array_equal(result.values, np.zeros((1, 2), dtype=np.float32))
 
 
 def test_weather_nodata_propagates_to_output():

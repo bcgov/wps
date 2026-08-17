@@ -4,6 +4,7 @@ from cffdrs_vec.fbp import FUEL_TYPE_CODES
 from wps_shared.fuel_types import FuelTypeEnum
 
 from wps_sfms.fbp_fuel_types import (
+    CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE,
     FUEL_TYPES_BY_GRID_VALUE,
     NO_FUEL_TYPE_CODE,
     NON_COMBUSTIBLE_FUEL_VALUES,
@@ -41,8 +42,9 @@ def test_seasonal_fuel_type_overrides_cover_combined_grid_values():
     }
 
 
-def test_non_combustible_and_unsupported_xml_values():
-    assert NON_COMBUSTIBLE_FUEL_VALUES == frozenset({99, 100, 102})
+def test_non_combustible_grid_values_are_cffdrs_fuel_types():
+    assert CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE == {99: "NF", 102: "WA"}
+    assert NON_COMBUSTIBLE_FUEL_VALUES == frozenset({99, 102})
     assert -1 not in FUEL_TYPES_BY_GRID_VALUE
 
 
@@ -50,8 +52,8 @@ def test_percent_conifer_grid_values_are_derived_from_base_fuel_types():
     assert PERCENT_CONIFER_GRID_VALUES == frozenset({14})
 
 
-def test_fuel_type_codes_from_grid_maps_combustible_and_ignored_cells():
-    fuel = np.array([[1, 8, 14, 99, 100, 102, np.nan]], dtype=np.float32)
+def test_fuel_type_codes_from_grid_maps_combustible_non_fuel_and_nodata_cells():
+    fuel = np.array([[1, 8, 14, 99, 102, np.nan]], dtype=np.float32)
 
     result = fuel_type_codes_from_grid(fuel)
 
@@ -61,9 +63,8 @@ def test_fuel_type_codes_from_grid_maps_combustible_and_ignored_cells():
                 FUEL_TYPE_CODES["C1"],
                 FUEL_TYPE_CODES["D1"],
                 FUEL_TYPE_CODES["M1"],
-                NO_FUEL_TYPE_CODE,
-                NO_FUEL_TYPE_CODE,
-                NO_FUEL_TYPE_CODE,
+                FUEL_TYPE_CODES["NF"],
+                FUEL_TYPE_CODES["WA"],
                 NO_FUEL_TYPE_CODE,
             ]
         ],
@@ -77,6 +78,7 @@ def test_fuel_type_codes_from_grid_maps_combustible_and_ignored_cells():
     [
         (np.array([[-1]], dtype=np.float32), "unsupported classifications"),
         (np.array([[15]], dtype=np.float32), "unsupported classifications"),
+        (np.array([[100]], dtype=np.float32), "unsupported classifications"),
         (np.array([[1.5]], dtype=np.float32), "non-integral classifications"),
     ],
 )

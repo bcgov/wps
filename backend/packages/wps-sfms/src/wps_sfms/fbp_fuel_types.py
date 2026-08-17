@@ -39,7 +39,13 @@ SEASONAL_FUEL_TYPE_OVERRIDES: Mapping[int, FuelTypeEnum] = MappingProxyType(
     }
 )
 
-NON_COMBUSTIBLE_FUEL_VALUES = frozenset({99, 100, 102})
+CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE: Mapping[int, str] = MappingProxyType(
+    {
+        99: "NF",
+        102: "WA",
+    }
+)
+NON_COMBUSTIBLE_FUEL_VALUES = frozenset(CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE)
 NO_FUEL_TYPE_CODE = -1
 PERCENT_CONIFER_GRID_VALUES = frozenset(
     grid_value
@@ -59,7 +65,15 @@ def _integer_fuel_values(fuel: np.ndarray) -> set[int]:
 
 
 def fuel_type_codes_from_grid(fuel: np.ndarray) -> np.ndarray:
-    """Validate fuel-grid classifications and convert combustible cells to CFFDRS codes."""
+    """Convert an SFMS fuel raster into the fuel-type codes used by CFFDRS.
+
+    Every recognized classification, including the non-fuel and water classes, receives its
+    matching CFFDRS code. Source nodata pixels receive ``NO_FUEL_TYPE_CODE`` so callers can keep
+    missing data distinct from valid pixels whose FBP outputs should be zero.
+
+    The returned array has the same shape as ``fuel`` and uses the ``int64`` data type. A
+    ``ValueError`` is raised if the source contains a fractional or unknown classification.
+    """
     known_values = set(FUEL_TYPES_BY_GRID_VALUE) | set(NON_COMBUSTIBLE_FUEL_VALUES)
     unexpected_values = _integer_fuel_values(fuel) - known_values
     if unexpected_values:
@@ -70,4 +84,6 @@ def fuel_type_codes_from_grid(fuel: np.ndarray) -> np.ndarray:
     fuel_type_codes = np.full(fuel.shape, NO_FUEL_TYPE_CODE, dtype=np.int64)
     for grid_value, fuel_type in FUEL_TYPES_BY_GRID_VALUE.items():
         fuel_type_codes[fuel == grid_value] = FUEL_TYPE_CODES[fuel_type.value]
+    for grid_value, fuel_type in CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE.items():
+        fuel_type_codes[fuel == grid_value] = FUEL_TYPE_CODES[fuel_type]
     return fuel_type_codes
