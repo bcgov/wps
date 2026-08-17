@@ -218,7 +218,23 @@ def publish_k6_layer(lambda_client: LambdaClient, layer_name: str, zip_bytes: by
         CompatibleRuntimes=["python3.13"],
         CompatibleArchitectures=["x86_64"],
     )
+    _delete_old_layer_versions(lambda_client, layer_name, keep_version=response["Version"])
     return response["LayerVersionArn"]
+
+
+def _delete_old_layer_versions(
+    lambda_client: LambdaClient, layer_name: str, keep_version: int
+) -> None:
+    """Every deploy publishes a brand-new, immutable layer version and nothing else in this
+    module ever removes an old one -- left alone, repeated deploys accumulate versions
+    without bound. Prune everything except the version just published."""
+    paginator = lambda_client.get_paginator("list_layer_versions")
+    for page in paginator.paginate(LayerName=layer_name):
+        for version in page["LayerVersions"]:
+            if version["Version"] != keep_version:
+                lambda_client.delete_layer_version(
+                    LayerName=layer_name, VersionNumber=version["Version"]
+                )
 
 
 def _function_exists(lambda_client: LambdaClient, function_name: str) -> bool:
@@ -508,14 +524,18 @@ def run_run(args: argparse.Namespace) -> None:
         return run_fan_out(lambda_client, args.function_name, args.concurrency, payload)
 
     per_region: dict[str, list[dict]] = {}
+    failed_regions: list[str] = []
     with ThreadPoolExecutor(max_workers=len(regions)) as executor:
         future_to_region = {executor.submit(run_in_region, r): r for r in regions}
         for future, region in future_to_region.items():
             try:
                 per_region[region] = future.result()
             except Exception as e:
+                # One region's run failing (e.g. never deployed there) shouldn't discard
+                # results already collected from the others -- report every region's outcome,
+                # matching run_deploy's per-region error handling above.
                 logger.error("Run failed in %s: %s", region, e)
-                sys.exit(1)
+                failed_regions.append(region)
 
     all_results = [result for results in per_region.values() for result in results]
     summary = aggregate_summaries(all_results)
@@ -530,6 +550,15 @@ def run_run(args: argparse.Namespace) -> None:
             summary["failed_invocations"],
             summary["invocations"],
         )
+
+    if failed_regions:
+        logger.error(
+            "Run failed entirely in %d/%d region(s): %s",
+            len(failed_regions),
+            len(regions),
+            ", ".join(failed_regions),
+        )
+        sys.exit(1)
 
 
 def main() -> None:

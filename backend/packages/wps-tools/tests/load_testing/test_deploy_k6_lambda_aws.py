@@ -5,6 +5,7 @@ invoke_once/run_fan_out are tested against a MagicMock lambda client instead of 
 verify our own request/response handling, not that a real invocation would succeed end to end.
 """
 
+import argparse
 import json
 from unittest.mock import MagicMock
 
@@ -19,6 +20,7 @@ from wps_tools.load_testing.k6_lambda.deploy_k6_lambda import (
     invoke_once,
     publish_k6_layer,
     run_fan_out,
+    run_run,
 )
 
 REGION = "ca-central-1"
@@ -86,6 +88,19 @@ def test_publish_k6_layer(aws):
     assert "my-layer" in layer_arn
     versions = lambda_client.list_layer_versions(LayerName="my-layer")["LayerVersions"]
     assert len(versions) == 1
+
+
+def test_publish_k6_layer_deletes_old_versions(aws):
+    """Every deploy publishes a new immutable layer version -- without cleanup, repeated
+    deploys accumulate versions without bound. Only the version just published should
+    remain afterward."""
+    lambda_client = aws.client("lambda")
+
+    publish_k6_layer(lambda_client, "my-layer", b"first zip contents")
+    publish_k6_layer(lambda_client, "my-layer", b"second zip contents")
+
+    versions = lambda_client.list_layer_versions(LayerName="my-layer")["LayerVersions"]
+    assert [v["Version"] for v in versions] == [2]
 
 
 def _minimal_function_zip() -> bytes:
@@ -237,3 +252,47 @@ def test_run_fan_out_survives_individual_invocation_failures():
     failed = [r for r in results if "error" in r]
     assert len(succeeded) == 4
     assert len(failed) == 1
+
+
+def test_run_run_continues_after_one_region_fails(mocker, capsys):
+    """One region failing (e.g. never deployed there) must not skip reporting results
+    already collected from the other regions -- mirrors run_deploy's per-region
+    collect-and-continue handling. The old code called sys.exit(1) from inside the
+    results-collection loop, so the summary for regions that DID succeed was never
+    aggregated or printed at all whenever any region failed."""
+    good_client = MagicMock()
+    good_client.get_function.return_value = {
+        "Configuration": {"Environment": {"Variables": {"SCRIPT_NAME": "my_test.js"}}}
+    }
+    good_client.invoke.return_value = {
+        "Payload": MagicMock(read=lambda: json.dumps({"exit_code": 0}).encode())
+    }
+    bad_client = MagicMock()
+    bad_client.get_function.side_effect = RuntimeError("function not found in this region")
+    clients_by_region = {"ca-central-1": good_client, "ca-west-1": bad_client}
+
+    def fake_session(*, profile_name=None, region_name=None):
+        session = MagicMock()
+        session.client.return_value = clients_by_region[region_name]
+        return session
+
+    mocker.patch(
+        "wps_tools.load_testing.k6_lambda.deploy_k6_lambda.boto3.Session",
+        side_effect=fake_session,
+    )
+
+    args = argparse.Namespace(
+        region=None,
+        regions="ca-central-1,ca-west-1",
+        aws_profile=None,
+        function_name="k6-lambda-load-gen",
+        concurrency=1,
+        target_rps=None,
+    )
+
+    with pytest.raises(SystemExit):
+        run_run(args)
+
+    printed = json.loads(capsys.readouterr().out)
+    assert printed["invocations"] == 1
+    assert printed["succeeded_invocations"] == 1
