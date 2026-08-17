@@ -38,8 +38,10 @@ import sys
 import tarfile
 import time
 import zipfile
-from concurrent.futures import ThreadPoolExecutor
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import TypeVar
 
 import boto3
 import requests
@@ -217,7 +219,6 @@ def publish_k6_layer(lambda_client: LambdaClient, layer_name: str, zip_bytes: by
         CompatibleRuntimes=["python3.13"],
         CompatibleArchitectures=["x86_64"],
     )
-    _delete_old_layer_versions(lambda_client, layer_name, keep_version=response["Version"])
     return response["LayerVersionArn"]
 
 
@@ -226,7 +227,9 @@ def _delete_old_layer_versions(
 ) -> None:
     """Every deploy publishes a brand-new, immutable layer version and nothing else in this
     module ever removes an old one -- left alone, repeated deploys accumulate versions
-    without bound. Prune everything except the version just published."""
+    without bound. Only call this once the function is confirmed to be using keep_version --
+    pruning right after publish, before the function is actually updated, would delete the
+    version a still-live function is currently configured to use if that update then failed."""
     paginator = lambda_client.get_paginator("list_layer_versions")
     for page in paginator.paginate(LayerName=layer_name):
         for version in page["LayerVersions"]:
@@ -234,6 +237,39 @@ def _delete_old_layer_versions(
                 lambda_client.delete_layer_version(
                     LayerName=layer_name, VersionNumber=version["Version"]
                 )
+
+
+def _layer_version_from_arn(layer_version_arn: str) -> int:
+    return int(layer_version_arn.rsplit(":", 1)[-1])
+
+
+def deploy_region(
+    lambda_client: LambdaClient,
+    *,
+    layer_name: str,
+    layer_zip: bytes,
+    function_name: str,
+    function_zip: bytes,
+    role_arn: str,
+    memory_mb: int,
+    timeout_seconds: int,
+    script_name: str,
+) -> str:
+    layer_arn = publish_k6_layer(lambda_client, layer_name, layer_zip)
+    function_arn = deploy_function(
+        lambda_client,
+        function_name=function_name,
+        zip_bytes=function_zip,
+        role_arn=role_arn,
+        layer_arn=layer_arn,
+        memory_mb=memory_mb,
+        timeout_seconds=timeout_seconds,
+        script_name=script_name,
+    )
+    _delete_old_layer_versions(
+        lambda_client, layer_name, keep_version=_layer_version_from_arn(layer_arn)
+    )
+    return function_arn
 
 
 def _function_exists(lambda_client: LambdaClient, function_name: str) -> bool:
@@ -402,7 +438,7 @@ def aggregate_summaries(results: list[dict]) -> dict:
     breaks aggregation, which defeats the point of tracking it.
 
     This is intentionally specific to asa_go_peak_burst.js's own checks/counter names, not a
-    generic k6-summary parser -- reasonable since this module always runs a known script.
+    generic k6-summary parser..
     """
     total_requests = 0
     total_rate_limited = 0
@@ -432,6 +468,27 @@ def aggregate_summaries(results: list[dict]) -> dict:
     }
 
 
+T = TypeVar("T")
+
+
+def run_per_region(regions: list[str], task: Callable[[str], T]) -> tuple[dict[str, T], list[str]]:
+    """Runs task(region) for every region in parallel. One region's failure must not discard
+    results already collected from the others -- results and the list of failed regions are
+    returned separately so the caller can log/aggregate/exit once every region has finished."""
+    results: dict[str, T] = {}
+    failed: list[str] = []
+    with ThreadPoolExecutor(max_workers=len(regions)) as executor:
+        future_to_region = {executor.submit(task, r): r for r in regions}
+        for future in as_completed(future_to_region):
+            region = future_to_region[future]
+            try:
+                results[region] = future.result()
+            except Exception as e:
+                logger.error("Region %s failed: %s", region, e)
+                failed.append(region)
+    return results, failed
+
+
 def run_deploy(args: argparse.Namespace) -> None:
     script_path = Path(args.script)
     if not script_path.is_file():
@@ -446,7 +503,7 @@ def run_deploy(args: argparse.Namespace) -> None:
         HANDLER_PATH.read_bytes(), script_path.read_bytes(), script_path.name
     )
 
-    # IAM has no per-region endpoint -- one role, created via whichever region's session,
+    # IAM has no per-region endpoint: one role, created via whichever region's session,
     # is a valid Role ARN for every region's function below. No need to recreate it per region.
     iam_session = boto3.Session(profile_name=args.aws_profile, region_name=regions[0])
     role_arn = ensure_execution_role(iam_session.client("iam"), args.role_name)
@@ -454,29 +511,21 @@ def run_deploy(args: argparse.Namespace) -> None:
     def deploy_to_region(region: str) -> str:
         session = boto3.Session(profile_name=args.aws_profile, region_name=region)
         lambda_client: LambdaClient = session.client("lambda")
-        layer_arn = publish_k6_layer(lambda_client, args.layer_name, layer_zip)
-        return deploy_function(
+        return deploy_region(
             lambda_client,
+            layer_name=args.layer_name,
+            layer_zip=layer_zip,
             function_name=args.function_name,
-            zip_bytes=function_zip,
+            function_zip=function_zip,
             role_arn=role_arn,
-            layer_arn=layer_arn,
             memory_mb=args.memory_mb,
             timeout_seconds=args.timeout_seconds,
             script_name=script_path.name,
         )
 
-    failed_regions: list[str] = []
-    with ThreadPoolExecutor(max_workers=len(regions)) as executor:
-        future_to_region = {executor.submit(deploy_to_region, r): r for r in regions}
-        for future, region in future_to_region.items():
-            try:
-                logger.info("Deployed %s in %s", future.result(), region)
-            except Exception as e:
-                # One region's deploy failing (e.g. a quota or permissions issue specific to
-                # that region) shouldn't abort the others -- report every region's outcome.
-                logger.error("Deploy failed in %s: %s", region, e)
-                failed_regions.append(region)
+    results, failed_regions = run_per_region(regions, deploy_to_region)
+    for region, function_arn in results.items():
+        logger.info("Deployed %s in %s", function_arn, region)
 
     if failed_regions:
         logger.error(
@@ -522,19 +571,7 @@ def run_run(args: argparse.Namespace) -> None:
 
         return run_fan_out(lambda_client, args.function_name, args.concurrency, payload)
 
-    per_region: dict[str, list[dict]] = {}
-    failed_regions: list[str] = []
-    with ThreadPoolExecutor(max_workers=len(regions)) as executor:
-        future_to_region = {executor.submit(run_in_region, r): r for r in regions}
-        for future, region in future_to_region.items():
-            try:
-                per_region[region] = future.result()
-            except Exception as e:
-                # One region's run failing (e.g. never deployed there) shouldn't discard
-                # results already collected from the others -- report every region's outcome,
-                # matching run_deploy's per-region error handling above.
-                logger.error("Run failed in %s: %s", region, e)
-                failed_regions.append(region)
+    per_region, failed_regions = run_per_region(regions, run_in_region)
 
     all_results = [result for results in per_region.values() for result in results]
     summary = aggregate_summaries(all_results)

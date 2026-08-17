@@ -16,9 +16,11 @@ from moto import mock_aws
 from wps_tools.load_testing.deploy_k6_lambda import (
     BASIC_EXECUTION_POLICY_ARN,
     deploy_function,
+    deploy_region,
     ensure_execution_role,
     invoke_once,
     publish_k6_layer,
+    run_deploy,
     run_fan_out,
     run_run,
 )
@@ -90,17 +92,53 @@ def test_publish_k6_layer(aws):
     assert len(versions) == 1
 
 
-def test_publish_k6_layer_deletes_old_versions(aws):
+def test_deploy_region_prunes_old_layer_versions_after_function_updated(aws):
     """Every deploy publishes a new immutable layer version -- without cleanup, repeated
     deploys accumulate versions without bound. Only the version just published should
     remain afterward."""
     lambda_client = aws.client("lambda")
+    role_arn = _create_role(aws.client("iam"), "test-role")
+    kwargs = dict(
+        layer_name="my-layer",
+        function_name="my-function",
+        role_arn=role_arn,
+        memory_mb=256,
+        timeout_seconds=60,
+        script_name="my_test.js",
+    )
 
-    publish_k6_layer(lambda_client, "my-layer", b"first zip contents")
-    publish_k6_layer(lambda_client, "my-layer", b"second zip contents")
+    deploy_region(lambda_client, layer_zip=b"first zip contents", function_zip=_minimal_function_zip(), **kwargs)
+    deploy_region(lambda_client, layer_zip=b"second zip contents", function_zip=_minimal_function_zip(), **kwargs)
 
     versions = lambda_client.list_layer_versions(LayerName="my-layer")["LayerVersions"]
     assert [v["Version"] for v in versions] == [2]
+
+
+def test_deploy_region_keeps_old_layer_version_if_function_deploy_fails(aws, mocker):
+    """Pruning must happen only after deploy_function succeeds -- if it fails partway
+    through (e.g. a transient API error), the previously-deployed function is still
+    configured to use the old layer version, so that version must not be deleted."""
+    lambda_client = aws.client("lambda")
+    role_arn = _create_role(aws.client("iam"), "test-role")
+    kwargs = dict(
+        layer_name="my-layer",
+        function_name="my-function",
+        role_arn=role_arn,
+        memory_mb=256,
+        timeout_seconds=60,
+        script_name="my_test.js",
+    )
+
+    deploy_region(lambda_client, layer_zip=b"first zip contents", function_zip=_minimal_function_zip(), **kwargs)
+
+    mocker.patch(
+        "wps_tools.load_testing.deploy_k6_lambda.deploy_function", side_effect=RuntimeError("boom")
+    )
+    with pytest.raises(RuntimeError):
+        deploy_region(lambda_client, layer_zip=b"second zip contents", function_zip=_minimal_function_zip(), **kwargs)
+
+    versions = lambda_client.list_layer_versions(LayerName="my-layer")["LayerVersions"]
+    assert {v["Version"] for v in versions} == {1, 2}
 
 
 def _minimal_function_zip() -> bytes:
@@ -296,3 +334,58 @@ def test_run_run_continues_after_one_region_fails(mocker, capsys):
     printed = json.loads(capsys.readouterr().out)
     assert printed["invocations"] == 1
     assert printed["succeeded_invocations"] == 1
+
+
+def test_run_deploy_continues_after_one_region_fails(mocker, tmp_path, caplog):
+    """One region's deploy failing (e.g. a quota/permissions issue specific to that region)
+    must not abort the others -- mirrors run_run's collect-and-continue handling. The old
+    code called sys.exit(1) from inside the results-collection loop, so a region that DID
+    deploy successfully was never logged whenever any region failed."""
+    script = tmp_path / "script.js"
+    script.write_text("export default function () {}")
+
+    mocker.patch("wps_tools.load_testing.deploy_k6_lambda.download_k6_binary", return_value=b"k6")
+    mocker.patch(
+        "wps_tools.load_testing.deploy_k6_lambda.ensure_execution_role",
+        return_value="arn:aws:iam::123456789012:role/test-role",
+    )
+
+    def fake_session(*, profile_name=None, region_name=None):
+        session = MagicMock()
+        session.client.return_value = f"client-{region_name}"
+        return session
+
+    mocker.patch(
+        "wps_tools.load_testing.deploy_k6_lambda.boto3.Session", side_effect=fake_session
+    )
+
+    calls = []
+
+    def fake_deploy_region(lambda_client, **kwargs):
+        calls.append(lambda_client)
+        if lambda_client == "client-ca-west-1":
+            raise RuntimeError("boom")
+        return "arn:aws:lambda:ca-central-1:123456789012:function:k6-lambda-load-gen"
+
+    mocker.patch(
+        "wps_tools.load_testing.deploy_k6_lambda.deploy_region", side_effect=fake_deploy_region
+    )
+
+    args = argparse.Namespace(
+        script=str(script),
+        region=None,
+        regions="ca-central-1,ca-west-1",
+        aws_profile=None,
+        function_name="k6-lambda-load-gen",
+        layer_name="k6-runtime",
+        role_name="k6-lambda-load-gen-role",
+        memory_mb=512,
+        timeout_seconds=150,
+    )
+
+    with caplog.at_level("INFO"), pytest.raises(SystemExit):
+        run_deploy(args)
+
+    assert set(calls) == {"client-ca-central-1", "client-ca-west-1"}
+    assert "Deployed" in caplog.text and "ca-central-1" in caplog.text
+    assert "ca-west-1" in caplog.text
