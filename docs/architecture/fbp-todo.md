@@ -59,20 +59,20 @@ required fields from its result.
 | `pdf` | Conditional percent-dead-balsam-fir source | First confirm M3/M4 occurs in the selected fuel grid. If it does, require and validate PDF on those pixels; use zero elsewhere. |
 | `cc` | Grass-curing source to be determined | Required and validated on O1A/O1B pixels. Use zero elsewhere. |
 | `gfl` | Fixed value | `0.35 kg/m²`, matching the existing SFC calculation. |
-| `cbh` | CFFDRS fuel-type defaults | Pass `0`; a future stand-specific layer could override it. |
-| `cfl` | CFFDRS fuel-type defaults | Pass `0`; a future stand-specific layer could override it. |
+| `cbh` | Default policy to confirm | Candidate value: `0`, which selects the CFFDRS fuel-type default; confirm before implementation. |
+| `cfl` | Default policy to confirm | Candidate value: `0`, which selects the CFFDRS fuel-type default; confirm before implementation. |
 | `fmc` | Daily FMC raster | Require a finite value in `(0, 120]`; missing or invalid pixels become output nodata. |
 | `isi` | Policy to be decided | Pass a positive value to use the existing daily ISI, or `0` to have CFFDRS derive it from FFMC and effective wind. |
-| `lat` | Fixed unused placeholder | Pass `0`; valid FMC prevents CFFDRS from reading it. |
-| `lon` | Fixed unused placeholder | Pass `0`; valid FMC prevents CFFDRS from reading it. |
-| `elv` | Fixed unused placeholder | Pass `0`; valid FMC prevents CFFDRS from reading it. |
-| `dj` | Fixed unused placeholder | Pass `0`; valid FMC prevents CFFDRS from reading it. |
-| `d0` | Fixed unused placeholder | Pass `0`; valid FMC prevents CFFDRS from reading it. |
-| `sd` | No stand-density source planned | Pass `0`; C6 then uses its fuel-type CBH default. |
-| `sh` | No stand-height source planned | Pass `0`; C6 then uses its fuel-type CBH default. |
-| `hr` | Fixed primary-calculation control | Pass `0`; elapsed time is not used by the primary products. |
-| `theta_rad` | Fixed primary-calculation control | Pass `0`; directional secondary outputs are not being published. |
-| `accel` | Fixed primary-calculation control | Pass `0`; primary ROS is equilibrium ROS. |
+| `lat` | Unused-input policy to confirm | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation. |
+| `lon` | Unused-input policy to confirm | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation. |
+| `elv` | Unused-input policy to confirm | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation. |
+| `dj` | Unused-input policy to confirm | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation. |
+| `d0` | Unused-input policy to confirm | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation. |
+| `sd` | Default policy to confirm | Candidate value: `0`, which makes C6 use its fuel-type CBH default; confirm before implementation. |
+| `sh` | Default policy to confirm | Candidate value: `0`, which makes C6 use its fuel-type CBH default; confirm before implementation. |
+| `hr` | Primary-control policy to confirm | Candidate value: `0`; elapsed time is not used by the planned primary products. Confirm before implementation. |
+| `theta_rad` | Primary-control policy to confirm | Candidate value: `0`; directional secondary outputs are not planned. Confirm before implementation. |
+| `accel` | Primary-control policy to confirm | Candidate value: `0`, which produces equilibrium ROS; confirm before implementation. |
 | `buieff` | Fixed calculation control | Pass `1` to apply the BUI effect. |
 
 ## Pipeline Requirements
