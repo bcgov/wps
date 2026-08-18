@@ -63,8 +63,8 @@ const rateLimited = new Counter("rate_limited_responses");
 // ramping-arrival-rate's stages[].target must be an integer (k6 rejects the whole script at
 // parse time otherwise). timeUnit is 60s so the default target becomes a small integer
 // instead of rounding a sub-1 per-second target and drifting off the intended calibration.
-// (Default: 1.667/13*60 = 7.69, rounds to 8 iterations/60s -- ~104 req/min, a few % over the
-// 100/min limit from integer rounding, not a calibration error.)
+// (Default: 1.667/10*60 = 10 iterations/60s, 10 req/iteration * 10 iterations/min =
+// 100 req/min, matching the gateway limit.)
 const TARGET_PER_TIME_UNIT = Math.max(1, Math.round(TARGET_ITERATIONS_PER_SECOND * 60));
 
 export const options = {
@@ -172,7 +172,7 @@ function deviceLifecycle() {
 
   get(`device/notification-settings?device_id=${vuDeviceId}`);
 
-  if (Math.random() < UPDATE_SETTINGS_PROBABILITY) {
+  if (Math.random() < UPDATE_SETTINGS_PROBABILITY) { // NOSONAR -- not a security context: only decides whether to send an optional load-test request, nothing cryptographic or security-sensitive
     // Empty list is the only fire_zone_source_ids value guaranteed valid without looking up
     // a real zone id (it's a foreign key to Shape.source_identifier) -- still exercises the
     // endpoint's read/delete path.
