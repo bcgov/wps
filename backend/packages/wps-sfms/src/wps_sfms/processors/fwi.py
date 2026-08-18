@@ -32,6 +32,7 @@ from wps_shared.utils.s3_client import S3Client
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_inputs import FWIInputs
+from wps_sfms.raster_output import create_masked_output_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -420,10 +421,9 @@ class FWIProcessor:
 
             result = calculator.calculate(datasets)
 
-            with WPSDataset.from_array(
+            with create_masked_output_dataset(
                 result.values,
-                reference_ds.as_gdal_ds().GetGeoTransform(),
-                reference_ds.as_gdal_ds().GetProjection(),
+                reference_ds,
                 result.nodata_value,
             ) as output_ds:
                 published = await publish_dataset(

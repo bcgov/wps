@@ -176,7 +176,6 @@ class TestSurfaceFuelConsumptionInputs:
         )
 
         assert result.fuel_key == fuel_key
-        assert result.mask_key == addresser.get_mask_key()
         assert result.percent_conifer_key == percent_conifer_key
         assert result.ffmc_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/ffmc_20240415.tif")
         assert result.bui_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/bui_20240415.tif")

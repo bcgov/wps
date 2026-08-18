@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -12,6 +13,7 @@ from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeath
 from wps_sfms.raster_inputs import FWIInputs
 from wps_shared.tests.geospatial.dataset_common import (
     create_mock_input_dataset_context,
+    create_mock_wps_dataset,
     create_test_dataset,
 )
 from wps_shared.utils.s3_client import S3Client
@@ -29,6 +31,19 @@ from wps_sfms.processors.fwi import (
 )
 
 TEST_DATETIME = datetime(2024, 10, 10, 20, tzinfo=timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def output_mask(mocker: MockerFixture):
+    mask = create_mock_wps_dataset()
+
+    @contextmanager
+    def mask_context():
+        yield mask
+
+    mocker.patch("wps_sfms.raster_output.open_bc_mask_dataset", side_effect=mask_context)
+    yield mask
+    mask.close()
 
 
 @pytest.mark.parametrize("month", range(1, 13))
@@ -122,15 +137,22 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
 
 
 @pytest.mark.anyio
-async def test_fwi_processor_publishes_sfms_nodata_metadata(mocker: MockerFixture):
+async def test_fwi_processor_publishes_masked_output_with_nodata_metadata(
+    mocker: MockerFixture,
+    output_mask: WPSDataset,
+):
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
     _, mock_input_dataset_context = create_mock_input_dataset_context(5)
+    output_mask.as_gdal_ds().GetRasterBand(1).WriteArray(np.array([[0]], dtype=np.float32))
     captured_nodata = None
+    captured_value = None
 
     async def capture_publish_dataset(*, dataset, output_key, **_kwargs):
-        nonlocal captured_nodata
-        captured_nodata = dataset.as_gdal_ds().GetRasterBand(1).GetNoDataValue()
+        nonlocal captured_nodata, captured_value
+        output_band = dataset.as_gdal_ds().GetRasterBand(1)
+        captured_nodata = output_band.GetNoDataValue()
+        captured_value = output_band.ReadAsArray()[0, 0]
         return SimpleNamespace(output_key=output_key, cog_key=None)
 
     mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
@@ -144,6 +166,7 @@ async def test_fwi_processor_publishes_sfms_nodata_metadata(mocker: MockerFixtur
         )
 
     assert captured_nodata == pytest.approx(SFMS_NO_DATA)
+    assert np.isneginf(captured_value)
 
 
 @pytest.mark.anyio

@@ -110,7 +110,6 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_to_process)
         return SurfaceFuelConsumptionInputs(
             fuel_key=fuel_key,
-            mask_key=self.get_mask_key(),
             ffmc_key=self.gdal_path(
                 self.get_index_key(datetime_to_process, FWIParameter.FFMC, run_type)
             ),
