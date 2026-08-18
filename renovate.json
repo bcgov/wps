@@ -1,86 +1,10 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "minimumReleaseAge": "3 days",
+  "extends": ["github>bcgov/renovate-config#2026.7.17"],
   "ignorePaths": [
     "openshift/s3-backup/docker/poetry.lock"
   ],
   "ignoreDeps": [
     "@psu/cffdrs_ts",
     "aiobotocore"
-  ],
-  "onboardingConfig": {
-    "extends": [
-      "config:base"
-    ]
-  },
-  "packageRules": [
-    {
-      "matchManagers": [
-        "npm"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch",
-        "lockFileMaintenance"
-      ],
-      "groupName": "npm all non-major dependencies",
-      "groupSlug": "npm all-minor-patch"
-    },
-    {
-      "matchPackageNames": [
-        "python"
-      ],
-      "allowedVersions": "<=3.10"
-    },
-    {
-      "matchManagers": [
-        "poetry"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch",
-        "lockFileMaintenance"
-      ],
-      "groupName": "poetry all non-major dependencies",
-      "groupSlug": "poetry all-minor-patch"
-    },
-    {
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "groupName": "github actions all non-major dependencies",
-      "groupSlug": "github actions all-minor-patch"
-    },
-    {
-      "matchManagers": [
-        "dockerfile",
-        "docker-compose"
-      ],
-      "enabled": false
-    },
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "groupName": "gradle all non-major dependencies",
-      "groupSlug": "gradle all-minor-patch"
-    }
-  ],
-  "lockFileMaintenance": {
-    "enabled": true
-  },
-  "autodiscover": true,
-  "autodiscoverFilter": "bcgov/wps",
-  "rebaseWhen": "behind-base-branch",
-  "schedule": [
-    "every weekend"
   ]
 }
