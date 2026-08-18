@@ -1,14 +1,12 @@
 """Shared construction of final masked SFMS calculation rasters."""
 
 from contextlib import contextmanager
-from typing import Callable, ContextManager, Generator
+from typing import Generator
 
 import numpy as np
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
-
-MaskDatasetContext = Callable[[], ContextManager[WPSDataset]]
 
 
 @contextmanager
@@ -24,11 +22,9 @@ def create_masked_output_dataset(
     values: np.ndarray,
     reference: WPSDataset,
     nodata_value: float,
-    mask_dataset_context: MaskDatasetContext | None = None,
 ) -> Generator[WPSDataset, None, None]:
     """Create an output dataset with the BC mask enforced as the final value boundary."""
-    open_mask = mask_dataset_context or open_bc_mask_dataset
-    with open_mask() as mask:
+    with open_bc_mask_dataset() as mask:
         valid_mask = reference.apply_mask(mask)
         if values.shape != valid_mask.shape:
             raise ValueError(
