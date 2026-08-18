@@ -62,6 +62,11 @@ jobs:
         uses: actions/checkout@v7
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
+      - name: Copy GoogleService-Info.plist
+        env:
+          GOOGLE_SERVICES_PLIST: ${{ secrets.GOOGLE_SERVICES_PLIST }}
+        working-directory: ./mobile/asa-go
+        run: echo "$GOOGLE_SERVICES_PLIST" | base64 -d > ./ios/App/App/Firebase/Prod/GoogleService-Info.plist
       - name: Sync Capacitor iOS
         working-directory: ./mobile/asa-go
         run: yarn cap:sync:ios:prod
