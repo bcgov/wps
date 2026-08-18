@@ -47,10 +47,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.16",
-    "@capacitor/android": "^7.0.0",
-    "@capacitor/core": "^7.4.2",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
     "@capacitor/docgen": "^0.3.0",
-    "@capacitor/ios": "^7.0.0",
+    "@capacitor/ios": "^8.0.0",
     "@ionic/swiftlint-config": "^2.0.0",
     "prettier": "^3.4.2",
     "prettier-plugin-java": "^2.6.6",
