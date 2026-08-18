@@ -52,11 +52,11 @@ jobs:
           # we want to ensure code coverage is good, so we fail on error. (default is false)
           fail_ci_if_error: true
 
-  ios_test:
+  ios_build:
     runs-on: macos-latest
     permissions:
       contents: read
-    name: Test iOS
+    name: Build iOS App
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -79,6 +79,21 @@ jobs:
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+  ios_test:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    name: Test iOS
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
+      - name: Use Xcode latest stable
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90
+        with:
+          xcode-version: latest-stable
       - name: Test Keycloak Swift Plugin
         working-directory: ./mobile/keycloak
         run: |
