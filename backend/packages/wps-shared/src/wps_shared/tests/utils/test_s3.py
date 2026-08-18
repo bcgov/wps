@@ -39,10 +39,11 @@ def test_gdal_s3_context_configures_and_clears_cache(mocker):
 
 def test_gdal_s3_context_clears_cache_after_failure(mocker):
     clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
+    error = RuntimeError("calculation failed")
 
     with pytest.raises(RuntimeError, match="calculation failed"):
         with gdal_s3_context():
-            raise RuntimeError("calculation failed")
+            raise error
 
     clear_cache.assert_called_once_with()
 

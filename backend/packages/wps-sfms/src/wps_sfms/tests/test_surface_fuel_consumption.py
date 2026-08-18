@@ -237,6 +237,8 @@ async def test_processor_publish_failure_propagates_and_clears_cache(mocker: Moc
     datasets = make_datasets(np.array([[1]], dtype=np.float32))
     inputs = make_inputs()
     s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    processor = SurfaceFuelConsumptionProcessor(TEST_DATETIME)
+    input_context = make_dataset_context(datasets)
     mocker.patch(
         "wps_sfms.processors.surface_fuel_consumption.publish_dataset",
         new=AsyncMock(side_effect=RuntimeError("COG generation failed")),
@@ -244,9 +246,7 @@ async def test_processor_publish_failure_propagates_and_clears_cache(mocker: Moc
     clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
 
     with pytest.raises(RuntimeError, match="COG generation failed"):
-        await SurfaceFuelConsumptionProcessor(TEST_DATETIME).process(
-            s3_client, make_dataset_context(datasets), inputs
-        )
+        await processor.process(s3_client, input_context, inputs)
 
     clear_cache.assert_called_once_with()
 
@@ -256,15 +256,15 @@ async def test_processor_rejects_mismatched_grid(mocker: MockerFixture):
     datasets = make_datasets(np.array([[1]], dtype=np.float32))
     inputs = make_inputs()
     s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    processor = SurfaceFuelConsumptionProcessor(TEST_DATETIME)
+    input_context = make_dataset_context(datasets)
     mocker.patch("wps_sfms.processors.surface_fuel_consumption.rasters_match", return_value=False)
     publish = mocker.patch(
         "wps_sfms.processors.surface_fuel_consumption.publish_dataset", new=AsyncMock()
     )
 
     with pytest.raises(ValueError, match="does not match the fuel grid"):
-        await SurfaceFuelConsumptionProcessor(TEST_DATETIME).process(
-            s3_client, make_dataset_context(datasets), inputs
-        )
+        await processor.process(s3_client, input_context, inputs)
 
     publish.assert_not_awaited()
 
@@ -273,11 +273,12 @@ async def test_processor_rejects_mismatched_grid(mocker: MockerFixture):
 async def test_processor_rejects_missing_dependency():
     inputs = make_inputs()
     s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=False))
+    processor = SurfaceFuelConsumptionProcessor(TEST_DATETIME)
+    datasets = make_datasets(np.array([[1]]))
+    input_context = make_dataset_context(datasets)
 
     with pytest.raises(RuntimeError, match="Missing SFC dependencies"):
-        await SurfaceFuelConsumptionProcessor(TEST_DATETIME).process(
-            s3_client, make_dataset_context(make_datasets(np.array([[1]]))), inputs
-        )
+        await processor.process(s3_client, input_context, inputs)
 
     s3_client.all_objects_exist.assert_awaited_once_with(
         inputs.fuel_key,
