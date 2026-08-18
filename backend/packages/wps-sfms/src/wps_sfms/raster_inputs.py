@@ -31,6 +31,7 @@ class SurfaceFuelConsumptionInputs:
     """Raster locations and metadata needed for one SFC calculation."""
 
     fuel_key: GDALPath
+    mask_key: GDALPath
     ffmc_key: GDALPath
     bui_key: GDALPath
     percent_conifer_key: GDALPath

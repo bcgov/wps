@@ -38,6 +38,7 @@ def make_dataset(path: str, values: np.ndarray, nodata: float = NODATA) -> WPSDa
 
 def make_datasets(
     fuel: np.ndarray,
+    mask: np.ndarray | None = None,
     ffmc: np.ndarray | None = None,
     bui: np.ndarray | None = None,
     percent_conifer: np.ndarray | None = None,
@@ -45,6 +46,7 @@ def make_datasets(
     shape = fuel.shape
     return SurfaceFuelConsumptionDatasets(
         fuel=make_dataset("fuel.tif", fuel),
+        mask=make_dataset("mask.tif", mask if mask is not None else np.ones(shape)),
         ffmc=make_dataset("ffmc.tif", ffmc if ffmc is not None else np.full(shape, 90.0)),
         bui=make_dataset("bui.tif", bui if bui is not None else np.full(shape, 60.0)),
         percent_conifer=make_dataset(
@@ -110,6 +112,31 @@ def test_non_fuel_becomes_zero_when_weather_is_nodata():
     np.testing.assert_array_equal(result.values, np.zeros((1, 2), dtype=np.float32))
 
 
+def test_bc_mask_is_applied_after_non_fuel_values():
+    datasets = make_datasets(
+        np.array([[99, 99, 102]], dtype=np.float32),
+        mask=np.array([[1, 0, NODATA]], dtype=np.float32),
+    )
+
+    result = calculate_surface_fuel_consumption(datasets)
+
+    np.testing.assert_array_equal(
+        result.values,
+        np.array([[0, SFMS_NO_DATA, SFMS_NO_DATA]], dtype=np.float32),
+    )
+
+
+def test_mixedwood_outside_bc_does_not_require_percent_conifer():
+    datasets = make_datasets(
+        np.array([[14]], dtype=np.float32),
+        mask=np.array([[0]], dtype=np.float32),
+    )
+
+    result = calculate_surface_fuel_consumption(datasets)
+
+    np.testing.assert_array_equal(result.values, np.array([[SFMS_NO_DATA]], dtype=np.float32))
+
+
 def test_weather_nodata_propagates_to_output():
     datasets = make_datasets(
         np.array([[1, 2]], dtype=np.float32),
@@ -144,6 +171,7 @@ def test_invalid_mixedwood_percent_conifer_fails(percent_conifer: float):
 def make_inputs() -> SurfaceFuelConsumptionInputs:
     return SurfaceFuelConsumptionInputs(
         fuel_key="/vsis3/test/fuel.tif",
+        mask_key="/vsis3/test/bc_mask.tif",
         ffmc_key="/vsis3/test/ffmc.tif",
         bui_key="/vsis3/test/bui.tif",
         percent_conifer_key="/vsis3/test/percent_conifer.tif",
@@ -155,7 +183,13 @@ def make_inputs() -> SurfaceFuelConsumptionInputs:
 def make_dataset_context(datasets: SurfaceFuelConsumptionDatasets, reverse: bool = False):
     @contextmanager
     def dataset_context(keys):
-        input_datasets = [datasets.fuel, datasets.ffmc, datasets.bui, datasets.percent_conifer]
+        input_datasets = [
+            datasets.fuel,
+            datasets.mask,
+            datasets.ffmc,
+            datasets.bui,
+            datasets.percent_conifer,
+        ]
         for dataset, key in zip(input_datasets, keys, strict=True):
             dataset.ds_path = key
         yield list(reversed(input_datasets)) if reverse else input_datasets
@@ -246,6 +280,30 @@ async def test_processor_rejects_mismatched_grid(mocker: MockerFixture):
 
 
 @pytest.mark.anyio
+async def test_processor_rejects_mismatched_mask_grid(mocker: MockerFixture):
+    datasets = make_datasets(np.array([[1]], dtype=np.float32))
+    datasets = SurfaceFuelConsumptionDatasets(
+        fuel=datasets.fuel,
+        mask=make_dataset("mask.tif", np.ones((2, 2), dtype=np.float32)),
+        ffmc=datasets.ffmc,
+        bui=datasets.bui,
+        percent_conifer=datasets.percent_conifer,
+    )
+    inputs = make_inputs()
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    publish = mocker.patch(
+        "wps_sfms.processors.surface_fuel_consumption.publish_dataset", new=AsyncMock()
+    )
+
+    with pytest.raises(ValueError, match="mask raster does not match the fuel grid"):
+        await SurfaceFuelConsumptionProcessor(TEST_DATETIME).process(
+            s3_client, make_dataset_context(datasets), inputs
+        )
+
+    publish.assert_not_awaited()
+
+
+@pytest.mark.anyio
 async def test_processor_rejects_missing_dependency():
     inputs = make_inputs()
     s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=False))
@@ -254,3 +312,11 @@ async def test_processor_rejects_missing_dependency():
         await SurfaceFuelConsumptionProcessor(TEST_DATETIME).process(
             s3_client, make_dataset_context(make_datasets(np.array([[1]]))), inputs
         )
+
+    s3_client.all_objects_exist.assert_awaited_once_with(
+        inputs.fuel_key,
+        inputs.mask_key,
+        inputs.ffmc_key,
+        inputs.bui_key,
+        inputs.percent_conifer_key,
+    )

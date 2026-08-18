@@ -39,6 +39,7 @@ class SurfaceFuelConsumptionResult:
 @dataclass(frozen=True)
 class SurfaceFuelConsumptionDatasets:
     fuel: WPSDataset
+    mask: WPSDataset
     ffmc: WPSDataset
     bui: WPSDataset
     percent_conifer: WPSDataset
@@ -62,39 +63,42 @@ def _prepare_percent_conifer(fuel: np.ndarray, percent_conifer: np.ndarray) -> n
 def calculate_surface_fuel_consumption(
     datasets: SurfaceFuelConsumptionDatasets,
 ) -> SurfaceFuelConsumptionResult:
-    """Calculate SFC for combustible pixels and write zero for recognized non-fuel pixels."""
+    """Calculate SFC inside BC, with zero for recognized non-fuel pixels and nodata outside."""
     fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
     ffmc, _ = datasets.ffmc.replace_nodata_with(np.nan)
     bui, _ = datasets.bui.replace_nodata_with(np.nan)
     percent_conifer, _ = datasets.percent_conifer.replace_nodata_with(np.nan)
+    valid_bc_mask = datasets.fuel.apply_mask(datasets.mask)
+    fuel_in_bc = np.where(valid_bc_mask, fuel, np.nan)
 
-    fuel_type_codes = fuel_type_codes_from_grid(fuel)
-    calculation_percent_conifer = _prepare_percent_conifer(fuel, percent_conifer)
+    fuel_type_codes = fuel_type_codes_from_grid(fuel_in_bc)
+    calculation_percent_conifer = _prepare_percent_conifer(fuel_in_bc, percent_conifer)
 
-    # CFFDRS clamps to a 0.000001 floor, so we're explicity setting the output to zero for non-combustible pixels.
-    non_combustible_mask = np.isin(fuel, tuple(NON_COMBUSTIBLE_FUEL_VALUES))
+    # cffdrs clamps to a 0.000001 floor, so set recognized non-fuel pixels to exact zero.
+    non_combustible_mask = np.isin(fuel_in_bc, tuple(NON_COMBUSTIBLE_FUEL_VALUES))
     calculation_mask = (
-        ~non_combustible_mask
+        valid_bc_mask
+        & ~non_combustible_mask
         & (fuel_type_codes != NO_FUEL_TYPE_CODE)
         & np.isfinite(ffmc)
         & np.isfinite(bui)
     )
     output = np.full(fuel.shape, SFMS_NO_DATA, dtype=np.float32)
+    if np.any(calculation_mask):
+        start = perf_counter()
+        calculated = vectorized_surface_fuel_consumption(
+            fuel_type_codes[calculation_mask],
+            ffmc[calculation_mask],
+            bui[calculation_mask],
+            calculation_percent_conifer[calculation_mask],
+            GRASS_FUEL_LOAD,
+        )
+        logger.info("%f seconds to calculate vectorized SFC", perf_counter() - start)
+        output[calculation_mask] = np.where(np.isfinite(calculated), calculated, SFMS_NO_DATA)
+
     output[non_combustible_mask] = 0
-    if not np.any(calculation_mask):
-        return SurfaceFuelConsumptionResult(output)
-
-    start = perf_counter()
-    calculated = vectorized_surface_fuel_consumption(
-        fuel_type_codes[calculation_mask],
-        ffmc[calculation_mask],
-        bui[calculation_mask],
-        calculation_percent_conifer[calculation_mask],
-        GRASS_FUEL_LOAD,
-    )
-    logger.info("%f seconds to calculate vectorized SFC", perf_counter() - start)
-
-    output[calculation_mask] = np.where(np.isfinite(calculated), calculated, SFMS_NO_DATA)
+    # keep the BC boundary as the final authority, including over non-fuel zeros.
+    output[~valid_bc_mask] = SFMS_NO_DATA
     return SurfaceFuelConsumptionResult(output)
 
 
@@ -109,6 +113,7 @@ class SurfaceFuelConsumptionProcessor:
     ) -> None:
         dependency_keys = (
             inputs.fuel_key,
+            inputs.mask_key,
             inputs.ffmc_key,
             inputs.bui_key,
             inputs.percent_conifer_key,
@@ -127,6 +132,7 @@ class SurfaceFuelConsumptionProcessor:
     ) -> Generator[SurfaceFuelConsumptionDatasets, None, None]:
         keys = [
             inputs.fuel_key,
+            inputs.mask_key,
             inputs.ffmc_key,
             inputs.bui_key,
             inputs.percent_conifer_key,
@@ -135,6 +141,7 @@ class SurfaceFuelConsumptionProcessor:
             datasets_by_key = {dataset.ds_path: dataset for dataset in input_datasets}
             yield SurfaceFuelConsumptionDatasets(
                 fuel=datasets_by_key[inputs.fuel_key],
+                mask=datasets_by_key[inputs.mask_key],
                 ffmc=datasets_by_key[inputs.ffmc_key],
                 bui=datasets_by_key[inputs.bui_key],
                 percent_conifer=datasets_by_key[inputs.percent_conifer_key],
@@ -146,6 +153,7 @@ class SurfaceFuelConsumptionProcessor:
     ) -> None:
         reference = datasets.fuel.as_gdal_ds()
         candidates = (
+            ("mask", inputs.mask_key, datasets.mask),
             ("ffmc", inputs.ffmc_key, datasets.ffmc),
             ("bui", inputs.bui_key, datasets.bui),
             ("percent_conifer", inputs.percent_conifer_key, datasets.percent_conifer),
