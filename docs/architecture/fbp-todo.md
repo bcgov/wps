@@ -82,8 +82,9 @@ required fields from its result.
   and geotransform.
 - [ ] Validate fuel-specific inputs only where they are meaningful: PC on M1/M2, PDF on M3/M4,
   and grass curing on O1A/O1B.
-- [ ] Apply one common valid-pixel mask to every primary output and publish nodata for non-fuel or
-  incomplete pixels.
+- [ ] Apply the BC mask as the final mask for every primary output. Publish nodata outside BC and
+  where required inputs are missing or invalid; publish `0` for recognized non-combustible fuel
+  pixels inside BC.
 - [ ] Replace `SurfaceFuelConsumptionProcessor` rather than running both the standalone SFC and
   shared primary FBP calculations.
 - [ ] During that transition, verify the shared primary calculation's SFC output matches the
