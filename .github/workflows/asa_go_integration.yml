@@ -69,6 +69,16 @@ jobs:
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90
         with:
           xcode-version: latest-stable
+      - name: Build ASA Go iOS App
+        working-directory: ./mobile/asa-go/ios/App
+        run: |
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme "ASA Go" \
+            -destination "platform=iOS Simulator,name=iPhone 17" \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            build
       - name: Test Keycloak Swift Plugin
         working-directory: ./mobile/keycloak
         run: |
