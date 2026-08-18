@@ -57,13 +57,15 @@ def test_applies_zero_and_nodata_mask_pixels_without_mutating_values():
 def test_rejects_output_array_shape_that_does_not_match_reference():
     reference = make_dataset(np.ones((2, 2), dtype=np.float32))
     mask = make_dataset(np.ones((2, 2), dtype=np.float32))
+    values = np.ones((1, 1), dtype=np.float32)
+    mask_context = make_dataset_context(mask)
 
     with pytest.raises(ValueError, match="Output array shape does not match reference grid"):
         with create_masked_output_dataset(
-            np.ones((1, 1), dtype=np.float32),
+            values,
             reference,
             SFMS_NO_DATA,
-            mask_dataset_context=make_dataset_context(mask),
+            mask_dataset_context=mask_context,
         ):
             pass
 
@@ -71,12 +73,14 @@ def test_rejects_output_array_shape_that_does_not_match_reference():
 def test_rejects_mask_grid_that_does_not_match_reference():
     reference = make_dataset(np.ones((2, 2), dtype=np.float32))
     mask = make_dataset(np.ones((1, 1), dtype=np.float32))
+    values = np.ones((2, 2), dtype=np.float32)
+    mask_context = make_dataset_context(mask)
 
     with pytest.raises(ValueError, match="Mask grid does not match reference grid"):
         with create_masked_output_dataset(
-            np.ones((2, 2), dtype=np.float32),
+            values,
             reference,
             SFMS_NO_DATA,
-            mask_dataset_context=make_dataset_context(mask),
+            mask_dataset_context=mask_context,
         ):
             pass

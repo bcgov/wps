@@ -61,7 +61,7 @@ class TestGetActualWeatherKey:
         assert result == "sfms_ng/actual/2024/03/05/temperature_20240305.tif"
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
-        with pytest.raises(Exception):
+        with pytest.raises(AssertionError, match="is not in UTC"):
             addresser.get_actual_weather_key(NON_UTC, SFMSInterpolatedWeatherParameter.TEMP)
 
 
@@ -78,7 +78,7 @@ class TestGetActualIndexKey:
         assert addresser.get_actual_index_key(TEST_DATETIME, fwi_param) == expected_key
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
-        with pytest.raises(Exception):
+        with pytest.raises(AssertionError, match="is not in UTC"):
             addresser.get_actual_index_key(NON_UTC, FWIParameter.FFMC)
 
 
@@ -161,7 +161,7 @@ class TestGetActualFwiInputs:
         assert "forecast" not in result.output_key
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
-        with pytest.raises(Exception):
+        with pytest.raises(AssertionError, match="is not in UTC"):
             addresser.get_actual_fwi_inputs(NON_UTC, FWIParameter.DMC)
 
 
@@ -190,12 +190,15 @@ class TestSurfaceFuelConsumptionInputs:
         assert addresser.get_percent_conifer_key(2024) == "sfms/static/m12_2024.tif"
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
-        with pytest.raises(Exception):
+        fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
+        percent_conifer_key = addresser.gdal_path(addresser.get_percent_conifer_key(2024))
+
+        with pytest.raises(AssertionError, match="is not in UTC"):
             addresser.get_surface_fuel_consumption_inputs(
                 NON_UTC,
                 RunType.ACTUAL,
-                addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3)),
-                addresser.gdal_path(addresser.get_percent_conifer_key(2024)),
+                fuel_key,
+                percent_conifer_key,
             )
 
 
@@ -300,5 +303,5 @@ class TestGetForecastFwiInputs:
         assert "actual" not in dmc_dependency_key
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
-        with pytest.raises(Exception):
+        with pytest.raises(AssertionError, match="is not in UTC"):
             addresser.get_forecast_fwi_inputs(NON_UTC, FWIParameter.DMC)

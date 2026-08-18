@@ -166,7 +166,7 @@ async def test_fwi_processor_publishes_masked_output_with_nodata_metadata(
         )
 
     assert captured_nodata == pytest.approx(SFMS_NO_DATA)
-    assert np.isneginf(captured_value)
+    assert captured_value == pytest.approx(SFMS_NO_DATA)
 
 
 @pytest.mark.anyio

@@ -36,7 +36,8 @@ def create_masked_output_dataset(
                 f"{values.shape} vs {valid_mask.shape}"
             )
 
-        masked_values = values.copy()
+        # cast before masking so GDAL does not convert Float64 nodata to Float32 inconsistently
+        masked_values = values.astype(np.float32, copy=True)
         masked_values[~valid_mask] = nodata_value
     reference_ds = reference.as_gdal_ds()
 
