@@ -18,9 +18,9 @@ from wps_sfms.fbp_fuel_types import (
     GRASS_FUEL_LOAD,
     NODATA_FUEL_TYPE_CODE,
     NON_COMBUSTIBLE_FUEL_VALUES,
-    PERCENT_CONIFER_GRID_VALUES,
     fuel_type_codes_from_grid,
 )
+from wps_sfms.fbp_input_validation import validate_percent_conifer
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_inputs import SurfaceFuelConsumptionInputs
@@ -45,21 +45,6 @@ class SurfaceFuelConsumptionDatasets:
     percent_conifer: WPSDataset
 
 
-def _prepare_percent_conifer(fuel: np.ndarray, percent_conifer: np.ndarray) -> np.ndarray:
-    mixedwood_mask = np.isin(fuel, tuple(PERCENT_CONIFER_GRID_VALUES))
-    invalid = mixedwood_mask & (
-        ~np.isfinite(percent_conifer) | (percent_conifer < 0) | (percent_conifer > 100)
-    )
-    if np.any(invalid):
-        raise ValueError(
-            "Percent-conifer raster contains missing or out-of-range values on mixedwood pixels"
-        )
-
-    calculation_values = np.zeros(fuel.shape, dtype=np.float64)
-    calculation_values[mixedwood_mask] = percent_conifer[mixedwood_mask]
-    return calculation_values
-
-
 def calculate_surface_fuel_consumption(
     datasets: SurfaceFuelConsumptionDatasets,
 ) -> SurfaceFuelConsumptionResult:
@@ -70,7 +55,7 @@ def calculate_surface_fuel_consumption(
     percent_conifer, _ = datasets.percent_conifer.replace_nodata_with(np.nan)
 
     fuel_type_codes = fuel_type_codes_from_grid(fuel)
-    calculation_percent_conifer = _prepare_percent_conifer(fuel, percent_conifer)
+    validate_percent_conifer(fuel, percent_conifer)
 
     non_combustible_mask = np.isin(fuel, tuple(NON_COMBUSTIBLE_FUEL_VALUES))
     calculation_mask = (
@@ -86,7 +71,7 @@ def calculate_surface_fuel_consumption(
             fuel_type_codes[calculation_mask],
             ffmc[calculation_mask],
             bui[calculation_mask],
-            calculation_percent_conifer[calculation_mask],
+            percent_conifer[calculation_mask],
             GRASS_FUEL_LOAD,
         )
         logger.info("%f seconds to calculate vectorized SFC", perf_counter() - start)

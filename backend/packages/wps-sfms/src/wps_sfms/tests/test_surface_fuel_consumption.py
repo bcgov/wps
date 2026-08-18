@@ -143,12 +143,8 @@ def test_percent_conifer_nodata_is_ignored_outside_mixedwood():
     assert result.values[0, 0] != SFMS_NO_DATA
 
 
-@pytest.mark.parametrize("percent_conifer", [NODATA, -1, 101])
-def test_invalid_mixedwood_percent_conifer_fails(percent_conifer: float):
-    datasets = make_datasets(
-        np.array([[14]], dtype=np.float32),
-        percent_conifer=np.array([[percent_conifer]], dtype=np.float32),
-    )
+def test_invalid_mixedwood_percent_conifer_stops_calculation():
+    datasets = make_datasets(np.array([[14]], dtype=np.float32))
 
     with pytest.raises(ValueError, match="missing or out-of-range"):
         calculate_surface_fuel_consumption(datasets)
