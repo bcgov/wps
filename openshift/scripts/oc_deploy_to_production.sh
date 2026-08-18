@@ -66,9 +66,9 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_s3_data_retention.s
 echo Fuel Grid Install
 PROJ_TARGET=${PROJ_TARGET} FUEL_RASTER_YEAR=2026 FUEL_GRID_INSTALL_SUSPEND=true bash $(dirname ${0})/oc_provision_fuel_grid_install_job.sh prod ${RUN_TYPE}
 echo Env Canada Subscriber
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh prod ${RUN_TYPE}
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh prod ${RUN_TYPE} 
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ec_rdps_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_rdps_cronjob.sh prod ${RUN_TYPE}
 echo NOAA Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh prod ${RUN_TYPE}
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh prod ${RUN_TYPE}
