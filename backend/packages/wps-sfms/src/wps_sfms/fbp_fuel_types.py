@@ -46,7 +46,7 @@ CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE: Mapping[int, str] = MappingProxyType(
     }
 )
 NON_COMBUSTIBLE_FUEL_VALUES = frozenset(CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE)
-NO_FUEL_TYPE_CODE = -1
+NODATA_FUEL_TYPE_CODE = -1
 PERCENT_CONIFER_GRID_VALUES = frozenset(
     grid_value
     for grid_value, fuel_type in FUEL_TYPES_BY_GRID_VALUE.items()
@@ -68,8 +68,8 @@ def fuel_type_codes_from_grid(fuel: np.ndarray) -> np.ndarray:
     """Convert an SFMS fuel raster into the fuel-type codes used by CFFDRS.
 
     Every recognized classification, including the non-fuel and water classes, receives its
-    matching CFFDRS code. Source nodata pixels receive ``NO_FUEL_TYPE_CODE`` so callers can keep
-    missing data distinct from valid pixels whose FBP outputs should be zero.
+    matching CFFDRS code. Source nodata pixels receive ``NODATA_FUEL_TYPE_CODE`` so callers can
+    keep missing data distinct from valid pixels whose FBP outputs should be zero.
 
     The returned array has the same shape as ``fuel`` and uses the ``int64`` data type. A
     ``ValueError`` is raised if the source contains a fractional or unknown classification.
@@ -81,7 +81,7 @@ def fuel_type_codes_from_grid(fuel: np.ndarray) -> np.ndarray:
             f"Fuel raster contains unsupported classifications: {sorted(unexpected_values)}"
         )
 
-    fuel_type_codes = np.full(fuel.shape, NO_FUEL_TYPE_CODE, dtype=np.int64)
+    fuel_type_codes = np.full(fuel.shape, NODATA_FUEL_TYPE_CODE, dtype=np.int64)
     for grid_value, fuel_type in FUEL_TYPES_BY_GRID_VALUE.items():
         fuel_type_codes[fuel == grid_value] = FUEL_TYPE_CODES[fuel_type.value]
     for grid_value, fuel_type in CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE.items():

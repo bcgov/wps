@@ -6,7 +6,7 @@ from wps_shared.fuel_types import FuelTypeEnum
 from wps_sfms.fbp_fuel_types import (
     CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE,
     FUEL_TYPES_BY_GRID_VALUE,
-    NO_FUEL_TYPE_CODE,
+    NODATA_FUEL_TYPE_CODE,
     NON_COMBUSTIBLE_FUEL_VALUES,
     PERCENT_CONIFER_GRID_VALUES,
     SEASONAL_FUEL_TYPE_OVERRIDES,
@@ -65,7 +65,7 @@ def test_fuel_type_codes_from_grid_maps_combustible_non_fuel_and_nodata_cells():
                 FUEL_TYPE_CODES["M1"],
                 FUEL_TYPE_CODES["NF"],
                 FUEL_TYPE_CODES["WA"],
-                NO_FUEL_TYPE_CODE,
+                NODATA_FUEL_TYPE_CODE,
             ]
         ],
         dtype=np.int64,

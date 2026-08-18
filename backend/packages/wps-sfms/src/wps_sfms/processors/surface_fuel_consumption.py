@@ -16,7 +16,7 @@ from wps_shared.utils.s3_client import S3Client
 
 from wps_sfms.fbp_fuel_types import (
     GRASS_FUEL_LOAD,
-    NO_FUEL_TYPE_CODE,
+    NODATA_FUEL_TYPE_CODE,
     NON_COMBUSTIBLE_FUEL_VALUES,
     PERCENT_CONIFER_GRID_VALUES,
     fuel_type_codes_from_grid,
@@ -72,11 +72,10 @@ def calculate_surface_fuel_consumption(
     fuel_type_codes = fuel_type_codes_from_grid(fuel)
     calculation_percent_conifer = _prepare_percent_conifer(fuel, percent_conifer)
 
-    # cffdrs clamps to a 0.000001 floor, so set recognized non-fuel pixels to exact zero.
     non_combustible_mask = np.isin(fuel, tuple(NON_COMBUSTIBLE_FUEL_VALUES))
     calculation_mask = (
         ~non_combustible_mask
-        & (fuel_type_codes != NO_FUEL_TYPE_CODE)
+        & (fuel_type_codes != NODATA_FUEL_TYPE_CODE)
         & np.isfinite(ffmc)
         & np.isfinite(bui)
     )
@@ -93,6 +92,7 @@ def calculate_surface_fuel_consumption(
         logger.info("%f seconds to calculate vectorized SFC", perf_counter() - start)
         output[calculation_mask] = np.where(np.isfinite(calculated), calculated, SFMS_NO_DATA)
 
+    # cffdrs clamps to a 0.000001 floor, so set recognized non-fuel pixels to exact zero.
     output[non_combustible_mask] = 0
     return SurfaceFuelConsumptionResult(output)
 
