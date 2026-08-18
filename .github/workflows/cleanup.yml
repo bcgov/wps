@@ -8,10 +8,16 @@ on:
     types: [closed]
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to clean up
+        required: true
+        type: number
 
 env:
   APS_TEST_GATEWAY_ID: gw-11008
-  SUFFIX: pr-${{ github.event.number }}
+  SUFFIX: pr-${{ github.event.number || inputs.pr_number }}
 
 jobs:
   cleanup-non-db:
@@ -27,7 +33,7 @@ jobs:
         id: asa_go_aps_config
         shell: bash
         run: |
-          echo "config_path=.github/tmp/asa-go-gw-config-pr-${{ github.event.number }}.yaml" >> "${GITHUB_OUTPUT}"
+          echo "config_path=.github/tmp/asa-go-gw-config-${{ env.SUFFIX }}.yaml" >> "${GITHUB_OUTPUT}"
 
       - name: Render ASA Go APS gateway config for cleanup
         shell: bash
@@ -48,7 +54,7 @@ jobs:
       - name: Upload ASA Go APS cleanup config
         uses: actions/upload-artifact@v7
         with:
-          name: asa-go-aps-gateway-config-cleanup-pr-${{ github.event.number }}
+          name: asa-go-aps-gateway-config-cleanup-${{ env.SUFFIX }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
       - name: Publish SFMS FWI APS cleanup config
@@ -64,7 +70,7 @@ jobs:
       - name: Upload SFMS FWI APS cleanup config
         uses: actions/upload-artifact@v7
         with:
-          name: sfms-fwi-aps-gateway-config-cleanup-pr-${{ github.event.number }}
+          name: sfms-fwi-aps-gateway-config-cleanup-${{ env.SUFFIX }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
       - name: Delete SFMS FWI dataset and product from API Directory
