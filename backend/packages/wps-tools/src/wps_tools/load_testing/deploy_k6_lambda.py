@@ -472,7 +472,12 @@ def run_fan_out(
         return results
 
 
-def _combine_metric(values_list: list[dict]) -> dict:
+# One Lambda invocation hitting a transient blip would make the entire run look far worse than it was.
+# fraction of requests/checks that passed is more meaningful.
+_RATE_LIKE_VALUE_METRICS = {"http_req_failed", "checks"}
+
+
+def _combine_metric(name: str, values_list: list[dict]) -> dict:
     """Combines one metric's per-invocation --summary-export stats into a single aggregate.
 
     Detects k6's metric shape from its fields rather than hardcoding each metric name, so
@@ -483,10 +488,11 @@ def _combine_metric(values_list: list[dict]) -> dict:
 
     - Counter-like ({"count": ...}, e.g. http_reqs, iterations, data_sent, data_received):
       counts sum exactly.
-    - Gauge-like ({"value": ...}, e.g. vus, vus_max, and -- confirmed live, NOT Rate-shaped
-      as its name might suggest -- http_req_failed and the built-in aggregate "checks" pass
-      rate): max value seen (the peak) across invocations, plus min/max of any per-invocation
-      min/max.
+    - Gauge-like ({"value": ...}, e.g. vus, vus_max): max value seen (the peak) across
+      invocations, plus min/max of any per-invocation min/max. Except: http_req_failed and
+      the built-in aggregate "checks" pass rate are ALSO Gauge-shaped (confirmed live, NOT
+      Rate-shaped as their names might suggest) but are rates, not gauges -- see
+      _RATE_LIKE_VALUE_METRICS, averaged instead of maxed.
     - Trend-like (has "avg", e.g. http_req_duration, http_req_waiting, http_req_blocked,
       http_req_connecting, http_req_tls_handshaking, http_req_sending, http_req_receiving,
       iteration_duration): min-of-mins, max-of-maxes, and an unweighted mean of "avg" -- an
@@ -502,7 +508,11 @@ def _combine_metric(values_list: list[dict]) -> dict:
         return {"count": sum(v.get("count", 0) for v in values_list)}
 
     if any("value" in v for v in values_list):
-        combined: dict = {"value": max(v["value"] for v in values_list if "value" in v)}
+        values = [v["value"] for v in values_list if "value" in v]
+        if name in _RATE_LIKE_VALUE_METRICS:
+            combined: dict = {"value": sum(values) / len(values)}
+        else:
+            combined = {"value": max(values)}
     elif any("avg" in v for v in values_list):
         avgs = [v["avg"] for v in values_list if "avg" in v]
         combined = {"avg": sum(avgs) / len(avgs)}
@@ -551,7 +561,7 @@ def aggregate_summaries(results: list[dict]) -> dict:
             bucket["passes"] += check.get("passes", 0)
             bucket["fails"] += check.get("fails", 0)
 
-    metrics = {name: _combine_metric(values) for name, values in per_metric.items()}
+    metrics = {name: _combine_metric(name, values) for name, values in per_metric.items()}
     succeeded = sum(1 for r in results if r.get("exit_code") == 0)
     return {
         "invocations": len(results),

@@ -14,13 +14,15 @@
 //        GET fba/provincial-summary/{run_type}/{run_datetime}/{for_date}
 //        GET fba/hfi-stats/{run_type}/{run_datetime}/{for_date}
 //        GET fba/tpi-stats/{run_type}/{run_datetime}/{for_date}
-//   5. POST device/register, GET + POST device/notification-settings, POST device/unregister
-//      These write real rows to the DeviceToken/NotificationSettings tables 
-//      (register creates a row, unregister only deactivates it),
-//      so every device/token here is a synthetic, clearly-tagged "k6-loadtest-..." value,
-//      never a real device, and results accumulate in
-//      those tables across runs. Periodically clean up rows with device_id LIKE
-//      'k6-loadtest-%'.
+//   5. once per synthetic device (VU): POST device/register, then every iteration:
+//      GET device/notification-settings, and occasionally (~10% of iterations):
+//      POST device/notification-settings. `device/unregister` is never called -- it's unused
+//      anywhere in the shipped app, so calling it here wouldn't be representative traffic.
+//      register/update-settings write real rows to the DeviceToken/NotificationSettings
+//      tables (register creates a row; nothing ever deletes it), so every device/token here
+//      is a synthetic, clearly-tagged "k6-loadtest-..." value, never a real device, and rows
+//      still accumulate across runs, just far more slowly than one-per-iteration. Periodically
+//      clean up rows with device_id LIKE 'k6-loadtest-%'.
 //
 // Target: https://psu.api.gov.bc.ca/api/asa-go (production).
 //
@@ -32,8 +34,9 @@
 // concurrent, non-VPC Lambda invocation is likely to land on a distinct IP from that region's
 // shared pool, and each region in --regions has its own separate pool on top of that.
 //
-// Expect a real mix of 200s and 429s once the per-IP limit is hit -- that's the point.
-// Checks report both separately rather than treating 429 as a failure.
+// Expect a real mix of 200s and 429s once the per-IP limit is hit -- that's the point. Both
+// count as a pass on the single merged check below; only a genuine error (5xx, timeout,
+// connection failure) trips the checks threshold and makes k6 exit non-zero.
 import http from "k6/http";
 import { Counter } from "k6/metrics";
 import { check } from "k6";
@@ -41,28 +44,36 @@ import exec from "k6/execution";
 
 const BASE_URL = "https://psu.api.gov.bc.ca/api/asa-go";
 
-// Requests per simulated app launch, assuming both today and tomorrow have a run parameter
-// (the common case in-season): 9 read requests plus the 4-request device lifecycle
-// (register, get settings, update settings, unregister). Used only to calibrate the default
-// iteration rate below.
-const REQUESTS_PER_ITERATION = 13;
+// Average requests per simulated app launch, assuming both today and tomorrow have a run
+// parameter (the common case in-season): 9 read requests, plus the device lifecycle below,
+// which is mostly just 1 (GET settings, every iteration) since register only fires once per
+// VU and update-settings only ~10% of the time. Only used to calibrate the
+// default iteration rate below, where being off by a request or two doesn't matter.
+const REQUESTS_PER_ITERATION = 10;
 
-// Per-task target rate in iterations/second (one iteration == one simulated app launch).
-// Defaults to the gateway's per-IP limit (100 req/min) divided by the requests each
-// iteration makes, i.e. ~1 app launch per IP every ~7.8s (100/60/13); override with
-// TARGET_RPS to try a different per-task rate. Math.round below then rounds that up to 8
-// iterations/60s (~1 launch per 7.5s), i.e. ~104 req/min, a few % over the 100/min limit
-// due to integer rounding.
-const TARGET_RPS = Number(__ENV.TARGET_RPS) || 100 / 60 / REQUESTS_PER_ITERATION;
+// TARGET_RPS is actual HTTP requests/second (matches deploy_k6_lambda.py's --target-rps,
+// which is documented and forwarded as requests/second). Defaults to the gateway's
+// per-IP limit (100 req/min = 1.667 req/s); override with TARGET_RPS/--target-rps to try a
+// different rate.
+const TARGET_RPS = Number(__ENV.TARGET_RPS) || 100 / 60;
+const TARGET_ITERATIONS_PER_SECOND = TARGET_RPS / REQUESTS_PER_ITERATION;
 
 const rateLimited = new Counter("rate_limited_responses");
 
 // ramping-arrival-rate's stages[].target must be an integer (k6 rejects the whole script at
 // parse time otherwise). timeUnit is 60s so the default target becomes a small integer
 // instead of rounding a sub-1 per-second target and drifting off the intended calibration.
-const TARGET_PER_TIME_UNIT = Math.max(1, Math.round(TARGET_RPS * 60));
+// (Default: 1.667/13*60 = 7.69, rounds to 8 iterations/60s -- ~104 req/min, a few % over the
+// 100/min limit from integer rounding, not a calibration error.)
+const TARGET_PER_TIME_UNIT = Math.max(1, Math.round(TARGET_ITERATIONS_PER_SECOND * 60));
 
 export const options = {
+  // "checks" here is the single merged check below (200 or 429 both count as a pass) -- a
+  // real error (5xx, timeout, connection failure) is neither, so this is what actually makes
+  // k6 exit non-zero on a genuine problem instead of silently succeeding.
+  thresholds: {
+    checks: ["rate>0.99"],
+  },
   scenarios: {
     peak_burst: {
       executor: "ramping-arrival-rate",
@@ -94,9 +105,12 @@ function checkResponse(res) {
   if (res.status === 429) {
     rateLimited.add(1);
   }
+  // A single check, not two -- "200" and "429" as separate checks are mutually exclusive by
+  // construction (any given response can only match one), so every response would always
+  // fail exactly one of them and the pass rate could never read as healthy even when
+  // everything is working exactly as expected.
   check(res, {
-    "status is 200": (r) => r.status === 200,
-    "status is 429 (rate limited)": (r) => r.status === 429,
+    "status is 200 or 429 (rate limited)": (r) => r.status === 200 || r.status === 429,
   });
   return res;
 }
@@ -124,20 +138,46 @@ function fetchDayStats(runParameter) {
   get(`fba/tpi-stats/${runTypeLower}/${run_datetime}/${for_date}`);
 }
 
-// register -> read/update settings -> unregister, mirroring initSubscriptions (App.tsx) and
-// pushNotificationSlice.ts. Uses a synthetic, per-iteration device_id/token so this never
-// touches a real device's registration -- see the DeviceToken/NotificationSettings note above.
-function deviceLifecycle() {
-  const uniquePart = `${exec.vu.idInTest}-${exec.scenario.iterationInTest}-${Date.now()}`;
-  const deviceId = `k6-loadtest-${uniquePart}`;
-  const token = `k6-loadtest-token-${uniquePart}`;
+// A real device registers only once per FCM token (registerDevice in pushNotificationSlice.ts
+// bails out if the token hasn't changed) and then reads its notification settings on every
+// launch (initSubscriptions, dispatched unconditionally in App.tsx) -- it does NOT
+// register/update-settings/unregister on every single launch. Calling all four every
+// iteration would overweight writes relative to real traffic and, worse, permanently
+// accumulate one new synthetic DeviceToken row per iteration for the whole burst.
+//
+// Modeled here as: register once per synthetic "device" (VU) -- these module-scope `let`s
+// are re-initialized once when k6 starts a VU, then persist across that VU's iterations, the
+// same shape as a real device keeping the same token across launches -- then GET settings on
+// every iteration, matching every real launch. `unregisterToken` is unused anywhere in the
+// app (confirmed via grep) so it's deliberately never called here; a load test invoking a
+// dead endpoint isn't representative traffic. Settings updates are user-driven (a zone
+// subscription toggle), not launch-triggered, so only a small fraction of iterations send one.
+let vuDeviceId = null;
+let vuToken = null;
 
-  post("device/register", { platform: "android", token, device_id: deviceId, user_id: null });
-  get(`device/notification-settings?device_id=${deviceId}`);
-  // an empty list is the only value guaranteed valid without looking up a real zone id,
-  // and still exercises the endpoint's read/delete path.
-  post("device/notification-settings", { device_id: deviceId, fire_zone_source_ids: [] });
-  post("device/unregister", { token });
+const UPDATE_SETTINGS_PROBABILITY = 0.1; // rough stand-in for "occasional user action", not a measured production ratio
+
+function deviceLifecycle() {
+  if (vuDeviceId === null) {
+    const uniquePart = `${exec.vu.idInTest}-${Date.now()}`;
+    vuDeviceId = `k6-loadtest-${uniquePart}`;
+    vuToken = `k6-loadtest-token-${uniquePart}`;
+    post("device/register", {
+      platform: "android",
+      token: vuToken,
+      device_id: vuDeviceId,
+      user_id: null,
+    });
+  }
+
+  get(`device/notification-settings?device_id=${vuDeviceId}`);
+
+  if (Math.random() < UPDATE_SETTINGS_PROBABILITY) {
+    // Empty list is the only fire_zone_source_ids value guaranteed valid without looking up
+    // a real zone id (it's a foreign key to Shape.source_identifier) -- still exercises the
+    // endpoint's read/delete path.
+    post("device/notification-settings", { device_id: vuDeviceId, fire_zone_source_ids: [] });
+  }
 }
 
 export default function peakBurst() {

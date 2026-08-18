@@ -209,25 +209,34 @@ def test_aggregate_summaries_combines_gauge_metrics():
     assert metrics["vus"] == {"value": 30, "min": 0, "max": 30}
 
 
-def test_aggregate_summaries_combines_http_req_failed_as_gauge():
+def test_aggregate_summaries_averages_http_req_failed_and_checks_rates():
     """Confirmed live (real k6 v2.2.0 --summary-export, 10 Lambda invocations against
-    production): http_req_failed is actually Gauge-shaped ({"value": ...}), not Rate-shaped
-    as its name might suggest -- it has no "rate" field at all in this k6 version. Combining
-    therefore takes the max value seen, same as any other Gauge."""
+    production): http_req_failed and the built-in aggregate "checks" pass rate are both
+    Gauge-shaped ({"value": ...}), not Rate-shaped as their names might suggest -- neither has
+    a "rate" field at all in this k6 version. Unlike a genuine gauge (e.g. vus), these are
+    semantically rates, so combining them across invocations averages instead of taking the
+    max -- max would report the worst single invocation's rate as if it were the whole run's."""
     results = [
         {
             "exit_code": 0,
-            "summary": {"metrics": {"http_req_failed": {"value": 0}}, "root_group": {"checks": {}}},
+            "summary": {
+                "metrics": {"http_req_failed": {"value": 0}, "checks": {"value": 1}},
+                "root_group": {"checks": {}},
+            },
         },
         {
             "exit_code": 0,
-            "summary": {"metrics": {"http_req_failed": {"value": 1}}, "root_group": {"checks": {}}},
+            "summary": {
+                "metrics": {"http_req_failed": {"value": 1}, "checks": {"value": 0.6}},
+                "root_group": {"checks": {}},
+            },
         },
     ]
 
     metrics = aggregate_summaries(results)["metrics"]
 
-    assert metrics["http_req_failed"] == {"value": 1}
+    assert metrics["http_req_failed"] == {"value": pytest.approx(0.5)}
+    assert metrics["checks"] == {"value": pytest.approx(0.8)}
 
 
 def test_aggregate_summaries_combines_bare_rate_metrics():
