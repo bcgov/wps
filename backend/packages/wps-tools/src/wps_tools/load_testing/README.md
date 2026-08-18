@@ -66,9 +66,10 @@ before trusting it for a real run -- same reasoning as the single-region case ab
 
 ## Gotchas
 
-- **Lambda's filesystem is read-only except `/tmp`.** `handler.py` sets `HOME=/tmp` on the k6
-  subprocess explicitly -- without it, k6 tries to write its own config/cache to an
-  unwritable default `$HOME` and fails outright.
+- **Lambda's filesystem is read-only except `/tmp`, which is shared and world-writable.**
+  `handler.py` sets `HOME` to a privately-owned (0700) `tempfile.mkdtemp()`
+  subdirectory rather than `/tmp` itself -- without a writable `$HOME`, k6 tries to write its
+  own config/cache to an unwritable default and fails outright.
 - **k6 pings home on startup by default.** `handler.py` sets `K6_DISABLE_USAGE_REPORT=true` to
   skip k6's own update-check/telemetry call -- one less unrelated outbound request per cold
   start, and avoids conflating that traffic with the actual test.
@@ -90,23 +91,27 @@ before trusting it for a real run -- same reasoning as the single-region case ab
   fields rather than hardcoding metric names, so built-ins like `http_req_duration`, `vus`,
   `data_sent`, etc. and any custom metric a different script defines all show up under the
   combined `metrics` output, and check names are aggregated by name too -- this now works for
-  any script, not just `asa_go_peak_burst.js`. Counters sum exactly; Gauges report the peak
-  (max) value seen; Trends report min-of-mins/max-of-maxes/an unweighted mean of `avg` (an
-  approximation, not a recomputed percentile, since `--summary-export` only gives each
-  invocation's own already-aggregated stats -- percentile fields like `p(90)` aren't
-  recombinable and are dropped rather than silently averaged into something meaningless).
-  Confirmed live against a real k6 v2.2.0 `--summary-export` (10 Lambda invocations against
-  production, 2026-08-17) -- notably `http_req_failed` and the built-in aggregate `checks`
-  pass rate are actually Gauge-shaped (`{"value": ...}`), not Rate-shaped as their names might
-  suggest; every metric this run observed had one of `count`/`value`/`avg`, none needed the
-  bare-`rate` fallback branch.
+  any script, not just `asa_go_peak_burst.js`. Counters sum exactly; Gauges (e.g. `vus`,
+  `vus_max`) report the peak (max) value seen; Trends report min-of-mins/max-of-maxes/an
+  unweighted mean of `avg` (an approximation, not a recomputed percentile, since
+  `--summary-export` only gives each invocation's own already-aggregated stats -- percentile
+  fields like `p(90)` aren't recombinable and are dropped rather than silently averaged into
+  something meaningless). Confirmed live against a real k6 v2.2.0 `--summary-export` (10
+  Lambda invocations against production, 2026-08-17) -- notably `http_req_failed` and the
+  built-in aggregate `checks` pass rate are actually Gauge-shaped (`{"value": ...}`), not
+  Rate-shaped as their names might suggest; every metric this run observed had one of
+  `count`/`value`/`avg`, none needed the bare-`rate` fallback branch. Those two are still
+  semantically rates despite the Gauge shape, so they're averaged across invocations instead
+  of maxed like a real gauge -- max() would report the worst single invocation's rate as if it
+  were the whole run's.
 - **k6's `ramping-arrival-rate` executor requires an integer `stages[].target`.**
-  `asa_go_peak_burst.js`'s default `TARGET_RPS` (a fractional iterations/second value) is not
-  an integer -- confirmed live: k6 refused to even parse the script
-  (`cannot unmarshal number 1.6666666666666667 ... of type int64`) until the scenario's
+  `asa_go_peak_burst.js`'s `TARGET_RPS` is requests/second (matching `--target-rps`'s
+  documented units); dividing it by `REQUESTS_PER_ITERATION` to get an iterations/second rate
+  produces a fractional value, not an integer -- confirmed live: k6 refused to even parse the
+  script (`cannot unmarshal number 1.6666666666666667 ... of type int64`) until the scenario's
   `timeUnit` was changed to `60s` and the stage target computed as
-  `Math.round(TARGET_RPS * 60)`, so it lands on a whole number of iterations per minute
-  instead of rounding a fractional per-second target.
+  `Math.round(TARGET_ITERATIONS_PER_SECOND * 60)`, so it lands on a whole number of
+  iterations per minute instead of rounding a fractional per-second target.
 - **A Lambda layer's zip is extracted directly into `/opt/`, not merged under it.** An entry
   named `opt/k6` inside the zip therefore lands at `/opt/opt/k6`, not `/opt/k6` --
   confirmed live: `handler.py`'s `K6_BINARY = "/opt/k6"` got a `FileNotFoundError` until
@@ -122,9 +127,11 @@ before trusting it for a real run -- same reasoning as the single-region case ab
 ## Tearing everything down
 
 `teardown_k6_lambda.py` deletes every resource `deploy`/`run`/`verify_ip_diversity.py` can
-create in a region: both Lambda functions (the k6 load generator and the IP-diversity probe),
-every version of the k6 layer, the per-region S3 staging bucket (emptied first), and -- once,
-after every region -- the shared IAM execution role.
+create in a region: both Lambda functions (the k6 load generator and the IP-diversity probe)
+and their CloudWatch Logs log groups (Lambda auto-creates these on first invocation; deleting
+the function alone leaves them behind), every version of the k6 layer, the per-region S3
+staging bucket (emptied first), and -- once, after every region -- the shared IAM execution
+role.
 
 ```bash
 uv run --project packages/wps-tools python -m wps_tools.load_testing.teardown_k6_lambda \
