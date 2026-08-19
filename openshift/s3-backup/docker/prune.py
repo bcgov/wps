@@ -1,13 +1,13 @@
 """ Simple script for pruning backups
 """
 import asyncio
-from datetime import datetime, timedelta
-from typing import Set, List
+from datetime import datetime, timedelta, timezone
+
 from aiobotocore.session import get_session
 from decouple import config
 
 
-async def fetch_file_list(client, bucket) -> List:
+async def fetch_file_list(client, bucket) -> list:
     """ Fetch the list of files from Object Store. (it comes back sorted)"""
     # pylint: disable=invalid-name
     PG_HOSTNAME = config('PG_HOSTNAME')
@@ -15,14 +15,14 @@ async def fetch_file_list(client, bucket) -> List:
     folder = f'backup/{PG_HOSTNAME}_{PG_DATABASE}'
     result = await client.list_objects_v2(Bucket=bucket, Prefix=folder)
     contents = result.get('Contents', None)
-    file_list = list([])
+    file_list = []
     if contents:
         for content in contents:
             file_list.append(content.get('Key'))
     return file_list
 
 
-async def delete_files(client, bucket, files: Set):
+async def delete_files(client, bucket, files: set):
     """ Delete files in Object Store. """
     result = await client.delete_objects(Bucket=bucket, Delete={
         'Objects': [{'Key': file} for file in files]
@@ -33,7 +33,7 @@ async def delete_files(client, bucket, files: Set):
 def extract_datetime(filename) -> datetime:
     """ Extract date object from filename """
     date_part = filename[-26:-7]
-    return datetime.strptime(date_part, '%Y-%m-%d_%H-%M-%S')
+    return datetime.strptime(date_part, '%Y-%m-%d_%H-%M-%S').replace(tzinfo=timezone.utc)
 
 
 class Desire:  # pylint: disable=too-few-public-methods
@@ -72,7 +72,7 @@ class Desire:  # pylint: disable=too-few-public-methods
                 self.files_to_keep.pop(0)
 
 
-def decide_files_to_keep(files: list) -> Set:
+def decide_files_to_keep(files: list) -> set:
     """ Decide what files to keep
     Expects a list of filenames sorted from most recent to least recent """
     desires = [
@@ -95,7 +95,7 @@ def decide_files_to_keep(files: list) -> Set:
     return files_to_keep
 
 
-def decide_files_to_delete(files: list) -> Set:
+def decide_files_to_delete(files: list) -> set:
     """ Decide what files to delete """
     files_to_keep = decide_files_to_keep(files)
     file_set = set(files)
