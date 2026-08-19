@@ -21,8 +21,8 @@
       "!mobile/asa-go/public",
       "!mobile/keycloak/android",
       "!mobile/keycloak/ios",
-      "!web/apps/wps-web/public",
-      "!web/apps/wps-web/src/serviceWorker.ts"
+      "!web/apps/wps-web/src/serviceWorker.ts",
+      "!**/*.svg"
     ]
   },
   "formatter": {
