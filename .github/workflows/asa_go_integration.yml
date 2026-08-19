@@ -52,6 +52,39 @@ jobs:
           # we want to ensure code coverage is good, so we fail on error. (default is false)
           fail_ci_if_error: true
 
+  ios_build:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    name: Build iOS App
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup ASA Go
+        uses: ./.github/actions/asa-go-setup
+      - name: Copy GoogleService-Info.plist
+        env:
+          GOOGLE_SERVICES_PLIST: ${{ secrets.GOOGLE_SERVICES_PLIST }}
+        working-directory: ./mobile/asa-go
+        run: echo "$GOOGLE_SERVICES_PLIST" | base64 -d > ./ios/App/App/Firebase/Prod/GoogleService-Info.plist
+      - name: Sync Capacitor iOS
+        working-directory: ./mobile/asa-go
+        run: yarn cap:sync:ios:prod
+      - name: Use Xcode latest stable
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90
+        with:
+          xcode-version: latest-stable
+      - name: Build ASA Go iOS App
+        working-directory: ./mobile/asa-go/ios/App
+        run: |
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme "ASA Go" \
+            -destination "platform=iOS Simulator,name=iPhone 17" \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
   ios_test:
     runs-on: macos-latest
     permissions:
@@ -62,9 +95,6 @@ jobs:
         uses: actions/checkout@v7
       - name: Setup ASA Go
         uses: ./.github/actions/asa-go-setup
-      - name: Sync Capacitor iOS
-        working-directory: ./mobile/asa-go
-        run: yarn cap:sync:ios:prod
       - name: Use Xcode latest stable
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90
         with:
