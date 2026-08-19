@@ -6,17 +6,16 @@ from unittest.mock import AsyncMock
 import numpy as np
 import pytest
 from pytest_mock import MockerFixture
-
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
-from wps_sfms.raster_inputs import FWIInputs
 from wps_shared.tests.geospatial.dataset_common import (
     create_mock_input_dataset_context,
     create_mock_wps_dataset,
     create_test_dataset,
 )
 from wps_shared.utils.s3_client import S3Client
+
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.processors.fwi import (
     BUICalculator,
@@ -27,8 +26,10 @@ from wps_sfms.processors.fwi import (
     FWIDatasets,
     FWIFinalCalculator,
     FWIProcessor,
+    FWIResult,
     ISICalculator,
 )
+from wps_sfms.raster_inputs import FWIInputs
 
 TEST_DATETIME = datetime(2024, 10, 10, 20, tzinfo=timezone.utc)
 
@@ -137,13 +138,23 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
 
 
 @pytest.mark.anyio
-async def test_fwi_processor_publishes_masked_output_with_nodata_metadata(
+async def test_fwi_processor_masks_calculated_value_and_sets_nodata_metadata(
     mocker: MockerFixture,
     output_mask: WPSDataset,
 ):
+    """Test that the calculation produced a number (42), the BC mask excluded that pixel, and the published value became nodata."""
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
     _, mock_input_dataset_context = create_mock_input_dataset_context(5)
+    calculator = FFMCCalculator()
+    mocker.patch.object(
+        calculator,
+        "calculate",
+        return_value=FWIResult(
+            values=np.array([[42.0]], dtype=np.float32),
+            nodata_value=SFMS_NO_DATA,
+        ),
+    )
     output_mask.as_gdal_ds().GetRasterBand(1).WriteArray(np.array([[0]], dtype=np.float32))
     captured_nodata = None
     captured_value = None
@@ -162,7 +173,7 @@ async def test_fwi_processor_publishes_masked_output_with_nodata_metadata(
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
 
         await processor.calculate_index(
-            mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs
+            mock_s3_client, mock_input_dataset_context, calculator, fwi_inputs
         )
 
     assert captured_nodata == pytest.approx(SFMS_NO_DATA)
