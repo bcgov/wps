@@ -166,7 +166,7 @@ const FBAMap = (props: FBAMapProps) => {
   useEffect(() => {
     if (!map) return
 
-    const handleMapClick = (event: MapBrowserEvent<UIEvent>) => {
+    const handleMapClick = (event: MapBrowserEvent) => {
       fireShapeVTL.getFeatures(event.pixel).then(features => {
         if (!features.length) {
           setSelectedFireShape(undefined)

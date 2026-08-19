@@ -109,7 +109,7 @@ const LocationStep = ({ fireWatch, setFireWatch }: LocationStepProps) => {
 
   useEffect(() => {
     // Click handler to allow user to click on map to place a marker.
-    const handleMapClick = (evt: MapBrowserEvent<UIEvent>) => {
+    const handleMapClick = (evt: MapBrowserEvent) => {
       const [lon, lat] = toLonLat(evt.coordinate)
       setLatInput(lat.toFixed(6))
       setLonInput(lon.toFixed(6))
