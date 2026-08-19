@@ -92,12 +92,6 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
     datetimes_to_process = forecast_datetimes(seed_actual_date)
 
     async with S3Client() as s3_client:
-        await ensure_fmc_rasters(
-            [datetime_to_process.date() for datetime_to_process in datetimes_to_process],
-            raster_addresser,
-            s3_client,
-        )
-
         missing_actual_seed_keys = await get_missing_fwi_seed_keys(
             datetimes_to_process[0],
             raster_addresser,
@@ -123,6 +117,13 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                     raise RuntimeError(f"No fuel type raster found for {fuel_raster_year}")
                 fuel_raster_path = raster_addresser.gdal_path(fuel_type_raster.object_store_path)
                 logger.info("Using reference raster: %s", fuel_raster_path)
+
+                await ensure_fmc_rasters(
+                    [datetime_to_process.date() for datetime_to_process in datetimes_to_process],
+                    fuel_raster_path,
+                    raster_addresser,
+                    s3_client,
+                )
 
                 async with get_async_write_session_scope() as write_session:
                     for index, datetime_to_process in enumerate(datetimes_to_process):

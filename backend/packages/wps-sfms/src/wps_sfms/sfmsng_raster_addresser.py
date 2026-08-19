@@ -112,10 +112,15 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             f"{target_date.day:02d}/fmc_{date_str}.tif"
         )
 
-    def get_fmc_inputs(self, target_dates: Iterable[date]) -> FoliarMoistureContentInputs:
+    def get_fmc_inputs(
+        self,
+        target_dates: Iterable[date],
+        fuel_key: GDALPath,
+    ) -> FoliarMoistureContentInputs:
         """Build the static dependencies and output keys for daily FMC calculations."""
         static_root = f"{self.root}/static"
         return FoliarMoistureContentInputs(
+            fuel_key=fuel_key,
             elevation_key=self.gdal_path(S3Key(f"{static_root}/bc_elevation.tif")),
             latitude_key=self.gdal_path(S3Key(f"{static_root}/latitude.tif")),
             longitude_key=self.gdal_path(S3Key(f"{static_root}/longitude.tif")),

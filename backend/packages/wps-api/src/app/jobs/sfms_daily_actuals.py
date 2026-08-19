@@ -67,6 +67,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     async with S3Client() as s3_client:
         await ensure_fmc_rasters(
             [datetime_to_process.date()],
+            fuel_raster_path,
             raster_addresser,
             s3_client,
         )

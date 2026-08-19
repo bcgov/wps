@@ -29,10 +29,12 @@ class TestGetFoliarMoistureContentInputs:
 
     def test_get_fmc_inputs_uses_sfmsng_static_rasters(self, addresser: SFMSNGRasterAddresser):
         target_dates = [date(2024, 4, 15), date(2024, 4, 16)]
+        fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
 
-        result = addresser.get_fmc_inputs(target_dates)
+        result = addresser.get_fmc_inputs(target_dates, fuel_key)
 
         s3 = addresser.s3_prefix
+        assert result.fuel_key == fuel_key
         assert result.elevation_key == f"{s3}/sfms_ng/static/bc_elevation.tif"
         assert result.latitude_key == f"{s3}/sfms_ng/static/latitude.tif"
         assert result.longitude_key == f"{s3}/sfms_ng/static/longitude.tif"

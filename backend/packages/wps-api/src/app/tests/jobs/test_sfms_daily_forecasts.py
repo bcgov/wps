@@ -240,6 +240,7 @@ class TestRunSfmsDailyForecasts:
 
         mock_dependencies.ensure_fmc_rasters.assert_awaited_once_with(
             [date(2024, 7, 5), date(2024, 7, 6), date(2024, 7, 7)],
+            mock_dependencies.addresser.gdal_path.return_value,
             mock_dependencies.addresser,
             mock_dependencies.s3_client,
         )

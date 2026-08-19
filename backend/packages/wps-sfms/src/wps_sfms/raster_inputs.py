@@ -43,6 +43,7 @@ class SurfaceFuelConsumptionInputs:
 class FoliarMoistureContentInputs:
     """Static dependencies and date-specific outputs for shared daily FMC calculations."""
 
+    fuel_key: GDALPath
     elevation_key: GDALPath
     latitude_key: GDALPath
     longitude_key: GDALPath
