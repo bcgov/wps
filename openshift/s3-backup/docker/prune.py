@@ -1,43 +1,43 @@
-""" Simple script for pruning backups
-"""
+"""Simple script for pruning backups"""
+
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from aiobotocore.session import get_session
 from decouple import config
 
 
 async def fetch_file_list(client, bucket) -> list:
-    """ Fetch the list of files from Object Store. (it comes back sorted)"""
+    """Fetch the list of files from Object Store. (it comes back sorted)"""
     # pylint: disable=invalid-name
-    PG_HOSTNAME = config('PG_HOSTNAME')
-    PG_DATABASE = config('PG_DATABASE')
-    folder = f'backup/{PG_HOSTNAME}_{PG_DATABASE}'
+    PG_HOSTNAME = config("PG_HOSTNAME")
+    PG_DATABASE = config("PG_DATABASE")
+    folder = f"backup/{PG_HOSTNAME}_{PG_DATABASE}"
     result = await client.list_objects_v2(Bucket=bucket, Prefix=folder)
-    contents = result.get('Contents', None)
+    contents = result.get("Contents", None)
     file_list = []
     if contents:
         for content in contents:
-            file_list.append(content.get('Key'))
+            file_list.append(content.get("Key"))
     return file_list
 
 
 async def delete_files(client, bucket, files: set):
-    """ Delete files in Object Store. """
-    result = await client.delete_objects(Bucket=bucket, Delete={
-        'Objects': [{'Key': file} for file in files]
-    })
+    """Delete files in Object Store."""
+    result = await client.delete_objects(
+        Bucket=bucket, Delete={"Objects": [{"Key": file} for file in files]}
+    )
     print(result)
 
 
 def extract_datetime(filename) -> datetime:
-    """ Extract date object from filename """
+    """Extract date object from filename"""
     date_part = filename[-26:-7]
-    return datetime.strptime(date_part, '%Y-%m-%d_%H-%M-%S').replace(tzinfo=timezone.utc)
+    return datetime.strptime(date_part, "%Y-%m-%d_%H-%M-%S").replace(tzinfo=UTC)
 
 
 class Desire:  # pylint: disable=too-few-public-methods
-    """ Structure for defining and keeping track of desired backups """
+    """Structure for defining and keeping track of desired backups"""
 
     def __init__(self, desired_backups: int, interval: timedelta) -> None:
         """
@@ -49,7 +49,7 @@ class Desire:  # pylint: disable=too-few-public-methods
         self.files_to_keep = []
 
     def evaluate(self, new_filename) -> None:
-        """ Consider the file, and manage the list of files we're deciding to keep. """
+        """Consider the file, and manage the list of files we're deciding to keep."""
         self.files_to_keep.append(new_filename)
         self.files_to_keep.sort()
         # If we have more files than we desire:
@@ -73,13 +73,14 @@ class Desire:  # pylint: disable=too-few-public-methods
 
 
 def decide_files_to_keep(files: list) -> set:
-    """ Decide what files to keep
-    Expects a list of filenames sorted from most recent to least recent """
+    """Decide what files to keep
+    Expects a list of filenames sorted from most recent to least recent"""
     desires = [
         Desire(desired_backups=5, interval=timedelta(hours=1)),  # retain 5 hourly backups
         Desire(desired_backups=5, interval=timedelta(days=1)),  # retain 5 daily backups
         Desire(desired_backups=5, interval=timedelta(weeks=1)),  # retain 5 weekly backups
-        Desire(desired_backups=5, interval=timedelta(weeks=4))]  # retain 5 monthly
+        Desire(desired_backups=5, interval=timedelta(weeks=4)),
+    ]  # retain 5 monthly
 
     files.sort()
 
@@ -96,7 +97,7 @@ def decide_files_to_keep(files: list) -> set:
 
 
 def decide_files_to_delete(files: list) -> set:
-    """ Decide what files to delete """
+    """Decide what files to delete"""
     files_to_keep = decide_files_to_keep(files)
     file_set = set(files)
     # using set theory: files_to_delete = files - files_to_keep
@@ -104,19 +105,21 @@ def decide_files_to_delete(files: list) -> set:
 
 
 async def main():
-    """ Entry point. """
+    """Entry point."""
 
     # Open connection to object store.
-    server = config('AWS_HOSTNAME')
-    user_id = config('AWS_ACCESS_KEY')
-    secret_key = config('AWS_SECRET_KEY')
-    bucket = config('AWS_BUCKET')
+    server = config("AWS_HOSTNAME")
+    user_id = config("AWS_ACCESS_KEY")
+    secret_key = config("AWS_SECRET_KEY")
+    bucket = config("AWS_BUCKET")
 
     session = get_session()
-    async with session.create_client('s3',
-                                     endpoint_url=f'https://{server}',
-                                     aws_secret_access_key=secret_key,
-                                     aws_access_key_id=user_id) as client:
+    async with session.create_client(
+        "s3",
+        endpoint_url=f"https://{server}",
+        aws_secret_access_key=secret_key,
+        aws_access_key_id=user_id,
+    ) as client:
         try:
             # Get list of backup files
             files = await fetch_file_list(client, bucket)
@@ -132,7 +135,7 @@ async def main():
             del client
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
     loop.close()
