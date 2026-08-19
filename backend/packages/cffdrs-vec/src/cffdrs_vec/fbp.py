@@ -532,6 +532,19 @@ def _vectorized_fbp_secondary(
     raz0_out[0] = result.raz0
 
 
+class FBPPrimaryOutput(NamedTuple):
+    """The primary fields from one vectorized CFFDRS fire behaviour calculation."""
+
+    cfb: np.ndarray
+    cfc: np.ndarray
+    fd_code: np.ndarray
+    hfi: np.ndarray
+    raz: np.ndarray
+    ros: np.ndarray
+    sfc: np.ndarray
+    tfc: np.ndarray
+
+
 class FBPOutput(NamedTuple):
     """Every field cffdrs's own _fire_behaviour_prediction computes and returns - Primary (cfb
     through tfc) and Secondary (be through tti), plus wsv0/raz0 (the raw, pre-fallback
@@ -583,6 +596,79 @@ class FBPOutput(NamedTuple):
     tti: np.ndarray
     wsv0: np.ndarray
     raz0: np.ndarray
+
+
+def vectorized_primary_fire_behaviour_prediction(
+    fuel_type_code,
+    ffmc,
+    bui,
+    ws,
+    wd_rad,
+    gs,
+    aspect_rad,
+    pc,
+    pdf,
+    cc,
+    gfl,
+    cbh,
+    cfl,
+    fmc,
+    isi,
+    lat,
+    lon,
+    elv,
+    dj,
+    d0,
+    sd,
+    sh,
+    hr,
+    theta_rad,
+    accel,
+    buieff,
+) -> FBPPrimaryOutput:
+    """Calculate the eight primary FBP fields with one call per broadcast element.
+
+    Parameters have the same meaning as ``vectorized_fire_behaviour_prediction`` below. This
+    entry point avoids the second calculation needed by that all-output wrapper.
+    """
+    cfb, cfc, fd_code, hfi, raz, ros, sfc, tfc = _vectorized_fbp_primary(
+        fuel_type_code,
+        ffmc,
+        bui,
+        ws,
+        wd_rad,
+        gs,
+        aspect_rad,
+        pc,
+        pdf,
+        cc,
+        gfl,
+        cbh,
+        cfl,
+        fmc,
+        isi,
+        lat,
+        lon,
+        elv,
+        dj,
+        d0,
+        sd,
+        sh,
+        hr,
+        theta_rad,
+        accel,
+        buieff,
+    )
+    return FBPPrimaryOutput(
+        cfb=cfb,
+        cfc=cfc,
+        fd_code=fd_code,
+        hfi=hfi,
+        raz=raz,
+        ros=ros,
+        sfc=sfc,
+        tfc=tfc,
+    )
 
 
 def vectorized_fire_behaviour_prediction(
@@ -662,7 +748,7 @@ def vectorized_fire_behaviour_prediction(
     :param buieff: 1 to apply the Buildup Effect to rate of spread (using bui), any other value
         disables it
     """
-    cfb, cfc, fd_code, hfi, raz, ros, sfc, tfc = _vectorized_fbp_primary(
+    primary = vectorized_primary_fire_behaviour_prediction(
         fuel_type_code,
         ffmc,
         bui,
@@ -756,14 +842,14 @@ def vectorized_fire_behaviour_prediction(
         buieff,
     )
     return FBPOutput(
-        cfb=cfb,
-        cfc=cfc,
-        fd_code=fd_code,
-        hfi=hfi,
-        raz=raz,
-        ros=ros,
-        sfc=sfc,
-        tfc=tfc,
+        cfb=primary.cfb,
+        cfc=primary.cfc,
+        fd_code=primary.fd_code,
+        hfi=primary.hfi,
+        raz=primary.raz,
+        ros=primary.ros,
+        sfc=primary.sfc,
+        tfc=primary.tfc,
         be=be,
         sf=sf,
         isi=isi_out,

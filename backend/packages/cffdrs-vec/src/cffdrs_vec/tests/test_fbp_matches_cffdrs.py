@@ -21,7 +21,12 @@ import pytest
 from cffdrs.constants import FUEL_TYPE_CODES
 from cffdrs.fire_behaviour_prediction import fire_behaviour_prediction
 
-from cffdrs_vec.fbp import FBPOutput, vectorized_fire_behaviour_prediction
+from cffdrs_vec.fbp import (
+    FBPOutput,
+    FBPPrimaryOutput,
+    vectorized_fire_behaviour_prediction,
+    vectorized_primary_fire_behaviour_prediction,
+)
 from cffdrs_vec.tests._glc_x_10_data import GLC_X_10_SOURCES
 
 # fire_behaviour_prediction()'s public "All" output represents Fire Type as a string ("S"/"I"/"C"),
@@ -64,7 +69,7 @@ def test_vectorized_fire_behaviour_prediction_matches_fire_behaviour_prediction(
     accel = np.array([i.accel for i in fbp_inputs], dtype=np.int64)
     buieff = np.array([i.bui_eff for i in fbp_inputs], dtype=np.int64)
 
-    result = vectorized_fire_behaviour_prediction(
+    calculation_args = (
         fuel_type_codes,
         ffmc,
         bui,
@@ -92,6 +97,8 @@ def test_vectorized_fire_behaviour_prediction_matches_fire_behaviour_prediction(
         accel,
         buieff,
     )
+    result = vectorized_fire_behaviour_prediction(*calculation_args)
+    primary_result = vectorized_primary_fire_behaviour_prediction(*calculation_args)
 
     all_output = [fire_behaviour_prediction(i, output="All") for i in fbp_inputs]
     wsv0 = np.array([fire_behaviour_prediction(i, output="WSV0") for i in fbp_inputs])
@@ -109,3 +116,52 @@ def test_vectorized_fire_behaviour_prediction_matches_fire_behaviour_prediction(
         np.testing.assert_allclose(
             getattr(result, field), reference, rtol=1e-9, atol=1e-9, err_msg=field
         )
+        if field in FBPPrimaryOutput._fields:
+            np.testing.assert_allclose(
+                getattr(primary_result, field),
+                reference,
+                rtol=1e-9,
+                atol=1e-9,
+                err_msg=f"primary {field}",
+            )
+
+
+def test_vectorized_primary_fire_behaviour_prediction_accepts_scalar_inputs():
+    fbp_input = GLC_X_10_SOURCES[0].to_fbp_inputs()[0]
+    calculation_args = (
+        FUEL_TYPE_CODES[fbp_input.fuel_type],
+        fbp_input.ffmc,
+        fbp_input.bui,
+        fbp_input.ws,
+        fbp_input.wd,
+        fbp_input.gs,
+        fbp_input.aspect,
+        fbp_input.pc,
+        fbp_input.pdf,
+        fbp_input.cc,
+        fbp_input.gfl,
+        fbp_input.cbh,
+        fbp_input.cfl,
+        fbp_input.fmc,
+        fbp_input.isi,
+        fbp_input.lat,
+        fbp_input.lon,
+        fbp_input.elv,
+        fbp_input.dj,
+        fbp_input.d0,
+        fbp_input.sd,
+        fbp_input.sh,
+        fbp_input.hr,
+        fbp_input.theta,
+        fbp_input.accel,
+        fbp_input.bui_eff,
+    )
+
+    result = vectorized_primary_fire_behaviour_prediction(*calculation_args)
+    reference = fire_behaviour_prediction(fbp_input, output="Primary")
+
+    for field in FBPPrimaryOutput._fields:
+        expected = (
+            _FD_CODE_BY_STRING[reference.fd] if field == "fd_code" else getattr(reference, field)
+        )
+        np.testing.assert_allclose(getattr(result, field), expected, rtol=1e-9, atol=1e-9)
