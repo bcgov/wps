@@ -122,7 +122,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent<UIEvent>
+      } as unknown as MapBrowserEvent
 
       // Manually trigger the handler
       mockMap.pointerMoveHandler!(mockEvent)
@@ -142,7 +142,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent<UIEvent>
+      } as unknown as MapBrowserEvent
 
       mockMap.pointerMoveHandler!(mockEvent)
 
@@ -156,7 +156,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent<UIEvent>
+      } as unknown as MapBrowserEvent
 
       // Should not throw error
       expect(() => mockMap.pointerMoveHandler!(mockEvent)).not.toThrow()
@@ -168,7 +168,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent<UIEvent>
+      } as unknown as MapBrowserEvent
 
       mockMap.pointerMoveHandler!(mockEvent)
 
@@ -192,7 +192,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent<UIEvent>
+      } as unknown as MapBrowserEvent
 
       mockMap.pointerMoveHandler!(mockEvent)
 
@@ -233,7 +233,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent<UIEvent>
+      } as unknown as MapBrowserEvent
 
       mockMap.pointerMoveHandler!(mockEvent)
 

@@ -58,7 +58,7 @@ export class RasterTooltipInteraction extends Interaction {
   /**
    * Handle pointer move events
    */
-  private handlePointerMove(event: MapBrowserEvent<UIEvent>) {
+  private handlePointerMove(event: MapBrowserEvent) {
     const map = event.map
     const pixel = map.getEventPixel(event.originalEvent) as [number, number]
 

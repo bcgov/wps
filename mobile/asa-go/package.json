@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "resolutions": {
-    "react-is": "19.2.7",
+    "react-is": "19.2.8",
     "vite": "^7.0.0"
   },
   "scripts": {
@@ -48,8 +48,8 @@
     "@mui/system": "^9.0.0",
     "@mui/x-data-grid-pro": "^9.0.0",
     "@reduxjs/toolkit": "^2.5.1",
-    "@sentry/capacitor": "^4.0.0",
-    "@sentry/react": "10.52.0",
+    "@sentry/capacitor": "^4.3.0",
+    "@sentry/react": "10.69.0",
     "@sentry/vite-plugin": "^5.2.0",
     "axios": "^1.7.9",
     "firebase": "^12.9.0",
@@ -62,12 +62,12 @@
     "pmtiles": "^4.2.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-is": "19.2.7",
+    "react-is": "19.2.8",
     "react-redux": "^9.2.0",
     "vitest": "^4.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.16",
+    "@biomejs/biome": "2.5.8",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "8.5.0",
     "@testing-library/dom": "^10.4.0",

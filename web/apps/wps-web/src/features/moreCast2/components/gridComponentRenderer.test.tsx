@@ -714,14 +714,15 @@ describe('GridComponentRenderer', () => {
         expect(getByTestId(`${param.colDef.field}-model-run-tooltip`)).toBeVisible()
       })
     })
-    describe.each(
-      WeatherDeterminateChoices.filter(determinate => !weatherModelsWithTooltips.includes(determinate))
-    )('should not render header with tooltip for bias determinate %s', determinate => {
-      const param = createMockParams(determinate)
-      it(`should not render header with tooltip for ${determinate}`, () => {
-        const { queryAllByTestId } = render(<div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>)
-        expect(queryAllByTestId(`${param.colDef.field}-model-run-tooltip`).length === 0)
-      })
-    })
+    describe.each(WeatherDeterminateChoices.filter(determinate => !weatherModelsWithTooltips.includes(determinate)))(
+      'should not render header with tooltip for bias determinate %s',
+      determinate => {
+        const param = createMockParams(determinate)
+        it(`should not render header with tooltip for ${determinate}`, () => {
+          const { queryAllByTestId } = render(<div>{gridComponentRenderer.renderHeaderWith(param, allRowsMock)}</div>)
+          expect(queryAllByTestId(`${param.colDef.field}-model-run-tooltip`).length === 0)
+        })
+      }
+    )
   })
 })
