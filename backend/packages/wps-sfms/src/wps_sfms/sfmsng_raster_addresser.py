@@ -5,13 +5,12 @@ Uses a `sfms_ng/` S3 root prefix, completely separate from the legacy
 `sfms/` storage used by RasterKeyAddresser.
 """
 
-from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Mapping
 
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     BaseRasterAddresser,
+    FBPParameter,
     FWIParameter,
     GDALPath,
     S3Key,
@@ -19,19 +18,7 @@ from wps_shared.sfms.raster_addresser import (
 )
 from wps_shared.utils.time import assert_all_utc
 
-
-@dataclass(frozen=True)
-class FWIInputs:
-    """All input key mappings and metadata needed for a single FWI calculation.
-
-    `weather_keys` and `index_keys` values are GDALPath values (/vsis3/...) for
-    reading via GDAL. `output_key` is a plain S3Key for writing via boto3.
-    """
-
-    weather_keys: Mapping[SFMSInterpolatedWeatherParameter, GDALPath]
-    index_keys: Mapping[FWIParameter, GDALPath]
-    output_key: S3Key
-    run_type: RunType
+from wps_sfms.raster_inputs import FWIInputs, SurfaceFuelConsumptionInputs
 
 
 class SFMSNGRasterAddresser(BaseRasterAddresser):
@@ -99,6 +86,40 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
     def get_forecast_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter) -> S3Key:
         """Compatibility wrapper for forecast FWI index raster keys."""
         return self.get_index_key(datetime_utc, fwi_param, RunType.FORECAST)
+
+    def get_fbp_key(
+        self, datetime_utc: datetime, fbp_param: FBPParameter, run_type: RunType
+    ) -> S3Key:
+        """S3 key for a calculated FBP parameter raster."""
+        assert_all_utc(datetime_utc)
+        date = datetime_utc.date()
+        date_str = date.isoformat().replace("-", "")
+        return S3Key(
+            f"{self.root}/{run_type.value}/{date.year:04d}/{date.month:02d}/{date.day:02d}/"
+            f"{fbp_param.value}_{date_str}.tif"
+        )
+
+    def get_surface_fuel_consumption_inputs(
+        self,
+        datetime_to_process: datetime,
+        run_type: RunType,
+        fuel_key: GDALPath,
+        percent_conifer_key: GDALPath,
+    ) -> SurfaceFuelConsumptionInputs:
+        """Build the raster dependencies for same-day SFC."""
+        assert_all_utc(datetime_to_process)
+        return SurfaceFuelConsumptionInputs(
+            fuel_key=fuel_key,
+            ffmc_key=self.gdal_path(
+                self.get_index_key(datetime_to_process, FWIParameter.FFMC, run_type)
+            ),
+            bui_key=self.gdal_path(
+                self.get_index_key(datetime_to_process, FWIParameter.BUI, run_type)
+            ),
+            percent_conifer_key=percent_conifer_key,
+            output_key=self.get_fbp_key(datetime_to_process, FBPParameter.SFC, run_type),
+            run_type=run_type,
+        )
 
     def get_fwi_inputs(
         self,

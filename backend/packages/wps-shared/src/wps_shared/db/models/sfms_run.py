@@ -12,11 +12,14 @@ from wps_shared.db.models.common import TZTimeStamp
 class SFMSRunLogJobName(str, enum.Enum):
     """Valid SFMS job names."""
 
+    # weather
     TEMPERATURE_INTERPOLATION = "temperature_interpolation"
     PRECIPITATION_INTERPOLATION = "precipitation_interpolation"
     RH_INTERPOLATION = "rh_interpolation"
     WIND_SPEED_INTERPOLATION = "wind_speed_interpolation"
     WIND_DIRECTION_INTERPOLATION = "wind_direction_interpolation"
+
+    # FWI
     FFMC_INTERPOLATION = "ffmc_interpolation"
     DMC_INTERPOLATION = "dmc_interpolation"
     DC_INTERPOLATION = "dc_interpolation"
@@ -26,6 +29,9 @@ class SFMSRunLogJobName(str, enum.Enum):
     ISI_CALCULATION = "isi_calculation"
     BUI_CALCULATION = "bui_calculation"
     FWI_CALCULATION = "fwi_calculation"
+
+    # FBP
+    SFC_CALCULATION = "sfc_calculation"
 
 
 class SFMSRunLogStatus(str, enum.Enum):

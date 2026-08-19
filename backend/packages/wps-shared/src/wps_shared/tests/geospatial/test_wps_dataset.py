@@ -231,6 +231,9 @@ def test_export_to_geotiff():
     ds_1 = create_test_dataset(
         "test_dataset_1.tif", 3, 3, extent1, 4326, data_type=gdal.GDT_Byte, fill_value=1
     )
+    source_band = ds_1.GetRasterBand(1)
+    source_band.SetDescription("surface_fuel_consumption")
+    source_band.SetUnitType("kg/m2")
 
     with WPSDataset(ds_path=None, ds=ds_1) as wps_ds:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -249,8 +252,11 @@ def test_export_to_geotiff():
                 assert wps_ds.as_gdal_ds().RasterYSize == exported_ds.as_gdal_ds().RasterYSize
 
                 original_values = wps_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
-                exported_values = exported_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
+                exported_band = exported_ds.as_gdal_ds().GetRasterBand(1)
+                exported_values = exported_band.ReadAsArray()
                 assert np.all(original_values == exported_values) == True
+                assert exported_band.GetDescription() == "surface_fuel_consumption"
+                assert exported_band.GetUnitType() == "kg/m2"
 
     ds_1 = None
 
@@ -517,7 +523,9 @@ class TestExtractValueAtPoint:
             assert ds.extract_value_at_point(lat=53.5, lon=-130.0005) is None
 
     def test_returns_none_when_pixel_is_nodata(self):
-        gdal_ds = create_test_dataset("test.tif", 10, 10, self._EXTENT, 4326, fill_value=1.0, no_data_value=-9999.0)
+        gdal_ds = create_test_dataset(
+            "test.tif", 10, 10, self._EXTENT, 4326, fill_value=1.0, no_data_value=-9999.0
+        )
         gdal_ds.GetRasterBand(1).WriteArray(np.array([[-9999.0]], dtype=np.float32), xoff=4, yoff=5)
         with WPSDataset(ds_path=None, ds=gdal_ds) as ds:
             assert ds.extract_value_at_point(lat=53.5, lon=-125.5) is None

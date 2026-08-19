@@ -368,6 +368,8 @@ class WPSDataset:
 
         output_band: gdal.Band = output_dataset.GetRasterBand(self.band)
         output_band.WriteArray(array)
+        output_band.SetDescription(band.GetDescription())
+        output_band.SetUnitType(band.GetUnitType())
 
         if nodata_value is not None:
             output_band.SetNoDataValue(nodata_value)
