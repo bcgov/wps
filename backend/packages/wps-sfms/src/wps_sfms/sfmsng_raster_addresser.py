@@ -5,7 +5,8 @@ Uses a `sfms_ng/` S3 root prefix, completely separate from the legacy
 `sfms/` storage used by RasterKeyAddresser.
 """
 
-from datetime import datetime, timedelta
+from collections.abc import Iterable
+from datetime import date, datetime, timedelta
 
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
@@ -18,7 +19,11 @@ from wps_shared.sfms.raster_addresser import (
 )
 from wps_shared.utils.time import assert_all_utc
 
-from wps_sfms.raster_inputs import FWIInputs, SurfaceFuelConsumptionInputs
+from wps_sfms.raster_inputs import (
+    FWIInputs,
+    FoliarMoistureContentInputs,
+    SurfaceFuelConsumptionInputs,
+)
 
 
 class SFMSNGRasterAddresser(BaseRasterAddresser):
@@ -97,6 +102,26 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         return S3Key(
             f"{self.root}/{run_type.value}/{date.year:04d}/{date.month:02d}/{date.day:02d}/"
             f"{fbp_param.value}_{date_str}.tif"
+        )
+
+    def get_fmc_key(self, target_date: date) -> S3Key:
+        """S3 key for the shared Foliar Moisture Content raster for one calendar date."""
+        date_str = target_date.strftime("%Y%m%d")
+        return S3Key(
+            f"{self.root}/static/fmc/{target_date.year:04d}/{target_date.month:02d}/"
+            f"{target_date.day:02d}/fmc_{date_str}.tif"
+        )
+
+    def get_fmc_inputs(self, target_dates: Iterable[date]) -> FoliarMoistureContentInputs:
+        """Build the static dependencies and output keys for daily FMC calculations."""
+        static_root = f"{self.root}/static"
+        return FoliarMoistureContentInputs(
+            elevation_key=self.gdal_path(S3Key(f"{static_root}/bc_elevation.tif")),
+            latitude_key=self.gdal_path(S3Key(f"{static_root}/latitude.tif")),
+            longitude_key=self.gdal_path(S3Key(f"{static_root}/longitude.tif")),
+            output_keys={
+                target_date: self.get_fmc_key(target_date) for target_date in target_dates
+            },
         )
 
     def get_surface_fuel_consumption_inputs(

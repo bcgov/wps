@@ -65,6 +65,7 @@ class MockDailyActualsDeps(NamedTuple):
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
     sfc_processor: MagicMock
+    ensure_fmc_rasters: AsyncMock
     wfwx_api: MagicMock
     addresser: MagicMock
 
@@ -120,6 +121,10 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_addresser = MagicMock()
     mock_addresser.s3_prefix = "/vsis3/test-bucket"
     mocker.patch(f"{MODULE_PATH}.SFMSNGRasterAddresser", return_value=mock_addresser)
+    mock_ensure_fmc_rasters = mocker.patch(
+        f"{MODULE_PATH}.ensure_fmc_rasters",
+        new_callable=AsyncMock,
+    )
     # Mock processors
     mock_temp_processor = MagicMock(spec=TemperatureInterpolator)
     mock_temp_processor.process = AsyncMock(return_value="sfms/interpolated/2024/07/04/temp.tif")
@@ -185,6 +190,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
         sfc_processor=mock_sfc_processor,
+        ensure_fmc_rasters=mock_ensure_fmc_rasters,
         wfwx_api=mock_wfwx_api,
         addresser=mock_addresser,
     )
@@ -223,6 +229,20 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.wind_speed_processor.process.assert_called_once()
         mock_dependencies.wind_direction_processor.process.assert_called_once()
         mock_dependencies.interpolation_processor.process.assert_called_once()
+
+    @pytest.mark.anyio
+    async def test_ensures_shared_fmc_for_target_date(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        target_date = datetime(2024, 7, 4, hour=10, minute=30, tzinfo=timezone.utc)
+
+        await run_sfms_daily_actuals(target_date)
+
+        mock_dependencies.ensure_fmc_rasters.assert_awaited_once_with(
+            [target_date.date()],
+            mock_dependencies.addresser,
+            mock_dependencies.s3_client,
+        )
 
     @pytest.mark.anyio
     async def test_runs_processors_in_order(self, mock_dependencies: MockDailyActualsDeps):

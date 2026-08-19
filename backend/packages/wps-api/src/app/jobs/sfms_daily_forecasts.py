@@ -13,6 +13,7 @@ import sys
 from datetime import date, datetime, timedelta, timezone
 
 from aiohttp import ClientSession
+from wps_sfms.processors.foliar_moisture_content import ensure_fmc_rasters
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
@@ -91,6 +92,12 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
     datetimes_to_process = forecast_datetimes(seed_actual_date)
 
     async with S3Client() as s3_client:
+        await ensure_fmc_rasters(
+            [datetime_to_process.date() for datetime_to_process in datetimes_to_process],
+            raster_addresser,
+            s3_client,
+        )
+
         missing_actual_seed_keys = await get_missing_fwi_seed_keys(
             datetimes_to_process[0],
             raster_addresser,
