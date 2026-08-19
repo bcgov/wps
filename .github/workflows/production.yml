@@ -39,17 +39,12 @@ jobs:
             const pr = pulls.data.find( ({state}) => state === 'open')
             core.exportVariable('SUFFIX', `pr-${pr.number}`);
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Log public IP address
-        run: |
-          echo -e "Public IPv4:"
-          curl -s https://api.ipify.org
-          echo -e "\nPublic IPv4(v6):"
-          curl -s https://api64.ipify.org
-      - name: Install OpenShift CLI tools
-        uses: redhat-actions/openshift-tools-installer@e3b32c2ab7b064b2ce189121c4a49f509a99a7b4 # v3
+      - uses: ./.github/actions/oc-setup
+      - uses: ./.github/actions/oc-login
         with:
-          oc: "4.14"
-          skip_cache: true
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_PROD_TOKEN }}
+          oc-namespace: e1e498-prod
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
@@ -58,8 +53,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Provision to production
         run: |
-          echo Login
-          oc login "${{ secrets.OPENSHIFT_CLUSTER }}" --token="${{ secrets.OC4_PROD_TOKEN }}"
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
 
       - uses: ./.github/actions/gwa-setup
