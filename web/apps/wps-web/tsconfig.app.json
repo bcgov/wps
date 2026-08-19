@@ -4,7 +4,6 @@
     "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom", "@wps/types"],
     "noUnusedLocals": false,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
       "@wps/api/*": ["../../packages/api/src/*"],
       "@wps/ui/*": ["../../packages/ui/src/*"],
