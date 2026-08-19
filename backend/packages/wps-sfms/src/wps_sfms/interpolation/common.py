@@ -4,10 +4,9 @@ Common utilities for SFMS interpolation modules.
 
 import logging
 
-
 logger = logging.getLogger(__name__)
 
-SFMS_NO_DATA = -3.4028235e+38
+SFMS_NO_DATA = -3.4028235e38
 
 
 def log_interpolation_stats(

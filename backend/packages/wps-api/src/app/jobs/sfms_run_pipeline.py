@@ -27,6 +27,7 @@ from wps_sfms.processors.fwi import (
 )
 from wps_sfms.processors.idw import Interpolator, RasterProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
+from wps_sfms.processors.surface_fuel_consumption import SurfaceFuelConsumptionProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
@@ -34,7 +35,11 @@ from wps_shared.db.crud.sfms_run import track_sfms_run
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
-from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
+from wps_shared.sfms.raster_addresser import (
+    FWIParameter,
+    GDALPath,
+    SFMSInterpolatedWeatherParameter,
+)
 from wps_shared.utils.s3_client import S3Client
 
 logger = logging.getLogger(__name__)
@@ -85,7 +90,7 @@ async def _process_raster_job(
     await _run_tracked_job(job_name, sfms_run_id, session, _run)
 
 
-async def _missing_seed_keys(
+async def get_missing_fwi_seed_keys(
     datetime_to_process: datetime,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
@@ -100,6 +105,50 @@ async def _missing_seed_keys(
             missing_keys.append(f"{param.value}={key}")
 
     return missing_keys
+
+
+async def _resolve_percent_conifer_path(
+    fuel_raster_year: int,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+) -> GDALPath:
+    """Resolve the percent-conifer raster matching the selected fuel-grid year."""
+    key = raster_addresser.get_percent_conifer_key(fuel_raster_year)
+    if await s3_client.object_exists(key):
+        logger.info("Using percent-conifer raster: %s", key)
+        return raster_addresser.gdal_path(key)
+
+    raise RuntimeError(
+        f"No percent-conifer raster found for fuel-grid year {fuel_raster_year}: {key}"
+    )
+
+
+async def run_fbp_calculations(
+    datetime_to_process: datetime,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+    fuel_raster_path: GDALPath,
+    fuel_raster_year: int,
+    sfms_run_id: int,
+    session,
+    run_type: RunType,
+) -> None:
+    """Run the same-day FBP calculation chain."""
+    percent_conifer_path = await _resolve_percent_conifer_path(
+        fuel_raster_year, raster_addresser, s3_client
+    )
+    inputs = raster_addresser.get_surface_fuel_consumption_inputs(
+        datetime_to_process,
+        run_type,
+        fuel_raster_path,
+        percent_conifer_path,
+    )
+    processor = SurfaceFuelConsumptionProcessor(datetime_to_process)
+
+    async def _run() -> None:
+        await processor.process(s3_client, multi_wps_dataset_context, inputs)
+
+    await _run_tracked_job(SFMSRunLogJobName.SFC_CALCULATION, sfms_run_id, session, _run)
 
 
 async def run_weather_interpolation(
@@ -295,11 +344,11 @@ async def run_fwi_calculations(
     run_type: RunType,
     previous_base_run_type: RunType | None = None,
     raise_on_missing_seed_keys: bool = False,
-) -> None:
+) -> bool:
     """Calculate the full FWI chain from weather and previous-day seeds."""
     month = datetime_to_process.month
     seed_run_type = previous_base_run_type or run_type
-    missing_previous_keys = await _missing_seed_keys(
+    missing_previous_keys = await get_missing_fwi_seed_keys(
         datetime_to_process,
         raster_addresser,
         s3_client,
@@ -318,7 +367,7 @@ async def run_fwi_calculations(
             datetime_to_process.date(),
             message,
         )
-        return
+        return False
 
     full_fwi_calculators = (
         FFMCCalculator(),
@@ -338,6 +387,7 @@ async def run_fwi_calculations(
         run_type,
         previous_base_run_type=previous_base_run_type,
     )
+    return True
 
 
 async def run_derived_fwi_calculations(

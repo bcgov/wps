@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from time import perf_counter
-from typing import Callable, ContextManager, Iterator, List, Mapping, NamedTuple
+from typing import Callable, ContextManager, Generator, List, Mapping, NamedTuple
 
 import numpy as np
 from cffdrs_vec.fwi import (
@@ -23,16 +23,16 @@ from cffdrs_vec.fwi import (
     vectorized_fwi,
     vectorized_isi,
 )
-from osgeo import gdal
 from wps_shared.geospatial.geospatial import rasters_match
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
-from wps_shared.utils.s3 import set_s3_gdal_config
+from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
-from wps_sfms.sfmsng_raster_addresser import FWIInputs
+from wps_sfms.raster_inputs import FWIInputs
+from wps_sfms.raster_output import create_masked_output_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -319,7 +319,7 @@ class FWIProcessor:
         input_dataset_context: MultiDatasetContext,
         weather_keys_by_param: Mapping[SFMSInterpolatedWeatherParameter, str],
         index_keys_by_param: Mapping[FWIParameter, str],
-    ) -> Iterator[FWIDatasets]:
+    ) -> Generator[FWIDatasets, None, None]:
         """
         Open all required weather/index dependency rasters and yield them as `FWIDatasets`.
 
@@ -347,7 +347,7 @@ class FWIProcessor:
         input_dataset_context: MultiDatasetContext,
         calculator: FWICalculator,
         fwi_inputs: FWIInputs,
-    ):
+    ) -> None:
         """
         Calculate a single FWI index from the provided dependencies.
 
@@ -356,7 +356,21 @@ class FWIProcessor:
         :param calculator: FWICalculator instance that performs the index calculation
         :param fwi_inputs: Dependency keys and metadata for this calculation
         """
-        set_s3_gdal_config()
+        with gdal_s3_context():
+            await self._calculate_index(
+                s3_client,
+                input_dataset_context,
+                calculator,
+                fwi_inputs,
+            )
+
+    async def _calculate_index(
+        self,
+        s3_client: S3Client,
+        input_dataset_context: MultiDatasetContext,
+        calculator: FWICalculator,
+        fwi_inputs: FWIInputs,
+    ) -> None:
 
         # get only the dependency keys required by this calculator.
         # ex: ISI uses FFMC + wind speed, while BUI uses DMC + DC.
@@ -407,10 +421,9 @@ class FWIProcessor:
 
             result = calculator.calculate(datasets)
 
-            with WPSDataset.from_array(
+            with create_masked_output_dataset(
                 result.values,
-                reference_ds.as_gdal_ds().GetGeoTransform(),
-                reference_ds.as_gdal_ds().GetProjection(),
+                reference_ds,
                 result.nodata_value,
             ) as output_ds:
                 published = await publish_dataset(
@@ -426,6 +439,3 @@ class FWIProcessor:
                 published.output_key,
                 published.cog_key,
             )
-
-            # Clear gdal virtual file system cache of S3 metadata.
-            gdal.VSICurlClearCache()

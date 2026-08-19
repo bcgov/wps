@@ -3,7 +3,11 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, extract_date_from_prefix
+from wps_shared.utils.s3 import (
+    apply_retention_policy_on_date_folders,
+    extract_date_from_prefix,
+    gdal_s3_context,
+)
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
@@ -20,6 +24,28 @@ def old_folder_prefix():
     today = get_utc_now().date()
     folder_date = today - timedelta(days=10)
     return f"data/{folder_date.strftime('%Y-%m-%d')}/"
+
+
+def test_gdal_s3_context_configures_and_clears_cache(mocker):
+    configure = mocker.patch("wps_shared.utils.s3.set_s3_gdal_config")
+    clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
+
+    with gdal_s3_context():
+        pass
+
+    configure.assert_called_once_with()
+    clear_cache.assert_called_once_with()
+
+
+def test_gdal_s3_context_clears_cache_after_failure(mocker):
+    clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
+    error = RuntimeError("calculation failed")
+
+    with pytest.raises(RuntimeError, match="calculation failed"):
+        with gdal_s3_context():
+            raise error
+
+    clear_cache.assert_called_once_with()
 
 
 @pytest.mark.anyio

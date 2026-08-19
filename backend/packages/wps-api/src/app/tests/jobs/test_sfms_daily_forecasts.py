@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
+from wps_sfms.processors.surface_fuel_consumption import SurfaceFuelConsumptionProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
@@ -43,6 +44,7 @@ class MockDailyForecastsDeps(NamedTuple):
     wind_direction_processor: MagicMock
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
+    sfc_processor: MagicMock
     wfwx_api: MagicMock
     addresser: MagicMock
     save_sfms_run: AsyncMock
@@ -68,6 +70,7 @@ def mock_dependencies(
     mocker.patch(f"{MODULE_PATH}.WfwxApi", return_value=mock_wfwx_api)
 
     mock_fuel_type_raster = MagicMock()
+    mock_fuel_type_raster.year = 2024
     mock_fuel_type_raster.object_store_path = "sfms/fuel/2024/fuel.tif"
     mock_get_fuel_type_raster_by_year = mocker.patch(
         f"{MODULE_PATH}.get_fuel_type_raster_by_year",
@@ -117,6 +120,12 @@ def mock_dependencies(
     mock_fwi_processor.calculate_index = AsyncMock(return_value=None)
     mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
 
+    mock_sfc_processor = MagicMock(spec=SurfaceFuelConsumptionProcessor)
+    mock_sfc_processor.process = AsyncMock(return_value=None)
+    mocker.patch(
+        f"{PIPELINE_PATH}.SurfaceFuelConsumptionProcessor", return_value=mock_sfc_processor
+    )
+
     db_session = MagicMock(spec=AsyncSession)
     db_execute_result = MagicMock()
     db_execute_result.scalar = MagicMock(return_value=1)
@@ -138,6 +147,7 @@ def mock_dependencies(
         wind_direction_processor=mock_wind_direction_processor,
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
+        sfc_processor=mock_sfc_processor,
         wfwx_api=mock_wfwx_api,
         addresser=mock_addresser,
         save_sfms_run=mock_save_sfms_run,
@@ -210,6 +220,7 @@ class TestRunSfmsDailyForecasts:
         assert mock_dependencies.wind_direction_processor.process.call_count == 3
         assert mock_dependencies.interpolation_processor.process.call_count == 3
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 18
+        assert mock_dependencies.sfc_processor.process.call_count == 3
         mock_dependencies.get_fuel_type_raster_by_year.assert_awaited_once()
         assert mock_dependencies.get_fuel_type_raster_by_year.call_args.args[1] == 2024
 

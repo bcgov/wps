@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -5,16 +6,16 @@ from unittest.mock import AsyncMock
 import numpy as np
 import pytest
 from pytest_mock import MockerFixture
-
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
-from wps_sfms.sfmsng_raster_addresser import FWIInputs
 from wps_shared.tests.geospatial.dataset_common import (
     create_mock_input_dataset_context,
+    create_mock_wps_dataset,
     create_test_dataset,
 )
 from wps_shared.utils.s3_client import S3Client
+
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.processors.fwi import (
     BUICalculator,
@@ -25,10 +26,25 @@ from wps_sfms.processors.fwi import (
     FWIDatasets,
     FWIFinalCalculator,
     FWIProcessor,
+    FWIResult,
     ISICalculator,
 )
+from wps_sfms.raster_inputs import FWIInputs
 
 TEST_DATETIME = datetime(2024, 10, 10, 20, tzinfo=timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def output_mask(mocker: MockerFixture):
+    mask = create_mock_wps_dataset()
+
+    @contextmanager
+    def mask_context():
+        yield mask
+
+    mocker.patch("wps_sfms.raster_output.open_bc_mask_dataset", side_effect=mask_context)
+    yield mask
+    mask.close()
 
 
 @pytest.mark.parametrize("month", range(1, 13))
@@ -100,6 +116,7 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
         new=AsyncMock(),
     )
     rasters_match_spy = mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
+    clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
 
     async with S3Client() as mock_s3_client:
         mock_all_objects_exist = AsyncMock(return_value=True)
@@ -117,18 +134,36 @@ async def test_fwi_processor_ffmc(mocker: MockerFixture):
 
         assert publish_spy.call_count == 1
         assert publish_spy.await_args.kwargs["output_key"] == fwi_inputs.output_key
+        clear_cache.assert_called_once_with()
 
 
 @pytest.mark.anyio
-async def test_fwi_processor_publishes_sfms_nodata_metadata(mocker: MockerFixture):
+async def test_fwi_processor_masks_calculated_value_and_sets_nodata_metadata(
+    mocker: MockerFixture,
+    output_mask: WPSDataset,
+):
+    """Test that the calculation produced a number (42), the BC mask excluded that pixel, and the published value became nodata."""
     processor = FWIProcessor(TEST_DATETIME)
     fwi_inputs = make_fwi_inputs(FWIParameter.FFMC)
     _, mock_input_dataset_context = create_mock_input_dataset_context(5)
+    calculator = FFMCCalculator()
+    mocker.patch.object(
+        calculator,
+        "calculate",
+        return_value=FWIResult(
+            values=np.array([[42.0]], dtype=np.float32),
+            nodata_value=SFMS_NO_DATA,
+        ),
+    )
+    output_mask.as_gdal_ds().GetRasterBand(1).WriteArray(np.array([[0]], dtype=np.float32))
     captured_nodata = None
+    captured_value = None
 
     async def capture_publish_dataset(*, dataset, output_key, **_kwargs):
-        nonlocal captured_nodata
-        captured_nodata = dataset.as_gdal_ds().GetRasterBand(1).GetNoDataValue()
+        nonlocal captured_nodata, captured_value
+        output_band = dataset.as_gdal_ds().GetRasterBand(1)
+        captured_nodata = output_band.GetNoDataValue()
+        captured_value = output_band.ReadAsArray()[0, 0]
         return SimpleNamespace(output_key=output_key, cog_key=None)
 
     mocker.patch("wps_sfms.processors.fwi.rasters_match", return_value=True)
@@ -138,10 +173,11 @@ async def test_fwi_processor_publishes_sfms_nodata_metadata(mocker: MockerFixtur
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
 
         await processor.calculate_index(
-            mock_s3_client, mock_input_dataset_context, FFMCCalculator(), fwi_inputs
+            mock_s3_client, mock_input_dataset_context, calculator, fwi_inputs
         )
 
     assert captured_nodata == pytest.approx(SFMS_NO_DATA)
+    assert captured_value == pytest.approx(SFMS_NO_DATA)
 
 
 @pytest.mark.anyio
@@ -419,6 +455,7 @@ async def test_fwi_processor_cog_failure_propagates(mocker: MockerFixture):
         "wps_sfms.processors.fwi.publish_dataset",
         side_effect=RuntimeError("COG generation failed"),
     )
+    clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
 
     async with S3Client() as mock_s3_client:
         mocker.patch.object(mock_s3_client, "all_objects_exist", new=AsyncMock(return_value=True))
@@ -429,6 +466,7 @@ async def test_fwi_processor_cog_failure_propagates(mocker: MockerFixture):
             )
 
         publish_spy.assert_called_once()
+        clear_cache.assert_called_once_with()
 
 
 class TestFWINodeataPropagation:

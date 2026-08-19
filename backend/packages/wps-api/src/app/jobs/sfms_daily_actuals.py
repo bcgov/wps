@@ -26,10 +26,8 @@ from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.jobs.sfms_run_pipeline import (
-    FWICalculationJob,
-    RasterInterpolationJob,
-    _missing_seed_keys,
     run_derived_fwi_calculations,
+    run_fbp_calculations,
     run_fwi_calculations,
     run_fwi_interpolation,
     run_weather_interpolation,
@@ -114,11 +112,24 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                     session,
                     RunType.ACTUAL,
                 )
+                fwi_calculated = True
             else:
-                await run_fwi_calculations(
+                fwi_calculated = await run_fwi_calculations(
                     datetime_to_process,
                     raster_addresser,
                     s3_client,
+                    sfms_run_id,
+                    session,
+                    RunType.ACTUAL,
+                )
+
+            if fwi_calculated:
+                await run_fbp_calculations(
+                    datetime_to_process,
+                    raster_addresser,
+                    s3_client,
+                    fuel_raster_path,
+                    fuel_type_raster.year,
                     sfms_run_id,
                     session,
                     RunType.ACTUAL,

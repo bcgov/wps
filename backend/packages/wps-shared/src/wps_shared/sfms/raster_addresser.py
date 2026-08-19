@@ -30,6 +30,10 @@ class FWIParameter(enum.Enum):
     FWI = "fwi"
 
 
+class FBPParameter(enum.Enum):
+    SFC = "sfc"
+
+
 class BaseRasterAddresser:
     """S3/GDAL utilities shared across raster key addressers."""
 
@@ -57,6 +61,10 @@ class BaseRasterAddresser:
     def get_mask_key(self) -> GDALPath:
         """GDAL virtual file system path to the BC boundary mask raster."""
         return GDALPath(f"{self.s3_prefix}/sfms/static/bc_mask.tif")
+
+    def get_percent_conifer_key(self, year: int) -> S3Key:
+        """S3 key for a yearly mixedwood percent-conifer raster."""
+        return S3Key(f"sfms/static/m12_{year}.tif")
 
     def get_fuel_raster_key(self, datetime_utc: datetime, version: int) -> S3Key:
         """S3 key for a versioned fuel type raster."""

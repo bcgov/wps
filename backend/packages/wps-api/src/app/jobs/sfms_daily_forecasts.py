@@ -30,7 +30,8 @@ from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.jobs.sfms_run_pipeline import (
-    _missing_seed_keys,
+    get_missing_fwi_seed_keys,
+    run_fbp_calculations,
     run_fwi_calculations,
     run_weather_interpolation,
 )
@@ -90,7 +91,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
     datetimes_to_process = forecast_datetimes(seed_actual_date)
 
     async with S3Client() as s3_client:
-        missing_actual_seed_keys = await _missing_seed_keys(
+        missing_actual_seed_keys = await get_missing_fwi_seed_keys(
             datetimes_to_process[0],
             raster_addresser,
             s3_client,
@@ -156,6 +157,16 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                             RunType.FORECAST,
                             previous_base_run_type=previous_base_run_type,
                             raise_on_missing_seed_keys=True,
+                        )
+                        await run_fbp_calculations(
+                            datetime_to_process,
+                            raster_addresser,
+                            s3_client,
+                            fuel_raster_path,
+                            fuel_type_raster.year,
+                            sfms_run_id,
+                            write_session,
+                            RunType.FORECAST,
                         )
 
     logger.info("SFMS daily forecasts completed successfully from %s", run_datetime.date())
