@@ -1,0 +1,133 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "CronJob",
+  "metadata": {
+    "labels": {
+      "app": "wps-__SUFFIX__",
+      "app.kubernetes.io/part-of": "wps"
+    },
+    "name": "partitioner-wps-__SUFFIX__"
+  },
+  "spec": {
+    "concurrencyPolicy": "Replace",
+    "jobTemplate": {
+      "metadata": {
+        "labels": {
+          "app": "wps-__SUFFIX__",
+          "cronjob": "partitioner-wps-__SUFFIX__"
+        }
+      },
+      "spec": {
+        "template": {
+          "spec": {
+            "containers": [
+              {
+                "command": [
+                  "bash",
+                  "partition_and_archive.sh",
+                  "wps"
+                ],
+                "env": [
+                  {
+                    "name": "PG_USER",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "key": "user",
+                        "name": "wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PG_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "key": "password",
+                        "name": "wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PG_HOSTNAME",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "key": "pgbouncer-host",
+                        "name": "wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PG_PORT",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "key": "pgbouncer-port",
+                        "name": "wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PG_DATABASE",
+                    "value": "wps"
+                  },
+                  {
+                    "name": "AWS_HOSTNAME",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "key": "object-store-server",
+                        "name": "wps-global"
+                      }
+                    }
+                  },
+                  {
+                    "name": "AWS_ACCESS_KEY",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "key": "object-store-user-id",
+                        "name": "wps-global"
+                      }
+                    }
+                  },
+                  {
+                    "name": "AWS_SECRET_KEY",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "key": "object-store-secret",
+                        "name": "wps-global"
+                      }
+                    }
+                  },
+                  {
+                    "name": "AWS_BUCKET",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "key": "object-store-bucket",
+                        "name": "wps-global"
+                      }
+                    }
+                  },
+                  {
+                    "name": "SUFFIX",
+                    "value": "__SUFFIX__"
+                  }
+                ],
+                "image": "image-registry.openshift-image-registry.svc:5000/e1e498-tools/pgslice:prod",
+                "imagePullPolicy": "Always",
+                "name": "partitioner-wps-__SUFFIX__",
+                "resources": {
+                  "limits": {
+                    "memory": "256Mi"
+                  },
+                  "requests": {
+                    "cpu": "256m",
+                    "memory": "128Mi"
+                  }
+                }
+              }
+            ],
+            "restartPolicy": "OnFailure"
+          }
+        }
+      }
+    },
+    "schedule": "0 6 1 * *"
+  }
+}

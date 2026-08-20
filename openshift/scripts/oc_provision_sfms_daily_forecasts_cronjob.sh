@@ -32,13 +32,18 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 # Schedule: 15:00 UTC (8:00 AM PDT)
 SCHEDULE="${SCHEDULE:-0 15 * * *}"
 
-# Optional suffix to distinguish multiple forecast schedules for the same deployment.
+# Optional suffix to distinguish multiple forecast schedules for the same deployment,
+# e.g. "8am" vs "545pm" -- folded into the name prefix, same convention
+# oc_provision_wx_4panel_charts_cronjob.sh uses for its MODEL variant, so every cronjob
+# script's JOB_NAME ends the same way: <prefix>-${APP_NAME}-${SUFFIX}. (Previously a
+# one-off ${JOB_NAME_SUFFIX} derived variable, which put ${SUFFIX} in an unexpected
+# place -- confirmed live: this quietly broke a hand-generated Kustomize base that
+# assumed the standard pattern.)
 JOB_SUFFIX="${JOB_SUFFIX:-}"
-JOB_NAME_SUFFIX="${SUFFIX}${JOB_SUFFIX:+-${JOB_SUFFIX}}"
 
 # Process template
 OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/sfms_daily_forecasts.cronjob.yaml -o yaml \
--p JOB_NAME=sfms-forecast-${APP_NAME}-${JOB_NAME_SUFFIX} \
+-p JOB_NAME=sfms-forecast${JOB_SUFFIX:+-${JOB_SUFFIX}}-${APP_NAME}-${SUFFIX} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \

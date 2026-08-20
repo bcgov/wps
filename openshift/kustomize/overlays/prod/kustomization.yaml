@@ -1,0 +1,73 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: e1e498-prod
+
+resources:
+  - ../../base/cronjobs
+
+# Prod-specific overrides. Every value here is taken directly from the explicit
+# MEMORY_REQUEST/MEMORY_LIMIT overrides in oc_deploy_to_production.sh (harden-oc-deploys) --
+# every CronJob not listed here uses the base's (the template's own default) values
+# unchanged, same as prod always has for those.
+patches:
+  - target:
+      kind: CronJob
+      name: env-canada-gdps-wps-__SUFFIX__
+    patch: |-
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/requests/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/limits/memory
+        value: 2Gi
+  - target:
+      kind: CronJob
+      name: env-canada-hrdps-wps-__SUFFIX__
+    patch: |-
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/requests/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/limits/memory
+        value: 2Gi
+  - target:
+      kind: CronJob
+      name: env-canada-rdps-wps-__SUFFIX__
+    patch: |-
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/requests/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/limits/memory
+        value: 2Gi
+  - target:
+      kind: CronJob
+      name: sfms-daily-actuals-wps-__SUFFIX__
+    patch: |-
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/requests/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/limits/memory
+        value: 2Gi
+  - target:
+      kind: CronJob
+      name: sfms-forecast-wps-__SUFFIX__-8am
+    patch: |-
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/requests/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/limits/memory
+        value: 2Gi
+  - target:
+      kind: CronJob
+      name: sfms-forecast-wps-__SUFFIX__-545pm
+    patch: |-
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/requests/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/resources/limits/memory
+        value: 2Gi

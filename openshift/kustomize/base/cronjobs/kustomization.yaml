@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# 20 independent CronJobs -- same set already batched into one `oc apply` on
+# harden-oc-deploys; this replaces that hand-rolled batching with the standard tool.
+# Generated from openshift/templates/*.cronjob.yaml via `oc process --local` (see
+# generate.py in this directory) rather than transcribed by hand, to avoid copy errors
+# across ~20 templates -- written as JSON (valid Kubernetes YAML) rather than actual
+# YAML syntax, since that's genuinely what oc process --local -o json produces and
+# labeling it .yaml when it's JSON was misleading. __SUFFIX__ and __NAMESPACE__ are
+# literal placeholder tokens substituted by the caller at apply time (see
+# openshift/kustomize/README.md) -- SUFFIX is genuinely dynamic per CI run in both
+# environments, so it can't be baked in here the way the rest of these values can.
+resources:
+  - ecmwf.json
+  - env-canada-gdps.json
+  - env-canada-hrdps.json
+  - env-canada-rdps.json
+  - fire-watch-weather.json
+  - grass-curing.json
+  - hourly-prune.json
+  - noaa-gfs.json
+  - noaa-nam.json
+  - partitioner.json
+  - rdps-sfms.json
+  - s3-data-retention.json
+  - sfms-daily-actuals.json
+  - sfms-forecast-545pm.json
+  - sfms-forecast-8am.json
+  - sfms-fwi-calc.json
+  - viirs-snow.json
+  - wfwx-hourly-actuals.json
+  - wfwx-noon-forecasts.json
+  - wx-4panel-charts-gdps.json
+  - wx-4panel-charts-rdps.json

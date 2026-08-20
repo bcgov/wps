@@ -64,84 +64,29 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.
 echo Fuel Grid Install
 PROJ_TARGET=${PROJ_TARGET} FUEL_RASTER_YEAR=2026 FUEL_GRID_INSTALL_SUSPEND=true bash $(dirname ${0})/oc_provision_fuel_grid_install_job.sh prod ${RUN_TYPE}
 
-# Temporary batch file to apply all cronjobs in one call, to avoid hitting the OpenShift API rate limit.
-BATCH_FILE=$(mktemp)
+# 20 independent CronJobs, migrated to Kustomize (openshift/kustomize/ -- see its
+# README) -- this replaces the hand-rolled batch-file mechanism entirely. `oc kustomize`
+# is a fully local render (unlike `oc process`, confirmed this week to hit the API
+# server by default); SUFFIX is substituted with a plain sed pass since it's genuinely
+# dynamic per run, not something Kustomize's static overlays can express.
+echo "Applying batched CronJobs via Kustomize..."
+if [ "${RUN_TYPE}" = "apply" ]; then
+	oc kustomize $(dirname ${0})/../kustomize/overlays/prod \
+		| sed "s/__SUFFIX__/${SUFFIX}/g; s/__NAMESPACE__/${PROJ_TARGET}/g" \
+		| oc -n ${PROJ_TARGET} apply -f -
+else
+	oc kustomize $(dirname ${0})/../kustomize/overlays/prod \
+		| sed "s/__SUFFIX__/${SUFFIX}/g; s/__NAMESPACE__/${PROJ_TARGET}/g" \
+		| oc -n ${PROJ_TARGET} apply -f - --dry-run
+fi
 
-echo S3 Data Retention
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_s3_data_retention.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo Env Canada Subscriber
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_rdps_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo NOAA Subscriber
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo ECMWF Subscriber
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ecmwf_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo VIIRS Snow
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_viirs_snow_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo Grass Curing
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_grass_curing_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo RDPS for SFMS
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_rdps_sfms_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo SFMS Raster Calculations
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_calculations_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo SFMS Daily Actuals
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_sfms_daily_actuals_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo SFMS Forecast 15:00 UTC- 8:00 AM PDT
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=8am SCHEDULE="0 15 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo SFMS Forecast 00:45 UTC - 5:45 PM PDT
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=545pm SCHEDULE="45 0 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo Fire Watch Weather Calculations
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_fire_watch_weather_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo BC FireWeather cronjobs
-echo "Run forecast at 8h30 PDT and 16h30 PDT (so before and after noon)"
-PROJ_TARGET=${PROJ_TARGET} SCHEDULE="30 * * * *" bash $(dirname ${0})/oc_provision_wfwx_noon_forecasts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-PROJ_TARGET=${PROJ_TARGET} SCHEDULE="15 * * * *" bash $(dirname ${0})/oc_provision_wfwx_hourly_actuals_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo "Configure partitioner to run every month on day 1 at 00:00"
-PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 6 1 * *" bash $(dirname ${0})/oc_provision_partitioner_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
+# Not yet migrated (see openshift/kustomize/README.md): backup_s3_postgres_cronjob's
+# param wiring doesn't follow the pattern every other cronjob script does, and needs
+# individual investigation before converting.
 echo Configure backups
-PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo Configure hourly pruner
-PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 2 * * *" bash $(dirname ${0})/oc_provision_hourly_prune_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo Configure GDPS 4panel charts
-PROJ_TARGET=${PROJ_TARGET} END_HOUR=240 STEP=6 MODEL=GDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-echo Configure RDPS 4panel charts
-PROJ_TARGET=${PROJ_TARGET} END_HOUR=84 STEP=3 MODEL=RDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh prod | oc -n ${PROJ_TARGET} apply -f -
 
 echo Logging alerts
-cat $(dirname ${0})/../logging-alerts/nats_alerts.yaml >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-cat $(dirname ${0})/../logging-alerts/sfms_alerts.yaml >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-oc -n ${PROJ_TARGET} process -f $(dirname ${0})/../logging-alerts/oom_alerts.yaml -o yaml -p NAMESPACE=e1e498-prod -p SEVERITY=critical >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-
-echo "Applying batched manifests in one call..."
-if [ "${RUN_TYPE}" = "apply" ]; then
-	oc -n ${PROJ_TARGET} apply -f "${BATCH_FILE}"
-else
-	oc -n ${PROJ_TARGET} apply -f "${BATCH_FILE}" --dry-run
-fi
+cat $(dirname ${0})/../logging-alerts/nats_alerts.yaml | oc -n ${PROJ_TARGET} apply -f -
+cat $(dirname ${0})/../logging-alerts/sfms_alerts.yaml | oc -n ${PROJ_TARGET} apply -f -
+oc -n ${PROJ_TARGET} process -f $(dirname ${0})/../logging-alerts/oom_alerts.yaml -o yaml -p NAMESPACE=e1e498-prod -p SEVERITY=critical | oc -n ${PROJ_TARGET} apply -f -
