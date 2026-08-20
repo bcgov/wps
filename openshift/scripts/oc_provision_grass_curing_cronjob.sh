@@ -41,8 +41,6 @@ ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
 ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"} \
 -p PROJECT_NAMESPACE=${PROJ_TARGET}"
 
-# Render the manifest to stdout. Applying it -- individually, batched with others,
-# for real or as a dry run -- is entirely the caller's concern, not this script's.
-# See oc_deploy_to_production.sh.
+# Render the manifest to stdout.
 #
 eval "${OC_PROCESS}"

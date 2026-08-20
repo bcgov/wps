@@ -33,8 +33,6 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/s3_retention.cronjo
 -p SUFFIX=${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\""
 
-# Render the manifest to stdout. Applying it -- individually, batched with others,
-# for real or as a dry run -- is entirely the caller's concern, not this script's.
-# See oc_deploy_to_production.sh.
+# Render the manifest to stdout.
 #
 eval "${OC_PROCESS}"

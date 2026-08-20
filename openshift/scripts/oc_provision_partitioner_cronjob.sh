@@ -35,8 +35,6 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/partitioner.cronjob
 -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"}"
 
-# Render the manifest to stdout. Applying it -- individually, batched with others,
-# for real or as a dry run -- is entirely the caller's concern, not this script's.
-# See oc_deploy_to_production.sh.
+# Render the manifest to stdout.
 #
 eval "${OC_PROCESS}"
