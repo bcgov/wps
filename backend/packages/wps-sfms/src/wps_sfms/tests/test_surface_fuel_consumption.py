@@ -17,7 +17,7 @@ from wps_sfms.processors.surface_fuel_consumption import (
     calculate_surface_fuel_consumption,
 )
 from wps_sfms.raster_inputs import SurfaceFuelConsumptionInputs
-from wps_sfms.tests.raster_test_utils import TEST_NODATA, create_test_wps_dataset
+from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 TEST_DATETIME = datetime(2024, 7, 4, 20, tzinfo=timezone.utc)
 
@@ -37,7 +37,7 @@ def make_datasets(
         bui=create_test_wps_dataset("bui.tif", bui if bui is not None else np.full(shape, 60.0)),
         percent_conifer=create_test_wps_dataset(
             "percent_conifer.tif",
-            percent_conifer if percent_conifer is not None else np.full(shape, TEST_NODATA),
+            percent_conifer if percent_conifer is not None else np.full(shape, TEST_INPUT_NODATA),
         ),
     )
 
@@ -78,7 +78,7 @@ def test_calculation_matches_cffdrs_reference(
 
 
 def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
-    fuel = np.array([[99, 102, TEST_NODATA]], dtype=np.float32)
+    fuel = np.array([[99, 102, TEST_INPUT_NODATA]], dtype=np.float32)
     datasets = make_datasets(fuel)
 
     result = calculate_surface_fuel_consumption(datasets)
@@ -89,8 +89,8 @@ def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
 def test_non_fuel_becomes_zero_when_weather_is_nodata():
     datasets = make_datasets(
         np.array([[99, 102]], dtype=np.float32),
-        ffmc=np.full((1, 2), TEST_NODATA, dtype=np.float32),
-        bui=np.full((1, 2), TEST_NODATA, dtype=np.float32),
+        ffmc=np.full((1, 2), TEST_INPUT_NODATA, dtype=np.float32),
+        bui=np.full((1, 2), TEST_INPUT_NODATA, dtype=np.float32),
     )
 
     result = calculate_surface_fuel_consumption(datasets)
@@ -101,8 +101,8 @@ def test_non_fuel_becomes_zero_when_weather_is_nodata():
 def test_weather_nodata_propagates_to_output():
     datasets = make_datasets(
         np.array([[1, 2]], dtype=np.float32),
-        ffmc=np.array([[TEST_NODATA, 90]], dtype=np.float32),
-        bui=np.array([[60, TEST_NODATA]], dtype=np.float32),
+        ffmc=np.array([[TEST_INPUT_NODATA, 90]], dtype=np.float32),
+        bui=np.array([[60, TEST_INPUT_NODATA]], dtype=np.float32),
     )
 
     result = calculate_surface_fuel_consumption(datasets)

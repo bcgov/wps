@@ -4,13 +4,14 @@ import numpy as np
 from osgeo import gdal, osr
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
-TEST_NODATA = -9999.0
+# use an input nodata value that differs from SFMS_NO_DATA to verify output normalization
+TEST_INPUT_NODATA = -9999.0
 
 
 def create_test_wps_dataset(
     path: str,
     values: np.ndarray,
-    nodata: float = TEST_NODATA,
+    nodata: float = TEST_INPUT_NODATA,
 ) -> WPSDataset:
     """Create an in-memory float raster on the standard SFMS test grid."""
     rows, columns = values.shape

@@ -17,7 +17,7 @@ from wps_sfms.processors.foliar_moisture_content import (
     ensure_fmc_rasters,
 )
 from wps_sfms.raster_inputs import FoliarMoistureContentInputs
-from wps_sfms.tests.raster_test_utils import TEST_NODATA, create_test_wps_dataset
+from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 MODULE_PATH = "wps_sfms.processors.foliar_moisture_content"
 
@@ -63,9 +63,9 @@ def test_calculation_matches_cffdrs_and_normalizes_western_longitude():
 
 def test_static_input_nodata_propagates_to_output():
     datasets = make_datasets(
-        np.array([[TEST_NODATA, 100.0, 100.0]], dtype=np.float32),
-        latitude=np.array([[49.0, TEST_NODATA, 49.0]], dtype=np.float32),
-        longitude=np.array([[-123.0, -123.0, TEST_NODATA]], dtype=np.float32),
+        np.array([[TEST_INPUT_NODATA, 100.0, 100.0]], dtype=np.float32),
+        latitude=np.array([[49.0, TEST_INPUT_NODATA, 49.0]], dtype=np.float32),
+        longitude=np.array([[-123.0, -123.0, TEST_INPUT_NODATA]], dtype=np.float32),
     )
 
     result = calculate_foliar_moisture_content(datasets, date(2024, 7, 4))
@@ -209,13 +209,12 @@ async def test_processor_rejects_static_grid_that_mismatches_fuel(
         "wps_sfms.processors.foliar_moisture_content.publish_dataset",
         new=AsyncMock(),
     )
+    processor = FoliarMoistureContentProcessor()
+    input_context = make_dataset_context(datasets, context_calls)
+    action = processor.process(s3_client, input_context, inputs)
 
     with pytest.raises(ValueError, match=f"{mismatched_label} raster does not match the fuel grid"):
-        await FoliarMoistureContentProcessor().process(
-            s3_client,
-            make_dataset_context(datasets, context_calls),
-            inputs,
-        )
+        await action
 
     publish.assert_not_awaited()
 
@@ -224,13 +223,11 @@ async def test_processor_rejects_static_grid_that_mismatches_fuel(
 async def test_processor_rejects_missing_static_dependency():
     inputs = make_inputs(date(2024, 7, 4))
     s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=False))
+    processor = FoliarMoistureContentProcessor()
+    action = processor.process(s3_client, lambda _keys: None, inputs)
 
     with pytest.raises(RuntimeError, match="Missing FMC dependencies"):
-        await FoliarMoistureContentProcessor().process(
-            s3_client,
-            lambda _keys: None,
-            inputs,
-        )
+        await action
 
     s3_client.all_objects_exist.assert_awaited_once_with(
         inputs.fuel_key,

@@ -8,7 +8,7 @@ from osgeo import gdal, osr
 from pytest_mock import MockerFixture
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
-from wps_sfms.tests.raster_test_utils import TEST_NODATA, create_test_wps_dataset
+from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def create_test_raster(
     data: Optional[np.ndarray] = None,
     epsg: int = 4326,
     fill_value: float = 1.0,
-    nodata: float = TEST_NODATA,
+    nodata: float = TEST_INPUT_NODATA,
 ):
     """
     Create a test GeoTIFF raster in memory using GDAL's /vsimem/ filesystem.
