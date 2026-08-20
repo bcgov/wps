@@ -1,0 +1,32 @@
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: WFWX_AUTH_URL
+    valueFrom:
+      configMapKeyRef:
+        key: env.wfwx-auth-url
+        name: wps-global
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: WFWX_BASE_URL
+    valueFrom:
+      configMapKeyRef:
+        key: env.wfwx-base-url
+        name: wps-global
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: WFWX_USER
+    valueFrom:
+      configMapKeyRef:
+        key: env.wfwx-user
+        name: wps-global
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: WFWX_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: wfwx-secret
+        name: wps-global

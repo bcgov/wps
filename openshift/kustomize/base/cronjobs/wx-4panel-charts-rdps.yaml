@@ -4,6 +4,8 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
+    wps.bcgov/env-uv: 'true'
+    wps.bcgov/env-postgres: 'true'
   name: wx-4panel-charts-rdps-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace
@@ -32,38 +34,6 @@ spec:
             - --model
             - RDPS
             env:
-            - name: UV_NO_CACHE
-              value: '1'
-            - name: POSTGRES_READ_USER
-              valueFrom:
-                secretKeyRef:
-                  key: user
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_WRITE_USER
-              valueFrom:
-                secretKeyRef:
-                  key: user
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_WRITE_HOST
-              valueFrom:
-                secretKeyRef:
-                  key: pgbouncer-host
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_READ_HOST
-              valueFrom:
-                secretKeyRef:
-                  key: pgbouncer-host
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_PORT
-              valueFrom:
-                secretKeyRef:
-                  key: pgbouncer-port
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
             - name: OBJECT_STORE_SERVER
               valueFrom:
                 secretKeyRef:

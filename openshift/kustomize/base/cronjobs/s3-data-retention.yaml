@@ -4,6 +4,7 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
+    wps.bcgov/env-uv: 'true'
   name: s3-retention-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace
@@ -24,8 +25,6 @@ spec:
             - -m
             - wps_weather.s3_data_retention
             env:
-            - name: UV_NO_CACHE
-              value: '1'
             - name: OBJECT_STORE_SERVER
               valueFrom:
                 secretKeyRef:

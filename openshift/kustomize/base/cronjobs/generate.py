@@ -165,8 +165,31 @@ RESOURCES = [
 # TAG_NAME come from undocumented env vars, not derived the way every other script does it) --
 # skipped from this generation pass; needs individual investigation, noted in the summary.
 
+# Groups of env vars baked identically into several Templates (same wps-global/wps-redis/
+# wps-crunchydb secrets, referenced the same way). Deduped here into shared Kustomize
+# patches (see COMMON_ENV_PATCH_DIR below) instead of repeated in every base file. A group
+# is only stripped from a resource when every var in it is present with a byte-identical
+# value to every other resource that has it -- a resource missing part of a group, or with
+# a differing value, keeps its own copy untouched and doesn't get the label.
+COMMON_ENV_GROUPS = {
+    "wps.bcgov/env-global": ["CHATOPS_URL", "CHATOPS_AUTH_TOKEN", "OPENSHIFT_CONSOLE_URL"],
+    "wps.bcgov/env-uv": ["UV_NO_CACHE"],
+    "wps.bcgov/env-postgres": [
+        "POSTGRES_READ_USER", "POSTGRES_WRITE_USER", "POSTGRES_PASSWORD",
+        "POSTGRES_WRITE_HOST", "POSTGRES_READ_HOST", "POSTGRES_PORT",
+    ],
+    "wps.bcgov/env-redis": [
+        "REDIS_HOST", "REDIS_PORT", "REDIS_USE", "REDIS_PASSWORD",
+        "REDIS_STATION_CACHE_EXPIRY", "REDIS_AUTH_CACHE_EXPIRY",
+    ],
+    "wps.bcgov/env-wfwx": ["WFWX_AUTH_URL", "WFWX_BASE_URL", "WFWX_USER", "WFWX_SECRET"],
+    "wps.bcgov/env-objectstore": [
+        "OBJECT_STORE_SERVER", "OBJECT_STORE_USER_ID", "OBJECT_STORE_SECRET", "OBJECT_STORE_BUCKET",
+    ],
+}
+
 os.makedirs(OUT_DIR, exist_ok=True)
-resource_names = []
+rendered = []
 for name, template, params in RESOURCES:
     cmd = ["oc", "process", "-f", f"{TEMPLATE_DIR}/{template}", "--local", "-o", "json"]
     for k, v in params.items():
@@ -175,18 +198,70 @@ for name, template, params in RESOURCES:
     if result.returncode != 0:
         print(f"FAILED: {name}\n{result.stderr}")
         continue
-    # oc process wraps single objects in a List; unwrap to the bare object for a cleaner base
-    # file. Written as YAML to match every other manifest in openshift/ -- pyyaml is already
-    # a backend dependency (see backend/uv.lock), so this doesn't add a new one.
     doc = json.loads(result.stdout)
     items = doc.get("items", [])
     if len(items) != 1:
         print(f"WARNING: {name} rendered {len(items)} items, expected 1")
+    rendered.append((name, items[0]))
+
+# First pass: record the canonical (first-seen) value of every candidate common env var.
+canonical = {}
+for _, item in rendered:
+    env = item["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0].get("env", [])
+    by_name = {e["name"]: e for e in env}
+    for names in COMMON_ENV_GROUPS.values():
+        for var in names:
+            if var in by_name and var not in canonical:
+                canonical[var] = by_name[var]
+
+# Second pass: strip each group from a resource's env only if every var in it matches
+# canonical exactly, and record which group patches are actually used by anything.
+groups_in_use = set()
+for name, item in rendered:
+    container = item["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]
+    env = container.get("env", [])
+    by_name = {e["name"]: e for e in env}
+    for label, names in COMMON_ENV_GROUPS.items():
+        if all(var in by_name and by_name[var] == canonical[var] for var in names):
+            container["env"] = [e for e in container["env"] if e["name"] not in names]
+            item.setdefault("metadata", {}).setdefault("labels", {})[label] = "true"
+            groups_in_use.add(label)
+
+resource_names = []
+for name, item in rendered:
+    # oc process wraps single objects in a List; unwrap to the bare object for a cleaner base
+    # file. Written as YAML to match every other manifest in openshift/ -- pyyaml is already
+    # a backend dependency (see backend/uv.lock), so this doesn't add a new one.
     out_path = f"{OUT_DIR}/{name}.yaml"
     with open(out_path, "w") as f:
-        yaml.dump(items[0], f, default_flow_style=False, sort_keys=False)
+        yaml.dump(item, f, default_flow_style=False, sort_keys=False)
     resource_names.append(name)
     print(f"OK: {name}")
 
-print(f"\n{len(resource_names)} base files generated")
+# Emit one JSON6902 patch per group actually used, appending its env vars back onto
+# whichever resources the label-selector target matches -- see kustomization.yaml's
+# `patches:` list, which references these by filename. JSON6902 "add to array" ops work by
+# index, not by container name, so this doesn't run into strategic-merge's container-name
+# mergeKey (which differs per resource and would silently add a second container instead of
+# merging). Not regenerated for groups nothing uses, so an empty/unused patch file never
+# lingers if a future Template change removes the last resource that needed it.
+for label, names in COMMON_ENV_GROUPS.items():
+    patch_path = f"{OUT_DIR}/{label.split('/')[-1]}.patch.yaml"
+    if label not in groups_in_use:
+        if os.path.exists(patch_path):
+            os.remove(patch_path)
+        continue
+    ops = [
+        {
+            "op": "add",
+            "path": "/spec/jobTemplate/spec/template/spec/containers/0/env/-",
+            "value": canonical[var],
+        }
+        for var in names
+    ]
+    with open(patch_path, "w") as f:
+        yaml.dump(ops, f, default_flow_style=False, sort_keys=False)
+    print(f"PATCH: {patch_path}")
+
+print(f"\n{len(resource_names)} base files generated, {len(groups_in_use)} common-env patches emitted")
 print(resource_names)

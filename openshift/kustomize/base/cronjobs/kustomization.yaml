@@ -31,3 +31,34 @@ resources:
   - wfwx-noon-forecasts.yaml
   - wx-4panel-charts-gdps.yaml
   - wx-4panel-charts-rdps.yaml
+
+# Env vars baked identically into several Templates (same wps-global/wps-redis/wps-crunchydb
+# secrets, referenced the same way) -- deduped out of the base files above via generate.py
+# and reattached here as JSON6902 "append to env" patches, targeted by the label generate.py
+# adds only where a resource's whole group matched byte-for-byte. See generate.py's
+# COMMON_ENV_GROUPS for which vars are in each group and why JSON6902 (not strategic merge).
+patches:
+  - path: env-global.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-global=true
+  - path: env-uv.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-uv=true
+  - path: env-postgres.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-postgres=true
+  - path: env-redis.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-redis=true
+  - path: env-wfwx.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-wfwx=true
+  - path: env-objectstore.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-objectstore=true

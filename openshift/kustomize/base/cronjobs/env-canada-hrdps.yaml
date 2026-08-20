@@ -4,6 +4,11 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
+    wps.bcgov/env-global: 'true'
+    wps.bcgov/env-uv: 'true'
+    wps.bcgov/env-postgres: 'true'
+    wps.bcgov/env-redis: 'true'
+    wps.bcgov/env-wfwx: 'true'
   name: env-canada-hrdps-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Forbid
@@ -27,109 +32,12 @@ spec:
             - weather_model_jobs.env_canada
             - HRDPS
             env:
-            - name: UV_NO_CACHE
-              value: '1'
-            - name: POSTGRES_READ_USER
-              valueFrom:
-                secretKeyRef:
-                  key: user
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_WRITE_USER
-              valueFrom:
-                secretKeyRef:
-                  key: user
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_WRITE_HOST
-              valueFrom:
-                secretKeyRef:
-                  key: pgbouncer-host
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_READ_HOST
-              valueFrom:
-                secretKeyRef:
-                  key: pgbouncer-host
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_PORT
-              valueFrom:
-                secretKeyRef:
-                  key: pgbouncer-port
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
             - name: POSTGRES_DATABASE
               value: wps
-            - name: CHATOPS_URL
-              valueFrom:
-                secretKeyRef:
-                  key: chatops-url
-                  name: wps-global
-            - name: CHATOPS_AUTH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  key: chatops-auth-token
-                  name: wps-global
-            - name: OPENSHIFT_CONSOLE_URL
-              valueFrom:
-                configMapKeyRef:
-                  key: env.openshift-console-url
-                  name: wps-global
             - name: PROJECT_NAMESPACE
               value: __NAMESPACE__
             - name: WFWX_MAX_PAGE_SIZE
               value: '1000'
-            - name: WFWX_AUTH_URL
-              valueFrom:
-                configMapKeyRef:
-                  key: env.wfwx-auth-url
-                  name: wps-global
-            - name: WFWX_BASE_URL
-              valueFrom:
-                configMapKeyRef:
-                  key: env.wfwx-base-url
-                  name: wps-global
-            - name: WFWX_USER
-              valueFrom:
-                configMapKeyRef:
-                  key: env.wfwx-user
-                  name: wps-global
-            - name: WFWX_SECRET
-              valueFrom:
-                secretKeyRef:
-                  key: wfwx-secret
-                  name: wps-global
-            - name: REDIS_HOST
-              valueFrom:
-                configMapKeyRef:
-                  key: env.redis-host
-                  name: wps-global
-            - name: REDIS_PORT
-              valueFrom:
-                configMapKeyRef:
-                  key: env.redis-port
-                  name: wps-global
-            - name: REDIS_USE
-              valueFrom:
-                configMapKeyRef:
-                  key: env.redis-use
-                  name: wps-global
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: database-password
-                  name: wps-redis
-            - name: REDIS_STATION_CACHE_EXPIRY
-              valueFrom:
-                configMapKeyRef:
-                  key: env.redis-station-cache-expiry
-                  name: wps-global
-            - name: REDIS_AUTH_CACHE_EXPIRY
-              valueFrom:
-                configMapKeyRef:
-                  key: env.redis-auth-cache-expiry
-                  name: wps-global
             - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
               valueFrom:
                 configMapKeyRef:

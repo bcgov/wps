@@ -1,0 +1,32 @@
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: OBJECT_STORE_SERVER
+    valueFrom:
+      secretKeyRef:
+        key: object-store-server
+        name: wps-global
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: OBJECT_STORE_USER_ID
+    valueFrom:
+      secretKeyRef:
+        key: object-store-user-id
+        name: wps-global
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: OBJECT_STORE_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: object-store-secret
+        name: wps-global
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: OBJECT_STORE_BUCKET
+    valueFrom:
+      secretKeyRef:
+        key: object-store-bucket
+        name: wps-global

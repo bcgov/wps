@@ -1,0 +1,5 @@
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: UV_NO_CACHE
+    value: '1'
