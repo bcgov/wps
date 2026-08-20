@@ -8,8 +8,7 @@ from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_wf1.parsers import (
     parse_hourly_actual,
-    sfms_daily_actuals_mapper,
-    sfms_daily_forecasts_mapper,
+    sfms_daily_mapper,
 )
 
 TEST_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
@@ -120,12 +119,13 @@ class TestParseHourlyActual:
         assert hourly_actual.precipitation is math.nan
 
 
-class TestSfmsDailyActualsMapper:
+class TestSfmsDailyMapper:
     def test_maps_actual_with_all_weather_fields(self):
         raw = _make_raw_daily(
             100,
             elevation=150,
             temperature=15.0,
+            dewPoint=5.0,
             relativeHumidity=50.0,
             precipitation=2.5,
             windSpeed=10.0,
@@ -135,7 +135,7 @@ class TestSfmsDailyActualsMapper:
             droughtCode=200.0,
         )
 
-        result = sfms_daily_actuals_mapper([raw])
+        result = sfms_daily_mapper([raw])
 
         assert len(result) == 1
         assert result[0] == SFMSDaily(
@@ -146,6 +146,7 @@ class TestSfmsDailyActualsMapper:
             lon=-123.0,
             elevation=150,
             temperature=15.0,
+            dewpoint=5.0,
             relative_humidity=50.0,
             precipitation=2.5,
             wind_speed=10.0,
@@ -158,7 +159,7 @@ class TestSfmsDailyActualsMapper:
     def test_maps_none_weather_fields(self):
         raw = _make_raw_daily(100)
 
-        result = sfms_daily_actuals_mapper([raw])
+        result = sfms_daily_mapper([raw])
 
         assert len(result) == 1
         actual = result[0]
@@ -174,7 +175,7 @@ class TestSfmsDailyActualsMapper:
     def test_maps_manual_record_type_as_actual(self):
         raw = _make_raw_daily(100, record_type="MANUAL", temperature=15.0)
 
-        result = sfms_daily_actuals_mapper([raw])
+        result = sfms_daily_mapper([raw])
 
         assert len(result) == 1
         assert result[0].code == 100
@@ -182,40 +183,46 @@ class TestSfmsDailyActualsMapper:
         assert result[0].run_type == RunTypeEnum.actual
         assert result[0].temperature == approx(15.0)
 
-    def test_filters_forecast_record_type(self):
+    def test_maps_forecast_record_type(self):
         raw = _make_raw_daily(100, record_type="FORECAST", temperature=20.0)
 
-        assert sfms_daily_actuals_mapper([raw]) == []
+        result = sfms_daily_mapper([raw])
+
+        assert len(result) == 1
+        assert result[0].run_type == RunTypeEnum.forecast
 
     def test_filters_inactive_station(self):
         raw = _make_raw_daily(100, status="INACTIVE", temperature=20.0)
 
-        assert sfms_daily_actuals_mapper([raw]) == []
+        assert sfms_daily_mapper([raw]) == []
 
     @pytest.mark.parametrize("status", ["TEST", "PROJECT"])
     def test_filters_non_active_station(self, status):
         raw = _make_raw_daily(100, status=status, temperature=20.0)
 
-        assert sfms_daily_actuals_mapper([raw]) == []
+        assert sfms_daily_mapper([raw]) == []
 
     def test_filters_invalid_site_type(self):
         raw = _make_raw_daily(100, site_type="UNKNOWN_TYPE", temperature=20.0)
 
-        assert sfms_daily_actuals_mapper([raw]) == []
+        assert sfms_daily_mapper([raw]) == []
+
+    def test_filters_unknown_record_type(self):
+        raw = _make_raw_daily(100, record_type="UNKNOWN", temperature=20.0)
+
+        assert sfms_daily_mapper([raw]) == []
 
     def test_filters_missing_site_type(self):
         raw = _make_raw_daily(100, temperature=20.0)
         del raw["stationData"]["siteType"]
 
-        assert sfms_daily_actuals_mapper([raw]) == []
+        assert sfms_daily_mapper([raw]) == []
 
     def test_filters_station_with_null_coordinates(self):
         raw = _make_raw_daily(100, lat=None, lon=None, temperature=20.0)
 
-        assert sfms_daily_actuals_mapper([raw]) == []
+        assert sfms_daily_mapper([raw]) == []
 
-
-class TestSfmsDailyForecastsMapper:
     def test_maps_forecast_and_computes_dewpoint(self):
         raw = _make_raw_daily(
             100,
@@ -231,7 +238,7 @@ class TestSfmsDailyForecastsMapper:
             droughtCode=200.0,
         )
 
-        result = sfms_daily_forecasts_mapper([raw])
+        result = sfms_daily_mapper([raw])
 
         assert len(result) == 1
         forecast = result[0]
@@ -251,20 +258,21 @@ class TestSfmsDailyForecastsMapper:
         assert forecast.dmc is None
         assert forecast.dc is None
 
-    def test_filters_actual_record_type(self):
+    def test_maps_actual_record_type(self):
         raw = _make_raw_daily(100, record_type="ACTUAL", temperature=20.0)
 
-        assert sfms_daily_forecasts_mapper([raw]) == []
+        result = sfms_daily_mapper([raw])
 
-    def test_filters_manual_record_type(self):
+        assert len(result) == 1
+        assert result[0].run_type == RunTypeEnum.actual
+
+    def test_maps_manual_record_type(self):
         raw = _make_raw_daily(100, record_type="MANUAL", temperature=20.0)
 
-        assert sfms_daily_forecasts_mapper([raw]) == []
+        result = sfms_daily_mapper([raw])
 
-    def test_filters_station_with_null_coordinates(self):
-        raw = _make_raw_daily(100, record_type="FORECAST", lat=None, lon=None, temperature=20.0)
-
-        assert sfms_daily_forecasts_mapper([raw]) == []
+        assert len(result) == 1
+        assert result[0].run_type == RunTypeEnum.actual
 
     def test_forecast_uses_daily_station_metadata(self):
         raw = _make_raw_daily(
@@ -277,35 +285,46 @@ class TestSfmsDailyForecastsMapper:
             relativeHumidity=50.0,
         )
 
-        result = sfms_daily_forecasts_mapper([raw])
+        result = sfms_daily_mapper([raw])
 
         assert result[0].lat == pytest.approx(51.0)
         assert result[0].lon == pytest.approx(-121.0)
         assert result[0].elevation == 250
 
     def test_empty_raw_dailies(self):
-        assert sfms_daily_forecasts_mapper([]) == []
+        assert sfms_daily_mapper([]) == []
 
     def test_multiple_stations_mixed_records(self):
         raw_dailies = [
             _make_raw_daily(100, temperature=10.0),
             _make_raw_daily(200, record_type="FORECAST", temperature=20.0),
-            _make_raw_daily(200, lat=50.0, lon=-124.0, elevation=300, temperature=25.0),
+            _make_raw_daily(
+                200,
+                record_type="MANUAL",
+                lat=50.0,
+                lon=-124.0,
+                elevation=300,
+                temperature=25.0,
+            ),
             _make_raw_daily(100, status="INACTIVE", temperature=30.0),
         ]
 
-        result = sfms_daily_actuals_mapper(raw_dailies)
+        result = sfms_daily_mapper(raw_dailies)
 
-        assert len(result) == 2
+        assert len(result) == 3
         assert result[0].code == 100
         assert result[0].temperature == pytest.approx(10.0)
         assert result[1].code == 200
-        assert result[1].temperature == pytest.approx(25.0)
+        assert result[1].run_type == RunTypeEnum.forecast
+        assert result[1].temperature == pytest.approx(20.0)
+        assert result[2].code == 200
+        assert result[2].run_type == RunTypeEnum.actual
+        assert result[2].temperature == pytest.approx(25.0)
 
     def test_actuals_uses_daily_station_metadata(self):
         raw = _make_raw_daily(100, lat=49.0, lon=-123.0, elevation=150, temperature=5.0)
 
-        result = sfms_daily_actuals_mapper([raw])
+        result = sfms_daily_mapper([raw])
 
         assert result[0].lat == pytest.approx(49.0)
         assert result[0].lon == pytest.approx(-123.0)

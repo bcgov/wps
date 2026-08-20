@@ -119,7 +119,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
 
                 async with get_async_write_session_scope() as write_session:
                     for index, datetime_to_process in enumerate(datetimes_to_process):
-                        sfms_forecasts = await wfwx_api.get_sfms_daily_forecasts_all_stations(
+                        sfms_forecasts = await wfwx_api.get_sfms_daily_weather_all_stations(
                             datetime_to_process
                         )
                         if not sfms_forecasts:

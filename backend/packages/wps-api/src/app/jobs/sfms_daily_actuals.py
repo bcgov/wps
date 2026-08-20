@@ -67,7 +67,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
         # Fetch station observations from WF1
         async with ClientSession() as session:
             wfwx_api = WfwxApi(session)
-            sfms_actuals = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime_to_process)
+            sfms_actuals = await wfwx_api.get_sfms_daily_weather_all_stations(datetime_to_process)
 
         if not sfms_actuals:
             raise RuntimeError(f"No station observations found for {datetime_to_process}")
