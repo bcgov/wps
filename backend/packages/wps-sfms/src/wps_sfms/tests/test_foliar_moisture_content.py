@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock
 import cffdrs.foliar_moisture_content
 import numpy as np
 import pytest
-from osgeo import gdal, osr
 from pytest_mock import MockerFixture
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
@@ -18,35 +17,9 @@ from wps_sfms.processors.foliar_moisture_content import (
     ensure_fmc_rasters,
 )
 from wps_sfms.raster_inputs import FoliarMoistureContentInputs
+from wps_sfms.tests.raster_test_utils import TEST_NODATA, create_test_wps_dataset
 
-NODATA = -9999.0
 MODULE_PATH = "wps_sfms.processors.foliar_moisture_content"
-
-
-def make_dataset(path: str, values: np.ndarray, nodata: float = NODATA) -> WPSDataset:
-    rows, columns = values.shape
-    dataset = gdal.GetDriverByName("MEM").Create("", columns, rows, 1, gdal.GDT_Float32)
-    dataset.SetGeoTransform((0, 2_000, 0, 10_000, 0, -2_000))
-    spatial_reference = osr.SpatialReference()
-    spatial_reference.ImportFromEPSG(3005)
-    dataset.SetProjection(spatial_reference.ExportToWkt())
-    band = dataset.GetRasterBand(1)
-    band.SetNoDataValue(nodata)
-    band.WriteArray(values)
-    return WPSDataset(ds_path=path, ds=dataset)
-
-
-@pytest.fixture(autouse=True)
-def output_mask(mocker: MockerFixture):
-    mask = make_dataset("mask.tif", np.ones((1, 1), dtype=np.float32))
-
-    @contextmanager
-    def mask_context():
-        yield mask
-
-    mocker.patch("wps_sfms.raster_output.open_bc_mask_dataset", side_effect=mask_context)
-    yield mask
-    mask.close()
 
 
 def make_datasets(
@@ -56,13 +29,13 @@ def make_datasets(
 ) -> FoliarMoistureContentDatasets:
     shape = elevation.shape
     return FoliarMoistureContentDatasets(
-        fuel=make_dataset("fuel.tif", np.ones(shape, dtype=np.float32)),
-        elevation=make_dataset("elevation.tif", elevation),
-        latitude=make_dataset(
+        fuel=create_test_wps_dataset("fuel.tif", np.ones(shape, dtype=np.float32)),
+        elevation=create_test_wps_dataset("elevation.tif", elevation),
+        latitude=create_test_wps_dataset(
             "latitude.tif",
             latitude if latitude is not None else np.full(shape, 49.0),
         ),
-        longitude=make_dataset(
+        longitude=create_test_wps_dataset(
             "longitude.tif",
             longitude if longitude is not None else np.full(shape, -123.0),
         ),
@@ -90,9 +63,9 @@ def test_calculation_matches_cffdrs_and_normalizes_western_longitude():
 
 def test_static_input_nodata_propagates_to_output():
     datasets = make_datasets(
-        np.array([[NODATA, 100.0, 100.0]], dtype=np.float32),
-        latitude=np.array([[49.0, NODATA, 49.0]], dtype=np.float32),
-        longitude=np.array([[-123.0, -123.0, NODATA]], dtype=np.float32),
+        np.array([[TEST_NODATA, 100.0, 100.0]], dtype=np.float32),
+        latitude=np.array([[49.0, TEST_NODATA, 49.0]], dtype=np.float32),
+        longitude=np.array([[-123.0, -123.0, TEST_NODATA]], dtype=np.float32),
     )
 
     result = calculate_foliar_moisture_content(datasets, date(2024, 7, 4))
@@ -136,6 +109,7 @@ def make_dataset_context(datasets: FoliarMoistureContentDatasets, calls: list[li
 @pytest.mark.anyio
 async def test_processor_loads_static_inputs_once_and_publishes_each_date_with_metadata(
     mocker: MockerFixture,
+    output_mask: WPSDataset,
 ):
     target_dates = (date(2024, 5, 30), date(2024, 5, 31))
     inputs = make_inputs(*target_dates)
@@ -267,7 +241,10 @@ async def test_processor_rejects_missing_static_dependency():
 
 
 @pytest.mark.anyio
-async def test_processor_publish_failure_propagates_and_clears_cache(mocker: MockerFixture):
+async def test_processor_publish_failure_propagates_and_clears_cache(
+    mocker: MockerFixture,
+    output_mask: WPSDataset,
+):
     inputs = make_inputs(date(2024, 7, 4))
     datasets = make_datasets(np.array([[100.0]], dtype=np.float32))
     context_calls = []
@@ -309,8 +286,8 @@ async def test_ensure_fmc_rasters_skips_complete_dates_and_processes_missing_dat
         f"{MODULE_PATH}.FoliarMoistureContentProcessor",
         return_value=processor,
     )
-    fuel = make_dataset("fuel.tif", np.ones((1, 1), dtype=np.float32))
-    existing_fmc = make_dataset("fmc.tif", np.ones((1, 1), dtype=np.float32))
+    fuel = create_test_wps_dataset("fuel.tif", np.ones((1, 1), dtype=np.float32))
+    existing_fmc = create_test_wps_dataset("fmc.tif", np.ones((1, 1), dtype=np.float32))
 
     open_dataset = mocker.patch(f"{MODULE_PATH}.WPSDataset", side_effect=[fuel, existing_fmc])
 
@@ -352,8 +329,8 @@ async def test_ensure_fmc_rasters_does_not_load_static_inputs_when_all_outputs_m
     s3_client = MagicMock()
     s3_client.all_objects_exist = AsyncMock(return_value=True)
     processor_class = mocker.patch(f"{MODULE_PATH}.FoliarMoistureContentProcessor")
-    fuel = make_dataset("fuel.tif", np.ones((1, 1), dtype=np.float32))
-    existing_fmc = make_dataset("fmc.tif", np.ones((1, 1), dtype=np.float32))
+    fuel = create_test_wps_dataset("fuel.tif", np.ones((1, 1), dtype=np.float32))
+    existing_fmc = create_test_wps_dataset("fmc.tif", np.ones((1, 1), dtype=np.float32))
 
     mocker.patch(f"{MODULE_PATH}.WPSDataset", side_effect=[fuel, existing_fmc])
 
@@ -375,8 +352,8 @@ async def test_ensure_fmc_rasters_rejects_existing_output_that_mismatches_fuel(
     s3_client = MagicMock()
     s3_client.all_objects_exist = AsyncMock(return_value=True)
     processor_class = mocker.patch(f"{MODULE_PATH}.FoliarMoistureContentProcessor")
-    fuel = make_dataset("fuel.tif", np.ones((1, 1), dtype=np.float32))
-    existing_fmc = make_dataset("fmc.tif", np.ones((2, 1), dtype=np.float32))
+    fuel = create_test_wps_dataset("fuel.tif", np.ones((1, 1), dtype=np.float32))
+    existing_fmc = create_test_wps_dataset("fmc.tif", np.ones((2, 1), dtype=np.float32))
 
     mocker.patch(f"{MODULE_PATH}.WPSDataset", side_effect=[fuel, existing_fmc])
     action = ensure_fmc_rasters([target_date], "fuel.tif", addresser, s3_client)
