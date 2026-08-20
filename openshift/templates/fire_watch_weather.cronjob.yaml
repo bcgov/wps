@@ -121,23 +121,6 @@ objects:
                           key: pgbouncer-port
                     - name: POSTGRES_DATABASE
                       value: ${POSTGRES_DATABASE}
-                    - name: CHATOPS_URL
-                      valueFrom:
-                        secretKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: chatops-url
-                    - name: CHATOPS_AUTH_TOKEN
-                      valueFrom:
-                        secretKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: chatops-auth-token
-                    - name: OPENSHIFT_CONSOLE_URL
-                      valueFrom:
-                        configMapKeyRef:
-                          name: ${GLOBAL_NAME}
-                          key: env.openshift-console-url
-                    - name: PROJECT_NAMESPACE
-                      value: ${PROJECT_NAMESPACE}
                     - name: WFWX_MAX_PAGE_SIZE
                       value: ${WFWX_MAX_PAGE_SIZE}
                     - name: WFWX_AUTH_URL
