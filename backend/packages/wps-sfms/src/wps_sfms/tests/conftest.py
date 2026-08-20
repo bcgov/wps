@@ -1,7 +1,28 @@
+from collections.abc import Generator
+from contextlib import contextmanager
 from typing import Optional
 
 import numpy as np
+import pytest
 from osgeo import gdal, osr
+from pytest_mock import MockerFixture
+from wps_shared.geospatial.wps_dataset import WPSDataset
+
+from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
+
+
+@pytest.fixture
+def output_mask(mocker: MockerFixture) -> Generator[WPSDataset, None, None]:
+    """Provide and patch the final BC output mask used by processor tests."""
+    mask = create_test_wps_dataset("mask.tif", np.ones((1, 1), dtype=np.float32))
+
+    @contextmanager
+    def mask_context() -> Generator[WPSDataset, None, None]:
+        yield mask
+
+    mocker.patch("wps_sfms.raster_output.open_bc_mask_dataset", side_effect=mask_context)
+    yield mask
+    mask.close()
 
 
 def create_test_raster(
@@ -12,7 +33,7 @@ def create_test_raster(
     data: Optional[np.ndarray] = None,
     epsg: int = 4326,
     fill_value: float = 1.0,
-    nodata: float = -9999.0,
+    nodata: float = TEST_INPUT_NODATA,
 ):
     """
     Create a test GeoTIFF raster in memory using GDAL's /vsimem/ filesystem.

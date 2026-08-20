@@ -13,6 +13,7 @@ import sys
 from datetime import datetime, timezone
 
 from aiohttp import ClientSession
+from wps_sfms.processors.foliar_moisture_content import ensure_fmc_rasters
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
@@ -64,6 +65,13 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     logger.info("Using reference raster: %s", fuel_raster_path)
 
     async with S3Client() as s3_client:
+        await ensure_fmc_rasters(
+            [datetime_to_process.date()],
+            fuel_raster_path,
+            raster_addresser,
+            s3_client,
+        )
+
         # Fetch station observations from WF1
         async with ClientSession() as session:
             wfwx_api = WfwxApi(session)
