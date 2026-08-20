@@ -39,16 +39,8 @@ ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
 ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"} \
 -p PROJECT_NAMESPACE=${PROJ_TARGET}"
 
-# Apply template (apply or use --dry-run)
-#
-OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
-
-# Execute commands
+# Render the manifest to stdout. Applying it -- individually, batched with others,
+# for real or as a dry run -- is entirely the caller's concern, not this script's.
+# See oc_deploy_to_production.sh.
 #
 eval "${OC_PROCESS}"
-eval "${OC_PROCESS} | ${OC_APPLY}"
-
-# Provide oc command instruction
-#
-display_helper "${OC_PROCESS} | ${OC_APPLY}"

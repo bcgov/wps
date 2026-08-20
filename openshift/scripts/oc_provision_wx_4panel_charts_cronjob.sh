@@ -45,16 +45,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wx_4panel_charts.cr
 -p MODEL=${MODEL} \
 -p WEATHER_IMAGE=${WEATHER_IMAGE}"
 
-# Apply template (apply or use --dry-run)
-#
-OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
-
-# Execute commands
+# Render the manifest to stdout. Applying it -- individually, batched with others,
+# for real or as a dry run -- is entirely the caller's concern, not this script's.
+# See oc_deploy_to_production.sh.
 #
 eval "${OC_PROCESS}"
-eval "${OC_PROCESS} | ${OC_APPLY}"
-
-# Provide oc command instruction
-#
-display_helper "${OC_PROCESS} | ${OC_APPLY}"

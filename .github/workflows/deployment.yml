@@ -148,27 +148,33 @@ jobs:
         shell: bash
         run: |
           FUEL_RASTER_YEAR=2026 bash openshift/scripts/oc_provision_fuel_grid_install_job.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_ecmwf_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_grass_curing_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_rdps_sfms_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_sfms_calculations_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_fire_watch_weather_cronjob.sh ${SUFFIX} apply
-          bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} apply
-          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi bash openshift/scripts/oc_provision_sfms_daily_actuals_cronjob.sh ${SUFFIX} apply
+
+          # Temporary batch file to apply all cronjobs in one call, to avoid hitting the OpenShift API rate limit.
+          BATCH_FILE=$(mktemp)
+          bash openshift/scripts/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_ecmwf_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_grass_curing_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_rdps_sfms_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_sfms_calculations_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_fire_watch_weather_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi bash openshift/scripts/oc_provision_sfms_daily_actuals_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           # 15:00 UTC (8:00 AM PDT)
-          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi JOB_SUFFIX=8am SCHEDULE="0 15 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} apply
+          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi JOB_SUFFIX=8am SCHEDULE="0 15 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           # 00:45 UTC (5:45 PM PDT)
-          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi JOB_SUFFIX=545pm SCHEDULE="45 0 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} apply
-          SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} apply
-          END_HOUR=48 STEP=6 MODEL=GDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
-          END_HOUR=15 STEP=3 MODEL=RDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} apply
+          MEMORY_REQUEST=512Mi MEMORY_LIMIT=1Gi JOB_SUFFIX=545pm SCHEDULE="45 0 * * *" bash openshift/scripts/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          SCHEDULE="0 6 1 * *" bash openshift/scripts/oc_provision_partitioner_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          END_HOUR=48 STEP=6 MODEL=GDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          END_HOUR=15 STEP=3 MODEL=RDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+
+          echo "Applying batched manifests in one call..."
+          oc -n e1e498-dev apply -f "${BATCH_FILE}"
 
       - name: Logging alerts
         shell: bash
