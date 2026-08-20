@@ -3,22 +3,26 @@
 source "$(dirname ${0})/common/common"
 
 #%
-#% OpenShift Deploy Helper
+#% OpenShift Render Helper
 #%
-#%   Intended for use with a pull request-based pipeline.
-#%   Suffixes incl.: pr-###.
+#%   Renders this resource's manifest to stdout -- does not apply it. Intended for
+#%   use with a pull request-based pipeline. Suffixes incl.: pr-###.
+#%
+#%   Applying is the caller's job: pipe into `oc apply -f -` yourself, or see
+#%   oc_deploy_to_production.sh / deployment.yml for how this is combined with
+#%   other resources and applied together in one call.
 #%
 #% Usage:
 #%
-#%    ${THIS_FILE} [SUFFIX] [apply]
+#%    ${THIS_FILE} [SUFFIX]
 #%
 #% Examples:
 #%
-#%   Provide a PR number. Defaults to a dry-run.
+#%   Just render it:
 #%   ${THIS_FILE} pr-0
 #%
-#%   Apply when satisfied.
-#%   ${THIS_FILE} pr-0 apply
+#%   Render and apply this one resource on its own:
+#%   ${THIS_FILE} pr-0 | oc apply -f -
 #%
 
 # Target project override for Dev or Prod deployments
@@ -30,7 +34,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 SCHEDULE="${SCHEDULE:-$((31 + $RANDOM % 29)) 8,16 * * *}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wfwx_noon_forecasts.cronjob.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wfwx_noon_forecasts.cronjob.yaml -o yaml \
 -p JOB_NAME=wfwx-noon-forecasts-${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME}-api \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
@@ -42,16 +46,6 @@ ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
 ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"} \
 -p PROJECT_NAMESPACE=${PROJ_TARGET}"
 
-# Apply template (apply or use --dry-run)
-#
-OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run"
-
-# Execute commands
+# Render the manifest to stdout.
 #
 eval "${OC_PROCESS}"
-eval "${OC_PROCESS} | ${OC_APPLY}"
-
-# Provide oc command instruction
-#
-display_helper "${OC_PROCESS} | ${OC_APPLY}"
