@@ -35,7 +35,7 @@ class FoliarMoistureContentResult:
 
 @dataclass(frozen=True)
 class FoliarMoistureContentDatasets:
-    fuel: WPSDataset
+    fuel: WPSDataset  # fuel is only used for grid validation, not in the FMC calculation
     elevation: WPSDataset
     latitude: WPSDataset
     longitude: WPSDataset
@@ -193,7 +193,7 @@ async def ensure_fmc_rasters(
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
 ) -> None:
-    """Validate complete FMC rasters and publish dates without complete outputs."""
+    """Validate complete FMC rasters and publish dates without exisiting FMC rasters."""
     unique_dates = tuple(dict.fromkeys(target_dates))
     missing_dates = []
     existing_fmc_keys: dict[date, GDALPath] = {}
