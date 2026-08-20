@@ -68,67 +68,67 @@ PROJ_TARGET=${PROJ_TARGET} FUEL_RASTER_YEAR=2026 FUEL_GRID_INSTALL_SUSPEND=true 
 BATCH_FILE=$(mktemp)
 
 echo S3 Data Retention
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_s3_data_retention.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_s3_data_retention.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo Env Canada Subscriber
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_rdps_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo NOAA Subscriber
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo ECMWF Subscriber
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ecmwf_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ecmwf_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo VIIRS Snow
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_viirs_snow_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo Grass Curing
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_grass_curing_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_grass_curing_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo RDPS for SFMS
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_rdps_sfms_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_rdps_sfms_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo SFMS Raster Calculations
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_calculations_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_calculations_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo SFMS Daily Actuals
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_sfms_daily_actuals_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_sfms_daily_actuals_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo SFMS Forecast 15:00 UTC- 8:00 AM PDT
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=8am SCHEDULE="0 15 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=8am SCHEDULE="0 15 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo SFMS Forecast 00:45 UTC - 5:45 PM PDT
-PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=545pm SCHEDULE="45 0 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=545pm SCHEDULE="45 0 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo Fire Watch Weather Calculations
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_fire_watch_weather_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_fire_watch_weather_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo BC FireWeather cronjobs
 echo "Run forecast at 8h30 PDT and 16h30 PDT (so before and after noon)"
-PROJ_TARGET=${PROJ_TARGET} SCHEDULE="30 * * * *" bash $(dirname ${0})/oc_provision_wfwx_noon_forecasts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} SCHEDULE="30 * * * *" bash $(dirname ${0})/oc_provision_wfwx_noon_forecasts_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
-PROJ_TARGET=${PROJ_TARGET} SCHEDULE="15 * * * *" bash $(dirname ${0})/oc_provision_wfwx_hourly_actuals_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} SCHEDULE="15 * * * *" bash $(dirname ${0})/oc_provision_wfwx_hourly_actuals_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo "Configure partitioner to run every month on day 1 at 00:00"
-PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 6 1 * *" bash $(dirname ${0})/oc_provision_partitioner_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 6 1 * *" bash $(dirname ${0})/oc_provision_partitioner_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo Configure backups
-PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo Configure hourly pruner
-PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 2 * * *" bash $(dirname ${0})/oc_provision_hourly_prune_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 2 * * *" bash $(dirname ${0})/oc_provision_hourly_prune_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo Configure GDPS 4panel charts
-PROJ_TARGET=${PROJ_TARGET} END_HOUR=240 STEP=6 MODEL=GDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} END_HOUR=240 STEP=6 MODEL=GDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 echo Configure RDPS 4panel charts
-PROJ_TARGET=${PROJ_TARGET} END_HOUR=84 STEP=3 MODEL=RDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} END_HOUR=84 STEP=3 MODEL=RDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 
 echo Logging alerts
