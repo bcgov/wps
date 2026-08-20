@@ -3,22 +3,26 @@
 source "$(dirname ${0})/common/common"
 
 #%
-#% OpenShift Deploy Helper
+#% OpenShift Render Helper
 #%
-#%   Intended for use with a pull request-based pipeline.
-#%   Suffixes incl.: pr-###.
+#%   Renders this resource's manifest to stdout -- does not apply it. Intended for
+#%   use with a pull request-based pipeline. Suffixes incl.: pr-###.
+#%
+#%   Applying is the caller's job: pipe into `oc apply -f -` yourself, or see
+#%   oc_deploy_to_production.sh / deployment.yml for how this is combined with
+#%   other resources and applied together in one call.
 #%
 #% Usage:
 #%
-#%    ${THIS_FILE} [SUFFIX] [apply]
+#%    ${THIS_FILE} [SUFFIX]
 #%
 #% Examples:
 #%
-#%   Provide a PR number. Defaults to a dry-run.
+#%   Just render it:
 #%   ${THIS_FILE} pr-0
 #%
-#%   Apply when satisfied.
-#%   ${THIS_FILE} pr-0 apply
+#%   Render and apply this one resource on its own:
+#%   ${THIS_FILE} pr-0 | oc apply -f -
 #%
 
 
