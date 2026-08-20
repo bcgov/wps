@@ -31,7 +31,7 @@ SCHEDULE="${SCHEDULE:-$((14 + $RANDOM % 41)) 22 * * *}"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/s3_retention.cronjob.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/s3_retention.cronjob.yaml -o yaml \
 -p JOB_NAME=s3-retention-${APP_NAME}-${SUFFIX} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p SUFFIX=${SUFFIX} \

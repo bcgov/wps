@@ -33,7 +33,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 SCHEDULE="${SCHEDULE:-0 2 * * *}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/prune_hourlies_cronjob.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/prune_hourlies_cronjob.yaml -o yaml \
 -p SUFFIX=${SUFFIX} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p SCHEDULE=\"${SCHEDULE}\" \

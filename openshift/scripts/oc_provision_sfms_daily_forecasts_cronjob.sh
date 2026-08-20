@@ -37,7 +37,7 @@ JOB_SUFFIX="${JOB_SUFFIX:-}"
 JOB_NAME_SUFFIX="${SUFFIX}${JOB_SUFFIX:+-${JOB_SUFFIX}}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/sfms_daily_forecasts.cronjob.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/sfms_daily_forecasts.cronjob.yaml -o yaml \
 -p JOB_NAME=sfms-forecast-${APP_NAME}-${JOB_NAME_SUFFIX} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \

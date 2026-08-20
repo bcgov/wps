@@ -34,7 +34,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 SCHEDULE="${SCHEDULE:-$((16 + $RANDOM % 43)) * * * *}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wfwx_hourly_actuals.cronjob.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/wfwx_hourly_actuals.cronjob.yaml -o yaml \
 -p JOB_NAME=wfwx-hourly-actuals-${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME}-api \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \

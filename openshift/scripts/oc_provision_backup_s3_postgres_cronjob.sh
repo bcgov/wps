@@ -35,7 +35,7 @@ JOB_NAME="backup-postgres-${APP_NAME}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
 CLUSTER_NAME="${CRUNCHY_NAME}-${SUFFIX}"
 
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-cronjob.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-cronjob.yaml -o yaml \
     -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
     -p JOB_NAME=${JOB_NAME} \
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \

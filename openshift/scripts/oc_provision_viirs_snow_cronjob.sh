@@ -33,7 +33,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 SCHEDULE="${SCHEDULE:-$((3 + $RANDOM % 54)) 4 * * *}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/viirs_snow.cronjob.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/viirs_snow.cronjob.yaml -o yaml \
 -p JOB_NAME=viirs-snow-${APP_NAME}-${SUFFIX} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \

@@ -136,7 +136,7 @@ cat $(dirname ${0})/../logging-alerts/nats_alerts.yaml >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 cat $(dirname ${0})/../logging-alerts/sfms_alerts.yaml >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
-oc -n ${PROJ_TARGET} process -f $(dirname ${0})/../logging-alerts/oom_alerts.yaml -p NAMESPACE=e1e498-prod -p SEVERITY=critical >>"${BATCH_FILE}"
+oc -n ${PROJ_TARGET} process -f $(dirname ${0})/../logging-alerts/oom_alerts.yaml -o yaml -p NAMESPACE=e1e498-prod -p SEVERITY=critical >>"${BATCH_FILE}"
 echo "---" >>"${BATCH_FILE}"
 
 echo "Applying batched manifests in one call..."
