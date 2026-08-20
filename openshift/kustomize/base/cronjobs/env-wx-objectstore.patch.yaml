@@ -1,29 +1,32 @@
 - op: add
   path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
   value:
-    name: CHATOPS_URL
+    name: OBJECT_STORE_SERVER
     valueFrom:
       secretKeyRef:
-        key: chatops-url
+        key: object-store-server
         name: wps-global
 - op: add
   path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
   value:
-    name: CHATOPS_AUTH_TOKEN
+    name: WX_OBJECT_STORE_USER_ID
     valueFrom:
       secretKeyRef:
-        key: chatops-auth-token
+        key: wx-object-store-user-id
         name: wps-global
 - op: add
   path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
   value:
-    name: OPENSHIFT_CONSOLE_URL
+    name: WX_OBJECT_STORE_SECRET
     valueFrom:
-      configMapKeyRef:
-        key: env.openshift-console-url
+      secretKeyRef:
+        key: wx-object-store-secret
         name: wps-global
 - op: add
   path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
   value:
-    name: PROJECT_NAMESPACE
-    value: __NAMESPACE__
+    name: WX_OBJECT_STORE_BUCKET
+    valueFrom:
+      secretKeyRef:
+        key: wx-object-store-bucket
+        name: wps-global

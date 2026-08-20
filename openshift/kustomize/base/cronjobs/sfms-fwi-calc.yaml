@@ -26,9 +26,7 @@ spec:
             - python
             - -m
             - app.jobs.sfms_calculations
-            env:
-            - name: PROJECT_NAMESPACE
-              value: __NAMESPACE__
+            env: []
             image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
             imagePullPolicy: Always
             name: sfms-fwi-calc-wps-__SUFFIX__

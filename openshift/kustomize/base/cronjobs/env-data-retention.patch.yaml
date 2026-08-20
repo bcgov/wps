@@ -1,0 +1,8 @@
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: DATA_RETENTION_THRESHOLD
+    valueFrom:
+      configMapKeyRef:
+        key: env.data_retention_threshold
+        name: wps-global

@@ -10,6 +10,7 @@ metadata:
     wps.bcgov/env-postgres: 'true'
     wps.bcgov/env-redis: 'true'
     wps.bcgov/env-wfwx: 'true'
+    wps.bcgov/env-redis-dailies: 'true'
   name: wfwx-noon-forecasts-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace
@@ -34,15 +35,6 @@ spec:
             env:
             - name: WFWX_MAX_PAGE_SIZE
               value: ${WFWX_MAX_PAGE_SIZE}
-            - name: POSTGRES_DATABASE
-              value: wps
-            - name: PROJECT_NAMESPACE
-              value: __NAMESPACE__
-            - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
-              valueFrom:
-                configMapKeyRef:
-                  key: env.redis-dailies-by-station-code-expiry
-                  name: wps-global
             image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
             imagePullPolicy: Always
             name: wfwx-noon-forecasts-wps-__SUFFIX__

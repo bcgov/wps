@@ -1,29 +1,37 @@
 - op: add
   path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
   value:
-    name: CHATOPS_URL
+    name: AWS_ACCESS_KEY
     valueFrom:
       secretKeyRef:
-        key: chatops-url
+        key: object-store-user-id
         name: wps-global
 - op: add
   path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
   value:
-    name: CHATOPS_AUTH_TOKEN
+    name: AWS_BUCKET
     valueFrom:
       secretKeyRef:
-        key: chatops-auth-token
+        key: object-store-bucket
         name: wps-global
 - op: add
   path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
   value:
-    name: OPENSHIFT_CONSOLE_URL
+    name: AWS_HOSTNAME
     valueFrom:
-      configMapKeyRef:
-        key: env.openshift-console-url
+      secretKeyRef:
+        key: object-store-server
         name: wps-global
 - op: add
   path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
   value:
-    name: PROJECT_NAMESPACE
-    value: __NAMESPACE__
+    name: AWS_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        key: object-store-secret
+        name: wps-global
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: SUFFIX
+    value: __SUFFIX__

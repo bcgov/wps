@@ -46,3 +46,8 @@
       secretKeyRef:
         key: pgbouncer-port
         name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: POSTGRES_DATABASE
+    value: wps

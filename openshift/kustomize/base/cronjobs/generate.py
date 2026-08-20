@@ -172,11 +172,14 @@ RESOURCES = [
 # value to every other resource that has it -- a resource missing part of a group, or with
 # a differing value, keeps its own copy untouched and doesn't get the label.
 COMMON_ENV_GROUPS = {
-    "wps.bcgov/env-global": ["CHATOPS_URL", "CHATOPS_AUTH_TOKEN", "OPENSHIFT_CONSOLE_URL"],
+    "wps.bcgov/env-global": ["CHATOPS_URL", "CHATOPS_AUTH_TOKEN", "OPENSHIFT_CONSOLE_URL", "PROJECT_NAMESPACE"],
     "wps.bcgov/env-uv": ["UV_NO_CACHE"],
+    # wx-4panel-charts-* have the other 6 vars but not POSTGRES_DATABASE, so merging it in
+    # here means those two keep all 7 as their own local (undeduped) copy -- accepted
+    # tradeoff for one shared group instead of two nearly-identical ones.
     "wps.bcgov/env-postgres": [
         "POSTGRES_READ_USER", "POSTGRES_WRITE_USER", "POSTGRES_PASSWORD",
-        "POSTGRES_WRITE_HOST", "POSTGRES_READ_HOST", "POSTGRES_PORT",
+        "POSTGRES_WRITE_HOST", "POSTGRES_READ_HOST", "POSTGRES_PORT", "POSTGRES_DATABASE",
     ],
     "wps.bcgov/env-redis": [
         "REDIS_HOST", "REDIS_PORT", "REDIS_USE", "REDIS_PASSWORD",
@@ -186,6 +189,23 @@ COMMON_ENV_GROUPS = {
     "wps.bcgov/env-objectstore": [
         "OBJECT_STORE_SERVER", "OBJECT_STORE_USER_ID", "OBJECT_STORE_SECRET", "OBJECT_STORE_BUCKET",
     ],
+    # Narrower membership than env-redis above (env-canada/noaa/wfwx only), so it can't
+    # fold into that group without also matching everything else in it.
+    "wps.bcgov/env-redis-dailies": ["REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY"],
+    # env-canada-* plus rdps-sfms, which also consumes RDPS data and shares the same cache.
+    "wps.bcgov/env-redis-cache-env-canada": ["REDIS_CACHE_ENV_CANADA"],
+    "wps.bcgov/env-redis-cache-noaa": ["REDIS_CACHE_NOAA"],
+    # env-canada-* and noaa-* share the same grib-retention config; other consumers don't.
+    "wps.bcgov/env-data-retention": ["DATA_RETENTION_THRESHOLD"],
+    # s3-data-retention + wx-4panel-charts-*: same object store, WX_-prefixed var names.
+    "wps.bcgov/env-wx-objectstore": [
+        "OBJECT_STORE_SERVER", "WX_OBJECT_STORE_USER_ID", "WX_OBJECT_STORE_SECRET", "WX_OBJECT_STORE_BUCKET",
+    ],
+    "wps.bcgov/env-wx-cartopy": ["WX_CARTOPY_DATA_DIR"],
+    # hourly-prune + partitioner: same object-store secret, AWS_-prefixed var names, plus
+    # the same literal SUFFIX placeholder (still substituted by the caller's sed pass
+    # wherever it ends up, base file or patch, so deduping it here is safe).
+    "wps.bcgov/env-aws": ["AWS_ACCESS_KEY", "AWS_BUCKET", "AWS_HOSTNAME", "AWS_SECRET_KEY", "SUFFIX"],
 }
 
 os.makedirs(OUT_DIR, exist_ok=True)

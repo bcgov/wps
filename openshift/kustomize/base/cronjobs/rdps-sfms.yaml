@@ -10,6 +10,7 @@ metadata:
     wps.bcgov/env-redis: 'true'
     wps.bcgov/env-wfwx: 'true'
     wps.bcgov/env-objectstore: 'true'
+    wps.bcgov/env-redis-cache-env-canada: 'true'
   name: rdps-sfms-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace
@@ -33,16 +34,7 @@ spec:
             - python
             - -m
             - app.jobs.rdps_sfms
-            env:
-            - name: POSTGRES_DATABASE
-              value: wps
-            - name: PROJECT_NAMESPACE
-              value: __NAMESPACE__
-            - name: REDIS_CACHE_ENV_CANADA
-              valueFrom:
-                configMapKeyRef:
-                  key: env.redis-cache-env-canada
-                  name: wps-global
+            env: []
             image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
             imagePullPolicy: Always
             name: rdps-sfms-wps-__SUFFIX__

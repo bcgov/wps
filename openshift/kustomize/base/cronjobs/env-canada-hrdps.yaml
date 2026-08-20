@@ -9,6 +9,9 @@ metadata:
     wps.bcgov/env-postgres: 'true'
     wps.bcgov/env-redis: 'true'
     wps.bcgov/env-wfwx: 'true'
+    wps.bcgov/env-redis-dailies: 'true'
+    wps.bcgov/env-redis-cache-env-canada: 'true'
+    wps.bcgov/env-data-retention: 'true'
   name: env-canada-hrdps-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Forbid
@@ -32,27 +35,8 @@ spec:
             - weather_model_jobs.env_canada
             - HRDPS
             env:
-            - name: POSTGRES_DATABASE
-              value: wps
-            - name: PROJECT_NAMESPACE
-              value: __NAMESPACE__
             - name: WFWX_MAX_PAGE_SIZE
               value: '1000'
-            - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
-              valueFrom:
-                configMapKeyRef:
-                  key: env.redis-dailies-by-station-code-expiry
-                  name: wps-global
-            - name: REDIS_CACHE_ENV_CANADA
-              valueFrom:
-                configMapKeyRef:
-                  key: env.redis-cache-env-canada
-                  name: wps-global
-            - name: DATA_RETENTION_THRESHOLD
-              valueFrom:
-                configMapKeyRef:
-                  key: env.data_retention_threshold
-                  name: wps-global
             image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-jobs-__SUFFIX__:__SUFFIX__
             imagePullPolicy: Always
             name: env-canada-hrdps-wps-__SUFFIX__

@@ -31,11 +31,7 @@ spec:
             - python
             - -m
             - app.jobs.sfms_daily_actuals
-            env:
-            - name: POSTGRES_DATABASE
-              value: wps
-            - name: PROJECT_NAMESPACE
-              value: __NAMESPACE__
+            env: []
             image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
             imagePullPolicy: Always
             name: sfms-daily-actuals-wps-__SUFFIX__

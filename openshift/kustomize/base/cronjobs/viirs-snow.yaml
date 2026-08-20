@@ -30,10 +30,6 @@ spec:
             - -m
             - app.jobs.viirs_snow
             env:
-            - name: POSTGRES_DATABASE
-              value: wps
-            - name: PROJECT_NAMESPACE
-              value: __NAMESPACE__
             - name: EARTHDATA_USERNAME
               valueFrom:
                 configMapKeyRef:

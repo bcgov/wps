@@ -4,6 +4,7 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
+    wps.bcgov/env-aws: 'true'
   name: partitioner-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace
@@ -43,28 +44,6 @@ spec:
                   name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
             - name: PG_DATABASE
               value: wps
-            - name: AWS_HOSTNAME
-              valueFrom:
-                secretKeyRef:
-                  key: object-store-server
-                  name: wps-global
-            - name: AWS_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  key: object-store-user-id
-                  name: wps-global
-            - name: AWS_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  key: object-store-secret
-                  name: wps-global
-            - name: AWS_BUCKET
-              valueFrom:
-                secretKeyRef:
-                  key: object-store-bucket
-                  name: wps-global
-            - name: SUFFIX
-              value: __SUFFIX__
             image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/pgslice:prod
             imagePullPolicy: Always
             name: partitioner-wps-__SUFFIX__

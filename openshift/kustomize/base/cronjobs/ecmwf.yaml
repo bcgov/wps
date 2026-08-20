@@ -31,10 +31,6 @@ spec:
             - -m
             - weather_model_jobs.ecmwf
             env:
-            - name: POSTGRES_DATABASE
-              value: wps
-            - name: PROJECT_NAMESPACE
-              value: __NAMESPACE__
             - name: WFWX_MAX_PAGE_SIZE
               value: '1000'
             image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-jobs-__SUFFIX__:__SUFFIX__

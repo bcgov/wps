@@ -29,10 +29,6 @@ spec:
             - -m
             - app.jobs.fire_watch_calculations
             env:
-            - name: PROJECT_NAMESPACE
-              value: __NAMESPACE__
-            - name: POSTGRES_DATABASE
-              value: wps
             - name: WFWX_MAX_PAGE_SIZE
               value: ${WFWX_MAX_PAGE_SIZE}
             image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__

@@ -30,11 +30,7 @@ spec:
             - python
             - -m
             - app.jobs.grass_curing
-            env:
-            - name: POSTGRES_DATABASE
-              value: wps
-            - name: PROJECT_NAMESPACE
-              value: __NAMESPACE__
+            env: []
             image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
             imagePullPolicy: Always
             name: grass-curing-wps-__SUFFIX__

@@ -5,7 +5,8 @@ metadata:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
     wps.bcgov/env-uv: 'true'
-    wps.bcgov/env-postgres: 'true'
+    wps.bcgov/env-wx-objectstore: 'true'
+    wps.bcgov/env-wx-cartopy: 'true'
   name: wx-4panel-charts-rdps-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace
@@ -34,31 +35,36 @@ spec:
             - --model
             - RDPS
             env:
-            - name: OBJECT_STORE_SERVER
+            - name: POSTGRES_READ_USER
               valueFrom:
                 secretKeyRef:
-                  key: object-store-server
-                  name: wps-global
-            - name: WX_OBJECT_STORE_USER_ID
+                  key: user
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_WRITE_USER
               valueFrom:
                 secretKeyRef:
-                  key: wx-object-store-user-id
-                  name: wps-global
-            - name: WX_OBJECT_STORE_SECRET
+                  key: user
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  key: wx-object-store-secret
-                  name: wps-global
-            - name: WX_OBJECT_STORE_BUCKET
+                  key: password
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_WRITE_HOST
               valueFrom:
                 secretKeyRef:
-                  key: wx-object-store-bucket
-                  name: wps-global
-            - name: WX_CARTOPY_DATA_DIR
+                  key: pgbouncer-host
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_READ_HOST
               valueFrom:
-                configMapKeyRef:
-                  key: env.wx-cartopy-data-dir
-                  name: wps-global
+                secretKeyRef:
+                  key: pgbouncer-host
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  key: pgbouncer-port
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
             image: ghcr.io/bcgov/wps/wps-weather:prod
             imagePullPolicy: Always
             name: wx-4panel-charts-rdps-wps-__SUFFIX__

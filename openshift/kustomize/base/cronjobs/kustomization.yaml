@@ -62,3 +62,31 @@ patches:
     target:
       kind: CronJob
       labelSelector: wps.bcgov/env-objectstore=true
+  - path: env-redis-dailies.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-redis-dailies=true
+  - path: env-redis-cache-env-canada.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-redis-cache-env-canada=true
+  - path: env-redis-cache-noaa.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-redis-cache-noaa=true
+  - path: env-data-retention.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-data-retention=true
+  - path: env-wx-objectstore.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-wx-objectstore=true
+  - path: env-wx-cartopy.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-wx-cartopy=true
+  - path: env-aws.patch.yaml
+    target:
+      kind: CronJob
+      labelSelector: wps.bcgov/env-aws=true

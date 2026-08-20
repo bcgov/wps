@@ -1,0 +1,8 @@
+- op: add
+  path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+  value:
+    name: WX_CARTOPY_DATA_DIR
+    valueFrom:
+      configMapKeyRef:
+        key: env.wx-cartopy-data-dir
+        name: wps-global
