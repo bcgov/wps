@@ -174,9 +174,6 @@ RESOURCES = [
 COMMON_ENV_GROUPS = {
     "wps.bcgov/env-global": ["CHATOPS_URL", "CHATOPS_AUTH_TOKEN", "OPENSHIFT_CONSOLE_URL", "PROJECT_NAMESPACE"],
     "wps.bcgov/env-uv": ["UV_NO_CACHE"],
-    # wx-4panel-charts-* have the other 6 vars but not POSTGRES_DATABASE, so merging it in
-    # here means those two keep all 7 as their own local (undeduped) copy -- accepted
-    # tradeoff for one shared group instead of two nearly-identical ones.
     "wps.bcgov/env-postgres": [
         "POSTGRES_READ_USER", "POSTGRES_WRITE_USER", "POSTGRES_PASSWORD",
         "POSTGRES_WRITE_HOST", "POSTGRES_READ_HOST", "POSTGRES_PORT", "POSTGRES_DATABASE",
@@ -208,6 +205,15 @@ COMMON_ENV_GROUPS = {
     "wps.bcgov/env-aws": ["AWS_ACCESS_KEY", "AWS_BUCKET", "AWS_HOSTNAME", "AWS_SECRET_KEY", "SUFFIX"],
 }
 
+# wx_4panel_charts.cronjob.yaml has no POSTGRES_DATABASE parameter or env entry at all --
+# unlike every other Postgres-using Template, which all default it to "wps". Injected here,
+# Kustomize-base-only (the Template itself is untouched), purely so these two resources
+# match env-postgres's full 7-var group instead of keeping all 7 as their own local copy.
+EXTRA_ENV = {
+    "wx-4panel-charts-gdps": [{"name": "POSTGRES_DATABASE", "value": "wps"}],
+    "wx-4panel-charts-rdps": [{"name": "POSTGRES_DATABASE", "value": "wps"}],
+}
+
 os.makedirs(OUT_DIR, exist_ok=True)
 rendered = []
 for name, template, params in RESOURCES:
@@ -222,7 +228,10 @@ for name, template, params in RESOURCES:
     items = doc.get("items", [])
     if len(items) != 1:
         print(f"WARNING: {name} rendered {len(items)} items, expected 1")
-    rendered.append((name, items[0]))
+    item = items[0]
+    if name in EXTRA_ENV:
+        item["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]["env"] += EXTRA_ENV[name]
+    rendered.append((name, item))
 
 # First pass: record the canonical (first-seen) value of every candidate common env var.
 canonical = {}

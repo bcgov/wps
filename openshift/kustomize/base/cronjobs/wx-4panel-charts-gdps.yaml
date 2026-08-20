@@ -5,6 +5,7 @@ metadata:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
     wps.bcgov/env-uv: 'true'
+    wps.bcgov/env-postgres: 'true'
     wps.bcgov/env-wx-objectstore: 'true'
     wps.bcgov/env-wx-cartopy: 'true'
   name: wx-4panel-charts-gdps-wps-__SUFFIX__
@@ -34,37 +35,7 @@ spec:
             - '6'
             - --model
             - GDPS
-            env:
-            - name: POSTGRES_READ_USER
-              valueFrom:
-                secretKeyRef:
-                  key: user
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_WRITE_USER
-              valueFrom:
-                secretKeyRef:
-                  key: user
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_WRITE_HOST
-              valueFrom:
-                secretKeyRef:
-                  key: pgbouncer-host
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_READ_HOST
-              valueFrom:
-                secretKeyRef:
-                  key: pgbouncer-host
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-            - name: POSTGRES_PORT
-              valueFrom:
-                secretKeyRef:
-                  key: pgbouncer-port
-                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            env: []
             image: ghcr.io/bcgov/wps/wps-weather:prod
             imagePullPolicy: Always
             name: wx-4panel-charts-gdps-wps-__SUFFIX__
