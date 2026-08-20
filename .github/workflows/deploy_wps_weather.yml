@@ -53,7 +53,7 @@ jobs:
       - name: Provision S3 Retention Cronjob
         shell: bash
         run: |
-          bash openshift/scripts/oc_provision_s3_data_retention.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_s3_data_retention.sh ${SUFFIX} | oc -n e1e498-dev apply -f -
 
       - name: Deploy ECCC Consumer
         shell: bash

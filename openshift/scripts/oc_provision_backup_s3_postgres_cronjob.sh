@@ -3,22 +3,26 @@
 source "$(dirname ${0})/common/common"
 
 #%
-#% OpenShift Deploy Helper
+#% OpenShift Render Helper
 #%
-#%   Intended for use with a pull request-based pipeline.
-#%   Suffixes incl.: pr-###.
+#%   Renders this resource's manifest to stdout -- does not apply it. Intended for
+#%   use with a pull request-based pipeline. Suffixes incl.: pr-###.
+#%
+#%   Applying is the caller's job: pipe into `oc apply -f -` yourself, or see
+#%   oc_deploy_to_production.sh / deployment.yml for how this is combined with
+#%   other resources and applied together in one call.
 #%
 #% Usage:
 #%
-#%    ${THIS_FILE} [SUFFIX] [apply]
+#%    ${THIS_FILE} [SUFFIX]
 #%
 #% Examples:
 #%
-#%   Provide a PR number. Defaults to a dry-run.
+#%   Just render it:
 #%   ${THIS_FILE} pr-0
 #%
-#%   Apply when satisfied.
-#%   ${THIS_FILE} pr-0 apply
+#%   Render and apply this one resource on its own:
+#%   ${THIS_FILE} pr-0 | oc apply -f -
 #%
 
 
@@ -31,7 +35,7 @@ JOB_NAME="backup-postgres-${APP_NAME}-${SUFFIX}"
 IMAGE_NAMESPACE=${PROJ_TOOLS}
 CLUSTER_NAME="${CRUNCHY_NAME}-${SUFFIX}"
 
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-cronjob.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-cronjob.yaml -o yaml \
     -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
     -p JOB_NAME=${JOB_NAME} \
     -p IMAGE_NAMESPACE=${IMAGE_NAMESPACE} \
@@ -41,16 +45,6 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-
     ${SCHEDULE:+ " -p SCHEDULE=\"${SCHEDULE}\""} \
     ${TAG_NAME:+ " -p TAG_NAME=${TAG_NAME}"}"
 
-# Apply template (apply or use --dry-run)
-#
-OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
-[ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
-
-# Execute commands
+# Render the manifest to stdout.
 #
 eval "${OC_PROCESS}"
-eval "${OC_PROCESS} | ${OC_APPLY}"
-
-# Provide oc command instruction
-#
-display_helper "${OC_PROCESS} | ${OC_APPLY}"
