@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+  name: prune-hourlies-wps-__SUFFIX__
+spec:
+  concurrencyPolicy: Replace
+  jobTemplate:
+    metadata:
+      labels:
+        app: wps-__SUFFIX__
+        cronjob: prune-hourlies-wps-__SUFFIX__
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - bash
+            - prune_hourlies.sh
+            env:
+            - name: AWS_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-server
+                  name: wps-global
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-user-id
+                  name: wps-global
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-secret
+                  name: wps-global
+            - name: AWS_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-bucket
+                  name: wps-global
+            - name: SUFFIX
+              value: __SUFFIX__
+            image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/hourlies-prune:prod
+            imagePullPolicy: Always
+            name: prune-hourlies-wps-__SUFFIX__
+            resources:
+              limits:
+                memory: 1024Mi
+              requests:
+                cpu: 75m
+                memory: 512Mi
+          restartPolicy: OnFailure
+  schedule: 0 2 * * *

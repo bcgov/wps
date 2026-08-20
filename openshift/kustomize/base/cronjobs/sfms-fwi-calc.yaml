@@ -1,0 +1,76 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+  name: sfms-fwi-calc-wps-__SUFFIX__
+spec:
+  concurrencyPolicy: Replace
+  jobTemplate:
+    metadata:
+      labels:
+        app: wps-__SUFFIX__
+        cronjob: sfms-fwi-calc-wps-__SUFFIX__
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - uv
+            - run
+            - --no-sync
+            - python
+            - -m
+            - app.jobs.sfms_calculations
+            env:
+            - name: UV_NO_CACHE
+              value: '1'
+            - name: CHATOPS_URL
+              valueFrom:
+                secretKeyRef:
+                  key: chatops-url
+                  name: wps-global
+            - name: CHATOPS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: chatops-auth-token
+                  name: wps-global
+            - name: OPENSHIFT_CONSOLE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: env.openshift-console-url
+                  name: wps-global
+            - name: PROJECT_NAMESPACE
+              value: __NAMESPACE__
+            - name: OBJECT_STORE_SERVER
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-server
+                  name: wps-global
+            - name: OBJECT_STORE_USER_ID
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-user-id
+                  name: wps-global
+            - name: OBJECT_STORE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-secret
+                  name: wps-global
+            - name: OBJECT_STORE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-bucket
+                  name: wps-global
+            image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
+            imagePullPolicy: Always
+            name: sfms-fwi-calc-wps-__SUFFIX__
+            resources:
+              limits:
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 256Mi
+          restartPolicy: OnFailure
+  schedule: 54 * * * *

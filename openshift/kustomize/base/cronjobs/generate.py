@@ -1,6 +1,7 @@
 import subprocess
 import os
 import json
+import yaml
 
 # Paths are relative to this file, not the caller's working directory, so this runs
 # correctly whether invoked as `python3 generate.py` from this directory or via a full
@@ -175,15 +176,15 @@ for name, template, params in RESOURCES:
         print(f"FAILED: {name}\n{result.stderr}")
         continue
     # oc process wraps single objects in a List; unwrap to the bare object for a cleaner base
-    # file. Written as JSON (valid YAML) to avoid a PyYAML dependency for this one-off script.
+    # file. Written as YAML to match every other manifest in openshift/ -- pyyaml is already
+    # a backend dependency (see backend/uv.lock), so this doesn't add a new one.
     doc = json.loads(result.stdout)
     items = doc.get("items", [])
     if len(items) != 1:
         print(f"WARNING: {name} rendered {len(items)} items, expected 1")
-    out_path = f"{OUT_DIR}/{name}.json"
+    out_path = f"{OUT_DIR}/{name}.yaml"
     with open(out_path, "w") as f:
-        json.dump(items[0], f, indent=2)
-        f.write("\n")
+        yaml.dump(items[0], f, default_flow_style=False, sort_keys=False)
     resource_names.append(name)
     print(f"OK: {name}")
 

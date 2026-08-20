@@ -1,0 +1,120 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+  name: viirs-snow-wps-__SUFFIX__
+spec:
+  concurrencyPolicy: Replace
+  jobTemplate:
+    metadata:
+      labels:
+        app: wps-__SUFFIX__
+        cronjob: viirs-snow-wps-__SUFFIX__
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - uv
+            - run
+            - --package
+            - wps-api
+            - --no-sync
+            - python
+            - -m
+            - app.jobs.viirs_snow
+            env:
+            - name: UV_NO_CACHE
+              value: '1'
+            - name: POSTGRES_READ_USER
+              valueFrom:
+                secretKeyRef:
+                  key: user
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_WRITE_USER
+              valueFrom:
+                secretKeyRef:
+                  key: user
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_WRITE_HOST
+              valueFrom:
+                secretKeyRef:
+                  key: pgbouncer-host
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_READ_HOST
+              valueFrom:
+                secretKeyRef:
+                  key: pgbouncer-host
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  key: pgbouncer-port
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_DATABASE
+              value: wps
+            - name: CHATOPS_URL
+              valueFrom:
+                secretKeyRef:
+                  key: chatops-url
+                  name: wps-global
+            - name: CHATOPS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: chatops-auth-token
+                  name: wps-global
+            - name: OPENSHIFT_CONSOLE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: env.openshift-console-url
+                  name: wps-global
+            - name: PROJECT_NAMESPACE
+              value: __NAMESPACE__
+            - name: EARTHDATA_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: env.earthdata-username
+                  name: wps-global
+            - name: EARTHDATA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: earthdata-password
+                  name: wps-global
+            - name: OBJECT_STORE_SERVER
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-server
+                  name: wps-global
+            - name: OBJECT_STORE_USER_ID
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-user-id
+                  name: wps-global
+            - name: OBJECT_STORE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-secret
+                  name: wps-global
+            - name: OBJECT_STORE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-bucket
+                  name: wps-global
+            image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
+            imagePullPolicy: Always
+            name: viirs-snow-wps-__SUFFIX__
+            resources:
+              limits:
+                memory: 2048Mi
+              requests:
+                cpu: 75m
+                memory: 512Mi
+          restartPolicy: OnFailure
+  schedule: 39 * * * *

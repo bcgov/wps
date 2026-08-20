@@ -1,0 +1,102 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+  name: wx-4panel-charts-rdps-wps-__SUFFIX__
+spec:
+  concurrencyPolicy: Replace
+  jobTemplate:
+    metadata:
+      labels:
+        app: wps-__SUFFIX__
+        cronjob: wx-4panel-charts-rdps-wps-__SUFFIX__
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - uv
+            - run
+            - --package
+            - wps-weather
+            - --no-sync
+            - python
+            - -m
+            - wps_weather.wx_4panel_charts.wx_4panel_charts
+            - --end_hour
+            - '84'
+            - --step
+            - '3'
+            - --model
+            - RDPS
+            env:
+            - name: UV_NO_CACHE
+              value: '1'
+            - name: POSTGRES_READ_USER
+              valueFrom:
+                secretKeyRef:
+                  key: user
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_WRITE_USER
+              valueFrom:
+                secretKeyRef:
+                  key: user
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_WRITE_HOST
+              valueFrom:
+                secretKeyRef:
+                  key: pgbouncer-host
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_READ_HOST
+              valueFrom:
+                secretKeyRef:
+                  key: pgbouncer-host
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  key: pgbouncer-port
+                  name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+            - name: OBJECT_STORE_SERVER
+              valueFrom:
+                secretKeyRef:
+                  key: object-store-server
+                  name: wps-global
+            - name: WX_OBJECT_STORE_USER_ID
+              valueFrom:
+                secretKeyRef:
+                  key: wx-object-store-user-id
+                  name: wps-global
+            - name: WX_OBJECT_STORE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: wx-object-store-secret
+                  name: wps-global
+            - name: WX_OBJECT_STORE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  key: wx-object-store-bucket
+                  name: wps-global
+            - name: WX_CARTOPY_DATA_DIR
+              valueFrom:
+                configMapKeyRef:
+                  key: env.wx-cartopy-data-dir
+                  name: wps-global
+            image: ghcr.io/bcgov/wps/wps-weather:prod
+            imagePullPolicy: Always
+            name: wx-4panel-charts-rdps-wps-__SUFFIX__
+            resources:
+              limits:
+                memory: 4096Mi
+              requests:
+                cpu: 75m
+                memory: 512Mi
+          restartPolicy: OnFailure
+  schedule: 9 * * * *
