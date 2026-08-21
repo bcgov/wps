@@ -1,0 +1,499 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+  name: wps-__SUFFIX__
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: wps-__SUFFIX__
+  strategy:
+    type: RollingUpdate
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: wps-__SUFFIX__
+  template:
+    metadata:
+      annotations:
+        wps/deploy-version: __DEPLOY_VERSION__
+      labels:
+        name: wps-__SUFFIX__
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-__SUFFIX__:__SUFFIX__
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 1
+        name: wps-web
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ready
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            cpu: 25m
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: /config.js
+          name: config-env
+          subPath: gold.config.js
+      - env:
+        - name: ORIGINS
+          value: wps-*.apps.silver.devops.gov.bc.ca
+        - name: BASE_URI
+          value: https://wps-__SUFFIX__-__NAMESPACE__.apps.silver.devops.gov.bc.ca
+        - name: PORT
+          value: '8080'
+        - name: ENVIRONMENT
+          value: production
+        - name: GUNICORN_WORKERS
+          value: '8'
+        - name: TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              key: env.gunicorn.timeout
+              name: wps-global
+        - name: WFWX_MAX_PAGE_SIZE
+          value: '1000'
+        - name: WFWX_AUTH_URL
+          valueFrom:
+            configMapKeyRef:
+              key: env.wfwx-auth-url
+              name: wps-global
+        - name: WFWX_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: env.wfwx-base-url
+              name: wps-global
+        - name: WFWX_USER
+          valueFrom:
+            configMapKeyRef:
+              key: env.wfwx-user
+              name: wps-global
+        - name: WFWX_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: wfwx-secret
+              name: wps-global
+        - name: KEYCLOAK_PUBLIC_KEY
+          valueFrom:
+            configMapKeyRef:
+              key: env.gold.keycloak-public-key
+              name: wps-global
+        - name: KEYCLOAK_CLIENT
+          valueFrom:
+            configMapKeyRef:
+              key: env.gold.keycloak-client
+              name: wps-global
+        - name: POSTGRES_READ_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_WRITE_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_WRITE_HOST
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-host
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_READ_HOST
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-host
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-port
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_DATABASE
+          value: wps
+        - name: STATUS_CHECKER_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: status-checker-sa-secret
+              name: wps-global
+        - name: OPENSHIFT_BASE_URI
+          valueFrom:
+            configMapKeyRef:
+              key: env.openshift-base-uri
+              name: wps-global
+        - name: OPENSHIFT_NAMESPACE_API
+          valueFrom:
+            configMapKeyRef:
+              key: env.openshift-namespace-api
+              name: wps-global
+        - name: PATRONI_CLUSTER_NAME
+          value: wps-crunchydb-16-__SUFFIX__
+        - name: PROJECT_NAMESPACE
+          value: __NAMESPACE__
+        - name: CHATOPS_URL
+          valueFrom:
+            secretKeyRef:
+              key: chatops-url
+              name: wps-global
+        - name: CHATOPS_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: chatops-auth-token
+              name: wps-global
+        - name: OPENSHIFT_CONSOLE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: env.openshift-console-url
+              name: wps-global
+        - name: OBJECT_STORE_SERVER
+          valueFrom:
+            secretKeyRef:
+              key: object-store-server
+              name: wps-global
+        - name: OBJECT_STORE_USER_ID
+          valueFrom:
+            secretKeyRef:
+              key: object-store-user-id
+              name: wps-global
+        - name: OBJECT_STORE_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: object-store-secret
+              name: wps-global
+        - name: OBJECT_STORE_BUCKET
+          valueFrom:
+            secretKeyRef:
+              key: object-store-bucket
+              name: wps-global
+        - name: CLASSIFIED_TPI_DEM_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: env.classified_tpi_dem_name
+              name: wps-global
+        - name: CLASSIFIED_TPI_DEM_FUEL_MASKED_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: env.classified_tpi_dem_fuel_masked_name
+              name: wps-global
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-host
+              name: wps-global
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-port
+              name: wps-global
+        - name: REDIS_USE
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-use
+              name: wps-global
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-password
+              name: wps-redis
+        - name: REDIS_STATION_CACHE_EXPIRY
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-station-cache-expiry
+              name: wps-global
+        - name: REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-hourlies-by-station-code-cache-expiry
+              name: wps-global
+        - name: REDIS_AUTH_CACHE_EXPIRY
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-auth-cache-expiry
+              name: wps-global
+        - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-dailies-by-station-code-expiry
+              name: wps-global
+        - name: REDIS_CACHE_ENV_CANADA
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-cache-env-canada
+              name: wps-global
+        - name: REDIS_CACHE_NOAA
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-cache-noaa
+              name: wps-global
+        - name: REDIS_ENV_CANADA_CACHE_EXPIRY
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-env-canada-cache-expiry
+              name: wps-global
+        - name: REDIS_NOAA_CACHE_EXPIRY
+          valueFrom:
+            configMapKeyRef:
+              key: env.redis-noaa-cache-expiry
+              name: wps-global
+        - name: TILESERVER_POSTGRES_READ_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: env.tileserver_postgres_read_host
+              name: wps-global
+        - name: TILESERVER_POSTGRES_WRITE_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: env.tileserver_postgres_write_host
+              name: wps-global
+        - name: TILESERVER_READ_USER
+          valueFrom:
+            secretKeyRef:
+              key: tileserv_read_user
+              name: wps-global
+        - name: TILESERVER_WRITE_USER
+          valueFrom:
+            secretKeyRef:
+              key: tileserv_write_user
+              name: wps-global
+        - name: TILESERVER_POSTGRES_WRITE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: tileserver_postgres_write_password
+              name: wps-global
+        - name: TILESERVER_POSTGRES_READ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: tileserver_postgres_read_password
+              name: wps-global
+        - name: SFMS_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: sfms-secret
+              name: wps-global
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: sentry-dsn
+              name: wps-global
+        - name: NATS_STREAM_PREFIX
+          value: wps-__SUFFIX__
+        - name: NATS_SERVER
+          valueFrom:
+            configMapKeyRef:
+              key: nats.server
+              name: wps-__SUFFIX__-nats-server
+        - name: FCM_CREDS
+          valueFrom:
+            secretKeyRef:
+              key: fcm-creds
+              name: wps-global
+        - name: WX_OBJECT_STORE_USER_ID
+          valueFrom:
+            secretKeyRef:
+              key: wx-object-store-user-id
+              name: wps-global
+        - name: WX_OBJECT_STORE_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: wx-object-store-secret
+              name: wps-global
+        - name: WX_OBJECT_STORE_BUCKET
+          valueFrom:
+            secretKeyRef:
+              key: wx-object-store-bucket
+              name: wps-global
+        image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: wps-api
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 20
+          httpGet:
+            path: /api/ready
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 2
+          timeoutSeconds: 2
+        resources:
+          limits:
+            memory: 8Gi
+          requests:
+            cpu: 100m
+            memory: 6Gi
+        startupProbe:
+          failureThreshold: 50
+          httpGet:
+            path: /api/ready
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 2
+      volumes:
+      - configMap:
+          name: wps-global
+        name: config-env
+  updatePolicy:
+    updateMode: 'Off'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+  name: wps-api-__SUFFIX__
+spec:
+  ports:
+  - name: 8080-tcp
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    name: wps-__SUFFIX__
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+  name: wps-web-__SUFFIX__
+spec:
+  ports:
+  - name: 3000-tcp
+    port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    name: wps-__SUFFIX__
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/balance: roundrobin
+    haproxy.router.openshift.io/disable_cookies: 'true'
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+  name: wps-api-__SUFFIX__
+spec:
+  host: wps-__SUFFIX__-__NAMESPACE__.apps.silver.devops.gov.bc.ca
+  path: /api
+  port:
+    targetPort: 8080-tcp
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: wps-api-__SUFFIX__
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/balance: roundrobin
+    haproxy.router.openshift.io/disable_cookies: 'true'
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+  name: wps-web-__SUFFIX__
+spec:
+  host: wps-__SUFFIX__-__NAMESPACE__.apps.silver.devops.gov.bc.ca
+  port:
+    targetPort: 3000-tcp
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: wps-web-__SUFFIX__
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/balance: roundrobin
+    haproxy.router.openshift.io/disable_cookies: 'true'
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    haproxy.router.openshift.io/timeout: 60s
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+    certbot-managed: 'true'
+  name: wps-api-__SUFFIX__-vanity
+spec:
+  host: psu.nrs.gov.bc.ca
+  path: /api
+  port:
+    targetPort: 8080-tcp
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: wps-api-__SUFFIX__
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/balance: roundrobin
+    haproxy.router.openshift.io/disable_cookies: 'true'
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+  labels:
+    app: wps-__SUFFIX__
+    app.kubernetes.io/part-of: wps
+    certbot-managed: 'true'
+  name: wps-__SUFFIX__-vanity
+spec:
+  host: psu.nrs.gov.bc.ca
+  port:
+    targetPort: 3000-tcp
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: wps-web-__SUFFIX__

@@ -47,24 +47,24 @@ PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=2 MEMORY_REQUEST=2Gi MEMORY
 
 echo Provision NATS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats.sh prod ${RUN_TYPE}
-echo Deploy API
-MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m MEMORY_REQUEST=6Gi MEMORY_LIMIT=8Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
-echo Deploy ASA Go API
-PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_asa_go_api.sh prod ${RUN_TYPE}
-echo Deploy SFMS Daily FWI API
-PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_sfms_fwi_api.sh prod ${RUN_TYPE}
+
+# DEPLOY_VERSION changes once per deploy so the API/ASA Go/SFMS FWI pod templates each roll
+# exactly once, same convention as every individual oc_deploy*.sh script used (now folded
+# into the Kustomize batch below instead of three separate oc process | oc apply calls).
+DEPLOY_VERSION="${DEPLOY_VERSION:-$(date +%s)}"
 
 echo ECCC Consumer
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.sh prod ${RUN_TYPE}
 
-# 20 independent CronJobs + the two APS gateway NetworkPolicies + the fuel-grid-install Job,
-# migrated to Kustomize (openshift/kustomize/ -- see its README) -- this replaces the
-# hand-rolled batch-file mechanism entirely, and the separate NetworkPolicy/Job script calls
-# that used to run here (oc_provision_asa_go_gateway_networkpolicy.sh,
-# oc_provision_sfms_fwi_gateway_networkpolicy.sh, oc_provision_fuel_grid_install_job.sh).
-# fuel-grid-install always renders with spec.suspend: true; prod was already called with
-# FUEL_GRID_INSTALL_SUSPEND=true (skip the unsuspend patch), so no follow-up step is needed
-# here to match prod's existing behavior -- see deployment.yml for dev, which still needs one.
+# 20 independent CronJobs + the two APS gateway NetworkPolicies + the fuel-grid-install Job
+# + the API/ASA Go/SFMS FWI Deployments, migrated to Kustomize (openshift/kustomize/ -- see
+# its README) -- this replaces the hand-rolled batch-file mechanism entirely, and the
+# separate script calls that used to run here (oc_provision_asa_go_gateway_networkpolicy.sh,
+# oc_provision_sfms_fwi_gateway_networkpolicy.sh, oc_provision_fuel_grid_install_job.sh,
+# oc_deploy.sh, oc_deploy_asa_go_api.sh, oc_deploy_sfms_fwi_api.sh). fuel-grid-install always
+# renders with spec.suspend: true; prod was already called with FUEL_GRID_INSTALL_SUSPEND=true
+# (skip the unsuspend patch), so no follow-up step is needed here to match prod's existing
+# behavior -- see deployment.yml for dev, which still needs one.
 # `oc kustomize` is a fully local render (unlike `oc process`, confirmed this week to hit the
 # API server by default). __SUFFIX__ is substituted with the literal "prod" (not ${SUFFIX},
 # which here is the source PR's suffix used only for image promotion above) -- prod
@@ -74,13 +74,19 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.
 echo "Applying batched resources via Kustomize..."
 if [ "${RUN_TYPE}" = "apply" ]; then
 	oc kustomize $(dirname ${0})/../kustomize/overlays/prod \
-		| sed "s/__SUFFIX__/prod/g; s/__NAMESPACE__/${PROJ_TARGET}/g" \
+		| sed "s/__SUFFIX__/prod/g; s/__NAMESPACE__/${PROJ_TARGET}/g; s/__DEPLOY_VERSION__/${DEPLOY_VERSION}/g" \
 		| oc -n ${PROJ_TARGET} apply -f -
 else
 	oc kustomize $(dirname ${0})/../kustomize/overlays/prod \
-		| sed "s/__SUFFIX__/prod/g; s/__NAMESPACE__/${PROJ_TARGET}/g" \
+		| sed "s/__SUFFIX__/prod/g; s/__NAMESPACE__/${PROJ_TARGET}/g; s/__DEPLOY_VERSION__/${DEPLOY_VERSION}/g" \
 		| oc -n ${PROJ_TARGET} apply -f - --dry-run
 fi
+
+# Rollout wait stays external -- Kustomize only renders, applying/waiting is still the
+# caller's job, same as oc_deploy.sh/oc_deploy_asa_go_api.sh/oc_deploy_sfms_fwi_api.sh always did.
+oc -n ${PROJ_TARGET} rollout status deployment/wps-prod
+oc -n ${PROJ_TARGET} rollout status deployment/wps-prod-asa-go
+oc -n ${PROJ_TARGET} rollout status deployment/wps-prod-sfms-fwi
 
 # Not yet migrated (see openshift/kustomize/README.md): backup_s3_postgres_cronjob's
 # param wiring doesn't follow the pattern every other cronjob script does, and needs

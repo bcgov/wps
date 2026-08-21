@@ -1,0 +1,156 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: wps-__SUFFIX__-asa-go
+    app.kubernetes.io/part-of: wps-asa-go-api
+  name: wps-__SUFFIX__-asa-go
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      name: wps-__SUFFIX__-asa-go
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        wps/deploy-version: __DEPLOY_VERSION__
+      labels:
+        name: wps-__SUFFIX__-asa-go
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: ORIGINS
+          value: wps-*.apps.silver.devops.gov.bc.ca
+        - name: APP_MODULE
+          value: app.asa_go_main:app
+        - name: PORT
+          value: '8080'
+        - name: ENVIRONMENT
+          value: production
+        - name: GUNICORN_WORKERS
+          value: '4'
+        - name: KEYCLOAK_PUBLIC_KEY
+          valueFrom:
+            configMapKeyRef:
+              key: env.gold.keycloak-public-key
+              name: wps-global
+        - name: KEYCLOAK_CLIENT
+          valueFrom:
+            configMapKeyRef:
+              key: env.gold.keycloak-client
+              name: wps-global
+        - name: POSTGRES_READ_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_WRITE_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_WRITE_HOST
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-host
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_READ_HOST
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-host
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-port
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_DATABASE
+          value: wps
+        - name: STATUS_CHECKER_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: status-checker-sa-secret
+              name: wps-global
+        - name: OPENSHIFT_BASE_URI
+          valueFrom:
+            configMapKeyRef:
+              key: env.openshift-base-uri
+              name: wps-global
+        - name: OPENSHIFT_NAMESPACE_API
+          valueFrom:
+            configMapKeyRef:
+              key: env.openshift-namespace-api
+              name: wps-global
+        - name: PATRONI_CLUSTER_NAME
+          value: wps-crunchydb-16-__SUFFIX__
+        - name: PROJECT_NAMESPACE
+          value: __NAMESPACE__
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: sentry-dsn
+              name: wps-global
+        image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: wps-asa-go-api
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 20
+          httpGet:
+            path: /api/ready
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 2
+          timeoutSeconds: 2
+        resources:
+          limits:
+            memory: 3Gi
+          requests:
+            cpu: 100m
+            memory: 2Gi
+        startupProbe:
+          failureThreshold: 20
+          httpGet:
+            path: /api/ready
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wps-__SUFFIX__-asa-go
+    app.kubernetes.io/part-of: wps-asa-go-api
+  name: wps-asa-go-api-__SUFFIX__
+spec:
+  ports:
+  - name: 8080-tcp
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    name: wps-__SUFFIX__-asa-go

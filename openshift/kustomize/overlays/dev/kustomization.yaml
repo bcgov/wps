@@ -7,6 +7,9 @@ resources:
   - ../../base/cronjobs
   - ../../base/networkpolicies
   - ../../base/jobs
+  - ../../base/asa-go-api
+  - ../../base/sfms-fwi-api
+  - ../../base/api
 
 # Dev-specific overrides. Every value here is taken directly from the explicit
 # MEMORY_REQUEST/MEMORY_LIMIT overrides in deployment.yml's "Provision dev cronjobs and
@@ -60,3 +63,70 @@ patches:
       - op: replace
         path: /spec/jobTemplate/spec/template/spec/containers/0/command/9
         value: "15"
+
+  # Dev-specific overrides for the API Deployments, taken directly from the explicit
+  # REPLICAS/MEMORY_REQUEST/MEMORY_LIMIT/ENVIRONMENT overrides each oc_deploy_*.sh call site
+  # passes in deployment.yml -- everything not listed here uses the base's (prod's) values
+  # unchanged, since dev's call sites don't override it either.
+  - target:
+      kind: Deployment
+      name: wps-__SUFFIX__-asa-go
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 700Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/env/3/value
+        value: development
+  - target:
+      kind: Deployment
+      name: wps-__SUFFIX__-sfms-fwi
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: replace
+        path: /spec/template/spec/containers/0/env/9/value
+        value: development
+  # Main API deployment (containers/0 = web, no per-env override; containers/1 = api).
+  - target:
+      kind: Deployment
+      name: wps-__SUFFIX__
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+      - op: replace
+        path: /spec/template/spec/containers/1/resources/requests/memory
+        value: 3Gi
+      - op: replace
+        path: /spec/template/spec/containers/1/resources/limits/memory
+        value: 6Gi
+      - op: replace
+        path: /spec/template/spec/containers/1/env/3/value
+        value: development
+      - op: replace
+        path: /spec/template/spec/containers/1/env/4/value
+        value: "4"
+  # Dev's vanity domain is per-PR, not a fixed literal like prod's -- __SUFFIX__ stays a
+  # literal token here too, substituted by the same sed pass as everywhere else.
+  - target:
+      kind: Route
+      name: wps-api-__SUFFIX__-vanity
+    patch: |-
+      - op: replace
+        path: /spec/host
+        value: __SUFFIX__-dev-psu.apps.silver.devops.gov.bc.ca
+  - target:
+      kind: Route
+      name: wps-__SUFFIX__-vanity
+    patch: |-
+      - op: replace
+        path: /spec/host
+        value: __SUFFIX__-dev-psu.apps.silver.devops.gov.bc.ca

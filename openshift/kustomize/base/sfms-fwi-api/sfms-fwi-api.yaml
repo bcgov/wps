@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: wps-__SUFFIX__-sfms-fwi
+    app.kubernetes.io/part-of: wps-sfms-fwi-api
+  name: wps-__SUFFIX__-sfms-fwi
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      name: wps-__SUFFIX__-sfms-fwi
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        wps/deploy-version: __DEPLOY_VERSION__
+      labels:
+        name: wps-__SUFFIX__-sfms-fwi
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: APP_MODULE
+          value: app.sfms_fwi_main:app
+        - name: POSTGRES_READ_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_WRITE_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_WRITE_HOST
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-host
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_READ_HOST
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-host
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-port
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_DATABASE
+          value: wps
+        - name: PORT
+          value: '8080'
+        - name: ENVIRONMENT
+          value: production
+        - name: GUNICORN_WORKERS
+          value: '2'
+        - name: OBJECT_STORE_SERVER
+          valueFrom:
+            secretKeyRef:
+              key: object-store-server
+              name: wps-global
+        - name: OBJECT_STORE_USER_ID
+          valueFrom:
+            secretKeyRef:
+              key: object-store-user-id
+              name: wps-global
+        - name: OBJECT_STORE_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: object-store-secret
+              name: wps-global
+        - name: OBJECT_STORE_BUCKET
+          valueFrom:
+            secretKeyRef:
+              key: object-store-bucket
+              name: wps-global
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: sentry-dsn
+              name: wps-global
+        image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: wps-sfms-fwi-api
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 20
+          httpGet:
+            path: /api/ready
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 2
+          timeoutSeconds: 2
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 512Mi
+        startupProbe:
+          failureThreshold: 20
+          httpGet:
+            path: /api/ready
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wps-__SUFFIX__-sfms-fwi
+    app.kubernetes.io/part-of: wps-sfms-fwi-api
+  name: wps-sfms-fwi-api-__SUFFIX__
+spec:
+  ports:
+  - name: 8080-tcp
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    name: wps-__SUFFIX__-sfms-fwi

@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# The dedicated ASA Go API service used behind APS (Deployment + Service). Generated from
+# openshift/templates/asa_go_api.yaml via `oc process --local` (see generate.py in this
+# directory), same convention as base/cronjobs. __SUFFIX__/__NAMESPACE__/__DEPLOY_VERSION__
+# are literal placeholder tokens substituted by the caller at apply time (see
+# openshift/kustomize/README.md) -- DEPLOY_VERSION changes every CI run (it exists purely to
+# force one rollout per deploy), so it can't be baked in any more than SUFFIX can.
+resources:
+  - asa-go-api.yaml

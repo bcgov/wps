@@ -139,24 +139,25 @@ jobs:
           oc-token: ${{ secrets.OC4_DEV_TOKEN }}
           oc-namespace: e1e498-dev
 
-      - name: Deploy API to Dev
-        shell: bash
-        run: |
-          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" MODULE_NAME=api SECOND_LEVEL_DOMAIN="apps.silver.devops.gov.bc.ca" VANITY_DOMAIN="${SUFFIX}-dev-psu.apps.silver.devops.gov.bc.ca" ENVIRONMENT="development" bash openshift/scripts/oc_deploy.sh ${SUFFIX} apply
-
-      - name: Provision dev cronjobs and jobs
+      - name: Provision dev cronjobs, jobs, and Deployments via Kustomize
         shell: bash
         run: |
           # 20 independent CronJobs + the two APS gateway NetworkPolicies + the
-          # fuel-grid-install Job, migrated to Kustomize (openshift/kustomize/ -- see its
-          # README) -- this replaces the separate oc_provision_fuel_grid_install_job.sh /
-          # oc_provision_asa_go_gateway_networkpolicy.sh / oc_provision_sfms_fwi_gateway_networkpolicy.sh
-          # calls that used to run here and in the deploy-asa-go-dev/deploy-sfms-fwi-dev
-          # jobs below. oc kustomize is a fully local render; SUFFIX is substituted with a
-          # plain sed pass since it's dynamic per run.
+          # fuel-grid-install Job + the API/ASA Go/SFMS FWI Deployments, migrated to
+          # Kustomize (openshift/kustomize/ -- see its README) -- this replaces the separate
+          # oc_provision_fuel_grid_install_job.sh / oc_provision_asa_go_gateway_networkpolicy.sh /
+          # oc_provision_sfms_fwi_gateway_networkpolicy.sh / oc_deploy.sh /
+          # oc_deploy_asa_go_api.sh / oc_deploy_sfms_fwi_api.sh calls that used to run here
+          # and in the now-removed deploy-asa-go-dev/deploy-sfms-fwi-dev jobs (those jobs had
+          # nothing left to do once their Deployment moved into this batch, so
+          # publish-aps-gateway-dev now depends on this job instead). oc kustomize is a fully
+          # local render; SUFFIX/DEPLOY_VERSION are substituted with a plain sed pass since
+          # they're dynamic per run. DEPLOY_VERSION changes once per deploy so each
+          # Deployment's pod template rolls exactly once, same convention every
+          # oc_deploy*.sh script used individually before.
           echo "Applying batched resources via Kustomize..."
           oc kustomize openshift/kustomize/overlays/dev \
-            | sed "s/__SUFFIX__/${SUFFIX}/g; s/__NAMESPACE__/e1e498-dev/g" \
+            | sed "s/__SUFFIX__/${SUFFIX}/g; s/__NAMESPACE__/e1e498-dev/g; s/__DEPLOY_VERSION__/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/g" \
             | oc -n e1e498-dev apply -f -
 
           # fuel-grid-install always renders with spec.suspend: true; dev un-suspends it
@@ -165,63 +166,22 @@ jobs:
           # rendered manifest, so it stays a separate imperative step.
           oc -n e1e498-dev patch job/fuel-grid-install-2026-wps-${SUFFIX} --type=merge -p '{"spec":{"suspend":false}}'
 
+          # Rollout wait stays external -- Kustomize only renders, applying/waiting is still
+          # the caller's job, same as oc_deploy.sh/oc_deploy_asa_go_api.sh/oc_deploy_sfms_fwi_api.sh
+          # always did.
+          oc -n e1e498-dev rollout status deployment/wps-${SUFFIX}
+          oc -n e1e498-dev rollout status deployment/wps-${SUFFIX}-asa-go
+          oc -n e1e498-dev rollout status deployment/wps-${SUFFIX}-sfms-fwi
+
       - name: Logging alerts
         shell: bash
         run: |
           oc process -f openshift/logging-alerts/oom_alerts.yaml -p NAMESPACE=e1e498-dev -p SEVERITY=warning | oc apply -f -
 
-  deploy-asa-go-dev:
-    name: Deploy ASA Go API to Dev
-    if: github.triggering_actor != 'renovate'
-    needs: [build-image, prepare-dev-database]
-    runs-on:
-      group: Larger Runners - OpenShift Static-IP
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/oc-setup
-
-      - uses: ./.github/actions/oc-login
-        with:
-          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
-          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
-          oc-namespace: e1e498-dev
-
-      - name: Deploy ASA Go API to Dev
-        shell: bash
-        run: |
-          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" MEMORY_REQUEST=700Mi MEMORY_LIMIT=1Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
-          # NetworkPolicy is applied by deploy-dev's Kustomize batch (see "Provision dev
-          # cronjobs and jobs") -- application order relative to this Deployment doesn't
-          # matter, NetworkPolicy enforcement is reactive, not a one-time creation gate.
-
-  deploy-sfms-fwi-dev:
-    name: Deploy SFMS FWI API to Dev
-    if: github.triggering_actor != 'renovate'
-    needs: [build-image, prepare-dev-database]
-    runs-on:
-      group: Larger Runners - OpenShift Static-IP
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/oc-setup
-
-      - uses: ./.github/actions/oc-login
-        with:
-          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
-          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
-          oc-namespace: e1e498-dev
-
-      - name: Deploy SFMS FWI API to Dev
-        shell: bash
-        run: |
-          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms_fwi_api.sh ${SUFFIX} apply
-          # NetworkPolicy is applied by deploy-dev's Kustomize batch (see "Provision dev
-          # cronjobs and jobs") -- application order relative to this Deployment doesn't
-          # matter, NetworkPolicy enforcement is reactive, not a one-time creation gate.
-
   publish-aps-gateway-dev:
     name: Publish APS Gateway Config to Dev
     if: github.triggering_actor != 'renovate'
-    needs: [deploy-asa-go-dev, deploy-sfms-fwi-dev]
+    needs: [deploy-dev]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
