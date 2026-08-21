@@ -51,32 +51,34 @@ echo Deploy API
 MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m MEMORY_REQUEST=6Gi MEMORY_LIMIT=8Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
 echo Deploy ASA Go API
 PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_asa_go_api.sh prod ${RUN_TYPE}
-echo Allow APS to reach ASA Go API
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_asa_go_gateway_networkpolicy.sh prod ${RUN_TYPE}
 echo Deploy SFMS Daily FWI API
 PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_sfms_fwi_api.sh prod ${RUN_TYPE}
-echo Allow APS to reach SFMS Daily FWI API
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_fwi_gateway_networkpolicy.sh prod ${RUN_TYPE}
 
 echo ECCC Consumer
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.sh prod ${RUN_TYPE}
 
-echo Fuel Grid Install
-PROJ_TARGET=${PROJ_TARGET} FUEL_RASTER_YEAR=2026 FUEL_GRID_INSTALL_SUSPEND=true bash $(dirname ${0})/oc_provision_fuel_grid_install_job.sh prod ${RUN_TYPE}
-
-# 20 independent CronJobs, migrated to Kustomize (openshift/kustomize/ -- see its
-# README) -- this replaces the hand-rolled batch-file mechanism entirely. `oc kustomize`
-# is a fully local render (unlike `oc process`, confirmed this week to hit the API
-# server by default); SUFFIX is substituted with a plain sed pass since it's genuinely
-# dynamic per run, not something Kustomize's static overlays can express.
-echo "Applying batched CronJobs via Kustomize..."
+# 20 independent CronJobs + the two APS gateway NetworkPolicies + the fuel-grid-install Job,
+# migrated to Kustomize (openshift/kustomize/ -- see its README) -- this replaces the
+# hand-rolled batch-file mechanism entirely, and the separate NetworkPolicy/Job script calls
+# that used to run here (oc_provision_asa_go_gateway_networkpolicy.sh,
+# oc_provision_sfms_fwi_gateway_networkpolicy.sh, oc_provision_fuel_grid_install_job.sh).
+# fuel-grid-install always renders with spec.suspend: true; prod was already called with
+# FUEL_GRID_INSTALL_SUSPEND=true (skip the unsuspend patch), so no follow-up step is needed
+# here to match prod's existing behavior -- see deployment.yml for dev, which still needs one.
+# `oc kustomize` is a fully local render (unlike `oc process`, confirmed this week to hit the
+# API server by default). __SUFFIX__ is substituted with the literal "prod" (not ${SUFFIX},
+# which here is the source PR's suffix used only for image promotion above) -- prod
+# resources are always named "prod", never per-PR, same as every oc_provision_*.sh call in
+# this file. Using ${SUFFIX} here previously caused duplicate/orphaned per-PR-tagged
+# CronJobs in live prod; don't reintroduce that.
+echo "Applying batched resources via Kustomize..."
 if [ "${RUN_TYPE}" = "apply" ]; then
 	oc kustomize $(dirname ${0})/../kustomize/overlays/prod \
-		| sed "s/__SUFFIX__/${SUFFIX}/g; s/__NAMESPACE__/${PROJ_TARGET}/g" \
+		| sed "s/__SUFFIX__/prod/g; s/__NAMESPACE__/${PROJ_TARGET}/g" \
 		| oc -n ${PROJ_TARGET} apply -f -
 else
 	oc kustomize $(dirname ${0})/../kustomize/overlays/prod \
-		| sed "s/__SUFFIX__/${SUFFIX}/g; s/__NAMESPACE__/${PROJ_TARGET}/g" \
+		| sed "s/__SUFFIX__/prod/g; s/__NAMESPACE__/${PROJ_TARGET}/g" \
 		| oc -n ${PROJ_TARGET} apply -f - --dry-run
 fi
 

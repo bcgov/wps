@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# The fuel-grid-install Job -- the only one-off Job actually called from the CI deploy
+# pipeline (oc_deploy_to_production.sh / deployment.yml); the rest (historic-snow-job,
+# partition_filler_job, backup-s3-cleanup-job) are standalone maintenance scripts not
+# invoked anywhere in CI, so they're out of scope for this migration for now. Generated via
+# generate.py in this directory, same convention as base/cronjobs. spec.suspend is always
+# true here -- the caller's follow-up `oc patch job/... suspend:false` (skipped in prod,
+# run in dev) stays an external step, since it's a runtime decision, not part of the
+# rendered manifest. __SUFFIX__/__NAMESPACE__ are literal placeholders substituted by the
+# caller at apply time (see openshift/kustomize/README.md).
+resources:
+  - fuel-grid-install.yaml

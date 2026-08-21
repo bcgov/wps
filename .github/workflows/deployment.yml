@@ -147,15 +147,23 @@ jobs:
       - name: Provision dev cronjobs and jobs
         shell: bash
         run: |
-          FUEL_RASTER_YEAR=2026 bash openshift/scripts/oc_provision_fuel_grid_install_job.sh ${SUFFIX} apply
-
-          # 20 independent CronJobs, migrated to Kustomize (openshift/kustomize/ -- see
-          # its README). oc kustomize is a fully local render; SUFFIX is substituted
-          # with a plain sed pass since it's dynamic per run.
-          echo "Applying batched CronJobs via Kustomize..."
+          # 20 independent CronJobs + the two APS gateway NetworkPolicies + the
+          # fuel-grid-install Job, migrated to Kustomize (openshift/kustomize/ -- see its
+          # README) -- this replaces the separate oc_provision_fuel_grid_install_job.sh /
+          # oc_provision_asa_go_gateway_networkpolicy.sh / oc_provision_sfms_fwi_gateway_networkpolicy.sh
+          # calls that used to run here and in the deploy-asa-go-dev/deploy-sfms-fwi-dev
+          # jobs below. oc kustomize is a fully local render; SUFFIX is substituted with a
+          # plain sed pass since it's dynamic per run.
+          echo "Applying batched resources via Kustomize..."
           oc kustomize openshift/kustomize/overlays/dev \
             | sed "s/__SUFFIX__/${SUFFIX}/g; s/__NAMESPACE__/e1e498-dev/g" \
             | oc -n e1e498-dev apply -f -
+
+          # fuel-grid-install always renders with spec.suspend: true; dev un-suspends it
+          # right away so it runs on every deploy (prod stays suspended -- see
+          # oc_deploy_to_production.sh). This is a runtime decision, not part of the
+          # rendered manifest, so it stays a separate imperative step.
+          oc -n e1e498-dev patch job/fuel-grid-install-2026-wps-${SUFFIX} --type=merge -p '{"spec":{"suspend":false}}'
 
       - name: Logging alerts
         shell: bash
@@ -182,11 +190,9 @@ jobs:
         shell: bash
         run: |
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" MEMORY_REQUEST=700Mi MEMORY_LIMIT=1Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
-
-      - name: Allow APS to reach ASA Go API
-        shell: bash
-        run: |
-          bash openshift/scripts/oc_provision_asa_go_gateway_networkpolicy.sh ${SUFFIX} apply
+          # NetworkPolicy is applied by deploy-dev's Kustomize batch (see "Provision dev
+          # cronjobs and jobs") -- application order relative to this Deployment doesn't
+          # matter, NetworkPolicy enforcement is reactive, not a one-time creation gate.
 
   deploy-sfms-fwi-dev:
     name: Deploy SFMS FWI API to Dev
@@ -208,11 +214,9 @@ jobs:
         shell: bash
         run: |
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms_fwi_api.sh ${SUFFIX} apply
-
-      - name: Allow APS to reach SFMS FWI API
-        shell: bash
-        run: |
-          bash openshift/scripts/oc_provision_sfms_fwi_gateway_networkpolicy.sh ${SUFFIX} apply
+          # NetworkPolicy is applied by deploy-dev's Kustomize batch (see "Provision dev
+          # cronjobs and jobs") -- application order relative to this Deployment doesn't
+          # matter, NetworkPolicy enforcement is reactive, not a one-time creation gate.
 
   publish-aps-gateway-dev:
     name: Publish APS Gateway Config to Dev

@@ -5,6 +5,8 @@ namespace: e1e498-dev
 
 resources:
   - ../../base/cronjobs
+  - ../../base/networkpolicies
+  - ../../base/jobs
 
 # Dev-specific overrides. Every value here is taken directly from the explicit
 # MEMORY_REQUEST/MEMORY_LIMIT overrides in deployment.yml's "Provision dev cronjobs and

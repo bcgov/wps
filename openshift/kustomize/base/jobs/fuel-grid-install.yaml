@@ -1,0 +1,114 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    wps.bcgov/fuel-grid-source-key: sfms/static/fbp2026.tif
+    wps.bcgov/fuel-grid-year: '2026'
+  labels:
+    app.kubernetes.io/part-of: wps-__SUFFIX__
+  name: fuel-grid-install-2026-wps-__SUFFIX__
+spec:
+  activeDeadlineSeconds: 21600
+  backoffLimit: 0
+  completions: 1
+  parallelism: 1
+  suspend: true
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: fuel-grid-install
+        app.kubernetes.io/name: fuel-grid-install
+        app.kubernetes.io/part-of: wps-__SUFFIX__
+    spec:
+      containers:
+      - command:
+        - uv
+        - run
+        - --no-sync
+        - python
+        - -m
+        - fuel_grid.install_job
+        - --year
+        - '2026'
+        - --key
+        - fbp2026.tif
+        env:
+        - name: UV_NO_CACHE
+          value: '1'
+        - name: OBJECT_STORE_SERVER
+          valueFrom:
+            secretKeyRef:
+              key: object-store-server
+              name: wps-global
+        - name: OBJECT_STORE_USER_ID
+          valueFrom:
+            secretKeyRef:
+              key: object-store-user-id
+              name: wps-global
+        - name: OBJECT_STORE_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: object-store-secret
+              name: wps-global
+        - name: OBJECT_STORE_BUCKET
+          valueFrom:
+            secretKeyRef:
+              key: object-store-bucket
+              name: wps-global
+        - name: CLASSIFIED_TPI_DEM_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: env.classified_tpi_dem_name
+              name: wps-global
+        - name: POSTGRES_WRITE_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_WRITE_HOST
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-host
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              key: pgbouncer-port
+              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+        - name: POSTGRES_DATABASE
+          value: wps
+        - name: SUFFIX
+          value: __SUFFIX__
+        - name: CHATOPS_URL
+          valueFrom:
+            secretKeyRef:
+              key: chatops-url
+              name: wps-global
+        - name: CHATOPS_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: chatops-auth-token
+              name: wps-global
+        - name: OPENSHIFT_CONSOLE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: env.openshift-console-url
+              name: wps-global
+        - name: PROJECT_NAMESPACE
+          value: __NAMESPACE__
+        image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-jobs-__SUFFIX__:__SUFFIX__
+        imagePullPolicy: Always
+        name: fuel-grid-install
+        resources:
+          limits:
+            memory: 3Gi
+          requests:
+            cpu: 200m
+            memory: 2Gi
+      restartPolicy: OnFailure
+  ttlSecondsAfterFinished: 86400
