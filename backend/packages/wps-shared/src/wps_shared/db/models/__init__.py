@@ -14,8 +14,6 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
     PredictionModel,
     PredictionModelRunTimestamp,
-    PredictionModelGridSubset,
-    ModelRunGridSubsetPrediction,
     WeatherStationModelPrediction,
     SavedModelRunForSFMSUrl,
     ModelRunForSFMS,

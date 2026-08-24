@@ -2,10 +2,8 @@
 
 import logging
 import numpy as np
-from sqlalchemy import Column, String, Integer, Float, Boolean, Sequence, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import Column, String, Integer, Float, Boolean, Sequence, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import ARRAY
-from geoalchemy2 import Geometry
 from wps_shared.db.models import Base
 import wps_shared.utils.time as time_utils
 from wps_shared.db.models.common import TZTimeStamp
@@ -111,72 +109,6 @@ class PredictionModelRunTimestamp(Base):
             "prediction_model:{self.prediction_model.abbreviation}:{self.prediction_model.projection}, "
             "prediction_run_timestamp:{self.prediction_run_timestamp}, "
             "complete={self.complete}"
-        ).format(self=self)
-
-
-class PredictionModelGridSubset(Base):
-    """Identify the vertices surrounding the area of interest"""
-
-    __tablename__ = "prediction_model_grid_subsets"
-    __table_args__ = (UniqueConstraint("prediction_model_id", "geom"), {"comment": "Identify the vertices surrounding the area of interest"})
-
-    id = Column(Integer, Sequence("prediction_model_grid_subsets_id_seq"), primary_key=True, nullable=False, index=True)
-    # Which model does this grid belong to? e.g. GDPS latlon.15x.15?
-    prediction_model_id = Column(Integer, ForeignKey("prediction_models.id"), nullable=False, index=True)
-    prediction_model = relationship("PredictionModel")
-    # Order of vertices is important!
-    # 1st vertex top left, 2nd vertex top right, 3rd vertex bottom right, 4th vertex bottom left.
-    # We create the index later, due to issue with alembic + geoalchemy.
-    geom = Column(Geometry("POLYGON", spatial_index=False), nullable=False)
-
-    def __str__(self):
-        return ("id: {self.id}, prediction_model_id: {self.prediction_model_id}").format(self=self)
-
-
-# Explicit creation of index due to issue with alembic + geoalchemy.
-Index("idx_prediction_model_grid_subsets_geom", PredictionModelGridSubset.geom, postgresql_using="gist")
-
-
-class ModelRunGridSubsetPrediction(Base):
-    """The prediction for a particular model grid subset.
-    Each value is an array that corresponds to the vertex in the prediction bounding polygon."""
-
-    __tablename__ = "model_run_grid_subset_predictions"
-    __table_args__ = (
-        UniqueConstraint("prediction_model_run_timestamp_id", "prediction_model_grid_subset_id", "prediction_timestamp"),
-        {"comment": "The prediction for a grid subset of a particular model run."},
-    )
-
-    id = Column(Integer, Sequence("model_run_grid_subset_predictions_id_seq"), primary_key=True, nullable=False, index=True)
-    # Which model run does this forecacst apply to? E.g. The GDPS 15x.15 run from 2020 07 07 12h00.
-    prediction_model_run_timestamp_id = Column(Integer, ForeignKey("prediction_model_run_timestamps.id"), nullable=False, index=True)
-    prediction_model_run_timestamp = relationship("PredictionModelRunTimestamp", foreign_keys=[prediction_model_run_timestamp_id])
-    # Which grid does this prediction apply to?
-    prediction_model_grid_subset_id = Column(Integer, ForeignKey("prediction_model_grid_subsets.id"), nullable=False, index=True)
-    prediction_model_grid_subset = relationship("PredictionModelGridSubset")
-    # The date and time to which the prediction applies.
-    prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
-    # Temperature 2m above model layer.
-    tmp_tgl_2 = Column(ARRAY(Float), nullable=True)
-    # Relative humidity 2m above model layer.
-    rh_tgl_2 = Column(ARRAY(Float), nullable=True)
-    # Accumulated precipitation (units kg.m^-2)
-    apcp_sfc_0 = Column(ARRAY(Float), nullable=True)
-    # Wind direction 10m above ground.
-    wdir_tgl_10 = Column(ARRAY(Float), nullable=True)
-    # Wind speed 10m above ground.
-    wind_tgl_10 = Column(ARRAY(Float), nullable=True)
-
-    def __str__(self):
-        return (
-            "id:{self.id}, "
-            "prediction_model_run_timestamp_id:{self.prediction_model_run_timestamp_id}, "
-            "prediction_model_grid_subset_id:{self.prediction_model_grid_subset_id}, "
-            "prediction_timestamp={self.prediction_timestamp}, "
-            "tmp_tgl_2={self.tmp_tgl_2}, "
-            "rh_tgl_2={self.rh_tgl_2}, "
-            "apcp_sfc_0={self.apcp_sfc_0}, "
-            "wdir_tgl_10={self.wdir_tgl_10}, "
         ).format(self=self)
 
 

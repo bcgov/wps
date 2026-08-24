@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import numpy
@@ -7,7 +8,6 @@ from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
     accumulate_nam_precipitation,
 )
-from wps_shared.db.models.weather_models import ModelRunGridSubsetPrediction
 from wps_shared.schemas.stations import WeatherStation
 
 ZERO_HOUR_TIMESTAMP = datetime(2023, 9, 7, 0, 0, 0)
@@ -21,7 +21,7 @@ MODEL_RUN_EIGHTEEN_HOUR = 18
 
 def test_accumulator_is_zero_prediction_apcp_sfc_0_is_none():
     nam_cumulative_precip = numpy.array([0, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=None, prediction_timestamp=ZERO_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -33,7 +33,7 @@ def test_accumulator_is_zero_prediction_apcp_sfc_0_is_none():
 
 def test_accumulator_has_value_prediction_apcp_sfc_0_is_none():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=None, prediction_timestamp=ZERO_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -45,7 +45,7 @@ def test_accumulator_has_value_prediction_apcp_sfc_0_is_none():
 
 def test_accumulator_has_value_prediction_apcp_sfc_0_is_zero():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[0, 0, 0, 0], prediction_timestamp=ZERO_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -57,7 +57,7 @@ def test_accumulator_has_value_prediction_apcp_sfc_0_is_zero():
 
 def test_accumulator_has_value_prediction_apcp_sfc_0_has_value():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=ZERO_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -69,7 +69,7 @@ def test_accumulator_has_value_prediction_apcp_sfc_0_has_value():
 
 def test_zero_hour_timstamp_with_accumulating_hour_timestamp():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=NON_ACCUMULATING_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -81,7 +81,7 @@ def test_zero_hour_timstamp_with_accumulating_hour_timestamp():
 
 def test_zero_hour_model_run_with_accumulating_timestamp():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=TWELVE_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -93,7 +93,7 @@ def test_zero_hour_model_run_with_accumulating_timestamp():
 
 def test_zero_hour_model_run_with_non_accumulating_timestamp():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=NON_ACCUMULATING_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -105,7 +105,7 @@ def test_zero_hour_model_run_with_non_accumulating_timestamp():
 
 def test_six_hour_model_run_with_accumulating_timestamp():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=TWELVE_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -117,7 +117,7 @@ def test_six_hour_model_run_with_accumulating_timestamp():
 
 def test_six_hour_model_run_with_non_accumulating_timestamp():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=NON_ACCUMULATING_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -129,7 +129,7 @@ def test_six_hour_model_run_with_non_accumulating_timestamp():
 
 def test_twelve_hour_model_run_with_accumulating_timestamp():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=TWELVE_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -141,7 +141,7 @@ def test_twelve_hour_model_run_with_accumulating_timestamp():
 
 def test_twelve_hour_model_run_with_non_accumulating_timestamp():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=NON_ACCUMULATING_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -153,7 +153,7 @@ def test_twelve_hour_model_run_with_non_accumulating_timestamp():
 
 def test_eighteen_hour_model_run_with_accumulating_timestamp():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=TWELVE_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
@@ -165,7 +165,7 @@ def test_eighteen_hour_model_run_with_accumulating_timestamp():
 
 def test_eighteen_hour_model_run_with_non_accumulating_timestamp():
     nam_cumulative_precip = numpy.array([1, 0, 0, 0])
-    prediction = ModelRunGridSubsetPrediction(
+    prediction = SimpleNamespace(
         apcp_sfc_0=[1, 0, 0, 0], prediction_timestamp=NON_ACCUMULATING_HOUR_TIMESTAMP
     )
     cumulative_precip, prediction_precip = accumulate_nam_precipitation(
