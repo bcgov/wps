@@ -4190,7 +4190,7 @@ __metadata:
     fs-extra: "npm:^11.3.4"
     jsdom: "npm:^30.0.0"
     jwt-decode: "npm:^4.0.0"
-    keycloak-js: "npm:^25.0.0"
+    keycloak-js: "npm:^26.0.0"
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.0.2"
     match-sorter: "npm:^8.0.0"
@@ -6004,13 +6004,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-sha256@npm:^0.11.0":
-  version: 0.11.1
-  resolution: "js-sha256@npm:0.11.1"
-  checksum: 10c0/ef8e294b6f38f218e4834cb653471dd1a76808cea93dc66eaffcb04124116bc36d6cebc4e8866753e184ab4e57892b6ef21918e8ab0450179a7e093ea962d974
-  languageName: node
-  linkType: hard
-
 "js-tokens@npm:^10.0.0":
   version: 10.0.0
   resolution: "js-tokens@npm:10.0.0"
@@ -6148,13 +6141,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"keycloak-js@npm:^25.0.0":
-  version: 25.0.6
-  resolution: "keycloak-js@npm:25.0.6"
-  dependencies:
-    js-sha256: "npm:^0.11.0"
-    jwt-decode: "npm:^4.0.0"
-  checksum: 10c0/56d4cc7b463096da20da3389af60b5dd889dad260fd8474d4ed912c25070fcb43559bd6a335b23462075a2e59e36a8a104f2a200317d3ff46ded4d801391bab2
+"keycloak-js@npm:^26.0.0":
+  version: 26.2.4
+  resolution: "keycloak-js@npm:26.2.4"
+  checksum: 10c0/ad1f3e7c07b6b84fd805129e21aefe94b32e48ecdde1c586294720712c0971ff4c49613c025476d30dbff22e5d61a4fc4d294050d5f11e1ecc0646bef2f02311
   languageName: node
   linkType: hard
 
