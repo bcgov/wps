@@ -1,0 +1,171 @@
+name: Release
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      component:
+        description: Which package to release
+        required: true
+        type: choice
+        options:
+          - asago
+          - sfms
+          - wps
+      bump:
+        description: Semver part to bump since the last release of this component
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+
+env:
+  SENTRY_ORG: bcps-wps
+
+jobs:
+  release:
+    name: Tag, generate release notes, and tie to a Sentry release
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Resolve component
+        id: scope
+        run: |
+          case "${{ inputs.component }}" in
+            asago)
+              echo "prefix=asago" >> "$GITHUB_OUTPUT"
+              echo "title=Mobile (ASA Go)" >> "$GITHUB_OUTPUT"
+              echo "paths=mobile" >> "$GITHUB_OUTPUT"
+              echo "sentry_projects=asago" >> "$GITHUB_OUTPUT"
+              echo "pyproject=" >> "$GITHUB_OUTPUT"
+              ;;
+            sfms)
+              echo "prefix=sfms" >> "$GITHUB_OUTPUT"
+              echo "title=wps-sfms" >> "$GITHUB_OUTPUT"
+              echo "paths=backend/packages/wps-sfms" >> "$GITHUB_OUTPUT"
+              echo "sentry_projects=api" >> "$GITHUB_OUTPUT"
+              echo "pyproject=backend/packages/wps-sfms/pyproject.toml" >> "$GITHUB_OUTPUT"
+              ;;
+            wps)
+              echo "prefix=wps" >> "$GITHUB_OUTPUT"
+              echo "title=WPS (API/Frontend)" >> "$GITHUB_OUTPUT"
+              echo "paths=backend web" >> "$GITHUB_OUTPUT"
+              echo "sentry_projects=api frontend" >> "$GITHUB_OUTPUT"
+              echo "pyproject=backend/packages/wps-api/pyproject.toml" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Compute next version
+        id: version
+        env:
+          PREFIX: ${{ steps.scope.outputs.prefix }}
+          BUMP: ${{ inputs.bump }}
+        run: |
+          PREV_TAG=$(git tag --list "${PREFIX}-*" --sort=-v:refname | head -n1)
+          echo "prev_tag=${PREV_TAG}" >> "$GITHUB_OUTPUT"
+
+          if [ -z "${PREV_TAG}" ]; then
+            NEW_VERSION="0.1.0"
+          else
+            IFS=. read -r MAJOR MINOR PATCH <<<"${PREV_TAG#${PREFIX}-}"
+            case "${BUMP}" in
+              major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+              minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+              patch) PATCH=$((PATCH + 1)) ;;
+            esac
+            NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          fi
+          echo "new_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${PREFIX}-${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
+      # Only sfms and wps have a pyproject.toml to bump — asago's version lives in
+      # mobile/asa-go's own build workflow. The version field isn't read by any build
+      # or install step (packages are referenced by workspace path, not published), this
+      # just keeps it from lying to anyone reading the file.
+      - name: Bump pyproject.toml version
+        if: steps.scope.outputs.pyproject != ''
+        env:
+          FILE: ${{ steps.scope.outputs.pyproject }}
+          NEW_VERSION: ${{ steps.version.outputs.new_version }}
+        run: |
+          sed -i "s/^version = \".*\"/version = \"${NEW_VERSION}\"/" "${FILE}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${FILE}"
+          git commit -m "chore: bump $(basename "$(dirname "${FILE}")") to ${NEW_VERSION}"
+          git push origin HEAD:main
+
+      - name: Resolve release commit
+        id: commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # wps-sfms and the api share one Docker image/commit (see the "wps" vs "sfms"
+      # scoping above), so this doesn't build or deploy anything new — it just tells
+      # Sentry which commits belong to the release already running under this SHA, so
+      # issues from that deploy show a suspect commit. Backend pods tag events with the
+      # commit SHA (see Dockerfile's OPENSHIFT_BUILD_COMMIT), so this must use the same one.
+      - name: Create Sentry release
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        with:
+          projects: ${{ steps.scope.outputs.sentry_projects }}
+          release: ${{ steps.commit.outputs.sha }}
+          set_commits: auto
+
+      - name: Tag and publish release notes
+        env:
+          TITLE: ${{ steps.scope.outputs.title }}
+          PATHS: ${{ steps.scope.outputs.paths }}
+          TAG: ${{ steps.version.outputs.tag }}
+          PREV_TAG: ${{ steps.version.outputs.prev_tag }}
+          SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          {
+            echo "## What's changed in ${TITLE} ${TAG}"
+            echo
+            if [ -n "${PREV_TAG}" ]; then
+              git log --pretty=format:"- %s" "${PREV_TAG}..${SHA}" -- ${PATHS}
+            else
+              git log --pretty=format:"- %s" "${SHA}" -- ${PATHS}
+            fi
+          } > notes.md
+
+          if [ -n "${PREV_TAG}" ]; then
+            echo >> notes.md
+            echo >> notes.md
+            echo "**Full diff**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}" >> notes.md
+          fi
+          {
+            echo
+            echo "**Sentry release**: https://${SENTRY_ORG}.sentry.io/releases/${SHA}/"
+          } >> notes.md
+
+          git tag "${TAG}" "${SHA}"
+          git push origin "${TAG}"
+
+          gh release create "${TAG}" \
+            --title "${TITLE} ${TAG}" \
+            --notes-file notes.md
+
+      # asago's tag IS the release: kick off the actual store builds against the
+      # commit just tagged, so there's no separate step to forget and no window where
+      # the tag points at a version that was never built.
+      - name: Trigger mobile store builds
+        if: inputs.component == 'asago'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh workflow run asa_go_android_build.yml --ref "${TAG}"
+          gh workflow run asa_go_ios_build_deploy.yml --ref "${TAG}"

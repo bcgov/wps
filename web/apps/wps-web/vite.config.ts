@@ -43,6 +43,16 @@ export default defineConfig({
       org: 'bcps-wps',
       project: 'frontend',
       authToken: process.env.SENTRY_AUTH_TOKEN,
+      release: {
+        name: process.env.SENTRY_RELEASE,
+        // No .git in this build context (Dockerfile.web only COPYs source, not history),
+        // so auto commit association has nothing to walk locally. Point it at the SHA
+        // OpenShift built directly instead.
+        setCommits: {
+          repo: 'bcgov/wps',
+          commit: process.env.SENTRY_RELEASE
+        }
+      },
       sourcemaps: {
         filesToDeleteAfterUpload: 'build/assets/**.map'
       }

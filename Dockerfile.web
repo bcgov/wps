@@ -11,6 +11,18 @@ FROM docker.io/library/node:24-alpine AS static
 USER 0
 WORKDIR /app
 
+# OpenShift's docker build strategy auto-populates this ARG with the built commit SHA.
+# There's no .git in this build context, so without this the Sentry vite plugin's
+# default git-based release detection silently falls back to a random release name.
+ARG OPENSHIFT_BUILD_COMMIT
+ENV SENTRY_RELEASE=${OPENSHIFT_BUILD_COMMIT}
+
+# build.web.bc.yaml passes this via dockerStrategy.env, but it only reaches `yarn turbo
+# build` if a stage actually declares the ARG — without this line it was silently unset,
+# and the Sentry vite plugin skips source map upload/release creation with no auth token.
+ARG SENTRY_AUTH_TOKEN
+ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+
 COPY web/package.json web/yarn.lock web/.yarnrc.yml web/turbo.json ./
 
 # Copy package manifests before source for better layer caching

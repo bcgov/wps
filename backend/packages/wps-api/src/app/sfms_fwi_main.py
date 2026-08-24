@@ -59,6 +59,7 @@ if config.get("ENVIRONMENT") == "production":
     sentry_sdk.init(
         dsn=config.get("SENTRY_DSN"),
         environment=config.get("ENVIRONMENT"),
+        release=config.get("SENTRY_RELEASE"),
         traces_sample_rate=0.5,
         profiles_sample_rate=0.5,
     )

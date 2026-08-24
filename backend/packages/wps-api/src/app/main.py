@@ -80,6 +80,7 @@ if config.get("ENVIRONMENT") == "production":
     sentry_sdk.init(
         dsn=config.get("SENTRY_DSN"),
         environment=config.get("ENVIRONMENT"),
+        release=config.get("SENTRY_RELEASE"),
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
         traces_sample_rate=0.5,

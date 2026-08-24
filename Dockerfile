@@ -117,6 +117,11 @@ COPY --from=builder /app/.venv /app/.venv
 # The fastapi docker image defaults to port 80, but openshift doesn't allow non-root users port 80.
 EXPOSE 8080
 
+# OpenShift's docker build strategy auto-populates this ARG with the built commit SHA.
+# Used as the Sentry release so errors can be traced back to the exact commit deployed.
+ARG OPENSHIFT_BUILD_COMMIT
+ENV SENTRY_RELEASE=${OPENSHIFT_BUILD_COMMIT}
+
 # Set the classpath to include copied libs
 ENV CLASSPATH=/app/libs/REDapp_Lib.jar:/app/libs/WTime.jar:/app/libs/hss-java.jar:${CLASSPATH}
 # Add .venv to PATH

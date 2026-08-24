@@ -56,6 +56,7 @@ Refer to [web/README.md](web/README.md)
 - [Database](docs/DB.md)
 - [Devops](docs/DEVOPS.md)
 - [Conventions](docs/CONVENTIONS.md)
+- [Releases](docs/RELEASES.md)
 - [Wildfire Glossary](https://github.com/bcgov/wps/wiki/Glossary)
 
 ## License

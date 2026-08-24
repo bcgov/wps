@@ -1,8 +1,5 @@
 name: Build ASA Go Android
 
-env:
-  appBuildVersion: "1.2.0"
-
 on:
   workflow_dispatch:
 
@@ -15,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Sentry release commit association needs full history
 
       - name: Create environment settings
         working-directory: ./mobile/asa-go
@@ -107,8 +106,13 @@ jobs:
 
       - name: Bump Build Number
         run: |
+          TAG=$(git tag --list "asago-*" --sort=-v:refname | head -n1)
+          if [ -z "${TAG}" ]; then
+            echo "::error::No asago-* tag found. Cut a release via the Release workflow first."
+            exit 1
+          fi
           echo "VERSION_CODE=${{ github.run_number }}" >> $GITHUB_ENV
-          echo "VERSION_NAME=${{ env.appBuildVersion }}" >> $GITHUB_ENV
+          echo "VERSION_NAME=${TAG#asago-}" >> $GITHUB_ENV
 
       - name: Build Release AAB
         working-directory: mobile/asa-go/android

@@ -2,7 +2,6 @@ name: Publish ASA Go iOS
 
 env:
   appBuildNumber: ${{ github.run_number }}
-  appBuildVersion: "1.2.0"
 
 permissions:
   contents: read
@@ -17,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Sentry release commit association needs full history
 
       - name: Create environment settings
         working-directory: ./mobile/asa-go
@@ -124,9 +125,14 @@ jobs:
       - name: Bump Build Number
         working-directory: mobile/asa-go/ios/App
         run: |
+          TAG=$(git tag --list "asago-*" --sort=-v:refname | head -n1)
+          if [ -z "${TAG}" ]; then
+            echo "::error::No asago-* tag found. Cut a release via the Release workflow first."
+            exit 1
+          fi
           # Update version and build number
           agvtool new-version ${{ env.appBuildNumber }}
-          agvtool new-marketing-version ${{ env.appBuildVersion }}
+          agvtool new-marketing-version "${TAG#asago-}"
       - name: Build and Archive
         working-directory: mobile/asa-go/ios/App
         run: |
