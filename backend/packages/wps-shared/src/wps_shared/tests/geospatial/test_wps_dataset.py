@@ -120,6 +120,55 @@ def test_raster_mul_identity():
         assert np.all(output_values == left_side_values) == True
 
 
+def test_raster_mul_defaults_to_memory_backed():
+    """Without output_path set on the left operand, `*` keeps its original in-memory (MEM driver) behaviour."""
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds_1 = create_test_dataset(
+        "test_dataset_1.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2
+    )
+    ds_2 = create_test_dataset(
+        "test_dataset_2.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1
+    )
+
+    with (
+        WPSDataset(ds_path=None, ds=ds_1) as wps1_ds,
+        WPSDataset(ds_path=None, ds=ds_2) as wps2_ds,
+    ):
+        output_ds = wps1_ds * wps2_ds
+        assert output_ds.as_gdal_ds().GetDriver().ShortName == "MEM"
+
+
+def test_raster_mul_disk_backed():
+    """Setting output_path on the left operand backs the `*` result with a real GTiff on disk instead of MEM."""
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds_1 = create_test_dataset(
+        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2
+    )
+    ds_2 = create_test_dataset(
+        "test_dataset_2.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1
+    )
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_path = os.path.join(temp_dir, "masked.tif")
+
+        with (
+            WPSDataset(ds_path=None, ds=ds_1, output_path=output_path) as wps1_ds,
+            WPSDataset(ds_path=None, ds=ds_2) as wps2_ds,
+        ):
+            output_ds = wps1_ds * wps2_ds
+            raw_ds = output_ds.as_gdal_ds()
+
+            assert raw_ds.GetDriver().ShortName == "GTiff"
+            assert np.all(raw_ds.GetRasterBand(1).ReadAsArray() == 2)
+            raw_ds.FlushCache()  # caller's responsibility, same as process_elevation_hfi.py
+
+        assert os.path.exists(output_path)
+
+        # confirm the file actually persisted to disk with the multiplied result, not just an in-process handle
+        with WPSDataset(output_path) as reopened:
+            assert np.all(reopened.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 2)
+
+
 def test_raster_mul_wrong_dimensions():
     extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
     wgs_84_ds1 = create_test_dataset("test_dataset_1.tif", 1, 1, extent, 4326)
