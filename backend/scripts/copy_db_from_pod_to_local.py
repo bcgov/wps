@@ -136,7 +136,6 @@ def dump_database(project: str, pod: str, database: str, mode: Mode, num_days: i
                 "--clean",
                 "-Ft",
                 database,
-                "--exclude-table-data=model_run_grid_subset_predictions",
                 "--exclude-table-data=weather_station_model_predictions",
             ],
             stdout=subprocess.PIPE,
@@ -171,7 +170,7 @@ def dump_database(project: str, pod: str, database: str, mode: Mode, num_days: i
     )
     if mode == Mode.partial:
         # partial model data
-        tables = ["model_run_grid_subset_predictions", "weather_station_model_predictions"]
+        tables = ["weather_station_model_predictions"]
         for table in tables:
             csv_file = "/tmp/{}.csv".format(table)
             files.append(csv_file)
@@ -188,10 +187,6 @@ def dump_database(project: str, pod: str, database: str, mode: Mode, num_days: i
             "prediction_model_run_timestamps": {
                 "col_name": "prediction_run_timestamp",
                 "date_offset": num_days + 11,
-            },
-            "model_run_grid_subset_predictions": {
-                "col_name": "prediction_timestamp",
-                "date_offset": num_days,
             },
             "weather_station_model_predictions": {
                 "col_name": "prediction_timestamp",

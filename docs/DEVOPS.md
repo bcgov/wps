@@ -6,15 +6,6 @@ To redeploy prod from a previous image:
    - `oc -n e1e498-tools tag wps-prod:pr-<last-working-pr-number> wps-prod:prod`
 2. Select "Start rollout" action in openshift
 
-### Disk space
-
-A subset of model predictions is currently being stored, but not actually used once interpolation has been
-performed. This data can be trimmed in order to preserve space:
-
-```sql
-delete from model_run_grid_subset_predictions where prediction_timestamp < now() - interval '3 months'
-```
-
 ## Config Maps & Secrets
 
 In `openshift/templates/global.config.yaml` there are templates for a global ConfigMap and global Secrets used by the API.
