@@ -1,9 +1,19 @@
 # Releases
 
-Four independently-releasable things ship from this monorepo: **asago** (mobile),
-**sfms** (SFMS Daily FWI API), **wps** (backend API + web), and **wps-sfms** (the
-`wps_sfms` raster-interpolation package, run via CronJobs off the same image as
-everything else). All four report to Sentry.
+Four independently-releasable things ship from this monorepo, split into two kinds:
+
+- **Deployments** — a real running process with its own "what's live right now"
+  question: **asago** (mobile), **sfms** (SFMS Daily FWI API), **wps** (backend API +
+  web).
+- **Packages** — versioned code with no process of its own; it's baked into whatever
+  deployment consumes it: **wps-sfms** (the `wps_sfms` raster-interpolation package,
+  consumed by CronJobs that run off the same image as everything else).
+
+All four report to Sentry, and `release.yml` runs the same steps for both kinds
+(except the mobile-build dispatch, which is `asago`-only). The deployment/package split
+is a documentation grouping, not a field in the workflow — Sentry has no generic
+metadata slot to hang it on, and OpenShift already expresses it natively via resource
+kind (`Deployment` vs `CronJob`), so there was nothing for the workflow to feed.
 
 ## sfms and wps share one Docker image
 
@@ -41,11 +51,18 @@ gh workflow run release.yml -f component=wps -f bump=patch
    the project(s) below (skippable per-component if one has no Sentry project).
 6. `asago` only: dispatches both mobile build workflows against the tag.
 
+**Deployments**
+
 | component | tag prefix | paths for notes | pyproject.toml | package.json | Sentry project(s) |
 |---|---|---|---|---|---|
 | `asago` | `asago-*` | `mobile` | — | `mobile/asa-go/package.json` | `asago` |
 | `sfms` | `sfms-*` | `sfms_fwi_main.py`, `app/routers/sfms_fwi.py`, `app/sfms/`, `wps_shared/sfms/` (under `backend/packages/...`) | — | — | `api` |
 | `wps` | `wps-*` | `backend`, `web` | `wps-api` | `web/apps/wps-web/package.json` | `api`, `frontend` |
+
+**Packages**
+
+| component | tag prefix | paths for notes | pyproject.toml | package.json | Sentry project(s) |
+|---|---|---|---|---|---|
 | `wps-sfms` | `wps-sfms-*` | `backend/packages/wps-sfms` | `wps-sfms` | — | `api` |
 
 None of the version-file bumps affect any build — the Python packages are `uv`
