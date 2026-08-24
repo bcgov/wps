@@ -174,10 +174,7 @@ class ModelRunPrediction(Base):
 
 
 class WeatherStationModelPrediction(Base):
-    """The model prediction for a particular weather station.
-    Based on values from ModelRunGridSubsetPrediction, but captures linear interpolations based on weather
-    station's location within the grid_subset, and also captures time-based linear interpolations where
-    needed for certain Model types."""
+    """The model prediction for a particular weather station. Includes bias adjusted values and time interpolated predictions where applicable"""
 
     __tablename__ = "weather_station_model_predictions"
     __table_args__ = (
@@ -191,17 +188,14 @@ class WeatherStationModelPrediction(Base):
     # Which PredictionModelRunTimestamp is this station's prediction based on?
     prediction_model_run_timestamp_id = Column(Integer, ForeignKey("prediction_model_run_timestamps.id"), nullable=False, index=True)
     prediction_model_run_timestamp = relationship("PredictionModelRunTimestamp")
-    # The date and time to which the prediction applies. Will most often be copied directly from
-    # prediction_timestamp for the ModelRunGridSubsetPrediction, but is included again for cases
-    # when values are interpolated (e.g., noon interpolations on GDPS model runs)
+    # The date and time to which the prediction applies. Usually copied from ModelRunPrediction,
+    # but may represent a time-interpolated prediction.
     prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
-    # Temperature 2m above model layer - an interpolated value based on 4 values from
-    # model_run_grid_subset_prediction
+    # Temperature 2m above model layer
     tmp_tgl_2 = Column(Float, nullable=True)
     # Temperature prediction using available data.
     bias_adjusted_temperature = Column(Float, nullable=True)
-    # Relative Humidity 2m above model layer - an interpolated value based on 4 values
-    # from model_run_grid_subset_prediction
+    # Relative Humidity 2m above model layer
     rh_tgl_2 = Column(Float, nullable=True)
     # RH adjusted by bias
     bias_adjusted_rh = Column(Float, nullable=True)
