@@ -39,15 +39,15 @@ describe('getRasterTooltipData', () => {
 
   describe('should return rounded value for valid data', () => {
     it.each([
-      ['zero', new Float32Array([0]), undefined, 0, 'FWI'],
-      ['zero with visible alpha band', new Float32Array([0, 255]), 'fwi' as const, 0, 'FWI'],
-      ['small integer', new Float32Array([5]), 'fwi' as const, 5, 'FWI'],
-      ['decimal value rounds down', new Float32Array([42.3]), 'dmc' as const, 42, 'DMC'],
-      ['decimal value rounds up', new Float32Array([42.7]), 'dc' as const, 43, 'DC'],
-      ['negative value', new Float32Array([-5]), 'ffmc' as const, -5, 'FFMC'],
-      ['large valid value', new Float32Array([9999]), 'bui' as const, 9999, 'BUI'],
-      ['at positive threshold', new Float32Array([NODATA_THRESHOLD]), 'isi' as const, NODATA_THRESHOLD, 'ISI'],
-      ['at negative threshold', new Float32Array([-NODATA_THRESHOLD]), 'fwi' as const, -NODATA_THRESHOLD, 'FWI']
+      ['zero', new Float32Array([0]), undefined, '0', 'FWI'],
+      ['zero with visible alpha band', new Float32Array([0, 255]), 'fwi' as const, '0', 'FWI'],
+      ['small integer', new Float32Array([5]), 'fwi' as const, '5', 'FWI'],
+      ['decimal value rounds down', new Float32Array([42.3]), 'dmc' as const, '42', 'DMC'],
+      ['decimal value rounds up', new Float32Array([42.7]), 'dc' as const, '43', 'DC'],
+      ['negative value', new Float32Array([-5]), 'ffmc' as const, '-5', 'FFMC'],
+      ['large valid value', new Float32Array([9999]), 'bui' as const, '9999', 'BUI'],
+      ['at positive threshold', new Float32Array([NODATA_THRESHOLD]), 'isi' as const, '10000000000', 'ISI'],
+      ['at negative threshold', new Float32Array([-NODATA_THRESHOLD]), 'fwi' as const, '-10000000000', 'FWI']
     ])('%s: %f', (_description, data, rasterType, expectedValue, expectedLabel) => {
       const result = getRasterTooltipData(data, rasterType)
       expect(result.value).toBe(expectedValue)
@@ -76,14 +76,21 @@ describe('getRasterTooltipData', () => {
   it('should preserve one decimal place for SFC values', () => {
     const result = getRasterTooltipData(new Float32Array([7.64]), 'sfc')
 
-    expect(result.value).toBe(7.6)
+    expect(result.value).toBe('7.6')
+    expect(result.label).toBe('SFC')
+  })
+
+  it('should display trailing zeroes for whole-number SFC values', () => {
+    const result = getRasterTooltipData(new Float32Array([7]), 'sfc')
+
+    expect(result.value).toBe('7.0')
     expect(result.label).toBe('SFC')
   })
 
   it('should round FMC values to a whole number', () => {
     const result = getRasterTooltipData(new Float32Array([94.6]), 'fmc')
 
-    expect(result.value).toBe(95)
+    expect(result.value).toBe('95')
     expect(result.label).toBe('FMC')
   })
 
@@ -91,7 +98,7 @@ describe('getRasterTooltipData', () => {
     it('should handle Uint8Array data', () => {
       const data = new Uint8Array([100])
       const result = getRasterTooltipData(data, 'fwi')
-      expect(result.value).toBe(100)
+      expect(result.value).toBe('100')
       expect(result.label).toBe('FWI')
     })
   })
@@ -227,7 +234,7 @@ describe('getDataAtPixel', () => {
 
     const result = getDataAtPixel(layer, pixel)
 
-    expect(result.value).toBe(43) // Rounded
+    expect(result.value).toBe('43')
     expect(result.label).toBe('FWI')
   })
 

@@ -33,7 +33,7 @@ export interface FuelTypeColorMapping {
 export interface RasterConfig {
   label: string
   colorBreaks: ColorBreak[]
-  tooltipPrecision?: number
+  tooltipDecimalPlaces?: number
 }
 
 const RASTER_COLORS = {
@@ -215,7 +215,7 @@ export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   ffmc: { label: 'FFMC', colorBreaks: FFMC_COLOR_BREAKS },
   bui: { label: 'BUI', colorBreaks: BUI_COLOR_BREAKS },
   isi: { label: 'ISI', colorBreaks: ISI_COLOR_BREAKS },
-  sfc: { label: 'SFC', colorBreaks: SFC_COLOR_BREAKS, tooltipPrecision: 1 },
+  sfc: { label: 'SFC', colorBreaks: SFC_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
   fmc: { label: 'FMC', colorBreaks: FMC_COLOR_BREAKS },
   temperature: { label: 'Temperature', colorBreaks: TEMPERATURE_COLOR_BREAKS },
   relative_humidity: { label: 'Relative Humidity', colorBreaks: RH_COLOR_BREAKS },

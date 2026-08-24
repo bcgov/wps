@@ -2,7 +2,7 @@ import { Box } from '@mui/material'
 
 interface RasterTooltipProps {
   label: string
-  value: number | string | null
+  value: string | null
   pixelCoords: [number, number] | null
 }
 
