@@ -395,7 +395,9 @@ def sfms_daily_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
         run_type = parse_sfms_run_type(raw_daily)
         temperature = raw_daily.get("temperature")
         relative_humidity = raw_daily.get("relativeHumidity")
-        is_forecast = run_type == RunTypeEnum.forecast
+        dewpoint = raw_daily.get("dewPoint")
+        if dewpoint is None:
+            dewpoint = compute_dewpoint(temperature, relative_humidity)
         sfms_dailies.append(
             SFMSDaily(
                 code=station_code,
@@ -405,18 +407,14 @@ def sfms_daily_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
                 lon=station_data.get("longitude"),
                 elevation=station_data.get("elevation"),
                 temperature=temperature,
-                dewpoint=(
-                    compute_dewpoint(temperature, relative_humidity)
-                    if is_forecast
-                    else raw_daily.get("dewPoint")
-                ),
+                dewpoint=dewpoint,
                 relative_humidity=relative_humidity,
                 precipitation=raw_daily.get("precipitation"),
                 wind_speed=raw_daily.get("windSpeed"),
                 wind_direction=raw_daily.get("windDirection"),
-                ffmc=None if is_forecast else raw_daily.get("fineFuelMoistureCode"),
-                dmc=None if is_forecast else raw_daily.get("duffMoistureCode"),
-                dc=None if is_forecast else raw_daily.get("droughtCode"),
+                ffmc=raw_daily.get("fineFuelMoistureCode"),
+                dmc=raw_daily.get("duffMoistureCode"),
+                dc=raw_daily.get("droughtCode"),
             )
         )
     return sfms_dailies

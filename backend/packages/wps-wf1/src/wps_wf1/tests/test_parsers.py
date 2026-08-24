@@ -254,9 +254,35 @@ class TestSfmsDailyMapper:
         assert forecast.precipitation == approx(2.5)
         assert forecast.wind_speed == approx(10.0)
         assert forecast.wind_direction == approx(180.0)
-        assert forecast.ffmc is None
-        assert forecast.dmc is None
-        assert forecast.dc is None
+        assert forecast.ffmc == approx(85.0)
+        assert forecast.dmc == approx(30.0)
+        assert forecast.dc == approx(200.0)
+
+    @pytest.mark.parametrize("record_type", ["ACTUAL", "MANUAL", "FORECAST"])
+    def test_computes_missing_dewpoint_for_every_record_type(self, record_type):
+        raw = _make_raw_daily(
+            100,
+            record_type=record_type,
+            temperature=20.0,
+            relativeHumidity=50.0,
+        )
+
+        result = sfms_daily_mapper([raw])
+
+        assert result[0].dewpoint == approx(9.28, abs=0.01)
+
+    def test_uses_supplied_forecast_dewpoint(self):
+        raw = _make_raw_daily(
+            100,
+            record_type="FORECAST",
+            temperature=20.0,
+            dewPoint=4.0,
+            relativeHumidity=50.0,
+        )
+
+        result = sfms_daily_mapper([raw])
+
+        assert result[0].dewpoint == approx(4.0)
 
     def test_maps_actual_record_type(self):
         raw = _make_raw_daily(100, record_type="ACTUAL", temperature=20.0)
