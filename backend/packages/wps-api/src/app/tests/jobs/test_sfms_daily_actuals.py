@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
+from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.relative_humidity import RHInterpolator
@@ -18,6 +19,7 @@ from wps_sfms.processors.surface_fuel_consumption import SurfaceFuelConsumptionP
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName, SFMSRunLogStatus
+from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.sfms.raster_addresser import FWIParameter
 
 from app.jobs.sfms_daily_actuals import (
@@ -65,7 +67,9 @@ class MockDailyActualsDeps(NamedTuple):
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
     sfc_processor: MagicMock
-    ensure_fmc_rasters: AsyncMock
+    fmc_processor: MagicMock
+    fmc_processor_class: MagicMock
+    fmc_inputs: MagicMock
     wfwx_api: MagicMock
     addresser: MagicMock
 
@@ -121,9 +125,13 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_addresser = MagicMock()
     mock_addresser.s3_prefix = "/vsis3/test-bucket"
     mocker.patch(f"{MODULE_PATH}.SFMSNGRasterAddresser", return_value=mock_addresser)
-    mock_ensure_fmc_rasters = mocker.patch(
-        f"{MODULE_PATH}.ensure_fmc_rasters",
-        new_callable=AsyncMock,
+    mock_fmc_inputs = MagicMock()
+    mock_addresser.get_fmc_inputs.return_value = mock_fmc_inputs
+    mock_fmc_processor = MagicMock(spec=FoliarMoistureContentProcessor)
+    mock_fmc_processor.process = AsyncMock()
+    mock_fmc_processor_class = mocker.patch(
+        f"{MODULE_PATH}.FoliarMoistureContentProcessor",
+        return_value=mock_fmc_processor,
     )
     # Mock processors
     mock_temp_processor = MagicMock(spec=TemperatureInterpolator)
@@ -190,7 +198,9 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
         sfc_processor=mock_sfc_processor,
-        ensure_fmc_rasters=mock_ensure_fmc_rasters,
+        fmc_processor=mock_fmc_processor,
+        fmc_processor_class=mock_fmc_processor_class,
+        fmc_inputs=mock_fmc_inputs,
         wfwx_api=mock_wfwx_api,
         addresser=mock_addresser,
     )
@@ -231,18 +241,24 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.interpolation_processor.process.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_ensures_shared_fmc_for_target_date(
+    async def test_processes_shared_fmc_for_target_date(
         self, mock_dependencies: MockDailyActualsDeps
     ):
         target_date = datetime(2024, 7, 4, hour=10, minute=30, tzinfo=timezone.utc)
 
         await run_sfms_daily_actuals(target_date)
 
-        mock_dependencies.ensure_fmc_rasters.assert_awaited_once_with(
+        mock_dependencies.addresser.get_fmc_inputs.assert_called_once_with(
             [target_date.date()],
             mock_dependencies.addresser.gdal_path.return_value,
+        )
+        mock_dependencies.fmc_processor_class.assert_called_once_with(
             mock_dependencies.addresser,
+        )
+        mock_dependencies.fmc_processor.process.assert_awaited_once_with(
             mock_dependencies.s3_client,
+            multi_wps_dataset_context,
+            mock_dependencies.fmc_inputs,
         )
 
     @pytest.mark.anyio

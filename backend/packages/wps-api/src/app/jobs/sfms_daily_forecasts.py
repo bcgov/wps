@@ -13,13 +13,14 @@ import sys
 from datetime import date, datetime, timedelta, timezone
 
 from aiohttp import ClientSession
-from wps_sfms.processors.foliar_moisture_content import ensure_fmc_rasters
+from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import (
@@ -118,11 +119,14 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                 fuel_raster_path = raster_addresser.gdal_path(fuel_type_raster.object_store_path)
                 logger.info("Using reference raster: %s", fuel_raster_path)
 
-                await ensure_fmc_rasters(
+                fmc_inputs = raster_addresser.get_fmc_inputs(
                     [datetime_to_process.date() for datetime_to_process in datetimes_to_process],
                     fuel_raster_path,
-                    raster_addresser,
+                )
+                await FoliarMoistureContentProcessor(raster_addresser).process(
                     s3_client,
+                    multi_wps_dataset_context,
+                    fmc_inputs,
                 )
 
                 async with get_async_write_session_scope() as write_session:

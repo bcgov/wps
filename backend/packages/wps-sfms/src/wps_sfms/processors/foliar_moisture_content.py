@@ -1,7 +1,6 @@
 """Raster processor for shared daily Foliar Moisture Content calculations."""
 
 import logging
-from collections.abc import Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date
@@ -11,8 +10,8 @@ from typing import Callable, ContextManager, Generator, Mapping
 import numpy as np
 from cffdrs_vec.fbp import vectorized_foliar_moisture_content
 from wps_shared.geospatial.geospatial import rasters_match
-from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
-from wps_shared.sfms.raster_addresser import GDALPath
+from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.sfms.raster_addresser import GDALPath, S3Key
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
@@ -73,7 +72,10 @@ def calculate_foliar_moisture_content(
 
 
 class FoliarMoistureContentProcessor:
-    """Load shared static inputs once and publish FMC for one or more dates."""
+    """Reuse existing FMC rasters and calculate missing dates from shared static inputs."""
+
+    def __init__(self, raster_addresser: SFMSNGRasterAddresser):
+        self.raster_addresser = raster_addresser
 
     @staticmethod
     async def _assert_dependencies_exist(
@@ -128,14 +130,69 @@ class FoliarMoistureContentProcessor:
                     f"{label} raster does not match the fuel grid: {key} vs {inputs.fuel_key}"
                 )
 
+    @staticmethod
+    def _validate_existing_fmc_grids(
+        fuel_key: GDALPath,
+        fmc_keys: Mapping[date, GDALPath],
+    ) -> None:
+        """Validate that existing FMC rasters use the selected fuel raster's grid.
+
+        Each FMC raster must have the same pixel resolution, top-left origin, row and column
+        dimensions, and equivalent projection as the fuel raster. This ensures its pixels can be
+        combined directly with the fuel grid and other aligned FBP inputs.
+        """
+        with WPSDataset(fuel_key) as fuel:
+            for target_date, fmc_key in fmc_keys.items():
+                with WPSDataset(fmc_key) as fmc:
+                    if not rasters_match(fmc.as_gdal_ds(), fuel.as_gdal_ds()):
+                        raise ValueError(
+                            f"Existing FMC raster for {target_date} does not match the fuel grid: "
+                            f"{fmc_key} vs {fuel_key}"
+                        )
+
+    async def _select_outputs_to_process(
+        self,
+        s3_client: S3Client,
+        fuel_key: GDALPath,
+        output_keys: Mapping[date, S3Key],
+    ) -> dict[date, S3Key]:
+        """Return missing FMC outputs after validating complete existing outputs."""
+        outputs_to_process = {}
+        existing_fmc_keys: dict[date, GDALPath] = {}
+        for target_date, output_key in output_keys.items():
+            cog_key = self.raster_addresser.get_cog_key(output_key)
+            if await s3_client.all_objects_exist(output_key, cog_key):
+                logger.info(
+                    "Skipping existing FMC raster for %s: %s",
+                    target_date,
+                    output_key,
+                )
+                existing_fmc_keys[target_date] = self.raster_addresser.gdal_path(output_key)
+            else:
+                outputs_to_process[target_date] = output_key
+
+        if existing_fmc_keys:
+            with gdal_s3_context():
+                self._validate_existing_fmc_grids(fuel_key, existing_fmc_keys)
+
+        return outputs_to_process
+
     async def process(
         self,
         s3_client: S3Client,
         input_dataset_context: MultiDatasetContext,
         inputs: FoliarMoistureContentInputs,
     ) -> None:
-        """Calculate and publish every requested FMC date from the shared static inputs."""
+        """Reuse valid FMC rasters and calculate any requested dates that are missing."""
         if not inputs.output_keys:
+            return
+
+        outputs_to_process = await self._select_outputs_to_process(
+            s3_client,
+            inputs.fuel_key,
+            inputs.output_keys,
+        )
+        if not outputs_to_process:
             return
 
         with gdal_s3_context():
@@ -143,7 +200,7 @@ class FoliarMoistureContentProcessor:
             with self._open_datasets(input_dataset_context, inputs) as datasets:
                 self._validate_grids(datasets, inputs)
 
-                for target_date, output_key in inputs.output_keys.items():
+                for target_date, output_key in outputs_to_process.items():
                     result = calculate_foliar_moisture_content(datasets, target_date)
                     with create_masked_output_dataset(
                         result.values,
@@ -165,54 +222,3 @@ class FoliarMoistureContentProcessor:
                         published.output_key,
                         published.cog_key,
                     )
-
-
-def _validate_existing_fmc_grids(
-    fuel_key: GDALPath,
-    fmc_keys: Mapping[date, GDALPath],
-) -> None:
-    """Validate that existing FMC rasters use the selected fuel raster's grid.
-
-    Each FMC raster must have the same pixel resolution, top-left origin, row and column
-    dimensions, and equivalent projection as the fuel raster. This ensures its pixels can be
-    combined directly with the fuel grid and other aligned FBP inputs.
-    """
-    with WPSDataset(fuel_key) as fuel:
-        for target_date, fmc_key in fmc_keys.items():
-            with WPSDataset(fmc_key) as fmc:
-                if not rasters_match(fmc.as_gdal_ds(), fuel.as_gdal_ds()):
-                    raise ValueError(
-                        f"Existing FMC raster for {target_date} does not match the fuel grid: "
-                        f"{fmc_key} vs {fuel_key}"
-                    )
-
-
-async def ensure_fmc_rasters(
-    target_dates: Iterable[date],
-    fuel_key: GDALPath,
-    raster_addresser: SFMSNGRasterAddresser,
-    s3_client: S3Client,
-) -> None:
-    """Validate complete FMC rasters and publish dates without exisiting FMC rasters."""
-    unique_dates = tuple(dict.fromkeys(target_dates))
-    missing_dates = []
-    existing_fmc_keys: dict[date, GDALPath] = {}
-    for target_date in unique_dates:
-        output_key = raster_addresser.get_fmc_key(target_date)
-        cog_key = raster_addresser.get_cog_key(output_key)
-        if await s3_client.all_objects_exist(output_key, cog_key):
-            logger.info("Skipping existing FMC raster for %s: %s", target_date, output_key)
-            existing_fmc_keys[target_date] = raster_addresser.gdal_path(output_key)
-        else:
-            missing_dates.append(target_date)
-
-    if existing_fmc_keys:
-        with gdal_s3_context():
-            _validate_existing_fmc_grids(fuel_key, existing_fmc_keys)
-
-    if not missing_dates:
-        return
-
-    inputs = raster_addresser.get_fmc_inputs(missing_dates, fuel_key)
-    processor = FoliarMoistureContentProcessor()
-    await processor.process(s3_client, multi_wps_dataset_context, inputs)

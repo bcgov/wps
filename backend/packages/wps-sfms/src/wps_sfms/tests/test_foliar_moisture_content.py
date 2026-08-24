@@ -14,7 +14,6 @@ from wps_sfms.processors.foliar_moisture_content import (
     FoliarMoistureContentDatasets,
     FoliarMoistureContentProcessor,
     calculate_foliar_moisture_content,
-    ensure_fmc_rasters,
 )
 from wps_sfms.raster_inputs import FoliarMoistureContentInputs
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
@@ -83,10 +82,19 @@ def make_inputs(*target_dates: date) -> FoliarMoistureContentInputs:
         latitude_key="/vsis3/test/sfms_ng/static/latitude.tif",
         longitude_key="/vsis3/test/sfms_ng/static/longitude.tif",
         output_keys={
-            target_date: f"sfms_ng/static/fmc/{target_date:%Y/%m/%d}/fmc_{target_date:%Y%m%d}.tif"
+            target_date: (f"sfms_ng/static/fmc/{target_date:%Y/%m/%d}/fmc_{target_date:%Y%m%d}.tif")
             for target_date in target_dates
         },
     )
+
+
+def make_addresser() -> MagicMock:
+    addresser = MagicMock()
+    addresser.get_cog_key.side_effect = lambda key: (
+        f"/vsis3/test/{key.removesuffix('.tif')}_cog.tif"
+    )
+    addresser.gdal_path.side_effect = lambda key: f"/vsis3/test/{key}"
+    return addresser
 
 
 def make_dataset_context(datasets: FoliarMoistureContentDatasets, calls: list[list[str]]):
@@ -113,6 +121,7 @@ async def test_processor_loads_static_inputs_once_and_publishes_each_date_with_m
 ):
     target_dates = (date(2024, 5, 30), date(2024, 5, 31))
     inputs = make_inputs(*target_dates)
+    addresser = make_addresser()
     datasets = make_datasets(np.array([[100.0]], dtype=np.float32))
     context_calls = []
     captured = []
@@ -130,13 +139,13 @@ async def test_processor_loads_static_inputs_once_and_publishes_each_date_with_m
         )
         return SimpleNamespace(output_key=output_key, cog_key=f"{output_key}_cog")
 
-    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(side_effect=[False, False, True]))
     publish = mocker.patch(
         "wps_sfms.processors.foliar_moisture_content.publish_dataset",
         side_effect=capture_publish,
     )
 
-    await FoliarMoistureContentProcessor().process(
+    await FoliarMoistureContentProcessor(addresser).process(
         s3_client,
         make_dataset_context(datasets, context_calls),
         inputs,
@@ -158,6 +167,7 @@ async def test_processor_applies_bc_mask_to_published_output(
 ):
     target_date = date(2024, 7, 4)
     inputs = make_inputs(target_date)
+    addresser = make_addresser()
     datasets = make_datasets(np.array([[100.0]], dtype=np.float32))
     context_calls = []
     captured_value = None
@@ -168,13 +178,13 @@ async def test_processor_applies_bc_mask_to_published_output(
         captured_value = dataset.as_gdal_ds().GetRasterBand(1).ReadAsArray()[0, 0]
         return SimpleNamespace(output_key=output_key, cog_key=f"{output_key}_cog")
 
-    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(side_effect=[False, True]))
     mocker.patch(
         "wps_sfms.processors.foliar_moisture_content.publish_dataset",
         side_effect=capture_publish,
     )
 
-    await FoliarMoistureContentProcessor().process(
+    await FoliarMoistureContentProcessor(addresser).process(
         s3_client,
         make_dataset_context(datasets, context_calls),
         inputs,
@@ -198,9 +208,10 @@ async def test_processor_rejects_static_grid_that_mismatches_fuel(
     match_results: list[bool],
 ):
     inputs = make_inputs(date(2024, 7, 4))
+    addresser = make_addresser()
     datasets = make_datasets(np.array([[100.0]], dtype=np.float32))
     context_calls = []
-    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(side_effect=[False, True]))
     mocker.patch(
         "wps_sfms.processors.foliar_moisture_content.rasters_match",
         side_effect=match_results,
@@ -209,7 +220,7 @@ async def test_processor_rejects_static_grid_that_mismatches_fuel(
         "wps_sfms.processors.foliar_moisture_content.publish_dataset",
         new=AsyncMock(),
     )
-    processor = FoliarMoistureContentProcessor()
+    processor = FoliarMoistureContentProcessor(addresser)
     input_context = make_dataset_context(datasets, context_calls)
     action = processor.process(s3_client, input_context, inputs)
 
@@ -222,19 +233,21 @@ async def test_processor_rejects_static_grid_that_mismatches_fuel(
 @pytest.mark.anyio
 async def test_processor_rejects_missing_static_dependency():
     inputs = make_inputs(date(2024, 7, 4))
-    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=False))
-    processor = FoliarMoistureContentProcessor()
+    addresser = make_addresser()
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(side_effect=[False, False]))
+    processor = FoliarMoistureContentProcessor(addresser)
     action = processor.process(s3_client, lambda _keys: None, inputs)
 
     with pytest.raises(RuntimeError, match="Missing FMC dependencies"):
         await action
 
-    s3_client.all_objects_exist.assert_awaited_once_with(
+    s3_client.all_objects_exist.assert_awaited_with(
         inputs.fuel_key,
         inputs.elevation_key,
         inputs.latitude_key,
         inputs.longitude_key,
     )
+    assert s3_client.all_objects_exist.await_count == 2
 
 
 @pytest.mark.anyio
@@ -243,15 +256,16 @@ async def test_processor_publish_failure_propagates_and_clears_cache(
     output_mask: WPSDataset,
 ):
     inputs = make_inputs(date(2024, 7, 4))
+    addresser = make_addresser()
     datasets = make_datasets(np.array([[100.0]], dtype=np.float32))
     context_calls = []
-    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(side_effect=[False, True]))
     mocker.patch(
         "wps_sfms.processors.foliar_moisture_content.publish_dataset",
         new=AsyncMock(side_effect=RuntimeError("COG generation failed")),
     )
     clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
-    action = FoliarMoistureContentProcessor().process(
+    action = FoliarMoistureContentProcessor(addresser).process(
         s3_client,
         make_dataset_context(datasets, context_calls),
         inputs,
@@ -264,98 +278,105 @@ async def test_processor_publish_failure_propagates_and_clears_cache(
 
 
 @pytest.mark.anyio
-async def test_ensure_fmc_rasters_skips_complete_dates_and_processes_missing_dates(
+async def test_processor_skips_complete_dates_and_processes_missing_dates(
     mocker: MockerFixture,
+    output_mask: WPSDataset,
 ):
     existing_date = date(2025, 7, 4)
     missing_date = date(2025, 7, 5)
-    addresser = MagicMock()
-    addresser.get_fmc_key.side_effect = lambda target_date: f"fmc_{target_date:%Y%m%d}.tif"
-    addresser.get_cog_key.side_effect = lambda key: f"/vsis3/test/{key[:-4]}_cog.tif"
-    addresser.gdal_path.side_effect = lambda key: f"/vsis3/test/{key}"
-    fmc_inputs = MagicMock()
-    addresser.get_fmc_inputs.return_value = fmc_inputs
-    s3_client = MagicMock()
-    s3_client.all_objects_exist = AsyncMock(side_effect=[True, False])
-    processor = MagicMock()
-    processor.process = AsyncMock()
-    processor_class = mocker.patch(
-        f"{MODULE_PATH}.FoliarMoistureContentProcessor",
-        return_value=processor,
-    )
+    inputs = make_inputs(existing_date, missing_date)
+    addresser = make_addresser()
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(side_effect=[True, False, True]))
     fuel = create_test_wps_dataset("fuel.tif", np.ones((1, 1), dtype=np.float32))
     existing_fmc = create_test_wps_dataset("fmc.tif", np.ones((1, 1), dtype=np.float32))
-
     open_dataset = mocker.patch(f"{MODULE_PATH}.WPSDataset", side_effect=[fuel, existing_fmc])
+    datasets = make_datasets(np.array([[100.0]], dtype=np.float32))
+    context_calls = []
+    publish = mocker.patch(
+        f"{MODULE_PATH}.publish_dataset",
+        new=AsyncMock(
+            return_value=SimpleNamespace(
+                output_key=inputs.output_keys[missing_date],
+                cog_key="missing_cog.tif",
+            )
+        ),
+    )
 
-    await ensure_fmc_rasters(
-        [existing_date, existing_date, missing_date],
-        "fuel.tif",
-        addresser,
+    await FoliarMoistureContentProcessor(addresser).process(
         s3_client,
+        make_dataset_context(datasets, context_calls),
+        inputs,
     )
 
     assert s3_client.all_objects_exist.await_args_list[0].args == (
-        "fmc_20250704.tif",
-        "/vsis3/test/fmc_20250704_cog.tif",
+        inputs.output_keys[existing_date],
+        addresser.get_cog_key(inputs.output_keys[existing_date]),
     )
     assert s3_client.all_objects_exist.await_args_list[1].args == (
-        "fmc_20250705.tif",
-        "/vsis3/test/fmc_20250705_cog.tif",
+        inputs.output_keys[missing_date],
+        addresser.get_cog_key(inputs.output_keys[missing_date]),
     )
-    addresser.get_fmc_inputs.assert_called_once_with([missing_date], "fuel.tif")
-    processor_class.assert_called_once_with()
-    processor.process.assert_awaited_once()
-    assert processor.process.await_args.args[0] is s3_client
-    assert processor.process.await_args.args[2] is fmc_inputs
+    assert context_calls == [
+        [
+            inputs.fuel_key,
+            inputs.elevation_key,
+            inputs.latitude_key,
+            inputs.longitude_key,
+        ]
+    ]
+    publish.assert_awaited_once()
+    assert publish.await_args.kwargs["output_key"] == inputs.output_keys[missing_date]
     assert [item.args[0] for item in open_dataset.call_args_list] == [
-        "fuel.tif",
-        "/vsis3/test/fmc_20250704.tif",
+        inputs.fuel_key,
+        addresser.gdal_path(inputs.output_keys[existing_date]),
     ]
 
 
 @pytest.mark.anyio
-async def test_ensure_fmc_rasters_does_not_load_static_inputs_when_all_outputs_match(
+async def test_processor_does_not_load_static_inputs_when_all_outputs_match(
     mocker: MockerFixture,
 ):
     target_date = date(2025, 7, 4)
-    addresser = MagicMock()
-    addresser.get_fmc_key.return_value = "fmc_20250704.tif"
-    addresser.get_cog_key.return_value = "/vsis3/test/fmc_20250704_cog.tif"
-    addresser.gdal_path.return_value = "/vsis3/test/fmc_20250704.tif"
-    s3_client = MagicMock()
-    s3_client.all_objects_exist = AsyncMock(return_value=True)
-    processor_class = mocker.patch(f"{MODULE_PATH}.FoliarMoistureContentProcessor")
+    inputs = make_inputs(target_date)
+    addresser = make_addresser()
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
     fuel = create_test_wps_dataset("fuel.tif", np.ones((1, 1), dtype=np.float32))
     existing_fmc = create_test_wps_dataset("fmc.tif", np.ones((1, 1), dtype=np.float32))
-
     mocker.patch(f"{MODULE_PATH}.WPSDataset", side_effect=[fuel, existing_fmc])
+    publish = mocker.patch(f"{MODULE_PATH}.publish_dataset", new=AsyncMock())
+    input_context = MagicMock()
 
-    await ensure_fmc_rasters([target_date], "fuel.tif", addresser, s3_client)
+    await FoliarMoistureContentProcessor(addresser).process(
+        s3_client,
+        input_context,
+        inputs,
+    )
 
-    addresser.get_fmc_inputs.assert_not_called()
-    processor_class.assert_not_called()
+    input_context.assert_not_called()
+    publish.assert_not_awaited()
 
 
 @pytest.mark.anyio
-async def test_ensure_fmc_rasters_rejects_existing_output_that_mismatches_fuel(
+async def test_processor_rejects_existing_output_that_mismatches_fuel(
     mocker: MockerFixture,
 ):
     target_date = date(2025, 7, 4)
-    addresser = MagicMock()
-    addresser.get_fmc_key.return_value = "fmc_20250704.tif"
-    addresser.get_cog_key.return_value = "/vsis3/test/fmc_20250704_cog.tif"
-    addresser.gdal_path.return_value = "/vsis3/test/fmc_20250704.tif"
-    s3_client = MagicMock()
-    s3_client.all_objects_exist = AsyncMock(return_value=True)
-    processor_class = mocker.patch(f"{MODULE_PATH}.FoliarMoistureContentProcessor")
+    inputs = make_inputs(target_date)
+    addresser = make_addresser()
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
     fuel = create_test_wps_dataset("fuel.tif", np.ones((1, 1), dtype=np.float32))
     existing_fmc = create_test_wps_dataset("fmc.tif", np.ones((2, 1), dtype=np.float32))
-
     mocker.patch(f"{MODULE_PATH}.WPSDataset", side_effect=[fuel, existing_fmc])
-    action = ensure_fmc_rasters([target_date], "fuel.tif", addresser, s3_client)
+    publish = mocker.patch(f"{MODULE_PATH}.publish_dataset", new=AsyncMock())
+    input_context = MagicMock()
+    action = FoliarMoistureContentProcessor(addresser).process(
+        s3_client,
+        input_context,
+        inputs,
+    )
 
     with pytest.raises(ValueError, match="Existing FMC raster for 2025-07-04"):
         await action
 
-    processor_class.assert_not_called()
+    input_context.assert_not_called()
+    publish.assert_not_awaited()
