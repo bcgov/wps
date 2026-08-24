@@ -194,18 +194,6 @@ There is a lot of data to download and analyze for these weather models, so to e
 
 Our back-end used to perform spatial interpolation using the four values in the grid subset. We no longer follow this process. In order to align with SpotWX, we now use the value from the grid cell in the grib file in which the weather station is located. These values are stored in the `weather_station_model_predictions` table.
 
-Both `model_run_grid_subset_predictions` and `prediction_model_grid_subsets` were unused and have been dropped.
-
-~~Once the `model_run_grid_subset_predictions` table has been populated for a given model run, our backend then performs linear interpolation based on the geographic location of each weather station to calculate an approximated value for each weather variable.~~
-
-~~For example, a small portion of the grid for a temperature raster band of a GRIB file might look like the image below. In this example, each point on the grid is spaced 5km apart. You can see that a fire weather station is located within one cell of this grid, where the 4 corners of the cell have temperature values of 3.1&deg;, 2.4&deg;, 2.7&deg;, and 2.7&deg;C. In order to approximate the predicted temperature at the weather station's exact location, we perform linear interpolation of the 4 temperature values listed above, where the weight of each data point is inversely proportional to the distance from the weather station to that point on the grid. Consequently, the 2.4&deg;C from the top right corner of the cell will have the highest weight as it is closest to the weather station, and the 2.7&deg;C from the bottom left corner will have the lowest weight as it is the furthest away.~~
-
-~~![Location-based linear interpolation for a weather station](../../../../../../docs/images/Grid_wx_station.png)~~
-
-~~This linear interpolation process is repeated for each of the weather variables in a model run, and for each of the weather stations in BC. These calculations are stored in the `weather_station_model_predictions` table.~~
-
-~~At the present time we are only performing linear interpolation from grid subsets to weather stations based on geographic distance (because it is the simplest method of interpolation).~~
-
 Forecasters have requested that we also perform linear interpolation based on station elevation as the results may be more accurate - this is a pending story in our backlog.
 
 ### To 12:00 PST (13:00 PDT)
