@@ -1,6 +1,7 @@
 """Typed raster dependency and output contracts for SFMS calculations."""
 
 from dataclasses import dataclass
+from datetime import date
 from typing import Mapping
 
 from wps_shared.run_type import RunType
@@ -36,3 +37,14 @@ class SurfaceFuelConsumptionInputs:
     percent_conifer_key: GDALPath
     output_key: S3Key
     run_type: RunType
+
+
+@dataclass(frozen=True)
+class FoliarMoistureContentInputs:
+    """Static dependencies and date-specific outputs for shared daily FMC calculations."""
+
+    fuel_key: GDALPath
+    elevation_key: GDALPath
+    latitude_key: GDALPath
+    longitude_key: GDALPath
+    output_keys: Mapping[date, S3Key]

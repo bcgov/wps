@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -19,6 +19,29 @@ NON_UTC = datetime(2024, 4, 15, 13, 0, 0, tzinfo=ZoneInfo("America/Vancouver"))
 @pytest.fixture
 def addresser():
     return SFMSNGRasterAddresser()
+
+
+class TestGetFoliarMoistureContentInputs:
+    def test_get_fmc_key_uses_shared_static_date_path(self, addresser: SFMSNGRasterAddresser):
+        assert addresser.get_fmc_key(date(2024, 4, 15)) == (
+            "sfms_ng/static/fmc/2024/04/15/fmc_20240415.tif"
+        )
+
+    def test_get_fmc_inputs_uses_sfmsng_static_rasters(self, addresser: SFMSNGRasterAddresser):
+        target_dates = [date(2024, 4, 15), date(2024, 4, 16)]
+        fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
+
+        result = addresser.get_fmc_inputs(target_dates, fuel_key)
+
+        s3 = addresser.s3_prefix
+        assert result.fuel_key == fuel_key
+        assert result.elevation_key == f"{s3}/sfms_ng/static/bc_elevation.tif"
+        assert result.latitude_key == f"{s3}/sfms_ng/static/latitude.tif"
+        assert result.longitude_key == f"{s3}/sfms_ng/static/longitude.tif"
+        assert result.output_keys == {
+            date(2024, 4, 15): "sfms_ng/static/fmc/2024/04/15/fmc_20240415.tif",
+            date(2024, 4, 16): "sfms_ng/static/fmc/2024/04/16/fmc_20240416.tif",
+        }
 
 
 class TestGetActualWeatherKey:
