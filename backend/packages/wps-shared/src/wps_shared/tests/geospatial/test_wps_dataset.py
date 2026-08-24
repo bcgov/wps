@@ -1,9 +1,10 @@
+import json
 import os
 import tempfile
 
 import numpy as np
 import pytest
-from osgeo import gdal
+from osgeo import gdal, ogr, osr
 
 from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
 from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset, create_test_dataset
@@ -284,8 +285,69 @@ def test_raster_warp():
         assert output_ds.as_gdal_ds().RasterXSize == wps2_ds.as_gdal_ds().RasterXSize
         assert output_ds.as_gdal_ds().RasterYSize == wps2_ds.as_gdal_ds().RasterYSize
 
-    wgs_84_ds = None
-    mercator_ds = None
+
+def test_clip_to_geometry_with_ogr_geometry():
+    # 10x10 px, 2 units/px, covering (-10,-10) to (10,10). Cutline (-5,-5)-(5,5) keeps only the
+    # 4 columns/rows whose pixel centres (-3,-1,1,3) fall strictly inside it - GDAL excludes the
+    # ring of pixels centred exactly on the cutline edge (-5 and 5) - giving a 4x4 result
+    # anchored at (-4, 4) with the source's original 2-unit pixel size preserved.
+    extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=7
+    )
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+    cutline.AssignSpatialReference(srs)
+
+    with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+        clipped = wps_ds.clip_to_geometry(cutline)
+        raw = clipped.as_gdal_ds()
+
+        assert (raw.RasterXSize, raw.RasterYSize) == (4, 4)
+        assert raw.GetGeoTransform() == (-4.0, 2.0, 0.0, 4.0, 0.0, -2.0)
+        assert np.array_equal(raw.GetRasterBand(1).ReadAsArray(), np.full((4, 4), 7))
+
+
+def test_clip_to_geometry_with_vector_file_path():
+    # Same source raster and cutline extent as test_clip_to_geometry_with_ogr_geometry, so the
+    # same 4x4 result at (-4, 4) is expected - this exercises the cutlineDSName branch instead.
+    extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=3
+    )
+
+    geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[[-5, -5], [5, -5], [5, 5], [-5, 5], [-5, -5]]],
+                },
+            }
+        ],
+    }
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        cutline_path = os.path.join(temp_dir, "cutline.geojson")
+        with open(cutline_path, "w") as f:
+            json.dump(geojson, f)
+
+        output_path = os.path.join(temp_dir, "clipped.tif")
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            clipped = wps_ds.clip_to_geometry(cutline_path, output_path=output_path)
+            raw = clipped.as_gdal_ds()
+
+            assert (raw.RasterXSize, raw.RasterYSize) == (4, 4)
+            assert raw.GetGeoTransform() == (-4.0, 2.0, 0.0, 4.0, 0.0, -2.0)
+            assert np.array_equal(raw.GetRasterBand(1).ReadAsArray(), np.full((4, 4), 3))
+
+        assert os.path.exists(output_path)
 
 
 def test_raster_warp_max_value():

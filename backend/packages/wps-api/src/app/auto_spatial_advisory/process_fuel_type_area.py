@@ -20,6 +20,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 
@@ -57,7 +58,7 @@ def classify_by_threshold(source_data: np.array, threshold: int):
 
 async def calculate_fuel_type_area_by_shape(
     session: AsyncSession,
-    masked_fuel_type_ds: gdal.Dataset,
+    masked_fuel_type_ds: WPSDataset,
     threshold,
     run_parameters_id: int,
     fuel_types: list[SFMSFuelType],
@@ -76,16 +77,16 @@ async def calculate_fuel_type_area_by_shape(
     result = await session.execute(stmt)
     rows = result.all()
     for row in rows:
-        intersected_ds: gdal.Dataset = await intersect_raster_by_advisory_shape(
+        intersected_ds = await intersect_raster_by_advisory_shape(
             session, threshold, row[0], row[1], masked_fuel_type_ds
         )
         try:
-            fuel_type_areas = calculate_fuel_type_areas(intersected_ds, fuel_types)
+            fuel_type_areas = calculate_fuel_type_areas(intersected_ds.ds, fuel_types)
             await store_advisory_fuel_stats(
                 session, fuel_type_areas, threshold, run_parameters_id, row[0], fuel_type_raster_id
             )
         finally:
-            intersected_ds = None
+            intersected_ds.close()
 
 
 def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelType]):
@@ -120,8 +121,8 @@ async def intersect_raster_by_advisory_shape(
     threshold: int,
     advisory_shape_id: int,
     source_identifier: str,
-    masked_fuel_type_ds: gdal.Dataset,
-):
+    masked_fuel_type_ds: WPSDataset,
+) -> WPSDataset:
     """
     Given a raster and a fire shape id, use gdal.Warp to clip out a fire zone from which we can retrieve info.
 
@@ -132,20 +133,13 @@ async def intersect_raster_by_advisory_shape(
     :param temp_dir: A temporary location for storing intermediate files.
     """
     input_srs = osr.SpatialReference()
-    input_srs.ImportFromWkt(masked_fuel_type_ds.GetProjectionRef())
+    input_srs.ImportFromWkt(masked_fuel_type_ds.ds.GetProjectionRef())
 
     advisory_shape_geom = await get_advisory_shape(session, advisory_shape_id, input_srs)
-    warp_options = gdal.WarpOptions(
-        cutlineWKT=advisory_shape_geom,
-        cutlineSRS=advisory_shape_geom.GetSpatialReference(),
-        cropToCutline=True,
+    return masked_fuel_type_ds.clip_to_geometry(
+        advisory_shape_geom,
+        output_path=get_intersected_raster_path(source_identifier, threshold),
     )
-    intersect_ds = gdal.Warp(
-        get_intersected_raster_path(source_identifier, threshold),
-        masked_fuel_type_ds,
-        options=warp_options,
-    )
-    return intersect_ds
 
 
 async def get_advisory_shape(
@@ -295,8 +289,11 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
             for threshold in thresholds:
                 classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
                 masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
-                masked_fuel_type_ds = create_masked_fuel_type_tif(
-                    masked_fuel_type_data, threshold.id, geotransform, projection, x_size, y_size
+                masked_fuel_type_ds = WPSDataset(
+                    ds_path=None,
+                    ds=create_masked_fuel_type_tif(
+                        masked_fuel_type_data, threshold.id, geotransform, projection, x_size, y_size
+                    ),
                 )
                 try:
                     await calculate_fuel_type_area_by_shape(
@@ -308,7 +305,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
                         fuel_type_raster_record.id,
                     )
                 finally:
-                    masked_fuel_type_ds = None
+                    masked_fuel_type_ds.close()
                     del classified_hfi_data
                     del masked_fuel_type_data
     finally:

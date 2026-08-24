@@ -2,7 +2,7 @@ import math
 import uuid
 from contextlib import ExitStack, contextmanager
 from typing import Iterator, List, Optional, Tuple, Union
-from osgeo import gdal, osr
+from osgeo import gdal, ogr, osr
 import numpy as np
 import io
 
@@ -238,6 +238,39 @@ class WPSDataset:
                 band.FlushCache()
 
         return WPSDataset(ds_path=None, ds=warped_ds)
+
+    def clip_to_geometry(
+        self,
+        cutline: Union[ogr.Geometry, str],
+        output_path: str | None = None,
+        format: str = "GTiff",
+    ) -> "WPSDataset":
+        """
+        Clip this dataset to a cutline using GDAL's cutline warp.
+
+        :param cutline: An ogr.Geometry (with its spatial reference set) to cut to, or a path
+            to a vector file (e.g. GeoJSON) to use as the cutline instead.
+        :param output_path: Optional output raster path (a real file, or a /vsimem/ path). When
+            omitted, defaults to an auto-generated /vsimem/ path - the caller is then
+            responsible for calling gdal.Unlink on it once done with the result.
+        :param format: GDAL output driver/format name.
+        :return: a new WPSDataset clipped to the cutline
+        """
+        if output_path is None:
+            output_path = f"/vsimem/clip_{uuid.uuid4().hex}.tif"
+
+        if isinstance(cutline, str):
+            warp_options = gdal.WarpOptions(format=format, cutlineDSName=cutline, cropToCutline=True)
+        else:
+            warp_options = gdal.WarpOptions(
+                format=format,
+                cutlineWKT=cutline,
+                cutlineSRS=cutline.GetSpatialReference(),
+                cropToCutline=True,
+            )
+
+        clipped_ds = gdal.Warp(output_path, self.ds, options=warp_options)
+        return WPSDataset(ds_path=None, ds=clipped_ds)
 
     def replace_nodata_with(self, new_no_data_value: int = 0):
         """

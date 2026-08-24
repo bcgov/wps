@@ -22,6 +22,7 @@ from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryHFIPercentConifer, Shape
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
@@ -119,8 +120,8 @@ async def process_min_percent_conifer_by_zone(
     hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
 
     all_hfi_conifer_percent_to_save: list[AdvisoryHFIPercentConifer] = []
-    with gdal.Open(pct_conifer_key) as conifer_ds, gdal.Open(hfi_key) as hfi_ds:
-        if not rasters_match(conifer_ds, hfi_ds):
+    with WPSDataset(pct_conifer_key) as conifer_ds, WPSDataset(hfi_key) as hfi_ds:
+        if not rasters_match(conifer_ds.ds, hfi_ds.ds):
             logger.error(f"{pct_conifer_key} and {hfi_key} do not match.")
             return
         for zone in zone_units:
@@ -129,20 +130,18 @@ async def process_min_percent_conifer_by_zone(
             zone_wkt = shapely_geom.wkt
             zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
 
-            warp_options = gdal.WarpOptions(
-                cutlineWKT=zone_geom, cutlineSRS=zone_geom.GetSpatialReference(), cropToCutline=True
-            )
-
             conifer_path = "/vsimem/percent_conifer.tif"
             hfi_path = "/vsimem/zone_hfi.tif"
             conifer_intersected_ds = None
             hfi_intersected_ds = None
             try:
-                conifer_intersected_ds = gdal.Warp(conifer_path, conifer_ds, options=warp_options)
-                pct_conifer_clip = conifer_intersected_ds.GetRasterBand(1).ReadAsArray()
+                conifer_intersected_ds = conifer_ds.clip_to_geometry(
+                    zone_geom, output_path=conifer_path
+                )
+                pct_conifer_clip = conifer_intersected_ds.ds.GetRasterBand(1).ReadAsArray()
 
-                hfi_intersected_ds = gdal.Warp(hfi_path, hfi_ds, options=warp_options)
-                hfi_array_clip = hfi_intersected_ds.GetRasterBand(1).ReadAsArray()
+                hfi_intersected_ds = hfi_ds.clip_to_geometry(zone_geom, output_path=hfi_path)
+                hfi_array_clip = hfi_intersected_ds.ds.GetRasterBand(1).ReadAsArray()
 
                 min_pct_conifer = get_minimum_percent_conifer_for_hfi(
                     pct_conifer_clip, hfi_array_clip
@@ -158,8 +157,10 @@ async def process_min_percent_conifer_by_zone(
                     )
                     all_hfi_conifer_percent_to_save.append(record)
             finally:
-                conifer_intersected_ds = None
-                hfi_intersected_ds = None
+                if conifer_intersected_ds is not None:
+                    conifer_intersected_ds.close()
+                if hfi_intersected_ds is not None:
+                    hfi_intersected_ds.close()
                 gdal.Unlink(conifer_path)
                 gdal.Unlink(hfi_path)
 

@@ -17,6 +17,7 @@ from wps_shared.db.crud.snow import get_last_processed_snow_by_processed_date, s
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
 from wps_shared.geospatial.geospatial import SpatialReferenceSystem
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.utils.polygonize import polygonize_in_memory
 from wps_shared.utils.s3 import get_client
 from wps_shared.utils.time import vancouver_tz
@@ -217,9 +218,8 @@ class ViirsSnowJob:
         input_path = os.path.join(sub_dir, RAW_SNOW_COVERAGE_NAME)
         output_path = os.path.join(sub_dir, RAW_SNOW_COVERAGE_CLIPPED_NAME)
         cut_line_path = os.path.join(temp_dir, "bc_boundary.geojson")
-        gdal.Warp(
-            output_path, input_path, format="GTiff", cutlineDSName=cut_line_path, cropToCutline=True
-        )
+        with WPSDataset(input_path) as mosaic_ds:
+            mosaic_ds.clip_to_geometry(cut_line_path, output_path=output_path).close()
 
     async def _get_bc_boundary_from_s3(self, path: str):
         """Fetch the bc_boundary.geojson file from S3 and write a copy to the local temporary directory.
