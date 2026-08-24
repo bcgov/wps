@@ -64,6 +64,9 @@ describe('RasterTypeDropdown', () => {
 
     const buiOption = screen.getByRole('option', { name: 'BUI' })
     expect(buiOption).not.toHaveAttribute('aria-disabled', 'true')
+
+    expect(screen.getByRole('option', { name: 'SFC' })).not.toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByRole('option', { name: 'FMC' })).not.toHaveAttribute('aria-disabled', 'true')
   })
 
   it('defaults rasterDataAvailable to true when not provided', () => {

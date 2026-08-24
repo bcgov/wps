@@ -63,12 +63,28 @@ describe('getRasterTooltipData', () => {
       ['ffmc', 'ffmc' as const, 'FFMC'],
       ['bui', 'bui' as const, 'BUI'],
       ['isi', 'isi' as const, 'ISI'],
+      ['sfc', 'sfc' as const, 'SFC'],
+      ['fmc', 'fmc' as const, 'FMC'],
       ['undefined defaults to FWI', undefined, 'FWI']
     ])('%s -> %s', (_description, rasterType, expectedLabel) => {
       const data = new Float32Array([50])
       const result = getRasterTooltipData(data, rasterType)
       expect(result.label).toBe(expectedLabel)
     })
+  })
+
+  it('should preserve one decimal place for SFC values', () => {
+    const result = getRasterTooltipData(new Float32Array([7.64]), 'sfc')
+
+    expect(result.value).toBe(7.6)
+    expect(result.label).toBe('SFC')
+  })
+
+  it('should round FMC values to a whole number', () => {
+    const result = getRasterTooltipData(new Float32Array([94.6]), 'fmc')
+
+    expect(result.value).toBe(95)
+    expect(result.label).toBe('FMC')
   })
 
   describe('should use Uint8Array data', () => {
@@ -144,7 +160,9 @@ describe('getRasterType', () => {
     ['dc', 'dc'],
     ['ffmc', 'ffmc'],
     ['bui', 'bui'],
-    ['isi', 'isi']
+    ['isi', 'isi'],
+    ['sfc', 'sfc'],
+    ['fmc', 'fmc']
   ])('should extract rasterType: %s', (_description, rasterType) => {
     const layer = createMockLayer(rasterType)
     const result = getRasterType(layer)
@@ -244,7 +262,9 @@ describe('getDataAtPixel', () => {
       ['dc', 'DC'],
       ['ffmc', 'FFMC'],
       ['bui', 'BUI'],
-      ['isi', 'ISI']
+      ['isi', 'ISI'],
+      ['sfc', 'SFC'],
+      ['fmc', 'FMC']
     ] as const
 
     testCases.forEach(([rasterType, expectedLabel]) => {

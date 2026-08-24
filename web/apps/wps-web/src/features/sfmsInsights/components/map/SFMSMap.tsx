@@ -172,7 +172,7 @@ const SFMSMap = ({
             error={rasterError}
             onClose={handleErrorClose}
             rasterLabel={RASTER_CONFIG[rasterType].label}
-            runType={runType}
+            runType={rasterType === 'fmc' ? undefined : runType}
           />
         </Box>
       </MapContext.Provider>

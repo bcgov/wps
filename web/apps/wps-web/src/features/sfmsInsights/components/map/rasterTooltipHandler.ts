@@ -56,9 +56,11 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
     }
   }
 
+  const tooltipPrecision = rasterType ? (RASTER_CONFIG[rasterType].tooltipPrecision ?? 0) : 0
+
   // Return valid data for numeric rasters
   return {
-    value: roundedValue,
+    value: tooltipPrecision === 0 ? roundedValue : Number(rawValue.toFixed(tooltipPrecision)),
     label: defaultLabel
   }
 }
