@@ -126,6 +126,15 @@ async def test_processor_loads_static_inputs_once_and_publishes_each_date_with_m
     context_calls = []
     captured = []
 
+    @contextmanager
+    def mask_context():
+        yield output_mask
+
+    open_mask = mocker.patch(
+        "wps_sfms.processors.foliar_moisture_content.open_bc_mask_dataset",
+        side_effect=mask_context,
+    )
+
     async def capture_publish(*, dataset, output_key, **_kwargs):
         band = dataset.as_gdal_ds().GetRasterBand(1)
         captured.append(
@@ -158,6 +167,7 @@ async def test_processor_loads_static_inputs_once_and_publishes_each_date_with_m
     assert all(item["nodata"] == pytest.approx(SFMS_NO_DATA) for item in captured)
     assert all(item["value"] != pytest.approx(SFMS_NO_DATA) for item in captured)
     assert publish.await_count == 2
+    open_mask.assert_called_once_with()
 
 
 @pytest.mark.anyio

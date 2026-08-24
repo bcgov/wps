@@ -19,7 +19,7 @@ from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
 from wps_sfms.raster_inputs import FoliarMoistureContentInputs
-from wps_sfms.raster_output import create_masked_output_dataset
+from wps_sfms.raster_output import create_masked_output_dataset, open_bc_mask_dataset
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 logger = logging.getLogger(__name__)
@@ -188,25 +188,27 @@ class FoliarMoistureContentProcessor:
             with self._open_datasets(input_dataset_context, inputs) as datasets:
                 self._validate_grids(datasets)
 
-                for target_date, output_key in outputs_to_process.items():
-                    result = calculate_foliar_moisture_content(datasets, target_date)
-                    with create_masked_output_dataset(
-                        result.values,
-                        datasets.fuel,
-                        result.nodata_value,
-                    ) as output_ds:
-                        output_band = output_ds.as_gdal_ds().GetRasterBand(1)
-                        output_band.SetDescription("foliar_moisture_content")
-                        output_band.SetUnitType("%")
-                        published = await publish_dataset(
-                            s3_client=s3_client,
-                            dataset=output_ds,
-                            output_key=output_key,
-                        )
+                with open_bc_mask_dataset() as mask:
+                    for target_date, output_key in outputs_to_process.items():
+                        result = calculate_foliar_moisture_content(datasets, target_date)
+                        with create_masked_output_dataset(
+                            result.values,
+                            datasets.fuel,
+                            mask,
+                            result.nodata_value,
+                        ) as output_ds:
+                            output_band = output_ds.as_gdal_ds().GetRasterBand(1)
+                            output_band.SetDescription("foliar_moisture_content")
+                            output_band.SetUnitType("%")
+                            published = await publish_dataset(
+                                s3_client=s3_client,
+                                dataset=output_ds,
+                                output_key=output_key,
+                            )
 
-                    logger.info(
-                        "Stored FMC for %s: %s (COG: %s)",
-                        target_date,
-                        published.output_key,
-                        published.cog_key,
-                    )
+                        logger.info(
+                            "Stored FMC for %s: %s (COG: %s)",
+                            target_date,
+                            published.output_key,
+                            published.cog_key,
+                        )

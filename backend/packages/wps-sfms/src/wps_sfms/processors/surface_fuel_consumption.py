@@ -25,7 +25,7 @@ from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
 from wps_sfms.raster_inputs import SurfaceFuelConsumptionInputs
-from wps_sfms.raster_output import create_masked_output_dataset
+from wps_sfms.raster_output import create_masked_output_dataset, open_bc_mask_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -145,11 +145,15 @@ class SurfaceFuelConsumptionProcessor:
                 self._validate_grids(datasets)
                 result = calculate_surface_fuel_consumption(datasets)
 
-                with create_masked_output_dataset(
-                    result.values,
-                    datasets.fuel,
-                    result.nodata_value,
-                ) as output_ds:
+                with (
+                    open_bc_mask_dataset() as mask,
+                    create_masked_output_dataset(
+                        result.values,
+                        datasets.fuel,
+                        mask,
+                        result.nodata_value,
+                    ) as output_ds,
+                ):
                     output_band = output_ds.as_gdal_ds().GetRasterBand(1)
                     output_band.SetDescription("surface_fuel_consumption")
                     output_band.SetUnitType("kg/m2")
