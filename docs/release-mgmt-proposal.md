@@ -4,8 +4,9 @@ Status: draft, implemented on a branch, looking for sign-off before merging.
 
 ## Problem
 
-Four things ship from this monorepo — asago (mobile), sfms (SFMS Daily FWI API), wps
-(backend + web), wps-sfms (raster-interpolation package, runs as CronJobs) — with no
+Four things ship from this monorepo — three **deployments** (asago mobile, sfms Daily
+FWI API, wps backend+web — each a real running process) and one **package** (wps-sfms,
+versioned code with no process of its own, baked into whatever consumes it) — with no
 independent versioning, release notes, or Sentry tracing:
 
 - No git tags anywhere in the repo's history.
@@ -59,6 +60,10 @@ independent versioning, release notes, or Sentry tracing:
   sender.
 - **Cutting `asago` ships it.** The last step of `release.yml` dispatches both mobile
   build workflows against the tag — one action, no drift between "tagged" and "built."
+- **Deployment vs. package is a docs grouping, not a workflow field.** All four run the
+  same steps; there's no `type` output to maintain. Sentry has no generic metadata slot
+  to hang it on, and OpenShift already expresses it natively (`Deployment` vs
+  `CronJob`), so adding one would just be an unused field.
 
 ## Key decisions, flagged for review
 
@@ -69,7 +74,7 @@ independent versioning, release notes, or Sentry tracing:
 3. **The version-file bump commits straight to `main`**, bypassing PR review — needs
    `github-actions[bot]` allowed by branch protection.
 4. **`SENTRY_AUTH_TOKEN` scope is unverified** beyond web source maps; now also used
-   for `api`/`asago` releases.
+   for `api`/`asago`/`frontend` releases.
 5. **Sentry's GitHub integration isn't confirmed installed** — needed for
    suspect-commit blame, not just association. OAuth flow in Sentry's UI; can't be
    scripted.
