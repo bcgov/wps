@@ -192,8 +192,6 @@ There is a lot of data to download and analyze for these weather models, so to e
 
 ### From grids to fire weather stations
 
-~~Once model data has been downloaded, we stored the model data for "grid subsets" relevant to our use in our `wps` Postgres database in the `model_run_grid_subset_predictions` table. Each row in this table stored temperature, RH, precipitation, wind speed, and wind direction data, as we needed for Morecast. For each of these weather variables, each row contained an array of 4 data points, corresponding to the 4 corners of one square of the grid. The `prediction_model_grid_subset_id` in this table corresponded to a grid cell that contained one of BC's fire weather station locations, as stored in the `prediction_model_grid_subsets` table. When our backend inserted data into the `model_run_grid_subset_predictions` table, it also added metadata pertinent to the specific model run.~~
-
 Our back-end used to perform spatial interpolation using the four values in the grid subset. We no longer follow this process. In order to align with SpotWX, we now use the value from the grid cell in the grib file in which the weather station is located. These values are stored in the `weather_station_model_predictions` table.
 
 Both `model_run_grid_subset_predictions` and `prediction_model_grid_subsets` were unused and have been dropped.
