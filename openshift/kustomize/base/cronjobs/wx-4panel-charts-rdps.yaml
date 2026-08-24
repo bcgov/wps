@@ -4,10 +4,10 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
-    wps.bcgov/env-uv: 'true'
-    wps.bcgov/env-postgres: 'true'
-    wps.bcgov/env-wx-objectstore: 'true'
-    wps.bcgov/env-wx-cartopy: 'true'
+    app.wps/env-uv: 'true'
+    app.wps/env-postgres: 'true'
+    app.wps/env-wx-objectstore: 'true'
+    app.wps/env-wx-cartopy: 'true'
   name: wx-4panel-charts-rdps-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace

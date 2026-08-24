@@ -4,7 +4,7 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
-    wps.bcgov/env-aws: 'true'
+    app.wps/env-aws: 'true'
   name: prune-hourlies-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace

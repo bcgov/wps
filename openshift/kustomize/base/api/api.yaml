@@ -4,6 +4,14 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
+    app.wps/env-postgres: 'true'
+    app.wps/env-sentry: 'true'
+    app.wps/env-objectstore: 'true'
+    app.wps/env-global: 'true'
+    app.wps/env-redis: 'true'
+    app.wps/env-wfwx: 'true'
+    app.wps/env-redis-dailies: 'true'
+    app.wps/env-redis-cache-env-canada: 'true'
   name: wps-__SUFFIX__
 spec:
   replicas: 3
@@ -25,78 +33,17 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-      - image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-__SUFFIX__:__SUFFIX__
-        imagePullPolicy: Always
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /health
-            port: 3000
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          timeoutSeconds: 1
-        name: wps-web
-        ports:
-        - containerPort: 3000
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /ready
-            port: 3000
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 1
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            cpu: 25m
-            memory: 1Gi
-        volumeMounts:
-        - mountPath: /config.js
-          name: config-env
-          subPath: gold.config.js
       - env:
         - name: ORIGINS
           value: wps-*.apps.silver.devops.gov.bc.ca
         - name: BASE_URI
           value: https://wps-__SUFFIX__-__NAMESPACE__.apps.silver.devops.gov.bc.ca
-        - name: PORT
-          value: '8080'
         - name: ENVIRONMENT
           value: production
         - name: GUNICORN_WORKERS
           value: '8'
-        - name: TIMEOUT
-          valueFrom:
-            configMapKeyRef:
-              key: env.gunicorn.timeout
-              name: wps-global
         - name: WFWX_MAX_PAGE_SIZE
           value: '1000'
-        - name: WFWX_AUTH_URL
-          valueFrom:
-            configMapKeyRef:
-              key: env.wfwx-auth-url
-              name: wps-global
-        - name: WFWX_BASE_URL
-          valueFrom:
-            configMapKeyRef:
-              key: env.wfwx-base-url
-              name: wps-global
-        - name: WFWX_USER
-          valueFrom:
-            configMapKeyRef:
-              key: env.wfwx-user
-              name: wps-global
-        - name: WFWX_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: wfwx-secret
-              name: wps-global
         - name: KEYCLOAK_PUBLIC_KEY
           valueFrom:
             configMapKeyRef:
@@ -107,38 +54,6 @@ spec:
             configMapKeyRef:
               key: env.gold.keycloak-client
               name: wps-global
-        - name: POSTGRES_READ_USER
-          valueFrom:
-            secretKeyRef:
-              key: user
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_WRITE_USER
-          valueFrom:
-            secretKeyRef:
-              key: user
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_WRITE_HOST
-          valueFrom:
-            secretKeyRef:
-              key: pgbouncer-host
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_READ_HOST
-          valueFrom:
-            secretKeyRef:
-              key: pgbouncer-host
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_PORT
-          valueFrom:
-            secretKeyRef:
-              key: pgbouncer-port
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_DATABASE
-          value: wps
         - name: STATUS_CHECKER_SECRET
           valueFrom:
             secretKeyRef:
@@ -156,112 +71,20 @@ spec:
               name: wps-global
         - name: PATRONI_CLUSTER_NAME
           value: wps-crunchydb-16-__SUFFIX__
-        - name: PROJECT_NAMESPACE
-          value: __NAMESPACE__
-        - name: CHATOPS_URL
-          valueFrom:
-            secretKeyRef:
-              key: chatops-url
-              name: wps-global
-        - name: CHATOPS_AUTH_TOKEN
-          valueFrom:
-            secretKeyRef:
-              key: chatops-auth-token
-              name: wps-global
-        - name: OPENSHIFT_CONSOLE_URL
-          valueFrom:
-            configMapKeyRef:
-              key: env.openshift-console-url
-              name: wps-global
-        - name: OBJECT_STORE_SERVER
-          valueFrom:
-            secretKeyRef:
-              key: object-store-server
-              name: wps-global
-        - name: OBJECT_STORE_USER_ID
-          valueFrom:
-            secretKeyRef:
-              key: object-store-user-id
-              name: wps-global
-        - name: OBJECT_STORE_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: object-store-secret
-              name: wps-global
-        - name: OBJECT_STORE_BUCKET
-          valueFrom:
-            secretKeyRef:
-              key: object-store-bucket
-              name: wps-global
         - name: CLASSIFIED_TPI_DEM_NAME
           valueFrom:
             configMapKeyRef:
               key: env.classified_tpi_dem_name
-              name: wps-global
-        - name: CLASSIFIED_TPI_DEM_FUEL_MASKED_NAME
-          valueFrom:
-            configMapKeyRef:
-              key: env.classified_tpi_dem_fuel_masked_name
-              name: wps-global
-        - name: REDIS_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: env.redis-host
-              name: wps-global
-        - name: REDIS_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: env.redis-port
-              name: wps-global
-        - name: REDIS_USE
-          valueFrom:
-            configMapKeyRef:
-              key: env.redis-use
-              name: wps-global
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: database-password
-              name: wps-redis
-        - name: REDIS_STATION_CACHE_EXPIRY
-          valueFrom:
-            configMapKeyRef:
-              key: env.redis-station-cache-expiry
               name: wps-global
         - name: REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY
           valueFrom:
             configMapKeyRef:
               key: env.redis-hourlies-by-station-code-cache-expiry
               name: wps-global
-        - name: REDIS_AUTH_CACHE_EXPIRY
-          valueFrom:
-            configMapKeyRef:
-              key: env.redis-auth-cache-expiry
-              name: wps-global
-        - name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
-          valueFrom:
-            configMapKeyRef:
-              key: env.redis-dailies-by-station-code-expiry
-              name: wps-global
-        - name: REDIS_CACHE_ENV_CANADA
-          valueFrom:
-            configMapKeyRef:
-              key: env.redis-cache-env-canada
-              name: wps-global
-        - name: REDIS_CACHE_NOAA
-          valueFrom:
-            configMapKeyRef:
-              key: env.redis-cache-noaa
-              name: wps-global
         - name: REDIS_ENV_CANADA_CACHE_EXPIRY
           valueFrom:
             configMapKeyRef:
               key: env.redis-env-canada-cache-expiry
-              name: wps-global
-        - name: REDIS_NOAA_CACHE_EXPIRY
-          valueFrom:
-            configMapKeyRef:
-              key: env.redis-noaa-cache-expiry
               name: wps-global
         - name: TILESERVER_POSTGRES_READ_HOST
           valueFrom:
@@ -297,11 +120,6 @@ spec:
           valueFrom:
             secretKeyRef:
               key: sfms-secret
-              name: wps-global
-        - name: SENTRY_DSN
-          valueFrom:
-            secretKeyRef:
-              key: sentry-dsn
               name: wps-global
         - name: NATS_STREAM_PREFIX
           value: wps-__SUFFIX__
@@ -370,6 +188,40 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 2
+      - image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-web-__SUFFIX__:__SUFFIX__
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 1
+        name: wps-web
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ready
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            cpu: 25m
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: /config.js
+          name: config-env
+          subPath: gold.config.js
       volumes:
       - configMap:
           name: wps-global

@@ -1,0 +1,65 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Env vars byte-identical across the three API Deployments -- deduped out of their base
+# files via each of base/asa-go-api, base/sfms-fwi-api, base/api's own generate.py, and
+# reattached here as JSON6902 "append to env" patches, targeted by the label each of those
+# adds only where a resource's whole group matched byte-for-byte. A Component (not a regular
+# base) because these resources live in separate base/ directories, only combined at the
+# overlay level -- a Component is Kustomize's mechanism for patches that need to apply across
+# an overlay's whole resource set without duplicating the patch itself in both overlays/dev
+# and overlays/prod (`components:` in each overlay just references this).
+#
+# One patch per semantic concern, same breakdown style as base/cronjobs -- see this
+# directory's generate.py for the full GROUPS list. Most of these reuse the exact label
+# names base/cronjobs's own patches use (same meaning, different Kind); the generator reads
+# their values straight out of base/cronjobs's already-generated patches rather than
+# retyping them -- same values, but the op *path* still has to differ (CronJob nests its pod
+# template under spec.jobTemplate.spec.template, Deployment has spec.template directly), so
+# those patch files can't be literally shared across the two.
+#
+# env-global/env-redis/env-wfwx/env-redis-dailies/env-redis-cache-env-canada only ever match
+# "api" today -- asa-go-api/sfms-fwi-api don't carry those vars at all -- confirmed by
+# checking full-group byte-identical membership, same check base/cronjobs/generate.py itself
+# does before stripping. (PORT and REDIS_CACHE_NOAA used to have groups here too, but turned
+# out to be genuinely dead -- unused by anything the api container can reach -- and were
+# removed from the source Templates instead of deduped; see git history if reviving either.)
+#
+# All three Deployments' relevant container sits at index 0 -- asa-go-api/sfms-fwi-api are
+# single-container, and the main "api" Deployment has its api/web containers swapped in
+# base/api/generate.py (container order has no meaning to Kubernetes for regular containers)
+# specifically so one patch per group covers all three, no per-container-index variant
+# needed.
+patches:
+  - path: env-postgres.patch.yaml
+    target:
+      kind: Deployment
+      labelSelector: app.wps/env-postgres=true
+  - path: env-sentry.patch.yaml
+    target:
+      kind: Deployment
+      labelSelector: app.wps/env-sentry=true
+  - path: env-objectstore.patch.yaml
+    target:
+      kind: Deployment
+      labelSelector: app.wps/env-objectstore=true
+  - path: env-global.patch.yaml
+    target:
+      kind: Deployment
+      labelSelector: app.wps/env-global=true
+  - path: env-redis.patch.yaml
+    target:
+      kind: Deployment
+      labelSelector: app.wps/env-redis=true
+  - path: env-wfwx.patch.yaml
+    target:
+      kind: Deployment
+      labelSelector: app.wps/env-wfwx=true
+  - path: env-redis-dailies.patch.yaml
+    target:
+      kind: Deployment
+      labelSelector: app.wps/env-redis-dailies=true
+  - path: env-redis-cache-env-canada.patch.yaml
+    target:
+      kind: Deployment
+      labelSelector: app.wps/env-redis-cache-env-canada=true

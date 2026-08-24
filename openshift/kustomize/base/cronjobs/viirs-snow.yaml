@@ -4,10 +4,10 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
-    wps.bcgov/env-global: 'true'
-    wps.bcgov/env-uv: 'true'
-    wps.bcgov/env-postgres: 'true'
-    wps.bcgov/env-objectstore: 'true'
+    app.wps/env-global: 'true'
+    app.wps/env-uv: 'true'
+    app.wps/env-postgres: 'true'
+    app.wps/env-objectstore: 'true'
   name: viirs-snow-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace

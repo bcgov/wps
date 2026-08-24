@@ -1,0 +1,53 @@
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: POSTGRES_READ_USER
+    valueFrom:
+      secretKeyRef:
+        key: user
+        name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: POSTGRES_WRITE_USER
+    valueFrom:
+      secretKeyRef:
+        key: user
+        name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: POSTGRES_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: password
+        name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: POSTGRES_WRITE_HOST
+    valueFrom:
+      secretKeyRef:
+        key: pgbouncer-host
+        name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: POSTGRES_READ_HOST
+    valueFrom:
+      secretKeyRef:
+        key: pgbouncer-host
+        name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: POSTGRES_PORT
+    valueFrom:
+      secretKeyRef:
+        key: pgbouncer-port
+        name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: POSTGRES_DATABASE
+    value: wps

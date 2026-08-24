@@ -94,8 +94,6 @@ objects:
                   value: ${ALLOWED_ORIGINS}
                 - name: APP_MODULE
                   value: app.asa_go_main:app
-                - name: PORT
-                  value: "8080"
                 - name: ENVIRONMENT
                   value: ${ENVIRONMENT}
                 - name: GUNICORN_WORKERS

@@ -4,8 +4,8 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
-    wps.bcgov/env-uv: 'true'
-    wps.bcgov/env-wx-objectstore: 'true'
+    app.wps/env-uv: 'true'
+    app.wps/env-wx-objectstore: 'true'
   name: s3-retention-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace

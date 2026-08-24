@@ -1,0 +1,29 @@
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: CHATOPS_URL
+    valueFrom:
+      secretKeyRef:
+        key: chatops-url
+        name: wps-global
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: CHATOPS_AUTH_TOKEN
+    valueFrom:
+      secretKeyRef:
+        key: chatops-auth-token
+        name: wps-global
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: OPENSHIFT_CONSOLE_URL
+    valueFrom:
+      configMapKeyRef:
+        key: env.openshift-console-url
+        name: wps-global
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: PROJECT_NAMESPACE
+    value: __NAMESPACE__

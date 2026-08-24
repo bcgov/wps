@@ -4,11 +4,11 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
-    wps.bcgov/env-global: 'true'
-    wps.bcgov/env-uv: 'true'
-    wps.bcgov/env-postgres: 'true'
-    wps.bcgov/env-redis: 'true'
-    wps.bcgov/env-wfwx: 'true'
+    app.wps/env-global: 'true'
+    app.wps/env-uv: 'true'
+    app.wps/env-postgres: 'true'
+    app.wps/env-redis: 'true'
+    app.wps/env-wfwx: 'true'
   name: grass-curing-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace

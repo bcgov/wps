@@ -1,0 +1,8 @@
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: SENTRY_DSN
+    valueFrom:
+      secretKeyRef:
+        key: sentry-dsn
+        name: wps-global

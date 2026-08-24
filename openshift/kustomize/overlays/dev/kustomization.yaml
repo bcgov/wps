@@ -11,6 +11,9 @@ resources:
   - ../../base/sfms-fwi-api
   - ../../base/api
 
+components:
+  - ../../components/api-common-env
+
 # Dev-specific overrides. Every value here is taken directly from the explicit
 # MEMORY_REQUEST/MEMORY_LIMIT overrides in deployment.yml's "Provision dev cronjobs and
 # jobs" step (harden-oc-deploys) -- everything not listed here uses the base's (the
@@ -82,7 +85,7 @@ patches:
         path: /spec/template/spec/containers/0/resources/limits/memory
         value: 1Gi
       - op: replace
-        path: /spec/template/spec/containers/0/env/3/value
+        path: /spec/template/spec/containers/0/env/2/value
         value: development
   - target:
       kind: Deployment
@@ -92,9 +95,10 @@ patches:
         path: /spec/replicas
         value: 1
       - op: replace
-        path: /spec/template/spec/containers/0/env/9/value
+        path: /spec/template/spec/containers/0/env/1/value
         value: development
-  # Main API deployment (containers/0 = web, no per-env override; containers/1 = api).
+  # Main API deployment (containers/0 = api, swapped in base/api/generate.py so it lines up
+  # with asa-go-api/sfms-fwi-api's shared patches; containers/1 = web, no per-env override).
   - target:
       kind: Deployment
       name: wps-__SUFFIX__
@@ -103,16 +107,16 @@ patches:
         path: /spec/replicas
         value: 2
       - op: replace
-        path: /spec/template/spec/containers/1/resources/requests/memory
+        path: /spec/template/spec/containers/0/resources/requests/memory
         value: 3Gi
       - op: replace
-        path: /spec/template/spec/containers/1/resources/limits/memory
+        path: /spec/template/spec/containers/0/resources/limits/memory
         value: 6Gi
       - op: replace
-        path: /spec/template/spec/containers/1/env/3/value
+        path: /spec/template/spec/containers/0/env/2/value
         value: development
       - op: replace
-        path: /spec/template/spec/containers/1/env/4/value
+        path: /spec/template/spec/containers/0/env/3/value
         value: "4"
   # Dev's vanity domain is per-PR, not a fixed literal like prod's -- __SUFFIX__ stays a
   # literal token here too, substituted by the same sed pass as everywhere else.

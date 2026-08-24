@@ -119,8 +119,6 @@ objects:
                       key: pgbouncer-port
                 - name: POSTGRES_DATABASE
                   value: ${POSTGRES_DATABASE}
-                - name: PORT
-                  value: "8080"
                 - name: ENVIRONMENT
                   value: ${ENVIRONMENT}
                 - name: GUNICORN_WORKERS

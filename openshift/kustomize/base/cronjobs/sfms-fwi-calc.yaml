@@ -4,9 +4,9 @@ metadata:
   labels:
     app: wps-__SUFFIX__
     app.kubernetes.io/part-of: wps
-    wps.bcgov/env-global: 'true'
-    wps.bcgov/env-uv: 'true'
-    wps.bcgov/env-objectstore: 'true'
+    app.wps/env-global: 'true'
+    app.wps/env-uv: 'true'
+    app.wps/env-objectstore: 'true'
   name: sfms-fwi-calc-wps-__SUFFIX__
 spec:
   concurrencyPolicy: Replace

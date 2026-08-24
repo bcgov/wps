@@ -150,17 +150,10 @@ objects:
                   value: ${ALLOWED_ORIGINS}
                 - name: BASE_URI
                   value: https://${APP_NAME}-${SUFFIX}-${PROJECT_NAMESPACE}.${SECOND_LEVEL_DOMAIN}
-                - name: PORT # The port that the API will run on (used by fastapi docker image)
-                  value: "8080"
                 - name: ENVIRONMENT
                   value: ${ENVIRONMENT}
                 - name: GUNICORN_WORKERS # The number of workers to spawn
                   value: ${GUNICORN_WORKERS}
-                - name: "TIMEOUT" # https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.gunicorn.timeout
                 - name: WFWX_MAX_PAGE_SIZE
                   value: ${WFWX_MAX_PAGE_SIZE}
                 - name: WFWX_AUTH_URL
@@ -284,11 +277,6 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.classified_tpi_dem_name
-                - name: CLASSIFIED_TPI_DEM_FUEL_MASKED_NAME
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.classified_tpi_dem_fuel_masked_name
                 - name: REDIS_HOST
                   valueFrom:
                     configMapKeyRef:
@@ -334,21 +322,11 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.redis-cache-env-canada
-                - name: REDIS_CACHE_NOAA
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.redis-cache-noaa
                 - name: REDIS_ENV_CANADA_CACHE_EXPIRY
                   valueFrom:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.redis-env-canada-cache-expiry
-                - name: REDIS_NOAA_CACHE_EXPIRY
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.redis-noaa-cache-expiry
                 - name: TILESERVER_POSTGRES_READ_HOST
                   valueFrom:
                     configMapKeyRef:

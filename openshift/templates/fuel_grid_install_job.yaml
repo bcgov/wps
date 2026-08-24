@@ -39,8 +39,8 @@ objects:
     metadata:
       name: fuel-grid-install-${FUEL_RASTER_YEAR}-${NAME}-${SUFFIX}
       annotations:
-        wps.bcgov/fuel-grid-year: "${FUEL_RASTER_YEAR}"
-        wps.bcgov/fuel-grid-source-key: "sfms/static/${FUEL_RASTER_KEY}"
+        app.wps/fuel-grid-year: "${FUEL_RASTER_YEAR}"
+        app.wps/fuel-grid-source-key: "sfms/static/${FUEL_RASTER_KEY}"
     spec:
       suspend: true
       parallelism: 1

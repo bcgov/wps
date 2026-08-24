@@ -4,6 +4,9 @@ metadata:
   labels:
     app: wps-__SUFFIX__-sfms-fwi
     app.kubernetes.io/part-of: wps-sfms-fwi-api
+    app.wps/env-postgres: 'true'
+    app.wps/env-sentry: 'true'
+    app.wps/env-objectstore: 'true'
   name: wps-__SUFFIX__-sfms-fwi
 spec:
   replicas: 2
@@ -24,69 +27,10 @@ spec:
       - env:
         - name: APP_MODULE
           value: app.sfms_fwi_main:app
-        - name: POSTGRES_READ_USER
-          valueFrom:
-            secretKeyRef:
-              key: user
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_WRITE_USER
-          valueFrom:
-            secretKeyRef:
-              key: user
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_WRITE_HOST
-          valueFrom:
-            secretKeyRef:
-              key: pgbouncer-host
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_READ_HOST
-          valueFrom:
-            secretKeyRef:
-              key: pgbouncer-host
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_PORT
-          valueFrom:
-            secretKeyRef:
-              key: pgbouncer-port
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_DATABASE
-          value: wps
-        - name: PORT
-          value: '8080'
         - name: ENVIRONMENT
           value: production
         - name: GUNICORN_WORKERS
           value: '2'
-        - name: OBJECT_STORE_SERVER
-          valueFrom:
-            secretKeyRef:
-              key: object-store-server
-              name: wps-global
-        - name: OBJECT_STORE_USER_ID
-          valueFrom:
-            secretKeyRef:
-              key: object-store-user-id
-              name: wps-global
-        - name: OBJECT_STORE_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: object-store-secret
-              name: wps-global
-        - name: OBJECT_STORE_BUCKET
-          valueFrom:
-            secretKeyRef:
-              key: object-store-bucket
-              name: wps-global
-        - name: SENTRY_DSN
-          valueFrom:
-            secretKeyRef:
-              key: sentry-dsn
-              name: wps-global
         image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
         imagePullPolicy: Always
         livenessProbe:

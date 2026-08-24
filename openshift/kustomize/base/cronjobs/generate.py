@@ -172,37 +172,37 @@ RESOURCES = [
 # value to every other resource that has it -- a resource missing part of a group, or with
 # a differing value, keeps its own copy untouched and doesn't get the label.
 COMMON_ENV_GROUPS = {
-    "wps.bcgov/env-global": ["CHATOPS_URL", "CHATOPS_AUTH_TOKEN", "OPENSHIFT_CONSOLE_URL", "PROJECT_NAMESPACE"],
-    "wps.bcgov/env-uv": ["UV_NO_CACHE"],
-    "wps.bcgov/env-postgres": [
+    "app.wps/env-global": ["CHATOPS_URL", "CHATOPS_AUTH_TOKEN", "OPENSHIFT_CONSOLE_URL", "PROJECT_NAMESPACE"],
+    "app.wps/env-uv": ["UV_NO_CACHE"],
+    "app.wps/env-postgres": [
         "POSTGRES_READ_USER", "POSTGRES_WRITE_USER", "POSTGRES_PASSWORD",
         "POSTGRES_WRITE_HOST", "POSTGRES_READ_HOST", "POSTGRES_PORT", "POSTGRES_DATABASE",
     ],
-    "wps.bcgov/env-redis": [
+    "app.wps/env-redis": [
         "REDIS_HOST", "REDIS_PORT", "REDIS_USE", "REDIS_PASSWORD",
         "REDIS_STATION_CACHE_EXPIRY", "REDIS_AUTH_CACHE_EXPIRY",
     ],
-    "wps.bcgov/env-wfwx": ["WFWX_AUTH_URL", "WFWX_BASE_URL", "WFWX_USER", "WFWX_SECRET"],
-    "wps.bcgov/env-objectstore": [
+    "app.wps/env-wfwx": ["WFWX_AUTH_URL", "WFWX_BASE_URL", "WFWX_USER", "WFWX_SECRET"],
+    "app.wps/env-objectstore": [
         "OBJECT_STORE_SERVER", "OBJECT_STORE_USER_ID", "OBJECT_STORE_SECRET", "OBJECT_STORE_BUCKET",
     ],
     # Narrower membership than env-redis above (env-canada/noaa/wfwx only), so it can't
     # fold into that group without also matching everything else in it.
-    "wps.bcgov/env-redis-dailies": ["REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY"],
+    "app.wps/env-redis-dailies": ["REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY"],
     # env-canada-* plus rdps-sfms, which also consumes RDPS data and shares the same cache.
-    "wps.bcgov/env-redis-cache-env-canada": ["REDIS_CACHE_ENV_CANADA"],
-    "wps.bcgov/env-redis-cache-noaa": ["REDIS_CACHE_NOAA"],
+    "app.wps/env-redis-cache-env-canada": ["REDIS_CACHE_ENV_CANADA"],
+    "app.wps/env-redis-cache-noaa": ["REDIS_CACHE_NOAA"],
     # env-canada-* and noaa-* share the same grib-retention config; other consumers don't.
-    "wps.bcgov/env-data-retention": ["DATA_RETENTION_THRESHOLD"],
+    "app.wps/env-data-retention": ["DATA_RETENTION_THRESHOLD"],
     # s3-data-retention + wx-4panel-charts-*: same object store, WX_-prefixed var names.
-    "wps.bcgov/env-wx-objectstore": [
+    "app.wps/env-wx-objectstore": [
         "OBJECT_STORE_SERVER", "WX_OBJECT_STORE_USER_ID", "WX_OBJECT_STORE_SECRET", "WX_OBJECT_STORE_BUCKET",
     ],
-    "wps.bcgov/env-wx-cartopy": ["WX_CARTOPY_DATA_DIR"],
+    "app.wps/env-wx-cartopy": ["WX_CARTOPY_DATA_DIR"],
     # hourly-prune + partitioner: same object-store secret, AWS_-prefixed var names, plus
     # the same literal SUFFIX placeholder (still substituted by the caller's sed pass
     # wherever it ends up, base file or patch, so deduping it here is safe).
-    "wps.bcgov/env-aws": ["AWS_ACCESS_KEY", "AWS_BUCKET", "AWS_HOSTNAME", "AWS_SECRET_KEY", "SUFFIX"],
+    "app.wps/env-aws": ["AWS_ACCESS_KEY", "AWS_BUCKET", "AWS_HOSTNAME", "AWS_SECRET_KEY", "SUFFIX"],
 }
 
 # wx_4panel_charts.cronjob.yaml has no POSTGRES_DATABASE parameter or env entry at all --
@@ -243,8 +243,8 @@ for _, item in rendered:
             if var in by_name and var not in canonical:
                 canonical[var] = by_name[var]
 
-# Second pass: strip each group from a resource's env only if every var in it matches
-# canonical exactly, and record which group patches are actually used by anything.
+# Strip each group from a resource's env only if every var in it matches canonical exactly,
+# and record which group patches are actually used by anything.
 groups_in_use = set()
 for name, item in rendered:
     container = item["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]

@@ -1,0 +1,8 @@
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY
+    valueFrom:
+      configMapKeyRef:
+        key: env.redis-dailies-by-station-code-expiry
+        name: wps-global

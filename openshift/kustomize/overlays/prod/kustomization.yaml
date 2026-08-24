@@ -11,6 +11,9 @@ resources:
   - ../../base/sfms-fwi-api
   - ../../base/api
 
+components:
+  - ../../components/api-common-env
+
 # Prod-specific overrides. Every value here is taken directly from the explicit
 # MEMORY_REQUEST/MEMORY_LIMIT overrides in oc_deploy_to_production.sh (harden-oc-deploys) --
 # every CronJob not listed here uses the base's (the template's own default) values

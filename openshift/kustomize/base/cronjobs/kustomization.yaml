@@ -36,57 +36,64 @@ resources:
 # secrets, referenced the same way) -- deduped out of the base files above via generate.py
 # and reattached here as JSON6902 "append to env" patches, targeted by the label generate.py
 # adds only where a resource's whole group matched byte-for-byte. See generate.py's
-# COMMON_ENV_GROUPS for which vars are in each group and why JSON6902 (not strategic merge).
+# COMMON_ENV_GROUPS for which vars are in each group.
+#
+# components/api-common-env has its own copies of the POSTGRES_*/OBJECT_STORE_* values for
+# the Deployment-shaped resources (asa-go-api/sfms-fwi-api/api) -- CronJob nests its pod
+# template under spec.jobTemplate.spec.template, Deployment has spec.template directly, so
+# the same JSON6902 op *path* can't be shared across Kinds even though the *value* is
+# identical; that component's generate.py reads its values straight out of this directory's
+# generated patch files rather than retyping them.
 patches:
   - path: env-global.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-global=true
+      labelSelector: app.wps/env-global=true
   - path: env-uv.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-uv=true
+      labelSelector: app.wps/env-uv=true
   - path: env-postgres.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-postgres=true
+      labelSelector: app.wps/env-postgres=true
   - path: env-redis.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-redis=true
+      labelSelector: app.wps/env-redis=true
   - path: env-wfwx.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-wfwx=true
+      labelSelector: app.wps/env-wfwx=true
   - path: env-objectstore.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-objectstore=true
+      labelSelector: app.wps/env-objectstore=true
   - path: env-redis-dailies.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-redis-dailies=true
+      labelSelector: app.wps/env-redis-dailies=true
   - path: env-redis-cache-env-canada.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-redis-cache-env-canada=true
+      labelSelector: app.wps/env-redis-cache-env-canada=true
   - path: env-redis-cache-noaa.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-redis-cache-noaa=true
+      labelSelector: app.wps/env-redis-cache-noaa=true
   - path: env-data-retention.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-data-retention=true
+      labelSelector: app.wps/env-data-retention=true
   - path: env-wx-objectstore.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-wx-objectstore=true
+      labelSelector: app.wps/env-wx-objectstore=true
   - path: env-wx-cartopy.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-wx-cartopy=true
+      labelSelector: app.wps/env-wx-cartopy=true
   - path: env-aws.patch.yaml
     target:
       kind: CronJob
-      labelSelector: wps.bcgov/env-aws=true
+      labelSelector: app.wps/env-aws=true

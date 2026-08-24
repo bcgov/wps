@@ -35,6 +35,28 @@ if result.returncode != 0:
     raise SystemExit(f"FAILED: sfms-fwi-api\n{result.stderr}")
 
 items = json.loads(result.stdout).get("items", [])
+
+# Values (and the container-index reasoning) live in
+# components/api-common-env/generate.py, which emits the patches these labels select.
+# ENVIRONMENT deliberately NOT deduped -- see base/asa-go-api/generate.py for why.
+COMMON_ENV_GROUPS = {
+    "app.wps/env-postgres": [
+        "POSTGRES_READ_USER", "POSTGRES_WRITE_USER", "POSTGRES_PASSWORD",
+        "POSTGRES_WRITE_HOST", "POSTGRES_READ_HOST", "POSTGRES_PORT", "POSTGRES_DATABASE",
+    ],
+    "app.wps/env-sentry": ["SENTRY_DSN"],
+    "app.wps/env-objectstore": [
+        "OBJECT_STORE_SERVER", "OBJECT_STORE_USER_ID", "OBJECT_STORE_SECRET", "OBJECT_STORE_BUCKET",
+    ],
+}
+for item in items:
+    if item.get("kind") != "Deployment":
+        continue
+    container = item["spec"]["template"]["spec"]["containers"][0]
+    for label, var_names in COMMON_ENV_GROUPS.items():
+        container["env"] = [e for e in container["env"] if e["name"] not in var_names]
+        item.setdefault("metadata", {}).setdefault("labels", {})[label] = "true"
+
 out_path = f"{OUT_DIR}/sfms-fwi-api.yaml"
 with open(out_path, "w") as f:
     for i, item in enumerate(items):

@@ -2,8 +2,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    wps.bcgov/fuel-grid-source-key: sfms/static/fbp2026.tif
-    wps.bcgov/fuel-grid-year: '2026'
+    app.wps/fuel-grid-source-key: sfms/static/fbp2026.tif
+    app.wps/fuel-grid-year: '2026'
   labels:
     app.kubernetes.io/part-of: wps-__SUFFIX__
   name: fuel-grid-install-2026-wps-__SUFFIX__

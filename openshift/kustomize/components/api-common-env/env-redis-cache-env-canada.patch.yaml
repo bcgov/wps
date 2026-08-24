@@ -1,0 +1,8 @@
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: REDIS_CACHE_ENV_CANADA
+    valueFrom:
+      configMapKeyRef:
+        key: env.redis-cache-env-canada
+        name: wps-global

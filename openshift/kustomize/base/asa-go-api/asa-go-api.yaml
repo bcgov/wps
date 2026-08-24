@@ -4,6 +4,8 @@ metadata:
   labels:
     app: wps-__SUFFIX__-asa-go
     app.kubernetes.io/part-of: wps-asa-go-api
+    app.wps/env-postgres: 'true'
+    app.wps/env-sentry: 'true'
   name: wps-__SUFFIX__-asa-go
 spec:
   replicas: 2
@@ -26,8 +28,6 @@ spec:
           value: wps-*.apps.silver.devops.gov.bc.ca
         - name: APP_MODULE
           value: app.asa_go_main:app
-        - name: PORT
-          value: '8080'
         - name: ENVIRONMENT
           value: production
         - name: GUNICORN_WORKERS
@@ -42,38 +42,6 @@ spec:
             configMapKeyRef:
               key: env.gold.keycloak-client
               name: wps-global
-        - name: POSTGRES_READ_USER
-          valueFrom:
-            secretKeyRef:
-              key: user
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_WRITE_USER
-          valueFrom:
-            secretKeyRef:
-              key: user
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_WRITE_HOST
-          valueFrom:
-            secretKeyRef:
-              key: pgbouncer-host
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_READ_HOST
-          valueFrom:
-            secretKeyRef:
-              key: pgbouncer-host
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_PORT
-          valueFrom:
-            secretKeyRef:
-              key: pgbouncer-port
-              name: wps-crunchydb-16-__SUFFIX__-pguser-wps-crunchydb-16-__SUFFIX__
-        - name: POSTGRES_DATABASE
-          value: wps
         - name: STATUS_CHECKER_SECRET
           valueFrom:
             secretKeyRef:
@@ -93,11 +61,6 @@ spec:
           value: wps-crunchydb-16-__SUFFIX__
         - name: PROJECT_NAMESPACE
           value: __NAMESPACE__
-        - name: SENTRY_DSN
-          valueFrom:
-            secretKeyRef:
-              key: sentry-dsn
-              name: wps-global
         image: image-registry.openshift-image-registry.svc:5000/e1e498-tools/wps-api-__SUFFIX__:__SUFFIX__
         imagePullPolicy: Always
         livenessProbe:

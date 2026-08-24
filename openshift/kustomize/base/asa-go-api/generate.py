@@ -38,6 +38,32 @@ if result.returncode != 0:
     raise SystemExit(f"FAILED: asa-go-api\n{result.stderr}")
 
 items = json.loads(result.stdout).get("items", [])
+
+# PORT/POSTGRES_*/SENTRY_DSN are byte-identical to sfms-fwi-api's (and api's) copies of the
+# same vars -- deduped into a shared Kustomize Component
+# (openshift/kustomize/components/api-common-env/), one patch per semantic group rather than
+# one lumped patch, same breakdown style as base/cronjobs. See that component's generate.py
+# for the full GROUPS list and why POSTGRES_*/OBJECT_STORE_*'s op path can't be shared with
+# base/cronjobs's patches of the same name even though the values are.
+COMMON_ENV_GROUPS = {
+    "app.wps/env-postgres": [
+        "POSTGRES_READ_USER", "POSTGRES_WRITE_USER", "POSTGRES_PASSWORD",
+        "POSTGRES_WRITE_HOST", "POSTGRES_READ_HOST", "POSTGRES_PORT", "POSTGRES_DATABASE",
+    ],
+    "app.wps/env-sentry": ["SENTRY_DSN"],
+}
+# ENVIRONMENT deliberately NOT included even though its value matches too -- dev's overlay
+# needs to override it per-environment, and Kustomize's JSON6902 targets env entries by
+# array index, not name. Keeping it local (at a stable, known index in this base) is far
+# simpler than computing where it'd land after a shared component appends other vars.
+for item in items:
+    if item.get("kind") != "Deployment":
+        continue
+    container = item["spec"]["template"]["spec"]["containers"][0]
+    for label, var_names in COMMON_ENV_GROUPS.items():
+        container["env"] = [e for e in container["env"] if e["name"] not in var_names]
+        item.setdefault("metadata", {}).setdefault("labels", {})[label] = "true"
+
 out_path = f"{OUT_DIR}/asa-go-api.yaml"
 with open(out_path, "w") as f:
     for i, item in enumerate(items):

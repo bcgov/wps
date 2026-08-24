@@ -50,6 +50,52 @@ if result.returncode != 0:
     raise SystemExit(f"FAILED: api\n{result.stderr}")
 
 items = json.loads(result.stdout).get("items", [])
+
+# Container order (web, api) has no semantic meaning to Kubernetes for regular containers --
+# no start-order guarantee, nothing elsewhere references them by index, and `oc logs`/`-c`
+# already require a container *name*, never falls back to "the first one". Swapped here
+# (Kustomize-base-only, the source Template's own container order is untouched) so the api
+# container lands at index 0, same as asa-go-api/sfms-fwi-api's single container -- letting
+# all three share the exact same env-api-common/env-objectstore patches and labels instead
+# of needing a separate index-1 variant just for this one Deployment.
+for item in items:
+    if item.get("kind") == "Deployment":
+        containers = item["spec"]["template"]["spec"]["containers"]
+        containers[0], containers[1] = containers[1], containers[0]
+
+# PORT/POSTGRES_*/SENTRY_DSN and OBJECT_STORE_* are byte-identical to asa-go-api/
+# sfms-fwi-api's copies of the same vars -- deduped into components/api-common-env/ instead
+# of repeated here, one patch per semantic group rather than one lumped patch. See that
+# component's generate.py for the full GROUPS list.
+COMMON_ENV_GROUPS = {
+    "app.wps/env-postgres": [
+        "POSTGRES_READ_USER", "POSTGRES_WRITE_USER", "POSTGRES_PASSWORD",
+        "POSTGRES_WRITE_HOST", "POSTGRES_READ_HOST", "POSTGRES_PORT", "POSTGRES_DATABASE",
+    ],
+    "app.wps/env-sentry": ["SENTRY_DSN"],
+    "app.wps/env-objectstore": [
+        "OBJECT_STORE_SERVER", "OBJECT_STORE_USER_ID", "OBJECT_STORE_SECRET", "OBJECT_STORE_BUCKET",
+    ],
+    # This Deployment-only (asa-go-api/sfms-fwi-api don't carry these vars at all) -- same
+    # groups/values base/cronjobs already established, confirmed full-group byte-identical
+    # match before adding.
+    "app.wps/env-global": ["CHATOPS_URL", "CHATOPS_AUTH_TOKEN", "OPENSHIFT_CONSOLE_URL", "PROJECT_NAMESPACE"],
+    "app.wps/env-redis": [
+        "REDIS_HOST", "REDIS_PORT", "REDIS_USE", "REDIS_PASSWORD",
+        "REDIS_STATION_CACHE_EXPIRY", "REDIS_AUTH_CACHE_EXPIRY",
+    ],
+    "app.wps/env-wfwx": ["WFWX_AUTH_URL", "WFWX_BASE_URL", "WFWX_USER", "WFWX_SECRET"],
+    "app.wps/env-redis-dailies": ["REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY"],
+    "app.wps/env-redis-cache-env-canada": ["REDIS_CACHE_ENV_CANADA"],
+}
+for item in items:
+    if item.get("kind") != "Deployment":
+        continue
+    container = item["spec"]["template"]["spec"]["containers"][0]
+    for label, var_names in COMMON_ENV_GROUPS.items():
+        container["env"] = [e for e in container["env"] if e["name"] not in var_names]
+        item.setdefault("metadata", {}).setdefault("labels", {})[label] = "true"
+
 out_path = f"{OUT_DIR}/api.yaml"
 with open(out_path, "w") as f:
     for i, item in enumerate(items):
