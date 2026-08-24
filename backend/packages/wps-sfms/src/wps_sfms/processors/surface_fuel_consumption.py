@@ -5,12 +5,12 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from time import perf_counter
-from typing import Callable, ContextManager, Generator, List
+from typing import Generator
 
 import numpy as np
 from cffdrs_vec.fbp import vectorized_surface_fuel_consumption
-from wps_shared.geospatial.geospatial import rasters_match
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.sfms.raster_addresser import GDALPath
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
@@ -23,12 +23,11 @@ from wps_sfms.fbp_fuel_types import (
 from wps_sfms.fbp_input_validation import validate_percent_conifer
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
+from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
 from wps_sfms.raster_inputs import SurfaceFuelConsumptionInputs
 from wps_sfms.raster_output import create_masked_output_dataset
 
 logger = logging.getLogger(__name__)
-
-MultiDatasetContext = Callable[[List[str]], ContextManager[List[WPSDataset]]]
 
 
 @dataclass(frozen=True)
@@ -87,21 +86,16 @@ class SurfaceFuelConsumptionProcessor:
 
     def __init__(self, datetime_to_process: datetime):
         self.datetime_to_process = datetime_to_process
+        self._raster_dependencies = GriddedRasterDependencies()
 
-    async def _assert_dependencies_exist(
-        self, s3_client: S3Client, inputs: SurfaceFuelConsumptionInputs
-    ) -> None:
-        dependency_keys = (
+    @staticmethod
+    def _dependency_keys(inputs: SurfaceFuelConsumptionInputs) -> tuple[GDALPath, ...]:
+        return (
             inputs.fuel_key,
             inputs.ffmc_key,
             inputs.bui_key,
             inputs.percent_conifer_key,
         )
-        if not await s3_client.all_objects_exist(*dependency_keys):
-            details = ", ".join(str(key) for key in dependency_keys)
-            raise RuntimeError(
-                f"Missing SFC dependencies for {self.datetime_to_process.date()}: {details}"
-            )
 
     @contextmanager
     def _open_datasets(
@@ -109,14 +103,9 @@ class SurfaceFuelConsumptionProcessor:
         input_dataset_context: MultiDatasetContext,
         inputs: SurfaceFuelConsumptionInputs,
     ) -> Generator[SurfaceFuelConsumptionDatasets, None, None]:
-        keys = [
-            inputs.fuel_key,
-            inputs.ffmc_key,
-            inputs.bui_key,
-            inputs.percent_conifer_key,
-        ]
-        with input_dataset_context(keys) as input_datasets:
-            datasets_by_key = {dataset.ds_path: dataset for dataset in input_datasets}
+        with self._raster_dependencies.open_by_key(
+            input_dataset_context, self._dependency_keys(inputs)
+        ) as datasets_by_key:
             yield SurfaceFuelConsumptionDatasets(
                 fuel=datasets_by_key[inputs.fuel_key],
                 ffmc=datasets_by_key[inputs.ffmc_key],
@@ -124,21 +113,15 @@ class SurfaceFuelConsumptionProcessor:
                 percent_conifer=datasets_by_key[inputs.percent_conifer_key],
             )
 
-    @staticmethod
-    def _validate_grids(
-        datasets: SurfaceFuelConsumptionDatasets, inputs: SurfaceFuelConsumptionInputs
-    ) -> None:
-        reference = datasets.fuel.as_gdal_ds()
-        candidates = (
-            ("ffmc", inputs.ffmc_key, datasets.ffmc),
-            ("bui", inputs.bui_key, datasets.bui),
-            ("percent_conifer", inputs.percent_conifer_key, datasets.percent_conifer),
+    def _validate_grids(self, datasets: SurfaceFuelConsumptionDatasets) -> None:
+        self._raster_dependencies.validate_grids(
+            datasets.fuel,
+            {
+                "ffmc": datasets.ffmc,
+                "bui": datasets.bui,
+                "percent_conifer": datasets.percent_conifer,
+            },
         )
-        for label, key, dataset in candidates:
-            if not rasters_match(dataset.as_gdal_ds(), reference):
-                raise ValueError(
-                    f"{label} raster does not match the fuel grid: {key} vs {inputs.fuel_key}"
-                )
 
     async def process(
         self,
@@ -148,7 +131,10 @@ class SurfaceFuelConsumptionProcessor:
     ) -> None:
         """Calculate and publish SFC from the declared raster dependencies."""
         with gdal_s3_context():
-            await self._assert_dependencies_exist(s3_client, inputs)
+            await self._raster_dependencies.assert_keys_exist(
+                s3_client,
+                self._dependency_keys(inputs),
+            )
             logger.info(
                 "Calculating SFC %s for %s",
                 inputs.run_type.value,
@@ -156,7 +142,7 @@ class SurfaceFuelConsumptionProcessor:
             )
 
             with self._open_datasets(input_dataset_context, inputs) as datasets:
-                self._validate_grids(datasets, inputs)
+                self._validate_grids(datasets)
                 result = calculate_surface_fuel_consumption(datasets)
 
                 with create_masked_output_dataset(

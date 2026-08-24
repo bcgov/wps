@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date
 from time import perf_counter
-from typing import Callable, ContextManager, Generator, Mapping
+from typing import Generator, Mapping
 
 import numpy as np
 from cffdrs_vec.fbp import vectorized_foliar_moisture_content
@@ -17,13 +17,12 @@ from wps_shared.utils.s3_client import S3Client
 
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
+from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
 from wps_sfms.raster_inputs import FoliarMoistureContentInputs
 from wps_sfms.raster_output import create_masked_output_dataset
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 logger = logging.getLogger(__name__)
-
-MultiDatasetContext = Callable[[list[str]], ContextManager[list[WPSDataset]]]
 
 
 @dataclass(frozen=True)
@@ -76,21 +75,16 @@ class FoliarMoistureContentProcessor:
 
     def __init__(self, raster_addresser: SFMSNGRasterAddresser):
         self.raster_addresser = raster_addresser
+        self._raster_dependencies = GriddedRasterDependencies()
 
     @staticmethod
-    async def _assert_dependencies_exist(
-        s3_client: S3Client,
-        inputs: FoliarMoistureContentInputs,
-    ) -> None:
-        dependency_keys = (
+    def _dependency_keys(inputs: FoliarMoistureContentInputs) -> tuple[GDALPath, ...]:
+        return (
             inputs.fuel_key,
             inputs.elevation_key,
             inputs.latitude_key,
             inputs.longitude_key,
         )
-        if not await s3_client.all_objects_exist(*dependency_keys):
-            details = ", ".join(str(key) for key in dependency_keys)
-            raise RuntimeError(f"Missing FMC dependencies: {details}")
 
     @contextmanager
     def _open_datasets(
@@ -98,14 +92,9 @@ class FoliarMoistureContentProcessor:
         input_dataset_context: MultiDatasetContext,
         inputs: FoliarMoistureContentInputs,
     ) -> Generator[FoliarMoistureContentDatasets, None, None]:
-        keys = [
-            inputs.fuel_key,
-            inputs.elevation_key,
-            inputs.latitude_key,
-            inputs.longitude_key,
-        ]
-        with input_dataset_context(keys) as input_datasets:
-            datasets_by_key = {dataset.ds_path: dataset for dataset in input_datasets}
+        with self._raster_dependencies.open_by_key(
+            input_dataset_context, self._dependency_keys(inputs)
+        ) as datasets_by_key:
             yield FoliarMoistureContentDatasets(
                 fuel=datasets_by_key[inputs.fuel_key],
                 elevation=datasets_by_key[inputs.elevation_key],
@@ -113,22 +102,18 @@ class FoliarMoistureContentProcessor:
                 longitude=datasets_by_key[inputs.longitude_key],
             )
 
-    @staticmethod
     def _validate_grids(
+        self,
         datasets: FoliarMoistureContentDatasets,
-        inputs: FoliarMoistureContentInputs,
     ) -> None:
-        reference = datasets.fuel.as_gdal_ds()
-        candidates = (
-            ("elevation", inputs.elevation_key, datasets.elevation),
-            ("latitude", inputs.latitude_key, datasets.latitude),
-            ("longitude", inputs.longitude_key, datasets.longitude),
+        self._raster_dependencies.validate_grids(
+            datasets.fuel,
+            {
+                "elevation": datasets.elevation,
+                "latitude": datasets.latitude,
+                "longitude": datasets.longitude,
+            },
         )
-        for label, key, dataset in candidates:
-            if not rasters_match(dataset.as_gdal_ds(), reference):
-                raise ValueError(
-                    f"{label} raster does not match the fuel grid: {key} vs {inputs.fuel_key}"
-                )
 
     @staticmethod
     def _validate_existing_fmc_grids(
@@ -196,9 +181,12 @@ class FoliarMoistureContentProcessor:
             return
 
         with gdal_s3_context():
-            await self._assert_dependencies_exist(s3_client, inputs)
+            await self._raster_dependencies.assert_keys_exist(
+                s3_client,
+                self._dependency_keys(inputs),
+            )
             with self._open_datasets(input_dataset_context, inputs) as datasets:
-                self._validate_grids(datasets, inputs)
+                self._validate_grids(datasets)
 
                 for target_date, output_key in outputs_to_process.items():
                     result = calculate_foliar_moisture_content(datasets, target_date)

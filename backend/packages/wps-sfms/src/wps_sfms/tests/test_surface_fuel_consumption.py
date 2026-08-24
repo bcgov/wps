@@ -232,7 +232,7 @@ async def test_processor_rejects_mismatched_grid(mocker: MockerFixture):
     s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
     processor = SurfaceFuelConsumptionProcessor(TEST_DATETIME)
     input_context = make_dataset_context(datasets)
-    mocker.patch("wps_sfms.processors.surface_fuel_consumption.rasters_match", return_value=False)
+    mocker.patch("wps_sfms.raster_dependencies.rasters_match", return_value=False)
     publish = mocker.patch(
         "wps_sfms.processors.surface_fuel_consumption.publish_dataset", new=AsyncMock()
     )
@@ -251,7 +251,7 @@ async def test_processor_rejects_missing_dependency():
     datasets = make_datasets(np.array([[1]]))
     input_context = make_dataset_context(datasets)
 
-    with pytest.raises(RuntimeError, match="Missing SFC dependencies"):
+    with pytest.raises(RuntimeError, match="Missing raster dependencies"):
         await processor.process(s3_client, input_context, inputs)
 
     s3_client.all_objects_exist.assert_awaited_once_with(

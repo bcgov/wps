@@ -213,7 +213,7 @@ async def test_processor_rejects_static_grid_that_mismatches_fuel(
     context_calls = []
     s3_client = SimpleNamespace(all_objects_exist=AsyncMock(side_effect=[False, True]))
     mocker.patch(
-        "wps_sfms.processors.foliar_moisture_content.rasters_match",
+        "wps_sfms.raster_dependencies.rasters_match",
         side_effect=match_results,
     )
     publish = mocker.patch(
@@ -238,7 +238,7 @@ async def test_processor_rejects_missing_static_dependency():
     processor = FoliarMoistureContentProcessor(addresser)
     action = processor.process(s3_client, lambda _keys: None, inputs)
 
-    with pytest.raises(RuntimeError, match="Missing FMC dependencies"):
+    with pytest.raises(RuntimeError, match="Missing raster dependencies"):
         await action
 
     s3_client.all_objects_exist.assert_awaited_with(
