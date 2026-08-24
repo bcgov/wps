@@ -20,7 +20,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
 )
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats
-from wps_shared.geospatial.geospatial import raster_mul, warp_to_match_raster
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3 import gdal_s3_context
 
@@ -103,20 +103,13 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
         pixel_size_metres = 0
 
         with (
-            gdal.Open(key, gdal.GA_ReadOnly) as tpi_source,
-            gdal.Open(hfi_key, gdal.GA_ReadOnly) as hfi_source,
+            WPSDataset(key, output_path=masked_tpi_path) as tpi_source,
+            WPSDataset(hfi_key) as hfi_source,
         ):
-            pixel_size_metres = int(tpi_source.GetGeoTransform()[1])
-            resized_hfi_source = warp_to_match_raster(hfi_source, tpi_source, warped_hfi_path)
-            masked_tpi_source = None
-            try:
-                masked_tpi_source = raster_mul(
-                    tpi_source, resized_hfi_source, output_path=masked_tpi_path
-                )
-                masked_tpi_source.FlushCache()
-            finally:
-                masked_tpi_source = None
-                resized_hfi_source = None
+            pixel_size_metres = int(tpi_source.ds.GetGeoTransform()[1])
+            resized_hfi_source = hfi_source.warp_to_match(tpi_source, output_path=warped_hfi_path)
+            masked_tpi_source = tpi_source * resized_hfi_source
+            masked_tpi_source.ds.FlushCache()
 
         async with get_async_write_session_scope() as session:
             stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
@@ -127,34 +120,26 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
 
                 for row in result:
                     output_path = os.path.join(temp_dir, f"firezone_{row[1]}.tif")
-                    cut_hfi_masked_tpi = None
-                    advisory_shape_geom = None
-                    zone_tpi_classes = None
-                    try:
-                        advisory_shape_geom = await get_advisory_shape(
-                            session, row[0], hfi_masked_tpi_srs
-                        )
-
-                        warp_options = gdal.WarpOptions(
-                            format="GTiff",
-                            cutlineWKT=advisory_shape_geom,
-                            cutlineSRS=advisory_shape_geom.GetSpatialReference(),
-                            cropToCutline=True,
-                        )
-                        cut_hfi_masked_tpi = gdal.Warp(
-                            output_path, hfi_masked_tpi, options=warp_options
-                        )
+                    advisory_shape_geom = await get_advisory_shape(
+                        session, row[0], hfi_masked_tpi_srs
+                    )
+                    warp_options = gdal.WarpOptions(
+                        format="GTiff",
+                        cutlineWKT=advisory_shape_geom,
+                        cutlineSRS=advisory_shape_geom.GetSpatialReference(),
+                        cropToCutline=True,
+                    )
+                    with gdal.Warp(
+                        output_path, hfi_masked_tpi, options=warp_options
+                    ) as cut_hfi_masked_tpi:
                         zone_tpi_classes = cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray()
-                        tpi_classes, counts = np.unique(zone_tpi_classes, return_counts=True)
-                        tpi_class_freq_dist = dict(zip(tpi_classes, counts))
 
-                        # Drop TPI class 4, this is the no data value from the TPI raster
-                        tpi_class_freq_dist.pop(4, None)
-                        fire_zone_stats[row[0]] = tpi_class_freq_dist
-                    finally:
-                        zone_tpi_classes = None
-                        advisory_shape_geom = None
-                        cut_hfi_masked_tpi = None
+                    tpi_classes, counts = np.unique(zone_tpi_classes, return_counts=True)
+                    tpi_class_freq_dist = dict(zip(tpi_classes, counts))
+
+                    # Drop TPI class 4, this is the no data value from the TPI raster
+                    tpi_class_freq_dist.pop(4, None)
+                    fire_zone_stats[row[0]] = tpi_class_freq_dist
 
     return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)
 
