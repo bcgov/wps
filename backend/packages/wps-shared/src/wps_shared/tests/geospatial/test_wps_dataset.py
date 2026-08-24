@@ -286,6 +286,32 @@ def test_raster_warp():
         assert output_ds.as_gdal_ds().RasterYSize == wps2_ds.as_gdal_ds().RasterYSize
 
 
+def test_close_is_a_noop_for_mem_driver_dataset_with_no_real_backing_file():
+    """A MEM-driver dataset can be named with a /vsimem/-looking path but MEM never
+    registers a real VSI file there, so GetFileList() is None and close() has nothing to do."""
+    mem_ds = gdal.GetDriverByName("MEM").Create("/vsimem/no_such_file.tif", 2, 2, 1)
+    assert mem_ds.GetFileList() is None
+
+    with WPSDataset(ds_path=None, ds=mem_ds) as wps_ds:
+        wps_ds.close()  # no-op, must not raise
+
+
+def test_close_unlinks_vsimem_file_even_when_referenced_via_mem_driver_dataset():
+    """If a /vsimem/ file genuinely exists at the path a MEM-driver dataset happens to be named
+    after, gdal's own GetFileList() reports it and close() unlinks it automatically, same as
+    for a real GTiff-on-vsimem result. WPSDataset doesn't special-case the driver."""
+    vsimem_path = "/vsimem/masked_fuel_type_1.tif"
+    real_ds = gdal.GetDriverByName("GTiff").Create(vsimem_path, 2, 2, 1)
+    real_ds = None
+    assert gdal.VSIStatL(vsimem_path) is not None
+
+    mem_ds = gdal.GetDriverByName("MEM").Create(vsimem_path, 2, 2, 1)
+    with WPSDataset(ds_path=None, ds=mem_ds) as wps_ds:
+        wps_ds.close()
+
+    assert gdal.VSIStatL(vsimem_path) is None  # unlinked automatically
+
+
 def test_clip_to_geometry_with_ogr_geometry():
     # 10x10 px, 2 units/px, covering (-10,-10) to (10,10). Cutline (-5,-5)-(5,5) keeps only the
     # 4 columns/rows whose pixel centres (-3,-1,1,3) fall strictly inside it - GDAL excludes the
@@ -308,6 +334,52 @@ def test_clip_to_geometry_with_ogr_geometry():
         assert (raw.RasterXSize, raw.RasterYSize) == (4, 4)
         assert raw.GetGeoTransform() == (-4.0, 2.0, 0.0, 4.0, 0.0, -2.0)
         assert np.array_equal(raw.GetRasterBand(1).ReadAsArray(), np.full((4, 4), 7))
+
+
+def test_clip_to_geometry_unlinks_vsimem_output_on_close():
+    extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=7
+    )
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+    cutline.AssignSpatialReference(srs)
+
+    with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+        clipped = wps_ds.clip_to_geometry(cutline)  # no output_path -> auto /vsimem/ path
+        vsimem_path = clipped.as_gdal_ds().GetFileList()[0]
+
+        assert vsimem_path.startswith("/vsimem/")
+        assert gdal.VSIStatL(vsimem_path) is not None  # backing file exists while open
+
+        clipped.close()
+
+        assert gdal.VSIStatL(vsimem_path) is None  # gdal.Unlink'd automatically
+
+
+def test_clip_to_geometry_does_not_unlink_real_output_path():
+    extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=7
+    )
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+    cutline.AssignSpatialReference(srs)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_path = os.path.join(temp_dir, "clipped.tif")
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            clipped = wps_ds.clip_to_geometry(cutline, output_path=output_path)
+            assert clipped.as_gdal_ds().GetFileList() == [output_path]
+
+            clipped.close()
+
+        assert os.path.exists(output_path)  # real files are left alone by close()
 
 
 def test_clip_to_geometry_with_vector_file_path():

@@ -219,7 +219,7 @@ class ViirsSnowJob:
         output_path = os.path.join(sub_dir, RAW_SNOW_COVERAGE_CLIPPED_NAME)
         cut_line_path = os.path.join(temp_dir, "bc_boundary.geojson")
         with WPSDataset(input_path) as mosaic_ds:
-            mosaic_ds.clip_to_geometry(cut_line_path, output_path=output_path).close()
+            mosaic_ds.clip_to_geometry(cut_line_path, output_path=output_path)
 
     async def _get_bc_boundary_from_s3(self, path: str):
         """Fetch the bc_boundary.geojson file from S3 and write a copy to the local temporary directory.

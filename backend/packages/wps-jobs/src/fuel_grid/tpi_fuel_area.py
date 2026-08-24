@@ -45,10 +45,10 @@ def calculate_masked_tpi_areas(zones, key: Optional[str] = None):
             zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, masked_tpi_srs)
 
             # Use clip_to_geometry to clip out our fire zone unit from the masked tpi raster
-            intersected_path = "/vsimem/intersected.tif"
-            intersected_ds = masked_tpi_ds.clip_to_geometry(zone_geom, output_path=intersected_path)
-            intersected_data: np.ndarray = intersected_ds.ds.GetRasterBand(1).ReadAsArray()
-            intersected_ds.close()
+            with masked_tpi_ds.clip_to_geometry(
+                zone_geom, output_path="/vsimem/intersected.tif"
+            ) as intersected_ds:
+                intersected_data: np.ndarray = intersected_ds.ds.GetRasterBand(1).ReadAsArray()
             tpi_area_data = calculate_tpi_area_data_for_zone(
                 advisory_shape_id=zone.id, data=intersected_data, pixel_size=masked_tpi_pixel_size
             )

@@ -130,17 +130,15 @@ async def process_min_percent_conifer_by_zone(
             zone_wkt = shapely_geom.wkt
             zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
 
-            conifer_path = "/vsimem/percent_conifer.tif"
-            hfi_path = "/vsimem/zone_hfi.tif"
-            conifer_intersected_ds = None
-            hfi_intersected_ds = None
-            try:
-                conifer_intersected_ds = conifer_ds.clip_to_geometry(
-                    zone_geom, output_path=conifer_path
-                )
+            with (
+                conifer_ds.clip_to_geometry(
+                    zone_geom, output_path="/vsimem/percent_conifer.tif"
+                ) as conifer_intersected_ds,
+                hfi_ds.clip_to_geometry(
+                    zone_geom, output_path="/vsimem/zone_hfi.tif"
+                ) as hfi_intersected_ds,
+            ):
                 pct_conifer_clip = conifer_intersected_ds.ds.GetRasterBand(1).ReadAsArray()
-
-                hfi_intersected_ds = hfi_ds.clip_to_geometry(zone_geom, output_path=hfi_path)
                 hfi_array_clip = hfi_intersected_ds.ds.GetRasterBand(1).ReadAsArray()
 
                 min_pct_conifer = get_minimum_percent_conifer_for_hfi(
@@ -156,13 +154,6 @@ async def process_min_percent_conifer_by_zone(
                         fuel_type_raster_id=fuel_type_raster_id,
                     )
                     all_hfi_conifer_percent_to_save.append(record)
-            finally:
-                if conifer_intersected_ds is not None:
-                    conifer_intersected_ds.close()
-                if hfi_intersected_ds is not None:
-                    hfi_intersected_ds.close()
-                gdal.Unlink(conifer_path)
-                gdal.Unlink(hfi_path)
 
     await save_all_percent_conifer(session, all_hfi_conifer_percent_to_save)
 

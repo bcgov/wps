@@ -77,16 +77,15 @@ async def calculate_fuel_type_area_by_shape(
     result = await session.execute(stmt)
     rows = result.all()
     for row in rows:
-        intersected_ds = await intersect_raster_by_advisory_shape(
+        # each row clips to its own /vsimem/intersect_{source_identifier}_{threshold}.tif;
+        # the `with` unlinks it on exit so these don't accumulate for the life of the worker
+        with await intersect_raster_by_advisory_shape(
             session, threshold, row[0], row[1], masked_fuel_type_ds
-        )
-        try:
+        ) as intersected_ds:
             fuel_type_areas = calculate_fuel_type_areas(intersected_ds.ds, fuel_types)
             await store_advisory_fuel_stats(
                 session, fuel_type_areas, threshold, run_parameters_id, row[0], fuel_type_raster_id
             )
-        finally:
-            intersected_ds.close()
 
 
 def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelType]):
@@ -289,23 +288,27 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
             for threshold in thresholds:
                 classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
                 masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
-                masked_fuel_type_ds = WPSDataset(
-                    ds_path=None,
-                    ds=create_masked_fuel_type_tif(
-                        masked_fuel_type_data, threshold.id, geotransform, projection, x_size, y_size
-                    ),
-                )
                 try:
-                    await calculate_fuel_type_area_by_shape(
-                        session,
-                        masked_fuel_type_ds,
-                        threshold.id,
-                        run_parameters_id,
-                        fuel_types,
-                        fuel_type_raster_record.id,
-                    )
+                    with WPSDataset(
+                        ds_path=None,
+                        ds=create_masked_fuel_type_tif(
+                            masked_fuel_type_data,
+                            threshold.id,
+                            geotransform,
+                            projection,
+                            x_size,
+                            y_size,
+                        ),
+                    ) as masked_fuel_type_ds:
+                        await calculate_fuel_type_area_by_shape(
+                            session,
+                            masked_fuel_type_ds,
+                            threshold.id,
+                            run_parameters_id,
+                            fuel_types,
+                            fuel_type_raster_record.id,
+                        )
                 finally:
-                    masked_fuel_type_ds.close()
                     del classified_hfi_data
                     del masked_fuel_type_data
     finally:

@@ -29,7 +29,9 @@ class WPSDataset:
         :param output_path: Where results derived from this dataset (e.g. via `*`) should be
             written - a real file path or a /vsimem/ path. When omitted, such results are
             backed by an in-memory MEM dataset instead, useful to avoid holding a large raster
-            resident in process memory.
+            resident in process memory. Any /vsimem/ file the dataset ends up backed by (per
+            gdal's own GetFileList(), which excludes MEM-driver datasets) is automatically
+            gdal.Unlink'd when this WPSDataset is closed.
         """
         self.ds = ds
         self.ds_path = ds_path
@@ -45,7 +47,7 @@ class WPSDataset:
         return self
 
     def __exit__(self, *_):
-        self.ds = None
+        self.close()
 
     @classmethod
     def from_array(
@@ -192,6 +194,8 @@ class WPSDataset:
     ):
         """
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
+        A /vsimem/ output_path is automatically gdal.Unlink'd when the returned WPSDataset is
+        closed.
 
         :param other: the reference WPSDataset raster to match the source against
         :param output_path: output path of the resulting raster
@@ -251,8 +255,8 @@ class WPSDataset:
         :param cutline: An ogr.Geometry (with its spatial reference set) to cut to, or a path
             to a vector file (e.g. GeoJSON) to use as the cutline instead.
         :param output_path: Optional output raster path (a real file, or a /vsimem/ path). When
-            omitted, defaults to an auto-generated /vsimem/ path - the caller is then
-            responsible for calling gdal.Unlink on it once done with the result.
+            omitted, defaults to an auto-generated /vsimem/ path. Either way, a /vsimem/ path is
+            automatically gdal.Unlink'd when the returned WPSDataset is closed.
         :param format: GDAL output driver/format name.
         :return: a new WPSDataset clipped to the cutline
         """
@@ -520,6 +524,10 @@ class WPSDataset:
         return value
 
     def close(self):
+        if self.ds is not None:
+            for file_path in self.ds.GetFileList() or []:
+                if file_path.startswith("/vsimem/"):
+                    gdal.Unlink(file_path)
         self.ds = None
 
 

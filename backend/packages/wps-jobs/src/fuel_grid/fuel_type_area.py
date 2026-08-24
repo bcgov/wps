@@ -37,10 +37,10 @@ def calculate_fuel_type_areas_per_zone(fuel_raster_key: str, zones):
             zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
 
             # Use clip_to_geometry to clip out our fire zone unit from the masked tpi raster
-            intersected_path = "/vsimem/intersected.tif"
-            intersected_ds = fuel_raster_ds.clip_to_geometry(zone_geom, output_path=intersected_path)
-            intersected_data: np.ndarray = intersected_ds.ds.GetRasterBand(1).ReadAsArray()
-            intersected_ds.close()
+            with fuel_raster_ds.clip_to_geometry(
+                zone_geom, output_path="/vsimem/intersected.tif"
+            ) as intersected_ds:
+                intersected_data: np.ndarray = intersected_ds.ds.GetRasterBand(1).ReadAsArray()
             fuel_type_area_data = calculate_fuel_type_area_for_zone(
                 zone.id, intersected_data, pixel_size
             )
