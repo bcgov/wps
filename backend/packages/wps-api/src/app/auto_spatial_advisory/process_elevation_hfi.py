@@ -22,6 +22,7 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats
 from wps_shared.geospatial.geospatial import raster_mul, warp_to_match_raster
 from wps_shared.run_type import RunType
+from wps_shared.utils.s3 import gdal_s3_context
 
 from app.auto_spatial_advisory.hfi_filepath import (
     get_raster_tif_filename,
@@ -87,10 +88,6 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
     :return: fire zone TPI status
     """
 
-    gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", config.get("OBJECT_STORE_SECRET"))
-    gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
-    gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
-    gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
     bucket = config.get("OBJECT_STORE_BUCKET")
     dem_file = config.get("CLASSIFIED_TPI_DEM_NAME")
     key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
@@ -98,7 +95,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
     hfi_raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, hfi_raster_filename)
     hfi_key = f"/vsis3/{bucket}/{hfi_raster_key}"
     fire_zone_stats: Dict[int, Dict[int, int]] = {}
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with gdal_s3_context(), tempfile.TemporaryDirectory() as temp_dir:
         # keep these large intermediate rasters on disk so the worker is not left
         # holding a province-sized GDAL MEM dataset after processing completes.
         warped_hfi_path = os.path.join(temp_dir, f"warp_{hfi_raster_filename}")
