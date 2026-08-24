@@ -106,7 +106,7 @@ jobs:
 
       - name: Bump Build Number
         run: |
-          TAG=$(git tag --list "asago-*" --sort=-v:refname | head -n1)
+          TAG=$(git tag --list "asago-[0-9]*" --sort=-v:refname | head -n1)
           if [ -z "${TAG}" ]; then
             echo "::error::No asago-* tag found. Cut a release via the Release workflow first."
             exit 1

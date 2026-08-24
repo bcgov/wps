@@ -41,6 +41,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/sfms_calculations.c
 -p SCHEDULE=\"${SCHEDULE}\" \
 ${PROJ_TOOLS:+ "-p PROJ_TOOLS=${PROJ_TOOLS}"} \
 ${IMAGE_REGISTRY:+ "-p IMAGE_REGISTRY=${IMAGE_REGISTRY}"} \
+${ENVIRONMENT:+ "-p ENVIRONMENT=${ENVIRONMENT}"} \
 -p PROJECT_NAMESPACE=${PROJ_TARGET}"
 
 # Render the manifest to stdout.

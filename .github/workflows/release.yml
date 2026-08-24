@@ -15,6 +15,7 @@ on:
           - asago
           - sfms
           - wps
+          - wps-sfms
       bump:
         description: Semver part to bump since the last release of this component
         required: true
@@ -49,13 +50,20 @@ jobs:
               echo "paths=mobile" >> "$GITHUB_OUTPUT"
               echo "sentry_projects=asago" >> "$GITHUB_OUTPUT"
               echo "pyproject=" >> "$GITHUB_OUTPUT"
+              # The app-store version comes from the tag directly (see
+              # "Keeping the mobile build aligned" in docs/RELEASES.md), not from this
+              # file — bumped only so it stops sitting frozen at its initial 0.0.0.
+              echo "package_json=mobile/asa-go/package.json" >> "$GITHUB_OUTPUT"
               ;;
             sfms)
               echo "prefix=sfms" >> "$GITHUB_OUTPUT"
-              echo "title=wps-sfms" >> "$GITHUB_OUTPUT"
-              echo "paths=backend/packages/wps-sfms" >> "$GITHUB_OUTPUT"
+              echo "title=SFMS Daily FWI API" >> "$GITHUB_OUTPUT"
+              echo "paths=backend/packages/wps-api/src/app/sfms_fwi_main.py backend/packages/wps-api/src/app/routers/sfms_fwi.py backend/packages/wps-api/src/app/sfms backend/packages/wps-shared/src/wps_shared/sfms" >> "$GITHUB_OUTPUT"
               echo "sentry_projects=api" >> "$GITHUB_OUTPUT"
-              echo "pyproject=backend/packages/wps-sfms/pyproject.toml" >> "$GITHUB_OUTPUT"
+              # No dedicated pyproject.toml/package.json: this code lives inside the
+              # wps-api package, whose version the "wps" component already owns bumping.
+              echo "pyproject=" >> "$GITHUB_OUTPUT"
+              echo "package_json=" >> "$GITHUB_OUTPUT"
               ;;
             wps)
               echo "prefix=wps" >> "$GITHUB_OUTPUT"
@@ -63,6 +71,19 @@ jobs:
               echo "paths=backend web" >> "$GITHUB_OUTPUT"
               echo "sentry_projects=api frontend" >> "$GITHUB_OUTPUT"
               echo "pyproject=backend/packages/wps-api/pyproject.toml" >> "$GITHUB_OUTPUT"
+              echo "package_json=web/apps/wps-web/package.json" >> "$GITHUB_OUTPUT"
+              ;;
+            wps-sfms)
+              echo "prefix=wps-sfms" >> "$GITHUB_OUTPUT"
+              echo "title=wps-sfms" >> "$GITHUB_OUTPUT"
+              echo "paths=backend/packages/wps-sfms" >> "$GITHUB_OUTPUT"
+              # The CronJobs that consume this package (sfms_daily_actuals,
+              # sfms_daily_forecasts, sfms_calculations) call sentry_sdk.init() and
+              # share the "api" Sentry project's DSN, so this gets the same
+              # commit-association treatment as sfms/wps.
+              echo "sentry_projects=api" >> "$GITHUB_OUTPUT"
+              echo "pyproject=backend/packages/wps-sfms/pyproject.toml" >> "$GITHUB_OUTPUT"
+              echo "package_json=" >> "$GITHUB_OUTPUT"
               ;;
           esac
 
@@ -72,7 +93,8 @@ jobs:
           PREFIX: ${{ steps.scope.outputs.prefix }}
           BUMP: ${{ inputs.bump }}
         run: |
-          PREV_TAG=$(git tag --list "${PREFIX}-*" --sort=-v:refname | head -n1)
+          # [0-9]* (not a bare *) so "wps-*" can't also match "wps-sfms-*" tags.
+          PREV_TAG=$(git tag --list "${PREFIX}-[0-9]*" --sort=-v:refname | head -n1)
           echo "prev_tag=${PREV_TAG}" >> "$GITHUB_OUTPUT"
 
           if [ -z "${PREV_TAG}" ]; then
@@ -89,10 +111,11 @@ jobs:
           echo "new_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${PREFIX}-${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
-      # Only sfms and wps have a pyproject.toml to bump — asago's version lives in
-      # mobile/asa-go's own build workflow. The version field isn't read by any build
-      # or install step (packages are referenced by workspace path, not published), this
-      # just keeps it from lying to anyone reading the file.
+      # Only components with their own pyproject.toml bump one (wps, wps-sfms). sfms's
+      # code lives inside the wps-api package, whose version "wps" already owns. The
+      # version field isn't read by any build or install step (packages are referenced
+      # by workspace path, not published), this just keeps it from lying to anyone
+      # reading the file.
       - name: Bump pyproject.toml version
         if: steps.scope.outputs.pyproject != ''
         env:
@@ -106,16 +129,36 @@ jobs:
           git commit -m "chore: bump $(basename "$(dirname "${FILE}")") to ${NEW_VERSION}"
           git push origin HEAD:main
 
+      # Same idea for the two components with a package.json (asago, wps). Same
+      # "don't let the file lie" reasoning — asago's actual app-store version still
+      # comes from the tag (see "Keeping the mobile build aligned"), not from here.
+      - name: Bump package.json version
+        if: steps.scope.outputs.package_json != ''
+        env:
+          FILE: ${{ steps.scope.outputs.package_json }}
+          NEW_VERSION: ${{ steps.version.outputs.new_version }}
+        run: |
+          jq --arg v "${NEW_VERSION}" '.version = $v' "${FILE}" > "${FILE}.tmp"
+          mv "${FILE}.tmp" "${FILE}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${FILE}"
+          git commit -m "chore: bump $(basename "$(dirname "${FILE}")") to ${NEW_VERSION}"
+          git push origin HEAD:main
+
       - name: Resolve release commit
         id: commit
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      # wps-sfms and the api share one Docker image/commit (see the "wps" vs "sfms"
-      # scoping above), so this doesn't build or deploy anything new — it just tells
+      # Skipped (via the `if`) for any future component with nothing calling
+      # sentry_sdk.init() and thus no Sentry project to associate. All four current
+      # components have one. This doesn't build or deploy anything new — it just tells
       # Sentry which commits belong to the release already running under this SHA, so
       # issues from that deploy show a suspect commit. Backend pods tag events with the
-      # commit SHA (see Dockerfile's OPENSHIFT_BUILD_COMMIT), so this must use the same one.
+      # commit SHA (see Dockerfile's OPENSHIFT_BUILD_COMMIT), so this must use the same
+      # one.
       - name: Create Sentry release
+        if: steps.scope.outputs.sentry_projects != ''
         uses: getsentry/action-release@v3
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -128,6 +171,7 @@ jobs:
         env:
           TITLE: ${{ steps.scope.outputs.title }}
           PATHS: ${{ steps.scope.outputs.paths }}
+          SENTRY_PROJECTS: ${{ steps.scope.outputs.sentry_projects }}
           TAG: ${{ steps.version.outputs.tag }}
           PREV_TAG: ${{ steps.version.outputs.prev_tag }}
           SHA: ${{ steps.commit.outputs.sha }}
@@ -147,10 +191,12 @@ jobs:
             echo >> notes.md
             echo "**Full diff**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}" >> notes.md
           fi
-          {
-            echo
-            echo "**Sentry release**: https://${SENTRY_ORG}.sentry.io/releases/${SHA}/"
-          } >> notes.md
+          if [ -n "${SENTRY_PROJECTS}" ]; then
+            {
+              echo
+              echo "**Sentry release**: https://${SENTRY_ORG}.sentry.io/releases/${SHA}/"
+            } >> notes.md
+          fi
 
           git tag "${TAG}" "${SHA}"
           git push origin "${TAG}"

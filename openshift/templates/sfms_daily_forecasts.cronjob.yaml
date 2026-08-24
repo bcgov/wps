@@ -40,6 +40,9 @@ parameters:
   - name: PROJECT_NAMESPACE
     description: OpenShift project namespace
     required: true
+  - name: ENVIRONMENT
+    description: Used for specifying which environment sentry is running in
+    value: development
 objects:
   - kind: CronJob
     apiVersion: batch/v1
@@ -195,6 +198,13 @@ objects:
                           key: env.openshift-console-url
                     - name: PROJECT_NAMESPACE
                       value: ${PROJECT_NAMESPACE}
+                    - name: ENVIRONMENT
+                      value: ${ENVIRONMENT}
+                    - name: SENTRY_DSN
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: sentry-dsn
                   resources:
                     limits:
                       memory: ${MEMORY_LIMIT}

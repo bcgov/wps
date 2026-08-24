@@ -1,17 +1,29 @@
 # Releases
 
-Three things ship out of this monorepo and can be released independently: **asago**
-(the mobile app), **sfms** (the SFMS Daily FWI API), and **wps** (everything else —
-backend API and web frontend). This doc covers how versioning, release notes, and
-Sentry are wired together for them, and what's deliberately *not* wired up.
+Four things can be released independently out of this monorepo: **asago** (the mobile
+app), **sfms** (the SFMS Daily FWI API), **wps** (everything else — backend API and web
+frontend), and **wps-sfms** (the `wps_sfms` raster-interpolation package). All four run
+in production and all four report to Sentry — `wps-sfms` deploys as scheduled CronJobs
+(`sfms_daily_actuals`, `sfms_daily_forecasts`, `sfms_calculations`) off the same
+`wps-api` image, rather than a long-running service, but those job processes now call
+`sentry_sdk.init()` too. This doc covers how versioning, release notes, and Sentry are
+wired together for them, and what's deliberately *not* wired up.
 
 ## The important caveat: sfms and wps share one Docker image
 
-`backend/packages/wps-sfms` is a real, separate Python package, but the SFMS Daily FWI
-API (`sfms_fwi_main.py`) is just a different FastAPI entrypoint baked into the **same**
-`wps-api` Docker image as the main API (`main.py`) and the ASA Go backend
-(`asa_go_main.py`). They're deployed as separate OpenShift `Deployment` objects
-(`oc_deploy.sh` vs `oc_deploy_sfms_fwi_api.sh`), but from identical bits.
+The SFMS Daily FWI API (`sfms_fwi_main.py` → `app/routers/sfms_fwi.py`) is just a
+different FastAPI entrypoint baked into the **same** `wps-api` Docker image as the main
+API (`main.py`) and the ASA Go backend (`asa_go_main.py`). They're deployed as separate
+OpenShift `Deployment` objects (`oc_deploy.sh` vs `oc_deploy_sfms_fwi_api.sh`), but from
+identical bits.
+
+Note this is **not** the same thing as `backend/packages/wps-sfms` (the `wps_sfms`
+Python package, released independently as the `wps-sfms` component) — that's a
+raster-interpolation library used by a completely different set of CronJobs
+(`app/jobs/sfms_run_pipeline.py`, `sfms_daily_actuals.py`, `sfms_daily_forecasts.py`),
+and the FWI API doesn't import it at all. The FWI API's own code is `sfms_fwi_main.py`,
+`app/routers/sfms_fwi.py`, `app/sfms/` (shared with one other cronjob,
+`sfms_calculations.py`), and `wps_shared/sfms/`.
 
 So today, cutting an `sfms-*` tag and a `wps-*` tag doesn't build or deploy two
 different artifacts — it can't, there's only one image. What it *does* give you is
@@ -26,38 +38,50 @@ Capacitor app, its own `workflow_dispatch`-triggered build workflows
 
 ## Cutting a release
 
-Run the **Release** workflow (`.github/workflows/release.yml`) via `workflow_dispatch`:
+Run the **Release** workflow (`.github/workflows/release.yml`) via `workflow_dispatch`,
+either from the Actions tab or with `gh`:
 
-1. Pick `component`: `asago`, `sfms`, or `wps`.
-2. Pick `bump`: `patch` (default), `minor`, or `major`.
+```bash
+gh workflow run release.yml -f component=wps -f bump=patch
+```
+
+- `component`: `asago`, `sfms`, `wps`, or `wps-sfms`.
+- `bump`: `patch` (default, so it's omittable), `minor`, or `major`.
 
 That's it. The workflow:
 
-1. Looks at the most recent tag for that component's prefix (`asago-*` / `sfms-*` /
-   `wps-*`), and bumps the requested part. No prior tag → starts at `0.1.0`.
-2. For `sfms`/`wps`, bumps the version in the relevant `pyproject.toml`
-   (`wps-sfms` or `wps-api`) and commits that straight to `main` — so the tag ends up
-   pointing at a commit whose `pyproject.toml` actually matches. (`asago` has no
-   `pyproject.toml` to bump — see "Keeping the mobile build aligned" below instead.)
-   Note: nothing reads this version field at build/install time — these are `uv`
-   workspace packages referenced by path, not published anywhere — so this is purely
-   for humans reading the file, not functional.
+1. Looks at the most recent tag for that component's prefix (`asago-[0-9]*` /
+   `sfms-[0-9]*` / `wps-[0-9]*` / `wps-sfms-[0-9]*` — the `[0-9]*` matters: a bare `*`
+   on `wps-*` would also match `wps-sfms-*` tags), and bumps the requested part. No
+   prior tag → starts at `0.1.0`.
+2. Bumps whichever version file(s) that component owns (`pyproject.toml`,
+   `package.json`, or both — see table below), committing each straight to `main`
+   before tagging so the tag ends up pointing at a commit whose version file(s)
+   actually match. `sfms` owns neither: its code lives inside the `wps-api` package,
+   whose files `wps` already owns bumping. Note: none of these version fields are read
+   at build/install time — the Python packages are `uv` workspace packages referenced
+   by path, and `asago`'s real app-store version comes from the tag directly, not from
+   `mobile/asa-go/package.json` (see "Keeping the mobile build aligned" below) — so this
+   is purely for humans reading the file, not functional.
 3. Tags that commit `<prefix>-<version>`.
 4. Generates release notes from `git log <prev-tag>..HEAD -- <paths>`, scoped to that
    component's paths only (see table below) — not GitHub's built-in
    `--generate-notes`, which can't filter by path and would pull in every PR merged to
    main in that window, unrelated components included.
-5. Creates a GitHub Release with those notes, a compare link, and a link to the
-   matching Sentry release.
+5. Creates a GitHub Release with those notes, a compare link, and (if the component has
+   one) a link to the matching Sentry release.
 6. Creates/finalizes a Sentry release for that same commit SHA and associates its
    commits, in the Sentry project(s) for that component (see below), via
-   `getsentry/action-release`.
+   `getsentry/action-release`. (This step is skippable — via an `if` on whether the
+   component has a Sentry project at all — for a future component that might not; all
+   four current ones do.)
 
-| component | tag prefix | paths for notes | pyproject.toml bumped | Sentry project(s) |
-|---|---|---|---|---|
-| `asago` | `asago-*` | `mobile` | — | `asago` |
-| `sfms` | `sfms-*` | `backend/packages/wps-sfms` | `wps-sfms` | `api` |
-| `wps` | `wps-*` | `backend`, `web` | `wps-api` | `api`, `frontend` |
+| component | tag prefix | paths for notes | pyproject.toml bumped | package.json bumped | Sentry project(s) |
+|---|---|---|---|---|---|
+| `asago` | `asago-*` | `mobile` | — | `mobile/asa-go/package.json` | `asago` |
+| `sfms` | `sfms-*` | `sfms_fwi_main.py`, `app/routers/sfms_fwi.py`, `app/sfms/`, `wps_shared/sfms/` (all under `backend/packages/...`) | — | — | `api` |
+| `wps` | `wps-*` | `backend`, `web` | `wps-api` | `web/apps/wps-web/package.json` | `api`, `frontend` |
+| `wps-sfms` | `wps-sfms-*` | `backend/packages/wps-sfms` | `wps-sfms` | — | `api` |
 
 Nothing about the actual build/deploy pipeline changes when you do this —
 `deployment.yml`/`production.yml` keep deploying continuously on every push/promotion,
@@ -82,7 +106,9 @@ TAG=$(git tag --list "asago-*" --sort=-v:refname | head -n1)
 ```
 
 There's exactly one place a mobile version number is decided — the tag — and both build
-workflows just read it.
+workflows just read it. `release.yml` also bumps `mobile/asa-go/package.json`'s
+`version` field to match (step 2 above), but that's bookkeeping only — nothing reads it
+for the actual app-store version, the tag is still the source of truth.
 
 Cutting an `asago` release *is* shipping it: the last step of `release.yml`, once the
 tag is pushed, runs `gh workflow run asa_go_android_build.yml --ref "${TAG}"` and the
@@ -122,9 +148,32 @@ directly on the GitHub Actions runner with a real checkout, unlike the OpenShift
 builds above) — it just needed `fetch-depth: 0` instead of the default shallow clone, so
 commit association has history to walk.
 
+**The sfms CronJobs** (`app/jobs/sfms_daily_actuals.py`, `sfms_daily_forecasts.py`,
+`sfms_calculations.py` — the ones that actually import `wps_sfms`) previously called
+`sentry_sdk.init()` nowhere at all: a failure was only visible via
+`send_chatops_notification`'s Slack message, with no grouping, no stack trace, no
+release. They now init the same way as the FastAPI entrypoints
+(`if ENVIRONMENT == "production": sentry_sdk.init(dsn=..., release=SENTRY_RELEASE, ...)`)
+and, in their existing `except Exception` handlers, call `sentry_sdk.capture_exception()`
+followed by `sentry_sdk.flush()` before `sys.exit()` — a short-lived script that exits
+right after an exception can outrun Sentry's background sender, so the event has to be
+flushed explicitly rather than left to the SDK's normal async send.
+
+This needed real plumbing, not just the three Python files: none of the three CronJob
+templates (`openshift/templates/sfms_daily_actuals.cronjob.yaml`,
+`sfms_daily_forecasts.cronjob.yaml`, `sfms_calculations.cronjob.yaml`) had `SENTRY_DSN`
+or `ENVIRONMENT` at all — those had to be added (a new `ENVIRONMENT` parameter,
+defaulting to `development`; a `SENTRY_DSN` env sourced from the same
+`${GLOBAL_NAME}`/`sentry-dsn` secret the Deployments use). The three
+`oc_provision_sfms_*_cronjob.sh` scripts now forward `ENVIRONMENT` as an optional `-p`,
+and `oc_deploy_to_production.sh` passes `ENVIRONMENT="production"` explicitly when
+provisioning these three, matching the pattern already used there for
+`oc_deploy.sh`/`oc_deploy_asa_go_api.sh`/`oc_deploy_sfms_fwi_api.sh`. Dev/PR cronjob runs
+need no changes — they pick up the template's `development` default.
+
 Because releases are SHA-keyed, most deploys (continuous, on every merge to main) create
 bare Sentry releases with no curated commit list — normal Sentry behavior. Only the
-commits explicitly cut as `asago-*`/`sfms-*`/`wps-*` releases get the full
+commits explicitly cut as `asago-*`/`sfms-*`/`wps-*`/`wps-sfms-*` releases get the full
 commit-association treatment from step 6 above.
 
 ### What isn't wired up
@@ -137,8 +186,10 @@ commit-association treatment from step 6 above.
   source map upload. `release.yml` now also uses it to create releases in the `api` and
   `asago` projects — if the token is scoped to just one project, widen it in Sentry
   (Settings → Auth Tokens) and update the GitHub secret.
-- **Deploy tracking in Sentry** (`sentry-cli deploys new` / the `deploy:` option). This
-  needs to fire at actual deploy time, which means touching `deployment.yml`/
-  `production.yml` or the `oc_deploy*.sh` scripts — deliberately out of scope so far to
-  avoid touching the production deploy pipeline. Add it if "which environment is this
-  release actually running in" becomes something you need Sentry to answer directly.
+- **Deploy tracking in Sentry** (`sentry-cli deploys new` / the `deploy:` option) is
+  still not wired up, even though `oc_deploy_to_production.sh` was touched to plumb
+  `ENVIRONMENT`/`SENTRY_DSN` through to the sfms CronJobs. That's tagging events with the
+  right environment, not recording "a deploy happened" as its own Sentry event — the
+  latter would need an explicit `sentry-cli deploys new` call at deploy time, deliberately
+  left out. Add it if "which environment is this release actually running in" becomes
+  something you need Sentry to answer directly.

@@ -12,8 +12,10 @@ import os
 import sys
 from datetime import date, datetime, timedelta, timezone
 
+import sentry_sdk
 from aiohttp import ClientSession
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
+from wps_shared import config
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run
@@ -37,6 +39,15 @@ from app.jobs.sfms_run_pipeline import (
 )
 
 logger = logging.getLogger(__name__)
+
+if config.get("ENVIRONMENT") == "production":
+    sentry_sdk.init(
+        dsn=config.get("SENTRY_DSN"),
+        environment=config.get("ENVIRONMENT"),
+        release=config.get("SENTRY_RELEASE"),
+        traces_sample_rate=0.5,
+        profiles_sample_rate=0.5,
+    )
 
 FORECAST_DAYS = 3
 ACTUALS_AVAILABLE_HOUR_PDT = 15
@@ -190,6 +201,8 @@ def main():
         loop.run_until_complete(run_sfms_daily_forecasts(target_date))
     except Exception as exception:
         logger.exception("An exception occurred while running SFMS daily forecasts")
+        sentry_sdk.capture_exception(exception)
+        sentry_sdk.flush()  # the process exits right after; the background sender needs to finish first
         chatops_message = "Encountered error running SFMS daily forecasts"
         send_chatops_notification(chatops_message, exception)
         sys.exit(os.EX_SOFTWARE)

@@ -4,6 +4,8 @@ import os
 import sys
 from datetime import datetime, timezone
 
+import sentry_sdk
+from wps_shared import config
 from wps_shared.wps_logging import configure_logging
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from app.jobs.rdps_sfms import MAX_MODEL_RUN_HOUR
@@ -14,6 +16,15 @@ from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
+
+if config.get("ENVIRONMENT") == "production":
+    sentry_sdk.init(
+        dsn=config.get("SENTRY_DSN"),
+        environment=config.get("ENVIRONMENT"),
+        release=config.get("SENTRY_RELEASE"),
+        traces_sample_rate=0.5,
+        profiles_sample_rate=0.5,
+    )
 
 DAYS_TO_CALCULATE = 2
 
@@ -106,6 +117,8 @@ def main():
         loop.run_until_complete(job.calculate_fwi_rasters(start_time))
     except Exception as e:
         logger.error("An exception occurred while processing SFMS raster calculations", exc_info=e)
+        sentry_sdk.capture_exception(e)
+        sentry_sdk.flush()  # the process exits right after; the background sender needs to finish first
         sys.exit(os.EX_SOFTWARE)
 
 
