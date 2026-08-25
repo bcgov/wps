@@ -12,7 +12,7 @@ import { FetchSource } from 'pmtiles'
 import type { RasterType, SFMSNGRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
 import {
   fuelCOGColourExpression,
-  getFireWeatherColourExpression,
+  getSFMSNGRasterColourExpression,
   snowStyler
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 
@@ -28,6 +28,9 @@ export const getSFMSNGRasterPath = (
   const dateString = date.toISODate() ?? ''
   const datePath = dateString.replaceAll('-', '/')
   const dateStringBasic = dateString.replaceAll('-', '')
+  if (rasterType === 'fmc') {
+    return `sfms_ng/static/fmc/${datePath}/fmc_${dateStringBasic}_cog.tif`
+  }
   return `sfms_ng/${runType}/${datePath}/${rasterType}_${dateStringBasic}_cog.tif`
 }
 
@@ -60,7 +63,7 @@ export const getSnowPMTilesLayer = (snowDate: DateTime, token?: string) => {
   return snowPMTilesLayer
 }
 
-export const getFireWeatherRasterLayer = (
+export const getSFMSNGRasterLayer = (
   date: DateTime,
   rasterType: SFMSNGRasterType,
   token: string | undefined,
@@ -95,7 +98,7 @@ export const getFireWeatherRasterLayer = (
     extent: bcExtent,
     properties: { name: layerName, rasterType },
     style: {
-      color: getFireWeatherColourExpression(rasterType)
+      color: getSFMSNGRasterColourExpression(rasterType)
     }
   })
 
@@ -140,7 +143,7 @@ export const getFuelCOGTiles = (token?: string) => {
 
 /**
  * Get the appropriate raster layer based on type
- * Handles both fire weather rasters (date-dependent) and fuel raster (static)
+ * handles both dated SFMS NG rasters and the static fuel raster.
  */
 export const getRasterLayer = (
   date: DateTime | null,
@@ -152,8 +155,8 @@ export const getRasterLayer = (
     return getFuelCOGTiles(token)
   }
   if (!date) {
-    console.error('date is required for fire weather rasters')
+    console.error('date is required for SFMS NG rasters')
     return null
   }
-  return getFireWeatherRasterLayer(date, rasterType, token, runType)
+  return getSFMSNGRasterLayer(date, rasterType, token, runType)
 }

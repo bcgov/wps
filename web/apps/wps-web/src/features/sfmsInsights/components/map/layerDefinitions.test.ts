@@ -1,6 +1,6 @@
 import { RunType } from '@wps/api/runType'
 import { DateTime } from 'luxon'
-import { getFireWeatherRasterLayer, getRasterLayer, getSFMSNGRasterPath, getSnowPMTilesLayer } from './layerDefinitions'
+import { getRasterLayer, getSFMSNGRasterLayer, getSFMSNGRasterPath, getSnowPMTilesLayer } from './layerDefinitions'
 
 type Listener = (...args: unknown[]) => void
 
@@ -105,7 +105,7 @@ describe('layerDefinitions', () => {
     })
   })
 
-  describe('getFireWeatherRasterLayer', () => {
+  describe('getSFMSNGRasterLayer', () => {
     it('should generate SFMSNG actual COG paths for FWI rasters', () => {
       const rasterDate = DateTime.fromISO('2025-11-02')
 
@@ -128,9 +128,25 @@ describe('layerDefinitions', () => {
       )
     })
 
+    it('should generate run-specific SFC COG paths', () => {
+      const rasterDate = DateTime.fromISO('2025-11-05')
+
+      expect(getSFMSNGRasterPath(rasterDate, 'sfc', RunType.FORECAST)).toBe(
+        'sfms_ng/forecast/2025/11/05/sfc_20251105_cog.tif'
+      )
+    })
+
+    it('should generate the shared FMC COG path regardless of run type', () => {
+      const rasterDate = DateTime.fromISO('2025-11-05')
+      const expectedPath = 'sfms_ng/static/fmc/2025/11/05/fmc_20251105_cog.tif'
+
+      expect(getSFMSNGRasterPath(rasterDate, 'fmc', RunType.ACTUAL)).toBe(expectedPath)
+      expect(getSFMSNGRasterPath(rasterDate, 'fmc', RunType.FORECAST)).toBe(expectedPath)
+    })
+
     it('should create fire weather layer with zIndex 52', () => {
       const rasterDate = DateTime.fromISO('2025-11-02')
-      const layer = getFireWeatherRasterLayer(rasterDate, 'fwi', 'test-token')
+      const layer = getSFMSNGRasterLayer(rasterDate, 'fwi', 'test-token')
 
       expect(layer.getZIndex()).toBe(52)
     })
@@ -138,7 +154,7 @@ describe('layerDefinitions', () => {
     it('should have lower zIndex than snow layer', () => {
       const date = DateTime.fromISO('2025-11-02')
       const snowLayer = getSnowPMTilesLayer(date)
-      const fireWeatherLayer = getFireWeatherRasterLayer(date, 'fwi', 'test-token')
+      const fireWeatherLayer = getSFMSNGRasterLayer(date, 'fwi', 'test-token')
       const fireWeatherLayerZIdx = fireWeatherLayer.getZIndex()
 
       expect(snowLayer.getZIndex()).toBeGreaterThan(fireWeatherLayerZIdx!)
@@ -149,9 +165,9 @@ describe('layerDefinitions', () => {
     it('should ensure snow layer renders on top of fire weather rasters', () => {
       const date = DateTime.fromISO('2025-11-02')
       const snowLayer = getSnowPMTilesLayer(date)
-      const fwiLayer = getFireWeatherRasterLayer(date, 'fwi', 'test-token')
-      const dmcLayer = getFireWeatherRasterLayer(date, 'dmc', 'test-token')
-      const dcLayer = getFireWeatherRasterLayer(date, 'dc', 'test-token')
+      const fwiLayer = getSFMSNGRasterLayer(date, 'fwi', 'test-token')
+      const dmcLayer = getSFMSNGRasterLayer(date, 'dmc', 'test-token')
+      const dcLayer = getSFMSNGRasterLayer(date, 'dc', 'test-token')
 
       const snowZIndex = snowLayer.getZIndex()!
       const fwiZIndex = fwiLayer.getZIndex()!
@@ -205,11 +221,19 @@ describe('layerDefinitions', () => {
       expect(layer!.getProperties().rasterType).toBe('fwi')
     })
 
+    it.each(['sfc', 'fmc'] as const)('should return an %s raster layer', rasterType => {
+      const date = DateTime.fromISO('2025-11-05')
+      const layer = getRasterLayer(date, rasterType, 'test-token', RunType.FORECAST)
+
+      expect(layer).not.toBeNull()
+      expect(layer!.getProperties().rasterType).toBe(rasterType)
+    })
+
     it('should return null and log error when date is null for fire weather raster', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const layer = getRasterLayer(null, 'fwi', 'test-token')
       expect(layer).toBeNull()
-      expect(consoleErrorSpy).toHaveBeenCalledWith('date is required for fire weather rasters')
+      expect(consoleErrorSpy).toHaveBeenCalledWith('date is required for SFMS NG rasters')
       consoleErrorSpy.mockRestore()
     })
 

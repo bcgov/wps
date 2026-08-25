@@ -122,13 +122,13 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent
+      } as unknown as MapBrowserEvent<PointerEvent>
 
       // Manually trigger the handler
       mockMap.pointerMoveHandler!(mockEvent)
 
       expect(onTooltipChange).toHaveBeenCalledWith({
-        value: 43, // Rounded from 42.7
+        value: 43,
         label: 'FWI',
         pixel: [100, 200]
       })
@@ -142,7 +142,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent
+      } as unknown as MapBrowserEvent<PointerEvent>
 
       mockMap.pointerMoveHandler!(mockEvent)
 
@@ -156,7 +156,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent
+      } as unknown as MapBrowserEvent<PointerEvent>
 
       // Should not throw error
       expect(() => mockMap.pointerMoveHandler!(mockEvent)).not.toThrow()
@@ -168,7 +168,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent
+      } as unknown as MapBrowserEvent<PointerEvent>
 
       mockMap.pointerMoveHandler!(mockEvent)
 
@@ -192,7 +192,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent
+      } as unknown as MapBrowserEvent<PointerEvent>
 
       mockMap.pointerMoveHandler!(mockEvent)
 
@@ -233,7 +233,7 @@ describe('RasterTooltipInteraction', () => {
       const mockEvent = {
         map: mockMap,
         originalEvent: new MouseEvent('pointermove')
-      } as unknown as MapBrowserEvent
+      } as unknown as MapBrowserEvent<PointerEvent>
 
       mockMap.pointerMoveHandler!(mockEvent)
 

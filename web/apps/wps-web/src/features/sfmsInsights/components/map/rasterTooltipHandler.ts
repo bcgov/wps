@@ -2,23 +2,21 @@ import type WebGLTileLayer from 'ol/layer/WebGLTile'
 import { FUEL_TYPE_COLORS, RASTER_CONFIG, type RasterType } from './rasterConfig'
 import { isNodataValue } from './sfmsFeatureStylers'
 
-export type RasterValue = number | string | null
 export type RasterData = Float32Array | Uint8Array | null
-export type RasterTooltipData = { value: RasterValue; label: string }
-
-export interface RasterTooltipResult {
-  value: RasterValue
-  label: string
-  pixelCoords: [number, number]
-}
+export type RasterTooltipValue = { value: number | string | null; label: string }
 
 const ALPHA_BAND_INDEX = 1
+
+const roundToDecimalPlaces = (value: number, decimalPlaces: number): number => {
+  const multiplier = 10 ** decimalPlaces
+  return Math.round(value * multiplier) / multiplier
+}
 
 /**
  * Extracts raster value from layer data and determines if it should be displayed
  * This function is pure and can be tested in isolation
  */
-export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | undefined): RasterTooltipData => {
+export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | undefined): RasterTooltipValue => {
   const defaultLabel = rasterType ? RASTER_CONFIG[rasterType].label : 'FWI'
 
   // Check if we have valid data
@@ -45,20 +43,20 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
     return { value: null, label: defaultLabel }
   }
 
-  const roundedValue = Math.round(rawValue)
-
   // For fuel type, convert numeric value to fuel code
   if (rasterType === 'fuel') {
-    const fuelType = FUEL_TYPE_COLORS.find(f => f.value === roundedValue)
+    const fuelType = FUEL_TYPE_COLORS.find(f => f.value === Math.round(rawValue))
     return {
       value: fuelType ? fuelType.fuelCode : null,
       label: defaultLabel
     }
   }
 
+  const decimalPlaces = rasterType ? (RASTER_CONFIG[rasterType].tooltipDecimalPlaces ?? 0) : 0
+
   // Return valid data for numeric rasters
   return {
-    value: roundedValue,
+    value: roundToDecimalPlaces(rawValue, decimalPlaces),
     label: defaultLabel
   }
 }
@@ -88,7 +86,7 @@ export const getRasterData = (layer: WebGLTileLayer, pixel: [number, number]): R
  * Gets tooltip data from a raster layer at a specific pixel location
  * This orchestrates the extraction of data and tooltip information
  */
-export const getDataAtPixel = (layer: WebGLTileLayer, pixel: [number, number]): RasterTooltipData => {
+export const getDataAtPixel = (layer: WebGLTileLayer, pixel: [number, number]): RasterTooltipValue => {
   const data = getRasterData(layer, pixel)
   const rasterType = getRasterType(layer)
   return getRasterTooltipData(data, rasterType)
