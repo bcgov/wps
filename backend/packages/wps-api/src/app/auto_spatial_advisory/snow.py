@@ -4,6 +4,7 @@ import numpy as np
 from osgeo import gdal
 from wps_shared import config
 from wps_shared.db.models.snow import ProcessedSnow
+from wps_shared.geospatial.wps_dataset import WPSDataset
 
 SNOW_COVERAGE_WARPED_NAME = 'snow_coverage_warped.tif'
 SNOW_COVERAGE_MASK_NAME = 'snow_coverage_mask.tif'
@@ -18,27 +19,17 @@ def classify_snow_mask(snow_path: str, temp_dir: str):
     A NDSI (ie. snow coverage) value between 0-100 represent snow coverage. Here we define snow coverage
     between 10-100. We need to consult the literature or data scientists on proper use of NDSI.
     """
-    source = gdal.Open(snow_path, gdal.GA_ReadOnly)
-    source_band = source.GetRasterBand(1)
-    source_data = source_band.ReadAsArray()
-    # In the classified data 0 is assigned to snow covered pixels which will 'cancel' HFI values
-    # when the rasters are multiplied later on. QA values in the original data are assigned a value
-    # of 1 so they dont impact HFI calculations for now.
-    classified = np.where((source_data > 10) & (source_data <= 100), 0, 1)
-    output_driver = gdal.GetDriverByName("GTiff")
     snow_mask_path = os.path.join(temp_dir, SNOW_COVERAGE_MASK_NAME)
-    snow_mask = output_driver.Create(snow_mask_path, xsize=source_band.XSize,
-                                     ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte)
-    snow_mask.SetGeoTransform(source.GetGeoTransform())
-    snow_mask.SetProjection(source.GetProjection())
-    snow_mask_band = snow_mask.GetRasterBand(1)
-    snow_mask_band.WriteArray(classified)
-    snow_mask_band = None
-    snow_mask = None
-    source_data = None
-    source_band = None
-    source = None
-    return os.path.join(temp_dir, SNOW_COVERAGE_MASK_NAME)
+    with WPSDataset(snow_path) as source:
+        # In the classified data 0 is assigned to snow covered pixels which will 'cancel' HFI
+        # values when the rasters are multiplied later on. QA values in the original data are
+        # assigned a value of 1 so they dont impact HFI calculations for now.
+        source.transform(
+            lambda data: np.where((data > 10) & (data <= 100), 0, 1),
+            datatype=gdal.GDT_Byte,
+            output_path=snow_mask_path,
+        )
+    return snow_mask_path
 
 
 async def prepare_snow_mask(hfi_path: str, last_processed_snow: ProcessedSnow, temp_dir: str):
