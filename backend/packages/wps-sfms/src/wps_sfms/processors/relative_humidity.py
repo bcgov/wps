@@ -7,7 +7,7 @@ from wps_sfms.interpolation.field import (
     compute_adjusted_values,
     compute_rh,
 )
-from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 from wps_sfms.interpolation.common import (
     SFMS_NO_DATA,
     log_interpolation_stats,
@@ -91,8 +91,7 @@ class RHInterpolator(RasterProcessor):
 
         return WPSDataset.from_array(
             array=rh_array,
-            geotransform=grid.geotransform,
-            projection=grid.projection,
+            georeference=Georeference(grid.geotransform, grid.projection),
             nodata_value=SFMS_NO_DATA,
             datatype=gdal.GDT_Float32,
         )
