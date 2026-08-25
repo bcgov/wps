@@ -69,7 +69,7 @@ def mock_dependencies(
     mock_session.__aexit__ = AsyncMock(return_value=None)
     mocker.patch(f"{MODULE_PATH}.ClientSession", return_value=mock_session)
 
-    mock_wfwx_api.get_sfms_daily_forecasts_all_stations = AsyncMock(
+    mock_wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(
         return_value=create_mock_sfms_actuals()
     )
     mocker.patch(f"{MODULE_PATH}.WfwxApi", return_value=mock_wfwx_api)
@@ -229,7 +229,7 @@ class TestRunSfmsDailyForecasts:
 
         await run_sfms_daily_forecasts(target_date)
 
-        assert mock_dependencies.wfwx_api.get_sfms_daily_forecasts_all_stations.call_count == 3
+        assert mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations.call_count == 3
         assert mock_dependencies.temp_processor.process.call_count == 3
         assert mock_dependencies.rh_processor.process.call_count == 3
         assert mock_dependencies.wind_speed_processor.process.call_count == 3
@@ -286,7 +286,7 @@ class TestRunSfmsDailyForecasts:
 
         requested_datetimes = [
             call.args[0]
-            for call in mock_dependencies.wfwx_api.get_sfms_daily_forecasts_all_stations.call_args_list
+            for call in mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations.call_args_list
         ]
         assert requested_datetimes == [
             datetime(2024, 7, 4, 20, 0, tzinfo=timezone.utc),
@@ -310,9 +310,7 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_raises_on_empty_forecasts(self, mock_dependencies: MockDailyForecastsDeps):
-        mock_dependencies.wfwx_api.get_sfms_daily_forecasts_all_stations = AsyncMock(
-            return_value=[]
-        )
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(return_value=[])
 
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
@@ -333,7 +331,7 @@ class TestRunSfmsDailyForecasts:
             await run_sfms_daily_forecasts(target_date)
 
         mock_dependencies.get_fuel_type_raster_by_year.assert_not_called()
-        mock_dependencies.wfwx_api.get_sfms_daily_forecasts_all_stations.assert_not_called()
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations.assert_not_called()
         mock_dependencies.fwi_processor.calculate_index.assert_not_called()
 
     @pytest.mark.anyio

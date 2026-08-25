@@ -135,7 +135,7 @@ async def main(start: datetime, end: datetime, out_dir: Optional[Path]):
         initial_dt = start.replace(hour=20, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
         for i in range(num_days + 1):
             datetime_to_process = initial_dt + timedelta(days=i)
-            sfms_actuals = await wfwx_api.get_sfms_daily_actuals_all_stations(datetime_to_process)
+            sfms_actuals = await wfwx_api.get_sfms_daily_weather_all_stations(datetime_to_process)
             elevs, observed_temps, interpolated_temps = interpolate_temp(sfms_actuals)
             _, _, interpolated_dewpoint_temps = interpolate_dewpoint_temp(sfms_actuals)
 

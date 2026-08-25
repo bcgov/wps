@@ -88,7 +88,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mocker.patch(f"{MODULE_PATH}.ClientSession", return_value=mock_session)
 
     # Mock WfwxApi
-    mock_wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(
+    mock_wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(
         return_value=create_mock_sfms_actuals()
     )
     mock_wfwx_api.get_station_data = AsyncMock(
@@ -216,7 +216,7 @@ class TestRunSfmsDailyActuals:
         with pytest.raises(AssertionError, match="timezone-aware"):
             await run_sfms_daily_actuals(target_date)
 
-        mock_dependencies.wfwx_api.get_sfms_daily_actuals_all_stations.assert_not_called()
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations.assert_not_called()
 
     @pytest.mark.anyio
     async def test_rejects_non_utc_target_date(self, mock_dependencies: MockDailyActualsDeps):
@@ -225,7 +225,7 @@ class TestRunSfmsDailyActuals:
         with pytest.raises(AssertionError, match="not in UTC"):
             await run_sfms_daily_actuals(target_date)
 
-        mock_dependencies.wfwx_api.get_sfms_daily_actuals_all_stations.assert_not_called()
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations.assert_not_called()
 
     @pytest.mark.anyio
     async def test_runs_all_processors(self, mock_dependencies: MockDailyActualsDeps):
@@ -316,7 +316,7 @@ class TestRunSfmsDailyActuals:
     @pytest.mark.anyio
     async def test_raises_on_empty_actuals(self, mock_dependencies: MockDailyActualsDeps):
         """Test that run raises RuntimeError when no station data is found."""
-        mock_dependencies.wfwx_api.get_sfms_daily_actuals_all_stations = AsyncMock(return_value=[])
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(return_value=[])
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
 
