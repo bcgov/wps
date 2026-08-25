@@ -101,7 +101,7 @@ def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelTyp
     y_res = abs(geotransform[5])
     source_band = source.GetRasterBand(1)
     # approx_ok=0: the default (approx_ok=1) samples a small, roughly fixed-size subset of
-    # pixels regardless of raster size, undercounting area by up to ~25x on rasters this size.
+    # pixels regardless of raster size, potentially undercounting area.
     histogram = source_band.GetHistogram(approx_ok=0)
     combustible_fuel_type_ids = [
         fuel_type.fuel_type_id
