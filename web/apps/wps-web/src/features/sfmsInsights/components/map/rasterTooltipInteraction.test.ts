@@ -128,7 +128,7 @@ describe('RasterTooltipInteraction', () => {
       mockMap.pointerMoveHandler!(mockEvent)
 
       expect(onTooltipChange).toHaveBeenCalledWith({
-        value: '43',
+        value: 43,
         label: 'FWI',
         pixel: [100, 200]
       })
@@ -197,7 +197,7 @@ describe('RasterTooltipInteraction', () => {
       mockMap.pointerMoveHandler!(mockEvent)
 
       expect(onTooltipChange).toHaveBeenCalledWith({
-        value: '43',
+        value: 43,
         label: expectedLabel,
         pixel: [100, 200]
       })
@@ -239,7 +239,7 @@ describe('RasterTooltipInteraction', () => {
 
       expect(initialCallback).not.toHaveBeenCalled()
       expect(newCallback).toHaveBeenCalledWith({
-        value: '50',
+        value: 50,
         label: 'FWI',
         pixel: [100, 200]
       })

@@ -2,14 +2,17 @@ import { Box } from '@mui/material'
 
 interface RasterTooltipProps {
   label: string
-  value: string | null
+  value: number | string | null
   pixelCoords: [number, number] | null
+  decimalPlaces?: number
 }
 
-const RasterTooltip = ({ label, value, pixelCoords }: RasterTooltipProps) => {
+const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0 }: RasterTooltipProps) => {
   if (value === null || !pixelCoords) {
     return null
   }
+
+  const displayValue = typeof value === 'number' ? value.toFixed(decimalPlaces) : value
 
   return (
     <Box
@@ -26,7 +29,7 @@ const RasterTooltip = ({ label, value, pixelCoords }: RasterTooltipProps) => {
         zIndex: 1000
       }}
     >
-      {label}: {value}
+      {label}: {displayValue}
     </Box>
   )
 }

@@ -3,9 +3,14 @@ import { FUEL_TYPE_COLORS, RASTER_CONFIG, type RasterType } from './rasterConfig
 import { isNodataValue } from './sfmsFeatureStylers'
 
 export type RasterData = Float32Array | Uint8Array | null
-export type RasterTooltipValue = { value: string | null; label: string }
+export type RasterTooltipValue = { value: number | string | null; label: string }
 
 const ALPHA_BAND_INDEX = 1
+
+const roundToDecimalPlaces = (value: number, decimalPlaces: number): number => {
+  const multiplier = 10 ** decimalPlaces
+  return Math.round(value * multiplier) / multiplier
+}
 
 /**
  * Extracts raster value from layer data and determines if it should be displayed
@@ -51,7 +56,7 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
 
   // Return valid data for numeric rasters
   return {
-    value: rawValue.toFixed(decimalPlaces),
+    value: roundToDecimalPlaces(rawValue, decimalPlaces),
     label: defaultLabel
   }
 }
