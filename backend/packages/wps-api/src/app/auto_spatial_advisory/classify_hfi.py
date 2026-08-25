@@ -15,4 +15,4 @@ def classify_hfi(source_path, target_path):
         classified = np.select([source < 4000, source < 10000], [0, 1], default=2)
         WPSDataset.from_array(
             classified, source, nodata_value=0, datatype=gdal.GDT_Byte, output_path=target_path
-        )
+        ).close()
