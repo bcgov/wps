@@ -87,10 +87,13 @@ describe('getRasterTooltipData', () => {
     expect(result.label).toBe('SFC')
   })
 
-  it('should round FMC values to a whole number', () => {
-    const result = getRasterTooltipData(new Float32Array([94.6]), 'fmc')
+  it.each([
+    ['down below the half-step', 94.4, 94],
+    ['up at the half-step', 94.5, 95]
+  ])('should round FMC values %s', (_description, input, expected) => {
+    const result = getRasterTooltipData(new Float32Array([input]), 'fmc')
 
-    expect(result.value).toBe(95)
+    expect(result.value).toBe(expected)
     expect(result.label).toBe('FMC')
   })
 
