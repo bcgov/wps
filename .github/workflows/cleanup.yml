@@ -1,8 +1,5 @@
 name: Cleanup
 
-permissions:
-  contents: read
-
 on:
   pull_request:
     types: [closed]
@@ -22,6 +19,9 @@ env:
 jobs:
   cleanup-non-db:
     name: Delete non-DB resources associated with pr
+    permissions:
+      contents: read
+      actions: write
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     steps:
@@ -136,6 +136,9 @@ jobs:
   cleanup-db:
     name: Delete DB resources associated with PR
     needs: cleanup-non-db
+    permissions:
+      contents: read
+      actions: write
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     steps:
