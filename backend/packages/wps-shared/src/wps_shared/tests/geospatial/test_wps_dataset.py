@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from osgeo import gdal, ogr, osr
 
-from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset, multi_wps_dataset_context
 from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset, create_test_dataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")  # Byte data
@@ -257,8 +257,7 @@ def test_from_array_disk_backed_via_output_path():
 
         result = WPSDataset.from_array(
             np.array([[7, 7], [7, 7]], dtype=np.uint8),
-            (0, 1, 0, 0, 0, -1),
-            srs.ExportToWkt(),
+            Georeference((0, 1, 0, 0, 0, -1), srs.ExportToWkt()),
             datatype=gdal.GDT_Byte,
             output_path=output_path,
         )
@@ -598,7 +597,7 @@ def test_from_array():
     og_proj = original_ds.GetProjection()
 
     with WPSDataset.from_array(
-        og_array, og_transform, og_proj, nodata_value=-99, datatype=dtype
+        og_array, Georeference(og_transform, og_proj), nodata_value=-99, datatype=dtype
     ) as wps:
         wps_ds = wps.as_gdal_ds()
         assert wps_ds.ReadAsArray()[1, 2] == og_array[1, 2]

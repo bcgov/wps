@@ -13,12 +13,7 @@ def polygonize_in_memory(geotiff_filename, layer, field) -> Generator[ogr.Layer,
     """Given some tiff file, return a polygonized version of it, in memory, as an ogr layer."""
     with (
         WPSDataset(geotiff_filename) as source,
-        WPSDataset.from_array(
-            source.get_valid_mask(),
-            source.ds.GetGeoTransform(),
-            source.ds.GetProjection(),
-            datatype=gdal.GDT_Byte,
-        ) as mask,
+        WPSDataset.from_array(source.get_valid_mask(), source, datatype=gdal.GDT_Byte) as mask,
     ):
         source_band = source.ds.GetRasterBand(1)
         # https://gdal.org/api/python/osgeo.osr.html#osgeo.osr.SpatialReference

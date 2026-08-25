@@ -6,7 +6,7 @@ import numpy as np
 from osgeo import gdal
 
 from wps_shared import config
-from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.wps_logging import configure_logging
 
@@ -53,7 +53,9 @@ def reclassify_fuel_geotiff(fuel_raster_path: str, output_geotiff_path: str) -> 
 
     ds = None
 
-    with WPSDataset.from_array(reclassified, transform, projection, 255, gdal.GDT_Byte) as ds:
+    with WPSDataset.from_array(
+        reclassified, Georeference(transform, projection), 255, gdal.GDT_Byte
+    ) as ds:
         ds.export_to_geotiff(output_geotiff_path)
 
     logger.info(f"Reclassification complete. Output saved to: {output_geotiff_path}")

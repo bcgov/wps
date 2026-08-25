@@ -1,7 +1,7 @@
 import math
 import uuid
 from contextlib import ExitStack, contextmanager
-from typing import Iterator, List, Optional, Tuple
+from typing import Iterator, List, NamedTuple, Optional, Tuple
 from osgeo import gdal, ogr, osr
 import numpy as np
 import io
@@ -9,6 +9,13 @@ import io
 from wps_shared.geospatial.geospatial import GDALResamplingMethod, rasters_match
 
 gdal.UseExceptions()
+
+
+class Georeference(NamedTuple):
+    """A dataset's geotransform and projection, e.g. to pass straight to `WPSDataset.from_array`."""
+
+    geotransform: Tuple[float, float, float, float, float, float]
+    projection: str
 
 
 class WPSDataset:
@@ -78,24 +85,28 @@ class WPSDataset:
     def from_array(
         cls,
         array: np.ndarray,
-        geotransform: Tuple[float, float, float, float, float, float],
-        projection: str,
+        georeference: "WPSDataset | Georeference",
         nodata_value: float | int | None = None,
         datatype=gdal.GDT_Float32,
         output_path: Optional[str] = None,
     ) -> "WPSDataset":
         """
-        Create a WPSDataset from a NumPy array, geotransform, and projection.
+        Create a WPSDataset from a NumPy array, georeferenced to match either an existing
+        WPSDataset or an explicit Georeference.
 
         :param array: NumPy array representing the raster data
-        :param geotransform: A tuple defining the geotransform
-        :param projection: WKT string of the projection
+        :param georeference: A WPSDataset to take the geotransform/projection from, or an
+            explicit Georeference(geotransform, projection) - e.g. when the source dataset
+            has already been closed, or there never was a WPSDataset to begin with.
         :param nodata_value: Optional nodata value to set for the dataset
         :param datatype gdal datatype
         :param output_path: Optional output path (a real file, or a /vsimem/ path). When
             omitted, backed by an in-memory MEM dataset instead.
         :return: An instance of WPSDataset containing the created dataset
         """
+        geotransform, projection = (
+            georeference.georeference if isinstance(georeference, WPSDataset) else georeference
+        )
         rows, cols = array.shape
 
         if output_path is None:
@@ -297,7 +308,9 @@ class WPSDataset:
             output_path = f"/vsimem/clip_{uuid.uuid4().hex}.tif"
 
         if isinstance(cutline, str):
-            warp_options = gdal.WarpOptions(format=format, cutlineDSName=cutline, cropToCutline=True)
+            warp_options = gdal.WarpOptions(
+                format=format, cutlineDSName=cutline, cropToCutline=True
+            )
         else:
             warp_options = gdal.WarpOptions(
                 format=format,
@@ -520,6 +533,11 @@ class WPSDataset:
 
     def as_gdal_ds(self) -> gdal.Dataset:
         return self.ds
+
+    @property
+    def georeference(self) -> Georeference:
+        """This dataset's geotransform and projection, e.g. to pass straight to `from_array`."""
+        return Georeference(self.ds.GetGeoTransform(), self.ds.GetProjection())
 
     def extract_value_at_point(self, lat: float, lon: float) -> Optional[float]:
         """Return the raster value at a WGS84 lat/lon coordinate, or None if out of bounds or nodata."""

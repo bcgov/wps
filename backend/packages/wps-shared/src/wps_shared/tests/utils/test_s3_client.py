@@ -3,7 +3,7 @@ import tempfile
 import pytest
 from botocore.exceptions import ClientError
 from osgeo import gdal
-from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset
 from wps_shared.utils.s3_client import S3Client
 from pytest_mock import MockerFixture
@@ -48,7 +48,9 @@ async def test_put_object_called(mocker: MockerFixture):
 
         with tempfile.TemporaryDirectory() as temp_dir:
             with WPSDataset.from_array(
-                values, mock_ds.GetGeoTransform(), mock_ds.GetProjection(), no_data_value
+                values,
+                Georeference(mock_ds.GetGeoTransform(), mock_ds.GetProjection()),
+                no_data_value,
             ) as expected_ds:
                 expected_key = "expected_key"
                 expected_filename = os.path.join(temp_dir, os.path.basename("expected_key"))
@@ -176,7 +178,9 @@ async def test_read_object_returns_bytes_on_success(mocker: MockerFixture):
 @pytest.mark.anyio
 async def test_read_object_raises_client_error_on_missing_key(mocker: MockerFixture):
     mock_s3_client = AsyncMock()
-    mock_s3_client.get_object.side_effect = ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
+    mock_s3_client.get_object.side_effect = ClientError(
+        {"Error": {"Code": "NoSuchKey"}}, "GetObject"
+    )
 
     mock_client_context = MagicMock()
     mock_client_context.__aenter__.return_value = mock_s3_client
@@ -195,7 +199,9 @@ async def test_read_object_raises_client_error_on_missing_key(mocker: MockerFixt
 @pytest.mark.anyio
 async def test_read_object_raises_client_error_on_s3_failure(mocker: MockerFixture):
     mock_s3_client = AsyncMock()
-    mock_s3_client.get_object.side_effect = ClientError({"Error": {"Code": "InternalError"}}, "GetObject")
+    mock_s3_client.get_object.side_effect = ClientError(
+        {"Error": {"Code": "InternalError"}}, "GetObject"
+    )
 
     mock_client_context = MagicMock()
     mock_client_context.__aenter__.return_value = mock_s3_client

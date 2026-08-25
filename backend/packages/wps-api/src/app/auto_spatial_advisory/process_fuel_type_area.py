@@ -232,9 +232,8 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
             )
             with WPSDataset(fuel_type_key) as fuel_type_raster:
                 fuel_type_data = fuel_type_raster.ds.GetRasterBand(1).ReadAsArray()
-                # Properties useful for creating the per-threshold masked fuel type raster
-                geotransform = fuel_type_raster.ds.GetGeoTransform()
-                projection = fuel_type_raster.ds.GetProjection()
+                # Georeference used for creating the per-threshold masked fuel type raster
+                georeference = fuel_type_raster.georeference
 
         thresholds = await get_all_hfi_thresholds(session)
         fuel_types = await get_all_sfms_fuel_types(session)
@@ -245,8 +244,7 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
             try:
                 with WPSDataset.from_array(
                     masked_fuel_type_data,
-                    geotransform,
-                    projection,
+                    georeference,
                     nodata_value=0,
                     datatype=gdal.GDT_Int16,
                 ) as masked_fuel_type_ds:

@@ -23,12 +23,7 @@ def classify_snow_mask(snow_source: WPSDataset) -> WPSDataset:
     # values when the rasters are multiplied later on. QA values in the original data are
     # assigned a value of 1 so they dont impact HFI calculations for now.
     classified = np.where((snow_source > 10) & (snow_source <= 100), 0, 1)
-    return WPSDataset.from_array(
-        classified,
-        snow_source.ds.GetGeoTransform(),
-        snow_source.ds.GetProjection(),
-        datatype=gdal.GDT_Byte,
-    )
+    return WPSDataset.from_array(classified, snow_source, datatype=gdal.GDT_Byte)
 
 
 def apply_snow_mask(hfi_path: str, last_processed_snow: ProcessedSnow, temp_dir: str) -> str:
