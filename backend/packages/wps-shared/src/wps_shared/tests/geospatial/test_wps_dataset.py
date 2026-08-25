@@ -249,51 +249,6 @@ def test_ordering_comparisons_against_a_threshold():
         assert np.array_equal(wps_ds >= 5000, np.array([[False, True], [True, False]]))
 
 
-def test_with_array_preserves_georeference_and_defaults_to_memory_backed():
-    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    ds = create_test_dataset(
-        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Int16, fill_value=0
-    )
-    ds.GetRasterBand(1).WriteArray(np.array([[1000, 5000], [11000, 0]], dtype=np.int16))
-
-    with WPSDataset(ds_path=None, ds=ds) as wps_ds:
-        source_geotransform = wps_ds.ds.GetGeoTransform()
-        source_projection = wps_ds.ds.GetProjection()
-
-        classified = np.select([wps_ds < 4000, wps_ds < 10000], [0, 1], default=2)
-        result = wps_ds.with_array(classified, nodata_value=0, datatype=gdal.GDT_Byte)
-        raw = result.as_gdal_ds()
-
-        assert np.array_equal(raw.GetRasterBand(1).ReadAsArray(), np.array([[0, 1], [2, 0]]))
-        assert raw.GetRasterBand(1).DataType == gdal.GDT_Byte
-        assert raw.GetRasterBand(1).GetNoDataValue() == 0
-        assert raw.GetGeoTransform() == source_geotransform
-        assert raw.GetProjection() == source_projection
-        assert raw.GetDriver().ShortName == "MEM"  # no output_path/self.output_path given
-
-
-def test_with_array_disk_backed_via_output_path():
-    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    ds = create_test_dataset(
-        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Int16, fill_value=0
-    )
-    ds.GetRasterBand(1).WriteArray(np.array([[1000, 5000], [11000, 0]], dtype=np.int16))
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_path = os.path.join(temp_dir, "classified.tif")
-
-        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
-            classified = np.select([wps_ds < 4000, wps_ds < 10000], [0, 1], default=2)
-            result = wps_ds.with_array(classified, datatype=gdal.GDT_Byte, output_path=output_path)
-            assert result.as_gdal_ds().GetDriver().ShortName == "GTiff"
-
-        assert os.path.exists(output_path)
-        with WPSDataset(output_path) as reopened:
-            assert np.array_equal(
-                reopened.as_gdal_ds().GetRasterBand(1).ReadAsArray(), np.array([[0, 1], [2, 0]])
-            )
-
-
 def test_from_array_disk_backed_via_output_path():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_path = os.path.join(temp_dir, "from_array.tif")

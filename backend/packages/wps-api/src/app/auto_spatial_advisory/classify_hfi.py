@@ -13,6 +13,11 @@ def classify_hfi(source_path, target_path):
     """
     with gdal_s3_context(), WPSDataset(source_path) as source:
         classified = np.select([source < 4000, source < 10000], [0, 1], default=2)
-        source.with_array(
-            classified, nodata_value=0, datatype=gdal.GDT_Byte, output_path=target_path
+        WPSDataset.from_array(
+            classified,
+            source.ds.GetGeoTransform(),
+            source.ds.GetProjection(),
+            nodata_value=0,
+            datatype=gdal.GDT_Byte,
+            output_path=target_path,
         )

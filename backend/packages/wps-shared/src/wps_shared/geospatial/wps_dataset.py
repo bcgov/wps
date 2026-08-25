@@ -123,34 +123,6 @@ class WPSDataset:
 
         return cls(ds_path=None, ds=output_dataset)
 
-    def with_array(
-        self,
-        array: np.ndarray,
-        nodata_value: float | int | None = None,
-        datatype=None,
-        output_path: Optional[str] = None,
-    ) -> "WPSDataset":
-        """
-        Wrap array (e.g. the result of an np.select classification written directly against
-        this dataset, like `np.select([self < 4000, self < 10000], [0, 1], default=2)`) as a
-        new WPSDataset carrying this dataset's geotransform and projection. Backed by
-        output_path (falling back to self.output_path) the same way `*` picks disk vs MEM.
-
-        :param array: The array to wrap
-        :param nodata_value: Optional nodata value to set on the result
-        :param datatype: Optional gdal datatype for the result; defaults to this dataset's own
-        :param output_path: Optional output path override; defaults to self.output_path
-        :return: a new WPSDataset wrapping array
-        """
-        return WPSDataset.from_array(
-            array,
-            self.ds.GetGeoTransform(),
-            self.ds.GetProjection(),
-            nodata_value=nodata_value,
-            datatype=datatype or self.ds.GetRasterBand(self.band).DataType,
-            output_path=output_path if output_path is not None else self.output_path,
-        )
-
     @classmethod
     def from_bytes(cls, raster_bytes: bytes) -> "WPSDataset":
         """
@@ -586,7 +558,7 @@ class WPSDataset:
 
     def close(self):
         # ds_path is None only for datasets this instance created itself (every writer method -
-        # multiply, warp_to_match, clip_to_geometry, from_array/with_array - constructs
+        # multiply, warp_to_match, clip_to_geometry, from_array - constructs
         # WPSDataset(ds_path=None, ds=...)). A dataset merely opened for reading via
         # WPSDataset(path) has ds_path set, and must never be auto-unlinked here even if it
         # happens to live on /vsimem/ - the caller doesn't own that file.
