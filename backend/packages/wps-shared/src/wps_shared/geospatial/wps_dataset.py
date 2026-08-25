@@ -23,12 +23,20 @@ class WPSDataset:
         band: int = 1,
         chunk_size: int = 256,
         access=gdal.GA_ReadOnly,
+        output_path: Optional[str] = None,
     ):
+        """
+        :param output_path: Where results derived from this dataset (e.g. via `*`) should be
+            written - a real file path or a /vsimem/ path. When omitted, such results are
+            backed by an in-memory MEM dataset instead, useful to avoid holding a large raster
+            resident in process memory.
+        """
         self.ds = ds
         self.ds_path = ds_path
         self.band = band
         self.chunk_size = chunk_size
         self.access = access
+        self.output_path = output_path
 
     def __enter__(self):
         if self.ds is None:
@@ -99,7 +107,8 @@ class WPSDataset:
 
     def __mul__(self, other):
         """
-        Multiplies this WPSDataset with the other WPSDataset
+        Multiplies this WPSDataset with the other WPSDataset. The result is backed by
+        self.output_path if set, otherwise an in-memory MEM dataset.
 
         :param other: WPSDataset
         :raises ValueError: Raised if this and other WPSDataset have mismatched raster dimensions
@@ -134,8 +143,13 @@ class WPSDataset:
         datatype = self_band.DataType
 
         # Create the output raster
-        driver: gdal.Driver = gdal.GetDriverByName("MEM")
-        out_ds: gdal.Dataset = driver.Create("memory", x_size, y_size, 1, datatype)
+        if self.output_path is None:
+            driver: gdal.Driver = gdal.GetDriverByName("MEM")
+            dataset_name = "memory"
+        else:
+            driver: gdal.Driver = gdal.GetDriverByName("GTiff")
+            dataset_name = self.output_path
+        out_ds: gdal.Dataset = driver.Create(dataset_name, x_size, y_size, 1, datatype)
 
         # Set the geotransform and projection
         out_ds.SetGeoTransform(geotransform)
