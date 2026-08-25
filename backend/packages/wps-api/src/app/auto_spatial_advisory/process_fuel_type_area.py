@@ -10,7 +10,6 @@ from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import text
-from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_all_hfi_thresholds,
     get_all_sfms_fuel_types,
@@ -23,6 +22,7 @@ from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFu
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
+from wps_shared.utils.s3 import gdal_s3_context
 
 from app.auto_spatial_advisory.common import get_hfi_s3_key
 
@@ -100,7 +100,9 @@ def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelTyp
     x_res = geotransform[1]
     y_res = abs(geotransform[5])
     source_band = source.GetRasterBand(1)
-    histogram = source_band.GetHistogram()
+    # approx_ok=0: the default (approx_ok=1) samples a small, roughly fixed-size subset of
+    # pixels regardless of raster size, undercounting area by up to ~25x on rasters this size.
+    histogram = source_band.GetHistogram(approx_ok=0)
     combustible_fuel_type_ids = [
         fuel_type.fuel_type_id
         for fuel_type in fuel_types
@@ -176,41 +178,6 @@ async def get_advisory_shape(
     return geometry
 
 
-def create_masked_fuel_type_tif(
-    masked_fuel_type_data: list[list[float]],
-    threshold: int,
-    geotransform: list[float],
-    projection: str,
-    x_size: int,
-    y_size: int,
-):
-    """
-    Creates a new raster (a GeoTiff) file using the provided data and parameters.
-
-    :param masked_fuel_type_data: The data to be written to the raster.
-    :param temp_dir: A temporary location for storing intermediate files.
-    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k.
-    :param geotransform: The geotransform of the new raster.
-    :param projection: The projection of the new raster.
-    :param x_size: The number of pixels in the x direction.
-    :param y_size: The number of pixels in the y direction.
-    """
-    output_driver: gdal.Driver = gdal.GetDriverByName("MEM")
-    masked_fuel_type: gdal.Dataset = output_driver.Create(
-        f"/vsimem/masked_fuel_type_{threshold}.tif",
-        xsize=x_size,
-        ysize=y_size,
-        bands=1,
-        eType=gdal.GDT_Int16,
-    )
-    masked_fuel_type.SetGeoTransform(geotransform)
-    masked_fuel_type.SetProjection(projection)
-    masked_fuel_type_band: gdal.Band = masked_fuel_type.GetRasterBand(1)
-    masked_fuel_type_band.SetNoDataValue(0)
-    masked_fuel_type_band.WriteArray(masked_fuel_type_data)
-    return masked_fuel_type
-
-
 async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: datetime, for_date: date):
     """
     Entry point for deriving fuel type areas for each hfi threshold per advisory shape (eg. fire zone unit).
@@ -238,82 +205,62 @@ async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: dateti
     )
     perf_start = perf_counter()
 
-    gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", config.get("OBJECT_STORE_SECRET"))
-    gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
-    gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
-    gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
+    async with get_async_write_session_scope() as session:
+        run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
+        fuel_type_raster_record = await get_fuel_type_raster_by_year(session, for_date.year)
+        if fuel_type_raster_record is None:
+            raise RuntimeError(f"No fuel type raster found for {for_date.year}")
 
-    hfi_raster = None
-    fuel_type_raster = None
-    try:
-        async with get_async_write_session_scope() as session:
-            run_parameters_id = await get_run_parameters_id(
-                session, run_type, run_datetime, for_date
-            )
-            fuel_type_raster_record = await get_fuel_type_raster_by_year(session, for_date.year)
-            if fuel_type_raster_record is None:
-                raise RuntimeError(f"No fuel type raster found for {for_date.year}")
+        stmt = select(AdvisoryFuelStats).where(
+            AdvisoryFuelStats.run_parameters == run_parameters_id
+        )
+        exists = (await session.execute(stmt)).scalars().first() is not None
 
-            stmt = select(AdvisoryFuelStats).where(
-                AdvisoryFuelStats.run_parameters == run_parameters_id
-            )
-            exists = (await session.execute(stmt)).scalars().first() is not None
+        if exists:
+            logger.info("Advisory fuel stats already processed")
+            return
 
-            if exists:
-                logger.info("Advisory fuel stats already processed")
-                return
-
+        with gdal_s3_context():
             # Retrieve the appropriate hfi raster from s3 storage
             hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
-            hfi_raster = gdal.Open(hfi_key, gdal.GA_ReadOnly)
-            hfi_data = hfi_raster.GetRasterBand(1).ReadAsArray()
+            with WPSDataset(hfi_key) as hfi_raster:
+                hfi_data = hfi_raster.ds.GetRasterBand(1).ReadAsArray()
 
             # Retrieve the fuel type raster from s3 storage.
             fuel_type_key = BaseRasterAddresser().gdal_path(
                 S3Key(fuel_type_raster_record.object_store_path)
             )
-            fuel_type_raster = gdal.Open(fuel_type_key, gdal.GA_ReadOnly)
-            fuel_type_band = fuel_type_raster.GetRasterBand(1)
-            fuel_type_data = fuel_type_band.ReadAsArray()
+            with WPSDataset(fuel_type_key) as fuel_type_raster:
+                fuel_type_data = fuel_type_raster.ds.GetRasterBand(1).ReadAsArray()
+                # Properties useful for creating the per-threshold masked fuel type raster
+                geotransform = fuel_type_raster.ds.GetGeoTransform()
+                projection = fuel_type_raster.ds.GetProjection()
 
-            # Properties useful for creating a new GeoTiff
-            geotransform = fuel_type_raster.GetGeoTransform()
-            projection = fuel_type_raster.GetProjection()
-            x_size = fuel_type_band.XSize
-            y_size = fuel_type_band.YSize
+        thresholds = await get_all_hfi_thresholds(session)
+        fuel_types = await get_all_sfms_fuel_types(session)
 
-            thresholds = await get_all_hfi_thresholds(session)
-            fuel_types = await get_all_sfms_fuel_types(session)
-
-            for threshold in thresholds:
-                classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
-                masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
-                try:
-                    with WPSDataset(
-                        ds_path=None,
-                        ds=create_masked_fuel_type_tif(
-                            masked_fuel_type_data,
-                            threshold.id,
-                            geotransform,
-                            projection,
-                            x_size,
-                            y_size,
-                        ),
-                    ) as masked_fuel_type_ds:
-                        await calculate_fuel_type_area_by_shape(
-                            session,
-                            masked_fuel_type_ds,
-                            threshold.id,
-                            run_parameters_id,
-                            fuel_types,
-                            fuel_type_raster_record.id,
-                        )
-                finally:
-                    del classified_hfi_data
-                    del masked_fuel_type_data
-    finally:
-        hfi_raster = None
-        fuel_type_raster = None
+        for threshold in thresholds:
+            classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
+            masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
+            try:
+                with WPSDataset.from_array(
+                    masked_fuel_type_data,
+                    geotransform,
+                    projection,
+                    nodata_value=0,
+                    datatype=gdal.GDT_Int16,
+                ) as masked_fuel_type_ds:
+                    await calculate_fuel_type_area_by_shape(
+                        session,
+                        masked_fuel_type_ds,
+                        threshold.id,
+                        run_parameters_id,
+                        fuel_types,
+                        fuel_type_raster_record.id,
+                    )
+            finally:
+                del classified_hfi_data
+                del masked_fuel_type_data
 
     perf_end = perf_counter()
     delta = perf_end - perf_start
