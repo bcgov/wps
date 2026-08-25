@@ -1,7 +1,7 @@
 import math
 import uuid
 from contextlib import ExitStack, contextmanager
-from typing import Iterator, List, Optional, Tuple, Union
+from typing import Iterator, List, Optional, Tuple
 from osgeo import gdal, ogr, osr
 import numpy as np
 import io
@@ -278,7 +278,7 @@ class WPSDataset:
 
     def clip_to_geometry(
         self,
-        cutline: Union[ogr.Geometry, str],
+        cutline: ogr.Geometry | str,
         output_path: str | None = None,
         format: str = "GTiff",
     ) -> "WPSDataset":
