@@ -249,6 +249,28 @@ def test_ordering_comparisons_against_a_threshold():
         assert np.array_equal(wps_ds >= 5000, np.array([[False, True], [True, False]]))
 
 
+def test_repeated_comparisons_only_read_the_band_once(mocker):
+    """Multi-condition classify-style code (np.select([source < 4000, source < 10000], ...)) does
+    two comparisons against the same instance - the underlying GDAL read must not happen twice."""
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Int16, fill_value=0
+    )
+    ds.GetRasterBand(1).WriteArray(np.array([[1000, 5000], [11000, 0]], dtype=np.int16))
+
+    # gdal.Band.ReadAsArray is patched at the class level since GetRasterBand(1) returns a new
+    # Python wrapper object each call, even though it's the same underlying band.
+    read_spy = mocker.patch.object(
+        gdal.Band, "ReadAsArray", wraps=gdal.Band.ReadAsArray, autospec=True
+    )
+
+    with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+        classified = np.select([wps_ds < 4000, wps_ds < 10000], [0, 1], default=2)
+
+        assert np.array_equal(classified, np.array([[0, 1], [2, 0]]))
+        read_spy.assert_called_once()
+
+
 def test_from_array_disk_backed_via_output_path():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_path = os.path.join(temp_dir, "from_array.tif")

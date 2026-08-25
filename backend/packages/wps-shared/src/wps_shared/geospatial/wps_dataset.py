@@ -1,10 +1,11 @@
+import io
 import math
 import uuid
 from contextlib import ExitStack, contextmanager
 from typing import Iterator, List, NamedTuple, Optional, Tuple
-from osgeo import gdal, ogr, osr
+
 import numpy as np
-import io
+from osgeo import gdal, ogr, osr
 
 from wps_shared.geospatial.geospatial import GDALResamplingMethod, rasters_match
 
@@ -46,6 +47,7 @@ class WPSDataset:
         self.chunk_size = chunk_size
         self.access = access
         self.output_path = output_path
+        self._array: Optional[np.ndarray] = None
 
     def __enter__(self):
         if self.ds is None:
@@ -60,9 +62,15 @@ class WPSDataset:
         """
         Lets this dataset be passed directly to numpy functions (np.where(cond, wps_ds, 0),
         np.unique(wps_ds), etc.) since numpy converts array-like arguments via this protocol.
+
+        The read is cached: repeated comparisons against the same instance (e.g.
+        `np.select([source < 4000, source < 10000], ...)`) re-read GDAL only once. Safe because
+        nothing in this class mutates self.ds's band data in place. Every writer (`__mul__`,
+        `warp_to_match`, `clip_to_geometry`, `from_array`) returns a new WPSDataset instead.
         """
-        array = self.ds.GetRasterBand(self.band).ReadAsArray()
-        return array.astype(dtype) if dtype is not None else array
+        if self._array is None:
+            self._array = self.ds.GetRasterBand(self.band).ReadAsArray()
+        return self._array.astype(dtype) if dtype is not None else self._array
 
     # Ordering comparisons against a threshold (source < 4000) for classify-style code written
     # directly against a WPSDataset - see transform(). Deliberately not __eq__/__ne__ (no current
@@ -585,6 +593,7 @@ class WPSDataset:
                 if file_path.startswith("/vsimem/"):
                     gdal.Unlink(file_path)
         self.ds = None
+        self._array = None
 
 
 @contextmanager
