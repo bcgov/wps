@@ -6,6 +6,7 @@ import tempfile
 from datetime import date, datetime, timedelta
 from time import perf_counter
 
+import aiofiles
 from osgeo import ogr, osr
 from shapely import wkb, wkt
 from shapely.validation import make_valid
@@ -153,14 +154,15 @@ async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date)
             raster_filename = get_raster_tif_filename(for_date)
             raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, raster_filename)
             logger.info(f"Uploading file {raster_filename} to {raster_key}")
-            with open(working_hfi_path, "rb") as f:
-                # HFI_GEOSPATIAL_PERMISSIONS: these need to be accessible to everyone
-                await client.put_object(
-                    Bucket=bucket,
-                    Key=raster_key,
-                    ACL=HFI_GEOSPATIAL_PERMISSIONS,
-                    Body=f,
-                )
+            async with aiofiles.open(working_hfi_path, "rb") as f:
+                contents = await f.read()
+            # HFI_GEOSPATIAL_PERMISSIONS: these need to be accessible to everyone
+            await client.put_object(
+                Bucket=bucket,
+                Key=raster_key,
+                ACL=HFI_GEOSPATIAL_PERMISSIONS,
+                Body=contents,
+            )
             logger.info("Done uploading %s", raster_key)
             with polygonize_in_memory(working_hfi_path, "hfi", "hfi") as layer:
                 # We need a geojson file to pass to tippecanoe
@@ -179,14 +181,15 @@ async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date)
                 key = get_pmtiles_filepath(run_datetime, run_type, pmtiles_filename)
                 logger.info(f"Uploading file {pmtiles_filename} to {key}")
 
+                async with aiofiles.open(temp_pmtiles_filepath, "rb") as f:
+                    contents = await f.read()
                 # HFI_GEOSPATIAL_PERMISSIONS: these need to be accessible to everyone
-                with open(temp_pmtiles_filepath, "rb") as f:
-                    await client.put_object(
-                        Bucket=bucket,
-                        Key=key,
-                        ACL=HFI_GEOSPATIAL_PERMISSIONS,
-                        Body=f,
-                    )
+                await client.put_object(
+                    Bucket=bucket,
+                    Key=key,
+                    ACL=HFI_GEOSPATIAL_PERMISSIONS,
+                    Body=contents,
+                )
                 logger.info("Done uploading %s", key)
 
                 spatial_reference: osr.SpatialReference = layer.GetSpatialRef()
