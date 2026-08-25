@@ -147,9 +147,7 @@ async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date)
                 working_hfi_path = temp_filename
             else:
                 # Create a snow coverage mask from previously downloaded snow data.
-                working_hfi_path = await apply_snow_mask(
-                    temp_filename, last_processed_snow[0], temp_dir
-                )
+                working_hfi_path = apply_snow_mask(temp_filename, last_processed_snow[0], temp_dir)
 
             raster_filename = get_raster_tif_filename(for_date)
             raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, raster_filename)

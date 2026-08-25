@@ -26,7 +26,7 @@ def classify_snow_mask(snow_source: WPSDataset) -> WPSDataset:
     return snow_source.with_array(classified, datatype=gdal.GDT_Byte)
 
 
-async def apply_snow_mask(hfi_path: str, last_processed_snow: ProcessedSnow, temp_dir: str) -> str:
+def apply_snow_mask(hfi_path: str, last_processed_snow: ProcessedSnow, temp_dir: str) -> str:
     with gdal_s3_context():
         bucket = config.get("OBJECT_STORE_BUCKET")
         for_date = last_processed_snow.for_date
