@@ -2,10 +2,8 @@
 
 import logging
 import numpy as np
-from sqlalchemy import Column, String, Integer, Float, Boolean, Sequence, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import Column, String, Integer, Float, Boolean, Sequence, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import ARRAY
-from geoalchemy2 import Geometry
 from wps_shared.db.models import Base
 import wps_shared.utils.time as time_utils
 from wps_shared.db.models.common import TZTimeStamp
@@ -114,72 +112,6 @@ class PredictionModelRunTimestamp(Base):
         ).format(self=self)
 
 
-class PredictionModelGridSubset(Base):
-    """Identify the vertices surrounding the area of interest"""
-
-    __tablename__ = "prediction_model_grid_subsets"
-    __table_args__ = (UniqueConstraint("prediction_model_id", "geom"), {"comment": "Identify the vertices surrounding the area of interest"})
-
-    id = Column(Integer, Sequence("prediction_model_grid_subsets_id_seq"), primary_key=True, nullable=False, index=True)
-    # Which model does this grid belong to? e.g. GDPS latlon.15x.15?
-    prediction_model_id = Column(Integer, ForeignKey("prediction_models.id"), nullable=False, index=True)
-    prediction_model = relationship("PredictionModel")
-    # Order of vertices is important!
-    # 1st vertex top left, 2nd vertex top right, 3rd vertex bottom right, 4th vertex bottom left.
-    # We create the index later, due to issue with alembic + geoalchemy.
-    geom = Column(Geometry("POLYGON", spatial_index=False), nullable=False)
-
-    def __str__(self):
-        return ("id: {self.id}, prediction_model_id: {self.prediction_model_id}").format(self=self)
-
-
-# Explicit creation of index due to issue with alembic + geoalchemy.
-Index("idx_prediction_model_grid_subsets_geom", PredictionModelGridSubset.geom, postgresql_using="gist")
-
-
-class ModelRunGridSubsetPrediction(Base):
-    """The prediction for a particular model grid subset.
-    Each value is an array that corresponds to the vertex in the prediction bounding polygon."""
-
-    __tablename__ = "model_run_grid_subset_predictions"
-    __table_args__ = (
-        UniqueConstraint("prediction_model_run_timestamp_id", "prediction_model_grid_subset_id", "prediction_timestamp"),
-        {"comment": "The prediction for a grid subset of a particular model run."},
-    )
-
-    id = Column(Integer, Sequence("model_run_grid_subset_predictions_id_seq"), primary_key=True, nullable=False, index=True)
-    # Which model run does this forecacst apply to? E.g. The GDPS 15x.15 run from 2020 07 07 12h00.
-    prediction_model_run_timestamp_id = Column(Integer, ForeignKey("prediction_model_run_timestamps.id"), nullable=False, index=True)
-    prediction_model_run_timestamp = relationship("PredictionModelRunTimestamp", foreign_keys=[prediction_model_run_timestamp_id])
-    # Which grid does this prediction apply to?
-    prediction_model_grid_subset_id = Column(Integer, ForeignKey("prediction_model_grid_subsets.id"), nullable=False, index=True)
-    prediction_model_grid_subset = relationship("PredictionModelGridSubset")
-    # The date and time to which the prediction applies.
-    prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
-    # Temperature 2m above model layer.
-    tmp_tgl_2 = Column(ARRAY(Float), nullable=True)
-    # Relative humidity 2m above model layer.
-    rh_tgl_2 = Column(ARRAY(Float), nullable=True)
-    # Accumulated precipitation (units kg.m^-2)
-    apcp_sfc_0 = Column(ARRAY(Float), nullable=True)
-    # Wind direction 10m above ground.
-    wdir_tgl_10 = Column(ARRAY(Float), nullable=True)
-    # Wind speed 10m above ground.
-    wind_tgl_10 = Column(ARRAY(Float), nullable=True)
-
-    def __str__(self):
-        return (
-            "id:{self.id}, "
-            "prediction_model_run_timestamp_id:{self.prediction_model_run_timestamp_id}, "
-            "prediction_model_grid_subset_id:{self.prediction_model_grid_subset_id}, "
-            "prediction_timestamp={self.prediction_timestamp}, "
-            "tmp_tgl_2={self.tmp_tgl_2}, "
-            "rh_tgl_2={self.rh_tgl_2}, "
-            "apcp_sfc_0={self.apcp_sfc_0}, "
-            "wdir_tgl_10={self.wdir_tgl_10}, "
-        ).format(self=self)
-
-
 class ModelRunPrediction(Base):
     """The prediction for a particular model.
     Each value is a numeric value that corresponds to the lat lon from the model raster"""
@@ -242,10 +174,7 @@ class ModelRunPrediction(Base):
 
 
 class WeatherStationModelPrediction(Base):
-    """The model prediction for a particular weather station.
-    Based on values from ModelRunGridSubsetPrediction, but captures linear interpolations based on weather
-    station's location within the grid_subset, and also captures time-based linear interpolations where
-    needed for certain Model types."""
+    """The model prediction for a particular weather station. Includes bias adjusted values and time interpolated predictions where applicable"""
 
     __tablename__ = "weather_station_model_predictions"
     __table_args__ = (
@@ -259,17 +188,14 @@ class WeatherStationModelPrediction(Base):
     # Which PredictionModelRunTimestamp is this station's prediction based on?
     prediction_model_run_timestamp_id = Column(Integer, ForeignKey("prediction_model_run_timestamps.id"), nullable=False, index=True)
     prediction_model_run_timestamp = relationship("PredictionModelRunTimestamp")
-    # The date and time to which the prediction applies. Will most often be copied directly from
-    # prediction_timestamp for the ModelRunGridSubsetPrediction, but is included again for cases
-    # when values are interpolated (e.g., noon interpolations on GDPS model runs)
+    # The date and time to which the prediction applies. Usually copied from ModelRunPrediction,
+    # but may represent a time-interpolated prediction.
     prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
-    # Temperature 2m above model layer - an interpolated value based on 4 values from
-    # model_run_grid_subset_prediction
+    # Temperature 2m above model layer
     tmp_tgl_2 = Column(Float, nullable=True)
     # Temperature prediction using available data.
     bias_adjusted_temperature = Column(Float, nullable=True)
-    # Relative Humidity 2m above model layer - an interpolated value based on 4 values
-    # from model_run_grid_subset_prediction
+    # Relative Humidity 2m above model layer
     rh_tgl_2 = Column(Float, nullable=True)
     # RH adjusted by bias
     bias_adjusted_rh = Column(Float, nullable=True)

@@ -40,7 +40,7 @@ FILENAME="dump_db.tar"
 # --clean clean (drop) database objects before recreating
 # -Fc output file format (custom, directory, tar, plain text (default))
 # --exclude-table-data get the table definitions, but not the data
-PG_DUMP="pg_dump --file=/tmp/${FILENAME} --clean -Fc ${DATABASE} --exclude-table-data=model_run_grid_subset_predictions --exclude-table-data=weather_station_model_predictions"
+PG_DUMP="pg_dump --file=/tmp/${FILENAME} --clean -Fc ${DATABASE} --exclude-table-data=weather_station_model_predictions"
 # command to dump database on pod.
 BACKUP_COMMAND="${RSH} ${PG_DUMP}"
 
@@ -51,18 +51,10 @@ printf "\n\n"
 
 # command to dump remaining tables
 STATION_FILE="weather_station_model_predictions.csv"
-GRID_FILE="model_run_grid_subset_predictions.csv"
 STATION_PREDICTIONS="\copy (SELECT * FROM weather_station_model_predictions WHERE prediction_timestamp > current_date - 5) to '/tmp/${STATION_FILE}' with csv"
-GRID_PREDICTIONS="\copy (SELECT * FROM model_run_grid_subset_predictions WHERE prediction_timestamp > current_date - 5) to '/tmp/${GRID_FILE}' with csv"
 
 COPY_COMMAND="${RSH} psql ${DATABASE} -c \"${STATION_PREDICTIONS}\""
 echo "copy weather_station_model_predictions to csv..."
-echo "${COPY_COMMAND}"
-eval "${COPY_COMMAND}"
-printf "\n\n"
-
-COPY_COMMAND="${RSH} psql ${DATABASE} -c \"${GRID_PREDICTIONS}\""
-echo "copy model_run_grid_subset_predictions to csv..."
 echo "${COPY_COMMAND}"
 eval "${COPY_COMMAND}"
 printf "\n\n"
@@ -71,7 +63,7 @@ printf "\n\n"
 # Copy it to local
 ##################
 
-FILES=( "${FILENAME}" "${STATION_FILE}" "${GRID_FILE}" )
+FILES=( "${FILENAME}" "${STATION_FILE}" )
 
 # compress files on the remote server.
 echo "compress files..."
