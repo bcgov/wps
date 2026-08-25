@@ -74,7 +74,7 @@ dependencies {
     implementation 'androidx.browser:browser:1.10.0'
     implementation 'androidx.datastore:datastore-preferences-rxjava3:1.2.1'
     implementation 'com.google.crypto.tink:tink-android:1.23.0'
-    implementation 'com.squareup.okhttp3:okhttp:5.4.0'
+    implementation 'com.squareup.okhttp3:okhttp:5.5.0'
     implementation 'net.openid:appauth:0.11.1'
     testImplementation "junit:junit:$junitVersion"
     testImplementation 'org.mockito:mockito-core:5.23.0'

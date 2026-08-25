@@ -8,22 +8,9 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
-import wps_shared.db.crud.weather_models
-import wps_shared.utils.time as time_utils
-from geoalchemy2.shape import from_shape
 from requests import HTTPError
-from tests.weather_models.test_models_common import (
-    MockResponse,
-    mock_get_model_run_predictions,
-    shape,
-)
+from tests.weather_models.test_models_common import MockResponse
 from weather_model_jobs import common_model_fetchers, noaa
-from wps_shared.db.models.weather_models import (
-    PredictionModel,
-    PredictionModelGridSubset,
-    PredictionModelRunTimestamp,
-    ProcessedModelRunUrl,
-)
 from wps_shared.weather_models import (
     CompletedWithSomeExceptions,
     ModelEnum,
@@ -31,67 +18,6 @@ from wps_shared.weather_models import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture()
-def mock_get_model_run_predictions_for_grid(monkeypatch):
-    """Mock out call to DB returning predictions"""
-
-    monkeypatch.setattr(
-        common_model_fetchers, "get_model_run_predictions_for_grid", mock_get_model_run_predictions
-    )
-
-
-@pytest.fixture()
-def mock_database(monkeypatch):
-    """Mocked out database queries"""
-    gfs_url = (
-        "https://www.ncei.noaa.gov/data/global-forecast-system/access/grid-004-0.5-degree/"
-        "forecast/202302/20230219/gfs_4_20230219_0600_018.grb2"
-    )
-    gfs_processed_model_run = ProcessedModelRunUrl(url=gfs_url)
-    gfs_prediction_model = PredictionModel(
-        id=1, abbreviation="GFS", projection="lonlat.0.25deg", name="Global Forecast System"
-    )
-    gfs_prediction_model_run = PredictionModelRunTimestamp(
-        id=1,
-        prediction_model_id=1,
-        prediction_run_timestamp=time_utils.get_utc_now(),
-        prediction_model=gfs_prediction_model,
-        complete=True,
-    )
-
-    def mock_get_gfs_prediction_model_run_timestamp_records(*args, **kwargs):
-        return [(gfs_prediction_model_run, gfs_prediction_model)]
-
-    def mock_get_processed_file_record(session, url: str):
-        # We only want the one file to be processed - otherwise our test takes forever
-        if url != gfs_url:
-            return gfs_processed_model_run
-        return None
-
-    def mock_get_grids_for_coordinate(session, prediction_model, coordinate):
-        return [
-            PredictionModelGridSubset(
-                id=1, prediction_model_id=gfs_prediction_model.id, geom=from_shape(shape)
-            ),
-        ]
-
-    def mock_get_prediction_run(*args, **kwargs):
-        return gfs_prediction_model_run
-
-    monkeypatch.setattr(noaa, "get_processed_file_record", mock_get_processed_file_record)
-    monkeypatch.setattr(
-        common_model_fetchers,
-        "get_prediction_model_run_timestamp_records",
-        mock_get_gfs_prediction_model_run_timestamp_records,
-    )
-    monkeypatch.setattr(
-        common_model_fetchers, "get_grids_for_coordinate", mock_get_grids_for_coordinate
-    )
-    monkeypatch.setattr(
-        wps_shared.db.crud.weather_models, "get_prediction_run", mock_get_prediction_run
-    )
 
 
 @pytest.fixture()

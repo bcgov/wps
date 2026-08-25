@@ -69,11 +69,6 @@ fi
 if [ "$PARTIAL" = "True" ]
 then
     # Restore table data
-    COPY="psql -h localhost -d wps -U wps -c \"\copy model_run_grid_subset_predictions FROM '${BACKUP_FOLDER}/model_run_grid_subset_predictions.csv' CSV\""
-    echo "${COPY}"
-    eval "${COPY}"
-
-    # Restore table data
     COPY="psql -h localhost -d wps -U wps -c \"\copy weather_station_model_predictions FROM '${BACKUP_FOLDER}/weather_station_model_predictions.csv' CSV\""
     echo "${COPY}"
     eval "${COPY}"

@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock
 import cffdrs.surface_fuel_consumption
 import numpy as np
 import pytest
-from osgeo import gdal, osr
 from pytest_mock import MockerFixture
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
@@ -18,35 +17,9 @@ from wps_sfms.processors.surface_fuel_consumption import (
     calculate_surface_fuel_consumption,
 )
 from wps_sfms.raster_inputs import SurfaceFuelConsumptionInputs
+from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 TEST_DATETIME = datetime(2024, 7, 4, 20, tzinfo=timezone.utc)
-NODATA = -9999.0
-
-
-def make_dataset(path: str, values: np.ndarray, nodata: float = NODATA) -> WPSDataset:
-    rows, columns = values.shape
-    dataset = gdal.GetDriverByName("MEM").Create("", columns, rows, 1, gdal.GDT_Float32)
-    dataset.SetGeoTransform((0, 2_000, 0, 10_000, 0, -2_000))
-    spatial_reference = osr.SpatialReference()
-    spatial_reference.ImportFromEPSG(3005)
-    dataset.SetProjection(spatial_reference.ExportToWkt())
-    band = dataset.GetRasterBand(1)
-    band.SetNoDataValue(nodata)
-    band.WriteArray(values)
-    return WPSDataset(ds_path=path, ds=dataset)
-
-
-@pytest.fixture(autouse=True)
-def output_mask(mocker: MockerFixture):
-    mask = make_dataset("mask.tif", np.ones((1, 1), dtype=np.float32))
-
-    @contextmanager
-    def mask_context():
-        yield mask
-
-    mocker.patch("wps_sfms.raster_output.open_bc_mask_dataset", side_effect=mask_context)
-    yield mask
-    mask.close()
 
 
 def make_datasets(
@@ -57,12 +30,14 @@ def make_datasets(
 ) -> SurfaceFuelConsumptionDatasets:
     shape = fuel.shape
     return SurfaceFuelConsumptionDatasets(
-        fuel=make_dataset("fuel.tif", fuel),
-        ffmc=make_dataset("ffmc.tif", ffmc if ffmc is not None else np.full(shape, 90.0)),
-        bui=make_dataset("bui.tif", bui if bui is not None else np.full(shape, 60.0)),
-        percent_conifer=make_dataset(
+        fuel=create_test_wps_dataset("fuel.tif", fuel),
+        ffmc=create_test_wps_dataset(
+            "ffmc.tif", ffmc if ffmc is not None else np.full(shape, 90.0)
+        ),
+        bui=create_test_wps_dataset("bui.tif", bui if bui is not None else np.full(shape, 60.0)),
+        percent_conifer=create_test_wps_dataset(
             "percent_conifer.tif",
-            percent_conifer if percent_conifer is not None else np.full(shape, NODATA),
+            percent_conifer if percent_conifer is not None else np.full(shape, TEST_INPUT_NODATA),
         ),
     )
 
@@ -103,7 +78,7 @@ def test_calculation_matches_cffdrs_reference(
 
 
 def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
-    fuel = np.array([[99, 102, NODATA]], dtype=np.float32)
+    fuel = np.array([[99, 102, TEST_INPUT_NODATA]], dtype=np.float32)
     datasets = make_datasets(fuel)
 
     result = calculate_surface_fuel_consumption(datasets)
@@ -114,8 +89,8 @@ def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
 def test_non_fuel_becomes_zero_when_weather_is_nodata():
     datasets = make_datasets(
         np.array([[99, 102]], dtype=np.float32),
-        ffmc=np.full((1, 2), NODATA, dtype=np.float32),
-        bui=np.full((1, 2), NODATA, dtype=np.float32),
+        ffmc=np.full((1, 2), TEST_INPUT_NODATA, dtype=np.float32),
+        bui=np.full((1, 2), TEST_INPUT_NODATA, dtype=np.float32),
     )
 
     result = calculate_surface_fuel_consumption(datasets)
@@ -126,8 +101,8 @@ def test_non_fuel_becomes_zero_when_weather_is_nodata():
 def test_weather_nodata_propagates_to_output():
     datasets = make_datasets(
         np.array([[1, 2]], dtype=np.float32),
-        ffmc=np.array([[NODATA, 90]], dtype=np.float32),
-        bui=np.array([[60, NODATA]], dtype=np.float32),
+        ffmc=np.array([[TEST_INPUT_NODATA, 90]], dtype=np.float32),
+        bui=np.array([[60, TEST_INPUT_NODATA]], dtype=np.float32),
     )
 
     result = calculate_surface_fuel_consumption(datasets)
@@ -229,7 +204,10 @@ async def test_processor_publishes_masked_output_with_metadata(
 
 
 @pytest.mark.anyio
-async def test_processor_publish_failure_propagates_and_clears_cache(mocker: MockerFixture):
+async def test_processor_publish_failure_propagates_and_clears_cache(
+    mocker: MockerFixture,
+    output_mask: WPSDataset,
+):
     datasets = make_datasets(np.array([[1]], dtype=np.float32))
     inputs = make_inputs()
     s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
@@ -254,7 +232,7 @@ async def test_processor_rejects_mismatched_grid(mocker: MockerFixture):
     s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
     processor = SurfaceFuelConsumptionProcessor(TEST_DATETIME)
     input_context = make_dataset_context(datasets)
-    mocker.patch("wps_sfms.processors.surface_fuel_consumption.rasters_match", return_value=False)
+    mocker.patch("wps_sfms.raster_dependencies.rasters_match", return_value=False)
     publish = mocker.patch(
         "wps_sfms.processors.surface_fuel_consumption.publish_dataset", new=AsyncMock()
     )
@@ -273,7 +251,7 @@ async def test_processor_rejects_missing_dependency():
     datasets = make_datasets(np.array([[1]]))
     input_context = make_dataset_context(datasets)
 
-    with pytest.raises(RuntimeError, match="Missing SFC dependencies"):
+    with pytest.raises(RuntimeError, match="Missing raster dependencies"):
         await processor.process(s3_client, input_context, inputs)
 
     s3_client.all_objects_exist.assert_awaited_once_with(

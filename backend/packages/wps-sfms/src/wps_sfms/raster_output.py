@@ -21,20 +21,20 @@ def open_bc_mask_dataset() -> Generator[WPSDataset, None, None]:
 def create_masked_output_dataset(
     values: np.ndarray,
     reference: WPSDataset,
+    mask: WPSDataset,
     nodata_value: float,
 ) -> Generator[WPSDataset, None, None]:
     """Create an output dataset with the BC mask enforced as the final value boundary."""
-    with open_bc_mask_dataset() as mask:
-        valid_mask = reference.apply_mask(mask)
-        if values.shape != valid_mask.shape:
-            raise ValueError(
-                "Output array shape does not match reference grid: "
-                f"{values.shape} vs {valid_mask.shape}"
-            )
+    valid_mask = reference.apply_mask(mask)
+    if values.shape != valid_mask.shape:
+        raise ValueError(
+            "Output array shape does not match reference grid: "
+            f"{values.shape} vs {valid_mask.shape}"
+        )
 
-        # cast before masking so GDAL does not convert Float64 nodata to Float32 inconsistently
-        masked_values = values.astype(np.float32, copy=True)
-        masked_values[~valid_mask] = nodata_value
+    # cast before masking so GDAL does not convert Float64 nodata to Float32 inconsistently
+    masked_values = values.astype(np.float32, copy=True)
+    masked_values[~valid_mask] = nodata_value
     reference_ds = reference.as_gdal_ds()
 
     with WPSDataset.from_array(

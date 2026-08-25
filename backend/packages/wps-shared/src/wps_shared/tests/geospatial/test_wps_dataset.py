@@ -1,8 +1,9 @@
 import os
-import numpy as np
-from osgeo import gdal
-import pytest
 import tempfile
+
+import numpy as np
+import pytest
+from osgeo import gdal
 
 from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
 from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset, create_test_dataset
@@ -118,6 +119,101 @@ def test_raster_mul_identity():
         output_values = output_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
         left_side_values = wps1_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
         assert np.all(output_values == left_side_values) == True
+
+
+def test_raster_mul_defaults_to_memory_backed():
+    """Without output_path set on the left operand, `*` keeps its original in-memory (MEM driver) behaviour."""
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds_1 = create_test_dataset(
+        "test_dataset_1.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2
+    )
+    ds_2 = create_test_dataset(
+        "test_dataset_2.tif", 1, 1, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1
+    )
+
+    with (
+        WPSDataset(ds_path=None, ds=ds_1) as wps1_ds,
+        WPSDataset(ds_path=None, ds=ds_2) as wps2_ds,
+    ):
+        output_ds = wps1_ds * wps2_ds
+        assert output_ds.as_gdal_ds().GetDriver().ShortName == "MEM"
+
+
+def test_raster_mul_disk_backed():
+    """Setting output_path on the left operand backs the `*` result with a real GTiff on disk instead of MEM."""
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds_1 = create_test_dataset(
+        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2
+    )
+    ds_2 = create_test_dataset(
+        "test_dataset_2.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1
+    )
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_path = os.path.join(temp_dir, "masked.tif")
+
+        with (
+            WPSDataset(ds_path=None, ds=ds_1, output_path=output_path) as wps1_ds,
+            WPSDataset(ds_path=None, ds=ds_2) as wps2_ds,
+        ):
+            output_ds = wps1_ds * wps2_ds
+            raw_ds = output_ds.as_gdal_ds()
+
+            assert raw_ds.GetDriver().ShortName == "GTiff"
+            assert np.all(raw_ds.GetRasterBand(1).ReadAsArray() == 2)
+            raw_ds.FlushCache()  # caller's responsibility, same as process_elevation_hfi.py
+
+        assert os.path.exists(output_path)
+
+        # confirm the file actually persisted to disk with the multiplied result, not just an in-process handle
+        with WPSDataset(output_path) as reopened:
+            assert np.all(reopened.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 2)
+
+
+def test_raster_mul_disk_backed_corrupt_read_if_not_closed_before_reopen():
+    """Regression test for https://github.com/bcgov/wps/pull/5754#discussion_r3855512495.
+
+    Reopening a disk-backed `*` result's output_path while the writer dataset is still open
+    (only FlushCache()'d, not closed) triggers a GDAL warning that the GeoTIFF's directory is
+    malformed, because GDAL doesn't finalize a GTiff's directory structure until the writing
+    dataset is closed. Closing the writer first (as process_elevation_hfi.py's
+    process_tpi_by_firezone now does) avoids this.
+    """
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds_1 = create_test_dataset(
+        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=9
+    )
+    ds_2 = create_test_dataset(
+        "test_dataset_2.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1
+    )
+
+    warnings = []
+    gdal.PushErrorHandler(lambda err_class, err_num, msg: warnings.append(msg))
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = os.path.join(temp_dir, "masked.tif")
+
+            with (
+                WPSDataset(ds_path=None, ds=ds_1, output_path=output_path) as wps1_ds,
+                WPSDataset(ds_path=None, ds=ds_2) as wps2_ds,
+            ):
+                # bug reproduction: hold the writer open (FlushCache only) and reopen its path
+                with wps1_ds * wps2_ds as writer_result:
+                    writer_result.as_gdal_ds().FlushCache()
+
+                    with WPSDataset(output_path):
+                        pass
+
+                assert any("StripByteCounts" in w for w in warnings)
+                warnings.clear()
+
+                # fix: reopening after the writer's `with` block has closed it is clean
+                with WPSDataset(output_path):
+                    pass
+
+        assert warnings == []
+    finally:
+        gdal.PopErrorHandler()
 
 
 def test_raster_mul_wrong_dimensions():

@@ -42,7 +42,7 @@ def output_mask(mocker: MockerFixture):
     def mask_context():
         yield mask
 
-    mocker.patch("wps_sfms.raster_output.open_bc_mask_dataset", side_effect=mask_context)
+    mocker.patch("wps_sfms.processors.fwi.open_bc_mask_dataset", side_effect=mask_context)
     yield mask
     mask.close()
 
