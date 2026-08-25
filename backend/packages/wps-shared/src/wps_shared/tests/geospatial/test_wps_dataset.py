@@ -399,7 +399,7 @@ def test_close_unlinks_vsimem_file_even_when_referenced_via_mem_driver_dataset()
     for a real GTiff-on-vsimem result. WPSDataset doesn't special-case the driver."""
     vsimem_path = "/vsimem/masked_fuel_type_1.tif"
     real_ds = gdal.GetDriverByName("GTiff").Create(vsimem_path, 2, 2, 1)
-    real_ds = None
+    del real_ds  # drop the only reference to close/flush the GTiff onto the vsimem filesystem
     assert gdal.VSIStatL(vsimem_path) is not None
 
     mem_ds = gdal.GetDriverByName("MEM").Create(vsimem_path, 2, 2, 1)
