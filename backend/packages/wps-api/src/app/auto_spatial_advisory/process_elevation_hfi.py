@@ -41,7 +41,10 @@ async def process_hfi_elevation(run_type: RunType, run_datetime: datetime, for_d
     :param for_date: The date of the hfi to process. (when is the hfi for?)
     """
     logger.info(
-        "Processing HFI elevation %s for run date: %s, for date: %s", run_type, run_datetime, for_date
+        "Processing HFI elevation %s for run date: %s, for date: %s",
+        run_type,
+        run_datetime,
+        for_date,
     )
     perf_start = perf_counter()
 
@@ -107,9 +110,13 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
             WPSDataset(hfi_key) as hfi_source,
         ):
             pixel_size_metres = int(tpi_source.ds.GetGeoTransform()[1])
-            resized_hfi_source = hfi_source.warp_to_match(tpi_source, output_path=warped_hfi_path)
-            masked_tpi_source = tpi_source * resized_hfi_source
-            masked_tpi_source.ds.FlushCache()
+            with hfi_source.warp_to_match(
+                tpi_source, output_path=warped_hfi_path
+            ) as resized_hfi_source:
+                # Close masked_tpi_source before masked_tpi_path is reopened below because GDAL doesn't
+                # finalize a GTiff's directory structure until the writing dataset is closed
+                with tpi_source * resized_hfi_source as masked_tpi_source:
+                    masked_tpi_source.ds.FlushCache()
 
         async with get_async_write_session_scope() as session:
             stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
