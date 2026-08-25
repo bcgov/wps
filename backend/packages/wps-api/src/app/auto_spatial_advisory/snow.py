@@ -24,11 +24,8 @@ def classify_snow_mask(snow_path: str, temp_dir: str):
         # In the classified data 0 is assigned to snow covered pixels which will 'cancel' HFI
         # values when the rasters are multiplied later on. QA values in the original data are
         # assigned a value of 1 so they dont impact HFI calculations for now.
-        source.transform(
-            lambda data: np.where((data > 10) & (data <= 100), 0, 1),
-            datatype=gdal.GDT_Byte,
-            output_path=snow_mask_path,
-        )
+        classified = np.where((source > 10) & (source <= 100), 0, 1)
+        source.with_array(classified, datatype=gdal.GDT_Byte, output_path=snow_mask_path)
     return snow_mask_path
 
 

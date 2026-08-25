@@ -1,7 +1,7 @@
 import math
 import uuid
 from contextlib import ExitStack, contextmanager
-from typing import Callable, Iterator, List, Optional, Tuple, Union
+from typing import Iterator, List, Optional, Tuple, Union
 from osgeo import gdal, ogr, osr
 import numpy as np
 import io
@@ -53,12 +53,26 @@ class WPSDataset:
         """
         Lets this dataset be passed directly to numpy functions (np.where(cond, wps_ds, 0),
         np.unique(wps_ds), etc.) since numpy converts array-like arguments via this protocol.
-        Does NOT enable python operators like `wps_ds > 0` (that needs __gt__, not __array__) -
-        deliberately not added, since it would need to coexist with __mul__'s existing
-        raster-aligned-multiply semantics rather than numpy's elementwise-scalar meaning.
         """
         array = self.ds.GetRasterBand(self.band).ReadAsArray()
         return array.astype(dtype) if dtype is not None else array
+
+    # Ordering comparisons against a threshold (source < 4000) for classify-style code written
+    # directly against a WPSDataset - see transform(). Deliberately not __eq__/__ne__ (no current
+    # need, and overriding equality has broader semantic risk - identity, hashability) or
+    # arithmetic dunders (__mul__ already means something domain-specific: validated,
+    # mask-normalizing raster multiply, not numpy's elementwise-scalar meaning).
+    def __lt__(self, other):
+        return np.asarray(self) < other
+
+    def __le__(self, other):
+        return np.asarray(self) <= other
+
+    def __gt__(self, other):
+        return np.asarray(self) > other
+
+    def __ge__(self, other):
+        return np.asarray(self) >= other
 
     @classmethod
     def from_array(
@@ -68,6 +82,7 @@ class WPSDataset:
         projection: str,
         nodata_value: Optional[Union[float, int]] = None,
         datatype=gdal.GDT_Float32,
+        output_path: Optional[str] = None,
     ) -> "WPSDataset":
         """
         Create a WPSDataset from a NumPy array, geotransform, and projection.
@@ -77,12 +92,19 @@ class WPSDataset:
         :param projection: WKT string of the projection
         :param nodata_value: Optional nodata value to set for the dataset
         :param datatype gdal datatype
+        :param output_path: Optional output path (a real file, or a /vsimem/ path). When
+            omitted, backed by an in-memory MEM dataset instead.
         :return: An instance of WPSDataset containing the created dataset
         """
         rows, cols = array.shape
 
-        driver: gdal.Driver = gdal.GetDriverByName("MEM")
-        output_dataset: gdal.Dataset = driver.Create("memory", cols, rows, 1, datatype)
+        if output_path is None:
+            driver: gdal.Driver = gdal.GetDriverByName("MEM")
+            dataset_name = "memory"
+        else:
+            driver: gdal.Driver = gdal.GetDriverByName("GTiff")
+            dataset_name = output_path
+        output_dataset: gdal.Dataset = driver.Create(dataset_name, cols, rows, 1, datatype)
 
         # Set the geotransform and projection
         output_dataset.SetGeoTransform(geotransform)
@@ -97,9 +119,37 @@ class WPSDataset:
             output_band.SetNoDataValue(nodata_value)
 
         # Flush cache to ensure all data is written
-        output_band.FlushCache()
+        output_dataset.FlushCache()
 
         return cls(ds_path=None, ds=output_dataset)
+
+    def with_array(
+        self,
+        array: np.ndarray,
+        nodata_value: Optional[Union[float, int]] = None,
+        datatype=None,
+        output_path: Optional[str] = None,
+    ) -> "WPSDataset":
+        """
+        Wrap array (e.g. the result of an np.select classification written directly against
+        this dataset, like `np.select([self < 4000, self < 10000], [0, 1], default=2)`) as a
+        new WPSDataset carrying this dataset's geotransform and projection. Backed by
+        output_path (falling back to self.output_path) the same way `*` picks disk vs MEM.
+
+        :param array: The array to wrap
+        :param nodata_value: Optional nodata value to set on the result
+        :param datatype: Optional gdal datatype for the result; defaults to this dataset's own
+        :param output_path: Optional output path override; defaults to self.output_path
+        :return: a new WPSDataset wrapping array
+        """
+        return WPSDataset.from_array(
+            array,
+            self.ds.GetGeoTransform(),
+            self.ds.GetProjection(),
+            nodata_value=nodata_value,
+            datatype=datatype or self.ds.GetRasterBand(self.band).DataType,
+            output_path=output_path if output_path is not None else self.output_path,
+        )
 
     @classmethod
     def from_bytes(cls, raster_bytes: bytes) -> "WPSDataset":
@@ -286,50 +336,6 @@ class WPSDataset:
 
         clipped_ds = gdal.Warp(output_path, self.ds, options=warp_options)
         return WPSDataset(ds_path=None, ds=clipped_ds)
-
-    def transform(
-        self,
-        func: Callable[[np.ndarray], np.ndarray],
-        nodata_value: Optional[Union[float, int]] = None,
-        datatype=None,
-        output_path: Optional[str] = None,
-    ) -> "WPSDataset":
-        """
-        Apply a numpy transform to this dataset's array (e.g. an np.where classification) and
-        return a new WPSDataset carrying this dataset's geotransform and projection. Backed by
-        output_path (falling back to self.output_path) the same way `*` picks disk vs MEM: a
-        real file or /vsimem/ path if set, otherwise an in-memory MEM dataset.
-
-        :param func: Maps this dataset's array to the transformed array
-        :param nodata_value: Optional nodata value to set on the result
-        :param datatype: Optional gdal datatype for the result; defaults to this dataset's own
-        :param output_path: Optional output path override; defaults to self.output_path
-        :return: a new WPSDataset with the transformed array
-        """
-        band = self.ds.GetRasterBand(self.band)
-        result_array = func(band.ReadAsArray())
-
-        target_path = output_path if output_path is not None else self.output_path
-        if target_path is None:
-            driver: gdal.Driver = gdal.GetDriverByName("MEM")
-            dataset_name = "memory"
-        else:
-            driver: gdal.Driver = gdal.GetDriverByName("GTiff")
-            dataset_name = target_path
-
-        rows, cols = result_array.shape
-        result_ds: gdal.Dataset = driver.Create(
-            dataset_name, cols, rows, 1, datatype or band.DataType
-        )
-        result_ds.SetGeoTransform(self.ds.GetGeoTransform())
-        result_ds.SetProjection(self.ds.GetProjection())
-        result_band: gdal.Band = result_ds.GetRasterBand(1)
-        result_band.WriteArray(result_array)
-        if nodata_value is not None:
-            result_band.SetNoDataValue(nodata_value)
-        result_ds.FlushCache()
-
-        return WPSDataset(ds_path=None, ds=result_ds)
 
     def replace_nodata_with(self, new_no_data_value: int = 0):
         """
@@ -579,7 +585,12 @@ class WPSDataset:
         return value
 
     def close(self):
-        if self.ds is not None:
+        # ds_path is None only for datasets this instance created itself (every writer method -
+        # multiply, warp_to_match, clip_to_geometry, from_array/with_array - constructs
+        # WPSDataset(ds_path=None, ds=...)). A dataset merely opened for reading via
+        # WPSDataset(path) has ds_path set, and must never be auto-unlinked here even if it
+        # happens to live on /vsimem/ - the caller doesn't own that file.
+        if self.ds is not None and self.ds_path is None:
             for file_path in self.ds.GetFileList() or []:
                 if file_path.startswith("/vsimem/"):
                     gdal.Unlink(file_path)
