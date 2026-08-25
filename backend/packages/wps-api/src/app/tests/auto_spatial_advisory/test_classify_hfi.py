@@ -31,11 +31,11 @@ def test_classify_hfi():
         source.close()
 
 
-def test_classify_hfi_closes_every_dataset_it_opens(mocker):
+def test_classify_hfi_closes_the_from_array_output(mocker):
     """Regression test: the WPSDataset.from_array() output is discarded immediately after
-    writing to target_path, so it must be closed explicitly - nothing else references it to
-    close it later, and a bare, unclosed call would leak its GDAL write handle."""
-    close_spy = mocker.patch.object(WPSDataset, "close", wraps=WPSDataset.close, autospec=True)
+    writing to target_path - nothing else references it to close it later - so a bare,
+    unclosed call would leak its GDAL write handle."""
+    from_array_spy = mocker.spy(WPSDataset, "from_array")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = os.path.join(temp_dir, "source.tif")
@@ -47,10 +47,10 @@ def test_classify_hfi_closes_every_dataset_it_opens(mocker):
             output_path=source_path,
         )
         source.close()
-        close_spy.reset_mock()  # only interested in what classify_hfi() itself closes
 
         classify_hfi(source_path, target_path)
 
-        # once for the `source_path` dataset classify_hfi opens for reading, once for the
-        # from_array() dataset it writes target_path with.
-        assert close_spy.call_count == 2
+        # from_array_spy.spy_return is the WPSDataset classify_hfi wrote target_path with -
+        # closed sets .ds to None, so a non-None .ds here means it leaked.
+        output_ds = from_array_spy.spy_return
+        assert output_ds.ds is None
