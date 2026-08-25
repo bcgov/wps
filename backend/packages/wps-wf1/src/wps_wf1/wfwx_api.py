@@ -2,7 +2,7 @@ import asyncio
 import logging
 import math
 from datetime import datetime
-from typing import AsyncGenerator, Callable, Dict, List, Optional, Tuple
+from typing import AsyncGenerator, Dict, List, Optional, Tuple
 
 from aiohttp import ClientSession
 from wps_shared import config
@@ -33,8 +33,7 @@ from wps_wf1.parsers import (
     parse_hourly_actual,
     parse_noon_forecast,
     parse_station,
-    sfms_daily_actuals_mapper,
-    sfms_daily_forecasts_mapper,
+    sfms_daily_mapper,
     station_list_mapper,
     unique_weather_stations_mapper,
     weather_indeterminate_list_mapper,
@@ -313,32 +312,15 @@ class WfwxApi:
 
         return noon_forecasts
 
-    async def _get_sfms_daily_weather_all_stations(
-        self,
-        time_of_interest: datetime,
-        mapper: Callable[[list[dict]], list[SFMSDaily]],
-        log_label: str,
+    async def get_sfms_daily_weather_all_stations(
+        self, time_of_interest: datetime
     ) -> List[SFMSDaily]:
         header = await self._get_auth_header()
-        logger.info("Computing SFMS %s", log_label)
+        logger.info("Computing SFMS daily weather")
         raw_dailies = await self.wfwx_client.fetch_raw_dailies_for_all_stations(
             header, time_of_interest
         )
-        return mapper(raw_dailies)
-
-    async def get_sfms_daily_actuals_all_stations(
-        self, time_of_interest: datetime
-    ) -> List[SFMSDaily]:
-        return await self._get_sfms_daily_weather_all_stations(
-            time_of_interest, sfms_daily_actuals_mapper, "actuals"
-        )
-
-    async def get_sfms_daily_forecasts_all_stations(
-        self, time_of_interest: datetime
-    ) -> List[SFMSDaily]:
-        return await self._get_sfms_daily_weather_all_stations(
-            time_of_interest, sfms_daily_forecasts_mapper, "forecasts"
-        )
+        return sfms_daily_mapper(raw_dailies)
 
     async def get_hourly_actuals_all_stations(
         self, start_timestamp: datetime, end_timestamp: datetime
