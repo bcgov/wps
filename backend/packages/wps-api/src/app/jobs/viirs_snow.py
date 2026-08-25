@@ -17,8 +17,8 @@ from wps_shared.db.crud.snow import get_last_processed_snow_by_processed_date, s
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
 from wps_shared.geospatial.geospatial import SpatialReferenceSystem
+from wps_shared.geospatial.polygonize import polygonize_in_memory
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.utils.polygonize import polygonize_in_memory
 from wps_shared.utils.s3 import get_client
 from wps_shared.utils.time import vancouver_tz
 from wps_shared.wps_logging import configure_logging

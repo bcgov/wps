@@ -25,8 +25,8 @@ from wps_shared.db.models.auto_spatial_advisory import (
 )
 from wps_shared.db.models.snow import SnowSourceEnum
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
+from wps_shared.geospatial.polygonize import polygonize_in_memory
 from wps_shared.run_type import RunType
-from wps_shared.utils.polygonize import polygonize_in_memory
 from wps_shared.utils.s3 import get_client
 
 from app.auto_spatial_advisory.classify_hfi import classify_hfi
