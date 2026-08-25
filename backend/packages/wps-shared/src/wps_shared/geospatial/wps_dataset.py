@@ -80,7 +80,7 @@ class WPSDataset:
         array: np.ndarray,
         geotransform: Tuple[float, float, float, float, float, float],
         projection: str,
-        nodata_value: Optional[Union[float, int]] = None,
+        nodata_value: float | int | None = None,
         datatype=gdal.GDT_Float32,
         output_path: Optional[str] = None,
     ) -> "WPSDataset":
@@ -126,7 +126,7 @@ class WPSDataset:
     def with_array(
         self,
         array: np.ndarray,
-        nodata_value: Optional[Union[float, int]] = None,
+        nodata_value: float | int | None = None,
         datatype=None,
         output_path: Optional[str] = None,
     ) -> "WPSDataset":
@@ -536,7 +536,7 @@ class WPSDataset:
         else:
             return np.ones((y_size, x_size), dtype=bool)
 
-    def get_nodata_mask(self) -> Tuple[Optional[np.ndarray], Optional[Union[float, int]]]:
+    def get_nodata_mask(self) -> Tuple[Optional[np.ndarray], float | int | None]:
         band = self.ds.GetRasterBand(self.band)
         nodata_value = band.GetNoDataValue()
 
