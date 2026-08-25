@@ -2,11 +2,9 @@ import type { MapBrowserEvent } from 'ol'
 import type { EventsKey } from 'ol/events'
 import { Interaction } from 'ol/interaction'
 import { unByKey } from 'ol/Observable'
-import { findRasterLayer, getDataAtPixel } from './rasterTooltipHandler'
+import { findRasterLayer, getDataAtPixel, type RasterTooltipValue } from './rasterTooltipHandler'
 
-export interface RasterTooltipData {
-  value: number | string | null
-  label: string
+export interface RasterTooltipData extends RasterTooltipValue {
   pixel: [number, number] | null
 }
 
@@ -58,7 +56,7 @@ export class RasterTooltipInteraction extends Interaction {
   /**
    * Handle pointer move events
    */
-  private handlePointerMove(event: MapBrowserEvent) {
+  private handlePointerMove(event: MapBrowserEvent<PointerEvent>) {
     const map = event.map
     const pixel = map.getEventPixel(event.originalEvent) as [number, number]
 

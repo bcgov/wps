@@ -1,12 +1,16 @@
 import * as ol from 'ol'
 import type Geometry from 'ol/geom/Geometry'
 import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
-import { FUEL_TYPE_COLORS } from '@/features/sfmsInsights/components/map/rasterConfig'
+import {
+  FMC_COLOR_BREAKS,
+  FUEL_TYPE_COLORS,
+  SFC_COLOR_BREAKS
+} from '@/features/sfmsInsights/components/map/rasterConfig'
 import {
   EMPTY_FILL,
   fuelCOGColourExpression,
   getColorForRasterValue,
-  getFireWeatherColourExpression,
+  getSFMSNGRasterColourExpression,
   isNodataValue,
   NODATA_THRESHOLD,
   SNOW_FILL,
@@ -116,9 +120,29 @@ describe('fuelCOGColourExpression', () => {
   })
 })
 
-describe('getFireWeatherColourExpression', () => {
+describe('getSFMSNGRasterColourExpression', () => {
+  it('should use the normalized shared palettes for SFC and FMC', () => {
+    expect(SFC_COLOR_BREAKS.map(colorBreak => colorBreak.color)).toEqual([
+      'rgb(0, 0, 255)',
+      'rgb(102, 153, 204)',
+      'rgb(0, 170, 0)',
+      'rgb(128, 255, 0)',
+      'rgb(255, 255, 0)',
+      'rgb(255, 170, 0)',
+      'rgb(255, 0, 0)'
+    ])
+    expect(FMC_COLOR_BREAKS.map(colorBreak => colorBreak.color)).toEqual([
+      'rgb(255, 170, 0)',
+      'rgb(255, 255, 0)',
+      'rgb(128, 255, 0)',
+      'rgb(0, 170, 0)',
+      'rgb(102, 153, 204)',
+      'rgb(0, 0, 255)'
+    ])
+  })
+
   it('should make pixels with a zero alpha band transparent before applying color breaks', () => {
-    const expr = getFireWeatherColourExpression('fwi')
+    const expr = getSFMSNGRasterColourExpression('fwi')
 
     expect(expr[0]).toBe('case')
     expect(expr[1]).toEqual(['==', ['band', 2], 0])
@@ -126,10 +150,22 @@ describe('getFireWeatherColourExpression', () => {
   })
 
   it('should still handle large nodata sentinels explicitly', () => {
-    const expr = getFireWeatherColourExpression('fwi')
+    const expr = getSFMSNGRasterColourExpression('fwi')
 
     expect(expr).toContainEqual(['>', ['band', 1], NODATA_THRESHOLD])
     expect(expr).toContainEqual(['<', ['band', 1], -NODATA_THRESHOLD])
+  })
+
+  it.each([
+    ['sfc', SFC_COLOR_BREAKS],
+    ['fmc', FMC_COLOR_BREAKS]
+  ] as const)('should include every %s colour break', (rasterType, colorBreaks) => {
+    const expr = getSFMSNGRasterColourExpression(rasterType)
+
+    for (const colorBreak of colorBreaks) {
+      const [red, green, blue] = colorBreak.color.match(/\d+/g)!.map(Number)
+      expect(expr).toContainEqual([red, green, blue, 1])
+    }
   })
 })
 
