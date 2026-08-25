@@ -253,30 +253,15 @@ class ViirsSnowJob:
 
     def _classify_snow_coverage(self, path: str):
         source_path = os.path.join(path, RAW_SNOW_COVERAGE_CLIPPED_NAME)
-        source = gdal.Open(source_path, gdal.GA_ReadOnly)
-        source_band = source.GetRasterBand(1)
-        source_data = source_band.ReadAsArray()
-        # Classify the data. Snow coverage in the source data is indicated by values in the range of 0-100. I'm using a range of
-        # 10 - 100 to increase confidence. In the classified data 1 is assigned to snow covered pixels and all other pixels are 0.
-        classified = np.where((source_data > 10) & (source_data <= 100), 1, 0)
-        output_driver = gdal.GetDriverByName("GTiff")
         classified_snow_path = os.path.join(path, BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME)
-        classified_snow = output_driver.Create(
-            classified_snow_path,
-            xsize=source_band.XSize,
-            ysize=source_band.YSize,
-            bands=1,
-            eType=gdal.GDT_Byte,
-        )
-        classified_snow.SetGeoTransform(source.GetGeoTransform())
-        classified_snow.SetProjection(source.GetProjection())
-        classified_snow_band = classified_snow.GetRasterBand(1)
-        classified_snow_band.WriteArray(classified)
-        source_data = None
-        source_band = None
-        source = None
-        classified_snow_band = None
-        classified_snow = None
+        with WPSDataset(source_path) as source:
+            # Classify the data. Snow coverage in the source data is indicated by values in the
+            # range of 0-100. Using a range of 10-100 to increase confidence. In the classified
+            # data, 1 is assigned to snow covered pixels and all other pixels are 0.
+            classified = np.where((source > 10) & (source <= 100), 1, 0)
+            WPSDataset.from_array(
+                classified, source, datatype=gdal.GDT_Byte, output_path=classified_snow_path
+            ).close()
 
     async def _create_pmtiles_layer(self, path: str, for_date: date):
         filename = os.path.join(path, BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME)
