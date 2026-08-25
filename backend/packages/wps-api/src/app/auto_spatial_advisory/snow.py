@@ -49,8 +49,11 @@ def apply_snow_mask(hfi_path: str, last_processed_snow: ProcessedSnow, temp_dir:
             ):
                 # The snow mask has values of 0 (snow covered) or 1 (snow free); multiplying
                 # applies the mask.
-                masked = hfi_source * snow_mask
-                masked.ds.GetRasterBand(1).SetNoDataValue(0)
-                masked.ds.FlushCache()
+                # Close masked before masked_hfi_path is reopened by callers of this function,
+                # because GDAL doesn't finalize a GTiff's directory structure until the writing
+                # dataset is closed.
+                with hfi_source * snow_mask as masked:
+                    masked.ds.GetRasterBand(1).SetNoDataValue(0)
+                    masked.ds.FlushCache()
 
     return masked_hfi_path
