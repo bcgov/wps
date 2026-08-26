@@ -32,7 +32,7 @@ else
 	DELETE_OR_GET="get"
 fi
 OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc,cronjob,job,networkpolicy -o name -l app=${APP_LABEL}"
-OC_CLEAN_ASA_GO_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc,cronjob,job,networkpolicy -o name -l app=${ASA_GO_APP_LABEL}"
+OC_CLEAN_ASA_GO_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc,cronjob,job,networkpolicy,hpa,vpa -o name -l app=${ASA_GO_APP_LABEL}"
 OC_CLEAN_SFMS_FWI_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc,cronjob,job,networkpolicy -o name -l app=${SFMS_FWI_APP_LABEL}"
 
 # Execute commands
