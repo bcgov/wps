@@ -49,7 +49,7 @@ parameters:
     value: "70"
   - name: HPA_MEMORY_TARGET_PERCENTAGE
     description: Target average memory utilization (% of requested memory) the HPA scales around
-    value: "85"
+    value: "90"
   - name: ALLOWED_ORIGINS
     value: wps-*.apps.silver.devops.gov.bc.ca
   - name: PROJECT_NAMESPACE
