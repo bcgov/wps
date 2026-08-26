@@ -1,10 +1,20 @@
 {
-  "extends": ["github>bcgov/renovate-config#2026.8.18"],
+  "extends": [
+    "github>bcgov/renovate-config#2026.8.18"
+  ],
   "ignorePaths": [
     "openshift/s3-backup/docker/poetry.lock"
   ],
   "ignoreDeps": [
     "@psu/cffdrs_ts",
     "aiobotocore"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": [
+        "@sentry/react"
+      ],
+      "allowedVersions": "10.69.0"
+    }
   ]
 }
