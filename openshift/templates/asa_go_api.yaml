@@ -49,7 +49,7 @@ parameters:
     value: "70"
   - name: HPA_MEMORY_TARGET_PERCENTAGE
     description: Target average memory utilization (% of requested memory) the HPA scales around
-    value: "70"
+    value: "85"
   - name: ALLOWED_ORIGINS
     value: wps-*.apps.silver.devops.gov.bc.ca
   - name: PROJECT_NAMESPACE
@@ -239,6 +239,9 @@ objects:
         name: ${APP_NAME}-${SUFFIX}-asa-go
       minReplicas: ${{REPLICAS}}
       maxReplicas: ${{HPA_MAX_REPLICAS}}
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 60
       metrics:
         - type: Resource
           resource:
