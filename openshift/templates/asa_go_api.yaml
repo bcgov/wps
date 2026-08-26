@@ -39,8 +39,17 @@ parameters:
     description: Memory upper limit
     value: 3Gi
   - name: REPLICAS
-    description: Number of replicas
+    description: Number of replicas (also used as the HPA's minimum)
     value: "2"
+  - name: HPA_MAX_REPLICAS
+    description: Upper bound for horizontal autoscaling
+    value: "10"
+  - name: HPA_CPU_TARGET_PERCENTAGE
+    description: Target average CPU utilization (% of requested CPU) the HPA scales around
+    value: "70"
+  - name: HPA_MEMORY_TARGET_PERCENTAGE
+    description: Target average memory utilization (% of requested memory) the HPA scales around
+    value: "90"
   - name: ALLOWED_ORIGINS
     value: wps-*.apps.silver.devops.gov.bc.ca
   - name: PROJECT_NAMESPACE
@@ -217,3 +226,49 @@ objects:
           targetPort: 8080
       selector:
         name: ${APP_NAME}-${SUFFIX}-asa-go
+  - apiVersion: autoscaling/v2
+    kind: HorizontalPodAutoscaler
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}-asa-go
+      name: ${APP_NAME}-${SUFFIX}-asa-go
+    spec:
+      scaleTargetRef:
+        apiVersion: apps/v1
+        kind: Deployment
+        name: ${APP_NAME}-${SUFFIX}-asa-go
+      minReplicas: ${{REPLICAS}}
+      maxReplicas: ${{HPA_MAX_REPLICAS}}
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 60
+      metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: ${{HPA_CPU_TARGET_PERCENTAGE}}
+        - type: Resource
+          resource:
+            name: memory
+            target:
+              type: Utilization
+              averageUtilization: ${{HPA_MEMORY_TARGET_PERCENTAGE}}
+  - apiVersion: autoscaling.k8s.io/v1
+    kind: VerticalPodAutoscaler
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}-asa-go
+      name: ${APP_NAME}-${SUFFIX}-asa-go
+    spec:
+      targetRef:
+        apiVersion: apps/v1
+        kind: Deployment
+        name: ${APP_NAME}-${SUFFIX}-asa-go
+      # Recommendation-only: "Auto" would fight the HPA over CPU, and would get
+      # clobbered on every deploy anyway since DEPLOY_VERSION forces a rollout with this
+      # template's static CPU_REQUEST/MEMORY_REQUEST every time. Use the recommendations
+      # this produces (`oc describe vpa`) to tune those params by hand.
+      updatePolicy:
+        updateMode: "Off"
