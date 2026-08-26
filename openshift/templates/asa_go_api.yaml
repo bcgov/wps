@@ -31,13 +31,13 @@ parameters:
     value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 100m
+    value: 500m
   - name: MEMORY_REQUEST
     description: Requested memory
-    value: 2Gi
+    value: 1Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 3Gi
+    value: 1.5Gi
   - name: REPLICAS
     description: Number of replicas (also used as the HPA's minimum)
     value: "2"
