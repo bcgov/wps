@@ -31,7 +31,7 @@ parameters:
     value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 250m
+    value: 500m
   - name: MEMORY_REQUEST
     description: Requested memory
     value: 1Gi
