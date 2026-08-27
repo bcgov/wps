@@ -1,3 +1,10 @@
+// Set by nginx's sub_filter substituting a fresh value into index.html's meta tag on
+// every request, matching the style-src nonce on the Content-Security-Policy header for
+// that same response (see openshift/nginx.conf). Shared here since several components
+// (e.g. DataGridPro, which injects its own <style> tags outside Emotion's cache) need
+// this same nonce value passed to them directly, not just the root Emotion cache.
+export const CSP_NONCE = document.querySelector('meta[property="csp-nonce"]')?.getAttribute('content') ?? undefined
+
 let ENV = {
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL as string,
   RASTER_SERVER_BASE_URL: import.meta.env.VITE_RASTER_SERVER_BASE_URL as string,

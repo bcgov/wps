@@ -1,6 +1,6 @@
 import createCache from '@emotion/cache'
 import { CacheProvider } from '@emotion/react'
-import { API_BASE_URL, SENTRY_DSN, SENTRY_ENV } from '@wps/utils/env'
+import { API_BASE_URL, CSP_NONCE, SENTRY_DSN, SENTRY_ENV } from '@wps/utils/env'
 import App from 'app/App'
 import * as ReactDOMClient from 'react-dom/client'
 import { Provider } from 'react-redux'
@@ -11,15 +11,11 @@ import { feedbackIntegration } from '@sentry/react'
 import { theme } from '@wps/ui/theme'
 import store from 'app/store'
 
-// Matches the style-src nonce nginx sets on the Content-Security-Policy header for this
-// response (see the __CSP_NONCE__ substitution in index.html and openshift/nginx.conf),
-// so Emotion's injected <style> tags satisfy CSP without needing 'unsafe-inline'.
-const cspNonce = document.querySelector('meta[property="csp-nonce"]')?.getAttribute('content') ?? undefined
 // prepend: true replicates <StyledEngineProvider injectFirst> (MUI styles load first, so
 // app-level overrides win) - MUI's own CSP guide says to use this instead of
 // StyledEngineProvider once a custom/nonce-carrying cache is in play, since
 // StyledEngineProvider's injectFirst otherwise creates its own cache with no nonce.
-const emotionCache = createCache({ key: 'css', nonce: cspNonce, prepend: true })
+const emotionCache = createCache({ key: 'css', nonce: CSP_NONCE, prepend: true })
 
 const render = () => {
   Sentry.init({
