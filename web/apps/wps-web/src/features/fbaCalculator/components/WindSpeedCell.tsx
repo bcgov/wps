@@ -1,23 +1,11 @@
 import { TextField, Tooltip } from '@mui/material'
-import { StyledEngineProvider, styled, ThemeProvider } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
 import { adjustedTheme } from '@wps/ui/theme'
 import type { FBATableRow } from 'features/fbaCalculator/RowManager'
 import { buildUpdatedNumberRow, updateFBARow } from 'features/fbaCalculator/tableState'
 import { isWindSpeedInvalid } from 'features/fbaCalculator/validation'
 import { isEqual, isNil, isUndefined } from 'lodash'
 import React, { type ChangeEvent, useEffect, useState } from 'react'
-
-const PREFIX = 'WindSpeedCell'
-
-const classes = {
-  windSpeed: `${PREFIX}-windSpeed`
-}
-
-const StyledStyledEngineProvider = styled(StyledEngineProvider)({
-  [`& .${classes.windSpeed}`]: {
-    width: 80
-  }
-})
 
 export interface WindSpeedCellProps {
   inputRows: FBATableRow[]
@@ -75,7 +63,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
         data-testid={`windSpeedInput-fba-${props.rowId}`}
         type="number"
         inputMode="numeric"
-        className={classes.windSpeed}
+        sx={{ width: 80 }}
         size="small"
         variant="outlined"
         onChange={changeHandler}
@@ -95,11 +83,7 @@ const WindSpeedCell = (props: WindSpeedCellProps) => {
     return buildTextField()
   }
 
-  return (
-    <StyledStyledEngineProvider injectFirst>
-      <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
-    </StyledStyledEngineProvider>
-  )
+  return <ThemeProvider theme={adjustedTheme}>{buildTextField()}</ThemeProvider>
 }
 
 export default React.memo(WindSpeedCell)

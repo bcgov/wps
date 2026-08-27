@@ -36,6 +36,7 @@ FROM docker.io/library/nginx:stable-alpine
 
 # Copy application sources
 COPY ./openshift/nginx.conf /etc/nginx/nginx.conf
+COPY ./openshift/security-headers.conf /etc/nginx/security-headers.conf
 
 # Copy the static content:
 COPY --from=static /app/apps/wps-web/build .

@@ -1,6 +1,7 @@
 import { Box, Typography } from '@mui/material'
 import { DataGridPro, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid-pro'
 import { theme } from '@wps/ui/theme'
+import { CSP_NONCE } from '@wps/utils/env'
 import { isNull } from 'lodash'
 import type { DateTime } from 'luxon'
 import type { BurnForecast, BurnWatchRow } from '@/features/fireWatch/interfaces'
@@ -109,6 +110,7 @@ const DetailPanelContent = ({ row }: DetailPanelContentProps) => {
       {row.burnForecasts.length > 0 && (
         <Box data-testid={`detail-panel-content-${row.id}`}>
           <DataGridPro
+            nonce={CSP_NONCE}
             disableVirtualization
             density="compact"
             disableRowSelectionOnClick
