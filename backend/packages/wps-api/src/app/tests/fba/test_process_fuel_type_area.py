@@ -39,6 +39,16 @@ def test_classify_by_threshold_2():
     assert result.sum() == 3
 
 
+def test_classify_by_threshold_treats_nan_as_zero_not_undefined_cast():
+    """Regression test: NaN compares False against every threshold, so it survives every
+    np.where above unchanged - without an explicit fix it only becomes a concrete value via
+    an undefined float-to-int cast when the classified array is later written to disk."""
+    data = np.array([[1000.0, np.nan]])
+
+    assert classify_by_threshold(data, 1).tolist() == [[0, 0]]
+    assert classify_by_threshold(data, 2).tolist() == [[0, 0]]
+
+
 def _make_fuel_type_raster(data: np.ndarray, pixel_size: float) -> gdal.Dataset:
     ds = gdal.GetDriverByName("MEM").Create("test", data.shape[1], data.shape[0], 1, gdal.GDT_Byte)
     ds.SetGeoTransform((0, pixel_size, 0, 0, 0, -pixel_size))

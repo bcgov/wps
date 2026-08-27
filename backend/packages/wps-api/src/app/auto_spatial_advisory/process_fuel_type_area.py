@@ -53,7 +53,10 @@ def classify_by_threshold(source_data: np.array, threshold: int):
         # warning
         classified = np.where(source_data < 10000, 0, source_data)
         classified = np.where(classified >= 10000, 1, classified)
-    return classified
+    # NaN survives every comparison above unchanged (NaN compares False against everything), so
+    # without this it would only become a concrete value via an undefined float-to-int cast when
+    # written to disk later.
+    return np.nan_to_num(classified, nan=0)
 
 
 async def calculate_fuel_type_area_by_shape(
