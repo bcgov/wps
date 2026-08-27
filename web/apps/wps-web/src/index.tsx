@@ -1,3 +1,5 @@
+import createCache from '@emotion/cache'
+import { CacheProvider } from '@emotion/react'
 import { API_BASE_URL, SENTRY_DSN, SENTRY_ENV } from '@wps/utils/env'
 import App from 'app/App'
 import * as ReactDOMClient from 'react-dom/client'
@@ -8,6 +10,12 @@ import * as Sentry from '@sentry/react'
 import { feedbackIntegration } from '@sentry/react'
 import { theme } from '@wps/ui/theme'
 import store from 'app/store'
+
+// Matches the style-src nonce nginx sets on the Content-Security-Policy header for this
+// response (see the __CSP_NONCE__ substitution in index.html and openshift/nginx.conf),
+// so Emotion's injected <style> tags satisfy CSP without needing 'unsafe-inline'.
+const cspNonce = document.querySelector('meta[property="csp-nonce"]')?.getAttribute('content') ?? undefined
+const emotionCache = createCache({ key: 'css', nonce: cspNonce })
 
 const render = () => {
   Sentry.init({
@@ -44,9 +52,11 @@ const render = () => {
   }
   const root = ReactDOMClient.createRoot(container)
   root.render(
-    <Provider store={store}>
-      <App />
-    </Provider>
+    <CacheProvider value={emotionCache}>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </CacheProvider>
   )
 }
 
