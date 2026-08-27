@@ -1,4 +1,4 @@
-name: Every Sunday at 02:00
+name: ZAP Baseline Scan Prod
 
 permissions:
   contents: read
