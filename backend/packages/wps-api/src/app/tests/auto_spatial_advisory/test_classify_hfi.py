@@ -31,6 +31,28 @@ def test_classify_hfi():
         source.close()
 
 
+def test_classify_hfi_treats_nan_as_nodata_not_highest_severity():
+    """Regression test: NaN compares False against every threshold, so np.select would
+    otherwise fall through to `default=2` (the highest severity bucket) instead of being
+    treated as nodata - silently reporting missing data as the most severe fire hazard."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = os.path.join(temp_dir, "source.tif")
+        target_path = os.path.join(temp_dir, "classified.tif")
+
+        source = WPSDataset.from_array(
+            np.array([[1000, np.nan]], dtype=np.float32),
+            Georeference((0, 100, 0, 0, 0, -100), osr.GetUserInputAsWKT("EPSG:3005")),
+            output_path=source_path,
+        )
+
+        classify_hfi(source_path, target_path)
+
+        with WPSDataset(target_path) as result:
+            assert result.ds.GetRasterBand(1).ReadAsArray().tolist() == [[0, 0]]
+
+        source.close()
+
+
 def test_classify_hfi_closes_the_from_array_output(mocker):
     """Regression test: the WPSDataset.from_array() output is discarded immediately after
     writing to target_path - nothing else references it to close it later - so a bare,
