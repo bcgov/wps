@@ -299,9 +299,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
-      - name: ZAP Scan
-        uses: zaproxy/action-baseline@v0.15.0
+      - uses: ./.github/actions/zap-baseline-scan
         with:
           target: "https://wps-pr-${{ github.event.number }}-e1e498-dev.apps.silver.devops.gov.bc.ca"
-          rules_file_name: ".zap/rules.tsv"
-          cmd_options: "-I"
+          cmd-options: "-I"

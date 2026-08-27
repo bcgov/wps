@@ -18,9 +18,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: main
-      - name: ZAP Scan
-        # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
-        uses: zaproxy/action-baseline@v0.15.0
+      # f.y.i.: ZAP Scan must be able to log an issue or it will fail.
+      - uses: ./.github/actions/zap-baseline-scan
         with:
           target: "https://wps-prod.apps.silver.devops.gov.bc.ca/"
-          rules_file_name: ".zap/rules.tsv"
