@@ -1,4 +1,4 @@
-import { Paper, StyledEngineProvider, Table, TableContainer, ThemeProvider } from '@mui/material'
+import { Paper, Table, TableContainer, ThemeProvider } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import React from 'react'
 import { fireTableTheme } from './theme'
@@ -26,15 +26,13 @@ interface FireTableProps {
 const FireTable = (props: FireTableProps) => {
   return (
     <StyledPaper elevation={1}>
-      <StyledEngineProvider injectFirst>
-        <ThemeProvider theme={fireTableTheme}>
-          <TableContainer data-testid={'fire-table'} className={classes.tableContainer}>
-            <Table data-testid={props.testId} stickyHeader>
-              {props.children}
-            </Table>
-          </TableContainer>
-        </ThemeProvider>
-      </StyledEngineProvider>
+      <ThemeProvider theme={fireTableTheme}>
+        <TableContainer data-testid={'fire-table'} className={classes.tableContainer}>
+          <Table data-testid={props.testId} stickyHeader>
+            {props.children}
+          </Table>
+        </TableContainer>
+      </ThemeProvider>
     </StyledPaper>
   )
 }

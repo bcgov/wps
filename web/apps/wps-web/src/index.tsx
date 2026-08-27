@@ -15,7 +15,11 @@ import store from 'app/store'
 // response (see the __CSP_NONCE__ substitution in index.html and openshift/nginx.conf),
 // so Emotion's injected <style> tags satisfy CSP without needing 'unsafe-inline'.
 const cspNonce = document.querySelector('meta[property="csp-nonce"]')?.getAttribute('content') ?? undefined
-const emotionCache = createCache({ key: 'css', nonce: cspNonce })
+// prepend: true replicates <StyledEngineProvider injectFirst> (MUI styles load first, so
+// app-level overrides win) - MUI's own CSP guide says to use this instead of
+// StyledEngineProvider once a custom/nonce-carrying cache is in play, since
+// StyledEngineProvider's injectFirst otherwise creates its own cache with no nonce.
+const emotionCache = createCache({ key: 'css', nonce: cspNonce, prepend: true })
 
 const render = () => {
   Sentry.init({

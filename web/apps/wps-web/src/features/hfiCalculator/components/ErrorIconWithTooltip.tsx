@@ -1,5 +1,5 @@
 import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined'
-import { createTheme, StyledEngineProvider, ThemeProvider, Tooltip } from '@mui/material'
+import { createTheme, ThemeProvider, Tooltip } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { BACKGROUND_COLOR, PLANNING_AREA } from '@wps/ui/theme'
 import { isUndefined } from 'lodash'
@@ -55,13 +55,11 @@ const ErrorIconWithTooltip = (props: ErrorIconWithTooltipProps) => {
       </DataCellIcon>
     )
   return (
-    <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={errorIconTheme}>
-        <Tooltip title={props.tooltipElement} aria-label={`${props.tooltipAriaText.join('\n')}`}>
-          {icon}
-        </Tooltip>
-      </ThemeProvider>
-    </StyledEngineProvider>
+    <ThemeProvider theme={errorIconTheme}>
+      <Tooltip title={props.tooltipElement} aria-label={`${props.tooltipAriaText.join('\n')}`}>
+        {icon}
+      </Tooltip>
+    </ThemeProvider>
   )
 }
 
