@@ -1,4 +1,4 @@
-import { Box, createTheme, StyledEngineProvider, ThemeProvider } from '@mui/material'
+import { Box, createTheme, ThemeProvider } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import DateRangeSelector from '@wps/ui/DateRangeSelector'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
@@ -56,20 +56,18 @@ export const dateRangePickerTheme = createTheme({
 const MoreCase2DateRangePicker = ({ dateRange, setDateRange }: MoreCase2DateRangePickerProps) => {
   return (
     <StyledBox className={classes.container}>
-      <StyledEngineProvider injectFirst>
-        <ThemeProvider theme={dateRangePickerTheme}>
-          <DateRangeSelector
-            dateRange={dateRange}
-            minDate={DateTime.now().toJSDate()}
-            maxDate={DateTime.now().plus({ days: 10 }).toJSDate()}
-            maxDayOffset={11}
-            dateDisplayFormat={'yyyy/MM/dd'}
-            setDateRange={setDateRange}
-            size="medium"
-            label={'Date Range'}
-          />
-        </ThemeProvider>
-      </StyledEngineProvider>
+      <ThemeProvider theme={dateRangePickerTheme}>
+        <DateRangeSelector
+          dateRange={dateRange}
+          minDate={DateTime.now().toJSDate()}
+          maxDate={DateTime.now().plus({ days: 10 }).toJSDate()}
+          maxDayOffset={11}
+          dateDisplayFormat={'yyyy/MM/dd'}
+          setDateRange={setDateRange}
+          size="medium"
+          label={'Date Range'}
+        />
+      </ThemeProvider>
     </StyledBox>
   )
 }

@@ -1,3 +1,13 @@
+// Set by nginx's sub_filter substituting a fresh value into index.html's meta tag on
+// every request, matching the style-src nonce on the Content-Security-Policy header for
+// that same response (see openshift/nginx.conf). Shared here since several components
+// (e.g. DataGridPro, which injects its own <style> tags outside Emotion's cache) need
+// this same nonce value passed to them directly, not just the root Emotion cache.
+export const CSP_NONCE =
+  typeof document === 'undefined'
+    ? undefined
+    : (document.querySelector('meta[property="csp-nonce"]')?.getAttribute('content') ?? undefined)
+
 let ENV = {
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL as string,
   RASTER_SERVER_BASE_URL: import.meta.env.VITE_RASTER_SERVER_BASE_URL as string,
@@ -21,28 +31,28 @@ let ENV = {
 }
 // If the app is built using 'npm run build'
 if (import.meta.env.MODE === 'production') {
-  // globalThis.env is set in index.html, populated by env variables.
+  // globalThis.config is set by config.js, loaded in index.html.
   ENV = {
     // TODO: Figure out why axios goes to http on gets!
-    API_BASE_URL: env.API_BASE_URL ?? `${location.protocol}//${location.host}/api`,
-    RASTER_SERVER_BASE_URL: env.RASTER_SERVER_BASE_URL ?? `${location.protocol}//${location.host}`,
+    API_BASE_URL: config.API_BASE_URL ?? `${location.protocol}//${location.host}/api`,
+    RASTER_SERVER_BASE_URL: config.RASTER_SERVER_BASE_URL ?? `${location.protocol}//${location.host}`,
     HIDE_DISCLAIMER: undefined,
-    SM_LOGOUT_URL: env.REACT_APP_SM_LOGOUT_URL,
-    KC_AUTH_URL: env.REACT_APP_KEYCLOAK_AUTH_URL,
-    KC_REALM: env.REACT_APP_KEYCLOAK_REALM,
-    KC_CLIENT: env.REACT_APP_KEYCLOAK_CLIENT,
+    SM_LOGOUT_URL: config.REACT_APP_SM_LOGOUT_URL,
+    KC_AUTH_URL: config.REACT_APP_KEYCLOAK_AUTH_URL,
+    KC_REALM: config.REACT_APP_KEYCLOAK_REALM,
+    KC_CLIENT: config.REACT_APP_KEYCLOAK_CLIENT,
     TEST_AUTH: undefined,
-    MS_TEAMS_SPRINT_REVIEW_URL: env.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL,
-    SPRINT_REVIEW_BOARD_URL: env.REACT_APP_SPRINT_REVIEW_BOARD_URL,
-    PMTILES_BUCKET: env.REACT_APP_PMTILES_BUCKET,
-    MUI_LICENSE: env.REACT_APP_MUI_LICENSE_KEY,
-    SENTRY_DSN: env.REACT_APP_SENTRY_DSN,
-    SENTRY_ENV: env.REACT_APP_SENTRY_ENV,
-    PSU_BUCKET: env.REACT_APP_PSU_BUCKET,
-    BASEMAP_TILE_URL: env.REACT_APP_BASEMAP_TILE_URL,
-    BASEMAP_STYLE_URL: env.REACT_APP_BASEMAP_STYLE_URL,
-    HILLSHADE_TILE_URL: env.REACT_APP_HILLSHADE_TILE_URL,
-    HILLSHADE_STYLE_URL: env.REACT_APP_HILLSHADE_STYLE_URL
+    MS_TEAMS_SPRINT_REVIEW_URL: config.REACT_APP_MS_TEAMS_SPRINT_REVIEW_URL,
+    SPRINT_REVIEW_BOARD_URL: config.REACT_APP_SPRINT_REVIEW_BOARD_URL,
+    PMTILES_BUCKET: config.REACT_APP_PMTILES_BUCKET,
+    MUI_LICENSE: config.REACT_APP_MUI_LICENSE_KEY,
+    SENTRY_DSN: config.REACT_APP_SENTRY_DSN,
+    SENTRY_ENV: config.REACT_APP_SENTRY_ENV,
+    PSU_BUCKET: config.REACT_APP_PSU_BUCKET,
+    BASEMAP_TILE_URL: config.REACT_APP_BASEMAP_TILE_URL,
+    BASEMAP_STYLE_URL: config.REACT_APP_BASEMAP_STYLE_URL,
+    HILLSHADE_TILE_URL: config.REACT_APP_HILLSHADE_TILE_URL,
+    HILLSHADE_STYLE_URL: config.REACT_APP_HILLSHADE_STYLE_URL
   }
 }
 
