@@ -5,11 +5,26 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from cffdrs import buildup_index, drought_code, duff_moisture_code, fine_fuel_moisture_code, fire_weather_index, initial_spread_index
+from cffdrs import (
+    buildup_index,
+    drought_code,
+    duff_moisture_code,
+    fine_fuel_moisture_code,
+    fire_weather_index,
+    initial_spread_index,
+)
 from osgeo import osr
 
-from wps_shared.geospatial.wps_dataset import WPSDataset
-from app.sfms.fwi_processor import check_weather_values, calculate_bui, calculate_dc, calculate_dmc, calculate_ffmc, calculate_fwi, calculate_isi
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
+from app.sfms.fwi_processor import (
+    check_weather_values,
+    calculate_bui,
+    calculate_dc,
+    calculate_dmc,
+    calculate_ffmc,
+    calculate_fwi,
+    calculate_isi,
+)
 
 
 FWI_ARRAY = np.array([[12, 20], [-999, -999]])
@@ -35,16 +50,18 @@ def input_datasets():
     srs.ImportFromEPSG(3005)
     transform = (-2, 1, 0, 2, 0, -1)
 
+    georeference = Georeference(transform, srs.ExportToWkt())
+
     return InputDatasets(
-        bui=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
-        dc=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
-        dmc=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
-        ffmc=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
-        isi=WPSDataset.from_array(FWI_ARRAY, transform, srs.ExportToWkt(), nodata_value=-999),
-        temp=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
-        rh=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
-        precip=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
-        wind_speed=WPSDataset.from_array(WEATHER_ARRAY, transform, srs.ExportToWkt()),
+        bui=WPSDataset.from_array(FWI_ARRAY, georeference, nodata_value=-999),
+        dc=WPSDataset.from_array(FWI_ARRAY, georeference, nodata_value=-999),
+        dmc=WPSDataset.from_array(FWI_ARRAY, georeference, nodata_value=-999),
+        ffmc=WPSDataset.from_array(FWI_ARRAY, georeference, nodata_value=-999),
+        isi=WPSDataset.from_array(FWI_ARRAY, georeference, nodata_value=-999),
+        temp=WPSDataset.from_array(WEATHER_ARRAY, georeference),
+        rh=WPSDataset.from_array(WEATHER_ARRAY, georeference),
+        precip=WPSDataset.from_array(WEATHER_ARRAY, georeference),
+        wind_speed=WPSDataset.from_array(WEATHER_ARRAY, georeference),
     )
 
 
@@ -119,7 +136,9 @@ def test_calculate_dmc_values(input_datasets, latitude_month):
 
     dmc_values, _ = calculate_dmc(dmc_ds, temp_ds, rh_ds, precip_ds, latitude, month)
 
-    static_dmc = duff_moisture_code(dmc_sample, temp_sample, rh_sample, precip_sample, lat_sample, month_sample)
+    static_dmc = duff_moisture_code(
+        dmc_sample, temp_sample, rh_sample, precip_sample, lat_sample, month_sample
+    )
 
     assert math.isclose(static_dmc, dmc_values[0, 0], abs_tol=0.01)
 
@@ -140,7 +159,9 @@ def test_calculate_dc_values(input_datasets, latitude_month):
 
     dc_values, _ = calculate_dc(dc_ds, temp_ds, rh_ds, precip_ds, latitude, month)
 
-    static_dmc = drought_code(dc_sample, temp_sample, rh_sample, precip_sample, lat_sample, month_sample)
+    static_dmc = drought_code(
+        dc_sample, temp_sample, rh_sample, precip_sample, lat_sample, month_sample
+    )
 
     assert math.isclose(static_dmc, dc_values[0, 0], abs_tol=0.01)
 
@@ -194,11 +215,17 @@ def test_calculate_ffmc_values(input_datasets):
     precip_wps = input_datasets.precip
     wind_speed_wps = input_datasets.wind_speed
 
-    previous_ffmc_sample = temp_sample = rh_sample = precip_sample = wind_speed_sample = FWI_ARRAY[0, 0]
+    previous_ffmc_sample = temp_sample = rh_sample = precip_sample = wind_speed_sample = FWI_ARRAY[
+        0, 0
+    ]
 
-    daily_ffmc_values, _ = calculate_ffmc(previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps)
+    daily_ffmc_values, _ = calculate_ffmc(
+        previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps
+    )
 
-    static_ffmc = fine_fuel_moisture_code(previous_ffmc_sample, temp_sample, rh_sample, wind_speed_sample, precip_sample)
+    static_ffmc = fine_fuel_moisture_code(
+        previous_ffmc_sample, temp_sample, rh_sample, wind_speed_sample, precip_sample
+    )
 
     assert math.isclose(static_ffmc, daily_ffmc_values[0, 0], abs_tol=0.01)
 
@@ -210,7 +237,9 @@ def test_calculate_ffmc_masked_correctly(input_datasets):
     precip_wps = input_datasets.precip
     wind_speed_wps = input_datasets.wind_speed
 
-    daily_ffmc_values, nodata_value = calculate_ffmc(previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps)
+    daily_ffmc_values, nodata_value = calculate_ffmc(
+        previous_ffmc_wps, temp_wps, rh_wps, precip_wps, wind_speed_wps
+    )
 
     # validate output shape and nodata masking
     assert daily_ffmc_values.shape == (2, 2)

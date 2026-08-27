@@ -9,7 +9,6 @@ from time import perf_counter
 from typing import Dict
 
 import numpy as np
-from osgeo import gdal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import text
@@ -122,24 +121,18 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
             stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
             result = await session.execute(stmt)
 
-            with gdal.Open(masked_tpi_path, gdal.GA_ReadOnly) as hfi_masked_tpi:
-                hfi_masked_tpi_srs = hfi_masked_tpi.GetSpatialRef()
+            with WPSDataset(masked_tpi_path) as hfi_masked_tpi:
+                hfi_masked_tpi_srs = hfi_masked_tpi.ds.GetSpatialRef()
 
                 for row in result:
                     output_path = os.path.join(temp_dir, f"firezone_{row[1]}.tif")
                     advisory_shape_geom = await get_advisory_shape(
                         session, row[0], hfi_masked_tpi_srs
                     )
-                    warp_options = gdal.WarpOptions(
-                        format="GTiff",
-                        cutlineWKT=advisory_shape_geom,
-                        cutlineSRS=advisory_shape_geom.GetSpatialReference(),
-                        cropToCutline=True,
-                    )
-                    with gdal.Warp(
-                        output_path, hfi_masked_tpi, options=warp_options
+                    with hfi_masked_tpi.clip_to_geometry(
+                        advisory_shape_geom, output_path=output_path
                     ) as cut_hfi_masked_tpi:
-                        zone_tpi_classes = cut_hfi_masked_tpi.GetRasterBand(1).ReadAsArray()
+                        zone_tpi_classes = cut_hfi_masked_tpi.ds.GetRasterBand(1).ReadAsArray()
 
                     tpi_classes, counts = np.unique(zone_tpi_classes, return_counts=True)
                     tpi_class_freq_dist = dict(zip(tpi_classes, counts))

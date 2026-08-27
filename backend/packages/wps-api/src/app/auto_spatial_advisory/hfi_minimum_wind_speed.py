@@ -25,6 +25,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     Shape,
 )
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal, rasters_match
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.time import convert_to_sfms_timezone
@@ -111,8 +112,8 @@ async def process_min_wind_speed_by_zone(
     hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
 
     all_hfi_min_wind_speeds_to_save: list[AdvisoryHFIWindSpeed] = []
-    with gdal.Open(wind_speed_key) as wind_ds, gdal.Open(hfi_key) as hfi_ds:
-        if not rasters_match(wind_ds, hfi_ds):
+    with WPSDataset(wind_speed_key) as wind_ds, WPSDataset(hfi_key) as hfi_ds:
+        if not rasters_match(wind_ds.ds, hfi_ds.ds):
             logger.error(f"{wind_speed_key} and {hfi_key} do not match.")
             return
         for zone in zone_units:
@@ -121,22 +122,19 @@ async def process_min_wind_speed_by_zone(
             zone_wkt = shapely_geom.wkt
             zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
 
-            warp_options = gdal.WarpOptions(
-                cutlineWKT=zone_geom, cutlineSRS=zone_geom.GetSpatialReference(), cropToCutline=True
-            )
-
-            wind_path = "/vsimem/zone_wind.tif"
-            hfi_path = "/vsimem/zone_hfi.tif"
-            wind_intersected_ds = None
-            hfi_intersected_ds = None
-            try:
-                wind_intersected_ds = gdal.Warp(wind_path, wind_ds, options=warp_options)
-                wind_band = wind_intersected_ds.GetRasterBand(1)
+            with (
+                wind_ds.clip_to_geometry(
+                    zone_geom, output_path="/vsimem/zone_wind.tif"
+                ) as wind_intersected_ds,
+                hfi_ds.clip_to_geometry(
+                    zone_geom, output_path="/vsimem/zone_hfi.tif"
+                ) as hfi_intersected_ds,
+            ):
+                wind_band = wind_intersected_ds.ds.GetRasterBand(1)
                 wind_array_clip = wind_band.ReadAsArray()
                 wind_nodata = wind_band.GetNoDataValue()
 
-                hfi_intersected_ds = gdal.Warp(hfi_path, hfi_ds, options=warp_options)
-                hfi_array_clip = hfi_intersected_ds.GetRasterBand(1).ReadAsArray()
+                hfi_array_clip = hfi_intersected_ds.ds.GetRasterBand(1).ReadAsArray()
 
                 # Compute minimum wind speed for each HFI range
                 hfi_min_wind_speeds = get_minimum_wind_speed_for_hfi(
@@ -148,11 +146,6 @@ async def process_min_wind_speed_by_zone(
                 )
 
                 all_hfi_min_wind_speeds_to_save.extend(records_to_save)
-            finally:
-                wind_intersected_ds = None
-                hfi_intersected_ds = None
-                gdal.Unlink(wind_path)
-                gdal.Unlink(hfi_path)
 
     save_all_hfi_wind_speeds(session, all_hfi_min_wind_speeds_to_save)
 

@@ -7,7 +7,7 @@ from osgeo import ogr, osr
 from shapely import wkb, wkt
 
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
-from wps_shared.utils.polygonize import polygonize_in_memory
+from wps_shared.geospatial.polygonize import polygonize_in_memory
 from wps_shared.utils.s3 import set_s3_gdal_config
 
 logger = logging.getLogger(__name__)

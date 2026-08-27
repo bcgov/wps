@@ -1,11 +1,12 @@
+import json
 import os
 import tempfile
 
 import numpy as np
 import pytest
-from osgeo import gdal
+from osgeo import gdal, ogr, osr
 
-from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset, multi_wps_dataset_context
 from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset, create_test_dataset
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")  # Byte data
@@ -216,6 +217,41 @@ def test_raster_mul_disk_backed_corrupt_read_if_not_closed_before_reopen():
         gdal.PopErrorHandler()
 
 
+def test_read_array():
+    """read_array() is the explicit, named way to get this dataset's band as a NumPy array -
+    classify-style code should call it once and compare the plain array for multiple
+    conditions, rather than re-reading per comparison."""
+    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Int16, fill_value=0
+    )
+    ds.GetRasterBand(1).WriteArray(np.array([[1000, 5000], [11000, 0]], dtype=np.int16))
+
+    with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+        data = wps_ds.read_array()
+        assert np.array_equal(data, np.array([[1000, 5000], [11000, 0]]))
+        assert np.array_equal(data < 4000, np.array([[True, False], [False, True]]))
+
+
+def test_from_array_disk_backed_via_output_path():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_path = os.path.join(temp_dir, "from_array.tif")
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(4326)
+
+        result = WPSDataset.from_array(
+            np.array([[7, 7], [7, 7]], dtype=np.uint8),
+            Georeference((0, 1, 0, 0, 0, -1), srs.ExportToWkt()),
+            datatype=gdal.GDT_Byte,
+            output_path=output_path,
+        )
+        assert result.as_gdal_ds().GetDriver().ShortName == "GTiff"
+
+        assert os.path.exists(output_path)
+        with WPSDataset(output_path) as reopened:
+            assert np.all(reopened.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 7)
+
+
 def test_raster_mul_wrong_dimensions():
     extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
     wgs_84_ds1 = create_test_dataset("test_dataset_1.tif", 1, 1, extent, 4326)
@@ -284,8 +320,141 @@ def test_raster_warp():
         assert output_ds.as_gdal_ds().RasterXSize == wps2_ds.as_gdal_ds().RasterXSize
         assert output_ds.as_gdal_ds().RasterYSize == wps2_ds.as_gdal_ds().RasterYSize
 
-    wgs_84_ds = None
-    mercator_ds = None
+
+def test_close_is_a_noop_for_mem_driver_dataset_with_no_real_backing_file():
+    """A MEM-driver dataset can be named with a /vsimem/-looking path but MEM never
+    registers a real VSI file there, so GetFileList() is None and close() has nothing to do."""
+    mem_ds = gdal.GetDriverByName("MEM").Create("/vsimem/no_such_file.tif", 2, 2, 1)
+    assert mem_ds.GetFileList() is None
+
+    with WPSDataset(ds_path=None, ds=mem_ds) as wps_ds:
+        wps_ds.close()  # no-op, must not raise
+
+
+def test_close_unlinks_vsimem_file_even_when_referenced_via_mem_driver_dataset():
+    """If a /vsimem/ file genuinely exists at the path a MEM-driver dataset happens to be named
+    after, gdal's own GetFileList() reports it and close() unlinks it automatically, same as
+    for a real GTiff-on-vsimem result. WPSDataset doesn't special-case the driver."""
+    vsimem_path = "/vsimem/masked_fuel_type_1.tif"
+    real_ds = gdal.GetDriverByName("GTiff").Create(vsimem_path, 2, 2, 1)
+    del real_ds  # drop the only reference to close/flush the GTiff onto the vsimem filesystem
+    assert gdal.VSIStatL(vsimem_path) is not None
+
+    mem_ds = gdal.GetDriverByName("MEM").Create(vsimem_path, 2, 2, 1)
+    with WPSDataset(ds_path=None, ds=mem_ds) as wps_ds:
+        wps_ds.close()
+
+    assert gdal.VSIStatL(vsimem_path) is None  # unlinked automatically
+
+
+def test_clip_to_geometry_with_ogr_geometry():
+    # 10x10 px, 2 units/px, covering (-10,-10) to (10,10). Cutline (-5,-5)-(5,5) keeps only the
+    # 4 columns/rows whose pixel centres (-3,-1,1,3) fall strictly inside it - GDAL excludes the
+    # ring of pixels centred exactly on the cutline edge (-5 and 5) - giving a 4x4 result
+    # anchored at (-4, 4) with the source's original 2-unit pixel size preserved.
+    extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=7
+    )
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+    cutline.AssignSpatialReference(srs)
+
+    with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+        clipped = wps_ds.clip_to_geometry(cutline)
+        raw = clipped.as_gdal_ds()
+
+        assert (raw.RasterXSize, raw.RasterYSize) == (4, 4)
+        assert raw.GetGeoTransform() == (-4.0, 2.0, 0.0, 4.0, 0.0, -2.0)
+        assert np.array_equal(raw.GetRasterBand(1).ReadAsArray(), np.full((4, 4), 7))
+
+
+def test_clip_to_geometry_unlinks_vsimem_output_on_close():
+    extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=7
+    )
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+    cutline.AssignSpatialReference(srs)
+
+    with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+        clipped = wps_ds.clip_to_geometry(cutline)  # no output_path -> auto /vsimem/ path
+        vsimem_path = clipped.as_gdal_ds().GetFileList()[0]
+
+        assert vsimem_path.startswith("/vsimem/")
+        assert gdal.VSIStatL(vsimem_path) is not None  # backing file exists while open
+
+        clipped.close()
+
+        assert gdal.VSIStatL(vsimem_path) is None  # gdal.Unlink'd automatically
+
+
+def test_clip_to_geometry_does_not_unlink_real_output_path():
+    extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=7
+    )
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+    cutline.AssignSpatialReference(srs)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_path = os.path.join(temp_dir, "clipped.tif")
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            clipped = wps_ds.clip_to_geometry(cutline, output_path=output_path)
+            assert clipped.as_gdal_ds().GetFileList() == [output_path]
+
+            clipped.close()
+
+        assert os.path.exists(output_path)  # real files are left alone by close()
+
+
+def test_clip_to_geometry_with_vector_file_path():
+    # Same source raster and cutline extent as test_clip_to_geometry_with_ogr_geometry, so the
+    # same 4x4 result at (-4, 4) is expected - this exercises the cutlineDSName branch instead.
+    extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
+    ds = create_test_dataset(
+        "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=3
+    )
+
+    geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[[-5, -5], [5, -5], [5, 5], [-5, 5], [-5, -5]]],
+                },
+            }
+        ],
+    }
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        cutline_path = os.path.join(temp_dir, "cutline.geojson")
+        with open(cutline_path, "w") as f:
+            json.dump(geojson, f)
+
+        output_path = os.path.join(temp_dir, "clipped.tif")
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            clipped = wps_ds.clip_to_geometry(cutline_path, output_path=output_path)
+            raw = clipped.as_gdal_ds()
+
+            assert (raw.RasterXSize, raw.RasterYSize) == (4, 4)
+            assert raw.GetGeoTransform() == (-4.0, 2.0, 0.0, 4.0, 0.0, -2.0)
+            assert np.array_equal(raw.GetRasterBand(1).ReadAsArray(), np.full((4, 4), 3))
+
+        assert os.path.exists(output_path)
 
 
 def test_raster_warp_max_value():
@@ -412,7 +581,7 @@ def test_from_array():
     og_proj = original_ds.GetProjection()
 
     with WPSDataset.from_array(
-        og_array, og_transform, og_proj, nodata_value=-99, datatype=dtype
+        og_array, Georeference(og_transform, og_proj), nodata_value=-99, datatype=dtype
     ) as wps:
         wps_ds = wps.as_gdal_ds()
         assert wps_ds.ReadAsArray()[1, 2] == og_array[1, 2]

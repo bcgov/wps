@@ -165,12 +165,13 @@
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}/backend",
+            "envFile": "${workspaceFolder}/backend/packages/wps-tools/.env",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "module": "wps_tools.tif_pusher",
             "console": "integratedTerminal",
             "args": [
-                "2026-06-09",
-                "2026-06-09"
+                "2026-08-26",
+                "2026-08-26"
             ]
         },
         {

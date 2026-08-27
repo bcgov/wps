@@ -1,8 +1,9 @@
 import numpy as np
 from geoalchemy2.shape import to_shape
-from osgeo import gdal, osr
+from osgeo import osr
 
 from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.utils.s3 import set_s3_gdal_config
 
 
@@ -23,32 +24,24 @@ def calculate_fuel_type_area_for_zone(advisory_shape_id: int, data: np.ndarray, 
 
 def calculate_fuel_type_areas_per_zone(fuel_raster_key: str, zones):
     set_s3_gdal_config()
-    fuel_raster_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)
-    pixel_size = fuel_raster_ds.GetGeoTransform()[1]
-    # We're using fire zone units from the advisory_shapes table to clip out shapes from the fuel raster.
-    # We need to manually specify the spatial reference of the advisory_shapes table in the gdal.WarpOptions below.
-    source_srs = osr.SpatialReference()
-    source_srs.ImportFromEPSG(3005)
-    for zone in zones:
-        zone_wkb = zone.geom
-        shapely_zone_geom = to_shape(zone_wkb)
-        zone_wkt = shapely_zone_geom.wkt
-        zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
+    with WPSDataset(fuel_raster_key) as fuel_raster_ds:
+        pixel_size = fuel_raster_ds.ds.GetGeoTransform()[1]
+        # We're using fire zone units from the advisory_shapes table to clip out shapes from the fuel raster.
+        # We need to manually specify the spatial reference of the advisory_shapes table below.
+        source_srs = osr.SpatialReference()
+        source_srs.ImportFromEPSG(3005)
+        for zone in zones:
+            zone_wkb = zone.geom
+            shapely_zone_geom = to_shape(zone_wkb)
+            zone_wkt = shapely_zone_geom.wkt
+            zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
 
-        # Use gdal.Warp to clip out our fire zone unit from the masked tpi raster
-        warp_options = gdal.WarpOptions(
-            cutlineWKT=zone_geom,
-            cutlineSRS=zone_geom.GetSpatialReference(),
-            cropToCutline=True,
-        )
-        intersected_path = "/vsimem/intersected.tif"
-        intersected_ds: gdal.Dataset = gdal.Warp(
-            intersected_path, fuel_raster_ds, options=warp_options
-        )
-        intersected_band: gdal.Band = intersected_ds.GetRasterBand(1)
-        intersected_data: np.ndarray = intersected_band.ReadAsArray()
-        intersected_ds = None
-        fuel_type_area_data = calculate_fuel_type_area_for_zone(
-            zone.id, intersected_data, pixel_size
-        )
-        yield fuel_type_area_data
+            # Use clip_to_geometry to clip out our fire zone unit from the masked tpi raster
+            with fuel_raster_ds.clip_to_geometry(
+                zone_geom, output_path="/vsimem/intersected.tif"
+            ) as intersected_ds:
+                intersected_data: np.ndarray = intersected_ds.ds.GetRasterBand(1).ReadAsArray()
+            fuel_type_area_data = calculate_fuel_type_area_for_zone(
+                zone.id, intersected_data, pixel_size
+            )
+            yield fuel_type_area_data

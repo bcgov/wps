@@ -8,7 +8,7 @@ import logging
 from typing import List
 import numpy as np
 from osgeo import gdal
-from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_sfms.interpolation.common import (
     SFMS_NO_DATA,
@@ -91,8 +91,7 @@ def interpolate_to_raster(
 
     return WPSDataset.from_array(
         array=output_array,
-        geotransform=grid.geotransform,
-        projection=grid.projection,
+        georeference=Georeference(grid.geotransform, grid.projection),
         nodata_value=SFMS_NO_DATA,
         datatype=gdal.GDT_Float32,
     )
