@@ -1,0 +1,21 @@
+name: ZAP Baseline Scan
+description: Run a ZAP baseline scan against a target URL. Caller must checkout the repo first.
+
+inputs:
+  target:
+    description: URL to scan
+    required: true
+  cmd-options:
+    description: Additional zap-baseline.py command line options
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: ZAP Scan
+      uses: zaproxy/action-baseline@v0.15.0
+      with:
+        target: ${{ inputs.target }}
+        rules_file_name: ".zap/rules.tsv"
+        cmd_options: ${{ inputs.cmd-options }}

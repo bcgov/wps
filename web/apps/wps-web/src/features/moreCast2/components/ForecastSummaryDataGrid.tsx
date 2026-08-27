@@ -3,6 +3,7 @@ import { styled } from '@mui/material/styles'
 import { DataGridPro, type GridCellParams, type GridEventListener } from '@mui/x-data-grid-pro'
 import { ModelChoice } from '@wps/api/moreCast2API'
 import { MORECAST_WEATHER_PARAMS, type MoreCastParams, theme } from '@wps/ui/theme'
+import { CSP_NONCE } from '@wps/utils/env'
 import { PINNED_COLUMNS } from 'features/moreCast2/components/ColumnDefBuilder'
 import { DataGridColumns, getSummaryColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
 import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
@@ -71,6 +72,7 @@ const ForecastSummaryDataGrid = ({
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGridPro
+        nonce={CSP_NONCE}
         getCellClassName={params => {
           return params.field.endsWith('Forecast') || params.field.endsWith('Actual') ? 'forecastCell' : ''
         }}

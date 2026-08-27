@@ -1,14 +1,5 @@
 import * as materialIcons from '@mui/icons-material'
-import {
-  Button,
-  createTheme,
-  Dialog,
-  Icon,
-  InputAdornment,
-  StyledEngineProvider,
-  TextField,
-  ThemeProvider
-} from '@mui/material'
+import { Button, createTheme, Dialog, Icon, InputAdornment, TextField, ThemeProvider } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import type { PrepDateRange } from '@wps/api/hfiCalculatorAPI'
 import DateRangePickerWrapper from '@wps/ui/dateRangePicker/DateRangePickerWrapper'
@@ -92,46 +83,44 @@ const PrepDateRangeSelector = ({ dateRange, setDateRange }: PrepDateRangeSelecto
 
   return (
     <div>
-      <StyledEngineProvider injectFirst>
-        <ThemeProvider theme={dateRangePickerTheme}>
-          <Button
-            sx={{ textTransform: 'capitalize' }}
-            data-testid="date-range-picker-button"
-            onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
-          >
-            <DateRangePickerTextField
-              data-testid="date-range-picker-text-field"
-              size="small"
-              id="outlined-basic"
-              variant="outlined"
-              disabled={true}
-              label={'Set prep period'}
-              sx={{ pointerEvents: 'none' }}
-              value={
-                isUndefined(dateRange) || isUndefined(dateRange.start_date) || isUndefined(dateRange.end_date)
-                  ? ''
-                  : `${DateTime.fromISO(dateRange.start_date).toFormat(dateDisplayFormat).trim()} - ${DateTime.fromISO(
-                      dateRange.end_date
-                    )
-                      .toFormat(dateDisplayFormat)
-                      .trim()}
-                            `
-              }
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Icon>
-                        <materialIcons.DateRange />
-                      </Icon>
-                    </InputAdornment>
+      <ThemeProvider theme={dateRangePickerTheme}>
+        <Button
+          sx={{ textTransform: 'capitalize' }}
+          data-testid="date-range-picker-button"
+          onClick={() => setDateRangePickerOpen(!dateRangePickerOpen)}
+        >
+          <DateRangePickerTextField
+            data-testid="date-range-picker-text-field"
+            size="small"
+            id="outlined-basic"
+            variant="outlined"
+            disabled={true}
+            label={'Set prep period'}
+            sx={{ pointerEvents: 'none' }}
+            value={
+              isUndefined(dateRange) || isUndefined(dateRange.start_date) || isUndefined(dateRange.end_date)
+                ? ''
+                : `${DateTime.fromISO(dateRange.start_date).toFormat(dateDisplayFormat).trim()} - ${DateTime.fromISO(
+                    dateRange.end_date
                   )
-                }
-              }}
-            />
-          </Button>
-        </ThemeProvider>
-      </StyledEngineProvider>
+                    .toFormat(dateDisplayFormat)
+                    .trim()}
+                            `
+            }
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Icon>
+                      <materialIcons.DateRange />
+                    </Icon>
+                  </InputAdornment>
+                )
+              }
+            }}
+          />
+        </Button>
+      </ThemeProvider>
       <Dialog open={dateRangePickerOpen} onClose={toggleDateRangePicker}>
         <DateRangePickerWrapper
           initialDateRange={{ startDate, endDate }}

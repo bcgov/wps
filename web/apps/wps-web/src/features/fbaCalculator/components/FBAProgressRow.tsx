@@ -1,4 +1,4 @@
-import { createTheme, LinearProgress, StyledEngineProvider, TableCell, TableRow, ThemeProvider } from '@mui/material'
+import { createTheme, LinearProgress, TableCell, TableRow, ThemeProvider } from '@mui/material'
 import { theme } from '@wps/ui/theme'
 
 import React from 'react'
@@ -26,15 +26,13 @@ const FBAProgressRow = (props: FBAProgressRowProps) => {
   return (
     <React.Fragment>
       {props.loading && (
-        <StyledEngineProvider injectFirst>
-          <ThemeProvider theme={adjustedTheme}>
-            <TableRow data-testid="progress-row-fba">
-              <TableCell colSpan={21} padding="none" data-testid="progress-row-cell-fba">
-                <LinearProgress />
-              </TableCell>
-            </TableRow>
-          </ThemeProvider>
-        </StyledEngineProvider>
+        <ThemeProvider theme={adjustedTheme}>
+          <TableRow data-testid="progress-row-fba">
+            <TableCell colSpan={21} padding="none" data-testid="progress-row-cell-fba">
+              <LinearProgress />
+            </TableCell>
+          </TableRow>
+        </ThemeProvider>
       )}
     </React.Fragment>
   )

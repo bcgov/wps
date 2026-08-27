@@ -16,6 +16,7 @@ import {
   type MoreCastModelColors,
   type MoreCastParams
 } from '@wps/ui/theme'
+import { CSP_NONCE } from '@wps/utils/env'
 import { PINNED_COLUMNS } from 'features/moreCast2/components/ColumnDefBuilder'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
@@ -102,6 +103,7 @@ const ForecastDataGrid = ({
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGridPro
+        nonce={CSP_NONCE}
         getCellClassName={params => {
           return params.field.endsWith('Forecast') || params.field.endsWith('Actual') ? 'forecastCell' : ''
         }}
