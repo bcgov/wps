@@ -31,7 +31,7 @@ parameters:
     value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 500m
+    value: 200m
   - name: MEMORY_REQUEST
     description: Requested memory
     value: 1Gi
@@ -43,10 +43,10 @@ parameters:
     value: "2"
   - name: HPA_MAX_REPLICAS
     description: Upper bound for horizontal autoscaling
-    value: "10"
+    value: "6"
   - name: HPA_CPU_TARGET_PERCENTAGE
     description: Target average CPU utilization (% of requested CPU) the HPA scales around
-    value: "70"
+    value: "90"
   - name: HPA_MEMORY_TARGET_PERCENTAGE
     description: Target average memory utilization (% of requested memory) the HPA scales around
     value: "90"
