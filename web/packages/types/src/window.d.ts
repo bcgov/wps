@@ -18,9 +18,9 @@ interface RuntimeEnv {
   REACT_APP_HILLSHADE_STYLE_URL: string
 }
 
-declare var env: RuntimeEnv
+declare var config: RuntimeEnv
 
 interface Window {
-  env: RuntimeEnv
+  config: RuntimeEnv
   Playwright: Record<string, unknown> | undefined
 }
