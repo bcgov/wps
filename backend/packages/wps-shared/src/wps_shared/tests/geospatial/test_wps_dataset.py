@@ -217,25 +217,10 @@ def test_raster_mul_disk_backed_corrupt_read_if_not_closed_before_reopen():
         gdal.PopErrorHandler()
 
 
-def test_array_protocol_lets_dataset_be_used_as_a_numpy_array():
-    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    ds = create_test_dataset(
-        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Int16, fill_value=5
-    )
-    ds.GetRasterBand(1).WriteArray(np.array([[1, 5000], [11000, 0]], dtype=np.int16))
-
-    with WPSDataset(ds_path=None, ds=ds) as wps_ds:
-        assert np.array_equal(np.asarray(wps_ds), np.array([[1, 5000], [11000, 0]]))
-        assert np.array_equal(
-            np.where(np.asarray(wps_ds) >= 10000, 1, 0), np.array([[0, 0], [1, 0]])
-        )
-        # __array__ lets numpy FUNCTIONS treat wps_ds as array-like directly
-        assert np.count_nonzero(wps_ds) == 3
-
-
-def test_ordering_comparisons_against_a_threshold():
-    """source < 4000 etc. return a plain boolean array, for classify-style code written
-    directly against a WPSDataset (see transform())."""
+def test_read_array():
+    """read_array() is the explicit, named way to get this dataset's band as a NumPy array -
+    classify-style code should call it once and compare the plain array for multiple
+    conditions, rather than re-reading per comparison."""
     extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
     ds = create_test_dataset(
         "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Int16, fill_value=0
@@ -243,10 +228,9 @@ def test_ordering_comparisons_against_a_threshold():
     ds.GetRasterBand(1).WriteArray(np.array([[1000, 5000], [11000, 0]], dtype=np.int16))
 
     with WPSDataset(ds_path=None, ds=ds) as wps_ds:
-        assert np.array_equal(wps_ds < 4000, np.array([[True, False], [False, True]]))
-        assert np.array_equal(wps_ds <= 5000, np.array([[True, True], [False, True]]))
-        assert np.array_equal(wps_ds > 4000, np.array([[False, True], [True, False]]))
-        assert np.array_equal(wps_ds >= 5000, np.array([[False, True], [True, False]]))
+        data = wps_ds.read_array()
+        assert np.array_equal(data, np.array([[1000, 5000], [11000, 0]]))
+        assert np.array_equal(data < 4000, np.array([[True, False], [False, True]]))
 
 
 def test_from_array_disk_backed_via_output_path():

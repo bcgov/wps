@@ -57,33 +57,9 @@ class WPSDataset:
     def __exit__(self, *_):
         self.close()
 
-    def __array__(self, dtype=None):
-        """
-        Lets this dataset be passed directly to numpy functions (np.where(cond, wps_ds, 0),
-        np.unique(wps_ds), etc.) since numpy converts array-like arguments via this protocol.
-        """
-        array = self.ds.GetRasterBand(self.band).ReadAsArray()
-        return array.astype(dtype) if dtype is not None else array
-
-    # Ordering comparisons against a threshold (source < 4000) for classify-style code written
-    # directly against a WPSDataset - see transform(). Each comparison re-reads the band, so
-    # multi-condition code (np.select([source < 4000, source < 10000], ...)) should materialize
-    # once via np.asarray(source) first and compare that instead of comparing `source` twice.
-    # Deliberately not __eq__/__ne__ (no current need, and overriding equality has broader
-    # semantic risk - identity, hashability) or arithmetic dunders (__mul__ already means
-    # something domain-specific: validated, mask-normalizing raster multiply, not numpy's
-    # elementwise-scalar meaning).
-    def __lt__(self, other):
-        return np.asarray(self) < other
-
-    def __le__(self, other):
-        return np.asarray(self) <= other
-
-    def __gt__(self, other):
-        return np.asarray(self) > other
-
-    def __ge__(self, other):
-        return np.asarray(self) >= other
+    def read_array(self) -> np.ndarray:
+        """Read this dataset's band into a NumPy array."""
+        return self.ds.GetRasterBand(self.band).ReadAsArray()
 
     @classmethod
     def from_array(

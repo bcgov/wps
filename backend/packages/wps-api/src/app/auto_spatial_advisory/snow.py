@@ -22,7 +22,7 @@ def classify_snow_mask(snow_source: WPSDataset) -> WPSDataset:
     # In the classified data 0 is assigned to snow covered pixels which will 'cancel' HFI
     # values when the rasters are multiplied later on. QA values in the original data are
     # assigned a value of 1 so they dont impact HFI calculations for now.
-    snow_data = np.asarray(snow_source)
+    snow_data = snow_source.read_array()
     classified = np.where((snow_data > 10) & (snow_data <= 100), 0, 1)
     return WPSDataset.from_array(classified, snow_source, datatype=gdal.GDT_Byte)
 

@@ -258,7 +258,7 @@ class ViirsSnowJob:
             # Classify the data. Snow coverage in the source data is indicated by values in the
             # range of 0-100. Using a range of 10-100 to increase confidence. In the classified
             # data, 1 is assigned to snow covered pixels and all other pixels are 0.
-            source_data = np.asarray(source)
+            source_data = source.read_array()
             classified = np.where((source_data > 10) & (source_data <= 100), 1, 0)
             WPSDataset.from_array(
                 classified, source, datatype=gdal.GDT_Byte, output_path=classified_snow_path

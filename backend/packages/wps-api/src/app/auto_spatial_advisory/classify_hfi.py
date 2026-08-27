@@ -12,7 +12,7 @@ def classify_hfi(source_path, target_path):
     The output GeoTIFF will use 8 bit unsigned values.
     """
     with gdal_s3_context(), WPSDataset(source_path) as source:
-        source_data = np.asarray(source)
+        source_data = source.read_array()
         classified = np.select([source_data < 4000, source_data < 10000], [0, 1], default=2)
         WPSDataset.from_array(
             classified, source, nodata_value=0, datatype=gdal.GDT_Byte, output_path=target_path
