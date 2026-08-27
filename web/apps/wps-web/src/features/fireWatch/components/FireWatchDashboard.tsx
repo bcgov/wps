@@ -8,6 +8,7 @@ import PlayCircleIcon from '@mui/icons-material/PlayCircle'
 import { Alert, Backdrop, Box, CircularProgress, Snackbar, Tooltip, Typography, useTheme } from '@mui/material'
 import { DataGridPro, type DataGridProProps, GridActionsCellItem, type GridColDef } from '@mui/x-data-grid-pro'
 import { FireWatchPrescriptionColors } from '@wps/ui/theme'
+import { CSP_NONCE } from '@wps/utils/env'
 import { upperFirst } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -193,6 +194,7 @@ const FireWatchDashboard = () => {
       </Backdrop>
       <Box sx={{ padding: theme.spacing(2) }}>
         <DataGridPro
+          nonce={CSP_NONCE}
           density="compact"
           getRowId={row => row.id}
           processRowUpdate={processRowUpdate}

@@ -4149,6 +4149,7 @@ __metadata:
   dependencies:
     "@babel/core": "npm:^8.0.0"
     "@babel/preset-env": "npm:^8.0.0"
+    "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.8.2"
     "@emotion/styled": "npm:^11.8.1"
     "@mui/icons-material": "npm:^9.0.0"

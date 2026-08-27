@@ -7,6 +7,7 @@ import {
   type GridRenderCellParams
 } from '@mui/x-data-grid-pro'
 import type { FireShape, FireZoneFuelStats } from '@wps/api/fbaAPI'
+import { CSP_NONCE } from '@wps/utils/env'
 import CriticalHours from 'features/fba/components/viz/CriticalHours'
 import FuelDistribution from 'features/fba/components/viz/FuelDistribution'
 import { groupBy, isUndefined } from 'lodash'
@@ -125,6 +126,7 @@ const FuelSummary = ({ fireZoneFuelStats, selectedFireZoneUnit }: FuelSummaryPro
         <Typography>No fuel type information available.</Typography>
       ) : (
         <DataGridPro
+          nonce={CSP_NONCE}
           columns={columns}
           density="compact"
           disableColumnMenu
