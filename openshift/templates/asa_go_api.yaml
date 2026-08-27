@@ -43,7 +43,7 @@ parameters:
     value: "2"
   - name: HPA_MAX_REPLICAS
     description: Upper bound for horizontal autoscaling
-    value: "10"
+    value: "6"
   - name: HPA_CPU_TARGET_PERCENTAGE
     description: Target average CPU utilization (% of requested CPU) the HPA scales around
     value: "70"
