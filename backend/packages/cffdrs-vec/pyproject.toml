@@ -12,7 +12,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "gdal==3.13.1",
+    "gdal==3.13.3",
     "hypothesis>=6.150.2",
     "wps-shared",
 ]
