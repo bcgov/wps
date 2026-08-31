@@ -67,6 +67,7 @@ class MockDailyActualsDeps(NamedTuple):
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
     sfc_processor: MagicMock
+    ros_processor: MagicMock
     fmc_processor: MagicMock
     fmc_processor_class: MagicMock
     fmc_inputs: MagicMock
@@ -173,6 +174,14 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         f"{PIPELINE_PATH}.SurfaceFuelConsumptionProcessor", return_value=mock_sfc_processor
     )
 
+    mock_ros_inputs = MagicMock()
+    mock_addresser.get_surface_fuel_consumption_inputs.return_value = MagicMock()
+    mock_addresser.get_rate_of_spread_inputs.return_value = mock_ros_inputs
+
+    mock_ros_processor = MagicMock()
+    mock_ros_processor.process = AsyncMock(return_value=None)
+    mocker.patch(f"{PIPELINE_PATH}.RateOfSpreadProcessor", return_value=mock_ros_processor)
+
     # Keep the session root as a normal mock and only make the async methods AsyncMocks.
     # The session itself is used in async code, but some things it returns are still sync,
     # like `result.scalar()`. An AsyncMock root makes those look awaitable and causes noisy warnings.
@@ -198,6 +207,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
         sfc_processor=mock_sfc_processor,
+        ros_processor=mock_ros_processor,
         fmc_processor=mock_fmc_processor,
         fmc_processor_class=mock_fmc_processor_class,
         fmc_inputs=mock_fmc_inputs,
@@ -330,19 +340,19 @@ class TestRunSfmsDailyActuals:
 
         await run_sfms_daily_actuals(target_date)
 
-        # twelve tracked runs: 5 weather + 6 FWI + 1 SFC calculation.
-        assert mock_dependencies.db_session.execute.call_count == 12
+        # thirteen tracked runs: 5 weather + 6 FWI + 2 FBP calculations (SFC + ROS).
+        assert mock_dependencies.db_session.execute.call_count == 13
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):
         """Test that successful jobs are updated to success status."""
-        records = [MagicMock() for _ in range(12)]
+        records = [MagicMock() for _ in range(13)]
         mock_dependencies.db_session.get = AsyncMock(side_effect=records)
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert mock_dependencies.db_session.get.call_count == 12
+        assert mock_dependencies.db_session.get.call_count == 13
         for record in records:
             assert record.status == SFMSRunLogStatus.SUCCESS
             assert record.completed_at is not None
@@ -472,8 +482,8 @@ class TestMondayFWIInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        # twelve tracked runs: 5 weather + 3 interpolated FWI + 3 derived FWI + 1 SFC.
-        assert mock_dependencies.db_session.execute.call_count == 12
+        # thirteen tracked runs: 5 weather + 3 interpolated FWI + 3 derived FWI + 2 FBP calculations (SFC + ROS).
+        assert mock_dependencies.db_session.execute.call_count == 13
 
 
 class TestFWICalculationVsInterpolation:
@@ -606,6 +616,7 @@ class TestFWICalculationVsInterpolation:
             SFMSRunLogJobName.BUI_CALCULATION,
             SFMSRunLogJobName.FWI_CALCULATION,
             SFMSRunLogJobName.SFC_CALCULATION,
+            SFMSRunLogJobName.ROS_CALCULATION,
         ]
 
     @pytest.mark.anyio
@@ -637,6 +648,7 @@ class TestFWICalculationVsInterpolation:
             SFMSRunLogJobName.BUI_CALCULATION,
             SFMSRunLogJobName.FWI_CALCULATION,
             SFMSRunLogJobName.SFC_CALCULATION,
+            SFMSRunLogJobName.ROS_CALCULATION,
         ]
 
 
