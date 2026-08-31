@@ -29,16 +29,28 @@ ASYNC_DB_WRITE_STRING = f"postgresql+asyncpg://{write_user}:{postgres_password}@
 # connect to database - defaulting to always use utc timezone
 connect_args = {"options": "-c timezone=utc"}
 
-_write_engine = create_engine(DB_WRITE_STRING, connect_args=connect_args)
+# POSTGRES_POOL_SIZE/POSTGRES_MAX_OVERFLOW default to SQLAlchemy's own defaults (5/10) so
+# services that don't set them keep today's behaviour; set per-service via env var to size
+# for that service's expected burst concurrency (see openshift/templates/asa_go_api.yaml).
+_write_engine = create_engine(
+    DB_WRITE_STRING, pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)), max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10)), connect_args=connect_args
+)
 
 # use pre-ping on read, as connections are quite often stale due to how few users we have at the moment.
 _read_engine = create_engine(
     DB_READ_STRING, pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)), max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10)), pool_pre_ping=True, connect_args=connect_args
 )
 
-# TODO: figure out connection pooling? pre-ping etc.?
-_async_read_engine = create_async_engine(ASYNC_DB_READ_STRING, connect_args={"timeout": 30})
-_async_write_engine = create_async_engine(ASYNC_DB_WRITE_STRING)
+# TODO: pre-ping still not configured for the async engines (see the sync read engine above)
+_async_read_engine = create_async_engine(
+    ASYNC_DB_READ_STRING,
+    pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)),
+    max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10)),
+    connect_args={"timeout": 30},
+)
+_async_write_engine = create_async_engine(
+    ASYNC_DB_WRITE_STRING, pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)), max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10))
+)
 
 # bind session to database
 # avoid using these variables anywhere outside of context manager - if

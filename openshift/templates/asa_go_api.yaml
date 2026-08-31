@@ -34,10 +34,10 @@ parameters:
     value: 200m
   - name: MEMORY_REQUEST
     description: Requested memory
-    value: 1Gi
+    value: 2Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 1.5Gi
+    value: 2.5Gi
   - name: REPLICAS
     description: Number of replicas (also used as the HPA's minimum)
     value: "2"
@@ -68,6 +68,18 @@ parameters:
   - name: GUNICORN_WORKERS
     description: Number of gunicorn workers
     value: "4"
+  - name: POSTGRES_POOL_SIZE
+    description: >-
+      SQLAlchemy pool_size per DB engine (read and write each get their own pool), per gunicorn
+      worker. At GUNICORN_WORKERS=4 and HPA_MAX_REPLICAS=10, pool_size alone (excluding
+      transient overflow) puts a steady-state ceiling of REPLICAS*GUNICORN_WORKERS*2*pool_size
+      client connections on the shared pgbouncer, which caps at max_client_conn: 1000
+      (openshift/templates/crunchy.yaml) shared with every other service on the cluster -- keep
+      well under that when raising this.
+    value: "8"
+  - name: POSTGRES_MAX_OVERFLOW
+    description: Extra SQLAlchemy connections opened above pool_size during a burst, closed again once idle
+    value: "12"
   - name: DEPLOY_VERSION
     description: Changes to force a single rollout after image builds complete
     required: true
@@ -151,6 +163,10 @@ objects:
                       key: pgbouncer-port
                 - name: POSTGRES_DATABASE
                   value: ${POSTGRES_DATABASE}
+                - name: POSTGRES_POOL_SIZE
+                  value: ${POSTGRES_POOL_SIZE}
+                - name: POSTGRES_MAX_OVERFLOW
+                  value: ${POSTGRES_MAX_OVERFLOW}
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
