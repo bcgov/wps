@@ -34,10 +34,10 @@ parameters:
     value: 200m
   - name: MEMORY_REQUEST
     description: Requested memory
-    value: 1Gi
+    value: 2Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 1.5Gi
+    value: 2.5Gi
   - name: REPLICAS
     description: Number of replicas (also used as the HPA's minimum)
     value: "2"
